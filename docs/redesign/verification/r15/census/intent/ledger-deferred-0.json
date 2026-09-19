@@ -1,0 +1,294 @@
+[
+ {
+  "pid": "INT-DF-1",
+  "promise": "The app's bundled MCP subprocesses (openbb-mcp, sec-edgar-mcp) bind to their port well within the configured wait budget on a cold boot, even with concurrent _MEI extraction contending for disk I/O.",
+  "source": "CLAUDE.md#Deferred / carry-forward",
+  "kind": "quality-bar",
+  "status": "partial",
+  "evidence": "src-tauri/src/lib.rs:66-78 (measured 34.2s/33.6s cold, 13.6s/24.6s warm vs MCP_PORT_WAIT_SECS=45 x2), src-tauri/src/lib.rs:472-493 (setup joins both MCP binds BEFORE start_main_sidecar), docs/redesign/DECISIONS.md D76",
+  "gap": "Budget was widened (45s x 2), the bind was not made fast: isolated cold bind ~34s is 75% of one attempt, contended bind is unmeasured since Phase 9.5, and no in-repo measurement shows 'well within'. Side effect still live: lib.rs:484-493 blocks main-sidecar spawn on both MCP binds, so every launch pays the slower MCP bind (24.6s warm / 34s+ cold) before the data sidecar even starts.",
+  "decision_ref": "D76 (workaround affirmed for 0.8.0, fix explicitly kept live)"
+ },
+ {
+  "pid": "INT-DF-2",
+  "promise": "MCP sidecars are packaged with PyInstaller --onedir (not --onefile) to eliminate the per-launch _MEI extraction cost, via an externalBin-to-resource-folder Tauri config change plus a corresponding Rust spawn change.",
+  "source": "CLAUDE.md#Deferred / carry-forward; BLOCKERS.md#Phase 9 UC1 residual; BLOCKERS.md#Phase 9.5 UC1 update; docs/redesign/DECISIONS.md#D76",
+  "kind": "deferred-item",
+  "status": "missing",
+  "evidence": "scripts/ensure-openbb-mcp-sidecar.mjs:172 and scripts/ensure-sec-edgar-mcp-sidecar.mjs:152 still pass --onefile; src-tauri/tauri.conf.json:40-44 still lists both MCP binaries under bundle.externalBin; no 'onedir' anywhere in scripts/ or src-tauri/",
+  "gap": "No --onedir packaging, no resource-folder bundle, no Rust inner-exe spawn path. Needs a Tier-1 tauri.conf.json change + an attended tauri build.",
+  "decision_ref": "D76 (deferred to an operator-supervised change, NOT dropped)"
+ },
+ {
+  "pid": "INT-DF-3",
+  "promise": "The smoke test TCP-probes the claimed MCP port (not just checking the process is alive) and verifies a load-bearing endpoint such as /agents returning a count greater than 0.",
+  "source": "CLAUDE.md#Deferred / carry-forward; BLOCKERS.md#S2 item 8",
+  "kind": "deferred-item",
+  "status": "delivered",
+  "evidence": "scripts/smoke-test-sidecars.mjs:474-503 (_tcpConnectOk/_waitForBind), :100 + :810 (MCP_BIND_TIMEOUT_MS=90s TCP bind gate per MCP binary), :686-689 + :760-770 (/agents count > 0 assert), :641-648 (/health version assert), :696 (/mcp/status); DECISIONS.md D80 records an end-to-end green run",
+  "gap": "",
+  "decision_ref": "D80"
+ },
+ {
+  "pid": "INT-DF-4",
+  "promise": "The coral-vs-loss-red negative-value color is legible at both 1920x1080 and 2560x1440 in populated boot/Settings/News/Portfolio states.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 1",
+  "kind": "quality-bar",
+  "status": "dropped",
+  "evidence": "styles/tokens.css:47-55 (accent is now OpenCode peach #fab283, no coral), styles/tokens.css:81-88 (negative #e5544b, explicitly 'distinct from negative'); the 'Claude after dark' coral palette no longer exists",
+  "gap": "",
+  "decision_ref": "DECISIONS.md D26-D28 (R9 design system replaced the palette; D28 pins ember vs negative-red distinctness); COMMON.md out-of-scope: R9 design system / visual taste"
+ },
+ {
+  "pid": "INT-DF-5",
+  "promise": "The Fraunces font loads correctly in the app rather than silently falling back to Georgia.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 1",
+  "kind": "quality-bar",
+  "status": "dropped",
+  "evidence": "No 'Fraunces' or 'Georgia' string anywhere in src/ or styles/; styles/tokens.css:102-105 maps sans/serif/mono all to JetBrains Mono; src/main.tsx:10-12 self-hosts it via @fontsource (package.json:58)",
+  "gap": "",
+  "decision_ref": "DECISIONS.md D27 (R9 type system) + CLAUDE.md Frontend gotcha '003 rebuild'; COMMON.md out-of-scope: R9 design system"
+ },
+ {
+  "pid": "INT-DF-6",
+  "promise": "The copilot's tool-calling loop produces a real, correct answer end-to-end against a live BYOK provider key entered in Settings -> AI Providers.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 2",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-7",
+  "promise": "Multi-round tool use works correctly against a real Gemini API key.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 2",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-8",
+  "promise": "Multi-round tool use works correctly against a real Ollama-hosted model.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 2",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-9",
+  "promise": "The Kite Connect OAuth round-trip completes end-to-end in a browser against a real registered Zerodha app (api_key/secret + the registered redirect URI).",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 3",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-10",
+  "promise": "Kite's request_token capture is automated via a Rust loopback listener instead of requiring the user to manually paste the redirect URL.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 4",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-11",
+  "promise": "Dhan and Angel brokers expose granular positions_info/holdings_info/margins_info reads distinct from the generic account_info() fallback.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 4",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-12",
+  "promise": "The app exposes a GET /agents/roster metadata endpoint backing a 3-pane roster panel with a hard delegate_to_persona hand-off.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 5",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-13",
+  "promise": "The app provides a data-source/connector hub wiring up the (currently inert) DataSource registry, a panel gallery, saved screens, and command-palette-as-action-driver.",
+  "source": "BLOCKERS.md#Phase 10 carry-forwards item 6",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-14",
+  "promise": "Every BYOK provider (Anthropic, OpenAI, Google, Groq, Mistral, Cohere, Ollama) has measured first-token latency documented.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 1",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-15",
+  "promise": "Broker paper-mode connect works and shows correct failure-state UX when credentials are missing, across all 7 supported brokers.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 2",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-16",
+  "promise": "The 4 non-India broker adapters (Alpaca, Interactive Brokers, OANDA, ccxt-exec) are registered in BUNDLED_PLUGINS / bootstrap_default_adapters, not left India-only.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 2",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-17",
+  "promise": "The openbb-mcp startup-deadlock fix (F1) actually unblocks the full workflow+backtest chain in production, not merely degrading gracefully to 'unavailable'.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 3",
+  "kind": "guarantee",
+  "status": "partial",
+  "evidence": "src-tauri/src/openbb_mcp.rs:1-13 (Popen -> Rust Command spawn = the deadlock side-step), scripts/smoke-test-sidecars.mjs:810 (bind gate on the BUILT binaries), DECISIONS.md D80 (3/3 binaries booted, MCP ready 36 tools), D65 (backtest agent-vs-direct parity live)",
+  "gap": "Proven on dev-built binaries via the smoke test and dev runs only. No evidence in the repo of a packaged `tauri build` cold boot where openbb-mcp binds and a workflow+backtest chain consumes it; on a slow cold boot the chain still degrades to yfinance (src-tauri/src/lib.rs:62-78).",
+  "decision_ref": "D76"
+ },
+ {
+  "pid": "INT-DF-18",
+  "promise": "Tradesa V2 has a full 6-state populated screenshot capture against a real Supabase project.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 4",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-19",
+  "promise": "The app has a light theme, verified via an axe-core accessibility audit and a Lighthouse performance audit against the live Tauri shell.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 5",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-20",
+  "promise": "The macOS release build is code-signed (Apple Developer ID or ad-hoc).",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 6",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-21",
+  "promise": "The openbb-mcp / sec-edgar-mcp startup deadlock has a real root-cause fix (not just graceful degradation) in their streamable-http transport.",
+  "source": "BLOCKERS.md#v0.8.0 -> Phase 9 carry-forwards item 7",
+  "kind": "guarantee",
+  "status": "partial",
+  "evidence": "src-tauri/src/openbb_mcp.rs:3-13 and src-tauri/src/sec_edgar_mcp.rs (Tauri-Rust spawn replaces Python subprocess.Popen: the anyio/_MEIPASS/handle-inheritance deadlock is side-stepped); BLOCKERS.md:159-177 re-diagnoses the residual as slow cold bind + disk contention, not a deadlock",
+  "gap": "The streamable-http transport itself was never touched; the 'deadlock' was reclassified as a slow bind and mitigated by a wait budget (see INT-DF-1/2). Root cost (per-launch _MEI extraction + heavy import before bind) is unchanged.",
+  "decision_ref": "D76"
+ },
+ {
+  "pid": "INT-DF-22",
+  "promise": "MCP sidecar cold-boot bind latency is fully closed (not merely mitigated by a longer wait budget), so a pathologically slow machine cannot exceed the wait budget and degrade to 'unavailable'.",
+  "source": "BLOCKERS.md#Phase 9 UC1 residual",
+  "kind": "guarantee",
+  "status": "missing",
+  "evidence": "src-tauri/src/lib.rs:78-83 (fixed 45s x 2 ceiling), src-tauri/src/sec_edgar_mcp.rs:148-165 (final failure => 'treating as unavailable')",
+  "gap": "A machine slower than 90s total still degrades (openbb -> yfinance, /sec -> 501) with only an stderr line; nothing re-probes or late-attaches an MCP child that binds after the budget, so the degrade lasts the whole session.",
+  "decision_ref": "D76"
+ },
+ {
+  "pid": "INT-DF-23",
+  "promise": "The openbb-mcp-server / sec-edgar-mcp streamable-http transport defers heavy extension imports until first tool call, so bind() happens before the heavy import cost.",
+  "source": "BLOCKERS.md#Phase 9 UC1 residual - recommended real fix (b)",
+  "kind": "deferred-item",
+  "status": "dropped",
+  "evidence": "BLOCKERS.md:202-205 — ruled out: the heavy edgartools import happens inside upstream sec_edgar_mcp.server module load before bind; cannot bind-before-import without forking upstream",
+  "gap": "",
+  "decision_ref": "BLOCKERS.md 'Phase 9.5 UC1 update' (deferring imports ruled out); --onedir (INT-DF-2) named the one true fix"
+ },
+ {
+  "pid": "INT-DF-24",
+  "promise": "A one-time post-install 'warm' launch pre-extracts the PyInstaller _MEI temp directory so the first real launch is not the cold-boot case.",
+  "source": "BLOCKERS.md#Phase 9 UC1 residual - recommended real fix (c)",
+  "kind": "deferred-item",
+  "status": "missing",
+  "evidence": "No warm/pre-extract step in scripts/ (grep 'warm' hits only screener warm loops) or in src-tauri/src/lib.rs setup",
+  "gap": "No post-install warm launch. Low value on its own: _MEI dirs are per-launch temp dirs under --onefile, so only the OS file cache is warmed; superseded in practice by the --onedir fix (INT-DF-2).",
+  "decision_ref": "D76 (only --onedir kept live)"
+ },
+ {
+  "pid": "INT-DF-25",
+  "promise": "resetKillSwitch() correctly requires and asserts the reAck: true field in its POST body, with a regression test pinning camelCase/snake_case naming so the kill switch can never be permanently locked by a field-name drift.",
+  "source": "BLOCKERS.md#S1 item 1 (T5-safety-store-reset-ks)",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-26",
+  "promise": "propose_order() correctly raises BrokerError on an invalid order_type, with a test covering that path (not just invalid side and zero quantity).",
+  "source": "BLOCKERS.md#S1 item 2 (T5-broker-base-invalid-order-type)",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-27",
+  "promise": "The 4 LLM adapter stream_chat signatures are compatible with their ABC declaration (no async-signature mismatch).",
+  "source": "BLOCKERS.md#S2 item 1 (T2-mypy-llm-override)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-28",
+  "promise": "The PROVIDER and frequency/seasonal-adjustment params in the macro/FRED providers are typed as Literal[...] rather than plain str.",
+  "source": "BLOCKERS.md#S2 item 2 (T2-mypy-macro-provider-literal / T2-mypy-fred-frequency-literal)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-29",
+  "promise": "The autobahn dependency is pinned to >=20.12.3 to avoid CVE-2020-35678.",
+  "source": "BLOCKERS.md#S2 item 3 (T2-autobahn-cve)",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-30",
+  "promise": "The 3 kill() closures release their MutexGuard via a local .take() binding before any conditional branch, never holding the guard through an if-let pattern.",
+  "source": "BLOCKERS.md#S2 item 4 (T3-significant-drop-scrutinee)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-31",
+  "promise": "All 7 broker plugins are registered in BUNDLED_PLUGINS, or the deferred dynamic-load path is documented.",
+  "source": "BLOCKERS.md#S2 item 5 (T4-brokers-not-registered)",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-32",
+  "promise": "The Tradesa V2 plugin accesses secrets and the sidecar base URL only via PluginConfig.sidecarBaseUrl / PluginConfig.secrets, never by reaching directly into @/lib/keychain or @/lib/sidecar-client.",
+  "source": "BLOCKERS.md#S2 item 6 (T4-connection-keychain / T4-settings-dialog-keychain)",
+  "kind": "guarantee"
+ },
+ {
+  "pid": "INT-DF-33",
+  "promise": "The openbb-mcp yfinance fallback path is covered by a registry-level test.",
+  "source": "BLOCKERS.md#S2 item 7 (T5-openbb-mcp-provider-fallback-paths)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-34",
+  "promise": "BLUEPRINT.md section 10 UC2/UC4 is updated to acknowledge the MCP subprocess gap and the F1 port-bind degrade behavior.",
+  "source": "BLOCKERS.md#S2 item 9 (D-7 BLUEPRINT drift)",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-35",
+  "promise": "BLUEPRINT.md section 4 Module 7's light-theme claim is reconciled with reality: either the doc is corrected or light theme is implemented.",
+  "source": "BLOCKERS.md#S2 item 10 (D-4 BLUEPRINT drift)",
+  "kind": "deferred-item"
+ },
+ {
+  "pid": "INT-DF-36",
+  "promise": "All form fields have proper id/name attributes (10 fields identified as currently missing them).",
+  "source": "BLOCKERS.md#S3 (L11-form-fields-missing-id-name)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-37",
+  "promise": "aria-label coverage extends beyond the current ~4 of ~30 components.",
+  "source": "BLOCKERS.md#S3 (L11-aria-label-coverage-low)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-38",
+  "promise": "Custom keyboard shortcuts have keyboard handlers implemented app-wide.",
+  "source": "BLOCKERS.md#S3 (L11-keyboard-handlers-minimal)",
+  "kind": "capability"
+ },
+ {
+  "pid": "INT-DF-39",
+  "promise": "scripts/ensure-openbb-mcp-sidecar.mjs does not carry a redundant duplicate copy-metadata entry for fastmcp/fastmcp-slim.",
+  "source": "BLOCKERS.md#S3 (L3-fastmcp-fastmcp-slim-double-pin)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-40",
+  "promise": "The ccxt executeCommand plugin action is not dead code, bare command ids resolve correctly, and the Kite plugin manifest has no unknown field.",
+  "source": "BLOCKERS.md#S3 (T4-ccxt-executecommand-dead / T4-bare-commandids / T4-kite-manifest-unknown-field)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-41",
+  "promise": "The Monte Carlo option-pricer module has test coverage (currently zero).",
+  "source": "BLOCKERS.md#S3 (T5-monte-carlo-zero-coverage)",
+  "kind": "quality-bar"
+ },
+ {
+  "pid": "INT-DF-42",
+  "promise": "The vitest config has a coverage block configured.",
+  "source": "BLOCKERS.md#S3 (T5-vitest-config-no-coverage-block)",
+  "kind": "quality-bar"
+ }
+]

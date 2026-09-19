@@ -1,0 +1,8 @@
+[   6.9s] error: {"kind": "error", "message": "Your DeepSeek balance is empty \u2014 top up or switch provider in Settings.", "action": "Top up at platform.deepseek.com or pick a different provider in Settings.", "detail": "Error code: 402 - {'error': {'message': 'Insufficient Balance', 'type': 'unknown_error', 'param': None, 'code': 'invalid_request_error'}}", "code": "provider_402"}
+[   6.9s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 6.9s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · deepseek-chat
+exit=0

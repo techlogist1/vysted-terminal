@@ -1,0 +1,150 @@
+// R15 census TEMP repro (deleted after run) — proves restore-time autosave behaviour.
+import type { SerializedDockview } from "dockview";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useChatHistoryStore } from "@/store/chat-history";
+import { useModulesStore } from "@/store/modules";
+import { useNotesStore } from "@/store/notes";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { useResearchSpacesStore } from "@/store/research-spaces";
+import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
+
+vi.mock("@/lib/sidecar-client", () => ({
+  getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
+}));
+vi.mock("@/lib/keychain", async (importActual) => {
+  const actual = await importActual<typeof import("@/lib/keychain")>();
+  return { ...actual, getSecret: vi.fn(() => Promise.resolve(null)) };
+});
+
+import {
+  autosaveLayout,
+  deserializeWorkspace,
+  restoreLastSessionOrDefault,
+  type SerializedWorkspace,
+} from "@/lib/workspace";
+
+const LAYOUT = { grid: {}, panels: {} } as unknown as SerializedDockview;
+
+function fakeApi() {
+  return {
+    toJSON: () => LAYOUT,
+    fromJSON: vi.fn(),
+    addPanel: vi.fn(),
+    clear: vi.fn(),
+    getPanel: vi.fn(),
+    panels: [] as { id: string }[],
+    width: 1440,
+    hasMaximizedGroup: vi.fn(() => false),
+    exitMaximizedGroup: vi.fn(),
+    maximizeGroup: vi.fn(),
+  };
+}
+
+const SAVED: SerializedWorkspace = {
+  name: "__autosave__",
+  layout: LAYOUT,
+  enabledModules: {},
+  watchlist: [{ symbol: "RELIANCE", assetClass: "equity" }],
+  portfolios: {
+    list: [
+      {
+        id: "pf-1",
+        name: "Core",
+        holdings: [{ id: "h1", symbol: "TCS", quantity: 10, costBasis: 3500 }],
+      },
+    ],
+    activeId: "pf-1",
+  } as SerializedWorkspace["portfolios"],
+  notes: { general: "thesis", bySymbol: { TCS: "buy < 3400" }, focusSymbol: "TCS" },
+  researchSymbol: "TCS",
+  researchSpaces: {
+    byName: {
+      "Research: TCS": {
+        symbol: "TCS",
+        transcript: [{ role: "user", content: "what is TCS margin", createdAt: 1 }],
+        updatedAt: 1,
+      },
+    },
+  },
+};
+
+describe("R15 repro: restore-time autosave", () => {
+  beforeEach(() => {
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useResearchSpacesStore.setState({ byName: {} });
+    useChatHistoryStore.getState().clear();
+    useNotesStore.getState().fromBundle(null);
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+  });
+
+  it("page.tsx-style subscriptions POST PARTIAL blobs mid-restore; the last one lacks research memory", async () => {
+    const api = fakeApi();
+    useWorkspaceStore.getState().setDockviewApi(api as never);
+    const posts: SerializedWorkspace[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          posts.push(JSON.parse(String(init.body)).workspace as SerializedWorkspace);
+        }
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) });
+      }),
+    );
+    // Mirrors src/app/page.tsx:108-117 and :173-181 verbatim (installed at mount,
+    // i.e. BEFORE PanelHost's async restore resolves).
+    const u1 = useSymbolsStore.subscribe((s, p) => {
+      if (s.entries !== p.entries) void autosaveLayout();
+    });
+    const u2 = usePortfoliosStore.subscribe((s, p) => {
+      if (s.portfolios !== p.portfolios || s.activeId !== p.activeId) void autosaveLayout();
+    });
+    const u3 = useNotesStore.subscribe((s, p) => {
+      if (s.general !== p.general || s.bySymbol !== p.bySymbol || s.focusSymbol !== p.focusSymbol)
+        void autosaveLayout();
+    });
+
+    deserializeWorkspace(SAVED);
+    await new Promise((r) => setTimeout(r, 0));
+    u1();
+    u2();
+    u3();
+
+    // eslint-disable-next-line no-console
+    console.log(
+      "POSTS",
+      posts.length,
+      posts.map((b) => ({
+        holdings: b.portfolios?.list?.[0]?.holdings?.length ?? 0,
+        notes: b.notes?.general,
+        researchSymbol: b.researchSymbol,
+        spaces: Object.keys(b.researchSpaces?.byName ?? {}),
+      })),
+    );
+    expect(posts.length).toBeGreaterThan(1); // autosave fired DURING the restore
+    expect(posts[0].portfolios?.list?.[0]?.holdings?.length ?? 0).toBe(0); // partial: no holdings yet
+    const last = posts[posts.length - 1];
+    expect(last.researchSymbol).toBeUndefined(); // typed marker missing from the final write
+    expect(Object.keys(last.researchSpaces?.byName ?? {})).toEqual([]); // memory archive empty on disk
+  });
+
+  it("unknown-component skip path restores NONE of the non-layout state", async () => {
+    const api = fakeApi();
+    useWorkspaceStore.getState().setDockviewApi(api as never);
+    usePortfoliosStore.getState().setAll([], undefined);
+    const blob = {
+      ...SAVED,
+      layout: { panels: { x: { contentComponent: "renamed-or-plugin-panel" } } },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(blob) })),
+    );
+    const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(restored).toBe(false);
+    const holdings = usePortfoliosStore.getState().portfolios.flatMap((p) => p.holdings);
+    expect(holdings.length).toBe(0); // the user's saved TCS holding was NOT restored
+    expect(useNotesStore.getState().general).toBe(""); // nor the notes
+  });
+});

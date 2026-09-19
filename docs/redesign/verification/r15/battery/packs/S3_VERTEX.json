@@ -1,0 +1,764 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "S3",
+  "symbol": "VERTEX",
+  "status": "in_progress",
+  "collector_model": "claude-opus-5[1m]",
+  "collector_notes": "Outside-truth pack for S3 (Vertex Securities Ltd, BSE 531950). WebSearch budget for this session was already exhausted at task start (200/200), so every source below was reached by direct WebFetch on a known or derived URL, never by search. bseindia.com and api.bseindia.com return HTTP 403 to this fetcher for EVERY path tried (quote page, announcement API, annual-report PDF), so no primary exchange document could be opened - that is a REACHABILITY gap, not a world gap, and is recorded as such. The single most important fact about this name is that a 1:1 rights issue was allotted ACROSS the 2026-03-31 balance-sheet date, which is why reputable aggregators disagree about market cap by 2x, about book value by 2x, and about EPS by 2x - all while quoting the SAME price. Nothing below is averaged or smoothed; every conflict is recorded with both sides and their as_of dates.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Vertex Securities Limited",
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "corroboration": "Investing.com renders the same full form ('Vertex Securities Limited'); Screener.in and the app's own BSE master render the abbreviated 'Vertex Securities Ltd'.",
+      "note": "Ltd vs Limited is a live exact-match hazard for this name."
+    },
+    "brand_name": {
+      "value": "Vertex Broking",
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "note": "TRAP: the company's own website is vertexbroking.com, not vertexsecurities.com (that domain did not resolve for this fetcher). The customer-facing brand does not contain the word 'Securities' that the legal name and the ticker are built on. Screener's Links section points at http://www.vertexbroking.com as the official site."
+    },
+    "former_names": {
+      "value": "none found",
+      "as_of": "2026-09-19",
+      "rename_date": null,
+      "confidence": "medium - no rename is mentioned by Screener, Groww, INDmoney, Investing.com or the company site, and the CIN (registered 1993) carries no name-change marker visible to this fetcher. NOT confirmed against an MCA / BSE name-change record, which was unreachable."
+    },
+    "cin": {
+      "value": "L67120KL1993PLC007349",
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "note": "Decodes as: L (listed) / 67120 (securities broking) / KL (KERALA) / 1993 (incorporation year) / PLC / 007349. The state code KL contradicts two aggregators' stated headquarters - see identity.headquarters."
+    },
+    "isin": {
+      "value": "INE316D01024",
+      "as_of": "2026-09-19",
+      "source_url": "https://in.investing.com/equities/vertex-securities-bo",
+      "note": "Externally confirmed, and it matches the row in the app's bundled bse_instruments.json exactly. The '02' series in INE316D010(2)4 indicates this is not the original ISIN line for the scrip (face value / capital reorganisation history), but that history was not reachable."
+    },
+    "bse_code": {
+      "value": "531950",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/531950/"
+    },
+    "bse_symbol": {
+      "value": "VERTEX",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/531950/"
+    },
+    "nse_symbol": {
+      "value": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/531950/",
+      "gap": "world_gaps.no_nse_listing_exists",
+      "note": "TRAP: Screener's Links section has a BSE URL and NO NSE URL. The scrip is BSE-only. HOWEVER the company itself holds an NSE TRADING MEMBERSHIP (member code 13248, per its own website) - so the string 'NSE' is genuinely attached to this company while the SHARE is not listed on NSE. A resolver that infers listing from an NSE mention will invent a listing that does not exist."
+    },
+    "aggregator_ticker_aliases": {
+      "value": ["VRTS (Investing.com)", "531950 (Screener/BSE numeric)", "BOM:531950 (StockAnalysis)"],
+      "as_of": "2026-09-19",
+      "source_url": "https://in.investing.com/equities/vertex-securities-bo",
+      "note": "Investing.com publishes this scrip under the ticker VRTS, which is NOT the BSE symbol and is not used by any other source. Symbol-keyed joins across sources will silently miss."
+    },
+    "board": {
+      "value": "BSE mainboard, group X",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/531950/",
+      "note": "Group X per the app's bundled BSE master row (531950 / VERTEX / X / INE316D01024 / Active). Group X is the illiquid/surveillance-adjacent segment; it is NOT the SME board (that would be M / MT). Independent confirmation of the group letter from bseindia.com was blocked by HTTP 403."
+    },
+    "sector": {
+      "value": "Financial Services",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/531950/",
+      "disagreement": [
+        { "value": "Financial Services > Finance > Other Financial Services", "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+        { "value": "Security Brokers, Dealers, and Flotation Companies", "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/" },
+        { "value": "Financial / Investment Banking & Investment Services", "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo" },
+        { "value": "Finance (Small Cap) / Stock-Commodity Brokers", "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" }
+      ],
+      "note": "Four sources, four industry strings, none of which is 'stock broking' verbatim except INDmoney's. Screener's own 'Other Financial Services' bucket is the least specific and is what a naive sector screen would inherit."
+    },
+    "industry": {
+      "value": "Stock broking / depository participant / merchant banking",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/531950/",
+      "note": "Screener's About text: 'Incorporated in 1993, Vertex Securities Ltd offers an end-to-end online digital platform for trading in Equity and Derivatives.' Registered as Merchant Banker, AMFI-registered Mutual Fund Distributor and Research Analyst; ~100 branches/franchisees, concentrated in Kerala."
+    },
+    "sebi_registrations": {
+      "value": {
+        "stock_broker": "INZ000204731",
+        "depository_participant_nsdl": "IN-DP-99-2015",
+        "nsdl_dp_id": "IN301811",
+        "research_analyst": "INH200007335",
+        "amfi_arn": "ARN-78627",
+        "bse_trading_member_code": "3188",
+        "nse_trading_member_code": "13248",
+        "mcx_member_code": "57160",
+        "bse_research_enlistment": "5354"
+      },
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "note": "These are BROKING-MEMBERSHIP codes for the company as an intermediary. TRAP: 'BSE Code 3188' (trading member) is a different number from 'BSE Code 531950' (the scrip), and both appear in company material. An extractor scraping 'BSE code' off the company site will get 3188 and resolve nothing."
+    },
+    "incorporated": {
+      "value": "1993",
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "corroboration": "CIN segment '1993' and Screener's About text both say 1993. The 33rd AGM being held in 2026 is consistent with a 1993 incorporation.",
+      "disagreement": [
+        { "value": "Founded 1987", "source": "Investing.com company profile", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+      ],
+      "note": "Investing.com's 1987 is contradicted by the CIN itself and by the AGM count. Recorded as a source conflict, not reconciled away."
+    },
+    "headquarters": {
+      "value": "2nd Floor, Thottathil Towers, Market Road, Kochi, Kerala 682018, India",
+      "as_of": "2026-09-19",
+      "source_url": "http://www.vertexbroking.com/",
+      "disagreement": [
+        { "value": "Bengaluru, Karnataka", "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" },
+        { "value": "Mumbai", "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+      ],
+      "note": "TRAP: three sources, three cities. The company's own registered office and its CIN state code (KL) both say KERALA; Screener's About text independently says the branch network is 'primarily strong in Kerala', and the 2026-09-17 investor meet was held in Kochi. Groww's Bengaluru and Investing.com's Mumbai are both wrong. A terminal that renders an aggregator's HQ field will display a wrong state for this company."
+    },
+    "managing_director": {
+      "value": "Mr. Ramachandran Unnikrishnan",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/vertex-securities-ltd",
+      "confidence": "low - single aggregator source, not read off a filing (the FY2026 annual report PDF is on bseindia.com and returned 403)."
+    },
+    "employees": {
+      "value": "approximately 80",
+      "as_of": "2026-09-19",
+      "source_url": "https://in.investing.com/equities/vertex-securities-bo",
+      "confidence": "low - Investing.com, the same profile that has the founding year and the HQ city wrong."
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "world_gaps.listing_date_unreached"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 3.27,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/531950/",
+      "corroboration": "Screener (Rs 3.27, +4.14%), Groww (Rs 3.27, +0.13 / +4.14%), INDmoney (Rs 3.27, +0.13 / +4.14%), StockAnalysis (Rs 3.27) and Investing.com (Rs 3.27) all agree on the price to the paisa. This is the ONE field on which every source agrees - which is what makes the market-cap and book-value spreads below diagnostic rather than noise.",
+      "note": "Penny price on a two-rupee face value: the stock trades at 1.6x face value."
+    },
+    "previous_close": {
+      "value": 3.14,
+      "unit": "INR per share",
+      "date": "2026-09-17",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/vertex-securities-ltd",
+      "disagreement": [
+        { "value": 3.27, "source": "Investing.com (prints previous close == last price)", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+      ],
+      "note": "Investing.com's previous close equals its last price, i.e. its quote is a stale or same-session echo. A differ should treat Investing.com's intraday fields as unreliable for this scrip."
+    },
+    "day_open": { "value": 3.15, "unit": "INR per share", "date": "2026-09-18", "as_of": "2026-09-18", "source_url": "https://groww.in/stocks/vertex-securities-ltd" },
+    "day_range": { "value": [3.08, 3.28], "unit": "INR per share", "date": "2026-09-18", "as_of": "2026-09-18", "source_url": "https://groww.in/stocks/vertex-securities-ltd" },
+    "change_pct": { "value": 4.14, "unit": "percent", "date": "2026-09-18", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/531950/" },
+    "volume": { "value": 38100, "unit": "shares", "date": "2026-09-18", "as_of": "2026-09-18", "source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price", "note": "38.10K shares, i.e. about INR 1.25 lakh of turnover on the day - group-X illiquidity made concrete." }
+  },
+
+  "market_cap": {
+    "value": null,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT - recorded as a spread, deliberately not averaged",
+    "candidates": [
+      { "value": 48.4, "unit": "INR crore", "source": "Screener.in", "url": "https://www.screener.in/company/531950/", "implied_shares": 148020000, "as_of": "2026-09-18" },
+      { "value": 48.4, "unit": "INR crore", "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price", "implied_shares": 148024378, "as_of": "2026-09-18" },
+      { "value": 46.0, "unit": "INR crore", "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd", "implied_shares": 140672782, "as_of": "2026-09-18" },
+      { "value": 24.202, "unit": "INR crore (printed as USD-style 'INR 242.02M')", "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/", "implied_shares": 74010000, "as_of": "2026-09-18" },
+      { "value": 24.202, "unit": "INR crore (printed as 'INR 242.02 Million')", "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo", "implied_shares": 74010000, "as_of": "2026-09-18" }
+    ],
+    "mechanism": "The 2x spread is NOT a price disagreement (every source quotes 3.27) - it is a SHARE-COUNT disagreement. Pre-rights share count is 74.01M (equity capital INR 14.80 crore at INR 2 face value, unchanged FY2015-FY2025 per Screener's balance sheet). A 1:1 rights issue doubles it to ~148.02M. StockAnalysis and Investing.com are still on the pre-rights 74.01M; Screener and INDmoney are on the post-rights ~148.02M; Groww is on neither. Whichever count a terminal picks, it must state it, because the answer to 'what is this company worth' differs by 100% between two equally reputable feeds on the same day.",
+    "best_supported": {
+      "value": 48.4,
+      "unit": "INR crore",
+      "rationale": "3.27 x 148,024,378 = INR 48.40 crore. The 148,024,378 figure is the only explicitly-printed share count (INDmoney) and it reconciles exactly with Screener's market cap. The 74.01M count is refuted by the FY2026 balance sheet itself, which already shows equity capital risen to INR 18.50 crore (= 92.5M shares) at 2026-03-31.",
+      "confidence": "medium-high - arithmetic-consistent across two independent sources, but NOT confirmed against a BSE shareholding/capital filing (403)."
+    }
+  },
+
+  "shares_outstanding": {
+    "value": 148024378,
+    "unit": "equity shares",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+    "disagreement": [
+      { "value": 74010000, "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/", "note": "pre-rights count" },
+      { "value": 74010000, "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo", "note": "pre-rights count" },
+      { "value": 92500000, "source": "derived from Screener consolidated balance sheet, equity capital INR 18.50 crore at INR 2 face value", "url": "https://www.screener.in/company/531950/consolidated/", "note": "the count AS AT 2026-03-31 - i.e. mid-allotment, correct for the balance-sheet date and wrong for today" }
+    ],
+    "note": "THREE different counts are simultaneously defensible depending on the as-of date: 74.01M (pre-rights), 92.5M (at the FY2026 balance-sheet date), 148.02M (post full allotment). Any per-share figure computed without stating which count was used is untrustworthy for this scrip."
+  },
+
+  "pe_ttm": {
+    "value": "loss-making",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/",
+    "note": "Screener prints P/E as not available; StockAnalysis prints 'n/a'. Correct behaviour: the company's TTM earnings are negative, so a P/E does not exist.",
+    "disagreement": [
+      { "value": -10.46, "source": "INDmoney (prints a NEGATIVE P/E)", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" },
+      { "value": -10.26, "source": "Investing.com (prints a NEGATIVE P/E)", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+    ],
+    "trap": "Two of five sources render a negative P/E rather than a null. A screen that sorts ascending on P/E puts this loss-making company at the TOP as the 'cheapest' stock. The honest value is null-with-a-reason, not -10.46.",
+    "industry_pe_for_context": { "value": 33.3, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" }
+  },
+
+  "pb": {
+    "value": null,
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT",
+    "candidates": [
+      { "value": 4.43, "source": "Screener.in (standalone view)", "url": "https://www.screener.in/company/531950/" },
+      { "value": 4.78, "source": "Screener.in (consolidated view)", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": 3.48, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" },
+      { "value": 2.19, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" }
+    ],
+    "note": "Range 2.19x to 4.78x - a 2.2x spread on the same price, driven entirely by the book-value denominator below. Note that Screener ITSELF prints two different P/B values depending on whether the consolidated toggle is on."
+  },
+
+  "book_value_per_share": {
+    "value": null,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT",
+    "candidates": [
+      { "value": 0.68, "source": "Screener.in (consolidated view)", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": 0.74, "source": "Screener.in (standalone view)", "url": "https://www.screener.in/company/531950/" },
+      { "value": 0.89, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" },
+      { "value": 1.43, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" }
+    ],
+    "mechanism": "Consolidated net worth at 2026-03-31 = equity capital INR 18.50 crore + reserves INR -8.37 crore = INR 10.13 crore (reserves are NEGATIVE - accumulated losses). INR 10.13 crore / 148.02M shares = INR 0.684, which is exactly Screener's consolidated 0.68: Screener divides the OLD (balance-sheet-date) net worth by the NEW (post-rights) share count. Divide the same net worth by the 92.5M shares that actually existed at that balance-sheet date and you get INR 1.095 - close to Groww's 1.43 but not equal to it. The 2x spread is the rights issue straddling the reporting date.",
+    "trap": "NEGATIVE RESERVES. This company's reserves line has been negative every single year from FY2015 to FY2026 (-2.54 to -8.37 crore). Any model that assumes reserves are additive-positive, or that computes net worth as 'equity capital + |reserves|', will roughly double the book value and halve the P/B."
+  },
+
+  "face_value": {
+    "value": 2.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/",
+    "corroboration": "Groww prints face value INR 2 independently.",
+    "note": "Relevant because the rights issue was priced AT face value (INR 2.00) - a distress-pricing signal and the lowest legally permissible rights price."
+  },
+
+  "roe": {
+    "value": -22.0,
+    "unit": "percent (last financial year, FY2026)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/",
+    "additional": [
+      { "value": -8.61, "unit": "percent (3-year average)", "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+      { "value": -9.31, "unit": "percent (3-year average, consolidated view)", "source": "Screener.in consolidated", "url": "https://www.screener.in/company/531950/consolidated/" }
+    ],
+    "disagreement": [
+      { "value": -23.35, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" },
+      { "value": 0.0, "source": "INDmoney (prints ROE 0% AND ROCE 0% - a silent null-rendered-as-zero)", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" }
+    ],
+    "trap": "INDmoney renders BOTH ROE and ROCE as 0% rather than as negative or unavailable. A terminal copying that feed would display a company destroying 22% of its equity per year as a company earning exactly nothing - and a quality screen filtering 'ROE > 0' would neither include nor exclude it correctly. Screener's own standalone and consolidated 3-year averages also differ (-8.61 vs -9.31)."
+  },
+
+  "roce": {
+    "value": -13.4,
+    "unit": "percent (standalone, latest)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/",
+    "disagreement": [
+      { "value": -12.04, "unit": "percent (consolidated, FY2026)", "source": "Screener.in consolidated ratios table", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": 0.0, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" }
+    ],
+    "history_consolidated": {
+      "unit": "percent",
+      "source_url": "https://www.screener.in/company/531950/consolidated/",
+      "FY2015": -1.59, "FY2016": -0.14, "FY2017": 7.74, "FY2018": 8.96, "FY2019": 5.1,
+      "FY2020": -24.97, "FY2021": 10.4, "FY2022": 8.89, "FY2023": 3.83, "FY2024": 6.08,
+      "FY2025": -1.51, "FY2026": -12.04
+    }
+  },
+
+  "debt_to_equity": {
+    "value": 0.59,
+    "unit": "ratio",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/vertex-securities-ltd",
+    "corroboration": "Reconciles with Screener's consolidated balance sheet: borrowings INR 5.98 crore / net worth INR 10.13 crore = 0.59.",
+    "disagreement": [
+      { "value": 0.72, "unit": "debt-to-ASSET ratio, not debt-to-equity", "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price", "note": "Different ratio under a similar name - a units/definition trap, not a data conflict." }
+    ],
+    "note": "For a BROKER, 'borrowings' and 'other liabilities' (INR 19.86 crore at FY2026) include client-float-adjacent items. Broker leverage ratios are not comparable to a manufacturer's; every source computes them as if they were."
+  },
+
+  "revenue_ttm": {
+    "value": null,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT (consolidated vs standalone vs TTM-vs-FY)",
+    "candidates": [
+      { "value": 6.79, "unit": "INR crore", "basis": "standalone TTM", "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+      { "value": 6.9, "unit": "INR crore", "basis": "consolidated FY2026 (year ended 2026-03-31)", "source": "Screener.in consolidated", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": 7.136, "unit": "INR crore (printed as 'INR 71.36M')", "basis": "TTM, basis unstated", "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/" },
+      { "value": 7.136, "unit": "INR crore (printed as 'INR 71.36 Million')", "basis": "TTM, basis unstated", "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+    ],
+    "trap": "SCALE UNITS. StockAnalysis and Investing.com print this in MILLIONS ('71.36M'); Screener, Groww and INDmoney print it in CRORE ('6.79 Cr'). 71.36 million = 7.136 crore. A pipeline that reads the numeral without the unit is off by 10x in one direction or the other. For a company this small, 7.136 vs 6.79 also happens to look like a plausible rounding difference while actually being a different reporting basis.",
+    "definitional_note": "For a broker, 'Sales' as Screener labels it is brokerage + fee income and EXCLUDES 'Other Income' (INR 0.98 crore consolidated FY2026, which is 14% of sales and swung to 0.73 crore in the Mar-2026 quarter alone). Total income on the basis a bank/NBFC screen would use is therefore ~INR 7.88 crore, not 6.90."
+  },
+
+  "net_profit_ttm": {
+    "value": null,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT",
+    "candidates": [
+      { "value": -2.54, "unit": "INR crore", "basis": "standalone TTM", "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+      { "value": -2.37, "unit": "INR crore", "basis": "consolidated FY2026", "source": "Screener.in consolidated", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": -2.366, "unit": "INR crore (printed as '-INR 23.66M')", "basis": "TTM", "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/" }
+    ],
+    "note": "All candidates agree on the SIGN and rough magnitude. The company is loss-making; that is not in dispute."
+  },
+
+  "revenue_growth_yoy": {
+    "value": -21.86,
+    "unit": "percent",
+    "basis": "consolidated FY2026 sales INR 6.90 crore vs consolidated FY2025 sales INR 8.83 crore (full financial years ended 31 March)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/consolidated/",
+    "disagreement": [
+      { "value": -16.56, "unit": "percent", "basis": "TTM vs prior TTM, stated as 'revenue decline of 16.56%'", "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/" }
+    ],
+    "note": "Basis is stated explicitly because for this name FY-over-FY and TTM-over-TTM give materially different growth numbers. StockAnalysis also states losses INCREASED 237% year over year."
+  },
+
+  "eps_ttm": {
+    "value": null,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "status": "UNRESOLVED SOURCE CONFLICT - a 4.7x spread on the same loss",
+    "candidates": [
+      { "value": -0.17, "basis": "standalone TTM", "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+      { "value": -0.16, "basis": "consolidated FY2026", "source": "Screener.in consolidated", "url": "https://www.screener.in/company/531950/consolidated/" },
+      { "value": -0.18, "basis": "TTM", "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" },
+      { "value": -0.0676, "basis": "TTM", "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" },
+      { "value": -0.32, "basis": "TTM", "source": "StockAnalysis.com and Investing.com", "url": "https://stockanalysis.com/quote/bom/531950/" }
+    ],
+    "mechanism": "Same numerator (about -INR 2.4 crore), four different denominators. -2.37cr / 74.01M = -0.32 (pre-rights count, StockAnalysis and Investing.com). -2.37cr / 148.02M = -0.16 (post-rights count, Screener). INDmoney's -0.0676 matches NEITHER and appears to use a partial-period loss. The rights issue makes EPS the single least comparable field on this scrip."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0.5,
+      "unit": "INR per share",
+      "declared_date": "2006-10-11",
+      "record_or_ex_date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+      "note": "Nearly twenty years ago. On a INR 2 face value that was a 25% dividend.",
+      "gap": "world_gaps.dividend_record_date_unreached"
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0.0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/531950/",
+      "corroboration": "Screener, Groww and Investing.com all show dividend yield 0.00% / N/A."
+    },
+    "yield": { "value": 0.0, "unit": "percent", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/531950/" }
+  },
+
+  "week52": {
+    "low": {
+      "value": 2.26,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/531950/",
+      "corroboration": "Screener, Groww, INDmoney, StockAnalysis and Investing.com ALL print 2.26. No disagreement."
+    },
+    "high": {
+      "value": null,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "status": "UNRESOLVED SOURCE CONFLICT",
+      "candidates": [
+        { "value": 4.59, "source": "Screener.in", "url": "https://www.screener.in/company/531950/" },
+        { "value": 4.59, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" },
+        { "value": 4.59, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" },
+        { "value": 4.96, "source": "StockAnalysis.com", "url": "https://stockanalysis.com/quote/bom/531950/" },
+        { "value": 4.96, "source": "Investing.com", "url": "https://in.investing.com/equities/vertex-securities-bo" }
+      ],
+      "note": "A clean 3-2 split, and it splits along exactly the same line as the share-count conflict: the two sources still on the pre-rights share count are also the two showing the higher 52-week high. That is consistent with an UNADJUSTED price series - a rights issue at INR 2.00 against a ~INR 4 market price dilutes the theoretical ex-rights price, and sources that adjust history for it print a lower high. Neither figure is 'wrong'; they answer different questions. A terminal must say which."
+    }
+  },
+
+  "shareholding": {
+    "quarter": "Q1 FY27, quarter ended 2026-06-30 (the latest filed quarter)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/531950/consolidated/",
+    "promoter_pct": {
+      "value": 36.44,
+      "source": "Screener.in",
+      "disagreement": [
+        { "value": 36.43, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd" },
+        { "value": 36.43, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price" }
+      ],
+      "note": "0.01pp apart - rounding, not a real conflict. Recorded because both spellings are in circulation."
+    },
+    "fii_pct": { "value": 0.0, "source": "Screener.in (no FII row is rendered for this scrip)", "confidence": "medium - an absent row is being read as zero; not confirmed against the filed BSE shareholding pattern (403)." },
+    "dii_pct": { "value": 0.0, "source": "Screener.in (explicit 0.00%)" },
+    "government_pct": { "value": 0.0, "source": "Screener.in (no row)" },
+    "public_pct": {
+      "value": 63.57,
+      "source": "Screener.in consolidated table / Groww / INDmoney",
+      "disagreement": [{ "value": 63.56, "source": "Screener.in default (standalone) page header", "url": "https://www.screener.in/company/531950/" }]
+    },
+    "pledged_pct_of_promoter": { "value": null, "gap": "world_gaps.pledge_unreached" },
+    "number_of_shareholders": { "value": 13105, "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/531950/consolidated/" },
+    "history": {
+      "source_url": "https://www.screener.in/company/531950/consolidated/",
+      "note": "Screener's quarter column labels came back ambiguous through this fetcher, so the series is recorded by SHAPE and by shareholder count, which is unambiguous. The promoter step-down happens between the quarter ended 2025-12-31 and the quarter ended 2026-03-31.",
+      "series": [
+        { "promoter_pct": 73.41, "public_pct": 26.59, "shareholders": 7907 },
+        { "promoter_pct": 73.41, "public_pct": 26.59, "shareholders": 10115 },
+        { "promoter_pct": 73.41, "public_pct": 26.6, "shareholders": 12321 },
+        { "promoter_pct": 73.41, "public_pct": 26.59, "shareholders": 12584 },
+        { "promoter_pct": 73.41, "public_pct": 26.59, "shareholders": 12476 },
+        { "promoter_pct": 73.41, "public_pct": 26.6, "shareholders": 12356 },
+        { "promoter_pct": 73.41, "public_pct": 26.6, "shareholders": 12735 },
+        { "promoter_pct": 36.44, "public_pct": 63.56, "shareholders": 13325, "quarter": "quarter ended 2026-03-31" },
+        { "promoter_pct": 36.44, "public_pct": 63.57, "shareholders": 13105, "quarter": "quarter ended 2026-06-30" }
+      ]
+    },
+    "mechanism": "The 73.41% -> 36.44% collapse is almost exactly a HALVING (73.41 / 2 = 36.705), which is the arithmetic signature of a 1:1 rights issue that the promoters did not subscribe to at all. It is NOT a promoter sale, and no bulk/block deal is needed to explain it. A terminal that flags 'promoter holding fell 37 percentage points' as a governance red flag without tying it to the rights issue will tell the user something true and materially misleading in the same sentence.",
+    "note": "TRAP: any source whose shareholding page is more than two quarters stale still shows 73.41%. The manifest's own reference block carries both figures for exactly this reason."
+  },
+
+  "corporate_actions_2026": [
+    {
+      "type": "Rights issue",
+      "ratio": "1:1",
+      "offer_price": { "value": 2.0, "unit": "INR per share" },
+      "period": "March 2026 (issue); allotment completed across the 2026-03-31 financial year end",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/vertex-securities-ltd",
+      "corroboration": "Independently evidenced in Screener's consolidated balance sheet: equity capital, flat at INR 14.80 crore for eleven consecutive years FY2015-FY2025, rises to INR 18.50 crore at FY2026; FY2026 financing cash flow is +INR 3.58 crore (against -0.45 to +0.11 in prior years); and promoter holding halves in the same quarter. Current share count (~148.02M) implies the remaining allotment completed after the balance-sheet date.",
+      "confidence": "medium-high on the fact and the ratio, LOW on the exact dates - the record date, ex-date and allotment date were NOT confirmed (BSE corporate-actions pages return 403 to this fetcher).",
+      "gap": "world_gaps.rights_issue_dates_unreached",
+      "why_it_matters": "This single action drives every other conflict in this pack: market cap (2x spread), EPS (4.7x spread), book value (2x spread), 52-week high (4.59 vs 4.96) and the promoter-holding collapse."
+    },
+    {
+      "type": "Annual General Meeting",
+      "detail": "33rd AGM scheduled 2026-09-29; notice dispatched and published 2026-08-29 and 2026-09-05",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/531950/"
+    },
+    {
+      "type": "Analyst / investor meet",
+      "detail": "Investor meet held 2026-09-17 at Kochi; intimation filed 2026-09-16",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price",
+      "note": "Screener's announcement list carries the 2026-09-16 intimation; INDmoney carries the Kochi location and the 2026-09-17 date."
+    }
+  ],
+
+  "latest_results": {
+    "quarter": "Q1 FY27, quarter ended 2026-06-30",
+    "filing_date": null,
+    "gap": "world_gaps.results_filing_date_unreached",
+    "as_of": "2026-09-18",
+    "consolidated": {
+      "source_url": "https://www.screener.in/company/531950/consolidated/",
+      "sales": { "value": 1.88, "unit": "INR crore" },
+      "expenses": { "value": 2.24, "unit": "INR crore" },
+      "operating_profit": { "value": -0.36, "unit": "INR crore" },
+      "opm_pct": -19.15,
+      "other_income": { "value": 0.04, "unit": "INR crore" },
+      "interest": { "value": 0.03, "unit": "INR crore" },
+      "depreciation": { "value": 0.06, "unit": "INR crore" },
+      "profit_before_tax": { "value": -0.41, "unit": "INR crore" },
+      "net_profit": { "value": -0.4, "unit": "INR crore" },
+      "eps": { "value": -0.03, "unit": "INR per share" }
+    },
+    "standalone": {
+      "source_url": "https://www.screener.in/company/531950/",
+      "sales": { "value": 1.78, "unit": "INR crore" },
+      "expenses": { "value": 2.22, "unit": "INR crore" },
+      "net_profit": { "value": -0.49, "unit": "INR crore" },
+      "corroboration": "INDmoney reports the same quarter as a 'standalone loss of INR 49.16 lakh' (= INR 0.4916 crore), which matches Screener's standalone -0.49 and NOT the consolidated -0.40."
+    },
+    "third_party_disagreement": [
+      { "sales": 2.13, "unit": "INR crore", "net_profit": -0.13, "source": "Groww", "url": "https://groww.in/stocks/vertex-securities-ltd", "note": "Groww also states revenue -8.45% YoY for this quarter." },
+      { "sales": 1.92, "unit": "INR crore", "net_profit": 0.4, "source": "INDmoney", "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price", "note": "CRITICAL DISAGREEMENT: INDmoney's summary block reports a POSITIVE net profit of INR 0.40 crore for Jun-2026 ('loss improvement of 72.22% QoQ') while its own news block reports a standalone LOSS of INR 49.16 lakh for the same quarter. The sign of the latest quarter's profit is internally inconsistent inside a single source. Screener's -0.40 consolidated is almost certainly the number INDmoney dropped the minus sign from." }
+    ],
+    "note": "Four sources, four revenue figures for one quarter (1.78 / 1.88 / 1.92 / 2.13 INR crore) and profits ranging from -0.49 to +0.40. This is the densest disagreement in the pack and the best single differ target."
+  },
+
+  "financials_history_consolidated": {
+    "source_url": "https://www.screener.in/company/531950/consolidated/",
+    "as_of": "2026-09-18",
+    "unit": "INR crore except EPS (INR per share) and percentages",
+    "quarterly": [
+      { "quarter": "Jun 2023", "sales": 1.53, "expenses": 1.71, "operating_profit": -0.18, "opm_pct": -11.76, "other_income": 0.18, "interest": 0.22, "depreciation": 0.06, "pbt": -0.28, "tax_pct": 0.0, "net_profit": -0.28, "eps": -0.02 },
+      { "quarter": "Sep 2023", "sales": 2.05, "expenses": 2.09, "operating_profit": -0.04, "opm_pct": -1.95, "other_income": 0.21, "interest": 0.1, "depreciation": 0.06, "pbt": 0.01, "tax_pct": 0.0, "net_profit": 0.01, "eps": 0.0 },
+      { "quarter": "Dec 2023", "sales": 1.95, "expenses": 1.97, "operating_profit": -0.02, "opm_pct": -1.03, "other_income": 0.22, "interest": 0.09, "depreciation": 0.06, "pbt": 0.05, "tax_pct": 0.0, "net_profit": 0.05, "eps": 0.0 },
+      { "quarter": "Mar 2024", "sales": 2.87, "expenses": 2.08, "operating_profit": 0.79, "opm_pct": 27.53, "other_income": 0.08, "interest": 0.11, "depreciation": 0.07, "pbt": 0.69, "tax_pct": -1.45, "net_profit": 0.69, "eps": 0.05 },
+      { "quarter": "Jun 2024", "sales": 2.5, "expenses": 2.37, "operating_profit": 0.13, "opm_pct": 5.2, "other_income": 0.14, "interest": 0.12, "depreciation": 0.06, "pbt": 0.09, "tax_pct": 0.0, "net_profit": 0.09, "eps": 0.01 },
+      { "quarter": "Sep 2024", "sales": 2.71, "expenses": 2.55, "operating_profit": 0.16, "opm_pct": 5.9, "other_income": 0.2, "interest": 0.1, "depreciation": 0.07, "pbt": 0.19, "tax_pct": 0.0, "net_profit": 0.19, "eps": 0.01 },
+      { "quarter": "Dec 2024", "sales": 1.8, "expenses": 2.17, "operating_profit": -0.37, "opm_pct": -20.56, "other_income": 0.13, "interest": 0.13, "depreciation": 0.07, "pbt": -0.44, "tax_pct": 0.0, "net_profit": -0.44, "eps": -0.03 },
+      { "quarter": "Mar 2025", "sales": 1.45, "expenses": 2.01, "operating_profit": -0.56, "opm_pct": -38.62, "other_income": 0.17, "interest": 0.08, "depreciation": 0.07, "pbt": -0.54, "tax_pct": 0.0, "net_profit": -0.54, "eps": -0.04 },
+      { "quarter": "Jun 2025", "sales": 1.99, "expenses": 2.07, "operating_profit": -0.08, "opm_pct": -4.02, "other_income": 0.14, "interest": 0.11, "depreciation": 0.07, "pbt": -0.12, "tax_pct": 16.67, "net_profit": -0.13, "eps": -0.01 },
+      { "quarter": "Sep 2025", "sales": 1.88, "expenses": 2.17, "operating_profit": -0.29, "opm_pct": -15.43, "other_income": 0.07, "interest": 0.09, "depreciation": 0.07, "pbt": -0.38, "tax_pct": -2.63, "net_profit": -0.37, "eps": -0.02 },
+      { "quarter": "Dec 2025", "sales": 1.92, "expenses": 2.2, "operating_profit": -0.28, "opm_pct": -14.58, "other_income": 0.04, "interest": 0.09, "depreciation": 0.07, "pbt": -0.4, "tax_pct": 2.5, "net_profit": -0.41, "eps": -0.03 },
+      { "quarter": "Mar 2026", "sales": 1.11, "expenses": 3.18, "operating_profit": -2.07, "opm_pct": -186.49, "other_income": 0.73, "interest": 0.07, "depreciation": 0.05, "pbt": -1.46, "tax_pct": -0.68, "net_profit": -1.44, "eps": -0.1 },
+      { "quarter": "Jun 2026", "sales": 1.88, "expenses": 2.24, "operating_profit": -0.36, "opm_pct": -19.15, "other_income": 0.04, "interest": 0.03, "depreciation": 0.06, "pbt": -0.41, "tax_pct": 0.0, "net_profit": -0.4, "eps": -0.03 }
+    ],
+    "annual": [
+      { "fy": 2015, "sales": 5.1, "expenses": 5.79, "operating_profit": -0.69, "opm_pct": -13.53, "other_income": 1.02, "interest": 0.22, "depreciation": 0.44, "pbt": -0.33, "net_profit": -0.33, "eps": -0.02 },
+      { "fy": 2016, "sales": 5.81, "expenses": 5.87, "operating_profit": -0.06, "opm_pct": -1.03, "other_income": 0.4, "interest": 0.6, "depreciation": 0.35, "pbt": -0.61, "net_profit": -0.61, "eps": -0.04 },
+      { "fy": 2017, "sales": 7.47, "expenses": 6.57, "operating_profit": 0.9, "opm_pct": 12.05, "other_income": 0.52, "interest": 0.65, "depreciation": 0.29, "pbt": 0.48, "net_profit": 0.48, "eps": 0.03 },
+      { "fy": 2018, "sales": 8.17, "expenses": 7.07, "operating_profit": 1.1, "opm_pct": 13.46, "other_income": 0.57, "interest": 0.67, "depreciation": 0.25, "pbt": 0.75, "net_profit": 0.75, "eps": 0.05 },
+      { "fy": 2019, "sales": 7.38, "expenses": 6.91, "operating_profit": 0.47, "opm_pct": 6.37, "other_income": 0.58, "interest": 0.52, "depreciation": 0.2, "pbt": 0.33, "net_profit": 0.31, "eps": 0.02 },
+      { "fy": 2020, "sales": 6.32, "expenses": 9.87, "operating_profit": -3.55, "opm_pct": -56.17, "other_income": 0.3, "interest": 0.62, "depreciation": 0.39, "pbt": -4.26, "net_profit": -4.25, "eps": -0.29 },
+      { "fy": 2021, "sales": 8.59, "expenses": 7.48, "operating_profit": 1.11, "opm_pct": 12.92, "other_income": 0.74, "interest": 0.8, "depreciation": 0.38, "pbt": 0.67, "net_profit": 0.67, "eps": 0.05 },
+      { "fy": 2022, "sales": 9.21, "expenses": 7.79, "operating_profit": 1.42, "opm_pct": 15.42, "other_income": 0.34, "interest": 1.12, "depreciation": 0.36, "pbt": 0.28, "net_profit": 0.28, "eps": 0.02 },
+      { "fy": 2023, "sales": 8.09, "expenses": 7.45, "operating_profit": 0.64, "opm_pct": 7.91, "other_income": 0.29, "interest": 1.22, "depreciation": 0.27, "pbt": -0.56, "net_profit": -0.55, "eps": -0.04 },
+      { "fy": 2024, "sales": 8.86, "expenses": 7.79, "operating_profit": 1.07, "opm_pct": 12.08, "other_income": 0.23, "interest": 0.59, "depreciation": 0.25, "pbt": 0.46, "net_profit": 0.47, "eps": 0.03 },
+      { "fy": 2025, "sales": 8.83, "expenses": 9.08, "operating_profit": -0.25, "opm_pct": -2.83, "other_income": 0.28, "interest": 0.47, "depreciation": 0.27, "pbt": -0.71, "net_profit": -0.7, "eps": -0.05 },
+      { "fy": 2026, "sales": 6.9, "expenses": 9.63, "operating_profit": -2.73, "opm_pct": -39.57, "other_income": 0.98, "interest": 0.36, "depreciation": 0.26, "pbt": -2.37, "net_profit": -2.37, "eps": -0.16 }
+    ],
+    "balance_sheet": [
+      { "fy": 2015, "equity_capital": 14.75, "reserves": -2.54, "borrowings": 1.76, "other_liabilities": 9.25, "total": 23.22 },
+      { "fy": 2016, "equity_capital": 14.75, "reserves": -3.14, "borrowings": 2.6, "other_liabilities": 9.68, "total": 23.89 },
+      { "fy": 2017, "equity_capital": 14.8, "reserves": -2.66, "borrowings": 2.84, "other_liabilities": 13.99, "total": 28.97 },
+      { "fy": 2018, "equity_capital": 14.8, "reserves": -1.91, "borrowings": 4.04, "other_liabilities": 12.49, "total": 29.42 },
+      { "fy": 2019, "equity_capital": 14.8, "reserves": -1.76, "borrowings": 3.36, "other_liabilities": 14.29, "total": 30.69 },
+      { "fy": 2020, "equity_capital": 14.8, "reserves": -6.09, "borrowings": 4.04, "other_liabilities": 12.48, "total": 25.23 },
+      { "fy": 2021, "equity_capital": 14.8, "reserves": -5.44, "borrowings": 6.16, "other_liabilities": 24.76, "total": 40.28 },
+      { "fy": 2022, "equity_capital": 14.8, "reserves": -5.16, "borrowings": 6.34, "other_liabilities": 33.24, "total": 49.22 },
+      { "fy": 2023, "equity_capital": 14.8, "reserves": -5.72, "borrowings": 9.39, "other_liabilities": 30.6, "total": 49.07 },
+      { "fy": 2024, "equity_capital": 14.8, "reserves": -5.27, "borrowings": 5.02, "other_liabilities": 25.28, "total": 39.83 },
+      { "fy": 2025, "equity_capital": 14.8, "reserves": -6.0, "borrowings": 5.48, "other_liabilities": 21.67, "total": 35.95 },
+      { "fy": 2026, "equity_capital": 18.5, "reserves": -8.37, "borrowings": 5.98, "other_liabilities": 19.86, "total": 35.97 }
+    ],
+    "cash_flow": [
+      { "fy": 2015, "operating": 1.0, "investing": 0.07, "financing": -0.59, "net": 0.48, "free_cash": 0.98 },
+      { "fy": 2016, "operating": -0.94, "investing": 0.06, "financing": 0.28, "net": -0.59, "free_cash": -1.1 },
+      { "fy": 2017, "operating": 1.18, "investing": 0.14, "financing": -0.46, "net": 0.87, "free_cash": 1.11 },
+      { "fy": 2018, "operating": -0.16, "investing": 0.61, "financing": 1.13, "net": 1.57, "free_cash": -0.22 },
+      { "fy": 2019, "operating": 1.51, "investing": -1.04, "financing": -0.53, "net": -0.06, "free_cash": 1.39 },
+      { "fy": 2020, "operating": -0.06, "investing": 2.48, "financing": -0.39, "net": 2.04, "free_cash": -0.61 },
+      { "fy": 2021, "operating": 3.52, "investing": -0.54, "financing": -0.45, "net": 2.53, "free_cash": 3.42 },
+      { "fy": 2022, "operating": 9.65, "investing": -5.9, "financing": -0.72, "net": 3.03, "free_cash": 9.56 },
+      { "fy": 2023, "operating": -8.42, "investing": 9.27, "financing": 1.97, "net": 2.83, "free_cash": -8.54 },
+      { "fy": 2024, "operating": -15.08, "investing": 9.52, "financing": -4.91, "net": -10.48, "free_cash": -15.15 },
+      { "fy": 2025, "operating": -0.44, "investing": 0.43, "financing": 0.11, "net": 0.1, "free_cash": -0.48 },
+      { "fy": 2026, "operating": -0.59, "investing": -0.18, "financing": 3.58, "net": 2.8, "free_cash": -0.74 }
+    ],
+    "other_ratios": {
+      "debtor_days": { "FY2015": 319.91, "FY2016": 275.79, "FY2017": 325.91, "FY2018": 323.45, "FY2019": 367.97, "FY2020": 53.71, "FY2021": 201.41, "FY2022": 248.09, "FY2023": 539.6, "FY2024": 184.97, "FY2025": 210.4, "FY2026": 166.1 },
+      "working_capital_days": { "FY2015": 422.25, "FY2016": 385.1, "FY2017": 455.39, "FY2018": 386.89, "FY2019": -121.17, "FY2020": -436.04, "FY2021": -379.87, "FY2022": -745.85, "FY2023": -509.83, "FY2024": 154.07, "FY2025": 147.98, "FY2026": 83.58 },
+      "note": "Debtor days and working-capital days are computed by Screener as if this were a product company. For a BROKER whose balance sheet carries client dues and exchange margins, 'debtor days = 539.60' (FY2023) and 'working capital days = -745.85' (FY2022) are artefacts of applying a manufacturing formula to a financial intermediary, not business facts. Any screen that flags these as red is flagging the formula."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-16",
+      "headline": "Analyst / Investor Meet Intimation",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d42d1d48-71b4-45f6-946f-bac5870df2e3.pdf",
+      "source_url": "https://www.screener.in/company/531950/"
+    },
+    {
+      "date": "2026-09-05",
+      "headline": "Newspaper Publication regarding dispatch of 33rd Annual General Meeting notice",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=ec9b1ea8-fb8b-421a-b61f-72dcdb5bc1b1.pdf",
+      "source_url": "https://www.screener.in/company/531950/"
+    },
+    {
+      "date": "2026-09-03",
+      "headline": "Annual Report (Reg. 34) - FY2025-26",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=10774cc8-4db4-4928-a689-5ef1a2b697f2.pdf",
+      "source_url": "https://www.screener.in/company/531950/"
+    }
+  ],
+  "additional_announcements": [
+    {
+      "date": "2026-09-03",
+      "headline": "33rd Annual General Meeting Notice",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=df093a3d-5647-4363-a18b-1c9bd13ce26d.pdf"
+    },
+    {
+      "date": "2026-08-29",
+      "headline": "Newspaper Publication announcing the 33rd Annual General Meeting (AGM scheduled 2026-09-29)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d162757b-e329-4a34-8e5c-78b340c7370d.pdf"
+    }
+  ],
+  "annual_reports": {
+    "FY2026": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=10774cc8-4db4-4928-a689-5ef1a2b697f2.pdf",
+    "FY2025": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ef33d7a4-7974-4831-bc55-e55de1ab9190.pdf",
+    "note": "Screener lists annual reports back to 2012. Neither PDF could be OPENED by this fetcher - bseindia.com returns HTTP 403 to every path. URLs are recorded as pointers, and no claim in this pack is sourced from their contents."
+  },
+
+  "consolidated_vs_standalone": {
+    "status": "MATERIAL - this company reports both and they differ on every headline line",
+    "note": "Investing.com's profile says the company operates 'together with its subsidiaries'. Screener serves a standalone view at /company/531950/ and a consolidated view at /company/531950/consolidated/ and the two disagree on: TTM revenue (6.79 vs 6.90 INR crore), TTM net profit (-2.54 vs -2.37), EPS (-0.17 vs -0.16), book value per share (0.74 vs 0.68), P/B (4.43x vs 4.78x), ROCE (-13.4% vs -12.04%) and the 3-year ROE average (-8.61% vs -9.31%). The latest quarter differs by the largest margin: standalone net -0.49 INR crore vs consolidated net -0.40 INR crore, an 18% gap on the headline loss. INDmoney's news feed quotes the STANDALONE figure (INR 49.16 lakh loss) while its own summary tiles quote something else again. A terminal that does not label which basis it is showing will show a different loss from the one the user reads in the press release.",
+    "evidence": ["https://www.screener.in/company/531950/", "https://www.screener.in/company/531950/consolidated/", "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price"]
+  },
+
+  "traps": [
+    {
+      "id": "T1",
+      "name": "Rights issue straddling the balance-sheet date",
+      "detail": "1:1 rights at INR 2.00 allotted across 2026-03-31. Three share counts are simultaneously 'correct' (74.01M pre-rights, 92.5M at the FY2026 balance-sheet date, ~148.02M today). Consequence: market cap differs 2x across reputable feeds (INR 24.2 crore vs INR 48.4 crore) at an identical quoted price of INR 3.27; EPS differs 4.7x (-0.0676 to -0.32); book value differs 2x (0.68 to 1.43). An automated pipeline that joins a price feed to a stale share count produces a confidently wrong valuation with no error anywhere in the chain."
+    },
+    {
+      "id": "T2",
+      "name": "Promoter collapse that is dilution, not a sale",
+      "detail": "73.41% -> 36.44% in one quarter is exactly a halving - the signature of promoters not subscribing to a 1:1 rights issue. Any red-flag heuristic that reads a 37-percentage-point promoter drop as an exit signal will emit a true number attached to a false story. The correct reading requires joining the shareholding table to the corporate action, which no aggregator in this pack does."
+    },
+    {
+      "id": "T3",
+      "name": "Negative reserves",
+      "detail": "Reserves have been NEGATIVE every year FY2015-FY2026 (-2.54 to -8.37 INR crore) - accumulated losses. Net worth is equity capital MINUS the accumulated deficit (18.50 - 8.37 = 10.13 INR crore). Any code that sums |reserves| or assumes reserves >= 0 roughly doubles book value and halves P/B."
+    },
+    {
+      "id": "T4",
+      "name": "Negative P/E rendered as a number",
+      "detail": "INDmoney (-10.46) and Investing.com (-10.26) print a negative P/E where Screener and StockAnalysis correctly print null. A screener sorting ascending on P/E ranks this loss-making penny stock as the market's cheapest name. The honest value is 'does not exist because earnings are negative'."
+    },
+    {
+      "id": "T5",
+      "name": "Null rendered as zero",
+      "detail": "INDmoney prints ROE 0% and ROCE 0% for a company whose actual ROE is about -22%. Zero is not missing and not negative; it passes 'ROE >= 0' filters and fails 'ROE > 0' filters, so the error is invisible in both directions."
+    },
+    {
+      "id": "T6",
+      "name": "Crore vs million scale mixing",
+      "detail": "StockAnalysis and Investing.com quote this Indian scrip in MILLIONS (market cap 'INR 242.02M', revenue 'INR 71.36M'); Screener, Groww and INDmoney quote CRORE. 242.02 million = 24.202 crore. Ten-times errors are one dropped unit away, and at this company's size the wrong-unit number still looks plausible."
+    },
+    {
+      "id": "T7",
+      "name": "Brand / legal name / domain all differ",
+      "detail": "Legal name 'Vertex Securities Limited'; official website vertexbroking.com; abbreviated 'Ltd' in the BSE master and on Screener; ticker VERTEX on BSE but VRTS on Investing.com. The word 'Broking' appears in the customer-facing brand and in no identifier; the word 'Securities' appears in every identifier and in no customer-facing brand. Entity extraction from news will match neither reliably."
+    },
+    {
+      "id": "T8",
+      "name": "'Vertex' is an occupied brand globally",
+      "detail": "Bare 'Vertex' resolves to Vertex Pharmaceuticals (NASDAQ: VRTX) in essentially all English-language finance coverage, and Investing.com's own alias for this scrip is VRTS - one character from VRTX. Any news or web-search step keyed on the bare word will return US biotech coverage for an INR 48 crore Kerala broker."
+    },
+    {
+      "id": "T9",
+      "name": "Headquarters disagreement across three cities",
+      "detail": "Company's own registered office and its CIN state code say KOCHI, KERALA. Groww says Bengaluru, Karnataka. Investing.com says Mumbai. Investing.com additionally states a founding year of 1987 against the CIN's 1993 and the company's own 33rd AGM. A profile panel that trusts an aggregator will print a wrong state, a wrong city and a wrong founding year."
+    },
+    {
+      "id": "T10",
+      "name": "Broker ratios computed with manufacturing formulas",
+      "detail": "Screener reports debtor days of 539.60 (FY2023) and working-capital days of -745.85 (FY2022) for a stock broker whose balance sheet carries client dues and exchange margins. 'Other liabilities' of INR 19.86 crore on a INR 35.97 crore balance sheet is float, not trade payables. Sales excludes Other Income (INR 0.98 crore, 14% of sales in FY2026, of which 0.73 crore landed in a single quarter) - so 'revenue' for this company is a definitional choice, not a fact."
+    },
+    {
+      "id": "T11",
+      "name": "NSE membership is not an NSE listing",
+      "detail": "The company holds NSE trading membership code 13248 and MCX membership 57160 and advertises them on its own site, while the SHARE is BSE-only (no NSE URL in Screener's Links section). The company-site 'BSE Code' is 3188 (trading member), not 531950 (scrip). A resolver scraping identifiers from company material gets the wrong numbers and may invent an NSE listing."
+    },
+    {
+      "id": "T12",
+      "name": "Unadjusted vs adjusted price history",
+      "detail": "52-week high splits 3-2: 4.59 (Screener, Groww, INDmoney) vs 4.96 (StockAnalysis, Investing.com) - and the split falls on exactly the same line as the pre/post-rights share count. Consistent with one camp adjusting the historical series for the INR 2.00 rights issue and the other not. The 52-week LOW (2.26) is unanimous, so a differ cannot detect this by checking one bound."
+    },
+    {
+      "id": "T13",
+      "name": "Sign error inside a single source",
+      "detail": "INDmoney's summary tile reports Jun-2026 net profit of +INR 0.40 crore ('loss improvement of 72.22% QoQ') while INDmoney's own news block for the same quarter reports a standalone LOSS of INR 49.16 lakh. One page, two signs. Cross-source agreement checks that treat a source as internally consistent will not catch this."
+    },
+    {
+      "id": "T14",
+      "name": "Penny price on a two-rupee face value",
+      "detail": "At INR 3.27 the stock trades at 1.6x face value and one tick is a material percentage move (the 2026-09-18 close was +4.14% on a INR 0.13 move). Turnover was ~38,100 shares, about INR 1.25 lakh. Percentage-change formatting, sparkline scaling and 'significant move' thresholds all need to behave at this magnitude, and a group-X scrip may simply not trade on a given day."
+    },
+    {
+      "id": "T15",
+      "name": "Fiscal-year labelling",
+      "detail": "Indian FY2026 = year ended 2026-03-31. The quarter ended 2026-06-30 is Q1 FY27 to a domestic source and 'Jun 2026' or even 'Q1 FY26' to others - INDmoney's news block literally labels the Jun-2026 quarter 'Q1 FY26'. Quarter-label joins across sources will mismatch by a full year."
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "id": "listing_date_unreached",
+      "field": "identity.listing_date",
+      "kind": "unreached",
+      "detail": "No source in this pack prints the BSE listing date. The scrip code 531950 is a 1990s-vintage BSE code and the CIN gives incorporation as 1993, but the actual listing date was not found and is NOT guessed. bseindia.com, which carries it, returns 403."
+    },
+    {
+      "id": "pledge_unreached",
+      "field": "shareholding.pledged_pct_of_promoter",
+      "kind": "unreached",
+      "detail": "No source in this pack renders a promoter-pledge percentage for this scrip. Screener shows no pledge row. This is genuinely unknown, not zero - do not record it as 0%."
+    },
+    {
+      "id": "rights_issue_dates_unreached",
+      "field": "corporate_actions_2026[0] record date / ex-date / allotment date / amount raised",
+      "kind": "unreached",
+      "detail": "The rights issue is well evidenced as a fact (Groww's corporate-action line plus three independent arithmetic corroborations in the balance sheet, cash flow and shareholding). Its exact dates and the amount raised are not. FY2026 financing cash flow of +INR 3.58 crore bounds the cash actually received during FY2026, but the full 1:1 at INR 2.00 on 74.01M shares would be about INR 14.8 crore, so the remainder came in after 2026-03-31. Not asserted."
+    },
+    {
+      "id": "results_filing_date_unreached",
+      "field": "latest_results.filing_date",
+      "kind": "unreached",
+      "detail": "Screener shows the Jun-2026 quarter's numbers but this fetcher could not read the filing date; the BSE announcement list reachable through Screener only went back to 2026-08-29."
+    },
+    {
+      "id": "dividend_record_date_unreached",
+      "field": "dividend.last_declared_per_share.record_or_ex_date",
+      "kind": "unreached",
+      "detail": "INDmoney gives the declaration date 2006-10-11 for the INR 0.50 dividend but no record or ex date."
+    },
+    {
+      "id": "no_nse_listing_exists",
+      "field": "identity.nse_symbol",
+      "kind": "does_not_exist",
+      "detail": "This share is BSE-only. There is no NSE symbol to find. A pipeline must return 'not listed on NSE', never a guess."
+    },
+    {
+      "id": "pe_does_not_exist",
+      "field": "pe_ttm",
+      "kind": "does_not_exist",
+      "detail": "TTM earnings are negative, so a price/earnings multiple does not exist. The correct value is null with the reason 'loss-making', not a negative number."
+    },
+    {
+      "id": "dividend_yield_is_genuinely_zero",
+      "field": "dividend.yield",
+      "kind": "exists_and_is_zero",
+      "detail": "Zero here is a real value, not a missing one: no dividend has been paid since 2006. Recorded explicitly so a differ does not treat 0.00% as a null."
+    }
+  ],
+
+  "source_reachability": {
+    "blocked": [
+      { "host": "bseindia.com", "paths_tried": ["/stock-share-price/vertex-securities-ltd/vertex/531950/", "/stockinfo/AnnPdfOpen.aspx?Pname=10774cc8-..."], "result": "HTTP 403 on every path", "consequence": "No primary exchange document (quote page, shareholding pattern, corporate-action calendar, annual report) could be opened. Every filings-grade field in this pack is therefore sourced from aggregators and is marked with its confidence." },
+      { "host": "api.bseindia.com", "paths_tried": ["/BseIndiaAPI/api/AnnGetData/w?strScrip=531950..."], "result": "HTTP 403" },
+      { "host": "moneycontrol.com", "result": "fetcher refused the host outright" },
+      { "host": "tijorifinance.com", "result": "reachable but the company page requires an authenticated session; only the marketing dashboard was returned" },
+      { "host": "marketsmojo.com", "result": "page loads but returns 'No analysis provided for this stock'" },
+      { "host": "tickertape.in", "result": "no entry surfaced for this scrip" },
+      { "host": "vertexsecurities.com", "result": "did not resolve - the company's real domain is vertexbroking.com" }
+    ],
+    "search_budget": "WebSearch was unavailable for this task (session budget 200/200 already consumed before the task started). Every source was reached by direct WebFetch on a known or derived URL."
+  },
+
+  "sources": [
+    { "url": "https://www.screener.in/company/531950/", "authority": "aggregator (screener.in-grade)", "used_for": "price, market cap, standalone TTM financials, sector, About text, 52-week range, shareholding headline, announcement list with BSE PDF URLs, official-website link" },
+    { "url": "https://www.screener.in/company/531950/consolidated/", "authority": "aggregator", "used_for": "full consolidated quarterly and annual P&L, balance sheet, cash flow, ROCE and debtor-day history, full shareholding series" },
+    { "url": "https://groww.in/stocks/vertex-securities-ltd", "authority": "aggregator", "used_for": "rights-issue corporate action, debt/equity, book value, ROE, MD name, industry P/E, day open/range" },
+    { "url": "https://www.indmoney.com/stocks/vertex-securities-ltd-share-price", "authority": "aggregator", "used_for": "shares outstanding, last dividend, volume, Jun-2026 standalone loss figure, internally inconsistent profit sign" },
+    { "url": "https://stockanalysis.com/quote/bom/531950/", "authority": "aggregator", "used_for": "pre-rights share count, million-scale market cap and revenue, alternate 52-week high, YoY decline percentages" },
+    { "url": "https://in.investing.com/equities/vertex-securities-bo", "authority": "aggregator", "used_for": "ISIN (external confirmation of INE316D01024), VRTS alias, alternate 52-week high, company profile (founding year and HQ both wrong)" },
+    { "url": "http://www.vertexbroking.com/", "authority": "company (primary, non-filing)", "used_for": "legal name, registered office, CIN, SEBI registrations, exchange membership codes, brand name" }
+  ]
+}

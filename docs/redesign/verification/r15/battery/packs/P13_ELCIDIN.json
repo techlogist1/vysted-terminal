@@ -1,0 +1,770 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "complete",
+  "slot": "P13",
+  "symbol": "ELCIDIN",
+  "collector_notes": "Outside-truth pack for P13 (Elcid Investments). WebSearch budget for this session was already exhausted (200/200) before the first query, so every source below was reached by a directly-constructed URL: screener.in standalone + consolidated pages, the BSE public JSON APIs (api.bseindia.com, which answer with a browser UA + bseindia Referer even though the HTML scrip page 403s), the actual BSE-filed Q1 FY2026-27 results PDF (downloaded and text-extracted locally), the company's own website, and two retail aggregators (Groww, INDmoney). NSE's public API is Akamai-blocked from this environment (HTTP 403 'Access Denied'), so every NSE-basis number below is second-hand via aggregators and is flagged as such. No legacy partial file existed at this path or at packs/ELCIDIN.json. Numbers I computed rather than read are marked derived:true with the arithmetic shown; nothing is fabricated, and fields no source printed are recorded in world_gaps.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Elcid Investments Limited",
+      "as_of": "2026-08-13",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "Spelled 'Elcid Investments Limited' on the company's own letterhead and signature block in its BSE filing of 13 Aug 2026, and on its own website.",
+      "disagreement": "The BSE SECURITY MASTER spells it with a space: 'EL CID Investments Ltd' (ComHeader/getScripHeaderData Cmpname.FullN and SLONGNAME on every announcement row). The NSE master per BATTERY/manifest.json master_presence is 'EL CID Investments Limited'. Screener, Groww and INDmoney all render 'Elcid Investments Ltd'. Exact-string name matching between an exchange master and any aggregator therefore FAILS for this scrip."
+    },
+    "former_names": {
+      "value": "none found",
+      "rename_date": null,
+      "as_of": "2026-09-19",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "CIN L64990MH1981PLC025770 encodes 1981 incorporation in Maharashtra and shows no name-change suffix; no source reached mentions a rename. The 'EL CID' vs 'Elcid' difference is a spacing/casing variant in the exchange master, NOT a rename.",
+      "confidence": "medium - absence of evidence from the sources reached, not a positive MCA confirmation"
+    },
+    "cin": {
+      "value": "L64990MH1981PLC025770",
+      "as_of": "2026-08-13",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "Printed on the company letterhead of the Q1 FY2026-27 results filing. 'L' = listed, '64990' = NBFC/other financial service activities, 'MH', '1981', 'PLC025770'."
+    },
+    "isin": {
+      "value": "INE927X01018",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "Matches the BSE master string recorded in BATTERY/manifest.json master_presence.bse."
+    },
+    "bse_code": {
+      "value": "503681",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid="
+    },
+    "bse_scrip_id": {
+      "value": "ELCIDIN",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE SecurityId is ELCIDIN, the same string as the NSE symbol - unusual and convenient, but do not generalise it."
+    },
+    "bse_group": {
+      "value": "B",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid="
+    },
+    "settlement_type": {
+      "value": "T+1",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid="
+    },
+    "nse_symbol": {
+      "value": "ELCIDIN",
+      "as_of": "2026-09-19",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "note": "Corroborated by screener.in ('NSE: ELCIDIN') and by the NSE master string in BATTERY/manifest.json (series EQ)."
+    },
+    "nse_series": {
+      "value": "EQ",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "note": "Series read from the NSE master quoted in BATTERY/manifest.json master_presence.nse; NSE itself was unreachable (see world_gaps.nse_primary_unreachable). NOT an SME scrip."
+    },
+    "board": {
+      "value": "mainboard",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE Group B (mainboard equity, not SME/M/MT/XT) and NSE series EQ. Category 'Listed'."
+    },
+    "sector": {
+      "value": "Financial Services",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE prints Sector='Financial Services', IGroup='Finance', ISubGroup='Investment Company'."
+    },
+    "industry": {
+      "value": "Investment Company",
+      "hierarchy": "Financial Services (IN05) > Financial Services (IN0501) > Finance (IN050101) > Investment Company (IN050101003)",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "corroboration": "BSE ComHeader Industry='Investment Company', ISubGroup='Investment Company'.",
+      "disagreement": "Tijori's ideas dashboard buckets it as 'Small cap Asset Management' (https://www.tijorifinance.com/company/elcid-investments-limited/), which is wrong: Elcid manages no third-party money. Groww describes it as an NBFC 'primarily known for its holding in Asian Paints Limited'. See traps.sector_is_resolvable_but_look_through_misleads."
+    },
+    "business_description": {
+      "value": "Incorporated in 1981, Elcid Investments Ltd is a non-banking financial company (NBFC) registered with the Reserve Bank of India (RBI) under the category of Investment Company. Its business is to make investments in shares, debentures, mutual funds etc.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "corroboration": "The Q1 FY2026-27 filing note 4 states verbatim: 'The Company is a Non Banking Financial Company and has no activities other than those of an investment company. Accordingly there are no separate reporting segments as in Ind AS 108 Operating Segment.' (https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf, page 6)"
+    },
+    "registered_office": {
+      "value": "414, Shah & Nahar (Worli) Industrial Estate, B Wing, Dr. E. Moses Road, Worli, Mumbai - 400 018",
+      "as_of": "2026-08-13",
+      "source_url": "https://www.elcidinvestments.com/",
+      "corroboration": "Identical address on the BSE filing letterhead (page 1)."
+    },
+    "incorporated": {
+      "value": "1981",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "corroboration": "CIN L64990MH1981PLC025770 carries 1981."
+    },
+    "key_management": {
+      "value": [
+        { "name": "Ms. Amrita (Amar) Vakil", "role": "Whole Time Director; Chairperson, Risk Management Committee" },
+        { "name": "Mrs. Ragini Vakil", "role": "Non-Executive Non-Independent Director; Chairperson, CSR Committee" },
+        { "name": "Mr. Varun Vakil", "role": "Non-Executive Non-Independent Director" },
+        { "name": "Ms. Shwetha M. Thomas", "role": "Non-Executive Independent Director" },
+        { "name": "Mr. Kartikeya Kaji", "role": "Non-Executive Independent Director" },
+        { "name": "Mr. Essaji Vahanvati", "role": "Non-Executive Independent Director" },
+        { "name": "Mr. Ayush Dolani", "role": "Company Secretary & Compliance Officer" }
+      ],
+      "as_of": "2026-08-13",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "Read from the 13 Aug 2026 board-meeting-outcome letter (Risk Management Committee constitution + CSR Committee reconstitution, both effective 14 Aug 2026). Groww separately labels 'Ms. Amrita Amar Vakil (CEO/MD)'."
+    },
+    "auditor": {
+      "value": "V. K. Beswal & Associates, Chartered Accountants (Firm Regn No. 101083W); signing partner CA Tanay R Kedia, Membership No. 154778",
+      "as_of": "2026-08-13",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf"
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "world_gaps.bse_listing_date_unreached",
+      "note": "No source reached prints the BSE listing date. The scrip is demonstrably decades old on BSE (1981 incorporation; screener carries BSE annual reports from 2012 and BSE-sourced shareholding back to Mar 2017), but that is inference, not a cited listing date."
+    },
+    "nse_listing_date": {
+      "value": "2026-04-20",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+      "confidence": "low - single aggregator, field labelled only 'Listing Date' with no exchange named",
+      "note": "Strongly consistent with the NSE-basis 52-week range being much narrower than the BSE one (see traps.fiftytwo_week_three_way_disagreement): if NSE trading began 20 Apr 2026, an NSE '52-week' window on 18 Sep 2026 covers only ~5 months. Treat as a corroborated hypothesis, not a filed fact."
+    }
+  },
+
+  "price": {
+    "last_close_nse_basis": {
+      "value": 105130.0,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T16:01:00+05:30",
+      "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+      "corroboration": "Groww prints the identical LTP 1,05,130.00, change -1,140.00 (-1.07%), previous close 1,06,270.00, day range 1,03,820.00 - 1,09,735.00. Screener prints 1,05,130 (-1.07%), '18 Sep - close price'. BATTERY/manifest.json reference price_inr 105130 / price_change_pct -1.07 matches.",
+      "prev_close": 106270.0
+    },
+    "last_close_bse_basis": {
+      "value": 107500.0,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T16:00:00+05:30",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=503681&seriesid=",
+      "raw": "{\"LTP\":\"107500.00\",\"Chg\":\"-497.00\",\"PcChg\":\"-0.46\"} ; Header {\"PrevClose\":\"107997.00\",\"Open\":\"107989.55\",\"High\":\"107990.00\",\"Low\":\"106271.00\",\"Ason\":\"18 Sep 26 | 16:00\"}",
+      "disagreement": "CRITICAL FOR THE DIFFER: on the SAME session (18 Sep 2026) BSE closed at 1,07,500 (-0.46%) and NSE at 1,05,130 (-1.07%) - a 2.25% gap between exchanges, and opposite-magnitude day changes. With 11 shares traded on BSE that day, neither print is a consensus price. Any 'last price' the app shows MUST name its exchange."
+    },
+    "bse_day_range": {
+      "value": { "open": 107989.55, "high": 107990.0, "low": 106271.0 },
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=503681&seriesid="
+    },
+    "nse_day_range": {
+      "value": { "low": 103820.0, "high": 109735.0 },
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd"
+    },
+    "bse_vwap": {
+      "value": 107164.27,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE field WAP = '1,07,164.27'. Computed off 11 shares - statistically meaningless, but it is what the exchange publishes."
+    },
+    "bse_circuit_filter_raw": {
+      "value": "11.00/86,000.00",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "Recorded VERBATIM and deliberately NOT interpreted: the upper value 86,000 is 20% BELOW the same payload's last traded price of 1,07,500, so this cannot be read as a price band for the current session. See traps.bse_circuit_filter_is_unusable."
+    }
+  },
+
+  "liquidity": {
+    "bse_traded_qty": {
+      "value": 11,
+      "unit": "shares",
+      "date": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid="
+    },
+    "bse_turnover": {
+      "value": 11.79,
+      "unit": "INR lakh",
+      "date": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE prints Turnover=11.79 with Turnoverin='(Lakh)'. 11 shares x ~1,07,164 = INR 11.79 lakh - internally consistent."
+    },
+    "bse_two_week_avg_qty": {
+      "value": 9,
+      "unit": "shares/day",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid="
+    },
+    "free_float_market_cap": {
+      "value": 526.21,
+      "unit": "INR crore",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=",
+      "note": "BSE MktCapFF. 25% free float of a 2,150 Cr full mcap = 537.5 Cr; the 526.21 print implies BSE's free-float factor is slightly under 24.5%."
+    }
+  },
+
+  "shares_outstanding": {
+    "value": 200000,
+    "unit": "shares",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+    "note": "Footnote on the standalone results statement (page 5): '2,00,000 Equity shares of Rs. 10/- each fully paid up'. Corroborated two ways: screener's Equity Capital of Rs 0.20 Cr / FV Rs 10 = 200,000 shares, and INDmoney prints 'Shares Outstanding: 2,00,000'. The ENTIRE company is two hundred thousand shares."
+  },
+
+  "market_cap": {
+    "value": 2102.6,
+    "unit": "INR crore",
+    "basis": "NSE close 1,05,130 x 2,00,000 shares",
+    "derived": true,
+    "as_of": "2026-09-18",
+    "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+    "note": "INDmoney prints 2,102.60 Cr exactly; screener prints 2,103 Cr (same number rounded). BATTERY/manifest.json reference mcap_inr_cr 2103 agrees.",
+    "disagreement": [
+      {
+        "value": 2150.0,
+        "unit": "INR crore",
+        "basis": "BSE close 1,07,500 x 2,00,000 shares",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=",
+        "note": "BSE field MktCapFull = '2,150.00'. Self-consistent with BSE's own LTP."
+      },
+      {
+        "value": 2160.0,
+        "unit": "INR crore",
+        "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+        "note": "Groww prints 2,160 Cr while printing LTP 1,05,130 on the same page - 1,05,130 x 200,000 = 2,102.6 Cr, so Groww's market cap is internally inconsistent with its own price by 2.7%. Stale field."
+      }
+    ]
+  },
+
+  "pe_ttm": {
+    "value": 22.0,
+    "unit": "x",
+    "basis": "CONSOLIDATED, screener TTM EPS 4,773.50 against price 1,05,130 (1,05,130 / 4,773.50 = 22.02)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "disagreement": [
+      {
+        "value": 26.7,
+        "basis": "STANDALONE",
+        "source_url": "https://www.screener.in/company/ELCIDIN/",
+        "note": "Same site, same day, same price - 21% higher purely because the standalone entity earns less than the group. BATTERY/manifest.json reference pe 26.7 is this standalone figure."
+      },
+      {
+        "value": 22.63,
+        "basis": "unstated (consolidated-like)",
+        "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+        "note": "Groww also prints 'Industry P/E: 18.62' for comparison."
+      },
+      {
+        "value": 22.03,
+        "basis": "unstated",
+        "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+        "note": "Internally inconsistent: INDmoney's own 'EPS (TTM) 5,426.02' against its own price 1,05,130 gives 19.38x, not 22.03x. See traps.indmoney_eps_ttm_is_actually_fy26_annual."
+      },
+      {
+        "value": 28.31,
+        "basis": "BSE-computed",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+        "note": "BSE ComHeader PE='28.31' while the same payload prints EPS='-' (blank) and CEPS='9328.16'. A four-way spread of 22.0 / 22.63 / 26.7 / 28.31 on one scrip on one day."
+      }
+    ]
+  },
+
+  "pb": {
+    "value": 0.242,
+    "unit": "x",
+    "basis": "CONSOLIDATED - price 1,05,130 / consolidated book value 4,33,672.47",
+    "derived": true,
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "corroboration": "Groww prints P/B 0.25; INDmoney prints 0.29 (basis unstated, and 1,05,130/4,33,672 = 0.242, so INDmoney's 0.29 matches neither book value it prints).",
+    "disagreement": [
+      {
+        "value": 0.349,
+        "basis": "STANDALONE - price 1,05,130 / standalone book value 3,01,137",
+        "derived": true,
+        "source_url": "https://www.screener.in/company/ELCIDIN/",
+        "note": "BATTERY/manifest.json reference pb 0.35 is this standalone figure. Standalone vs consolidated P/B differ by 44% - the single largest same-metric spread in this pack."
+      }
+    ]
+  },
+
+  "roe": {
+    "value": 1.23,
+    "unit": "percent",
+    "basis": "STANDALONE",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/ELCIDIN/",
+    "corroboration": "INDmoney prints ROE 1.23. BATTERY/manifest.json reference roe_pct 1.23 agrees.",
+    "disagreement": [
+      { "value": 1.21, "basis": "CONSOLIDATED", "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/" },
+      { "value": 1.25, "basis": "unstated", "source_url": "https://groww.in/stocks/elcid-investments-ltd" }
+    ],
+    "note": "An ROE near 1% is REAL and not an error: reported profit is only the dividend + realised-gain stream from the investment book, while the book value itself is marked to market through OCI. The economics of the holding are in OCI, not in the P&L that ROE uses."
+  },
+
+  "roce": {
+    "value": 1.45,
+    "unit": "percent",
+    "basis": "STANDALONE",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/ELCIDIN/",
+    "corroboration": "INDmoney prints ROCE 1.45.",
+    "disagreement": [
+      { "value": 1.43, "basis": "CONSOLIDATED", "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/" }
+    ],
+    "history_consolidated": {
+      "value": "Mar2015 23% / Mar2016 18% / Mar2017 18% / Mar2018 20% / Mar2019 2% / Mar2020 1% / Mar2021 1% / Mar2022 1% / Mar2023 1% / Mar2024 2% / Mar2025 2% / Mar2026 1%",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "note": "The step-down from 20% to 2% at FY2019 is the Ind AS fair-value transition: reserves jumped from Rs 258 Cr (Mar2018) to Rs 5,133 Cr (Mar2019) when the Asian Paints stake was marked to market, so the denominator grew ~20x overnight while the income stream did not. Any 'ROCE collapsed' narrative generated from this series without the accounting note is WRONG."
+    }
+  },
+
+  "debt_to_equity": {
+    "value": 0.0,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "note": "Screener's consolidated balance sheet prints Borrowings = 0 for every year Mar2015 through Mar2026; the standalone page prints Borrowings '-0'. Groww prints 'Debt to Equity: 0.00'.",
+    "disagreement": "INDmoney prints 'Debt-to-Asset Ratio: 0.50' on a balance sheet with zero borrowings - unreconcilable with every other source and with the filing. Treat INDmoney's leverage fields as junk for this name."
+  },
+
+  "revenue_ttm": {
+    "value": 115.0,
+    "unit": "INR crore",
+    "basis": "CONSOLIDATED TTM (Sep2025 + Dec2025 + Mar2026 + Jun2026 quarters)",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "note": "Screener's consolidated P&L TTM column: Sales 115. Arithmetic check against the same page's quarterly row: 44 + 62 + (-64) + 73 = 115. The Mar-2026 quarter's revenue is NEGATIVE (-64 Cr) because 'Net gain on fair value changes' is inside Revenue from Operations for an NBFC and that quarter it was a loss.",
+    "disagreement": [
+      {
+        "value": 94.0,
+        "unit": "INR crore",
+        "basis": "STANDALONE FY2026 (year ended Mar 2026), not TTM",
+        "source_url": "https://www.screener.in/company/ELCIDIN/",
+        "note": "The standalone page does not publish a TTM sales column; do not cross-wire it with the consolidated TTM."
+      }
+    ]
+  },
+
+  "net_profit_ttm": {
+    "value": 95.0,
+    "unit": "INR crore",
+    "basis": "CONSOLIDATED TTM",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "note": "Screener consolidated TTM Net Profit 95, TTM EPS 4,773.50. Cross-check: 95 Cr / 200,000 shares = Rs 4,750/share, consistent with the printed 4,773.50.",
+    "critical_caveat": "This is PROFIT, not the change in wealth. In the SAME quarter (Q1 FY2026-27) the consolidated statement reports Other Comprehensive Income of Rs 1,93,675.64 lakh (= Rs 1,936.76 crore) from 'Net Gain/(Loss) on Equity Instruments through OCI' - roughly 34x the quarter's consolidated PAT of Rs 5,756.69 lakh (Rs 57.57 crore). Source: the Q1 filing, page 9. A pipeline that picks 'Total Comprehensive Income' where it means 'Net Profit' overstates earnings by one to two orders of magnitude for this name, and vice versa."
+  },
+
+  "revenue_growth_yoy": {
+    "value": -36.5,
+    "unit": "percent",
+    "basis": "CONSOLIDATED full-year: FY2026 sales 134 Cr vs FY2025 sales 211 Cr (134/211 - 1)",
+    "derived": true,
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "alternates": [
+      {
+        "value": -20.7,
+        "basis": "CONSOLIDATED quarterly: Q1 FY2027 (Jun 2026) sales 73 Cr vs Q1 FY2026 (Jun 2025) sales 92 Cr",
+        "derived": true,
+        "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/"
+      },
+      {
+        "value": -31.9,
+        "basis": "STANDALONE full-year: FY2026 sales 94 Cr vs FY2025 sales 138 Cr",
+        "derived": true,
+        "source_url": "https://www.screener.in/company/ELCIDIN/"
+      }
+    ],
+    "note": "'Revenue' for this NBFC is dividend income plus mark-to-market gains on the investment book, so growth is a function of Asian Paints' share price and dividend policy, not of any operating business. A YoY revenue-growth number for Elcid is arithmetically correct and economically close to meaningless; the app should not narrate it as a business trend."
+  },
+
+  "eps_ttm": {
+    "value": 4773.5,
+    "unit": "INR per share",
+    "basis": "CONSOLIDATED TTM",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "corroboration": "Groww prints EPS (TTM) Rs 4,773.19 - the same number to four significant figures.",
+    "disagreement": [
+      {
+        "value": 5426.02,
+        "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price",
+        "note": "Labelled 'EPS (TTM)' by INDmoney but it is actually the FY2026 CONSOLIDATED ANNUAL EPS (screener consolidated Mar 2026: EPS 5,426.00). A 13.7% overstatement of trailing EPS wearing a TTM label."
+      },
+      {
+        "value": 3811.5,
+        "basis": "STANDALONE FY2026 annual EPS",
+        "source_url": "https://www.screener.in/company/ELCIDIN/"
+      },
+      {
+        "value": 1688.77,
+        "basis": "STANDALONE Q1 FY2026-27 basic and diluted EPS (quarter, NOT annualised)",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+        "note": "From the filing itself; the statement carries the standard footnote 'Earnings per share for interim period is not annualised'. Screener's standalone quarterly row shows 1,689.00 for the same quarter."
+      }
+    ]
+  },
+
+  "book_value_per_share": {
+    "value": 433672.47,
+    "unit": "INR per share",
+    "basis": "CONSOLIDATED",
+    "as_of": "2026-06-30",
+    "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+    "corroboration": "screener consolidated prints Book Value Rs 4,33,672; INDmoney prints Rs 433,672.47.",
+    "disagreement": [
+      {
+        "value": 301137.0,
+        "basis": "STANDALONE",
+        "source_url": "https://www.screener.in/company/ELCIDIN/",
+        "note": "BATTERY/manifest.json reference book_value_inr 301137 is the standalone figure. Standalone BV is 30.6% lower than consolidated because the subsidiaries' investment books are excluded."
+      }
+    ],
+    "note": "Six-figure per-share book value. Consolidated equity implied = 4,33,672.47 x 2,00,000 = Rs 8,673 crore, which ties exactly to screener's consolidated Mar-2026 Reserves of Rs 8,673 Cr + Equity Capital Rs 0.20 Cr."
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=503681&seriesid=",
+    "corroboration": "screener 'Face Value Rs 10.0'; Groww 'Face Value Rs 10'; the Q1 filing footnote '2,00,000 Equity shares of Rs. 10/- each fully paid up'. Price/face-value ratio is ~10,513x - no split or bonus has ever compressed it."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 25.0,
+      "unit": "INR per share",
+      "type": "Final dividend, FY2025-26",
+      "declared_date": "2026-05-25",
+      "ex_date": "2026-07-24",
+      "record_date": "2026-07-24",
+      "as_of": "2026-09-19",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "corroboration": "BSE's trading payload independently carries ExDate '24 Jul 2026' (https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=503681&seriesid=). INDmoney carries the declaration date 25 May 2026."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 25.0,
+      "unit": "INR per share",
+      "basis": "one final dividend of Rs 25 with ex-date 24 Jul 2026 inside the trailing 12 months to 18 Sep 2026",
+      "derived": true,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "note": "The prior-year final dividend (FY2024-25, also Rs 25.00, ex-date 23 Jul 2025) falls just OUTSIDE the trailing 12-month window from 18 Sep 2026. A TTM-dividend calculator with a sloppy window boundary will double-count to Rs 50."
+    },
+    "yield": {
+      "value": 0.0238,
+      "unit": "percent",
+      "basis": "Rs 25 / Rs 1,05,130 NSE close",
+      "derived": true,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "note": "screener and Groww both print 0.02%; INDmoney prints 0.03%. All three are the same number differently rounded from ~0.0238%.",
+      "disagreement": [
+        { "value": 0.02, "source_url": "https://www.screener.in/company/ELCIDIN/" },
+        { "value": 0.02, "source_url": "https://groww.in/stocks/elcid-investments-ltd" },
+        { "value": 0.03, "source_url": "https://www.indmoney.com/stocks/elcid-investments-ltd-share-price" }
+      ]
+    },
+    "payout_ratio_history": {
+      "value": "Consolidated dividend payout: FY2015 1%, FY2016 1%, FY2017 1%, FY2018 1%, FY2019 1%, FY2020 0%, FY2021 0%, FY2022 0%, FY2023 1%, FY2024 0%, FY2025 0%, FY2026 0%",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "note": "Rounded to whole percent by screener; the true FY2026 payout is Rs 25 x 200,000 = Rs 0.5 Cr against Rs 109 Cr consolidated PAT = 0.46%, which screener renders as 0%. A '0% payout' claim in the app would contradict the dividend it just paid."
+    }
+  },
+
+  "week52": {
+    "bse": {
+      "high": { "value": 144500.0, "unit": "INR per share", "date": "2025-10-17" },
+      "low": { "value": 87003.0, "unit": "INR per share", "date": "2026-04-02" },
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+      "raw": "{\"Fifty2WkHigh_adj\":\"144500.00\",\"Fifty2WkHigh_adjDt\":\" (17/10/2025)\",\"Fifty2WkLow_adj\":\"87003.00\",\"Fifty2WkLow_adjDt\":\" (02/04/2026)\",\"MonthHighLow\":\"114990.00 / 105000.00\",\"WeekHighLow\":\"114990.00 / 105000.00\"}",
+      "corroboration": "screener prints 'High / Low Rs 1,44,500 / 87,003' on both its standalone and consolidated pages - i.e. screener carries the BSE-basis range."
+    },
+    "nse_via_aggregators": {
+      "high": { "value": 133699.95, "unit": "INR per share", "source_url": "https://groww.in/stocks/elcid-investments-ltd" },
+      "low": { "value": 102210.0, "unit": "INR per share", "source_url": "https://groww.in/stocks/elcid-investments-ltd" },
+      "as_of": "2026-09-18",
+      "disagreement": "INDmoney prints the SAME low (1,02,210) but a different high (1,37,000) for the same window: https://www.indmoney.com/stocks/elcid-investments-ltd-share-price . So three distinct 52-week highs are in circulation on the same day: 1,44,500 (BSE/screener), 1,37,000 (INDmoney), 1,33,699.95 (Groww). Spread = 8.1%.",
+      "likely_mechanism": "If NSE listing was 20 Apr 2026 (identity.nse_listing_date), the NSE series is only ~5 months long on 18 Sep 2026, so an NSE-basis '52-week' range is structurally shorter and misses both the Oct-2025 high and the 2 Apr 2026 low of 87,003 - which is itself 2 weeks before the NSE listing date. This is a hypothesis consistent with all four numbers, not a filed fact."
+    },
+    "bse_recent": {
+      "month_high_low": "114990.00 / 105000.00",
+      "week_high_low": "114990.00 / 105000.00",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=503681",
+      "note": "BSE reports IDENTICAL month and week ranges - with 9-11 shares a day, the month's entire range was set inside the last week."
+    }
+  },
+
+  "shareholding": {
+    "quarter": "Jun 2026 (quarter ended 2026-06-30)",
+    "promoter_pct": {
+      "value": 75.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "corroboration": "Groww and INDmoney both print Promoters 75.00% for Jun '26. BATTERY/manifest.json reference promoter_holding_pct 75 agrees.",
+      "note": "Pinned at exactly the 75.00% SEBI maximum-promoter / 25% minimum-public-shareholding ceiling, and has been since Mar 2022. Before that: 74.88% from Mar2017 through Mar2020, 74.98% Mar2021."
+    },
+    "fii_pct": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "note": "Zero every quarter except Dec 2025, which screener shows as 0.01%."
+    },
+    "dii_pct": {
+      "value": 0.06,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "corroboration": "Groww prints DII 0.06%.",
+      "note": "First non-zero DII appears Jun 2025 at 0.05%."
+    },
+    "public_pct": {
+      "value": 24.94,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "disagreement": "screener prints Public 24.95% for Jun 2026. 75.00 + 0.00 + 0.06 + 24.95 = 100.01%, so screener's row does not sum to 100; Groww's 24.94 does. Rounding artifact, but a validator that asserts sum==100 will fire on the screener figure.",
+      "corroboration": "INDmoney also prints Public 24.94%."
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "world_gaps.promoter_pledge_unreached",
+      "note": "NOT FOUND. No source reached prints a pledge figure for this scrip: screener's shareholding table renders no 'Pledged percentage' row, Groww/INDmoney omit the field, the BSE ShpPromoterNGroup / ShpQuarterList / getShpDropDown API endpoints all 302 to api.bseindia.com/error_Bse.html, and Trendlyne has no resolvable URL for ELCIDIN (both https://trendlyne.com/equity/ELCIDIN/ and .../equity/share-price/ELCIDIN/ return 404). Screener's omission of the row is SUGGESTIVE of zero pledge but is not proof - record as a gap, do not diff the app against an assumed 0."
+    },
+    "num_shareholders": {
+      "value": 2621,
+      "unit": "shareholders",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/ELCIDIN/",
+      "note": "History (screener consolidated): 299 (Sep2023), 301, 307, 321, 328 (Sep2024), then 2,763 (Dec2024), 2,863, 2,833, 2,761, 2,711, 2,616 (Mar2026), 2,621 (Jun2026). The 8.4x jump between Sep and Dec 2024 is the post-call-auction repricing event that put the scrip on retail screens."
+    },
+    "history_promoter_pct": {
+      "value": "Sep2023 75.00 / Dec2023 75.00 / Mar2024 75.00 / Jun2024 75.00 / Sep2024 75.00 / Dec2024 75.00 / Mar2025 75.00 / Jun2025 75.00 / Sep2025 75.00 / Dec2025 75.00 / Mar2026 75.00 / Jun2026 75.00",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/"
+    }
+  },
+
+  "corporate_actions_2026": {
+    "value": [
+      {
+        "type": "Final dividend (FY2025-26)",
+        "amount_per_share": 25.0,
+        "unit": "INR per share",
+        "declared_date": "2026-05-25",
+        "ex_date": "2026-07-24",
+        "record_date": "2026-07-24",
+        "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+        "corroboration": "BSE StockTrading payload ExDate '24 Jul 2026'."
+      },
+      {
+        "type": "Re-lodgement window for transfer of physical shares",
+        "period": "2026-02-05 to 2027-02-04",
+        "announced_date": "2026-09-04",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8ac2ae04-d96d-4e27-96e5-ff24523bb4a8.pdf",
+        "note": "Not a capital action, but it is a live shareholder-facing corporate event and the kind of thing a 'corporate actions' panel should not silently drop."
+      },
+      {
+        "type": "Voluntary constitution of a Risk Management Committee + reconstitution of the CSR Committee",
+        "effective_date": "2026-08-14",
+        "announced_date": "2026-08-13",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9dd60b36-6c7f-4106-82ea-0e0ba9a65153.pdf"
+      }
+    ],
+    "no_split_or_bonus": {
+      "value": "No split, bonus, rights or buyback found in 2026 or in any period reached",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "Positive evidence rather than absence: the 30 Jun 2026 filing still states 2,00,000 shares of Rs 10 each, and screener's Equity Capital row is Rs 0.20 Cr unchanged from Mar 2015 through Mar 2026. No capital action has occurred in 11+ years."
+    },
+    "gap": "world_gaps.bse_corpaction_feed_unreachable - no per-scrip BSE corporate-action endpoint resolved, so this list is assembled from aggregators + the announcement feed and may be incomplete."
+  },
+
+  "latest_results": {
+    "quarter": "Q1 FY2026-27 (quarter ended 2026-06-30)",
+    "filing_date": "2026-08-13",
+    "filing_time_ist": "15:58:06",
+    "board_meeting_date": "2026-08-13",
+    "board_meeting_window": "15:15 - 15:50 IST",
+    "board_meeting_intimation_date": "2026-08-05",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+    "announcement_api_source": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260401&strScrip=503681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+    "review_status": "Limited review (unaudited), both standalone and consolidated, by V. K. Beswal & Associates; UDIN 26154778GZCLFP7598 (standalone) and 26154778BWSVYN5696 (consolidated). Conclusion: 'nothing has come to our attention that causes us to believe that the accompanying statement ... contains any material misstatement'.",
+    "units_in_filing": {
+      "value": "Rs. in Lakhs",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "note": "The consolidated statement header reads verbatim '(amount Rs. in Lakhs)'. Every aggregator restates the same numbers in Rs. crore. 100x scale trap - see traps.lakh_vs_crore_in_the_primary_filing."
+    },
+    "standalone_q1_fy27": {
+      "eps_basic_and_diluted": { "value": 1688.77, "unit": "INR per share", "note": "read cleanly from the filing; footnote states interim EPS is not annualised" },
+      "pat": {
+        "value": 3377.54,
+        "unit": "INR lakh",
+        "derived": true,
+        "note": "= EPS 1,688.77 x 2,00,000 shares. The PDF's own PAT line OCRs ambiguously ('3,177.54' vs '3,377.54'); the EPS-derived value is the one that ties to screener's standalone Jun-2026 net profit of Rs 34 Cr. Flagged rather than asserted."
+      },
+      "total_income": { "value": 4149.51, "unit": "INR lakh", "confidence": "medium - OCR of a scanned filing" },
+      "profit_before_tax": { "value": 4273.54, "unit": "INR lakh", "confidence": "medium - OCR of a scanned filing" },
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf"
+    },
+    "consolidated_q1_fy27": {
+      "pat": { "value": 5756.69, "unit": "INR lakh", "note": "= Rs 57.57 Cr; ties to screener consolidated Jun-2026 Net Profit 58 Cr" },
+      "other_comprehensive_income_equity_instruments": {
+        "value": 193675.64,
+        "unit": "INR lakh",
+        "note": "= Rs 1,936.76 crore of unrealised gain on equity instruments through OCI in a single quarter, against Rs 57.57 crore of PAT."
+      },
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "confidence": "medium-high - the two figures above OCR cleanly; other lines in the consolidated table do not and were not transcribed"
+    },
+    "screener_restatement_in_crore": {
+      "standalone_jun_2026": { "sales": 43, "operating_profit": 43, "net_profit": 34, "eps": 1689.0, "unit": "INR crore except EPS", "source_url": "https://www.screener.in/company/ELCIDIN/" },
+      "consolidated_jun_2026": { "sales": 73, "expenses": 1, "operating_profit": 72, "opm_pct": 21, "pbt": 72, "tax_pct": 21, "net_profit": 58, "eps": 2878.5, "unit": "INR crore except EPS", "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/" }
+    }
+  },
+
+  "last_3_announcements": {
+    "value": [
+      {
+        "date": "2026-09-18T11:21:05+05:30",
+        "headline": "Closure of Trading Window - 'Please find the enclosed letter for intimation of Closure of Trading Window for the quarter and half year ending on September 30, 2026.'",
+        "category": "Insider Trading / SAST",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/edcafda8-466c-4da7-bd8f-a46927ac64fd.pdf"
+      },
+      {
+        "date": "2026-09-04T14:11:34+05:30",
+        "headline": "Announcement under Regulation 30 (LODR) - Newspaper Publication - 'Please find the enclosed letter towards re-lodgement of transfer request of physical shares for one year from February 05, 2026 to February 04, 2027.'",
+        "category": "Company Update",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8ac2ae04-d96d-4e27-96e5-ff24523bb4a8.pdf"
+      },
+      {
+        "date": "2026-08-14T16:12:56+05:30",
+        "headline": "Announcement under Regulation 30 (LODR) - Newspaper Publication - 'Please find attached Newspaper Publication of the Unaudited Standalone and Consolidated Financial Results for the first quarter ended on June 30, 2026.'",
+        "category": "Company Update",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/21278969-71bf-4e97-a76e-b7ba6f63c987.pdf"
+      }
+    ],
+    "additional_recent": [
+      {
+        "date": "2026-08-13T15:58:06+05:30",
+        "headline": "Financial Results For The Quarter Ended June 30, 2026",
+        "category": "Result",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+        "verified": "downloaded 2026-09-19, HTTP 200, 2,433,336 bytes, application/pdf, 10 pages"
+      },
+      {
+        "date": "2026-08-13T15:53:05+05:30",
+        "headline": "Board Meeting Outcome for Outcome Of The Board Meeting - Financial Results",
+        "category": "Board Meeting",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9dd60b36-6c7f-4106-82ea-0e0ba9a65153.pdf"
+      },
+      {
+        "date": "2026-08-05T17:17:09+05:30",
+        "headline": "Board Meeting Intimation for Consideration Of Unaudited Standalone And Consolidated Financial Results Of The Company For The First Quarter Ended June 30, 2026",
+        "category": "Board Meeting",
+        "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/23aaae89-2281-4328-b085-670ad88a92ca.pdf"
+      }
+    ],
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260401&strScrip=503681&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+    "as_of": "2026-09-19",
+    "note": "The announcement API returns ATTACHMENTNAME only; the URL must be assembled. See traps.bse_attachment_path_attachhis_not_attachlive."
+  },
+
+  "consolidated_vs_standalone": {
+    "note": "Elcid files BOTH and they differ materially on every headline metric. Consolidated includes two subsidiaries named in the auditor's consolidated report (page 8): a '...Trading Company Pvt Ltd' (the first token OCRs illegibly) and 'Murahar Investments and Trading Company Limited'. Side-by-side on 18 Sep 2026, same price of Rs 1,05,130: Book value Rs 3,01,137 standalone vs Rs 4,33,672 consolidated (+44%); P/B 0.35 vs 0.24; P/E 26.7 vs 22.0; ROE 1.23% vs 1.21%; ROCE 1.45% vs 1.43%; FY2026 sales Rs 94 Cr vs Rs 134 Cr; FY2026 net profit Rs 76 Cr vs Rs 109 Cr; FY2026 EPS Rs 3,811.50 vs Rs 5,426.00; Q1 FY27 net profit Rs 34 Cr vs Rs 58 Cr; Q1 FY27 EPS Rs 1,689 vs Rs 2,878.50. screener.in defaults ELCIDIN to the CONSOLIDATED page (its own search API returns url '/company/ELCIDIN/consolidated/'), Groww/INDmoney serve consolidated-basis book value and P/E, and the BATTERY manifest's reference block (pe 26.7, book_value_inr 301137, pb 0.35) is STANDALONE. The differ must therefore establish which basis the app claims before scoring any of these as wrong.",
+    "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+    "screener_search_api_evidence": "https://www.screener.in/api/company/search/?q=ELCIDIN returns [{\"id\": 898, \"name\": \"Elcid Investments Ltd\", \"url\": \"/company/ELCIDIN/consolidated/\"}]"
+  },
+
+  "underlying_holding": {
+    "asian_paints_stake_pct": {
+      "value": 2.95,
+      "unit": "percent of Asian Paints Limited",
+      "as_of": "2026-09-19",
+      "source_url": "https://groww.in/stocks/elcid-investments-ltd",
+      "quote": "'primarily known for its holding in Asian Paints Limited (approx. 2.95%), which accounts for the vast majority of its multi-billion dollar valuation'",
+      "confidence": "low - single aggregator source, the word 'approx', and no filing or Asian Paints shareholding-pattern corroboration reached",
+      "gap": "world_gaps.asian_paints_stake_single_source"
+    },
+    "balance_sheet_evidence": {
+      "value": "Consolidated Investments Rs 9,955 Cr of Rs 10,000 Cr total assets at Mar 2026 (99.55%); Fixed Assets Rs 35 Cr, CWIP Rs 5 Cr, Other Assets Rs 5 Cr",
+      "unit": "INR crore",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "note": "Investments have been >=97% of total assets every year since Mar 2015. The Rs 258 Cr -> Rs 5,133 Cr reserves jump at FY2019 is the Ind AS fair-value remeasurement of that book."
+    },
+    "market_cap_vs_book_gap": {
+      "value": "Market cap Rs 2,103 Cr against consolidated net worth Rs 8,673 Cr - a 75.8% holding-company discount",
+      "derived": true,
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/ELCIDIN/consolidated/",
+      "note": "This is the whole story of the name and the reason P/B is 0.24. An app that flags 'P/B below 1 = undervalued' without the holdco-discount context gives actively bad advice here."
+    }
+  },
+
+  "traps": {
+    "indian_digit_grouping_five_figure_price": "The price string is '1,05,130' (lakh grouping: 1,05,130 not 105,130). A naive parseFloat/Number on the rendered string yields 1; a Western-grouping parser that strips commas correctly still needs the right axis scaling for a 1.44 lakh -> 87k range. Every price, book value (3,01,137 / 4,33,672) and EPS (5,426 / 1,689) field on this scrip is four to six digits, where most Indian equities are two to four.",
+    "lakh_vs_crore_in_the_primary_filing": "The exchange-filed statement is headed '(amount Rs. in Lakhs)' while every aggregator restates in Rs. crore. Q1 FY27 consolidated PAT is 5,756.69 lakh = 57.57 crore. A pipeline that ingests the filing and labels the unit 'crore' overstates by 100x; one that ingests screener and labels 'lakh' understates by 100x.",
+    "profit_vs_other_comprehensive_income": "Q1 FY2026-27 consolidated: PAT Rs 57.57 crore, but OCI on equity instruments Rs 1,936.76 crore - 34x larger. The Asian Paints mark-to-market rides OCI, never the P&L. Mixing up 'Net Profit' and 'Total Comprehensive Income' for this name produces an error of one to two orders of magnitude, in either direction depending on which field is grabbed.",
+    "negative_revenue_and_negative_profit_quarters": "Consolidated quarterly Sales are NEGATIVE in Dec 2024 (-5 Cr), Mar 2025 (-17 Cr) and Mar 2026 (-64 Cr), because 'Net gain on fair value changes' sits inside Revenue from Operations for an NBFC. Mar 2026 consolidated net profit is -41 Cr with EPS -2,061.00. Any chart, growth rate, or OPM computed off these rows (screener itself prints OPM 99% on a -5 Cr revenue quarter and -38% on Mar 2026) is garbage. A 'revenue cannot be negative' validator will reject real exchange data.",
+    "exchange_price_divergence_same_day": "18 Sep 2026: BSE close 1,07,500 (-0.46%), NSE close 1,05,130 (-1.07%). 2.25% apart, and the derived market caps differ by Rs 47 crore (2,150 vs 2,102.6). With 11 shares traded on BSE, neither is a consensus price. A quote panel that does not name its exchange is wrong half the time here.",
+    "fiftytwo_week_three_way_disagreement": "Three live 52-week highs on the same day: 1,44,500 (BSE/screener, dated 17/10/2025), 1,37,000 (INDmoney), 1,33,699.95 (Groww). Two lows: 87,003 (BSE, 02/04/2026) and 1,02,210 (Groww + INDmoney). Drawdown-from-high computed on the BSE pair is -27.2%; on the Groww pair it is -21.4%. Most likely cause: the NSE series began ~20 Apr 2026 so the NSE window is ~5 months, not 52 weeks - but the app must not silently pick one.",
+    "standalone_vs_consolidated_44pct_book_value": "Book value 3,01,137 (standalone) vs 4,33,672 (consolidated) - the same labelled metric, same day, same site, 44% apart, driving P/B 0.35 vs 0.24 and P/E 26.7 vs 22.0. screener DEFAULTS this scrip to consolidated; the battery manifest's reference block is standalone.",
+    "pe_four_way_spread": "P/E on 18 Sep 2026: 22.0 (screener consolidated), 22.03 (INDmoney), 22.63 (Groww), 26.7 (screener standalone), 28.31 (BSE ComHeader, which simultaneously prints EPS as blank '-'). No single 'the P/E' exists for this name.",
+    "indmoney_eps_ttm_is_actually_fy26_annual": "INDmoney labels 5,426.02 as 'EPS (TTM)'; that is the FY2026 consolidated ANNUAL EPS (screener: 5,426.00). True TTM is 4,773.50 (screener) / 4,773.19 (Groww). INDmoney's own printed P/E of 22.03 is inconsistent with its own EPS (1,05,130/5,426.02 = 19.38). A stale-annual-labelled-TTM field is exactly the kind of thing an aggregator-fed app inherits silently.",
+    "indmoney_debt_to_asset_is_junk": "INDmoney prints 'Debt-to-Asset Ratio: 0.50' for a company whose balance sheet shows zero borrowings in every year from Mar 2015 to Mar 2026. Do not trust INDmoney leverage fields for this name.",
+    "name_spacing_breaks_exact_match": "Exchange masters say 'EL CID Investments Ltd' (BSE) / 'EL CID Investments Limited' (NSE); the company, screener, Groww and INDmoney all say 'Elcid Investments Ltd/Limited'. An exact-string join between a master file and any data source fails. Case-insensitive + whitespace-stripped matching is the minimum.",
+    "sector_is_resolvable_but_look_through_misleads": "Contrary to a naive reading, the classification IS unambiguous at every official source: BSE Sector 'Financial Services' / Industry 'Investment Company'; screener 'Financial Services > Finance > Investment Company'; the filing itself says 'no separate reporting segments ... Non Banking Financial Company'. The trap is the opposite direction: an agent that reasons from the ASSET (an Asian Paints stake) will classify Elcid as paints/consumer and then compare it to Berger/Kansai. Tijori already mislabels it 'Small cap Asset Management'. Peer sets, sector P/E (Groww shows 'Industry P/E 18.62') and any sector-relative screen are all wrong if look-through wins.",
+    "two_hundred_thousand_shares_total": "Total shares outstanding = 2,00,000 (two lakh), stated in the filing. Any formatter that renders share counts in millions shows '0.2M' or rounds to 0; any 'shares in crore' field shows 0.00002. Free float is ~50,000 shares. 11 shares changed hands on 18 Sep 2026; the 2-week average is 9 shares/day.",
+    "bse_circuit_filter_is_unusable": "BSE StockTrading returns CktLimit '11.00/86,000.00' while the same payload's LTP is 1,07,500. The upper bound is 20% BELOW the traded price, so this field cannot be read as today's price band (it is likely a stale percentage/price hybrid surviving from the pre-October-2024 call-auction era when the scrip quoted near Rs 3). Recorded verbatim; do not parse it.",
+    "stale_three_rupee_archives": "Before the October 2024 special call auction the scrip quoted around Rs 3. Archived pages, cached screenshots and any historical series that was not re-based still carry that price, so an any-source price lookup can return a value ~35,000x too low. The 52-week window no longer contains it, but multi-year charts and 'all-time' stats do.",
+    "bse_attachment_path_attachhis_not_attachlive": "The announcement API gives ATTACHMENTNAME only. https://www.bseindia.com/xml-data/corpfiling/AttachLive/<guid>.pdf returns HTTP 404 with an 8 KB HTML body (content-type text/html) for the 13 Aug 2026 results; https://www.bseindia.com/xml-data/corpfiling/AttachHis/<guid>.pdf returns HTTP 200, 2.43 MB, application/pdf. A fetcher that only tries AttachLive gets a 404 HTML page it may happily parse as an empty document.",
+    "bse_html_403_but_json_api_200": "https://www.bseindia.com/stock-share-price/elcid-investments-ltd/elcidin/503681/ returns HTTP 403 to a plain fetcher, while api.bseindia.com/BseIndiaAPI/api/* returns clean JSON given a browser User-Agent plus 'Referer: https://www.bseindia.com/'. Also note the canonical SEO path BSE itself returns is /stock-share-price/el-cid-investments-ltd/elcidin/503681/ (with the space), not the -elcid- form.",
+    "nse_public_api_akamai_blocked": "https://www.nseindia.com/api/quote-equity?symbol=ELCIDIN returns an Akamai 'Access Denied' HTML page (HTTP 403) even after a cookie-bootstrap GET of the get-quotes page with a browser UA. Any NSE-primary code path will fail closed from an ordinary client; every NSE-basis number in this pack came via aggregators.",
+    "screener_shareholding_row_sums_to_100_01": "screener's Jun 2026 row: 75.00 + 0.00 + 0.06 + 24.95 = 100.01%. Groww/INDmoney print Public 24.94 and sum to exactly 100. A sum==100 assertion fires on screener's numbers.",
+    "dividend_ttm_window_boundary": "Two identical Rs 25.00 final dividends with ex-dates 23 Jul 2025 and 24 Jul 2026. A trailing-12-month dividend window anchored loosely (e.g. 'last 13 months', or calendar-year-to-date plus prior year) double-counts to Rs 50 and doubles the yield to 0.048%.",
+    "zero_percent_payout_that_paid_a_dividend": "screener rounds FY2026 dividend payout to 0% (true value 0.46%: Rs 0.5 Cr paid on Rs 109 Cr consolidated PAT). An app that says 'pays no dividend' from the payout row contradicts the Rs 25/share it paid ex-24 Jul 2026.",
+    "roce_cliff_is_an_accounting_event": "Consolidated ROCE falls 20% -> 2% between FY2018 and FY2019 solely because Ind AS fair-valuing lifted reserves from Rs 258 Cr to Rs 5,133 Cr. Narrating this as deteriorating business performance is a confident, sourced, wrong answer - the exact failure mode a finance agent must not have."
+  },
+
+  "world_gaps": {
+    "promoter_pledge_unreached": "Pledged percentage of promoter holding. Genuinely not printed by any source reached (screener renders no pledged row; Groww/INDmoney omit the field; BSE ShpPromoterNGroup / ShpQuarterList / getShpDropDown all 302 to error_Bse.html; Trendlyne has no resolvable ELCIDIN URL - both /equity/ELCIDIN/ and /equity/share-price/ELCIDIN/ are 404). COULD-NOT-REACH, not confirmed-zero.",
+    "bse_listing_date_unreached": "BSE listing date. Not exposed by any BSE JSON endpoint that resolved and not printed by any aggregator reached. COULD-NOT-REACH.",
+    "nse_listing_date_single_source": "NSE listing date 2026-04-20 rests on one aggregator (INDmoney) with an unlabelled 'Listing Date' field. Consistent with the NSE-basis 52-week window but unconfirmed.",
+    "asian_paints_stake_single_source": "The ~2.95% Asian Paints stake comes only from Groww's narrative blurb. Neither Asian Paints' shareholding pattern nor an Elcid annual report was reached to confirm the exact percentage, the number of shares, or its carrying value.",
+    "nse_primary_unreachable": "NSE's own quote, corporate-announcement and shareholding endpoints are Akamai-blocked from this environment. All NSE-basis figures here are second-hand. WebSearch budget was exhausted (200/200) before this task began, so no search-engine route around the block was available.",
+    "bse_corpaction_feed_unreachable": "No per-scrip BSE corporate-action endpoint resolved (CorpactData, CorpactionData, SecurityInfo all 302 to error_Bse.html; the working /api/Corpaction/w?scripcode= endpoint ignores scripcode and returns a market-wide ex-date list). corporate_actions_2026 is therefore assembled from aggregators plus the announcement feed and may be incomplete.",
+    "annual_report_not_read": "Elcid's annual reports (screener lists BSE-hosted PDFs for 2012-2026) were not opened. The investment-book composition, related-party detail, promoter-entity breakdown and the exact Asian Paints share count live there.",
+    "shareholding_pattern_detail_unreached": "Only the four aggregate buckets were obtained. The individual promoter entities, custodian/DR holding, and the >1% public shareholder list were not reached (BSE SHP endpoints unresolvable).",
+    "filing_ocr_partial": "The 13 Aug 2026 results PDF is a scanned document; pypdf text extraction is clean for the letterhead, notes, auditor reports and EPS but garbled across the numeric tables. Figures transcribed from those tables carry an explicit confidence field; standalone PAT is derived from EPS rather than read.",
+    "subsidiary_name_partial": "The consolidated auditor's report names two consolidated entities; only 'Murahar Investments and Trading Company Limited' OCRs legibly. The second subsidiary's first token is unreadable ('@udingCj*PunY!,-itd')."
+  },
+
+  "reference_cross_check_vs_manifest": {
+    "note": "BATTERY/manifest.json reference block vs what this pack found, all as of 2026-09-18.",
+    "price_inr_105130": "CONFIRMED on the NSE basis by three sources (screener, Groww, INDmoney). NOT the BSE close, which was 1,07,500.",
+    "price_change_pct_-1.07": "CONFIRMED (NSE basis). BSE printed -0.46%.",
+    "mcap_inr_cr_2103": "CONFIRMED (screener rounding of 2,102.60). BSE's own MktCapFull is 2,150.00.",
+    "book_value_inr_301137": "CONFIRMED as the STANDALONE figure. Consolidated is 4,33,672.47.",
+    "pe_26.7": "CONFIRMED as the STANDALONE figure. Consolidated is 22.0; BSE says 28.31.",
+    "roe_pct_1.23": "CONFIRMED (standalone). Consolidated 1.21; Groww 1.25.",
+    "promoter_holding_pct_75": "CONFIRMED (75.00%, Jun 2026, unchanged since Mar 2022).",
+    "hostile_traits_sector_unresolvable": "PARTLY REFUTED - see traps.sector_is_resolvable_but_look_through_misleads. Every official classification is unambiguous ('Investment Company' / Financial Services); the risk is an agent reasoning through to paints, not a missing classification."
+  }
+}

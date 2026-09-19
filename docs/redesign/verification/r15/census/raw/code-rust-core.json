@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-rust-core-1",
+    "title": "setup() joins both MCP port-waits on the main thread — the window is frozen for ~35s (ceiling 90s) on every cold boot, and the main sidecar is not spawned until after it",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "rust-core",
+    "repro": "Cold launch (no warm _MEI dirs) -> the Tauri window exists but never paints / beachballs while setup() blocks; the main sidecar process is only spawned after both MCP supervisors return.",
+    "evidence": "src-tauri/src/lib.rs:472-485 (spawn both, then join both inside the setup closure); src-tauri/src/lib.rs:493 (start_main_sidecar runs after the joins); src-tauri/src/lib.rs:78-83 (45s x 2 budget); src-tauri/src/openbb_mcp.rs:149-159 (the supervisor consumes that full budget before returning); ~/.cargo/registry/src/index.crates.io-*/tauri-2.11.5/src/app.rs:2521-2534 (setup() builds the config windows and THEN calls the user hook, before App::run() starts the event loop); src-tauri/src/lib.rs:68-72 (the code's own measurement: openbb 34.2s cold, sec-edgar 33.6s cold, contended and concurrent); src/lib/sidecar-client.ts:105-110 (frontend documents the same effect: 'the main sidecar spawns only after a tens-of-seconds MCP-supervisor join on cold boot')",
+    "notes": "APOSD 16 (not obvious) + 6 (different layer): nothing at the call site signals that joining two 90s-budget threads inside setup blocks the event loop. Consequence: the product's first impression on a cold launch is an unresponsive window for ~35s, worst case 90s, before the data engine is even started. Smallest fix: move the two joins AND start_main_sidecar into ONE background thread and return from setup immediately — the stated reason for joining (lib.rs:482-485, env vars must settle before the sidecar reads them) only requires the join to precede the sidecar SPAWN, not the event loop. start_main_sidecar takes &App today; &AppHandle carries path()/shell()/manage() identically."
+  },
+  {
+    "raw_id": "COD-rust-core-2",
+    "title": "Every app quit orphans the real PyInstaller sidecar children — child.kill() reaps only the bootloader parent",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "rust-core",
+    "repro": "Run the app, note `ps -eo pid,ppid,command | grep vysted` shows a parent/child pair per sidecar, quit the app -> the child pid survives, reparents to PID 1 and keeps listening on its loopback port.",
+    "evidence": "src-tauri/src/lib.rs:507-518 (RunEvent::Exit -> child.kill(), plus openbb_mcp::kill / sec_edgar_mcp::kill); ~/.cargo/registry/src/index.crates.io-*/tauri-plugin-shell-2.3.6/src/process/mod.rs:78-81 (kill(self) -> SharedChild::kill -> std::process::Child::kill = SIGKILL to that pid only); live `ps -eo pid,ppid,command` on the operator session: 62079 vysted-terminal -> 62522 vysted-sidecar --port 53693 -> 62549 vysted-sidecar --port 53693, 62175->62213 (openbb), 62176->62212 (sec-edgar); pids 81333/81337 already reparented to PPID 1 (orphaned sidecars still listening); scripts/smoke-test-sidecars.mjs:195-207 (_killTree does taskkill /F /T on Windows + process.kill(-pid) on POSIX); CLAUDE.md gotcha 'Node scripts that spawn sidecar binaries must tree-kill on teardown ... PyInstaller workers orphan and hold the _MEI lock otherwise'",
+    "notes": "APOSD 15 (consistency): the repo states the rule and implements it in the test harness, not in the product. Consequence: each quit leaks three HTTP servers that keep listening on loopback, keep their _MEI extraction dirs, and keep serving the data dir they were launched with; they accumulate across a work session, and with COD-rust-core-3 a stale discovery file points external MCP clients at one of these zombies. Smallest fix: keep child.pid() at spawn and kill the group on exit (POSIX: spawn with process_group(0)/setsid then libc::killpg; Windows: taskkill /F /T /PID) — the same shape _killTree already uses."
+  },
+  {
+    "raw_id": "COD-rust-core-3",
+    "title": "The OS-wide kill-switch shortcut emits an event no one listens to, while the first-launch TOS tells the user it halts all order routing",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "rust-core",
+    "repro": "Press Cmd/Ctrl+Shift+K anywhere -> kill_switch.rs emits `kill-switch:requested`; no listener exists in the frontend, so nothing happens and no feedback is shown. Meanwhile the first-launch disclaimer states the shortcut works.",
+    "evidence": "src-tauri/src/kill_switch.rs:59-61 and :94-97 (emit `kill-switch:requested`); the ONLY listen() in the frontend is src/lib/menu-bridge.ts:21 for `vysted://menu-layout` (grep 'listen(' over src/ returns that single hit); src/store/safety.ts:13-18 ('the read-only app's craft pass removed the kill-switch UI surface, so nothing currently listens for the event'); src/modules/safety/index.ts:10-12 (same); src/modules/safety/DisclaimerFlow.tsx:45 ('A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally; use it in any emergency.'); src-tauri/src/kill_switch.rs:75 (logs 'registered global shortcut' — the log reports health)",
+    "notes": "APOSD 6 (different layer, different abstraction): the emergency control is implemented ABOVE the renderer it exists to override, on tauri::Emitter::emit, which returns Ok(()) whether or not anyone is listening — so the mechanism cannot detect its own deadness. Consequence: the one §6.5 control promised reachable in <2s from any UI state is a dead key with zero feedback, and the user accepted written terms saying otherwise. (Live order execution is out of scope by decision; the defect is the false written promise + the dead control.) Smallest fix: strike the sentence at DisclaimerFlow.tsx:45 until the surface returns. Structural fix: Rust owns SidecarPort (lib.rs:21) — it should issue POST /safety/kill-switch itself rather than delegating to the renderer it is meant to override."
+  },
+  {
+    "raw_id": "COD-rust-core-4",
+    "title": "Auto-updater is registered, configured and bundled but never invoked from anywhere, and the JS path is not even permitted by the capability",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "rust-core",
+    "repro": "design — grep the whole repo for an updater check: the Rust side never calls app.updater(), the frontend never imports @tauri-apps/plugin-updater, and capabilities/default.json grants no `updater:*` permission. A shipped build therefore never discovers a release.",
+    "evidence": "src-tauri/src/lib.rs:393 (.plugin(tauri_plugin_updater::Builder::new().build())); src-tauri/tauri.conf.json plugins.updater (endpoint https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json + minisign pubkey); package.json:28 (@tauri-apps/plugin-updater 2.10.1 installed); src-tauri/capabilities/default.json permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open] — no updater permission; grep 'updater' over src/ returns zero hits; docs/CURRENT_STATE.md:232-234 and :896 already record it as non-functional; docs/research/phase-10/hunt-rust-tauri.md BUG 4 reported it and it is unfixed at 2d99cda",
+    "notes": "APOSD 18/obviousness: the feature is wired at every layer except the one that fires it, so it compiles, ships and looks present. Consequence: a released desktop app that can never self-update — every user stays on the version they installed, including past a security fix. Smallest fix inside rust-core: one background call to app.updater()?.check() in setup (the Rust path needs no capability); the full fix also needs createUpdaterArtifacts:true + a publish workflow (out of this subsystem). Known-and-unfixed since Phase 10 — the signal is that it survived a hunt."
+  },
+  {
+    "raw_id": "COD-rust-core-5",
+    "title": "write_text_atomic / write_bytes_atomic accept any absolute path from the webview with no confinement, and CSP is null",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — invoke('write_bytes_atomic', { path: '<any absolute path>', contents: [...] }) from any script in the webview writes those bytes there; the command validates nothing beyond dest.parent() and then create_dir_all's it.",
+    "evidence": "src-tauri/src/lib.rs:287-310 (write_text_atomic) and :318-342 (write_bytes_atomic) — no path validation; src-tauri/src/lib.rs:410-411 (both in the production invoke_handler); src-tauri/tauri.conf.json app.security.csp = null; the guard lives in callers and only in some of them: src/modules/notes/notes-persistence.ts:68 strips [/\\\\] from the scope, src/lib/export-artifact.ts:76-88 interpolates subdir + filename straight in; docs/research/phase-10/hunt-rust-tauri.md 'SECURITY HARDENING — csp: null' reported the CSP half and it is unfixed at 2d99cda",
+    "notes": "APOSD 7 (pull complexity downward): confinement was pushed up into every caller and one caller already forgot. Consequence: any script in the webview — a third-party plugin panel is ordinary JS in the same context with full invoke access — writes arbitrary bytes anywhere the user can write, dev-keystore.json included. NOT currently exploitable: zero innerHTML / dangerouslySetInnerHTML exist under src/ or plugins/, so there is no live injection vector — this is a missing boundary, not an open hole, and it is the boundary the plugin architecture will lean on. Smallest fix: one private write_atomic(path, bytes) that canonicalises the parent and rejects anything outside app.path().app_data_dir(); both commands become one line over it (also collapses COD-rust-core-14)."
+  },
+  {
+    "raw_id": "COD-rust-core-6",
+    "title": "mcp-endpoint.json is written on bind but never invalidated — it advertises the previous session's port for the whole cold-boot window and after a failed boot",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "rust-core",
+    "repro": "Launch, quit, relaunch: for the first up-to-90s of the new boot (and forever, if the sidecar never binds) <data-dir>/mcp-endpoint.json still names the PREVIOUS run's port. With COD-rust-core-2 that port is usually a live orphaned sidecar.",
+    "evidence": "src-tauri/src/lib.rs:184-193 (write_mcp_endpoint_file, the only writer); src-tauri/src/lib.rs:248-268 (written only after the bind probe succeeds, up to 90s into the boot); no deletion anywhere — MCP_ENDPOINT_FILENAME (lib.rs:159) appears only in lib.rs; nothing in the RunEvent::Exit handler (lib.rs:507-518) removes it; doc comment src-tauri/src/lib.rs:182-183 claims 'A port == 0 (failed) boot never calls this, so no stale file is written'",
+    "notes": "APOSD 14 (modifying existing code): the comment is true about this boot's write and false about the file on disk, which is the thing a client reads. Ports are OS-assigned per launch, so the file is stale on EVERY restart until the new bind lands. Consequence: an external MCP client that discovers the endpoint during the cold-boot window, or after a boot where the sidecar never came up, talks to a previous-session process — likely an orphan bound to a different data dir — and gets answers presented as this session's. Smallest fix: remove the file at the top of start_main_sidecar (before the spawn) and again on RunEvent::Exit; two std::fs::remove_file calls."
+  },
+  {
+    "raw_id": "COD-rust-core-7",
+    "title": "The 'atomic, crash-safe' note/export write never fsyncs — File::flush is a no-op, so SC-032's survives-a-crash claim does not hold",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — write_text_atomic does File::create -> write_all -> flush() -> rename with no sync_all on the file or the parent directory; on power loss the renamed file can appear with zero or partial content.",
+    "evidence": "src-tauri/src/lib.rs:303-309 (text) and :336-341 (bytes): `f.write_all(...)`, `f.flush()`, then `std::fs::rename`; std::fs::File's Write::flush is a documented no-op (File is unbuffered — it never fsyncs); doc comment src-tauri/src/lib.rs:281-286 claims 'the kernel rename(2) is atomic (SC-032: survives a crash mid-save)'",
+    "notes": "APOSD 9 + 14: rename(2) is atomic for the DIRECTORY ENTRY, not for the data — durability needs the data on stable storage first. Consequence: the product's only user-authored durable artifact (notes) can be silently truncated to empty by the exact event the comment says is covered, and the workspace-blob mirror is the only thing that saves it. Smallest fix: f.sync_all()? before the rename, plus (unix) File::open(parent)?.sync_all() after it — two lines, in one place once COD-rust-core-14 is collapsed."
+  },
+  {
+    "raw_id": "COD-rust-core-8",
+    "title": "A bare TCP connect is reported as 'Python sidecar healthy' and used to publish the MCP discovery file",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "rust-core",
+    "repro": "design — wait_for_port_timeout returns true for ANY process accepting on 127.0.0.1:<port>; pick_free_port releases the port before the child binds it, so a foreign listener in that window makes the core declare health and publish a discovery file for a process that is not ours.",
+    "evidence": "src-tauri/src/lib.rs:46-55 (TcpStream::connect only); src-tauri/src/lib.rs:30-33 (pick_free_port binds, reads, then DROPS the listener — the port is free until the child binds); src-tauri/src/lib.rs:260-265 (`println!(\"[vysted] Python sidecar healthy ...\")` + write_mcp_endpoint_file on that evidence); src-tauri/src/openbb_mcp.rs:178 (same over-claim); src/lib/sidecar-client.ts:126-141 (the FRONTEND does the honest thing — a real GET /health with response.ok gating); docs/research/phase-10/hunt-rust-tauri.md BUG 5 reported the TOCTTOU half and it is unfixed at 2d99cda",
+    "notes": "APOSD 6: the evidence (a TCP handshake) cannot support the conclusion (our sidecar is up), and the caller states the stronger conclusion anyway. The helper's NAME is honest; the caller's log line is not. Consequence: in the theft window the frontend fires BYOK-authenticated requests at a foreign listener and an external MCP client is handed its address in the discovery file. Smallest fix: replace the bare connect with a GET /health that matches a known field (status/version) — exactly what the frontend already does; the core is the one layer that does not."
+  },
+  {
+    "raw_id": "COD-rust-core-9",
+    "title": "The SidecarPort==0 'disconnected' sentinel is documented in three places and honoured nowhere; a spawn failure is indistinguishable from a slow boot and ends in a 120s blind spinner",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "rust-core",
+    "repro": "Make the sidecar spawn fail (rename the bundled binary) -> get_sidecar_port still returns a live port number, the frontend retries /health for 120s and then shows 'The data engine did not become ready in time.' The real cause is only on stderr.",
+    "evidence": "src-tauri/src/lib.rs:440-441 (SidecarPort managed once, before the spawn); src-tauri/src/lib.rs:206-222 (every spawn-failure path early-returns WITHOUT updating the state); src-tauri/src/lib.rs:272-279 (doc: '`0` means no sidecar bound this launch (boot-time port-pick or spawn failure) — the frontend treats that as disconnected and retries'); src/lib/sidecar-client.ts:96-98 (the port is interpolated into a URL with no zero check — grep '=== 0' over sidecar-client.ts returns nothing); src/lib/sidecar-client.ts:124-141 (a 120_000ms deadline then a generic SidecarError(503)); docs/research/phase-10/hunt-rust-tauri.md BUG 3 reported the optimistic-port half and it is unfixed at 2d99cda",
+    "notes": "APOSD 14 + 9: the sentinel exists only in prose; no producer sets it on failure and no consumer tests it. Consequence: an unrecoverable boot (missing binary, spawn denied) looks exactly like a slow cold boot — two minutes of spinners, then a message that names nothing actionable, in a packaged app where the user never sees stderr. Smallest fix: replace SidecarPort(u16) with SidecarStatus { port, state: Starting|Ready|Failed(reason) }, set it from start_main_sidecar's failure arms and from the port-wait thread, and let the renderer render the reason. Alternatively delete the sentinel from the three doc comments so it stops reading as a contract."
+  },
+  {
+    "raw_id": "COD-rust-core-10",
+    "title": "The two MCP supervisor threads mutate the process environment concurrently (non-thread-safe setenv), and the comment reassuring about contention checks the wrong axis",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — lib.rs spawns both supervisors on separate OS threads; the first thing each does is std::env::set_var on two variables. glibc/macOS setenv is not thread-safe (this is why Rust 2024 made set_var unsafe); Cargo.toml pins edition 2021 so the compiler does not warn.",
+    "evidence": "src-tauri/src/lib.rs:470-481 (two thread::spawn calls, run concurrently); src-tauri/src/openbb_mcp.rs:95-96 (set_var x2) and :59-60 (remove_var x2 on the failure path); src-tauri/src/sec_edgar_mcp.rs:95-96 and :58-59 (same); src-tauri/src/lib.rs:466-469 ('the two threads each call app.manage(...) for their OWN distinct state types (OpenbbMcp* vs SecEdgarMcp*), so there is no shared-state contention between them'); src-tauri/Cargo.toml:6 (edition = \"2021\"); docs/research/phase-10/hunt-rust-tauri.md BUG 1 reported this and it is unfixed at 2d99cda",
+    "notes": "APOSD 11/14: the comment audits Tauri state — the shared resource the author was thinking about — and misses the process-global environment both threads write, which is the one that is actually unsynchronised. Consequence: a rare boot-time environ corruption or crash, exactly the nondeterministic 'bound on some boots, not others' class the surrounding Phase-8/9 comments chase (no claim that it caused those). Smallest fix: have each supervisor RETURN its port and let the (single) setup thread do both set_var calls after the joins — the env only has to be settled before the sidecar spawn, which is already where the join sits."
+  },
+  {
+    "raw_id": "COD-rust-core-11",
+    "title": "A failed keychain read during the one-time dev migration is swallowed and the migrated flag is set anyway — those secrets are forfeited permanently",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "Dev build, first boot, one account's keychain read errors on both passes (denied dialog / locked keychain) -> that secret is never copied, `migrated: true` is written, and the keychain is never read again by design. The report says already_done on every later boot.",
+    "evidence": "src-tauri/src/keychain.rs:286-292 (pass 2: `resolved.insert(account.clone(), read(account).unwrap_or(None))` — the error is discarded); src-tauri/src/keychain.rs:197 (`store.migrated = true` runs unconditionally after the loop); src-tauri/src/keychain.rs:180-186 and :258-264 (both guards then short-circuit forever); src-tauri/src/keychain.rs:50-58 (MigrateReport has backend/migrated/already_done — no failed list, no error count); src-tauri/src/keychain.rs:189-190 (the comment acknowledges the skip: 'the user re-adds it via Settings' — but nothing tells the user WHICH)",
+    "notes": "APOSD 9 (define errors out of existence): a failure is converted into a silent empty AND made permanent in the same function. Consequence: one denied SecurityAgent dialog on the single migration boot silently drops those BYOK keys forever; the renderer is told the migration succeeded and the user learns only when a provider call 401s. Smallest fix: set `migrated` only when `errored` is empty after pass 2, or add `failed: Vec<String>` to MigrateReport and leave the flag unset so the next boot retries."
+  },
+  {
+    "raw_id": "COD-rust-core-12",
+    "title": "The app-data-dir + temp-fallback policy is hand-copied into three functions, and one of the three does not create the directory",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — resolve_data_dir (creates the dir, logs both failures), get_app_data_dir (no create, silent) and dev_keystore::file_path (creates, silent) each re-implement app_data_dir()-with-temp-fallback.",
+    "evidence": "src-tauri/src/lib.rs:116-134 (resolve_data_dir — passed to the sidecar as --data-dir); src-tauri/src/lib.rs:142-151 (get_app_data_dir — the renderer's export/notes root, no create_dir_all, errors swallowed); src-tauri/src/keychain.rs:117-124 (dev_keystore::file_path, third copy, comment says 'mirrors resolve_data_dir in lib.rs'); consumers: src/modules/notes/notes-persistence.ts:31 and src/lib/export-artifact.ts:42 both build paths from get_app_data_dir",
+    "notes": "APOSD 3/4 (information hiding, leakage): one policy, three implementations, two behaviours — kept in agreement only by hand. Consequence: the sidecar's data dir and the renderer's export root are the same path by coincidence; change the fallback in one and notes/exports silently land where the sidecar never looks, with no error because get_app_data_dir swallows. Smallest fix: one `fn app_data_dir(&AppHandle) -> PathBuf` (create + log) and make all three call it; get_app_data_dir becomes a one-line command over it."
+  },
+  {
+    "raw_id": "COD-rust-core-13",
+    "title": "keychain_migrate blocks an async-runtime worker for 140 seconds with no progress signal to the renderer",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "Dev build, first boot with existing OS-keychain items: keychain_migrate (an async command) calls std::thread::sleep(140s) inline; the renderer's invoke promise hangs for >2 minutes with no UI feedback.",
+    "evidence": "src-tauri/src/keychain.rs:224 (MIGRATE_SELF_DISMISS_WAIT_SECS = 140); src-tauri/src/keychain.rs:286 (std::thread::sleep inside migrate_collecting); src-tauri/src/keychain.rs:348 (pub async fn keychain_migrate — runs on the Tauri async runtime); src-tauri/src/keychain.rs:354-360 (records that spawn_blocking was tried and broke the keychain read, so the inline placement is deliberate); the other three commands are async too (keychain.rs:299, :316, :332); docs/research/phase-10/hunt-rust-tauri.md BUG 6 flagged blocking keychain I/O on the async runtime and it is unfixed at 2d99cda",
+    "notes": "The 140s wait itself is justified and measured — the defect is that it is invisible and blocks a shared worker. Debug-only (cfg(debug_assertions)) so no shipped user hits it, which caps severity at low. Consequence: a dev first-boot looks hung, and every other async Tauri command contends for the remaining tokio workers. Smallest fix: emit a Tauri event ('keychain-migrate:waiting', with the remaining seconds) before the sleep so the UI can say what is happening; keep the inline read."
+  },
+  {
+    "raw_id": "COD-rust-core-14",
+    "title": "write_text_atomic and write_bytes_atomic are the same 22 lines twice, so every durability or path fix must be made in both",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — the two functions differ only in `contents.as_bytes()` vs `&contents` and in the temp-name fallback string ('note' vs 'export').",
+    "evidence": "src-tauri/src/lib.rs:287-310 vs src-tauri/src/lib.rs:318-342 (identical parent/create_dir_all/tmp-name/File::create/write_all/flush/rename sequence); the divergent detail: lib.rs:299 unwrap_or(\"note\") vs lib.rs:332 unwrap_or(\"export\")",
+    "notes": "APOSD 5 (general-purpose modules are deeper): the general function was never extracted, so the two fixes this census asks for (COD-rust-core-5 confinement, COD-rust-core-7 sync_all) each have to be applied twice or they drift. Smallest fix: private `fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String>`; both commands become one line over it."
+  },
+  {
+    "raw_id": "COD-rust-core-15",
+    "title": "kill_switch_emit lets the renderer choose the kill switch's firedBy provenance, and ships in the release invoke_handler despite being documented as a dev fire-test",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "rust-core",
+    "repro": "design — invoke('kill_switch_emit', { firedBy: '<anything>' }) emits the same event the OS shortcut does, with caller-chosen provenance.",
+    "evidence": "src-tauri/src/kill_switch.rs:89-92 (#[tauri::command] pub fn kill_switch_emit(app, fired_by: String)); src-tauri/src/lib.rs:416 (registered in the production invoke_handler — no cfg gate); src-tauri/src/kill_switch.rs:83-88 (doc: 'Exposed as a Tauri command so the frontend can fire-test the path from a developer console'); the payload field feeds types/safety.ts KillSwitchFiredBy",
+    "notes": "APOSD 3 (information hiding) on a §6.5 surface: the field that distinguishes a human keypress from an automated trigger is caller-supplied, in the one subsystem whose audit log is deliberately DB-enforced append-only. No live consequence today (COD-rust-core-3: nothing listens), so it is low — but it becomes a provenance hole the moment the surface returns. Smallest fix: #[cfg(debug_assertions)] the command, or drop the parameter and hardcode a distinct value such as 'frontend-command'."
+  }
+]

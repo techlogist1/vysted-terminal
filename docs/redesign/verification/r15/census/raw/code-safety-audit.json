@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-safety-audit-1",
+    "title": "Kill switch is unreachable from the shipped UI while manual order entry + live mode stay reachable",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "grep -rn 'kill-switch:requested\\|fireKillSwitch' src (excluding tests + src/store/safety.ts) -> zero listeners, zero callers. Meanwhile the command palette still opens 'Order Entry' and POST /brokers/{id}/orders, /orders/{id}/confirm and /mode are mounted.",
+    "evidence": "src/store/safety.ts:13-17, src/modules/safety/index.ts:10-12, src/modules/index.ts:52-54 (kill-switch UI removed, 'read-only app, nothing to halt'); src/modules/broker-connect/index.ts:26-47 (Order Entry panel + command registered), sidecar/routers/brokers.py:255,284,327 (propose/confirm/mode routes), sidecar/services/brokers/alpaca.py:158-190 (_place_confirmed submits a real order); src/modules/safety/DisclaimerFlow.tsx:45 (TOS the user must accept promises the kill switch); docs/SAFETY_ARCHITECTURE.md:118,243 (still documents KillSwitchToolbar, which no longer exists)",
+    "notes": "Strategic-vs-tactical / modifying existing code: a craft pass removed a CLAUDE.md Tier-1 §6.5 layer's only trigger on the premise that the app is read-only, but the thing it guards (propose -> confirm -> _place_confirmed, live mode toggle) was left reachable. Consequence: a user who connects a broker live and uses Order Entry has no halt control, while the accepted TOS says they do. Not a request to build order execution (out of scope) — it is an inconsistency between two existing surfaces. Tier-4: operator decides which way to make it consistent. Smallest shapes: (a) re-wire ~10 lines in page.tsx: listen('kill-switch:requested') -> fireKillSwitch + a fired banner; or (b) unregister the shortcut, hide Order Entry + live-mode toggle, and drop the TOS bullet. Refuter: upgrade to critical if manual live order entry is considered shippable in this release."
+  },
+  {
+    "raw_id": "COD-safety-audit-2",
+    "title": "Registered kill-switch chord is Ctrl+Cmd+Shift+K (all three modifiers), not the documented CmdOrCtrl+Shift+K",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "Read src-tauri/src/kill_switch.rs:35-38: Modifiers::SHIFT | Modifiers::SUPER | Modifiers::CONTROL is a bitflag AND-requirement. The crate's own CmdOrCtrl parse sets SUPER on macOS OR CONTROL elsewhere, never both (~/.cargo/registry/src/*/global-hotkey-0.7.0/src/hotkey.rs:212-217). Pressing Cmd+Shift+K (mac) or Ctrl+Shift+K (win/linux) therefore never matches the handler's `shortcut != &kill_switch_shortcut()` guard.",
+    "evidence": "src-tauri/src/kill_switch.rs:34-39 (the OR'd modifiers), :20,:30,:75 (docs + log line claim CmdOrCtrl+Shift+K); src/modules/safety/DisclaimerFlow.tsx:45 (TOS tells the user Cmd/Ctrl+Shift+K); docs/SAFETY_ARCHITECTURE.md:119,240; no Rust test references kill_switch_shortcut (grep src-tauri/src)",
+    "notes": "Outright bug, provable from code. Today it is masked by COD-safety-audit-1 (no listener), but the moment the listener is re-wired the documented emergency chord still does nothing, and right now the app grabs an OS-wide chord for a dead event. Fix shape (2 lines + 1 test): `#[cfg(target_os = \"macos\")] Modifiers::SUPER` / `#[cfg(not(...))] Modifiers::CONTROL`, or `\"CmdOrCtrl+Shift+K\".parse()`; add a unit test asserting equality with the parsed string so the comment can never drift from the code again. Fix together with -1."
+  },
+  {
+    "raw_id": "COD-safety-audit-3",
+    "title": "KillSwitchBus.fire sets the fired flag only after awaiting every subscriber, with no timeout, under the lock",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "PYTHONPATH=sidecar sidecar/.venv/bin/python: bus=KillSwitchBus(); bus.subscribe('slow', lambda ev: asyncio.sleep(3600)); await asyncio.wait_for(bus.fire('emergency','user-toolbar'), 0.3) -> TimeoutError and bus.is_fired == False (ran: 'P1 hung subscriber -> is_fired after 0.3s: False').",
+    "evidence": "sidecar/services/kill_switch.py:109 (lock held), :131-133 (asyncio.gather, no wait_for), :135 (_fired = True AFTER the gather), :126 ('never block the kill switch' only covers exceptions), :37 (ACK_BUDGET_NS defined, zero readers — grep); consumers read the flag at sidecar/services/broker_base.py:251,345; sidecar/services/broker_base.py:436-438 invites subclasses to add network cancel-all in the callback",
+    "notes": "Invariant held by a comment ('never block the kill switch', '2s ack budget') when two lines of structure could hold it. One hung subscriber (a broker SDK cancel-all with no timeout is the documented extension point) means: the global flag never flips, the HTTP fire never returns, /kill-switch/status reports fired:false, and every later fire queues on the lock. The base callback is fast today (3.4 ms measured), so this is latent — but it is the emergency path. Fix: set _fired/_last_event BEFORE dispatch; wrap `cb(event)` in asyncio.wait_for(..., ACK_BUDGET_NS / 1e9) and record the timeout as the ack time. Leaves one runnable check: the snippet above as a test."
+  },
+  {
+    "raw_id": "COD-safety-audit-4",
+    "title": "Unsubscribe-by-name + overwrite-on-duplicate: replacing an adapter leaves the replacement unsubscribed from the kill switch",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "bus.subscribe('alpaca', old) -> unsub_old; bus.subscribe('alpaca', new); unsub_old(); await bus.fire(...) -> 'subscribers after replace: 0 | callbacks hit: []' (ran). This is exactly the order registry.register() uses: the new adapter already subscribed in __init__, then existing._unsubscribe() pops the slot by name.",
+    "evidence": "sidecar/services/kill_switch.py:67-75 (docstring claims duplicate names are 'safe'; _unsubscribe pops by name, not identity); sidecar/services/brokers/registry.py:80-94 (register-or-replace calls existing._unsubscribe() after the new adapter was constructed); sidecar/services/broker_base.py:100-103 ('adapters CANNOT be instantiated without subscribing … architectural rather than convention')",
+    "notes": "Conjoined methods: subscribe's overwrite semantics and the unsubscribe closure are only correct if callers unsubscribe BEFORE constructing the replacement, which no caller can do (construction subscribes). Latent today: the only production caller (ensure_registered, registry.py:103-119) never replaces, and the is_fired re-check in propose/confirm still blocks orders. Consequence when hit: the live adapter never gets _on_kill_switch -> no read-only latch, no 'kill-switch-fired' audit row. One-line fix in _unsubscribe: `if self._subscribers.get(name) is callback: del self._subscribers[name]`."
+  },
+  {
+    "raw_id": "COD-safety-audit-5",
+    "title": "Kill-switch fire and reset are not audit-logged by their owner; 'kill-switch-reset' has no writer anywhere",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "Temp data dir: await KillSwitchBus().fire('emergency','user-toolbar'); bus.reset(); audit_log.count() -> 0 (ran: 'P3 fire+reset with 0 subscribers -> audit rows: 0'). grep -rn 'kill-switch-reset' sidecar (non-test) -> only the Literal in models/safety.py:71.",
+    "evidence": "sidecar/services/audit_log.py:3-6 (promises 'every kill-switch fire … lands here'); sidecar/routers/safety.py:119-139 (fire + reset routes write nothing); sidecar/services/kill_switch.py:102-152 (bus writes nothing); sidecar/services/broker_base.py:442-457 (the ONLY writer: each subscribed adapter); sidecar/services/brokers/registry.py:98-104 (FR-051: no adapter is registered at boot, so zero subscribers is the default state)",
+    "notes": "Pull complexity downward: the bus owns the event but delegates its forensic record to whoever happens to be subscribed. Result: a fire with no connected broker, and every un-halt, leave no trace in the 'regulatory-grade' log; with N brokers one fire writes N rows and zero '_meta' rows. Fix: bus.fire / bus.reset each append one broker='_meta' row (two audit_log.append calls); the per-adapter 'acked' rows can stay."
+  },
+  {
+    "raw_id": "COD-safety-audit-6",
+    "title": "Halt state lives only in process memory: a sidecar restart silently un-halts; reset does not un-latch adapters",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "safety-audit",
+    "repro": "design — fire the switch, restart the sidecar (crash, Tauri respawn, app relaunch): GET /safety/kill-switch/status -> fired:false with no acknowledged=true and no audit row. Separately: fire -> reset -> status says fired:false but every adapter still raises 'adapter is in read-only mode' because _on_kill_switch latched _read_only and reset() never broadcasts.",
+    "evidence": "sidecar/services/kill_switch.py:54-56 (state = three instance attrs), :146-152 (reset touches only the bus), :198 (module singleton rebuilt per process); sidecar/routers/safety.py:129-131 ('so a stray POST cannot un-halt trading silently' — a restart does exactly that); sidecar/services/broker_base.py:441 (_read_only = True latch, never undone by reset)",
+    "notes": "Design-it-twice: the durable, append-only store that should be the source of truth already exists. With COD-safety-audit-5 fixed, boot can derive fired-state from the last '_meta' kill-switch-* row (one SELECT) — no new file, no new schema. Mitigating today: adapters and live mode also die with the process, so this is medium not high. The reset asymmetry costs the next maintainer an afternoon: two different refusal messages for one user action, and status that says 'not fired' while nothing can trade."
+  },
+  {
+    "raw_id": "COD-safety-audit-7",
+    "title": "The emergency stop can be rejected on a forensic label (firedBy Literal + extra=forbid, validated before dispatch)",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "await KillSwitchBus().fire('emergency', 'workflow') -> pydantic ValidationError, is_fired False, no subscriber called (ran: 'P2 unknown fired_by -> ValidationError | is_fired: False'). Over HTTP: POST /safety/kill-switch {\"firedBy\":\"user-menu\"} or any extra key -> 422, nothing halted.",
+    "evidence": "sidecar/services/kill_switch.py:102 (signature takes str), :114-118 (event built before dispatch, `# type: ignore[arg-type]`); sidecar/routers/safety.py:88-93 (extra='forbid' + the Literal re-declared inline instead of importing KillSwitchFiredBy); src-tauri/src/kill_switch.rs:89-92 (kill_switch_emit forwards ANY String as firedBy); the vocabulary is hand-declared 4x: sidecar/models/safety.py:29-34, sidecar/routers/safety.py:91, types/safety.ts:39, src-tauri/src/kill_switch.rs:59",
+    "notes": "Define errors out of existence: for a halt, the only acceptable failure mode is 'halted anyway'. A new trigger surface (tray, agent, workflow) added in one of the four places and not the others turns the kill switch into a 422. Fix: fire() coerces an unknown fired_by to 'user-command' (keep the raw value in reason/payload); request model drops extra='forbid'; router imports KillSwitchFiredBy from models.safety."
+  },
+  {
+    "raw_id": "COD-safety-audit-8",
+    "title": "Append-only log + strict read-side validation: one unknown-action row makes the audit log unreadable forever",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "safety-audit",
+    "repro": "Insert one row with action='order-modified' (what a newer build, a renamed literal, or a downgrade produces) -> audit_log.tail() raises ValidationError (ran: 'P4 one unknown-action row -> tail raises ValidationError') -> GET /safety/audit-log is a 500 on every poll. The row cannot be removed: DELETE raises IntegrityError by design (ran P6).",
+    "evidence": "sidecar/services/audit_log.py:106-119 (_row_to_entry builds AuditLogEntry per row; json.loads unguarded), :152-166 (tail = list comprehension, one failure kills all); sidecar/models/safety.py:63-78,90-92 (action/source are closed Literals on the READ model); sidecar/models/audit_log.py:40-50 (triggers make the poison row permanent)",
+    "notes": "The write model is the right place for the closed Literal; the read model of an immutable, forever-growing table must tolerate its own history. Any future rename/removal of an action, or R15 adding one and the operator bisecting back, bricks the viewer (which has no error state — see -9) and the CSV export is the only thing that still works. Fix: AuditLogEntry.action/source -> str (keep Literals on AuditLogAppendRequest); payload parse failure -> {'_raw': text}. Mirror in types/safety.ts as `AuditLogAction | (string & {})`."
+  },
+  {
+    "raw_id": "COD-safety-audit-9",
+    "title": "AuditLogViewer has no error state and flickers Loading/Empty every 2 s on an empty log",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "safety-audit",
+    "repro": "Open the Audit Log panel with zero rows (the normal state): every poll does set({auditStatus:'loading'}) then 'ready', so the body alternates '<p>Loading…</p>' and the EmptyState every 2 s. Stop the sidecar (or hit the 500 from -8): status='error' matches neither branch -> bare table header + '0 entries', indistinguishable from a genuinely empty log. grep auditError outside the store -> zero consumers.",
+    "evidence": "src/store/safety.ts:245-258 (every refresh sets 'loading'; error message stored in auditError); src/modules/safety/AuditLogViewer.tsx:62-68 (2 s interval), :141-151 (only loading/ready branches), :148 (copy says 'No audit entries match the filter' even with no filter set); src/modules/safety/AuditLogViewer.test.tsx has no loading/error case (grep)",
+    "notes": "Functional UI defect on a trust surface: an audit log that shows 'nothing' when it failed to load is worse than no audit log. Fix (3 edits): only set 'loading' when status is 'idle'; render auditError in a negative banner like the siblings in OrderConfirmationDialog.tsx:260; choose the empty headline by whether the filter differs from defaultAuditFilter."
+  },
+  {
+    "raw_id": "COD-safety-audit-10",
+    "title": "Audit filters run client-side over the newest 200 rows; export and table disagree; no date in the Time column",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "safety-audit",
+    "repro": "With >200 rows (~67 orders at 3 rows each), set From/To to last week: table shows 'No audit entries match the filter' although Export CSV for the same range returns them. Set only 'From': table is filtered, Export silently returns the full log. Broker/Action filters never reach the export. Rows from different days render identical times.",
+    "evidence": "src/modules/safety/AuditLogViewer.tsx:24 (TAIL_LIMIT=200), :75-78 (range sent only when BOTH ends set; broker/action never sent), :202 (toLocaleTimeString — no date); src/store/safety.ts:264-281 (filter over the fetched tail only); sidecar/services/audit_log.py:169-188 (range_ exists server-side but has no route and no non-test caller), :199-216 (export_csv carries its own WHERE builder); sidecar/routers/safety.py:47-52 (tail route takes only limit)",
+    "notes": "General-purpose vs special-purpose: three read functions (tail, range_, export_csv) each with their own SQL, and the one the UI needs (filtered tail) does not exist, so the filter was done in the wrong layer. For forensics — the only reason this panel exists — the UI can never show anything older than the newest 200 rows. Fix: one `_select(start_ms, end_ms, broker, action, limit, order)` used by tail + export; route accepts the same query params; delete range_; render date+time."
+  },
+  {
+    "raw_id": "COD-safety-audit-11",
+    "title": "Live-order disclaimer gate fails open ('?? \"paper\"') and is enforced only in the UI",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "Sidecar keeps an adapter in live mode; webview reloads (or the Connections panel was never mounted, the only place useBrokersStore.refresh runs). An agent proposal arrives via routeOrderProposal with input.broker set -> brokersById[broker] is undefined -> dialog renders 'Mode: paper' and handleConfirm skips the first-live-order ack. Server side: grep has_session_ack -> no caller outside tests; confirm_and_place and POST /{id}/mode check no ack.",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:89 (`?.mode ?? \"paper\"`), :128 (gate depends on that value), :220 (shown to the user as fact); src/lib/host-actions.ts:1508-1517,1566-1567 (proposal opened without refreshing broker state); src/modules/broker-connect/BrokerConnectPanel.tsx:119 (only refresh caller); sidecar/services/disclaimer_session.py:30-32 (has_session_ack: zero production callers); sidecar/routers/brokers.py:327-341 (mode route checks nothing)",
+    "notes": "Different layer, same abstraction: the sidecar stores the ack but never consults it, so the 'layer' is a convention held by one React component — and that component defaults the unknown case to the unsafe value and displays it as truth (money-relevant label). Smallest fix: default unknown to 'live' (one token) so the gate over-prompts instead of under-prompting. Better: the sidecar is the authority on mode — stamp `mode` on the BrokerOrderProposal at propose time and render that (types/broker.ts + models/broker.py in the same commit)."
+  },
+  {
+    "raw_id": "COD-safety-audit-12",
+    "title": "Four safety-UI handlers drop failures on the floor while their siblings surface them; TOS hydrate failure is a silent dead end",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "safety-audit",
+    "repro": "Deny the macOS keychain prompt on first launch: keychain_get rejects -> the hydrate IIFE rejects unhandled -> setHydrated(true) never runs -> FirstLaunchTosDialog returns null forever AND every broker row stays disabled (firstLaunchTosAcked=false) with no message and no way to ack. Same shape: decline fails -> nothing shown; first-connect ack fails -> nothing shown; CSV export non-200 -> unhandled rejection.",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:55-60 (no catch) vs :62-76 (handleAck has catch + ackError), :148-156 (handleAccept try/finally, no catch); src/modules/safety/OrderConfirmationDialog.tsx:164-171 (handleDecline try/finally) vs :124-140,:151-162 (confirm/liveAck set error); src/modules/safety/AuditLogViewer.tsx:79-82 (throw inside an onClick promise); src/modules/broker-connect/BrokerConnectPanel.tsx:150,177,187 (rows disabled on !firstLaunchTosAcked); src/lib/keychain.ts:63-66 (getSecret propagates invoke errors)",
+    "notes": "Consistency: within one 300-line file two handlers show errors and one swallows. The keychain-deny path is realistic on macOS (CLAUDE.md documents the re-prompt problem). Fix: catch in the hydrate effect -> setHydrated(true) + ackError ('could not read keychain'); give handleDecline/handleAccept the same catch->setError their siblings have; exportCsv reports into the store's auditError (which -9 makes visible)."
+  },
+  {
+    "raw_id": "COD-safety-audit-13",
+    "title": "Safety comments/docs state behaviour the code does not have (cancel-all, exception type, toolbar fallback, file pointers)",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "safety-audit",
+    "repro": "design — compare each comment with the code it describes. Exception type verified by running a DELETE against the trigger: IntegrityError, not OperationalError.",
+    "evidence": "types/safety.ts:42-46 ('Adapters cancel all open orders, set readOnly = true') vs sidecar/services/broker_base.py:433-441 (base explicitly does NOT cancel; grep _on_kill_switch -> no subclass overrides); sidecar/services/audit_log.py:12-15 (says sqlite3.OperationalError; actual IntegrityError, as CLAUDE.md states); types/safety.ts:77,:18 (points at services/audit_log.py for the triggers; they live in sidecar/models/audit_log.py:40-50); src-tauri/src/kill_switch.rs:47-48,:70-71,:77-78 (runtime log 'toolbar button still works' — the toolbar was removed); docs/SAFETY_ARCHITECTURE.md:118,243 (KillSwitchToolbar)",
+    "notes": "A comment that is wrong is worse than none, and these are on the Tier-1 contract file every teammate is told to read first. The cancel-all claim matters most: a user or maintainer reading the wire contract believes 'Halt All Trading' pulls working orders from the broker; it only blocks new ones, open orders keep resting at the exchange. Fix is text-only (types/safety.ts is not the locked plugin.ts): say 'block new orders; open orders are NOT cancelled', correct the exception type and file pointers, delete the toolbar-fallback sentences."
+  },
+  {
+    "raw_id": "COD-safety-audit-14",
+    "title": "Dead code and hand-copied vocabularies in the safety chain (no parity test)",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "safety-audit",
+    "repro": "grep: ACK_BUDGET_NS, AUDIT_LOG_NAMESPACE, SafetyStoreSnapshot, AiOrderGateProposal (TS), audit_log.range_ -> zero non-test readers. grep AuditLogAction in sidecar/tests + src tests -> no parity assertion between models/safety.py and types/safety.ts.",
+    "evidence": "sidecar/services/kill_switch.py:26,216-217 (_unused() exists only to keep an unused `Any` import), :37 (ACK_BUDGET_NS); sidecar/models/audit_log.py:56-58 ('reserved for future'); types/safety.ts:207-219,229-236 (unused contract types); src/store/safety.ts:196-243 (dormant kill-switch slice, ~50 LOC, zero callers); action list copied at sidecar/models/safety.py:63-76, types/safety.ts:81-93, src/modules/safety/AuditLogViewer.tsx:40-53; broker list copied at src/modules/safety/AuditLogViewer.tsx:26-38, src/store/safety.ts:166-177, src/modules/safety/DisclaimerFlow.tsx:205-222",
+    "notes": "Information leakage: adding one action or broker is a 4-file edit with nothing to tell you which files; combined with -8 a missed copy bricks the viewer. Lazy fix is deletion, not abstraction: delete _unused + the Any import, AUDIT_LOG_NAMESPACE, the two unused TS interfaces; derive the viewer's Broker/Action options from the fetched rows (`new Set(entries.map(e => e.action))`) and delete KNOWN_BROKERS/KNOWN_ACTIONS. Wire ACK_BUDGET_NS into -3 rather than deleting it."
+  }
+]

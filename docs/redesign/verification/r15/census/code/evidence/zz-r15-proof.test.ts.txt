@@ -1,0 +1,70 @@
+// R15 census TEMP proof file (frontend-stores critique) — deleted after the run.
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { useAgentSpacesStore } from "./agent-spaces";
+import { useChatHistoryStore } from "./chat-history";
+import { matchesEvent, useKeybindingsStore } from "./keybindings";
+import { useNotesStore } from "./notes";
+import { useResearchSpacesStore } from "./research-spaces";
+
+const SPACE = "Research: RELIANCE";
+
+describe("r15 frontend-stores proofs", () => {
+  beforeEach(() => {
+    useChatHistoryStore.getState().clear();
+    useResearchSpacesStore.setState({ byName: {} });
+  });
+
+  it("P1 a new agent chat tab inside a research space wipes its durable transcript on the next save", () => {
+    useChatHistoryStore.getState().appendUserMessage("what is RELIANCE net debt?");
+    useResearchSpacesStore.getState().saveSpace(SPACE, "RELIANCE");
+    expect(useResearchSpacesStore.getState().getMemory(SPACE)?.transcript).toHaveLength(1);
+
+    useAgentSpacesStore.getState().newSpace(); // user clicks "+" in the chat tab bar
+    // what every autosave does for a research space (src/lib/workspace.ts:196)
+    useResearchSpacesStore.getState().saveSpace(SPACE, "RELIANCE");
+
+    const after = useResearchSpacesStore.getState().getMemory(SPACE);
+    expect(after?.transcript).toHaveLength(0);
+    expect(after?.summary).toContain("no prior questions yet");
+  });
+
+  it("P2 entering a research space destroys the ambient agent-space live thread", () => {
+    useChatHistoryStore.getState().appendUserMessage("ambient chat 1 question");
+    const liveId = useAgentSpacesStore.getState().activeId;
+    useResearchSpacesStore.getState().switchSpace(null, { name: SPACE, symbol: "RELIANCE" });
+    expect(useChatHistoryStore.getState().messages).toHaveLength(0);
+    expect(useAgentSpacesStore.getState().archived[liveId]).toBeUndefined(); // not archived anywhere
+    useResearchSpacesStore.getState().switchSpace({ name: SPACE, symbol: "RELIANCE" }, null);
+    expect(useChatHistoryStore.getState().messages).toHaveLength(0); // never comes back
+  });
+
+  it("P3 replaceAll (older named workspace load) drops newer memory for every other space", () => {
+    useResearchSpacesStore
+      .getState()
+      .recordClaims("Research: TCS", [{ symbol: "TCS", metric: "P/E", value: 29.4, statedAt: 2 }]);
+    useResearchSpacesStore.getState().replaceAll({ byName: {} }); // blob saved before TCS existed
+    expect(useResearchSpacesStore.getState().getMemory("Research: TCS")).toBeNull();
+  });
+
+  it("P4 notes.fromBundle (older workspace load) rolls every note back", () => {
+    useNotesStore.getState().setSymbolNote("TCS", "friday thesis");
+    useNotesStore.getState().setSymbolNote("INFY", "new note");
+    useNotesStore.getState().fromBundle({ general: "", bySymbol: { TCS: "monday thesis" } });
+    expect(useNotesStore.getState().noteFor("TCS")).toBe("monday thesis");
+    expect(useNotesStore.getState().noteFor("INFY")).toBe("");
+  });
+
+  it("P5 conflicts() misses mod/ctrl aliases that fire on the same physical combo", () => {
+    useKeybindingsStore.getState().setBinding("agent.toggle", "ctrl+k"); // jsdom = non-mac => mod===ctrl
+    const event = { key: "k", metaKey: false, ctrlKey: true, altKey: false, shiftKey: false };
+    expect(matchesEvent(useKeybindingsStore.getState().bindingFor("palette.open"), event)).toBe(true);
+    expect(matchesEvent(useKeybindingsStore.getState().bindingFor("agent.toggle"), event)).toBe(true);
+    expect(useKeybindingsStore.getState().conflicts()).toEqual([]);
+  });
+
+  it("P6 the default alt+digit combos cannot match a macOS Option+digit event (key is the composed glyph)", () => {
+    const optionOne = { key: "¡", metaKey: false, ctrlKey: false, altKey: true, shiftKey: false };
+    expect(matchesEvent("alt+1", optionOne)).toBe(false);
+  });
+});

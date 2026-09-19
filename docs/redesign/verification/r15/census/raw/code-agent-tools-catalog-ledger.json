@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-1",
+    "title": "run_custom_backtest advertises readOnlyHint=true on the external MCP surface while it writes to backtest_store",
+    "severity": "critical",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "External MCP client lists tools -> run_custom_backtest carries annotations.readOnlyHint=true -> client auto-approves it as a read -> the call persists a BacktestResult into the shared backtest_store. Declared safety hint is false.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:905, sidecar/services/agent_tools/run_custom_backtest.py:116, sidecar/services/mcp_server.py:153, sidecar/services/agent_tools/catalog.py:14",
+    "notes": "Violates 'define errors out of existence' + obviousness: catalog.py:14-17 declares read_only as the ONE flag driving both the internal mutation gate and the MCP readOnlyHint, so the field is conflating 'places no order' (the §6.5 meaning) with 'has no side effects' (the MCP meaning). Consequence: MCP clients use readOnlyHint to decide what to run without prompting the user, so a store-writing tool is auto-approved. Smallest fix: read_only=False on the run_custom_backtest entry; correct fix: split into no_order_path (§6.5 gate) and no_side_effects (MCP hint)."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-2",
+    "title": "market_overview swallows a total news-feed failure into headlines:[] with ok:true, while its sibling news tool reports ok:false",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "news_provider.fetch_news raises ProviderError('all news sources failed') (news_provider.py:384) -> _headlines catches it and returns [] -> _market_overview returns {ok:true, headlines:[]} with no failure field -> the model tells the user there are no notable market headlines today.",
+    "evidence": "sidecar/services/agent_tools/market_overview.py:87, sidecar/services/agent_tools/market_overview.py:90, sidecar/services/agent_tools/market_overview.py:127, sidecar/services/news_provider.py:384, sidecar/services/agent_tools/news_tool.py:44",
+    "notes": "Swallowed exception turning a failure into a silent empty; violates consistency (news_tool.py:47-50 returns {ok:false,error} for the identical raise) in a product whose stated moat is data trust. Consequence: a feed outage is reported to the user as a fact about the market, on the most-used broad query path ('how's the market today'). Smallest fix: return {'headlines': [], 'headlines_error': str(exc)} from _headlines and pass it through at :127-132 (4 lines)."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-3",
+    "title": "compare_symbols ranks best/worst across return windows of different lengths and the payload carries no window metadata",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "compare_symbols(['ESTABLISHED','NEWLY_LISTED']) where the second has only 2 bars since listing -> _return_pct_window returns +30% for the 2-bar series and +5% for the full 6-month series -> relative.best = NEWLY_LISTED. Verified numerically against the function's own arithmetic: (bars[-1]/bars[0]-1)*100 with no length or start-date check.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:28, sidecar/services/agent_tools/compare_symbols.py:38, sidecar/services/agent_tools/compare_symbols.py:87, sidecar/services/agent_tools/compare_symbols.py:156, sidecar/services/agent_tools/catalog.py:199",
+    "notes": "Information leakage + wrong money-relevant output presented as true: the per-symbol dict at :87-110 returns return_pct_window as a bare float with no window_start and no bar count, so neither the model nor the user can detect the mismatch. catalog.py:199-204 tells the model this is THE tool for 'NVDA vs AMD'; recent Indian listings are exactly where windows diverge. Smallest fix: add bars/window_start per symbol and rank only across a shared start, else return relative:{best:null,worst:null,note:'windows not comparable'}."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-4",
+    "title": "Five Capability knobs are dead: internal/default_grant never False, aliases never read, mcp unconditionally clobbered, and _cap re-declares every default",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. Verified by materializing the projections: internal_tool_ids(), agent_selectable_tool_ids() and default_grant_tool_ids() all return the same 50 ids; grep finds zero readers of Capability.aliases; catalog.py:1471-1474 overwrites every entry's mcp value.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:91, sidecar/services/agent_tools/catalog.py:93, sidecar/services/agent_tools/catalog.py:96, sidecar/services/agent_tools/catalog.py:101, sidecar/services/agent_tools/catalog.py:109, sidecar/services/agent_tools/catalog.py:1471, sidecar/services/agent_tools/catalog.py:1491, sidecar/services/agent_tools/catalog.py:1520, sidecar/services/agent_tools/catalog.py:1531",
+    "notes": "Obviousness + naming: agent_selectable_tool_ids() is documented (catalog.py:10-12) as the Custom Agent Builder allow-list but is the identity function, so every custom agent is offered propose_order, portfolio_delete_position and set_region. _cap (:109-135) duplicates every Capability default, so changing a default on the dataclass silently has no effect on the catalog. Consequence: the next maintainer reasons about an allow-list that does not filter, and is the first person ever to exercise internal=False. Smallest fix: delete _cap and build {c.id: c for c in [Capability(...)]} (-27 lines, kills the duplicated defaults); delete aliases and the mcp field; collapse the four projections to one until a second real value exists."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-5",
+    "title": "ToolKind declares mcp_endpoint as MCP-only but the projection rule would set mcp=False for it; zero uses repo-wide",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "Add a Capability with kind='mcp_endpoint' -> the rewrite rule at catalog.py:1472 evaluates (cap.kind == 'read_handler' and ...) = False -> mcp=False -> the capability is projected to neither the MCP surface nor anywhere else, the exact opposite of its documented meaning.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:59, sidecar/services/agent_tools/catalog.py:61, sidecar/services/agent_tools/catalog.py:1472",
+    "notes": "Speculative generality that is also wired backwards: catalog.py:59-60 documents mcp_endpoint as 'projected only to the external MCP surface'. The trap only springs when someone finally uses the kind, and it fails silently (no error, the tool just never appears). Smallest fix: delete the mcp_endpoint member until there is a caller; if kept, change the rule to kind in ('read_handler','mcp_endpoint')."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-6",
+    "title": "research's wall-budget contract is split between a prose comment in the catalog and a hardcoded tool name in the runtime",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. Set timeout_seconds=60.0 on the research entry in catalog.py -> the value is silently ignored, because _tool_timeout_seconds short-circuits on the literal tool name before consulting the catalog.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1557, sidecar/services/agent_runtime.py:615, sidecar/services/agent_runtime.py:616",
+    "notes": "Information leakage + special-general mixture: the general catalog-driven timeout mechanism carries a name-matched exception for one tool, and the only thing linking the two files is a prose sentence. research is the sole catalog entry with timeout_seconds omitted, so the omission reads as an oversight rather than a contract. Smallest fix: add timeout_from_args: bool = False to Capability, set it on the research entry, and branch on the flag instead of on a string literal."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-7",
+    "title": "The {ok:false,error} envelope is hand-copied in ~20 handlers with four incompatible error prefixes while invoke_tool stays a bare await",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. The same try/except ProviderError/except Exception -> {ok:false,error} block is duplicated across every domain file; the model receives four different spellings of one failure class and cannot pattern-match recovery.",
+    "evidence": "sidecar/services/agent_tools/__init__.py:62, sidecar/services/agent_tools/analyst_tools.py:37, sidecar/services/agent_tools/earnings_tools.py:48, sidecar/services/agent_tools/macro_tools.py:46, sidecar/services/agent_tools/sec_tools.py:66, sidecar/services/agent_tools/price_data.py:54, sidecar/services/agent_tools/news_tool.py:50, sidecar/services/agent_runtime.py:670",
+    "notes": "Fails 'pull complexity downward': the registry (invoke_tool, __init__.py:62-67) is the one seam every tool already routes through, yet it does nothing but await the handler. Prefixes in use: 'provider error: ', 'unexpected error: ', 'news fetch failed: ' (news_tool.py:50) and the runtime's own \"tool {name!r} raised: \" (agent_runtime.py:670). Consequence: change amplification — tool #21 re-derives the envelope and adds a fifth spelling. Smallest fix: move the wrapper into invoke_tool and delete it from the handlers."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-8",
+    "title": "sec_tools is the only tool family with no limit clamp; four different clamp conventions coexist in one package",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "sec_filings_list({'symbol':'AAPL','limit':100000}) -> int() parses cleanly -> 100000 passes straight to sec_filings_provider.list_filings with no clamp. limit:-1 likewise. Every sibling clamps.",
+    "evidence": "sidecar/services/agent_tools/sec_tools.py:49, sidecar/services/agent_tools/sec_tools.py:126, sidecar/services/agent_tools/news_tool.py:37, sidecar/services/agent_tools/macro_tools.py:72, sidecar/services/agent_tools/analyst_tools.py:29, sidecar/services/agent_tools/earnings_tools.py:75",
+    "notes": "Consistency violation of the 'route with no guard while its five siblings have it' shape. Four conventions to learn: max(1,min(100,..)), max(1,min(50,..)), a module constant [:60], a bare slice [:12], and nothing. Consequence: an unclamped limit blows the model's prompt budget on a tool already given a 30s timeout. Smallest fix: one _clamp_limit(args, key, default, maximum) in agent_tools/__init__.py called by all five families."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-9",
+    "title": "earnings_upcoming is the only handler whose int() parse is unguarded, so a bad days arg escapes as a generic runtime error",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "earnings_upcoming({'days':'seven'}) -> int('seven') raises ValueError out of the handler -> _dispatch_tool's generic catch returns \"tool 'earnings_upcoming' raised: invalid literal for int() with base 10: 'seven'\" instead of the tool's own \"days must be in [1, 60]\". Verified by executing the expression.",
+    "evidence": "sidecar/services/agent_tools/earnings_tools.py:31, sidecar/services/agent_tools/earnings_tools.py:32, sidecar/services/agent_runtime.py:669, sidecar/services/agent_tools/macro_tools.py:71, sidecar/services/agent_tools/news_tool.py:36, sidecar/services/agent_tools/sec_tools.py:49",
+    "notes": "Consistency: three siblings wrap the identical parse in try/except (TypeError, ValueError). Consequence: the model gets a Python traceback string rather than the actionable range message the handler already defines two lines later, so it cannot self-correct the argument. Smallest fix: wrap line 31 in the same try/except the siblings use."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-10",
+    "title": "market_overview returns region 'GLOBAL' with the US index set and no note in the payload",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "market_overview({'region':'GLOBAL'}) -> _indices_for_region falls back to _DEFAULT_INDICES (the US set) -> the result reports {region:'GLOBAL', indices:[^GSPC,^IXIC,^DJI,SPY,QQQ]} with no proxy note -> the model narrates US index moves as the global market.",
+    "evidence": "sidecar/services/agent_tools/market_overview.py:28, sidecar/services/agent_tools/market_overview.py:32, sidecar/services/agent_tools/market_overview.py:51, sidecar/services/agent_tools/market_overview.py:127, sidecar/services/agent_tools/catalog.py:264",
+    "notes": "An invariant held by a source comment (market_overview.py:32-34 explains the fallback) when the structure could hold it: the payload the model actually reads carries no trace of the substitution. catalog.py:264-271 promises 'locale-aware' resolution. Consequence: mislabelled market state on a GLOBAL workspace. Smallest fix: add a 'note' key to the returned dict when region is not in _INDICES_BY_REGION."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-11",
+    "title": "compare_symbols reads fundamentals attributes outside the guard that is supposed to isolate per-symbol failure",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "A fundamentals object missing one of the eight attributes read at :97-104 raises AttributeError outside the try at :67-70 -> the exception escapes _compare_one -> asyncio.gather at :142 aborts -> the whole comparison fails, contradicting the module docstring's failure-isolation promise.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:9, sidecar/services/agent_tools/compare_symbols.py:67, sidecar/services/agent_tools/compare_symbols.py:97, sidecar/services/agent_tools/compare_symbols.py:142",
+    "notes": "The guard at :69 is written 'except (ProviderError, Exception)' — ProviderError is already an Exception, so the tuple reads as a deliberate distinction that does not exist (same at :84). More consequentially the guard ends before the attribute reads it was meant to protect. Consequence: the documented 'one provider failure never tanks the batch' contract has a hole exactly where provider shapes are most variable (sparse fundamentals). Smallest fix: build the fundamentals dict inside the try, or use getattr(fundamentals, k, None)."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-12",
+    "title": "The MCP projection rule has no axis for account-scoped or credit-spending reads; broker_portfolio, web_search and research are auto-projected",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. The rule projects every read_handler except one hand-listed id, so broker_portfolio (real positions, equity, buying power), web_search and research (which spend the user's BYOK Exa/Perplexity credits) are on the external MCP surface purely by virtue of their kind.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1462, sidecar/services/agent_tools/catalog.py:1469, sidecar/services/agent_tools/catalog.py:1472, sidecar/services/agent_tools/catalog.py:910, sidecar/services/mcp_server.py:381",
+    "notes": "Design-it-twice: _MCP_INTERNAL_ONLY carries an axis ('a backtest run_id lives only in this session') the rule cannot express, and applies it inconsistently — it excludes backtest_summary, the READER of the session-local run_id, while projecting run_custom_backtest, its WRITER. Blast radius is bounded by the loopback-only bind (mcp_server.py:381), which is why this is medium not critical. Consequence: the per-entry decision that should be explicit is instead emergent from 'kind', and the field that could carry it (mcp) is the one clobbered in COD-4. Smallest fix: restore mcp as a per-entry decision and delete the rewrite rule."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-13",
+    "title": "domain_of / is_read_only / timeout_for return X|None, conflating 'unknown tool' with 'no value' on a safety-adjacent read",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. is_read_only('typo_tool') returns None, which is falsy; the single current caller is saved only because it writes 'is True' explicitly. A caller writing 'if not is_read_only(t)' would treat an unknown id as mutating, and 'if is_read_only(t)' treats it as not-read — two opposite readings of the same None.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1543, sidecar/services/agent_tools/catalog.py:1548, sidecar/services/agent_tools/catalog.py:1553, sidecar/services/agent_runtime.py:1303",
+    "notes": "Fails 'define errors out of existence': a three-valued return for a two-valued question, on the helper that feeds the mutation gate. Consequence: correctness here depends on every future caller remembering to write 'is True'. Smallest fix: raise KeyError on an unknown id (callers already know their ids come from the catalog), or return a default and expose a separate is_known(tool_id)."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-14",
+    "title": "registry_v0_6_5.py is a 27-line no-op module kept alive, by its own docstring, to satisfy a §6.5 grep",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. register_v0_6_5_tools() logs one debug line and returns; it is wired into two boot paths.",
+    "evidence": "sidecar/services/agent_tools/registry_v0_6_5.py:4, sidecar/services/agent_tools/registry_v0_6_5.py:18, sidecar/app.py:214, sidecar/main.py:68",
+    "notes": "Special-casing to satisfy a test (registry_v0_6_5.py:4-8 states the module is 'deliberately empty' to keep test_safety_end_to_end's grep returning zero matches), plus a pass-through sibling: __init__.py:121-134 register_v0_6_0_tools() forwards to the identically-named registry_v0_6_0.register_v0_6_0_tools() and adds nothing. Consequence: two boot paths and three files the next reader must walk to discover there is no code. Smallest fix: delete registry_v0_6_5.py and its two call sites; inline the v0_6_0 pass-through."
+  },
+  {
+    "raw_id": "COD-agent-tools-catalog-ledger-15",
+    "title": "reset_for_tests hardcodes 'backtest_summary is the only import-time tool' in three places; action_ledger.KNOWN_STATUSES is never validated against",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "agent-tools-catalog-ledger",
+    "repro": "design. Add a second module-level register_tool(...) call anywhere in the package -> reset_for_tests() clears it and re-registers only backtest_summary -> tests that reset become order-dependent and fail only when run after that reset.",
+    "evidence": "sidecar/services/agent_tools/__init__.py:70, sidecar/services/agent_tools/__init__.py:85, sidecar/services/agent_tools/__init__.py:103, sidecar/services/agent_tools/backtest_summary.py:71, sidecar/services/action_ledger.py:28, sidecar/services/action_ledger.py:55",
+    "notes": "An invariant held by a comment and a hand-maintained list when the structure could hold it — true today (backtest_summary.py:71 is the only import-time registration, verified) but silent on breach. Separately, action_ledger.KNOWN_STATUSES is exported and documented as the permitted status set yet never compared against anywhere in the repo; record() stores any spelling verbatim by design (:55-57), so the constant reads as validation that does not happen. Smallest fix: have reset_for_tests re-run importlib.reload on the import-time modules rather than naming one; either enforce KNOWN_STATUSES at the ack route or drop it from __all__."
+  }
+]

@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-macro-quant-1",
+    "title": "Binomial engine returns theta with the wrong sign (long call shown gaining value from time decay)",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "POST /quant/option/price {exercise:european, payoff:call, method:binomial, binomial_steps:200, spot:220, strike:220, risk_free_rate:0.05, dividend_yield:0.005, volatility:0.28, valuation_date:'2026-05-16', expiry_date:'2026-06-30'} -> greeks.theta = +39.8351. Same inputs with method:black-scholes -> greeks.theta = -39.6807. Same magnitude, inverted sign.",
+    "evidence": "sidecar/services/quant/options.py:166 (theta = -(price_fwd - price_base) * 365.0), options.py:161 (price_fwd is priced one day LATER), options.py:163-166 (comment claims the flip aligns it with the analytic engine), rendered at src/modules/quant/OptionPricerPanel.tsx:560; test gap at sidecar/tests/test_quant_greeks.py:105-108 (asserts theta<0 for the ANALYTIC engine only; no binomial equivalent in any of the 10 quant test files)",
+    "notes": "price_fwd < price_base because one day of time value has decayed, so (price_fwd - price_base) is already negative and IS theta; the extra negation inverts it. Wrong money-relevant data served as 200 OK on an engine the panel offers as a first-class choice, with no caveat in the UI. The comment actively tells the next reader the sign is already correct. Smallest fix: drop the negation -> theta = (price_fwd - price_base) * 365.0, and mirror test_call_theta_negative_for_atm into test_quant_options.py for the binomial engine so the two engines are pinned to each other."
+  },
+  {
+    "raw_id": "COD-macro-quant-2",
+    "title": "Concurrent quant requests corrupt each other through QuantLib's process-global evaluation date",
+    "severity": "critical",
+    "area": "code",
+    "subsystem": "macro-quant",
+    "repro": "Two threads call services.quant._common.set_evaluation_date with different dates then read ql.Settings.instance().evaluationDate: thread A set 2026-05-16, thread B set 2030-01-02, both observe 'January 2nd, 2030'. The four /quant routes are plain sync `def`, so FastAPI runs them concurrently in the anyio worker threadpool -> two simultaneous pricing calls with different valuation_date can each be served the other's date.",
+    "evidence": "sidecar/services/quant/_common.py:34-41 (set_evaluation_date writes the process global), _common.py:57 (build_bsm_process calls it on every price), sidecar/services/quant/bonds.py:52 and sidecar/services/quant/yield_curve.py:70 (write it directly), sidecar/routers/quant.py:37,46,55,64 (all four routes are sync `def`, unlike routers/macro.py:47,60,72 which are async def)",
+    "notes": "QuantLib Settings is a process singleton, not thread-local (proved by the two-thread probe). Response is a 200 with a plausible price; there is no detection, no log line and no test. Aggravating: sidecar/services/agent_tools/quant_tools.py:42-101 are async def but call options.price(...) SYNCHRONOUSLY on the event loop, and models/quant.py:33 permits binomial_steps up to 100_000, which _greeks_fd re-prices 9 times - one agent tool call blocks every other sidecar request for the duration. Smallest fix: a module-level threading.Lock in _common.py wrapping set-date-through-price as one critical section, plus await asyncio.to_thread(...) in the four quant_tools handlers. Neither touches the wire contract."
+  },
+  {
+    "raw_id": "COD-macro-quant-3",
+    "title": "Greeks displayed in QuantLib internal units with no label; the documented 'panel divides by 100' rescaling does not exist",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "macro-quant",
+    "repro": "Open the Greeks Dashboard and press Compute with its own default inputs (spot 220, strike 220, r 0.05, q 0.005, vol 0.28, 2026-05-16 -> 2026-06-30). Panel shows 'v Vega 30.6270' and 'Th Theta -39.6807'. Market-convention values are 0.3063 per vol point and -0.1087 per calendar day - 100x and 365x out.",
+    "evidence": "sidecar/services/quant/options.py:131-132 ('Returned per unit-vol matching the QuantLib convention (so the panel divides by 100 to show per-1 % move)'), sidecar/services/quant/greeks.py:26-27 ('the panel relabels for display'), vs src/modules/quant/GreeksDashboard.tsx:103 and :136 (value.toFixed(4), no scaling), GreeksDashboard.tsx:77-81 (GREEK_ROWS carry partial-derivative text with NO units), src/modules/quant/OptionPricerPanel.tsx:557-561 (same raw render)",
+    "notes": "Different layer / different abstraction: the display layer adds no abstraction over the engine layer, so QuantLib's internal convention (vega per unit-vol, theta per year) travels unlabelled to the user. The panel's own copy at GreeksDashboard.tsx:69-70 ('the static, honest sensitivity read per greek') invites exactly the trust that makes this expensive - a trader sizing a 1-point vol move is wrong by two orders of magnitude. Smallest fix: one shared toMarketUnits() helper at the frontend seam (vega/100 labelled 'per 1 vol pt', theta/365 labelled 'per day') called by both panels; leave the wire in QuantLib convention and say so in the interface comment."
+  },
+  {
+    "raw_id": "COD-macro-quant-4",
+    "title": "India region default routes macro to World Bank, whose country default is hardwired to USA",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "Set region IN. Open the Macro panel -> World Bank tab -> Featured -> click 'GDP growth (annual %)' (series_id NY.GDP.MKTP.KD.ZG, no country suffix) -> the series returned is UNITED STATES GDP growth, titled '... - USA'. Every one of the 9 featured World Bank entries behaves this way.",
+    "evidence": "sidecar/services/macro/macro_router.py:59-63 (_DEFAULT_PROVIDER_BY_REGION maps IN -> 'world-bank'), macro_router.py:56-58 (comment: 'IN prefers World Bank, whose WDI indicators carry India series the FRED catalog does not'), vs sidecar/services/macro/world_bank_provider.py:41 (_DEFAULT_COUNTRY = 'USA'), world_bank_provider.py:139 (_parse_series_id returns it for any id without a colon), world_bank_provider.py:46-119 (all 9 _FEATURED entries are bare indicators with no country)",
+    "notes": "Information leakage - the book's headline red flag. 'Which country is this session about' is encoded in two modules that never speak: macro_router owns the region, world_bank_provider owns the country. The entire FR-060 mechanism exists to give an IN user India data and it delivers the United States instead. It IS labelled '- USA' at world_bank_provider.py:207 so it is not undisclosed, but the default path is wrong for the region it was added to serve. Smallest fix: _parse_series_id(series_id, region) with IN->'IND', US->'USA'; the 9 featured entries then serve every region unchanged."
+  },
+  {
+    "raw_id": "COD-macro-quant-5",
+    "title": "Provider-less GET /macro/{series_id} silently reinterprets the id's namespace by region",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "GET /macro/DGS10 (no provider query param) with region US -> legacy FRED path, 200. Same request with region IN -> dispatched to World Bank, which has never heard of 'DGS10' -> ProviderError -> HTTP 502. DGS10 is the app's own default macro series.",
+    "evidence": "sidecar/routers/macro.py:100-106 (when provider is absent and the region default is not 'fred', dispatch to the region default), sidecar/services/macro/macro_router.py:59-63 (IN -> world-bank), src/modules/macro/MacroPanel.tsx:14-15 (DEFAULT_SERIES_ID = 'DGS10'); namespaces are mutually unintelligible - FRED 'DGS10', ECB 'FM.D.U2.EUR.4F.KR.MRR_FR.LEV' (ecb_provider.py:41), IMF 'IFS/A.US.NGDP_R_K_IX' (imf_provider.py:44), WB 'NY.GDP.PCAP.CD' (world_bank_provider.py:49)",
+    "notes": "Complexity pushed upward: the caller must know the region to know what their own string means. The failure surfaces as a gateway error with no hint that the ROUTING, not the upstream, is what broke. Smallest fix: make `provider` required on the v0.6.0 path (the frontend already always sends it - src/store/macro.ts:82-85) and keep the region default only for discovery (catalog/search), where the namespace question does not arise."
+  },
+  {
+    "raw_id": "COD-macro-quant-6",
+    "title": "World Bank search swallows upstream failure into curated US rows, and the dispatcher caches the degraded result for 6 hours",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "Drop network, search 'unemployment' on the World Bank provider -> wbgapi raises -> caught to _log.debug -> the curated 9-entry featured list is substring-matched and returned scored 0.5, indistinguishable from real hits. macro_router.search then caches that under key 'macro:world-bank:search:unemployment:25' for 6h. Restore network: the same search returns the curated rows for the next 6 hours.",
+    "evidence": "sidecar/services/macro/world_bank_provider.py:231-233 (except Exception -> _log.debug -> rows = []; invisible at default log level), world_bank_provider.py:254-268 (curated fallback scored 0.5), sidecar/services/macro/macro_router.py:152-154 (unconditional data_cache.set, including of an empty list), macro_router.py:42 (DEFAULT_CACHE_TTL_SECONDS = 6*60*60); frontend cannot tell either - src/store/macro.ts:120-124 turns any search failure into [], rendered as 'No matching series' at src/modules/macro/MacroSeriesPicker.tsx:134-139",
+    "notes": "Masking a failure rather than defining it out of existence: the caller receives plausible rows and no signal, anywhere. Every other provider re-raises as ProviderError (fred_provider.py:310-311, imf_provider.py:220-221) - this one is the inconsistent sibling, and it is the IN default provider. Smallest fix: re-raise as ProviderError, and skip the cache write when the result is empty or degraded."
+  },
+  {
+    "raw_id": "COD-macro-quant-7",
+    "title": "Macro catalog error + Retry UI is unreachable; a failed catalog load pulses a loading skeleton forever",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "macro-quant",
+    "repro": "Make GET /macro/catalog?provider=ecb fail (sidecar down, 502). Open the Macro panel, switch to the ECB tab with an empty search box -> the 3-row pulse skeleton renders and never resolves. The 'Could not load featured series / Retry' UI that was written for this case never appears, and no further fetch is attempted.",
+    "evidence": "src/store/macro.ts:127-137 (loadCatalog catches everything with `catch {}` and RESOLVES - it never rejects), vs src/modules/macro/MacroSeriesPicker.tsx:56-59 (the .catch that sets catalogError therefore never fires), MacroSeriesPicker.tsx:140-160 (the catalogError branch - dead code), MacroSeriesPicker.tsx:161-170 (the !catalog skeleton branch renders instead), MacroSeriesPicker.tsx:50 + :63 (the effect's `if (catalog) return` guard plus deps [provider, loadCatalog, catalog] never change on failure, so no retry)",
+    "notes": "Broken error state on a core surface: a store action whose contract is 'resolves either way' is consumed by a component whose contract is 'rejects on failure'. The panel author wrote the correct error+retry UI and it can never render. Contrast src/store/macro.ts:92-105 (loadSeries) which DOES record an error into store state, which is why MacroPanel.tsx:69-81 works. Smallest fix: record the failure in store state (a catalogError slot alongside catalogByProvider) and read it in the picker, matching the loadSeries pattern already in the same file."
+  },
+  {
+    "raw_id": "COD-macro-quant-8",
+    "title": "Yield-curve sampling emits duplicate points and extrapolates past the last instrument without saying so",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "POST /quant/yield-curve {valuation_date:'2026-05-16', instruments:[{type:'deposit',tenor:3,tenor_unit:'months',rate:0.05}], sample_count:100} -> 100 points but only 99 DISTINCT dates; points[0] and points[1] are byte-identical (both 2026-05-17); the last sample is 2026-08-23, a week beyond the only instrument's 2026-08-16 tenor.",
+    "evidence": "sidecar/services/quant/yield_curve.py:124-125 (total_days=91, step_days = max(1, 91 // 99) = 1), yield_curve.py:127-129 (i*step_days from valuation_date), yield_curve.py:137 (`if qld <= qd: qld = qd + 1` collapses point 0 onto point 1), yield_curve.py:119 (enableExtrapolation makes the overrun look like data), yield_curve.py:134-136 (comment claims it substitutes 'the shortest-tenor zero rate'; it substitutes the t+1-day rate); tests only assert len(result.curve) == sample_count (sidecar/tests/test_quant_yield_curve.py:30-31,46,53) and never check distinctness or the span",
+    "notes": "Design-it-twice: integer step_days plus a `qld <= qd` patch is a first design kept. Consequences are small but real - the chart at src/modules/quant/YieldCurvePanel.tsx:227 plots a duplicate x and silently draws extrapolated rates past the last observable point, which for a curve panel is exactly the region a user should be warned about. Smallest fix: build the grid in float over max_tenor_years and clamp the final sample to it; if a duplicate first point is still possible, start the grid at day 1 rather than patching it afterwards."
+  },
+  {
+    "raw_id": "COD-macro-quant-9",
+    "title": "World Bank title-enrichment branch is structurally unreachable; every WB series is titled with its raw indicator code",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "GET /macro/NY.GDP.MKTP.CD?provider=world-bank -> title is 'NY.GDP.MKTP.CD - USA', never 'GDP (current US$) - USA'. Proof that the branch cannot fire: for any object where callable(info.items) is True (i.e. .items is a method), list(info.items) raises TypeError: 'method' object is not iterable; where .items is NOT callable the guard skips the branch. Both arms end at the indicator code.",
+    "evidence": "sidecar/services/macro/world_bank_provider.py:196 (`if hasattr(info, 'items') and callable(info.items):`), world_bank_provider.py:197 (`items = list(info.items)` - iterates the METHOD, never calls it), world_bank_provider.py:202-203 (the resulting TypeError is caught and logged at debug), world_bank_provider.py:192 + :207 (title falls back to `indicator`, rendered as f'{title} - {country}'); displayed at src/modules/macro/MacroChart.tsx:126",
+    "notes": "Self-contradictory guard: it requires `items` to be callable and then uses it as if it were not. The macro chart header shows an opaque WDI code instead of a human title, on the provider that is the IN region default. Smallest fix: `list(info.items())`. Worth keeping the surrounding try/except - the title enrichment is genuinely best-effort."
+  },
+  {
+    "raw_id": "COD-macro-quant-10",
+    "title": "FRED frequency codes collapse onto wrong labels although the contract has an 'other' escape hatch",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "Load any FRED series whose frequency_short is 'SA' (semiannual) -> the macro chart header displays 'quarterly'. A 'BW' (biweekly) series displays 'weekly'. Two distinct upstream codes map onto the same label as the genuine 'Q' and 'W' codes, so the displayed frequency cannot be trusted to mean what it says.",
+    "evidence": "sidecar/services/macro/fred_provider.py:159-167 (_FREQ_MAP: 'w'->'weekly' AND 'bw'->'weekly'; 'q'->'quarterly' AND 'sa'->'quarterly'), fred_provider.py:291 (applied to info_dict['frequency_short']), sidecar/models/macro_extended.py:30-37 (MacroFrequency includes 'other'), types/macro.ts:26-28 (documents 'other' as exactly the escape hatch for codes that do not map), displayed at src/modules/macro/MacroChart.tsx:130",
+    "notes": "Wrong metadata presented as true, and the contract already carries the correct answer. The collapse is provable from the code alone: two upstream codes are indistinguishable downstream while a distinct label exists and is unused. Smallest fix: map 'sa' and 'bw' to 'other' in _FREQ_MAP."
+  },
+  {
+    "raw_id": "COD-macro-quant-11",
+    "title": "services/quant/monte_carlo.py is 184 LOC of unreachable, untested code whose docstring names callers that do not exist",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "macro-quant",
+    "repro": "grep -rn 'price_asian_mc|price_barrier_mc|quant.monte_carlo|from .monte_carlo' across the repo (excluding .venv/node_modules) returns only the definitions inside monte_carlo.py itself plus two R15 partition manifests. No importer, not re-exported from services/quant/__init__.py, and no test_quant_monte_carlo.py among the ten quant test files.",
+    "evidence": "sidecar/services/quant/monte_carlo.py:13-16 (docstring: 'utility surfaces the workflow nodes + agent tools can reach into when a path-dependent payoff is requested'), sidecar/services/quant/__init__.py:24-29 (imports nothing - only a docstring and `from __future__`), sidecar/services/quant/monte_carlo.py:115-176 (price_barrier_mc never checks expiry_date > valuation_date, unlike every wired engine which calls req.validate_domain()), sidecar/tests/ (test_quant_bonds/greeks/options/router/tools/yield_curve.py - no monte_carlo)",
+    "notes": "Design for the future, inverted: 184 LOC carried, PyInstaller-bundled and maintained for a caller that does not exist, with a docstring that will mislead the next maintainer into thinking it is load-bearing. It also lacks the validate_domain discipline the wired engines have, so if it IS ever wired it starts out as the special case. Smallest fix: delete it (git has it if a path-dependent payoff is ever wired); if it is being kept deliberately, say so in the docstring and add one smoke test."
+  },
+  {
+    "raw_id": "COD-macro-quant-12",
+    "title": "Binomial step floor is stated three different ways across panel, model and service",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "macro-quant",
+    "repro": "In the Option Pricer, choose Binomial and enter Tree steps = 2. Panel validation passes (it requires >= 1), OptionPricingRequest.validate_domain passes (it requires 1..100_000), and the service rejects it -> HTTP 400 'binomial steps must be at least 3'.",
+    "evidence": "src/modules/quant/OptionPricerPanel.tsx:270-275 (steps >= 1), sidecar/models/quant.py:104-108 (1 <= binomial_steps <= MAX_BINOMIAL_STEPS), sidecar/services/quant/options.py:179-180 (raises below 3)",
+    "notes": "Duplicated truth across three layers with three different values - the classic drift shape. Consequence today is small (a clear 400 rather than a wrong number) but the next person who changes the floor will change one of the three. Smallest fix: the floor belongs in validate_domain only; the panel reads >= 3 from the same constant and the service drops its check."
+  },
+  {
+    "raw_id": "COD-macro-quant-13",
+    "title": "Bond pricing and the yield curve are hardwired to US conventions and dollar labels in an India-first terminal",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "macro-quant",
+    "repro": "Price any bond with face_value 1000 -> the panel renders '$1,000.00' regardless of instrument or region, and the price is computed on a 30/360-US day count. An INR G-Sec priced here uses the wrong day-count convention and is labelled in dollars; there is no currency or day-count field anywhere on the request.",
+    "evidence": "sidecar/services/quant/bonds.py:54 (ql.Thirty360(ql.Thirty360.USA)), bonds.py:31-34 (docstring: 'the standard US Treasury convention'), sidecar/services/quant/yield_curve.py:80 (ql.USDCurrency() for the synthetic swap index), sidecar/models/quant.py:147-158 (BondPricingRequest has no currency and no day_count field), src/modules/quant/BondPricerPanel.tsx:301, :323, :326 (hard-prefixed '$')",
+    "notes": "The subsystem's own brief is a terminal for Indian markets benchmarked against screener.in, and the bond increment shipped as a US-Treasury feature with no convention abstraction - increments are abstractions, not features. Smallest fix: add `day_count` and `currency` to BondPricingRequest with US/30-360 defaults (behaviour-preserving), thread currency to the panel's formatter. This is also the natural home for the conventions the evaluation-date lock needs (see COD-macro-quant-2)."
+  },
+  {
+    "raw_id": "COD-macro-quant-14",
+    "title": "Macro panel routes user-driven series selection through the cold-boot retry hook, against that hook's stated contract",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "macro-quant",
+    "repro": "Click any series in the macro picker with a provider that does not recognise the id (e.g. a FRED id while the World Bank tab is active). The load fails and is retried 12 times with backoff over roughly 50 seconds against the upstream, while the panel's own 'Retry' CTA offers a second, unsynchronised retry path.",
+    "evidence": "src/lib/use-sidecar-retry.ts:44-46 ('Pass the panel's default-fetch inputs (e.g. the default symbol). Do NOT pass user-driven inputs - those keep their own explicit loads'), vs src/modules/macro/MacroPanel.tsx:47 (useRetryOnSidecarReady(loadDefault, [provider, seriesId])), MacroPanel.tsx:49-52 (onSelect sets exactly those two values from the picker), use-sidecar-retry.ts:35 (MAX_ATTEMPTS = 12) and :105 (backoff capped at 5s), MacroPanel.tsx:75-79 (the second retry path)",
+    "notes": "The hook is well-designed and documents its own misuse; the panel misuses it. Selection inherits cold-boot semantics, so a simply-wrong id hammers the upstream 12 times, and the two retry mechanisms are unaware of each other. Smallest fix: keep useRetryOnSidecarReady on the mount default only (empty deps or the DEFAULT_* constants) and give onSelect its own explicit loadSeries call."
+  },
+  {
+    "raw_id": "COD-macro-quant-15",
+    "title": "greeks.compute_greeks duplicates price_european_bs line-for-line instead of calling it",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "macro-quant",
+    "repro": "design",
+    "evidence": "sidecar/services/quant/greeks.py:32-51 vs sidecar/services/quant/options.py:60-80 - both build the same BSM process from the same five inputs, the same PlainVanillaPayoff, the same EuropeanExercise, set the same AnalyticEuropeanEngine, and read the same five greeks plus NPV; sidecar/services/quant/greeks.py:3-5 states the reason for the split ('the Greeks Dashboard panel hits this surface independently of the generic option pricer')",
+    "notes": "Two copies of 'what a Black-Scholes analytic price is', split for a UI convenience (a shorter request shape), which will now drift: the display-unit fix in COD-macro-quant-3 and any future convention change (day count, dividend handling, an added greek) must land in both. Smallest fix: compute_greeks builds an OptionPricingRequest, calls price_european_bs, and reshapes to GreeksResult - roughly five lines, and the duplicate disappears. Alternative if the shorter wire shape matters: keep GreeksRequest and give it a `.to_option_request()`."
+  }
+]

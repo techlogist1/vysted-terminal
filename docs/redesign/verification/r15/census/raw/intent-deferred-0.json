@@ -1,0 +1,13 @@
+[
+ {
+  "raw_id": "INT-deferred-0-1",
+  "pid": "INT-DF-1",
+  "title": "Every app launch blocks the data sidecar behind two slow MCP binds (24-34s+), and the named fix (--onedir) is still not taken",
+  "severity": "high",
+  "area": "lifecycle",
+  "subsystem": "tauri-core/sidecar-lifecycle",
+  "repro": "design + measured: launch the packaged app cold (after reboot). lib.rs setup spawns openbb-mcp + sec-edgar-mcp, JOINS both bind waits (measured 34.2s/33.6s cold in isolation, 13.6s/24.6s warm; up to 90s each under contention), and only then calls start_main_sidecar. The UI sits 'disconnected' for that whole window; if sec-edgar overruns 90s it is unavailable for the session (/sec -> 501).",
+  "evidence": "src-tauri/src/lib.rs:66-83, src-tauri/src/lib.rs:472-493, scripts/ensure-openbb-mcp-sidecar.mjs:172, scripts/ensure-sec-edgar-mcp-sidecar.mjs:152, src-tauri/tauri.conf.json:40-44, DECISIONS.md D76",
+  "notes": "Covers INT-DF-1/2/22/24. A stranger's first minute of a public 0.9.0 is a dead cockpit; the wait budget hides a startup-latency defect instead of removing it. Two fix shapes, smallest first: (1) do not join the MCP threads before start_main_sidecar — spawn main sidecar immediately and hand it the MCP ports lazily (env var is read once at import in openbb_mcp_provider.py:131-141, so switch that to a late-resolved port file / Tauri command) so the terminal is usable in seconds and MCP attaches when it binds; (2) the operator-attended --onedir conversion (Tier-1 tauri.conf.json externalBin -> resources + Rust inner-exe path + one full tauri build). (1) is not Tier-1 and also fixes INT-DF-22's 'late bind is lost for the session'."
+ }
+]

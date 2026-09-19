@@ -1,0 +1,632 @@
+{
+  "run": "R15",
+  "artifact": "hostile data battery",
+  "curated_at": "2026-09-19",
+  "curated_by": "claude-opus-5[1m]",
+  "counts": { "primary": 20, "spare": 4, "total": 24 },
+  "masters_consulted": {
+    "bse": {
+      "path": "sidecar/services/resolver_masters/bse_instruments.json",
+      "generated": "2026-06-09",
+      "rows": 4873,
+      "row_shape": ["SCRIP_CODE", "SYMBOL", "NAME", "GROUP", "ISIN", "STATUS"]
+    },
+    "nse": {
+      "path": "sidecar/services/resolver_masters/nse_instruments.json",
+      "generated": "2026-06-05",
+      "rows": 2675,
+      "series_present": ["EQ", "ETF"],
+      "note": "no SME / Emerge series exists in this master at all"
+    },
+    "us": { "path": "sidecar/services/resolver_masters/us_instruments.json", "rows": 10365 }
+  },
+  "exclusions": {
+    "source": "docs/redesign/verification/r15/stage0/BATTERY_EXCLUSIONS.txt",
+    "entries": 130,
+    "checked": "every symbol and every bse_code below",
+    "overlap": "none"
+  },
+  "names": [
+    {
+      "slot": "P1",
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "544853",
+      "role": "recent listing (mainboard) + triple collision",
+      "hostile_traits": "Listed 2026-08-06, 44 days before curation - ABSENT from both bundled Indian masters (BSE generated 2026-06-09, NSE 2026-06-05). Ticker collides with Juniper Networks (former NYSE:JNPR) and the name collides with Juniper Hotels Ltd, which IS in the masters as symbol JUNIPER / BSE 544129. US master has no JNPR row either.",
+      "reference": {
+        "price_inr": { "nse": 264.5, "bse": 263.8, "as_of": "2026-09-15" },
+        "mcap_inr_cr": { "value": 15050.01, "as_of": "2026-09-15" },
+        "listing_date": "2026-08-06",
+        "issue_price_inr": 225,
+        "source_urls": [
+          "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999",
+          "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/",
+          "https://www.screener.in/company/JNPR/consolidated/"
+        ]
+      },
+      "master_presence": { "bse": "absent", "nse": "absent", "us": "absent" }
+    },
+    {
+      "slot": "P2",
+      "symbol": "DAL",
+      "name": "Dynamic Archistructures Ltd",
+      "exchange": "BSE",
+      "bse_code": "539681",
+      "role": "BSE-only + in-app US collision",
+      "hostile_traits": "BSE-only, group X (illiquid), nano-cap. Bare DAL is 100% Delta Air Lines on the open web AND in the app's own us_instruments.json, so both sides of the collision live inside the product. Name lies about the business: 'Archistructures' is a non-deposit-taking NBFC, not construction.",
+      "reference": {
+        "price_inr": 49.9,
+        "mcap_inr_cr": 25.0,
+        "pe": 24.5,
+        "book_value_inr": 66.7,
+        "roe_pct": -2.57,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/539681/"]
+      },
+      "master_presence": {
+        "bse": "present: [\"539681\",\"DAL\",\"Dynamic Archistructures Ltd\",\"X\",\"INE874E01012\",\"Active\"]",
+        "nse": "absent",
+        "us": "present as DAL = DELTA AIR LINES, INC."
+      }
+    },
+    {
+      "slot": "P3",
+      "symbol": "CHTR",
+      "name": "Chatterbox Technologies Ltd",
+      "exchange": "BSE",
+      "bse_code": "544546",
+      "role": "BSE SME + in-app US collision",
+      "hostile_traits": "BSE SME (group MT), BSE-only. Ticker collides with Charter Communications, which is in the app's US master. Public brands (Chtrbox, Chtrsocial) match neither the legal name nor the ticker.",
+      "reference": {
+        "price_inr": 35.0,
+        "mcap_inr_cr": 49.5,
+        "pe": 5.38,
+        "book_value_inr": 49.5,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/544546/"]
+      },
+      "master_presence": {
+        "bse": "present: 544546 / CHTR / group MT / INE1B4801017 / Active",
+        "nse": "absent",
+        "us": "present as CHTR = CHARTER COMMUNICATIONS, INC. /MO/"
+      }
+    },
+    {
+      "slot": "P4",
+      "symbol": "SAFE",
+      "name": "Sodhani Academy of Fintech Enablers Ltd",
+      "exchange": "BSE",
+      "bse_code": "544257",
+      "role": "BSE SME + common-word collision",
+      "hostile_traits": "BSE SME (group M), BSE-only. Ticker is a common English word AND collides with Safehold Inc. in the app's US master. Ratio trap: PE 69.4 on FY26 sales of only 3.65 cr against a 66.6 cr cap.",
+      "reference": {
+        "price_inr": 117,
+        "price_change_pct": -6.96,
+        "mcap_inr_cr": 66.6,
+        "pe": 69.4,
+        "book_value_inr": 30.0,
+        "roe_pct": 6.19,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/544257/"]
+      },
+      "master_presence": {
+        "bse": "present: 544257 / SAFE / group M / INE0Q3401017 / Active",
+        "nse": "absent",
+        "us": "present as SAFE = Safehold Inc."
+      }
+    },
+    {
+      "slot": "P5",
+      "symbol": "CSL",
+      "name": "Continental Securities Ltd",
+      "exchange": "BSE",
+      "bse_code": "538868",
+      "role": "BSE-only + multi-entity collision",
+      "hostile_traits": "BSE-only, group X. CSL is Carlisle Companies (NYSE, in the app's US master), CSL Limited (ASX, one of Australia's largest companies), and historically Container Store Group. Micro-cap NBFC with TTM revenue of 4.22 cr - a scale where 'revenue' definitions diverge between sources.",
+      "reference": {
+        "price_inr": 24.2,
+        "mcap_inr_cr": 76.9,
+        "pe": 32.1,
+        "book_value_inr": 8.52,
+        "roe_pct": 10.1,
+        "ttm_revenue_inr_cr": 4.22,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/538868/"]
+      },
+      "master_presence": {
+        "bse": "present: 538868 / CSL / group X / INE183Q01020 / Active",
+        "nse": "absent",
+        "us": "present as CSL = CARLISLE COMPANIES INC"
+      }
+    },
+    {
+      "slot": "P6",
+      "symbol": "ICON",
+      "name": "Icon Facilitators Ltd",
+      "exchange": "BSE",
+      "bse_code": "544426",
+      "role": "BSE SME + common-word collision",
+      "hostile_traits": "BSE SME (group MT), BSE-only. Common English word; collides with Icon Energy Corp in the app's US master and with ICON plc (NASDAQ:ICLR), the 'Icon' most finance coverage means.",
+      "reference": {
+        "price_inr": 64.2,
+        "mcap_inr_cr": 50.4,
+        "pe": 11.4,
+        "book_value_inr": 45.6,
+        "roe_pct": 17.9,
+        "range_52w_inr": [38.0, 85.0],
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/544426/"]
+      },
+      "master_presence": {
+        "bse": "present: 544426 / ICON / group MT / INE0Y0E01012 / Active",
+        "nse": "absent",
+        "us": "present as ICON = Icon Energy Corp"
+      }
+    },
+    {
+      "slot": "P7",
+      "symbol": "JUMBO",
+      "name": "Jumbo Bag Ltd",
+      "exchange": "BSE",
+      "bse_code": "516078",
+      "role": "BSE-only + common-word ticker",
+      "hostile_traits": "BSE-only, group X, nano-cap. Ticker is a common English word. Profit CAGR 82.2%/5y against sales CAGR 6.81% makes every derived ratio source-dependent; an IOCL polymer-trading associate, so revenue mixes manufacturing and trading.",
+      "reference": {
+        "price_inr": 90.0,
+        "mcap_inr_cr": 75.3,
+        "pe": 7.18,
+        "book_value_inr": 57.0,
+        "roe_pct": 14.2,
+        "range_52w_inr": [49.1, 105],
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/516078/"]
+      },
+      "master_presence": {
+        "bse": "present: 516078 / JUMBO / group X / INE699D01015 / Active",
+        "nse": "absent",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P8",
+      "symbol": "NAPEROL",
+      "name": "Naperol Investments Ltd",
+      "exchange": "BSE",
+      "bse_code": "500298",
+      "role": "holding company (BSE-only)",
+      "hostile_traits": "BSE-only, group X. Holding-company discount in its purest form: market value of investments 888 cr against a market cap of 371 cr, book value 1609 against a 645 price, ROE 1.03%. Stated business spans peroxygen chemicals AND long-term investments, so sector classification is a coin flip.",
+      "reference": {
+        "price_inr": 645,
+        "price_change_pct": -0.32,
+        "mcap_inr_cr": 371,
+        "book_value_inr": 1609,
+        "pe": 34.4,
+        "dividend_yield_pct": 3.02,
+        "roe_pct": 1.03,
+        "investments_market_value_inr_cr": 888,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/500298/"]
+      },
+      "master_presence": {
+        "bse": "present: 500298 / NAPEROL / group X / INE585A01020 / Active",
+        "nse": "absent",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P9",
+      "symbol": "AMAL",
+      "name": "Amal Ltd",
+      "exchange": "BSE",
+      "bse_code": "506597",
+      "role": "BSE-only, Indian half of the in-app AMAL collision (see P19)",
+      "hostile_traits": "BSE-only, group B. Same ticker as NASDAQ:AMAL (Amalgamated Financial Corp) and BOTH sides sit in the app's masters. Bulk chemicals (sulphuric acid, oleum) vs a US bank holding company. PE 132 at ~9x book on 5.05% 3y ROE; Atul Ltd subsidiary, so consolidated-vs-standalone ambiguity is live.",
+      "reference": {
+        "price_inr": 722,
+        "mcap_inr_cr": 893,
+        "pe": 132,
+        "book_value_inr": 80.5,
+        "roe_3y_pct": 5.05,
+        "dividend_yield_pct": 0.21,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/506597/"]
+      },
+      "master_presence": {
+        "bse": "present: 506597 / AMAL / group B / INE841D01013 / Active",
+        "nse": "absent",
+        "us": "present as AMAL = Amalgamated Financial Corp."
+      }
+    },
+    {
+      "slot": "P10",
+      "symbol": "VIYASH",
+      "name": "Viyash Scientific Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "512529",
+      "role": "recent rename (2026)",
+      "hostile_traits": "Renamed Sequent Scientific Ltd -> Viyash Scientific Ltd with symbol SEQUENT -> VIYASH effective 2026-01-23. The masters carry ONLY the new name; SEQUENT resolves to nothing in either Indian master. All pre-2026 charts, filings, peer tables and news are filed under SEQUENT. Deliberate mid-cap contrast.",
+      "reference": {
+        "price_inr": 250,
+        "mcap_inr_cr": 10998,
+        "former_symbol": "SEQUENT",
+        "former_name": "Sequent Scientific Limited",
+        "rename_effective": "2026-01-23",
+        "as_of": "2026-09-18",
+        "source_urls": [
+          "https://www.screener.in/company/VIYASH/",
+          "https://rhnvrm.github.io/stock-market-circulars/circulars/nse/2026/nse-2026-01-19-af3b07e9de837f6c-change-in-name-and-symbol-of-sequent-scientific-limited/"
+        ]
+      },
+      "master_presence": {
+        "bse": "present: [\"512529\",\"VIYASH\",\"Viyash Scientific Ltd\",\"B\",\"INE807F01027\",\"Active\"]",
+        "nse": "present: [\"VIYASH\",\"Viyash Scientific Limited\",\"EQ\"]",
+        "us": "absent",
+        "note": "SEQUENT absent from both Indian masters"
+      }
+    },
+    {
+      "slot": "P11",
+      "symbol": "FUSION",
+      "name": "Fusion Finance Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "543652",
+      "role": "NBFC/microfinance + common-word ticker",
+      "hostile_traits": "Common English word as ticker. Renamed from Fusion Micro Finance, so much of the world's data is filed under the old name. Microfinance revenue definitions (interest income vs total income vs NII) are exactly where aggregators disagree; lending yield 23.4-23.98%. 3y price CAGR -32%.",
+      "reference": {
+        "price_inr": 185,
+        "mcap_inr_cr": 2997,
+        "range_52w_inr": [136, 243],
+        "former_name": "Fusion Micro Finance",
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/FUSION/"]
+      },
+      "master_presence": {
+        "bse": "present: 543652 / FUSION / group B / INE139R01012 / Active",
+        "nse": "present: [\"FUSION\",\"Fusion Finance Limited\",\"EQ\"]",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P12",
+      "symbol": "DHANBANK",
+      "name": "Dhanlaxmi Bank Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "532180",
+      "role": "bank small-cap + corporate action",
+      "hostile_traits": "Bank definitional traps (interest income vs total income vs NII; bank PE/PB conventions). Rights issue lifted equity capital from 253 cr (Mar-2025) to 395 cr (Mar-2026). The BSE master ALSO carries the rights-entitlement line 750942 / DHAN-RE / group R as a separate instrument - a live resolver hazard that will string-match DHAN queries.",
+      "reference": {
+        "price_inr": 29.5,
+        "price_change_pct": 2.04,
+        "mcap_inr_cr": 1163,
+        "equity_capital_inr_cr": { "mar_2025": 253, "mar_2026": 395 },
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/DHANBANK/"]
+      },
+      "master_presence": {
+        "bse": "present: 532180 / DHANBANK / group B / INE680A01011 / Active; PLUS 750942 / DHAN-RE / group R (rights entitlement)",
+        "nse": "present: [\"DHANBANK\",\"Dhanlaxmi Bank Limited\",\"EQ\"]",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P13",
+      "symbol": "ELCIDIN",
+      "name": "Elcid Investments Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "503681",
+      "role": "holding company + extreme-magnitude trap",
+      "hostile_traits": "Five-figure rupee price (1,05,130) that overflows naive price formatting and axis scaling; book value 3,01,137 at P/B 0.35 with ROE 1.23%. Holds the founding family's Asian Paints stake, so sector is unresolvable (NBFC? paints?). Quoted at ~3 rupees before the 2024 call auction - stale-price archives still circulate.",
+      "reference": {
+        "price_inr": 105130,
+        "price_change_pct": -1.07,
+        "mcap_inr_cr": 2103,
+        "book_value_inr": 301137,
+        "pe": 26.7,
+        "roe_pct": 1.23,
+        "promoter_holding_pct": 75,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/ELCIDIN/"]
+      },
+      "master_presence": {
+        "bse": "present: 503681 / ELCIDIN / group B / INE927X01018 / Active",
+        "nse": "present: [\"ELCIDIN\",\"EL CID Investments Limited\",\"EQ\"]",
+        "us": "absent",
+        "note": "master legal name 'EL CID Investments' vs the world's 'Elcid Investments' - a spacing mismatch that breaks exact-name matching"
+      }
+    },
+    {
+      "slot": "P14",
+      "symbol": "JONJUA",
+      "name": "Jonjua Overseas Ltd",
+      "exchange": "BSE",
+      "bse_code": "542446",
+      "role": "recent corporate action (bonus) + BSE SME + penny micro",
+      "hostile_traits": "7:24 bonus issue, record date 2026-09-04, allotted 2026-09-07 - 15 days before curation, so the share count and every per-share figure moved AFTER the bundled masters were built. Penny price 3.19 on an 11.2 cr cap; smallest name in the battery; BSE SME (group MT), BSE-only.",
+      "reference": {
+        "price_inr": 3.19,
+        "mcap_inr_cr": 11.2,
+        "bonus_ratio": "7:24",
+        "bonus_record_date": "2026-09-04",
+        "bonus_allotment_date": "2026-09-07",
+        "bonus_shares_issued": 7955966,
+        "as_of": "2026-09-18",
+        "source_urls": [
+          "https://www.screener.in/company/542446/",
+          "https://www.indiaipo.in/news/detail/724-bonus-share-by-small-cap-record-date-soon-check-expected-trading-date"
+        ]
+      },
+      "master_presence": {
+        "bse": "present: 542446 / JONJUA / group MT / INE793Z01027 / Active",
+        "nse": "absent",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P15",
+      "symbol": "SUMAX",
+      "name": "Sumax Engineering Ltd",
+      "exchange": "NSE SME (Emerge)",
+      "bse_code": null,
+      "role": "NSE Emerge SME + recent listing",
+      "hostile_traits": "Listed on NSE Emerge 2026-09-02, 17 days before curation. Double-blind to the resolver: too new for the 2026-06-05 NSE master AND on a series that master structurally cannot carry (it holds only EQ and ETF). Auto-refinish consumables - a sector no standard taxonomy buckets cleanly.",
+      "reference": {
+        "listing_date": "2026-09-02",
+        "listing_price_inr": 111,
+        "issue_price_inr": 101,
+        "price_band_inr": [95, 101],
+        "issue_size_inr_cr": 53.4,
+        "lot_size": 1200,
+        "as_of": "2026-09-02",
+        "source_urls": [
+          "https://www.5paisa.com/blog/sumax-engineering-ipo-listing",
+          "https://aninews.in/news/business/sumax-engineering-limited-announces-ipo-on-nse-emerge-to-fund-new-manufacturing-capacity-bidding-opens-august-2520260824124225/",
+          "https://ipowatch.in/sumax-engineering-ipo/"
+        ]
+      },
+      "master_presence": { "bse": "absent", "nse": "absent", "us": "absent" },
+      "world_gaps": [
+        "Current price, market cap, ISIN and NSE series code not collected - Emerge SME quote coverage is thin and screener.in coverage of Emerge names is inconsistent; not guessed."
+      ]
+    },
+    {
+      "slot": "P16",
+      "symbol": "CREST",
+      "name": "Crest Ventures Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "511413",
+      "role": "holding company + common-word ticker",
+      "hostile_traits": "Common English word as ticker. A Systemically Important Non-Deposit Taking NBFC / Investment and Credit Company that invests in real-estate SPVs and JVs while carrying some projects on its own balance sheet - real estate or financials, consolidated or standalone, every source answers differently.",
+      "reference": {
+        "price_inr": 366,
+        "price_change_pct": -1.42,
+        "mcap_inr_cr": 1041,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/511413/"]
+      },
+      "master_presence": {
+        "bse": "present: 511413 / CREST / group B / INE559D01011 / Active",
+        "nse": "present: [\"CREST\",\"Crest Ventures Limited\",\"EQ\"]",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "P17",
+      "symbol": "SIFY",
+      "name": "Sify Technologies Ltd (ADR)",
+      "exchange": "NASDAQ",
+      "bse_code": null,
+      "role": "US ADR (Indian issuer, US-listed only)",
+      "hostile_traits": "An INDIAN company with no NSE or BSE line at all - a terminal that 'resolves Indian names' must not invent one. 1 ADR = 6 ordinary shares, so any per-share figure lifted from an Indian source is off by 6x before the INR/USD conversion. Market cap disagrees by >10% across sources.",
+      "reference": {
+        "price_usd": 13.8,
+        "price_change_pct": 1.25,
+        "as_of": "2026-09-18",
+        "adr_ratio": "1 ADS = 6 ordinary shares",
+        "shares_outstanding_ads": 72430000,
+        "mcap_usd_conflicting": [
+          { "value": "989.09M", "source": "Morningstar" },
+          { "value": "897.87M", "source": "Hargreaves Lansdown" },
+          { "value": "789M", "source": "as of 2026-02-13" }
+        ],
+        "source_urls": [
+          "https://www.morningstar.com/stocks/xnas/sify/quote",
+          "https://www.hl.co.uk/shares/shares-search-results/s/sify-technologies-ltd-adr-each-repr-6-ords/company-information",
+          "https://www.nasdaq.com/market-activity/stocks/sify"
+        ]
+      },
+      "master_presence": {
+        "us": "present: [\"SIFY\",\"SIFY TECHNOLOGIES LTD\"]",
+        "bse": "absent",
+        "nse": "absent"
+      },
+      "world_gaps": ["No single authoritative market cap - three sources disagree; recorded as a spread, not averaged."]
+    },
+    {
+      "slot": "P18",
+      "symbol": "ONC",
+      "name": "BeOne Medicines AG",
+      "exchange": "NASDAQ",
+      "bse_code": null,
+      "role": "US ticker change + rename + redomicile",
+      "hostile_traits": "Three identity changes on one security: BeiGene, Ltd. -> BeOne Medicines (announced 2024-11-14), ticker BGNE -> ONC (January 2025), Cayman -> Basel, Switzerland (May 2025). BGNE is ABSENT from the app's US master while ONC is present - but the master's entity suffix ('Ltd.') is already stale against the Swiss AG. ONC also reads as the oncology sector abbreviation.",
+      "reference": {
+        "revenue_usd_2025": "5.3bn",
+        "operating_income_usd_2025": "447M",
+        "net_income_usd_2025": "286.9M",
+        "revenue_usd_h1_2026": "1.71bn",
+        "revenue_growth_yoy_pct": 30,
+        "ticker_change": { "from": "BGNE", "to": "ONC", "when": "2025-01" },
+        "redomicile": { "to": "Basel, Switzerland", "when": "2025-05" },
+        "as_of": "2026-09-18",
+        "source_urls": [
+          "https://en.wikipedia.org/wiki/BeOne_Medicines",
+          "https://ir.beonemedicines.com/"
+        ]
+      },
+      "master_presence": {
+        "us": "present: [\"ONC\",\"BeOne Medicines Ltd.\"] - stale suffix; BGNE absent",
+        "bse": "absent",
+        "nse": "absent"
+      },
+      "world_gaps": ["Live price and market cap not fetched within the sweep's request budget."]
+    },
+    {
+      "slot": "P19",
+      "symbol": "AMAL",
+      "name": "Amalgamated Financial Corp.",
+      "exchange": "NASDAQ",
+      "bse_code": null,
+      "role": "US small-cap + collision with an Indian symbol",
+      "hostile_traits": "US small-cap ($1.39B) and the in-app collision partner of P9: the same string resolves to a US bank holding company in us_instruments.json and to an Indian bulk-chemicals maker (BSE 506597) in bse_instruments.json. Two continents, two currencies, two industries, one ticker.",
+      "reference": {
+        "price_usd": 49.17,
+        "price_as_of": "2026-09-04",
+        "mcap_usd": "1.39B",
+        "all_time_high_usd": 47.89,
+        "all_time_high_date": "2026-07-01",
+        "last_quarter_eps_usd": 0.8,
+        "last_quarter_eps_estimate_usd": 0.95,
+        "eps_surprise_pct": -15.79,
+        "last_quarter_revenue_usd": "91.36M",
+        "source_urls": [
+          "https://www.morningstar.com/stocks/xnas/amal/quote",
+          "https://www.tradingview.com/symbols/NASDAQ-AMAL/"
+        ]
+      },
+      "master_presence": {
+        "us": "present: [\"AMAL\",\"Amalgamated Financial Corp.\"]",
+        "bse": "AMAL present as 506597 / Amal Ltd (different company)",
+        "nse": "absent"
+      },
+      "world_gaps": [
+        "Source conflict recorded, NOT reconciled: the quoted 2026-09-04 price ($49.17) exceeds the quoted all-time high ($47.89 on 2026-07-01). Both from the same search; left as a conflict because it is itself a useful diff target."
+      ]
+    },
+    {
+      "slot": "P20",
+      "symbol": "SMR",
+      "name": "NuScale Power Corp",
+      "exchange": "NYSE",
+      "bse_code": null,
+      "role": "US name colliding with an Indian symbol",
+      "hostile_traits": "Three-way collision: NuScale Power (NYSE:SMR) in the app's US master, SMR Jewels Ltd (BSE 544774, SME) in the app's BSE master, and 'SMR' as the generic sector abbreviation for small modular reactor that NuScale's own coverage uses non-specifically.",
+      "reference": {
+        "price_usd_conflicting": [
+          { "value": 8.45, "note": "down 7%, mid-September 2026" },
+          { "value": 10.21, "note": "down 5.55%, same search" }
+        ],
+        "mcap_usd": "4.59B",
+        "analyst_rating": "Hold (18 analysts)",
+        "price_target_12m_usd": 12.63,
+        "atm_offering_usd": "1.0B completed June 2026",
+        "nrc_standard_design_approval": "77 MW module, May 2025",
+        "as_of": "2026-09-18",
+        "source_urls": [
+          "https://stockanalysis.com/stocks/smr/",
+          "https://www.tipranks.com/stocks/smr/market-cap",
+          "https://www.nuscalepower.com/investors/stocks"
+        ]
+      },
+      "master_presence": {
+        "us": "present: [\"SMR\",\"NUSCALE POWER Corp\"]",
+        "bse": "SMR present as 544774 / SMR Jewels Ltd / group MT (different company)",
+        "nse": "absent"
+      },
+      "world_gaps": [
+        "Price conflict recorded, NOT reconciled: two figures in the same search for mid-September 2026 ($8.45 and $10.21). Left as a conflict - itself a useful diff target."
+      ]
+    },
+    {
+      "slot": "S1",
+      "symbol": "DHOOTTRANS",
+      "name": "Dhoot Transmission Ltd",
+      "exchange": "NSE+BSE",
+      "bse_code": "544867",
+      "role": "spare - recent listing #2 + near-miss name collision",
+      "hostile_traits": "Listed 2026-08-17, 33 days before curation - ABSENT from both bundled Indian masters. The BSE master's only 'Dhoot' row is 526971 / DHOOTIN / Dhoot Industrial Finance Ltd, an unrelated company, so fuzzy name matching lands on the wrong entity. Listed at 1,200 vs an 871 issue price (+37.8%). Large-cap contrast.",
+      "reference": {
+        "price_inr": { "nse": 1600.0, "bse": 1599.0, "as_of": "2026-09-16" },
+        "mcap_inr_cr": { "nse": 31825.63, "bse": 31800.06, "as_of": "2026-09-16" },
+        "listing_date": "2026-08-17",
+        "issue_price_band_inr": [829, 871],
+        "listing_price_inr": 1200,
+        "issue_size_inr_cr": 3066.89,
+        "source_urls": [
+          "https://www.bseindia.com/stock-share-price/dhoot-transmission-ltd/dhoottrans/544867",
+          "https://trendlyne.com/equity/3612273/DHOOTTRANS/dhoot-transmission-ltd/",
+          "https://www.chittorgarh.com/ipo/dhoot-transmission-ipo/2859/"
+        ]
+      },
+      "master_presence": { "bse": "absent", "nse": "absent", "us": "absent" }
+    },
+    {
+      "slot": "S2",
+      "symbol": "SMR",
+      "name": "SMR Jewels Ltd",
+      "exchange": "BSE",
+      "bse_code": "544774",
+      "role": "spare - Indian half of the P20 collision, BSE SME",
+      "hostile_traits": "BSE SME (group MT), BSE-only, 2026-vintage ISIN and a scrip code above 544700 (recent SME listing). Shares its ticker with NuScale Power in the app's own US master. Scale trap: FY26 sales of 432 cr against a 177 cr market cap (2.4x) with 67% ROE - a B2B jewellery pass-through whose 'revenue' is mostly gold value, which sector screens routinely mis-tier.",
+      "reference": {
+        "price_inr": 95.0,
+        "price_change_pct": -1.04,
+        "mcap_inr_cr": 177,
+        "sales_inr_cr_fy26": 432,
+        "net_profit_inr_cr_fy26": 25,
+        "roe_pct": 67,
+        "roce_pct": 71.5,
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/544774/"]
+      },
+      "master_presence": {
+        "bse": "present: 544774 / SMR / SMR Jewels Ltd / group MT / INE11XK01017 / Active",
+        "nse": "absent",
+        "us": "present as SMR = NUSCALE POWER Corp"
+      },
+      "world_gaps": ["Exact listing date not collected (scrip code and 2026-vintage ISIN place it in 2026)."]
+    },
+    {
+      "slot": "S3",
+      "symbol": "VERTEX",
+      "name": "Vertex Securities Ltd",
+      "exchange": "BSE",
+      "bse_code": "531950",
+      "role": "spare - common-word/brand collision + shareholding churn",
+      "hostile_traits": "BSE-only, group X. 'Vertex' collides with Vertex Pharmaceuticals as a brand. Penny price on a 48.4 cr cap; NEGATIVE ROE (-21.8%) and ROCE (-13.4%) so PE is null rather than a number; promoter holding collapsed 73.41% -> 36.44%, so shareholding tables are mid-flight across sources.",
+      "reference": {
+        "price_inr": 3.27,
+        "mcap_inr_cr": 48.4,
+        "roe_pct": -21.8,
+        "roce_pct": -13.4,
+        "promoter_holding_pct": { "now": 36.44, "previous": 73.41 },
+        "as_of": "2026-09-18",
+        "source_urls": ["https://www.screener.in/company/531950/"]
+      },
+      "master_presence": {
+        "bse": "present: 531950 / VERTEX / group X / INE316D01024 / Active",
+        "nse": "absent",
+        "us": "absent"
+      }
+    },
+    {
+      "slot": "S4",
+      "symbol": "TTC",
+      "name": "Toss The Coin Ltd",
+      "exchange": "BSE",
+      "bse_code": "544303",
+      "role": "spare - BSE SME + US collision + sentence-shaped legal name",
+      "hostile_traits": "BSE SME (group M), BSE-only. Collides with Toro Co (NYSE:TTC) in the app's US master. The legal name reads as an English sentence ('Toss The Coin Ltd'), which breaks entity extraction and headline matching.",
+      "reference": { "source_urls": [], "as_of": null },
+      "master_presence": {
+        "bse": "present: 544303 / TTC / Toss The Coin Ltd / group M / INE0XAY01012 / Active",
+        "nse": "absent",
+        "us": "present as TTC = TORO CO"
+      },
+      "world_gaps": [
+        "Live price and market cap not collected - screener.in host-verification failure on the fetch for scrip 544303; master row confirmed locally."
+      ]
+    }
+  ]
+}

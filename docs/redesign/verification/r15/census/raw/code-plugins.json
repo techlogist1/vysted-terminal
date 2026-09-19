@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-plugins-1",
+    "title": "Plugin Manager disable toggle does not persist, unbridge, or deregister — the plugin is back after restart and its panels/agents never leave",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "Open the Plugin Manager panel -> flip any active plugin's toggle off -> restart the app. The plugin is active again. Before restarting: its panels/slash commands are still in cmd+K and its agents still in the chat roster.",
+    "evidence": "src/components/PluginManagerPanel.tsx:171-185 (calls runtime.unloadPlugin directly), src/lib/plugin-runtime.ts:278-295 (unloadPlugin touches no persistence), src/store/marketplace.ts:176-191 (the sibling path calls disablePlugin + unbridgePluginModule + syncPluginAgents(false) + disconnectBroker), src/lib/plugin-bootstrap.ts:262-264 (boot re-reads plugins.db, which still says enabled:true)",
+    "notes": "Different layer, different abstraction + consistency: a React panel calls the runtime's PRIMITIVES while the store calls the POLICIES. Consequence: the toggle is a lie -- it stops the instance in memory only. Smallest fix: route handleToggle through useMarketplaceStore.enable/disable. Structural fix: move persist+bridge+agent-sync+broker-disconnect into PluginRuntime.enable/disable and make every caller thin (also fixes COD-plugins-2/4/5)."
+  },
+  {
+    "raw_id": "COD-plugins-2",
+    "title": "Plugin Manager toggle can auto-INSTALL a broker the user never installed, violating FR-051 from the next launch onward",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "Fresh data dir -> open the Plugin Manager. All 7 broker plugins are listed in `discovered` state with a live toggle. Flip one on -> loadPlugin finds no persisted row, defaults to {installed:true, enabled:true} and WRITES it to plugins.db -> restart -> the broker is loaded + enabled at boot.",
+    "evidence": "src/lib/plugin-bootstrap.ts:252-255 (every catalog row is discovered, brokers included), src/components/PluginManagerPanel.tsx:153 (isToggleable = runtimeReady && plugin.instance !== undefined -> true for discovered brokers), src/lib/plugin-runtime.ts:218-232 (loadPlugin default {installed:true, enabled:true} + unconditional persistence.save when no stored row), src/lib/marketplace.ts:186-206 (broker rows are preinstalled:false, FR-051)",
+    "notes": "Two defaults for 'never-persisted plugin' disagree: the runtime says installed+enabled (plugin-runtime.ts:221, :310) while bootstrap and the store say row.entry.preinstalled (plugin-bootstrap.ts:262-263, store/marketplace.ts:109-110). Only the marketplace path passes an explicit installed flag, so the runtime's default is only ever reached through the Plugin Manager -- exactly the path that bypasses FR-051. No safety breach (broker initialize() only stores the sidecar URL, plugins/brokers/kite/index.ts:127-130; order execution is out of scope), but persisted install state is corrupted and the Marketplace card then lies ('Enabled'/'Needs key' for something never installed). Fix: make loadPlugin's never-persisted default `installed:false` and require an explicit install, or route the panel through the store."
+  },
+  {
+    "raw_id": "COD-plugins-3",
+    "title": "configure() never re-initializes an already-active plugin, so a newly saved BYOK secret never reaches PluginConfig.secrets until restart",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "Marketplace -> Configure any plugin that is already active (e.g. vysted-news, preinstalled+enabled) -> save a key. The keychain write lands and grantedSecretIds is persisted, but initialize() is never called again, so the running instance keeps the secrets map it got at boot (empty).",
+    "evidence": "src/store/marketplace.ts:238-244 (comment: 'Reload so the plugin resolves the new secrets via PluginConfig.secrets' -> calls runtime.enablePlugin), src/lib/plugin-runtime.ts:339-342 (enablePlugin -> patchConfig -> loadPlugin), src/lib/plugin-runtime.ts:199-202 (loadPlugin returns early when state is 'active'), src/lib/plugin-runtime.test.ts:171-177 (green test locks the no-op: initialize called once after two loadPlugin calls), types/plugin.ts:41-42 (PluginConfig.secrets is the contract's designated credential channel)",
+    "notes": "The comment documents an invariant the code does not hold. Currently latent because every bundled plugin reads its key out-of-band (plugins/vysted-news/index.ts:6-11 sends it as an X-Vysted-Newsapi-Key header from the sidecar path, never from config.secrets) -- i.e. the contract's own secret-delivery mechanism is unexercised AND broken; the first plugin that trusts it silently gets {}. Verified live: `pnpm exec vitest run src/lib/plugin-runtime.test.ts src/store/marketplace.test.ts` = 39 passed. Smallest fix: await runtime.unloadPlugin(pluginId) before enablePlugin in configure(); better, add a real reloadPlugin() and stop overloading enablePlugin with a third meaning."
+  },
+  {
+    "raw_id": "COD-plugins-4",
+    "title": "Preinstalled agent-pack agents are never registered at boot — the Quant Tutor is missing from the chat roster on a fresh install",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "plugins",
+    "repro": "Fresh data dir -> launch. vysted-lenses loads `active` and the Marketplace shows 'Pre-installed', but the Quant Tutor persona is absent from the chat agent picker. It only appears after opening the Marketplace and toggling Disable -> Enable.",
+    "evidence": "src/lib/plugin-agents.ts:28-70 (syncPluginAgents is the only writer of the sidecar /custom-agents store), production call sites are ONLY src/store/marketplace.ts:149,167,184,201, src/lib/plugin-bootstrap.ts:220-285 (boot loop never calls it), src/modules/chat/ChatSidebar.tsx:394,531 (roster = firstPartyAgents + useAgentsStore.customAgents, i.e. the sidecar store), src/store/plugins.ts:63 + src/components/PluginManagerPanel.tsx:42 (usePluginsStore.agents feeds only a count string), src/lib/marketplace.ts:119-132 (vysted-lenses preinstalled:true), plugins/vysted-lenses/index.ts:28-47",
+    "notes": "A promise central to the product -- 'agents are marketplace plugins, genuinely runnable' (plugin-agents.ts:1-11, FR-050/US10 AS3) -- fails on the default path. The sidecar store is SQLite-persisted (sidecar/services/agents_store.py:39-42), so once registered it sticks; the bug is purely that boot never registers. Fix: call `await syncPluginAgents(row.entry.pluginId, true)` in the boot loop alongside the module bridge (plugin-bootstrap.ts:266), or route boot through the same lifecycle seam the store uses."
+  },
+  {
+    "raw_id": "COD-plugins-5",
+    "title": "Boot path bridges a plugin's panels + commands without checking whether the plugin actually loaded — an errored/incompatible plugin still contributes UI",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "Make any bundled plugin's initialize() throw (or drift its manifest version from its instance version, which checkCompatibility rejects) -> restart. The Plugin Manager renders the row red 'error' while its panels and slash commands are live in cmd+K.",
+    "evidence": "src/lib/plugin-bootstrap.ts:264-270 (`await runtime.loadPlugin(plugin)` return value discarded, then appendModules unconditionally), vs the three guarded siblings src/store/marketplace.ts:147, :165, :241 (`if (snap.state === 'active')`), src/lib/plugin-runtime.ts:356-365 (documents the FR-054/SC-015 'contributes nothing' promise), src/lib/plugin-runtime.test.ts:516 ('an incompatible plugin contributes nothing' -- asserted at the runtime level only)",
+    "notes": "The route with no error handling while its siblings have it. The runtime keeps its FR-054 promise; the host breaks it one layer up. Reachable without a third-party plugin: three catalog rows hardcode `version` (src/lib/marketplace.ts:93,126,141) while checkCompatibility hard-rejects a manifest/instance mismatch (plugin-runtime.ts:371), so one bump puts a first-party plugin into `error` with its panels still mounted. Fix: `const snap = await runtime.loadPlugin(plugin); if (snap.state === 'active') { ... }` -- one line."
+  },
+  {
+    "raw_id": "COD-plugins-6",
+    "title": "moduleForPlugin re-implements capability negotiation without the runtime's try/catch — a throwing getPanels() rejects bootstrapPlugins()",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "A plugin whose getPanels() or getCommands() throws: runtime.collectPanels() contains it and emits `errored`, but moduleForPlugin lets it propagate -> the unguarded call at plugin-bootstrap.ts:266 rejects bootstrapPlugins() and the plugin layer never finishes booting. Same throw also breaks bridge/unbridge on disable.",
+    "evidence": "src/lib/plugin-bootstrap.ts:135-138 (flag -> optional getter, no try/catch) vs src/lib/plugin-runtime.ts:389-416 (callIfFlagged: flag check + getter-exists check + `errored` emit + try/catch), unguarded callers at src/lib/plugin-bootstrap.ts:183, :198, :266",
+    "notes": "Information leakage: the flag->getter rule is written twice and the copy is the weaker one, so the 'flag set but getter missing' errored event never fires for the panel/command path. Fix: source panels/commands from runtime.collectPanels()/collectCommands() filtered by plugin id, or export callIfFlagged. While there, the five identical collect* bodies (plugin-runtime.ts:419-461) collapse to one collect<T>(flag, getter) -- a 7th capability currently costs 5 new methods plus 2 store projections (store/plugins.ts:61-65, :85-89)."
+  },
+  {
+    "raw_id": "COD-plugins-7",
+    "title": "Two 'Open Marketplace' buttons are dead controls — openPanel is passed the component id, not the panel id",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "plugins",
+    "repro": "Open the Plugin Manager with no plugins loaded -> click the 'Open Marketplace' CTA. Nothing happens, no error, no console output. Same for the 'Open Marketplace' button in Settings.",
+    "evidence": "src/components/PluginManagerPanel.tsx:71 and src/components/SettingsPanel.tsx:1578 both call openPanel(\"marketplace-panel\"); src/store/workspace.ts:92-100 (openPanel -> findPanel(panelId), silent return on undefined); src/store/modules.ts:83 (findPanel matches PanelSpec.id); src/modules/marketplace/index.ts:17,20 (id: \"marketplace\", component: \"marketplace-panel\"); src/lib/layout-templates.ts:46 confirms { id: \"marketplace\", component: \"marketplace-panel\" }",
+    "notes": "Functional defect, not taste: the empty-state CTA on the surface a user lands on when nothing is loaded does nothing. Every other openPanel caller passes a real panel id (\"settings\", \"chart\", \"portfolio\", \"screener-panel\"). Fix: openPanel(\"marketplace\") in both call sites; and make openPanel console.warn on an unknown id instead of returning silently -- the silent return is why two dead buttons survived review."
+  },
+  {
+    "raw_id": "COD-plugins-8",
+    "title": "configure() has no error path — a keychain failure leaves partial secrets written, grants unpersisted, the form open and no message shown",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "plugins",
+    "repro": "Make setSecret reject (the documented macOS `tauri dev` keychain-ACL re-prompt does exactly this) while saving a 2-field broker credential: field 1 is written to the keychain, the loop throws, runtime.updateConfig never runs so grantedSecretIds is never persisted, configure() rejects, and CredentialForm's un-caught promise leaves the form open with no error.",
+    "evidence": "src/store/marketplace.ts:215-236 (bare `await setSecret(account, value)` in a loop; no try/catch; note deleteSecret on :228 IS guarded with .catch), src/store/marketplace.ts:233-236 (updateConfig after the loop), src/modules/marketplace/MarketplacePanel.tsx:257 (`void configure(entry.pluginId, values).then(onDone)` -- no .catch), src/lib/keychain.ts:58-60 (setSecret is a raw Tauri invoke that rejects), CLAUDE.md gotcha 'macOS keychain re-prompts on every tauri dev rebuild'",
+    "notes": "Silent failure on a credential path. The asymmetry is visible on one screen: the optional-field delete is guarded, the required-field write is not. Fix: wrap the loop, surface the error in the form's existing validationError slot, and persist grantedSecretIds for whatever succeeded (or write all-or-nothing)."
+  },
+  {
+    "raw_id": "COD-plugins-9",
+    "title": "syncPluginAgents ignores response.ok — a rejected agent registration is indistinguishable from success",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "plugins",
+    "repro": "A plugin AgentSpec whose `tools` contains an id outside the sidecar allow-list: POST /custom-agents returns 4xx, the response is never inspected, the catch only covers network errors -> the Marketplace reports the plugin Enabled and the agent never appears in the roster, with nothing logged.",
+    "evidence": "src/lib/plugin-agents.ts:43-68 (fetch POST/DELETE, no response.ok check; the catch comment even assumes '409 (already registered) ... is non-fatal'), sidecar/routers/custom_agents.py:67-86 (400 on a bad id prefix, 409 on IntegrityError), sidecar/models/custom_agent.py KNOWN_TOOL_IDS",
+    "notes": "Latent today, not firing: verified all 7 Quant Tutor tool ids are present in KNOWN_TOOL_IDS (50 ids) via `sidecar/.venv/bin/python -c` import check. Becomes live the moment a plugin ships a tool id the catalog does not project. Fix: check response.ok, treat 409 as success explicitly, and surface anything else through the runtime's `errored` event so the Plugin Manager shows it."
+  },
+  {
+    "raw_id": "COD-plugins-10",
+    "title": "healthCheckOne writes back a pre-await snapshot, reverting any state transition that lands during the health check",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "Disable a plugin (or have it transition to error) while its healthCheck() promise is in flight: the health poll then writes {...staleRecord, healthHistory} over the map entry, restoring state:'active' and clearing the errorMessage/stateChangedAt that were just written.",
+    "evidence": "src/lib/plugin-runtime.ts:478-499 (record captured from the activePlugins() snapshot at :473, awaited at :484, wholesale `this.plugins.set(record.manifest.id, {...record, healthHistory: newHistory})` at :496), src/lib/plugin-bootstrap.ts:40,273-276 (poll armed every 30s, plus one immediately at boot)",
+    "notes": "Classic lost update: the code reads as 'append a health sample' but is a full-record overwrite of state captured before an await. The 30s poll plus a user-driven disable makes the window real, and the resulting state is the worst kind -- the UI says active for a plugin whose shutdown() already ran. Fix: re-read `this.plugins.get(id)` after the await (bail if it is gone or no longer active), or mutate only the healthHistory field."
+  },
+  {
+    "raw_id": "COD-plugins-11",
+    "title": "No timeout on any sidecar call on the boot-critical plugin path, and every plugin's config is fetched twice, strictly serially",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "plugins",
+    "repro": "Point the host at a sidecar that accepts the TCP connection but never responds: bootstrapPlugins() never resolves and the plugin layer never finishes. Normal case: 12 catalog plugins x 2 serialized GET/POST round-trips gate boot.",
+    "evidence": "src/lib/sidecar-client.ts (no AbortSignal/timeout anywhere in the file), src/lib/plugin-bootstrap.ts:90-97 (save: bare fetch), src/lib/plugin-bootstrap.ts:256-261 (boot loop calls persistence.load) AND src/lib/plugin-runtime.ts:218-232 (loadPlugin calls persistence.load again for the same plugin), src/lib/plugin-bootstrap.ts:252-271 (strictly serial for...of await over CATALOG_ROWS); contrast plugins/openbb-mcp/index.ts:90-92 which DOES use AbortController + a 2s ceiling",
+    "notes": "A network call with no timeout on the one path that gates app startup. The double read is duplicated truth as well as waste: bootstrap re-derives installed/enabled from a config loadPlugin is about to load again, and the two derive different defaults (row.entry.preinstalled vs true). Fix: give sidecarGet/sidecarPost an AbortSignal.timeout ceiling, and pass the already-loaded PluginPersistedConfig into loadPlugin instead of re-fetching it."
+  },
+  {
+    "raw_id": "COD-plugins-12",
+    "title": "'Is this plugin on?' is stored in two independent places that only one of three code paths keeps in sync",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "design (drift hazard, reachable via COD-plugins-1): plugins.db `enabled` and the workspace blob's enabledModules['plugin:<id>'] are written by different callers; disable via the Plugin Manager writes neither, disable via the runtime writes only the first, unbridgePluginModule writes only the second.",
+    "evidence": "sidecar/services/plugins_store.py:38-44 (plugins.db enabled column), src/lib/workspace.ts:50,263 (workspace.enabledModules -> setEnabledMap replaces the map wholesale on restore), src/lib/plugin-runtime.ts:344-348 (disablePlugin writes only plugins.db), src/lib/plugin-bootstrap.ts:193-194 (unbridgePluginModule writes only the module map), src/store/marketplace.ts:182-183 (the only caller that writes both). Four sites encode the never-persisted default and disagree: plugin-runtime.ts:221, plugin-runtime.ts:310, plugin-bootstrap.ts:262-263, store/marketplace.ts:109-110/123-125",
+    "notes": "Information leakage: the same fact lives in two stores with no single owner, and the never-persisted default for that fact is spelled four times with two different answers (true vs row.entry.preinstalled). This is the structural reason COD-plugins-1 and -2 are possible at all. Fix: one lifecycle owner writes both, or derive the module-enabled flag from the runtime state instead of persisting it separately."
+  },
+  {
+    "raw_id": "COD-plugins-13",
+    "title": "The catalog-key invariant entry.pluginId === manifest.id is unguarded, so a typo would make disable a silent no-op",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "design: change any CATALOG_ROWS entry.pluginId so it differs from that plugin's manifest.id. Nothing rejects it; CATALOG_BY_ID and unbridgePluginModule key on entry.pluginId while the runtime and moduleForPlugin key on manifest.id/instance.pluginId, so disable disables a module id that was never registered and the panels stay live.",
+    "evidence": "src/lib/plugin-runtime.ts:366-373 (checkCompatibility asserts manifest.id === instance.pluginId and version equality, but nothing about entry.pluginId), src/lib/marketplace.ts:330-332 (CATALOG_BY_ID keyed on r.entry.pluginId), src/lib/plugin-bootstrap.ts:194 (unbridge builds `plugin:${pluginId}` from the catalog key) vs src/lib/plugin-bootstrap.ts:166 (moduleForPlugin registers `plugin:${instance.pluginId}`), src/store/marketplace.ts:127 (stateFor matches p.manifest.id against the catalog key)",
+    "notes": "All 12 rows match today -- this is an invariant held by convention where the structure could hold it. Cheapest fix: one module-level assertion (or a vitest over CATALOG_ROWS) that entry.pluginId === discovered.manifest.id === discovered.instance.pluginId, next to the compat check that already enforces the other two thirds of it."
+  },
+  {
+    "raw_id": "COD-plugins-14",
+    "title": "parseSemver strips '<' along with the >= / ^ / ~ range operators, inverting a '<x.y.z' requiredHostVersion into '>=x.y.z'",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "plugins",
+    "repro": "A manifest with requiredHostVersion \"<0.9.0\" on host 0.8.0 is REJECTED at load with the message 'plugin requires host version >= <0.9.0 but host is 0.8.0' -- the opposite of what the manifest asked for.",
+    "evidence": "src/lib/plugin-runtime.ts:116-125 (`version.trim().replace(/^[\\^~>=<\\s]+/, \"\")` -- '<' is in the stripped class), src/lib/plugin-runtime.ts:133-139 (hostSatisfies then compares with >=), src/lib/plugin-runtime.ts:374-376 (the error message hardcodes '>=' regardless of the operator that was stripped)",
+    "notes": "No bundled manifest uses '<' today (all are bare x.y.z or '>=x.y.z'), so this is latent. The contract explicitly says ranges are not supported (plugin-runtime.ts:127-132) -- so the right fix is to drop '<' from the character class and let an unsupported operator fail loudly rather than be silently reinterpreted as its inverse."
+  }
+]

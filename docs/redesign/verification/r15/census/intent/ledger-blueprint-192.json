@@ -1,0 +1,482 @@
+[
+  {
+    "pid": "INT-BP-193",
+    "promise": "terminal.vysted.com/install/mac shows a screenshot of the unsigned-app warning and bypass instructions (right-click Open, or System Settings > Privacy & Security > Open Anyway).",
+    "source": "§6.3 (L391-394)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "README.md:88-110 (unsigned-app Gatekeeper bypass, 'Open Anyway' path); no website/landing source anywhere in the repo (root listing has no web/ site/ www/ dir)",
+    "gap": "No terminal.vysted.com/install/mac page exists in-repo and no screenshot of the warning is shipped anywhere; README carries the text instructions only. README.md:102-105 also records that the BLUEPRINT's 'right-click -> Open' bypass no longer works on macOS 15+, so the promised page content is itself stale.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-194",
+    "promise": "The Mac unsigned-app bypass is a ~30 second one-time step per Mac.",
+    "source": "§6.3 (L395)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "README.md:96-100 (three steps, 'macOS remembers the choice - every later launch opens normally'); README.md:104-108 offers the one-command xattr alternative",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-195",
+    "promise": "From v1.0, Vysted Terminal places live orders against real brokerage accounts.",
+    "source": "§6.4 (L399)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "docs/redesign/DECISIONS.md:120 (D70): 'live buying / broker order execution is NOT in R12 (deferred v1.0 roadmap, BLUEPRINT 6.4)'; D69 (DECISIONS.md:119) proves the in-app path fails closed with zero registered adapters",
+    "gap": "0.9.0 ships no order-placement capability; the promise is scoped to v1.0 and is not a 0.9.0 defect.",
+    "decision_ref": "D70 (docs/redesign/DECISIONS.md:120) + r15/tooling/COMMON.md out-of-scope list"
+  },
+  {
+    "pid": "INT-BP-196",
+    "promise": "Vysted Terminal is a tool, not financial advice — nothing it displays, computes, or generates, including AI-agent output, is a recommendation to buy, sell, or hold any instrument.",
+    "source": "§6.4 (L401)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:36-45 (TOS_BODY: 'does not provide investment advice', 'AI-generated proposals are AI-generated; you remain solely responsible'); COMMERCIAL_LICENSE.md:38-44",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-197",
+    "promise": "No warranty for trading losses — the AGPL-3.0 disclaimer (§15-16) is explicitly extended to trading and financial losses, including losses from defects, data errors, latency, failed or duplicated orders, or AI-agent behaviour.",
+    "source": "§6.4 (L402)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "LICENSE:587 (15. Disclaimer of Warranty), LICENSE:598 (16. Limitation of Liability); COMMERCIAL_LICENSE.md:32-44 ('No warranty for trading losses ... defects, data errors, latency, failed or duplicated orders, or AI-agent behaviour')",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-198",
+    "promise": "The user owns the broker relationship — Vysted Terminal is not a broker, introducing broker, or investment adviser.",
+    "source": "§6.4 (L403)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "COMMERCIAL_LICENSE.md:44 (licensee owns the broker relationship and all trading outcomes); src/modules/safety/DisclaimerFlow.tsx:36-38 ('does not custody funds ... is not a registered broker-dealer')",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-199",
+    "promise": "COMMERCIAL_LICENSE.md mirrors the trading-loss disclaimer with an explicit no-warranty-for-trading-losses clause.",
+    "source": "§6.4 (L405)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "COMMERCIAL_LICENSE.md:32 heading 'No warranty for trading losses' + :38-44 body mirroring the AGPL disclaimer",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-200",
+    "promise": "Live order placement is gated behind a fixed set of safeguards that are non-negotiable design constraints for every broker plugin; no broker plugin ships without them.",
+    "source": "§6.5 (L409)",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/models/safety.py:6-21 maps all eight safeguards to code; enforced: #1 broker_base.py:94, #2 broker_base.py:310-325, #4 sidecar/models/audit_log.py:22-50, #6 src/modules/safety/OrderConfirmationDialog.tsx:40-61, #7 broker_base.py:253+347, #8 DisclaimerFlow.tsx:47+132",
+    "gap": "Three of the eight are not fully in place: #1's live-switch disclaimer dialog does not exist (INT-BP-203), #3's caps are half-inert with no configuration path (INT-BP-207/208), #5 has no UI surface and no event listener (INT-BP-211/212).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-201",
+    "promise": "Paper mode is the default for every broker plugin.",
+    "source": "§6.5 #1 (L411)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py:90-94 ('paper mode is the hard-coded default. There is no constructor argument that flips this to live'); models/broker.py BrokerState.mode",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-202",
+    "promise": "Live trading is opt-in per broker, toggled by the user.",
+    "source": "§6.5 #1 (L411)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/brokers.py:327-328 POST /brokers/{broker_id}/mode (per-broker only); src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 + :278-280 ('Go live' / 'Go paper' per row)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-203",
+    "promise": "The first time a plugin is switched to live, a dedicated disclaimer dialog is shown and must be explicitly acknowledged.",
+    "source": "§6.5 #1 (L411)",
+    "kind": "guarantee",
+    "status": "missing",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 handleModeToggle flips paper->live on one click with no dialog; src/modules/safety/DisclaimerFlow.tsx exports only FirstLaunchTosDialog + BrokerFirstConnectDialog (:47, :132); sidecar/models/safety.py:120-124 DisclaimerKind has no first-live-mode kind",
+    "gap": "The only live-related acknowledgment is a first-live-ORDER session ack inside the order dialog (OrderConfirmationDialog.tsx:128, :245-251). Switching a broker plugin from paper to live - the moment the BLUEPRINT gates - is an unguarded single click.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-204",
+    "promise": "There is no global 'enable everything' shortcut for live trading — the decision is made one broker at a time.",
+    "source": "§6.5 #1 (L411)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/brokers.py:327 is the only mode route and is per-broker; no bulk/global enable route in routers/brokers.py or routers/safety.py; src/store/brokers.ts setMode takes a single broker id",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-205",
+    "promise": "Every order, paper or live, requires a confirmation dialog showing symbol, quantity, side, order type, limit price, estimated value, broker, and account ID.",
+    "source": "§6.5 #2 (L413)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:204-220 renders Broker, Account, Symbol, Side, Type, Quantity, Limit price, Stop price, Currency, Estimated value, Mode",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-206",
+    "promise": "There are no one-click trades anywhere in the app, in any panel, for any broker.",
+    "source": "§6.5 #2 (L413)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py:310-325 (confirm_and_place requires human_confirmed=True; _place_confirmed is private with that single call site); src/modules/broker-connect/BrokerOrderEntry.tsx:243-245 (Propose only) -> OrderConfirmationDialog; audited by sidecar/tests/test_safety_end_to_end.py",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-207",
+    "promise": "Position-size limits are configurable per plugin, with soft default caps on maximum order value, maximum percentage of account, and maximum position size per symbol.",
+    "source": "§6.5 #3 (L415)",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/models/safety.py:110-118 declares four caps; sidecar/services/broker_base.py:82-87 sets conservative defaults; only two are enforced - broker_base.py:269 (max_order_value) and :274 (max_position_size_per_symbol)",
+    "gap": "max_percent_of_account and daily_loss_circuit_breaker are never read anywhere in sidecar/ or src/ (grep: only the declaration and the default). The caps are also class-level (ClassVar DEFAULT_LIMITS), identical for every plugin - 'configurable per plugin' is not implemented.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-208",
+    "promise": "A user can raise a position-size limit only through an explicit confirmation step; the defaults are conservative on purpose.",
+    "source": "§6.5 #3 (L415)",
+    "kind": "guarantee",
+    "status": "missing",
+    "evidence": "sidecar/services/broker_base.py:98 is the only assignment to self._limits; no /brokers/{id}/limits route in sidecar/routers/brokers.py; no limits control in src/modules/broker-connect/BrokerConnectPanel.tsx or src/store/brokers.ts",
+    "gap": "There is no path - route, UI or config - to raise a position limit, so the 'explicit confirmation step' that was supposed to gate a raise does not exist. Fails closed (safer than promised) but the promise is undelivered.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-209",
+    "promise": "Every order, manual or AI-initiated, is written to a local SQLite audit log with timestamp, broker, full request payload, broker response, and outcome.",
+    "source": "§6.5 #4 (L417)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/audit_log.py:22-33 (timestamp_ms, broker, account_id, action, payload_json, source, outcome); sidecar/services/broker_base.py:288-296 (propose), :357-358 (confirm), :365 (result)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-210",
+    "promise": "The audit log is exportable and survives app restarts.",
+    "source": "§6.5 #4 (L417)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/safety.py:55-56 GET /safety/audit-log/export.csv; :47-48 GET /safety/audit-log; persistence via audit_log.db on disk (models/audit_log.py:53 AUDIT_LOG_DB_FILENAME) with IF NOT EXISTS DDL re-applied per launch",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-211",
+    "promise": "There is a global 'Halt All Trading' kill switch, always visible, that immediately disables order placement across every broker plugin at once.",
+    "source": "§6.5 #5 (L419)",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Backend intact: sidecar/services/kill_switch.py:1-22 + :100-160 (bus, fire, ack aggregation), sidecar/routers/safety.py:119-143 (fire/reset/status), src-tauri/src/kill_switch.rs:50-63 + :96 (OS-wide Cmd/Ctrl+Shift+K -> emits 'kill-switch:requested'), src/store/safety.ts:212-232 (fireKillSwitch). UI: absent",
+    "gap": "No component anywhere in src/ calls fireKillSwitch (grep: zero call sites outside src/store/safety.ts) and nothing calls listen('kill-switch:requested') - src/store/safety.ts:16 records 'nothing currently listens for it'; src/modules/index.ts:52-54 records the toolbar was removed. The always-visible control does not exist and the OS shortcut is a dead end.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-212",
+    "promise": "The kill switch is designed to be found and used under stress, without hunting through settings.",
+    "source": "§6.5 #5 (L419)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "src/modules/index.ts:52-54 ('The kill-switch toolbar was removed from the UI in the agent-native craft pass'); src/store/safety.ts:13-16",
+    "gap": "There is no surface to find under stress: no toolbar button, no tray item, no command-palette entry (src/modules/safety/index.ts registers only 'safety.open-audit-log'), and the keyboard shortcut emits an event with no listener.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-213",
+    "promise": "When an AI agent or node-editor workflow attempts to place an order, the confirmation dialog opens defaulted to declined and names the agent (e.g. 'AI agent <name> is requesting this order').",
+    "source": "§6.5 #6 (L421)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:40-61 (describeSource builds \"AI agent '<name>' is requesting this order.\"), :198 ai-agent-banner, :225-231 review checkbox, :285 confirm disabled until checked; sidecar/models/safety.py:152-171 AiOrderGateProposal",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-214",
+    "promise": "An optional auto-approve mode for AI-initiated orders exists but is off by default and must be enabled explicitly, per agent.",
+    "source": "§6.5 #6 (L421)",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/models/safety.py:19 ('v0.5.0 ships NO auto-approve mode'); src/modules/safety/OrderConfirmationDialog.tsx:14-15 ('v0.5.0 Tier-3 tightening: NO auto-approve mode. The checkbox is the only path')",
+    "gap": "Deliberately never built, and strictly safer than the BLUEPRINT promised. Not a 0.9.0 defect.",
+    "decision_ref": "r15/tooling/COMMON.md out-of-scope ('the agent never places, confirms or auto-applies an order') + D70 (DECISIONS.md:120)"
+  },
+  {
+    "pid": "INT-BP-215",
+    "promise": "The terminal never lets an AI place an order the user did not see.",
+    "source": "§6.5 #6 (L421)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py:310-325 (human_confirmed gate), :20-32 (AI never reaches _place_confirmed; no auto-approve route); proven live in D69 (docs/redesign/DECISIONS.md:119) - propose -> review bar -> human accept -> fails closed, audit_orders 0 rows",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-216",
+    "promise": "Any individual broker plugin can be marked read-only even with live trading globally enabled, enforced at the plugin boundary, not just the UI.",
+    "source": "§6.5 #7 (L423)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py:253-255 (propose_order raises when read-only) and :347-349 (re-checked at confirm time, after the propose/confirm window); plus the three-layer read-only wrapper-plugin audit described in CLAUDE.md (inspect.getmembers surface audit, router.routes audit, supportsControlPlane=false)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-217",
+    "promise": "Liability disclaimers are surfaced at four touchpoints: the AGPL-3.0 LICENSE, COMMERCIAL_LICENSE.md, the first-launch app TOS dialog, and a per-broker first-connect dialog.",
+    "source": "§6.5 #8 (L425-429)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "LICENSE:587 + :598; COMMERCIAL_LICENSE.md:32-44; src/modules/safety/DisclaimerFlow.tsx:47-112 (FirstLaunchTosDialog) mounted app-shell-level at src/app/page.tsx:287-289; src/modules/safety/DisclaimerFlow.tsx:132-172 (BrokerFirstConnectDialog)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-218",
+    "promise": "The first-launch app TOS dialog is a one-time acknowledgment the user must accept before any broker plugin can be enabled at all.",
+    "source": "§6.5 #8 (L428)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:78-112 (blocking modal until acked, persisted as broker:_meta:first-launch-tos - src/lib/keychain.ts:41-43); src/modules/broker-connect/BrokerConnectPanel.tsx:150 + :177 + :187 (every broker row disabled while !firstLaunchTosAcked)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-219",
+    "promise": "A per-broker first-connect dialog shows a broker-specific terms-and-conditions reminder the first time the user connects each broker.",
+    "source": "§6.5 #8 (L429)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:132-172 BrokerFirstConnectDialog (data-testid broker-first-connect-dialog-<broker>); wired at src/modules/broker-connect/BrokerConnectPanel.tsx:34 + :206-209; pinned by BrokerConnectPanel.test.tsx:124",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-220",
+    "promise": "The execution path is conservative by construction: paper by default, confirmed every time, capped, logged, haltable, extra-gated for AI, and disclosed up front.",
+    "source": "§6.5 (L431)",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Holds: paper by default (broker_base.py:94), confirmed every time (broker_base.py:310-325), logged (models/audit_log.py:22-50), extra-gated for AI (OrderConfirmationDialog.tsx:40-61), disclosed up front (DisclaimerFlow.tsx:47+132)",
+    "gap": "'capped' is half-true (two of four declared caps are inert - INT-BP-207) and 'haltable' is not true from the user's side (no kill-switch surface - INT-BP-211/212).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-221",
+    "promise": "All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals.",
+    "source": "§7 (L437)",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Repo is at 0.8.0 (package.json version 0.8.0); CLAUDE.md 'Deferred / carry-forward' section and BLOCKERS.md carry live deferrals (MCP cold-bind --onedir, smoke-test MCP port probe)",
+    "gap": "Unfalsifiable before v1.0: order execution is deferred TO v1.0, which the promise allows. Recorded as partial because deferrals demonstrably exist today, not as a 0.9.0 defect.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-222",
+    "promise": "Phase 0: repo scaffold at github.com/techlogist1/vysted-terminal.",
+    "source": "§7 Phase 0 (L440)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "git remote -v -> origin git@github.com:techlogist1/vysted-terminal.git (fetch/push)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-223",
+    "promise": "Phase 0: Tauri 2.x + Next.js 14 + TypeScript bootstrap.",
+    "source": "§7 Phase 0 (L441)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "Tauri 2.x: package.json @tauri-apps/cli 2.11.1 + @tauri-apps/api 2.11.0, src-tauri/. TypeScript: tsconfig.json + 'typecheck': 'tsc --noEmit'. Next.js: ABSENT - no 'next' dependency in package.json, no next.config.*, 'dev': 'vite', vite ^8.0.16 + @vitejs/plugin-react 6.0.1, index.html + vite.config.ts at repo root",
+    "gap": "The frontend moved from Next.js to Vite + React 19 and the project's own DNA was never corrected: CLAUDE.md:28 still states 'Frontend: Next.js 16 (App Router, static export)'.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-224",
+    "promise": "Phase 0: Tailwind + shadcn/ui + Vysted design tokens.",
+    "source": "§7 Phase 0 (L442)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "package.json tailwindcss 4.3.0 + @tailwindcss/postcss 4.3.0; components.json (shadcn config) + src/components/ui/; styles/tokens.css",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-225",
+    "promise": "Phase 0: Python sidecar bootstrap (FastAPI on localhost, lifecycle managed by Tauri).",
+    "source": "§7 Phase 0 (L443)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/app.py (FastAPI app, lifespan); sidecar/main.py --host 127.0.0.1 --port; Tauri-owned lifecycle via app.shell().sidecar(...) (src-tauri/src/openbb_mcp.rs precedent, CLAUDE.md Sidecar & distribution)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-226",
+    "promise": "Phase 0: plugin architecture types defined (full VystedPlugin TypeScript interface).",
+    "source": "§7 Phase 0 (L444)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts (VystedPlugin contract, six capabilities; Tier-1 locked per CLAUDE.md)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-227",
+    "promise": "Phase 0: ONE mock panel, 'Welcome to Vysted Terminal', with placeholder content.",
+    "source": "§7 Phase 0 (L445)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "No 'Welcome to Vysted Terminal' mock panel exists; the string survives only as a dialog title (src/components/OnboardingFlow.tsx:169, src/modules/safety/DisclaimerFlow.tsx:92). Real panels under src/modules/ replaced it",
+    "gap": "Phase-0 scaffolding superseded by the shipped panel set; its absence is the intended outcome, not a gap.",
+    "decision_ref": "Superseded by Phases 1-10 + the 003/004 rebuilds (docs/CURRENT_STATE.md panel inventory)"
+  },
+  {
+    "pid": "INT-BP-228",
+    "promise": "Phase 0: command bar skeleton (cmd+K opens, slash command list empty).",
+    "source": "§7 Phase 0 (L446)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx:30 (cmdk) + :77 (metaKey||ctrlKey && 'k'); the list is no longer empty - src/modules/safety/index.ts:26-35 shows a module registering commands",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-229",
+    "promise": "Phase 0: CI via GitHub Actions for build (Win/Mac/Linux) + lint + test.",
+    "source": "§7 Phase 0 (L447)",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": ".github/workflows/build.yml:12-14 (matrix os: windows-latest, macos-latest, ubuntu-latest), lint.yml:9-13 (same matrix), test.yml - all three exist",
+    "gap": "The workflows only fire on push to main and on pull_request (build.yml:3-6, lint.yml:3-6). 640 commits sit on 004-r4-experience-rebuild that main has never seen (git rev-list --count main..HEAD = 640) with no PR open, so none of this work has ever run in CI; the newest run on main (2026-05-30, lint) CONCLUDED FAILURE.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-230",
+    "promise": "Phase 0: LICENSE + COMMERCIAL_LICENSE.md + CLA bot setup.",
+    "source": "§7 Phase 0 (L448)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "LICENSE (AGPL-3.0 verbatim) and COMMERCIAL_LICENSE.md both present at repo root",
+    "gap": "No CLA bot: .github/ contains only workflows/ (build.yml, lint.yml, test.yml) - no cla.yml, no CLA app config, no CLA.md. CONTRIBUTING.md:91-99 states 'The formal CLA process is still being finalized' and uses a PR-comment 'placeholder acknowledgement'.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-231",
+    "promise": "Phase 0: CLAUDE.md at repo root (project context, stack, standards, constraints).",
+    "source": "§7 Phase 0 (L449)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "CLAUDE.md at repo root (stack, layout, coding standards, decision-authority tiers, gotchas)",
+    "gap": "Present and load-bearing, but see INT-BP-223: its Stack section (CLAUDE.md:28) names a framework the repo no longer uses.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-232",
+    "promise": "Phase 0: terminal.vysted.com landing page (Vercel deploy, 'Coming soon' + GitHub link).",
+    "source": "§7 Phase 0 (L450)",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "Repo root listing contains no web/, site/, www/ or landing-page source; no vercel.json anywhere; README.md:88-90 sends users to the GitHub Releases page instead",
+    "gap": "No terminal.vysted.com source is in this repository, so its existence and content cannot be confirmed from code (COMMON.md: never assume delivered).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-233",
+    "promise": "Phase 0 success criterion: pnpm tauri dev opens a window with the mock panel.",
+    "source": "§7 Phase 0 (L453)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "pnpm tauri:dev (CLAUDE.md macOS dev-signing gotcha; scripts/macos-dev-setup.sh) opens the shell; the mock panel was replaced by the real panel set (src/components/PanelHost.tsx dockview host + src/modules/*)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-234",
+    "promise": "Phase 0 success criterion: design tokens are visible (Vysted aesthetic).",
+    "source": "§7 Phase 0 (L454)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css; the R9/003 zinc + cool-indigo token system (CLAUDE.md Frontend gotchas: token NAMES are historical, values re-skinned); docs/redesign/R9_DESIGN_SYSTEM.md",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-235",
+    "promise": "Phase 0 success criterion: plugin interface compiles without errors.",
+    "source": "§7 Phase 0 (L455)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "types/plugin.ts compiles under 'typecheck': 'tsc --noEmit' (package.json), which is a hard gate inside pnpm ci-local (package.json ci-local chain)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-236",
+    "promise": "Phase 0 success criterion: CI is green for all OS builds.",
+    "source": "§7 Phase 0 (L456)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "Newest GitHub Actions run on main: lint, headSha cfcf5be, created 2026-05-30T19:08:14Z, conclusion FAILURE (gh run list --workflow=lint.yml). No run at all for any commit on 004-r4-experience-rebuild",
+    "gap": "CI has not been green for all OS since 2026-05-30 and has not run at all on the current product branch. The only verification of Windows/Linux is CLAUDE.md's claim 'Builds stay green on Windows, macOS, Linux', which pnpm ci-local (one macOS ARM machine) cannot establish.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-237",
+    "promise": "Phase 0 success criterion: tag v0.1.0 pushed.",
+    "source": "§7 Phase 0 (L457)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "git tag -> v0.1.0 present (alongside v0.2.0 ... v0.8.0)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-238",
+    "promise": "Phase 1: OpenBB ODP integration in the Python sidecar.",
+    "source": "§7 Phase 1 (L460)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/openbb_mcp_provider.py + sidecar/openbb_mcp_subprocess/ (bundled MCP sidecar, src-tauri/src/openbb_mcp.rs spawn); wired at sidecar/services/provider_registry.py:127-137 (fundamentals, income_statement, balance_sheet, cash_flow, analyst_rating)",
+    "gap": "Shipped as an MCP subprocess rather than the ODP package in-process (a mechanism change, not a scope loss); gated on openbb_mcp_provider.is_available() so it degrades when the binary is absent.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-239",
+    "promise": "Phase 1: ccxt integration (crypto WebSockets).",
+    "source": "§7 Phase 1 (L461)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/ccxt_provider.py:1-8 (REST + WebSocket), :18 (import ccxt.pro as ccxtpro), :109-118 (watch_ticker async iterator) consumed by the /crypto/stream WebSocket route (sidecar/routers/crypto.py)",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-BP-240",
+    "promise": "Phase 1: yfinance fallback.",
+    "source": "§7 Phase 1 (L462)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/yfinance_provider.py registered in sidecar/services/provider_registry.py as a fallback tier below the exchange-direct/openbb lanes (CLAUDE.md D54: 'yfinance as enrichment')",
+    "gap": null,
+    "decision_ref": null
+  }
+]

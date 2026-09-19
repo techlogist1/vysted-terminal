@@ -1,0 +1,57 @@
+[
+  {
+    "raw_id": "INT-spec-135-137",
+    "pid": "INT-SP-137",
+    "title": "Data-route failures reach the user as raw library exception text; the D43 humanizer only covers LLM errors",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "sidecar/provider-registry + error surface",
+    "repro": "curl http://127.0.0.1:52152/quotes/ZZZZNOTREAL -> 502 {\"detail\":\"yfinance quote failed for 'ZZZZNOTREAL': 'PriceHistory' object has no attribute '_dividends'\"}; curl /macro/GDP -> 502 raw 'World Bank upstream error … APIError: JSON decoding error (https://api.worldbank.org/…)'; curl '/history/ZZZZNOTREAL?timeframe=1d' -> 200 bars:[] reason:'in_eod_only' for a non-existent symbol.",
+    "evidence": "sidecar/app.py:312-315, src/lib/sidecar-client.ts:49-52,198-204, sidecar/routers/history.py:15-28, sidecar/services/errors.py:104 (humanize exists, unused by data routes)",
+    "notes": "FR-062 promises an honest human 'unavailable' naming what would unlock it and calls raw dumps a defect. An unknown/mistyped symbol in the quote path shows a Python AttributeError to the user, and the chart tells an IN-locale user 'India is EOD only' for a ticker that does not exist. Smallest fix: (1) in the ProviderError handler, map to {message, action, detail, code} via a data-side humanize (unknown symbol -> the /fundamentals 404 wording; upstream down -> 'source unreachable, retry'), keep raw text behind detail; (2) _empty_series_reason should return in_eod_only only when the symbol is a known IN master member or carries .NS/.BO, not merely because the locale is IN."
+  },
+  {
+    "raw_id": "INT-spec-135-139",
+    "pid": "INT-SP-139",
+    "title": "No BYOK upgrade path off T+1 EOD for India; India data lanes are hard-coded and absent from the marketplace",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "provider-registry / marketplace",
+    "repro": "design — open Marketplace: no India data source row exists (src/lib/marketplace.ts:84-180); connect Angel One/Dhan/Kite: quotes/charts still come from nse_direct/jugaad/bse EOD (provider_registry.py:141-196 has no broker-backed quote provider); grep -ri 'eodhd|twelve' sidecar src -> nothing.",
+    "evidence": "sidecar/services/provider_registry.py:113-213, types/marketplace.ts:68-69, src/lib/marketplace.ts:84-180, sidecar/routers/history.py:15-28 (the app itself tells the user 'intraday/realtime needs a BYOK broker' — a path that does not exist)",
+    "notes": "FR-064 promised each source as a marketplace plugin declaring exchanges/data-types/regions with Angel One/Dhan/Zerodha + EODHD/Twelve Data as optional BYOK upgrades. Shipped reality: a finance terminal for Indian markets whose India prices are EOD-only with no way to buy your way out, while the chart's in_eod_only copy points at a BYOK broker upgrade that is not wired. Smallest honest shape: either (1) one broker-backed quote/ohlcv ProviderDeclaration (Kite or Dhan LTP/historical, read-only GET, rank <15, requires=connected) so the promise in the empty-state copy is true, or (2) change the copy and record the deferral as a D-number. Separately, surface the keyless India lane as a pre-installed marketplace row so its health/provenance is visible."
+  },
+  {
+    "raw_id": "INT-spec-135-141",
+    "pid": "INT-SP-141",
+    "title": "NORMAL research runs 33-38s against a <=15s interactive target; nothing measures or guards it",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research/fast + agent runtime",
+    "repro": "R13 live drives: 'NORMAL (15:07, 33s, 12 steps)' and 'NORMAL (19:37, 38s)' for KSE (docs/redesign/verification/R13_RUN_REPORT.md:31,47).",
+    "evidence": "docs/redesign/verification/R13_RUN_REPORT.md:31,47; sidecar/services/research/fast.py:534-640; spec.md#FR-070",
+    "notes": "The default research path is benchmarked against Perplexity Finance (answers in seconds). The structured legs are parallel, but the run then adds a sequential web round + the chat model's prose turn, and each R11-R13 witness leg (ttm, yoy, ownership, declared, earnings, range, mcap — fast.py:377) widened the gather. Smallest fix shape: stamp per-leg latency_ms into the step log (already a field), publish the structured cockpit the moment the gather returns (before web+prose), put a per-leg timeout on the slow witnesses, and add one timing assertion on a recorded fixture so the budget cannot silently regress."
+  },
+  {
+    "raw_id": "INT-spec-135-143",
+    "pid": "INT-SP-143",
+    "title": "DEEP/ULTRA research never meters tokens or spend: no spend ceiling on a paid key, and the brief reports zero cost",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research/deep+iter budget wiring",
+    "repro": "design — deep_research._run_native builds BudgetGuard(max_steps=…, max_wall_seconds=…) with no max_tokens/max_spend_usd; llm_call returns str; every loop site calls budget.record(None, model, provider). Run any DEEP brief on an OpenRouter paid model: the brief header shows no tokens/spend (BriefPanel omits zero) although dozens of LLM calls were billed.",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:232-236,322-325; sidecar/services/research/iter.py:585,962,1023,1146; sidecar/services/research/deep.py:19-25,1214; sidecar/services/research/verify.py:319; sidecar/services/budget_guard.py:95-107,116; src/modules/research/BriefPanel.tsx:113-146",
+    "notes": "FR-072 requires a hard, user-visible ceiling on rounds, wall-clock, TOKENS and SPEND; FR-074/075 promise cost in the brief header and an inspectable cost-so-far (also covers INT-SP-145/146). BYOK is the product's deal with the user: their money, visibly bounded. The deepest, most expensive path is the one place the meter is disconnected — deep.py's own docstring says 'the lead's handler wires real usage when it has it' and it never did. Smallest fix: make oneshot.complete return (text, usage) (adapters already produce LLMUsage for the chat loop), pass usage into budget.record, construct the guard with the run's token/spend ceilings from the agent-invoke budget, and let the existing breach path force synthesis."
+  },
+  {
+    "raw_id": "INT-spec-135-144",
+    "pid": "INT-SP-144",
+    "title": "Hosted research (Tier B) shows its cost estimate only after the money is spent",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "research tier B / composer",
+    "repro": "design — select Tier B, send an ULTRA research: sonar-deep-research runs immediately; cost_estimate_usd is attached to the tool result afterwards (deep_research.py:151,184). No composer/depth-stop surface calls estimate_cost_usd before dispatch (grep estimate in src/modules/chat -> none).",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:151,184; sidecar/services/research/sonar.py:110; src/store/search-settings.ts:92-109",
+    "notes": "FR-073 MUST: 'estimated cost shown before starting'. Within the settled two-tier model the smallest honest fix is a one-line '~$0.xx est.' beside the depth stop when tier_b is active, fed by the per-model pricing table the store already carries."
+  }
+]

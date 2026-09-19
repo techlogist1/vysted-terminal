@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-brokers-adapters-1",
+    "title": "Kite margins route reports 2.4x the real available cash — blind sum() over overlapping Kite keys",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "brokers-adapters",
+    "repro": "sidecar/.venv/bin/python -c \"import sys;sys.path.insert(0,'.');from services.brokers.kite import _translate_kite_margins as f; m={'equity':{'net':99725.05,'available':{'adhoc_margin':0,'cash':245431.60,'opening_balance':245431.60,'live_balance':99725.05,'collateral':0,'intraday_payin':0},'utilised':{'debits':145706.55,'exposure':38981.25,'m2m_realised':761.70,'m2m_unrealised':0,'option_premium':0,'payout':0,'span':101989.60,'holding_sales':0,'turnover':0,'liquid_collateral':0,'stock_collateral':0,'delivery':0}}}; r=f(m)[0]; print(r.available, r.used)\" (run from sidecar/) -> available=590588.25, used=287439.10. True values: available cash 245431.60, utilised 145706.55.",
+    "evidence": "sidecar/services/brokers/kite.py:464-495 (_translate_kite_margins, sum(available_block.values()) at :476-480 and sum(utilised_block.values()) at :481-485); rendered at src/modules/broker-connect/BrokerReadsSection.tsx:295 (`avail {num(seg.available)} · used {num(seg.used)}`); reached via sidecar/routers/brokers.py:234-240 GET /brokers/{id}/margins",
+    "notes": "Kite's `available` map is several VIEWS of the same money (`cash`, `opening_balance`, `live_balance` are the same balance at different instants) and `utilised.debits` is itself the sum of the other utilised keys. Summing the dict double- and triple-counts. Consequence: the terminal shows a Zerodha user ~2.4x their real buying power and ~2x their real used margin, as a plain unqualified number with a green LIVE provenance badge — exactly the 'wrong money-relevant data shown as true' failure. The comment at :465-469 states the (wrong) model, so a reader trusts it. Smallest fix: read the named fields instead of summing — available = `available.live_balance` (fall back to `available.cash`), used = `utilised.debits`, net = `net`; assert the three reconcile (net ≈ available - used) and drop the row if they don't. Add one pytest case with the doc payload above."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-2",
+    "title": "Connect button is dead for every broker — the store POSTs a body the sidecar rejects with 422",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "UI: open Broker Connections -> Connect on any broker -> fill credentials -> Submit. The dialog shows 'connect failed (422)'. Proof without the UI: sidecar/.venv/bin/python -c \"import sys;sys.path.insert(0,'.');from models.broker import BrokerConnectRequest as B;B.model_validate({'credentials':{'api_key':'k'}})\" -> ValidationError, missing ('broker',).",
+    "evidence": "src/store/brokers.ts:80-87 (`body: JSON.stringify({ credentials })` — no `broker`); sidecar/models/broker.py:138-149 (`BrokerConnectRequest.broker: BrokerId` required, `extra=\"forbid\"`); sidecar/routers/brokers.py:158-166; the correct body exists two files over at plugins/brokers/kite/index.ts:174-177 (`{ broker: \"kite\", credentials }`)",
+    "notes": "Duplicated truth that drifted: the same request is constructed in two places and only the plugin copy matches the contract. src/store/brokers.test.ts:108-114 stubs `fetch` and asserts only that a refresh followed, so the request body is never checked against the Pydantic model — the test locks in the broken shape. Consequence: the entire subsystem is unreachable from its own panel; no broker can be connected, which makes every downstream read route 404 (adapters register lazily on connect, registry.py:98-119). Smallest fix: add `broker` to the body in src/store/brokers.ts:85 and assert the posted body in the store test."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-3",
+    "title": "Angel One credential dialog collects field names the adapter does not accept",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "Connect Angel One with every field filled -> adapter raises BrokerError \"angelone: connect requires 'api_key', 'client_code', 'password', and 'totp' credentials\" -> HTTP 400. The dialog sends keys api_key/client_code/pin/totp_secret; the adapter reads api_key/client_code/password/totp.",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:48-53 (fields `pin`, `totp_secret`); sidecar/services/brokers/angelone.py:59-67 (reads `password`, `totp`)",
+    "notes": "Two independent spellings of the same credential contract with nothing tying them together — the UI field list is a hand-maintained Record<BrokerId, …> and the adapter's required keys are string literals inside `_connect`. Also semantically wrong, not just a rename: `totp_secret` is the long-lived seed while the adapter wants the current 6-digit CODE (angelone.py:54-57 says so). Consequence: Angel One connect can never succeed even after COD-2 is fixed, and the user is told nothing about which field was wrong. Smallest fix: rename the two panel fields to `password` / `totp` and label the second 'Current TOTP code'; longer-term, let each adapter export its required-credential list so the dialog is generated from it."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-4",
+    "title": "AccountSummary carries no provenance, so paper mode serves a fabricated Rs 10,00,000 account as a real read",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "brokers-adapters",
+    "repro": "GET /brokers/kite/account (or /brokers/dhan/account, /brokers/angelone/account) on a paper-mode adapter -> {\"equity\":1000000.0,\"cash\":500000.0,\"buyingPower\":1000000.0,...} with no synthetic/mode/provider field anywhere in the payload.",
+    "evidence": "sidecar/models/broker.py:109-121 (AccountSummary has no provenance fields); sidecar/services/brokers/kite.py:178-189, dhan.py:112-122, angelone.py:89-99 (hardcoded 1_000_000 / 500_000); the promise it breaks is stated at sidecar/models/broker_reads.py:13-15 ('Every result carries the FR-041 provenance label … so a paper / disconnected value is plainly marked and never presented to the user as a real position'); consumed unlabelled by plugins/brokers/kite/index.ts:180-181 and sidecar/routers/brokers.py:205-212",
+    "notes": "The FR-041 provenance label was bolted onto the three NET-NEW granular models and never onto the one model that actually carries money and is actually consumed. Different layer, different abstraction is violated in the other direction: the same concept (is this figure real?) is expressed structurally in broker_reads.py and not at all in broker.py, so which path you take decides whether you get the guarantee. Consequence: an agent or panel reading /account in paper mode gets a fabricated lakh-scale balance indistinguishable from a real one. Smallest fix: add `synthetic: bool` + `mode` to AccountSummary (mirror in types/broker.ts) and set it in the three synthetic branches; or make the synthetic branches raise BrokerError('not connected') like Alpaca (alpaca.py:130-131) and IB (ib.py:164-165) already do, so paper mode never fabricates at all."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-5",
+    "title": "Granular reads exist for Kite only; the other six brokers render a permanent 'no granular read' note despite having the data",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "brokers-adapters",
+    "repro": "Connect Alpaca (or IB / OANDA / any ccxt-*) -> expand 'Positions · Holdings · Margins' -> all three blocks render 'This broker exposes no granular read; falling back to the account summary.' even though the adapter fetches real positions inside _account_info.",
+    "evidence": "sidecar/routers/brokers.py:192-203 (`getattr(adapter, method_name, None)` duck-type); only sidecar/services/brokers/kite.py:241-280 defines positions_info/holdings_info/margins_info; alpaca.py:134 already calls `get_all_positions`, ib.py:170 `positions()`, oanda.py:136-164, ccxt_exec.py:255-272 all build position lists that the granular routes never surface; src/modules/broker-connect/BrokerReadsSection.tsx:141-147,159-166 renders FallbackNote",
+    "notes": "A duck-typed seam gave one broker a feature and left the others with a disclosure that is now false — the data IS there, it is just trapped inside the merged AccountSummary. The section is the only read surface the panel offers, so for 6 of 7 brokers the whole disclosure is three lines of apology. Smallest fix: add a default `positions_info` on BrokerAdapter that projects `_account_info().positions` into BrokerPositionsResult with correct provenance, so every adapter gets a labelled granular positions read for free and only genuinely-missing reads (holdings/margins) fall back."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-6",
+    "title": "ccxt adapter runs blocking exchange calls on the event loop while all six siblings use asyncio.to_thread",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "design — GET /brokers/ccxt-binance/account calls ccxt's synchronous requests-backed fetch_balance directly in the coroutine; any latency or hang on the exchange blocks the sidecar's single event loop for its full duration.",
+    "evidence": "sidecar/services/brokers/ccxt_exec.py:245 (`balance = self._client.fetch_balance()`), :340-346 (`self._client.create_order(...)`), :384 (`self._client.cancel_order(...)`) — no await, no to_thread; contrast sidecar/services/brokers/alpaca.py:117,133-134,219,244, kite.py:192-194, dhan.py:126-127, angelone.py:102-103, oanda.py:108,122 which all wrap in asyncio.to_thread",
+    "notes": "One of seven siblings breaks a convention the other six follow and that the codebase explicitly justifies: alpaca.py:39-43 says the to_thread wrapper 'keeps the kill-switch fire latency under 2 s even when an order is in flight'. ccxt's default `enableRateLimit: True` (ccxt_exec.py:196) additionally makes the library SLEEP in-thread between calls, so the loop stalls even on success. Consequence: one slow Binance/Bybit response freezes every other sidecar route — agent runs, research, the kill switch — with no timeout ceiling anywhere. Smallest fix: wrap the three call sites in `await asyncio.to_thread(...)` exactly as the siblings do."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-7",
+    "title": "Market orders bypass the max-order-value position limit entirely",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "propose_order(symbol='RELIANCE', side='buy', order_type='market', quantity=999, limit_price=None) -> ref_price=0.0 -> estimated_value=0.0 -> the max-order-value guard is skipped because of the `and estimated_value > 0` clause; only the 1000-unit per-symbol cap remains, so a market order worth several crore passes the gate.",
+    "evidence": "sidecar/services/broker_base.py:262-273 (`ref_price = float(limit_price or 0.0)`; `if estimated_value > self._limits.max_order_value_account_currency and estimated_value > 0:`); limits defined at broker_base.py:82-87",
+    "notes": "BLUEPRINT §6.5 #3's position limit is the safety boundary, and the guard is a no-op for the single most dangerous order type. The comment at :265-268 acknowledges 'best-effort' and defers to the broker, which converts a stated local guarantee into a remote hope. This is latent today (order execution is deferred out of scope) but the route is mounted and reachable — POST /brokers/{id}/orders is live via sidecar/app.py:91. Smallest fix: when limit_price is None, require the caller to supply a reference price (or fetch last) and fail closed with BrokerError('cannot size a market order without a reference price') rather than silently sizing it at zero."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-8",
+    "title": "Order currency is a pass-through string with two conflicting defaults, and position limits compare raw numbers across currencies",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "POST /brokers/alpaca/orders with no `currency` -> the request model defaults it to 'INR' for a USD account; the same call through BrokerAdapter.propose_order() in-process defaults to 'USD'. Either way the value is compared against a bare 10_000.0 ceiling with no conversion, so the same limit means $10,000 or Rs 10,000 depending on the route.",
+    "evidence": "sidecar/routers/brokers.py:76 (`currency: str = \"INR\"`) vs sidecar/services/broker_base.py:233 (`currency: str = \"USD\"`); the unconverted comparison at broker_base.py:269-273 against DEFAULT_LIMITS.maxOrderValueAccountCurrency (broker_base.py:82-87); the value is then threaded straight into an IB contract at sidecar/services/brokers/ib.py:229 (`Stock(proposal.symbol, \"SMART\", proposal.currency)`)",
+    "notes": "A pass-through variable that nobody owns: the field is defaulted twice with different values, never validated against the adapter's actual account currency (which every adapter already knows — kite hardcodes 'INR', alpaca reads account.currency at alpaca.py:150, oanda at oanda.py:130), and is load-bearing at the far end where IB builds a contract from it. Consequence: the §6.5 order-value ceiling is ~80x looser or tighter than intended depending on which entry point was used, and an IB US-equity order carries currency 'INR'. Smallest fix: drop the router default, derive currency from the adapter (`self.CURRENCY` or the last account read), and reject a proposal whose currency disagrees."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-9",
+    "title": "The real Kite OAuth login exchange has no caller — the UI still asks for a pasted access token plus an api_secret it never uses",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "grep -rn 'kite/session' src/ plugins/ types/ -> zero hits outside sidecar/routers/brokers.py and sidecar/tests/. The credentials dialog for Kite collects api_key / api_secret / access_token / static_ip; KiteAdapter._connect reads only api_key + access_token, so api_secret is collected, written to the OS keychain, and discarded.",
+    "evidence": "sidecar/routers/brokers.py:415-434 (POST /brokers/kite/session) and sidecar/services/brokers/kite.py:507-539 (exchange_request_token) — callers only in sidecar/tests/test_brokers_readonly_routes.py:86 and test_kite_account_readonly.py:105; src/modules/broker-connect/BrokerConnectPanel.tsx:54-59 (dialog fields); sidecar/services/brokers/kite.py:84-89 (_connect reads api_key + access_token only); secret written at BrokerConnectPanel.tsx:309-311",
+    "notes": "CLAUDE.md records the request_token paste as 'the v1 flow' and kite.py:507-517 calls it 'the genuine OAuth login-token exchange, NOT a static pasted token' — but no UI reaches it, so the shipped behaviour is still the static paste the route was written to replace, and the daily-expiry story (419 handling at routers/brokers.py:184-189) has no way to recover because nothing can mint a new token. Storing api_secret in the keychain for a code path that never reads it is also a needless secret at rest. Smallest fix: in the Kite dialog, replace the access_token field with a request_token field, POST /brokers/kite/session first, then connect with the returned access_token; drop api_secret from the keychain write once the exchange consumes it in-request."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-10",
+    "title": "Every broker row renders a permanent red 'err:' because the wire sends error: null and the panel tests for undefined",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "brokers-adapters",
+    "repro": "GET /brokers -> each BrokerState serializes as {... \"error\": null, \"lastSeenAt\": null}; BrokerConnectPanel renders `{state.error !== undefined && <span className=\"text-negative\">err: {state.error}</span>}`, and null !== undefined, so a red 'err:' with no message paints on every row at all times. Verified: sidecar/.venv/bin/python -c \"...BrokerState(...).model_dump(by_alias=True)\" -> 'error': None.",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:266; sidecar/models/broker.py:134 (`error: str | None = None`, serialized by FastAPI with exclude_none off); types/broker.ts:211 declares `error?: string`, which is what made the `!== undefined` test look right",
+    "notes": "The TS mirror and the Python model disagree about how absence is spelled (`?: string` vs `str | None`), and the panel trusted the mirror. Consequence: a red error indicator is always on, which trains the user to ignore the one signal that should mean something. Same class of drift sits one line up — `state.status === 'connecting'` (BrokerConnectPanel.tsx:290,293) is unreachable because broker_base.state():125 only ever emits 'connected' or 'disconnected'. Smallest fix: test `state.error != null` (and either emit 'connecting' server-side or drop the branch); longer-term, spell optionality the same way in both files, since types/broker.ts is a hand-maintained mirror."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-11",
+    "title": "The Kite static-IP banner is hardcoded to configuredIp={null}, so it can never report a match",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "brokers-adapters",
+    "repro": "Set a static IP (POST /brokers/kite/static-ip), put Kite in live mode, open the panel -> the banner still polls /safety/static-ip-status with no `configured` param and renders the red mismatch variant with 'No static IP configured…', every 30 s, forever.",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:270 (`<KiteStaticIpBanner sidecarBaseUrl={sidecarBaseUrl} configuredIp={null} />`); the route that would supply it, sidecar/routers/brokers.py:367-373 GET /brokers/kite/static-ip, is read correctly by plugins/brokers/kite/index.ts:226-230; banner logic at src/modules/broker-connect/kite-static-ip-banner.tsx:76-82,94-107; sidecar/services/static_ip_detector.py:94-107 is the branch that always fires",
+    "notes": "The adapter-side plumbing is complete (set_configured_static_ip / configured_static_ip at kite.py:116-132, the live-mode audit row at kite.py:150-172) and the plugin two files over does the right two-step fetch; the panel just passes a literal null. Consequence: the SEBI/NSE compliance cue is permanently stuck in its alarm state, so a genuine mismatch is indistinguishable from the default — the banner is noise. The banner's own test (kite-static-ip-banner.test.tsx) passes a real IP as a prop, so it never exercises the way the panel actually mounts it. Smallest fix: fetch GET /brokers/kite/static-ip in the existing base-url effect (BrokerConnectPanel.tsx:219-231) and pass its configuredIp through."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-12",
+    "title": "disconnect reaches into adapter private attributes from the router and misses IB's socket entirely",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "POST /brokers/ib/disconnect -> the route sets `_connected = False` but IBAdapter holds its live TWS socket in `self._ib`, not `_client`, so `hasattr(adapter, \"_client\")` is False and the socket stays open with clientId still claimed; the next connect on the same clientId is refused by TWS.",
+    "evidence": "sidecar/routers/brokers.py:243-252 (`if hasattr(adapter, \"_client\"): adapter._client = None` / `adapter._connected = False`); sidecar/services/brokers/ib.py:101 (`self._ib`), :130-145; oanda also keeps `_oanda_account_id` (oanda.py:100-101) which is left stale; the ABC (sidecar/services/broker_base.py:174-217) exposes connect() but no disconnect()",
+    "notes": "Information leakage straight through a layer boundary: the route hardcodes knowledge of an attribute name that belongs to the adapters, and that knowledge is already wrong for one of the seven. Because the ABC never defined a teardown, the router invented one by poking at internals, and neither the type checker nor the read-only route audit can see the hole. Consequence: IB accumulates zombie TWS sessions across reconnects and OANDA reconnects against a stale account id. Smallest fix: add `async def disconnect(self)` to BrokerAdapter with a default that clears `_connected`, let IB/OANDA/ccxt override it to close their own handle, and have the route call `await adapter.disconnect()`."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-13",
+    "title": "Read routes catch only BrokerError, so four of seven adapters surface SDK failures as an unhandled 500 that the browser reports as a CORS error",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "Connect Alpaca, revoke the key at the broker, then GET /brokers/alpaca/account -> _account_info calls get_account with no try/except, the raw alpaca-py exception escapes, the route's `except BrokerError` does not match, FastAPI returns 500 without CORS headers, and the panel shows a 'CORS policy' failure instead of 'session expired'.",
+    "evidence": "sidecar/routers/brokers.py:205-212 and :192-203 (`except BrokerError` only); sidecar/services/brokers/alpaca.py:129-156 (_account_info has no try/except at all, unlike its own _connect at :116-119); ib.py:163-218 (accountSummaryAsync unguarded); oanda.py wraps (oanda.py:121-124) and kite wraps (kite.py:191-196) — the sibling that does catch broadly is connect_broker at sidecar/routers/brokers.py:179-180 (`except Exception -> 502`); the masking behaviour is documented in CLAUDE.md Gotchas ('CORS-error-masks-500')",
+    "notes": "The route with no error handling while its sibling has it, and the adapter with no error handling while its own sibling method has it — two layers each assuming the other catches. Consequence: the single most common broker failure (expired/revoked token) is reported to the user as a browser networking problem, and the 419 'reconnect' cue built at routers/brokers.py:184-189 only ever fires for Kite. Smallest fix: give the read routes the same `except Exception -> 502` arm connect_broker already has, and wrap alpaca/ib `_account_info` SDK calls in BrokerError like dhan/angelone/kite/oanda do."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-14",
+    "title": "ccxt and IB report marketValue 0 for every position, and ccxt equity counts only the quote currency",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "brokers-adapters",
+    "repro": "GET /brokers/ccxt-binance/account on an account holding 1 BTC and 0 USDT -> equity=0, cash=0, positions=[{symbol:'BTC', quantity:1.0, averageCost:0.0, marketValue:0.0}]. Same shape from IB: every position's marketValue is the literal 0.0.",
+    "evidence": "sidecar/services/brokers/ccxt_exec.py:249-283 (equity/cash/buyingPower taken from the quote-currency row only at :249-253; positions built with averageCost=0.0, marketValue=0.0 at :264-272); sidecar/services/brokers/ib.py:198-207 (`marketValue=0.0,  # ib_async positions don't include mark; left zero`)",
+    "notes": "A missing value is being rendered as the number zero rather than as absent, and BrokerPosition.market_value is a required float (sidecar/models/broker.py:105) so the adapter has no way to say 'unknown'. Consequence: a fully-invested crypto account reads as a zero-equity account and every position reads as worthless — the terminal states something false about money instead of admitting a gap. The zero then propagates into any portfolio aggregation that sums marketValue. Smallest fix: make market_value `float | None` (mirror in types/broker.ts) and render '—' when absent; or, since both adapters already hold a client, fetch the mark (ccxt fetch_tickers, ib reqMktData) before mapping."
+  },
+  {
+    "raw_id": "COD-brokers-adapters-15",
+    "title": "The three-layer read-only guarantee claimed for the broker plugins does not exist in code",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "brokers-adapters",
+    "repro": "grep -rn 'getmembers' --include=*.py . -> zero hits in the whole repo. grep -n supportsControlPlane plugins/brokers/*/index.ts -> six of seven declare `true`, and each plugin's own test pins it to true.",
+    "evidence": "no inspect.getmembers audit anywhere (verified by repo-wide grep); plugins/brokers/{kite,dhan,angelone,alpaca,ib,oanda}/index.ts declare supportsControlPlane: true (kite/index.ts:53, dhan/index.ts:51, angelone/index.ts:36, alpaca/index.ts:56, ib/index.ts:48, oanda/index.ts:50) and their tests assert `toBe(true)` (e.g. plugins/brokers/kite/kite.test.ts:33); plugins/brokers/kite/index.ts:183-201 exposes `place-order` and `place-order-confirm`; the only route audit, sidecar/tests/test_brokers_readonly_routes.py:61-69, checks methods ONLY on paths ending /positions|/holdings|/margins and therefore never sees POST /brokers/{id}/orders (sidecar/routers/brokers.py:255,284,314)",
+    "notes": "The invariant is held by prose (CLAUDE.md's read-only-wrapper rule, and the subsystem's own responsibility statement in CODE_PARTITION.json) rather than by structure, and the structure now contradicts the prose. The naming compounds it: a prefix audit for `place_/submit_/execute_` would pass this ABC because the public order method is called `confirm_and_place` (sidecar/services/broker_base.py:310) — the guard's shape is satisfiable without the guarantee holding. Consequence: a reader or reviewer who trusts the documented three layers will not discover that a live order-placement surface is mounted and reachable. Smallest fix: decide which it is. If the broker layer is read-only for this release, flip the six plugins to supportsControlPlane:false, drop the place-order branches, and widen test_read_routes_are_get_only to assert the router has no non-GET route at all. If it is not, correct CLAUDE.md and the partition responsibility so the docs stop asserting a guard that was never written. Tier-4: surface to the operator, do not decide unilaterally."
+  }
+]

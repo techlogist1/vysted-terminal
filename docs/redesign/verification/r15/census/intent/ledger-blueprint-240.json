@@ -1,0 +1,482 @@
+[
+  {
+    "pid": "INT-BP-241",
+    "promise": "Phase 1: chart panel (lightweight-charts + 20 indicators).",
+    "source": "\u00a77 Phase 1 (L464)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chart/ChartPanel.tsx:226 (lightweight-charts host); src/modules/chart/indicators.ts:61 INDICATOR_CATALOG (49 picker entries); sidecar/services/indicators.py:1190 _BUILDERS (49 builders) + :1255 SUPPORTED_INDICATORS (+_VOLUME_PROFILE_KEY = 50)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-242",
+    "promise": "Phase 1: watchlist panel.",
+    "source": "\u00a77 Phase 1 (L465)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/watchlist/WatchlistPanel.tsx; src/modules/watchlist/api.ts; src/modules/watchlist/index.ts (module registration)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-243",
+    "promise": "Phase 1: news feed panel with sentiment scoring.",
+    "source": "\u00a77 Phase 1 (L466)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/news/NewsFeedPanel.tsx:45-69 (per-item sentiment badge: dot + label + signed score); sidecar/services/sentiment.py:1-54 (VADER lexicon scorer, label_for_score:41, score_text:50); sidecar/routers/news.py",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-244",
+    "promise": "Phase 1: portfolio panel reading positions from local SQLite.",
+    "source": "\u00a77 Phase 1 (L467)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/portfolio_db.py:16 sqlite3, :27 CREATE TABLE positions, :81 list_positions, :95 create_position, :120 update_position, :145 delete_position; src/modules/portfolio/PortfolioPanel.tsx + metrics.ts",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-245",
+    "promise": "Phase 1: equity overview panel (fundamentals + ratios + statements).",
+    "source": "\u00a77 Phase 1 (L468)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:115-122 (ratios/headline metrics), :500-519 FinancialStatement period-column table with humanized line keys; sidecar/routers/fundamentals.py",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-246",
+    "promise": "Phase 1: module toggle UI in settings.",
+    "source": "\u00a77 Phase 1 (L469)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/SettingsPanel.tsx:1713 setModuleEnabled binding, :1741 per-module toggle handler; src/store/modules.ts:26,74 setModuleEnabled, :78 enabled-map filter",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-247",
+    "promise": "Phase 1: workspace save/load (local only at this phase).",
+    "source": "\u00a77 Phase 1 (L470)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:234 serializeWorkspace, :245 deserializeWorkspace, :402 save path, :432/:516 restore; sidecar/routers/workspace.py:36 GET list, :42 GET one, :53 POST save, :63 DELETE; src/modules/platform/WorkspaceDialog.tsx:58 SaveWorkspaceForm, :158 LoadWorkspaceList",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-248",
+    "promise": "Phase 2: 30 more technical indicators, 50 total.",
+    "source": "\u00a77 Phase 2 (L476)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/indicators.py:1190 _BUILDERS = 49 keys + :1255 SUPPORTED_INDICATORS appends _VOLUME_PROFILE_KEY -> 50; src/modules/chart/indicators.ts:61 INDICATOR_CATALOG mirrors 49 (volume is the built-in histogram, not a catalog entry)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-249",
+    "promise": "Phase 2: 10 drawing tools, workspace-persisted.",
+    "source": "\u00a77 Phase 2 (L477)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/drawings.ts:23-33 DrawingKind = exactly 10 kinds (trendline, horizontal-line, vertical-line, ray, rectangle, ellipse, fib-retracement, fib-extension, parallel-channel, text); src/modules/chart/drawings/base.ts:1-14 + factory.ts + renderers.ts; persisted via src/lib/workspace.ts:53-54 WorkspaceDrawings on SerializedWorkspace",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-250",
+    "promise": "Phase 2: multi-chart sync with opt-in crosshair / visible-range / symbol toggles.",
+    "source": "\u00a77 Phase 2 (L478)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/store/chart-sync.ts:8-9 (crosshair / visibleRange broadcast channels), :50-51 bus state, per-panel opt-in via setSubscription (src/store/chart-sync.test.ts:43-56 asserts the 3 independent toggles crosshair/visibleRange/symbol); src/modules/chart/ChartPanel.tsx:105 ToolbarMenu includes \"sync\"",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-251",
+    "promise": "Phase 2: comparison overlays with a normalize toggle.",
+    "source": "\u00a77 Phase 2 (L479)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chart/ChartPanel.tsx:182-202 toComparisonLineData(series, normalize) rebasing to pct, :250-252 comparison series + raw cache, :304-307 compareSymbol/compareNormalize state; src/modules/chart/ChartPanel.test.tsx:718-742 covers add chip / toggle normalize / remove",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-252",
+    "promise": "Phase 2: plugin registry + manifest loader live in the app (bundled-import loader; filesystem-installed/marketplace deferred to v1.0+).",
+    "source": "\u00a77 Phase 2 (L480-481)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.ts:26 (bundled-import loader, decision A1), :165 discover, :187 loadPlugin, :357-378 checkCompatibility enforcing manifest-id == instance id, manifest version == instance version, and hostSatisfies(requiredHostVersion); src/lib/marketplace.ts CATALOG_ROWS is the registry; src/lib/plugin-bootstrap.ts:17,220,253-255. NOTE: docs/CURRENT_STATE.md:~L896 still records 'manifest<->instance + requiredHostVersion checks: documented but not implemented' \u2014 that baseline line is now stale.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-253",
+    "promise": "Phase 2: OpenBB ODP wrap plugin (data-only plugin, proves the data-plugin pattern).",
+    "source": "\u00a77 Phase 2 (L482)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "plugins/openbb-mcp/manifest.json (id openbb-mcp, requiredHostVersion >=0.4.0); plugins/openbb-mcp/index.ts:42-43 capabilities.contributesData=true, :53/:60/:68 three data sources (equity/fundamentals/macro); sidecar/services/openbb_mcp_provider.py:139 is_available, :147 status, :239 _call_tool",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-254",
+    "promise": "Phase 3: multi-LLM provider integration (OpenAI, Anthropic, DeepSeek, Groq, Gemini, xAI, Ollama).",
+    "source": "\u00a77 Phase 3 (L490)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/ has anthropic.py, openai.py, gemini.py, groq.py, ollama.py; sidecar/services/llm/__init__.py:41 DEEPSEEK_BASE_URL, :94-95 deepseek via OpenAIProvider, :96-97 xai via OpenAIProvider; types/ai.ts:49-50 provider union includes deepseek + xai. All 7 promised providers reachable.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-255",
+    "promise": "Phase 3: 12 pre-built agents shipped as configs.",
+    "source": "\u00a77 Phase 3 (L493)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/ holds 13 first-party agent JSONs (buffett, copilot, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher, soros, strategy_critic); confirmed live: GET http://127.0.0.1:52152/agents returns 13 ids. >= the promised 12.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-256",
+    "promise": "Phase 3: Custom Agent Builder UI (Module 36), separate from the 12-agent count.",
+    "source": "\u00a77 Phase 3 (L496)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx + form.tsx + index.ts (module registration); sidecar/routers/custom_agents.py; sidecar/models/custom_agent.py KNOWN_TOOL_IDS allow-list. Separate from the 13-agent first-party roster.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-257",
+    "promise": "Phase 3: per-panel AI context wiring across all Phase-1 panels.",
+    "source": "\u00a77 Phase 3 (L498)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/store/panel-context.ts bus; publishPanelContext wired in all five Phase-1 panels: src/modules/chart/ChartPanel.tsx:881-899, src/modules/watchlist/WatchlistPanel.tsx, src/modules/news/NewsFeedPanel.tsx, src/modules/portfolio/PortfolioPanel.tsx, src/modules/equity-overview/EquityOverviewPanel.tsx (+ backtest/BacktestResultView.tsx:413-423); consumed by src/modules/chat/context-provider.ts:218 and ChatSidebar.tsx:426-428; PanelHost.tsx:198 tracks focus",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-258",
+    "promise": "Phase 3: Vysted MCP server mounted at /mcp over Streamable-HTTP transport, with tools spanning data, agent, and workspace access.",
+    "source": "\u00a77 Phase 3 (L501)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:54-56 (/mcp mount, Streamable-HTTP), :377-397 get_streamable_http_app via get_mcp_server().http_app(); :106-148 catalog-projected data/analysis tools via FunctionTool, :159-340 hand-written agent/workspace/workflow tools; sidecar/routers/mcp.py",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-259",
+    "promise": "Phase 3: external MCP clients can reach the Vysted MCP server via mcp-remote bridge for Claude Desktop or 'claude mcp add' for Claude Code.",
+    "source": "\u00a77 Phase 3 (L503-504)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/MCP_INTEGRATION.md:134 mcp-remote bridge rationale, :149 Claude Desktop config args [\"mcp-remote\",\"http://127.0.0.1:<sidecar-port>/mcp/\"], :163 `claude mcp add vysted http://127.0.0.1:<sidecar-port>/mcp/ --transport http`",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-260",
+    "promise": "Phase 3: MCP client + openbb-mcp-server integration.",
+    "source": "\u00a77 Phase 3 (L505)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_client.py:49 McpClient, :153 list_tools, :171 call_tool, :218 get_client; sidecar/services/openbb_mcp_provider.py:170 _get_client, :239 _call_tool; src-tauri/src/openbb_mcp.rs spawns the openbb-mcp-server sidecar (bundle.externalBin)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-261",
+    "promise": "Phase 4: node editor (canvas + drag-drop palette + edge connect + run overlay).",
+    "source": "\u00a77 Phase 4 (L515)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/node-editor/NodeEditorPanel.tsx:6-21 (react-flow canvas + left palette + properties + run overlay), :73 NodePalette/NODE_DRAG_MIME, :173-178 onDragOver/onDrop (application/x-vysted-node-type), :201-204 onConnect/addEdge, :146 + :589 WorkflowRunOverlay",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-262",
+    "promise": "Phase 4: workflow execution engine with cycle detection, parallel waves, and an SSE event stream.",
+    "source": "\u00a77 Phase 4 (L517-519)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/workflow_engine.py:89-95 _validate_spec (no cycles), :128-153 _topological_order raising 'workflow contains a cycle', :123 execution waves, :177 run_workflow, :318 _run_one_node; SSE at sidecar/routers/workflow.py:39-73 StreamingResponse(media_type=\"text/event-stream\")",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-263",
+    "promise": "Phase 4: backtest engine \u2014 event-driven, walk-forward support, Sharpe / Sortino / Calmar / win-rate metrics.",
+    "source": "\u00a77 Phase 4 (L520-522)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/backtest_engine.py:266 sharpe, :267 sortino, :270 calmar, :275 win_rate, :280-284 metrics assembly; walk-forward at :15, :460-480 walk_forward_slices + :493 walkForwardSlices on the result",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-264",
+    "promise": "Phase 4: AI Strategy Critic agent using backtest_summary, price_data, fundamentals tools.",
+    "source": "\u00a77 Phase 4 (L524)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/strategy_critic.json tools = [\"backtest_summary\",\"price_data\",\"fundamentals\",\"run_custom_backtest\"] \u2014 the three promised tools plus run_custom_backtest; docs/BLUEPRINT.md:524-528 records the end-to-end round trip",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-265",
+    "promise": "Phase 4: workspace export/import.",
+    "source": "\u00a77 Phase 4 (L529)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/BLUEPRINT.md:529 defines this promise as the Phase-1 save/load ('Phase-1 already shipped; no v0.5.0 change'), which exists: src/lib/workspace.ts:234/245 serialize+deserialize, sidecar/routers/workspace.py:36-63 named-workspace CRUD, src/modules/platform/WorkspaceDialog.tsx. Separately src/components/SettingsPanel.tsx:1766-1810 ships a real file-level export/import for keybindings+settings (secret-free).",
+    "gap": "No FILE-level export/import of the workspace blob itself (no download/upload of a SerializedWorkspace) \u2014 workspaces are portable only via the local sidecar store. The blueprint line does not promise file portability, so this is an opportunity, not a gap.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-266",
+    "promise": "Phase 5: shared execution safety layer implementing the \u00a76.5 8-point model with a dedicated audit suite.",
+    "source": "\u00a77 Phase 5 (L535)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "docs/SAFETY_ARCHITECTURE.md:3-31 (8 non-negotiables, each mapped to a file); dedicated suite sidecar/tests/test_safety_end_to_end.py:119,163,214,247,290,352,435,461,493 = 9 audit tests (8 points + 8b static-IP)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-267",
+    "promise": "Phase 5: append-only audit log \u2014 SQLite triggers raise on UPDATE/DELETE of audit_orders.",
+    "source": "\u00a77 Phase 5 (L537)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/audit_log.py:39-50 AUDIT_LOG_DDL \u2014 CREATE TRIGGER audit_orders_no_update BEFORE UPDATE and audit_orders_no_delete BEFORE DELETE, each SELECT RAISE(ABORT,'audit log is append-only: ... not permitted'); verified by sidecar/tests/test_safety_end_to_end.py:247 test_audit_4_append_only_at_db_level",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-268",
+    "promise": "Phase 5: AI-order gate strictly enforced.",
+    "source": "\u00a77 Phase 5 (L538)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "docs/SAFETY_ARCHITECTURE.md:123-152 (#6, tightened: NO auto-approve mode at all); sidecar/services/agent_tools/catalog.py:19-20 + :1483 FORBIDDEN_TOOL_SUBSTRINGS = ('place_order','submit_order','execute_order','auto_approve'); sidecar/services/broker_base.py:223 propose_order (audits, does not place), :310-325 confirm_and_place raises unless human_confirmed; src/modules/safety/OrderConfirmationDialog.tsx; test at sidecar/tests/test_safety_end_to_end.py:352",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-269",
+    "promise": "Phase 5: Tradesa V2 full plugin deferred to v0.5.1 or v0.6.0 (foundation contracts \u2014 kill switch, audit log, executeCommand control plane \u2014 in place first).",
+    "source": "\u00a77 Phase 5 (L540-543)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "sidecar/tests/test_no_tradesa.py:5-7,109 (CI-enforced: zero tradesa references in code/config; tradesa-v2 manifest absent); removal commit 183c52f 'feat(r10/tradesa): complete Tradesa V2 removal \u2014 plugin system intact (E11)'",
+    "gap": "",
+    "decision_ref": "Superseded: Tradesa V2 was not merely deferred, it was removed from the product in R10 and the absence is now test-enforced. Tradesa is also on the COMMON.md out-of-scope-by-decision list."
+  },
+  {
+    "pid": "INT-BP-270",
+    "promise": "Phase 5: global broker execution plugins for Dhan, Angel One SmartAPI, Zerodha Kite Connect, Alpaca, Interactive Brokers, OANDA v20, and ccxt unified crypto execution, each a separate plugin routed through the shared safety layer.",
+    "source": "\u00a77 Phase 5 (L544-552)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "Adapters + plugins DO exist and are wired: plugins/brokers/{alpaca,angelone,ccxt-exec,dhan,ib,kite,oanda}, imported into src/lib/marketplace.ts:21-25 CATALOG_ROWS which src/lib/plugin-bootstrap.ts:17,253-255 discovers; sidecar/services/brokers/{alpaca,angelone,ccxt_exec,dhan,ib,kite,oanda}.py + registry.py",
+    "gap": "",
+    "decision_ref": "Live broker ORDER EXECUTION is out of scope by decision for this release: COMMON.md 'Out of scope by decision' (live broker order execution, 1.0 roadmap) and CLAUDE.md 'Decision authority' note that the redesign moves broker order execution to deferred/out-of-scope. The read-only Kite lane is what ships."
+  },
+  {
+    "pid": "INT-BP-271",
+    "promise": "Phase 6: macro/economic data panels for FRED, ECB, IMF, and World Bank.",
+    "source": "\u00a77 Phase 6 (L565-568)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/macro/{fred_provider,ecb_provider,imf_provider,world_bank_provider}.py + macro_router.py; sidecar/routers/macro.py; src/modules/macro/{MacroPanel,MacroChart,MacroSeriesPicker}.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-272",
+    "promise": "Phase 6: SEC filings reader covering 10-K / 10-Q / 8-K / DEF 14A, insider Forms 3/4/5, and XBRL-precise financials with string precision preservation.",
+    "source": "\u00a77 Phase 6 (L569-572)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/models/sec.py:5-9 (XBRL-precise numerics typed str to mirror TS string typing, preserving precision past Number.MAX_SAFE_INTEGER), :77-79 concept/value:str/units; sidecar/services/sec_filings_provider.py:224-232 form-type map (10-K/10-Q/8-K/DEF 14A), :420 forms 3/4/5, :588 insider form filter; src/modules/sec/{SecFilingsPanel,FilingViewer,FilingsListTable,InsiderTradingTable}.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-273",
+    "promise": "Phase 6: earnings calendar with upcoming + history + surprises + estimates and consensus mean/high/low/dispersion stddev approximation.",
+    "source": "\u00a77 Phase 6 (L573-574)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/earnings_provider.py:10-14 (history/surprises/estimates), :240-243 eps mean/high/low, :258-260 stddev; sidecar/routers/earnings.py; src/modules/earnings/{EarningsCalendarPanel,EarningsSurpriseChart,EpsEstimateGrid}.tsx",
+    "gap": "Upcoming + history + surprises + estimates + consensus mean/high/low all ship. The dispersion figure is the promised approximation, but the approximation is NOT disclosed anywhere downstream: earnings_provider.py:259-260 computes `(high - low) / 4` yet types/earnings.ts:36-37 documents the field as 'standard deviation of analyst forecasts' and the UI labels it 'Std. dev.' (EpsEstimateGrid.tsx:68, EarningsCalendarPanel.tsx:364) with no approximation/provenance marker. Additionally estimate_analyst_count falls back to 0 (earnings_provider.py:257) while a non-null dispersion is still emitted, so the panel renders '<value> / 0'.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-274",
+    "promise": "Phase 6: analyst ratings aggregator with ratings history, price-target timeline, and per-firm individual analyst tracks (five-bucket AnalystAction normalisation).",
+    "source": "\u00a77 Phase 6 (L575-577)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/models/analyst_extended.py:23 AnalystAction = Literal['strong-buy','buy','hold','sell','strong-sell'] (five buckets), :40-41 rating_from/rating_to, :98 current_rating; types/analyst.ts:26,46-48,103 mirrors it; sidecar/services/analyst_ratings_extended.py; src/modules/analyst-ratings/{AnalystRatingsPanel,RatingsHistoryTable,PriceTargetTimeline,IndividualAnalystTable}.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-275",
+    "promise": "Phase 6: QuantLib pricing modules \u2014 Black-Scholes / Cox-Ross-Rubinstein binomial / Monte Carlo options + Greeks, fixed-rate bonds (duration, modified duration, convexity), and yield-curve bootstrapping.",
+    "source": "\u00a77 Phase 6 (L578-582)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/quant/__init__.py:1-20 (QuantLib-backed; options = Black-Scholes analytic + Cox-Ross-Rubinstein binomial; monte_carlo = Asian + barrier), _common.py:15 import QuantLib as ql, options.py, greeks.py, bonds.py:7-37 (per-100 rescale; duration/modified duration/convexity), yield_curve.py; sidecar/routers/quant.py; src/modules/quant/{OptionPricerPanel,GreeksDashboard,BondPricerPanel,YieldCurvePanel}.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-276",
+    "promise": "Phase 6: screener/scanner module (backend + frontend).",
+    "source": "\u00a77 Phase 6 (L583-585)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/screener.py:61 POST /run, :96 POST /run/stream, :162 POST /formula/validate, :175 GET /universe; sidecar/services/{screener,screener_formula,screener_universe_india}.py; src/modules/screener/{ScreenerPanel,ScreenerCriteriaBuilder,ScreenerResultsTable,ScreenerPresets,CriterionGroupEditor,ScreenerFormulaLeaf}.tsx",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-277",
+    "promise": "Phase 6.5: first-party Tradesa V2 wrapper plugin for the existing multi-agent LLM crypto perp trading bot.",
+    "source": "\u00a77 Phase 6.5 (L596-597)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-278",
+    "promise": "Phase 6.5: the Tradesa V2 wrapper is READ-ONLY by operator decision \u2014 no commands flow from Vysted to the bot; write capability is later scope.",
+    "source": "\u00a77 Phase 6.5 (L602-604)",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-279",
+    "promise": "Phase 6.5: read-only is enforced by three defense-in-depth layers \u2014 the provider has no write methods (audit-tested), the router has no non-GET routes (audit-tested), and the plugin's supportsControlPlane=false (contract-level gate).",
+    "source": "\u00a77 Phase 6.5 (L605-607)",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-280",
+    "promise": "Phase 6.5: the wrapper reads the bot's existing Supabase remote-sync project via a service-role key stored in the OS keychain.",
+    "source": "\u00a77 Phase 6.5 (L608-610)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-281",
+    "promise": "Phase 6.5: the wrapper API surface stays unchanged when Tradesa-side RLS lands.",
+    "source": "\u00a77 Phase 6.5 (L612-613)",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-282",
+    "promise": "Phase 6.5: 7 panels surface the bot's key state \u2014 Live Positions, Trade History & P&L, Brain Decisions, Sentinel, Health, Settings & Drift, Self-Tuning/Discovery/Reflection \u2014 with a shared status strip showing mode + kill-switch + heartbeat age.",
+    "source": "\u00a77 Phase 6.5 (L614-618)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-283",
+    "promise": "Phase 6.5: a generic wrapper pattern is documented so future trading-system plugins can mirror the same shape with zero contract change.",
+    "source": "\u00a77 Phase 6.5 (L619-624)",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-284",
+    "promise": "Phase 6.5: per-panel polling cadences (10s positions / 30s decisions / 60s settings) deliver 'is the bot alive' UX; Realtime is deferred.",
+    "source": "\u00a77 Phase 6.5 (L625-628)",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "Tradesa V2 no longer exists in the tree: no plugins/tradesa-v2/ directory; sidecar/tests/test_no_tradesa.py:5-7,109 CI-enforces zero tradesa references in code/config (only types/plugin.ts JSDoc example ids and that test file are exempt, :44-54); removal commit 183c52f (R10 E11)",
+    "gap": "",
+    "decision_ref": "Whole Phase-6.5 Tradesa wrapper (plugin, 7 panels, Supabase read path, polling cadences, read-only defense layers, generic wrapper doc) was removed from the product in R10. Tradesa is also on the COMMON.md out-of-scope-by-decision list, so this is dropped, not missing."
+  },
+  {
+    "pid": "INT-BP-285",
+    "promise": "Phase 7: CI parity fix \u2014 CI green on all 3 OSes via an orchestrator script and pnpm ci-local.",
+    "source": "\u00a77 Phase 7 (L639-641)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "package.json:18 sidecars:build, :19 ci-local (install --frozen-lockfile -> ensure-all-sidecars -> lint -> format:check -> typecheck -> cargo fmt -> clippy -D warnings -> ruff -> vitest -> cargo test -> pytest); scripts/ensure-all-sidecars.mjs is the orchestrator; .github/workflows/{test,lint,build}.yml each matrix os: [windows-latest, macos-latest, ubuntu-latest]",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-286",
+    "promise": "Phase 7: desktop-notification bridge, unblocking the earnings-playbook and macro-watcher use cases (UC3, UC5).",
+    "source": "\u00a77 Phase 7 (L647-648)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/desktop-notification.ts:48-56 (tauri plugin-notification isPermissionGranted/requestPermission/sendNotification), :72 useDesktopNotificationBridge; mounted at src/app/page.tsx:10; intents produced by sidecar/services/workflow_nodes/builtin.py and captured in src/store/workflow.ts:39,180,371",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-287",
+    "promise": "Phase 7: visual consistency convention codified \u2014 AAPL anchor + 5-panel + AI Assistant cockpit + dark theme + populated-state screenshots + both target resolutions + per-release subfolder + header always present.",
+    "source": "\u00a77 Phase 7 (L649-651)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "CLAUDE.md 'Visual verification' section codifies populated-state-only, dark theme at both 1920x1080 and 2560x1440, per-release subfolder docs/screenshots/v<tag>/ never overwritten, and the populated anchors (watchlist AAPL/MSFT/NVDA/SPY/QQQ/BTC-USDT/ETH-USDT, chart SPY+indicators+VWAP, equity overview AAPL, news with sentiment, portfolio >=1 position); docs/screenshots/ holds per-release folders phase-1, v0.2.1 .. v0.8.0-r4; docs/BLUEPRINT.md:650-653 records the convention",
+    "gap": "The 'AI Assistant cockpit + header always present' clause has been re-specified by the 003 rebuild (mark-only brand, no text wordmark) \u2014 the convention is codified and current, just not word-for-word the Phase-7 text.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-288",
+    "promise": "The VystedPlugin contract (types/plugin.ts) is meant to stay stable/unchanged across releases once locked.",
+    "source": "\u00a77 Phase 7 (L656-657)",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts has exactly ONE commit in its entire history: 7e49d55 'feat: define the VystedPlugin contract (all six capabilities)' \u2014 unchanged since definition; CLAUDE.md 'Tier-1 locked files' keeps it operator-sign-off-only; docs/BLUEPRINT.md:658-659 records '9th consecutive release with empty git diff -- types/plugin.ts'",
+    "gap": "",
+    "decision_ref": ""
+  }
+]

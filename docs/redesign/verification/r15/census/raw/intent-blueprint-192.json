@@ -1,0 +1,72 @@
+[
+  {
+    "raw_id": "INT-blueprint-192-1",
+    "title": "Kill switch has no UI surface and no event listener, yet the first-launch TOS the user must accept states the Cmd/Ctrl+Shift+K shortcut halts all order routing",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "safety / BLUEPRINT 6.5 #5",
+    "repro": "Boot the app -> the blocking first-launch TOS dialog renders TOS_BODY, whose last bullet reads 'A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally; use it in any emergency.' Accept it, then press Cmd+Shift+K anywhere: src-tauri/src/kill_switch.rs:96 emits the Tauri event 'kill-switch:requested', no frontend listener exists, POST /safety/kill-switch is never issued, the bus never fires, and the user gets no feedback of any kind. There is also no toolbar button, tray item or command-palette entry that fires it.",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:45 (the TOS claim), :47-112 (blocking dialog, mounted at src/app/page.tsx:287-289); src/store/safety.ts:13-16 ('the R9 craft pass removed the kill-switch UI surface, so nothing currently listens for it'); src/modules/index.ts:52-54 ('The kill switch is read-only-... mechanism stays intact and dormant'); src-tauri/src/kill_switch.rs:43-63 + :96; sidecar/services/kill_switch.py:100-160 and sidecar/routers/safety.py:119-143 (both live); grep over src/ finds zero call sites of fireKillSwitch outside src/store/safety.ts and zero listen('kill-switch:requested')",
+    "notes": "BLUEPRINT 6.5 #5 is a Tier-1 locked invariant (CLAUDE.md 'Tier-1 locked files & invariants') and INT-BP-211/212 promise a prominent, always-visible control findable under stress. The whole backend path works; only the 10-line frontend seam is gone, so what ships is a legal-style acknowledgment dialog asserting a safety control that does nothing - the user is told a false thing at the exact moment they accept liability. Smallest honest fix: one listen('kill-switch:requested') in the safety-store bootstrap calling the existing fireKillSwitch plus a fired-state chip in StatusChrome; if the operator intends the read-only app to have no kill switch, the fix is instead to delete the TOS bullet and the shortcut registration (src-tauri/src/lib.rs:446) so nothing advertises a dead control."
+  },
+  {
+    "raw_id": "INT-blueprint-192-2",
+    "title": "Switching a broker plugin from paper to live is an unguarded single click - the dedicated live-mode disclaimer dialog was never built",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "safety / BLUEPRINT 6.5 #1",
+    "repro": "Broker panel -> a connected broker row shows a 'Go live' ghost button; clicking it calls handleModeToggle, which POSTs /brokers/{id}/mode with mode='live' immediately. No dialog, no acknowledgment, no persisted ack - the row's mode badge just turns red.",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 (handleModeToggle: next = mode === 'paper' ? 'live' : 'paper'; await setMode(...)) and :278-280 (the one-click button); sidecar/routers/brokers.py:327-328; sidecar/services/broker_base.py:136-137 ('UI is expected to have shown the live-mode disclaimer before calling with \"live\"' - an expectation no caller satisfies); sidecar/models/safety.py:120-124 (DisclaimerKind = first-launch-tos | broker-first-connect | first-live-order-this-session - no live-mode kind); src/modules/safety/DisclaimerFlow.tsx exports only FirstLaunchTosDialog (:47) and BrokerFirstConnectDialog (:132)",
+    "notes": "INT-BP-203 requires a dedicated disclaimer dialog explicitly acknowledged the first time a plugin is switched to live; the only live-related ack that exists is per-SESSION and fires later, inside the order dialog (OrderConfirmationDialog.tsx:128, :243-251), so the mode switch itself - the gate the BLUEPRINT names - is ungated. It cannot currently lead to a placed order (no broker adapter registers, D69), which is why this is high rather than critical, but 6.5 #1 is Tier-1 locked and the hole opens the day an adapter registers. Smallest fix: add a 'broker-live-mode' DisclaimerKind and reuse BrokerFirstConnectDialog's shape to gate handleModeToggle, persisting the ack the same way (src/lib/keychain.ts:41-43)."
+  },
+  {
+    "raw_id": "INT-blueprint-192-3",
+    "title": "Two of the four declared position-size caps are never read, and no code path can configure or raise any of them per plugin",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "safety / BLUEPRINT 6.5 #3",
+    "repro": "design - propose an order worth 50% of a small account under the default caps: broker_base.propose_order checks only max_order_value_account_currency and max_position_size_per_symbol, so the 10% max_percent_of_account cap declared in DEFAULT_LIMITS never fires and daily_loss_circuit_breaker is never consulted at all.",
+    "evidence": "sidecar/models/safety.py:110-118 (PositionLimits declares maxOrderValueAccountCurrency, maxPercentOfAccount, maxPositionSizePerSymbol, dailyLossCircuitBreaker); sidecar/services/broker_base.py:82-87 (DEFAULT_LIMITS, maxPercentOfAccount=10.0, dailyLossCircuitBreaker=2000.0); broker_base.py:269 and :274 are the ONLY enforcement sites; grep over sidecar/ src/ types/ finds max_percent_of_account / daily_loss_circuit_breaker only at their declaration and default; broker_base.py:98 is the only assignment to self._limits; sidecar/routers/brokers.py has no limits route and src/store/brokers.ts no limits action",
+    "notes": "INT-BP-207 promises three configurable soft caps per plugin and INT-BP-208 promises that raising one requires an explicit confirmation step. What ships is a class-level ClassVar identical for every adapter, half of whose fields are inert - a model that advertises a cap it does not apply is worse than not declaring it, because types/safety.ts:130+137 mirrors the same fields to the frontend as if they were enforced. Missing config path fails closed (nothing can weaken a cap), so the defect that matters is the inert pair. Smallest fix: enforce max_percent_of_account in propose_order against the adapter's existing account_info() equity, and delete daily_loss_circuit_breaker from PositionLimits + types/safety.ts until something enforces it."
+  },
+  {
+    "raw_id": "INT-blueprint-192-4",
+    "title": "CI has never run on the product branch: 640 commits bypass GitHub Actions entirely, and the newest run on main (2026-05-30) is a lint FAILURE",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "ci / release engineering",
+    "repro": "gh run list --workflow=lint.yml --limit 4 -> newest run headSha cfcf5be, createdAt 2026-05-30T19:08:14Z, conclusion 'failure'; no run exists for any commit on 004-r4-experience-rebuild. git rev-list --count main..HEAD -> 640. The workflows trigger only on push to main and on pull_request, and no PR is open for the branch.",
+    "evidence": ".github/workflows/build.yml:3-6 and .github/workflows/lint.yml:3-6 (on: push: branches: [main] / pull_request); build.yml:12-14 and lint.yml:9-13 (matrix os: windows-latest, macos-latest, ubuntu-latest); gh run list output above; git log -1 main -> cfcf5be 2026-05-30; git log -1 HEAD -> 2d99cda 2026-09-19",
+    "notes": "INT-BP-229 promises CI for Win/Mac/Linux build + lint + test and INT-BP-236 makes 'CI green for all OS builds' a success criterion; CLAUDE.md 'Coding standards' asserts 'Builds stay green on Windows, macOS, Linux'. For ~4 months the sole gate has been pnpm ci-local on one macOS ARM machine, which cannot exercise clippy, vitest, pytest or the Tauri bundle on Windows or Linux - so a public 0.9.0 would be the first time anyone finds out whether the R4-R15 product compiles off this laptop, and the last recorded cross-OS signal is red. Smallest fix: add the branch (or branches: ['**']) to the three workflows' push triggers, or open a draft PR for 004-r4-experience-rebuild, and treat the resulting run as a release gate alongside ci-local."
+  },
+  {
+    "raw_id": "INT-blueprint-192-5",
+    "title": "No CLA bot or executed CLA for an AGPL-3.0 + commercial dual-licensed project about to take public pull requests",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "licensing / contribution flow",
+    "repro": "design - a first outside PR lands at public 0.9.0; the only record of contributor consent to dual-licensing is a sentence the contributor was asked to paste into the PR body, with no bot verifying it and no signed agreement stored anywhere.",
+    "evidence": ".github/ contains only workflows/ (build.yml, lint.yml, test.yml) - no cla.yml, no CLA app config, no CLA.md anywhere in the repo; CONTRIBUTING.md:84-99 ('The formal CLA process is still being finalized and will be in place before v1.0 ... This statement is a placeholder acknowledgement, not a waiver of any rights')",
+    "notes": "INT-BP-230 lists 'LICENSE + COMMERCIAL_LICENSE.md + CLA bot setup' as Phase 0; the two licenses shipped, the bot never did. The commercial half of the dual license (COMMERCIAL_LICENSE.md, a Tier-1 locked file) depends on the project being able to relicense every contribution - a right that a pasted PR comment does not reliably convey, and that becomes unrecoverable once contributions accumulate and contributors disperse. This bites precisely at the public release the census is scoped to. Smallest fix: one CLA Assistant workflow file in .github/workflows/ plus a CLA.md, landed before the 0.9.0 announcement rather than 'before v1.0'."
+  },
+  {
+    "raw_id": "INT-blueprint-192-6",
+    "title": "CLAUDE.md's Stack section names Next.js 16 (App Router, static export); the repo has no Next.js at all - it is Vite 8 + React 19",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "project DNA / CLAUDE.md",
+    "repro": "grep '\"next\"' package.json -> no match; ls next.config.* -> none; package.json scripts dev='vite', build='vite build'; vite ^8.0.16 and @vitejs/plugin-react 6.0.1 in devDependencies; index.html and vite.config.ts sit at the repo root.",
+    "evidence": "CLAUDE.md:28 ('**Frontend:** Next.js 16 (App Router, **static export**) + React 19 + TypeScript'); package.json (scripts.dev, dependency list); vite.config.ts and index.html at repo root; docs/BLUEPRINT.md L441 still plans 'Tauri 2.x + Next.js 14 + TypeScript bootstrap'",
+    "notes": "INT-BP-223's Next.js half is undelivered by design - the frontend migrated to Vite - but the project's own DNA file was never corrected, and CLAUDE.md is the first thing every new session and every contributor reads. The error is load-bearing, not cosmetic: CLAUDE.md's own frontend gotcha explains PanelHost's deferred dockview mount as keeping 'static export SSR-safe', reasoning about a framework that is not present, and a new contributor will look for app-router/static-export behaviour that does not exist. CLAUDE.md is Tier-1 (operator sign-off only), so the fix is a one-line correction proposed via docs/redesign/CLAUDE_MD_PROPOSAL.md - the established route."
+  },
+  {
+    "raw_id": "INT-blueprint-192-7",
+    "title": "No terminal.vysted.com source in the repo: neither the Phase 0 landing page nor the /install/mac page with the unsigned-app screenshot",
+    "severity": "low",
+    "area": "release",
+    "subsystem": "distribution / first-run docs",
+    "repro": "Repo root listing contains no web/, site/, www/ or landing-page source and no vercel.json; README.md:88-90 sends a new user straight to the GitHub Releases page, and the Gatekeeper walkthrough (README.md:93-108) is text-only with no screenshot of the warning.",
+    "evidence": "repo root listing (BLOCKERS.md, CHANGELOG.md, CLAUDE.md, COMMERCIAL_LICENSE.md, CONTRIBUTING.md, LICENSE, README.md, components.json, docs, eslint.config.mjs, index.html, package.json, plugins, postcss.config.mjs, scripts, sidecar, specs, src, src-tauri, styles, types, vite.config.ts, vitest.config.ts); README.md:88-108; docs/BLUEPRINT.md L391-394 and L450",
+    "notes": "Covers INT-BP-193 (install/mac page with the warning screenshot) and INT-BP-232 (the landing page). Neither can be confirmed from code, so per COMMON.md neither is assumed delivered. Low because README already carries a CORRECT and more current bypass than the BLUEPRINT's (README.md:102-105 records that the right-click trick died on macOS 15+, which the promised page text still recommends) - the gap is a public front door for a public release, not a broken flow. Smallest fix: either publish the two pages and point README at them, or amend BLUEPRINT 6.3/7 to name README.md as the install surface so the promise stops being outstanding."
+  }
+]

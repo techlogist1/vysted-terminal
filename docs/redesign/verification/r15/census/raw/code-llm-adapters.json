@@ -1,0 +1,145 @@
+[
+  {
+    "raw_id": "COD-llm-adapters-1",
+    "title": "Tool-argument integrity is defended in ONE adapter and silently coerced to {} in the other three",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "llm-adapters",
+    "repro": "Groq/Ollama/Gemini model emits a truncated tool call, e.g. arguments fragment '{\"symbol\": \"RELI' -> adapter yields LLMToolUseEvent(name='get_quote', input={}) with no error; the tool runs with no symbol and the model is never told its arguments were wrong",
+    "evidence": "sidecar/services/llm/groq.py:36-49, sidecar/services/llm/ollama.py:82-97, sidecar/services/llm/gemini.py:161, sidecar/services/llm/openai.py:138-195, sidecar/services/llm/openai.py:495-590, sidecar/services/llm/openai.py:84-86",
+    "notes": "Information hiding / consistency / different-layer-different-abstraction. The OpenAI adapter spends ~200 lines (_ToolArgFailure, _drain_tool_buffers, _validate_tool_args, _resolve_tool_events, INVALID_ARGS_SENTINEL) implementing an invariant its own comments state as absolute: 'NEVER a silent coerce to {} (the core WS8 bug)' (openai.py:84-86, :519). Three sibling adapters do exactly the forbidden thing: groq._parse_tool_args returns {} on JSONDecodeError (groq.py:47-48), ollama._parse_tool_input returns {} on the same (ollama.py:94-97), gemini passes `dict(fc.args or {})` with no parse or schema check at all (gemini.py:161). Consequence in a finance terminal: a malformed get_quote/get_fundamentals call silently becomes a zero-arg call, the tool returns defaults or a generic error, and the model gets no signal it can self-correct from - the user sees an answer about the wrong instrument or a hollow one, presented as true. The invariant lives in an adapter instead of in the layer all adapters share. Smallest fix: move _drain_tool_buffers + _validate_tool_args + the INVALID_ARGS_SENTINEL stamping out of openai.py into base.py (or a sibling tool_args.py) and have all four adapters call it; the LLM repair round can stay OpenAI-only.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-2",
+    "title": "Ollama silently demotes an agent round to tool-less chat on ANY tools-path exception",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "llm-adapters",
+    "repro": "Ollama daemon returns a transient 500 (or any error) on the tools-enabled chat call -> adapter swallows the exception with no log, reopens the stream WITHOUT tools, and the model answers from training data instead of calling get_quote; the stream looks completely normal to the user",
+    "evidence": "sidecar/services/llm/ollama.py:139-149, sidecar/services/llm/ollama.py:150-169",
+    "notes": "Obviousness / swallowed exception turns a failure into a silent degrade. `except Exception: stream = None` (ollama.py:148-149) has no logger call and emits no stream event, so the only trace that the agent lost every tool for that round is that the answer happens to be ungrounded. The comment justifies it for one narrow cause ('many local models reject or ignore a tools= kwarg') but the handler catches every cause, including connection errors and the TypeError in COD-llm-adapters-4. In a data-trust product an ungrounded answer that looks identical to a grounded one is the worst failure shape. Smallest fix: log a warning naming the exception type, narrow the catch to ollama.ResponseError, and yield an LLMThinkingEvent (or set a note on LLMDoneEvent) so the degrade is visible.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-3",
+    "title": "The tool-arg repair round and native-search oneshot discard the user's configured base_url, sending the BYOK key to the vendor default host",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "llm-adapters",
+    "repro": "User configures provider 'openai' (or deepseek/ollama) with base_url=https://my-proxy.internal/v1 and a proxy key -> the chat stream correctly hits the proxy, but any invalid-tool-arg repair calls oneshot.complete(), which calls get_provider(provider) with NO base_url -> the repair request goes to api.openai.com carrying the proxy key, 401s, repair 'fails', and the call is stamped INVALID_ARGS_SENTINEL",
+    "evidence": "sidecar/services/llm/openai.py:592-654, sidecar/services/llm/openai.py:626-631, sidecar/services/llm/oneshot.py:46-53, sidecar/services/llm/oneshot.py:78, sidecar/services/llm/native_search.py:241, sidecar/services/llm/openai.py:419-421",
+    "notes": "BYOK contract leak + silent degrade. The adapter instance holds self._base_url (openai.py:420) and never passes it; oneshot.complete has no base_url parameter at all (oneshot.py:46-53) and constructs a fresh adapter from the provider id alone (oneshot.py:78). native_search_oneshot repeats the same mistake (native_search.py:241), and the deep-research loop rides the same helper. base.py:7-11 states the BYOK contract ('Keys are NEVER persisted... passed in per call'); sending that key to a host the user explicitly routed away from is the same class of violation one layer out. Second-order effect: because every repair 401s on a proxied setup, every malformed tool call degrades to the sentinel, so COD-llm-adapters-1's defence is dead on exactly the configuration that needed it. Smallest fix: add `base_url: str | None = None` to oneshot.complete and native_search_oneshot, thread self._base_url at openai.py:626.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-4",
+    "title": "POST /llm/chat scrubs adapter options with a four-name DENYLIST while the agent path uses an allowlist - the same bug class already shipped once",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "Add any new control key to the composer (streaming.ts wireOptions forwards every option verbatim) -> POST /llm/chat forwards it into the provider SDK -> TypeError: create() got an unexpected keyword argument -> the stream dies with a humanized error. The router's own comment records the live repro of this exact failure: 'research_depth killed a DeepSeek stream'",
+    "evidence": "sidecar/routers/llm.py:122-130, sidecar/services/agent_runtime.py:91-107, src/modules/chat/streaming.ts:117-130",
+    "notes": "Consistency / define errors out of existence / duplicated truth. Two routes into the same adapters solve the identical problem two ways: agent_runtime uses `_ADAPTER_OPTION_KEYS` - a frozenset allowlist whose own comment says 'any OTHER leftover key is scrubbed so an unknown option... can never reach the provider SDK and TypeError the round' (agent_runtime.py:96-107); routers/llm.py filters out four hardcoded names and passes everything else (llm.py:126-130). Only the allowlist is safe under change, and the denylist is the one that already broke in production. wireOptions (streaming.ts:124-130) explicitly passes 'every other key... unchanged', so the two files are one composer edit apart from re-breaking. Smallest fix: promote _ADAPTER_OPTION_KEYS into services/llm/__init__.py and filter against it in both call sites - one list, allowlist semantics, no third copy.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-5",
+    "title": "get_provider() silently discards base_url for gemini and groq although its signature and docstring accept one",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "POST /llm/keys/validate {provider:'gemini', base_url:'https://gemini-proxy.internal', api_key:'...'} -> get_provider returns GeminiProvider() with the base_url dropped -> the key is sent to generativelanguage.googleapis.com; validation 'succeeds' or fails for reasons unrelated to the proxy, with no warning anywhere",
+    "evidence": "sidecar/services/llm/__init__.py:72-93, sidecar/services/llm/gemini.py:96-97, sidecar/services/llm/groq.py:98-99, sidecar/routers/llm.py:67, sidecar/routers/llm.py:102, sidecar/routers/llm.py:118, src/store/model-catalog.ts:95-99",
+    "notes": "Obviousness / a parameter that lies. The factory takes base_url and documents it ('Optional override; takes precedence over the dispatch default', __init__.py:80-81), then ignores it on two of eight branches (lines 89, 91) because neither adapter's constructor accepts one. All three LLM routes pass it through and the frontend sends it (model-catalog.ts:97). Today the value is undefined for those two providers so nothing visibly breaks - which is exactly why it will bite the first user who configures a Gemini or Groq proxy and gets no error to debug. Smallest fix: give GeminiProvider/GroqProvider the same `base_url` constructor the other three have (both SDKs accept one - genai.Client(http_options=...), groq.AsyncGroq(base_url=...)), or raise ValueError when a base_url is supplied for a provider that cannot honour it.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-6",
+    "title": "DeepSeek/xAI/OpenRouter base URLs are hardcoded next to a comment asserting they must match the registry - in a file that already imports the registry",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "design (change default_base_url for deepseek in sidecar/config/model_registry.json -> GET /llm/providers reports the new host while get_provider keeps dispatching to the old one; nothing fails, nothing tests it)",
+    "evidence": "sidecar/services/llm/__init__.py:33-47, sidecar/services/llm/__init__.py:24, sidecar/services/llm/__init__.py:54-64, sidecar/services/model_registry.py:108-121",
+    "notes": "An invariant held by a comment when the structure could hold it. Lines 36-39 state the rule in prose - 'They must match the default_base_url for deepseek/xai in config/model_registry.json' - two lines above three string literals, in a module that already does `from services import model_registry` (line 24) and already derives PROVIDER_INFO from it (lines 54-64). The registry module is explicitly billed as the single source of truth (model_registry.py:1-20). Consequence: a split-brain where the served provider catalog and the runtime dispatch disagree about which host holds the user's money-relevant data, with no test and no runtime check. Smallest fix: add `default_base_url_for(provider)` next to `default_model_for` (model_registry.py:108-113) and define the three constants from it.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-7",
+    "title": "The model registry is hand-copied into two TypeScript tables and the drift guard only compares those two copies to each other, never to the JSON",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "Change a provider's default_model in sidecar/config/model_registry.json -> both TS fallback tables keep the retired id -> on any launch where the sidecar is unreachable (first run, failed sidecar spawn) the picker offers a model that 404s, and model-selection.test.ts still passes",
+    "evidence": "src/store/llm-providers.ts:34-113, src/store/model-selection.ts:16-61, src/store/model-selection.test.ts:16-24, sidecar/config/model_registry.json, sidecar/services/model_registry.py:1-20",
+    "notes": "Duplicated truth that will drift, plus a test asserting the wrong pair. Three copies of one table: the JSON (declared the single source of truth), DEFAULT_PROVIDERS (llm-providers.ts:40-113), and DEFAULT_MODEL_BY_PROVIDER + KNOWN_MODELS_BY_PROVIDER (model-selection.ts:26-61). The drift guard asserts copy 2 == copy 3 (model-selection.test.ts:16-24), which is the cheap half; nothing asserts either TS copy against the JSON. The TS comments even instruct the human to 'edit both + the JSON together' (model-selection.ts:24) - the maintenance burden is documented rather than removed. The copies are in lockstep today, so this is a trap set rather than a live break. Smallest fix: one vitest that imports sidecar/config/model_registry.json and asserts the two TS tables equal it (the file is already in the repo, no codegen needed).",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-8",
+    "title": "Tool-arg repair makes unbounded, untimed, unmetered LLM round-trips inside the open SSE stream",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "llm-adapters",
+    "repro": "A model emits five tool calls that all fail schema validation in one round -> _resolve_tool_events runs five sequential oneshot.complete() calls with no timeout argument, each able to hang on the OpenAI SDK's ~600s default, before a single tool_use event reaches the client; the tokens they burn never appear in the LLMDoneEvent usage",
+    "evidence": "sidecar/services/llm/openai.py:495-590, sidecar/services/llm/openai.py:626-631, sidecar/services/llm/oneshot.py:52, sidecar/services/llm/oneshot.py:61-67, sidecar/services/llm/native_search.py:195-197, sidecar/services/llm/openai.py:795-800, sidecar/services/llm/openai.py:830",
+    "notes": "A retry with no ceiling and a network call with no timeout, in the one place the codebase already documented both hazards. oneshot.complete grew a `timeout` parameter precisely for this (oneshot.py:61-67: 'an LLM adapter carries no per-stream timeout (the OpenAI SDK default is ~600s), so without this a slow thinking model could stall one research round for minutes') and the repair call at openai.py:626-631 passes none - while the sibling native-search path defines NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS = 90.0 for the identical shape (native_search.py:195-197). There is also no cap on repairs per round: the loop at openai.py:526-558 repairs every failing call and the loop at :561-589 repairs every unparseable one. Separately, LLMDoneEvent usage is assembled only from the streamed chunk usage (openai.py:795-800, :830), so repair tokens are billed to the user's key but invisible to the spend ceiling. Smallest fix: pass a timeout at openai.py:626 and cap repairs at one or two per round (fall straight to INVALID_ARGS_SENTINEL past the cap - the model self-corrects next round anyway).",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-9",
+    "title": "POST /llm/keys/validate is the one route that bypasses humanize() and echoes the raw provider exception to the UI",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "Save a key against an unreachable base_url -> the Key Entry Dialog shows 'transport error: <raw SDK repr, including the request URL>' where every other failure surface in the subsystem shows a sentence + action + code",
+    "evidence": "sidecar/routers/llm.py:99-111, sidecar/routers/llm.py:141-146, sidecar/services/llm/openai.py:831-840, sidecar/services/llm/anthropic.py:147-156, sidecar/services/llm/gemini.py:175-184, sidecar/services/llm/groq.py:185-194, sidecar/services/llm/ollama.py:206-215",
+    "notes": "The route with no error handling while its siblings have it, inverted: six call sites route failures through services.errors.humanize / error_frame to produce message + action + detail + code, and one stringifies the exception straight into a user-facing field (llm.py:107). Two consequences. (a) Inconsistent UX at the single surface where a confused user most needs an actionable sentence - the key dialog. (b) Raw stringification of a transport exception can carry the request URL, and a user-supplied credentialed base_url (https://user:pass@host, accepted verbatim at models/llm.py:269) then renders the secret on screen and into whatever the frontend logs - in a module whose stated contract is 'never logs the key'. Smallest fix: `_h = humanize(payload.provider, exc)` and return _h.message/_h.action, matching the five adapters.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-10",
+    "title": "Two BYOK key transports inside one router, with the docstring for one forbidding what the other two do",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "design (GET /llm/models takes the key as X-LLM-Key header; POST /llm/chat and POST /llm/keys/validate take api_key as a JSON body field - all three in the same 162-line file)",
+    "evidence": "sidecar/routers/llm.py:52-65, sidecar/routers/llm.py:60-64, sidecar/models/llm.py:243-259, sidecar/models/llm.py:262-269, sidecar/services/llm/base.py:7-11",
+    "notes": "Consistency / a comment that contradicts its neighbours. get_models' docstring states the rule as a rule - 'read-only-plugin pattern: secret in a header, never the body/query/log' (llm.py:60-64) - thirty lines above two routes that put the same class of secret in the body. base.py:7-11 documents the body convention as the design. Both cannot be the convention. The next maintainer adding a route has no way to tell which precedent to follow, and CLAUDE.md's broker rule ('a header for read-only plugins, never the body') reads as though it already settled this. Body transport is also the half exposed to FastAPI validation-error echo and request-body logging. Smallest fix: pick one - move api_key off LLMChatRequest/LLMKeyValidationRequest to an X-LLM-Key header like the third route - or delete the 'never the body' clause from llm.py:63 so the file stops arguing with itself.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-11",
+    "title": "A content-leak-rescued tool call always gets the hardcoded id 'leaked-0', so two rescued rounds put colliding tool_call_ids in one conversation",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "llm-adapters",
+    "repro": "DeepSeek/OpenRouter/Ollama round 1 leaks a tool call as text with no id -> rescued as tool_call_id='leaked-0'; round 3 leaks another -> also 'leaked-0'. The history now carries two assistant tool_calls and two role='tool' results all keyed 'leaked-0', which _to_api_messages replays verbatim; an OpenAI-shaped API pairs results to calls by id",
+    "evidence": "sidecar/services/llm/openai.py:320-326, sidecar/services/llm/openai.py:109-126, sidecar/services/llm/openai.py:100-108, sidecar/services/llm/openai.py:818-829",
+    "notes": "A magic constant standing in for identity. The rescue path synthesises 'leaked-0' whenever the leaked JSON block carries no id of its own (openai.py:323) - a fixed string, not a counter, not a uuid - while every other id in the file comes from the provider. Because the runtime carries prior rounds' calls in metadata['tool_calls'] and _to_api_messages rebuilds them (openai.py:109-126), a multi-round conversation with two rescues sends duplicate ids upstream. The gate at openai.py:818-823 limits rescue to one call per round, so this is cross-round and will present as a confusing 400 or a mis-paired tool result rather than an obvious crash. Smallest fix: `f'leaked-{uuid4().hex[:8]}'`, or thread a per-stream counter.",
+    "verdict": "PLAUSIBLE"
+  },
+  {
+    "raw_id": "COD-llm-adapters-12",
+    "title": "Four adapters carry an `except <ProviderError>: raise` clause that reads as handling and does nothing",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "design",
+    "evidence": "sidecar/services/llm/openai.py:854-855, sidecar/services/llm/groq.py:208-209, sidecar/services/llm/gemini.py:203-204, sidecar/services/llm/anthropic.py:170-173",
+    "notes": "Obviousness. Each validate_key ends with a catch of the provider's base error class whose entire body is `raise` - byte-for-byte identical behaviour to having no clause. A reader must open all four files to learn there is no handling anywhere, and the shape is an invitation: the next person touching it 'fixes the empty handler' by returning False, which converts a transport outage into 'your key is invalid' - the exact confusion base.py:114-117 tells adapters to avoid. Only anthropic.py:171-172 carries the comment explaining the intent. Smallest fix: delete all four clauses (propagation is unchanged) and move anthropic's comment up to the method docstring.",
+    "verdict": "CONFIRMED"
+  },
+  {
+    "raw_id": "COD-llm-adapters-13",
+    "title": "A five-line comment in the hottest function describes a reasoning accumulator that does not exist",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "llm-adapters",
+    "repro": "design",
+    "evidence": "sidecar/services/llm/openai.py:746-750, sidecar/services/llm/openai.py:759-763",
+    "notes": "A comment describing code that was removed. Lines 746-749 announce 'Accumulate DeepSeek-reasoner reasoning_content (Step 4): ... surface it as a thinking event so the runtime can echo it on the reconstructed tool-use turn' and then declare `emitted_tool_events = False` - an unrelated boolean. No accumulator exists; reasoning is yielded inline and discarded (openai.py:759-763), so the 'echo it on the reconstructed tool-use turn' behaviour the comment promises is not implemented. In the 175-line stream loop that is the subsystem's most-read code, a reader either hunts for a variable that was deleted or believes a feature ships that does not. Smallest fix: delete the stale four lines, or implement the accumulation the comment describes and keep them.",
+    "verdict": "CONFIRMED"
+  }
+]

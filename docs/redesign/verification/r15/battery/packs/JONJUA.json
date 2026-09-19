@@ -1,0 +1,22 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "draft-in-progress",
+  "symbol": "JONJUA",
+  "identity": {
+    "legal_name": {
+      "value": "Jonjua Overseas Limited",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/542446/"
+    },
+    "bse_code": {
+      "value": "542446",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/542446/"
+    },
+    "board": {
+      "value": "SME (BSE SME platform)",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/542446/"
+    }
+  }
+}

@@ -1,0 +1,740 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P14",
+  "symbol": "JONJUA",
+  "status": "complete",
+  "absorbed_legacy_files": [
+    "docs/redesign/verification/r15/battery/packs/JONJUA.json (565-byte stub from a dead attempt: legal_name, bse_code, board only - all three re-verified and superseded here)"
+  ],
+  "collection_notes": [
+    "WebSearch budget for the session was already exhausted (200/200) before this pack started; every source below was reached by direct URL (BSE public JSON API via curl with a bseindia Referer, BSE AttachLive filing PDFs parsed with pypdf, screener.in server-rendered HTML parsed locally, company site via WebFetch). No search engine was used.",
+    "BSE API calls were rate-limited to <=1 req/sec/host per COMMON.md.",
+    "Filing PDFs are cached under the session scratchpad at .../scratchpad/p14/ (q1fy27.pdf, ann.json, ann2025.json, scr.html, scr_cons.html)."
+  ],
+
+  "identity": {
+    "legal_name": {
+      "value": "Jonjua Overseas Limited",
+      "unit": "name",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=542446&industry=&segment=Equity&status=Active",
+      "note": "BSE scrip master Issuer_Name = 'Jonjua Overseas Limited'; Scrip_Name = 'Jonjua Overseas Ltd'. Company letterhead spells it 'JONJUA OVERSEAS LIMITED'."
+    },
+    "former_names": {
+      "value": null,
+      "as_of": "2026-09-19",
+      "source_url": null,
+      "note": "No rename found in BSE corp-filing feed 2025-01-01..2026-09-19 or on the company site. Incorporated 1993 (CIN block below carries the 1993 incorporation year). Recorded as a gap, not as 'none'."
+    },
+    "cin": {
+      "value": "L51909PB1993PLC013057",
+      "unit": "CIN",
+      "as_of": "2026-09-07",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf",
+      "note": "On every company letterhead. 'PB' = Punjab, '1993' = incorporation year, 'L' = listed public."
+    },
+    "isin": {
+      "value": "INE793Z01027",
+      "unit": "ISIN",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid="
+    },
+    "bse_code": {
+      "value": "542446",
+      "unit": "BSE scrip code",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid="
+    },
+    "bse_scrip_id": {
+      "value": "JONJUA",
+      "unit": "trading symbol",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid="
+    },
+    "nse_symbol": {
+      "value": null,
+      "unit": "n/a",
+      "as_of": "2026-09-19",
+      "source_url": null,
+      "note": "BSE-only. Not listed on NSE; the battery manifest's NSE master lookup also returns absent."
+    },
+    "board": {
+      "value": "BSE SME",
+      "unit": "listing platform",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf",
+      "note": "Every filing header reads '(A Company Listed and Traded on BSE SME)'. screener.in labels it 'BSE - SME: 542446'."
+    },
+    "bse_group": {
+      "value": "M",
+      "unit": "BSE group code",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=542446&industry=&segment=Equity&status=Active",
+      "conflicting_value": {
+        "value": "MT",
+        "source": "battery manifest master_presence.bse (bundled BSE master snapshot, curated 2026-09-19)",
+        "note": "DISAGREEMENT, recorded not smoothed. Live BSE returns group 'M' (SME) in BOTH ComHeader (Grp_Index 'M', Group 'M') and the scrip-master endpoint; the bundled master says 'MT' (SME trade-for-trade). Either the bundled master is stale or the scrip moved M<->MT. Settlement type live = T+1."
+      }
+    },
+    "status": {
+      "value": "Active",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=542446&industry=&segment=Equity&status=Active"
+    },
+    "sector": {
+      "value": "Services",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "BSE Sector='Services', IndustryNew='Services'. screener.in agrees: Services."
+    },
+    "industry": {
+      "value": "Consulting Services (BSE industry group: Commercial Services & Supplies)",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "BSE Industry='Consulting Services', IGroup='Commercial Services & Supplies', ISubGroup='Consulting Services'. screener.in breadcrumb identical. BOTH ARE MISLEADING vs the actual described business (printed books/e-books, sale of securities, service exports, agriculture, and - from Sep 2026 - VTOL/STOL helipad IP and aviation)."
+    },
+    "business_description": {
+      "value": "Incorporated 1993. Self-described: Service Exports, Corporate Consultancy, Agriculture, Business Library, Global In-house Centre, e-Books, sale of Printed Books and sale of Securities. Group units per the company site: JONJUA OVERSEAS, JONJUA AIR, HSJONJUA INNOVATEAGRO, HSJonjua AeroInfra.",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/542446/",
+      "secondary_source_url": "https://www.jonjua.com/"
+    },
+    "listing_date": {
+      "value": "2019 (exact date not established)",
+      "unit": "year",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf",
+      "note": "Board letter of 18-Sep-2026 states '...the 8th bonus issue since listing in 2019'. Earliest corporate action on BSE's corp-action feed is a 1:25 bonus with record date 10-Oct-2019. Exact listing date is a recorded world_gap (see world_gaps.listing_date)."
+    },
+    "registrar": {
+      "value": "Zuari Finserv Limited",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf"
+    },
+    "chairman_cum_md": {
+      "value": "Major Harjinder Singh Jonjua (Retd.), DIN 00898324",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 3.19,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=542446&seriesid=",
+      "note": "BSE header: LTP 3.19, PrevClose 3.09, Open 3.10, High 3.22, Low 2.95, Chg +0.10 (+3.24%), 'Ason': '18 Sep 26 | 16:00'. screener.in independently shows Rs 3.19 / +3.24% / 18 Sep close. Manifest reference value 3.19 confirmed."
+    },
+    "vwap": {
+      "value": 3.12,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid="
+    },
+    "traded_quantity": {
+      "value": 1.49,
+      "unit": "lakh shares",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "= 149,000 shares. Turnover Rs 4.67 lakh. 2-week average quantity 1.38 lakh. SCALE TRAP: BSE returns these in LAKHS with the unit in a sibling field ('TTQin':'(Lakh)', 'Turnoverin':'(Lakh)'); a parser reading only the number reports 1.49 shares and Rs 4.67 turnover."
+    },
+    "circuit_limits": {
+      "value": "1,49,448.00 / 3.04",
+      "unit": "INR (upper / lower band as published)",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "BSE's own CktLimit string is nonsensical for a Rs 3.19 stock (upper band Rs 1,49,448). Recorded verbatim: this is a real upstream data defect, a good test that the app does not render a garbage circuit band as truth."
+    },
+    "ex_date_flag": {
+      "value": "04 Sep 2026",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "BSE quote payload still carries the 7:24 bonus ex-date in its 'ExDate' field."
+    }
+  },
+
+  "market_cap": {
+    "value": 11.24,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=",
+    "cross_check": "3,52,33,563 post-bonus shares x Rs 3.19 = Rs 11.24 crore. BSE scrip-master Mktcap field also returns 11.24. screener.in shows Rs 11.2 Cr. Manifest reference 11.2 confirmed. The BSE market cap has ALREADY absorbed the 07-Sep-2026 bonus allotment.",
+    "free_float_market_cap": {
+      "value": 4.48,
+      "unit": "INR crore",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=",
+      "note": "DISAGREEMENT recorded: BSE free-float mcap 4.48 / 11.24 implies a free float of 39.9%, but the latest filed shareholding pattern (Jun-2026) shows public = 70.34% (which would imply Rs 7.91 crore). BSE's free-float factor excludes more than just promoter holding (locked-in / strategic / non-public categories). Do not treat 'free float %' and '100 - promoter %' as the same number for this name."
+    }
+  },
+
+  "shares_outstanding": {
+    "value": 35233563,
+    "unit": "shares",
+    "as_of": "2026-09-07",
+    "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf",
+    "note": "POST-bonus. Board outcome 07-Sep-2026 states paid-up capital moved from Rs 27,27,75,970 (2,72,77,597 shares of Rs 10) to Rs 35,23,35,630 (3,52,33,563 shares of Rs 10) on allotment of 79,55,966 bonus shares. The manifest's bonus_shares_issued 7,955,966 is confirmed verbatim from the filing.",
+    "pre_bonus_value": 27277597,
+    "paid_up_capital_post": {
+      "value": 35.2335630,
+      "unit": "INR crore"
+    },
+    "paid_up_capital_pre": {
+      "value": 27.2775970,
+      "unit": "INR crore"
+    }
+  },
+
+  "pe_ttm": {
+    "value": 1.39,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "NOT a true trailing-twelve-months P/E. 3.19 / 2.29 where 2.29 is FY2025-26 (year ended Mar-2026) standalone EPS on the POST-bonus share count. A 4-quarter TTM is not derivable for this company - see traps.no_true_ttm.",
+    "note": "Not loss-making: FY26 standalone net profit Rs 8.07 crore."
+  },
+
+  "pb": {
+    "value": 0.217,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "3.19 / 14.70 (post-bonus book value per share). screener.in's own 'Pros' line states 'Stock is trading at 0.22 times its book value'."
+  },
+
+  "roe": {
+    "value": 19.9,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "screener.in header ratio. Its 'Return on Equity' block shows Last Year 20%, 3Y 16%, 5Y 15%, 10Y 12%. Standalone."
+  },
+
+  "roce": {
+    "value": 19.6,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "screener.in header ratio; its Ratios table shows ROCE 19.64% for Mar-2026 (vs 17.66% Mar-2025). Standalone."
+  },
+
+  "debt_to_equity": {
+    "value": 0.54,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "Computed by this worker from screener.in's standalone balance sheet: Borrowings Rs 28.16 crore / net worth Rs 51.78 crore (Equity Capital 27.28 + Reserves 24.50). Not a figure screener publishes directly.",
+    "note": "DIRECT CONFLICT with the company's own disclosure: every JONJUA letterhead carries the banner 'A BANK DEBT FREE COMPANY' while the FY26 balance sheet shows borrowings rising from Rs 0.03 crore (Mar-2025) to Rs 28.16 crore (Mar-2026) - 2.5x the entire market cap. The claim is narrowly about BANK debt; the borrowings are presumably non-bank. Recorded as a conflict, not resolved."
+  },
+
+  "revenue_ttm": {
+    "value": 21.21,
+    "unit": "INR crore",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "FY2025-26 full-year STANDALONE sales. A true trailing-twelve-months revenue is NOT derivable (see traps.no_true_ttm). Q1 FY2026-27 (quarter ended 30-Jun-2026) standalone sales = Rs 4.35 crore.",
+    "note": "Rs 16.36 crore of the Rs 21.21 crore full-year figure - 77% - landed in the single Mar-2026 quarter."
+  },
+
+  "net_profit_ttm": {
+    "value": 8.07,
+    "unit": "INR crore",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "FY2025-26 full-year STANDALONE net profit. Q1 FY2026-27 standalone net profit = Rs 1.24 crore. True TTM not derivable.",
+    "note": "Rs 5.72 crore of the Rs 8.07 crore - 71% - landed in the Mar-2026 quarter."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 344.7,
+    "unit": "percent",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "FULL-YEAR basis, standalone: FY26 sales Rs 21.21 crore vs FY25 Rs 4.77 crore = +344.7%. screener.in's 'Compounded Sales Growth / TTM: 345%' is this same full-year comparison, NOT a rolling-12-month comparison - the label is misleading.",
+    "profit_growth_yoy": {
+      "value": 228.0,
+      "unit": "percent",
+      "basis": "FY26 net profit Rs 8.07 crore vs FY25 Rs 2.46 crore = +228%. screener.in labels this 'Compounded Profit Growth / TTM: 228%'."
+    }
+  },
+
+  "eps_ttm": {
+    "value": 2.29,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "FY2025-26 standalone EPS as published by screener.in, computed on the POST-bonus share count: Rs 8.07 crore / 3,52,33,563 = Rs 2.29. On the PRE-bonus count (2,72,77,597) the same profit gives Rs 2.96 - a 29% difference purely from which share count is used.",
+    "note": "Quarterly EPS: Dec-2025 Rs 0.35, Mar-2026 Rs 1.62, Jun-2026 Rs 0.35 (all post-bonus-adjusted by screener)."
+  },
+
+  "book_value_per_share": {
+    "value": 14.70,
+    "unit": "INR per share",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/542446/",
+    "basis": "Net worth Rs 51.78 crore (Equity Capital 27.28 + Reserves 24.50, Mar-2026 standalone) / 3,52,33,563 POST-bonus shares. On the pre-bonus count the same net worth gives Rs 18.98/share.",
+    "note": "Book value (Rs 14.70) is 4.6x the market price (Rs 3.19)."
+  },
+
+  "face_value": {
+    "value": 10.00,
+    "unit": "INR per share",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid=",
+    "note": "BSE FaceVal 10.00; screener.in Face Value Rs 10.0; the 07-Sep-2026 allotment filing repeats 'of Rs. 10/- each'. Price Rs 3.19 is 32% of face value - the stock trades at a deep discount to par."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0.10,
+      "unit": "INR per share",
+      "as_of": "2025-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+      "note": "Final Dividend. Ex-date 19-Sep-2025, record date 20-Sep-2025, payment date 27-Oct-2025. Announced to BSE 03-Sep-2025 ('Corporate Action-Board approves Dividend'), record date intimated 05-Sep-2025."
+    },
+    "record_date": { "value": "2025-09-20", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446" },
+    "ex_date": { "value": "2025-09-19", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446" },
+    "payment_date": { "value": "2025-10-27", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446" },
+    "paid_trailing_12m_per_share": {
+      "value": 0.10,
+      "unit": "INR per share (as declared, unadjusted)",
+      "as_of": "2026-09-19",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+      "note": "Paid 27-Oct-2025, inside the trailing 12 months from 19-Sep-2026. BSE's corporate-action feed lists exactly ONE dividend ever; the board's 18-Sep-2026 letter confirms 'one dividend in 2025'. No dividend declared in calendar 2026 to date.",
+      "bonus_adjusted_value": {
+        "value": 0.0688,
+        "unit": "INR per share (adjusted for the 5:40 and 7:24 bonuses)",
+        "note": "0.10 x (40/45) x (24/31) = 0.0688. This is the number screener.in's yield is built on."
+      }
+    },
+    "yield": {
+      "value": 2.16,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/542446/",
+      "basis": "screener.in figure = bonus-ADJUSTED DPS Rs 0.0688 / Rs 3.19. On the RAW declared Rs 0.10 the yield is 3.13%. A 45% difference between two defensible yields for the same stock on the same day - recorded as a disagreement, which one the app shows is a differ test.",
+      "conflict_note": "screener.in's own P&L shows 'Dividend Payout %' as 0.00% or blank for EVERY year including Mar-2026, contradicting the Rs 0.10 dividend paid in FY26. screener is internally inconsistent here."
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 6.42,
+      "unit": "INR per share (bonus-adjusted)",
+      "as_of": "2026-09-18",
+      "date_of_extreme": "2025-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446"
+    },
+    "low": {
+      "value": 1.94,
+      "unit": "INR per share (bonus-adjusted)",
+      "as_of": "2026-09-18",
+      "date_of_extreme": "2026-03-10",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446"
+    },
+    "high_unadjusted": {
+      "value": 9.33,
+      "unit": "INR per share (as traded, NOT adjusted)",
+      "date_of_extreme": "2025-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446"
+    },
+    "low_unadjusted": {
+      "value": 2.50,
+      "unit": "INR per share (as traded, NOT adjusted)",
+      "date_of_extreme": "2026-03-10",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446"
+    },
+    "third_value_disagreement": {
+      "high": 6.43,
+      "low": 1.94,
+      "source_url": "https://www.screener.in/company/542446/",
+      "note": "THREE different 52-week highs are live on 18-Sep-2026 for one stock: BSE adjusted 6.42, BSE unadjusted 9.33, screener.in 6.43. The 6.42 vs 6.43 gap is a rounding difference in the bonus factor; the 9.33 is the genuine as-traded high before two bonus issues. Any of the three can be defended and only one is what a user means."
+    },
+    "month_high_low": { "value": "4.01 / 2.79", "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446" },
+    "week_high_low": { "value": "3.22 / 2.88", "unit": "INR", "as_of": "2026-09-18", "source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446" }
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Q1 FY2026-27 (quarter ended 30-Jun-2026)",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/542446/",
+      "note": "LATEST FILED quarter. The Sep-2026 shareholding pattern is not yet due/filed (SEBI LODR deadline is 21 days from quarter end, i.e. ~21-Oct-2026). CRITICAL CONSEQUENCE: the latest filed pattern predates the 07-Sep-2026 bonus allotment by ~10 weeks, so every percentage below is on the PRE-bonus capital of 2,72,77,597 shares. Percentages are unchanged by a pro-rata bonus, but any absolute share COUNT derived from them is 30% too low."
+    },
+    "promoter_pct": { "value": 29.67, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/542446/" },
+    "public_pct": { "value": 70.34, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/542446/", "note": "29.67 + 70.34 = 100.01 - screener's own rounding does not close." },
+    "fii_pct": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": null,
+      "note": "GAP, not zero. screener.in publishes only Promoters / Public / No. of Shareholders for this company - it has no FII or DII row at all. See world_gaps.fii_dii_pledge."
+    },
+    "dii_pct": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": null,
+      "note": "GAP, not zero. Same reason as fii_pct."
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": null,
+      "note": "GAP. Weak negative evidence only: no Reg 31(1)/31(2) SAST encumbrance disclosure appears in JONJUA's BSE filing feed for calendar 2025 or 2026 (two Reg 29(2) SAST disclosures on 28-Mar-2026 are acquisition/disposal, not encumbrance). Absence of an encumbrance filing is suggestive of no pledge but is NOT a filed zero. See world_gaps.fii_dii_pledge."
+    },
+    "no_of_shareholders": { "value": 1700, "unit": "count", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/542446/" },
+    "history": {
+      "unit": "percent promoter / percent public / shareholder count",
+      "source_url": "https://www.screener.in/company/542446/",
+      "series": [
+        { "quarter": "Mar 2021", "promoter_pct": 61.15, "public_pct": 38.85, "shareholders": 244 },
+        { "quarter": "Sep 2021", "promoter_pct": 55.32, "public_pct": 44.68, "shareholders": 351 },
+        { "quarter": "Mar 2022", "promoter_pct": 50.22, "public_pct": 49.78, "shareholders": 396 },
+        { "quarter": "Sep 2022", "promoter_pct": 43.74, "public_pct": 56.26, "shareholders": 465 },
+        { "quarter": "Mar 2023", "promoter_pct": 40.84, "public_pct": 59.16, "shareholders": 522 },
+        { "quarter": "Sep 2023", "promoter_pct": 31.53, "public_pct": 68.47, "shareholders": 642 },
+        { "quarter": "Mar 2024", "promoter_pct": 24.14, "public_pct": 75.88, "shareholders": 939 },
+        { "quarter": "Sep 2024", "promoter_pct": 22.89, "public_pct": 77.10, "shareholders": 1033 },
+        { "quarter": "Mar 2025", "promoter_pct": 44.11, "public_pct": 55.90, "shareholders": 1158 },
+        { "quarter": "Sep 2025", "promoter_pct": 42.94, "public_pct": 57.06, "shareholders": 1393 },
+        { "quarter": "Mar 2026", "promoter_pct": 28.67, "public_pct": 71.34, "shareholders": 1674 },
+        { "quarter": "Jun 2026", "promoter_pct": 29.67, "public_pct": 70.34, "shareholders": 1700 }
+      ],
+      "note": "Promoter holding is violently non-monotonic: 61.15% -> 22.89% (Sep-2024) -> 44.11% (Mar-2025, +21.2pp in two quarters, consistent with the Nov-2024 rights issue) -> 28.67% (Mar-2026, -15.4pp in two quarters). screener.in's machine-generated 'Cons' flags 'Promoter holding has decreased over last 3 years: -11.2%'. Any 'promoter is buying/selling' narrative built on two adjacent quarters here will be wrong."
+    }
+  },
+
+  "corporate_actions_2026": {
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+    "entries": [
+      {
+        "type": "Bonus issue",
+        "ratio": "5:40",
+        "ex_date": "2026-01-23",
+        "record_date": "2026-01-23",
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+        "note": "Recommended by the board 18-Dec-2025 ('Corporate Action-Board recommends Bonus Issue'), intimated 14-Dec-2025. THIS ACTION IS ABSENT FROM THE BATTERY MANIFEST, which names only the 7:24. Two bonus issues hit this scrip in calendar 2026."
+      },
+      {
+        "type": "Bonus issue",
+        "ratio": "7:24",
+        "ex_date": "2026-09-04",
+        "record_date": "2026-09-04",
+        "allotment_date": "2026-09-07",
+        "bonus_shares_issued": 7955966,
+        "capital_before": "Rs 27,27,75,970 / 2,72,77,597 shares",
+        "capital_after": "Rs 35,23,35,630 / 3,52,33,563 shares",
+        "as_of": "2026-09-07",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf",
+        "note": "Board recommended 28-Jul-2026; record date intimated 24-Aug-2026; allotted by board resolution 07-Sep-2026 (meeting 09:00-09:26). Manifest reference values all confirmed verbatim from the filing."
+      },
+      {
+        "type": "Related-party acquisition of an intangible asset",
+        "value_inr": 191362000,
+        "value_inr_crore": 19.1362,
+        "date": "2026-09-07",
+        "counterparty": "Major Harjinder Singh Jonjua (Retd.) - the Chairman-cum-Managing Director",
+        "as_of": "2026-09-07",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf",
+        "note": "Acquisition of a TRADE SECRET - 'INNOVATIVE ECO-FRIENDLY TECHNOLOGY FOR VTOL/STOL HELIPADS AND AIRSTRIPS' - from the promoter/CMD for Rs 19,13,62,000. The company's own Annexure-1 states this is 87% of the immediately preceding year's annual consolidated turnover, is 'payable on demand' to him or his assignees/heirs, and that 'The Company may even adjust the amount owed against issue of shares.' The consideration is 1.7x the entire Rs 11.24 crore market cap. Pursuant to 'Resolution 13 of Shareholders Resolution in AGM' (AGM held 21-Aug-2026)."
+      },
+      {
+        "type": "Fund Raising Committee formed",
+        "date": "2026-09-18",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf",
+        "note": "Committee = Harmanpreet Singh Jonjua + Major Harjinder Singh Jonjua (Retd.), 'empowered to determine amount to be raised, objective... and mode of raising resources'. No amount or instrument disclosed. A dilution event is pending and unquantified."
+      },
+      {
+        "type": "Subscription to rights issue of subsidiary",
+        "date": "2026-09-18",
+        "entity": "HSJonjua Innovateagro Private Limited",
+        "as_of": "2026-09-18",
+        "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf",
+        "note": "Board approved the audit committee's recommendation to subscribe. Amount not disclosed in the outcome letter."
+      },
+      {
+        "type": "Dividend",
+        "value": null,
+        "as_of": "2026-09-19",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+        "note": "NONE declared in calendar 2026. The only dividend in the company's listed history is the Rs 0.10 final dividend with record date 20-Sep-2025."
+      }
+    ],
+    "full_corporate_action_history": {
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446",
+      "bonus_issues": [
+        { "ratio": "7:24", "record_date": "2026-09-04" },
+        { "ratio": "5:40", "record_date": "2026-01-23" },
+        { "ratio": "1:20", "record_date": "2025-07-28" },
+        { "ratio": "9:50", "record_date": "2023-10-10" },
+        { "ratio": "4:23", "record_date": "2022-10-03" },
+        { "ratio": "5:37", "record_date": "2021-07-08" },
+        { "ratio": "1:25", "record_date": "2019-10-10" }
+      ],
+      "rights_issue": { "type": "Right Issue of Equity Shares", "ex_date": "2024-11-29", "record_date": "2024-11-29" },
+      "count_disagreement": "BSE's feed yields SEVEN bonus issues; the company's own board letter of 18-Sep-2026 calls the 7:24 'the 8th bonus issue since listing in 2019'. One bonus issue is missing from BSE's returned history. Recorded, not reconciled.",
+      "bse_internal_inconsistency": "Within a SINGLE BSE API response, 'Table1' (the bonus list) omits the 1:20 (28-Jul-2025) and 5:40 (23-Jan-2026) bonuses that 'Table2' (the corporate-action list) in the same payload contains. An ingester that reads only Table1 silently loses the two most recent bonuses before the 7:24 and will mis-adjust every historical price."
+    }
+  },
+
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2026-27, quarter ended 30-Jun-2026",
+      "as_of": "2026-08-12"
+    },
+    "filing_date": {
+      "value": "2026-08-12",
+      "source_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/fc4ba00b-3a14-4c83-b178-e3ef1b4f7b73.pdf",
+      "note": "Board meeting 12-Aug-2026, 16:30-17:25. Filed under 'Unaudited Financial Results For Quarter Ended 30-06-2026.'"
+    },
+    "basis": "Standalone (the filing letter does not mention a consolidated statement; screener.in carries standalone figures only).",
+    "figures": {
+      "sales": { "value": 4.35, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "operating_profit": { "value": 1.48, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "opm_pct": { "value": 34.02, "unit": "percent", "source_url": "https://www.screener.in/company/542446/" },
+      "other_income": { "value": 0.08, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "interest": { "value": 0.02, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "depreciation": { "value": 0.40, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "profit_before_tax": { "value": 1.14, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "tax_pct": { "value": -7.89, "unit": "percent", "source_url": "https://www.screener.in/company/542446/", "note": "NEGATIVE tax rate - a tax credit on a positive PBT. Also negative in Dec-2025 (-35.16%)." },
+      "net_profit": { "value": 1.24, "unit": "INR crore", "source_url": "https://www.screener.in/company/542446/" },
+      "eps": { "value": 0.35, "unit": "INR per share", "source_url": "https://www.screener.in/company/542446/", "note": "Post-bonus-adjusted by screener: 1.24 crore / 3,52,33,563 = Rs 0.352." }
+    },
+    "filing_hostility": "The 12-Aug-2026 results PDF (4 pages, 6.7 MB) has a TEXT LAYER ON PAGE 1 ONLY. Pages 2-4 - the actual financial statements - are SCANNED IMAGES with zero extractable text (verified: pypdf extract_text() returns 0 chars for pages 2, 3 and 4). Page 1 states 'All figures in attached statements are in Lakhs of Rupees.' Any pipeline that parses the results PDF gets nothing; any pipeline that reads the XBRL must apply a lakh->crore divisor of 100.",
+    "prior_quarters": {
+      "source_url": "https://www.screener.in/company/542446/",
+      "series": [
+        { "quarter": "Dec 2025", "sales_cr": 1.54, "operating_profit_cr": 1.23, "opm_pct": 79.87, "pbt_cr": 0.91, "tax_pct": -35.16, "net_profit_cr": 1.23, "eps": 0.35 },
+        { "quarter": "Mar 2026", "sales_cr": 16.36, "operating_profit_cr": 8.15, "opm_pct": 49.82, "pbt_cr": 7.79, "tax_pct": 26.57, "net_profit_cr": 5.72, "eps": 1.62 },
+        { "quarter": "Jun 2026", "sales_cr": 4.35, "operating_profit_cr": 1.48, "opm_pct": 34.02, "pbt_cr": 1.14, "tax_pct": -7.89, "net_profit_cr": 1.24, "eps": 0.35 }
+      ],
+      "note": "Only THREE quarters exist. There is no Jun-2025 or Sep-2025 quarter column because the company filed 'Financial Results For 6 Months Ending 30-09-2025' (BSE, 12-Nov-2025) - it reported HALF-YEARLY until it switched to quarterly from the Dec-2025 quarter."
+    },
+    "fy26_annual_standalone": {
+      "source_url": "https://www.screener.in/company/542446/",
+      "sales_cr": 21.21, "expenses_cr": 9.83, "operating_profit_cr": 11.38, "opm_pct": 53.65,
+      "other_income_cr": 0.79, "interest_cr": 0.05, "depreciation_cr": 1.45,
+      "pbt_cr": 10.67, "tax_pct": 24.37, "net_profit_cr": 8.07, "eps": 2.29, "dividend_payout_pct": 0.00,
+      "prior_year_fy25": { "sales_cr": 4.77, "net_profit_cr": 2.46, "eps": 0.70 },
+      "restatement_flag": "On 23-Apr-2026 the company filed, on the SAME DAY, 'Results For Quarter And Year Ended 31-03-2026', then 'Revised Financial Results For Quarter And Year Ended 31St March 2026', then 'Revised Board Outcome For Board Meeting Dated 23-04-2026'. The FY26 annual numbers above are post-revision; a snapshot taken on 23-Apr-2026 could be the withdrawn version."
+    },
+    "fy26_balance_sheet_standalone": {
+      "source_url": "https://www.screener.in/company/542446/",
+      "equity_capital_cr": 27.28, "reserves_cr": 24.50, "borrowings_cr": 28.16,
+      "other_liabilities_cr": 4.26, "total_liabilities_cr": 84.20,
+      "fixed_assets_cr": 47.50, "cwip_cr": 0.66, "investments_cr": 19.11, "other_assets_cr": 16.93,
+      "prior_year_fy25": { "equity_capital_cr": 23.09, "reserves_cr": 6.12, "borrowings_cr": 0.03, "total_liabilities_cr": 31.67, "fixed_assets_cr": 14.42 },
+      "note": "Total assets went 31.67 -> 84.20 crore (+166%) in one year on a company whose market cap is 11.24 crore. Fixed assets 14.42 -> 47.50 crore. Borrowings 0.03 -> 28.16 crore."
+    },
+    "fy26_ratios_standalone": {
+      "source_url": "https://www.screener.in/company/542446/",
+      "debtor_days": 223.20, "inventory_days": 891.52, "days_payable": 18.88,
+      "cash_conversion_cycle_days": 223.20, "working_capital_days": -246.60, "roce_pct": 19.64,
+      "note": "screener.in's own Ratios table publishes BOTH 'Cash Conversion Cycle 223.20' and inventory days 891.52 + debtor days 223.20 - days payable 18.88 = 1,095.8 for Mar-2026. Its CCC row does not equal its own components. Working capital days is NEGATIVE (-246.60) in the same column. screener is internally inconsistent here."
+    },
+    "fy26_cash_flow_standalone": {
+      "source_url": "https://www.screener.in/company/542446/",
+      "cfo_cr": 34.10, "cfi_cr": -35.25, "cff_cr": -0.29, "net_cash_flow_cr": -1.44, "free_cash_flow_cr": -0.43,
+      "note": "Cash from operations of Rs 34.10 crore against reported sales of Rs 21.21 crore and net profit of Rs 8.07 crore - CFO/OP = 300% per screener. CFO exceeding full-year revenue is not arithmetically impossible but is a strong anomaly flag."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-18",
+      "headline": "Outcome Of Board Meeting Dated 18-09-2026",
+      "category": "Company Update / General",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=542446&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "substance": "Board thanked BSE/NSDL/CDSL/RTA on completing 'the 8th bonus issue since listing in 2019 along with one dividend in 2025'; formed a Fund Raising Committee (Harmanpreet Singh Jonjua + Major Harjinder Singh Jonjua Retd.) with no amount or instrument stated; approved subscription to the rights issue of HSJonjua Innovateagro Pvt Ltd. BSE's own HEADLINE field on this record reads: 'We have filed Board Meeting Intimation under Acknowledgement Number 14199362 however we are unable to upload it so the outcome is uploaded here.'"
+    },
+    {
+      "date": "2026-09-10",
+      "headline": "Board Meeting Intimation for Fund Raising And Other Matters",
+      "category": "Board Meeting",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/c4bf6727-1d6f-4508-8bf0-7230b9175a81.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=542446&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "substance": "Intimation that the board would meet 18-09-2026 on fundraising and the subsidiary rights issue."
+    },
+    {
+      "date": "2026-09-07",
+      "headline": "Board Meeting Outcome for Allotment Of Bonus Shares And Other Matters",
+      "category": "Board Meeting / Outcome of Board Meeting",
+      "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=542446&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "substance": "Allotment of 79,55,966 bonus shares 7:24 on record date 04-Sep-2026, capital 2,72,77,597 -> 3,52,33,563 shares; AND approval of the Rs 19,13,62,000 related-party acquisition of the VTOL/STOL helipad trade secret from the CMD (87% of prior-year consolidated turnover, payable on demand, adjustable against issue of shares)."
+    }
+  ],
+
+  "other_notable_2026_filings": {
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=542446&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+    "entries": [
+      { "date": "2026-07-15", "headline": "Announcement under Regulation 30 (LODR)-Resignation of Statutory Auditors" },
+      { "date": "2026-07-16", "headline": "Announcement under Regulation 30 (LODR)-Appointment of Statutory Auditor/s" },
+      { "date": "2026-07-22", "headline": "Announcement under Regulation 30 (LODR)-Resignation of Statutory Auditors (THREE separate filings on this one date)" },
+      { "date": "2026-07-28", "headline": "Announcement under Regulation 30 (LODR)-Appointment of Statutory Auditor/s" },
+      { "date": "2026-03-24", "headline": "Appointment of Company Secretary and Compliance Officer" },
+      { "date": "2026-06-01", "headline": "Appointment of Company Secretary and Compliance Officer (second CS appointment in ~10 weeks)" },
+      { "date": "2026-03-28", "headline": "Disclosure Pursuant To Regulation 29 (2) Of SEBI (SAST) Regulations, 2011 (two filings)" },
+      { "date": "2026-04-14", "headline": "General Update - Formation Of Charitable Trust For CSR Activities" },
+      { "date": "2026-04-28", "headline": "Board Meeting Intimation for Considering Submission Of Expression Of Interest" },
+      { "date": "2026-07-30", "headline": "Reg. 34 (1) Annual Report (FY2025-26)" }
+    ],
+    "note": "FOUR statutory-auditor resignations and TWO auditor appointments inside 14 days (15-28 July 2026), plus two company-secretary appointments in 2026. This is a governance-signal cluster that no price/ratio field will ever surface, and it sits immediately before the bonus + related-party-acquisition sequence."
+  },
+
+  "consolidated_vs_standalone": {
+    "value": "Every financial figure in this pack is STANDALONE. No consolidated figure was obtainable from any source.",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/542446/consolidated/",
+    "note": "screener.in's consolidated page for this scrip exists and returns HTTP 200 (78,592 bytes) but EVERY row is empty - Quarterly Results, Profit & Loss, Balance Sheet, Cash Flow, Ratios, all growth percentages and all ROE figures render as blanks; the only populated block is labelled 'Standalone data'. Verified by fetching and parsing the HTML directly. Meanwhile the company demonstrably HAS subsidiaries (HSJonjua Innovateagro Pvt Ltd - board approved a rights-issue subscription on 18-Sep-2026; HSJonjua AeroInfra, per jonjua.com) and its own Annexure-1 of 07-Sep-2026 quotes a percentage of 'annual consolidated turnover'. A consolidated turnover figure therefore EXISTS in the company's own filings but is not carried by the aggregator. Implied: consolidated FY25 turnover ~= Rs 19,13,62,000 / 0.87 = Rs 22.0 crore, against standalone FY25 sales of Rs 4.77 crore - i.e. the consolidated entity may be ~4.6x the standalone one that every aggregator shows. This implication is arithmetic from the company's own stated 87%, not a filed figure; treat as a lead, not a value."
+  },
+
+  "traps": [
+    {
+      "id": "T1",
+      "name": "Two bonus issues in nine months, one of them 15 days old",
+      "detail": "7:24 with record date 04-Sep-2026 (allotted 07-Sep-2026) AND 5:40 with record date 23-Jan-2026. The battery manifest names only the 7:24. Combined adjustment factor from 01-Jan-2026 to today = (40/45) x (24/31) = 0.688. Any price, EPS, book value or dividend series that applies one bonus but not the other is off by 12-45% depending on the field."
+    },
+    {
+      "id": "T2",
+      "name": "Eight bonus issues in seven years - and the sources cannot agree how many",
+      "detail": "BSE's corporate-action API yields seven (2019, 2021, 2022, 2023, 2025, Jan-2026, Sep-2026); the company's own 18-Sep-2026 board letter says the 7:24 was 'the 8th bonus issue since listing in 2019'. Worse, inside ONE BSE response, Table1 lists five bonuses and Table2 lists two more that Table1 omits (1:20 of 28-Jul-2025 and 5:40 of 23-Jan-2026). An ingester that reads the first table silently loses the two most recent pre-7:24 bonuses."
+    },
+    {
+      "id": "T3",
+      "name": "Pre-bonus vs post-bonus share count changes every per-share number",
+      "detail": "2,72,77,597 -> 3,52,33,563 shares on 07-Sep-2026 (+29.2%). FY26 EPS is Rs 2.29 post-bonus and Rs 2.96 pre-bonus; book value Rs 14.70 post-bonus and Rs 18.98 pre-bonus; P/E 1.39 vs 1.08. screener.in has already switched to the post-bonus count; a cached or bundled master built before 07-Sep-2026 has not."
+    },
+    {
+      "id": "T4",
+      "name": "Three different 52-week highs are simultaneously correct",
+      "detail": "BSE bonus-adjusted 6.42 (22/09/2025), BSE unadjusted 9.33 (22/09/2025), screener.in 6.43. The 9.33 is what actually printed on the tape. Showing an unadjusted high next to an adjusted price makes the stock look 65% off its high when it is 50% off."
+    },
+    {
+      "id": "T5",
+      "name": "Dividend: declared Rs 0.10, adjusted Rs 0.0688, yield 3.13% or 2.16%",
+      "detail": "The only dividend the company has ever paid. screener.in publishes the bonus-adjusted yield (2.16%). The raw declared yield is 3.13%. Simultaneously screener.in's own P&L shows Dividend Payout % as 0.00%/blank for Mar-2026, contradicting its own yield."
+    },
+    {
+      "id": "T6",
+      "name": "There is NO true TTM for this company",
+      "detail": "The company reported HALF-YEARLY until FY26 ('Financial Results For 6 Months Ending 30-09-2025', filed 12-Nov-2025) and only three discrete quarters exist (Dec-2025, Mar-2026, Jun-2026). screener.in's 'TTM' growth figures (sales 345%, profit 228%) are FY26-vs-FY25 full-year comparisons mislabelled as TTM, and its 'Stock P/E 1.39' is built on FY26 EPS, not a rolling twelve months. Any product that prints 'TTM' for this name is asserting a number nobody has filed."
+    },
+    {
+      "id": "T7",
+      "name": "Lakh/crore scale, declared in prose, on a scanned page",
+      "detail": "The Q1 FY27 results letter says in body text 'All figures in attached statements are in Lakhs of Rupees' - and pages 2-4 of that PDF, the statements themselves, have NO text layer at all (scanned images; pypdf extracts 0 characters). BSE's quote API compounds it: traded quantity 1.49 and turnover 4.67 are in LAKHS, with the unit carried in separate sibling fields ('TTQin', 'Turnoverin')."
+    },
+    {
+      "id": "T8",
+      "name": "Penny price below face value, on an 11.24 crore cap",
+      "detail": "Rs 3.19 against a Rs 10 face value and a Rs 14.70 book value. Smallest name in the battery. Rounding a penny price to two decimals is fine; rounding a percentage change on it is not - one tick (Rs 0.01) is 0.31%."
+    },
+    {
+      "id": "T9",
+      "name": "Same-family name collisions",
+      "detail": "'Jonjua' resolves to at least four entities in filings and on the company site: Jonjua Overseas Ltd (the listed company), HSJonjua Innovateagro Pvt Ltd, HSJonjua AeroInfra, HSJonjua & Sons (HUF), plus the individual Major Harjinder Singh Jonjua. A name-based resolver will attach subsidiary or HUF news to the listed scrip. There is no same-named foreign entity found."
+    },
+    {
+      "id": "T10",
+      "name": "Sector/industry labels are actively wrong",
+      "detail": "BSE and screener.in both classify this as Services / Commercial Services & Supplies / Consulting Services. The company sells printed books and e-books, trades securities, does agriculture, and from Sep-2026 owns VTOL/STOL helipad IP and runs a 'JONJUA AIR' unit. Any peer set or sector comparison built on the exchange label is meaningless."
+    },
+    {
+      "id": "T11",
+      "name": "BSE's own circuit-limit field is garbage",
+      "detail": "CktLimit = '1,49,448.00/3.04' for a Rs 3.19 stock. An upper band of Rs 1,49,448 is not a rounding error, it is a broken field. A UI that renders the upstream circuit band verbatim shows the user an absurd number as fact."
+    },
+    {
+      "id": "T12",
+      "name": "Free float percent is not 100 minus promoter percent",
+      "detail": "BSE free-float market cap Rs 4.48 crore on Rs 11.24 crore total implies 39.9% float, while the Jun-2026 filed pattern shows public = 70.34%. Both are published, neither is wrong, they measure different things."
+    },
+    {
+      "id": "T13",
+      "name": "The filed shareholding pattern predates the bonus by ten weeks",
+      "detail": "Latest filed quarter is Jun-2026, on pre-bonus capital of 2,72,77,597 shares. Sep-2026's pattern is not due until ~21-Oct-2026. Percentages survive a pro-rata bonus; absolute share counts derived from those percentages are 29.2% too low until the next filing."
+    },
+    {
+      "id": "T14",
+      "name": "Stale master risk is already realised",
+      "detail": "The battery's bundled BSE master says group 'MT'; live BSE returns 'M' in two independent endpoints. The bundled masters were built before the 07-Sep-2026 bonus allotment, so any share count, EPS or book value carried in them is pre-bonus."
+    },
+    {
+      "id": "T15",
+      "name": "A same-day restatement sits in the FY26 history",
+      "detail": "On 23-Apr-2026 the company filed the FY26 results, then 'Revised Financial Results For Quarter And Year Ended 31St March 2026', then a revised board outcome - all on one date. A pipeline that takes the first matching 'Results' filing for FY26 gets the withdrawn version."
+    },
+    {
+      "id": "T16",
+      "name": "Aggregator internal inconsistency is not an ingestion bug",
+      "detail": "screener.in publishes, for Mar-2026, inventory days 891.52 + debtor days 223.20 - days payable 18.88 while stating cash conversion cycle = 223.20 and working capital days = -246.60. These cannot all hold. A differ that assumes the aggregator is self-consistent will blame the app."
+    },
+    {
+      "id": "T17",
+      "name": "Governance signals that no numeric field carries",
+      "detail": "Four statutory-auditor resignations and two appointments in 14 days (Jul-2026); two company-secretary appointments in 2026; a Rs 19.14 crore related-party purchase of a trade secret from the CMD at 87% of consolidated turnover, payable on demand and adjustable against shares, on an 11.24 crore market cap; a fund-raising committee formed with no amount named; borrowings 0.03 -> 28.16 crore under a letterhead reading 'A BANK DEBT FREE COMPANY'; CFO of Rs 34.10 crore against Rs 21.21 crore of sales. Every one of these is in the filings and none of them appears in any quote, ratio or fundamentals field."
+    }
+  ],
+
+  "world_gaps": {
+    "fii_dii_pledge": {
+      "fields": ["shareholding.fii_pct", "shareholding.dii_pct", "shareholding.pledged_pct_of_promoter"],
+      "class": "could-not-reach (not confirmed non-existent)",
+      "detail": "These DO exist in the company's SEBI/BSE shareholding-pattern XBRL filing for Jun-2026 - the format mandates FII, DII and encumbrance columns. They were not reachable here: screener.in publishes only Promoters/Public/No. of Shareholders for this scrip (no FII or DII row at all, verified in the server-rendered HTML), the BSE shareholding-pattern page is an Angular SPA that returns no server-rendered table, its .aspx predecessors 301-redirect, and nine candidate api.bseindia.com shareholding endpoints all returned 302 to error_Bse.html. WebSearch budget for the session was exhausted (200/200), so no aggregator with a pledge column (Trendlyne, Tijori, Moneycontrol) could be located by slug. Weak negative evidence on pledge only: JONJUA filed no Reg 31(1)/31(2) SAST encumbrance disclosure in 2025 or 2026. Recovery path for the lead: the Jun-2026 SHP XBRL on bseindia.com, or the FY26 Annual Report PDF (BSE filing of 30-Jul-2026) corporate-governance section."
+    },
+    "listing_date": {
+      "fields": ["identity.listing_date"],
+      "class": "could-not-reach",
+      "detail": "Only the year (2019) is established, from the company's own 18-Sep-2026 letter ('since listing in 2019') and the earliest corporate action (bonus record date 10-Oct-2019). BSE's scrip-master and ComHeader endpoints do not return a listing date. Recovery path: BSE SME listing circular, or the DRHP/prospectus (screener.in shows an empty DRHP section)."
+    },
+    "former_names": {
+      "fields": ["identity.former_names"],
+      "class": "could-not-reach",
+      "detail": "No rename appears in the BSE filing feed covering 2025-01-01 to 2026-09-19, and none on jonjua.com. The company was incorporated in 1993 and listed in 2019; a pre-listing rename would not be in either window. Recorded as unverified rather than 'none'."
+    },
+    "consolidated_financials": {
+      "fields": ["consolidated_vs_standalone", "revenue_ttm", "net_profit_ttm", "debt_to_equity", "roe", "roce", "book_value_per_share"],
+      "class": "exists in filings, absent from every reachable aggregator",
+      "detail": "The company's own 07-Sep-2026 Annexure-1 cites a percentage of 'annual consolidated turnover', proving consolidated statements exist. screener.in's consolidated page for the scrip is completely blank. Every ratio in this pack is therefore standalone-only. Recovery path: the FY26 Annual Report PDF filed on BSE 30-Jul-2026."
+    },
+    "sep_2026_shareholding": {
+      "fields": ["shareholding.quarter"],
+      "class": "genuinely does not exist yet",
+      "detail": "The Sep-2026 quarter has not ended (today is 19-Sep-2026) and the pattern is not due until ~21-Oct-2026. Jun-2026 is correctly the latest filed quarter. Any source claiming a Sep-2026 shareholding pattern for this scrip is fabricating."
+    },
+    "true_ttm_figures": {
+      "fields": ["pe_ttm", "revenue_ttm", "net_profit_ttm", "eps_ttm"],
+      "class": "genuinely does not exist",
+      "detail": "Half-yearly reporting until FY26 means only three discrete quarters have ever been filed. A four-quarter trailing figure cannot be constructed from filed data without splitting the H1 FY26 half-year, which nobody has filed. The values recorded in those fields are full-year FY26 figures, explicitly labelled with their basis."
+    },
+    "fund_raising_amount": {
+      "fields": ["corporate_actions_2026"],
+      "class": "genuinely does not exist yet",
+      "detail": "The Fund Raising Committee formed on 18-Sep-2026 has not determined amount, objective or instrument. Pending dilution is real but unquantified in any public source."
+    }
+  },
+
+  "sources": [
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=542446&seriesid=", "authority": "exchange", "used_for": "last close, OHLC, prev close, as-of timestamp" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=542446&seriesid=", "authority": "exchange", "used_for": "ISIN, face value, group, sector, industry, settlement type" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=542446&industry=&segment=Equity&status=Active", "authority": "exchange", "used_for": "scrip master: issuer name, ISIN, group M, status Active, market cap" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=542446", "authority": "exchange", "used_for": "52-week high/low adjusted AND unadjusted with dates, month and week ranges" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=&quotetype=EQ&scripcode=542446&seriesid=", "authority": "exchange", "used_for": "VWAP, turnover, traded quantity, full and free-float market cap, circuit limits, ex-date" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=542446", "authority": "exchange", "used_for": "full bonus and dividend history, rights issue, record/ex/payment dates" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260101&strScrip=542446&strSearch=P&strToDate=20260919&strType=C&subcategory=-1", "authority": "exchange", "used_for": "all calendar-2026 filings (50 records)" },
+    { "url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20250101&strScrip=542446&strSearch=P&strToDate=20251231&strType=C&subcategory=-1", "authority": "exchange", "used_for": "calendar-2025 filings: half-yearly results, dividend, 1:20 bonus, Dec-2025 bonus recommendation" },
+    { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9fea0415-df23-4e0a-be86-1e0f6c2cb8df.pdf", "authority": "company filing", "used_for": "bonus allotment: 79,55,966 shares, pre/post capital, CIN, the Rs 19.14 crore related-party trade-secret acquisition and its Annexure-1" },
+    { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a787b858-46c6-4117-b003-8046f7c422e3.pdf", "authority": "company filing", "used_for": "18-Sep-2026 board outcome: '8th bonus issue since listing in 2019', fund-raising committee, subsidiary rights issue, RTA" },
+    { "url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/fc4ba00b-3a14-4c83-b178-e3ef1b4f7b73.pdf", "authority": "company filing", "used_for": "Q1 FY27 results cover letter, 'figures in Lakhs' declaration, scanned-page hostility" },
+    { "url": "https://www.screener.in/company/542446/", "authority": "aggregator", "used_for": "standalone quarterly/annual P&L, balance sheet, cash flow, ratios, shareholding series, header ratios, machine-generated pros/cons" },
+    { "url": "https://www.screener.in/company/542446/consolidated/", "authority": "aggregator", "used_for": "proving the consolidated view is empty" },
+    { "url": "https://www.jonjua.com/", "authority": "company", "used_for": "group structure: JONJUA OVERSEAS, JONJUA AIR, HSJONJUA INNOVATEAGRO, HSJonjua AeroInfra, HSJonjua & Sons (HUF)" }
+  ]
+}

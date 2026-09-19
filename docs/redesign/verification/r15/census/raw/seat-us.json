@@ -1,0 +1,12 @@
+[
+  {
+    "raw_id": "SEAT-US-1",
+    "title": "All four quant panels ship hardcoded valuation/expiry dates that are already in the past (2026-05-16 / 2026-06-30)",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "quant panels (option pricer, greeks, bond, yield curve)",
+    "repro": "Open Option Pricer today (2026-09-19) -> prefilled Valuation 2026-05-16, Expiry 2026-06-30; the empty-state CTA 'prices with the prefilled inputs', i.e. an option that expired 81 days ago as of a date 4 months stale. Same literal in Greeks, Bond, Yield-curve.",
+    "evidence": "src/modules/quant/OptionPricerPanel.tsx:235-236, src/modules/quant/GreeksDashboard.tsx:174-175, src/modules/quant/BondPricerPanel.tsx:107-109, src/modules/quant/YieldCurvePanel.tsx:81",
+    "notes": "Defaults frozen at the day the panel was written; every day after, the prefilled example is a past-dated contract and theta/time-value the user reads is for a period that no longer exists. Fix shape: derive defaults at mount (today, today+45d; bond issue=today, maturity=today+10y) in one shared helper."
+  }
+]

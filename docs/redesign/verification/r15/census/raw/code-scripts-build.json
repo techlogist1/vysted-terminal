@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-scripts-build-1",
+    "title": "Staleness gate's extension whitelist misses the bundled .gz fundamentals seed — regenerating it does not rebuild the binary, and assertFresh passes too",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "scripts-build",
+    "repro": "node -e \"console.log(/\\.(py|txt|toml|cfg|ini|json|csv)$/i.test('india_fundamentals_seed.json.gz'))\" -> false. Then: regenerate sidecar/services/screener_universes/india_fundamentals_seed.json.gz (via regenerate_fundamentals_seed.py, which touches no .py) -> run `node scripts/ensure-all-sidecars.mjs` (no --force, exactly as tauri.conf.json beforeBuildCommand and package.json ci-local invoke it) -> prints '[ensure-sidecar] vysted-sidecar-<triple> present and fresh — skipping build.' -> `node scripts/smoke-test-sidecars.mjs` freshness gate also passes -> the bundled binary still carries the PREVIOUS Indian fundamentals snapshot.",
+    "evidence": "scripts/sidecar-staleness.mjs:41 (SOURCE_EXT = /\\.(py|txt|toml|cfg|ini|json|csv)$/i), scripts/sidecar-staleness.mjs:62 (the SOURCE_EXT.test gate in newestMtime), scripts/sidecar-staleness.mjs:94 (isStale), scripts/sidecar-staleness.mjs:108 (assertFresh), scripts/ensure-sidecar.mjs:179,184 (--add-data bundles services/screener_universes wholesale), scripts/ensure-sidecar.mjs:81-86 (the fresh -> skip build guard), scripts/smoke-test-sidecars.mjs:886 (assertFresh call site), sidecar/services/fundamentals_seed.py:37 (_PACK_FILENAME = \"india_fundamentals_seed.json.gz\"), sidecar/services/screener_universes/india_fundamentals_seed.json.gz (717 KB, committed)",
+    "notes": "Information hiding / duplicated truth: 'what is build input' is encoded twice in different shapes — as an --add-data path list in ensure-sidecar.mjs:182-189 and as a file-extension regex in sidecar-staleness.mjs:41 — and the two have already drifted. `\\.json$` does not match `...json.gz`. Consequence: the Phase-9.5 S0-2 stale-bundle trap re-enters through its own fix's allowlist, on money-relevant data (P/E, market cap for Indian equities seeded on fresh install), and BOTH layers of the defence (auto-rebuild + the belt-and-suspenders assertFresh CI gate) read the same drifted copy, so every gate reports green. Bites the local release build in particular, since CLAUDE.md's hard gates are run locally before a tag and src-tauri/binaries/ is gitignored (CI always builds fresh, so CI will not surface it). Smallest fix: invert the rule to a deny-list (skip .pyc/.log/.DS_Store, accept everything else) AND feed the ensure script's --add-data source paths into staleOpts.extraFiles so the two encodings become one; minimum viable is adding |gz|xml|yaml|yml to SOURCE_EXT plus a tmpdir unit test asserting a .gz edit marks the binary stale."
+  },
+  {
+    "raw_id": "COD-scripts-build-2",
+    "title": "CI freshness gate hand-copies the staleness config the ensure scripts own — the gate can silently diverge from the builder it gates",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "scripts-build",
+    "repro": "design",
+    "evidence": "scripts/smoke-test-sidecars.mjs:862-884 (three literal { name, dirs, opts:{excludeDirs, extraFiles} } blocks) vs scripts/ensure-sidecar.mjs:73-80 (SOURCE_EXCLUDES + STALE_OPTS), scripts/ensure-openbb-mcp-sidecar.mjs:88-90, scripts/ensure-sec-edgar-mcp-sidecar.mjs:78-80",
+    "notes": "General-purpose over special-purpose + information leakage. The two copies are byte-identical today, which is the hazard rather than the reassurance: the instant one side gains an entry (e.g. the --add-data paths that COD-scripts-build-1 needs), assertFresh certifies freshness against a DIFFERENT source set than ensure-sidecar.mjs built against, and still reports green. A gate that can diverge from the thing it gates is worse than no gate — it converts 'we did not check' into 'we checked and it is fine'. Fix shape: export one SIDECAR_SPECS table ({name, sourceDir, staleOpts, identifier}) from a shared module; _assertAllFresh becomes a for-loop over it and each ensure script reads its own row."
+  },
+  {
+    "raw_id": "COD-scripts-build-3",
+    "title": "Three ensure-*.mjs scripts are one script copied twice (~90 of ~190 lines byte-identical); adding a sidecar touches six sites, five silently skippable",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "design",
+    "evidence": "targetTriple: scripts/ensure-sidecar.mjs:29-34, scripts/ensure-openbb-mcp-sidecar.mjs:46-51, scripts/ensure-sec-edgar-mcp-sidecar.mjs:36-41, scripts/smoke-test-sidecars.mjs:519-524 (four copies). run(): :36-39 / :53-56 / :43-46. sleepSync: :42-44 / :59-61 / :49-51. copyWithRetry: :50-62 / :64-78 / :54-68. Staleness guard: :81-91 / :91-101 / :81-91. Venv bootstrap: :97-100 / :107-110 / :97-100. Copy/sign/tidy tail: :201-210 / :178-187 / :159-171. Orchestrator list: scripts/ensure-all-sidecars.mjs:28-32",
+    "notes": "Strategic-over-tactical + deep modules + temporal decomposition. Each ensure script's top-level body is a numbered execution sequence (ensure-sidecar.mjs:96,102,106,201,207 '1. venv / 2. pip / 3. pyinstaller / 4. copy / 5. tidy'), so the only available reuse unit is copy-paste — which is exactly what happened. Consequence (change amplification): CLAUDE.md has to DOCUMENT the ritual ('Adding one: externalBin + the SCRIPTS list in scripts/ensure-all-sidecars.mjs + .gitignore/.prettierignore + pnpm sidecars:build') because the structure cannot hold it; a 4th sidecar today edits a new ~190-line script, ensure-all-sidecars.mjs:28-32, smoke-test-sidecars.mjs:862-884, smoke-test-sidecars.mjs:905-909, tauri.conf.json externalBin, and two ignore files. Missing the smoke-test sites leaves CI green while gating one fewer binary. Fix shape: one scripts/build-sidecar.mjs exporting buildSidecar({name, sourceDir, venvDir, requirements, pyinstallerFlags, identifier, staleOpts}); the three scripts collapse to ~20-line spec declarations. sidecar-staleness.mjs already proves the extraction pattern works here — it was just applied to one helper instead of the whole recipe."
+  },
+  {
+    "raw_id": "COD-scripts-build-4",
+    "title": "Sidecar smoke test conflates frozen-binary correctness with live-exchange reachability: ~95s of nondeterministic CI time that can never fail the run",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "scripts-build",
+    "repro": "node scripts/smoke-test-sidecars.mjs — runs _probeBseBhavcopyNoSla (4s HTTP to bseindia.com), _probeNseDirectNoSla (blocking execFileSync of the sidecar venv python with a 60s timeout, live nseindia.com), and the /history/ICONIKSPEV probe (30s, live BSE). All three only console.warn; none can set a non-zero exit code. Wired into every push via .github/workflows/test.yml:69 and build.yml:74.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:370-399 (BSE bhavcopy, warn at :387), scripts/smoke-test-sidecars.mjs:413-471 (NSE direct, execFileSync timeout 60_000 at :451, warn at :459), scripts/smoke-test-sidecars.mjs:706-720 (/history/ICONIKSPEV, 30s, warn at :715), scripts/smoke-test-sidecars.mjs:917-919 (called unconditionally after the gating tests), .github/workflows/test.yml:69, .github/workflows/build.yml:74",
+    "notes": "Different-layer-different-abstraction + better-apart. A deterministic, gating check ('does the frozen binary boot and serve the bundled data') is fused with a nondeterministic, advisory one ('is the exchange reachable from this runner'). Consequence: up to ~95s wall-clock per CI run producing signal nobody reads — CI logs are opened when a run is red, and these probes structurally cannot make one red. The stated purpose (':390, :461 — flag a URL-SHAPE regression early') is also unachievable as written: a URL-shape break and 'no outbound network in CI' emit the same warning line. Fix shape: move the two exchange probes into a separate `pnpm probe:exchanges` the operator runs attended (where a warn is actually seen), or gate them behind --require-network so a caller that knows it has a network gets a hard failure. The binary smoke then stays hermetic and fast."
+  },
+  {
+    "raw_id": "COD-scripts-build-5",
+    "title": "Phase-6 screenshot generators fabricate the visual-verification evidence: invented rows PIL-drawn into docs/screenshots and still committed as proof at v0.8.0",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "scripts-build",
+    "repro": "design — read scripts/render_phase_6_e_screenshots.py:81-87 and scripts/render_phase_6_sc_screenshots.py:54-62, then ls docs/screenshots/v0.6.0/teammate-e/ (4 committed PNGs) and docs/screenshots/v0.6.0/teammate-sc/.",
+    "evidence": "scripts/render_phase_6_e_screenshots.py:81-87 (hard-coded rows, e.g. (\"AAPL\",\"May 20, 2026\",\"Apple Inc.\",\"After close\",\"1.50\",\"0.050 / 20\")), scripts/render_phase_6_e_screenshots.py:1-14 (docstring: 'PIL-rendered approximations ... the lead replaces them with real chrome-devtools captures at integration'), scripts/render_phase_6_sc_screenshots.py:54-62 (SAMPLE_ROWS, e.g. (\"MSFT\",\"Microsoft Corporation\",\"Technology\",3.18e12,19.4,425.18,0.45,22_140_000)), docs/screenshots/v0.6.0/teammate-e/README.md:18, docs/screenshots/v0.6.0/teammate-sc/README.md:35, package.json version 0.8.0",
+    "notes": "Keep-the-design-clean + artifacts asserting what the structure does not hold. CLAUDE.md's visual-verification protocol bans empty screenshots because 'empty shots hide layout bugs'; a DRAWING of the intended UI is strictly worse — it looks populated, so it passes the eye-check the protocol relies on while proving nothing about the React panels. The promised replacement with real captures never happened across three releases (v0.6.0 -> v0.8.0), and the palettes are the retired amber/charcoal system (render_phase_6_e_screenshots.py:26-34, render_phase_6_sc_screenshots.py:28-36) that CLAUDE.md records as replaced by zinc + cool-indigo at 003. Fix shape: delete both scripts and the mock PNGs (the real mechanism is now the Quartz capture path, /tmp/rigcap.py per CLAUDE.md), or move the PNGs to docs/mockups/ under names that cannot be mistaken for captures and strike the README claims."
+  },
+  {
+    "raw_id": "COD-scripts-build-6",
+    "title": "audit-design-tokens.mjs ROOT is broken on Windows — it prints 'design-token audit clean' having read nothing",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "On Windows: node scripts/audit-design-tokens.mjs -> new URL('..', import.meta.url).pathname yields '/C:/Users/.../vysted-terminal/' (leading slash, %20-escaped spaces) -> join(ROOT,'src') does not resolve -> statSync throws at :78-81 -> `continue` skips every scan root -> zero files walked -> prints 'design-token audit clean' and exits 0.",
+    "evidence": "scripts/audit-design-tokens.mjs:23 (const ROOT = new URL(\"..\", import.meta.url).pathname), :75-81 (statSync(abs) in try/catch -> continue), :121 (console.log(\"design-token audit clean\")), :62 (SKIP_FILES = new Set([\"styles/tokens.css\"]) compared against relative() output which is backslash-separated on Windows, and dead anyway under the default SCAN at :27). Contrast the four sibling scripts, all using import.meta.dirname: scripts/ensure-sidecar.mjs:18, scripts/ensure-openbb-mcp-sidecar.mjs:35, scripts/ensure-sec-edgar-mcp-sidecar.mjs:25, scripts/smoke-test-sidecars.mjs:82",
+    "notes": "Consistency. A false-clean is the worst failure mode a linter has: it reports the design system enforced when nothing was scanned. CLAUDE.md requires builds green on Windows, macOS and Linux, and every sibling script in this same directory already uses the correct idiom. Verified clean on macOS today (node scripts/audit-design-tokens.mjs --report -> 'design-token audit clean'), so this is latent rather than currently wrong. Fix shape: `const ROOT = resolve(import.meta.dirname, \"..\")` (one line, matching the siblings), and either delete the dead SKIP_FILES guard or normalise with relative(...).split(sep).join(\"/\")."
+  },
+  {
+    "raw_id": "COD-scripts-build-7",
+    "title": "The design-token audit is documented as running 'in the gate battery' and is wired into no gate at all",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "scripts-build",
+    "repro": "grep -rn 'audit-design-tokens' package.json .github/workflows/ -> no hits (only R9 track-brief docs reference it). package.json:19 ci-local does not include it either.",
+    "evidence": "scripts/audit-design-tokens.mjs (whole file), package.json:6-21 (scripts block — absent), .github/workflows/*.yml (absent; lint.yml:87-89 runs only eslint/prettier/ruff), docs/redesign/R9_DESIGN_SYSTEM.md:40-42 ('scripts/audit-design-tokens.mjs enforces the allowed set statically over src/ and plugins/; it runs in the gate battery')",
+    "notes": "The design system's only automated enforcement is claimed by the spec and does not exist. Currently clean (verified: `node scripts/audit-design-tokens.mjs --report` -> 'design-token audit clean'), so the cost is latent — but nothing prevents a return to the 274-violation state that docs/redesign/R9_TRACK_TIERS_REPORT.md:129 records, and the doc will keep telling the next maintainer it is covered. Fix shape (two lines): add \"audit:tokens\": \"node scripts/audit-design-tokens.mjs\" to package.json and chain it into ci-local plus a step in .github/workflows/lint.yml. Fix COD-scripts-build-6 first or the Windows CI leg will pass vacuously."
+  },
+  {
+    "raw_id": "COD-scripts-build-8",
+    "title": "smoke-test PID ledger is a fixed-path multi-writer file with an unconditional clear — concurrent runs drop exactly the crashed-run rows the ledger exists for",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "scripts-build",
+    "repro": "Run two smoke tests concurrently on one machine (e.g. `pnpm ci-local` plus a manual `node scripts/smoke-test-sidecars.mjs`, or two CI jobs on a shared runner). Run B's _scopedOrphanPreflight ends with _writeState([]) (:323), erasing run A's live-child rows; _recordChild/_forgetChild (:141-150) are unlocked read-modify-write on the same path, so interleaved writes also lose rows.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:118-119 (_STATE_DIR/_STATE_FILE — fixed, not per-run), :122-150 (_readState/_writeState/_recordChild/_forgetChild, read-modify-write), :323 (_writeState([]) unconditional), :160-189 (in-memory _LIVE_PIDS + exit/SIGINT/SIGTERM cleanup)",
+    "notes": "Define-errors-out-of-existence. In-memory _LIVE_PIDS covers the clean-exit and signal paths, so the case the ledger loses is precisely the case it was written for: a hard-killed node process whose PyInstaller worker survives and holds the _MEI lock (the CLAUDE.md 'Node scripts that spawn sidecar binaries must tree-kill on teardown' gotcha). Consequence: an orphaned 100 MB-extraction worker that the next run's pre-flight can no longer see. Fix shape: name the ledger per-run (live-children-<node pid>.json) and have the pre-flight glob the directory, reaping only files whose owning node PID is dead. That makes every file single-writer by construction — the race disappears rather than needing a lock."
+  },
+  {
+    "raw_id": "COD-scripts-build-9",
+    "title": "newestMtime guards readdirSync but not statSync — one broken symlink or racing cache write crashes `pnpm tauri dev` before it starts",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "ln -s /nonexistent sidecar/services/dangling.py && node scripts/ensure-sidecar.mjs -> statSync throws ENOENT out of newestMtime -> out of isStale -> uncaught at ensure-sidecar.mjs:81, aborting the build (and with it tauri.conf.json's beforeDevCommand) with a stack trace naming neither the file nor the build step. Same shape for any file removed between readdirSync and statSync, e.g. a concurrent pytest/ruff writing and pruning caches.",
+    "evidence": "scripts/sidecar-staleness.mjs:63 (const m = statSync(full).mtimeMs — bare), vs :51-55 (readdirSync guarded, 'unreadable / missing dir contributes nothing') and :79-85 (the extraFiles stat guarded, 'missing extra file contributes nothing'), consumed at scripts/ensure-sidecar.mjs:81",
+    "notes": "Consistency / pull-complexity-downward: the correct handling is already written six lines below in the same file and simply is not applied to the hot path. Fix shape: wrap :63-65 in the same try/catch with the same 'contributes nothing' comment."
+  },
+  {
+    "raw_id": "COD-scripts-build-10",
+    "title": "MCP bind budget is aligned to the Rust supervisor by a comment, not by structure — shrink the Rust constant and the smoke gate keeps passing binaries the app will abandon",
+    "severity": "low",
+    "area": "release",
+    "subsystem": "scripts-build",
+    "repro": "design — change src-tauri/src/lib.rs:78 MCP_PORT_WAIT_SECS from 45 to, say, 20; nothing in scripts/ or CI fails, and smoke-test-sidecars.mjs keeps certifying a subprocess that binds at 60s as OK while the shipped app gives up at 40s.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (const MCP_BIND_TIMEOUT_MS = 90_000 with the comment 'aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x MCP_PORT_WAIT_ATTEMPTS(2) = 90s'), src-tauri/src/lib.rs:78 (MCP_PORT_WAIT_SECS = 45), src-tauri/src/lib.rs:83 (MCP_PORT_WAIT_ATTEMPTS = 2), src-tauri/src/openbb_mcp.rs:149-152 and src-tauri/src/sec_edgar_mcp.rs:148-151 (the consumers)",
+    "notes": "An invariant held by a comment where the structure could hold it. The comment is correct today and there is no mechanism keeping it correct. Consequence: the smoke gate's whole claim ('this binary binds inside the budget the app will actually wait') silently becomes false, in the one direction that produces a shipped hang. Smallest fix: put the number in one place the other side reads — e.g. a build.rs-emitted JSON or a shared constants file the smoke test parses — or, cheapest, a `cargo test` assertion that MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS * 1000 == the value the smoke script declares."
+  },
+  {
+    "raw_id": "COD-scripts-build-11",
+    "title": "Unreachable catch in the BSE probe, and the one distinction the probe needs was discarded by _httpGetOk's blanket swallow",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "design — _httpGetOk has `catch { return false }` over the whole fetch, so the try/catch wrapping `await _httpGetOk(url, 4000)` can never enter its handler.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:382-398 (try { const ok = await _httpGetOk(url, 4000) ... } catch (err) { console.warn('probe errored') }), scripts/smoke-test-sidecars.mjs:334-345 (_httpGetOk: catch { return false })",
+    "notes": "Obviousness + swallowed-exception-becomes-silent-empty. Two apparent failure paths where one exists, so the next reader reasons about dead code. More usefully: the probe's stated job (:390 'Only investigate if the URL SHAPE changed') requires distinguishing a 404/shape change from a DNS failure or an offline runner, and :341 throws that information away before the caller can see it — which is why the warning at :387 cannot say which happened. Fix shape: have _httpGetOk return {ok, status, error} and let the warn name the actual outcome; delete the unreachable catch."
+  },
+  {
+    "raw_id": "COD-scripts-build-12",
+    "title": "scripts/*.py sits outside every Python gate — ruff is path-scoped to sidecar/ in both CI and ci-local",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "python -m pip install ruff==0.15.12 && ruff check scripts -> reports issues (e.g. F541) that neither `ruff check sidecar` (CI) nor ci-local ever sees.",
+    "evidence": ".github/workflows/lint.yml:87-89 (ruff check sidecar; ruff format --check sidecar), package.json:19 (ci-local: same two path-scoped commands), scripts/render_phase_6_sc_screenshots.py:191 (f\"6 rows  (100 evaluated, 320 ms)\" — f-string with no placeholder, ruff F541), scripts/render_phase_6_sc_screenshots.py:151,208,220-221 (lines far past the formatter width)",
+    "notes": "A second, unenforced Python dialect in the repo, and CLAUDE.md's own commit rule ('Before any Python commit: ruff format <files> && ruff format --check sidecar') inherits the same blind spot. Low today because the only two files in scope are the throwaway screenshot generators (see COD-scripts-build-5); it becomes the next maintainer's problem the moment a real tool lands under scripts/. Fix shape: `ruff check sidecar scripts` and `ruff format --check sidecar scripts` in lint.yml:88-89 and package.json:19 — two words."
+  },
+  {
+    "raw_id": "COD-scripts-build-13",
+    "title": "Screenshot generators depend on an undeclared Pillow and silently collapse all three font sizes into one on macOS/Linux",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "sidecar/.venv/bin/python scripts/render_phase_6_e_screenshots.py -> ModuleNotFoundError: No module named 'PIL' (Pillow is in none of the four requirements files). With Pillow installed on macOS/Linux: load_font tries only the two C:/Windows/Fonts paths, both raise OSError, and returns ImageFont.load_default(), which ignores `size` — so fnt_small/fnt_med/fnt_lg are the same bitmap font and the 1920x1080 / 2560x1440 'pair' is one render at two canvas sizes.",
+    "evidence": "scripts/render_phase_6_e_screenshots.py:20 (from PIL import Image, ImageDraw, ImageFont), :37-48 (load_font: candidates = [\"C:/Windows/Fonts/consola.ttf\", \"C:/Windows/Fonts/cour.ttf\"]; except OSError: continue; return ImageFont.load_default()), :55-57 (three distinct sizes requested), scripts/render_phase_6_sc_screenshots.py:39-47 and :88-96 (same pattern), sidecar/requirements.txt + sidecar/requirements-dev.txt + sidecar/openbb_mcp_subprocess/requirements.txt + sidecar/sec_edgar_mcp_subprocess/requirements.txt (grep -i pillow: no hits)",
+    "notes": "Swallowed exception turning a failure into silently wrong output, plus an undeclared dependency. The 'two resolutions' the CLAUDE.md protocol demands are not actually two renders on the operator's own platform. Subsumed by COD-scripts-build-5's fix (delete both scripts and their mock PNGs); if they are kept for any reason, declare Pillow and raise when no truetype font resolves instead of degrading to load_default()."
+  },
+  {
+    "raw_id": "COD-scripts-build-14",
+    "title": "Subsystem has zero tests — including for sidecar-staleness.mjs, the one pure module in it, and the one carrying a proven bug",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "scripts-build",
+    "repro": "design — CODE_PARTITION.json entry scripts-build lists \"tests\": []. No scripts/*.test.mjs, no vitest coverage of scripts/.",
+    "evidence": "docs/redesign/verification/r15/census/CODE_PARTITION.json (scripts-build entry, \"tests\": []), scripts/sidecar-staleness.mjs:41-124 (pure, filesystem-only, 124 lines, exports isStale/assertFresh/newestSourceMtime), package.json:13 (\"test\": \"vitest run\")",
+    "notes": "The stated rationale — 'smoke-test-sidecars.mjs IS the test for the sidecar build' — holds for the binaries and not for the build logic: the smoke test cannot catch a staleness bug because it CONSUMES the same buggy predicate (assertFresh at smoke-test-sidecars.mjs:886). COD-scripts-build-1 is exactly the class of defect a ~40-line tmpdir vitest file would have caught the day it was written: mkdtemp, touch a .gz under the source dir, assert isStale(binary, dir) === true. Fix shape: one scripts/sidecar-staleness.test.mjs covering isStale true/false, the excludeDirs prune, the extraFiles path, and a non-.py bundled data file. No new tooling — vitest already runs in ci-local and CI."
+  }
+]

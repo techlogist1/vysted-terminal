@@ -1,0 +1,186 @@
+[
+  {
+    "idea_id": "retail-1",
+    "name": "Tip Ledger",
+    "one_liner": "Drop a Telegram Desktop chat export (or paste one tip): every call is extracted, resolved, scored against exchange price history at day 3/30/60, checked for a pre-message run-up, frozen so a later delete cannot erase it, and optionally shadow-tracked instead of bought.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/symbol_resolver.py:652 resolve + :827 _annotate_renamed_symbols",
+      "sidecar/services/nse_symbol_change.py (old-name tips)",
+      "sidecar/services/nse_provider.py:455 get_history, :617 get_corporate_actions",
+      "sidecar/services/bse_provider.py:377 get_history (BSE-only names)",
+      "sidecar/services/corporate_disclosures.py:265 get_announcements (tip claims checked against filings)",
+      "src/store/portfolios.ts:33 named portfolio as the shadow book",
+      "sidecar/services/agent_tools/catalog.py:1309 portfolio_add_position via src/store/proposed-changes.ts gate",
+      "sidecar/services/agent_runtime.py:344 prior-values preamble precedent"
+    ],
+    "new_parts": [
+      "file/paste ingest surface (composer has no attachment path today)",
+      "regex-first tip parser (CMP/TGT/SL) with LLM residue pass",
+      "tips SQLite store: source, message ts, raw text, resolved instrument + band, price-at-tip, claims, checkpoints",
+      "wake-time checkpoint job (day 30/60/90) + notification",
+      "Tip Ledger panel with per-source scorecard and survivorship caveat"
+    ],
+    "jarvis_axis": ["memory", "watching", "receipts", "initiative"],
+    "size": "M",
+    "risk": "A wrong symbol resolve yields a confident wrong verdict about a source the user trusts; mitigated by band-gated scoring, unresolved-listed-not-guessed, per-row receipts, user correction, arithmetic-only wording."
+  },
+  {
+    "idea_id": "retail-2",
+    "name": "Operator Radar",
+    "one_liner": "On wake, catch up the missed sessions from exchange daily archives and run deterministic manipulation-shape rules on held/watched names: trade-for-trade series migration, upper-band lock streaks, volume spikes, and price moves with a silent filings feed.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/fundamentals_warm.py:298 _bhavcopy_loop, :251 bhavcopy_refresh_once",
+      "sidecar/services/nse_bhavcopy.py:330 _fetch_day(day) for catch-up, :132 BhavRow.series, :129 volume, :120 throttle",
+      "sidecar/services/bse_provider.py:274 _bhavcopy_for(day), :238 series",
+      "sidecar/services/corporate_disclosures.py:265 get_announcements (movement-with-no-filing join)",
+      "sidecar/services/provider_health.py (visible ingest health)"
+    ],
+    "new_parts": [
+      "per-symbol 60-session ring in SQLite for holdings + watchlist only",
+      "delivery-% parse from the security-wise full bhavcopy (nse_bhavcopy.py:22,:95; BhavRow has no delivery field today)",
+      "admit SME series for watched symbols (dropped today at nse_bhavcopy.py:98)",
+      "POST /watch/sweep {symbols, since} called by the frontend on boot/focus",
+      "ASM/GSM/ESM surveillance-list lane (endpoint unverified)",
+      "rule engine + radar card; LLM narrates only fired rules"
+    ],
+    "jarvis_axis": ["watching", "initiative", "receipts"],
+    "size": "M",
+    "risk": "False positives on genuine re-ratings teach a nervous user to sell winners; wording must stay 'shape + thresholds + rows', never 'manipulated'. Archive format change blinds it unless ingest health is visible."
+  },
+  {
+    "idea_id": "retail-3",
+    "name": "Exit Door",
+    "one_liner": "A per-holding liquidity glyph: days-to-exit at a sane participation rate, zero-volume session count, SME lot arithmetic, and the longest historical lower-band lock streak - the 'can I actually get out?' number no retail tool shows.",
+    "on_floor_list": false,
+    "rides_on": [
+      "retail-2 session ring (sidecar/services/nse_bhavcopy.py:129, sidecar/services/bse_provider.py:274)",
+      "src/store/portfolios.ts:23 Holding",
+      "sidecar/models/broker_reads.py:77 BrokerHolding via sidecar/routers/brokers.py:225 (GET-only)",
+      "src/modules/portfolio/PortfolioPanel.tsx",
+      "sidecar/services/agent_tools/catalog.py:983 set_chart_symbol"
+    ],
+    "new_parts": [
+      "days-to-exit + lock-streak calculation",
+      "glyph column + hover card in the portfolio panel",
+      "SME lot-size source (not in any bundled master today)",
+      "one read_handler capability so the agent can answer 'can I get out of X?'"
+    ],
+    "jarvis_axis": ["initiative", "receipts"],
+    "size": "S",
+    "risk": "Reads as a sell signal; it is a property of the market for the stock, not a view on the company. A stale lot size must degrade to unknown, never a wrong count."
+  },
+  {
+    "idea_id": "retail-4",
+    "name": "I Noticed You Bought",
+    "one_liner": "Diff successive read-only holdings snapshots, ask one line of 'why' for each new position, freeze the world-state at that moment, and return months later with a review of the user's own decisions - reasons given vs returns.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/routers/brokers.py:225-231 GET holdings",
+      "sidecar/models/broker_reads.py:77-87 BrokerHolding",
+      "src/store/portfolios.ts (manual diff source without a broker)",
+      "src/lib/brief-claims.ts:46 extractBriefClaims + types/research-space.ts:35-44 claim shape",
+      "src/store/notes.ts:31 appendSymbolNote via catalog.py:1374 write_note",
+      "sidecar/services/agent_tools/catalog.py:1177 publish_brief",
+      "sidecar/services/nse_provider.py:617 get_corporate_actions (a bonus is not a buy)"
+    ],
+    "new_parts": [
+      "holdings_snapshots + decisions SQLite store",
+      "gap-tolerant, corporate-action-aware diff",
+      "ask-card (one per new name, dismissible forever)",
+      "periodic decision-review brief"
+    ],
+    "jarvis_axis": ["watching", "memory", "initiative"],
+    "size": "M",
+    "risk": "Nagging. Also Kite's daily token expiry makes snapshots irregular, so the diff must never misread a gap or a corporate action as a trade. No order surface is touched."
+  },
+  {
+    "idea_id": "retail-5",
+    "name": "Calm Protocol",
+    "one_liner": "When a holding falls hard, run a fixed five-check triage in under a minute (filing today? peers? index? volume? radar?), say 'market' or 'company' with receipts, and quote back the selling rule the user wrote when calm.",
+    "on_floor_list": false,
+    "rides_on": [
+      "watchlist 5s quote poll (docs/CURRENT_STATE.md section 3.9)",
+      "sidecar/services/agent_tools/catalog.py:655 corporate_announcements, :262 market_overview",
+      "sidecar/services/fundamentals_store.py:561 query + sidecar/services/symbol_resolver.py:306 sector map (peers)",
+      "src/lib/desktop-notification.ts + sidecar/services/workflow_nodes/builtin.py:325",
+      "src/store/onboarding.ts (rule capture)",
+      "sidecar/routers/disclosures.py:39 15-min announcements TTL (re-check cadence)"
+    ],
+    "new_parts": [
+      "drop trigger on held symbols",
+      "deterministic checklist runner (tool calls, not free reasoning)",
+      "typed 'my rules' field in the workspace blob (four-call-site rule)",
+      "notification intents generalised beyond workflow runs",
+      "triage card with check timestamps"
+    ],
+    "jarvis_axis": ["initiative", "memory", "receipts"],
+    "size": "M",
+    "risk": "Calling it 'the market' minutes before a company filing lands; the card must carry its check time and re-run on the next TTL. Only works while the app is open - must say so."
+  },
+  {
+    "idea_id": "retail-6",
+    "name": "The Crowd Arrived",
+    "one_liner": "Parse shareholder COUNTS (not just percentages) out of the quarterly shareholding XBRL and flag the distribution picture: retail holders multiplying while promoters and large holders shrink - with the three filings as receipts.",
+    "on_floor_list": false,
+    "rides_on": [
+      "sidecar/services/bse_provider.py:612 get_shareholding, :694 parse_shp_xbrl (reads only :594 _SHP_PCT_CONCEPT today)",
+      "sidecar/models/announcements.py:82-138 ShareholdingPattern (no count field; xbrl_url at :124)",
+      "sidecar/services/agent_tools/catalog.py:686 shareholding_pattern",
+      "docs/redesign/verification/r15/census/world/fey-tijori-trendlyne.md O-7 (4-quarter pledge/promoter derivative shares the card)"
+    ],
+    "new_parts": [
+      "holder-count XBRL fact parse (concept name to be read off a real filing)",
+      "optional model fields + types/ mirror in the same commit",
+      "conjunction rule (holders up AND insiders down) + ownership card"
+    ],
+    "jarvis_axis": ["watching", "receipts"],
+    "size": "S",
+    "risk": "A legitimate re-rating also grows the holder base; only the conjunction is a signal and both legs must be shown. XBRL taxonomy revisions must degrade to 'count unavailable'."
+  },
+  {
+    "idea_id": "retail-7",
+    "name": "Seven Pages",
+    "one_liner": "A guided first read of an annual report for someone who has never opened one: the seven sections a professional reads first, each finding pinned to a PDF page that opens on click, with one-line explanations of terms the user has not met yet - and never twice.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/services/search/extract.py:436 extract_pdf_text, :506/:534 pages_used, :398 scanned-pages honesty",
+      "sidecar/services/research/citecheck.py (citation integrity)",
+      "sidecar/services/run_manager.py:237 launch_run + budget_guard (durable DEEP run)",
+      "sidecar/services/agent_tools/catalog.py:1177 publish_brief"
+    ],
+    "new_parts": [
+      "annual-report mode: whole-document section finder with per-paragraph page numbers (today capped at 60 pages / 15 MB / 6 kept: extract.py:65,:51,:68)",
+      "annual-report locator per scrip (endpoint unverified)",
+      "url#page=N receipts via the granted shell open",
+      "learnedTerms map in the workspace blob",
+      "quote-is-on-that-page verification before emitting a receipt"
+    ],
+    "jarvis_axis": ["receipts", "memory"],
+    "size": "M",
+    "risk": "An off-by-one page (PDF index vs printed folio) destroys the receipt's credibility; scanned micro-cap reports defeat text extraction and must say so per page."
+  },
+  {
+    "idea_id": "retail-8",
+    "name": "While You Were Away",
+    "one_liner": "The app opens to a brief instead of a blank composer: filings on your holdings since a per-symbol last-seen cursor, routine ones collapsed, the one that matters opened, plus due tip checkpoints, radar flags and results-day prep.",
+    "on_floor_list": true,
+    "rides_on": [
+      "sidecar/routers/disclosures.py:44 announcements route, :39 TTL",
+      "sidecar/models/announcements.py:41 ts",
+      "sidecar/services/research/disclosures.py:50,:61 headline regexes, :185 fetch_results_calendar (no UI surface today per census TS-5)",
+      "src/modules/chat/SuggestionChips.tsx:29 empty-state slot",
+      "src/lib/desktop-notification.ts"
+    ],
+    "new_parts": [
+      "per-symbol last-seen cursor in the workspace blob (none exists today)",
+      "deterministic routine-filing classifier with a visible 'unclassified' bucket",
+      "wake brief card",
+      "wake-driven scheduled intents ('prep me the evening before results')"
+    ],
+    "jarvis_axis": ["initiative", "watching"],
+    "size": "S",
+    "risk": "Filing a material item under 'routine'; bias to over-surface and never hide the routine list. BSE's 30-day window (corporate_disclosures.py:88) and 50-row limit (:71) silently truncate long absences unless stated."
+  }
+]

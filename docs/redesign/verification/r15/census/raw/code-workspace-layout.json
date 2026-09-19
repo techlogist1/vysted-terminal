@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-workspace-layout-1",
+    "title": "Loading a named workspace silently rolls back portfolios, watchlist, notes, brief, settings, keybindings and the whole research-memory archive to save-time",
+    "severity": "critical",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "Save layout 'Swing' (week 1) -> add holdings / write notes / create research spaces (week 2) -> Load Workspace 'Swing' -> deserializeWorkspace overwrites every store from the week-1 blob (portfolios.setAll, notes.fromBundle, researchSpaces.replaceAll, settings.setAll, keybindings.setOverrides ...) and the page.tsx subscriptions immediately autosave the rollback over __autosave__. No undo, no warning.",
+    "evidence": "src/lib/workspace.ts:198-226 (every named save captures ALL global state), src/lib/workspace.ts:283-289 (watchlist + portfolios overwritten), :322-347 (keybindings/settings/search/brief/notes), :351-355 (researchSpaces.replaceAll = wholesale archive replace, src/store/research-spaces.ts:124), src/app/page.tsx:108-117 (rollback autosaved at once); UI text promises otherwise: src/modules/platform/WorkspaceDialog.tsx:82-84 'Saves the current panel layout and the enabled modules', :228-230 'Restores a saved panel layout and its enabled modules'",
+    "notes": "APOSD better-together/apart + naming: one blob conflates PER-WORKSPACE state (layout, enabledModules, drawings, researchSymbol) with GLOBAL user data (portfolios, watchlist, notes, settings, keybindings, model/provider prefs, research archive). Consequence: a 'layout' load destroys money-relevant user data and shows a stale portfolio as current. Smallest fix: split the restore in deserializeWorkspace into applyLayoutSlice (always) and applyGlobalSlice (ONLY on the boot restore of __autosave__); loadWorkspace of a named workspace applies the layout slice only. No sidecar change needed."
+  },
+  {
+    "raw_id": "COD-workspace-layout-2",
+    "title": "Research spaces can never be saved: the sidecar rejects the name 'Research: TICKER' (HTTP 400) — feature is test-green and product-broken since it shipped",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "curl -X POST http://127.0.0.1:52152/workspace -H 'Content-Type: application/json' -d '{\"name\":\"Research: NVDA\",\"workspace\":{}}' -> 400 {\"detail\":\"Invalid workspace name 'Research: NVDA': use letters, digits, spaces, hyphens, or underscores.\"} (run live on the isolated sidecar). Same for GET/DELETE. Also rejected: 'Research: RELIANCE.NS', 'Research: M&M', 'My Layout (2)', any non-ASCII (Hindi) name. In-app: New Research Space -> 'Could not save workspace \"Research: NVDA\" (HTTP 400).' AFTER the cockpit was already cleared and re-tiled.",
+    "evidence": "sidecar/services/workspace_store.py:31 (_SAFE_NAME = ^[A-Za-z0-9 _-]+$ — no colon), src/lib/workspace.ts:560-565 (RESEARCH_SPACE_PREFIX = 'Research: '), :627-637 (switchSpace + setResearchSymbol + api.clear()/re-tile happen BEFORE the doomed saveWorkspace; no rollback), :408-410 (sidecar `detail` discarded -> user sees only 'HTTP 400'); masked by src/lib/workspace.test.ts:392 (fetch mocked ok:true) and sidecar/tests/test_workspace.py (never posts a real frontend name). git: regex from 3d6f08e predates research spaces 58b48b4.",
+    "notes": "Information leakage across the sidecar boundary: the name rule lives only in Python, the name generator only in TS, and each side's tests mock the other. Consequence: per-stock research spaces (a headline 003 feature + the S-19 durable agent memory keyed on them) never appear in Load Workspace; symbols with . or & can't be fixed by dropping the colon alone. Smallest fix: define the error out of existence — sidecar maps any name to a safe filename (urllib.parse.quote(name, safe=' _-') + suffix, unquote on list) instead of rejecting; add one contract test posting researchSpaceName('M&M') at the real router."
+  },
+  {
+    "raw_id": "COD-workspace-layout-3",
+    "title": "Autosave is neither gated on restore nor serialized: a burst of PARTIAL full-blob POSTs fires mid-restore and the last one drops researchSymbol + the research-memory archive",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "workspace-layout",
+    "repro": "pnpm exec vitest run on docs/redesign/verification/r15/census/code/evidence/workspace-layout-repro.test.ts.txt (copy into src/lib/*.test.ts; PASSED 2/2): with the page.tsx subscriptions installed, deserializeWorkspace(blob) issues >1 POST during the restore; POST[0] has 0 holdings (portfolios not yet restored); the LAST POST has no researchSymbol and researchSpaces.byName == {} although the blob carried both. Relaunch -> quit without touching anything => research memory wiped on disk.",
+    "evidence": "src/components/PanelHost.tsx:147 (dockviewApi set BEFORE restore) + :164-166 (stated intent: 'THEN begin autosaving — so the first autosave reflects a genuine user change, not the restore itself'), src/app/page.tsx:108-181 (10 subscriptions live from mount, each `void autosaveLayout()`), src/lib/workspace.ts:541-556 (autosaveLayout: no restore gate, no debounce, no single-flight) vs false comment src/app/page.tsx:171-172 ('autosaveLayout is debounced'), workspace.ts:351-370 (researchSpaces.replaceAll / setResearchSymbol run AFTER the last subscribed store), src/lib/sidecar-client.ts:125-127 (restore awaits a /health gate of up to 120 s — the pre-restore window in which any dock toggle/settings click queues an EMPTY-default autosave that races the restore GET), sidecar/services/workspace_store.py:72-79 (store admits concurrent writers; atomic rename only makes it last-writer-wins, not newest-wins)",
+    "notes": "Temporal coupling held by a comment, not structure; pull-complexity-down violated (debounce lives in one caller, PanelHost:187-193). Consequence: every launch writes N partial snapshots concurrently (sync FastAPI route -> threadpool, order not guaranteed) so a partial one can win; the deterministic last one already loses S-19 memory. Smallest fix inside workspace.ts: a module flag `restoreSettled` (set in restoreLastSessionOrDefault's finally) that makes autosaveLayout no-op until then, plus trailing-edge debounce + single-flight INSIDE autosaveLayout (then delete PanelHost's private timer and fix the page.tsx comment)."
+  },
+  {
+    "raw_id": "COD-workspace-layout-4",
+    "title": "Any layout-level restore failure discards ALL non-layout state (portfolios, notes, watchlist, settings...) and the next autosave overwrites the blob for good",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "workspace-layout",
+    "repro": "Proven by repro test #2 (same evidence file): autosave blob whose layout references a component id not registered at boot (renamed across an upgrade, removed/late-registering plugin panel) -> restoreLastSessionOrDefault returns false via the skip path; portfolios/notes stores stay at defaults (holdings.length == 0). Same outcome when api.fromJSON throws (:264-269 rethrows before any other store is restored) or the GET fails. The first subsequent autosave then persists the defaults over the user's blob.",
+    "evidence": "src/lib/workspace.ts:512-515 (skip path returns before deserializeWorkspace; also applies default WITHOUT api.clear(), unlike :531), :262-270 (layout restored FIRST, throw aborts the remaining 15 store restores), :522-533 (catch -> default), src/components/PanelHost.tsx:180-193 (constraint sweep + layout-change autosave then overwrite); sibling inconsistency: loadWorkspace :417-433 has NO unknown-component guard and no clear/rebase although the doc at :463-470 says such a fromJSON 'half-mutates the grid'",
+    "notes": "Ordering makes user data hostage to the most fragile step (dockview fromJSON). Consequence: one component-id rename in a release silently wipes every upgrading user's holdings/notes/research memory at first launch. Smallest fix: in deserializeWorkspace restore the non-layout slices FIRST (or in a finally), call it from the skip path too, run the unknown-component guard inside deserializeWorkspace so both callers get it, and have the sidecar keep one `<name>.vysted-workspace.bak` on overwrite."
+  },
+  {
+    "raw_id": "COD-workspace-layout-5",
+    "title": "Three blob fields have NO autosave trigger (chart drawings, keybinding overrides, research-space memory) while others have two or three — the 'every field needs a trigger' invariant is prose, implemented three different ways",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "Draw a trendline (ChartPanel addDrawing) or remap a shortcut (SettingsPanel setBinding) -> quit without moving a panel or touching a subscribed store -> relaunch: gone. grep -rln autosaveLayout src => only page.tsx, PanelHost, brief.ts, settings.ts, search-settings.ts, SettingsPanel, OnboardingFlow; nothing in chart-drawings.ts / keybindings.ts / research-spaces.ts / ChartPanel.tsx.",
+    "evidence": "src/lib/workspace.ts:202,217,225 (fields serialized) with no trigger: src/store/chart-drawings.ts (no autosave), src/store/keybindings.ts (none), src/store/research-spaces.ts (none), src/modules/chart/ChartPanel.tsx:671,697,1076; convention A = src/app/page.tsx:108-181 subscriptions, convention B = self-persisting stores src/store/settings.ts:112-113, src/store/search-settings.ts:348, src/store/brief.ts:103, convention C = call-site src/components/SettingsPanel.tsx:493,627; double/triple fire: brief (brief.ts:103 + page.tsx:166-169), searchSettings (search-settings.ts:348 + page.tsx:155-161), defaultProvider (SettingsPanel:493 + page.tsx:137-139); rule lives in CLAUDE.md 'Persisted UI state rides the workspace blob' gotcha",
+    "notes": "Change amplification + unknown unknowns: adding a field needs 4 edits in 3 files (interface, buildWorkspacePayload, deserializeWorkspace, a trigger) and only the first three are single-sourced. Smallest structural fix: one PERSISTED_SLICES table in workspace.ts ({key, read(), restore(value), subscribe(cb)}) that buildWorkspacePayload, deserializeWorkspace and ONE trigger-wiring loop iterate; delete page.tsx:108-181 and the three store-level persist() helpers."
+  },
+  {
+    "raw_id": "COD-workspace-layout-6",
+    "title": "Screener saved screens never ride the blob — setSavedScreens is documented as 'used by deserializeWorkspace' but has zero callers",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "Screener -> save a screen -> relaunch -> Saved screens list is empty. grep -rn 'setSavedScreens\\|savedScreens' src (non-test) => only src/store/screener.ts and the read in ScreenerPanel.tsx:93,323-326; no field in SerializedWorkspace.",
+    "evidence": "src/store/screener.ts:68 ('persisted by the store, wired to workspace by the lead'), :224-225 ('used by the workspace restore path (deserializeWorkspace)'), :637; src/lib/workspace.ts:45-155 (no savedScreens field), :198-226, :245-371 (never read/written)",
+    "notes": "A comment asserts wiring that does not exist — the exact half-persist failure buildWorkspacePayload's doc (:176-181) says can 'never' happen. Consequence: user-authored screens are session-only. Fix is one slice in the registry from finding 5 (or 3 lines: field + payload + restore + a trigger)."
+  },
+  {
+    "raw_id": "COD-workspace-layout-7",
+    "title": "Autosave failure is invisible end-to-end: non-2xx ignored, exceptions swallowed without a log, OSError unmapped in the router, no fetch timeout anywhere",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "design — make the workspaces dir read-only / disk full: save_workspace raises OSError -> bare 500 (no CORS headers, per the repo's own CORS-masks-500 gotcha); autosaveLayout never inspects the response, so every autosave of the session fails silently and the user discovers it at next launch.",
+    "evidence": "src/lib/workspace.ts:546-555 (`await fetch(...)` result discarded; `catch {}` with no console.warn, unlike the restore path :524), sidecar/routers/workspace.py:53-60 (only WorkspaceNameError mapped; siblings :45-50/:66-71 map two), :36-39 (list unguarded), src/lib/workspace.ts:382,403,422,500,548,647 (six raw fetches, no AbortSignal/timeout, bypassing sidecar-client's detail extraction src/lib/sidecar-client.ts:197-205)",
+    "notes": "Errors masked at the wrong level (APOSD ch.10: mask only where the caller truly needs nothing). 'Best-effort' is right for ONE transient failure, wrong for a persistent one. Smallest fix: check response.ok, console.warn, and set a `lastAutosaveError` on the workspace store after N consecutive failures so the shell can show a 'not saving' badge; map OSError -> 507/500 with detail in the router."
+  },
+  {
+    "raw_id": "COD-workspace-layout-8",
+    "title": "A corrupt workspace file is reported as 'missing', then overwritten by the next autosave — no quarantine, no backup, for the file that holds portfolios + notes",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "workspace-layout",
+    "repro": "printf '{\"trunc' > <data-dir>/workspaces/__autosave__.vysted-workspace -> GET /workspace/__autosave__ = 404 -> frontend boots default -> first autosave os.replace()s the damaged file. The file still appears in GET /workspace (list uses glob, not parse) so a named corrupt workspace shows in the list and 404s on load.",
+    "evidence": "sidecar/services/workspace_store.py:108-112 (JSONDecodeError -> WorkspaceNotFoundError), :58-66 (list by glob only), :80-94 (single slot overwritten in place, no .bak), :109 (a valid-JSON non-object, e.g. `[]`, is returned and then fails the router's dict response model -> 500, routers/workspace.py:43)",
+    "notes": "Masking corruption as not-found destroys the evidence and the only recovery copy. Smallest fix: on decode failure rename to `<name>.corrupt-<ts>` before raising; on save, os.replace the previous file to `.bak` first; reject non-dict in load_workspace."
+  },
+  {
+    "raw_id": "COD-workspace-layout-9",
+    "title": "Agent arrange appliers defer to requestAnimationFrame but report success synchronously — on an occluded window the arrangement has not happened (the repo's own comments say rAF halts there)",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "workspace-layout",
+    "repro": "design — arrange_layout while the Tauri window is occluded/unfocused: fitLayoutTemplate/applyCustomLayout/applyContentAwareLayout return immediately; host-actions returns 'Arranged the research cockpit layout' and the agent narrates it; applyPlan runs only when the window is next painted. Any throw inside the rAF callback (disposed api after HMR, dockview addPanel error) is an uncaught exception outside the host-action's error path.",
+    "evidence": "src/lib/layout-templates.ts:310-315, :341-347, :411-416, :620-625 (same rAF scheduling snippet copy-pasted 4x, no liveness re-check) vs :697-698 ('Synchronous (no rAF — which throttles to a halt on an occluded WKWebView)') and :718-719, src/components/PanelHost.tsx:177-179 (same warning); callers src/lib/host-actions.ts:1002-1008, :1031-1036, :1047-1069",
+    "notes": "Consistency + design-it-twice: the file contains both designs and its own comments say which one is wrong. This re-creates the 'agent narrated an arrangement that never happened' bug class the comment at :774-777 describes. Smallest fix: delete the four rAF wrappers and call applyPlan synchronously (applyLayoutMode/applyResearchSpaceLayout prove it is safe) — net negative LOC."
+  },
+  {
+    "raw_id": "COD-workspace-layout-10",
+    "title": "The same template id means a different layout per entry point, and the LLM-facing tool description has drifted from all of them",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "workspace-layout",
+    "repro": "design — 'single-focus': agent path = ONE maximized chart (planLayout) but menu path = chart + watchlist + news; 'compare': agent = one maximized chart, menu = chart + equity overview, tool description = 'dual charts side by side'; 'macro-scan' description = 'heatmap + chart + screener' but no heatmap panel exists; 'single-focus' description = 'full-width chart + stats' (no stats panel is placed).",
+    "evidence": "src/lib/layout-templates.ts:188-194 vs :662-669 (single-focus), :223-234 (compare: 'Do NOT add a second chart panel') vs :681-687 vs sidecar/services/agent_tools/catalog.py:1122-1125, layout-templates.ts:236-258 ('no dedicated heatmap panel id exists yet'), :638-640 ('payload ids are historical fossils ... read the role, not the literal id'); third 'research' variant :732-760 and fourth :380-392",
+    "notes": "Naming/obviousness: a reader (or the model) cannot know what 'compare' does without knowing who called it. Consequence: the agent promises 'dual charts' / a heatmap the host cannot produce; four hand-written 'research' plans drift independently. Smallest fix: rename the MODE_PLANS keys to their real roles (fundamental/technical/macro/compare-mode) with the fossil ids mapped once in menu-bridge, and generate the catalog description's per-template panel list from planLayout()."
+  },
+  {
+    "raw_id": "COD-workspace-layout-11",
+    "title": "resetToDefaultLayout is a factory reset (wipes ALL chart drawings, re-enables every disabled module) hiding behind a 'layout' name — and it is arrange_layout's DEFAULT and unknown-pattern fallthrough",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "workspace-layout",
+    "repro": "arrange_layout {} (schema default pattern='default') or any unrecognised pattern string -> host-actions.ts:1071 ws.resetToDefaultLayout() -> useChartDrawingsStore.replaceAll({byPanel:{}}) + setEnabledMap({}). The review gate describes it only as 'Layout: the default cockpit (clears layout customisations)'; under autonomy 'auto' it applies without review.",
+    "evidence": "src/store/workspace.ts:75-76 (interface doc: 'Clear the cockpit and re-apply the bundled default layout'), :145-165 (actual: setEnabledMap({}) :154, drawings wiped :155), src/lib/host-actions.ts:987 (`|| 'default'`), :1071-1072, :684-689 (gate text), sidecar/services/agent_tools/catalog.py:1147 (`\"default\": \"default\"`)",
+    "notes": "Interface comment contradicts implementation; a destructive operation is the default branch of a cosmetic tool. Consequence: a model that omits `pattern` while 'tidying' deletes the user's drawn levels. Smallest fix: make arrange's default/unknown branch call a layout-only reset (api.clear + applyDefaultLayout), keep the factory reset for the explicit Settings/menu 'Reset', and state the drawings/module effect in the gate text."
+  },
+  {
+    "raw_id": "COD-workspace-layout-12",
+    "title": "The reserved __autosave__ slot is hidden by caller convention only: the Load Workspace dialog lists it with Load and Delete buttons, and Save accepts '__x' names that then vanish from Settings",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "workspace-layout",
+    "repro": "GET http://127.0.0.1:52152/workspace -> [\"__autosave__\"] (live). WorkspaceDialog LoadWorkspaceList renders listWorkspaces() unfiltered -> a fresh user sees '__autosave__' instead of the 'No saved workspaces yet' empty state; Delete removes the live session slot; Load sets the active name to '__autosave__' (only the boot path renames it to 'default', workspace.ts:519). Save dialog: name '__mine' saves fine, then is filtered out of Settings > Layouts.",
+    "evidence": "src/store/workspace.ts:22-27 (isReservedLayoutName), src/components/SettingsPanel.tsx:1598 (the one caller that filters), src/modules/platform/WorkspaceDialog.tsx:172-176 and :214 (no filter), :99 (save guard = non-empty only), src/lib/workspace.ts:381-391 (listWorkspaces returns raw), sidecar/services/workspace_store.py:58-66 (sidecar has no notion of reserved)",
+    "notes": "Pull complexity downward: the module that invented the reserved slot should hide it. Smallest fix: filter inside listWorkspaces() and reject reserved names in saveWorkspace()/deleteWorkspace() (autosaveLayout posts directly, so it is unaffected)."
+  },
+  {
+    "raw_id": "COD-workspace-layout-13",
+    "title": "Panel id<->component truth is hand-copied into six tables with no parity test; a drifted id silently mints duplicate panels (it already happened once)",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "design — today all 25 ARRANGEABLE entries match registered PanelSpecs (checked by script), but nothing enforces it: grep 'ARRANGEABLE\\|PanelSpec\\|modules' src/lib/layout-templates.test.ts => no match. Two 'rail' definitions already disagree: portfolio is a rail panel in the store and a score-60 MAIN panel in the content-aware planner.",
+    "evidence": "src/lib/layout-templates.ts:27-31 (comment: 'MUST match ... a drifted id here silently duplicates a panel'), :32-61 ARRANGEABLE, :166-175 PANEL, :461-472 MAIN_SCORES keys, :450-456 RAIL_PANELS vs src/store/workspace.ts:31 RAIL_PANEL_IDS, src/config/default-layout.ts:32-58 DEFAULT_PANELS, layout-templates.ts:655-686 string literals; prior drift + its permanent cleanup code: src/lib/workspace.ts:435-460 migrateLegacyLayout",
+    "notes": "Invariant held by a comment when a 10-line test could hold it. Smallest fix: one vitest asserting every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a PanelSpec in vystedModules; derive PANEL from ARRANGEABLE; export one RAIL set."
+  },
+  {
+    "raw_id": "COD-workspace-layout-14",
+    "title": "Absent-vs-empty restore semantics differ per field: an emptied watchlist resurrects the default symbols on relaunch",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "workspace-layout",
+    "repro": "Remove every symbol from the watchlist -> autosave writes watchlist: [] -> relaunch: deserializeWorkspace skips the restore because length == 0 -> store keeps DEFAULT_SYMBOLS -> the defaults are back.",
+    "evidence": "src/lib/workspace.ts:283-285 (`workspace.watchlist.length > 0` guard), src/store/symbols.ts:43 (seed = DEFAULT_SYMBOLS); contrast :272-276 (drawings: absent -> RESET), :341-347 (brief/notes: key-presence, null is valid), :278-280 (provider: absent -> keep)",
+    "notes": "Consistency: three different 'older blob' conventions in one function; the watchlist one conflates 'field absent' with 'user chose empty'. Fix: guard on Array.isArray only."
+  }
+]

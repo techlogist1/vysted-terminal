@@ -21,7 +21,12 @@ orchestrates; you do one bounded job and return.
   from source exactly like this, on the port you were given, and stop it (kill the `sleep`)
   when done:
   `cd sidecar && (sleep 86400 | ./.venv/bin/python3 main.py --host 127.0.0.1 --port <PORT> --data-dir <YOUR_DIR> > <LOG> 2>&1 &)`
-  (stdin must stay open or the sidecar exits instantly). Always pass `--data-dir`.
+  (stdin must stay open or the sidecar exits instantly). Always pass `--data-dir`. A sidecar
+  from a DEAD previous attempt at your task may already be listening on your port (the run has
+  hit power loss and usage walls): `curl -s 127.0.0.1:<PORT>/health` first and REUSE it instead
+  of starting another.
+- Temporary proof tests go under your scratch dir, never inside `src/` or `sidecar/` (a dead
+  worker's stray test file would break the chain).
 - LLM-backed drives go ONLY through `scripts/r15/vy.py` (it reads the key in-process, never
   prints it, logs every call to the spend ledger and enforces the budget cap). Never read,
   print or copy `dev-keystore.json` yourself. Default model = the free lane. Always pass

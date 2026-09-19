@@ -1,0 +1,204 @@
+[
+  {
+    "idea_id": "quant-1",
+    "name": "Vintage — the point-in-time tape",
+    "one_liner": "Stop overwriting: append every daily bhavcopy row and every changed fundamentals value with observed_at, so screens, backtests and briefs can run 'as of' any date on a survivorship-free universe the user's own machine recorded.",
+    "rides_on": [
+      "sidecar/services/nse_bhavcopy.py:92-101 (date-addressable archive URL, 7-day cache that forgets)",
+      "sidecar/services/nse_bhavcopy.py:124-133 (BhavRow)",
+      "sidecar/services/fundamentals_warm.py:251-298 (daily bhavcopy loop)",
+      "sidecar/services/fundamentals_store.py:122-123,473-484 (one row per symbol, ON CONFLICT upsert)",
+      "sidecar/services/nse_symbol_change.py:323 (lookup_current(symbol, as_of) already PIT)",
+      "sidecar/services/bse_provider.py:155-163 (accidental raw BSE archive outside the data dir)",
+      "sidecar/services/screener.py:683-821 (data_as_of already on results)",
+      "sidecar/services/agent_tools/catalog.py:394 (screener_run)"
+    ],
+    "new_parts": [
+      "eod_bars table (trade_date, symbol, series) appended in bhavcopy_refresh_once",
+      "fund_obs change-data-capture table on non-price-derived fields",
+      "wake-time gap backfill by missing trade date",
+      "as_of parameter on screener_run + 'as of' chip on the screener panel",
+      "bundled 1-year eod_bars seed; storage row + compaction switch in Settings"
+    ],
+    "jarvis_axis": ["memory", "receipts"],
+    "size": "M",
+    "risk": "Fundamentals are PIT only from install day forward; must be labeled 'observed since <date>' or it becomes the lie it exists to prevent. Archive backfill depth unprobed; bhavcopy format changes must write a visible gap, never a silent empty day."
+  },
+  {
+    "idea_id": "quant-2",
+    "name": "Drift Ledger — the number changed, and here is who changed it",
+    "one_liner": "Detect when a vendor silently revises a historical value (no new fiscal period, no filing, no corporate action), and show which saved screens and published brief claims flip because of it.",
+    "rides_on": [
+      "quant-1 fund_obs",
+      "sidecar/services/corporate_disclosures.py:265 (get_announcements — explains a change)",
+      "sidecar/services/nse_provider.py:617 (get_corporate_actions — explains a change)",
+      "sidecar/services/screener_formula.py:563 (evaluate_formula for impact)",
+      "src/store/screener.ts:69 (SavedScreen)",
+      "src/lib/brief-claims.ts:47 + src/store/research-spaces.ts:156-173 (claims ledger)"
+    ],
+    "new_parts": [
+      "drift classifier: explained-by-filing / explained-by-corporate-action / unexplained vendor revision",
+      "impact join over saved screens + claims",
+      "drift card + receipts view (both observations, timestamps, providers)",
+      "per-field tolerance bands + fixture suite of benign drifts"
+    ],
+    "jarvis_axis": ["watching", "receipts", "initiative"],
+    "size": "S",
+    "risk": "False alarms on legitimate TTM rolls get it muted; the 'period did not advance' test must be strict and unexplained-only the default."
+  },
+  {
+    "idea_id": "quant-3",
+    "name": "Honesty Card + Trial Ledger",
+    "one_liner": "Every backtest ships a deterministic audit — next-open fill delta, data-basis mix, India cost realism, volume participation, survivorship flag, sample size — plus a persisted count of how many variants were tried on that symbol set, deflating the headline Sharpe.",
+    "rides_on": [
+      "sidecar/services/backtest_engine.py:226-288 (_compute_metrics), :321 (same-bar close fill), :199-202 (_apply_fees), :459-483 (sub-period slicing named walk-forward)",
+      "sidecar/services/bar_loader.py:139-151 (provider label discarded)",
+      "sidecar/services/yfinance_provider.py:277 (unlabeled adjusted history)",
+      "sidecar/services/backtest_store.py:1-12 (in-memory LRU, runs not durable)",
+      "sidecar/services/runs_store.py:55 (SQLite persistence pattern)",
+      "sidecar/agents/strategy_critic.json:6 (critic has no deterministic facts)",
+      "src/modules/backtest/BacktestResultView.tsx:506 (warnings already rendered)",
+      "sidecar/services/agent_tools/catalog.py:843,858 (backtest_summary, run_custom_backtest)"
+    ],
+    "new_parts": [
+      "honesty block on BacktestResult (look-ahead delta, basis, costs, participation, survivorship, n)",
+      "SQLite trial ledger keyed by hash(symbol set, window) + deflated/haircut Sharpe as a banded verdict",
+      "dated India fee preset (STT, stamp duty, exchange + GST, brokerage)",
+      "card fed to strategy_critic through backtest_summary",
+      "census note: equity curve is per bar not per day (backtest_engine.py:313,391-397) so multi-symbol metrics are mis-annualised today"
+    ],
+    "jarvis_axis": ["receipts", "memory", "initiative"],
+    "size": "M",
+    "risk": "Deflation maths shown with false precision; ship a banded verdict (anecdote / suggestive / robust) with the formula one click away. Statutory charges change with budgets."
+  },
+  {
+    "idea_id": "quant-4",
+    "name": "Incubator — frozen rules with a tamper-evident out-of-sample record",
+    "one_liner": "Freeze any saved screen or DSL rule; the terminal evaluates it every session (replaying missed days deterministically on wake) into an append-only, hash-chained signal log and reports in-sample vs out-of-sample decay. It scores; it never proposes or places anything.",
+    "rides_on": [
+      "quant-1 eod_bars",
+      "sidecar/services/screener_formula.py:441 (compile_formula)",
+      "sidecar/services/backtest_dsl.py:13-27 (DSL grammar)",
+      "sidecar/services/fundamentals_warm.py:298 (daily loop)",
+      "sidecar/models/audit_log.py:40-46 (append-only trigger idiom — copied into a NEW db, §6.5 files untouched)",
+      "sidecar/services/workflow_nodes/__init__.py:54 (action.notify_desktop)"
+    ],
+    "new_parts": [
+      "frozen-rule store {rule_hash, frozen_at, definition, evaluator_version}",
+      "signal_log table with append-only triggers + previous-row hash",
+      "wake-time deterministic replay stamped replayed_on_wake; next-open booking",
+      "Incubator tab in the backtest panel; incubator_status read capability",
+      "names kept outside the place_/submit_/execute_ grep gate"
+    ],
+    "jarvis_axis": ["watching", "memory", "receipts"],
+    "size": "M",
+    "risk": "A forward record gets read as advice; needs n and dispersion beside every number. Evaluator changes must refuse to continue an old rule rather than re-interpret it."
+  },
+  {
+    "idea_id": "quant-5",
+    "name": "Rule Forge — event studies from any predictive sentence",
+    "one_liner": "A predictive claim in a brief gets a flask button: the LLM drafts a typed EventSpec once, the user approves it, and a deterministic event study over exchange disclosures returns CAR, n, t-stat, hit rate, top-3 contribution and the filing behind every event — usually concluding 'not distinguishable from noise'.",
+    "rides_on": [
+      "sidecar/services/agent_tools/catalog.py:655-684 (corporate_announcements: category, timestamp, PDF URL)",
+      "sidecar/services/corporate_disclosures.py:265",
+      "sidecar/services/bar_loader.py:160 (load_bars for the benchmark leg)",
+      "sidecar/services/search/extract.py:49-65 (PDF lane)",
+      "sidecar/services/research/verify.py:137 (claim extraction)",
+      "quant-1 tape, quant-3 trial ledger, quant-4 freeze"
+    ],
+    "new_parts": [
+      "event-study engine (pure python statistics): timestamp-to-tradable-session, market-adjusted CAR, dispersion, contribution",
+      "EventSpec type + approval through the proposed-changes gate",
+      "announcement category map with a visible 'unclassified' bucket + fixtures",
+      "accruing cross-sectional announcement archive",
+      "event_study read capability"
+    ],
+    "jarvis_axis": ["initiative", "receipts"],
+    "size": "L",
+    "risk": "Cross-sectional announcement history per category is unprobed (current fetcher is per-symbol, nse_provider.py:575-594); with thin history the honest product is an anecdote detector for the first months."
+  },
+  {
+    "idea_id": "quant-6",
+    "name": "Action Chain — auditable corporate-action adjustment",
+    "one_liner": "Parse the bonus/split/rights rows the code already fetches and discards into a per-symbol factor chain, corroborate each factor against the tape's own ex-date discontinuity, and derive adjusted series locally with one receipt per factor and an as-traded/adjusted toggle.",
+    "rides_on": [
+      "sidecar/services/dividend_actions.py:38-40 (feed fetched; everything but dividends ignored)",
+      "sidecar/services/nse_provider.py:617 (get_corporate_actions)",
+      "sidecar/services/nse_bhavcopy.py:128 (BhavRow.prev_close as second witness)",
+      "sidecar/services/market_cap_witness.py:140 + earnings_quality.py:158 (witness idiom)",
+      "sidecar/services/bar_loader.py:151 (basis consumer)",
+      "quant-1 unadjusted tape"
+    ],
+    "new_parts": [
+      "subject-string parser (bonus/split/rights) with a fixture file of real 2026 subjects + visible 'unparsed action' list",
+      "factor-chain store; one-witness factors shown amber, never silently applied",
+      "locally derived adjusted series + chart basis toggle + ex-date markers",
+      "BSE corporate-actions lane for BSE-only scrips (none in code today)"
+    ],
+    "jarvis_axis": ["receipts"],
+    "size": "S-M",
+    "risk": "Semantics of PrvsClsgPric on an ex-date must be verified against three known 2026 actions before it is trusted as a witness; rights and demergers will sometimes be unparseable and must show as unresolved."
+  },
+  {
+    "idea_id": "quant-7",
+    "name": "Factor X-ray — your portfolio is one trade",
+    "one_liner": "Cross-sectional percentile ranks (value, quality, momentum, size, low-vol, delivery %) over the whole India store give every holding and the whole book a factor exposure strip with stated coverage, and a daily watch that speaks up when an exposure crosses an extreme.",
+    "rides_on": [
+      "sidecar/services/fundamentals_store.py:67-99 (numeric field vocabulary), :561 (query)",
+      "sidecar/services/portfolio_db.py:27 (positions)",
+      "sidecar/services/agent_tools/catalog.py:911 (broker_portfolio, read-only)",
+      "sidecar/services/nse_bhavcopy.py:22-30 (legacy bhavcopy carries delivery columns BhavRow drops)",
+      "quant-1 tape for momentum / volatility / turnover legs"
+    ],
+    "new_parts": [
+      "rank computation (SQL window functions) with frozen, versioned factor definitions",
+      "factor_exposure read capability (projects to agent + MCP via the catalog)",
+      "exposure strip on the portfolio panel with coverage + data_as_of",
+      "threshold watch on the daily loop"
+    ],
+    "jarvis_axis": ["initiative", "watching"],
+    "size": "S-M",
+    "risk": "Ranks launder vendor errors into confident percentiles; thin BSE-only coverage must render as 'unranked', never as the 50th percentile."
+  },
+  {
+    "idea_id": "quant-8",
+    "name": "Surprise without analysts — SUE + drift watch for uncovered names",
+    "one_liner": "Seasonal-random-walk standardised earnings surprise from the company's own quarterly history (no consensus needed), triggered off the results calendar for holdings and watchlist, with after-hours-aware first tradable print and an automatically frozen drift tracker.",
+    "rides_on": [
+      "sidecar/services/agent_tools/catalog.py:528 (earnings_history)",
+      "sidecar/services/earnings_quality.py:228",
+      "sidecar/services/research/disclosures.py:45-52 (results filing ranked first)",
+      "sidecar/services/corporate_disclosures.py:335 (results calendar)",
+      "quant-4 incubator, quant-5 base rates"
+    ],
+    "new_parts": [
+      "SUE computation + sigma bar against 8 quarters",
+      "results-evening trigger on the daily loop and on wake",
+      "two-source gate (filing PDF + vendor quarterly) or 'single-source, provisional' label",
+      "consolidated/standalone pinning per company"
+    ],
+    "jarvis_axis": ["watching", "initiative"],
+    "size": "M",
+    "risk": "A mis-extracted PAT from a results PDF yields a confident wrong sigma; every figure needs a page receipt and a 'could not read the filing' fallback. Floor-adjacent (results-day signals)."
+  },
+  {
+    "idea_id": "quant-9",
+    "name": "Thesis CI — a thesis compiles into tests",
+    "one_liner": "The LLM runs once to turn a written thesis into screener-formula assertions the user approves; after that they are evaluated deterministically and for free on every new observation or shareholding filing, and a failing assertion links to the filing that failed it.",
+    "rides_on": [
+      "sidecar/services/screener_formula.py:441,563 (hardened formula compiler + evaluator)",
+      "sidecar/services/agent_tools/catalog.py:1374 (write_note)",
+      "sidecar/services/corporate_disclosures.py:366 + sidecar/services/bse_provider.py:612 (shareholding / XBRL)",
+      "quant-1 observation triggers"
+    ],
+    "new_parts": [
+      "thesis-assertion store (formula + symbol + field-vocabulary version)",
+      "new formula fields: pledge %, promoter %, QoQ deltas",
+      "pass/fail badge beside the ticker + failing-assertion receipt",
+      "compiler must answer 'this part is not testable' for qualitative clauses"
+    ],
+    "jarvis_axis": ["memory", "watching", "receipts"],
+    "size": "S-M",
+    "risk": "Qualitative theses do not compile; inventing a proxy would be worse than declining. Field renames break stored theses without versioning. Floor-adjacent (thesis vs filings); the twist is zero LLM cost at check time."
+  }
+]

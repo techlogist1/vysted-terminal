@@ -1,0 +1,524 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "in-progress",
+  "slot": "P18",
+  "symbol": "ONC",
+  "exchange": "NASDAQ",
+  "collector_notes": "Outside-truth pack for P18 (US name). Session WebSearch budget was exhausted (200/200) before this task, so nothing below came from a search engine: every value was reached by direct fetch against known URL patterns. PRIMARY source is SEC EDGAR (submissions API, XBRL companyconcept API, and the filed 10-Q/8-K documents themselves) - highest authority available for a US registrant. Aggregator corroboration is stockanalysis.com. Absorbed and replaced the 200-byte legacy stub at packs/ONC.json (status 'in-progress', no data). NOTE ON THE MANIFEST'S OWN reference BLOCK: manifest.json for P18 records revenue_usd_h1_2026 = '1.71bn' - that figure is Q2 2026 REVENUE ALONE ($1,705,071,000), not H1. Filed H1 2026 revenue is $3,218,509,000. Its revenue_growth_yoy_pct = 30 is the Q2-2026 YoY (+29.6%), not the FY2025 YoY (+40.2%) nor the H1 YoY (+32.3%). Recorded here so the differ does not inherit the manifest's error as truth.",
+  "identity": {
+    "legal_name": {
+      "value": "BeOne Medicines Ltd.",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "basis": "Exact registrant name on the cover of the Q2 2026 Form 10-Q, and the EDGAR conformed name returned by https://data.sec.gov/submissions/CIK0001651308.json ('name': 'BeOne Medicines Ltd.').",
+      "disagreement": "stockanalysis.com renders the company as 'BeOne Medicines AG' (https://stockanalysis.com/stocks/onc/, as_of 2026-09-18). BOTH are defensible: Swiss corporate law lets an Aktiengesellschaft register and use 'Ltd.' as an equivalent suffix, and the registrant itself signs SEC filings 'BEONE MEDICINES LTD.'. This matters for P18 specifically - see traps.ltd_vs_ag_is_not_staleness."
+    },
+    "former_names": {
+      "value": "BeiGene, Ltd.",
+      "rename_date": "2025-05-27",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001651308.json",
+      "basis": "EDGAR formerNames: [{name: 'BeiGene, Ltd.', from: '2015-08-28T04:00:00.000Z', to: '2025-05-27T04:00:00.000Z'}]. The 2025-05-27 boundary is the date EDGAR's registrant record flipped, i.e. the effective date of the name change on the SEC's books - NOT the 2024-11-14 announcement date."
+    },
+    "name_change_announced": {
+      "value": "2024-11-14",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=8-K&dateb=&owner=include&count=40",
+      "basis": "Two 8-Ks dated 2024-11-14 (accessions 0001651308-24-000154 and 0001651308-24-000157, both Item 8.01) bracket the announcement. Announcement (2024-11-14) and effect (2025-05-27) are SIX MONTHS apart - a differ that treats them as one date will mis-window the rename."
+    },
+    "isin": {
+      "value": null,
+      "gap": "world_gaps.isin_unreached"
+    },
+    "cik": {
+      "value": "0001651308",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001651308.json"
+    },
+    "ein": {
+      "value": "98-1209416",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001651308.json"
+    },
+    "bse_code": {
+      "value": null,
+      "gap": "world_gaps.no_indian_listing",
+      "note": "Not an Indian security. BSE/NSE absence is correct, not missing data."
+    },
+    "nse_symbol": {
+      "value": null,
+      "gap": "world_gaps.no_indian_listing"
+    },
+    "tickers": {
+      "value": [
+        {
+          "symbol": "ONC",
+          "exchange": "The Nasdaq Global Select Market",
+          "instrument": "American Depositary Shares, each representing 13 Ordinary Shares",
+          "since": "2025-01",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm"
+        },
+        {
+          "symbol": "06160",
+          "exchange": "The Stock Exchange of Hong Kong Limited",
+          "instrument": "Ordinary Shares, par value $0.0001 per share",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm"
+        },
+        {
+          "symbol": "688235",
+          "exchange": "Shanghai Stock Exchange STAR Market",
+          "instrument": "RMB-denominated ordinary shares",
+          "status": "ACTIVE as of 2026-08-26",
+          "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm",
+          "basis": "8-K dated 2026-08-26 (Item 2.02) reports the company filed its 2026 interim report WITH the STAR Market of the Shanghai Stock Exchange, containing figures under BOTH Chinese accounting standards and U.S. GAAP."
+        },
+        {
+          "symbol": "BEIGF",
+          "exchange": "OTC",
+          "instrument": "ordinary shares, OTC-traded",
+          "source_url": "https://data.sec.gov/submissions/CIK0001651308.json",
+          "note": "EDGAR still lists tickers ['ONC','BEIGF'] and exchanges ['Nasdaq','OTC']. BEIGF is a LIVE OTC ticker carrying the OLD BeiGene root - see traps.legacy_tickers_still_live."
+        }
+      ]
+    },
+    "former_ticker": {
+      "value": "BGNE",
+      "changed_to": "ONC",
+      "when": "2025-01",
+      "as_of": "2026-09-19",
+      "source_url": "https://data.sec.gov/submissions/CIK0001651308.json",
+      "note": "BGNE no longer appears in EDGAR's ticker list. But every XBRL document the company files is STILL named with the bgne- prefix: the Q2 2026 10-Q primary document is 'bgne-20260630.htm' and the FY2025 10-K is 'bgne-20251231.htm' (filed 2026-02-26) - 20 months after the ticker changed. See traps.filing_prefix_is_still_bgne."
+    },
+    "board": {
+      "value": "The Nasdaq Global Select Market (US mainboard tier)",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm"
+    },
+    "filer_status": {
+      "value": "Large accelerated filer; NOT an emerging growth company",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm"
+    },
+    "jurisdiction_of_incorporation": {
+      "value": "Switzerland",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "basis": "10-Q cover, 'State or other jurisdiction of incorporation': Switzerland. Redomiciled from the Cayman Islands; the EDGAR submissions API returns an EMPTY stateOfIncorporation string for this CIK, so a pipeline reading EDGAR metadata alone gets no jurisdiction at all."
+    },
+    "registered_office": {
+      "value": "c/o BeOne Medicines I GmbH, Aeschengraben 27, Basel, Switzerland 4051",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "corroboration": "EDGAR business + mailing address both: 'C/O BEONE MEDICINES I GMBH, AESCHENGRABEN 27, 21ST FLOOR, BASEL 4051, Switzerland' (countryCode V8); registrant phone +41-61-685-1900 (https://data.sec.gov/submissions/CIK0001651308.json)."
+    },
+    "sector": {
+      "value": "Healthcare",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    },
+    "industry": {
+      "value": "Biotechnology",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/",
+      "regulatory_classification": {
+        "sic": "2834",
+        "sic_description": "Pharmaceutical Preparations",
+        "source_url": "https://data.sec.gov/submissions/CIK0001651308.json"
+      }
+    },
+    "fiscal_year_end": {
+      "value": "12-31",
+      "source_url": "https://data.sec.gov/submissions/CIK0001651308.json"
+    },
+    "employees": {
+      "value": 12000,
+      "unit": "headcount (approx)",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "confidence": "medium - aggregator figure, not read off the 10-K Item 1 Human Capital section."
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "world_gaps.listing_date_unreached"
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 350.84,
+      "unit": "USD per ADS",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T16:00:00-04:00",
+      "source_url": "https://stockanalysis.com/stocks/onc/",
+      "critical_note": "THIS IS A PRICE PER ADS, NOT PER ORDINARY SHARE. 1 ADS = 13 ordinary shares. Implied ordinary-share price = 350.84 / 13 = USD 26.99. Any per-share metric must state which unit it is in - see traps.ads_ratio_13_to_1."
+    },
+    "previous_close": {
+      "value": 353.46,
+      "unit": "USD per ADS",
+      "date": "2026-09-17",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    },
+    "implied_ordinary_share_price": {
+      "value": 26.99,
+      "unit": "USD per ordinary share",
+      "date": "2026-09-18",
+      "basis": "DERIVED = 350.84 / 13. Not sourced. The HKEX 06160 line trades ordinary shares in HKD and the STAR 688235 line in RMB; neither price was fetched."
+    },
+    "average_volume_20d": {
+      "value": 349120,
+      "unit": "ADS per day",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/"
+    }
+  },
+  "market_cap": {
+    "value": 39.89,
+    "unit": "USD billion",
+    "as_of": "2026-09-18",
+    "source_url": "https://stockanalysis.com/stocks/onc/",
+    "cross_check": "113,701,877 ADS (= 1,478,124,405 ordinary / 13, from the 10-Q cover) x USD 350.84 = USD 39.891 bn. Reconciles to the printed 39.89B to four significant figures.",
+    "enterprise_value": {
+      "value": 36.84,
+      "unit": "USD billion",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/"
+    }
+  },
+  "shares": {
+    "ordinary_shares_outstanding": {
+      "value": 1478124405,
+      "unit": "ordinary shares",
+      "as_of": "2026-07-31",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "basis": "Stated on the Q2 2026 10-Q cover page; identical to dei:EntityCommonStockSharesOutstanding in the XBRL (https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/dei/EntityCommonStockSharesOutstanding.json)."
+    },
+    "ordinary_shares_on_balance_sheet": {
+      "value": 1469278815,
+      "unit": "ordinary shares",
+      "as_of": "2026-06-30",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/CommonStockSharesOutstanding.json",
+      "note": "us-gaap:CommonStockSharesOutstanding at the 2026-06-30 balance-sheet date. 8.85 million shares LOWER than the cover-page count one month later - a normal cover-vs-balance-sheet-date gap that a differ will read as a conflict if it does not carry the as_of."
+    },
+    "ads_outstanding_derived": {
+      "value": 113701877,
+      "unit": "ADS",
+      "basis": "DERIVED = 1,478,124,405 / 13.",
+      "corroboration": "stockanalysis.com prints 'Shares Outstanding: 113.70M' and 'Float: 80.96M' (https://stockanalysis.com/stocks/onc/statistics/, as_of 2026-09-18) - i.e. the aggregator's 'shares outstanding' is an ADS COUNT, 13x smaller than the company's own share count."
+    },
+    "shares_change_yoy": {
+      "value": 8.01,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "corroboration": "Filed counts agree: 1,430,372,987 ordinary shares as of 2025-08-01 vs 1,478,124,405 as of 2026-07-31 = +3.34%. The aggregator's +8.01% is on a different window/basis and does NOT reconcile - recorded as a disagreement, not smoothed."
+    },
+    "par_value": {
+      "value": 0.0001,
+      "unit": "USD per ordinary share",
+      "as_of": "2026-08-05",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+      "note": "This is the US 'face value' analogue. Par is on the ORDINARY share; there is no par on an ADS."
+    }
+  },
+  "pe_ttm": {
+    "value": 62.77,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://stockanalysis.com/stocks/onc/",
+    "basis": "Price per ADS 350.84 / EPS per ADS 5.59. Both sides are in ADS units; a pipeline that divides the ADS price by the FILED per-ordinary-share EPS (USD 0.43 TTM) gets a PE of 816x.",
+    "forward_pe": {
+      "value": 43.91,
+      "unit": "x",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    }
+  },
+  "pb": {
+    "value": 7.66,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+    "cross_check": "350.84 / 45.78 = 7.664."
+  },
+  "roe": {
+    "value": 14.66,
+    "unit": "percent",
+    "as_of": "2026-06-30",
+    "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+    "basis": "Reproduced exactly from filed data: TTM net income 655,707,000 / average of shareholders' equity at 2025-06-30 (3,770,475,000) and 2026-06-30 (5,173,998,000) = 655,707 / 4,472,237 = 14.66%.",
+    "alternative_bases": [
+      {
+        "value": 12.67,
+        "unit": "percent",
+        "basis": "TTM net income / ENDING equity (5,173,998,000). Equity grew 37% in twelve months, so ending-balance ROE understates by ~2 points."
+      },
+      {
+        "value": 13.75,
+        "unit": "percent",
+        "basis": "TTM net income / average of FY2025-end equity (4,361,194,000) and 2026-06-30 equity."
+      }
+    ]
+  },
+  "roce": {
+    "value": 13.08,
+    "unit": "percent",
+    "as_of": "2026-06-30",
+    "basis": "DERIVED, not sourced: TTM EBIT (operating income) 923,098,000 / capital employed (total assets 9,175,615,000 - current liabilities 2,119,187,000 = 7,056,428,000). Ending-balance basis.",
+    "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/OperatingIncomeLoss.json",
+    "disagreement": {
+      "metric": "ROIC",
+      "value": 33.62,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "note": "2.6x the ROCE above, and the gap is PURE DENOMINATOR DEFINITION, not a data conflict: the company holds USD 5.10bn cash against USD 2.05bn total debt, so a cash-netted invested-capital base (debt + equity - cash = ~2.1bn) is a third the size of a capital-employed base (~7.1bn). Any screen that treats 'ROCE' and 'ROIC' as interchangeable will rank this name wildly differently depending on which one it picked."
+    }
+  },
+  "debt_to_equity": {
+    "value": 0.207,
+    "unit": "x",
+    "as_of": "2026-06-30",
+    "basis": "DERIVED from filed XBRL: (LongTermDebtNoncurrent 882,163,000 + LongTermDebtCurrent 190,896,000) / StockholdersEquity 5,173,998,000.",
+    "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/LongTermDebtNoncurrent.json",
+    "disagreement": {
+      "value": 0.4,
+      "unit": "x",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "note": "NEARLY DOUBLE the filed-debt ratio. stockanalysis prints 'Total Debt: 2.05B' against filed interest-bearing debt of 1.073bn; the ~0.98bn difference is consistent with capitalised operating + finance lease liabilities being folded into 'debt'. Both numbers are defensible; neither is wrong; a differ MUST carry the definition or it will report a false 93% error."
+    },
+    "supporting": {
+      "cash_and_equivalents": {
+        "value": 5098041000,
+        "unit": "USD",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/CashAndCashEquivalentsAtCarryingValue.json"
+      },
+      "total_assets": {
+        "value": 9175615000,
+        "unit": "USD",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/Assets.json"
+      },
+      "total_liabilities": {
+        "value": 4001617000,
+        "unit": "USD",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/Liabilities.json"
+      },
+      "shareholders_equity": {
+        "value": 5173998000,
+        "unit": "USD",
+        "as_of": "2026-06-30",
+        "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/StockholdersEquity.json"
+      }
+    }
+  },
+  "revenue_ttm": {
+    "value": 6128963000,
+    "unit": "USD",
+    "as_of": "2026-06-30",
+    "basis": "DERIVED by summing filed quarters Q3 2025 + Q4 2025 + Q1 2026 + Q2 2026 = 1,412,284 + 1,498,170 + 1,513,438 + 1,705,071 (thousands). Q4 2025 is itself derived as FY2025 5,343,033 minus 9M 2025 3,844,863 - the company files no standalone Q4.",
+    "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+    "corroboration": "stockanalysis.com prints 'Revenue (TTM): 6.13B' (https://stockanalysis.com/stocks/onc/, as_of 2026-09-18).",
+    "xbrl_tag_note": "us-gaap:Revenues is EMPTY for every period from 2025 onward for this filer; the revenue lives in us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax. A fetcher hard-coded to 'Revenues' returns NOTHING and, if it renders a null as zero, shows a USD 6.1bn-revenue company as zero-revenue."
+  },
+  "net_profit_ttm": {
+    "value": 655707000,
+    "unit": "USD",
+    "as_of": "2026-06-30",
+    "basis": "DERIVED: Q3 2025 124,841 + Q4 2025 66,502 (= FY 286,933 - 9M 220,431) + Q1 2026 227,357 + Q2 2026 237,007 (thousands).",
+    "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/NetIncomeLoss.json",
+    "corroboration": "stockanalysis.com prints 'Net Income (TTM): 655.71M' - reconciles to the dollar (https://stockanalysis.com/stocks/onc/, as_of 2026-09-18)."
+  },
+  "operating_income_ttm": {
+    "value": 923098000,
+    "unit": "USD",
+    "as_of": "2026-06-30",
+    "basis": "DERIVED: 163,114 + 185,035 (FY 447,136 - 9M 262,101) + 249,902 + 325,047 (thousands).",
+    "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/OperatingIncomeLoss.json"
+  },
+  "revenue_growth_yoy": {
+    "primary": {
+      "value": 34.3,
+      "unit": "percent",
+      "basis": "TTM vs prior TTM: 6,128,963 / 4,562,002 - 1. Prior TTM = Q3 2024 1,001,599 + Q4 2024 1,127,824 + Q1 2025 1,117,279 + Q2 2025 1,315,300 (thousands).",
+      "as_of": "2026-06-30",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+      "corroboration": "stockanalysis.com prints 'Revenue (TTM) 6.13B (+34.3%)'."
+    },
+    "other_bases_that_all_get_called_yoy": [
+      {
+        "value": 40.2,
+        "unit": "percent",
+        "basis": "FY2025 5,343,033,000 vs FY2024 3,810,241,000 - the ANNUAL growth rate."
+      },
+      {
+        "value": 32.3,
+        "unit": "percent",
+        "basis": "H1 2026 3,218,509,000 vs H1 2025 2,432,579,000."
+      },
+      {
+        "value": 29.6,
+        "unit": "percent",
+        "basis": "Q2 2026 1,705,071,000 vs Q2 2025 1,315,300,000. THIS is the ~30% the P18 manifest reference block records as 'revenue_growth_yoy_pct'."
+      }
+    ],
+    "note": "Four defensible 'YoY revenue growth' numbers for one company on one day, spanning 29.6% to 40.2%. Whichever one the app shows, it must say which period it is."
+  },
+  "eps_ttm": {
+    "value": 5.59,
+    "unit": "USD per ADS (diluted)",
+    "as_of": "2026-06-30",
+    "source_url": "https://stockanalysis.com/stocks/onc/",
+    "filed_equivalent": {
+      "value": 0.43,
+      "unit": "USD per ORDINARY share (diluted)",
+      "basis": "Sum of filed quarterly diluted EPS: Q3 2025 0.08 + Q4 2025 0.04 (FY 0.19 - 9M 0.15) + Q1 2026 0.15 + Q2 2026 0.16.",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/EarningsPerShareDiluted.json"
+    },
+    "reconciliation": "0.43 x 13 = 5.59. The company NEVER reports EPS per ADS in its XBRL; the aggregator multiplies. A pipeline that ingests the XBRL EPS (0.43) and prices it against the ADS quote (350.84) is wrong by exactly 13x.",
+    "filed_annual": {
+      "fy2025_diluted_eps_per_ordinary_share": 0.19,
+      "unit": "USD",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/EarningsPerShareDiluted.json"
+    },
+    "weighted_average_diluted_shares": {
+      "value": 1505389182,
+      "unit": "ordinary shares",
+      "period": "H1 2026",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/WeightedAverageNumberOfDilutedSharesOutstanding.json"
+    }
+  },
+  "book_value_per_share": {
+    "value": 45.78,
+    "unit": "USD per ADS",
+    "as_of": "2026-06-30",
+    "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+    "cross_check": "Equity 5,173,998,000 / ordinary shares 1,469,278,815 = USD 3.5215 per ORDINARY share; x 13 = USD 45.78 per ADS. Reconciles exactly.",
+    "per_ordinary_share": {
+      "value": 3.52,
+      "unit": "USD per ordinary share"
+    }
+  },
+  "face_value": {
+    "value": 0.0001,
+    "unit": "USD par value per ordinary share",
+    "as_of": "2026-08-05",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+    "note": "US par value is a legal formality, NOT the Indian 'face value' that drives dividend-per-share and bonus math. Do not surface it next to Indian names as the same field."
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "gap": "world_gaps.no_dividend"
+    },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "USD per ADS",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    },
+    "yield": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/",
+      "note": "Printed as 'n/a', NOT as 0.00% - and payout ratio is also 'n/a'. The company has never paid a dividend. An honest renderer shows 'no dividend'; a renderer that coerces 'n/a' to 0 shows a 0.00% yield, which is coincidentally right here and would be silently wrong on a name that simply has no data."
+    }
+  },
+  "week52": {
+    "high": {
+      "value": 385.22,
+      "unit": "USD per ADS",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    },
+    "low": {
+      "value": 253.95,
+      "unit": "USD per ADS",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/"
+    },
+    "note": "Range is in ADS units. Last close 350.84 sits 8.9% below the high and 38.2% above the low. Dates of the high/low were not printed on the page fetched - recorded as a partial, not invented.",
+    "beta_5y": {
+      "value": 0.52,
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/"
+    }
+  },
+  "shareholding": {
+    "note": "US registrant: there is no Indian-style quarterly shareholding pattern (no promoter / FII / DII / pledge concepts, no SEBI-mandated quarterly filing). The nearest filed equivalents are Schedule 13D/13G beneficial-ownership filings and the DEF 14A beneficial-ownership table. Mapped honestly below rather than forced into the Indian field names.",
+    "quarter": {
+      "value": "n/a - no quarterly shareholding filing regime for this issuer",
+      "as_of": "2026-09-19"
+    },
+    "promoter_pct": {
+      "value": null,
+      "gap": "world_gaps.no_promoter_concept",
+      "nearest_equivalent": "insider ownership"
+    },
+    "insider_ownership_pct": {
+      "value": 4.1,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "confidence": "medium - aggregator roll-up of Forms 3/4/5 plus the proxy table; not read off the DEF 14A beneficial-ownership table directly."
+    },
+    "institutional_ownership_pct": {
+      "value": 52.86,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/stocks/onc/statistics/",
+      "confidence": "medium - 13F-derived aggregator figure. 13F covers only US-registered managers, so for a company with a Hong Kong and a Shanghai listing this UNDERSTATES true institutional holding by construction."
+    },
+    "fii_pct": { "value": null, "gap": "world_gaps.no_promoter_concept" },
+    "dii_pct": { "value": null, "gap": "world_gaps.no_promoter_concept" },
+    "public_pct": {
+      "value": null,
+      "gap": "world_gaps.no_promoter_concept",
+      "nearest_equivalent": "float 80.96M ADS of 113.70M ADS outstanding = 71.2% (https://stockanalysis.com/stocks/onc/statistics/, as_of 2026-09-18)"
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "world_gaps.no_promoter_concept",
+      "note": "No pledge-disclosure regime applies. Absent, not zero - and NOT a data gap."
+    }
+  },
+  "latest_results": {
+    "quarter": "Q2 2026 (three and six months ended June 30, 2026)",
+    "filing_date": "2026-08-05",
+    "form": "10-Q",
+    "accession": "0001628280-26-052878",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+    "headline_numbers": {
+      "revenue_q2_2026": { "value": 1705071000, "unit": "USD" },
+      "revenue_h1_2026": { "value": 3218509000, "unit": "USD" },
+      "operating_income_q2_2026": { "value": 325047000, "unit": "USD" },
+      "operating_income_h1_2026": { "value": 574949000, "unit": "USD" },
+      "net_income_q2_2026": { "value": 237007000, "unit": "USD" },
+      "net_income_h1_2026": { "value": 464364000, "unit": "USD" },
+      "diluted_eps_q2_2026": { "value": 0.16, "unit": "USD per ordinary share" },
+      "diluted_eps_h1_2026": { "value": 0.31, "unit": "USD per ordinary share" }
+    },
+    "fy2025_audited": {
+      "revenue": { "value": 5343033000, "unit": "USD" },
+      "operating_income": { "value": 447136000, "unit": "USD" },
+      "net_income": { "value": 286933000, "unit": "USD" },
+      "diluted_eps": { "value": 0.19, "unit": "USD per ordinary share" },
+      "form": "10-K",
+      "filing_date": "2026-02-26",
+      "accession": "0001628280-26-011946",
+      "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/NetIncomeLoss.json"
+    }
+  },
+  "consolidated_vs_standalone": {
+    "value": "US GAAP consolidated only - there is no Indian-style standalone/consolidated pair.",
+    "real_dual_basis_risk": "The genuine two-basis problem for this name is US GAAP vs PRC Chinese Accounting Standards: as the STAR Market (688235) issuer the company files a Chinese-standards interim report, and the 2026-08-26 8-K exists precisely to furnish the US GAAP reconciliation for it (https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm). Any Chinese-source figure for this company may be on CAS, not US GAAP.",
+    "as_of": "2026-08-26"
+  },
+  "traps": [],
+  "world_gaps": [],
+  "sources_actually_read": [],
+  "sources_attempted_and_failed": []
+}

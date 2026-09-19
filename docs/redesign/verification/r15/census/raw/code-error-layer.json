@@ -1,0 +1,132 @@
+[
+  {
+    "raw_id": "COD-error-layer-1",
+    "title": "Publish-divergence notices matched by a prose regex that drifted from the sidecar copy: 2 of 3 notices no longer recognised",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "error-layer",
+    "repro": "node -e 're=/did not confirm the publish|kept the previous, richer brief/i; re.test(\"The panel kept the brief already on screen (AAPL) — this publish did not replace it; do not claim the new one rendered.\")' -> false; same for \"The brief panel reported the publish failed (AAPL).\" -> false; only the no-ack line -> true. So under AUTO autonomy a kept_previous / failed publish rides to appendResearchStep (telemetry row) instead of the transcript notice chip.",
+    "evidence": "src/modules/chat/message-notices.ts:57 (DIVERGENCE_RE), sidecar/services/agent_runtime.py:1023-1036 (the three current copies; kept_previous reworded in R13 JARVIS 1c, :958), src/modules/chat/ChatSidebar.tsx:985-989 (branch), src/modules/chat/message-notices.test.ts:29 (pins the OLD 'kept the previous, richer brief'), sidecar/tests/test_agent_runtime.py:1390,1464 (pins the NEW 'kept the brief already on screen')",
+    "notes": "Information leakage: a cross-process contract is held by matching English copy on a telemetry channel, and each side's test pins its OWN copy, so both suites stay green while the contract is broken. Consequence: the honesty signal 'the panel is still showing the OLD brief' (D39) is demoted from a chip under the message to a row inside the step trace, exactly when the on-screen brief is not the one the model is describing. Smallest fix: carry a typed discriminator on the step (e.g. step_kind='notice' or tool='publish_brief' + status) and branch on that; at minimum fix the regex and add ONE shared fixture of the three lines asserted by both suites."
+  },
+  {
+    "raw_id": "COD-error-layer-2",
+    "title": "Chat/agent stream non-2xx path shows the raw JSON body in the transcript; bypasses extractSidecarDetail that exists for exactly this",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "error-layer",
+    "repro": "curl -s -X POST http://127.0.0.1:52152/agents/nope/invoke -H 'Content-Type: application/json' -d '{\"prompt\":\"hi\",\"provider\":\"ollama\"}' -> {\"detail\":\"unknown agent: 'nope'\"}; with body {} -> {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"prompt\"],\"msg\":\"Field required\",\"input\":{}}]}. streaming.ts passes response.text().slice(0,500) verbatim as the Error message, and ChatSidebar renders `Something went wrong — {\"detail\":...}`.",
+    "evidence": "src/modules/chat/streaming.ts:216-219, src/modules/chat/streaming.ts:360-367 (safeReadDetail), src/lib/sidecar-client.ts:48-72 (extractSidecarDetail, unused here), src/modules/chat/ChatSidebar.tsx:2033, src/modules/chat/ChatSidebar.tsx:1446",
+    "notes": "Inconsistency between the two transports of the same layer: REST humanises FastAPI detail (string + 422 array), SSE does not. The subsystem's stated job is 'never a naked blob'; a deleted custom agent, a stale agent id in a restored thread, or any request-model drift (422) lands a JSON blob in chat. Smallest fix: in the !response.ok branch JSON.parse the text and run extractSidecarDetail(parsed, `sidecar returned ${status}`). No test covers this branch (streaming.test.ts has no non-ok case)."
+  },
+  {
+    "raw_id": "COD-error-layer-3",
+    "title": "Shared client is GET-only, so ~37 files hand-roll fetch + error parsing; the '[object Object]' 422 bug it was written to kill is still live at POST sites",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "error-layer",
+    "repro": "curl -s -X POST http://127.0.0.1:52152/agents/buffett/runs -H 'Content-Type: application/json' -d '{\"prompt\":\"x\",\"budget\":{\"max_tokens\":\"abc\"}}' -> {\"detail\":[{...int_parsing...}]} (array). delegate-runs.ts does `if (body.detail) detail = body.detail` then `Could not start: ${detail}` -> 'Could not start: [object Object]' in the agents rail.",
+    "evidence": "src/lib/sidecar-client.ts:154-158 (sidecarGet is the only verb), src/lib/sidecar-client.ts:42-47 (comment naming the bug), src/lib/delegate-runs.ts:107-115, src/lib/host-actions.ts:1553-1562, src/modules/broker-connect/BrokerOrderEntry.tsx:115-120, src/modules/agent-builder/AgentBuilderPanel.tsx:90-100 (a 4th variant that drops arrays), src/lib/workspace.ts:384,409,424,649 (status code only). Census: 79 non-test fetch( sites in 39 files; extractSidecarDetail imported by 2 files.",
+    "notes": "Shallow/incomplete module: the 'one place a failure becomes a legible message' only covers GET, so every POST/PUT/DELETE caller re-derives base URL, headers, non-ok parsing and JSON-parse failure differently (and none of them send X-Vysted-Region, which sidecarGet's comment says 'rides every sidecar request'). Change amplification: a new error shape must be taught to ~37 files. Smallest fix: one `sidecarRequest<T>(method, path, {params, body, headers, signal})` that sidecarGet delegates to; migrate the three cast-as-string sites first (they are provably wrong)."
+  },
+  {
+    "raw_id": "COD-error-layer-4",
+    "title": "ProviderError->HTTP mapping is duplicated in ~30 routes beside a global handler; `kind` is honoured in exactly one route, so throttles elsewhere surface as 502",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "error-layer",
+    "repro": "design + code trace: yfinance_provider._provider_error sets kind='rate_limited' for quote/history/fundamentals/income/balance/cashflow/ratings (yfinance_provider.py:53-64, :250, :279, :424-463). Only GET /fundamentals/{symbol} maps it to 429 (+ 'not_found'->404). Every other route — and the app-level handler — emits 502 {detail: str(exc)} and drops kind, so the frontend cannot tell 'throttled, retry later' from 'no data'.",
+    "evidence": "sidecar/app.py:312-315 (global handler, kind dropped), sidecar/routers/fundamentals.py:104-115 (the one kind-aware site), sidecar/routers/fundamentals.py:219-220,238-239,257-258 (same provider, kind-blind), sidecar/routers/earnings.py:77-78,97-98,116-117,135-136, sidecar/routers/macro.py:55-56,67-68, sidecar/routers/disclosures.py:68-69, sidecar/routers/sec_filings.py:83-84, sidecar/services/errors.py:29-36 (docstring lists only 'rate_limited'|None while 'not_found' is raised at yfinance_provider.py:320,336,341 and provider_registry.py:437)",
+    "notes": "Pass-through repetition + duplicated truth that has already drifted (1 of ~30 sites learned the 429 mapping; `kind: str | None` is an open vocabulary with an undocumented member). R11/D53 introduced kind precisely so a throttle is never reported as absence; at the HTTP boundary that guarantee holds for one endpoint. Smallest fix: make the app-level handler the single mapper ({rate_limited:429, not_found:404, None:502}, optionally echo `kind` in the body), type kind as Literal, and delete the per-route `except ProviderError -> HTTPException(502)` blocks."
+  },
+  {
+    "raw_id": "COD-error-layer-5",
+    "title": "humanize() gives the wrong next step for three failures users actually hit: OpenAI no-credit (429), context/size overflow (400/413), and a stopped local Ollama",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "error-layer",
+    "repro": "sidecar/.venv python: humanize('openai', exc(status_code=429, 'credit balance exhausted')) -> code=rate_limit 'try again in a minute'; humanize('openai', exc(status_code=400, 'maximum context length')) -> code=unknown 'Something went wrong with OpenAI. Try again or switch provider'; humanize('groq', exc(status_code=413)) -> unknown; humanize('ollama', ConnectError('All connection attempts failed')) -> 'Could not reach Ollama — check your network.' / 'Check your internet connection and try again.'",
+    "evidence": "sidecar/services/errors.py:182-188 (every 429 = rate limit), sidecar/services/errors.py:148-196 (no 400/413/408 branch -> falls to :295-300 'unknown'), sidecar/services/errors.py:207-224 (network copy, provider-agnostic). World: https://developers.openai.com/api/docs/guides/error-codes lists under 429 'Credit balance exhausted' (code credit_balance_exhausted): \"Your organization has no prepaid credits remaining.\" alongside 'Rate limit reached for requests'.",
+    "notes": "Special-general mixture done halfway: the function special-cases DeepSeek 402 copy twice (:149-157, :273-283) but not the cases that change the user's next action. Consequences: an out-of-credit OpenAI user is told to wait a minute forever; a long agent/research turn that overflows context (the most common 400 in a tool loop) is told to 'try again or switch provider' when the fix is a shorter thread/larger-context model; the keyless local-first default (Ollama) tells the user to check their internet when the daemon is simply not running. Smallest fix: a data table keyed (status, body-substring) -> (message, action, code) with rows for 429+credit/quota/billing -> provider_402, 400+context/maximum/too long and 413 -> context_overflow, and a provider=='ollama' network row ('Ollama is not running — start it or pick a cloud model'). test_errors.py has 25 tests and none of these inputs."
+  },
+  {
+    "raw_id": "COD-error-layer-6",
+    "title": "Last-resort SSE guards blame the AI provider or the user's network for internal sidecar crashes (substring heuristics on str(exc), provider_id never passed)",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "error-layer",
+    "repro": "sidecar/.venv python: humanize(None, RuntimeError('runs_store: database connection is closed')) -> code=network 'Could not reach the AI provider — check your network.'; humanize(None, ValueError(\"could not parse depth 'ultra2'\")) -> code=parse_error 'the AI provider returned an unreadable response.'; humanize(None, TypeError(\"...unexpected keyword argument 'research_depth'\")) -> 'Something went wrong with the AI provider. Try again or switch provider in Settings.'",
+    "evidence": "sidecar/services/errors.py:207-218 ('connect'/'connection'/'timeout' matched anywhere in the message), sidecar/services/errors.py:241-245, sidecar/services/errors.py:295-300, sidecar/routers/llm.py:141-145 and sidecar/routers/agents.py:105-110 (error_frame(exc) with payload.provider in scope but not passed), sidecar/services/errors.py:59-63 (label falls to lowercase 'the AI provider', producing a sentence that starts lowercase at :247)",
+    "notes": "Wrong layer: every LLM adapter already catches Exception and humanises with its own provider id (anthropic.py:147-156, openai.py:832-837, groq.py:186-191, gemini.py:176-181, ollama.py:159-165), so what reaches the ROUTER guard is by construction NOT a provider failure — it is a runtime/tool/store bug. Running provider-language heuristics there sends the owner to Settings/his router for a sidecar defect (the repo's own history cites a TypeError from `research_depth` killing a stream, llm.py:123-126). Smallest fix: the router guard emits a distinct frame (code='internal', 'The terminal hit an internal error — details below', detail=type+message); keep humanize for adapter call sites; match keywords on the class name only, never on free message text."
+  },
+  {
+    "raw_id": "COD-error-layer-7",
+    "title": "validateProvider() collapses 'sidecar down / 5xx / transport error' into false; the send path then tells the user no AI model is set up and opens onboarding",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "error-layer",
+    "repro": "design: with a keyless provider selected, any failure of POST /llm/keys/validate (sidecar unreachable -> catch, non-2xx, or the route's own ok:false + detail='transport error: …') returns false -> ChatSidebar sets 'No AI model is set up yet — opening setup' and opens the onboarding dialog.",
+    "evidence": "src/lib/sidecar-client.ts:226-243 (body.detail discarded, catch -> false), src/modules/chat/ChatSidebar.tsx:795-804, sidecar/routers/llm.py:99-111 (server distinguishes 'transport error: …' from 'unauthorized or no key supplied'), src/components/KeyEntryDialog.tsx:175-189 (a second client for the same endpoint that DOES keep detail)",
+    "notes": "An error defined out of existence the wrong way: 'never throws' is bought by erasing the distinction the caller needs, and the wire already carries it. Two clients for one endpoint with different contracts. Consequence: a transient sidecar hiccup misdiagnoses as 'you have no model', bouncing a configured user into first-run setup. Smallest fix: return {ok, reason:'not_configured'|'unreachable', detail} from one function used by both call sites; ChatSidebar opens onboarding only on not_configured."
+  },
+  {
+    "raw_id": "COD-error-layer-8",
+    "title": "Transport failures are never normalised on the frontend: a dead/unreachable sidecar renders as WebKit's bare 'Load failed'",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "error-layer",
+    "repro": "design: sidecarGet wraps only the JSON-parse step in a SidecarError (:206-215); the fetch() itself (:194-196) is outside any try, so a connection failure rejects with the engine's TypeError ('Load failed' in WKWebView, 'Failed to fetch' in Chromium). Stores copy err.message into panel error state (e.g. src/store/macro.ts:93-99). On the SSE side streaming.ts:212-214 forwards the same TypeError and the chat shows 'Something went wrong — Load failed'.",
+    "evidence": "src/lib/sidecar-client.ts:194-196, src/lib/sidecar-client.ts:206-215, src/modules/chat/streaming.ts:204-215, src/modules/chat/ChatSidebar.tsx:1446, src/modules/chat/ChatSidebar.tsx:2033, src-tauri/src/lib.rs:92 (the main sidecar is not respawned, so after a crash every call takes this path; readyPromise stays resolved, sidecar-client.ts:115-117)",
+    "notes": "The layer humanises remote-provider failures in detail but leaves the most local-first failure — our own engine is not answering — as an opaque browser string with no next step. Comment at :209-212 claims 'error handling is uniform'; it is uniform only for malformed bodies. Smallest fix: try/catch around both fetches -> SidecarError(0, 'The data engine is not responding — it may have stopped. Restart Vysted.') and, in streaming.ts, an error frame with code='sidecar_unreachable'."
+  },
+  {
+    "raw_id": "COD-error-layer-9",
+    "title": "useRetryOnSidecarReady retries EVERY rejection 13x (~50 s), not just 'sidecar not ready' — a keyless fresh install hammers /macro and flickers loading<->error on each mount",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "error-layer",
+    "repro": "curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:52152/macro/DGS10?provider=fred' -> 502 (deterministic: 'FRED needs a free API key…'). MacroPanel's default is fred/DGS10 (MacroPanel.tsx:14-15); loadDefault rethrows on status==='error' (:39-46); the hook's catch has no error classification, so it schedules attempts at 1,2,4,5,5,… s up to n=12 (use-sidecar-retry.ts:104-106) and each attempt resets the store to 'loading' (src/store/macro.ts:79). Same for a 429/502 from Earnings/SEC/Screener.",
+    "evidence": "src/lib/use-sidecar-retry.ts:92-109, src/lib/use-sidecar-retry.ts:24-28 (contract forces callers to rethrow a plain Error, discarding SidecarError.status), src/modules/macro/MacroPanel.tsx:14-15,39-47, src/modules/earnings/EarningsCalendarPanel.tsx:110-119, src/modules/sec/SecFilingsPanel.tsx:62-72, src/modules/screener/ScreenerPanel.tsx:104-111, src/modules/news/NewsFeedPanel.tsx:214-235 (a second hand-rolled copy of the same backoff the hook was written to replace)",
+    "notes": "The name promises a narrow condition (sidecar ready) but the predicate is 'anything threw'; the interface makes the narrow predicate impossible because callers must flatten the typed error to signal failure (an invariant held by a doc comment + four copy-pasted wrappers). Consequences: 13 upstream-bound requests per mount for non-retryable errors (works against the R11/D53 throttle breaker), and a user-facing message that blinks for ~50 s on the zero-config path. No test exists for the hook's inFlight/rerunRequested state machine. Smallest fix: in .catch, stop unless the failure is connection-level or SidecarError.status===503 (let loadFn reject with the original error), or simply gate retries on useAppStore.sidecarStatus !== 'connected'."
+  },
+  {
+    "raw_id": "COD-error-layer-10",
+    "title": "research:begin is parsed from a free-text step with a single-line regex; a query containing a newline never starts the in-flight brief run",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "error-layer",
+    "repro": "node -e 're=/^research:begin\\s+(\\S+)\\s+depth=(\\S+)(?:\\s+query=(.*))?$/; console.log(!!re.exec(\"research:begin r1 depth=deep query=Compare TCS and Infosys:\\n1) margins\\n2) attrition\"))' -> false (single-line query -> true). beginRun never fires; every later step is ignored by the store (steps outside a run), so the brief panel shows no in-flight state for that run.",
+    "evidence": "src/modules/chat/streaming.ts:57 (RESEARCH_BEGIN_RE, no s/m flag), src/modules/chat/streaming.ts:83-91, sidecar/services/agent_tools/research.py:56-72 (f-string emitter; 'change it only in lockstep' held by a comment)",
+    "notes": "Same root cause as finding 1: structured data (run_id, depth, query) serialised into prose on a telemetry channel and re-parsed by regex on the other side, with the query — arbitrary model text — as the unescaped tail. Smallest fix: `(.*)` -> `([\\s\\S]*)`; right fix: carry run_id/depth/query as fields on the research_step event (the pydantic model and normalizeEvent already map typed fields)."
+  },
+  {
+    "raw_id": "COD-error-layer-11",
+    "title": "dispatchFrame's try block also wraps the consumer callback, so any UI/reducer exception is reported as 'unparseable SSE frame'",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "error-layer",
+    "repro": "design: handlers.onEvent(event) is inside the same try as JSON.parse (streaming.ts:263-271). A throw in ChatSidebar's onToolUse/enqueueChange or in feedBriefLifecycle (called from normalizeEvent) is caught, relabelled `unparseable SSE frame: <consumer message>`, routed to onError -> the assistant message is failed and the run ended as 'error' while the stream keeps delivering frames to a settled message.",
+    "evidence": "src/modules/chat/streaming.ts:263-271, src/modules/chat/streaming.ts:302-305 (store side effect inside normalizeEvent), src/modules/chat/ChatSidebar.tsx:890-912",
+    "notes": "Exception aggregation at the wrong boundary: a protocol error and a consumer bug get one label, so the next maintainer debugs the wire for a UI defect. Related obviousness smell: `normalizeEvent` reads as a pure snake->camel mapper but mutates the brief store. Smallest fix: try only around JSON.parse/normalizeEvent; call onEvent outside it; move feedBriefLifecycle to dispatchFrame after normalisation."
+  },
+  {
+    "raw_id": "COD-error-layer-12",
+    "title": "No timeout or AbortSignal anywhere in the shared client; the 120 s readiness budget is only checked between probes",
+    "severity": "low",
+    "area": "lifecycle",
+    "subsystem": "error-layer",
+    "repro": "design: resolveAndAwaitReady awaits fetch('/health') with no signal (sidecar-client.ts:131); `Date.now() > deadline` (:138) runs only after that fetch settles, so one probe against a socket that accepts but never answers (event loop blocked by a cold model load / _MEI extraction) holds the shared readyPromise — and every panel awaiting it — for as long as the engine allows. sidecarGet (:194) likewise takes no signal, so an unmounted panel cannot cancel and a hung route is an eternal spinner.",
+    "evidence": "src/lib/sidecar-client.ts:125-144, src/lib/sidecar-client.ts:154-158,194-196, src/lib/sidecar-client.ts:226-234 (validateProvider: no timeout either; Ollama validate can stall on a cold daemon)",
+    "notes": "A bounded-wait promise whose bound the structure does not enforce. Smallest fix: `signal: AbortSignal.timeout(5_000)` on the health probe; an optional `signal` param on sidecarGet/the new sidecarRequest with a generous default timeout."
+  },
+  {
+    "raw_id": "COD-error-layer-13",
+    "title": "One 4-field error struct has six declarations across the wire, `code` is carried through all of them and consumed by nothing, and the durable-run crash path bypasses the humaniser entirely",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "error-layer",
+    "repro": "design: grep for any branch on the code values (provider_402|auth|model_not_found|rate_limit|provider_5xx|network|parse_error|content_filter) in src/ -> none; MessageError renders the same Retry button for auth/402/model_not_found where a retry cannot succeed. run_manager writes detail=f'run failed: {exc}' (raw) which the agents rail renders.",
+    "evidence": "sidecar/services/errors.py:71-83 (HumanError), sidecar/models/llm.py:220-235 (LLMErrorEvent), sidecar/services/errors.py:313-319 (dict form), src/modules/chat/streaming.ts:30-39 (StreamErrorFrame), src/modules/chat/message-notices.ts:19-23 (MessageErrorFrame), types/ai.ts:194 (union member still `{kind:'error'; message}` -> cast at streaming.ts:48); 12 copies of `LLMErrorEvent(message=_h.message, action=_h.action, detail=_h.detail, code=_h.code)` e.g. sidecar/services/llm/anthropic.py:147-156, ollama.py:158-169,206-215; src/modules/chat/ChatSidebar.tsx:1439-1475 (code unused); sidecar/services/run_manager.py:216-220 + src/modules/chat/ChatSidebar.tsx:1184",
+    "notes": "Shallow interface: humanize() returns a struct every caller must immediately re-spell field-by-field into another struct, in two except-clauses with identical bodies per adapter. errors.py:16 promises `code` is 'a stable machine tag the frontend can branch on' — nothing does, and the vocabulary is an unowned string set ('content_filter' is minted in agent_runtime.py:1493, outside errors.py). Smallest fix: `HumanError.to_event()` (or have humanize return LLMErrorEvent), collapse each adapter's two excepts into one, mirror action/detail/code into types/ai.ts and delete StreamErrorFrame/MessageErrorFrame casts; use `code` to suppress Retry on auth/402/model_not_found (and link Settings) or drop it; route run_manager's crash through humanize/the internal frame of finding 6."
+  }
+]

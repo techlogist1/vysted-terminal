@@ -1,0 +1,5 @@
+HTTP 200
+data: {"kind": "error", "message": "Could not reach OpenRouter \u2014 check your network.", "action": "Check your internet connection and try again.", "detail": "Connection error.", "code": "network"}
+
+
+elapsed=13s

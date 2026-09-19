@@ -1,0 +1,703 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P12",
+  "symbol": "DHANBANK",
+  "status": "complete-with-recorded-gaps",
+  "collector_notes": "2026-09-19 is a Saturday; the last trading session reflected by every source is Friday 2026-09-18. The issuer's own filed results and investor presentations are SCANNED IMAGE PDFs (JPXDecode, no text layer) and bseindia.com returns HTTP 403 to automated fetchers, so exchange-filing-level numbers could not be quoted verbatim; every such field is recorded as a gap with the reason, never guessed. The single most important finding for the differ is that two reputable sources publish 'revenue' for this bank differing by 2.2x because they use different bank-revenue definitions - recorded as a conflict, not averaged.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Dhanlaxmi Bank Limited",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.dhan.bank.in/rights-issue",
+      "corroboration": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank ; screener.in renders it 'Dhanlaxmi Bank Ltd'"
+    },
+    "former_names": {
+      "value": "Dhanalakshmi Bank Limited",
+      "rename_date": "2010-08-10",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank",
+      "quote": "The bank changed its name from Dhanalakshmi Bank to Dhanlaxmi Bank on 10 August 2010.",
+      "note": "A THIRD spelling is in live use by the issuer itself: the FY2024-25 annual report is published at /pdf/2.Dhanalaxmi-AR-2024-25.pdf ('Dhanalaxmi'). Three spellings - Dhanalakshmi / Dhanalaxmi / Dhanlaxmi - all resolve to this entity.",
+      "confidence": "high for the rename fact and date (secondary source); the filename spelling is first-party and verifiable at https://www.dhan.bank.in/statutory-reports"
+    },
+    "isin": {
+      "value": "INE680A01011",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.dhan.bank.in/rights-issue",
+      "note": "First-party (Letter of Offer text). Matches the bundled BSE master row for 532180.",
+      "related_instrument_isin": {
+        "value": "INE680A20011",
+        "what": "Rights Entitlement (RE) ISIN from the 2024-25 rights issue",
+        "source_url": "https://www.dhan.bank.in/rights-issue"
+      }
+    },
+    "bse_code": {
+      "value": "532180",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.dhan.bank.in/rights-issue",
+      "corroboration": "https://www.dhan.bank.in/share-price links to http://www.bseindia.com/stockinfo/index.htm?scrip_cd=532180"
+    },
+    "nse_symbol": {
+      "value": "DHANBANK",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.dhan.bank.in/rights-issue",
+      "corroboration": "https://stockanalysis.com/quote/nse/DHANBANK/"
+    },
+    "board": {
+      "value": "mainboard",
+      "exchanges": "BSE + NSE",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "note": "Not SME. BSE group B per the bundled master."
+    },
+    "sector": {
+      "value": "Financials",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "disagreement": "groww.in states sector = 'Banking'; screener.in peer set = 'Banks'. All three agree in substance; the LABEL differs, which matters for exact-string sector matching."
+    },
+    "industry": {
+      "value": "Banks - Regional",
+      "as_of": "2026-09-18",
+      "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "disagreement": "Indian sources classify it as 'Banks - Private Sector' (Moneycontrol's URL path for this scrip is /india/stockpricequote/banks-private-sector/dhanlaxmibank/DB03). 'Regional' is a US-taxonomy artefact.",
+      "gap": "BSE's own industry classification not retrieved - bseindia.com returned HTTP 403."
+    },
+    "business_description": {
+      "value": "Incorporated in 1927, Dhanlaxmi Bank Ltd is in the business of providing banking services",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "detail": "Old-generation Kerala private-sector scheduled commercial bank; headquartered in Thrissur, Kerala; 264 branches and 285 ATMs.",
+      "detail_source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank"
+    },
+    "incorporated": {
+      "value": "1927-11-14",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank",
+      "corroboration": "screener.in 'Incorporated in 1927'; the bank's 99th AGM in 2026 is arithmetically consistent with a 1927 incorporation"
+    },
+    "scheduled_bank_since": {
+      "value": "1977",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank"
+    },
+    "managing_director": {
+      "value": "Ajith Kumar K K (MD & CEO)",
+      "appointed": "2024-04",
+      "term": "three years per RBI approval",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank",
+      "confidence": "medium - secondary source only; not confirmed against a filed document (issuer PDFs are image-only)",
+      "note": "A three-year term from April 2024 expires around April 2027, i.e. inside any 12-month forward window - a live governance event this bank has a history of (shareholders voted out CEO Sunil Gurbaxani at the 2020 AGM)."
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "Not found. Neither the issuer site, screener.in, groww, stockanalysis nor Wikipedia states a BSE/NSE listing date. bseindia.com (which publishes it) returned HTTP 403. Incorporation 1927 and scheduled-bank status 1977 are the only dated anchors retrieved.",
+      "as_of": "2026-09-19"
+    },
+    "headquarters": {
+      "value": "Thrissur, Kerala, India",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 29.47,
+      "unit": "INR",
+      "date": "2026-09-18",
+      "exchange": "NSE",
+      "timestamp_shown": "Sep 18, 2026, 3:29 PM IST",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "corroboration": "groww.in shows 29.47, +0.59 (+2.04%); screener.in shows a rounded 29.5",
+      "note": "2026-09-19 is a Saturday - 2026-09-18 (Friday) is the last trading session, which is why every source still shows the same figure today."
+    },
+    "previous_close": {
+      "value": 28.88,
+      "unit": "INR",
+      "date": "2026-09-17",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd"
+    },
+    "day_range": {
+      "high": 29.75,
+      "low": 28.85,
+      "unit": "INR",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd"
+    },
+    "change_pct": {
+      "value": 2.04,
+      "unit": "percent",
+      "date": "2026-09-18",
+      "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd"
+    },
+    "bse_vs_nse_spread": {
+      "value": null,
+      "gap": "BSE last-traded price not retrieved (bseindia.com HTTP 403), so the BSE/NSE spread for this dual-listed scrip could not be measured."
+    }
+  },
+
+  "market_cap": {
+    "value": 1163,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "disagreements": [
+      { "value": 1165, "unit": "INR crore", "note": "stockanalysis.com shows 11.65B INR", "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/" },
+      { "value": 1145, "unit": "INR crore", "note": "groww.in", "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd" }
+    ],
+    "spread_pct": 1.7,
+    "derived_shares_outstanding": {
+      "screener_implied": { "value": 39.42, "unit": "crore shares", "basis": "1163 / 29.47" },
+      "stockanalysis_implied": { "value": 39.53, "unit": "crore shares", "basis": "1165 / 29.47" },
+      "groww_implied": { "value": 38.85, "unit": "crore shares", "basis": "1145 / 29.47" },
+      "authoritative": {
+        "value": 39.4698851,
+        "unit": "crore shares",
+        "exact": 394698851,
+        "basis": "Letter of Offer: 25,30,12,084 shares pre-issue + up to 14,16,86,767 rights shares = 39,46,98,851 post-issue (assuming full subscription); cross-checked against equity capital Rs 395 cr at face value Rs 10 in the Mar-2026 balance sheet",
+        "source_url": "https://www.dhan.bank.in/rights-issue"
+      },
+      "note": "groww's implied count is ~0.6 crore shares short of the post-rights count - the likely cause of its lower market cap and lower book value. The rights issue is the fault line every one of these disagreements sits on."
+    }
+  },
+
+  "pe_ttm": {
+    "value": 10.1,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "disagreements": [
+      { "value": 10.09, "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/" },
+      { "value": 9.9, "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd" }
+    ],
+    "cross_check": "29.47 / 2.93 = 10.06 - all three are the same calculation on marginally different EPS/price snapshots. Not a definitional conflict.",
+    "industry_pe_reference": { "value": 13.03, "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd" }
+  },
+
+  "pb": {
+    "value": 0.77,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "source_quote": "Stock is trading at 0.77 times its book value",
+    "disagreement": "groww.in states P/B 0.85 (on its book value of Rs 34.16). The two sources disagree on book value, not on price - see book_value_per_share. Consequence: 'trades below book' is true under both, but by 23% or by 15% depending on the source.",
+    "note": "For a bank, P/B is the primary valuation metric and P/E is secondary - the reverse of the non-financial convention. Any generic 'valuation' panel that leads with P/E is mis-framing this name."
+  },
+
+  "roe": {
+    "value": 7.15,
+    "unit": "percent",
+    "basis": "screener headline (TTM)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "disagreements": [
+      { "value": 8.56, "unit": "percent", "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd", "note": "different equity base (see book value)" },
+      { "value": 6.22, "unit": "percent", "basis": "3-year average", "source_url": "https://www.screener.in/company/DHANBANK/", "source_quote": "Company has a low return on equity of 6.22% over last 3 years" }
+    ],
+    "series_screener": { "10y": 5, "5y": 6, "3y": 6, "last_year": 7, "unit": "percent", "source_url": "https://www.screener.in/company/DHANBANK/" }
+  },
+
+  "roce": {
+    "value": 5.81,
+    "unit": "percent",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "warning": "ROCE IS NOT MEANINGFUL FOR A BANK. Deposits (Rs 18,643 cr at Mar-2026) are operating liabilities, not capital employed; screener prints the figure anyway. Displaying it beside a manufacturer's ROCE invites a false comparison. Banks are judged on ROA / ROE / NIM / CRAR instead."
+  },
+
+  "debt_to_equity": {
+    "value": null,
+    "gap": "Not published by any source read - screener does not render a D/E row for banks, and neither groww nor stockanalysis shows one.",
+    "derived_alternatives": [
+      {
+        "value": 0.5,
+        "basis": "Borrowings only: 737 / (equity capital 395 + reserves 1,079) at Mar-2026",
+        "unit": "x",
+        "source_url": "https://www.screener.in/company/DHANBANK/",
+        "confidence": "derived by this collector, not published"
+      },
+      {
+        "value": 13.15,
+        "basis": "Borrowings + deposits: (737 + 18,643) / 1,474 at Mar-2026",
+        "unit": "x",
+        "source_url": "https://www.screener.in/company/DHANBANK/",
+        "confidence": "derived by this collector, not published"
+      }
+    ],
+    "warning": "A generic pipeline that treats deposits as debt reports ~13x leverage and will flag this bank as distressed. Deposits are a bank's product, not its borrowings. The regulatory capital measure is CRAR, not D/E."
+  },
+
+  "revenue_ttm": {
+    "value": 1683,
+    "unit": "INR crore",
+    "basis": "INTEREST EARNED only (screener's 'Revenue' column for banks): Sep-2025 384 + Dec-2025 407 + Mar-2026 443 + Jun-2026 449",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "HARD_DISAGREEMENT": {
+      "conflicting_value": 776,
+      "unit": "INR crore",
+      "conflicting_basis": "stockanalysis.com publishes TTM 'Revenue' of 7.76B INR = Rs 776 cr for the same company on the same date",
+      "conflicting_source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "ratio": "2.17x",
+      "explanation": "Both labels say 'revenue'. screener uses GROSS INTEREST EARNED. stockanalysis uses NET REVENUE (net interest income + other income) - the US convention for banks. Derived NII TTM = (384-242)+(407-253)+(443-256)+(449-272) = 660 cr; 776 - 660 = ~116 cr of other income, which is consistent with the stockanalysis figure being NII + other income.",
+      "status": "RECORDED AS A CONFLICT, NOT RECONCILED. Neither is wrong; the field name is. This is the single highest-value diff target in this pack.",
+      "third_definition": {
+        "value": 1799,
+        "unit": "INR crore",
+        "basis": "TOTAL INCOME = interest earned 1,683 + other income ~116 (derived, not published as a TTM figure by any source read)",
+        "confidence": "derived - do not diff against this as if it were sourced"
+      }
+    },
+    "annual_series_screener": {
+      "unit": "INR crore",
+      "basis": "interest earned",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "Mar2022": 917,
+      "Mar2023": 1071,
+      "Mar2024": 1207,
+      "Mar2025": 1320,
+      "Mar2026": 1601
+    },
+    "annual_fy2026_stockanalysis": {
+      "value": 737,
+      "unit": "INR crore",
+      "basis": "net revenue convention",
+      "source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+      "note": "vs screener's 1,601 cr for the same fiscal year - the same 2.2x gap at the annual level"
+    }
+  },
+
+  "net_profit_ttm": {
+    "value": 115,
+    "unit": "INR crore",
+    "basis": "Sep-2025 23 + Dec-2025 24 + Mar-2026 43 + Jun-2026 25",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "corroboration": "stockanalysis.com TTM net income 1.15B INR = Rs 115 cr - EXACT agreement. Unlike revenue, net profit has one definition, so the two sources converge.",
+    "corroboration_source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+    "annual_series_screener": {
+      "unit": "INR crore",
+      "Mar2022": 36,
+      "Mar2023": 49,
+      "Mar2024": 58,
+      "Mar2025": 67,
+      "Mar2026": 103
+    }
+  },
+
+  "revenue_growth_yoy": {
+    "value": 21.3,
+    "unit": "percent",
+    "basis": "FY2026 vs FY2025 on interest earned: 1,601 / 1,320 - 1",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "disagreement": "stockanalysis.com states FY2026 revenue growth of 17.11% YoY on its net-revenue basis - a different number for the same year, caused entirely by the revenue definition above, not by a data error.",
+    "disagreement_source_url": "https://stockanalysis.com/quote/nse/DHANBANK/",
+    "quarterly_yoy": {
+      "value": 22.0,
+      "unit": "percent",
+      "basis": "Q1FY27 (Jun-2026) 449 vs Q1FY26 (Jun-2025) 368, interest earned",
+      "source_url": "https://www.screener.in/company/DHANBANK/"
+    },
+    "compounded_sales_growth_screener": {
+      "unit": "percent",
+      "10y": 3,
+      "5y": 11,
+      "3y": 14,
+      "ttm": 22,
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "source_quote": "The company has delivered a poor sales growth of 11.5% over past five years"
+    },
+    "compounded_profit_growth_screener": {
+      "unit": "percent",
+      "10y": 10,
+      "5y": 22,
+      "3y": 28,
+      "ttm": 33,
+      "source_url": "https://www.screener.in/company/DHANBANK/"
+    }
+  },
+
+  "eps_ttm": {
+    "value": 2.93,
+    "unit": "INR",
+    "basis": "Sum of quarterly EPS: 0.59 + 0.61 + 1.10 + 0.63 (Sep-2025 through Jun-2026)",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "corroboration": "groww.in EPS (TTM) Rs 2.93; stockanalysis.com EPS (TTM) 2.92 INR",
+    "warning": "Per-share history CROSSES THE RIGHTS ISSUE. Quarters up to Dec-2024 are on a 25.30 crore share base; Mar-2025 onward are on 39.47 crore. Screener's own quarterly EPS series is not restated, so a naive EPS CAGR or a per-share chart spanning Feb-2025 compares two different denominators.",
+    "annual_series_screener": {
+      "unit": "INR",
+      "Mar2022": 0.91,
+      "Mar2023": 1.25,
+      "Mar2024": 1.46,
+      "Mar2025": 1.69,
+      "Mar2026": 2.6
+    }
+  },
+
+  "book_value_per_share": {
+    "value": 38.3,
+    "unit": "INR",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "disagreements": [
+      { "value": 34.16, "unit": "INR", "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd" },
+      {
+        "value": 37.35,
+        "unit": "INR",
+        "basis": "derived by this collector from the Mar-2026 balance sheet: (equity capital 395 + reserves 1,079) / 39.47 cr shares",
+        "source_url": "https://www.screener.in/company/DHANBANK/",
+        "confidence": "derived, not published"
+      }
+    ],
+    "spread_pct": 12.1,
+    "note": "Three values spanning 12%. Implied net worth: screener Rs 1,512 cr, balance-sheet derivation Rs 1,474 cr, groww Rs 1,348 cr. groww's is ~9% below the reported net worth, consistent with either an intangibles/DTA deduction or its short share count. Consequence: P/B is 0.77 or 0.86 depending on the source, and any 'discount to book' framing inherits that."
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "corroboration": "groww.in Face Value Rs 10; cross-checked arithmetically against equity capital Rs 395 cr / 39.47 cr shares = Rs 10.01",
+    "first_party": "Letter of Offer: rights price Rs 21.00 'including a premium of Rs.11.00' implies a Rs 10 face value - https://www.dhan.bank.in/rights-issue"
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "gap": "No dividend has been declared in the period any source covers. The issuer's own unclaimed-dividend page lists exactly ONE financial year - 'Unclaimed Divided Warrant for FY 2010-2011' - which places the last dividend at FY2010-11, over fifteen years ago. No per-share amount is published there.",
+      "source_url": "https://www.dhan.bank.in/unclaimed-dividend",
+      "confidence": "high for 'no recent dividend' (three independent confirmations); the FY2010-11 date is a first-party inference from what that page publishes, not an explicit statement"
+    },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "basis": "Dividend payout is 0% in every fiscal year screener publishes, Mar-2015 through Mar-2026"
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "corroboration": "groww.in Dividend Yield 0.00%; stockanalysis.com shows dividend 'n/a'"
+    },
+    "screener_flag": {
+      "source_quote": "Though the company is reporting repeated profits, it is not paying out dividend",
+      "source_url": "https://www.screener.in/company/DHANBANK/"
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 36.85,
+      "unit": "INR",
+      "date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd",
+      "corroboration": "stockanalysis.com 52-week range 19.45 - 36.85 (exact agreement); screener.in shows a rounded 36.8 / 19.4"
+    },
+    "low": {
+      "value": 19.45,
+      "unit": "INR",
+      "date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/dhanlaxmi-bank-ltd",
+      "corroboration": "stockanalysis.com and screener.in (rounded) agree"
+    },
+    "dates": {
+      "value": null,
+      "gap": "No source read publishes the DATES on which the 52-week high and low were made. bseindia.com does publish them but returned HTTP 403."
+    },
+    "note": "The 52-week range is a 1.89x span (19.45 to 36.85) and the last close of 29.47 sits at the 53rd percentile of it. A chart or gauge rendered against a stale or rounded range mis-frames this name badly."
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Jun-2026",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "note": "Latest quarter filed and published. No Sep-2026 pattern exists yet (the quarter is still running)."
+    },
+    "promoter_pct": {
+      "value": 0.0,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "CRITICAL_NOTE": "screener.in's shareholding table for this company has NO 'Promoters' row at all - it renders only FIIs, DIIs and Public. groww.in likewise shows only Public 85.75%, FII 14.21%, DII 0.05%. Dhanlaxmi Bank is a promoter-less, widely-held old-generation private bank. The correct value is 0.00% / not-applicable, NOT null-because-unfetched and NOT a data error.",
+      "consequence": "A pipeline that requires a promoter row will either null the field, fabricate one, or fall through to a 'promoter holding 0% - red flag' rendering that is a false signal for this class of issuer."
+    },
+    "fii_pct": { "value": 14.21, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/DHANBANK/", "corroboration": "groww.in 14.21% (exact)" },
+    "dii_pct": { "value": 0.05, "unit": "percent", "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/DHANBANK/", "corroboration": "groww.in 0.05% (exact)" },
+    "public_pct": {
+      "value": 85.74,
+      "unit": "percent",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "disagreement": "groww.in states 85.75% - a 0.01pp rounding difference. screener's three values sum to exactly 100.00; groww's sum to 100.01."
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "UNDEFINED, not unreachable: there is no promoter, so there is no promoter pledge to report. Recording 0% here would assert 'promoter holds shares and none are pledged', which is false."
+    },
+    "no_of_shareholders": { "value": 163114, "as_of": "2026-06-30", "source_url": "https://www.screener.in/company/DHANBANK/" },
+    "history_screener": {
+      "unit": "percent",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "rows": [
+        { "quarter": "Jun-2026", "fii": 14.21, "dii": 0.05, "public": 85.74, "shareholders": 163114 },
+        { "quarter": "Mar-2026", "fii": 15.42, "dii": 0.05, "public": 84.53, "shareholders": 172047 },
+        { "quarter": "Dec-2025", "fii": 15.32, "dii": 0.05, "public": 84.63, "shareholders": 175709 },
+        { "quarter": "Sep-2025", "fii": 15.27, "dii": 0.05, "public": 84.68, "shareholders": 179703 },
+        { "quarter": "Jun-2025", "fii": 15.52, "dii": 0.05, "public": 84.43, "shareholders": 181297 },
+        { "quarter": "Mar-2025", "fii": 15.26, "dii": 0.05, "public": 84.69, "shareholders": 184543 },
+        { "quarter": "Dec-2024", "fii": 6.95, "dii": 0.16, "public": 92.9, "shareholders": 184128 },
+        { "quarter": "Sep-2024", "fii": 4.97, "dii": 0.07, "public": 94.96, "shareholders": 185822 },
+        { "quarter": "Jun-2024", "fii": 5.93, "dii": 0.07, "public": 93.99, "shareholders": 200558 },
+        { "quarter": "Mar-2024", "fii": 6.1, "dii": 0.07, "public": 93.82, "shareholders": 212869 },
+        { "quarter": "Dec-2023", "fii": 11.89, "dii": 0.07, "public": 88.04, "shareholders": 125389 },
+        { "quarter": "Sep-2023", "fii": 10.76, "dii": 0.07, "public": 89.16, "shareholders": 118022 }
+      ],
+      "observation": "FII holding jumps 6.95% (Dec-2024) -> 15.26% (Mar-2025), the exact quarter the rights issue was allotted (2026 note: allotment 2025-02-04). The rights issue, not open-market buying, is the mechanical cause. Any 'FII interest doubled' narrative generated from this series without the corporate action is wrong."
+    }
+  },
+
+  "corporate_actions_2026": {
+    "value": "No dividend, bonus, split or rights action in calendar 2026 was found in any source read.",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "only_2026_action_found": {
+      "what": "Book closure / record date for the 99th Annual General Meeting",
+      "intimated": "2026-08-31",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "announcement_title": "Intimation Of Book Closure Or Record Date",
+      "note": "An AGM book closure, not a cash corporate action - no dividend is attached (payout is 0%)."
+    },
+    "MANIFEST_CORRECTION": {
+      "manifest_claim": "The R15 battery manifest (P12 reference block) states the rights issue 'lifted equity capital from 253 cr (Mar-2025) to 395 cr (Mar-2026)'.",
+      "what_the_sources_say": "The rights issue record date was 2024-12-27, the issue ran 2025-01-08 to 2025-01-28, allotment was on/about 2025-02-04 and listing on/about 2025-02-10 - all inside FY2024-25. screener.in's balance sheet accordingly shows equity capital 253 cr at Mar-2024 and 395 cr at Mar-2025 and Mar-2026 (flat).",
+      "arithmetic": "39,46,98,851 shares x Rs 10 face = Rs 394.70 cr = the 395 cr line.",
+      "verdict": "The manifest's reference block is off by one fiscal year. Recorded here so the differ does not inherit the error and score the app wrong for being right.",
+      "source_urls": ["https://www.dhan.bank.in/rights-issue", "https://www.screener.in/company/DHANBANK/"]
+    },
+    "rights_issue_2024_25": {
+      "note": "Not a 2026 action, but it is the corporate action this entity is defined by and the fault line under every per-share disagreement in this pack.",
+      "source_url": "https://www.dhan.bank.in/rights-issue",
+      "issue_size": { "value": 297.54, "unit": "INR crore", "quote": "Up to Rs. 297.54 crore" },
+      "ratio": { "value": "14:25", "quote": "14 Rights Equity Share for every 25 Equity Shares held on the Record Date" },
+      "issue_price": { "value": 21.0, "unit": "INR per share", "quote": "Rs. 21.00 per Rights Equity Share (including a premium of Rs.11.00 per Rights Equity Share)" },
+      "record_date": "2024-12-27",
+      "open_date": "2025-01-08",
+      "close_date": "2025-01-28",
+      "allotment_date": "2025-02-04",
+      "listing_date": "2025-02-10",
+      "shares_pre_issue": 253012084,
+      "rights_shares_offered": 141686767,
+      "shares_post_issue": 394698851,
+      "re_isin": "INE680A20011",
+      "board_approval": {
+        "value": "December 2024",
+        "source_url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank",
+        "quote": "the board of Dhanlaxmi Bank approved a right issue to raise up to Rs 297.54 crore"
+      },
+      "subscription_outcome": {
+        "value": null,
+        "gap": "Whether the issue was FULLY subscribed is not stated by any source read. The Letter of Offer figures are all 'up to' / 'assuming full subscription'. The Mar-2025 equity capital of Rs 395 cr implies it effectively was, but that is an inference, not a filed statement."
+      }
+    }
+  },
+
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2026-27, quarter ended 2026-06-30",
+      "as_of": "2026-09-19",
+      "source_url": "https://www.dhan.bank.in/statutory-reports",
+      "document": "https://www.dhan.bank.in/pdf/Q1-Unaudited-Finanacial-Result-FY-2026-27.pdf",
+      "basis": "Unaudited, standalone",
+      "figures_from_screener": {
+        "interest_earned": { "value": 449, "unit": "INR crore" },
+        "interest_expended": { "value": 272, "unit": "INR crore" },
+        "derived_nii": { "value": 177, "unit": "INR crore", "basis": "449 - 272, derived by this collector" },
+        "financing_profit": { "value": 1, "unit": "INR crore" },
+        "net_profit": { "value": 25, "unit": "INR crore" },
+        "eps": { "value": 0.63, "unit": "INR" },
+        "source_url": "https://www.screener.in/company/DHANBANK/"
+      },
+      "prior_year_quarter": {
+        "quarter": "Q1 FY2025-26 (Jun-2025)",
+        "interest_earned": { "value": 368, "unit": "INR crore" },
+        "net_profit": { "value": 12, "unit": "INR crore" },
+        "eps": { "value": 0.31, "unit": "INR" },
+        "source_url": "https://www.screener.in/company/DHANBANK/",
+        "yoy": "Net profit +108% YoY (25 vs 12); interest earned +22.0% YoY"
+      }
+    },
+    "filing_date": {
+      "value": null,
+      "gap": "Not retrieved. The board-meeting/approval date is printed inside the filed PDF, which is a SCANNED IMAGE (see traps); bseindia.com, which publishes the filing timestamp, returned HTTP 403; screener.in does not date its quarterly columns beyond the month label."
+    },
+    "quarterly_series_screener": {
+      "unit": "INR crore (EPS in INR)",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "columns": ["quarter", "interest_earned", "interest_expended", "financing_profit", "net_profit", "eps"],
+      "rows": [
+        ["Jun-2023", 289, 171, -22, 28, 0.72],
+        ["Sep-2023", 304, 183, 3, 23, 0.59],
+        ["Dec-2023", 308, 194, -33, 3, 0.08],
+        ["Mar-2024", 306, 201, -30, 3, 0.08],
+        ["Jun-2024", 306, 206, -40, -8, -0.2],
+        ["Sep-2024", 329, 208, -19, 26, 0.65],
+        ["Dec-2024", 335, 206, -22, 20, 0.5],
+        ["Mar-2025", 351, 216, -16, 29, 0.73],
+        ["Jun-2025", 368, 229, -27, 12, 0.31],
+        ["Sep-2025", 384, 242, -11, 23, 0.59],
+        ["Dec-2025", 407, 253, -25, 24, 0.61],
+        ["Mar-2026", 443, 256, 10, 43, 1.1],
+        ["Jun-2026", 449, 272, 1, 25, 0.63]
+      ],
+      "COLUMN_TRAP": "In screener's BANK layout the column headed 'Interest' is INTEREST EXPENDED, not interest income. 'Revenue' is the interest EARNED. A scraper that maps 'Interest' to interest income inverts the P&L and produces a bank with a negative spread."
+    },
+    "balance_sheet_screener": {
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "columns": ["year", "equity_capital", "reserves", "deposits", "borrowing", "other_liabilities", "total_liabilities"],
+      "rows": [
+        ["Mar-2022", 253, 647, 12403, 150, 343, 13796],
+        ["Mar-2023", 253, 708, 13352, 492, 327, 15132],
+        ["Mar-2024", 253, 777, 14290, 299, 343, 15962],
+        ["Mar-2025", 395, 1001, 16013, 200, 328, 17937],
+        ["Mar-2026", 395, 1079, 18643, 737, 384, 21238]
+      ],
+      "note": "Equity capital steps 253 -> 395 between Mar-2024 and Mar-2025 (the rights allotment of 2025-02-04), then is flat. Deposits +16.4% in FY26; borrowings 200 -> 737 cr (+269%) in FY26, which a generic 'debt exploded' heuristic will misread - for a bank this is refinancing/Tier-II activity, not distress."
+    },
+    "key_ratios_screener": {
+      "values": { "crar_pct": 17.19, "nim_pct": 3.43, "gnpa_pct": 2.36, "nnpa_pct": 1.11, "pcr_pct": 86.08, "cost_of_funds_pct": 5.73, "yield_on_investment_pct": 6.24 },
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "CAVEAT": "The quarter these belong to is NOT confirmed. The extraction labelled them 'Q3 FY26' (Dec-2025) but screener's ratio block is not unambiguously dated in what was retrieved, and the issuer's own Q1-FY27 investor presentation (which would settle it) is an image-only PDF. Treat the QUARTER as unverified; the VALUES are as published. Confidence: low on the period label, medium on the numbers.",
+      "if_current": "CRAR 17.19% is comfortably above the 11.5% regulatory minimum and GNPA 2.36% / NNPA 1.11% with 86% PCR is a materially cleaner book than this bank carried a decade ago (it lost Rs 241 cr in FY2015 and Rs 209 cr in FY2016)."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-01",
+      "headline": "Newspaper Publication W.R.T Dispatch Of Notice Of 99Th AGM And Annual Report For The FY 2025-26",
+      "url": null,
+      "url_gap": "screener.in links these to BSE-hosted PDFs; bseindia.com returned HTTP 403 so the document URL could not be captured.",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "year_confidence": "screener renders current-year announcements as '1 Sep' with no year; 2026 inferred from context (99th AGM, FY2025-26 annual report)"
+    },
+    {
+      "date": "2026-08-31",
+      "headline": "Intimation Of Book Closure Or Record Date",
+      "url": null,
+      "url_gap": "same as above",
+      "source_url": "https://www.screener.in/company/DHANBANK/",
+      "note": "Same day as 'Reg. 34 (1) Annual Report' and 'Notice Of 99Th Annual General Meeting' - three filings on 2026-08-31."
+    },
+    {
+      "date": "2026-08-20",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "url": null,
+      "url_gap": "same as above",
+      "source_url": "https://www.screener.in/company/DHANBANK/"
+    }
+  ],
+
+  "other_announcements_for_context": [
+    { "date": "2026-08-31", "headline": "Reg. 34 (1) Annual Report", "source_url": "https://www.screener.in/company/DHANBANK/" },
+    { "date": "2026-08-31", "headline": "Notice Of 99Th Annual General Meeting", "source_url": "https://www.screener.in/company/DHANBANK/" }
+  ],
+
+  "credit_ratings": {
+    "source_url": "https://www.screener.in/company/DHANBANK/",
+    "items": [
+      { "date": "2026-08-19", "agency": "ICRA", "year_confidence": "2026 inferred (screener shows no year for current-year items)" },
+      { "date": "2026-03-24", "agency": "ICRA", "year_confidence": "2026 inferred" },
+      { "date": "2025-07-08", "agency": "Brickwork" },
+      { "date": "2025-07-01", "agency": "CARE" },
+      { "date": "2025-03-25", "agency": "ICRA" },
+      { "date": "2024-12-19", "agency": "CARE" }
+    ],
+    "gap": "Rating grades and outlooks not captured - screener lists only date + agency; the rating letters live in agency PDFs not fetched. The issuer also publishes https://www.dhan.bank.in/credit-rating."
+  },
+
+  "consolidated_vs_standalone": {
+    "value": "Standalone only, as far as the sources read show.",
+    "as_of": "2026-09-19",
+    "source_url": "https://www.dhan.bank.in/statutory-reports",
+    "detail": "The issuer publishes results titled 'Unaudited Financial Results' / 'Audited Results' with no standalone-vs-consolidated qualifier and no separate consolidated set; screener.in's default DHANBANK page carries one set of statements. No subsidiary or associate is named by any source read.",
+    "confidence": "medium",
+    "why_not_high": "The absence of a consolidated variant was not positively tested (screener's /consolidated/ path was not fetched, and the filed PDFs are image-only). Recorded as 'not found', not as 'does not exist'.",
+    "note": "For most Indian old-generation private banks with no subsidiaries the two are identical, so a differ should treat a consolidated/standalone mismatch on this name as low-severity unless the numbers differ."
+  },
+
+  "traps": [
+    "REVENUE DEFINITION (the headline trap): screener.in publishes TTM revenue of Rs 1,683 cr and stockanalysis.com publishes Rs 776 cr for the same bank on the same day - 2.17x apart - because one means gross interest earned and the other means net interest income + other income. A third reading, total income (interest earned + other income, ~Rs 1,799 cr), is what the filed result actually leads with. Any app that shows one number labelled 'Revenue' is wrong against two of the three conventions.",
+    "SCREENER COLUMN INVERSION: in screener's bank layout the column headed 'Interest' is interest EXPENDED, not earned ('Revenue' is the earned figure). Mapping 'Interest' to interest income inverts the spread and produces a bank that appears to pay more than it earns.",
+    "RIGHTS-ENTITLEMENT GHOST INSTRUMENT: the bundled BSE master carries 750942 / DHAN-RE / group R alongside 532180 / DHANBANK. DHAN-RE (ISIN INE680A20011) was the Jan-2025 rights entitlement - an expired, non-trading line with no price. Any prefix or fuzzy match on 'DHAN' can land on it, and it will resolve, and it will return nothing.",
+    "BRAND COLLISION ON 'DHAN': 'Dhan' is also a large Indian retail broking platform (dhan.co). A name- or news-based resolver searching 'Dhan' gets the broker, not the bank.",
+    "THREE LEGAL-NAME SPELLINGS: Dhanalakshmi Bank (pre-2010-08-10), Dhanlaxmi Bank (current legal name), and Dhanalaxmi (used by the issuer itself in its own FY2024-25 annual report filename). Exact-name matching fails across the bank's own archive.",
+    "DOMAIN MIGRATION: the long-standing IR domain dhanbank.com now 301-redirects to dhan.bank.in. Any stored first-party URL older than the migration rots, and the new domain's '.bank.in' TLD is unusual enough that naive URL validators reject it.",
+    "PER-SHARE SERIES CROSSES A RIGHTS ISSUE: share count went 25.30 cr -> 39.47 cr on 2025-02-04 (14:25 at Rs 21). Quarterly EPS before and after are on different denominators and screener does not restate them. EPS CAGR, per-share charts and book-value trends spanning Feb-2025 are arithmetically incoherent unless adjusted.",
+    "NO PROMOTER AT ALL: screener's shareholding table has no Promoters row; groww shows Public 85.75 / FII 14.21 / DII 0.05. promoter_pct is 0.00%/N-A by fact, and pledged_pct_of_promoter is UNDEFINED, not zero. A UI that renders 'Promoter holding 0%' as a governance red flag mis-signals an entire class of old private banks and PSUs.",
+    "FII JUMP IS A CORPORATE ACTION, NOT CONVICTION: FII holding doubles 6.95% (Dec-2024) -> 15.26% (Mar-2025) in the rights-allotment quarter. An agent narrating the shareholding series without the corporate action will report institutional accumulation that did not happen as described.",
+    "BANK RATIO CONVENTIONS: screener prints ROCE 5.81% for a bank, where deposits are operating liabilities and ROCE is meaningless; no source publishes D/E, and deriving it naively with deposits included gives ~13x, which reads as distress. Banks are judged on CRAR / NIM / GNPA / ROA.",
+    "BORROWINGS +269% IN FY26 (200 -> 737 cr) while deposits grew 16.4%. A generic leverage-spike heuristic flags this as deterioration; for a bank at 17.19% CRAR it is ordinary funding-mix activity.",
+    "BOOK VALUE SPREAD 34.16 / 37.35 / 38.3 across groww, balance-sheet derivation and screener - a 12% spread that flips the headline from 'trades 23% below book' to 'trades 15% below book'. For a bank, where P/B is THE valuation metric, this is the difference between two investment cases.",
+    "MARKET CAP SPREAD 1,145 - 1,165 cr, driven by share counts that straddle the rights issue (groww implies 38.85 cr shares vs the filed 39.47 cr).",
+    "ISSUER FILINGS ARE SCANNED IMAGES: both the Q1-FY27 results PDF and the Q1-FY27 investor presentation are image-only (JPXDecode, no text layer). Any 'cite the exact filing page behind this number' receipt feature cannot quote this issuer without OCR - and this is a mainboard NSE+BSE bank, not an obscure SME.",
+    "BSE BLOCKS AUTOMATED FETCHES: bseindia.com returned HTTP 403 for the scrip page during this collection. A pipeline that treats the exchange as its authority source silently loses its highest-authority tier on this name and falls back to aggregators - exactly where the definitional conflicts above live.",
+    "DEEP HISTORY IS LOSS-MAKING: FY2015 -Rs 241 cr and FY2016 -Rs 209 cr net loss. Any long-window CAGR, average-ROE or P/E-history calculation that spans them either divides by a negative base or silently drops years. screener's own 10-year profit CAGR (10%) and 5-year (22%) differ by 2.2x for this reason.",
+    "52-WEEK RANGE IS 1.89x (19.45 - 36.85). Auto-scaled charts and 'near 52w high/low' gauges built on rounded or stale ranges misplace the 29.47 last close, which actually sits mid-range."
+  ],
+
+  "world_gaps": [
+    "Listing date on BSE and NSE - genuinely not published by any reachable source; bseindia.com (which has it) returns 403. Incorporation 1927-11-14 and scheduled-bank status 1977 are the only dated anchors.",
+    "Dates of the 52-week high and low - not published by screener, groww or stockanalysis; BSE has them and is blocked.",
+    "Board-meeting / filing date of the Q1 FY2026-27 results - printed inside an image-only PDF; BSE filing timestamp blocked.",
+    "Exact filed figures for Q1 FY2026-27 (total income, other income, operating profit, GNPA/NNPA amounts, CRAR for the June-2026 quarter) - the issuer's results PDF and investor presentation are both scanned images with no text layer and no OCR was available in this environment. Screener-derived proxies are recorded instead and labelled as such.",
+    "The quarter to which screener's key-ratio block (CRAR 17.19 / NIM 3.43 / GNPA 2.36 / NNPA 1.11 / PCR 86.08) belongs - recorded with an explicit low-confidence caveat rather than asserted.",
+    "Whether the Jan-2025 rights issue was FULLY subscribed - the Letter of Offer speaks only of 'up to'; the Mar-2025 equity capital of Rs 395 cr implies full subscription but no source states it.",
+    "Per-share amount and declaration date of the last dividend - the issuer's unclaimed-dividend page establishes FY2010-11 as the last dividend year but publishes no amount.",
+    "URLs for the last three announcements - screener links them to BSE-hosted PDFs and BSE returned 403.",
+    "Credit rating GRADES and outlooks - screener lists agency + date only.",
+    "pledged_pct_of_promoter - UNDEFINED rather than unreachable: this issuer has no promoter.",
+    "BSE last-traded price, and therefore the BSE/NSE price spread for this dual-listed scrip.",
+    "WebSearch was unavailable for this collection (the session's 200-call budget was already exhausted before this task started), so every source here was reached by direct URL. Discovery of additional sources - Tijori, Trendlyne, Moneycontrol, NSE - was consequently limited: moneycontrol.com and economictimes.indiatimes.com are blocked to this fetcher, the Trendlyne numeric company id could not be discovered without search, and angelone's guessed slug 404'd."
+  ],
+
+  "sources_actually_read": [
+    { "url": "https://www.screener.in/company/DHANBANK/", "authority": "screener.in-grade aggregator", "used_for": "price, market cap, all ratios, full quarterly and annual P&L, balance sheet, shareholding history, announcements, credit-rating dates, pros/cons, growth tables" },
+    { "url": "https://www.dhan.bank.in/rights-issue", "authority": "PRIMARY - issuer, Letter of Offer text", "used_for": "rights issue ratio/price/dates, pre- and post-issue share counts, ISIN, RE ISIN, BSE code, NSE symbol, face value inference" },
+    { "url": "https://www.dhan.bank.in/statutory-reports", "authority": "PRIMARY - issuer", "used_for": "which results and annual reports are filed and their document URLs; 99th AGM (2026)" },
+    { "url": "https://www.dhan.bank.in/presentations", "authority": "PRIMARY - issuer", "used_for": "investor-presentation index confirming a Q1-FY27 (June 2026) presentation exists" },
+    { "url": "https://www.dhan.bank.in/unclaimed-dividend", "authority": "PRIMARY - issuer", "used_for": "last dividend year (FY2010-11)" },
+    { "url": "https://www.dhan.bank.in/share-price", "authority": "PRIMARY - issuer", "used_for": "confirming BSE scrip 532180 and NSE symbol linkage; no prices published there" },
+    { "url": "https://www.dhan.bank.in/", "authority": "PRIMARY - issuer", "used_for": "confirming the dhanbank.com -> dhan.bank.in domain migration and the IR link map" },
+    { "url": "https://groww.in/stocks/dhanlaxmi-bank-ltd", "authority": "aggregator", "used_for": "independent price/day-range/52w, market cap, P/E, P/B, book value, EPS, ROE, shareholding - the cross-check that surfaced the book-value and market-cap spreads" },
+    { "url": "https://stockanalysis.com/quote/nse/DHANBANK/", "authority": "aggregator", "used_for": "independent price with timestamp, market cap, P/E, EPS, TTM revenue and net income, 52w range, sector/industry - the source of the 2.17x revenue-definition conflict" },
+    { "url": "https://en.wikipedia.org/wiki/Dhanlaxmi_Bank", "authority": "secondary", "used_for": "rename date, incorporation date, HQ, branch count, MD & CEO, rights-issue board approval, governance history" }
+  ],
+
+  "sources_attempted_and_failed": [
+    { "url": "https://www.bseindia.com/stock-share-price/dhanlaxmi-bank-ltd/dhanbank/532180/", "result": "HTTP 403 Forbidden", "cost": "lost the highest-authority tier: listing date, 52w high/low dates, filing timestamps, announcement PDF URLs, BSE price, BSE industry classification" },
+    { "url": "https://www.dhan.bank.in/pdf/Q1-Unaudited-Finanacial-Result-FY-2026-27.pdf", "result": "fetched (1.5 MB) but is a scanned image PDF - /Filter /JPXDecode, 4 pages, no text layer; local rendering unavailable (pdftotext, mutool, qpdf and pdftoppm all absent on this machine and installing them was out of scope)", "cost": "no verbatim filed figures for Q1 FY2026-27" },
+    { "url": "https://www.dhan.bank.in/pdf/Investor-Presentation-June-2026.pdf", "result": "fetched (2.1 MB), same image-only problem", "cost": "no June-2026 NIM/CRAR/GNPA/business figures" },
+    { "url": "https://www.moneycontrol.com/india/stockpricequote/banks-private-sector/dhanlaxmibank/DB03", "result": "blocked to this fetcher", "cost": "Indian industry classification and dividend/corporate-action history" },
+    { "url": "https://economictimes.indiatimes.com/dhanlaxmi-bank-ltd/stocks/companyid-9138.cms", "result": "blocked to this fetcher", "cost": "52-week high/low dates and result announcement date" },
+    { "url": "https://trendlyne.com/equity/244/DHANBANK/dhanlaxmi-bank-ltd/", "result": "wrong entity - that numeric id serves CEAT Ltd; the correct id could not be discovered without WebSearch", "cost": "a fourth independent cross-check" },
+    { "url": "https://www.angelone.in/stocks/dhanlaxmi-bank-ltd-share-price", "result": "HTTP 404 - guessed slug", "cost": "dividend and corporate-action history" },
+    { "url": "https://www.dhanbank.com/investor-relations/", "result": "301 -> https://www.dhan.bank.in/ (followed successfully; recorded as the domain-migration trap rather than a failure)" }
+  ]
+}

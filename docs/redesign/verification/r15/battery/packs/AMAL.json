@@ -1,0 +1,748 @@
+{
+ "collected_at": "2026-09-19",
+ "slot": "P19",
+ "symbol": "AMAL",
+ "exchange": "NASDAQ",
+ "status": "complete",
+ "currency": "USD",
+ "collector_note": "OUTSIDE-TRUTH pack. Built primary-source-first from SEC EDGAR (CIK 0001823608) filings and the company's own Q2 2026 earnings release, with prices cross-checked across three independent quote sources. WebSearch budget for the session was exhausted before this pack started; all retrieval was direct HTTP against named endpoints. India-shaped fields (bse_code, promoter/FII/DII, face value in INR, standalone-vs-consolidated) are structurally inapplicable to a US bank holding company and are recorded as world_gaps, NOT as zeros.",
+ "identity": {
+  "legal_name": {
+   "value": "Amalgamated Financial Corp.",
+   "as_of": "2026-09-19",
+   "source_url": "https://data.sec.gov/submissions/CIK0001823608.json"
+  },
+  "cik": {
+   "value": "0001823608",
+   "as_of": "2026-09-19",
+   "source_url": "https://data.sec.gov/submissions/CIK0001823608.json"
+  },
+  "commission_file_number": {
+   "value": "001-40136",
+   "as_of": "2026-06-11",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm"
+  },
+  "irs_ein": {
+   "value": "85-2757101",
+   "as_of": "2026-06-11",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm"
+  },
+  "former_names": {
+   "value": "No true rename. The SEC EDGAR formerNames array contains exactly ONE entry and it is the SAME string as the current name: {name: 'Amalgamated Financial Corp.', from: '2020-09-08', to: '2026-09-17'}. This is an EDGAR metadata refresh, not a name change. The genuine predecessor relationship is an ISSUER SUCCESSION, not a rename: Amalgamated Financial Corp. became the Nasdaq-listed issuer as successor to Amalgamated Bank on 2021-03-01 via a holding-company reorganization (Form 8-K12B).",
+   "rename_date": null,
+   "predecessor_issuer": "Amalgamated Bank (New York state-chartered bank and trust company)",
+   "succession_effective": "2021-03-01",
+   "as_of": "2026-09-19",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000119312521062425/d132716d8k12b.htm"
+  },
+  "isin": {
+   "value": null,
+   "status": "not_reached",
+   "note": "US ISINs are CUSIP-derived. No CUSIP appeared in any SEC document retrieved (submissions JSON, 8-K covers, Form 144 primary_doc.xml, 8-K12B cover). SEC does not publish ISIN. Attempts logged in world_gaps.not_reached.",
+   "as_of": "2026-09-19",
+   "source_url": null
+  },
+  "bse_code": {
+   "value": null,
+   "status": "not_applicable",
+   "note": "US-listed. The string 'AMAL' DOES map to BSE 506597 (Amal Ltd, ISIN INE841D01013) but that is a DIFFERENT COMPANY - see traps.ticker_collision."
+  },
+  "nse_symbol": {
+   "value": null,
+   "status": "not_applicable"
+  },
+  "board": {
+   "value": "Nasdaq Global Market (NASDAQ-GM)",
+   "note": "Global Market tier, NOT Global Select. The India 'mainboard vs SME' axis has no US analogue.",
+   "as_of": "2026-09-18",
+   "source_url": "https://api.nasdaq.com/api/quote/AMAL/info?assetclass=stocks"
+  },
+  "sector": {
+   "value": "Financials",
+   "as_of": "2026-09-19",
+   "source_url": "https://stockanalysis.com/stocks/amal/"
+  },
+  "industry": {
+   "value": "Banks - Regional",
+   "sic_code": "6022",
+   "sic_description": "State Commercial Banks",
+   "as_of": "2026-09-19",
+   "source_url": "https://data.sec.gov/submissions/CIK0001823608.json"
+  },
+  "legal_form": {
+   "value": "Delaware public benefit corporation and bank holding company; certified B Corporation; founded 1923 by the Amalgamated Clothing Workers of America",
+   "state_of_incorporation": "DE",
+   "as_of": "2026-07-21",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm"
+  },
+  "listing_date": {
+   "value": "2021-03-01",
+   "basis": "Date Amalgamated Financial Corp. became the listed issuer (holding-company reorganization effective; common stock deemed registered under Exchange Act Rule 12g-3(a)). The AMAL ticker itself has traded on Nasdaq since the predecessor Amalgamated Bank's 2018 IPO, but the exact 2018 IPO date was NOT independently verified in this session - see world_gaps.not_reached.",
+   "as_of": "2021-03-01",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000119312521062425/d132716d8k12b.htm"
+  },
+  "registered_office": {
+   "value": "275 Seventh Avenue, New York, New York 10001",
+   "as_of": "2026-06-11",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm"
+  }
+ },
+ "price": {
+  "last_close": {
+   "value": 47.4,
+   "unit": "USD per share",
+   "date": "2026-09-18",
+   "corroboration": "THREE independent sources agree exactly: Nasdaq official quote ($47.40, +0.27, +0.57%, volume 406,288, Sep 18 2026), Yahoo Finance daily bar (47.40), stockanalysis.com ($47.40, Sep 18 2026 4:00 PM EDT).",
+   "source_url": "https://api.nasdaq.com/api/quote/AMAL/info?assetclass=stocks",
+   "secondary_source_urls": [
+    "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+    "https://stockanalysis.com/stocks/amal/"
+   ]
+  },
+  "day_range_last_session": {
+   "high": 47.49,
+   "unit": "USD",
+   "date": "2026-09-18",
+   "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d"
+  }
+ },
+ "market_cap": {
+  "value": 1.42,
+  "unit": "USD billion",
+  "as_of": "2026-09-18",
+  "computed_check": "29,900,147 shares outstanding (SEC, 2026-06-30) x $47.40 = $1.4173B. Agrees with the aggregator's $1.42B.",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+  "primary_share_count_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+ },
+ "pe_ttm": {
+  "value": 12.64,
+  "unit": "x",
+  "as_of": "2026-09-18",
+  "computed_check": "47.40 / 3.75 EPS TTM = 12.64. Consistent.",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+ },
+ "forward_pe": {
+  "value": 11.0,
+  "unit": "x",
+  "as_of": "2026-09-19",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+ },
+ "pb": {
+  "value": 1.7,
+  "unit": "x",
+  "as_of": "2026-09-18",
+  "computed_check": "47.40 / 27.93 book value per share (SEC primary, 2026-06-30) = 1.697. Aggregator 1.70 confirmed against a primary-source denominator.",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+ },
+ "roe": {
+  "ttm": {
+   "value": 14.28,
+   "unit": "percent",
+   "as_of": "2026-09-19",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "primary_filed": {
+   "q2_2026_annualized": 17.04,
+   "h1_2026_annualized": 14.85,
+   "q2_2025_annualized": 14.06,
+   "unit": "percent, return on average equity, annualized",
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  "note": "Two DIFFERENT correct answers depending on basis. The filed 17.04% is a single-quarter annualized ROAE; the 14.28% is a trailing-twelve-month ROE. Not a discrepancy - a basis difference. Also filed: core return on average TANGIBLE common equity 16.51% (non-GAAP, Q2 2026)."
+ },
+ "roce": {
+  "value": null,
+  "status": "not_applicable",
+  "note": "ROCE (return on capital employed) is not a disclosed or meaningful metric for a bank holding company - there is no 'capital employed' line in a bank balance sheet in the industrial sense. The filed analogues are ROA 1.49% (Q2 2026), core ROA 1.42%, and ROATCE 16.51%.",
+  "roa_q2_2026": 1.49,
+  "core_roa_q2_2026": 1.42,
+  "unit": "percent, annualized",
+  "as_of": "2026-06-30",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+ },
+ "debt_to_equity": {
+  "value": 0.095,
+  "unit": "x",
+  "as_of": "2026-06-30",
+  "computed_check": "Total debt $79.60M / total stockholders' equity $834.993M = 0.0953. Equity figure is SEC-primary; total debt is from the aggregator.",
+  "note": "The aggregator does not publish a D/E for this name (banks are normally excluded). Value is COMPUTED here, not quoted. For a deposit-funded bank, D/E excludes the $8.5B deposit base and is therefore close to meaningless as a leverage read - use the filed regulatory ratios instead: Tier 1 leverage 9.20%, CET1 14.20%, TCE/TA 8.74%.",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+  "total_debt_source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+ },
+ "revenue_ttm": {
+  "value": 333.86,
+  "unit": "USD million",
+  "as_of": "2026-09-19",
+  "basis": "aggregator TTM 'revenue' definition",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+  "primary_source_conflict": {
+   "filed_net_revenue_q2_2026": 98.4,
+   "unit": "USD million for the quarter",
+   "filed_net_interest_income_q2_2026": 86.057,
+   "filed_net_interest_income_q1_2026": 80.156,
+   "filed_net_interest_income_q3_2025": 76.447,
+   "filed_net_interest_income_q2_2025": 72.909,
+   "as_of": "2026-06-30",
+   "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/InterestIncomeExpenseNet.json",
+   "note": "RECORDED, NOT SMOOTHED. Summing the company's own quarterly 'net revenue' across the last four quarters lands materially ABOVE the aggregator's $333.86M TTM revenue (Q2 2026 alone is $98.4M). 'Revenue' for a bank is definitionally unstable - net interest income, net revenue (NII + non-interest income), or total interest income are all defensible and all different. Do not mix bases across a diff. Q4 2025 was not separately tagged as a quarterly XBRL fact (annual 10-K period only), so an exact primary-source TTM recomputation was not completed."
+  }
+ },
+ "net_profit_ttm": {
+  "value": 113.42,
+  "unit": "USD million",
+  "as_of": "2026-09-19",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+  "primary_quarterly": {
+   "q2_2026_gaap_net_income": 34.766,
+   "q1_2026_gaap_net_income": 25.223,
+   "unit": "USD million",
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  }
+ },
+ "revenue_growth_yoy": {
+  "value": 18.03,
+  "unit": "percent",
+  "basis": "QUARTERLY YoY on net interest income: Q2 2026 $86.057M vs Q2 2025 $72.909M. Computed from SEC XBRL primary facts.",
+  "as_of": "2026-06-30",
+  "source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/InterestIncomeExpenseNet.json",
+  "aggregator_alternative": {
+   "value": 9.6,
+   "unit": "percent",
+   "basis": "TTM revenue growth per aggregator",
+   "confidence": "low - the source page rendered the SAME +9.6% figure against both revenue and net income, which is suspicious enough that it should not be trusted without a second read",
+   "source_url": "https://stockanalysis.com/stocks/amal/"
+  }
+ },
+ "eps_ttm": {
+  "value": 3.75,
+  "unit": "USD per diluted share",
+  "as_of": "2026-09-19",
+  "source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+  "primary_quarterly_gaap": {
+   "q2_2026_basic": 1.16,
+   "q2_2026_diluted": 1.15,
+   "q1_2026_basic": 0.85,
+   "q1_2026_diluted": 0.84,
+   "q2_2025_basic": 0.85,
+   "q2_2025_diluted": 0.84,
+   "h1_2026_diluted": 1.99,
+   "h1_2025_diluted": 1.65,
+   "unit": "USD per share",
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  "primary_quarterly_core_non_gaap": {
+   "q2_2026_basic": 1.11,
+   "q2_2026_diluted": 1.1,
+   "q1_2026_basic": 0.81,
+   "q1_2026_diluted": 0.8,
+   "q2_2025_diluted": 0.88,
+   "h1_2026_diluted": 1.9,
+   "h1_2025_diluted": 1.75,
+   "unit": "USD per share",
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  }
+ },
+ "book_value_per_share": {
+  "value": 27.93,
+  "unit": "USD per share",
+  "as_of": "2026-06-30",
+  "basis": "GAAP book value per common share, SEC primary",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+  "tangible_book_value_per_share": 27.47,
+  "prior_quarter_bvps": 27.05,
+  "year_ago_bvps": 24.79,
+  "total_stockholders_equity": {
+   "value": 834.993,
+   "unit": "USD million",
+   "as_of": "2026-06-30"
+  }
+ },
+ "face_value": {
+  "value": 0.01,
+  "unit": "USD par value per share",
+  "as_of": "2026-06-30",
+  "note": "US 'par value', the structural analogue of Indian 'face value'. Carries no economic meaning and is NOT comparable to an INR face value of 1/2/5/10.",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+ },
+ "shares": {
+  "outstanding": {
+   "value": 29900147,
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  "issued": {
+   "value": 31207172,
+   "as_of": "2026-06-30",
+   "note": "ISSUED exceeds OUTSTANDING by 1,307,025 treasury shares ($37.942M at cost). Market cap must use OUTSTANDING.",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  "authorized": {
+   "value": 70000000,
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  "weighted_average_diluted_q2_2026": 30189000
+ },
+ "dividend": {
+  "last_declared_per_share": {
+   "value": 0.17,
+   "unit": "USD per share",
+   "declared_date": "2026-07-21",
+   "record_date": "2026-08-04",
+   "payable_date": "2026-08-20",
+   "ex_date": "2026-08-04",
+   "ex_date_note": "Ex-date taken from the aggregator; the 8-K states only record (2026-08-04) and payable (2026-08-20) dates. Under T+1 settlement ex-date == record date, so these are consistent.",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm",
+   "ex_date_source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "paid_trailing_12m_per_share": {
+   "value": 0.68,
+   "unit": "USD per share",
+   "as_of": "2026-09-19",
+   "note": "$0.68 = 4 x $0.17. Only the July 2026 declaration was read at source; the other three quarterly amounts are INFERRED from the TTM total matching exactly 4x the verified quarterly rate. Corresponding dividend 8-Ks: 2026-01-20, 2026-04-21, 2026-07-21 (item 7.01 each).",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "yield": {
+   "value": 1.44,
+   "unit": "percent",
+   "as_of": "2026-09-18",
+   "computed_check": "0.68 / 47.40 = 1.435%. Consistent.",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "payout_ratio": {
+   "value": 17.33,
+   "unit": "percent",
+   "as_of": "2026-09-19",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "amount_paid_q2_2026": {
+   "value": 5.2,
+   "unit": "USD million",
+   "as_of": "2026-06-30",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  }
+ },
+ "week52": {
+  "high": {
+   "value": 51.59,
+   "unit": "USD",
+   "date": "2026-08-13",
+   "basis": "intraday high",
+   "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+   "corroboration": "stockanalysis.com independently reports 52-week high $51.59.",
+   "highest_close": {
+    "value": 51.08,
+    "date": "2026-08-13"
+   }
+  },
+  "low": {
+   "value": 25.13,
+   "unit": "USD",
+   "date": "2025-10-16",
+   "basis": "intraday low",
+   "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+   "corroboration": "stockanalysis.com independently reports 52-week low $25.13.",
+   "lowest_close": {
+    "value": 25.26,
+    "date": "2025-10-16"
+   }
+  },
+  "change_52w_pct": {
+   "value": 70.5,
+   "unit": "percent",
+   "as_of": "2026-09-19",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  }
+ },
+ "shareholding": {
+  "quarter": "N/A - the Indian quarterly shareholding-pattern filing regime has no US equivalent",
+  "promoter_pct": null,
+  "fii_pct": null,
+  "dii_pct": null,
+  "public_pct": null,
+  "pledged_pct_of_promoter": null,
+  "us_analogue": {
+   "institutional_ownership_pct": {
+    "value": 64.03,
+    "unit": "percent of shares outstanding",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.nasdaq.com/api/company/AMAL/institutional-holdings?limit=5&type=TOTAL"
+   },
+   "total_institutional_holdings_value": {
+    "value": 908,
+    "unit": "USD million",
+    "as_of": "2026-09-19",
+    "source_url": "https://api.nasdaq.com/api/company/AMAL/institutional-holdings?limit=5&type=TOTAL"
+   }
+  },
+  "note": "EVERY India-shaped shareholding field above is structurally absent, not zero and not unknown. US issuers disclose beneficial ownership >5% (SC 13D/G), insider holdings (Forms 3/4/5) and institutional positions (13F) - there is no 'promoter', no FII/DII split, and no pledge disclosure regime. A pipeline that zero-fills these fabricates data."
+ },
+ "corporate_actions_2026": {
+  "splits": {
+   "value": "none in 2026",
+   "last_split_ever": {
+    "ratio": "20:1 forward",
+    "date": "2018-07-30",
+    "note": "Pre-IPO recapitalization split. Any price series reaching before 2018-07-30 must be split-adjusted.",
+    "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+   }
+  },
+  "bonus": {
+   "value": "none - bonus issues are not a US corporate-action type"
+  },
+  "rights": {
+   "value": "none in 2026"
+  },
+  "dividends": {
+   "value": "Four regular quarterly cash dividends; declaration 8-Ks filed 2026-01-20, 2026-04-21, 2026-07-21 (item 7.01 each). July declaration verified at $0.17/share.",
+   "source_url": "https://data.sec.gov/submissions/CIK0001823608.json"
+  },
+  "buyback": {
+   "value": "Share repurchase program expanded. On 2026-06-09 the Board authorized an ADDITIONAL $31.4 million of repurchases; combined with the $8.6 million then remaining, $40 million total was available for future repurchases. No expiration date.",
+   "event_date": "2026-06-09",
+   "filing_date": "2026-06-11",
+   "form": "8-K item 8.01",
+   "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm",
+   "wording_discrepancy": "The Q2 2026 earnings release describes this as 'a new $40 million share repurchase program was approved', which overstates the new authorization ($31.4M) by treating the $40M total-available figure as new. Both statements are from the company. Recorded, not smoothed."
+  },
+  "annual_meeting": {
+   "value": "Annual meeting held 2026-05-20; voting results filed 2026-05-22 (8-K item 5.07).",
+   "source_url": "https://data.sec.gov/submissions/CIK0001823608.json"
+  }
+ },
+ "latest_results": {
+  "quarter": "Q2 2026 (three months ended 2026-06-30)",
+  "press_release_date": "2026-07-23",
+  "press_release_form": "8-K items 2.02, 7.01, 9.01",
+  "filing_date": "2026-08-04",
+  "filing_form": "10-Q for period 2026-06-30",
+  "accession": "0001823608-26-000182",
+  "headline_figures": {
+   "gaap_net_income": {
+    "value": 34.766,
+    "unit": "USD million"
+   },
+   "gaap_diluted_eps": {
+    "value": 1.15,
+    "unit": "USD"
+   },
+   "core_net_income_non_gaap": {
+    "value": 33.1,
+    "unit": "USD million"
+   },
+   "core_diluted_eps_non_gaap": {
+    "value": 1.1,
+    "unit": "USD"
+   },
+   "net_revenue": {
+    "value": 98.4,
+    "unit": "USD million"
+   },
+   "net_interest_income": {
+    "value": 86.057,
+    "unit": "USD million"
+   },
+   "net_interest_margin": {
+    "value": 3.78,
+    "unit": "percent"
+   },
+   "total_assets": {
+    "value": 9411.541,
+    "unit": "USD million"
+   },
+   "on_balance_sheet_deposits": {
+    "value": 8.5,
+    "unit": "USD billion"
+   },
+   "net_loans_receivable": {
+    "value": 5.1,
+    "unit": "USD billion"
+   },
+   "tier1_leverage_ratio": {
+    "value": 9.2,
+    "unit": "percent"
+   },
+   "cet1_ratio": {
+    "value": 14.2,
+    "unit": "percent"
+   },
+   "efficiency_ratio": {
+    "value": 48.1,
+    "unit": "percent"
+   },
+   "nonaccrual_loans_to_total_loans": {
+    "value": 1.98,
+    "unit": "percent"
+   },
+   "provision_expense": {
+    "value": 4.4,
+    "unit": "USD million"
+   }
+  },
+  "characterization": "Company describes it as record net income, record core net income, record profitability, margin at 3.78%, guidance raised.",
+  "next_earnings_date": {
+   "value": "2026-10-22",
+   "source_url": "https://stockanalysis.com/stocks/amal/statistics/"
+  },
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+ },
+ "last_3_announcements": [
+  {
+   "date": "2026-07-23",
+   "headline": "Amalgamated Financial Corp. Reports Second Quarter 2026 Financial Results; Record Profitability | Margin Rises to 3.78% | Guidance Raised; Deposit Growth of $280 Million | Loan Growth of $115 Million",
+   "form": "8-K (items 2.02, 7.01, 9.01)",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+  },
+  {
+   "date": "2026-07-21",
+   "headline": "Amalgamated Financial Corp. Declares Regular Quarterly Dividend of $0.17 per share, payable 2026-08-20 to holders of record 2026-08-04",
+   "form": "8-K (items 7.01, 9.01)",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm"
+  },
+  {
+   "date": "2026-06-11",
+   "headline": "Board authorizes an additional $31.4 million of share repurchases (event date 2026-06-09); $40 million total available under the existing program",
+   "form": "8-K (item 8.01)",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm"
+  }
+ ],
+ "last_3_announcements_note": "These are the last three COMPANY announcements (8-K / press release). More RECENT EDGAR filings exist but are insider/affiliate filings, not company announcements: Form 4 on 2026-09-17, 2026-09-15 (x2), 2026-09-11 (x2), and Forms 144/144-A on 2026-09-15, 2026-09-14, 2026-09-11 (x3). A pipeline that sorts EDGAR by filing date without filtering form type will surface insider Form 4/144 noise as 'latest news'.",
+ "consolidated_vs_standalone": {
+  "value": "US GAAP CONSOLIDATED only. Amalgamated Financial Corp. reports on a consolidated basis (holding company plus its subsidiary Amalgamated Bank). The Indian standalone-vs-consolidated duality does not exist here - there is no separate 'standalone' statement set to confuse a resolver. The live axis for this name instead is GAAP vs 'core' (non-GAAP), which the company publishes side by side with equal prominence.",
+  "as_of": "2026-06-30",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm"
+ },
+ "traps": [
+  {
+   "id": "ticker_collision",
+   "severity": "critical",
+   "detail": "'AMAL' resolves to TWO unrelated listed companies that BOTH sit in the app's masters: (a) NASDAQ:AMAL = Amalgamated Financial Corp., a Delaware public benefit corporation and bank holding company, USD, market cap ~$1.42B; (b) BSE 506597 = Amal Ltd, an Indian bulk-chemicals maker (sulphuric acid, oleum), ISIN INE841D01013, INR, an Atul Ltd subsidiary. Two continents, two currencies, two industries, one string. Resolution MUST key on exchange, never on the bare symbol. A currency-blind merge produces a bank holding company with a price of 722 or a chemicals maker with a P/E of 12.64."
+  },
+  {
+   "id": "manifest_eps_is_stale_and_non_gaap",
+   "severity": "critical",
+   "detail": "The battery manifest records 'Q EPS $0.80 vs $0.95 estimate (-15.79% surprise)'. Verified against the source: $0.80 is the Q1 2026 CORE (non-GAAP) DILUTED EPS - i.e. the WRONG QUARTER and the WRONG BASIS. Two errors compounded. The latest reported quarter is Q2 2026: GAAP diluted $1.15, core diluted $1.10. Q1 2026 GAAP diluted was $0.84, Q1 2026 core diluted was $0.80. Any 'EPS missed by 15.79%' narrative attached to the current quarter is wrong twice over - Q2 2026 was described by the company as record net income, record core net income and record profitability, with guidance raised."
+  },
+  {
+   "id": "gaap_vs_core_eps_duality",
+   "severity": "high",
+   "detail": "The company publishes GAAP and 'core' (non-GAAP) EPS with equal prominence in the same bullet list. For Q2 2026 they differ by $0.05 ($1.15 vs $1.10); for Q2 2025 core was ABOVE GAAP ($0.88 vs $0.84), so the sign of the gap flips across quarters. Analyst consensus for US banks usually tracks core/operating EPS, so a surprise computed against GAAP EPS can invert. Pick a basis and hold it."
+  },
+  {
+   "id": "stale_quote_snapshot_resolves_the_manifest_conflict",
+   "severity": "high",
+   "detail": "The manifest records an UNRECONCILED conflict: quoted 2026-09-04 price $49.17 exceeding a quoted all-time high $47.89 (2026-07-01). RECONCILED HERE, and it is not a data error in either figure - both are genuine, both are STALE. $49.17 is the true regular-session CLOSE on 2026-09-04 (Yahoo daily bar; that session's range was 48.79-49.45). $47.89 is the true INTRADAY HIGH on 2026-07-01, and it was in fact the highest high of the preceding twelve months AS OF that date. The 'conflict' is purely an artifact of two snapshots taken at different times and then compared as if simultaneous. The stock subsequently traded to $51.59 intraday on 2026-08-13 and closed 2026-09-18 at $47.40."
+  },
+  {
+   "id": "all_time_high_mislabelled",
+   "severity": "medium",
+   "detail": "$47.89 was labelled an ALL-TIME high; it was at best a running 52-week/period high as of 2026-07-01, and it has since been exceeded ($51.59 intraday on 2026-08-13). Separately, only twelve months of price history were retrieved in this session, so no all-time high is asserted here at all - $51.59 is recorded strictly as the 52-week high. Treat any aggregator 'all-time high' on this name as unverified."
+  },
+  {
+   "id": "edgar_former_name_is_the_same_name",
+   "severity": "high",
+   "detail": "SEC EDGAR's formerNames array for CIK 0001823608 contains exactly one entry whose name string is IDENTICAL to the current name - {'Amalgamated Financial Corp.', from 2020-09-08, to 2026-09-17}. A pipeline that reads formerNames and emits 'renamed' will report a rename dated two days before this collection, with an unchanged name. There has been no rename. The real predecessor event is an ISSUER SUCCESSION (Amalgamated Bank -> Amalgamated Financial Corp., effective 2021-03-01, Form 8-K12B), which is a different relation entirely and is not captured by formerNames."
+  },
+  {
+   "id": "bank_revenue_is_definitionally_unstable",
+   "severity": "high",
+   "detail": "'Revenue' has no single meaning for a bank. The company's own release reports Q2 2026 NET REVENUE of $98.4M and NET INTEREST INCOME of $86.1M; the aggregator reports TTM 'revenue' of $333.86M, which is LESS than four times the single-quarter net revenue. Total interest income (gross) would be higher again. Any field-by-field diff that compares an in-app 'revenue' against an outside 'revenue' without pinning the definition will produce a false mismatch or, worse, a false match."
+  },
+  {
+   "id": "predecessor_filing_discontinuity",
+   "severity": "medium",
+   "detail": "SEC EDGAR history for CIK 0001823608 begins 2020-09-08 (Form S-4EF); the first 10-K is for FY2020. Before the 2021-03-01 reorganization the listed issuer was Amalgamated Bank, which filed its periodic reports with the FDIC under Exchange Act Section 12(i), NOT with the SEC. Long-horizon fundamental history pulled from EDGAR alone will appear truncated at ~2020 even though the ticker has traded since 2018 and the institution dates to 1923."
+  },
+  {
+   "id": "issued_vs_outstanding_share_count",
+   "severity": "medium",
+   "detail": "At 2026-06-30: 31,207,172 shares ISSUED but only 29,900,147 OUTSTANDING, the 1,307,025 difference being treasury stock carried at $37.942M. Market cap computed off the issued count overstates by ~4.4% ($1.479B vs $1.417B). An active $40M buyback authorization means this gap widens over time."
+  },
+  {
+   "id": "india_shaped_shareholding_schema",
+   "severity": "high",
+   "detail": "promoter_pct, fii_pct, dii_pct, pledged_pct_of_promoter have NO US counterpart. They are structurally absent, not merely undisclosed. Zero-filling them fabricates a company with no promoter and no pledging, which will silently pass a null-check and then feed a screener. The honest US analogue is institutional ownership (64.03%) plus SC 13D/G beneficial-ownership filings."
+  },
+  {
+   "id": "buyback_wording_discrepancy",
+   "severity": "low",
+   "detail": "The company describes the same event two ways: the 8-K says an ADDITIONAL $31.4M was authorized on top of $8.6M remaining (= $40M available); the earnings release says 'a new $40 million share repurchase program was approved'. A news-extraction pipeline will produce a $40M new authorization where the filing supports $31.4M."
+  },
+  {
+   "id": "pre_split_price_history",
+   "severity": "low",
+   "detail": "A 20:1 FORWARD split occurred 2018-07-30 (pre-IPO recapitalization). Price series reaching before that date must be split-adjusted; an unadjusted series shows a ~20x discontinuity."
+  },
+  {
+   "id": "name_family_confusion",
+   "severity": "medium",
+   "detail": "'Amalgamated' is a crowded name family. Amalgamated Bank (NY, the subsidiary here) is DISTINCT from Amalgamated Bank of Chicago, an unrelated institution with a similar name and similar union-founded history. Separately the holding company (Amalgamated Financial Corp.) and the bank (Amalgamated Bank) are different legal entities with different filing histories and different regulators - the bank, not the holdco, is the B Corp and Global Alliance for Banking on Values member."
+  },
+  {
+   "id": "exchange_tier",
+   "severity": "low",
+   "detail": "Listed on the Nasdaq GLOBAL MARKET (NASDAQ-GM), not the Global Select Market. Sources that report a bare 'NASDAQ' lose the tier; sources that assume Global Select are wrong."
+  },
+  {
+   "id": "roe_basis_divergence",
+   "severity": "medium",
+   "detail": "Filed Q2 2026 return on average equity is 17.04% (single quarter, annualized); the TTM ROE is 14.28%; core return on average TANGIBLE common equity is 16.51%. Three different correct numbers for 'ROE' on the same company in the same quarter. A diff that flags 14.28 vs 17.04 as an error is flagging a basis difference."
+  },
+  {
+   "id": "insider_filings_masquerade_as_news",
+   "severity": "medium",
+   "detail": "The ten most recent EDGAR filings as of 2026-09-19 are ALL Forms 4 and 144 (insider sales) dated 2026-09-11 through 2026-09-17. The most recent company announcement is nearly two months older (2026-07-23). Sorting EDGAR by filing date without filtering form type yields 'latest announcement: Form 4' - noise, not news."
+  }
+ ],
+ "world_gaps": {
+  "structurally_absent": [
+   {
+    "field": "identity.isin",
+    "note": "Distinct from the not_reached entry below: SEC does not publish ISIN for any US issuer. There is no filing-based route to it."
+   },
+   {
+    "field": "identity.bse_code",
+    "note": "US-listed issuer; no BSE scrip code exists."
+   },
+   {
+    "field": "identity.nse_symbol",
+    "note": "US-listed issuer; no NSE symbol exists."
+   },
+   {
+    "field": "identity.board (mainboard/SME)",
+    "note": "No US analogue to the Indian mainboard/SME board split. The nearest concept is the Nasdaq market tier (Global Market here)."
+   },
+   {
+    "field": "shareholding.promoter_pct",
+    "note": "'Promoter' is a SEBI concept with no US counterpart. Never disclosed because it does not exist."
+   },
+   {
+    "field": "shareholding.pledged_pct_of_promoter",
+    "note": "No US promoter-pledge disclosure regime exists."
+   },
+   {
+    "field": "shareholding.fii_pct / dii_pct",
+    "note": "US disclosure does not split institutional ownership into foreign/domestic. Only aggregate institutional (13F-derived) is available."
+   },
+   {
+    "field": "shareholding.quarter",
+    "note": "No quarterly shareholding-pattern filing exists in the US regime."
+   },
+   {
+    "field": "corporate_actions_2026.bonus",
+    "note": "Bonus issues are not a US corporate-action type; the functional equivalent is a stock split/stock dividend."
+   },
+   {
+    "field": "roce",
+    "note": "Not a disclosed or meaningful metric for a bank holding company."
+   },
+   {
+    "field": "consolidated_vs_standalone",
+    "note": "US GAAP consolidated reporting only; no standalone/consolidated duality exists."
+   },
+   {
+    "field": "face_value (INR sense)",
+    "note": "US par value of $0.01 is a legal artifact with no economic content; not comparable to an Indian face value."
+   }
+  ],
+  "not_reached": [
+   {
+    "field": "identity.isin / CUSIP",
+    "tried": "SEC submissions JSON (no ISIN field); Form 144 primary_doc.xml (contains issuer CIK and securitiesClassTitle but no CUSIP); 8-K and 8-K12B cover pages (securities-registered table gives title/symbol/exchange only); DEF 14A 2026-04-10 full-text grep for 'CUSIP'; EDGAR full-text search endpoint. WebSearch budget for the session was exhausted (200/200) before this pack began, so no search-engine route was available.",
+    "status": "unresolved - recorded as a gap rather than guessed. A US ISIN is 'US' + 9-char CUSIP + check digit; fabricating one would be trivially plausible and trivially wrong."
+   },
+   {
+    "field": "analyst consensus EPS estimate ($0.95) and the -15.79% surprise",
+    "tried": "No estimates source was reachable without WebSearch. stockanalysis.com forward PE (11.00) is the only forward-looking datum obtained.",
+    "status": "unverified. The $0.80 actual it is paired with is independently shown above to be Q1 2026 core EPS, so the surprise figure is suspect regardless of the estimate's provenance."
+   },
+   {
+    "field": "exact primary-source TTM revenue recomputation",
+    "tried": "SEC XBRL companyconcept for us-gaap:Revenues, RevenuesNetOfInterestExpense, InterestAndDividendIncomeOperating (all absent for this filer) and NoninterestIncome (absent). InterestIncomeExpenseNet returned quarterly facts but Q4 2025 is not separately tagged as a quarterly period (rolled into the FY2025 10-K annual fact). The full companyfacts JSON download timed out twice.",
+    "status": "partial - quarterly net interest income obtained for Q2 2025, Q3 2025, Q1 2026, Q2 2026; Q4 2025 missing."
+   },
+   {
+    "field": "2018 IPO date for the AMAL ticker",
+    "tried": "EDGAR history for CIK 0001823608 begins 2020-09-08, after the IPO, because the pre-reorganization issuer (Amalgamated Bank) filed with the FDIC, not the SEC. The predecessor's filing history was not retrieved.",
+    "status": "unresolved. listing_date is recorded as the 2021-03-01 issuer-succession date, which IS sourced, with the limitation stated inline."
+   },
+   {
+    "field": "all-time high",
+    "tried": "Only a 1-year Yahoo daily series was retrieved (2025-09-19 to 2026-09-18).",
+    "status": "not asserted. 52-week high ($51.59, 2026-08-13) is recorded instead."
+   },
+   {
+    "field": "named top institutional holders (13F detail)",
+    "tried": "stockanalysis.com/stocks/amal/holders/ returned HTTP 404; Yahoo quoteSummary majorHoldersBreakdown returned HTTP 401 (crumb required); DEF 14A beneficial-ownership grep did not complete within the time budget.",
+    "status": "aggregate institutional ownership (64.03%, Nasdaq) obtained; per-holder detail not reached."
+   },
+   {
+    "field": "PB / book value from a second independent aggregator",
+    "tried": "Single aggregator (stockanalysis.com) for the PB ratio, but the DENOMINATOR was independently verified against the SEC-filed book value per share of $27.93, and 47.40/27.93 = 1.697 reproduces the quoted 1.70.",
+    "status": "effectively corroborated via computation."
+   }
+  ]
+ },
+ "source_inventory": [
+  {
+   "authority": "primary - SEC EDGAR",
+   "url": "https://data.sec.gov/submissions/CIK0001823608.json",
+   "used_for": "legal name, CIK, ticker/exchange, SIC, state of incorporation, formerNames, full filing history"
+  },
+  {
+   "authority": "primary - company filing",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+   "used_for": "Q2 2026 results: EPS (GAAP and core), net income, net revenue, NIM, book value per share, share counts, equity, ROE/ROA, capital ratios, asset quality"
+  },
+  {
+   "authority": "primary - company filing",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm",
+   "used_for": "dividend $0.17, record and payable dates, legal form description"
+  },
+  {
+   "authority": "primary - company filing",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000162/amal-20260609.htm",
+   "used_for": "buyback authorization, EIN, commission file number, registered office"
+  },
+  {
+   "authority": "primary - company filing",
+   "url": "https://www.sec.gov/Archives/edgar/data/1823608/000119312521062425/d132716d8k12b.htm",
+   "used_for": "issuer succession from Amalgamated Bank effective 2021-03-01; Nasdaq Global Market listing"
+  },
+  {
+   "authority": "primary - SEC XBRL",
+   "url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/InterestIncomeExpenseNet.json",
+   "used_for": "quarterly net interest income series, YoY growth computation"
+  },
+  {
+   "authority": "exchange",
+   "url": "https://api.nasdaq.com/api/quote/AMAL/info?assetclass=stocks",
+   "used_for": "last close $47.40 on 2026-09-18, volume, market tier NASDAQ-GM"
+  },
+  {
+   "authority": "exchange",
+   "url": "https://api.nasdaq.com/api/company/AMAL/institutional-holdings?limit=5&type=TOTAL",
+   "used_for": "institutional ownership 64.03%"
+  },
+  {
+   "authority": "market data",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+   "used_for": "daily OHLC series; 52-week high/low and their dates; verification of the 2026-09-04 close ($49.17) and the 2026-07-01 intraday high ($47.89)"
+  },
+  {
+   "authority": "aggregator",
+   "url": "https://stockanalysis.com/stocks/amal/statistics/",
+   "used_for": "PE, forward PE, PB, PS, EV, total debt, TTM revenue/net income/EPS, ROE TTM, ROA, beta, dividend yield and payout, ex-date, next earnings date, last split"
+  },
+  {
+   "authority": "aggregator",
+   "url": "https://stockanalysis.com/stocks/amal/",
+   "used_for": "sector, industry, 52-week range cross-check, last close cross-check"
+  }
+ ],
+ "superseded_by": "P19_AMAL.json (pass 2, same day, same entity NASDAQ:AMAL). Do NOT diff against this file: its dividend TTM (0.68) and revenue/net-income provenance were corrected in the successor. Kept only as the pass-1 record. Note the filename is ambiguous - the battery also contains P9 = BSE 506597 Amal Ltd, a different company."
+}

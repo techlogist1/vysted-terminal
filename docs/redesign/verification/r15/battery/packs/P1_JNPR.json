@@ -1,0 +1,644 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P1",
+  "symbol": "JNPR",
+  "status": "complete",
+  "absorbed_prior_draft": "packs/P1_JNPR.json stub (legal_name + isin only); isin INE05C901015 independently reconfirmed against the IPO prospectus listing at chittorgarh.com",
+  "collection_notes": [
+    "WebSearch budget for the session was exhausted before this task started (200/200). The entire pack was built with WebFetch against deterministic URLs, so coverage is deep on sources with predictable paths (company IR PDFs, screener, stockanalysis, tradingview, chittorgarh) and absent where a search was required to discover a slug (moneycontrol, trendlyne, tijori).",
+    "bseindia.com returned HTTP 403 to WebFetch and nseindia.com's quote API timed out at 60s. Exchange-PRIMARY data was therefore taken from the company's own Regulation 30/33 filings addressed to NSE and BSE (published on the issuer's IR site), which are exchange filings and rank above any aggregator.",
+    "Where a figure is marked derived, the arithmetic is shown in full so the differ can re-check it."
+  ],
+
+  "identity": {
+    "legal_name": {
+      "value": "Juniper Green Energy Limited",
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "JUNIPER GREEN ENERGY LIMITED (MCA Master Data, 02-09-2026 2:17:17pm)"
+    },
+    "former_names": {
+      "value": ["Juniper Green Energy Private Limited"],
+      "rename_date": null,
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "Juniper Green Energy Limited (Formerly known as Juniper Green Energy Private Limited)",
+      "note": "The letterhead of every filing carries the 'Formerly known as' line, but no reachable source gave the date of conversion from private to public limited. Recorded as a world_gap, NOT guessed."
+    },
+    "cin": {
+      "value": "L40100DL2011PLC228318",
+      "former_value": "U40100DL2011PLC228318",
+      "changed_on": "2026-09-02",
+      "reason": "consequent upon listing on NSE and BSE on August 06, 2026; MCA 'Listed in Stock Exchange(s)' flipped to Yes",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "the Corporate Identity Number of the Company has been changed from \"U40100DL2011PLC228318\" to \"L40100DL2011PLC228318\""
+    },
+    "isin": {
+      "value": "INE05C901015",
+      "as_of": "2026-07-23",
+      "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/"
+    },
+    "bse_code": {
+      "value": "544853",
+      "as_of": "2026-09-16",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "quote": "To, BSE Limited ... Scrip Code: 544853"
+    },
+    "nse_symbol": {
+      "value": "JNPR",
+      "series": null,
+      "as_of": "2026-09-16",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "quote": "To, National Stock Exchange of India Limited ... Symbol: JNPR",
+      "note": "NSE series code (expected EQ) not captured - nseindia.com API timed out."
+    },
+    "board": {
+      "value": "mainboard",
+      "unit": "listing board",
+      "as_of": "2026-08-06",
+      "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/",
+      "note": "Book-built mainboard IPO of INR 1,800 crore, listed on BOTH NSE and BSE. Not SME, not Emerge."
+    },
+    "sector": {
+      "value_conflicting": [
+        { "value": "Utilities / Utilities - Renewable", "source_url": "https://stockanalysis.com/quote/nse/JNPR/" },
+        { "value": "Utilities / Alternative Power Generation", "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/" },
+        { "value": "Power - Solar and Wind (ICRA rating methodology applied)", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" }
+      ],
+      "as_of": "2026-09-18",
+      "note": "No exchange-official industry classification captured (BSE 403 / NSE timeout). Three reachable sources give three different industry strings for the same company."
+    },
+    "industry": {
+      "value": "Independent renewable energy power producer (utility-scale solar, wind, hybrid, FDRE, BESS, power trading)",
+      "as_of": "2026-08-27",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf"
+    },
+    "listing_date": {
+      "value": "2026-08-06",
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "consequent upon listing of the equity shares of Juniper Green Energy Limited (the \"Company\") on the National Stock Exchange of India Limited and BSE Limited on August 06, 2026",
+      "note": "44 days before this pack's collection date. THE central hostile trait of this slot."
+    },
+    "date_of_incorporation": {
+      "value": "2011-12-05",
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "Date of Incorporation 05/12/2011"
+    },
+    "registered_office": {
+      "value": "1103A & 1103B, 11th Floor, Hemkunt Chamber, 89, Nehru Place, New Delhi - 110019",
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "note": "Corporate office is Gurugram, Haryana. TradingView reports headquarters as 'Gurugram, India' - correct for the corporate office, wrong for the registered office an exchange record would carry."
+    },
+    "promoter": {
+      "value": "Juniper Renewable Holdings Pte. Ltd. (JRHPL), Singapore",
+      "ultimate_parent": "AT Holdings Pte. Ltd. (ATH) / AT Capital group, Singapore, owned by Mr. Arvind Tiku; co-sponsor Vitol",
+      "as_of": "2026-09-16",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "quote": "In August 2026, JGEL raised Rs. 1,800 crore through an initial public offering, resulting in a ~14.0% equity dilution by the promoter, Juniper Renewable Holdings Pte. Ltd. (JRHPL)."
+    },
+    "shares_outstanding": {
+      "value": 568998442,
+      "unit": "equity shares of face value INR 10",
+      "as_of": "2026-09-02",
+      "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "quote": "Paid up Capital (Rs) 5,68,99,84,420",
+      "note": "MCA Master Data paid-up capital INR 5,68,99,84,420 / INR 10 face value = 56,89,98,442 shares. Matches chittorgarh's post-issue share count exactly. This is the single most load-bearing number in the pack: every market cap, EPS and book-value check below is anchored to it."
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 265.15,
+      "unit": "INR",
+      "exchange": "NSE",
+      "date": "2026-09-18",
+      "source_url": "https://stockanalysis.com/quote/nse/JNPR/",
+      "corroboration": [
+        { "value": 265.15, "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999", "note": "+INR 7.95 / +3.09% on the day, volume 7,20,178" },
+        { "value": 265, "source_url": "https://www.screener.in/company/JNPR/consolidated/", "note": "rounded, '18 Sep'" },
+        { "value": 265.15, "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/" }
+      ]
+    },
+    "last_close_bse": {
+      "value": 257.5,
+      "unit": "INR",
+      "exchange": "BSE",
+      "date": "2026-09-17",
+      "source_url": "https://stockanalysis.com/quote/bom/544853/",
+      "note": "One day stale relative to the NSE quote. The official BSE quote page returned HTTP 403; no 2026-09-18 BSE close was captured."
+    },
+    "issue_price": {
+      "value": 225,
+      "unit": "INR",
+      "price_band": [214, 225],
+      "as_of": "2026-08-04",
+      "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/"
+    }
+  },
+
+  "market_cap": {
+    "value": 15086.99,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999",
+    "derivation_check": "568,998,442 shares x INR 265.15 = INR 1,50,86,98,89,896 = INR 15,086.99 crore. Exact.",
+    "corroboration": [
+      { "value": "INR 15,087 crore", "source_url": "https://www.screener.in/company/JNPR/consolidated/" },
+      { "value": "INR 150.87 billion", "source_url": "https://stockanalysis.com/quote/nse/JNPR/" }
+    ],
+    "conflicting": [
+      {
+        "value": "INR 146.52 billion (14,652 crore)",
+        "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/",
+        "verdict": "WRONG BY CONSTRUCTION. 568,998,442 x 257.50 (the 17-Sep BSE close) = INR 146.52 billion exactly. TradingView displays the 18-Sep price of 265.15 next to a market cap computed on the previous day's price - a 2.9% understatement with no visible as-of marker."
+      },
+      {
+        "value": "INR 146.35 billion (14,635 crore)",
+        "source_url": "https://stockanalysis.com/quote/bom/544853/",
+        "verdict": "Internally consistent but a day stale: 568,998,442 x 257.50 as of 2026-09-17."
+      }
+    ]
+  },
+
+  "pe_ttm": {
+    "value": 290.1,
+    "unit": "x",
+    "basis": "consolidated TTM PAT (derived)",
+    "as_of": "2026-09-18",
+    "derivation": "TTM consolidated PAT = FY2026 40.5 - Q1 FY2026 22.0 + Q1 FY2027 33.5 = INR 52.0 crore. 15,086.99 / 52.0 = 290.1x.",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+    "conflicting": [
+      { "value": 572, "basis": "unstated", "source_url": "https://www.screener.in/company/JNPR/consolidated/", "note": "implies a profit of INR 26.4 crore - lower than any consolidated PAT the company or ICRA reports" },
+      { "value": 373.38, "basis": "FY2026 consolidated PAT", "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999", "note": "15,086.99 / 373.38 = INR 40.41 crore = FY2026 consolidated PAT 40.5. Full-year, not TTM." },
+      { "value": 280.2, "basis": "standalone profit on the BSE price", "source_url": "https://stockanalysis.com/quote/bom/544853/" },
+      { "value": 248.12, "basis": "standalone profit on the NSE price", "source_url": "https://stockanalysis.com/quote/nse/JNPR/", "note": "EPS 1.07 x 568,998,442 = INR 60.9 crore = the STANDALONE FY2026 net profit of INR 61 crore, divided into a consolidated market cap." }
+    ],
+    "note": "FIVE different P/E values for one security on one day, spread 248x to 572x - a 2.3x range. Every one of them is a defensible arithmetic result of a different (profit basis x period x exchange price) combination, and not one source states which it used."
+  },
+
+  "pb": {
+    "value": 2.9,
+    "unit": "x",
+    "basis": "post-IPO consolidated net worth (derived)",
+    "as_of": "2026-09-18",
+    "derivation": "Company-stated post-IPO net worth ~INR 5,200 crore / 568,998,442 shares = INR 91.4 book value per share. 265.15 / 91.4 = 2.90x.",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+    "corroboration": [{ "value": 2.89, "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999" }],
+    "note": "A P/B built on the 31-Mar-2026 or 30-Jun-2026 balance sheet (net worth INR 3,463 crore) instead gives 4.36x - the IPO added INR 1,800 crore of equity 44 days ago and most balance-sheet snapshots predate it."
+  },
+
+  "book_value_per_share": {
+    "value": 91.4,
+    "unit": "INR per share",
+    "basis": "post-IPO consolidated",
+    "as_of": "2026-08-27",
+    "derivation": "~INR 5,200 crore / 568,998,442 shares",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+    "quote": "Raised primary funds of INR 1,800 Cr through the IPO in August 2026, taking post-IPO net worth to ~INR 5,200 Cr",
+    "alternatives": [
+      { "value": 60.9, "basis": "consolidated net worth INR 3,463 crore as on 30-Jun-2026 (pre-IPO) / 568,998,442", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf" },
+      { "value": 2.16, "basis": "chittorgarh's RHP 'Net Worth' of INR 122.89 crore / 568,998,442 - see traps, this input is almost certainly wrong", "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" }
+    ],
+    "aggregator_status": "screener.in publishes NO book value for this name on either the consolidated or standalone page; businesstoday publishes P/B but not book value."
+  },
+
+  "face_value": {
+    "value": 10,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/JNPR/consolidated/",
+    "corroboration": [{ "value": 10, "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" }]
+  },
+
+  "roe": {
+    "value_conflicting": [
+      { "value": 0.43, "unit": "percent", "basis": "consolidated, last year (FY2026)", "source_url": "https://www.screener.in/company/JNPR/consolidated/" },
+      { "value": -0.58, "unit": "percent", "basis": "standalone, latest", "source_url": "https://www.screener.in/company/JNPR/" },
+      { "value": 1.18, "unit": "percent", "basis": "derived: FY2026 consolidated PAT 40.5 / consolidated net worth ~3,430 crore", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" }
+    ],
+    "as_of": "2026-09-18",
+    "note": "The SIGN flips between screener's own consolidated (+0.43%) and standalone (-0.58%) pages for the same company on the same day. Screener's 3-year figures flip too: +1.07% consolidated vs -0.22% standalone."
+  },
+
+  "roce": {
+    "value": 3.3,
+    "unit": "percent",
+    "basis": "consolidated, latest",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/JNPR/consolidated/",
+    "conflicting": [{ "value": 3.25, "basis": "standalone", "source_url": "https://www.screener.in/company/JNPR/" }],
+    "note": "Declining from 7% in Mar 2022 per screener's consolidated trend - a renewable IPP whose capital base grows far faster than its operating profit."
+  },
+
+  "debt_to_equity": {
+    "value": 3.24,
+    "unit": "x (net debt / equity, consolidated)",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+    "quote": "As on June 30, 2026- Net Worth is INR 3,463 Cr and Net Debt to Equity is 3.24x",
+    "post_ipo_estimate": {
+      "value": 2.16,
+      "derivation": "net debt 11,217 / post-IPO net worth ~5,200 = 2.16x, assuming net debt unchanged since 30-Jun-2026",
+      "confidence": "derived, not company-stated"
+    },
+    "related_leverage_metrics": [
+      { "metric": "Total outside liabilities / tangible net worth", "value": 4.7, "unit": "x", "period": "FY2026", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" },
+      { "metric": "Total debt / OPBDITA", "value": 22.75, "unit": "x", "period": "FY2026", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" },
+      { "metric": "Interest coverage", "value": 1.52, "unit": "x", "period": "FY2026", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" },
+      { "metric": "Net debt outstanding", "value": 11217, "unit": "INR crore", "period": "as on 2026-06-30", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf" }
+    ],
+    "aggregator_status": "screener.in publishes NO debt-to-equity for this name on either page. A terminal that only reads screener will show this 3.24x-levered IPP as having no leverage data at all."
+  },
+
+  "revenue_ttm": {
+    "value": 849.3,
+    "unit": "INR crore",
+    "basis": "consolidated operating income, TTM to 2026-06-30 (derived)",
+    "as_of": "2026-06-30",
+    "derivation": "FY2026 operating income 718.9 - Q1 FY2026 operating income ~160.8 + Q1 FY2027 operating income 291.2 = 849.3. Q1 FY2026 OI back-solved from the company's stated 'Operating Income stood at INR 291 Cr (up 81% YoY)'.",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+    "corroboration": [{ "value": "INR 8.49 billion", "source_url": "https://stockanalysis.com/quote/nse/JNPR/", "note": "matches the derivation to the rupee-crore" }],
+    "annual_series_consolidated_operating_income": [
+      { "period": "FY2024", "value": 391.6, "unit": "INR crore" },
+      { "period": "FY2025", "value": 508.7, "unit": "INR crore" },
+      { "period": "FY2026", "value": 718.9, "unit": "INR crore" },
+      { "period": "Q1 FY2027", "value": 291.2, "unit": "INR crore" }
+    ],
+    "annual_series_source": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf (ICRA 'Key financial indicators (audited)' table, 16-Sep-2026)",
+    "total_income_basis_conflict": {
+      "note": "Total Income (operating + other income) runs materially higher than Operating Income. FY2026: 804.93 vs 718.9 - a gap of INR 86 crore, i.e. 12% of revenue, entirely decided by which line a source calls 'revenue'.",
+      "series": [
+        { "period": "FY2024", "total_income": 424.45 },
+        { "period": "FY2025", "total_income": 569.78 },
+        { "period": "FY2026", "total_income": 804.93 },
+        { "period": "Q1 FY2027", "total_income": 324 }
+      ],
+      "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/"
+    }
+  },
+
+  "net_profit_ttm": {
+    "value": 52.0,
+    "unit": "INR crore",
+    "basis": "consolidated PAT, TTM to 2026-06-30 (derived)",
+    "as_of": "2026-06-30",
+    "derivation": "FY2026 PAT 40.5 - Q1 FY2026 PAT 22.0 + Q1 FY2027 PAT 33.5 = 52.0",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+    "annual_series_consolidated_pat": [
+      { "period": "FY2024", "value": 40.1 },
+      { "period": "FY2025", "value": 36.5 },
+      { "period": "FY2026", "value": 40.5 },
+      { "period": "Q1 FY2027", "value": 33.5 }
+    ],
+    "note": "Consolidated PAT has been flat at INR 36-41 crore for three years while operating income nearly doubled - the entire incremental EBITDA is consumed by interest (coverage 1.52x) and depreciation on the debt-funded build-out."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 41.3,
+    "unit": "percent",
+    "basis": "FY2026 vs FY2025, consolidated operating income (718.9 / 508.7 - 1)",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+    "note": "The same +41% holds on a Total Income basis (804.93 / 569.78 - 1 = +41.3%), so for once the two revenue definitions agree on the growth rate even though they disagree on the level.",
+    "quarterly": [
+      { "period": "Q1 FY2027 vs Q1 FY2026, Total Income", "value": 79, "unit": "percent", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf" },
+      { "period": "Q1 FY2027 vs Q1 FY2026, Operating Income", "value": 81, "unit": "percent", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf" }
+    ],
+    "conflicting": [
+      { "value": 116.9, "unit": "percent", "basis": "stated as revenue TTM growth", "source_url": "https://stockanalysis.com/quote/nse/JNPR/", "verdict": "Matches no basis the company or ICRA reports - not FY26/FY25 (+41%), not Q1 YoY (+79% or +81%). Unexplained." }
+    ]
+  },
+
+  "eps_ttm": {
+    "value": 0.91,
+    "unit": "INR per share",
+    "basis": "consolidated TTM PAT 52.0 crore / 568,998,442 shares (derived)",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+    "conflicting": [
+      { "value": 1.07, "basis": "standalone FY2026 profit on post-IPO share count", "source_url": "https://stockanalysis.com/quote/nse/JNPR/" },
+      { "value": 0.83, "basis": "consolidated FY2026 PAT on the PRE-IPO share count (40.46 / 48,89,89,292)", "source_url": "https://www.screener.in/company/JNPR/consolidated/" },
+      { "value": 0.71, "basis": "unstated", "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999" }
+    ],
+    "note": "Four EPS values spanning 0.71 to 1.07, a 51% spread, because the share count moved 16% at the IPO and the profit differs by consolidation basis."
+  },
+
+  "dividend": {
+    "last_declared_per_share": null,
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": 0,
+    "yield": { "value": 0.0, "unit": "percent" },
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/JNPR/consolidated/",
+    "corroboration": [
+      { "value": "n/a", "source_url": "https://stockanalysis.com/quote/nse/JNPR/" },
+      { "value": "company does not pay dividends", "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/" }
+    ],
+    "note": "GENUINE ABSENCE, not an unreachable field. No dividend has ever been declared; the company listed 44 days ago and retains all cash for a debt-funded build-out. A pipeline that renders a missing dividend as a blank or a dash is right here; one that renders it as an error is wrong."
+  },
+
+  "week52": {
+    "high": { "value": 282.0, "unit": "INR", "date": "2026-08-27", "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/" },
+    "low": { "value": 232.1, "unit": "INR", "date": "2026-08-06", "source_url": "https://in.tradingview.com/symbols/NSE-JNPR/" },
+    "structural_note": "NO TRUE 52-WEEK RANGE EXISTS. The security has traded for 44 calendar days (2026-08-06 to 2026-09-18). Every '52-week' figure below is a listing-window range mislabelled as an annual one, and the low is simply the listing-day low.",
+    "corroboration": [
+      { "high": 282.0, "low": 232.11, "source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999" },
+      { "high": 282, "low": 232, "source_url": "https://www.screener.in/company/JNPR/consolidated/", "note": "rounded" },
+      { "high": 282.5, "low": 232.1, "source_url": "https://stockanalysis.com/quote/bom/544853/", "note": "BSE page; high differs from the NSE high by INR 0.50" }
+    ],
+    "conflicting": [
+      {
+        "high": 282.0,
+        "low": 204.0,
+        "source_url": "https://stockanalysis.com/quote/nse/JNPR/",
+        "verdict": "OUTLIER. INR 204.00 is below the listing-day low (232.10) AND below the IPO issue price (225). Four other sources, including stockanalysis's OWN BSE page for the same company, say 232.1x. No source explains the 204.00."
+      }
+    ]
+  },
+
+  "shareholding": {
+    "quarter": "Aug 2026 (post-allotment disclosure, NOT a quarter-end filing)",
+    "promoter_pct": 85.94,
+    "fii_pct": 1.77,
+    "dii_pct": 5.07,
+    "public_pct": 7.22,
+    "pledged_pct_of_promoter": null,
+    "shareholder_count": 207352,
+    "as_of": "2026-08-31",
+    "source_url": "https://www.screener.in/company/JNPR/",
+    "corroboration": [
+      { "value": "Promoter & Group 100% pre-IPO -> 85.94% post-IPO; Public 14.06%", "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" },
+      { "value": "~14.0% equity dilution by the promoter, Juniper Renewable Holdings Pte. Ltd.", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" }
+    ],
+    "note": "FII 1.77 + DII 5.07 + public 7.22 = 14.06, reconciling exactly to the chittorgarh post-issue public stake. The first TRUE quarter-end shareholding pattern (quarter ending 2026-09-30) does not exist yet - it is not due until October 2026. A pipeline that asks for 'the latest quarterly shareholding' will either get the one-day-post-listing pattern mislabelled as a quarter, or nothing.",
+    "pledge_gap": "Pledged percentage of promoter holding was NOT found in any reachable source. The promoter is a Singapore holding company (JRHPL); ICRA's 16-Sep rationale discusses leverage at the holdco but names no share pledge. Recorded as a world_gap, not assumed zero."
+  },
+
+  "corporate_actions_2026": [
+    { "date": "2026-07-30", "action": "IPO opened", "detail": "Book-built mainboard issue, price band INR 214-225", "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" },
+    { "date": "2026-08-03", "action": "IPO closed", "detail": "INR 1,800 crore, 8,00,09,150 shares, entirely fresh issue, lot size 66", "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" },
+    { "date": "2026-08-04", "action": "Allotment", "detail": "Registrar KFin Technologies Ltd", "source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/" },
+    { "date": "2026-08-06", "action": "Listing on NSE and BSE", "detail": "Issue price INR 225; shares outstanding 48,89,89,292 -> 56,89,98,442", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf" },
+    { "date": "2026-08-06", "action": "Trading window closed", "detail": "w.e.f. 06.08.2026 till 48 hours from the date of the Board Meeting", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-08-12", "action": "Capacity commissioning", "detail": "Additional 167 MW wind capacity commissioned", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/press-release-juniper-green-energy-commissions-additional-12-08-2026.pdf" },
+    { "date": "2026-08-13", "action": "Redemption of NCDs", "detail": "Reg 30 intimation", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-reg-30-redemption-of-ncds-13.08.2026.pdf" },
+    { "date": "2026-08-15", "action": "Letter of Award received", "detail": "Reg 30 intimation", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-reg-30-letter-of-award-15.08.2026.pdf" },
+    { "date": "2026-08-26", "action": "Board meeting outcome - Q1 FY2027 results approved", "detail": "Reg 30 and 33; unaudited standalone and consolidated for the quarter ended 30-Jun-2026", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/2026_08_26_regulation_30_and_33_jgel_board_meeting_outcome.pdf" },
+    { "date": "2026-08-26", "action": "PPA executed", "detail": "25-year PPA with SJVN Limited for a 50 MW FDRE project at INR 4.25/kWh", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/Intimation_Reg_30_Power_Purchase_Agreement_26_08_2026.pdf" },
+    { "date": "2026-09-01", "action": "Earnings call transcript published", "detail": "Q1 FY2027", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/transcript-of-earnings-call-for-q1-fy-2027.pdf" },
+    { "date": "2026-09-02", "action": "CIN changed", "detail": "U40100DL2011PLC228318 -> L40100DL2011PLC228318; MCA listed-status flipped to Yes", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf" },
+    { "date": "2026-09-01", "action": "Capacity commissioning", "detail": "Additional 12.40 MW wind", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-09-08", "action": "Capacity commissioning", "detail": "Additional 6.25 MW wind", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-09-10", "action": "Capacity commissioning", "detail": "Additional 35 MW wind and additional 10 MW wind (two separate intimations)", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-09-11", "action": "Capacity commissioning", "detail": "Additional 40 MW wind and additional 10 MW wind (two separate intimations)", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-09-16", "action": "Credit rating upgraded", "detail": "ICRA to [ICRA]AA- (Stable)/[ICRA]A1+ from [ICRA]A+ (Positive)/[ICRA]A1; total rated amount enhanced INR 2,843.5 cr -> INR 4,886.68 cr", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" },
+    { "date": "2026-09-17", "action": "Capacity commissioning", "detail": "Additional 25 MW solar", "source_url": "https://www.junipergreenenergy.com/stock-exchange-filings" },
+    { "date": "2026-09-18", "action": "Investor meet intimation", "detail": "Investor meet scheduled 24.09.2026", "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/investor-meet-on-24-09-2026.pdf" }
+  ],
+  "corporate_actions_absent": "NO dividend, NO bonus, NO split, NO rights issue, NO buyback in 2026. The only capital event is the IPO fresh issue. Any pipeline that reports a split/bonus adjustment for this name is hallucinating.",
+
+  "latest_results": {
+    "quarter": "Q1 FY2027 (quarter ended 2026-06-30)",
+    "board_approval_date": "2026-08-26",
+    "filing_date": "2026-08-27",
+    "audit_status": "Unaudited",
+    "basis_filed": "both standalone and consolidated",
+    "source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+    "quote": "We enclose herewith a copy of the Press Release on the Unaudited Standalone and Consolidated Financial Results of the Company for the quarter ended June 30, 2026.",
+    "consolidated_figures": {
+      "total_income": { "value": 324, "unit": "INR crore", "yoy_pct": 79 },
+      "operating_income": { "value": 291.2, "unit": "INR crore", "yoy_pct": 81 },
+      "ebitda": { "value": 294, "unit": "INR crore", "yoy_pct": 86, "margin_pct": 91 },
+      "operating_ebitda": { "value": 261, "unit": "INR crore", "yoy_pct": 89, "margin_pct": 90 },
+      "pat": { "value": 33.5, "unit": "INR crore", "yoy_pct": 54 },
+      "cash_pat": { "value": 108, "unit": "INR crore", "yoy_pct": 50 },
+      "net_worth": { "value": 3463, "unit": "INR crore", "as_of": "2026-06-30" },
+      "net_debt": { "value": 11217, "unit": "INR crore", "as_of": "2026-06-30" },
+      "net_debt_operational_portfolio": { "value": 7183, "unit": "INR crore" },
+      "capex_to_date": { "value": 16303, "unit": "INR crore", "as_of": "2026-06-30" },
+      "days_receivable_outstanding": { "value": 19, "unit": "days" }
+    },
+    "standalone_figures_q1_fy2027": {
+      "sales": { "value": 113.63, "unit": "INR crore" },
+      "operating_profit": { "value": 15.54, "unit": "INR crore", "opm_pct": 13.68 },
+      "other_income": { "value": 51.28, "unit": "INR crore" },
+      "interest": { "value": 51.22, "unit": "INR crore" },
+      "net_profit": { "value": 7.45, "unit": "INR crore" },
+      "eps": { "value": 0.15, "unit": "INR" },
+      "source_url": "https://www.screener.in/company/JNPR/"
+    },
+    "note": "The company's own IR index labels the results filing 'Outcome of Board Meeting held on 30.06.2026' while the letter inside is dated 26.08.2026 - the IR page has put the QUARTER-END date where the MEETING date belongs. A scraper that trusts the index title will date the board meeting to the quarter end."
+  },
+
+  "last_3_announcements": [
+    { "date": "2026-09-18", "headline": "Investor Meet on 24.09.2026", "url": "https://www.junipergreenenergy.com/pdf/investor-pdf/investor-meet-on-24-09-2026.pdf" },
+    { "date": "2026-09-17", "headline": "Commissioning of Additional 25 MW Solar Capacity", "url": "https://www.junipergreenenergy.com/pdf/investor-pdf/commissioning-of-additional-25-mw-solar-capacity-17.09.2026.pdf" },
+    { "date": "2026-09-16", "headline": "Intimation of upgrade/assignment of Credit Rating by ICRA Limited - [ICRA]AA- (Stable)/[ICRA]A1+", "url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf" }
+  ],
+
+  "consolidated_vs_standalone": {
+    "verdict": "CONSOLIDATED is the only defensible basis for this name, and the two bases disagree on level, on growth and on SIGN.",
+    "structure": "Indian holding company for the AT Holdings renewable business; ICRA Annexure II lists 20+ wholly-owned (100%) SPVs consolidated in full (Juniper Green Sigma, Three, Field, Gem, Beam, Stellar, Cosmic, Beta, Kite, Infinite, Power Five, Sigma Six, India Eight, Alpha Three, Theta Five, Bess Zeta, Bess Delta, Nisagra Renewable Energy, and others). The operating assets sit in the SPVs; the parent is largely a financing and management entity.",
+    "divergences": [
+      { "metric": "FY2026 revenue", "consolidated": "718.9 (operating income)", "standalone": "324 (sales)", "ratio": "2.2x" },
+      { "metric": "FY2026 net profit", "consolidated": "40.5", "standalone": "61", "note": "STANDALONE PROFIT IS HIGHER THAN CONSOLIDATED - the parent books interest and fee income from SPVs that eliminates on consolidation, while SPV-level depreciation and interest do not." },
+      { "metric": "Q1 FY2027 revenue", "consolidated": "291.2", "standalone": "113.63", "ratio": "2.6x" },
+      { "metric": "Q1 FY2027 net profit", "consolidated": "33.5", "standalone": "7.45", "ratio": "4.5x" },
+      { "metric": "ROE (screener, same day)", "consolidated": "+0.43%", "standalone": "-0.58%", "note": "sign flip" },
+      { "metric": "Borrowings FY2026", "consolidated": "12,920.54 (total borrowing, RHP) / net debt 11,217 at 30-Jun", "standalone": "2,265", "ratio": "~5.7x" }
+    ],
+    "sources": [
+      "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "https://www.screener.in/company/JNPR/",
+      "https://www.screener.in/company/JNPR/consolidated/",
+      "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/"
+    ]
+  },
+
+  "traps": [
+    {
+      "id": "T1",
+      "trap": "Absent from both bundled Indian instrument masters",
+      "detail": "Listed 2026-08-06. The app's BSE master was generated 2026-06-09 and the NSE master 2026-06-05 - both predate the listing. JNPR/544853 cannot be in either. The US master has no JNPR row either (see T8).",
+      "consequence": "Resolution must fall through to a live lookup or fail honestly. A resolver that treats master-absence as 'no such security' will deny a 15,000-crore mainboard listing exists."
+    },
+    {
+      "id": "T2",
+      "trap": "Five mutually inconsistent P/E values on one day",
+      "detail": "572 (screener consolidated), 373.38 (businesstoday, FY26 consolidated PAT), 290.1 (derived, consolidated TTM), 280.20 (stockanalysis BSE page), 248.12 (stockanalysis NSE page, standalone profit / consolidated market cap). Spread 2.3x.",
+      "consequence": "Any single-source P/E is defensible and wrong. The only honest render is the basis alongside the number."
+    },
+    {
+      "id": "T3",
+      "trap": "One aggregator serves two contradictory pages for the same company",
+      "detail": "stockanalysis.com's NSE page (/quote/nse/JNPR/) and BSE page (/quote/bom/544853/) disagree on 52-week low (204.00 vs 232.10), 52-week high (282.00 vs 282.50), market cap (150.87B vs 146.35B), P/E (248.12 vs 280.20) and as-of date (18 Sep vs 17 Sep).",
+      "consequence": "Cross-source agreement counts for nothing if both hits come from the same origin via different exchange routes. A dedup keyed on domain will call this 'corroborated'."
+    },
+    {
+      "id": "T4",
+      "trap": "Market cap computed on a stale price, displayed next to a fresh one",
+      "detail": "TradingView shows price 265.15 and market cap 146.52B. 568,998,442 x 257.50 (the previous day's BSE close) = 146.52B exactly. The market cap is one session behind the price, with no as-of marker.",
+      "consequence": "A 2.9% understatement that is invisible to any check short of recomputing cap from shares x price. Reproducible arithmetic, not a rounding artefact."
+    },
+    {
+      "id": "T5",
+      "trap": "A 52-week range on a 44-day-old security",
+      "detail": "Every source publishes a '52-week' high/low for a stock that has existed since 2026-08-06. The low (232.10, dated 2026-08-06) is simply the listing-day low. One source (stockanalysis NSE) publishes 204.00, which is below both the listing-day low and the INR 225 issue price and is corroborated by nothing.",
+      "consequence": "A '% off 52-week low' or range-position indicator is meaningless here and will look confidently precise while being structurally undefined."
+    },
+    {
+      "id": "T6",
+      "trap": "A named aggregator's net-worth figure is off by ~28x",
+      "detail": "chittorgarh's IPO financials table gives consolidated Net Worth FY2026 = INR 122.89 crore. ICRA's audited Total-outside-liabilities/tangible-net-worth of 4.7x against RHP total assets of 19,538.45 crore solves to TNW = 19,538.45 / 5.7 = INR 3,428 crore, and the company states net worth of INR 3,463 crore at 2026-06-30. Standalone equity + reserves = 489 + 2,939 = INR 3,428 crore, the same figure.",
+      "consequence": "A book value per share built on 122.89 gives INR 2.16 and a P/B of 123x instead of 2.9x - a 42x error presented as a clean number. Three independent cross-checks converge on ~3,43x crore; the 122.89 does not."
+    },
+    {
+      "id": "T7",
+      "trap": "Standalone net profit EXCEEDS consolidated net profit, and ROE flips sign",
+      "detail": "FY2026: standalone PAT 61 vs consolidated PAT 40.5. screener's own pages give ROE +0.43% consolidated and -0.58% standalone for the same company on the same day.",
+      "consequence": "The usual heuristic 'consolidated >= standalone, pick the larger' produces the wrong basis here, and a sign-sensitive render (red/green, loss-making flag) flips on a basis choice the user never made."
+    },
+    {
+      "id": "T8",
+      "trap": "Ticker collision with a DELISTED US large-cap",
+      "detail": "US JNPR = Juniper Networks, Inc. stockanalysis.com states: 'Jul 2, 2025 - JNPR was delisted (reason: acquired by HPE)', a $14 billion acquisition. Decades of news, charts and analyst coverage sit under JNPR as a US networking company.",
+      "consequence": "A web-search-backed agent asked about 'JNPR' will surface Juniper Networks/HPE material with high confidence and zero Indian relevance. The security is gone but the corpus is not.",
+      "source_url": "https://stockanalysis.com/stocks/jnpr/"
+    },
+    {
+      "id": "T9",
+      "trap": "Name collision with a live NSE-listed company at a near-identical price",
+      "detail": "NSE symbol JUNIPER = Juniper Hotels Limited (BSE 544129), a Hyatt-affiliated luxury hotel owner, trading at INR 224 with a market cap of INR 4,991 crore. JNPR's IPO issue price was INR 225 - one rupee apart.",
+      "consequence": "Fuzzy name matching on 'Juniper' lands on a hotel company; a numeric sanity check on price will not catch it, because the prices are within 0.4%.",
+      "source_url": "https://www.screener.in/company/JUNIPER/"
+    },
+    {
+      "id": "T10",
+      "trap": "Pre-IPO per-share history is not comparable",
+      "detail": "Standalone equity capital went INR 26 crore (Mar-2024) -> INR 489 crore (Mar-2025), then INR 569 crore post-IPO. Standalone EPS therefore reads 8.88 (FY24) -> 0.89 (FY25) -> 1.26 (FY26): an apparent 90% collapse that is purely a share-count restructuring.",
+      "consequence": "Any EPS growth chart, CAGR or 'earnings declined' narrative drawn across FY24/FY25 is fiction unless restated.",
+      "source_url": "https://www.screener.in/company/JNPR/"
+    },
+    {
+      "id": "T11",
+      "trap": "Balance sheet is 44 days stale by INR 1,800 crore",
+      "detail": "Net worth: INR 3,463 crore (2026-06-30) -> ~INR 5,200 crore post-IPO (August 2026). Net debt/equity: 3.24x -> ~2.16x. Every filed balance sheet predates the IPO proceeds.",
+      "consequence": "Book value, P/B, ROE and leverage computed from the most recent FILED statement are all wrong by the size of the IPO, and will stay wrong until the Q2 FY2027 results in late October 2026."
+    },
+    {
+      "id": "T12",
+      "trap": "'Revenue' means two different numbers, 12% apart",
+      "detail": "FY2026 Total Income 804.93 vs Operating Income 718.9 (INR 86 crore of other income). Q1 FY2027 Total Income 324 vs Operating Income 291.2. screener and ICRA report the operating line; chittorgarh and the company's headline report the total line.",
+      "consequence": "Revenue-based multiples (P/S, EV/Sales) swing 12% on the definition. Compounding trap: the standalone FY2026 sales figure (INR 324 crore) is NUMERICALLY IDENTICAL to the consolidated Q1 FY2027 total income (INR 324 crore) - a collision that makes a mis-picked cell look plausible."
+    },
+    {
+      "id": "T13",
+      "trap": "Operational capacity moves weekly and one aggregator confuses it with total portfolio",
+      "detail": "Operational: 2,409 MWp (2026-06-30) -> 2,575 MWp (2026-08-27) -> 2,689 MWp (2026-09-16). Total portfolio: 11,216 MWp + 8,989 MWh BESS. stockanalysis's BSE page describes 'an operational portfolio of 11.2 GW capacity' - the TOTAL portfolio (including under-construction, contracted and merely awarded projects) relabelled as operational, a 4.2x overstatement.",
+      "consequence": "Any cached capacity figure is wrong within days, and the one qualitative figure an aggregator volunteered is wrong by 4x.",
+      "source_url": "https://stockanalysis.com/quote/bom/544853/"
+    },
+    {
+      "id": "T14",
+      "trap": "Identity metadata changed after listing",
+      "detail": "CIN changed U40100DL2011PLC228318 -> L40100DL2011PLC228318 on 2026-09-02. Filings published before that date (including the 2026-08-27 Q1 press release) still carry the old U-prefix CIN on the letterhead. The legal name also changed from 'Private Limited' at an unrecorded date.",
+      "consequence": "Keying an entity on CIN across a document set spanning August-September 2026 splits one company into two."
+    },
+    {
+      "id": "T15",
+      "trap": "Industry classification is unresolvable across sources",
+      "detail": "Utilities / Utilities-Renewable (stockanalysis), Utilities / Alternative Power Generation (TradingView), Power - Solar and Wind (ICRA). No exchange-official classification was reachable.",
+      "consequence": "Peer-set construction and sector screens put this name in three different buckets."
+    },
+    {
+      "id": "T16",
+      "trap": "Registered office vs corporate office",
+      "detail": "MCA Master Data: registered office New Delhi 110019. TradingView reports headquarters 'Gurugram, India' - the corporate office address on the same letterhead.",
+      "consequence": "State-level or city-level grouping disagrees depending on which address a source took."
+    },
+    {
+      "id": "T17",
+      "trap": "The issuer's own IR index mislabels a filing date",
+      "detail": "The stock-exchange-filings page titles the Q1 results filing 'Outcome of Board Meeting held on 30.06.2026'; the letter inside is dated 26.08.2026 and 30.06.2026 is the quarter END.",
+      "consequence": "Even the primary source's index is not trustworthy for dates - the PDF must be opened. A scraper that reads titles will date a board meeting to a day the board did not meet."
+    },
+    {
+      "id": "T18",
+      "trap": "No true quarter-end shareholding pattern exists yet",
+      "detail": "The only shareholding disclosure is the post-allotment one (labelled 'Aug 2026' by screener). The first quarter-end pattern (2026-09-30) is not due until October 2026.",
+      "consequence": "A request for 'latest quarterly shareholding' either returns a non-quarterly filing labelled as quarterly, or nothing - and a promoter-holding trend chart has exactly one point."
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "field": "pledged_pct_of_promoter",
+      "kind": "could-not-reach",
+      "detail": "Not published by screener for this name; the exchange-filed shareholding pattern (which carries the pledge table) sits on bseindia.com/nseindia.com, both unreachable from this harness (403 / 60s timeout). NOT assumed to be zero."
+    },
+    {
+      "field": "identity.former_names[].rename_date",
+      "kind": "could-not-reach",
+      "detail": "Every filing carries 'Formerly known as Juniper Green Energy Private Limited' but no reachable source gives the date of conversion to a public limited company. It is in the RHP, which was not fetched."
+    },
+    {
+      "field": "identity.nse_symbol.series",
+      "kind": "could-not-reach",
+      "detail": "Expected EQ but not confirmed - nseindia.com's quote API timed out."
+    },
+    {
+      "field": "price.last_close_bse (2026-09-18)",
+      "kind": "could-not-reach",
+      "detail": "bseindia.com returned HTTP 403; the best BSE close captured is 2026-09-17 at INR 257.50 from stockanalysis. The NSE close for 2026-09-18 is solid across four sources."
+    },
+    {
+      "field": "dividend.*",
+      "kind": "genuinely-absent",
+      "detail": "No dividend has ever been declared. This is a real null, not a collection failure - three independent sources agree the company pays none."
+    },
+    {
+      "field": "shareholding.quarter (true quarter-end)",
+      "kind": "genuinely-absent",
+      "detail": "The 2026-09-30 quarter has not ended. No quarter-end shareholding pattern can exist for this security yet."
+    },
+    {
+      "field": "week52 (a genuine 52-week range)",
+      "kind": "genuinely-absent",
+      "detail": "The security has 44 days of trading history. A true 52-week range will not exist until 2027-08-06."
+    },
+    {
+      "field": "book_value_per_share, debt_to_equity (as published by aggregators)",
+      "kind": "genuinely-absent-from-aggregators",
+      "detail": "screener.in publishes NEITHER for this name on either its consolidated or standalone page. Both values in this pack are derived from company filings, with the arithmetic shown. A terminal sourcing only from screener has no leverage figure at all for a 3.24x-levered company."
+    },
+    {
+      "field": "moneycontrol / trendlyne / tijori cross-checks",
+      "kind": "could-not-reach",
+      "detail": "These require a discovered slug or numeric id and WebSearch was exhausted (200/200) before this task began. Coverage is therefore five distinct aggregators plus primary filings, not the full screener.in-grade set."
+    }
+  ],
+
+  "reference_anchors_for_the_differ": {
+    "highest_confidence": [
+      "shares_outstanding = 568,998,442 (MCA paid-up capital / FV 10; corroborates chittorgarh post-issue count)",
+      "market_cap = INR 15,086.99 crore at INR 265.15 on 2026-09-18 (arithmetically exact from the above)",
+      "listing_date = 2026-08-06 (company letter to both exchanges)",
+      "isin = INE05C901015, bse_code = 544853, nse_symbol = JNPR, face_value = INR 10",
+      "consolidated operating income FY2024/25/26 = 391.6 / 508.7 / 718.9 INR crore and PAT = 40.1 / 36.5 / 40.5 (ICRA audited table)",
+      "net worth INR 3,463 crore and net debt INR 11,217 crore as on 2026-06-30; post-IPO net worth ~INR 5,200 crore (company press release)",
+      "credit rating [ICRA]AA- (Stable)/[ICRA]A1+ assigned 2026-09-16"
+    ],
+    "expected_to_be_wrong_in_app": [
+      "any P/E (five defensible values exist; the app will pick one silently)",
+      "any 52-week range (structurally undefined for a 44-day-old listing)",
+      "book value / P/B (the app's likely source publishes neither, and the filed balance sheet is INR 1,800 crore stale)",
+      "debt-to-equity (absent from the likely source for a 3.24x-levered issuer)",
+      "resolution of the bare string 'JNPR' (three candidate entities, two of them in the app's own masters' blind spots)"
+    ]
+  }
+}

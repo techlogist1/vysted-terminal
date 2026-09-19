@@ -1,0 +1,162 @@
+[
+  {
+    "raw_id": "COD-backtest-1",
+    "title": "Multi-symbol backtests report Sharpe understated by sqrt(N) and annualised return understated by ~N — the equity curve is sampled per BAR, the metrics assume per DAY",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python, in-process with a fixture bar_loader (no network): register a buy-and-hold strategy, feed a seeded random walk of 200 dates for N symbols, run backtest_engine.run_backtest. N=1: 200 curve points, sharpe 0.647, date-sampled sharpe 0.647 (ratio 1.00). N=2: 400 points, sharpe 0.674 vs 0.938 (ratio 1.39, sqrt2=1.41). N=4: 800 points, sharpe 1.087 vs 2.215 (ratio 2.04, sqrt4=2.00). annualizedReturn for N=4 reported +0.0023 where (1+totalReturn)^(252/200)-1 = +0.0090. Calmar derives from annualizedReturn so it inherits the error.",
+    "evidence": "sidecar/services/backtest_engine.py:391 (equity_curve.append inside `for bar in bars` at :313), sidecar/services/backtest_engine.py:251-267 (returns built from consecutive curve points; sqrt(252) and **252 applied as if daily), sidecar/services/backtest_engine.py:434 (bars sorted by (timestamp, symbol) so N points share each date), src/modules/backtest/BacktestResultView.tsx:477-502 (all six numbers rendered), sidecar/services/agent_tools/backtest_summary.py:55 (same metrics fed to the Strategy Critic)",
+    "notes": "Information leakage (APOSD 4): the metric function silently depends on the caller's sampling rate, which it cannot see. Multi-symbol is a first-class input — the panel field is literally 'Symbols (comma-sep)' (src/modules/backtest/BacktestPanel.tsx:196) and bar_loader fans out 8-wide. Consequence: Sharpe/Sortino/Calmar/annualizedReturn shown as fact and reasoned over by the Critic agent are wrong by a fixed factor the user has no way to detect. Smallest fix: collapse the curve to the last point per `timestamp` before _compute_metrics, or pass an explicit periods_per_year = len(returns)/dates_spanned instead of the literal 252."
+  },
+  {
+    "raw_id": "COD-backtest-2",
+    "title": "`sortino` is not the Sortino ratio — the denominator is the stdev of the loss subset, measured 41x overstatement on a plausible return series",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python -c: build an equity curve from returns [+0.02]*10 + [-0.05, -0.051], call services.backtest_engine._compute_metrics(curve, [], 100000.0) -> metrics.sortino = 261.93. Textbook Sortino with downside deviation sqrt(mean(min(r,0)^2)) over all periods = 6.35. Overstated 41.2x. Degenerate case: two identical losses -> pstdev == 0 -> the `if downside_stdev > 0` guard returns sortino = 0.00, visually identical to 'no downside'.",
+    "evidence": "sidecar/services/backtest_engine.py:259-260 (`downside = [r for r in returns if r < 0]`; `downside_stdev = statistics.pstdev(downside)`), sidecar/services/backtest_engine.py:267 (sortino = mean/downside_stdev*sqrt(252)), src/modules/backtest/BacktestResultView.tsx:487 (rendered to 2dp beside a correct-looking Sharpe)",
+    "notes": "Design-it-twice failure (APOSD 10): the block was written once and never checked against a reference. pstdev of the negative subset measures how much the losses differ from EACH OTHER, not their magnitude below zero, so two similar losses drive the denominator toward 0 and the ratio toward infinity. Money-relevant number shown as true and fed to the Critic. One-line fix: downside_dev = math.sqrt(sum(min(r,0.0)**2 for r in returns)/len(returns)), keeping the >0 guard."
+  },
+  {
+    "raw_id": "COD-backtest-3",
+    "title": "A second buy on a held symbol silently destroys the earlier position — capital vanishes from the book; flat market reports -3.0% total return",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python, fixture loader, a strategy that returns BacktestOrderIntent(qty=+10) on every bar without gating on has_position: 4 bars at a flat close of 100, initialCapital 100000. Result: 4 trade rows recorded, cash correctly debited 4 x 1001 = 4004, but portfolio.positions['AAA'] holds 10 shares not 40 -> final equity 96996 and metrics.totalReturn = -0.03004 on a market that never moved. The three orphaned entry rows keep pnl=None forever, so tradeCount/winRate never see them.",
+    "evidence": "sidecar/services/backtest_engine.py:343 (`portfolio.positions[intent.symbol] = _OpenPosition(...)` — assignment, not merge), sidecar/services/backtest_engine.py:324 (comment directly above reads `# New long position OR add to existing`), sidecar/services/backtest_engine.py:114-118 (equity marks only the surviving position)",
+    "notes": "Pull-complexity-downward violation (APOSD 7) with a comment asserting the opposite of the code (APOSD 11). Unreachable from the four bundled strategies only because each one self-gates on has_position (backtest_strategies.py:262,341,414; backtest_dsl.py:703) — an invariant repeated at four call sites that the engine could hold once. register_strategy (backtest_engine.py:144) is public extension surface, so the first plugin or agent-authored strategy that pyramids hits this. Smallest fix: on buy, merge into the existing _OpenPosition with a weighted-average entry price instead of replacing it."
+  },
+  {
+    "raw_id": "COD-backtest-4",
+    "title": "Selling more than is held mints cash — a sell intent larger than the position is credited in full and pops the whole position",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python, fixture loader, flat close of 100: strategy buys 10 on bar 2 then returns BacktestOrderIntent(qty=-100) on bar 5. Result: final equity 108989 from initialCapital 100000 on a market that never moved; the trade's reported pnl is -19.99 (fees only), so nothing in the trade log or metrics hints that 90 phantom shares were sold.",
+    "evidence": "sidecar/services/backtest_engine.py:362-365 (position looked up, then `portfolio.cash += abs(intent.quantity) * fill_price` with no reconciliation against position.quantity), sidecar/services/backtest_engine.py:371 (pnl computed on abs(intent.quantity)), sidecar/services/backtest_engine.py:385 (`portfolio.positions.pop(...)` regardless of size), sidecar/services/backtest_engine.py:368-370 (comment parks the partial-close case as a 'documented limitation')",
+    "notes": "Same root as COD-backtest-3: _run_single_slice applies an intent without reconciling it against the book, and the only guard is that all four bundled strategies size exits as `-held`. A short-side or oversized exit from a plugin/agent strategy invents equity out of nothing. Smallest fix: qty = min(abs(intent.quantity), position.quantity); credit and compute pnl on qty; pop only when the remainder reaches 0."
+  },
+  {
+    "raw_id": "COD-backtest-5",
+    "title": "A partial historical-data failure is reported as a clean backtest on the full symbol list",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "backtest",
+    "repro": "design + code path: request symbols ['AAPL','MSFT','RELIANCE.NS'] where one symbol's provider raises ProviderError. bar_loader catches it and returns [] for that symbol (logging a warning the user never sees); run_backtest's guard fires only when EVERY symbol returned zero bars, so the run completes with metrics computed on two symbols while result.request.symbols still lists three and result.warnings is None. The panel header prints all three symbols.",
+    "evidence": "sidecar/services/bar_loader.py (_load_one_symbol: `except ProviderError ... return []`), sidecar/services/backtest_engine.py:424 (`if request.symbols and not bars:` — all-empty only), sidecar/models/backtest.py:123 (result echoes the full request), src/modules/backtest/BacktestResultView.tsx:462 (header prints request.symbols.join)",
+    "notes": "Define-errors-out-of-existence failure (APOSD 9): a silent degrade on the data path of a data-trust product. The honest-degradation channel already exists and is already rendered (warnings, models/backtest.py:134 -> BacktestResultView.tsx:506-510) — this case just isn't wired into it. Smallest fix: after the load, missing = set(request.symbols) - {b.symbol for b in bars}; append a warning naming them and how many symbols the metrics actually cover."
+  },
+  {
+    "raw_id": "COD-backtest-6",
+    "title": "`progress` and `trade` SSE events are declared on both sides of the wire and never emitted — the panel's progress readout is frozen at 0/N (0%) for the whole run",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python, fixture loader, 10-bar run with an on_event collector: the engine emits exactly ['run-start', 'run-complete']. The model declares five kinds. Consequence in the UI: while status is 'streaming' the header renders `running... 0/10 (0%)` from the start of the run to the end, over a pane reading 'computing equity curve...'; on a multi-year, multi-symbol run that is minutes of a UI that reads as hung.",
+    "evidence": "sidecar/services/backtest_engine.py:435 and :499 (the only two _emit call sites), sidecar/models/backtest.py:142 (kind Literal declares run-start|progress|trade|run-complete|run-error), types/backtest.ts:163-168 (same five), src/store/backtest.ts:183-220 (38 lines of unreachable progress/trade handlers), src/modules/backtest/BacktestResultView.tsx:453-454 and :464-468 (progressPct + the readout), src/modules/backtest/BacktestResultView.tsx:541-543 ('computing equity curve...' pane)",
+    "notes": "Consistency/obviousness violation (APOSD 15,16): a half-declared protocol that three layers implement and nothing produces. The queue plumbing to emit already exists (routers/backtest.py:46-96). Smallest fix: either emit a `progress` event every K bars from the bar loop, or delete the two kinds from models/backtest.py, types/backtest.ts and the store and render an indeterminate spinner. Leaving it half-declared costs every future reader the same investigation."
+  },
+  {
+    "raw_id": "COD-backtest-7",
+    "title": "The agent tool tells the model its backtest 'renders in the backtest panel' — nothing in the frontend ever fetches an agent-started run",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "backtest",
+    "repro": "grep -rn 'backtest/runs' src/ types/ plugins/ -> the only hit is a comment in types/backtest.ts:143. GET /backtest/runs and GET /backtest/runs/{run_id} have no frontend caller. So when the copilot calls run_custom_backtest, the result exists only as the chat digest: the backtest panel stays on its empty state (the frontend store is keyed by runs the frontend itself started, src/store/backtest.ts:130-149), and the equity curve, drawdown, trade log and walk-forward strip the tool description promises are never shown.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:868-870 ('the full result renders in the backtest panel and resolves via backtest_summary'), sidecar/services/agent_tools/run_custom_backtest.py:9-12 (same claim in the module docstring), sidecar/routers/backtest.py:180-186 (GET /backtest/runs/{run_id} exists), src/store/backtest.ts:106-310 (no run-id hydration path anywhere)",
+    "notes": "The false claim lives in the tool DESCRIPTION, which is sent to the model, so the agent will actively tell the user to look at a panel that will be empty — an agent-native product promising a surface it does not have. Smallest fix: add a `loadRun(runId)` action to the backtest store that GETs /backtest/runs/{id} and sets it active, and drive it from the agent's tool-result (the panel-context bus at src/modules/backtest/BacktestResultView.tsx:413 is the existing seam); or, until then, correct the catalog description so the model stops promising it."
+  },
+  {
+    "raw_id": "COD-backtest-8",
+    "title": "paramsSchema minimum/maximum are advertised and enforced nowhere — raw Python exception text reaches the user as the run error",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python: MeanReversionStrategy({'window': 0}) then drive 5 bars -> `StatisticsError: fmean requires at least one data point`; {'window': -5} -> `ValueError: maxlen must be non-negative`; {'window': ''} (what the params form produces when the user clears the field) -> `ValueError: invalid literal for int() with base 10: ''`. Each surfaces verbatim in the run-error SSE frame and renders as `error: <python message>` in the panel header.",
+    "evidence": "sidecar/services/backtest_strategies.py:69-92 (schema declares minimum 5 / maximum 200 etc.), src/modules/backtest/strategy-picker.tsx:110-119 (pickFields keeps only type/default/description — no min/max attribute is ever rendered), src/modules/backtest/strategy-picker.tsx:147-157 (a non-numeric entry is stored as the raw string), sidecar/models/backtest.py:48 (params is a free dict, unvalidated), sidecar/services/backtest_strategies.py:235 (bare int() coercion), src/modules/backtest/BacktestResultView.tsx:470-474 (error rendered raw)",
+    "notes": "Define-errors-out-of-existence (APOSD 9): the constraint is written down three times and checked zero times, and the spec-derived form is the natural place to hold it. Smallest fix: render min/max/step from the schema in ParamsForm and clamp on blur; that removes the reachable inputs without touching the sidecar."
+  },
+  {
+    "raw_id": "COD-backtest-9",
+    "title": "A running backtest cannot be cancelled — the abort signal is a parameter with no supplier and there is no Stop control",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "backtest",
+    "repro": "design: start a 5-year, 8-symbol run with the wrong date range. Every control in the left rail is disabled while isRunning, the Run button shows 'Running...' and no other control exists; the only exit is closing the panel. startRun accepts options.signal and BacktestPanel never passes one.",
+    "evidence": "src/store/backtest.ts:86 (signature takes `options?: { signal?: AbortSignal }`), src/store/backtest.ts:269 (forwards it to consumeBacktestStream), src/modules/backtest/BacktestPanel.tsx:133 (`await startRun(request)` — no options), src/modules/backtest/BacktestPanel.tsx:263-274 (the only button; disabled while running), src/modules/backtest/BacktestResultView.tsx:536 (Retry also calls startRun with no signal)",
+    "notes": "Pass-through variable (APOSD red flag 5) — an API surface with no user, which reads as 'cancellation is supported' to the next maintainer. The engine side already cancels the task on client disconnect (routers/backtest.py:92-94). Smallest fix: hold an AbortController in the panel, pass its signal, and swap the disabled Run button for Stop while isRunning."
+  },
+  {
+    "raw_id": "COD-backtest-10",
+    "title": "Run history is in-memory, capped at 32, and the documented list order is wrong",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python: put three results, backtest_store.list_runs() returns them oldest-first (insertion order) while the route that serves them documents 'newest first'; get() calls move_to_end, so after any read the order is neither insertion nor recency. Separately: restart the sidecar, or run a 33rd backtest, and backtest_summary(run_id=<older run>) returns `no cached backtest with run_id=...` — the Strategy Critic can no longer critique a run the user is still looking at in the panel.",
+    "evidence": "sidecar/services/backtest_store.py:23 (DEFAULT_CAPACITY = 32), sidecar/services/backtest_store.py:31 (plain OrderedDict, no disk), sidecar/services/backtest_store.py:47-48 (list returns insertion order), sidecar/services/backtest_store.py:41-45 (get mutates the order), sidecar/routers/backtest.py:176 ('List run ids currently in the in-memory cache (newest first)'), docs/redesign/verification/r15/census/CODE_PARTITION.json (subsystem responsibility says 'persisted run history')",
+    "notes": "Two defects in one 70-line module: a documented contract the code contradicts (APOSD 15) and a persistence promise the implementation never made. The module is also the subsystem's shallowest (four one-line module functions over an OrderedDict, :57-70). Smallest fix: `return list(reversed(self._items.values()))` for the order; for durability, write results as JSON under the sidecar data dir keyed by run_id, which also makes the agent path in COD-backtest-7 reloadable after a restart."
+  },
+  {
+    "raw_id": "COD-backtest-11",
+    "title": "Walk-forward slices share their boundary date, so the boundary bar is traded twice",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python -c 'from services.backtest_engine import _slice_dates; print(_slice_dates(\"2024-01-01\",\"2024-01-11\",2))' -> [('2024-01-01','2024-01-06'), ('2024-01-06','2024-01-11')]. The slice filter is `slice_start <= b.timestamp <= slice_end`, so every bar dated 2024-01-06 is replayed in both slices; with 10 slices, nine bars are double-counted across the strip.",
+    "evidence": "sidecar/services/backtest_engine.py:222-223 (contiguous boundaries), sidecar/services/backtest_engine.py:466 (inclusive on both ends), src/modules/backtest/BacktestResultView.tsx:370-394 (the strip presents the per-slice return/sharpe/trade count as disjoint periods)",
+    "notes": "Off-by-one at a seam the UI presents as non-overlapping. Smallest fix: make the filter half-open except for the final slice (`slice_start <= ts < slice_end`, `<= end` on the last)."
+  },
+  {
+    "raw_id": "COD-backtest-12",
+    "title": "Dead scaffolding preserved around the bar-loader seam, with docstrings that still narrate the build",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "backtest",
+    "repro": "design: _default_bar_loader exists only to raise NotImplementedError; `loader = bar_loader or _default_bar_loader` presents a fallback that cannot succeed; the router keeps a NotImplementedError handler its own module docstring calls unreachable; _encode_event_dict is marked 'kept for parity' and has no caller. A reader tracing how production loads bars hits three misleading signposts before finding services/bar_loader.load_bars.",
+    "evidence": "sidecar/services/backtest_engine.py:169-182 (raise-only default), sidecar/services/backtest_engine.py:417 (the impossible `or` fallback), sidecar/routers/backtest.py:13-14 ('no longer reachable') vs sidecar/routers/backtest.py:62-72 (the handler for it), sidecar/routers/backtest.py:198 (_encode_event_dict, no callers), sidecar/services/backtest_engine.py:9-11 and :176-181 + sidecar/services/backtest_strategies.py:1 + sidecar/routers/backtest.py:11 ('Teammate K's deliverable' — build-process narrative, now false in two places)",
+    "notes": "Modifying-existing-code / obviousness (APOSD 14,16): each dead construct is a small, permanent tax on comprehension, and the process narrative is the kind of history CLAUDE.md puts in CHANGELOG.md. Smallest fix: delete the three dead constructs, make bar_loader a required argument, and rewrite the four docstrings to describe what the code does now."
+  },
+  {
+    "raw_id": "COD-backtest-13",
+    "title": "DSL folds case for fields and functions but not for keywords — `SMA(20) > 50 AND close > 1` fails at AND after SMA parsed fine",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "backtest",
+    "repro": "sidecar/.venv/bin/python -c: compile_rule('SMA(20) > 50 AND close > 1') -> DslError \"unexpected 'AND'\" at the AND's column, while compile_rule('SMA(20) > 50 and close > 1') parses. The editor shows a caret under a token the user just watched work in uppercase two words earlier.",
+    "evidence": "sidecar/services/backtest_dsl.py:346 (`name = token.text.lower()` — fields and functions are case-insensitive), sidecar/services/backtest_dsl.py:237 (`token.text == word` — keywords are case-sensitive), src/modules/backtest/custom-strategy-editor.tsx:76-94 (renders the positioned error)",
+    "notes": "Consistency (APOSD 15): two halves of one grammar treat case differently, so the error reads as arbitrary. Also hits the agent lane, which authors these strings free-form (run_custom_backtest). Smallest fix: compare `token.text.lower()` in _accept_keyword."
+  },
+  {
+    "raw_id": "COD-backtest-14",
+    "title": "The custom strategy parses each rule twice at construction — duplicated truth between validation and compilation",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "backtest",
+    "repro": "design: CustomDslStrategy.__init__ calls validate_definition(params) (which compiles both rules to build its report), discards the compiled rules, then calls compile_rule on entry and exit again. Every walk-forward slice constructs a fresh strategy, so an N-slice run parses 2(N+1) times.",
+    "evidence": "sidecar/services/backtest_dsl.py:685 (validate_definition), sidecar/services/backtest_dsl.py:645 (it already compiles inside), sidecar/services/backtest_dsl.py:693-694 (compile_rule again), sidecar/services/backtest_engine.py:469 (a fresh strategy per slice)",
+    "notes": "Repetition (APOSD red flag 6). Harmless today (rules are capped at 256 tokens) but it is two sources of truth for 'what this rule compiles to' — the day validation normalises or rewrites a rule, the run silently uses the other parse. Smallest fix: have validate_definition return the compiled rules it already built, or compile once and derive the report from it."
+  },
+  {
+    "raw_id": "COD-backtest-15",
+    "title": "'Trades' appears twice in the result header with two different numbers",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "backtest",
+    "repro": "run any strategy that ends with an open position: the header metric strip shows `Trades: 7` (metrics.tradeCount, closed trades only) and the trade-log heading three lines below shows `Trades (8)` (run.trades.length, closed + still-open). Nothing on screen explains the difference.",
+    "evidence": "src/modules/backtest/BacktestResultView.tsx:500-502 (metrics.tradeCount), src/modules/backtest/BacktestResultView.tsx:551-553 (run.trades.length), sidecar/services/backtest_engine.py:272-285 (tradeCount counts only trades with pnl is not None)",
+    "notes": "Obviousness (APOSD 16): same label, same header, two meanings. Smallest fix: label the log 'Trades (N closed, M open)' or count closed trades in both places."
+  },
+  {
+    "raw_id": "COD-backtest-16",
+    "title": "The panel's default date range ends on a hardcoded 2025-12-31",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "backtest",
+    "repro": "open the Backtest panel: End defaults to 2025-12-31, which is now ~9 months in the past, so the default run silently excludes the most recent data unless the user edits it.",
+    "evidence": "src/modules/backtest/BacktestPanel.tsx:17-18 (DEFAULT_START '2024-01-01', DEFAULT_END '2025-12-31')",
+    "notes": "Design-for-the-future (APOSD 17): a literal that was 'the future' at authoring time and rots silently. Smallest fix: DEFAULT_END = new Date().toISOString().slice(0,10) and DEFAULT_START two years before it."
+  }
+]

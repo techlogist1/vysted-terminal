@@ -1,0 +1,162 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-1-1",
+    "title": "The correctness gate accepts NaN prices/closes, so a NaN bar is served as valid and then 500s the response with no provider fallthrough",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "sidecar/.venv/bin/python3: build an OHLCVSeries whose last bar has close=float('nan') and a Quote with price=float('nan'); correctness_gate.validate_series(series,'TEST','US') RETURNS the series (last close = nan) and correctness_gate.validate_quote(q,'TEST','US') RETURNS the quote -- because `close <= 0` / `price <= 0` is False for NaN. starlette.responses.JSONResponse.render then raises `ValueError: Out of range float values are not JSON compliant: nan` (it renders with allow_nan=False), so the request dies as a 500. NaN reaches the gate from yfinance_provider.get_history's bare float(row['Open'/'High'/'Low'/'Close']) and india_provider._frame_to_bars/get_quote, on any provider frame carrying a NaN cell.",
+    "evidence": "sidecar/services/correctness_gate.py:99, sidecar/services/correctness_gate.py:133, sidecar/services/yfinance_provider.py:285, sidecar/services/india_provider.py:148, sidecar/services/india_provider.py:197, sidecar/services/provider_registry.py:359",
+    "notes": "Define errors out of existence (APOSD #8). The gate's whole job is 'never present a wrong value', and its two numeric guards are written as `<= 0`, which NaN silently passes. The failure is strictly worse than having no gate: because the gate reports 'valid', _resolve_sync returns on the first provider and the healthy next lane (bse/yfinance) is never tried -- the user gets a hard 500 on a symbol another provider could serve. Each provider already ships a NaN-safe _num() in the same file (yfinance_provider.py:218, india_provider.py:240) and applies it only to `volume`. Smallest fix: `not math.isfinite(price)` in both gate guards, and route OHLC coercion through the existing _num() so a NaN bar is dropped at the source."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-2",
+    "title": "Fabricated statistics served on typed fields: EPS/revenue 'median' is the mean, 'stddev' is (high-low)/4, revenue analyst count is the EPS count",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design (read the constructor). EarningsEstimateDetail is built with eps_estimate_median=eps_mean and revenue_estimate_median=rev_mean (comment: 'yfinance does not surface a separate median'), eps_estimate_stddev = max(eps_high - eps_low, 0.0)/4.0 (comment: 'assume high/low span ~= 4 stddev'), and revenue_analyst_count=analyst_count where analyst_count was read from the EPS estimate row. The same stddev approximation is used for every EarningsEvent in the calendar.",
+    "evidence": "sidecar/services/earnings_provider.py:439, sidecar/services/earnings_provider.py:445, sidecar/services/earnings_provider.py:448, sidecar/services/earnings_provider.py:429, sidecar/services/earnings_provider.py:259",
+    "notes": "Wrong data presented as true. The models expose median, stddev and revenue_analyst_count as distinct fields and all three are Optional, so None would be honest; instead the panel renders an assumption indistinguishable from a measured statistic, with no field_meta/provenance marker. This directly contradicts the stance the rest of the subsystem takes (correctness_gate.py:1-8; bse_provider._validate_shp_summary:807 returns {} rather than a half-corrupt split). Smallest fix: set all three to None when the upstream does not carry them; if the (high-low)/4 proxy is wanted, ship it on a separately-named field or stamp it in field_meta."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-3",
+    "title": "The India symbol fix was applied to one module and the broken copy left in two: earnings and analyst-ratings are dead for every .NS/.BO symbol",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "sidecar/.venv/bin/python3 -c \"from services import earnings_provider, analyst_ratings_extended, yfinance_provider; s='RELIANCE.NS'; print(yfinance_provider._yahoo_symbol(s), earnings_provider._normalise_symbol(s), analyst_ratings_extended._normalise_symbol(s))\" -> 'RELIANCE.NS RELIANCE-NS RELIANCE-NS'. Same for '532540.BO' -> '532540.BO 532540-BO 532540-BO'. Yahoo 502s / returns no data for the dashed form.",
+    "evidence": "sidecar/services/earnings_provider.py:81, sidecar/services/analyst_ratings_extended.py:132, sidecar/services/yfinance_provider.py:94, sidecar/services/yfinance_provider.py:97",
+    "notes": "Information leakage / repetition (APOSD #3, #18). yfinance_provider._yahoo_symbol exists ONLY to fix this -- its docstring names the dot->dash rule as 'the root cause of the all-dashes Indian Equity Overview' -- but the fix was made at the call site, not to the shared concept, so the earnings calendar/estimates and the extended analyst-ratings lanes still mangle every Indian symbol. Smallest fix: export _yahoo_symbol (drop the underscore) and call it from both modules, deleting earnings_provider.py:79-81 and analyst_ratings_extended.py:130-132. One diff, two panels restored."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-4",
+    "title": "The correctness gate is switched off for the entire crypto asset class, and ccxt serves a 0.0 price as a real quote",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. provider_registry.get_quote/get_history set `validate = None if asset_class == 'crypto' else ...`, so no crypto quote or series is ever gated. ccxt_provider._ticker_to_quote computes `price = ticker.get('last') or ticker.get('close') or 0.0` then `price=float(price)` -- a ticker payload carrying neither field (or a literal 0/None `last`) yields Quote(price=0.0), which is returned to the router as a successful quote.",
+    "evidence": "sidecar/services/provider_registry.py:456, sidecar/services/provider_registry.py:469, sidecar/services/ccxt_provider.py:52, sidecar/services/ccxt_provider.py:66",
+    "notes": "General-purpose over special-purpose (APOSD #4). The one mechanism that enforces 'never show a wrong price' is disabled by an `if asset_class == 'crypto'`, and the crypto provider is the one that most needs it (its price extraction uses an `or` chain that treats a legitimate 0 as missing and then substitutes 0.0 anyway). The symbol-match and non-positive-price checks in the gate are asset-class agnostic; only the staleness check needed the exemption (crypto trades 24/7). Smallest fix: gate crypto too, skipping only the locale staleness leg, and make _ticker_to_quote raise ProviderError when no usable price field is present."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-5",
+    "title": "The chart range selector is a silent no-op for crypto: the registry accepts range_ and discards it",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. The ccxt declaration's ohlcv accessor is `lambda symbol, timeframe, range_=None: ccxt_provider.get_ohlcv(DEFAULT_CRYPTO_EXCHANGE, symbol, timeframe)` -- range_ is bound and never forwarded. ccxt_provider.get_ohlcv has no range parameter at all and always fetches `limit=200`. So GET /history?symbol=BTC/USDT&range=5y and &range=1mo return the identical 200 bars.",
+    "evidence": "sidecar/services/provider_registry.py:122, sidecar/services/ccxt_provider.py:86, sidecar/services/ccxt_provider.py:91",
+    "notes": "Pass-through variable dropped on the floor (APOSD #16). The lambda's signature advertises that it honours range_ purely so it matches the equity accessors' arity; the parameter exists to be discarded, which is exactly the shape that hides a dead control from the next reader. User-visible: every range button on a crypto chart does nothing. Smallest fix: map range_+timeframe to a `limit` (or `since`) and pass it through -- ccxt's fetch_ohlcv takes both."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-6",
+    "title": "A BSE chart re-parses the whole-market bhavcopy once per trading day: ~82 s of CPU for a 1y range, ~4.6 s per quote",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "sidecar/.venv/bin/python3: build a 5,000-row bhavcopy CSV (a realistic BSE cash-market day) and time bse_provider.parse_bhavcopy on it -> 332 ms. _assemble_history loops every trading day in the range and calls _bhavcopy_for -> _read_cached -> parse_bhavcopy for each, building a full DataFrame of every scrip to select ONE row via _match_scrip. Warm cache: ~26 days (1mo) = ~8.6 s, ~248 days (1y) = ~82 s, ~1240 days (5y) = ~412 s of pure CSV/pandas work. _quote_from_bhavcopy runs the same loop over 14 days = ~4.6 s per quote per symbol.",
+    "evidence": "sidecar/services/bse_provider.py:424, sidecar/services/bse_provider.py:440, sidecar/services/bse_provider.py:274, sidecar/services/bse_provider.py:211, sidecar/services/bse_provider.py:540",
+    "notes": "Pull complexity downward (APOSD #6): the bhavcopy is a whole-market file being used as a per-symbol store, with no per-day memo, no per-symbol extraction and no index. BSE micro-caps are the stated coverage differentiator ('the B/X/XT/T/Z groups NSE never listed'); the lane exists and is unusable at its advertised ranges, and a watchlist of BSE names multiplies the per-quote cost. Smallest fix: extract per-scrip rows at DOWNLOAD time into a SQLite table keyed (code, date) -- the pattern data_cache already sets -- so _assemble_history becomes one range query. Stopgap: memoise the parsed frame per day within a request."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-7",
+    "title": "The bundled trading-holiday tables expire on 2026-12-25 with no regeneration path and no test that fails when they lapse",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. locale._NSE_HOLIDAYS's latest entry is '2026-12-25' and _US_HOLIDAYS's is '2026-12-25' (today is 2026-09-19). After that date _is_trading_day returns True for every holiday, so most_recent_session walks back to a non-session day and trading_sessions_between over-counts the lag; is_rejectably_stale then rejects a value that is in fact as fresh as the exchange allows. There is no scripts/ or services/resolver_masters/-style regenerator for these sets and no test asserting the table extends past today.",
+    "evidence": "sidecar/services/locale.py:59, sidecar/services/locale.py:95, sidecar/services/locale.py:173, sidecar/services/locale.py:257, sidecar/services/correctness_gate.py:110",
+    "notes": "A dated time bomb wired into the correctness gate. During a holiday cluster (Diwali week, Christmas week) past the table's end, validate_quote can reject a correct EOD quote from EVERY provider in turn, so the registry surfaces 'unavailable' for a symbol that has perfectly good data. Note the resolver's comparable data (NSE symbol-change history, BSE master, sector map) all HAVE regeneration scripts; the calendar is the one bundled table without one. Smallest fix: a test asserting max(_NSE_HOLIDAYS) and max(_US_HOLIDAYS) are >= 12 months out, so CI fails before users do; then a regenerator alongside the other masters."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-8",
+    "title": "A provider raising anything other than ProviderError bypasses the registry's preference-order fallthrough entirely",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. _resolve_sync and _resolve_async both `except ProviderError`. india_provider._stock_df carefully wraps every jugaad FETCH failure as ProviderError, but the PARSE path does not: get_quote does float(last['CLOSE']) / last['DATE'] and _frame_to_bars does float(row['OPEN'/'HIGH'/'LOW'/'CLOSE']) with no guard, so an upstream column rename raises a bare KeyError/ValueError. That escapes _resolve_sync uncaught -- the bse and yfinance candidates are never attempted -- and surfaces as a 500. nse_provider._rows_to_bars and bse_provider._assemble_history have the same unguarded float()/indexing.",
+    "evidence": "sidecar/services/provider_registry.py:360, sidecar/services/provider_registry.py:410, sidecar/services/india_provider.py:147, sidecar/services/india_provider.py:189, sidecar/services/india_provider.py:104",
+    "notes": "Pull complexity downward + consistency (APOSD #6, #12). The registry's entire value proposition is 'a failure advances to the next provider', and the single most likely failure mode for a scraped keyless source -- an upstream schema drift -- is precisely the one that escapes it. The inconsistency is inside one module: india_provider wraps the network call and leaves the parse bare. Smallest fix: catch Exception (not ProviderError) in both resolvers, log at error with the provider id, and fall through; re-raise only when no candidate remains. One change at the seam all callers route through beats wrapping every parse site."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-9",
+    "title": "The v7 batch path (screener + warm store) bypasses the correctness gate and stamps no field_meta, and the dividend-yield bound is duplicated at three different values",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. yahoo_batch_provider.fundamentals_from_v7 is called directly from services/screener.py:875 and :1222 and services/fundamentals_warm.py:180 -- it is not a ProviderDeclaration, so correctness_gate.validate_fundamentals (symbol match + ownership-fraction, dividend-yield, 52w-pair plausibility bounds) never runs on it, and unlike yfinance_provider.get_fundamentals it never sets field_meta. Separately: yahoo_batch_provider accepts a dividend yield up to 2.0 (200%), yfinance_provider accepts up to 2.0, and the gate withholds anything above 0.25 -- so the same symbol can show a 150% yield in the screener and a withheld dash in the equity overview.",
+    "evidence": "sidecar/services/yahoo_batch_provider.py:430, sidecar/services/yahoo_batch_provider.py:480, sidecar/services/yfinance_provider.py:351, sidecar/services/yfinance_provider.py:404, sidecar/services/correctness_gate.py:44, sidecar/services/correctness_gate.py:231",
+    "notes": "Information hiding (APOSD #3): the same rule ('what is a plausible dividend yield') lives in three places at two values, and the authoritative one is reachable only through provider_registry. The module docstring for correctness_gate claims 'after a provider returns, the registry runs the served value through this gate' -- true for one of three fundamentals consumers. Also a provenance gap: a null in a screener row has no field_meta to explain it, while the same null via the registry does. Smallest fix: move _PLAUSIBLE_YIELD_FRACTION into the gate as the only bound, delete the two local `<= 2.0` guards, and call validate_fundamentals at the two mapping sites (or register the batch path as a ProviderDeclaration)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-10",
+    "title": "A BSE 404 is cached as a permanent empty marker, so a bhavcopy requested before publication loses that trading day's close forever",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. _download_bhavcopy writes an empty file to the cache on HTTP 404 ('cache the empty marker') and _bhavcopy_for then reads it and returns None for that day, permanently. Any BSE quote/history call made before BSE publishes the day's bhavcopy (i.e. any intraday request) 404s and poisons that date; after BSE publishes, the cached '' still wins and the day is never re-fetched. The marker has no TTL and nothing invalidates it (data_cache.invalidate is a different store and has no production caller).",
+    "evidence": "sidecar/services/bse_provider.py:317, sidecar/services/bse_provider.py:287, sidecar/services/bse_provider.py:301",
+    "notes": "Wrong/stale money data presented as complete. The user sees a BSE chart and quote whose latest bar silently predates the most recent close, for the life of the on-disk cache -- and the correctness gate cannot catch it because the series is internally consistent, just truncated. Smallest fix: never write the empty marker for a day >= today (or stamp the marker with a write time and ignore it when the day is newer than, say, 24 h)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-11",
+    "title": "provider_health.record_success is missing from the five busiest yfinance paths, so the Yahoo circuit stays open while Yahoo is healthy",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. record_success(YAHOO) is called in yfinance_provider.get_quote:252 and get_fundamentals:310 but NOT in get_history:267, get_income_statement:418, get_balance_sheet:431, get_cash_flow:442 or get_analyst_rating:455. Chart history is the highest-frequency Yahoo call in the app. So after three throttle observations open the breaker (provider_health._OPEN_THRESHOLD=3), a stream of successful history calls cannot close it; it stays open for the full jittered cooldown, up to 900 s.",
+    "evidence": "sidecar/services/yfinance_provider.py:252, sidecar/services/yfinance_provider.py:310, sidecar/services/yfinance_provider.py:267, sidecar/services/yfinance_provider.py:455, sidecar/services/provider_health.py:126, sidecar/services/screener.py:514",
+    "notes": "Consistency (APOSD #12) -- two of seven siblings report the success signal. Consequence: the screener (screener.py:514, :973) and fundamentals_warm short-circuit to their stale/seed basis for up to 15 minutes after Yahoo has recovered, because the recovery evidence is being collected and thrown away. Smallest fix: one record_success call in each of the five remaining paths (or wrap them the way _provider_error already wraps the failure side)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-12",
+    "title": "earnings_provider.get_upcoming is the one uncapped, un-breakered Yahoo fan-out (3+ round trips per symbol, no semaphore, no circuit check)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. get_upcoming does `await asyncio.gather(*(_one(sym) for sym in universe))` with no semaphore, where _one -> _fetch_calendar_sync makes 3-4 separate Yahoo round trips per symbol (ticker.calendar, ticker.earnings_dates, ticker.info, ticker.earnings_estimate). It never consults provider_health.is_open. Every sibling fan-out caps at 8 (bar_loader._LOAD_CONCURRENCY, yahoo_batch_provider._BATCH_CONCURRENCY). A 50-symbol watchlist is ~150-200 concurrent Yahoo requests.",
+    "evidence": "sidecar/services/earnings_provider.py:314, sidecar/services/earnings_provider.py:147, sidecar/services/bar_loader.py:157, sidecar/services/yahoo_batch_provider.py:67, sidecar/services/yahoo_batch_provider.py:275",
+    "notes": "The R11/D53 concurrency discipline was applied to the two fan-outs that were audited and not to this one. Because the breaker is a shared FAMILY record, opening the Yahoo circuit here degrades the screener and the warm loop as a side effect -- the earnings panel can take down the screener. Smallest fix: an asyncio.Semaphore(8) around _one and an early `if provider_health.is_open(provider_health.YAHOO): return EarningsUpcomingResponse(..., events=[])`-style short-circuit, matching yahoo_batch_provider._fetch_chunk:275."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-13",
+    "title": "Four divergent _is_rate_limited implementations classify the same 429 differently, so the shared breaker is fed inconsistently",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. yfinance_provider._is_rate_limited matches `type(node).__name__ == 'YFRateLimitError' or 'Too Many Requests' in str(node)`. growth_check._is_rate_limited, dividend_history._is_rate_limited and earnings_quality._is_rate_limited all match `name == 'YFRateLimitError' or 'ratelimit' in name.lower()` -- a type-name test with no message test. symbol_resolver has a fifth, inline `type(exc).__name__ == 'YFRateLimitError'`. Neither predicate is a superset of the other: a 429 surfaced only as an HTTPError with 'Too Many Requests' in its message is a throttle to yfinance_provider and invisible to the other three; a differently-named rate-limit class is the reverse.",
+    "evidence": "sidecar/services/yfinance_provider.py:38, sidecar/services/growth_check.py:160, sidecar/services/dividend_history.py:74, sidecar/services/earnings_quality.py:210, sidecar/services/symbol_resolver.py:1006",
+    "notes": "Information leakage (APOSD #3) -- 'what counts as a Yahoo throttle' is duplicated five times and has already drifted into two incompatible answers, and all five feed ONE shared breaker whose whole purpose is a consistent global view of Yahoo's health. earnings_quality.py:214 even documents that it mirrors growth_check, which proves the copies were made knowingly. Smallest fix: one `provider_health.is_rate_limit(exc)` holding the union of both predicates, imported by all five call sites."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-14",
+    "title": "data_cache is an unbounded, never-evicted SQLite cache: stale rows are read past TTL and left, and invalidate/clear/size have no production callers",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. data_cache.get documents that a stale row 'is NOT auto-evicted'; nothing sweeps. grep over sidecar/services + sidecar/routers for data_cache.invalidate / .clear / .size returns ZERO non-test hits, while routers/earnings.py, routers/disclosures.py and routers/fundamentals.py each write one row per symbol per endpoint (earnings:<sym>:history, disclosures:<sym>:announcements, ratings:<sym>:*, ...). Every symbol a user ever looks at leaves permanent rows in data_cache.db.",
+    "evidence": "sidecar/services/data_cache.py:107, sidecar/services/data_cache.py:152, sidecar/services/data_cache.py:168, sidecar/services/data_cache.py:174, sidecar/routers/earnings.py:80, sidecar/routers/fundamentals.py:221",
+    "notes": "A cache with no bound on a local-first desktop app whose stated ambition is screener.in-scale coverage (thousands of scrips): the file grows monotonically for the life of the install, and the only eviction API shipped is dead code. The module's own 'Design choices' section argues for SQLite because 'the cache must survive sidecar restarts' without ever addressing size. Smallest fix: a `DELETE FROM cache WHERE updated_at < ?` sweep on the stale-read path in get() (the row is already identified as expired there), or a row-count cap with oldest-first eviction in set()."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-15",
+    "title": "News fabricates a publication timestamp (now()) for undated items, then sorts newest-first -- so an undated item is presented as the freshest headline",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. _parse_struct_time returns _utcnow() when the feed entry has no published_parsed/updated_parsed or the value is malformed; _parse_iso does the same for NewsAPI's publishedAt. fetch_news then does `unique.sort(key=lambda item: item.published_at, reverse=True)`. An RSS item with no date therefore sorts to position 0 and renders with the current timestamp, above genuinely recent stories.",
+    "evidence": "sidecar/services/news_provider.py:151, sidecar/services/news_provider.py:161, sidecar/services/news_provider.py:395, sidecar/services/news_provider.py:204",
+    "notes": "The 'missing data is honest, invented data is not' stance the gate and bse_provider apply to numbers is not applied to timestamps. Indian feeds (Zerodha Pulse, ET) are exactly the ones most likely to omit or malform a date, so the defect concentrates on the region the product is positioned for, and the failure is invisible -- the item looks like breaking news. Smallest fix: leave published_at None when the feed did not supply a parseable date and sort nulls last; the panel can then label it 'date unknown'."
+  },
+  {
+    "raw_id": "COD-market-data-providers-1-16",
+    "title": "A cold-cache BSE range request silently downgrades to <=8 bars, and the series carries no partial-coverage signal",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-1",
+    "repro": "design. _assemble_history walks trading days newest-first with `downloads_left = _MAX_COLD_DOWNLOADS` (8); once spent, every further missing day is skipped. On a cold cache a range='1y' request therefore returns at most 8 daily bars, wrapped in an ordinary OHLCVSeries(symbol, timeframe='1d', bars, provider='bse') -- no coverage field, no partial marker, no warning. The chart renders 8 points as if that were the year.",
+    "evidence": "sidecar/services/bse_provider.py:87, sidecar/services/bse_provider.py:437, sidecar/services/bse_provider.py:402, sidecar/services/bse_provider.py:406",
+    "notes": "The bounding decision itself is right (never backfill years in one blocking burst); what is missing is honesty about the result. Because the series is internally consistent the correctness gate passes it, and because bars are non-empty the registry accepts it and never tries yfinance -- so the user gets 8 bars when a full year was available from another lane. Smallest fix: add a coverage/partial field to OHLCVSeries (it would also solve the bar_loader reduced-basket problem), or raise when the assembled span covers materially less than the requested range so the registry falls through."
+  }
+]

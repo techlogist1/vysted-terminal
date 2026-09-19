@@ -1,0 +1,611 @@
+{
+  "collected_at": "2026-09-19",
+  "status": "complete",
+  "symbol": "SUMAX",
+  "collector_notes": "Outside-truth pack for P15. WebSearch budget for this session was exhausted before this task started, so every value below was reached by direct WebFetch against known source URL patterns. nseindia.com, nsearchives.nseindia.com, moneycontrol.com, bseindia.com, angelone.in, ipowatch.in and duckduckgo.com were all unreachable from this environment (socket hang up or domain-verification block), so NO primary exchange filing could be opened directly. Reachable: screener.in, groww.in, indmoney.com. Every filing PDF cited below is cited at the URL screener.in printed for it, NOT as a document this collector opened - flagged per-field.",
+
+  "identity": {
+    "legal_name": {
+      "value": "Sumax Engineering Limited",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "note": "Screener renders it 'Sumax Engineering Ltd'. Groww/INDmoney render 'Sumax Engineering Ltd'. Full statutory form not read off a filing (filings unreachable)."
+    },
+    "former_names": {
+      "value": "no rename found; entity converted from private limited to public limited on 2026-09-18 per INDmoney's IPO note (a status conversion, not a rename)",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+      "rename_date": null,
+      "confidence": "low - the conversion date INDmoney prints (2026-09-18) is suspicious: it equals the page's own as-of date and post-dates the 2026-09-02 listing, which is impossible for a pre-IPO conversion. Treat as an aggregator artifact, not truth."
+    },
+    "isin": {
+      "value": null,
+      "gap": "world_gaps.isin_unreached"
+    },
+    "bse_code": {
+      "value": null,
+      "gap": "world_gaps.bse_code_does_not_exist"
+    },
+    "nse_symbol": {
+      "value": "SUMAX",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    },
+    "nse_series": {
+      "value": "SME (NSE Emerge). Series letter (SM / ST) not read off a source; do NOT assume EQ.",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "note": "Screener labels the scrip 'NSE - SME: SUMAX'. The exact NSE series code is in world_gaps.nse_series_letter_unreached."
+    },
+    "board": {
+      "value": "SME",
+      "exchange": "NSE Emerge",
+      "as_of": "2026-09-02",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo"
+    },
+    "sector": {
+      "value": "Consumer Discretionary",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "note": "Screener prints the full NSE/AMFI-style chain: 'Consumer Discretionary > Automobile and Auto Components > Auto Components > Auto Components & Equipments'."
+    },
+    "industry": {
+      "value": "Auto Components & Equipments",
+      "hierarchy": "Consumer Discretionary > Automobile and Auto Components > Auto Components > Auto Components & Equipments",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "disagreement": "INDmoney buckets it loosely as 'Engineering (automotive components manufacturing and trading)' (https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price, as_of 2026-09-18). The real business - adhesive tapes, masking films, polishing compounds, buffing pads, abrasives, body-shop consumables for the auto-REFINISH aftermarket - is a consumables business, not an auto-component-to-OEM business; see traps.sector_taxonomy_mismatch."
+    },
+    "business_description": {
+      "value": "Incorporated in 1994. Manufacturing and trading of products for the Automotive OEM and Auto Refinish markets: adhesive tapes, die-cuts, pre-taped masking films, polishing compounds, buffing pads, reflective tapes and car-care products; plus trading in electrical/pneumatic tools, abrasive sheets, body-shop consumables and retail products under the SUMAX brand.",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    },
+    "incorporated": {
+      "value": "1994",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    },
+    "managing_director": {
+      "value": "Sudeep Mehta",
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "confidence": "low - single aggregator source, not a filing"
+    },
+    "listing_date": {
+      "value": "2026-09-02",
+      "as_of": "2026-09-02",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "corroboration": "Screener's 2026-09-08 press-release summary also states 'NSE Emerge debut on September 2, 2026' (https://www.screener.in/company/SUMAX/)."
+    }
+  },
+
+  "ipo": {
+    "note": "Included because P15's whole hostility is that this name is 17 days old at curation; the IPO record IS the identity record here.",
+    "open_date": { "value": "2026-08-25", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "close_date": { "value": "2026-08-28", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "allotment_date": { "value": "2026-08-31", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "listing_date": { "value": "2026-09-02", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "price_band": { "value": "INR 95 - INR 101 per share", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "issue_price": { "value": 101.0, "unit": "INR per share", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "listing_price": { "value": 111.0, "unit": "INR per share", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-02" },
+    "listing_gain": { "value": "INR 10.00 (+9.90%)", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-02" },
+    "issue_size": { "value": 53.40, "unit": "INR crore", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "fresh_issue_vs_ofs": {
+      "value": "Groww labels the full INR 53.40 crore as fresh issue and lists no offer-for-sale component; the objects of the issue consume the bulk of it, which is consistent with an all-fresh issue. Not confirmed against the RHP (unreachable).",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "as_of": "2026-09-19",
+      "confidence": "medium"
+    },
+    "lot_size": { "value": 1200, "unit": "shares", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "minimum_investment": {
+      "value": 228000,
+      "unit": "INR",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "as_of": "2026-09-19",
+      "note": "228000 = 2 lots x 1200 shares x INR 95 (LOWER band), not 1 lot at the cut-off price (1200 x 101 = 121200). See traps.lot_size_vs_min_investment."
+    },
+    "subscription": {
+      "value": { "qib": "121.28x", "nii": "198.32x", "retail": "157.98x", "total": "151.28x" },
+      "as_of": "2026-08-28",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo"
+    },
+    "registrar": { "value": "KFin Technologies Limited", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "lead_manager": { "value": "GYR Capital Advisors Private Limited", "source_url": "https://groww.in/ipo/sumax-engineering-ipo", "as_of": "2026-09-19" },
+    "objects_of_issue": {
+      "value": [
+        { "item": "Manufacturing Unit I (Rajasthan)", "amount": 4.89, "unit": "INR crore" },
+        { "item": "Manufacturing Unit II (Haryana)", "amount": 16.62, "unit": "INR crore" },
+        { "item": "Working capital", "amount": 12.00, "unit": "INR crore" },
+        { "item": "General corporate purposes", "amount": null, "unit": "INR crore", "note": "balance; amount not printed on the source page" }
+      ],
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "as_of": "2026-09-19"
+    }
+  },
+
+  "price": {
+    "last_close": {
+      "value": 114.50,
+      "unit": "INR per share",
+      "date": "2026-09-18",
+      "as_of": "2026-09-18T16:01:00+05:30",
+      "source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+      "corroboration": "Groww shows the same LTP 114.50, down INR 5.00 (-4.18%), prev close 119.50, open 120.00, day high 122.75, day low 114.00, volume 79,200 (https://groww.in/stocks/sumax-engineering-ltd, as_of 2026-09-18).",
+      "disagreement": "Screener prints the same close ROUNDED to INR 114 with the same -4.18% change (https://www.screener.in/company/SUMAX/, as_of 2026-09-18). 114 vs 114.50 is a rounding artifact, not a data conflict - but a field-by-field differ will flag it."
+    },
+    "previous_close": { "value": 119.50, "unit": "INR per share", "date": "2026-09-17", "source_url": "https://groww.in/stocks/sumax-engineering-ltd", "as_of": "2026-09-18" },
+    "day_range": { "high": 122.75, "low": 114.00, "open": 120.00, "unit": "INR per share", "date": "2026-09-18", "source_url": "https://groww.in/stocks/sumax-engineering-ltd" },
+    "volume": { "value": 79200, "unit": "shares", "date": "2026-09-18", "source_url": "https://groww.in/stocks/sumax-engineering-ltd" },
+    "circuit_limits": { "upper": 137.40, "lower": 91.60, "unit": "INR per share", "date": "2026-09-18", "source_url": "https://groww.in/stocks/sumax-engineering-ltd", "note": "+/-20% band on the 119.50 previous close - an SME price band, not a mainboard one." }
+  },
+
+  "market_cap": {
+    "value": 217.81,
+    "unit": "INR crore",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price",
+    "disagreements": [
+      { "value": 218, "unit": "INR crore", "as_of": "2026-09-18", "source_url": "https://www.screener.in/company/SUMAX/", "note": "same figure, rounded" },
+      { "value": 227, "unit": "INR crore", "as_of": "2026-09-18", "source_url": "https://groww.in/stocks/sumax-engineering-ltd", "note": "OUTLIER, +4.2%. 227 / 119.50 (previous close) = 1.90 crore shares, while 217.81 / 114.50 (last close) = 1.9023 crore shares. Groww is computing market cap on the PREVIOUS close while displaying the current LTP. Same share count, different price - not a share-count disagreement." }
+    ],
+    "derived_shares_outstanding": {
+      "value": 1.9023,
+      "unit": "crore shares",
+      "basis": "derived = 217.81 INR crore / 114.50 INR per share; NOT sourced. Implies post-issue equity capital of ~INR 19.02 crore at INR 10 face value."
+    }
+  },
+
+  "pe_ttm": {
+    "value": 19.6,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "disagreement": "Groww prints 'P/E Ratio (TTM): 0.00' and 'EPS (TTM): 0.00' (https://groww.in/stocks/sumax-engineering-ltd, as_of 2026-09-18) - i.e. Groww has NO TTM earnings series for a 17-day-old scrip and renders the null as a literal zero. INDmoney prints 'PE Ratio: Not available' (https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price). Three reachable sources, three different answers: 19.6 / 0.00 / absent. Groww's industry P/E for the bucket is 50.90.",
+    "note": "The company is PROFITABLE (FY26 PAT INR 12.76 crore), so 0.00 is a missing-data artifact, not 'loss-making'. Screener's 19.6 at INR 114 implies EPS ~INR 5.82, which does not reconcile with either the FY26 reported EPS of INR 8.66 or the post-issue FY26 PAT/shares of 12.76/1.9023 = INR 6.71. Screener's denominator is unexplained by anything on the reachable pages - do not treat 19.6 as verified."
+  },
+
+  "pb": {
+    "value": 2.17,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+    "note": "Screener does not display a P/B tile for this scrip; INDmoney prints 'PB Ratio: Not available'. Single-source."
+  },
+
+  "roe": {
+    "value": 20.2,
+    "unit": "percent",
+    "as_of": "FY2026 (year ended 2026-03-31)",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "disagreement": "Groww prints ROE 20.71% (https://groww.in/stocks/sumax-engineering-ltd, as_of 2026-09-18). ~50bps apart - different net-worth averaging conventions. INDmoney: 'ROE: Not available'."
+  },
+
+  "roce": {
+    "value": 25.2,
+    "unit": "percent",
+    "as_of": "FY2026 (year ended 2026-03-31)",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "note": "Single reachable source. Both ROE and ROCE are PRE-IPO returns - the INR 53.40 crore of fresh equity landed in September 2026 and is not in the FY26 denominator. Post-money returns will be structurally lower; see traps.pre_money_return_ratios."
+  },
+
+  "debt_to_equity": {
+    "value": 0.21,
+    "unit": "x",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+    "cross_check": "Screener's Mar-2026 balance sheet gives Borrowings 13 INR crore against Equity Capital 15 + Reserves 47 = 62 INR crore net worth, i.e. 13/62 = 0.21x. Consistent. Note this is the PRE-IPO balance sheet; post-issue D/E will be materially lower."
+  },
+
+  "revenue_ttm": {
+    "value": 147.69,
+    "unit": "INR crore",
+    "basis": "FY2026 full year (year ended 2026-03-31), NOT a rolling four-quarter TTM - only one post-listing quarter (Q1 FY27) has been reported, so no true TTM exists yet",
+    "as_of": "2026-03-31",
+    "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+    "disagreement": "Screener rounds FY26 Sales to INR 147 crore (https://www.screener.in/company/SUMAX/). Consistent."
+  },
+
+  "net_profit_ttm": {
+    "value": 12.76,
+    "unit": "INR crore",
+    "basis": "FY2026 full year (year ended 2026-03-31); same no-true-TTM caveat as revenue_ttm",
+    "as_of": "2026-03-31",
+    "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+    "disagreement": "Screener rounds FY26 Net Profit to INR 13 crore (https://www.screener.in/company/SUMAX/). Consistent."
+  },
+
+  "revenue_growth_yoy": {
+    "value": 1.07,
+    "unit": "percent",
+    "basis": "ANNUAL: FY2026 147.69 vs FY2025 146.13 INR crore",
+    "as_of": "2026-03-31",
+    "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+    "disagreement": "On Screener's rounded annual series (147 vs 145) the same growth computes to +1.4% (https://www.screener.in/company/SUMAX/) - a rounding artifact that nearly doubles the growth rate, because the true growth is ~1%. See traps.rounding_amplifies_low_growth.",
+    "quarterly_yoy": {
+      "value": null,
+      "gap": "world_gaps.q1_fy27_yoy_comparative_unreached"
+    },
+    "longer_series": "FY24 130.79 -> FY25 146.13 (+11.7%) -> FY26 147.69 (+1.1%). Growth collapsed in the IPO year. Source: https://groww.in/ipo/sumax-engineering-ipo"
+  },
+
+  "eps_ttm": {
+    "value": 8.66,
+    "unit": "INR per share",
+    "basis": "FY2026 as reported by Screener",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "disagreement": "Groww prints EPS (TTM) 0.00 (https://groww.in/stocks/sumax-engineering-ltd) - missing series rendered as zero, not a real value.",
+    "warning": "Screener's own annual EPS series is internally incoherent and MUST NOT be used as a time series: Mar23 INR 220.43, Mar24 INR 35.35, Mar25 INR 47.42, Mar26 INR 8.66, against Net Profit of 5 / 7 / 10 / 13 INR crore that is monotonically RISING. The share count changed massively across those years (Equity Capital 2 / 2 / 2 / 15 INR crore). See traps.eps_series_is_not_restated.",
+    "derived_post_issue_eps": {
+      "value": 6.71,
+      "unit": "INR per share",
+      "basis": "derived = FY26 PAT 12.76 INR crore / 1.9023 crore post-issue shares; NOT sourced"
+    }
+  },
+
+  "book_value_per_share": {
+    "value": 55.17,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+    "disagreements": [
+      { "value": 0, "as_of": "2026-09-18", "source_url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price", "note": "INDmoney literally prints 'Book Value: 0' - a missing value rendered as zero, the same failure mode as Groww's PE 0.00. A pipeline that trusts a zero here will report a company with no net worth." },
+      { "value": null, "source_url": "https://www.screener.in/company/SUMAX/", "note": "Screener displays no Book Value tile for this scrip." }
+    ],
+    "cross_check": "Pre-IPO Mar-2026 net worth = Equity Capital 15 + Reserves 47 = 62 INR crore over ~1.5 crore shares = ~INR 41.3/share. Adding INR 53.40 crore of fresh issue over 1.9023 crore shares gives ~INR 60.7/share gross of issue expenses. Groww's 55.17 sits between the two and is plausible net of expenses, but is single-sourced.",
+    "consistency": "55.17 x 2.17 (Groww P/B) = INR 119.7, which is the PREVIOUS close (119.50), not the last close (114.50) - Groww's whole ratio block is one session stale. Same defect as its market cap."
+  },
+
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR per share",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "corroboration": "Groww stock page and Groww IPO page both state INR 10."
+  },
+
+  "dividend": {
+    "last_declared_per_share": {
+      "value": null,
+      "gap": "world_gaps.no_dividend_declared"
+    },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR per share",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "basis": "implied by a 0.00% dividend yield on a positive-earnings company"
+    },
+    "yield": {
+      "value": 0.00,
+      "unit": "percent",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "corroboration": "Groww also prints 'Dividend Yield: 0.00%' (https://groww.in/stocks/sumax-engineering-ltd)."
+    }
+  },
+
+  "week52": {
+    "high": {
+      "value": 132.75,
+      "unit": "INR per share",
+      "date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "corroboration": "INDmoney prints the same 132.75 (https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price).",
+      "disagreement": "Screener rounds to INR 133 (https://www.screener.in/company/SUMAX/)."
+    },
+    "low": {
+      "value": 101.20,
+      "unit": "INR per share",
+      "date": null,
+      "as_of": "2026-09-18",
+      "source_url": "https://groww.in/stocks/sumax-engineering-ltd",
+      "corroboration": "INDmoney prints the same 101.20.",
+      "disagreement": "Screener rounds to INR 101 (https://www.screener.in/company/SUMAX/), which collides visually with the INR 101 ISSUE PRICE - a coincidence, not a relationship. See traps.week52_low_equals_issue_price_visually."
+    },
+    "dates": {
+      "value": null,
+      "gap": "world_gaps.week52_extreme_dates_unreached"
+    },
+    "critical_caveat": "This '52-week' range covers only 12 TRADING SESSIONS (2026-09-02 listing to 2026-09-18). It is a since-listing range mislabelled as 52-week by every aggregator. Any screen, percentile or 'distance from 52w high' computed on it is meaningless. See traps.fake_52_week_window."
+  },
+
+  "shareholding": {
+    "quarter": {
+      "value": "Sep 2026",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "disagreement": "Groww and INDmoney both label the IDENTICAL percentages 'Aug 26' (https://groww.in/stocks/sumax-engineering-ltd, https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price) while Screener labels them 'Sep 2026'. Same numbers, different period label. See traps.shareholding_period_label_conflict."
+    },
+    "promoter_pct": { "value": 69.67, "unit": "percent", "as_of": "2026-09 (label disputed, see quarter)", "source_url": "https://www.screener.in/company/SUMAX/" },
+    "fii_pct": { "value": 2.10, "unit": "percent", "as_of": "2026-09 (label disputed)", "source_url": "https://www.screener.in/company/SUMAX/" },
+    "dii_pct": { "value": 9.59, "unit": "percent", "as_of": "2026-09 (label disputed)", "source_url": "https://www.screener.in/company/SUMAX/" },
+    "public_pct": { "value": 18.63, "unit": "percent", "as_of": "2026-09 (label disputed)", "source_url": "https://www.screener.in/company/SUMAX/" },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "world_gaps.pledge_not_disclosed"
+    },
+    "no_of_shareholders": { "value": 1074, "unit": "count", "as_of": "2026-09", "source_url": "https://www.screener.in/company/SUMAX/" },
+    "sums_to": "69.67 + 2.10 + 9.59 + 18.63 = 99.99 (rounding).",
+    "note": "Only ONE period exists - there is no prior-quarter column anywhere, because the company has been listed for one filing cycle. Any QoQ promoter-stake-change calculation is impossible, not zero. The 9.59% DII and 2.10% FII in the very first post-listing disclosure are anchor-investor allotments from the IPO, not secondary-market accumulation."
+  },
+
+  "corporate_actions_2026": {
+    "value": null,
+    "declared_actions_found": "none - no split, bonus, rights, dividend or buyback was printed on any reachable source for calendar 2026",
+    "as_of": "2026-09-19",
+    "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+    "unexplained_capital_change": {
+      "observation": "Screener's balance sheet shows Equity Capital jumping from INR 2 crore (Mar 2023, Mar 2024, Mar 2025) to INR 15 crore (Mar 2026) while Reserves stayed flat at 47 INR crore between Mar 2025 and Mar 2026 - the classic signature of a ~INR 13 crore BONUS ISSUE capitalised out of reserves during FY2026, ahead of the IPO.",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "status": "INFERRED, NOT SOURCED. No reachable page names a bonus issue; Groww's IPO page explicitly shows no bonus/split entry. Recorded as an observation for the differ, NOT as a corporate action. Confirming it needs the RHP or the NSE corporate-actions feed, both unreachable from here.",
+      "corroborating_arithmetic": "Reserves 47 -> 47 with Net Profit 13 added implies ~13 was removed from reserves in the same year, matching the 2 -> 15 equity-capital rise almost exactly."
+    },
+    "book_closure": {
+      "value": "Book closure 2026-09-24 to 2026-09-30; e-voting cut-off date 2026-09-23, for the 32nd AGM",
+      "as_of": "2026-09-10",
+      "source_url": "https://nsearchives.nseindia.com/corporate/SUMAX_10092026171846_bookclosure.pdf",
+      "source_caveat": "URL as printed by https://www.screener.in/company/SUMAX/ ; the PDF itself was NOT opened (nsearchives.nseindia.com unreachable from this environment).",
+      "note": "This is an AGM book closure, NOT a dividend record date. No dividend has been declared. A pipeline that treats any book closure as a dividend event will fabricate one here."
+    }
+  },
+
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2027 (quarter ended 2026-06-30)",
+      "revenue": { "value": 35.68, "unit": "INR crore" },
+      "pat": { "value": 3.50, "unit": "INR crore" },
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "source_caveat": "Screener surfaces these numbers via its summary of the company's 2026-09-08 press release (https://nsearchives.nseindia.com/corporate/SUMAX_08092026130158_pressrelease.pdf); the PDF itself was NOT opened."
+    },
+    "filing_date": {
+      "value": "2026-09-08",
+      "basis": "date of the press release carrying the Q1 FY27 numbers; the formal Reg-33 results filing date was not separately reachable",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    },
+    "quarterly_table_state": {
+      "value": "Screener's quarterly-results TABLE is EMPTY for this scrip - headers render, rows do not populate. The only quarterly figures that exist anywhere reachable are the two headline numbers in the press-release summary.",
+      "as_of": "2026-09-18",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "note": "This is the single most important fact for the differ: a screener.in-benchmark comparison on quarterly data has NO reference series to compare against for P15."
+    },
+    "annual_series": {
+      "unit": "INR crore",
+      "source_url": "https://groww.in/ipo/sumax-engineering-ipo",
+      "rows": [
+        { "period": "FY2024 (ended 2024-03-31)", "revenue": 130.79, "pat": 7.43, "total_assets": 148 },
+        { "period": "FY2025 (ended 2025-03-31)", "revenue": 146.13, "pat": 9.98, "total_assets": 202 },
+        { "period": "FY2026 (ended 2026-03-31)", "revenue": 147.69, "pat": 12.76, "total_assets": 242, "borrowings": 10.36 }
+      ],
+      "screener_rounded_equivalent": {
+        "source_url": "https://www.screener.in/company/SUMAX/",
+        "unit": "INR crore",
+        "sales": { "Mar2023": 126, "Mar2024": 130, "Mar2025": 145, "Mar2026": 147 },
+        "net_profit": { "Mar2023": 5, "Mar2024": 7, "Mar2025": 10, "Mar2026": 13 },
+        "eps_in_rs": { "Mar2023": 220.43, "Mar2024": 35.35, "Mar2025": 47.42, "Mar2026": 8.66 },
+        "operating_profit_fy26": 18,
+        "opm_fy26_pct": 12
+      },
+      "balance_sheet_screener_mar2026": {
+        "unit": "INR crore",
+        "source_url": "https://www.screener.in/company/SUMAX/",
+        "equity_capital": 15,
+        "reserves": 47,
+        "borrowings": 13,
+        "total_liabilities": 85,
+        "fixed_assets": 32,
+        "other_liabilities": 10,
+        "series_equity_capital": { "Mar2023": 2, "Mar2024": 2, "Mar2025": 2, "Mar2026": 15 },
+        "series_reserves": { "Mar2023": 29, "Mar2024": 37, "Mar2025": 47, "Mar2026": 47 },
+        "series_borrowings": { "Mar2023": 5, "Mar2024": 6, "Mar2025": 8, "Mar2026": 13 }
+      },
+      "HARD_DISAGREEMENT": "Balance-sheet SIZE conflicts by ~2.8x. Screener's Mar-2026 Total Liabilities (= total assets) is INR 85 crore (https://www.screener.in/company/SUMAX/). Groww's IPO financials table gives FY26 Total Assets INR 242 crore (https://groww.in/ipo/sumax-engineering-ipo). Both are labelled INR crore, both for the year ended 2026-03-31. A company with INR 147.69 crore of revenue and INR 62 crore of net worth is far more consistent with an INR 85 crore balance sheet than an INR 242 crore one, so Groww's 242 is the likely defect (plausibly a lakhs/crore scale error or a gross-vs-net asset mix-up in its RHP transcription) - but this collector could not reach the RHP to adjudicate, so BOTH are recorded. Borrowings disagree the same way: Screener 13 vs Groww 10.36 INR crore. See traps.balance_sheet_scale_conflict."
+    }
+  },
+
+  "last_3_announcements": [
+    {
+      "date": "2026-09-11",
+      "type": "Press Release",
+      "headline": "Sumax showcased at Automechanika Frankfurt 2026 as INDASA's exclusive India distributor",
+      "url": "https://nsearchives.nseindia.com/corporate/SUMAX_11092026155356_pressrelease.pdf",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "source_caveat": "URL as printed by Screener; PDF not opened (host unreachable)."
+    },
+    {
+      "date": "2026-09-10",
+      "type": "Updates / Book closure",
+      "headline": "Book closure from 24-30 September 2026; cut-off date 23 September 2026 for 32nd AGM e-voting",
+      "url": "https://nsearchives.nseindia.com/corporate/SUMAX_10092026171846_bookclosure.pdf",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "source_caveat": "URL as printed by Screener; PDF not opened."
+    },
+    {
+      "date": "2026-09-09",
+      "type": "Newspaper Publication",
+      "headline": "Newspaper publication of Sumax Engineering's 32nd AGM notice for 30 September 2026 via VC/OAVM",
+      "url": "https://nsearchives.nseindia.com/corporate/SUMAX_09092026131110_paperad.pdf",
+      "source_url": "https://www.screener.in/company/SUMAX/",
+      "source_caveat": "URL as printed by Screener; PDF not opened."
+    }
+  ],
+  "earlier_announcements_for_context": [
+    {
+      "date": "2026-09-08",
+      "type": "Press Release",
+      "headline": "Q1 FY27 revenue rose to INR 35.68 crore, PAT INR 3.50 crore; NSE Emerge debut on September 2, 2026",
+      "url": "https://nsearchives.nseindia.com/corporate/SUMAX_08092026130158_pressrelease.pdf",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    },
+    {
+      "date": "2026-09-08",
+      "type": "Shareholders meeting",
+      "headline": "32nd AGM on 30 September 2026 via VC/OAVM",
+      "url": "https://nsearchives.nseindia.com/corporate/SUMAX_08092026125502_agmnotice.pdf",
+      "source_url": "https://www.screener.in/company/SUMAX/"
+    }
+  ],
+
+  "consolidated_vs_standalone": {
+    "value": "UNSTATED by every reachable source.",
+    "as_of": "2026-09-18",
+    "source_url": "https://www.screener.in/company/SUMAX/",
+    "detail": "Screener's company page carries no consolidated/standalone toggle state for this scrip and its /consolidated/ path could not be reached from this environment. Groww's IPO financials table is unlabelled. Since no subsidiary is mentioned anywhere in the business description or the objects of the issue, the headline numbers are most likely STANDALONE - but that is an inference, not a sourced fact. A differ MUST NOT assert a basis for P15.",
+    "basis_asserted": null
+  },
+
+  "traps": [
+    {
+      "id": "double_blind_to_resolver",
+      "detail": "SUMAX listed 2026-09-02. Any resolver keyed on the 2026-06-05 NSE equity master cannot see it on two independent axes: (a) the master predates the listing by 89 days, and (b) even a current master of that shape could not carry it, because that file holds only EQ and ETF series while SUMAX trades on an NSE Emerge SME series. Refreshing the master does NOT fix this name - the series filter does. A resolver that reports 'not found, master is stale' has diagnosed only half the failure."
+    },
+    {
+      "id": "eps_series_is_not_restated",
+      "detail": "Screener's annual EPS reads 220.43 / 35.35 / 47.42 / 8.66 INR for FY23-FY26 while net profit rises monotonically 5 / 7 / 10 / 13 INR crore. The EPS is computed against each year's own year-end share count, not a restated one, and equity capital went 2 / 2 / 2 / 15 INR crore. Any YoY EPS growth, EPS CAGR, PEG or 'earnings collapse' signal built on this series is pure noise - FY26 EPS is down 82% against FY25 on a year profit rose 28%."
+    },
+    {
+      "id": "fake_52_week_window",
+      "detail": "The '52-week high/low' of 132.75 / 101.20 spans 12 trading sessions (2026-09-02 to 2026-09-18). Every aggregator labels a since-listing range as 52-week without qualification. Percentile rank, distance-from-high, and any volatility or range-based screen computed on it are meaningless for P15."
+    },
+    {
+      "id": "missing_value_rendered_as_zero",
+      "detail": "Two independent sources render nulls as literal zeros for this scrip: Groww prints 'P/E (TTM) 0.00' and 'EPS (TTM) 0.00' for a company earning INR 12.76 crore, and INDmoney prints 'Book Value: 0'. A pipeline that ingests numerically rather than checking for the null will report SUMAX as a zero-earnings, zero-book-value company - and a PE of 0.00 will sort it to the top of any 'cheapest stocks' screen."
+    },
+    {
+      "id": "balance_sheet_scale_conflict",
+      "detail": "FY26 total assets: Screener 85 INR crore vs Groww 242 INR crore - a 2.8x conflict between two sources both labelled INR crore. Borrowings likewise 13 vs 10.36. Screener's figure reconciles with revenue and net worth; Groww's does not. Any ratio with an asset denominator (asset turnover, ROA, debt/assets) flips character depending on which source fed it."
+    },
+    {
+      "id": "stale_ratio_block",
+      "detail": "Groww's entire valuation block is one session behind its own displayed price: market cap 227 INR crore and book value 55.17 with P/B 2.17 both reconcile to the PREVIOUS close of 119.50, not the displayed LTP of 114.50. Cross-source market-cap diffs against Groww will show a phantom 4.2% gap that is purely a timing artifact."
+    },
+    {
+      "id": "shareholding_period_label_conflict",
+      "detail": "Identical shareholding percentages (69.67 / 2.10 / 9.59 / 18.63) are labelled 'Sep 2026' by Screener and 'Aug 26' by both Groww and INDmoney. A differ keyed on the quarter label will report a period mismatch where the underlying data is identical; a differ keyed on the values will report agreement while silently picking a wrong as-of date."
+    },
+    {
+      "id": "sector_taxonomy_mismatch",
+      "detail": "NSE's chain buckets SUMAX as 'Auto Components & Equipments' under Automobile and Auto Components. The actual business is auto-REFINISH consumables - masking tapes, abrasives, polishing compounds, buffing pads, body-shop supplies - plus distribution of a Portuguese abrasives brand (INDASA). It is a consumables/distribution business wearing an auto-ancillary code. Peer sets, sector P/E comparisons (Groww shows an industry P/E of 50.90) and any sector-relative valuation are comparing it to component makers selling into OEM assembly lines. No standard taxonomy has a clean bucket for this."
+    },
+    {
+      "id": "lot_size_vs_min_investment",
+      "detail": "Lot size 1200 shares, cut-off price INR 101, but the quoted minimum investment is INR 2,28,000 = 2 lots x 1200 x INR 95 (LOWER band). Neither 1200 x 101 = 1,21,200 nor 2 x 1200 x 101 = 2,42,400 reproduces it. A pipeline deriving lot size from min-investment/price gets ~2257 or ~2400 shares, not 1200; one deriving issue price from min-investment/lot gets INR 190 or INR 95, not 101."
+    },
+    {
+      "id": "week52_low_equals_issue_price_visually",
+      "detail": "Screener rounds the 52-week low to INR 101, which is numerically identical to the IPO issue price of INR 101. The true low is 101.20. The collision is coincidence - a reconciler that 'confirms' the issue price against the 52w low will appear to validate and will be wrong by 0.20."
+    },
+    {
+      "id": "pre_money_return_ratios",
+      "detail": "ROE 20.2-20.71% and ROCE 25.2% are FY2026 figures - entirely pre-IPO. INR 53.40 crore of fresh equity landed in September 2026 against a June-2026 net worth near INR 62 crore, i.e. the capital base nearly doubled AFTER the ratio period. Displaying these next to a live post-money market cap implies a return profile the company no longer has."
+    },
+    {
+      "id": "no_quarterly_reference_series",
+      "detail": "Screener's quarterly-results table is empty for this scrip (headers render, rows do not). The benchmark this whole census diffs against has no quarterly data for P15. Absence of a diff here is not agreement."
+    },
+    {
+      "id": "same_name_entities",
+      "detail": "'Sumax' is a generic brand token. Do not fuzzy-match to Sumax-named entities in other jurisdictions or to unrelated engineering firms with similar names; the only safe keys are the NSE symbol SUMAX on the Emerge SME segment and (once obtained) the ISIN. There is no BSE twin to cross-check against, which removes the usual dual-listing sanity check."
+    },
+    {
+      "id": "pat_vs_net_profit_definition",
+      "detail": "Screener's FY26 'Net Profit' 13 INR crore and Groww's FY26 'PAT' 12.76 INR crore are the same number at different rounding, but Screener's FY23 Net Profit of 5 does not reconcile to any Groww figure (Groww's table starts at FY24). Cross-source annual series overlap on only three years."
+    }
+  ],
+
+  "world_gaps": [
+    {
+      "id": "isin_unreached",
+      "field": "identity.isin",
+      "kind": "could-not-reach (the ISIN certainly exists)",
+      "tried": "screener.in company page (no ISIN rendered), groww.in IPO page (no ISIN), groww.in stock page (no ISIN), indmoney.com stock page (no ISIN), 5paisa.com IPO page (404), chittorgarh.com IPO page (404), upstox.com IPO page (404), ipocentral.in (403), nseindia.com/api/quote-equity?symbol=SUMAX (socket hang up), nsearchives.nseindia.com filing PDFs (domain unverifiable), moneycontrol.com autosuggest API (domain unverifiable), angelone.in (domain unverifiable), ipowatch.in (domain unverifiable), trendlyne.com (404), tickertape.in (socket hang up), duckduckgo.com (domain unverifiable). WebSearch budget for the session was already exhausted at task start, so no query-based discovery of a working URL was possible.",
+      "not_guessed": true
+    },
+    {
+      "id": "bse_code_does_not_exist",
+      "field": "identity.bse_code",
+      "kind": "does-not-exist",
+      "detail": "SUMAX is an NSE Emerge SME listing only. No reachable source shows a BSE scrip code, and the IPO was an NSE-Emerge-exclusive offering. A BSE code should be reported as absent, not as missing data. Confidence high but not filing-confirmed (bseindia.com was unreachable)."
+    },
+    {
+      "id": "nse_series_letter_unreached",
+      "field": "identity.nse_series",
+      "kind": "could-not-reach",
+      "detail": "The scrip is on an NSE SME series (Emerge), but the exact series code (SM vs ST) is printed only on the NSE quote page / master file, both unreachable. Recorded as SME without a letter rather than guessed - and the letter is precisely what a resolver filtering on EQ/ETF would need."
+    },
+    {
+      "id": "pledge_not_disclosed",
+      "field": "shareholding.pledged_pct_of_promoter",
+      "kind": "does-not-exist-yet",
+      "detail": "No pledge figure appears on Screener, Groww or INDmoney. Screener displays no pledged row at all for this scrip. For a company whose first shareholding pattern was filed weeks after listing, a nil/absent pledge disclosure is the expected state. Do not substitute 0.00% - absent and zero are different claims."
+    },
+    {
+      "id": "no_dividend_declared",
+      "field": "dividend.last_declared_per_share",
+      "kind": "does-not-exist",
+      "detail": "Dividend yield is 0.00% on both Screener and Groww and no dividend announcement appears in the filing list. The company has never declared a dividend as a listed entity (it has been listed 12 trading sessions). The 2026-09-24 to 2026-09-30 book closure is for the 32nd AGM, NOT a dividend record date."
+    },
+    {
+      "id": "week52_extreme_dates_unreached",
+      "field": "week52.dates",
+      "kind": "could-not-reach",
+      "detail": "None of the three reachable sources prints the dates on which the 132.75 high or 101.20 low occurred. Within a 12-session window these are derivable only from a daily OHLC series, which requires the NSE historical endpoint (unreachable)."
+    },
+    {
+      "id": "q1_fy27_yoy_comparative_unreached",
+      "field": "revenue_growth_yoy.quarterly_yoy",
+      "kind": "could-not-reach",
+      "detail": "Q1 FY27 revenue INR 35.68 crore and PAT INR 3.50 crore are known, but no Q1 FY26 comparative is published on any reachable source (Screener's quarterly table is empty; the press release PDF could not be opened). As a first-post-listing quarter the prior-year comparative may not have been filed at all - a pre-IPO private company had no quarterly reporting obligation - so this may be does-not-exist rather than merely unreached. Not resolved either way."
+    },
+    {
+      "id": "promoter_pre_post_issue_holding_unreached",
+      "field": "ipo.promoter_holding",
+      "kind": "could-not-reach",
+      "detail": "Pre-issue promoter percentage is in the RHP only. Post-issue promoter holding is known at 69.67% from the shareholding pattern. Pre-issue not sourced, not derived."
+    },
+    {
+      "id": "bonus_issue_unconfirmed",
+      "field": "corporate_actions_2026",
+      "kind": "could-not-reach",
+      "detail": "The Mar-2023-to-Mar-2026 equity-capital jump from 2 to 15 INR crore against flat reserves strongly implies a pre-IPO bonus capitalisation during FY2026, but NO reachable source names one and Groww's IPO page shows no bonus/split entry. Recorded as an observation under corporate_actions_2026.unexplained_capital_change, NOT as a corporate action. Not guessed into the actions list."
+    },
+    {
+      "id": "consolidated_basis_unstated",
+      "field": "consolidated_vs_standalone",
+      "kind": "could-not-reach",
+      "detail": "No reachable source labels the headline figures consolidated or standalone. Inference points to standalone (no subsidiary mentioned anywhere) but the field is left null rather than asserted."
+    },
+    {
+      "id": "primary_filings_unreachable_environment",
+      "field": "ALL",
+      "kind": "environment-limitation",
+      "detail": "The authority order requested (exchange filings first) could not be honoured: nseindia.com, nsearchives.nseindia.com and bseindia.com are all unreachable from this environment. Every filing referenced in this pack is cited at the URL Screener printed for it and is explicitly flagged 'PDF not opened'. Treat this pack's top-of-authority tier as ABSENT: the highest source actually read is screener.in. A re-run from an environment with exchange access should re-derive identity.isin, nse_series, the bonus-issue question, the balance-sheet scale conflict, and the Q1 FY27 comparative - those five are the ones that cannot be settled from aggregators."
+    }
+  ],
+
+  "sources_actually_read": [
+    { "url": "https://www.screener.in/company/SUMAX/", "read_on": "2026-09-19", "tier": "screener-grade aggregator", "yield": "identity, sector chain, ratios, annual P&L, balance sheet, shareholding, filing list with URLs" },
+    { "url": "https://groww.in/ipo/sumax-engineering-ipo", "read_on": "2026-09-19", "tier": "broker aggregator", "yield": "full IPO record, FY24-FY26 financials, objects of issue, registrar, lead manager" },
+    { "url": "https://groww.in/stocks/sumax-engineering-ltd", "read_on": "2026-09-19", "tier": "broker aggregator", "yield": "live quote, book value, D/E, P/B, ROE, 52w range, circuit limits, shareholding" },
+    { "url": "https://www.indmoney.com/stocks/sumax-engineering-ltd-share-price", "read_on": "2026-09-19", "tier": "broker aggregator", "yield": "market cap to 2dp, timestamped last price, 52w range corroboration" }
+  ],
+  "sources_attempted_and_failed": [
+    { "url": "https://www.nseindia.com/api/quote-equity?symbol=SUMAX", "result": "socket hang up" },
+    { "url": "https://nsearchives.nseindia.com/corporate/SUMAX_08092026130158_pressrelease.pdf", "result": "socket hang up, then domain unverifiable" },
+    { "url": "https://www.moneycontrol.com/mccode/common/autosuggesion.php?q=sumax", "result": "domain unverifiable" },
+    { "url": "https://www.chittorgarh.com/ipo/sumax-engineering-ipo/", "result": "404" },
+    { "url": "https://www.5paisa.com/ipo/sumax-engineering-ipo", "result": "404" },
+    { "url": "https://upstox.com/ipo/sumax-engineering-ipo/", "result": "404" },
+    { "url": "https://trendlyne.com/equity/share-price/SUMAX/sumax-engineering/", "result": "404" },
+    { "url": "https://ipocentral.in/sumax-engineering-ipo/", "result": "403" },
+    { "url": "https://www.tickertape.in/stocks/sumax-engineering-SUMAX", "result": "socket hang up" },
+    { "url": "https://www.screener.in/company/SUMAX/consolidated/", "result": "domain unverifiable on second-host attempt" },
+    { "url": "https://www.angelone.in/ipo/sumax-engineering-ipo", "result": "domain unverifiable" },
+    { "url": "https://ipowatch.in/sumax-engineering-ipo/", "result": "domain unverifiable" },
+    { "url": "https://duckduckgo.com/html/?q=...", "result": "domain unverifiable (no search fallback available)" }
+  ]
+}

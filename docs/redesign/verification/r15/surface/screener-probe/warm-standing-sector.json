@@ -1,0 +1,1019 @@
+{
+ "label": "warm-standing-sector",
+ "path": "/screener/run/stream",
+ "request": {
+  "universe": "nse-all",
+  "criteria": [
+   {
+    "field": "sector",
+    "operator": "eq",
+    "value": "Technology"
+   },
+   {
+    "field": "market_cap",
+    "operator": "lt",
+    "value": 50000000000
+   },
+   {
+    "field": "pe_ratio",
+    "operator": "lt",
+    "value": 20
+   },
+   {
+    "field": "roe",
+    "operator": "gt",
+    "value": 0.15
+   }
+  ],
+  "limit": 200
+ },
+ "http": 200,
+ "wall_s": 2.36,
+ "progress_frames": [
+  {
+   "t": 1.02,
+   "event": "progress",
+   "phase": "universe",
+   "done": 1,
+   "total": 1,
+   "detail": "NSE (all listed): 2,675 symbols"
+  },
+  {
+   "t": 1.06,
+   "event": "progress",
+   "phase": "prefilter",
+   "done": 413,
+   "total": 2675,
+   "detail": "prefilter kept 413 of 2,675"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 50,
+   "total": 412,
+   "detail": "sweeping quotes 50/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 100,
+   "total": 412,
+   "detail": "sweeping quotes 100/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 150,
+   "total": 412,
+   "detail": "sweeping quotes 150/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 200,
+   "total": 412,
+   "detail": "sweeping quotes 200/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 250,
+   "total": 412,
+   "detail": "sweeping quotes 250/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 300,
+   "total": 412,
+   "detail": "sweeping quotes 300/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 350,
+   "total": 412,
+   "detail": "sweeping quotes 350/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 400,
+   "total": 412,
+   "detail": "sweeping quotes 400/412"
+  },
+  {
+   "t": 1.15,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 412,
+   "total": 412,
+   "detail": "sweeping quotes 412/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 25,
+   "total": 412,
+   "detail": "retrying misses 25/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 50,
+   "total": 412,
+   "detail": "retrying misses 50/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 75,
+   "total": 412,
+   "detail": "retrying misses 75/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 100,
+   "total": 412,
+   "detail": "retrying misses 100/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 125,
+   "total": 412,
+   "detail": "retrying misses 125/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 150,
+   "total": 412,
+   "detail": "retrying misses 150/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 175,
+   "total": 412,
+   "detail": "retrying misses 175/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 200,
+   "total": 412,
+   "detail": "retrying misses 200/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 225,
+   "total": 412,
+   "detail": "retrying misses 225/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 250,
+   "total": 412,
+   "detail": "retrying misses 250/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 275,
+   "total": 412,
+   "detail": "retrying misses 275/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 300,
+   "total": 412,
+   "detail": "retrying misses 300/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 325,
+   "total": 412,
+   "detail": "retrying misses 325/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 350,
+   "total": 412,
+   "detail": "retrying misses 350/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 375,
+   "total": 412,
+   "detail": "retrying misses 375/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 400,
+   "total": 412,
+   "detail": "retrying misses 400/412"
+  },
+  {
+   "t": 1.16,
+   "event": "progress",
+   "phase": "sweep",
+   "done": 412,
+   "total": 412,
+   "detail": "retrying misses 412/412"
+  },
+  {
+   "t": 1.18,
+   "event": "progress",
+   "phase": "evaluate",
+   "done": 1,
+   "total": 1,
+   "detail": "evaluating 413 candidates"
+  }
+ ],
+ "skip_reason_counts": [
+  [
+   "missing_field:roe",
+   248
+  ]
+ ],
+ "skip_sample": [
+  {
+   "symbol": "3PLAND.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "ACCELYA.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "AKSHOPTFBR.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "AVG-RE.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "ELPROINTL.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "ESSEN-RE3.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "GOLDTECH.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "GTLINFRA.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "HBESD.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "HCL-INSYS.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "NIMBSPROJ.NS",
+   "reason": "missing_field:roe"
+  },
+  {
+   "symbol": "PARACABLES.NS",
+   "reason": "missing_field:roe"
+  }
+ ],
+ "result": {
+  "event": "result",
+  "universe": "nse-all",
+  "evaluated_count": 2427,
+  "skipped_count": 248,
+  "result_count": 26,
+  "rows": [
+   {
+    "symbol": "PACEDIGITK.NS",
+    "name": "Pace Digitek Limited",
+    "sector": "Technology",
+    "industry": "Communication Equipment",
+    "market_cap": 33709501737.589996,
+    "pe_ratio": 11.361445,
+    "forward_pe": 7.3536696,
+    "peg_ratio": null,
+    "price_to_book": 1.4289407,
+    "dividend_yield": null,
+    "roe": 0.17754999,
+    "debt_to_equity": 0.43555999999999995,
+    "price": 156.17,
+    "change_percent_1d": 1.8655012719326756,
+    "volume": 521729.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788907494.315695
+   },
+   {
+    "symbol": "WEBELSOLAR.NS",
+    "name": "Websol Energy System Limited",
+    "sector": "Technology",
+    "industry": "Solar",
+    "market_cap": 31667883501.8,
+    "pe_ratio": 10.447076,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 5.3843946,
+    "dividend_yield": 0.0033,
+    "roe": 0.66685,
+    "debt_to_equity": 0.20729,
+    "price": 72.94,
+    "change_percent_1d": 1.6727069974909434,
+    "volume": 1657255.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788907788.848402
+   },
+   {
+    "symbol": "KERNEX.NS",
+    "name": "Kernex Microsystems (India) Limited",
+    "sector": "Technology",
+    "industry": "Software - Application",
+    "market_cap": 29112275115.0,
+    "pe_ratio": 15.247822,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 11.709744,
+    "dividend_yield": null,
+    "roe": 0.43605998,
+    "debt_to_equity": 0.6552,
+    "price": 1732.5,
+    "change_percent_1d": 0.5747126436781662,
+    "volume": 104121.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788908346.895457
+   },
+   {
+    "symbol": "RSYSTEMS.NS",
+    "name": "R Systems International Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 28693796229.7,
+    "pe_ratio": 15.79255,
+    "forward_pe": 11.557697,
+    "peg_ratio": null,
+    "price_to_book": 2.6527638,
+    "dividend_yield": 0.0479,
+    "roe": 0.17333001,
+    "debt_to_equity": 0.28615999999999997,
+    "price": 242.15,
+    "change_percent_1d": -1.4769305883310258,
+    "volume": 107484.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788908345.921542
+   },
+   {
+    "symbol": "INA.NS",
+    "name": "Insolation Energy Limited",
+    "sector": "Technology",
+    "industry": "Solar",
+    "market_cap": 20215436937.5,
+    "pe_ratio": 10.232967,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.5503247,
+    "dividend_yield": null,
+    "roe": 0.28151,
+    "debt_to_equity": 1.09826,
+    "price": 91.7,
+    "change_percent_1d": 4.94392309452965,
+    "volume": 561788.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788909756.16291
+   },
+   {
+    "symbol": "SILVERTUC.NS",
+    "name": "Silver Touch Technologies Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 18549766800.0,
+    "pe_ratio": 5.5937505,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 12.069224,
+    "dividend_yield": 0.0006,
+    "roe": 0.23551,
+    "debt_to_equity": 0.19451000000000002,
+    "price": 146.28,
+    "change_percent_1d": -1.878186208746989,
+    "volume": 310512.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788909760.252908
+   },
+   {
+    "symbol": "SAKSOFT.NS",
+    "name": "Saksoft Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 18043223700.019997,
+    "pe_ratio": 16.587831,
+    "forward_pe": 4.9510837,
+    "peg_ratio": null,
+    "price_to_book": 2.774668,
+    "dividend_yield": 0.006,
+    "roe": 0.19065,
+    "debt_to_equity": 0.05607,
+    "price": 141.14,
+    "change_percent_1d": -1.2454520011195083,
+    "volume": 197325.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624867.6168199
+   },
+   {
+    "symbol": "DLINKINDIA.NS",
+    "name": "D-Link (India) Limited",
+    "sector": "Technology",
+    "industry": "Communication Equipment",
+    "market_cap": 15268860742.5,
+    "pe_ratio": 18.617456,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 3.8372886,
+    "dividend_yield": 0.0817,
+    "roe": 0.21211,
+    "debt_to_equity": 0.02928,
+    "price": 430.05,
+    "change_percent_1d": 1.2835609985869028,
+    "volume": 46171.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624895.386928
+   },
+   {
+    "symbol": "MCLOUD.NS",
+    "name": "Magellanic Cloud Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 14903398136.0,
+    "pe_ratio": 16.829546,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.529894,
+    "dividend_yield": 0.0014000000000000002,
+    "roe": 0.18974,
+    "debt_to_equity": 0.42501,
+    "price": 25.3,
+    "change_percent_1d": 0.4366812227074213,
+    "volume": 881659.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624942.614916
+   },
+   {
+    "symbol": "INFOBEAN.NS",
+    "name": "InfoBeans Technologies Limited",
+    "sector": "Technology",
+    "industry": "Software - Application",
+    "market_cap": 14667054488.800001,
+    "pe_ratio": 17.491583,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 3.656048,
+    "dividend_yield": 0.0016,
+    "roe": 0.2324,
+    "debt_to_equity": 0.03547,
+    "price": 151.27,
+    "change_percent_1d": 0.571770493983122,
+    "volume": 99135.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624998.50068
+   },
+   {
+    "symbol": "EXPLEOSOL.NS",
+    "name": "Expleo Solutions Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 13687633811.050001,
+    "pe_ratio": 10.366036,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.6560342,
+    "dividend_yield": 0.0567,
+    "roe": 0.17559,
+    "debt_to_equity": 0.01011,
+    "price": 881.95,
+    "change_percent_1d": -1.7927732308891386,
+    "volume": 20658.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625067.216224
+   },
+   {
+    "symbol": "DSSL.NS",
+    "name": "Dynacons Systems & Solutions Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 12907756872.0,
+    "pe_ratio": 15.919927,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 4.27295,
+    "dividend_yield": 0.0005,
+    "roe": 0.31044,
+    "debt_to_equity": 0.75024,
+    "price": 1013.4,
+    "change_percent_1d": 0.4759071980963667,
+    "volume": 13842.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788911809.203425
+   },
+   {
+    "symbol": "IVALUE.NS",
+    "name": "iValue Infosolutions Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 12129583271.4,
+    "pe_ratio": 16.075598,
+    "forward_pe": 9.672241,
+    "peg_ratio": null,
+    "price_to_book": 2.758463,
+    "dividend_yield": null,
+    "roe": 0.19117,
+    "debt_to_equity": 0.12223,
+    "price": 222.03,
+    "change_percent_1d": -2.652578042792008,
+    "volume": 132240.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624970.89428
+   },
+   {
+    "symbol": "SOLARWORLD.NS",
+    "name": "SOLARWORLD ENERGY SOL LTD",
+    "sector": "Technology",
+    "industry": "Solar",
+    "market_cap": 11575999668.24,
+    "pe_ratio": 13.875586,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.1206515,
+    "dividend_yield": null,
+    "roe": 0.20828,
+    "debt_to_equity": 0.30132000000000003,
+    "price": 133.56,
+    "change_percent_1d": -0.16444909552997372,
+    "volume": 125558.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624926.047612
+   },
+   {
+    "symbol": "WAAREEINDO.NS",
+    "name": "Indosolar Limited",
+    "sector": "Technology",
+    "industry": "Solar",
+    "market_cap": 11147709003.449999,
+    "pe_ratio": 6.510039,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 5.5959215,
+    "dividend_yield": null,
+    "roe": 1.5063001,
+    "debt_to_equity": 0.010700000000000001,
+    "price": 267.95,
+    "change_percent_1d": 3.535548686244195,
+    "volume": 293556.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783624967.266015
+   },
+   {
+    "symbol": "SOLEX.NS",
+    "name": "Solex Energy Limited",
+    "sector": "Technology",
+    "industry": "Solar",
+    "market_cap": 7508810103.900001,
+    "pe_ratio": 9.80725,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 3.0961623,
+    "dividend_yield": 0.0008,
+    "roe": 0.47055998,
+    "debt_to_equity": 1.32242,
+    "price": 695.1,
+    "change_percent_1d": 3.545359749739322,
+    "volume": 122265.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788917554.0966458
+   },
+   {
+    "symbol": "XCHANGING.NS",
+    "name": "Xchanging Solutions Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 6924854986.559999,
+    "pe_ratio": 11.779412,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.7996968,
+    "dividend_yield": 0.0311,
+    "roe": 0.15754,
+    "debt_to_equity": 0.17954,
+    "price": 62.16,
+    "change_percent_1d": 0.5825242718446593,
+    "volume": 62678.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1788917956.228645
+   },
+   {
+    "symbol": "ONWARDTEC.NS",
+    "name": "Onward Technologies Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 6299218199.2,
+    "pe_ratio": 14.347158,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.514967,
+    "dividend_yield": 0.0288,
+    "roe": 0.18552999,
+    "debt_to_equity": 0.15717,
+    "price": 287.2,
+    "change_percent_1d": -1.559554413024854,
+    "volume": 13769.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625633.9814348
+   },
+   {
+    "symbol": "KSOLVES.NS",
+    "name": "Ksolves India Limited",
+    "sector": "Technology",
+    "industry": "Software - Application",
+    "market_cap": 5968052640.0,
+    "pe_ratio": 19.516575,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 22.782972,
+    "dividend_yield": 0.0704,
+    "roe": 1.36942,
+    "debt_to_equity": 0.19397999999999999,
+    "price": 251.6,
+    "change_percent_1d": -3.1376323387872973,
+    "volume": 55291.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625601.538152
+   },
+   {
+    "symbol": "SIGMA.NS",
+    "name": "Sigma Solve Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 4833507309.400001,
+    "pe_ratio": 16.61207,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 5.159995,
+    "dividend_yield": 0.0013,
+    "roe": 0.37783,
+    "debt_to_equity": 0.02611,
+    "price": 47.03,
+    "change_percent_1d": 1.708477508650517,
+    "volume": 50131.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625848.881676
+   },
+   {
+    "symbol": "INSPIRISYS.NS",
+    "name": "Inspirisys Solutions Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 3294539158.68,
+    "pe_ratio": 10.5158,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 4.0782766,
+    "dividend_yield": null,
+    "roe": 0.48961,
+    "debt_to_equity": 0.82297,
+    "price": 83.16,
+    "change_percent_1d": -1.5158692562766476,
+    "volume": 2161.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625839.7012491
+   },
+   {
+    "symbol": "TERASOFT.NS",
+    "name": "Tera Software Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 2960309625.0,
+    "pe_ratio": 19.152798,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 3.2560332,
+    "dividend_yield": 0.0026,
+    "roe": 0.1848,
+    "debt_to_equity": 0.26995,
+    "price": 236.6,
+    "change_percent_1d": 4.945664227101355,
+    "volume": 26937.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783625756.075041
+   },
+   {
+    "symbol": "DRCSYSTEMS.NS",
+    "name": "DRC Systems India Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 1819747197.9,
+    "pe_ratio": 9.85,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.765459,
+    "dividend_yield": null,
+    "roe": 0.21816,
+    "debt_to_equity": 0.0037099999999999998,
+    "price": 12.63,
+    "change_percent_1d": 0.31771247021446325,
+    "volume": 12957.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783626848.4551098
+   },
+   {
+    "symbol": "DEVIT.NS",
+    "name": "Dev Information Technology Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 1303692704.82,
+    "pe_ratio": 2.085283,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.4441018,
+    "dividend_yield": 0.0072,
+    "roe": 0.84907997,
+    "debt_to_equity": 0.28008,
+    "price": 23.13,
+    "change_percent_1d": -1.2804097311139595,
+    "volume": 15846.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783627122.628142
+   },
+   {
+    "symbol": "CALSOFT.NS",
+    "name": "California Software Company Limited",
+    "sector": "Technology",
+    "industry": "Software - Application",
+    "market_cap": 605763984.14,
+    "pe_ratio": 12.436046,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 3.2040143,
+    "dividend_yield": null,
+    "roe": 0.32296002,
+    "debt_to_equity": 0.03905,
+    "price": 39.19,
+    "change_percent_1d": 3.979835500132661,
+    "volume": 171438.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783628219.500022
+   },
+   {
+    "symbol": "WEWIN.NS",
+    "name": "We Win Limited",
+    "sector": "Technology",
+    "industry": "Information Technology Services",
+    "market_cap": 436923000.0,
+    "pe_ratio": 16.840427,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 1.5638173,
+    "dividend_yield": null,
+    "roe": 0.15142,
+    "debt_to_equity": 0.10825,
+    "price": 43.0,
+    "change_percent_1d": 0.2564700396362775,
+    "volume": 3103.0,
+    "matched_criteria": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "currency": "INR",
+    "data_basis": "mixed",
+    "data_as_of": 1783628336.999666
+   }
+  ],
+  "duration_ms": 1515.6742499675602,
+  "partial": false,
+  "coverage": "screened 2,427 of 2,675 \u2014 248 unavailable \u00b7 26 rows on stale/snapshot basis (oldest 2026-07-09)",
+  "freshness": {
+   "quotes_as_of": 1789810532.996104,
+   "valuation_as_of": 1783623014.049354,
+   "deep_as_of": 1783623014.049354
+  },
+  "basis_counts": {
+   "mixed": 26
+  },
+  "throttled": true
+ }
+}

@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-SP-91",
+    "promise": "All data sources fail for a symbol: honest 'unavailable' with the reason and what would unlock it — never raw JSON, never a fabricated value.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/provider_registry.py:428-440 (all-null shell never served; last ProviderError raised), sidecar/routers/fundamentals.py:104-115 (429/404 humanized, else 502 detail=str(exc)), sidecar/app.py:312-315 (global ProviderError -> 502 {detail: str(exc)}), sidecar/services/yfinance_provider.py:65 (raw exc text embedded), src/modules/equity-overview/EquityOverviewPanel.tsx:763 + src/modules/watchlist/WatchlistPanel.tsx:206 + src/modules/chart/ChartPanel.tsx:408 (panels print err.message verbatim); agent leg has a closed reason vocabulary sidecar/services/agent_tools/fundamentals.py:23-51. Live: GET :52152/quotes/ZZZQNOPE -> 502 {\"detail\":\"yfinance quote failed for 'ZZZQNOPE': 'PriceHistory' object has no attribute '_dividends'\"}",
+    "gap": "No fabricated value and no raw JSON, but the REST/panel path has no 'what would unlock it' and the generic 502 leaks a raw Python exception string into the panel; services/errors.humanize (D43) is only wired to LLM/provider-chat errors, not data-provider failures.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-92",
+    "promise": "Deep-research budget exhausted mid-loop: synthesize immediately from gathered context with a stated reason (abort→synthesize), never a bare timeout/error.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/research/iter.py:580-584 (top-of-round budget.breach() -> abort_synthesize), iter.py:370-410 (synthesis from gathered report + note=BUDGET_STOP_NOTE), iter.py:587-601 (starved wall -> clean synthesis), sidecar/services/research/deep.py:101-103 + deep.py:1208, sidecar/tests/test_research_iter.py:112,195",
+    "gap": null,
+    "decision_ref": "D19"
+  },
+  {
+    "pid": "INT-SP-93",
+    "promise": "After-hours / stale / paper data: labeled as stale/synthetic (badge), never shown as live/real.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/locale.py:225-254 (live/eod/stale classification), src/components/DataBadges.tsx (StalenessBadge/ProvenanceBadge), src/modules/watchlist/WatchlistPanel.tsx:75, src/modules/chart/ChartPanel.tsx:1424, src/modules/equity-overview/EquityOverviewPanel.tsx:297-310, src/modules/broker-connect/BrokerReadsSection.tsx:108-127 (PAPER · synthetic)",
+    "gap": "PortfolioPanel values/P&L are computed from quotes (src/modules/portfolio/PortfolioPanel.tsx:140-166) but no row or summary carries a freshness/staleness badge — an after-hours/EOD/stale quote drives market value + P&L with no label; only a fetch FAILURE is badged.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-94",
+    "promise": "Native search per-search billing: a per-run search cap prevents runaway cost during multi-round research; cost-so-far is legible.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_runtime.py:544-548 (_WEB_SEARCH_CAP=5), :1416,:1553-1561 (loop counter counts ONLY the local web_search tool), :1335-1340 (native tier: web_search_max_uses passed, local tool withheld), sidecar/services/llm/anthropic.py:113-132 (max_uses honoured, per REQUEST), sidecar/services/llm/openai.py:664-667 + gemini.py:110-112 + groq.py:116-117 (cap popped/ignored), sidecar/services/llm/native_search.py:109-113 (comment claims a runtime loop-level counter that does not exist for native search), sidecar/services/budget_guard.py:82-84,135 (spend = tokens x rate only), src/modules/chat/ChatSidebar.tsx:921 (foreground spendUsd hard-coded 0)",
+    "gap": "No run-level cap on NATIVE searches for OpenAI/Gemini/xAI/OpenRouter (uncapped) and Anthropic's cap is per request (5 x up to 6 rounds = 30/run); per-search billing is not metered anywhere so search cost-so-far is not legible (foreground shows tokens only, spend 0).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-95",
+    "promise": "Indian ticker via yfinance returns 'possibly delisted' / silently-wrong OHLC: the correctness gate rejects it and the registry falls through to a locale-appropriate source; yfinance is never the trusted India primary.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/provider_registry.py:148-196 (nse_direct 15 / nse 20 / bse 25 region IN ranked above yfinance 50), :337-366 (gate failure falls through), :535-549 (quote/series validators), sidecar/services/correctness_gate.py:94-146, sidecar/tests/test_provider_registry_region.py, test_correctness_gate.py",
+    "gap": "Delivered for quote + OHLC. For IN fundamentals/statements/analyst yfinance IS the primary (provider_registry.py:164 'IN fundamentals fall through to yfinance'; openbb-mcp returns all-null shells for IN per D72) — only disclosure-style cross-checks (D66/D73/D77) sit on top.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-96",
+    "promise": "The agent MUST be a primary, co-equal surface (not a bolted-on sidebar) able to occupy a dominant column or the full cockpit, whose actions open and arrange panels as its output.",
+    "source": "spec.md#FR-001",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-97",
+    "promise": "The agent MUST be terminal-aware — it can read the focused symbol/timeframe/indicators, watchlist, portfolio, and open panels, and can open panels, set symbols, edit the watchlist, and stage actions.",
+    "source": "spec.md#FR-002",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-98",
+    "promise": "The system MUST present the agent as four explicit intents on stable global hotkeys — Ask (read-only), Edit-panel (focused-panel change), Build (multi-panel/workflow), Delegate (background) — with the active mode visible at all times.",
+    "source": "spec.md#FR-003",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-99",
+    "promise": "The active persona and active provider/model MUST be visible and switchable by keyboard at any time.",
+    "source": "spec.md#FR-004",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-100",
+    "promise": "Every capability invocable by the agent MUST also be reachable by hand (palette/menus/panels); no agent-only capability.",
+    "source": "spec.md#FR-005",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-101",
+    "promise": "After an ambiguous request, the agent MUST do the upfront work and then hand off to the manipulable cockpit — it MUST NOT require the user to do complex multi-object analysis inside the chat transcript.",
+    "source": "spec.md#FR-006",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-102",
+    "promise": "Hand manipulation MUST take effect immediately and update the shared context the agent reads on its next turn.",
+    "source": "spec.md#FR-007",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-103",
+    "promise": "Every agent-proposed mutation (panel config, portfolio, multi-panel build, order) MUST be presented as a preview→applied diff with per-item and bulk accept/reject, keyboard-driven; no mutation lands before acceptance.",
+    "source": "spec.md#FR-010",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-104",
+    "promise": "Order proposals MUST route through the existing §6.5 confirm_and_place boundary (paper-mode default, position limits, read-only/kill-switch checks, append-only audit on accept); there MUST be no auto-apply / 'YOLO' order path.",
+    "source": "spec.md#FR-011",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-105",
+    "promise": "The §6.5 invariants and Tier-1 LOCKED files MUST be preserved byte-for-byte unless an operator-ratified Tier-4 change is made; the audit suite is a hard gate on any touch.",
+    "source": "spec.md#FR-012",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-106",
+    "promise": "Read-only MUST be the default for every consumer (internal and external); any mutation is explicit, gated, and audited.",
+    "source": "spec.md#FR-013",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-107",
+    "promise": "The system MUST maintain a single capability catalog as the source of truth, projected to the internal copilot adapter(s) and the external MCP server, by transformation — no hand-maintained duplicate tool surfaces.",
+    "source": "spec.md#FR-020",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-108",
+    "promise": "Each catalog entry MUST carry a domain tag and a read_only declaration; the read_only flag MUST drive both the internal mutation gate and the external MCP read-only annotation.",
+    "source": "spec.md#FR-021",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-109",
+    "promise": "The external MCP surface MUST cover all primary domains (quotes, charts, screener, fundamentals, portfolio, news, quant, brokers-read) by the same tool names the internal copilot uses.",
+    "source": "spec.md#FR-022",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-110",
+    "promise": "The catalog MUST be complete — every registered handler intended to be agent-reachable MUST have a schema entry (closing the current ~11-handler gap), and the custom-agent allow-list MUST reflect the real catalog.",
+    "source": "spec.md#FR-023",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-111",
+    "promise": "Multi-round tool use MUST work on every supported provider for a representative two-step task (closing the current Gemini multi-round break).",
+    "source": "spec.md#FR-024",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-112",
+    "promise": "External MCP access MUST be loopback-only without auth in this scope; any non-loopback exposure is a Tier-4 block-and-ask and is out of scope; the framework MUST be attachable by an external agent (a documented connection path; a discovery file is desirable).",
+    "source": "spec.md#FR-025",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-113",
+    "promise": "Background ('Delegate') agent runs MUST be bounded by a hard, user-visible ceiling on tokens, spend, wall-clock, and steps; the first breach MUST abort the run with a stated reason.",
+    "source": "spec.md#FR-026",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-114",
+    "promise": "A background run MUST be visible in an agents rail with status and cost-so-far, and be cancellable and bring-to-foreground-able.",
+    "source": "spec.md#FR-027",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-115",
+    "promise": "A long run SHOULD checkpoint progress so it can resume, and SHOULD be able to pause for a human-in-the-loop question without losing progress.",
+    "source": "spec.md#FR-028",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-116",
+    "promise": "The shell MUST be minimal-dark, low-chrome, keyboard-first, dark-only (light theme remains deferred), superseding the warm 'Claude after dark' palette; the canvas palette and CSS tokens MUST be re-skinned together.",
+    "source": "spec.md#FR-030",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-117",
+    "promise": "The command palette MUST fuzzy-rank panels, commands, symbols, and agents, and MUST surface the keyboard mnemonic for actions it performs.",
+    "source": "spec.md#FR-031",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-118",
+    "promise": "First run MUST present a minimal, populated starter cockpit (not empty, not every plugin) with the agent surface present; additional panels/plugins open as tabs on demand.",
+    "source": "spec.md#FR-032",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-119",
+    "promise": "The chrome MUST surface sidecar connection state, active provider/model, and running background agents.",
+    "source": "spec.md#FR-033",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-120",
+    "promise": "Every data provider, broker, and user-wired connector MUST declare its credentials and shape declaratively; a single BYOK/credentials hub MUST render/mask/test forms generically from those declarations (including a 'needs no key' opt-out and a get-key link/instructions).",
+    "source": "spec.md#FR-034",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-121",
+    "promise": "The data registry MUST resolve by a standard model key + preference order (replacing the hardcoded asset-class dispatch); every result MUST carry its serving provider as provenance.",
+    "source": "spec.md#FR-035",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-122",
+    "promise": "Secrets MUST remain in the OS keychain, least-privilege at use (a provider receives only its declared keys, never the whole keychain), never logged/echoed/persisted; storage MUST NOT regress to plaintext files or machine-ID-derived encryption.",
+    "source": "spec.md#FR-036",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-123",
+    "promise": "Configured connections SHOULD be exportable/importable across machines (secrets via the keychain, not the export file).",
+    "source": "spec.md#FR-037",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-124",
+    "promise": "The system MUST provide a dedicated settings/preferences surface where effectively every user-facing preference is configurable (keybindings, default agent/persona, default provider/model + preference order, palette behavior, panel defaults, starter-cockpit composition, theming knobs); settings MUST persist locally and be exportable/importable — depth target is Cursor-grade.",
+    "source": "spec.md#FR-038",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-125",
+    "promise": "Keyboard shortcuts/keybindings MUST be user-remappable from the settings surface, not merely surfaced as mnemonics; conflicting bindings MUST be detected and surfaced; remaps persist locally and travel with the settings export.",
+    "source": "spec.md#FR-039",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-126",
+    "promise": "Agent claims that assert facts MUST carry citations; data responses MUST carry provenance (which provider served them); the active provider/model/cost MUST be legible on the agent surface.",
+    "source": "spec.md#FR-040",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-127",
+    "promise": "The system MUST NOT present fabricated or placeholder data as real; unverified or paper/synthetic values MUST be labeled as such.",
+    "source": "spec.md#FR-041",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-128",
+    "promise": "The read-only broker surface MUST return genuine granular data from the live connected account — distinct, real positions, holdings, P&L, and margins — rather than aliasing them all to a single account summary; this is net-new read implementation; synthetic/paper/disconnected values MUST be clearly labeled; scope stays read-only; the live connected account is reached through an installed broker plugin, not a boot-registered adapter.",
+    "source": "spec.md#FR-042",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-129",
+    "promise": "The plugin marketplace MUST be the app's primary extensibility model: brokers, data providers/connectors, panels, and agents are all delivered as marketplace plugins the user can install, enable, configure, and remove — one unified extension model.",
+    "source": "spec.md#FR-050",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-130",
+    "promise": "No broker is hardcoded or registered at boot; the host MUST NOT bootstrap any broker adapter at startup — bootstrap_default_adapters() is retired as the broker entry path; the seven existing plugins/brokers/ plugins MUST become real, installable reference plugins.",
+    "source": "spec.md#FR-051",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-131",
+    "promise": "The working Kite read-only OAuth logic MUST be kept and repackaged as the first reference broker plugin — not rebuilt from scratch and not a hardcoded default.",
+    "source": "spec.md#FR-052",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-132",
+    "promise": "The provider-shaped data registry and the plugin contract MUST describe one unified extension model, not two parallel ones: a data provider/connector's declarative credential+shape declaration is the data-source slice of the marketplace plugin model.",
+    "source": "spec.md#FR-053",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-133",
+    "promise": "The plugin-runtime guarantees the marketplace depends on MUST be real: manifest↔instance id/version checks, requiredHostVersion checks that refuse an incompatible plugin (surfaced, not silently loaded), and working PluginConfig secret resolution.",
+    "source": "spec.md#FR-054",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-134",
+    "promise": "HARD GUARDRAIL — a broker (or any) plugin MUST NOT be able to bypass the §6.5 boundary: paper-mode default, read-only enforcement, the kill switch, position limits, the diff/accept gate, and append-only audit are all enforced by the host; plugins plug into them and cannot opt out.",
+    "source": "spec.md#FR-055",
+    "kind": "guarantee",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-135",
+    "promise": "Region MUST drive the user-local shape of the product — ticker/exchange resolution, currency, market hours, number/date formatting, and default news/data sources; v1 locale set is US + India (both first-class & deep), GLOBAL best-effort.",
+    "source": "spec.md#FR-060",
+    "kind": "capability",
+    "status": null,
+    "evidence": null,
+    "gap": null,
+    "decision_ref": null
+  }
+]

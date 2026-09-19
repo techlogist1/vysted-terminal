@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-2-1",
+    "title": "SEC FilingDetail fabricates filing identity: hardcoded form_type=\"10-K\" and filed_date=today",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / sec-filings",
+    "repro": "GET /sec/filings/{accession}?identifier=AAPL for any accession NOT in the issuer's most recent 40 filings -> FilingDetail.filing renders form_type \"10-K\" and filed_date = today, company_name \"\". get_filing locates metadata by re-listing only the last 40 filings and filtering by accession; a miss takes the synthetic branch. Separately every call, hit or miss, sends form_type=\"10-K\" to the upstream sectioner regardless of the real form.",
+    "evidence": "sidecar/services/sec_filings_provider.py:544-555 (synthetic Filing: form_type=\"10-K\", filed_date=datetime.now(tz=UTC).date(), company_name=\"\"), sidecar/services/sec_filings_provider.py:528 ({\"form_type\": \"10-K\"} sent for every accession), sidecar/services/sec_filings_provider.py:536 (limit 40), sidecar/routers/sec_filings.py:114-124 (route that renders it), sidecar/models/sec.py:57-64",
+    "notes": "APOSD 'define errors out of existence' inverted -- a placeholder was chosen over an error and now renders as a money-relevant fact. Consequence: the FilingViewer labels a 2021 8-K as '10-K, filed today', and the agent's sec_filing_content tool (services/agent_tools/sec_tools.py:107-110) feeds the same fabricated metadata to the model. The 10-K item map applied to a 10-Q/8-K also yields wrong or empty sections with no signal. Smallest fix: delete the synthetic Filing branch and raise ProviderError('filing metadata unavailable for <accession>') -- routers/sec_filings.py:123 already maps that to the 502 the panel renders; resolve the real form type from the listing row before calling get_filing_sections, and skip the sections call when it cannot be resolved."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-2",
+    "title": "/quotes returns a list the client cannot join -- IN watchlist rows render permanently blank",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / quotes",
+    "repro": "Add RELIANCE.NS (or any .NS/.BO symbol) to the watchlist -> GET /quotes?symbols=RELIANCE.NS returns 200 with a valid Quote whose symbol field is \"RELIANCE\" (suffix stripped by the NSE provider); the watchlist row stays blank forever. The correctness gate passes the mismatch ON PURPOSE (_match_key strips .NS/.BO), so nothing logs and nothing errors.",
+    "evidence": "sidecar/services/nse_provider.py:354-360 (bare = locale.strip_exchange_suffix), sidecar/services/nse_provider.py:524 and :558 (Quote(symbol=bare)), sidecar/services/india_provider.py:156, sidecar/services/correctness_gate.py:76-90 (_match_key / symbols_match strip the suffix by design), sidecar/routers/quotes.py:85-87 (positional list, failures elided), src/modules/watchlist/api.ts:40 (map keyed on quote.symbol) and src/modules/watchlist/api.ts:57 (lookup by entry.symbol), src/store/symbols.ts:53 (entry stored verbatim)",
+    "notes": "Information leakage (APOSD ch5): the 'are these the same instrument' decision is implemented in correctness_gate._match_key and then NOT mirrored in the TS join, while the route's bare-list shape forces the client to join by spelling. Invisible because api.ts:28 correctly degrades a missing symbol to null -- it reads as a coverage gap, not a join bug. Smallest fix: in routers/quotes.py:86 set result.symbol to the REQUESTED spelling (the gate already proved same-instrument), or add requested_symbol to models/market.py:14 and join on it. One line; deletes the duplicated rule instead of porting _match_key to TypeScript."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-3",
+    "title": "GET /news?symbols= returns an empty list for every exchange-suffixed (IN) ticker",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / news",
+    "repro": "GET /news?symbols=RELIANCE.NS -> []. Verified by running the router's matcher verbatim: tag('Reliance Industries Q2 profit rises 10%','RIL beats estimates',['RELIANCE.NS']) -> [] ; tag('TCS wins $1bn deal','Tata Consultancy Services',['TCS.NS','INFY.NS']) -> [] ; control tag('NVDA soars','Nvidia earnings',['NVDA']) -> ['NVDA']. The provider DID fetch a dedicated per-symbol Yahoo feed for the symbol first.",
+    "evidence": "sidecar/routers/news.py:69-74 (re.search(rf'\\b{re.escape(symbol)}\\b', haystack)), sidecar/routers/news.py:120 (drop untagged when symbols requested), sidecar/routers/news.py:132, sidecar/services/news_provider.py:284-290 (_feed_urls_for adds the per-symbol feed)",
+    "notes": "The literal string 'RELIANCE.NS' never occurs in prose, so the per-symbol feed is fetched, parsed, sentiment-scored and then 100% discarded. The news panel shows an empty feed for the primary market of an India-first terminal and reads as 'no news for this stock'. Aggravating: the function's own docstring (routers/news.py:63-68) asserts the matcher is careful about exactly this class of problem, which will stop the next reader from suspecting it. Smallest fix: tag against the symbol's ALIAS SET (bare via locale.strip_exchange_suffix + the suffixed form + resolved company name), not the raw request string."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-4",
+    "title": "FilingFormType caps EDGAR at 7 forms; every other filing is silently dropped from the list",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / sec-filings",
+    "repro": "GET /sec/filings?symbol=INFY (or any foreign private issuer filing only 20-F/6-K) -> 200 with filings: [] and no indication anything was filtered. Same for any 10-K/A, S-1, 424B4, SC 13D, 13F. limit is applied UPSTREAM before the drop, so even a plain 10-K filer gets a quietly short list.",
+    "evidence": "sidecar/models/sec.py:23 (FilingFormType = Literal['10-K','10-Q','8-K','DEF 14A','3','4','5']), sidecar/services/sec_filings_provider.py:217-236 (_coerce_form_type returns None for anything unmapped), sidecar/services/sec_filings_provider.py:288-291 ('# Skip exotic forms not in our v0.6.0 set' -> continue), sidecar/services/sec_filings_provider.py:490-493 (limit sent upstream), sidecar/models/sec.py:143-151 (FilingsListResponse has no dropped/total count), types/sec.ts:21",
+    "notes": "Design-it-twice failure: the 7-form set was chosen for a v0.6.0 panel and never re-designed against EDGAR's real form space. Hits exactly the names this product's users care about -- every India ADR (Infosys, HDFC Bank, Wipro) files 20-F + 6-K and nothing else, so its filings list is empty with ok:True. Because the response carries no count, neither the panel nor the agent (services/agent_tools/sec_tools.py:71-74) can distinguish 'no filings' from 'all filings filtered out'. Smallest fix: type Filing.form_type as str and keep the Literal only as the FILTER enum on routers/sec_filings.py:95; stop dropping rows at :289. If the closed Literal must stay for panel grouping, add dropped_count to FilingsListResponse."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-5",
+    "title": "Agent tools promise 'never crashes the turn' but gather() omits return_exceptions and the result reads sit outside every try",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "market-data-providers-2 / agent-tools",
+    "repro": "design (latent). Rename or drop any field on models/market.Quote or Fundamentals -> the attribute read at compare_symbols.py:87-110 raises outside the try -> the un-guarded asyncio.gather at :142 propagates -> the whole compare_symbols tool call fails, which is precisely the outcome its docstring says cannot happen. Identical shape in market_overview.py (reads at :68-77, gathers at :111-113).",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:43-48 (docstring: 'Always returns a dict ... so the caller's asyncio.gather never aborts the batch') vs sidecar/services/agent_tools/compare_symbols.py:142 (no return_exceptions) and :87-110 (reads outside try); sidecar/services/agent_tools/market_overview.py:56 and :65 ('never crash the turn') vs :111-113 and :68-77; correct precedent two files away at sidecar/routers/quotes.py:84 (return_exceptions=True)",
+    "notes": "An invariant held by a COMMENT where the structure could hold it. A provider mock in the existing tests has all the fields, so no test catches it. Also inconsistent with the sibling route that got it right. Smallest fix: add return_exceptions=True at compare_symbols.py:142 and market_overview.py:111-113 and map a returned BaseException to the same per-symbol {'symbol','error'} dict the handlers already build."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-6",
+    "title": "A freshness-label failure renders a STALE quote with NO badge (unsafe default)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / quotes+history",
+    "repro": "design. Any exception inside locale.freshness_for (unknown region, calendar gap, timezone-naive timestamp) -> the blanket except sets freshness=None -> the UI treats None as 'no badge' and renders the price with no staleness marker at all, indistinguishable from a live tick.",
+    "evidence": "sidecar/routers/quotes.py:43-49 (except Exception -> quote.freshness = None), sidecar/routers/history.py:46-52 (same), src/modules/chart/ChartPanel.tsx:291 and :385 (setFreshness(series.freshness ?? null)), src/components/DataBadges.tsx:87-107 (StalenessBadge renders per freshness state)",
+    "notes": "FR-041/SC-019 exists so a stale value is never shown as live; this handler's failure default points the wrong way. The comment ('a label failure must never drop the quote') justifies keeping the quote, which is right -- but the safe fallback is an explicit 'unknown' state that still badges, not silent absence. Smallest fix: set freshness='stale' (or add an 'unknown' state to DataBadges.Freshness) in the except branch, and log once."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-7",
+    "title": "/indicators is the only provider-backed route with no EmptySeriesError downgrade -- same symbol, 200 on the chart and 502 on the overlay",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / indicators",
+    "repro": "GET /history/{sym} for an illiquid/newly-listed/delisted name -> 200 with bars: [] and reason 'in_eod_only'. GET /indicators/{sym}?indicators=rsi for the SAME symbol -> EmptySeriesError propagates -> 502. The chart panel shows its honest empty state while the indicator overlay shows a server error.",
+    "evidence": "sidecar/routers/history.py:71-80 (try/except EmptySeriesError -> 200 empty series with typed reason), sidecar/routers/indicators.py:64 (bare provider_registry.get_history, no handler), sidecar/services/correctness_gate.py:67 (EmptySeriesError exists so '/history' can downgrade)",
+    "notes": "Consistency violation across sibling routes sharing one provider call; the next maintainer cannot tell which contract is the intended one. Also: indicators carries no freshness label while quotes/history both do, so an overlay computed from EOD bars shows none of the staleness the chart under it shows. Smallest fix: wrap indicators.py:64 in the same except EmptySeriesError and return an IndicatorResponse with empty indicators (the panel already handles an empty overlay), and stamp freshness from the same series."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-8",
+    "title": "FR-041 provenance/freshness is applied on 2 of 8 data routes; earnings/news/sec return up-to-24h cached payloads with no as-of",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / earnings+news+sec",
+    "repro": "GET /earnings/{sym}/history twice within 24h -> the second call is served entirely from data_cache with no field on the wire saying when it was fetched. EarningsHistoryResponse, EarningsSurprisesResponse and EarningsUpcomingResponse carry no as_of/cached_at (only EarningsEstimateDetail has as_of, and it is the PROVIDER's, not the cache's). Same for FilingsListResponse and the news list.",
+    "evidence": "sidecar/routers/earnings.py:36-38 (_TTL_HISTORY = 24h), sidecar/routers/earnings.py:89-100 (cache read, no stamp), sidecar/models/earnings.py:105-145 (no as_of on 3 of 4 envelopes), sidecar/models/sec.py:143-151, sidecar/models/news.py:15-28; contrast sidecar/models/market.py:26-29 and :50-53 (freshness on Quote and OHLCVSeries)",
+    "notes": "The product's stated moat is data trust and the FR-041 badge exists to serve it; two routes honour it and six do not, so the badge's absence carries no information. A demanding owner reading a 23-hour-old earnings calendar has no way to know. Smallest fix: have data_cache.get return (value, fetched_at) and stamp a single as_of on each envelope, then reuse the existing StalenessBadge (src/components/DataBadges.tsx:87)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-9",
+    "title": "Earnings router copy-pastes the cache-read/validate/fetch/502/cache-write block four times",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "market-data-providers-2 / earnings",
+    "repro": "design. Adding stale-while-revalidate, a cache-bypass header, an as-of stamp (see -8) or a metrics counter requires four identical edits; miss one and that route drifts silently.",
+    "evidence": "sidecar/routers/earnings.py:68-81, :89-100, :108-119, :127-138 (four copies of get -> isinstance dict -> try model_validate -> except log warning -> provider call -> except ProviderError -> 502 -> set -> return)",
+    "notes": "Repetition red flag with real change amplification; the only per-route variation is (cache key, TTL, model, provider fn). Smallest fix: one helper async def _cached(key, ttl, model, fetch) in this file -- roughly 12 lines replacing about 48, with the four routes becoming one-liners."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-10",
+    "title": "Nine agent-tool handlers each re-implement the same validate/try/except/cap/envelope block",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "market-data-providers-2 / agent-tools",
+    "repro": "design. The agent-tool error-envelope contract ({'ok': False, 'error': ...} + row cap + ProviderError-vs-Exception split) exists in nine copies; a change to how tool failures are surfaced to the model means nine edits.",
+    "evidence": "sidecar/services/agent_tools/analyst_tools.py:32-49, :52-69, :72-89; sidecar/services/agent_tools/earnings_tools.py:29-61, :64-81, :84-98; sidecar/services/agent_tools/sec_tools.py:34-74, :77-110, :113-152; plus sidecar/services/agent_tools/compare_symbols.py:69 and :84 and market_overview.py:90 writing 'except (ProviderError, Exception)' -- a tuple whose first member is unreachable",
+    "notes": "Shallow modules (APOSD ch4) -- interface complexity per tool is close to its implementation; decomposed by feature rather than by abstraction boundary (ch22). The unreachable-first-member except reads as two handled cases but is one blanket catch that also eats AttributeError/TypeError. Smallest fix that pays: collapse the except pair to a single 'except Exception' with the ProviderError message preserved, and extract one register_data_tool(id, fetch, shape) helper covering the six analyst/earnings handlers (the three sec_* ones additionally need the is_available guard)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-11",
+    "title": "Verification-rig mutation endpoints ship in the production sidecar and can degrade every data panel",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "market-data-providers-2 / system",
+    "repro": "POST http://127.0.0.1:<port>/system/provider-health/trip {\"weight\": 3.0} -> the Yahoo circuit breaker opens for the whole process -> screener/quotes/history degrade to the stale/seed basis until it self-heals. No build flag, env guard or auth gates the route; any local process can call it.",
+    "evidence": "sidecar/routers/system.py:215-224 (trip_provider_health), sidecar/routers/system.py:227-233 (reset_provider_health), sidecar/routers/system.py:203-212 (the read-only counterpart, which is legitimate)",
+    "notes": "Special-general mixture: test-rig affordances baked into a general production surface. The GET /system/provider-health observability route is worth keeping; the two POST mutators are not. Smallest fix: gate both on an env flag the rig sets (e.g. VYSTED_RIG_HOOKS=1) and 404 otherwise -- the drill script sets one variable, production loses a surface it never wanted. Secondary: routers/system.py:210, :217, :229 defer 'from services import provider_health' inside the function bodies while every other import in the subsystem is module-level, and :85-103 vs :151-159 duplicate the ollama /api/tags fetch + parse."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-12",
+    "title": "get_filing_sections is a pass-through whose docstring claims a cheaper path it does not take",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "market-data-providers-2 / sec-filings",
+    "repro": "GET /sec/filings/{accession}/sections -> get_filing_sections -> get_filing -> TWO upstream MCP calls (get_filing_sections + get_recent_filings limit=40) plus the full FilingDetail build, despite the docstring promising the section rail can 'hit a cheaper route without re-fetching the metadata row'.",
+    "evidence": "sidecar/services/sec_filings_provider.py:563-575 (docstring vs body: 'detail = await get_filing(...); return list(detail.sections)'), sidecar/services/sec_filings_provider.py:526-538 (both upstream calls), sidecar/routers/sec_filings.py:127-141 (publishes it as a separate route)",
+    "notes": "Pass-through method (different layer / same abstraction) plus an interface comment that is actively false -- worse than no comment, because it tells the next reader not to check. The FilingViewer's section rail pays the 40-filing listing cost on every navigation. Smallest fix: either delete the route and have the panel read detail.sections from the call it already made, or split the upstream sections call into its own function and have get_filing call THAT (making the comment true)."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-13",
+    "title": "price_data silently truncates the window to 90 bars while advertising a 6mo range",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "market-data-providers-2 / agent-tools",
+    "repro": "price_data({'symbol':'AAPL'}) -> range_ defaults to '6mo' (~126 daily bars), the response returns only the last 90 and nothing in the payload says the window was cut. The Strategy Critic asked to check a '6-month drawdown' computes it over ~4.3 months.",
+    "evidence": "sidecar/services/agent_tools/price_data.py:39 (range_ default '6mo'), sidecar/services/agent_tools/price_data.py:59 (recent_bars = list(series.bars)[-90:]), sidecar/services/agent_tools/price_data.py:60-79 (response carries symbol/timeframe/provider but no bar counts)",
+    "notes": "Same class as the analyst/earnings row caps (analyst_tools.py:29 _MAX_HISTORY_ROWS=60, earnings_tools.py:75 [:12]) where 'count' reports the CAPPED length, so the model cannot tell a truncation from a short history. The truncation itself is correct (prompt budget); the silence is the defect. Smallest fix: return bars_returned + bars_available (and window_start) alongside bars, and say so in the catalog.py tool description so the model narrows its claim instead of over-claiming."
+  },
+  {
+    "raw_id": "COD-market-data-providers-2-14",
+    "title": "News symbol tagging false-positives on single-letter tickers (A matches the English article)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "market-data-providers-2 / news",
+    "repro": "Verified by running the router's matcher verbatim: tag('Nvidia unveils a new chip','A report from a bank',['A']) -> ['A'] ; tag('Fed holds rates','The T-bill curve steepened',['T','F','C']) -> ['T']. So GET /news?symbols=A (Agilent) returns essentially the entire feed tagged as Agilent news; T (AT&T), F (Ford), C (Citi), K, M, V, X, Z behave the same.",
+    "evidence": "sidecar/routers/news.py:69-74 (case-insensitive \\b{symbol}\\b over title+summary), sidecar/routers/news.py:62-68 (docstring claims the word-boundary anchor prevents exactly this)",
+    "notes": "The docstring's example is 'A does not match every word starting with a' -- true, and it misses the real failure, which is the standalone article 'a'/'A'. Consequence: every headline is attributed to the ticker, sentiment for that symbol becomes market-wide noise, and the agent reading /news inherits the mis-attribution. Same function as -3, opposite failure direction, one fix covers both. Smallest fix: require len(symbol) >= 2 for bare-text matching and fall back to the resolved company name for 1-character tickers (the alias set from -3 supplies it)."
+  }
+]

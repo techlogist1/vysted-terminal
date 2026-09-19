@@ -1,0 +1,412 @@
+[
+  {
+    "pid": "INT-SP-181",
+    "promise": "A first-time user with a configured provider can reach a populated, multi-panel, source-cited cockpit for a company through conversation alone, with zero manual panel controls, in under 2 minutes.",
+    "source": "spec.md#SC-001",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-182",
+    "promise": "A finance-literate user can complete a full screen→chart→fundamentals→filing→quant workflow with zero agent turns, entirely by command palette + panels, and persist it across relaunch.",
+    "source": "spec.md#SC-002",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-183",
+    "promise": "100% of agent-proposed mutations are blocked from changing state until explicit acceptance; 100% of accepted orders produce exactly one append-only audit row and honor paper-mode/kill-switch/read-only/position-limit checks; no auto-apply order path exists.",
+    "source": "spec.md#SC-003",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/store/proposed-changes.ts:95-122 (enqueue pends; order excluded from AUTO at :118), :139-147 (order accept -> routeOrderProposal -> §6.5 dialog); sidecar/tests/test_safety_end_to_end.py:119,163,214,247,290,352,435 (paper default, no bypass to place_confirmed, position limit, append-only DB triggers, kill switch, AI-order gate, read-only raises); sidecar/services/agent_tools/catalog.py:1483 FORBIDDEN_TOOL_SUBSTRINGS",
+    "gap": "AUTO autonomy scope is wider than spec — tracked under INT-SP-205.",
+    "decision_ref": "D69/D70 (order path proven live, no new execution)"
+  },
+  {
+    "pid": "INT-SP-184",
+    "promise": "A capability added once is reachable by both the internal copilot and an external MCP client by the same name with matching read_only semantics; a parity audit reports zero unintended divergence.",
+    "source": "spec.md#SC-004",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/tests/test_mcp_catalog_parity.py:50,56,63,76,87 (exposure, projection equality, readOnlyHint parity, input-schema parity, subset-of-internal); sidecar/tests/test_capability_catalog.py:72",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-185",
+    "promise": "Multi-round tool use succeeds on every supported provider for a representative two-step task (no provider-specific multi-round break).",
+    "source": "spec.md#SC-005",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "tool-call + tool-result turn reconstruction in every adapter: sidecar/services/llm/anthropic.py:56-78, openai.py:92-109, groq.py:55-81, ollama.py:47-75, gemini.py:47-74 (function_response keyed by name); sidecar/tests/test_gemini_multiround.py:61,80",
+    "gap": "Proven by unit tests with stubbed streams; no live per-provider two-step regression exists in repo (only Gemini has a dedicated multi-round test).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-186",
+    "promise": "0 registered, agent-intended capability handlers lack a catalog/schema entry (down from ~11 today); the custom-agent allow-list contains 0 unresolvable tools.",
+    "source": "spec.md#SC-006",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/tests/test_capability_catalog.py:46,56,62,72,88,93,107 (registry<->catalog parity, schema parity, allow-list == catalog, every selectable tool resolves, stale ids gone)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-187",
+    "promise": "A new data source added via the contract appears in the credentials hub and resolves through the registry with 0 lines of per-source UI code; every data result names its provider.",
+    "source": "spec.md#SC-007",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "Generic credential form: src/modules/marketplace/MarketplacePanel.tsx:244-274 renders entry.credentialFields; provenance: sidecar/services/provider_registry.py:16-18 (provider field on every result). BUT catalog is a host-compiled static list: src/lib/marketplace.ts:20-45 (static imports), :84-335 (hand-written rows); sidecar registry is an in-module declaration table: sidecar/services/provider_registry.py:80",
+    "gap": "0 lines of per-source UI holds, but a new data source still needs host code in three places (sidecar provider + ProviderDeclaration row, marketplace.ts row + static import). The TS plugin data capability is a thin declaration (plugins/yfinance/index.ts:1-12), not what the registry resolves.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-188",
+    "promise": "A Delegate run that would exceed its budget aborts at the ceiling 100% of the time with a stated reason and a resumable checkpoint; cost-so-far is visible throughout.",
+    "source": "spec.md#SC-008",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/budget_guard.py:87-163 (first-breach reason strings); sidecar/services/run_manager.py:184-186 (abort -> status=error, detail=reason, checkpoint=transcript), :346 resume_run; sidecar/routers/runs.py:18; cost visible: src/modules/chat/AgentsRail.tsx:106; tests sidecar/tests/test_budget_guard.py, test_run_manager.py",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-189",
+    "promise": "First-run users reach productivity within ≤3 taught gestures; the command palette surfaces a shortcut for ≥90% of palette-performed actions.",
+    "source": "spec.md#SC-009",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-190",
+    "promise": "No user data leaves the machine except through an explicitly user-wired outbound connector; secrets never appear in logs, responses, files, or localStorage.",
+    "source": "spec.md#SC-010",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-191",
+    "promise": "Every enumerated preference category is configurable from the settings surface; a remapped keybinding persists across relaunch; a settings export re-imports on another machine with zero loss.",
+    "source": "spec.md#SC-011",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-192",
+    "promise": "For a live connected broker, the read surface returns distinct, real positions, holdings, P&L, and margins (not aliased to a single summary); synthetic/paper/disconnected values are labeled as such; no write/execution code path exists on the broker read surface.",
+    "source": "spec.md#SC-012",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-193",
+    "promise": "A broker can be installed, enabled, configured (BYOK), and removed entirely through the marketplace with zero host code change, and no broker adapter is registered at boot; the same lifecycle governs a data-source, a panel, and an agent plugin.",
+    "source": "spec.md#SC-013",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-194",
+    "promise": "A marketplace plugin cannot place or write anything that bypasses the host safety gate — no plugin code path reaches order placement or any state mutation outside the §6.5 boundary.",
+    "source": "spec.md#SC-014",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-195",
+    "promise": "The plugin runtime enforces its guarantees: a manifest↔instance id/version mismatch and a requiredHostVersion violation are each rejected at load, and a plugin's declared secrets resolve through PluginConfig at use (no out-of-band credential fetch).",
+    "source": "spec.md#SC-015",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-196",
+    "promise": "'research X' composes a coherent multi-panel cockpit on its own — a named layout template (not one tile) with the chart carrying asset-class default indicators, fundamentals + news/filings panels, and a brief panel with ≥3 cited sources — for a representative ticker basket, 100% of the time.",
+    "source": "spec.md#SC-016",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-197",
+    "promise": "A US + India basket (incl. GOLDBEES, TATASTEEL, NIFTYBEES, RELIANCE) each resolves and loads from a locale-appropriate source OR returns an honest human 'unavailable + why' — 0 raw-JSON dead-ends, 0 wrong/stale values shown as live.",
+    "source": "spec.md#SC-017",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-198",
+    "promise": "Fast research completes within the latency target (≤15s typical) for a representative ticker — structured pull + web round + synthesis + arrangement included.",
+    "source": "spec.md#SC-018",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-199",
+    "promise": "For the test basket, 100% of served values carry provenance, stale/synthetic values are labeled, and the correctness gate + fallback chain admit 0 fabricated values.",
+    "source": "spec.md#SC-019",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-200",
+    "promise": "Native web search works on the native-capable providers (Anthropic/OpenAI/Gemini/Groq/xAI) using only the user's existing key (citations returned); the rest route to a configured BYOK/local backend with an honest prompt — 0 silent failures, 0 fabricated web context.",
+    "source": "spec.md#SC-020",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-201",
+    "promise": "A deep-research run satisfies the coverage floor or aborts at its rounds/wall/token/spend ceiling, and in both cases produces a synthesized brief (never a bare timeout) — 100% of the time; cost-so-far + step log visible.",
+    "source": "spec.md#SC-021",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-202",
+    "promise": "An audit shows every enumerated obvious action is reachable by the internal agent and by hand — 0 obvious actions missing.",
+    "source": "spec.md#SC-022",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-203",
+    "promise": "Every shipped slash command executes its action; @TICKER resolves locale-aware to the correct instrument; @panel/@scope inject the correct context; /cmd @entity composes.",
+    "source": "spec.md#SC-023",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-204",
+    "promise": "For ≥2 portfolios, the agent's portfolio read equals the active portfolio shown in the UI across create/switch/edit, with 0 divergence.",
+    "source": "spec.md#SC-024",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-205",
+    "promise": "Every Pass-B agent mutation is gated 100% (diff/accept; AUTO only for UI/layout/chart/watchlist; orders never auto-applied); the §6.5 audit stays 9/9; Tier-1 LOCKED files are byte-for-byte untouched.",
+    "source": "spec.md#SC-025",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-206",
+    "promise": "Three speeds demonstrated with pixel proof (FAST opens a cockpit with no model call; ORCHESTRATED proposes+asks via the §6.5 bar; DEEP is the one path); 100% of mutations gated.",
+    "source": "spec.md#SC-026",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-207",
+    "promise": "'tell me more about this' resolves the focused symbol 100%; host-action completeness audit (screener-filter/drawings/save reachable by agent and hand); re-read-after-mutation holds.",
+    "source": "spec.md#SC-027",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-208",
+    "promise": "Exactly one research entry; 0 user-visible mode/angles/backend knobs; one deep loop.",
+    "source": "spec.md#SC-028",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-209",
+    "promise": "Model swap preserves context on every path; Enter sends in every composer; one mode system.",
+    "source": "spec.md#SC-029",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-210",
+    "promise": "Every matrix surface renders its full state set incl market-closed + symbol-not-found; 0 silent —/raw-JSON/silent-skips (visual audit, US+India).",
+    "source": "spec.md#SC-030",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-211",
+    "promise": "⌘K groups+scopes; agents rank above symbols; AI-ask routes; symbols gated (no >3k flood).",
+    "source": "spec.md#SC-031",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-212",
+    "promise": "Notes round-trips markdown; atomic write survives a mid-save crash; .md share opens correctly.",
+    "source": "spec.md#SC-032",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-213",
+    "promise": "Screener nested AND/OR + formula leaf evaluate; agent writes filters; expr-eval absent.",
+    "source": "spec.md#SC-033",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-214",
+    "promise": "Full S&P 500 screen cold ≤ single-digit seconds / warm sub-second, <5% skips ALL itemized (no silent drop) — measured live.",
+    "source": "spec.md#SC-034",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-215",
+    "promise": "Research sources deduplicated+clickable across both legs; overview narrative passes the numeric-verification pass with 0 fabricated numbers; brief exports md/PNG/PDF and each artifact opens correctly.",
+    "source": "spec.md#SC-035",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-216",
+    "promise": "Each of the four bugs (screener column overlap, 502 empty-series, date-change crash, macOS Layout menu) has saved visual/behavioral proof of its fix.",
+    "source": "spec.md#SC-036",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-217",
+    "promise": "Design language applied: contrast floors measured (body ≥4.5:1, large/non-text ≥3:1); no neon/glow; warm-clay fallbacks rg-clean; populated screenshots at both 1920×1080 and 2560×1440 saved.",
+    "source": "spec.md#SC-037",
+    "kind": "quality-bar",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-218",
+    "promise": "First-run 'try this' chips run; per-research-space agent memory persists across relaunch.",
+    "source": "spec.md#SC-038",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-219",
+    "promise": "The floor holds at every milestone: §6.5 audit 9/9; Tier-1 LOCKED byte-for-byte untouched; orders never auto-apply; keyless-first intact; pnpm ci-local + smoke-test green.",
+    "source": "spec.md#SC-039",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-220",
+    "promise": "Every phase gate requires §6.5 test_safety_end_to_end.py to pass 9/9 and the enumerated Tier-1 files (types/plugin.ts, types/safety.ts, types/broker.ts, the safety/broker/audit/kill-switch models, broker_base.py, kill_switch.rs, tauri.conf.json, CI workflows) to remain byte-for-byte untouched (git diff empty), with no place_/submit_/execute_order or auto_approve introduced (grep-checked).",
+    "source": "plan.md#Safety-Invariant",
+    "kind": "guarantee",
+    "status": "pending",
+    "evidence": "",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-221",
+    "promise": "The tauri-mcp verification rig stays dev-only.",
+    "source": "plan.md#Safety-Invariant",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/Cargo.toml:17-21 (dev-tools feature, optional dep :27); src-tauri/src/lib.rs:403-404 (#[cfg(feature=\"dev-tools\")]); src/lib/dev-mcp-bridge.ts:27 (NODE_ENV production early return); package.json:21 (tauri:mcp only)",
+    "gap": "Stale comment: dev-mcp-bridge.ts:6-9 still explains the strip in Next.js terms after the Vite migration (D6).",
+    "decision_ref": ""
+  }
+]

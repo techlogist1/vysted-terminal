@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-research-retrieval-relevance-1",
+    "title": "SearXNG (the preferred retrieval tier) silently ignores the caller's numResults: unbounded results into the model context, citations pinned at 8",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "sidecar/.venv/bin/python with a stub httpx client returning 40 SearXNG rows: SearxngBackend('http://127.0.0.1:1', client=stub).search('q', options={'numResults': 3, 'category': 'general', 'region': 'IN'}) -- the EXACT options dict web_search._dispatch builds at web_search.py:198 -- returns 40 results and 8 citations. Same options against the keyless engines: ddg._coerce_limit({'numResults': 3}) == 3. searxng._citation_limit({'numResults': 3}) == None, so normalize_results_to_citations falls back to DEFAULT_CITATION_LIMIT=8 and `results` is never sliced at all.",
+    "evidence": "sidecar/services/search/searxng.py:263, sidecar/services/search/searxng.py:205, sidecar/services/agent_tools/web_search.py:198, sidecar/services/search/ddg.py:401, sidecar/services/search/brave.py:142, sidecar/services/search/mojeek.py:134, sidecar/services/search/base.py:120",
+    "notes": "Information leakage + consistency: the wire knowledge 'the caller's result cap is numResults-or-maxResults' is hand-copied into four files and has already drifted in the fourth. Concrete consequence: SearXNG is the tier the product actively pushes users to install (the whole one-click Unlimited flow, searxng_manager.py:1-11), and on that tier an agent asking for 3 results gets every row the instance returned -- commonly 30-50 -- straight into the model's context via web_search.py:223-232, while the brief recorder still sees only 8 (deep.py:604); asking for 20 yields 8. The WORSE tier honours the contract, the better one does not. Smallest fix: one result_limit(options) helper in base.py next to DEFAULT_CITATION_LIMIT, delete the three _coerce_limit copies and _citation_limit, and slice `results` with it at searxng.py:205 as the other three backends already do."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-2",
+    "title": "A headline naming the ticker followed by a 2-3 digit number scores 0.0 and is dropped as off-entity (price-target / DMA / crore headlines)",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "sidecar/.venv/bin/python: target = ResearchTarget(symbol='BAJFINANCE', name='Bajaj Finance Limited', exchange='NSE', asset_class='equity', confidence=1.0, region='IN'); row on a moneycontrol.com URL. entity_match({'title': 'BAJFINANCE 200 DMA breakout as stock nears record', ...}, target=target) -> 0.0, row_relevant -> False. Delete the '200' and the identical row scores 1.0 and is kept. 'INFY 1500 target: brokerages raise view' -> 0.0. _symbol_only_in_index_form('bajfinance', 'bajfinance 200 dma breakout') -> True.",
+    "evidence": "sidecar/services/research/relevance.py:407, sidecar/services/research/relevance.py:412, sidecar/services/research/relevance.py:440, sidecar/services/research/relevance.py:203, sidecar/services/research/deep.py:611",
+    "notes": "Strategic-over-tactical: the regex `[\\s-]?\\d{2,3}(?![a-z0-9])` was written for the KSE-100 collision and generalised to 'any 2-3 digit number after the ticker', which is ordinary headline grammar. The symbol path is the ONLY entity anchor whenever the ticker is not a prefix of the company name (BAJFINANCE/Bajaj Finance, INFY/Infosys, M&M/Mahindra), and 'TICKER <number>' is the dominant shape of Indian price-target, DMA, crore-order and level headlines -- precisely the on-entity evidence the research product exists to retrieve. The row scores 0.0, below MATCH_FLOOR=0.34, so it never becomes a source (deep.py:611) and never counts toward coverage; the drop is silent and invisible on a read. Smallest fix: drop `\\s` from the index-tail pattern (require a hyphenated/contiguous suffix) and gate the whole check behind _foreign_shadow(text_lc, host), the marker that motivated it."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-3",
+    "title": "An HTTP-200 block/CAPTCHA page is recorded as a healthy empty answer AND resets the engine's circuit breaker",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "sidecar/.venv/bin/python: KeylessSearchBackend(engines={'ddg': stub}) where stub returns SearchResponse with one SearchResult titled 'Unusual traffic from your computer network' / snippet 'verify you are a human to continue' (the exact shapes LOW_QUALITY_MARKERS targets). Result: search() returns SearchResponse(results=[], backend='keyless') -- an ok:True empty answer, not the typed rate_limited SearchError built at keyless.py:194 -- and breaker_for('ddg').state == 'closed' with _failures == 0.",
+    "evidence": "sidecar/services/search/keyless.py:163, sidecar/services/search/keyless.py:164, sidecar/services/search/keyless.py:165, sidecar/services/search/keyless.py:186, sidecar/services/search/keyless.py:75, sidecar/services/agent_tools/web_search.py:157",
+    "notes": "Define-errors-out-of-existence, inverted: breaker.record_success() and any_engine_answered=True both execute BEFORE _filter_results runs the block-page markers, so a soft block is defined INTO a valid 'found nothing'. Two compounding harms: (a) the breaker never trips for a 200-with-challenge, so the blocking engine is hammered at full rotation rate indefinitely -- the exact failure mode breaker.py was written for; (b) the run reports 'found nothing' instead of 'rate-limited', the honesty regression SEARCH_REASON_RATE_LIMITED exists to prevent, and it is invisible to the up-but-empty cross-check at web_search.py:157 because that branch is gated on `label is None` (SearXNG only) -- the floor it cross-checks AGAINST carries the same hole. Smallest fix: move _filter_results above record_success; when an engine's rows are non-empty but filter to zero, call breaker.record_failure(), note 'blocked (challenge page)', and do not set any_engine_answered."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-4",
+    "title": "The keyless quality filter drops legitimate investor-relations results because their snippet carries a copyright footer",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "sidecar/.venv/bin/python: _filter_results([SearchResult(url='https://www.routemobile.com/investors', title='Route Mobile Q2 FY25 results', snippet='Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.')], set()) == [] -- the row is dropped before it ever reaches the relevance gate.",
+    "evidence": "sidecar/services/search/keyless.py:80, sidecar/services/search/keyless.py:98, sidecar/services/search/keyless.py:84, sidecar/services/search/extract.py:219, sidecar/services/research/finance.py:138",
+    "notes": "General-purpose-modules-are-deeper violation: ONE marker list is consumed at two granularities -- per PARAGRAPH by the page extractor (extract.py:219), where 'all rights reserved' is correct, and per WHOLE RESULT by the SERP filter (keyless.py:98), where it is destructive. SERP snippets routinely splice a page footer onto real content, and company IR pages -- the highest-tier evidence this product ranks for (finance.py:138 TIER_PRIMARY) -- are the worst offenders, so the filter inverts the source hierarchy. The drop is silent: the row never reaches relevance.py to be scored or logged. Smallest fix: split the list -- footer noise stays in the paragraph-level list extract.py consumes; only genuine interstitial markers ('verify you are a human', 'unusual traffic', 'access denied') stay in the result-level list, and those become a failure signal per finding 3 rather than a filter."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-5",
+    "title": "The web_search hot path's documented 'instant in-process read, no network probe' actually awaits a full docker derivation on the first search of every process",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): web_search.py:88 calls manager.ready_base_url_detected(), whose first invocation per process awaits refresh() -> detect() ('docker version', 15s budget) + _container_status() ('docker inspect') + _container_port() ('docker port') + _health_once() (5s HTTP). With a wedged dockerd each CLI call rides the 124-timeout path at searxng_manager.py:148-153. The two comments describing this call claim the opposite.",
+    "evidence": "sidecar/services/agent_tools/web_search.py:11, sidecar/services/agent_tools/web_search.py:85, sidecar/services/agent_tools/web_search.py:88, sidecar/services/searxng_manager.py:337, sidecar/services/searxng_manager.py:348, sidecar/services/searxng_manager.py:91, sidecar/services/searxng_manager.py:97",
+    "notes": "Comments-describe-non-obvious, inverted: the module docstring (web_search.py:11-13) and the inline comment (web_search.py:85-86) BOTH assert 'an instant in-process read, no network probe on the hot path', so anyone profiling a slow first research run is actively misdirected away from the cost. Concrete consequence: the first web_search after every sidecar launch -- the first research run the user sees after starting the app -- can stall tens of seconds inside one agent tool step with no progress signal. Second defect in the same function: _hot_path_detected is set to True BEFORE the await (searxng_manager.py:348-349), so a concurrent first search reads the stale None and floors to keyless while the derivation is still in flight, i.e. the run that paid for the probe may not benefit from it. Smallest fix: correct both comments; kick the one-shot derivation off in the app lifespan startup and keep the hot path on the pure ready_base_url() read the comments already promise. If it must stay lazy, set the flag after the await under the existing self._lock."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-6",
+    "title": "Nested retry budgets multiply to ~8 network round-trips per engine turn and nothing in the retrieval stack carries a wall-clock deadline",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): one keyless DDG turn = ATTEMPTS_PER_ENGINE (2, pacing.py:42) x _MAX_ATTEMPTS (2, ddg.py:60) x 2 endpoints (HTML at ddg.py:385, Lite at ddg.py:393) = up to 8 POSTs at _SEARCH_TIMEOUT_SECS=12.0 each, plus a get_queue().acquire (up to 3s) per attempt and a token-bucket acquire per endpoint, before the chain rotates to Brave and then Mojeek. `grep -n 'timeout|wait_for|deadline' sidecar/services/search/keyless.py sidecar/services/agent_tools/web_search.py` returns zero hits.",
+    "evidence": "sidecar/services/search/pacing.py:42, sidecar/services/search/ddg.py:60, sidecar/services/search/ddg.py:385, sidecar/services/search/ddg.py:393, sidecar/services/search/ddg.py:84, sidecar/services/search/keyless.py:219, sidecar/services/agent_tools/web_search.py:134",
+    "notes": "Performance-as-design: each retry layer is individually reasonable and documented ('short enough that a keyless search never turns into a long stall', pacing.py:66), but nobody owns the product of the three. Concrete consequence: a single web_search tool call can occupy an agent step for minutes with no budget bounding it, and a research loop issues many; the model has no way to time out and the BudgetGuard's wall ceiling only meters rounds, not a stuck tool. Smallest fix: wrap the backend call in web_search._dispatch (web_search.py:199) in one asyncio.wait_for with an explicit retrieval budget, and drop ddg.py's private _MAX_ATTEMPTS loop now that keyless.py owns retry for every engine."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-7",
+    "title": "DuckDuckGo is paced twice by two independently-tuned throttles in two files",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): on the keyless path every DDG hit passes through get_queue().acquire('ddg') at keyless.py:220 (ENGINE_MIN_INTERVALS['ddg'] = 3.0, pacing.py:33) AND _get_bucket().acquire() at ddg.py:384 (_RATE_PER_MIN = 20, i.e. one per 3.0s, ddg.py:69). The Lite fallback takes a second bucket token at ddg.py:391, so one DDG search consumes two of the ~20/min budget.",
+    "evidence": "sidecar/services/search/pacing.py:33, sidecar/services/search/ddg.py:69, sidecar/services/search/keyless.py:220, sidecar/services/search/ddg.py:384, sidecar/services/search/ddg.py:391",
+    "notes": "Information leakage: 'how fast may we hit DuckDuckGo' is one design decision expressed as two numbers in two modules that happen to agree today (3.0s vs 60/20 = 3.0s). Nothing links them, so the next tuning pass changes one and the effective rate silently becomes the min of two disagreeing policies. Concrete consequence on top of the drift risk: the duplication is pure added latency on the primary engine, and it compounds finding 6. Smallest fix: delete ddg.py's _TokenBucket/_get_bucket and its two acquire calls -- pacing.RequestQueue already covers every engine including the bare-ddg fallback lane once registry._build_ddg routes through it."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-8",
+    "title": "The circuit breaker is inverted: one bad search benches a healthy engine for 45s while a blocking engine stays closed",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): ATTEMPTS_PER_ENGINE == DEFAULT_FAIL_THRESHOLD == 2, and _try_engine calls breaker.record_failure() on EVERY failed attempt (keyless.py:227), so a single transient failure inside one search exhausts the threshold and opens the breaker for DEFAULT_COOLDOWN_SECS=45.0. Conversely, per finding 3, an engine serving a 200 challenge page hits record_success() and resets to zero failures.",
+    "evidence": "sidecar/services/search/pacing.py:42, sidecar/services/search/breaker.py:39, sidecar/services/search/breaker.py:42, sidecar/services/search/keyless.py:227, sidecar/services/search/keyless.py:163",
+    "notes": "The breaker's two tuning constants live in two modules (fail_threshold in breaker.py, attempts in pacing.py) and their coincidence -- both 2 -- is what collapses 'consecutive failures across searches' into 'any one bad search'. Concrete consequence: DDG is the richest-snippet engine and the rotation's primary (keyless.py:53); a momentary network blip benches it for 45 seconds of a research run, pushing every subsequent search onto Brave/Mojeek, while a genuinely blocking DDG is never benched at all. The docstring at keyless.py:214-217 states the behaviour as intended, which means the inversion was reasoned about from one side only. Smallest fix: count at most one failure per engine per search (record the last error, call record_failure once after the retry budget), leaving fail_threshold=2 to mean two consecutive bad searches as breaker.py:9-19 describes."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-9",
+    "title": "The typed rate_limited reason is lost on DuckDuckGo's 403-then-impersonate path, so a hard-throttled engine is reported as unreachable",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): on a 403 (ddg.py:225) _fetch calls _impersonated_fallback, which returns None for ANY non-2xx including 429 (ddg.py:196-198). The caller then raises SearchError(unreachable) at ddg.py:233 with no reason= kwarg, so SearchError.reason defaults to SEARCH_REASON_UNREACHABLE. keyless.py:180-184 records 'unreachable' rather than 'rate-limiting', any_rate_limited stays False, and the final cross-engine SearchError at keyless.py:198 carries reason='unreachable'.",
+    "evidence": "sidecar/services/search/ddg.py:225, sidecar/services/search/ddg.py:196, sidecar/services/search/ddg.py:233, sidecar/services/search/keyless.py:180, sidecar/services/search/keyless.py:198, sidecar/services/search/base.py:78",
+    "notes": "Define-errors-out-of-existence / consistency: SEARCH_REASON_RATE_LIMITED exists solely so the brief banner says 'rate-limited, retrying' instead of the false 'no web-search backend configured' (base.py:78-84), and ddg.py's own 202/429 branch honours that (ddg.py:241-245) -- but the sibling 403 branch eight lines above silently discards it. Concrete consequence: the most common hard-block shape on DDG (fingerprint 403, then a 429 through the impersonated lane) surfaces to the user as a permanent 'no backend' rather than a transient throttle, which is exactly the honesty regression the typed reason was introduced to kill. Smallest fix: have _impersonated_fallback return the FetchResult instead of a bool-ish text, and route its status through the same _RATE_LIMIT_STATUSES check the plain lane uses."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-10",
+    "title": "Citation drops published_at and source, and the brief recorder prefers citations -- so every web source loses its publication date",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): SearchResult carries published_at and source (base.py:41-42); Citation carries only url/title/excerpt (base.py:54-56) and normalize_results_to_citations discards the rest (base.py:132-135). web_search.py:233-235 reproduces that thin shape in the tool result. deep.py:604 then does `rows = citations if citations else results` -- and citations are always present when results are -- so ResearchSource.domain falls back to the literal 'web' (deep.py:614) and no publication date exists for any web source.",
+    "evidence": "sidecar/services/search/base.py:54, sidecar/services/search/base.py:132, sidecar/services/search/searxng.py:246, sidecar/services/agent_tools/web_search.py:233, sidecar/services/research/deep.py:604, sidecar/services/research/deep.py:614",
+    "notes": "Information-losing narrowing at a module boundary. SearXNG is the ONLY backend that supplies a publication date (publishedDate -> published_at, searxng.py:246) and it is also the tier the product pushes users to install -- so the recency data of the preferred tier is precisely the data thrown away. For a finance research product whose value is 'is this last week or 2019', the brief cannot sort, filter or badge by recency, and every source's domain label is the constant string 'web'. Smallest fix: have _record_web read `results` (which already carry both fields through web_search.py:223-232) instead of `citations`, or add published_at/source to Citation -- the thin shape buys nothing the caller wanted."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-11",
+    "title": "The SearXNG setup background task has no exception boundary and the module's logger is declared but never used",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): begin_setup fires asyncio.create_task(self.setup()) at searxng_manager.py:483; setup() catches only asyncio.CancelledError (searxng_manager.py:491). Inside _setup_locked, pick_port's RuntimeError IS guarded (:532-536) but write_settings on the line immediately above (:531) can raise OSError (unwritable data dir, full disk) uncaught -- the task dies with an unretrieved exception while state is STATE_PULLING, and `grep -n '_log' sidecar/services/searxng_manager.py` shows the logger at :62 is never called anywhere in the 656-line module.",
+    "evidence": "sidecar/services/searxng_manager.py:483, sidecar/services/searxng_manager.py:491, sidecar/services/searxng_manager.py:531, sidecar/services/searxng_manager.py:532, sidecar/services/searxng_manager.py:62",
+    "notes": "One code path in a guarded sequence is unguarded while its immediate sibling is guarded -- the classic 'five siblings have it, this one does not'. Concrete consequence: the guided one-click setup dies, the next refresh() re-derives to 'docker_present_not_setup' (searxng_manager.py:434-437) with reason=None, and the user sees 'SearXNG is not set up yet' forever with no error, no CTA that helps, and -- because the logger is dead -- not one line anywhere explaining why. The status payload's `reason` field is the ONLY diagnostic surface this state machine has, and this path cannot populate it. Smallest fix: wrap _setup_locked's body in `except Exception as exc: self._set(STATE_ERROR, reason=...); _log.exception(...)`, and actually use _log at every docker non-zero exit."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-12",
+    "title": "~150 lines of locale/autodetect/metadata scaffolding have zero production callers, and three module docstrings still describe them as the live routing",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (grep): `grep -rn 'locale_domains|preferredDomains|detect_searxng|KNOWN_BACKENDS|breaker_status|untrusted_context_message' --include=*.py sidecar/` returns matches only inside the defining module and under sidecar/tests/. No backend in the partition ever sets SearchResponse.metadata, yet web_search.py:237-239 passes the field through.",
+    "evidence": "sidecar/services/search/base.py:138, sidecar/services/search/base.py:20, sidecar/services/search/searxng.py:105, sidecar/services/search/searxng.py:18, sidecar/services/searxng_manager.py:40, sidecar/services/search/base.py:75, sidecar/services/search/registry.py:38, sidecar/services/search/breaker.py:135, sidecar/services/search/scrub.py:105",
+    "notes": "Design-for-the-future violation compounded by stale prose, which is the part that bites a maintainer. base.py:20-23 states Exa/Tavily domain allow-lists 'are sourced from locale_domains' -- nothing sources them and both vendors are deleted (registry.py:22-24). searxng.py:18-27 and searxng_manager.py:40-42 both present detect_searxng's port probing as the routing story, but production resolves SearXNG via config.get_searxng_url() or manager.ready_base_url_detected() (web_search.py:78, :88) and never calls detect_searxng. SearchResponse.metadata documents a hosted-tier cost annex for a tier the same package declares DEAD. Concrete consequence: a maintainer adding a fifth backend will wire locale_domains and the autodetect probe because three docstrings tell them to, and none of it will run. Smallest fix: delete base.py:138-174, searxng.py:64-142 (plus their test files), base.py:75 and the unused exports, and correct the three docstrings in the same commit."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-13",
+    "title": "The managed-SearXNG error state is sticky per-process, so fixing the world by hand can never clear it and the hot path stays on keyless forever",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): refresh() returns the snapshot untouched whenever self.state == STATE_ERROR (searxng_manager.py:413-414), before any docker probe. Only setup()/begin_setup() or teardown() clears it (searxng_manager.py:604-607). A user whose setup failed (e.g. docker daemon was down), who then starts Docker and runs `docker start vysted-searxng` themselves, keeps state=error: the status poll never re-derives, ready_base_url() returns None, and web_search.py:88-92 floors every search to keyless.",
+    "evidence": "sidecar/services/searxng_manager.py:413, sidecar/services/searxng_manager.py:604, sidecar/services/searxng_manager.py:333, sidecar/services/agent_tools/web_search.py:88",
+    "notes": "The stickiness is deliberate and documented (searxng_manager.py:403-409): the status poll is the only surface that can deliver an error reason for a background setup task, so re-deriving would erase it on the first poll. But the fix scopes the error to the PROCESS rather than to the attempt, so a world change can never clear it. Concrete consequence: a running, healthy managed container is silently bypassed for the life of the sidecar -- the exact 'green in settings but unused' disease ready_base_url_detected was added to cure (searxng_manager.py:341-345), reintroduced through the other door. Smallest fix: keep the error alongside the derived state (a `last_error` field the snapshot carries) rather than AS the state, so refresh() can re-derive ready while the UI still shows what failed."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-14",
+    "title": "brave.py and mojeek.py are near-identical twins with no shared base, so every scrape-contract fix must be made twice",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (diff): after renaming the engine name and the region param, `diff` between mojeek.py and brave.py reports 104 differing lines out of ~145 -- and the genuinely engine-specific content is only the endpoint, the region-param name, the CSS selectors and the skip-host tuple. _clean, _is_organic_url, _node_to_result's shape, _parse's dedup loop, the two status branches and _coerce_limit are the same code twice.",
+    "evidence": "sidecar/services/search/brave.py:52, sidecar/services/search/brave.py:79, sidecar/services/search/brave.py:140, sidecar/services/search/mojeek.py:48, sidecar/services/search/mojeek.py:74, sidecar/services/search/mojeek.py:132",
+    "notes": "Better-together: two modules that change for the same reason (the HTML-SERP scrape contract) with no structure holding them in sync. Concrete consequence: finding 1's option-key fix, finding 6's timeout fix and any future dedup/organic-URL hardening each land in one file and quietly miss the other -- the same duplication that already produced the searxng divergence. Smallest fix: one _HtmlSerpBackend base in the package taking (endpoint, region_param, region_map, container_selectors, title_selector, snippet_selector, skip_hosts, fetch); brave and mojeek become ~25 lines of configuration each."
+  },
+  {
+    "raw_id": "COD-research-retrieval-relevance-15",
+    "title": "relevance._host_matches re-implements finance._matches line for line in a module that already imports finance",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "research-retrieval-relevance",
+    "repro": "design (code read): relevance.py:306-307 is `any(host == entry or host.endswith('.' + entry) for entry in table)`; finance.py:122-124 is the same expression under the name _matches. relevance.py:20 already does `from services.research import finance` and uses finance.domain_of at relevance.py:346.",
+    "evidence": "sidecar/services/research/relevance.py:306, sidecar/services/research/finance.py:122, sidecar/services/research/relevance.py:20, sidecar/services/research/relevance.py:346",
+    "notes": "Small duplicated truth with a real drift surface: 'suffix-aware host match' is the rule that decides both the evidence blacklists (JUNK_HOSTS, CRYPTO_HOSTS, INDIA_FINANCE_HOSTS, FOREIGN_MARKET_HOSTS) and the source-tier ranking (PRIMARY_DOMAINS, PRESS_DOMAINS). If one copy gains public-suffix awareness or case folding and the other does not, a host is junk-filtered under one rule and tier-ranked under another. Smallest fix: rename finance._matches to host_matches, export it, and delete the copy."
+  }
+]

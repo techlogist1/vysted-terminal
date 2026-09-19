@@ -1,0 +1,162 @@
+[
+  {
+    "pid": "INT-SP-136",
+    "promise": "The system MUST resolve a free-text name or ticker to a concrete instrument (ticker, exchange, region, asset class) via a keyless-first resolver (bundled US + NSE/BSE instrument masters + a live keyless lookup), locale-ranked, with disambiguation surfaced when confidence is low.",
+    "source": "spec.md#FR-061",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/symbol_resolver.py:207-240 (Instrument: symbol/exchange/region/asset_class + isin/bse_code), :652-673 resolve(query, region) locale-ranked (band, locale, score), :971-1035 guarded yfinance.Search live rung; bundled masters sidecar/services/resolver_masters/{nse,bse,us}_instruments.json; ONE policy sidecar/services/resolution_policy.py:55-57,99 (bind>=0.72 / disambiguate / unresolved); route GET /resolve sidecar/routers/resolve.py:58-121 (needs_disambiguation surfaced); UI consumers src/modules/chat/mentions.ts:217, src/lib/host-actions.ts:169 (brief disambiguation).",
+    "gap": "asset_class vocabulary is equity|etf only (symbol_resolver.py:223); crypto/index are routed by the caller's asset_class hint, not by the resolver. Not filed — crypto has its own panel path.",
+    "decision_ref": "D37, D46, D47, D58"
+  },
+  {
+    "pid": "INT-SP-137",
+    "promise": "Data retrieval MUST be fault-tolerant and never dead-end: the registry falls through to the next provider on a missing-key/empty/invalid response, serving the first valid provenance-tagged result, and MUST surface an honest, human 'unavailable' (naming what would unlock it) ONLY when all configured sources fail; raw JSON dumped at the user is a defect.",
+    "source": "spec.md#FR-062",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Fall-through delivered: sidecar/services/provider_registry.py:337-366 (_resolve_sync walks ranked providers, CorrectnessError/ProviderError -> next), :369-445 (_resolve_async + accept/fallback_ok), :480-491 (all-null shell refused). LLM/system errors humanized: sidecar/services/errors.py:104-321. BUT data-route failures are NOT humanized: sidecar/app.py:312-315 returns {'detail': str(exc)} verbatim and src/lib/sidecar-client.ts:49-52,198-204 passes that string to the UI as the SidecarError message.",
+    "gap": "Live on :52152 — GET /quotes/ZZZZNOTREAL -> 502 {\"detail\":\"yfinance quote failed for 'ZZZZNOTREAL': 'PriceHistory' object has no attribute '_dividends'\"} (a raw library AttributeError, no 'what would unlock it'); GET /macro/GDP -> 502 with a raw World Bank APIError + upstream URL; GET /history/ZZZZNOTREAL -> 200 empty with reason 'in_eod_only' (sidecar/routers/history.py:15-28 stamps the India-EOD explanation on a symbol that does not exist whenever the active region is IN). /fundamentals/ZZZZNOTREAL is the good shape (404 'No instrument matches … — check the symbol.').",
+    "decision_ref": "D43 (covers provider/system errors via services/errors.py — data routes were not routed through it)"
+  },
+  {
+    "pid": "INT-SP-138",
+    "promise": "The system MUST NOT present wrong, stale, or glitchy data as correct: a correctness gate MUST reject a provider response on empty/null data, non-positive price, exchange-calendar-aware staleness, a returned-symbol mismatch, or missing required fields; yfinance MUST NOT be trusted for .NS/.BO tickers without this gate.",
+    "source": "spec.md#FR-063",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/correctness_gate.py:94-115 validate_quote (non-positive price :99, symbol mismatch :105, calendar-aware staleness via locale.is_rejectably_stale :110), :118-143 validate_series (empty -> EmptySeriesError, non-positive close, mismatch), :146-168 validate_fundamentals + :194 plausibility bounds; wired for every equity quote/ohlcv/fundamentals request at sidecar/services/provider_registry.py:455-457,467-469,484-491; yfinance sits behind nse_direct/nse/bse for IN (provider_registry.py:141-196) and its IN results pass the same gate.",
+    "gap": "Statements/analyst/macro model-keys pass validate=None (provider_registry.py:495-531) — identity is not re-checked there. Crypto bypasses the gate by design (:456).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-139",
+    "promise": "Each data source MUST be a marketplace plugin declaring the exchanges, data types, and region(s) it serves; the keyless India equity default ships pre-installed as jugaad-data/NSE-Bhavcopy (zero-key, T+1 EOD); Angel One/Dhan/Zerodha + EODHD/Twelve Data are optional BYOK upgrades; yfinance remains the keyless US default; brokers stay none-pre-installed and read-only.",
+    "source": "spec.md#FR-064",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "Delivered half: keyless India default pre-wired — sidecar/services/provider_registry.py:141-196 (nse_direct 15 / jugaad 'nse' 20 / bse 25, region={'IN'}), bhavcopy lane sidecar/services/nse_bhavcopy.py (D54); yfinance keyless US default :197-213; brokers none-pre-installed src/lib/marketplace.ts:78-80,190-314 and read-only. Missing half: data sources are a hard-coded _PROVIDERS tuple (provider_registry.py:113), not marketplace plugins; the marketplace contract has no region/exchange declaration (types/marketplace.ts:68-69 only standardModelKeys + preferenceRank); the India lanes have no marketplace row at all (src/lib/marketplace.ts:84-180 lists yfinance, openbb-mcp, lenses, news, example). No EODHD / Twelve Data code anywhere (grep clean). Angel One/Dhan/Kite adapters serve account reads only (sidecar/services/brokers/angelone.py:200, dhan.py:288 use ltp only to value holdings) — they are not quote/ohlcv providers, so there is NO BYOK upgrade path off T+1 EOD for India.",
+    "gap": "(a) India data lanes invisible/unmanageable in the hub; (b) no BYOK realtime/intraday India data upgrade of any kind; (c) plugin region/exchange declaration absent.",
+    "decision_ref": "spec.md:1466-1467 (Pass-C open decision 1: broker-WS + EODHD 'a separate later track' — a recommendation, never closed with a D-number)"
+  },
+  {
+    "pid": "INT-SP-140",
+    "promise": "Every served value MUST carry provenance, and locale-shaped output (currency, market-hours-aware freshness, locale formatting) MUST be correct for the active region — e.g. an NSE quote denominated in INR with IST session context, never an ET-anchored VWAP applied to NSE data.",
+    "source": "spec.md#FR-065",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "Live :52152 GET /quotes/RELIANCE -> currency INR, market_state CLOSED, provider nse_direct, freshness eod; GET /fundamentals/RELIANCE -> provider, currency, growth_basis, per-field field_meta. Code: sidecar/services/locale.py:130 region_currency, :157-216 market tz/session/is_market_open, :227 freshness_for; sidecar/routers/history.py:31-52 stamps calendar-aware freshness; VWAP is session-grouped on the bar's own UTC date (sidecar/services/indicators.py:242-283) — not ET-anchored; an NSE session (03:45-10:00 UTC) sits inside one UTC date. Currency threaded to money cells (D57).",
+    "gap": "",
+    "decision_ref": "D55, D57"
+  },
+  {
+    "pid": "INT-SP-141",
+    "promise": "The system MUST provide a fast research path (default-on) that, from a single instruction, resolves the symbol, pulls structured data from providers in parallel, runs one light web-search round, synthesizes, and produces the B+A output — targeting an interactive latency of ≤15s typical.",
+    "source": "spec.md#FR-070",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "Path exists: sidecar/services/research/fast.py:534-640 gather_fast (resolve -> asyncio.gather of structured legs :329,:377,:630 -> one web round :502) ; depth router sidecar/services/research/depth.py:113-124 (NORMAL -> fast loop, no LLM inside); B+A output via auto-publish + research-cockpit template.",
+    "gap": "Latency target missed in the project's own live evidence: docs/redesign/verification/R13_RUN_REPORT.md:31 'NORMAL (15:07, 33s, 12 steps)' and :47 'NORMAL (19:37, 38s)' — 2.2-2.5x the <=15s typical target. No latency assertion exists in tests.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-142",
+    "promise": "The system MUST provide an opt-in deep research path that runs a multi-round search→read→reflect→search-again loop until a coverage floor (≥1 source each for price/fundamentals/news/web context) is met or a hard budget is hit.",
+    "source": "spec.md#FR-071",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/research/deep.py:63-64 _COVERAGE_DIMS=(price,fundamentals,news,web), :217 _coverage_met, :250 R7 coverage floor + web-domain independence, :1070 'floor met AND reflect says complete'; iter loop sidecar/services/research/iter.py:304; depth table sidecar/services/research/depth.py:125-160 (DEEP=iter 3 rounds x 3 researchers, ULTRA=heavy panel + cross-check).",
+    "gap": "Quality defects inside the loop are catalogued separately (raw/code-research-depth-iter-deep.json).",
+    "decision_ref": "D7, D30"
+  },
+  {
+    "pid": "INT-SP-143",
+    "promise": "Deep research MUST be bounded by a hard, user-visible ceiling on rounds, wall-clock, tokens, and spend, wired to the BudgetGuard; the first breach MUST force immediate synthesis from gathered context with a stated reason; defaults: rounds=3 (max 5), wall=120s (max 300s); trigger is explicit /deep + 'go deeper' (not auto-detect).",
+    "source": "spec.md#FR-072",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Rounds + wall ceilings delivered and wired to BudgetGuard: sidecar/services/agent_tools/deep_research.py:425-426 (_clamp rounds [1,5], wall [30,300]), :232-236 BudgetGuard(max_steps, max_wall_seconds); breach -> synthesize from gathered context with brief.note (sidecar/services/research/deep.py:12-14, iter.py:25); D19 degrade-not-abort. Explicit trigger: /deep slash + depth arg (see INT-SP-157).",
+    "gap": "TOKENS and SPEND ceilings are not wired at all for deep research: the guard is built with max_steps/max_wall only (deep_research.py:232-236) and every round calls budget.record(None, …) (iter.py:585,962,1023; deep.py:1214; verify.py:319; citecheck.py:266) because the loop's llm_call returns a bare str (deep_research.py:322-325 -> oneshot.complete) and usage is discarded. So a DEEP/ULTRA run on a paid BYOK key (ULTRA = up to 3 angles x 4 rounds x 5 steps + cross-check + synthesis) has no spend cap and brief.cost = budget.cost() (iter.py:1146) reports 0 tokens / $0. Defaults also drifted from the spec (DEEP wall 180, ULTRA 360 > the 300 clamp — depth.py:141,155) by recorded R9/R13 tuning.",
+    "decision_ref": "D19 (degrade instead of abort); R9 V14 / R13 wall retunes (depth.py:133-155)"
+  },
+  {
+    "pid": "INT-SP-144",
+    "promise": "The system MAY support a BYOK deep-research backend (e.g. Perplexity Sonar) as an explicit, opt-in-per-run DEEP path with estimated cost shown before starting; it MUST NEVER be auto-selected, and its citations MUST carry provenance ('via <backend>').",
+    "source": "spec.md#FR-073",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Never auto-selected: default tier is tier_a (sidecar/config.py:364-388); Tier B (hosted research model via the user's OpenRouter key) is an explicit Settings choice (src/store/search-settings.ts:198-207,325). Citation provenance: sidecar/services/research/sonar.py:58,198,237 ('via Perplexity Sonar (OpenRouter)'). Cost estimators exist: sonar.py:110, perplexity.py:86.",
+    "gap": "The estimate is stamped on the RESULT (deep_research.py:151,184 cost_estimate_usd), never shown before the run starts; opt-in is per-Settings-tier, not per-run (R9 two-tier replaced the per-run model). Pricing hints live only in the Settings picker (src/store/search-settings.ts:92-109).",
+    "decision_ref": "R9 two-tier research (DECISIONS.md §R9 header; R9_RUN_REPORT.md:13-30; COMMON.md: two-tier not to be reopened) — the per-run opt-in is superseded; the pre-run cost line is the residual gap"
+  },
+  {
+    "pid": "INT-SP-145",
+    "promise": "Research output MUST be B+A: it BUILDS the workspace (arranges a coherent named-template cockpit) AND drops a synthesized written brief panel — markdown with inline [n] citations, a sources tray, and a metadata header (mode, source count, cost) — inside it; the brief is a real dockview panel.",
+    "source": "spec.md#FR-074",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "Brief is a real dockview panel: src/modules/research/index.ts:23,39 ('brief-panel' -> BriefPanel); auto-publish on research ok-result sidecar/services/agent_runtime.py:922-925 (_auto_publish_event); templates src/lib/layout-templates.ts:20,188-236 + viewport fit :362-409; header (mode/source count/cost) src/modules/research/BriefPanel.tsx:113-146; typed blocks + sources in src/modules/research/brief-blocks.tsx.",
+    "gap": "The header's cost is structurally empty for DEEP/ULTRA runs — see INT-spec-135-143.",
+    "decision_ref": "D38, D39"
+  },
+  {
+    "pid": "INT-SP-146",
+    "promise": "Each research run MUST be step-logged (plan/tool/search/compress/reflect/synthesize records with latency + status), and the step log + cost-so-far MUST be inspectable.",
+    "source": "spec.md#FR-075",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "Step log delivered: sidecar/services/research/models.py:82-103 (ResearchStep kind/detail/latency_ms/status), streamed live through config.get_step_sink (deep_research.py:239-245), rendered by src/modules/chat/ResearchActivity.tsx.",
+    "gap": "cost-so-far is not inspectable for DEEP/ULTRA because usage is never recorded (budget.record(None,…)) — covered by raw finding INT-spec-135-143.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-SP-147",
+    "promise": "The system MUST support web search across three user-selectable tiers, each a marketplace search-source plugin conforming to a common search interface: native, BYOK search API, and local/private; no tier requires a subscription beyond the user's own keys.",
+    "source": "spec.md#FR-080",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "sidecar/services/search/registry.py:22 ('The R7/R8 BYOK scraper backends (exa, hosted) are DEAD — deleted in R9'); sidecar/config.py:99-106,364-388 (legacy tier headers migrate to tier_a/tier_b); a common search interface survives at sidecar/services/search/base.py.",
+    "gap": "Three user-selectable tiers as marketplace search-source plugins no longer exist by decision.",
+    "decision_ref": "R9 two-tier research — DECISIONS.md §R9; R9_DEFECT_CATALOGUE.md:17,21 (V9, V13); D20 (one search truth); COMMON.md out-of-scope list"
+  },
+  {
+    "pid": "INT-SP-148",
+    "promise": "The native tier MUST be the default where the active model supports server-side web search (Anthropic/OpenAI/Gemini/Groq/xAI), riding the user's existing key and returning normalized citations; a per-run search cap MUST bound per-search billing during multi-round research.",
+    "source": "spec.md#FR-081",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/native_search.py:54,62 (SUPPORTS/PROVIDER_LEVEL sets incl. anthropic/openai/gemini/groq/xai/openrouter), :95 per-model OpenAI gate, :294-382 normalize_{anthropic,openai,gemini,xai} -> uniform citations; dispatch sidecar/services/agent_runtime.py:1307-1340 (native rides the model on tier_a, local web_search tool withheld); cap _WEB_SEARCH_CAP=5 at agent_runtime.py:548, enforced for the local tool at :1551-1565 and passed as max_uses to Anthropic (services/llm/anthropic.py:113,132).",
+    "gap": "The provider-side cap is only expressible on Anthropic; openai/gemini/groq adapters pop it (openai.py:665-667, gemini.py:112, groq.py:117) and rely on the round ceiling.",
+    "decision_ref": "R9 two-tier (native compounds with tier_a; ignored on tier_b)"
+  },
+  {
+    "pid": "INT-SP-149",
+    "promise": "Where the active model has no native web search (DeepSeek, local Ollama, bare Qwen/Llama), the system MUST surface an honest prompt and route to a configured BYOK or local backend — it MUST NOT fail silently or fabricate web context.",
+    "source": "spec.md#FR-082",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/web_search.py:57-61 _NO_BACKEND_MESSAGE ('… Set up Unlimited (Local) research in Settings → Research, or switch to a model with native web search. I won't invent sources.'), :113-132; keyless floor stamps backend 'keyless-fallback' (:55,:177-182) and the brief renders the nudge (src/modules/research/BriefPanel.tsx:338-369,655-658). Live: GET /search/status -> tier t1_keyless, ddg/brave/mojeek available.",
+    "gap": "",
+    "decision_ref": "D25, R9 gate 2"
+  },
+  {
+    "pid": "INT-SP-150",
+    "promise": "The BYOK search tier MUST ship at least one best-in-class finance-suitable backend — Exa (default), with Tavily/Linkup as alternates; backends MUST support locale-aware domain preferences.",
+    "source": "spec.md#FR-083",
+    "kind": "capability",
+    "status": "dropped",
+    "evidence": "sidecar/services/search/registry.py:22; sidecar/config.py:103-104 ('The R7 Exa-direct lane and its key header are DEAD — no Exa secret is read anymore'); src/lib/search-headers.ts:27.",
+    "gap": "No Exa/Tavily/Linkup backend by decision.",
+    "decision_ref": "R9 two-tier research (R9_RUN_REPORT.md:27 'The BYOK scraper tier (Exa/Firecrawl/hosted web-plugin) is deleted, config migrated'); R9_DEFECT_CATALOGUE.md:21 (V13)"
+  },
+  {
+    "pid": "INT-SP-151",
+    "promise": "The local tier MUST allow web search with no data leaving the machine (SearXNG-class), via auto-detect + a configurable local URL: BYO SearXNG URL + autodetect localhost:8080 in v1.",
+    "source": "spec.md#FR-084",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/search/searxng.py:45-49 (autodetect probes localhost:8888 + :8080), :116 (explicit URL wins); managed container sidecar/services/searxng_manager.py:69-71 + routes /search/searxng/{setup,status,teardown} (openapi on :52152); configurable URL src/store/search-settings.ts:198,355.",
+    "gap": "",
+    "decision_ref": "D20, D25, D74"
+  }
+]

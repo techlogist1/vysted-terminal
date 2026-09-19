@@ -1,0 +1,42 @@
+[
+  {
+    "raw_id": "INT-spec-90-1",
+    "title": "All-providers-failed data errors reach panels as raw Python exception strings, with no 'what would unlock it'",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "provider-registry / error surface",
+    "repro": "curl -s http://127.0.0.1:52152/quotes/ZZZQNOPE -> 502 {\"detail\":\"yfinance quote failed for 'ZZZQNOPE': 'PriceHistory' object has no attribute '_dividends'\"}; the Equity Overview / Watchlist / Chart panels print that string verbatim",
+    "evidence": "sidecar/app.py:312-315, sidecar/routers/fundamentals.py:115, sidecar/services/yfinance_provider.py:65, src/modules/equity-overview/EquityOverviewPanel.tsx:763, src/modules/watchlist/WatchlistPanel.tsx:206, src/modules/chart/ChartPanel.tsx:408",
+    "notes": "spec Edge-Cases-Pass-B promises an honest 'unavailable' + reason + what would unlock it. D43's humanizer (services/errors.py) covers LLM errors only; ProviderError has a `kind` taxonomy but the global handler ignores it. Smallest fix: map ProviderError.kind -> {message, action} in the app.py handler (reuse errors.HumanError shape) and have panels render message+action with raw detail behind the existing toggle."
+  },
+  {
+    "raw_id": "INT-spec-90-2",
+    "title": "Portfolio market value / P&L carry no freshness badge — stale or after-hours quotes read as live",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "portfolio panel",
+    "repro": "design: open Portfolio after IN close (or with a Yahoo-throttled stale quote); value + P&L render with no live/EOD/stale label while Watchlist shows one for the same quote",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:140-166 (quotes fetched, only fetch failure badged), src/modules/watchlist/WatchlistPanel.tsx:75 (badge exists elsewhere), sidecar/services/locale.py:225-254",
+    "notes": "spec Edge-Cases + FR-041: stale/after-hours data never shown as live. The Quote already carries `freshness`; smallest fix = reuse StalenessBadge per row + a summary-level 'as of' on the totals."
+  },
+  {
+    "raw_id": "INT-spec-90-3",
+    "title": "Native web search has no per-RUN cap off-Anthropic and per-search billing is never metered",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-runtime / llm adapters / budget guard",
+    "repro": "design: tier_a + a native-search model on OpenAI/Gemini/xAI/OpenRouter -> opts['web_search_max_uses'] is popped by the adapter; the loop counter only counts the local `web_search` tool, which is withheld on the native tier",
+    "evidence": "sidecar/services/agent_runtime.py:1335-1340,1416,1553-1561; sidecar/services/llm/openai.py:664-667; sidecar/services/llm/gemini.py:110-112; sidecar/services/llm/native_search.py:109-113 (comment promises a loop-level counter that is not there); sidecar/services/budget_guard.py:82-84; src/modules/chat/ChatSidebar.tsx:921",
+    "notes": "spec Edge-Cases (FR-081): per-run search cap + legible cost-so-far. Anthropic cap is per request (x6 rounds). BudgetGuard prices tokens only, so a $10/1k-search lane is invisible to the spend ceiling and the UI. Smallest fix: count native searches from adapter usage/citation metadata per round, stop sending web_search=True once the run total hits the cap, add a per-search rate to model_registry prices and surface it in cost()."
+  },
+  {
+    "raw_id": "INT-spec-90-4",
+    "title": "yfinance is still the de-facto India primary for fundamentals/statements/analyst",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "provider-registry",
+    "repro": "design: provider_registry candidates for model_key='fundamentals', region IN = openbb-mcp (all-null shells for IN, D72) -> yfinance; no exchange-direct / filing-derived fundamentals provider exists",
+    "evidence": "sidecar/services/provider_registry.py:128-142,161-164,200-215; docs/redesign/DECISIONS.md D72/D73",
+    "notes": "spec Edge-Cases-Pass-B: 'yfinance is never the trusted India primary'. Holds for quote/OHLC only. D73 proved yfinance is 'present-but-subtly-off' below mid-cap (141x institutional holding, promoter drift). Cross-checks flag some fields but the primary number shown is still yfinance's. Likely overlaps the data-battery sweeps — merge there. Fix shape: an exchange/XBRL-derived IN fundamentals provider ranked above yfinance for the fields it can serve."
+  }
+]

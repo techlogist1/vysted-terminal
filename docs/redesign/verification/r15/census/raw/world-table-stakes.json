@@ -1,0 +1,142 @@
+[
+  {
+    "raw_id": "WLD-T-1",
+    "title": "Nothing in the app runs unattended: no alerts, no schedules, no triggers — the engine, the notification sink and the durable-run machinery all exist and are only reachable by a human pressing run",
+    "severity": "critical",
+    "area": "agent",
+    "subsystem": "monitoring/triggers",
+    "repro": "grep the 51-entry capability catalog and sidecar/routers/ for any alert/notify/schedule/trigger surface -> none. Every run entry point is a POST from the UI: POST /workflow/run, POST /agents/{id}/runs. Close the app (or just stop looking at it) and nothing can reach you.",
+    "evidence": "sidecar/services/agent_tools/catalog.py (51 _cap entries, ids listed at :146-1444 — no alert/notify/watch/schedule/trigger id); sidecar/routers/ (31 routers, no alerts module); sidecar/routers/workflow.py:38 (POST /run is the only start); sidecar/routers/runs.py:63 (POST /agents/{agent_id}/runs is the only start); grep -riE '\\b(cron|recurring|scheduled_run|schedule_run)\\b' over sidecar/ src/ types/ returns only sidecar/agents/lynch.json prose and a resolver master JSON. The sink already exists and is orphaned: src/lib/desktop-notification.ts:1-25 drains action.notify_desktop intents to the OS notifier (sidecar/services/workflow_nodes/builtin.py:321-336), fed only by an interactively-started workflow run.",
+    "notes": "Monitoring is half the stated product and every benchmark ships it, two of them free: Screener free tier = 10 stock + 2 screen + 2 phrase alerts (https://www.screener.in/premium/); Tijori ships price/volume alerts on the FREE tier (https://www.tijorifinance.com/features/); Trendlyne ships 150 price-target + 75 screener alerts on its Rs310 entry plan (https://trendlyne.com/subscription/plans/); Perplexity ships price alerts plus Tasks, 'a recurring research query on a schedule' (https://helmterminal.dev/blog/perplexity-stock-research). Root cause is ONE missing piece, not fourteen: a trigger layer. Smallest honest fix: a single scheduler that can start an existing saved workflow or an existing durable run on a clock (run_manager.py already owns detached asyncio tasks + BudgetGuard ceilings + a SQLite store), plus one condition node. Cheapest first trigger is a phrase watch over the announcements feed already being fetched (sidecar/services/research/disclosures.py:36-40), not a price-tick subsystem."
+  },
+  {
+    "raw_id": "WLD-T-2",
+    "title": "The watchlist and portfolio 'Export CSV' controls use the `<a download>` + Blob path that this repo's own export helper documents as BLOCKED in the Tauri webview — a likely silent dead control on two panels",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "export",
+    "repro": "Click Export CSV in the watchlist or portfolio panel in the packaged desktop app. src/lib/csv.ts:27-37 creates a Blob, sets `a.download`, and clicks it — the exact path src/lib/export-artifact.ts:4-8 states the webview blocks.",
+    "evidence": "src/lib/export-artifact.ts:4-8 — \"The WKWebView/Chromium webview blocks the browser `<a download>` + Blob-save path, so every binary export flows through the Rust `write_bytes_atomic` command (text goes through `write_text_atomic`)\"; src/lib/csv.ts:27-37 does exactly the blocked thing; callers src/modules/watchlist/WatchlistPanel.tsx:265 and src/modules/portfolio/PortfolioPanel.tsx:504.",
+    "notes": "Two exports in the same codebase disagree about whether the webview can save a file, and the one that ignores the documented constraint is the one users click. If it is dead it is dead SILENTLY (no throw, no toast) — the worst shape. Smallest fix: route downloadCsv through the same write_text_atomic path export-artifact.ts already uses, returning the written path. VERIFY by driving the panel in the code/UI lane — this sweep is read-only and cannot click. (Competitive context, not the defect: Screener's export is a fillable Excel model the user uploads once and Screener re-fills, https://www.screener.in/features/ — that is a differentiator, not table stakes; a working CSV is table stakes.)"
+  },
+  {
+    "raw_id": "WLD-T-3",
+    "title": "The sidecar emits a 419 'kite-session-expired' reconnect cue that the frontend never reads — every morning the user sees the raw slug `kite-session-expired` in a red box with no reconnect action",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "broker-connect",
+    "repro": "Leave a Kite-connected session overnight; the exchange flushes the access token ~06:00-07:30 IST; open the broker reads section. sidecar -> 419 detail 'kite-session-expired'; UI -> SidecarError.message == 'kite-session-expired' rendered verbatim as the error string.",
+    "evidence": "sidecar/services/brokers/kite.py:498-505 raises \"kite: session expired — reconnect (daily token expiry)\"; sidecar/routers/brokers.py:184-188 maps it to HTTPException(419, \"kite-session-expired\") with the stated intent \"so the frontend shows a 'reconnect' cue instead of a generic red error\"; src/lib/sidecar-client.ts:198-204 puts the FastAPI `detail` into SidecarError.message and 419 into `.status`; src/modules/broker-connect/BrokerReadsSection.tsx:52-53 does `setError(err instanceof Error ? err.message : ...)` with no status branch. grep for `419` or `kite-session` across src/ --include=*.ts --include=*.tsx returns ZERO hits. World: https://kite.trade/forum/discussion/13884/what-is-the-earliest-time-in-the-day-i-can-generate-the-access-token-for-the-day — \"It is mandatory by the exchange that a user has to manually log in at least once a day\".",
+    "notes": "The most predictable event in the Indian broker day, already correctly classified two layers down, thrown away at the last hop. The adapter docstring even states the intended contract — sidecar/services/brokers/kite.py:15-17: \"The adapter expects the frontend to handle the token-refresh dance\" — and the frontend does not. Smallest fix: branch on `err instanceof SidecarError && err.status === 419` in BrokerReadsSection and render a reconnect CTA instead of the message. Note also the one-active-token-per-app rule: if the user also runs Kite MCP in Claude Desktop, whichever logs in second kills the other's session — the same 419 path is the place to explain that."
+  },
+  {
+    "raw_id": "WLD-T-4",
+    "title": "Financial statements exist as REST routes but are NOT registered capabilities — the agent cannot answer 'show me 10 years of revenue', and the screener's substrate is ~40 point-in-time TTM fields",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "fundamentals",
+    "repro": "Ask the agent for a multi-year revenue / margin / cash-flow series for any company. The catalog has `fundamentals` (point-in-time ratios) and nothing else; income/balance/cashflow are unreachable from the tool loop.",
+    "evidence": "Routes exist: sidecar/routers/fundamentals.py:177,183,189 (GET /{symbol}/income, /balance, /cashflow) returning period-keyed FinancialStatement (sidecar/models/fundamentals.py:140-166). NOT in the catalog: grep 'income_statement|balance_sheet|cash_flow|cashflow' over sidecar/services/agent_tools/ returns zero. The only fundamentals capability is sidecar/services/agent_tools/catalog.py:225 over sidecar/models/fundamentals.py:46-137 — ~40 point-in-time TTM scalars, no time series. Screener prunes against that same store: sidecar/services/screener.py:14-36. Provider depth is yfinance income_stmt/balance_sheet/cashflow (sidecar/services/yfinance_provider.py:418,431,442) — a handful of annual periods, not 10-15 years. World: https://www.screener.in/features/ — \"Run queries on 10 to 15 years of financial data\", plus Schedules (line-item breakdowns) and 10-year Segment Results, on the FREE tier.",
+    "notes": "One root cause, two symptoms: the agent cannot see a time series, and the screener can only filter on ~40 TTM scalars (Screener free gives 18 quick ratios / 15 comparison columns; premium 60/55 — https://www.screener.in/premium/). The interaction is ahead (the agent writes filters via `write_screener_filters`); the substrate is behind. Cheapest first step is registering the three existing routes as read_handler capabilities — that alone makes 'revenue over the last N periods' answerable. Real depth (10-15y, line-item schedules) needs an exchange/XBRL-sourced statement store, not yfinance."
+  },
+  {
+    "raw_id": "WLD-T-5",
+    "title": "No way to add an arbitrary MCP server — the product calls MCP 'the universal tool layer' and hardcodes exactly two subprocesses",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "mcp",
+    "repro": "Try to point Vysted at any third-party MCP server (e.g. https://mcp.kite.trade/mcp, an Upstox or screener.in server). There is no config surface, no route, no UI.",
+    "evidence": "grep -riE 'mcp_servers|mcpServers|add_mcp|external_mcp|custom_mcp|register_mcp' over sidecar/ src/ src-tauri/src/ types/ returns ZERO hits. The two subprocesses are hardcoded in Rust: src-tauri/src/openbb_mcp.rs, src-tauri/src/sec_edgar_mcp.rs. sidecar/routers/mcp.py exposes only /mcp/status (:28) and /openbb-mcp/status (:44). World inventory of servers Vysted cannot consume: Zerodha official (https://github.com/zerodha/kite-mcp-server), Upstox x2 (https://glama.ai/mcp/servers/adibhattar95/upstox-mcp-server), Angel One SmartAPI, Dhan, Groww, multi-broker (https://lobehub.com/mcp/sharuniyer-indian-broker-mcp), ~8 screener.in scrapers (https://github.com/ronyv89/screener-mcp).",
+    "notes": "Being an MCP SERVER but not an MCP CLIENT is a positioning contradiction for a product whose redesign brief names MCP the universal tool layer, and it is the difference between 'add a broker = write a Python adapter' and 'add a broker = paste a URL and declare it read-only'. Vysted already owns the hard half (Rust-spawned MCP subprocess lifecycle, the read-only wrapper audit). Tier-4 adjacent where a user-added server touches the broker surface — the read-only declaration must be enforced, not trusted."
+  },
+  {
+    "raw_id": "WLD-T-6",
+    "title": "No earnings-call transcript capability — the highest-signal unstructured source in equity research is absent from a product whose stated moat is research quality",
+    "severity": "high",
+    "area": "research",
+    "subsystem": "earnings",
+    "repro": "Ask the agent anything about what management said on the last call. `grep -in transcript sidecar/services/agent_tools/catalog.py` returns nothing; every `transcript` hit elsewhere in the repo is an AGENT RUN transcript (sidecar/models/run.py, runs_store.py, routers/runs.py).",
+    "evidence": "sidecar/services/agent_tools/catalog.py — no transcript capability among the 51 entries. The only path is incidental: sidecar/services/research/disclosures.py:4 notes transcripts arrive as announcement `attachment_url` PDFs inside the research loop, i.e. reachable only when the research agent happens to fetch that announcement. World: https://trendlyne.com/ai-conference-calls/ (free-tier AI concall summaries, NSE/BSE); https://www.koyfin.com/pricing-llm-info/ (\"the full history of transcripts, and advanced transcript search\" at $39/mo); https://techcrunch.com/2025/08/18/perplexity-now-supports-live-earnings-call-transcripts-for-indian-stocks/ (live mid-call transcription for Indian companies, free).",
+    "notes": "LIVE transcription is a vendor moat (Perplexity bought Quartr) and is NOT claimed as table stakes here. Having the transcript at all, after the fact, from the PDF already on the exchange wire, is. Smallest fix: a `earnings_transcript(symbol, quarter)` capability over the announcement attachment lane the PDF extractor already reads (sidecar/services/search/extract.py). This is also the precondition for the guidance-vs-delivery tracker (OPP-4 in OPPORTUNITY_LEDGER.md)."
+  },
+  {
+    "raw_id": "WLD-T-7",
+    "title": "The India results calendar is fetched but deliberately unregistered, and the one earnings-calendar capability the agent has defaults to ten US mega-caps",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "earnings",
+    "repro": "Ask the agent 'which Indian companies report this week'. `earnings_upcoming` with no watchlist returns events for AAPL, MSFT, NVDA, GOOGL, META, AMZN, TSLA, JPM, V, WMT.",
+    "evidence": "sidecar/services/earnings_provider.py:63-76 — `_DEFAULT_UNIVERSE` is exactly those ten US tickers, provider yfinance (:61); capability sidecar/services/agent_tools/catalog.py:503-525. The Indian calendar exists and is reachable only inside the research loop: sidecar/services/research/disclosures.py:185-191 — \"The calendar has no registered agent tool (the capability catalog is owned by another track), so this wraps the service directly\"; the same data is served at GET /disclosures/results (sidecar/routers/disclosures.py:74) via corporate_disclosures.get_results_calendar. World: https://techcrunch.com/2025/08/18/perplexity-now-supports-live-earnings-call-transcripts-for-indian-stocks/ — Perplexity shows \"schedules for post-results conference calls\" for Indian companies, free.",
+    "notes": "An India-first terminal whose default earnings calendar is US mega-caps fails the first question an Indian user asks in results season. The fix is one catalog entry over a service that already exists and is already being called from the research path — the source file states the omission was a track-ownership artifact, not a decision. Also the anchor a results-day trigger would fire on (WLD-T-1)."
+  },
+  {
+    "raw_id": "WLD-T-8",
+    "title": "Promoter pledge exists only as a word in an announcement-category string — no pledge percentage, no history, no threshold, for an India-first product where pledge is a first-order risk signal",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "india-disclosures",
+    "repro": "Ask for a company's promoter pledge percentage or its trend. Nothing in the app holds it. `grep -rni pledge sidecar/ --include=*.py` returns exactly ONE hit, inside a capability description listing announcement categories.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:659 — \"presentations, pledges, regulatory disclosures\" (the corporate_announcements category list; the only pledge mention in the Python tree). No pledge field in sidecar/models/announcements.py. Free public source: https://www.nseindia.com/companies-listing/corporate-filings-pledged-data. Peers all ship it: https://www.samco.in/technology/pledge-monitor (\"full details of pledged shares by all 4000+ listed companies\"), https://www.screener.in/screens/3513/promoter-pledges/, StockEdge investor-group monitoring.",
+    "notes": "The feed is free and public, and the practitioner signal is the DERIVATIVE not the level — \"Rising pledging over 4 consecutive quarters is a red flag regardless of absolute level\" (https://hdfcsky.com/blogs/risk-radar-by-sky/promoter-pledge-creeping-above-60-percent); \"pledge above 20% of total holdings is a serious red flag, and pledges above 50% are dangerous\" (https://multibaggershares.com/forensic-accounting-red-flags-how-to-detect-financial-manipulation-in-indian-companies-before-it-destroys-your-portfolio-the-complete-fraud-detection-toolkit-for-smart-value-investors/). Shipping the level is table stakes; shipping the four-quarter direction is the opportunity (OPP-8). Smallest fix: a pledge field on the quarterly shareholding shape (sidecar/models/announcements.py:91-140), fed from the NSE pledged-data feed alongside the existing lanes."
+  },
+  {
+    "raw_id": "WLD-T-9",
+    "title": "No bulk-deal, block-deal or SAST tracking — the most-used India monitoring surface is entirely absent, while the US insider equivalent ships",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "india-disclosures",
+    "repro": "Ask who bought or sold a block of an Indian name last week, or track an ace investor's positions. `grep -rniE 'bulk.?deal|block.?deal|\\bsast\\b' over sidecar/ src/ types/` returns ZERO hits.",
+    "evidence": "Zero repo hits for bulk/block/SAST. sidecar/routers/disclosures.py exposes only /announcements (:44), /results (:74), /shareholding (:95). The US analogue DOES ship: `sec_insider_transactions` (sidecar/services/agent_tools/catalog.py:625). World: https://www.strike.money/reviews/stockedge — StockEdge users \"form a group of various big investors and get consolidated data of all their bulk, block deals, and insider trades together with their latest shareholding for the last five years\"; Trendlyne ships \"Insider Trades\" and \"Insider + SAST Alerts\" (https://trendlyne.com/subscription/plans/).",
+    "notes": "Bulk/block deals and SAST are SEBI-disclosure artifacts with no US analogue, which is exactly why the US-shaped tool tree has the US one and not the Indian one. Shipping `sec_insider_transactions` while shipping nothing for India is the clearest single tell that the data tree was built US-first. StockEdge sells this at Rs1,738/yr; the exchange feeds are public."
+  },
+  {
+    "raw_id": "WLD-T-10",
+    "title": "shareholding_pattern DOES return the parsed FII/DII split, and both its capability description and its handler note tell the model it does not",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "india-disclosures",
+    "repro": "Call shareholding_pattern for a BSE-listed or dual-listed Indian name. The payload carries fii_percent / dii_percent / institutions_percent / public_non_institutional_percent, and the same response carries a hardcoded note telling the model those numbers live elsewhere.",
+    "evidence": "The data IS parsed and merged: sidecar/services/bse_provider.py:781-790 sets dii_percent/fii_percent/institutions_percent from the SEBI XBRL; sidecar/services/corporate_disclosures.py:469-471 populates them and :507-538 merges the BSE split onto an NSE-master pattern stamped split_source/split_as_of; the fields are declared at sidecar/models/announcements.py:96-140 and the handler returns `pattern.model_dump(mode=\"json\")` (sidecar/services/agent_tools/disclosure_tools.py:80-84). The denial: same handler :85-89 appends note \"promoter/public/employee-trust percentages come from the NSE master; the FII/DII split lives in each quarter's linked xbrl_url filing\", and the capability description says the same (sidecar/services/agent_tools/catalog.py:687-692: \"with each quarter's XBRL filing link (which carries the full FII/DII split)\").",
+    "notes": "Corrects the world-sweep claim that FII/DII is unparsed — it is parsed, with honest provenance and honest Nones, which is good work being actively hidden from its only consumer. Consequence: the model is instructed to tell the user to go open an XBRL file for a number that is sitting in the tool result, or to report the value while the note in the same payload contradicts it. That is a data-trust defect, not a data gap. Smallest fix: make the note conditional on the split actually being None, and rewrite the catalog description to state that the split is present when the BSE lane supplies it (naming split_source/split_as_of)."
+  },
+  {
+    "raw_id": "WLD-T-11",
+    "title": "No composite score or scorecard glyph — nothing in a watchlist row is sortable, triage-able at a glance, or alertable",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "watchlist/research",
+    "repro": "Open a watchlist of 20 names and try to decide which two deserve attention today. Every row is price + change; the only depth available is opening each name individually.",
+    "evidence": "sidecar/services/agent_tools/catalog.py — `fundamentals` (:225) returns raw ratios; no composite/score/scorecard capability among the 51 entries (grep for composite_score|quality_score|scorecard over catalog.py and sidecar/models/ returns zero). World: https://trendlyne.com/score-details/ — DVM, three 0-100 axes (Durability/Valuation/Momentum) with disclosed inputs and a stated refresh cadence, banded G/M/B; Tickertape's Investment Scorecard rates \"performance, valuation, profitability, growth, and risk/red flags\" (https://www.strike.money/reviews/tickertape).",
+    "notes": "The two most-recognised objects in Indian retail research, and both are monitoring primitives rather than research reports: legible in a list row, sortable, and — the point — something an alert can fire on. This gap and WLD-T-1 are coupled: a trigger layer with nothing to trigger on defaults back to price thresholds. Disclosed inputs and a stated refresh cadence are the part worth copying; an undisclosed black-box score would violate the data-trust position."
+  },
+  {
+    "raw_id": "WLD-T-12",
+    "title": "No market-observed open interest and no options chain — an F&O-illiterate terminal in the market where F&O is the retail centre of gravity",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "derivatives",
+    "repro": "Ask for the OI build-up on any Indian index or stock option, or for the chain. `grep -rniE 'open_interest|openInterest' over sidecar/models/, sidecar/services/quotes.py, types/` returns ZERO hits; no option-chain capability exists.",
+    "evidence": "Zero OI hits repo-wide outside quant tests. Greeks are COMPUTED analytically, not observed: sidecar/routers/quant.py (POST /quant/option/greeks) and capabilities `price_option` (catalog.py:710) / `compute_greeks` (:756). sidecar/models/broker_reads.py defines only positions/holdings/margins shapes — no OI-bearing field. World: Angel One SmartAPI MCP is described as serving \"quotes/candles/OI/Greeks\" plus margin/brokerage estimation; Kite Connect serves OI inside quotes (https://kite.trade/docs/connect/v3/).",
+    "notes": "Vysted has the harder half (a QuantLib pricing and Greeks stack) and is missing the free half (OI, which every Indian broker quote feed already carries). 'Bloomberg-level coverage' will not survive a demo to an F&O trader without it. Smallest fix: surface OI on the existing quote shape where the provider supplies it, before any chain UI."
+  },
+  {
+    "raw_id": "WLD-T-13",
+    "title": "No segment revenue or operational-metric data — the exact thing India's paid research tools paywall, and the reason a serious fundamental investor keeps a second subscription",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "fundamentals",
+    "repro": "Ask for a company's revenue split by product or geography, or any operational metric (capacity utilisation, ASP, subscriber adds). No capability returns segment or operational data.",
+    "evidence": "sidecar/services/agent_tools/catalog.py — `fundamentals` (:225) returns valuation ratios and a profile; no segment/operational capability among the 51 entries. World: https://www.tijorifinance.com/features/ — \"1000+ operational metrics\" free / \"6000+\" premium plus revenue mix by product and geography, at Rs3,500/yr; https://quantbrainai.net/blog/fiscal-ai-review-jul-2026/ — Fiscal.ai's hook is \"segment-level data (e.g., AWS revenue for AMZN as a separate screenable field)\"; https://www.screener.in/features/ ships 10-year Segment Results on the free tier.",
+    "notes": "Everyone has P/E; the paywall in India is on operational depth. Vysted already parses SEBI XBRL for the shareholding pattern (sidecar/services/bse_provider.py:617-790) and segment reporting lives in the same filings — the extraction machinery exists, the extraction does not. Not a one-week job; filed as table stakes because Screener gives 10-year segment results away free."
+  },
+  {
+    "raw_id": "WLD-T-14",
+    "title": "Broker onboarding asks for more (paid Kite Connect key + secret + manual request_token paste) to deliver less than the free, keyless, install-free path Zerodha ships for rival agents",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "onboarding/brokers",
+    "repro": "Connect a Zerodha account to Vysted vs to Claude Desktop. Vysted: obtain an API key + secret (Kite Connect, ~Rs500/mo), log in at kite.zerodha.com, paste the redirect URL back, api_secret crosses to the sidecar for the exchange. Zerodha's own path: point the client at https://mcp.kite.trade/mcp.",
+    "evidence": "sidecar/services/brokers/kite.py:13-17 — \"the user logs in at kite.zerodha.com and pastes the URL back into the plugin\"; POST /brokers/kite/session (sidecar/routers/brokers.py:415) performs the api_secret exchange. World: https://zerodha.com/products/mcp/ — \"No code. Just chat.\", \"Read-only access.\", hosted version \"requires no installation or API keys\"; https://github.com/zerodha/kite-mcp-server README — hosted endpoint \"excludes potentially destructive trading operations for security\", recommended client config is `npx mcp-remote https://mcp.kite.trade/mcp`.",
+    "notes": "TIER-4 ADJACENT — the broker surface is §6.5 territory; surface to the operator, do not bake in. Two things make it worth raising anyway: riding the hosted read-only MCP would remove api_secret from the threat model entirely, and it depends on WLD-T-5 (no user-addable MCP server) rather than on any broker-safety change. One caution for the operator: Zerodha's hosted 'read-only' endpoint still exposes place_gtt_order/modify_gtt_order/delete_gtt_order per the same README, and a GTT arms a trade — Vysted's gate is stricter than the upstream it would be riding, so the read-only wrapper audit must be enforced on the MCP surface, not inherited."
+  }
+]
