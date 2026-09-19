@@ -1,0 +1,147 @@
+# R15 Hostile Data Battery — Fresh Exclusion List
+#
+# Sources:
+# 1. R13 battery exclusion list (vysted-r13-run-state.md §Battery exclusion list, line 92)
+# 2. R13 probe-names NOTE (vysted-r13-run-state.md line 31): KIRIINDUS, TIRUMALCHM, ORIENTBELL, GOKEX, IOC, PFC
+# 3. R13 battery SELECTED (BATTERY_MANIFEST.md, all 17 names: P1–P12 + S1–S5)
+# 4. R11 data-battery (BATTERY_VERDICT.md: all names already in R13 list)
+# 5. R12 ten-stock battery (vysted-r12-run-state.md gate 4: all names already in R13 list)
+# 6. Sidecar/tests fixture symbols (grep of sidecar/tests/*.py, marquee examples only)
+#
+# Normalized to uppercase, deduplicated, sorted (case-sensitive ASCII order).
+# All prior battery names and probe names excluded from fresh R15 hostile battery selection.
+# Includes both ticker symbols and BSE codes.
+#
+# Count: 130 entries
+# Collection assembled: 2026-09-19
+
+503229
+509470
+AAPL
+AARTIIND
+ABBOTINDIA
+ACGL
+ADOR
+AERPACE
+APEX
+ASAN
+ASIAN
+ASIANPAINT
+ASIAPAK
+ASTRAL
+BABA
+BANSTEA
+BELRISE
+BHARTIARTL
+BI
+BMW
+BSOFT
+BTC
+CDG
+CEENIK
+CERA
+CIPLA
+CLF
+CMTL
+COFORGE
+CORONA
+CROMPTON
+CUMMINSIND
+DEEPAKNTR
+DEN
+DEVIT
+DRREDDY
+ELANGO
+ETH
+EXIDEIND
+FINEORG
+FRLCY
+GARFIBRES
+GEE
+GOKEX
+GUJENERGY
+GUJGASLTD
+HAVELLS
+HDFCBANK
+HINDUNILVR
+HOMEFIRST
+ICICIBANK
+ICONIKSPEV
+INFY
+INTENTECH
+IOC
+ITC
+JG
+JYOTHYLAB
+KIRIINDUS
+KSB
+KSCL
+KSE
+KSOLVES
+LNKS
+LTIM
+LTTS
+M&M
+MARSONS
+MARUTI
+META
+MOL
+MPHASIS
+MSFT
+NESTLEIND
+NHL
+NVDA
+ONWARDTEC
+ORIENTBELL
+PARLEIND
+PFC
+PML
+POLYCAB
+PRAJIND
+PRIMIND
+PROTEAN
+PVP
+QQQ
+RADICO
+RAIN
+RAMCOIND
+RANASUG
+RBA
+RECX
+REFEX
+REFR
+REGIS
+RELCHEMQ
+RELIANCE
+ROIUF
+ROSSTECH
+ROUTE
+RPOWER
+RUBYMILLS
+SAIA
+SAKHTISUG
+SAKSOFT
+SANSTAR
+SBIN
+SHAILY
+SIL
+SIMPLXREA
+SIS
+SPY
+SRF
+SUNPHARMA
+SUPREMEIND
+TAKE
+TANFACIND
+TARSONS
+TATAMOTORS
+TATASTEEL
+TCI
+TCS
+TI
+TIRUMALCHM
+TITAN
+TMCV
+UFO
+VOLTAS
+WENDT
