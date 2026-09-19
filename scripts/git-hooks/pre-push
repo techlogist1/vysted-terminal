@@ -1,0 +1,229 @@
+#!/bin/sh
+# vysted-pushguard — git `pre-push` hook.
+#
+# WHY: origin (github.com/techlogist1/vysted-terminal) is PUBLIC. A pushed
+# commit is unrecallable — a leaked provider key must be rotated, not reverted.
+# This project is BYOK end-to-end, so real keys sit one paste away from a
+# fixture. Separately, the R15 evidence tree is presence-safe: a screenshot that
+# nobody registered may have captured the operator's screen, not the app.
+#
+# WHAT: for every ref being pushed, scans the ADDED lines of the commits the
+# remote does not have yet for
+#   (a) provider key shapes + secret-bearing filenames (.env, *.pem,
+#       dev-keystore.json), and
+#   (b) images added under docs/redesign/verification/r15/ whose sha256 is not
+#       registered in that tree's CAPTURES.jsonl.
+# A match aborts the push. Matched VALUES are never printed — only the file,
+# line and rule name — so the hook's own output is safe to paste into evidence.
+#
+# Allow-marker: the literal token  pushguard:allow  anywhere on a line exempts
+# THAT line. Test fixtures and pattern definitions only.
+#
+# Override (last resort, e.g. python3 missing on a CI runner):
+#   PUSHGUARD_SKIP=1 git push ...
+#
+# Installed by scripts/install-git-hooks.sh into .git/hooks/pre-push.
+
+if [ "${PUSHGUARD_SKIP:-0}" = "1" ]; then
+  echo "vysted-pushguard: SKIPPED (PUSHGUARD_SKIP=1)" >&2
+  exit 0
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "vysted-pushguard: python3 not found — refusing to push unscanned." >&2
+  echo "  Install python3, or override with: PUSHGUARD_SKIP=1 git push ..." >&2
+  exit 1
+fi
+
+zero=0000000000000000000000000000000000000000
+fail=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -n "$local_sha" ] || continue
+  [ "$local_sha" = "$zero" ] && continue # branch deletion — nothing to scan
+  if [ "$remote_sha" = "$zero" ] || [ -z "$remote_sha" ]; then
+    # New ref on the remote: everything not already reachable from a
+    # remote-tracking ref (refs/remotes/*) is new.
+    revs="$local_sha --not --remotes"
+  else
+    revs="$remote_sha..$local_sha"
+  fi
+
+  PUSHGUARD_REVS="$revs" \
+    PUSHGUARD_TIP="$local_sha" \
+    PUSHGUARD_REF="${remote_ref:-$local_ref}" \
+    python3 - <<'PY' || fail=1
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+
+REVS = os.environ["PUSHGUARD_REVS"].split()
+TIP = os.environ["PUSHGUARD_TIP"]
+REF = os.environ.get("PUSHGUARD_REF") or "?"
+
+ALLOW = "pushguard" ":allow"  # split so this line is not itself a marker
+CAPTURE_DIR = "docs/redesign/verification/r15/"
+LEDGER = CAPTURE_DIR + "CAPTURES.jsonl"
+IMAGE_EXT = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+SECRET_FILES = ("dev-keystore.json", ".env")
+
+# Shapes, never values. Every prefix is \b-anchored and the generic tail class
+# excludes "-": without both, "ri[sk-]assessment-congo-..." in a news URL reads
+# as an OpenAI key (57 such false positives over the last 200 commits of 004).
+#                                                           pushguard:allow
+RULES = (
+    ("openrouter-key", re.compile(r"\bsk-or-v1-[0-9A-Za-z]{32,}")),
+    ("anthropic-key", re.compile(r"\bsk-ant-[0-9A-Za-z_-]{24,}")),
+    ("openai-project-key", re.compile(r"\bsk-proj-[0-9A-Za-z_-]{32,}")),
+    ("openai-key", re.compile(r"\bsk-[0-9A-Za-z]{32,}")),
+    ("google-api-key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}")),
+    ("groq-key", re.compile(r"\bgsk_[0-9A-Za-z]{40,}")),
+    ("xai-key", re.compile(r"\bxai-[0-9A-Za-z]{40,}")),
+    ("github-token", re.compile(r"\bgh[pousr]_[0-9A-Za-z]{36,}|\bgithub_pat_[0-9A-Za-z_]{50,}")),
+    ("aws-access-key-id", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("private-key-block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    (
+        "broker-secret-literal",
+        re.compile(
+            r"""(?i)\b(?:api_secret|access_token|request_token)\b\s*[:=]\s*"""
+            r"""["'][0-9A-Za-z_.-]{20,}["']"""
+        ),
+    ),
+)
+
+
+def git_text(*args):
+    p = subprocess.run(("git",) + args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    return p.stdout.decode("utf-8", "replace")
+
+
+def git_bytes(*args):
+    p = subprocess.run(("git",) + args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    return p.returncode, p.stdout
+
+
+def scan_added_lines():
+    """(commit, path, lineno, rule) for every offending ADDED line in REVS."""
+    hits = []
+    patch = git_text(
+        "log", "-p", "-U0", "--no-color", "--no-merges", "--format=%x01%h", *REVS
+    )
+    commit = "?"
+    path = "?"
+    lineno = 0
+    for line in patch.split("\n"):
+        if line.startswith("\x01"):
+            commit = line[1:]
+        elif line.startswith("+++ b/"):
+            path = line[6:]
+        elif line.startswith("@@"):
+            m = re.match(r"@@ -\S+ \+(\d+)", line)
+            lineno = int(m.group(1)) if m else 0
+        elif line.startswith("+") and not line.startswith("+++"):
+            body = line[1:]
+            if ALLOW not in body:
+                for name, rx in RULES:
+                    if rx.search(body):
+                        hits.append((commit, path, lineno, name))
+                        break
+            lineno += 1
+    return hits
+
+
+def scan_added_files():
+    """(commit, path, rule) for added files whose NAME is secret-bearing."""
+    hits = []
+    raw = git_text(
+        "log", "--diff-filter=A", "--name-only", "--no-color", "--format=%x01%h", *REVS
+    )
+    commit = "?"
+    for line in raw.split("\n"):
+        if line.startswith("\x01"):
+            commit = line[1:]
+            continue
+        p = line.strip()
+        if not p:
+            continue
+        base = p.rsplit("/", 1)[-1]
+        if base in SECRET_FILES or base.endswith(".pem"):
+            hits.append((commit, p, "secret-bearing-filename"))
+    return hits
+
+
+def registered_hashes():
+    code, blob = git_bytes("cat-file", "blob", "%s:%s" % (TIP, LEDGER))
+    if code != 0:
+        return set()
+    out = set()
+    for line in blob.decode("utf-8", "replace").split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.add(json.loads(line)["sha256"])
+        except (ValueError, KeyError, TypeError):
+            continue  # a malformed line registers nothing; it cannot un-block
+    return out
+
+
+def scan_captures():
+    """(path, sha256) for r15 images added in REVS but absent from the ledger."""
+    raw = git_text(
+        "log", "--diff-filter=A", "--name-only", "--no-color", "--format=", *REVS,
+        "--", CAPTURE_DIR,
+    )
+    paths = sorted(
+        {p for p in (line.strip() for line in raw.split("\n")) if p.lower().endswith(IMAGE_EXT)}
+    )
+    if not paths:
+        return []
+    known = registered_hashes()
+    unregistered = []
+    for p in paths:
+        code, blob = git_bytes("cat-file", "blob", "%s:%s" % (TIP, p))
+        if code != 0:
+            continue  # added then removed before the tip — nothing ships
+        digest = hashlib.sha256(blob).hexdigest()
+        if digest not in known:
+            unregistered.append((p, digest))
+    return unregistered
+
+
+line_hits = scan_added_lines()
+file_hits = scan_added_files()
+captures = scan_captures()
+
+if not (line_hits or file_hits or captures):
+    sys.exit(0)
+
+w = sys.stderr.write
+w("vysted-pushguard: BLOCKED push to %s\n" % REF)
+if line_hits:
+    w("  secret shapes in added lines (values deliberately not printed):\n")
+    for commit, path, lineno, rule in line_hits:
+        w("    %s  %s:%d  [%s]\n" % (commit, path, lineno, rule))
+if file_hits:
+    w("  secret-bearing files added:\n")
+    for commit, path, rule in file_hits:
+        w("    %s  %s  [%s]\n" % (commit, path, rule))
+if captures:
+    w("  unregistered capture(s) under %s:\n" % CAPTURE_DIR)
+    for path, digest in captures:
+        w("    %s  sha256=%s\n" % (path, digest))
+    w("    register each with:\n")
+    w("      python3 scripts/rig/register_capture.py <path> --tool <name>\n")
+w("  origin is PUBLIC — rewrite the commit (git rebase -i / reset), do not force past this.\n")
+w("  A genuine fixture: add the token  pushguard" ":allow  to that line.\n")
+w("  If vysted-head-guard then refuses the rewrite, use its own override:\n")
+w("    rm .git/hooks/reference-transaction && <rewrite> && sh scripts/install-git-hooks.sh\n")
+sys.exit(1)
+PY
+done
+
+if [ "$fail" != "0" ]; then
+  exit 1
+fi
+exit 0
