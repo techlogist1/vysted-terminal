@@ -80,7 +80,7 @@
       "sidecar/routers/brokers.py:225-231 GET holdings",
       "sidecar/models/broker_reads.py:77-87 BrokerHolding",
       "src/store/portfolios.ts (manual diff source without a broker)",
-      "src/lib/brief-claims.ts:46 extractBriefClaims + types/research-space.ts:35-44 claim shape",
+      "src/lib/brief-claims.ts:47 extractBriefClaims + types/research-space.ts:35-44 claim shape",
       "src/store/notes.ts:31 appendSymbolNote via catalog.py:1374 write_note",
       "sidecar/services/agent_tools/catalog.py:1177 publish_brief",
       "sidecar/services/nse_provider.py:617 get_corporate_actions (a bonus is not a buy)"

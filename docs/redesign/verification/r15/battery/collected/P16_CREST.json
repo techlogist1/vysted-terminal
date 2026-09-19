@@ -1,0 +1,3574 @@
+{
+ "slot": "P16",
+ "symbol": "CREST",
+ "manifest_name": "Crest Ventures Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "511413",
+ "collected_at": "2026-09-19T15:28:18+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=CREST",
+   "status": 200,
+   "elapsed_ms": 9,
+   "body": {
+    "ok": true,
+    "query": "CREST",
+    "region": "IN",
+    "resolved": {
+     "symbol": "CREST",
+     "name": "Crest Ventures Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "CREST.NS",
+     "confidence": 1.0,
+     "isin": "INE559D01011",
+     "bse_code": "511413",
+     "industry": "Financial Conglomerates",
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "CREST",
+      "name": "Crest Ventures Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "CREST.NS",
+      "confidence": 1.0,
+      "isin": "INE559D01011",
+      "bse_code": "511413",
+      "industry": "Financial Conglomerates",
+      "former_name": null
+     },
+     {
+      "symbol": "CREST",
+      "name": "Crest Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "CREST.BO",
+      "confidence": 1.0,
+      "isin": "INE559D01011",
+      "bse_code": "511413",
+      "industry": "Financial Conglomerates",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Crest+Ventures+Ltd",
+   "status": 200,
+   "elapsed_ms": 1135,
+   "body": {
+    "ok": true,
+    "query": "Crest Ventures Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "CREST",
+     "name": "Crest Ventures Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "CREST.NS",
+     "confidence": 1.0,
+     "isin": "INE559D01011",
+     "bse_code": "511413",
+     "industry": "Financial Conglomerates",
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "CREST",
+      "name": "Crest Ventures Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "CREST.NS",
+      "confidence": 1.0,
+      "isin": "INE559D01011",
+      "bse_code": "511413",
+      "industry": "Financial Conglomerates",
+      "former_name": null
+     },
+     {
+      "symbol": "SVS",
+      "name": "SVS Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SVS.BO",
+      "confidence": 0.8235,
+      "isin": "INE0MID01012",
+      "bse_code": "543745",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "ANIRIT",
+      "name": "Anirit Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ANIRIT.BO",
+      "confidence": 0.8108,
+      "isin": "INE161F01011",
+      "bse_code": "530705",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "ANIRITPP",
+      "name": "ANIRIT VENTURES Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ANIRITPP.BO",
+      "confidence": 0.8108,
+      "isin": "IN9161F01019",
+      "bse_code": "890231",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "HCKKVENTURE",
+      "name": "HCKK Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HCKKVENTURE.BO",
+      "confidence": 0.8,
+      "isin": "INE345Q01017",
+      "bse_code": "539224",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "KRISHNA",
+      "name": "Krishna Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "KRISHNA.BO",
+      "confidence": 0.7895,
+      "isin": "INE537L01010",
+      "bse_code": "504392",
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52152/resolve?q=511413",
+   "status": 200,
+   "elapsed_ms": 5,
+   "body": {
+    "ok": true,
+    "query": "511413",
+    "region": "IN",
+    "resolved": {
+     "symbol": "CREST",
+     "name": "Crest Ventures Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "CREST.BO",
+     "confidence": 1.0,
+     "isin": "INE559D01011",
+     "bse_code": "511413",
+     "industry": "Financial Conglomerates",
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "CREST",
+      "name": "Crest Ventures Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "CREST.BO",
+      "confidence": 1.0,
+      "isin": "INE559D01011",
+      "bse_code": "511413",
+      "industry": "Financial Conglomerates",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/CREST?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 10887,
+   "body": {
+    "symbol": "CREST",
+    "price": 365.75,
+    "change": -5.25,
+    "change_percent": -1.4150943396226416,
+    "volume": 2310.0,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/CREST",
+   "status": 200,
+   "elapsed_ms": 4358,
+   "body": {
+    "symbol": "CREST.NS",
+    "name": "Crest Ventures Limited",
+    "sector": "Financial Services",
+    "industry": "Financial Conglomerates",
+    "currency": "INR",
+    "market_cap": 10339304448.0,
+    "pe_ratio": 31.503016,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.79099554,
+    "price_to_sales": 8.179712,
+    "ev_to_ebitda": 18.243,
+    "book_value": 462.392,
+    "dividend_yield": 0.0027,
+    "dividend_per_share": 1.0,
+    "eps": 11.61,
+    "beta": -0.001,
+    "fifty_two_week_high": 418.0,
+    "fifty_two_week_low": 298.15,
+    "fifty_two_week_change": -0.02110815,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.98493,
+    "operating_margin": 0.45528,
+    "profit_margin": 0.26096,
+    "debt_to_equity": 0.15374000000000002,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": 1264018048.0,
+    "net_income_ttm": 329852000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 28268775.0,
+    "revenue_growth": -0.52,
+    "earnings_growth": -0.553,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.77203006,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:57:13.016425+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/CREST/income",
+   "status": 200,
+   "elapsed_ms": 933,
+   "body": {
+    "symbol": "CREST.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023"
+    ],
+    "lines": [
+     {
+      "label": "Tax Effect Of Unusual Items",
+      "values": {
+       "2026": 6259514.149877,
+       "2025": 9099702.606077,
+       "2024": -4008168.750068,
+       "2023": -21022219.419484
+      }
+     },
+     {
+      "label": "Tax Rate For Calcs",
+      "values": {
+       "2026": 0.263459,
+       "2025": 0.188583,
+       "2024": 0.247831,
+       "2023": 0.309196
+      }
+     },
+     {
+      "label": "Normalized EBITDA",
+      "values": {
+       "2026": 680672000.0,
+       "2025": 1108590000.0,
+       "2024": 888716000.0,
+       "2023": 5842222000.0
+      }
+     },
+     {
+      "label": "Total Unusual Items",
+      "values": {
+       "2026": 23759000.0,
+       "2025": 48253000.0,
+       "2024": -16173000.0,
+       "2023": -67990000.0
+      }
+     },
+     {
+      "label": "Total Unusual Items Excluding Goodwill",
+      "values": {
+       "2026": 23759000.0,
+       "2025": 48253000.0,
+       "2024": -16173000.0,
+       "2023": -67990000.0
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operation Net Minority Interest",
+      "values": {
+       "2026": 468343000.0,
+       "2025": 885070000.0,
+       "2024": 601412000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Reconciled Depreciation",
+      "values": {
+       "2026": 52550000.0,
+       "2025": 42505000.0,
+       "2024": 46079000.0,
+       "2023": 42037000.0
+      }
+     },
+     {
+      "label": "Reconciled Cost Of Revenue",
+      "values": {
+       "2026": 469221000.0,
+       "2025": 566389000.0,
+       "2024": 534015000.0,
+       "2023": 231970000.0
+      }
+     },
+     {
+      "label": "EBITDA",
+      "values": {
+       "2026": 704431000.0,
+       "2025": 1156843000.0,
+       "2024": 872543000.0,
+       "2023": 5774232000.0
+      }
+     },
+     {
+      "label": "EBIT",
+      "values": {
+       "2026": 651881000.0,
+       "2025": 1114338000.0,
+       "2024": 826464000.0,
+       "2023": 5732195000.0
+      }
+     },
+     {
+      "label": "Net Interest Income",
+      "values": {
+       "2026": 66856000.0,
+       "2025": -26020000.0,
+       "2024": 221485000.0,
+       "2023": -39411000.0
+      }
+     },
+     {
+      "label": "Interest Expense",
+      "values": {
+       "2026": 1946000.0,
+       "2025": 3051000.0,
+       "2024": 1131000.0,
+       "2023": 2084000.0
+      }
+     },
+     {
+      "label": "Interest Income",
+      "values": {
+       "2026": 154498000.0,
+       "2025": 71228000.0,
+       "2024": 347973000.0,
+       "2023": 70354000.0
+      }
+     },
+     {
+      "label": "Normalized Income",
+      "values": {
+       "2026": 450843514.149877,
+       "2025": 845916702.606077,
+       "2024": 613576831.249932,
+       "2023": 4005352780.580516
+      }
+     },
+     {
+      "label": "Net Income From Continuing And Discontinued Operation",
+      "values": {
+       "2026": 468343000.0,
+       "2025": 885070000.0,
+       "2024": 601412000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Total Expenses",
+      "values": {
+       "2026": 874830000.0,
+       "2025": 470463000.0,
+       "2024": 787803000.0,
+       "2023": -5003583000.0
+      }
+     },
+     {
+      "label": "Rent Expense Supplemental",
+      "values": {
+       "2026": 5004000.0,
+       "2025": 6613000.0,
+       "2024": 6802000.0,
+       "2023": 9542000.0
+      }
+     },
+     {
+      "label": "Diluted Average Shares",
+      "values": {
+       "2026": 28449775.0,
+       "2025": 28449775.0,
+       "2024": 28449775.0,
+       "2023": 28449775.0
+      }
+     },
+     {
+      "label": "Basic Average Shares",
+      "values": {
+       "2026": 28204446.0,
+       "2025": 28196775.0,
+       "2024": 28196775.0,
+       "2023": 28395693.0
+      }
+     },
+     {
+      "label": "Diluted EPS",
+      "values": {
+       "2026": 16.46,
+       "2025": 31.11,
+       "2024": 21.14,
+       "2023": 139.14
+      }
+     },
+     {
+      "label": "Basic EPS",
+      "values": {
+       "2026": 16.61,
+       "2025": 31.39,
+       "2024": 21.33,
+       "2023": 139.41
+      }
+     },
+     {
+      "label": "Diluted NI Availto Com Stockholders",
+      "values": {
+       "2026": 468343000.0,
+       "2025": 885070000.0,
+       "2024": 601412000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Net Income Common Stockholders",
+      "values": {
+       "2026": 468343000.0,
+       "2025": 885070000.0,
+       "2024": 601412000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Otherunder Preferred Stock Dividend",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0,
+       "2023": 0.0
+      }
+     },
+     {
+      "label": "Net Income",
+      "values": {
+       "2026": 468343000.0,
+       "2025": 885070000.0,
+       "2024": 601412000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Minority Interests",
+      "values": {
+       "2026": -10361000.0,
+       "2025": -16647000.0,
+       "2024": -19378000.0,
+       "2023": 0.0
+      }
+     },
+     {
+      "label": "Net Income Including Noncontrolling Interests",
+      "values": {
+       "2026": 478704000.0,
+       "2025": 901717000.0,
+       "2024": 620790000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Net Income Continuous Operations",
+      "values": {
+       "2026": 478704000.0,
+       "2025": 901717000.0,
+       "2024": 620790000.0,
+       "2023": 3958385000.0
+      }
+     },
+     {
+      "label": "Tax Provision",
+      "values": {
+       "2026": 171231000.0,
+       "2025": 209570000.0,
+       "2024": 204543000.0,
+       "2023": 1771726000.0
+      }
+     },
+     {
+      "label": "Pretax Income",
+      "values": {
+       "2026": 649935000.0,
+       "2025": 1111287000.0,
+       "2024": 825333000.0,
+       "2023": 5730111000.0
+      }
+     },
+     {
+      "label": "Other Non Operating Income Expenses",
+      "values": {
+       "2026": 813000.0,
+       "2025": 15000.0,
+       "2024": 10000.0,
+       "2023": 1702000.0
+      }
+     },
+     {
+      "label": "Special Income Charges",
+      "values": {
+       "2026": 23759000.0,
+       "2025": 48253000.0,
+       "2024": -16173000.0,
+       "2023": -67990000.0
+      }
+     },
+     {
+      "label": "Other Special Charges",
+      "values": {
+       "2026": 272000.0,
+       "2025": -18000.0,
+       "2024": 2425000.0,
+       "2023": -177000.0
+      }
+     },
+     {
+      "label": "Write Off",
+      "values": {
+       "2026": -24031000.0,
+       "2025": -48235000.0,
+       "2024": 13748000.0,
+       "2023": 68167000.0
+      }
+     },
+     {
+      "label": "Net Non Operating Interest Income Expense",
+      "values": {
+       "2026": 66856000.0,
+       "2025": -26020000.0,
+       "2024": 221485000.0,
+       "2023": -39411000.0
+      }
+     },
+     {
+      "label": "Total Other Finance Cost",
+      "values": {
+       "2026": 85696000.0,
+       "2025": 94197000.0,
+       "2024": 125357000.0,
+       "2023": 107681000.0
+      }
+     },
+     {
+      "label": "Interest Expense Non Operating",
+      "values": {
+       "2026": 1946000.0,
+       "2025": 3051000.0,
+       "2024": 1131000.0,
+       "2023": 2084000.0
+      }
+     },
+     {
+      "label": "Interest Income Non Operating",
+      "values": {
+       "2026": 154498000.0,
+       "2025": 71228000.0,
+       "2024": 347973000.0,
+       "2023": 70354000.0
+      }
+     },
+     {
+      "label": "Operating Income",
+      "values": {
+       "2026": 556067000.0,
+       "2025": 1128019000.0,
+       "2024": 654932000.0,
+       "2023": 5962067000.0
+      }
+     },
+     {
+      "label": "Operating Expense",
+      "values": {
+       "2026": 405609000.0,
+       "2025": -95926000.0,
+       "2024": 253788000.0,
+       "2023": -5235553000.0
+      }
+     },
+     {
+      "label": "Other Operating Expenses",
+      "values": {
+       "2026": 158902000.0,
+       "2025": 106556000.0,
+       "2024": 100607000.0,
+       "2023": 76236000.0
+      }
+     },
+     {
+      "label": "Depreciation And Amortization In Income Statement",
+      "values": {
+       "2026": 52550000.0,
+       "2025": 42505000.0,
+       "2024": 46079000.0,
+       "2023": 42037000.0
+      }
+     },
+     {
+      "label": "Amortization",
+      "values": {
+       "2026": 500000.0,
+       "2025": 619000.0,
+       "2024": 520000.0,
+       "2023": 569000.0
+      }
+     },
+     {
+      "label": "Depreciation Income Statement",
+      "values": {
+       "2026": 52050000.0,
+       "2025": 41886000.0,
+       "2024": 45559000.0,
+       "2023": 41468000.0
+      }
+     },
+     {
+      "label": "Selling General And Administration",
+      "values": {
+       "2026": 129149000.0,
+       "2025": 93022000.0,
+       "2024": 124778000.0,
+       "2023": 96394000.0
+      }
+     },
+     {
+      "label": "Selling And Marketing Expense",
+      "values": {
+       "2026": 43065000.0,
+       "2025": 30397000.0,
+       "2024": 57300000.0,
+       "2023": 11376000.0
+      }
+     },
+     {
+      "label": "General And Administrative Expense",
+      "values": {
+       "2026": 86084000.0,
+       "2025": 62625000.0,
+       "2024": 67478000.0,
+       "2023": 85018000.0
+      }
+     },
+     {
+      "label": "Rent And Landing Fees",
+      "values": {
+       "2026": 5004000.0,
+       "2025": 6613000.0,
+       "2024": 6802000.0,
+       "2023": 9542000.0
+      }
+     },
+     {
+      "label": "Gross Profit",
+      "values": {
+       "2026": 961676000.0,
+       "2025": 1032093000.0,
+       "2024": 908720000.0,
+       "2023": 726514000.0
+      }
+     },
+     {
+      "label": "Cost Of Revenue",
+      "values": {
+       "2026": 469221000.0,
+       "2025": 566389000.0,
+       "2024": 534015000.0,
+       "2023": 231970000.0
+      }
+     },
+     {
+      "label": "Total Revenue",
+      "values": {
+       "2026": 1430897000.0,
+       "2025": 1598482000.0,
+       "2024": 1442735000.0,
+       "2023": 958484000.0
+      }
+     },
+     {
+      "label": "Operating Revenue",
+      "values": {
+       "2026": 1430897000.0,
+       "2025": 1598482000.0,
+       "2024": 1442735000.0,
+       "2023": 958484000.0
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/CREST/balance",
+   "status": 200,
+   "elapsed_ms": 1099,
+   "body": {
+    "symbol": "CREST.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023",
+     "2022"
+    ],
+    "lines": [
+     {
+      "label": "Treasury Shares Number",
+      "values": {
+       "2026": 183000.0,
+       "2025": 253000.0,
+       "2024": 253000.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Ordinary Shares Number",
+      "values": {
+       "2026": 28266775.0,
+       "2025": 28196775.0,
+       "2024": 28196775.0,
+       "2023": 28449775.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Share Issued",
+      "values": {
+       "2026": 28449775.0,
+       "2025": 28449775.0,
+       "2024": 28449775.0,
+       "2023": 28449775.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Debt",
+      "values": {
+       "2026": 1503434000.0,
+       "2025": 1060932000.0,
+       "2024": 1076700000.0,
+       "2023": 1430846000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Debt",
+      "values": {
+       "2026": 2820409000.0,
+       "2025": 1660155000.0,
+       "2024": 2046825000.0,
+       "2023": 1749660000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Tangible Book Value",
+      "values": {
+       "2026": 13026715000.0,
+       "2025": 11910149000.0,
+       "2024": 11008326000.0,
+       "2023": 9781786000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Invested Capital",
+      "values": {
+       "2026": 15863970000.0,
+       "2025": 13573177000.0,
+       "2024": 13079847000.0,
+       "2023": 11510145000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Working Capital",
+      "values": {
+       "2026": 9593465000.0,
+       "2025": 9650357000.0,
+       "2024": 7203774000.0,
+       "2023": 5670736000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Tangible Assets",
+      "values": {
+       "2026": 13026715000.0,
+       "2025": 11910149000.0,
+       "2024": 11008326000.0,
+       "2023": 9781786000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Capital Lease Obligations",
+      "values": {
+       "2026": 26764000.0,
+       "2025": 35077000.0,
+       "2024": 13169000.0,
+       "2023": 23618000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock Equity",
+      "values": {
+       "2026": 13070325000.0,
+       "2025": 11948099000.0,
+       "2024": 11046191000.0,
+       "2023": 9784103000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Capitalization",
+      "values": {
+       "2026": 15783449000.0,
+       "2025": 12520170000.0,
+       "2024": 11737063000.0,
+       "2023": 11219721000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Equity Gross Minority Interest",
+      "values": {
+       "2026": 13330005000.0,
+       "2025": 12196278000.0,
+       "2024": 11348403000.0,
+       "2023": 9784111000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Minority Interest",
+      "values": {
+       "2026": 259680000.0,
+       "2025": 248179000.0,
+       "2024": 302212000.0,
+       "2023": 8000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Stockholders Equity",
+      "values": {
+       "2026": 13070325000.0,
+       "2025": 11948099000.0,
+       "2024": 11046191000.0,
+       "2023": 9784103000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Equity Interest",
+      "values": {
+       "2026": 22728000.0,
+       "2025": 2978000.0,
+       "2024": 10764223000.0,
+       "2023": 9502135000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Treasury Stock",
+      "values": {
+       "2026": 31915000.0,
+       "2025": 45479000.0,
+       "2024": 45479000.0,
+       "2023": 45479000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Retained Earnings",
+      "values": {
+       "2026": 7978853000.0,
+       "2025": 7441755000.0,
+       "2024": 6699987000.0,
+       "2023": 5775460000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Additional Paid In Capital",
+      "values": {
+       "2026": 2215619000.0,
+       "2025": 2215619000.0,
+       "2024": 2215619000.0,
+       "2023": 2215619000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Capital Stock",
+      "values": {
+       "2026": 282668000.0,
+       "2025": 281968000.0,
+       "2024": 281968000.0,
+       "2023": 281968000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock",
+      "values": {
+       "2026": 282668000.0,
+       "2025": 281968000.0,
+       "2024": 281968000.0,
+       "2023": 281968000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Liabilities Net Minority Interest",
+      "values": {
+       "2026": 5922181000.0,
+       "2025": 2015113000.0,
+       "2024": 2360139000.0,
+       "2023": 2049793000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Non Current Liabilities Net Minority Interest",
+      "values": {
+       "2026": 4354388000.0,
+       "2025": 761264000.0,
+       "2024": 857316000.0,
+       "2023": 1709829000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Non Current Liabilities",
+      "values": {
+       "2026": 1225746000.0,
+       "2025": 33385000.0,
+       "2024": 89687000.0,
+       "2023": 424000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Non Current Pension And Other Postretirement Benefit Plans",
+      "values": {
+       "2026": null,
+       "2025": 39448000.0,
+       "2024": 33968000.0,
+       "2023": 26296000.0,
+       "2022": 22563000.0
+      }
+     },
+     {
+      "label": "Non Current Deferred Revenue",
+      "values": {
+       "2026": null,
+       "2025": 10012000.0,
+       "2024": 69562000.0,
+       "2023": 15058000.0,
+       "2022": 391000.0
+      }
+     },
+     {
+      "label": "Non Current Deferred Taxes Liabilities",
+      "values": {
+       "2026": 150644000.0,
+       "2025": 69021000.0,
+       "2024": 20940000.0,
+       "2023": 176999000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Debt And Capital Lease Obligation",
+      "values": {
+       "2026": 2718064000.0,
+       "2025": 600650000.0,
+       "2024": 697540000.0,
+       "2023": 1439576000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Capital Lease Obligation",
+      "values": {
+       "2026": 4940000.0,
+       "2025": 28579000.0,
+       "2024": 6668000.0,
+       "2023": 3958000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Debt",
+      "values": {
+       "2026": 2713124000.0,
+       "2025": 572071000.0,
+       "2024": 690872000.0,
+       "2023": 1435618000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Provisions",
+      "values": {
+       "2026": 41363000.0,
+       "2025": 39448000.0,
+       "2024": 33968000.0,
+       "2023": 26296000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Liabilities",
+      "values": {
+       "2026": 1567793000.0,
+       "2025": 1253849000.0,
+       "2024": 1502823000.0,
+       "2023": 339964000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Current Liabilities",
+      "values": {
+       "2026": 1370770000.0,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": 1886098000.0
+      }
+     },
+     {
+      "label": "Current Deferred Taxes Liabilities",
+      "values": {
+       "2026": 7002000.0,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Debt And Capital Lease Obligation",
+      "values": {
+       "2026": 102345000.0,
+       "2025": 1059505000.0,
+       "2024": 1349285000.0,
+       "2023": 310084000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Capital Lease Obligation",
+      "values": {
+       "2026": 21824000.0,
+       "2025": 6498000.0,
+       "2024": 6501000.0,
+       "2023": 19660000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Debt",
+      "values": {
+       "2026": 80521000.0,
+       "2025": 1053007000.0,
+       "2024": 1342784000.0,
+       "2023": 290424000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Provisions",
+      "values": {
+       "2026": 7780000.0,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Payables",
+      "values": {
+       "2026": 49788000.0,
+       "2025": 55614000.0,
+       "2024": 59298000.0,
+       "2023": 29880000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Payable",
+      "values": {
+       "2026": null,
+       "2025": 23373000.0,
+       "2024": 20125000.0,
+       "2023": 9594000.0,
+       "2022": 228000.0
+      }
+     },
+     {
+      "label": "Dividends Payable",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 277000.0,
+       "2023": 280000.0,
+       "2022": 289000.0
+      }
+     },
+     {
+      "label": "Total Tax Payable",
+      "values": {
+       "2026": 7427000.0,
+       "2025": 6671000.0,
+       "2024": 14225000.0,
+       "2023": 176610000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Accounts Payable",
+      "values": {
+       "2026": 49788000.0,
+       "2025": 32241000.0,
+       "2024": 39173000.0,
+       "2023": 20006000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Assets",
+      "values": {
+       "2026": 19252186000.0,
+       "2025": 14211391000.0,
+       "2024": 13708542000.0,
+       "2023": 11833904000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Non Current Assets",
+      "values": {
+       "2026": 8090928000.0,
+       "2025": 3307185000.0,
+       "2024": 5001945000.0,
+       "2023": 5823204000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Non Current Assets",
+      "values": {
+       "2026": 40619000.0,
+       "2025": 366616000.0,
+       "2024": 290438000.0,
+       "2023": 167016000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Non Current Prepaid Assets",
+      "values": {
+       "2026": 1315622000.0,
+       "2025": 927273000.0,
+       "2024": 927273000.0,
+       "2023": 1836253000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Non Current Deferred Taxes Assets",
+      "values": {
+       "2026": 26012000.0,
+       "2025": 13966000.0,
+       "2024": 12895000.0,
+       "2023": 36568000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Investmentin Financial Assets",
+      "values": {
+       "2026": 5919254000.0,
+       "2025": 1423684000.0,
+       "2024": 3270191000.0,
+       "2023": 4644849000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Held To Maturity Securities",
+      "values": {
+       "2026": null,
+       "2025": 1012059000.0,
+       "2024": 1015559000.0,
+       "2023": 765556000.0,
+       "2022": 160056000.0
+      }
+     },
+     {
+      "label": "Available For Sale Securities",
+      "values": {
+       "2026": 5919254000.0,
+       "2025": 121447000.0,
+       "2024": 3270191000.0,
+       "2023": 2741211000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Financial Assets Designatedas Fair Value Through Profitor Loss Total",
+      "values": {
+       "2026": null,
+       "2025": 290178000.0,
+       "2024": 1001110000.0,
+       "2023": 1138082000.0,
+       "2022": 196599000.0
+      }
+     },
+     {
+      "label": "Long Term Equity Investment",
+      "values": {
+       "2026": null,
+       "2025": 145868000.0,
+       "2024": 199364000.0,
+       "2023": 404521000.0,
+       "2022": 4210684000.0
+      }
+     },
+     {
+      "label": "Investments In Other Ventures Under Equity Method",
+      "values": {
+       "2026": null,
+       "2025": 12019000.0,
+       "2024": 250000.0,
+       "2023": 250000.0,
+       "2022": 250000.0
+      }
+     },
+     {
+      "label": "Investmentsin Associatesat Cost",
+      "values": {
+       "2026": null,
+       "2025": 133849000.0,
+       "2024": 199114000.0,
+       "2023": 404271000.0,
+       "2022": 4210434000.0
+      }
+     },
+     {
+      "label": "Investmentsin Subsidiariesat Cost",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 0.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Investment Properties",
+      "values": {
+       "2026": 509672000.0,
+       "2025": 518908000.0,
+       "2024": 528141000.0,
+       "2023": 535037000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Goodwill And Other Intangible Assets",
+      "values": {
+       "2026": 43610000.0,
+       "2025": 37950000.0,
+       "2024": 37865000.0,
+       "2023": 2317000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Intangible Assets",
+      "values": {
+       "2026": -10776000.0,
+       "2025": -10484000.0,
+       "2024": -10569000.0,
+       "2023": -10183000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Goodwill",
+      "values": {
+       "2026": 54386000.0,
+       "2025": 48434000.0,
+       "2024": 48434000.0,
+       "2023": 12500000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net PPE",
+      "values": {
+       "2026": 195923000.0,
+       "2025": 239512000.0,
+       "2024": 225088000.0,
+       "2023": 126918000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Accumulated Depreciation",
+      "values": {
+       "2026": -143285000.0,
+       "2025": -119902000.0,
+       "2024": -94028000.0,
+       "2023": -103544000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Gross PPE",
+      "values": {
+       "2026": 339208000.0,
+       "2025": 359414000.0,
+       "2024": 319116000.0,
+       "2023": 230462000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Construction In Progress",
+      "values": {
+       "2026": 6410000.0,
+       "2025": 122500000.0,
+       "2024": 122500000.0,
+       "2023": 2525000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Properties",
+      "values": {
+       "2026": 58249000.0,
+       "2025": 58224000.0,
+       "2024": 20352000.0,
+       "2023": 57834000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Machinery Furniture Equipment",
+      "values": {
+       "2026": 154450000.0,
+       "2025": 108693000.0,
+       "2024": 104710000.0,
+       "2023": 97553000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Buildings And Improvements",
+      "values": {
+       "2026": 120099000.0,
+       "2025": 69997000.0,
+       "2024": 71554000.0,
+       "2023": 72550000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Properties",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Current Assets",
+      "values": {
+       "2026": 11161258000.0,
+       "2025": 10904206000.0,
+       "2024": 8706597000.0,
+       "2023": 6010700000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Current Assets",
+      "values": {
+       "2026": 211117000.0,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Restricted Cash",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 277000.0,
+       "2023": 280000.0,
+       "2022": 289000.0
+      }
+     },
+     {
+      "label": "Prepaid Assets",
+      "values": {
+       "2026": null,
+       "2025": 212499000.0,
+       "2024": 141060000.0,
+       "2023": 150078000.0,
+       "2022": 25375000.0
+      }
+     },
+     {
+      "label": "Inventory",
+      "values": {
+       "2026": 5904226000.0,
+       "2025": 1069169000.0,
+       "2024": 868364000.0,
+       "2023": 635886000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Finished Goods",
+      "values": {
+       "2026": 574327000.0,
+       "2025": 215304000.0,
+       "2024": 231195000.0,
+       "2023": 5894000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Work In Process",
+      "values": {
+       "2026": 5286078000.0,
+       "2025": 832186000.0,
+       "2024": 629116000.0,
+       "2023": 624465000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Raw Materials",
+      "values": {
+       "2026": 43821000.0,
+       "2025": 21679000.0,
+       "2024": 8053000.0,
+       "2023": 5527000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Receivables",
+      "values": {
+       "2026": 2598773000.0,
+       "2025": 4748889000.0,
+       "2024": 4685636000.0,
+       "2023": 4265845000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Taxes Receivable",
+      "values": {
+       "2026": 5447000.0,
+       "2025": 41976000.0,
+       "2024": 36644000.0,
+       "2023": 43423000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Accounts Receivable",
+      "values": {
+       "2026": 42790000.0,
+       "2025": 104979000.0,
+       "2024": 37968000.0,
+       "2023": 67499000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Allowance For Doubtful Accounts Receivable",
+      "values": {
+       "2026": -3242000.0,
+       "2025": null,
+       "2024": -903000.0,
+       "2023": -1610000.0,
+       "2022": -6191000.0
+      }
+     },
+     {
+      "label": "Gross Accounts Receivable",
+      "values": {
+       "2026": 46032000.0,
+       "2025": null,
+       "2024": 39363000.0,
+       "2023": 69109000.0,
+       "2022": 51468000.0
+      }
+     },
+     {
+      "label": "Cash Cash Equivalents And Short Term Investments",
+      "values": {
+       "2026": 2398905000.0,
+       "2025": 4726694000.0,
+       "2024": 2936925000.0,
+       "2023": 847689000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Short Term Investments",
+      "values": {
+       "2026": 1108694000.0,
+       "2025": 4162548000.0,
+       "2024": 1979969000.0,
+       "2023": 552493000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash And Cash Equivalents",
+      "values": {
+       "2026": 1290211000.0,
+       "2025": 564146000.0,
+       "2024": 956956000.0,
+       "2023": 295196000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Equivalents",
+      "values": {
+       "2026": 850221000.0,
+       "2025": 5567000.0,
+       "2024": 6522000.0,
+       "2023": 8997000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Financial",
+      "values": {
+       "2026": 439990000.0,
+       "2025": 558579000.0,
+       "2024": 950434000.0,
+       "2023": 286199000.0,
+       "2022": null
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/CREST/cashflow",
+   "status": 200,
+   "elapsed_ms": 592,
+   "body": {
+    "symbol": "CREST.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023",
+     "2022"
+    ],
+    "lines": [
+     {
+      "label": "Free Cash Flow",
+      "values": {
+       "2026": 352399000.0,
+       "2025": -147534000.0,
+       "2024": -203118000.0,
+       "2023": -7002648000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Repurchase Of Capital Stock",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 0.0,
+       "2023": -48009000.0,
+       "2022": 0.0
+      }
+     },
+     {
+      "label": "Repayment Of Debt",
+      "values": {
+       "2026": -1058769000.0,
+       "2025": -1337857000.0,
+       "2024": -283549000.0,
+       "2023": -2297668000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Issuance Of Debt",
+      "values": {
+       "2026": 2206860000.0,
+       "2025": 930001000.0,
+       "2024": 591625000.0,
+       "2023": 1558560000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Issuance Of Capital Stock",
+      "values": {
+       "2026": 14000000.0,
+       "2025": 0.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Capital Expenditure",
+      "values": {
+       "2026": -109109000.0,
+       "2025": -6039000.0,
+       "2024": -129472000.0,
+       "2023": -206753000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "End Cash Position",
+      "values": {
+       "2026": 1290211000.0,
+       "2025": 564146000.0,
+       "2024": 956956000.0,
+       "2023": 295196000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Cash Adjustment Outside Changein Cash",
+      "values": {
+       "2026": 25146000.0,
+       "2025": -480000.0,
+       "2024": 1882000.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Beginning Cash Position",
+      "values": {
+       "2026": 564146000.0,
+       "2025": 956956000.0,
+       "2024": 295196000.0,
+       "2023": 91457000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Effect Of Exchange Rate Changes",
+      "values": {
+       "2026": 3231000.0,
+       "2025": 0.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Changes In Cash",
+      "values": {
+       "2026": 697688000.0,
+       "2025": -392330000.0,
+       "2024": 659878000.0,
+       "2023": 203739000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Financing Cash Flow",
+      "values": {
+       "2026": 1088296000.0,
+       "2025": -527150000.0,
+       "2024": 255518000.0,
+       "2023": -823007000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Other Financing Charges",
+      "values": {
+       "2026": 1948000.0,
+       "2025": -60782000.0,
+       "2024": -3000.0,
+       "2023": 8000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Interest Paid Cff",
+      "values": {
+       "2026": -24291000.0,
+       "2025": -7304000.0,
+       "2024": -3344000.0,
+       "2023": -190000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Dividends Paid",
+      "values": {
+       "2026": -28167000.0,
+       "2025": -28280000.0,
+       "2024": -28200000.0,
+       "2023": -14234000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Common Stock Issuance",
+      "values": {
+       "2026": 14000000.0,
+       "2025": 0.0,
+       "2024": 0.0,
+       "2023": -48009000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock Payments",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": 0.0,
+       "2023": -48009000.0,
+       "2022": 0.0
+      }
+     },
+     {
+      "label": "Common Stock Issuance",
+      "values": {
+       "2026": 14000000.0,
+       "2025": 0.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Issuance Payments Of Debt",
+      "values": {
+       "2026": 1148091000.0,
+       "2025": -407856000.0,
+       "2024": 308076000.0,
+       "2023": -739108000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Long Term Debt Issuance",
+      "values": {
+       "2026": 1148091000.0,
+       "2025": -407856000.0,
+       "2024": 308076000.0,
+       "2023": -739108000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Debt Payments",
+      "values": {
+       "2026": -1058769000.0,
+       "2025": -1337857000.0,
+       "2024": -283549000.0,
+       "2023": -2297668000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Debt Issuance",
+      "values": {
+       "2026": 2206860000.0,
+       "2025": 930001000.0,
+       "2024": 591625000.0,
+       "2023": 1558560000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Investing Cash Flow",
+      "values": {
+       "2026": -852116000.0,
+       "2025": 276315000.0,
+       "2024": 478006000.0,
+       "2023": 7822641000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Interest Received Cfi",
+      "values": {
+       "2026": 126476000.0,
+       "2025": 78816000.0,
+       "2024": 81828000.0,
+       "2023": 60431000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Dividends Received Cfi",
+      "values": {
+       "2026": null,
+       "2025": 8851000.0,
+       "2024": 8907000.0,
+       "2023": 4854000.0,
+       "2022": 300000.0
+      }
+     },
+     {
+      "label": "Net Investment Purchase And Sale",
+      "values": {
+       "2026": -769103000.0,
+       "2025": 200015000.0,
+       "2024": 829343000.0,
+       "2023": -790785000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Sale Of Investment",
+      "values": {
+       "2026": 4778770000.0,
+       "2025": 7786917000.0,
+       "2024": 4639202000.0,
+       "2023": 12591555000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Purchase Of Investment",
+      "values": {
+       "2026": -5547873000.0,
+       "2025": -7586902000.0,
+       "2024": -3809859000.0,
+       "2023": -13382340000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Business Purchase And Sale",
+      "values": {
+       "2026": -100393000.0,
+       "2025": 3500000.0,
+       "2024": -313618000.0,
+       "2023": 8754500000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Sale Of Business",
+      "values": {
+       "2026": 6711000.0,
+       "2025": 3500000.0,
+       "2024": 54820000.0,
+       "2023": 9360000000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Purchase Of Business",
+      "values": {
+       "2026": -107104000.0,
+       "2025": 0.0,
+       "2024": -368438000.0,
+       "2023": -605500000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net PPE Purchase And Sale",
+      "values": {
+       "2026": -109096000.0,
+       "2025": -6016000.0,
+       "2024": -128454000.0,
+       "2023": -206359000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Sale Of PPE",
+      "values": {
+       "2026": 13000.0,
+       "2025": 23000.0,
+       "2024": 1018000.0,
+       "2023": 394000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Purchase Of PPE",
+      "values": {
+       "2026": -109109000.0,
+       "2025": -6039000.0,
+       "2024": -129472000.0,
+       "2023": -206753000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Operating Cash Flow",
+      "values": {
+       "2026": 461508000.0,
+       "2025": -141495000.0,
+       "2024": -73646000.0,
+       "2023": -6795895000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Taxes Refund Paid",
+      "values": {
+       "2026": -202642000.0,
+       "2025": -204305000.0,
+       "2024": -419042000.0,
+       "2023": -1615123000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Working Capital",
+      "values": {
+       "2026": 76025000.0,
+       "2025": -499726000.0,
+       "2024": -432473000.0,
+       "2023": -5529785000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Other Current Liabilities",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": 14225000.0
+      }
+     },
+     {
+      "label": "Change In Other Current Assets",
+      "values": {
+       "2026": 157172000.0,
+       "2025": 476421000.0,
+       "2024": -199160000.0,
+       "2023": -355277000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Payable",
+      "values": {
+       "2026": -107958000.0,
+       "2025": -26163000.0,
+       "2024": 105587000.0,
+       "2023": 6931000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Inventory",
+      "values": {
+       "2026": -2085708000.0,
+       "2025": -200766000.0,
+       "2024": 48073000.0,
+       "2023": -185747000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Receivables",
+      "values": {
+       "2026": 2112519000.0,
+       "2025": -749218000.0,
+       "2024": -386973000.0,
+       "2023": -4995692000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Non Cash Items",
+      "values": {
+       "2026": -109463000.0,
+       "2025": -65996000.0,
+       "2024": -67549000.0,
+       "2023": -77496000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Stock Based Compensation",
+      "values": {
+       "2026": 26245000.0,
+       "2025": 2500000.0,
+       "2024": 0.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Provisionand Write Offof Assets",
+      "values": {
+       "2026": -803000.0,
+       "2025": -1653000.0,
+       "2024": -1222000.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Depreciation And Amortization",
+      "values": {
+       "2026": 52550000.0,
+       "2025": 42505000.0,
+       "2024": 46079000.0,
+       "2023": 42037000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Amortization Cash Flow",
+      "values": {
+       "2026": 500000.0,
+       "2025": 619000.0,
+       "2024": 520000.0,
+       "2023": 569000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Depreciation",
+      "values": {
+       "2026": 52050000.0,
+       "2025": 41886000.0,
+       "2024": 45559000.0,
+       "2023": 41468000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Pension And Employee Benefit Expense",
+      "values": {
+       "2026": 11904000.0,
+       "2025": 6243000.0,
+       "2024": 5400000.0,
+       "2023": 3705000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Gain Loss On Investment Securities",
+      "values": {
+       "2026": -32918000.0,
+       "2025": -524696000.0,
+       "2024": -87593000.0,
+       "2023": -5532507000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Gain Loss On Sale Of PPE",
+      "values": {
+       "2026": 272000.0,
+       "2025": -18000.0,
+       "2024": 2489000.0,
+       "2023": -177000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Gain Loss On Sale Of Business",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": -2188000.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operations",
+      "values": {
+       "2026": 645362000.0,
+       "2025": 1124781000.0,
+       "2024": 812259000.0,
+       "2023": 5730111000.0,
+       "2022": null
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/CREST/ratings",
+   "status": 200,
+   "elapsed_ms": 352,
+   "body": {
+    "symbol": "CREST.NS",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=CREST",
+   "status": 200,
+   "elapsed_ms": 33352,
+   "body": {
+    "symbol": "CREST",
+    "count": 20,
+    "patterns": [
+     {
+      "symbol": "CREST",
+      "quarter_end": "2026-06-30",
+      "promoter_percent": 69.84,
+      "fii_percent": 1.71,
+      "dii_percent": null,
+      "institutions_percent": 1.71,
+      "public_percent": 29.53,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.82,
+      "employee_trusts_percent": 0.64,
+      "submission_date": "2026-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1697173_20072026054752_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-06-30"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2026-03-31",
+      "promoter_percent": 69.75,
+      "fii_percent": 1.71,
+      "dii_percent": null,
+      "institutions_percent": 1.71,
+      "public_percent": 29.61,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.9,
+      "employee_trusts_percent": 0.64,
+      "submission_date": "2026-04-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1654836_20042026025944_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-03-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2025-12-31",
+      "promoter_percent": 69.75,
+      "fii_percent": 1.63,
+      "dii_percent": null,
+      "institutions_percent": 1.63,
+      "public_percent": 29.36,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.73,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2026-01-16",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1602393_16012026043425_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2025-09-30",
+      "promoter_percent": 69.75,
+      "fii_percent": 1.63,
+      "dii_percent": null,
+      "institutions_percent": 1.63,
+      "public_percent": 29.36,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.73,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2025-10-15",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1549401_15102025070205_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-09-30"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2025-06-30",
+      "promoter_percent": 69.75,
+      "fii_percent": 1.63,
+      "dii_percent": null,
+      "institutions_percent": 1.63,
+      "public_percent": 29.36,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 27.73,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1489216_21072025055215_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-06-30"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2025-03-31",
+      "promoter_percent": 69.46,
+      "fii_percent": 1.5,
+      "dii_percent": null,
+      "institutions_percent": 1.5,
+      "public_percent": 29.65,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.15,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2025-04-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_197744_1417366_17042025045044_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-03-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2024-12-31",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2025-01-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_195196_1350020_17012025063640_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2024-09-30",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2024-10-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_192413_1273656_17102024104342_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2024-06-30",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2024-07-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_189921_1190593_18072024104932_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2024-03-31",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2024-04-05",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_185801_1081021_05042024114605_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2023-12-31",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2024-01-04",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_183188_1007506_04012024100640_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2023-09-30",
+      "promoter_percent": 69.11,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2023-10-09",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_180828_944143_09102023062454_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2023-06-30",
+      "promoter_percent": 68.96,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.15,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2023-07-12",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_178683_881425_12072023040913_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2023-03-31",
+      "promoter_percent": 68.96,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.15,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.89,
+      "submission_date": "2023-04-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_176877_821403_17042023031341_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2022-12-31",
+      "promoter_percent": 68.89,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 30.61,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.5,
+      "submission_date": "2023-01-10",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_173735_761086_10012023060546_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2022-09-30",
+      "promoter_percent": 68.7,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 31.3,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2022-10-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_171545_730953_18102022015219_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2022-06-30",
+      "promoter_percent": 67.36,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 32.64,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2022-07-06",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_168563_679885_06072022042513_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2022-03-31",
+      "promoter_percent": 66.65,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 33.35,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2022-04-08",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_166121_625967_08042022111216_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2021-12-31",
+      "promoter_percent": 66.41,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 33.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2022-01-06",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_163505_576820_06012022111329_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     },
+     {
+      "symbol": "CREST",
+      "quarter_end": "2021-09-30",
+      "promoter_percent": 66.41,
+      "fii_percent": 1.43,
+      "dii_percent": null,
+      "institutions_percent": 1.43,
+      "public_percent": 33.59,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.57,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2021-10-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_162706_539660_20102021120140_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31"
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=CREST&limit=25",
+   "status": 200,
+   "elapsed_ms": 17968,
+   "body": {
+    "symbol": "CREST",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "CREST",
+      "exchange": "BSE",
+      "headline": "Minutes Of The 44Th Annual General Meeting Of The Company.",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/37d16832-615c-4f81-96b5-7a100c47d8ac.pdf",
+      "ts": "2026-09-03T17:16:49.820000+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange with copy of minutes of 44th Annual General Meeting held on August 22, 2026",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_03092026171339_SE_Intimation_Minutes_of_AGM.pdf",
+      "ts": "2026-09-03T17:15:35+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/6ae8713b-269e-425d-944e-1f88ece7d83c.pdf",
+      "ts": "2026-08-25T14:59:55.820000+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Declaration of Voting Results and Scrutinizer's Report of the 44th Annual General Meeting of the Company",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_25082026145738_SE_Intimation_Voting_Results.pdf",
+      "ts": "2026-08-25T14:59:29+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/374a8bb2-5397-4313-a88d-190f21014ca7.pdf",
+      "ts": "2026-08-22T12:09:17.860000+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on August 22, 2026",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_22082026120819_Outcome_of_44_AGM_-_sd.pdf",
+      "ts": "2026-08-22T12:08:33+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Incorporation of Step-Down Wholly Owned Subsidiary Companies",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_18082026144523_SEIntimationSIGNED.pdf",
+      "ts": "2026-08-18T14:45:30+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_15082026161428_CVLSEnewspaperintimation.pdf",
+      "ts": "2026-08-15T16:14:39+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding 'Intimation under Regulation 8(2) of the Securities and Exchange Board of India (Prohibition of Insider Trading) Regulations, 2015'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_13082026185936_2SE_IntimationPITPolicysigned.pdf",
+      "ts": "2026-08-13T19:00:10+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has submitted to the Exchange, the Un-audited Financial Results (Standalone and Consolidated) for the quarter ended June 30, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_13082026184138_SEIntimationOutcomeSigned.pdf",
+      "ts": "2026-08-13T18:43:46+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Transfer of Equity shares pursuant to exercise of options granted under Crest - Employees Stock Option Plan 2022.",
+      "category": "ESOP/ESOS/ESPS",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_12082026175022_SE_NRC_Outcome_signed.pdf",
+      "ts": "2026-08-12T17:50:37+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Retirement of Mr. Parag Shah, President - Investments and Credit of the Company",
+      "category": "Retirement",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_31072026193114_SEINTIMATIONSigned.pdf",
+      "ts": "2026-07-31T19:31:28+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_31072026150148_SE_Intimation_NP.pdf",
+      "ts": "2026-07-31T15:02:01+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about the Letter to Members pursuant to Regulation 36(1)(b) of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_29072026182919_SE_Intimation_Inland_Letter.pdf",
+      "ts": "2026-07-29T18:30:33+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on August 22, 2026",
+      "category": "Shareholders meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_29072026160953_SE_Intimation_SD.pdf",
+      "ts": "2026-07-29T16:11:01+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding 'Update on Scheme of Arrangement'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_22072026202903_NOCIntimationSIGNED.pdf",
+      "ts": "2026-07-22T20:29:31+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding 'Communication to Shareholders: Intimation regarding Tax Deduction at Source (TDS) on Final Dividend for the Financial Year 2025-26'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_20072026171017_TDS_Mail_SE_Intimation.pdf",
+      "ts": "2026-07-20T17:10:31+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+      "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_08072026144940_SE_Intimation_74_5_Coveringletters.pdf",
+      "ts": "2026-07-08T14:49:54+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding a press release dated Jun 29, 2026, titled \"Crest Ventures expands redevelopment presence in Dadar East through landmark cluster redevelopment initiative\".",
+      "category": "Press Release",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_29062026193748_SEIntimationSIGNED.pdf",
+      "ts": "2026-06-29T19:39:04+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_25062026175818_CVTWCJune_302026SIGNED.pdf",
+      "ts": "2026-06-25T17:58:30+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_12062026160156_SEIntimationSIGNED.pdf",
+      "ts": "2026-06-12T16:03:05+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited\u00a0has Submitted to the Exchange a copy of Disclosure under Regulation 31(4) of the Securities and Exchange Board of India (Substantial Acquisition of Shares and Takeovers) Regulations, 2011.",
+      "category": "Disclosure under SEBI Takeover Regulations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/team_bbodade_20052026184817_CREST.pdf",
+      "ts": "2026-06-05T10:16:35+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_24052026120613_NewspaperIntimationSigned.pdf",
+      "ts": "2026-05-24T12:07:04+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange regarding 'General Update on the Business Operations of the Company'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_23052026000500_CVLInvestorPresentationSigned.pdf",
+      "ts": "2026-05-23T00:05:22+05:30"
+     },
+     {
+      "symbol": "CREST",
+      "exchange": "NSE",
+      "headline": "Crest Ventures Limited has informed the Exchange about Re-appointment of Internal Auditor and Appointment of CISO",
+      "category": "Change in Management",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/CREST_22052026232733_Reg_30_Disclosure_Change_in_Management.pdf",
+      "ts": "2026-05-22T23:27:41+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {}
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=CREST",
+   "status": 200,
+   "elapsed_ms": 6523,
+   "body": {
+    "symbol": "CREST",
+    "count": 70,
+    "events": [
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Un-Audited Financial Results (Standalone and Consolidated) for the quarter ended June 30, 2026.",
+      "date": "2026-08-13"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "a) To consider and approve Audited Financial Results (Standalone and Consolidated) of the Company for the quarter and year ended March 31, 2026; b) To consider and recommend final dividend, if any, on the equity shares of the Company for the financial year ended March 31, 2026.",
+      "date": "2026-05-22"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Un-Audited Financial Results (Standalone and Consolidated) for the quarter and nine months ended December 31, 2025.",
+      "date": "2026-02-13"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Fund Raising",
+      "description": "Debenture Fund Raising Committee Meeting Intimation - Approval of Terms of Issuance for Non- Convertible Debentures (NCDs)",
+      "date": "2025-12-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "CREST : 14-Nov-2025 :  The Company has informed the Exchange that the Board meeting scheduled to be held on November 11, 2025 has been re-scheduled to November 14, 2025, to consider and approve a. the Audited Standalone Financial Results and Un-audited Consolidated Financial Results of the Company for the quarter and half-year ended September 30, 2025;b. raising of funds, including but not limited to, Qualified Institutions Placement of permissible securities and issuance of Redeemable Non-Convertible Debentures, subject to such regulatory/statutory approvals as may be required.",
+      "date": "2025-11-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Audited Standalone Financial Results and Unaudited Consolidated Financial Results of the Company for the quarter and half-year ended September 30, 2025.",
+      "date": "2025-11-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the Un-audited Financial Results for the quarter ended Jun 30, 2025",
+      "date": "2025-08-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the Audited Financial Results for the period ended March 31, 2025 and to consider & recommend Final Dividend, if any",
+      "date": "2025-05-28"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the standalone and consolidated un-audited financial results for the quarter and nine months ended December 31, 2024",
+      "date": "2025-02-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the standalone and consolidated un-audited financial results of the Company for the quarter and half-year ended 30th September, 2024.",
+      "date": "2024-11-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2024",
+      "date": "2024-08-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Fund Raising",
+      "description": "Debenture Fund Raising Committee Meeting Intimation - Approval of Terms of Issuance for Non- Convertible Debentures (NCDs)",
+      "date": "2024-06-07"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended March 31, 2024, dividend and Fund Raising",
+      "date": "2024-05-24"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2023",
+      "date": "2024-02-05"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2023",
+      "date": "2023-11-10"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "Board Meeting Intimation to consider and approve standalone and consolidated unaudited financial results of the Company for the quarter ended 30th June, 2023",
+      "date": "2023-08-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2023 and dividend",
+      "date": "2023-05-27"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Fund Raising",
+      "description": "Debenture Fund Raising Committee Meeting Intimation   Approval of terms of issuance for Non-Convertible Debentures (NCDs)",
+      "date": "2023-03-02"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended December 31, 2022 and Fund Raising",
+      "date": "2023-02-04"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial results",
+      "description": "Crest Ventures Limited  has informed the Exchange about Board Meeting to be held on 11-Nov-2022 to consider the standalone and consolidated un-audited financial results of the Company for the quarter and half-year ended 30th September, 2022 as per the Indian Accounting Standards (Ind-AS).",
+      "date": "2022-11-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial results",
+      "description": "Crest Ventures Limited  has informed the Exchange about Board Meeting to be held on 12-Aug-2022 to consider financial statements for the period ended June 2022",
+      "date": "2022-08-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Other business matters",
+      "description": "Intimation of Board Meeting pursuant to Regulation 29 of SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015",
+      "date": "2022-07-23"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2021",
+      "date": "2022-02-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2021",
+      "date": "2021-11-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2021",
+      "date": "2021-08-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2021 and dividend",
+      "date": "2021-06-26"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2020",
+      "date": "2021-02-13"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2020",
+      "date": "2020-11-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2020",
+      "date": "2020-09-05"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2020 and dividend",
+      "date": "2020-06-27"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2019",
+      "date": "2020-02-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2019",
+      "date": "2019-11-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2019",
+      "date": "2019-09-10"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the standalone and consolidated audited financial results of the Company for the quarter and year ended 31st March, 2019",
+      "date": "2019-05-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the standalone and consolidated unaudited financial results of the Company for the quarter ended December 31, 2018.",
+      "date": "2019-02-12"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2018",
+      "date": "2018-11-02"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2018",
+      "date": "2018-08-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018 and dividend",
+      "date": "2018-05-16"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Financial Results/Dividend",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018 and dividend",
+      "date": "2018-05-16"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Other business matters",
+      "description": "to transact, inter alia, the following business: 1. To consider fund raising by way of preferential issue of equity shares on a private placement basis and determination of issue price. 2. To approve the notice of postal ballot in order to obtain shareholders prior approval for raising the funds..",
+      "date": "2018-05-04"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To, inter alia, consider and approve the standalone and consolidated unaudited financial results of the Company for the quarter ended December 31, 2017",
+      "date": "2018-02-13"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "inter alia , consider and approve the   (Standalone and Consolidated) Unaudited Financial Results of the Company for the quarter ended September 30, 2017.",
+      "date": "2017-11-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "inter alia, to consider and approve the Un-Audited Financial Results (Standalone and Consolidated) of the Company for the quarter ended June 30, 2017.",
+      "date": "2017-08-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia, the following business: 1) To consider and approve the standalone and consolidated audited financial results of the Company for the quarter and year ended March 31, 2017. 2) To consider recommendation of final dividend, if any, for the year ended March 31, 2017. In terms of the Company s Code for Insider Trading and disclosure of Unpublished Price Sensitive Information, the Company has decided that the trading window of the Company shall remain closed for all the designated employees and connected persons for trading in the shares of the Company from May 03, 2017 to May 12, 2017 (both days inclusive).",
+      "date": "2017-05-10"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To, inter alia, consider and approve the standalone and consolidated audited financial results of the Company for the quarter ended December 31, 2016.",
+      "date": "2017-01-30"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider and approve the standalone and consolidated audited financial results of the Company for the quarter and half year ended September 30, 2016. Pursuant to this, the Company has decided that the trading window of the Company will remain closed for trading in the securities of the Company from November 04, 2016 to November 13, 2016.",
+      "date": "2016-11-11"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Others",
+      "description": "inter alia, to consider the following: 1) To fix the Issue Price, Issue Size, Entitlement Ratio, Fractional Entitlement and Record Date for determining eligibility of the shareholders to whom the equity shares are to be issued under the proposed Rights Issue of the Company.",
+      "date": "2016-09-03"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Others",
+      "description": "inter alia, to consider and approve the Un- Audited Financial Results (Standalone and Consolidated) for the quarter ended June 30, 2016.",
+      "date": "2016-08-06"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Others",
+      "description": "CREST : 06-Jul-2016 : To fix the Book Closure and Record Date for the purpose of dividend, if declared at the forthcoming Annual General Meeting.",
+      "date": "2016-07-06"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "to transact inter alia, the following business: 1) To consider and approve the standalone and consolidated audited financial results of the Company for the quarter and year ended March 31, 2016. 2) To consider recommendation of final dividend, if any, for the year ended March 31, 2016.",
+      "date": "2016-05-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "inter alia to consider, approve and take on record the Unaudited Standalone and Consolidated Financial Results of the Company for the quarter and nine months ended December 31, 2015.",
+      "date": "2016-02-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Others",
+      "description": "The Company had informed the Exchange regarding a meeting of the Board of Directors of the Company schedule to be held February 08, 2016 inter alia to consider, approve and take on record the Unaudited Standalone and Consolidated Financial Results of the Company for the quarter and nine months ended December 31, 2015. the Company has now informed the exchange that also consider regarding the proposed rights issue which the Board will consider in the forthcoming Board meeting scheduled on February 08, 2016.(revised)",
+      "date": "2016-02-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "to consider, approve and take on record the unaudited standalone and consolidated financial results of the Company for the quarter and half year ended September 30,2015.",
+      "date": "2015-11-05"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Others",
+      "description": "Inter alia to transact the following business:1. To consider, approve and take on record the Unaudited Standalone and Consolidated Financial Results of the Company for the Quarter ended June 30, 2015 and to fix record date and book closure for the forthcoming Annual General Meeting.2. To consider and approve the date of forthcoming Annual General Meeting.",
+      "date": "2015-08-10"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "Inter-alia, to consider and approve the Audited Financial Results of the Company for the Financial year and quarter ended March 31, 2015.",
+      "date": "2015-05-05"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider, approve and take on record the Unaudited Financial Results for the quarter ended December 31, 2014.",
+      "date": "2015-02-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Others",
+      "description": "To transact inter alia the following business:  1. To consider appointment of Mr. Rohan R. Gavas as Company Secretary.  2. To consider and approve Scheme of amalgamation between ITI Capital Holdings Private Limited and ITI Securities and Company and their respective shareholders and creditors.",
+      "date": "2015-02-05"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider interalia the Unaudited Financial Results  for the quarter ended September 30, 2014.",
+      "date": "2014-11-10"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider inter alia the Unaudited Financial Results for the quarter ended June 30, 2014.",
+      "date": "2014-08-14"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia the following business: (1) To consider the Audited Financial Results for the year ended March 31, 2014. (2) To consider recommendation of Dividend, if any.",
+      "date": "2014-05-27"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "to transact inter alia the following business:    1. To consider the Audited Financial Results for the year ended March 31, 2014.    2. To consider recommendation of Dividend, if any.",
+      "date": "2014-05-27"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider interalia the Unaudited Financial Results for the quarter ended December 31, 2013.",
+      "date": "2014-02-13"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider interalia the Unaudited Financial Results (Provisional) for the quarter ended September 30, 2013.",
+      "date": "2013-10-30"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider inter alia the Unaudited Financial Results (Provisional) for the quarter ended June 30, 2013.",
+      "date": "2013-08-06"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia the following business:  (1) To consider the Audited Financial Results for the year ended March 31, 2013.  (2) To consider recommendation of Dividend, if any.",
+      "date": "2013-05-06"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results",
+      "description": "To consider interalia the Unaudited Financial Results (Provisional) for the quarter ended December 31, 2012.",
+      "date": "2013-02-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Others",
+      "description": "The Company had informed the Exchange regarding a Board meeting to be held on November 08, 2012  to consider interalia the Unaudited Financial Results (Provisional) for the quarter ended September 30, 2012. The Company has now informed the Exchange that the Board will also consider the following agenda -: (a) To consider various proposals for raising long term resources for the Company's present & future needs, subject to such approvals as may be required in this regard. (b) To finalise the EGM Notice to be sent to shareholders to seek their approval. (Purpose Revised)",
+      "date": "2012-11-08"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia the following business: (1) To consider the Audited Financial Results for the year ended March 31, 2012. (2) To consider recommendation of Dividend, if any.",
+      "date": "2012-05-30"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia the following business : (1) To consider the Audited Financial Results for the year ended March 31, 2011. (2) To consider recommendation of Dividend, if any.",
+      "date": "2011-05-30"
+     },
+     {
+      "symbol": "CREST",
+      "company": "Crest Ventures Limited",
+      "purpose": "Results/Dividend",
+      "description": "To transact inter alia the following business : (1) To consider the Audited Financial Results for the year ended March 31, 2010; (2) To consider recommendation of Dividend, if any.",
+      "date": "2010-05-29"
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

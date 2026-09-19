@@ -1,0 +1,402 @@
+[
+ {
+  "pid": "INT-DF-85",
+  "promise": "The operator's direct DeepSeek account balance is funded (or the picker flipped) so the direct lane is usable rather than returning 402 Insufficient Balance.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 3",
+  "kind": "deferred-item",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-86",
+  "promise": "SAKSOFT's live quarterly figures (revenue Rs 2,488.45 Mn, PAT Rs 359.31 Mn, EPS Rs 2.81) are reliably extracted despite BSE's AttachLive serving being intermittent.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 4",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-87",
+  "promise": "ROUTE's research brief correctly assembles the full Rs 11/share FY dividend from all three interim announcements, not just two of three.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 5",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-88",
+  "promise": "The dual-channel research cross-verify feature is exercised live end-to-end using a direct anthropic/openai/gemini/xai key, not only via OpenRouter.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 6; docs/redesign/DECISIONS.md#D35",
+  "kind": "deferred-item",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-89",
+  "promise": "The composer's plus-menu does not scroll-fold its bottom inset incorrectly.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 7",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-90",
+  "promise": "The depth chip's rest-state fill matches the intended visual weight relative to the Claude reference, not one notch louder.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 7",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-91",
+  "promise": "The model selector control has a caret affordance indicating it is a dropdown.",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 7",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-92",
+  "promise": "No orphaned plugin-secret keychain entries remain after a search-tier backend is deleted (e.g. plugin-secret:vysted-search-exa).",
+  "source": "docs/redesign/verification/R9_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 7",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-93",
+  "promise": "The India sector map covers the full NSE universe (not the ~793/4,875 BSE-INDUSTRY-null floor), so sector-filtered screener queries such as IT-services return complete results on a fresh install.",
+  "source": "docs/redesign/verification/R10_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 1",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-94",
+  "promise": "The brief lifecycle's visual surfaces (in-flight skeleton, disambiguation chooser, derived metric cards, caret/header clip fix, screener India universes, portfolio entry) hold up under the operator's live visual confirmation, not just test-pinning.",
+  "source": "docs/redesign/verification/R10_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 2",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-95",
+  "promise": "The composer's default model picker is set to a funded provider lane (not the keyless Ollama default) on a clean boot, so live research works out of the box.",
+  "source": "docs/redesign/verification/R10_RUN_REPORT.md#NEEDS-MANUAL-CHECK item 4",
+  "kind": "behaviour",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-96",
+  "promise": "/fundamentals and the screener always label revenue_growth/earnings_growth with their true basis (quarterly YoY), never presenting them unlabeled as if they were annual growth.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V1",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-97",
+  "promise": "The default funded chat model correctly drives host-action tool calls (e.g. portfolio writes) rather than emitting an unexplained non-English refusal with zero tool calls.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V2",
+  "kind": "capability",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-98",
+  "promise": "Typing the common abbreviation 'L&T' resolves to Larsen & Toubro (LT), not its subsidiary L&T Finance (LTF).",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V3",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-99",
+  "promise": "Ambiguous multi-company family names (e.g. Jindal, Godrej) always trigger an honest disambiguation chooser rather than silently binding one arbitrary family member.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V4",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-100",
+  "promise": "The /resolve chooser's candidate ranking for an India-region query places IN-region listings above low-relevance foreign tickers.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V5",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-101",
+  "promise": "The Portfolio panel renders INR-denominated holdings with the Rupee symbol, never Dollar, regardless of the panel's default display currency.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V6",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-102",
+  "promise": "pnpm ci-local, including prettier --check, is byte-for-byte green at every tagged release HEAD.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V7",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-103",
+  "promise": "The /resolve endpoint and the research-target resolution path behave consistently on the same salad query, or any divergence is intentional and documented.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V8",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-104",
+  "promise": "A research brief's growth-metric label distinguishes quarterly-YoY from annual growth explicitly, not just tagging it generically 'yoy'.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V9",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-105",
+  "promise": "A sector-based screener filter (e.g. 'Technology') can be narrowed to an industry level (e.g. pure IT-services) distinct from adjacent sub-sectors like solar/EMS/networking.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V10",
+  "kind": "capability",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-106",
+  "promise": "A stock's dividend_per_share figure reflects the full FY total, including special dividends, not just the final dividend tranche.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#V11",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-107",
+  "promise": "The composer's plus menu, model-picker popover, persona toggle, ASK/AUTO toggle, depth-keyed send color, and narrow-width composer layout all render and function correctly when individually driven.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.2",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-108",
+  "promise": "Induced provider error states (401/402/429/5xx) render their humanized copy live in the chat UI, not only in unit tests.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.3",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-109",
+  "promise": "The custom-formula screener path, the heavy multi-criteria screen, and the agent-authored screen path all function correctly when individually re-driven live.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.6",
+  "kind": "capability",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-110",
+  "promise": "The Settings Region & Locale, Keybindings, and Advanced tabs render correctly and their controls apply, individually captured.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.7",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-111",
+  "promise": "The Marketplace panel functions correctly when driven live (install/enable/disable a plugin).",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.8",
+  "kind": "capability",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-112",
+  "promise": "The Chart, Watchlist, comparison cockpit, dockview arrange-resize-close, 'arrange my windows', and code-nodes-sandbox panels all function correctly under live driving, beyond their test pins.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.9",
+  "kind": "capability",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-113",
+  "promise": "A full stray-item sweep of the UI finds no orphaned or dead controls beyond what has already been audited.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#6.10",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-114",
+  "promise": "The Portfolio panel's row-delete control is reliably triggerable via keyboard/assistive interaction, not only hover-revealed in a way that defeats automated interaction.",
+  "source": "docs/redesign/verification/R10_VERIFY_REPORT.md#7 operator punch-list item 2",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-115",
+  "promise": "The section-6.5 order-review dialog is click-through verified live end-to-end for a manual 'buy X' request, beyond suite-level re-verification and byte-diff, confirming it reaches the review stage and never auto-places.",
+  "source": "docs/redesign/verification/R11_RUN_REPORT.md#morning report / 'What I could not finish' item 1",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-116",
+  "promise": "No text clips or overflows incorrectly at narrow dock widths (~960px) across the app.",
+  "source": "docs/redesign/verification/R11_RUN_REPORT.md#morning report item 2; docs/redesign/verification/R12_RUN_REPORT.md#NEEDS-MANUAL-CHECK",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-117",
+  "promise": "A fresh re-shot confirms the screener throttle chips (PARTIAL badge, live/mixed basis counts, unavailable-reason breakdown) render correctly live on the current build.",
+  "source": "docs/redesign/verification/R12_RUN_REPORT.md#NEEDS-MANUAL-CHECK",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-118",
+  "promise": "The app computes and surfaces a true annual (not only quarterly-YoY) revenue/earnings growth figure derived from full income-statement history.",
+  "source": "docs/redesign/verification/R11_RUN_REPORT.md#E/V disposition table, V1 note",
+  "kind": "deferred-item",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-119",
+  "promise": "The deterministic growth cross-check validates a company's growth figures against an independent, non-yfinance source, not only yfinance's own quarterly statements checked against itself.",
+  "source": "docs/redesign/DECISIONS.md#D66",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-120",
+  "promise": "The growth cross-check does not spuriously flag a conflict for bank-sector stocks, where revenue-definition differences make the metric unusable-as-claimed regardless of provider agreement.",
+  "source": "docs/redesign/DECISIONS.md#D66",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-121",
+  "promise": "An up-but-empty managed SearXNG (Tier A) instance returning HTTP 200 with zero results is cross-checked against the keyless floor before the pipeline narrates 'no web sources found', rather than accepting an empty result as ground truth.",
+  "source": "docs/redesign/DECISIONS.md#D74",
+  "kind": "guarantee",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-122",
+  "promise": "4-character ticker symbols (e.g. META) never surface foreign-namesake headlines in the news/research leg; the relevance gate's short-symbol corroboration boundary is not limited to symbols of 3 characters or fewer.",
+  "source": "docs/redesign/DECISIONS.md#D78",
+  "kind": "quality-bar",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-123",
+  "promise": "BSE-listed instrument renames (e.g. CDG to Jujhar Logistics) are resolved automatically via a BSE corporate-actions rename lane, the same way NSE renames are handled, rather than only being surfaced as an honest identity-conflict note.",
+  "source": "docs/redesign/DECISIONS.md#D79",
+  "kind": "deferred-item",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ },
+ {
+  "pid": "INT-DF-124",
+  "promise": "When asked to escalate research to ULTRA depth, the model complies and re-runs rather than declining on the grounds that 'deep already hit a data wall.'",
+  "source": "docs/redesign/verification/R13_RUN_REPORT.md#Phase A - KSE repro",
+  "kind": "behaviour",
+  "status": "pending",
+  "evidence": "",
+  "gap": "",
+  "decision_ref": ""
+ }
+]

@@ -30,7 +30,9 @@ BATTERY = ROOT / "docs/redesign/verification/r15/battery"
 OUT_DIR = BATTERY / "collected"
 
 
-def call(base: str, path: str, params: dict | None = None, timeout: float = 90.0) -> dict:
+def call(
+    base: str, path: str, params: dict | None = None, timeout: float = 90.0
+) -> dict:
     """One GET, recorded the way a defect reviewer needs it: status, latency, body."""
     url = base + path + (("?" + urllib.parse.urlencode(params)) if params else "")
     started = time.monotonic()
@@ -83,7 +85,9 @@ def wait_polite(base: str, gap: float, last: list[float], max_park: float) -> di
     return {"yahoo_open": bool(health.get("open")), "parked_s": round(parked, 1)}
 
 
-def collect_one(base: str, entry: dict, gap: float, max_park: float, last: list[float]) -> dict:
+def collect_one(
+    base: str, entry: dict, gap: float, max_park: float, last: list[float]
+) -> dict:
     sym = entry["symbol"]
     plan: list[tuple[str, str, dict | None]] = [
         # resolve, the three forms a user types
@@ -132,9 +136,13 @@ def main() -> int:
     ap.add_argument("--port", type=int, default=52152)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--gap", type=float, default=2.0, help="min seconds between calls")
-    ap.add_argument("--max-park", type=float, default=120.0, help="max s to wait on the breaker")
+    ap.add_argument(
+        "--max-park", type=float, default=120.0, help="max s to wait on the breaker"
+    )
     ap.add_argument("--only", default="", help="comma-separated slots, e.g. P1,P9")
-    ap.add_argument("--force", action="store_true", help="re-collect names already on disk")
+    ap.add_argument(
+        "--force", action="store_true", help="re-collect names already on disk"
+    )
     args = ap.parse_args()
 
     base = f"http://{args.host}:{args.port}"
@@ -156,7 +164,10 @@ def main() -> int:
                 pass  # half-written by a killed run — redo it
         print(f"[collect] {entry['slot']} {entry['symbol']}", flush=True)
         out.write_text(
-            json.dumps(collect_one(base, entry, args.gap, args.max_park, last), indent=1) + "\n"
+            json.dumps(
+                collect_one(base, entry, args.gap, args.max_park, last), indent=1
+            )
+            + "\n"
         )
     return 0
 

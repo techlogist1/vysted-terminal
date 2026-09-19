@@ -1,0 +1,33 @@
+{
+ "tag": "code-R2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your task was killed by a usage wall: your output files may already exist, partial or complete - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "prompt": "Your task spec is the CRITIQUE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  },
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "rust-core"
+  },
+  {
+   "id": "frontend-panels-data-surfaces"
+  },
+  {
+   "id": "frontend-panels-shell-chrome"
+  },
+  {
+   "id": "workflow-engine"
+  },
+  {
+   "id": "runs-durable-delegate"
+  }
+ ]
+}

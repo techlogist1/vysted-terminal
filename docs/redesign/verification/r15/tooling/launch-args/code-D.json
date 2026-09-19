@@ -1,0 +1,39 @@
+{
+ "tag": "code-D",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly: context, hard rules, raw finding shape.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "prompt": "Your task spec is the CRITIQUE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  },
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "scripts-build"
+  },
+  {
+   "id": "market-data-providers-1"
+  },
+  {
+   "id": "market-data-providers-2"
+  },
+  {
+   "id": "market-data-providers-3"
+  },
+  {
+   "id": "macro-quant"
+  },
+  {
+   "id": "brokers-adapters"
+  },
+  {
+   "id": "workflow-engine"
+  }
+ ]
+}

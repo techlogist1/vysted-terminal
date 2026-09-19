@@ -1,0 +1,38 @@
+{
+ "tag": "world-F",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your task was killed by a usage wall: your output files may already exist, partial or complete - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "fable",
+   "prompt": "Your task spec is the {{spec}} section of docs/redesign/verification/r15/tooling/PROMPT_census.md. {{vars}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "cmp-agent-native-ux",
+   "spec": "WORLD-COMPARE",
+   "vars": "<topic> = \"agent-native-ux\""
+  },
+  {
+   "id": "opp-ledger",
+   "spec": "OPP-LEDGER",
+   "vars": "(CENSUS/OPPORTUNITY_LEDGER.md and raw/world-table-stakes.json may already be complete - verify against the spec, incl. that every table-stakes gap was checked against the code.)"
+  },
+  {
+   "id": "quant",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"quant\"; <seat> = a quant who runs systematic factor and event strategies on Indian equities: cares about point-in-time data, survivorship, corporate-action adjustment, reproducibility, backtest honesty and turning any research answer into a testable rule"
+  },
+  {
+   "id": "hn-sceptic",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"hn-sceptic\"; <seat> = a sceptical Hacker News commenter who has seen a hundred 'AI for finance' launches: asks what is actually new, what is a wrapper, where the hallucinations hide, why local-first matters, and what would make them star the repo anyway"
+  },
+  {
+   "id": "patch-proof",
+   "spec": "(in PROMPT_wave2.md, not PROMPT_census.md) `patch-proof` bullet of the PROBES",
+   "vars": "<task-id> = \"patch-proof\". Use the shared isolated sidecar on :52152 (runs from current source, includes the patch); its log: /bin/ls /private/tmp/claude-501/*/*/scratchpad/iso/logs/."
+  }
+ ]
+}

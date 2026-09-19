@@ -1,0 +1,2470 @@
+{
+  "MIT": [
+    {
+      "name": "@babel/runtime",
+      "versions": [
+        "7.29.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@babel+runtime@7.29.2/node_modules/@babel/runtime"
+      ],
+      "license": "MIT",
+      "author": "The Babel Team",
+      "homepage": "https://babel.dev/docs/en/next/babel-runtime",
+      "description": "babel's modular runtime helpers"
+    },
+    {
+      "name": "@floating-ui/core",
+      "versions": [
+        "1.7.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@floating-ui+core@1.7.5/node_modules/@floating-ui/core"
+      ],
+      "license": "MIT",
+      "author": "atomiks",
+      "homepage": "https://floating-ui.com",
+      "description": "Positioning library for floating elements: tooltips, popovers, dropdowns, and more"
+    },
+    {
+      "name": "@floating-ui/dom",
+      "versions": [
+        "1.7.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@floating-ui+dom@1.7.6/node_modules/@floating-ui/dom"
+      ],
+      "license": "MIT",
+      "author": "atomiks",
+      "homepage": "https://floating-ui.com",
+      "description": "Floating UI for the web"
+    },
+    {
+      "name": "@floating-ui/react-dom",
+      "versions": [
+        "2.1.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@floating-ui+react-dom@2.1.8_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/@floating-ui/react-dom"
+      ],
+      "license": "MIT",
+      "author": "atomiks",
+      "homepage": "https://floating-ui.com/docs/react-dom",
+      "description": "Floating UI for React DOM"
+    },
+    {
+      "name": "@floating-ui/utils",
+      "versions": [
+        "0.2.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@floating-ui+utils@0.2.11/node_modules/@floating-ui/utils"
+      ],
+      "license": "MIT",
+      "author": "atomiks",
+      "homepage": "https://floating-ui.com",
+      "description": "Utilities for Floating UI"
+    },
+    {
+      "name": "@radix-ui/number",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+number@1.1.1/node_modules/@radix-ui/number"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/primitive",
+      "versions": [
+        "1.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+primitive@1.1.3/node_modules/@radix-ui/primitive"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-accessible-icon",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-accessible-icon@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@ty_7059264bc1fb2325d618284a9a2e00ab/node_modules/@radix-ui/react-accessible-icon"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "versions": [
+        "1.2.12"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-accordion@1.2.12_@types+react-dom@19.2.3_@types+react@19.2.14__@types+r_dd042184823cb7783b305fbc0c6ee2dd/node_modules/@radix-ui/react-accordion"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-alert-dialog",
+      "versions": [
+        "1.1.15"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-alert-dialog@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@type_91d5036573779c1b9f41b61cd4660f3d/node_modules/@radix-ui/react-alert-dialog"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-arrow",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-arrow@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_07ab85c571739f89808dad9390df6d71/node_modules/@radix-ui/react-arrow"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-aspect-ratio",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-aspect-ratio@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types_dcdd1437d6dfd275902b5b91b4869656/node_modules/@radix-ui/react-aspect-ratio"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-avatar",
+      "versions": [
+        "1.1.10"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-avatar@1.1.10_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_0ea80bc1497a6ecfd0bb5e124b1154c7/node_modules/@radix-ui/react-avatar"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "versions": [
+        "1.3.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-checkbox@1.3.3_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_36946c77eec45f5a9fc04b1442c78a6c/node_modules/@radix-ui/react-checkbox"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-collapsible",
+      "versions": [
+        "1.1.12"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-collapsible@1.1.12_@types+react-dom@19.2.3_@types+react@19.2.14__@types_e6de6020dad09a1b58742342f76b372e/node_modules/@radix-ui/react-collapsible"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-collection",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-collection@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+r_b94f5365b88697a700662930c56ccffc/node_modules/@radix-ui/react-collection"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-compose-refs",
+      "versions": [
+        "1.1.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-compose-refs@1.1.2_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-compose-refs"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-context",
+      "versions": [
+        "1.1.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-context@1.1.2_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-context"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-context-menu",
+      "versions": [
+        "2.2.16"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-context-menu@2.2.16_@types+react-dom@19.2.3_@types+react@19.2.14__@type_f37cfa1787d19448013098dea4e28ec1/node_modules/@radix-ui/react-context-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "versions": [
+        "1.1.15"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-dialog@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_340425d8afbecb0b8c61fd2281bc18a1/node_modules/@radix-ui/react-dialog"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-direction",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-direction@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-direction"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-dismissable-layer",
+      "versions": [
+        "1.1.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-dismissable-layer@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14___9e4771d0900293d89694eff7a0933149/node_modules/@radix-ui/react-dismissable-layer"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "versions": [
+        "2.1.16"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-dropdown-menu@2.1.16_@types+react-dom@19.2.3_@types+react@19.2.14__@typ_4a94a496ca8ecf7aa0a759c94ddf8d47/node_modules/@radix-ui/react-dropdown-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-focus-guards",
+      "versions": [
+        "1.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-focus-guards@1.1.3_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-focus-guards"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-focus-scope",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-focus-scope@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_c6061abe6ab403e0e04cce9bd67455fb/node_modules/@radix-ui/react-focus-scope"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-form",
+      "versions": [
+        "0.1.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-form@0.1.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@1_47bc6dc07b089b01a31e6ae276fc360e/node_modules/@radix-ui/react-form"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-hover-card",
+      "versions": [
+        "1.1.15"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-hover-card@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_613291aa3f9ccfdc80950d764372b215/node_modules/@radix-ui/react-hover-card"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-id",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-id@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-id"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-label",
+      "versions": [
+        "2.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-label@2.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_f0aed35acd5832478de9bf0eb04e4e73/node_modules/@radix-ui/react-label"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-menu",
+      "versions": [
+        "2.1.16"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-menu@2.1.16_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_6e090c4710b0b40304301dfd6649d716/node_modules/@radix-ui/react-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-menubar",
+      "versions": [
+        "1.1.16"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-menubar@1.1.16_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_c241a6baa37fac632bcc4c84e9bee107/node_modules/@radix-ui/react-menubar"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-navigation-menu",
+      "versions": [
+        "1.2.14"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-navigation-menu@1.2.14_@types+react-dom@19.2.3_@types+react@19.2.14__@t_c2b468396dc2ba1a62f7bc4ec11745d1/node_modules/@radix-ui/react-navigation-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-one-time-password-field",
+      "versions": [
+        "0.1.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-one-time-password-field@0.1.8_@types+react-dom@19.2.3_@types+react@19.2_4f1c35a331f5409899cf6aa8a62bc07b/node_modules/@radix-ui/react-one-time-password-field"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-password-toggle-field",
+      "versions": [
+        "0.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-password-toggle-field@0.1.3_@types+react-dom@19.2.3_@types+react@19.2.1_ccd72623a720a0b92b4e37907f095b99/node_modules/@radix-ui/react-password-toggle-field"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-popover",
+      "versions": [
+        "1.1.15"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-popover@1.1.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_70579f2082d5a15782122fa6c39e7d95/node_modules/@radix-ui/react-popover"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-popper",
+      "versions": [
+        "1.2.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-popper@1.2.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_505ed917ba38a18b4046dabcb3d6a2bb/node_modules/@radix-ui/react-popper"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-portal",
+      "versions": [
+        "1.1.9"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-portal@1.1.9_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_266ca67294f168fbf2e025541d323e69/node_modules/@radix-ui/react-portal"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-presence",
+      "versions": [
+        "1.1.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-presence@1.1.5_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_abbc8bcf75333b39bfe32b13ef7abc0e/node_modules/@radix-ui/react-presence"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-primitive",
+      "versions": [
+        "2.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-primitive@2.1.3_@types+react-dom@19.2.3_@types+react@19.2.14__@types+re_0935c7b95cefcdb4f10a34e92035e5e3/node_modules/@radix-ui/react-primitive"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-progress@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_740b0bbe0b5580d832d94af6eeb5f557/node_modules/@radix-ui/react-progress"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-radio-group",
+      "versions": [
+        "1.3.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-radio-group@1.3.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_c07779e275d27cb5d99f86b5919e57c8/node_modules/@radix-ui/react-radio-group"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-roving-focus",
+      "versions": [
+        "1.1.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-roving-focus@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14__@type_b849ea542e77d5b397b1fe12d9f00b2e/node_modules/@radix-ui/react-roving-focus"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-scroll-area",
+      "versions": [
+        "1.2.10"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-scroll-area@1.2.10_@types+react-dom@19.2.3_@types+react@19.2.14__@types_3f2ac5445210224aefd6333ca2197426/node_modules/@radix-ui/react-scroll-area"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "versions": [
+        "2.2.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-select@2.2.6_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_682a989a3617012ce093f43297729adf/node_modules/@radix-ui/react-select"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "versions": [
+        "1.1.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-separator@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+re_1b561637c6fda016bf55dafdf03b703a/node_modules/@radix-ui/react-separator"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-slider",
+      "versions": [
+        "1.3.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-slider@1.3.6_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_4168059ceb0ad18c50e861ed8102d508/node_modules/@radix-ui/react-slider"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "versions": [
+        "1.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-slot@1.2.3_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-slot"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-switch",
+      "versions": [
+        "1.2.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-switch@1.2.6_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_fb4779bfc166cf9d3db05474981c0df1/node_modules/@radix-ui/react-switch"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "versions": [
+        "1.1.13"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-tabs@1.1.13_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_08684373bbac196273bdefb5472f93a8/node_modules/@radix-ui/react-tabs"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "versions": [
+        "1.2.15"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-toast@1.2.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_6625e53ff8dc545622ac4ae2f6193cc7/node_modules/@radix-ui/react-toast"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-toggle",
+      "versions": [
+        "1.1.10"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-toggle@1.1.10_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_1170d6428188a43ba2f1794b2158e623/node_modules/@radix-ui/react-toggle"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-toggle-group",
+      "versions": [
+        "1.1.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-toggle-group@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14__@type_f53932d1010514ee55ce15134943c7f6/node_modules/@radix-ui/react-toggle-group"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-toolbar",
+      "versions": [
+        "1.1.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-toolbar@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_855b867db56c182beb12942ab20dad4c/node_modules/@radix-ui/react-toolbar"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-tooltip",
+      "versions": [
+        "1.2.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-tooltip@1.2.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_8c33d96ab4033e6041e8b8646beae976/node_modules/@radix-ui/react-tooltip"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-callback-ref",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-callback-ref@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-callback-ref"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-controllable-state",
+      "versions": [
+        "1.2.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-controllable-state@1.2.2_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-controllable-state"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-effect-event",
+      "versions": [
+        "0.0.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-effect-event@0.0.2_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-effect-event"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-escape-keydown",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-escape-keydown@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-escape-keydown"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-is-hydrated",
+      "versions": [
+        "0.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-is-hydrated@0.1.0_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-is-hydrated"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-layout-effect",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-layout-effect@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-layout-effect"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-previous",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-previous@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-previous"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-rect",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-rect@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-rect"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-use-size",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-use-size@1.1.1_@types+react@19.2.14_react@19.2.6/node_modules/@radix-ui/react-use-size"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/react-visually-hidden",
+      "versions": [
+        "1.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+react-visually-hidden@1.2.3_@types+react-dom@19.2.3_@types+react@19.2.14__@ty_d1be9c417e0b55d219bafdc186d26ce0/node_modules/@radix-ui/react-visually-hidden"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@radix-ui/rect",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@radix-ui+rect@1.1.1/node_modules/@radix-ui/rect"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "@tiptap/core",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+core@3.25.0_@tiptap+pm@3.25.0/node_modules/@tiptap/core"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "headless rich text editor"
+    },
+    {
+      "name": "@tiptap/extension-blockquote",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-blockquote@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-blockquote"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "blockquote extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-bold",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-bold@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-bold"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "bold extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-bubble-menu",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-bubble-menu@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-bubble-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "bubble-menu extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-bullet-list",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-bullet-list@3.25.0_@tiptap+extension-list@3.25.0_@tiptap+core@3.25.0__a4a3dcb725565229b05d8fc444c52b32/node_modules/@tiptap/extension-bullet-list"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "bullet list extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-code",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-code@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-code"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "code extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-code-block",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-code-block@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-code-block"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "code block extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-document",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-document@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-document"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "document extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-dropcursor",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-dropcursor@3.25.0_@tiptap+extensions@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-dropcursor"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "dropcursor extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-floating-menu",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-floating-menu@3.25.0_@floating-ui+dom@1.7.6_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-floating-menu"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "floating-menu extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-gapcursor",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-gapcursor@3.25.0_@tiptap+extensions@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-gapcursor"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "gapcursor extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-hard-break",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-hard-break@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-hard-break"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "hard break extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-heading",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-heading@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-heading"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "heading extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-horizontal-rule",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-horizontal-rule@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-horizontal-rule"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "horizontal rule extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-italic",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-italic@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-italic"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "italic extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-link",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-link@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-link"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "link extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-list",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-list@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-list"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "List extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-list-item",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-list-item@3.25.0_@tiptap+extension-list@3.25.0_@tiptap+core@3.25.0_@t_86b04b21392b77bc64813818217b803b/node_modules/@tiptap/extension-list-item"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "list item extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-list-keymap",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-list-keymap@3.25.0_@tiptap+extension-list@3.25.0_@tiptap+core@3.25.0__30216cc923df4aa9dc466e008d3730e6/node_modules/@tiptap/extension-list-keymap"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "list keymap extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-ordered-list",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-ordered-list@3.25.0_@tiptap+extension-list@3.25.0_@tiptap+core@3.25.0_d05eb32d6a336cb9c8878438218b9d10/node_modules/@tiptap/extension-ordered-list"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "ordered list extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-paragraph",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-paragraph@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-paragraph"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "paragraph extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-strike",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-strike@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-strike"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "strike extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-table",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-table@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extension-table"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "table extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-table-cell",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-table-cell@3.25.0_@tiptap+extension-table@3.25.0_@tiptap+core@3.25.0__fe83ae1ed42503072a7526d3c3ab8eb5/node_modules/@tiptap/extension-table-cell"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "table cell extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-table-header",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-table-header@3.25.0_@tiptap+extension-table@3.25.0_@tiptap+core@3.25._8547dcfecfe8cefe3c7696fb933c4cb2/node_modules/@tiptap/extension-table-header"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "table cell extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-table-row",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-table-row@3.25.0_@tiptap+extension-table@3.25.0_@tiptap+core@3.25.0_@_dd576a9ca0befe4fea646728e331262d/node_modules/@tiptap/extension-table-row"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "table row extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-text",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-text@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-text"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "text extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extension-underline",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extension-underline@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0_/node_modules/@tiptap/extension-underline"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "underline extension for tiptap"
+    },
+    {
+      "name": "@tiptap/extensions",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+extensions@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/extensions"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "various extensions for tiptap"
+    },
+    {
+      "name": "@tiptap/markdown",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+markdown@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/markdown"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "markdown parser and serializer for tiptap"
+    },
+    {
+      "name": "@tiptap/pm",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+pm@3.25.0/node_modules/@tiptap/pm"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "prosemirror wrapper package for tiptap"
+    },
+    {
+      "name": "@tiptap/react",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+react@3.25.0_@floating-ui+dom@1.7.6_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tip_2d0f83049a6cfbcef5f240446f50e94e/node_modules/@tiptap/react"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "React components for tiptap"
+    },
+    {
+      "name": "@tiptap/starter-kit",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+starter-kit@3.25.0/node_modules/@tiptap/starter-kit"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "starter kit for tiptap"
+    },
+    {
+      "name": "@tiptap/suggestion",
+      "versions": [
+        "3.25.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tiptap+suggestion@3.25.0_@tiptap+core@3.25.0_@tiptap+pm@3.25.0__@tiptap+pm@3.25.0/node_modules/@tiptap/suggestion"
+      ],
+      "license": "MIT",
+      "homepage": "https://tiptap.dev",
+      "description": "suggestion plugin for tiptap"
+    },
+    {
+      "name": "@types/d3-color",
+      "versions": [
+        "3.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-color@3.1.3/node_modules/@types/d3-color"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-color",
+      "description": "TypeScript definitions for d3-color"
+    },
+    {
+      "name": "@types/d3-drag",
+      "versions": [
+        "3.0.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-drag@3.0.7/node_modules/@types/d3-drag"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-drag",
+      "description": "TypeScript definitions for d3-drag"
+    },
+    {
+      "name": "@types/d3-interpolate",
+      "versions": [
+        "3.0.4"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-interpolate@3.0.4/node_modules/@types/d3-interpolate"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-interpolate",
+      "description": "TypeScript definitions for d3-interpolate"
+    },
+    {
+      "name": "@types/d3-selection",
+      "versions": [
+        "3.0.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-selection@3.0.11/node_modules/@types/d3-selection"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-selection",
+      "description": "TypeScript definitions for d3-selection"
+    },
+    {
+      "name": "@types/d3-transition",
+      "versions": [
+        "3.0.9"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-transition@3.0.9/node_modules/@types/d3-transition"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-transition",
+      "description": "TypeScript definitions for d3-transition"
+    },
+    {
+      "name": "@types/d3-zoom",
+      "versions": [
+        "3.0.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+d3-zoom@3.0.8/node_modules/@types/d3-zoom"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/d3-zoom",
+      "description": "TypeScript definitions for d3-zoom"
+    },
+    {
+      "name": "@types/pako",
+      "versions": [
+        "2.0.4"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+pako@2.0.4/node_modules/@types/pako"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/pako",
+      "description": "TypeScript definitions for pako"
+    },
+    {
+      "name": "@types/raf",
+      "versions": [
+        "3.4.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+raf@3.4.3/node_modules/@types/raf"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/raf",
+      "description": "TypeScript definitions for raf"
+    },
+    {
+      "name": "@types/react",
+      "versions": [
+        "19.2.14"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+react@19.2.14/node_modules/@types/react"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react",
+      "description": "TypeScript definitions for react"
+    },
+    {
+      "name": "@types/react-dom",
+      "versions": [
+        "19.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+react-dom@19.2.3_@types+react@19.2.14/node_modules/@types/react-dom"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-dom",
+      "description": "TypeScript definitions for react-dom"
+    },
+    {
+      "name": "@types/trusted-types",
+      "versions": [
+        "2.0.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+trusted-types@2.0.7/node_modules/@types/trusted-types"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/trusted-types",
+      "description": "TypeScript definitions for trusted-types"
+    },
+    {
+      "name": "@types/use-sync-external-store",
+      "versions": [
+        "0.0.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@types+use-sync-external-store@0.0.6/node_modules/@types/use-sync-external-store"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/use-sync-external-store",
+      "description": "TypeScript definitions for use-sync-external-store"
+    },
+    {
+      "name": "@xyflow/react",
+      "versions": [
+        "12.10.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@xyflow+react@12.10.2_@types+react@19.2.14_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/@xyflow/react"
+      ],
+      "license": "MIT",
+      "homepage": "https://reactflow.dev",
+      "description": "React Flow - A highly customizable React library for building node-based editors and interactive flow charts."
+    },
+    {
+      "name": "@xyflow/system",
+      "versions": [
+        "0.0.76"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@xyflow+system@0.0.76/node_modules/@xyflow/system"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/xyflow/xyflow#readme",
+      "description": "xyflow core system that powers React Flow and Svelte Flow."
+    },
+    {
+      "name": "aria-hidden",
+      "versions": [
+        "1.2.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/aria-hidden@1.2.6/node_modules/aria-hidden"
+      ],
+      "license": "MIT",
+      "author": "Anton Korzunov",
+      "homepage": "https://github.com/theKashey/aria-hidden#readme",
+      "description": "Cast aria-hidden to everything, except..."
+    },
+    {
+      "name": "base64-arraybuffer",
+      "versions": [
+        "1.0.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/base64-arraybuffer@1.0.2/node_modules/base64-arraybuffer"
+      ],
+      "license": "MIT",
+      "author": "Niklas von Hertzen",
+      "homepage": "https://github.com/niklasvh/base64-arraybuffer",
+      "description": "Encode/decode base64 data into ArrayBuffers"
+    },
+    {
+      "name": "canvg",
+      "versions": [
+        "3.0.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/canvg@3.0.11/node_modules/canvg"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/canvg/canvg#readme",
+      "description": "JavaScript SVG parser and renderer on Canvas."
+    },
+    {
+      "name": "classcat",
+      "versions": [
+        "5.0.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/classcat@5.0.5/node_modules/classcat"
+      ],
+      "license": "MIT",
+      "author": "Jorge Bucaran",
+      "homepage": "https://github.com/jorgebucaran/classcat#readme",
+      "description": "Build a class attribute string quickly."
+    },
+    {
+      "name": "clsx",
+      "versions": [
+        "2.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/clsx@2.1.1/node_modules/clsx"
+      ],
+      "license": "MIT",
+      "author": "Luke Edwards",
+      "homepage": "https://github.com/lukeed/clsx#readme",
+      "description": "A tiny (239B) utility for constructing className strings conditionally."
+    },
+    {
+      "name": "cmdk",
+      "versions": [
+        "1.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/cmdk@1.1.1_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@19.2.14_react-dom_66be394aff8225a06cf994aefac200c6/node_modules/cmdk"
+      ],
+      "license": "MIT",
+      "author": "Paco",
+      "homepage": "https://github.com/pacocoursey/cmdk#readme"
+    },
+    {
+      "name": "complex.js",
+      "versions": [
+        "2.4.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/complex.js@2.4.3/node_modules/complex.js"
+      ],
+      "license": "MIT",
+      "author": "Robert Eisele",
+      "homepage": "https://raw.org/article/complex-numbers-in-javascript/",
+      "description": "The RAW complex numbers library"
+    },
+    {
+      "name": "core-js",
+      "versions": [
+        "3.49.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/core-js@3.49.0/node_modules/core-js"
+      ],
+      "license": "MIT",
+      "author": "Denis Pushkarev",
+      "homepage": "https://core-js.io",
+      "description": "Standard library"
+    },
+    {
+      "name": "css-line-break",
+      "versions": [
+        "2.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/css-line-break@2.1.0/node_modules/css-line-break"
+      ],
+      "license": "MIT",
+      "author": "Niklas von Hertzen",
+      "homepage": "https://github.com/niklasvh/css-line-break#readme",
+      "description": ""
+    },
+    {
+      "name": "csstype",
+      "versions": [
+        "3.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/csstype@3.2.3/node_modules/csstype"
+      ],
+      "license": "MIT",
+      "author": "Fredrik Nicol",
+      "homepage": "https://github.com/frenic/csstype#readme",
+      "description": "Strict TypeScript and Flow types for style based on MDN data"
+    },
+    {
+      "name": "decimal.js",
+      "versions": [
+        "10.6.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/decimal.js@10.6.0/node_modules/decimal.js"
+      ],
+      "license": "MIT",
+      "author": "Michael Mclaughlin",
+      "homepage": "https://github.com/MikeMcl/decimal.js#readme",
+      "description": "An arbitrary-precision Decimal type for JavaScript."
+    },
+    {
+      "name": "detect-node-es",
+      "versions": [
+        "1.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/detect-node-es@1.1.0/node_modules/detect-node-es"
+      ],
+      "license": "MIT",
+      "author": "Ilya Kantor",
+      "homepage": "https://github.com/thekashey/detect-node",
+      "description": "Detect Node.JS (as opposite to browser environment). ESM modification"
+    },
+    {
+      "name": "dockview",
+      "versions": [
+        "6.2.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/dockview@6.2.2_react@19.2.6/node_modules/dockview"
+      ],
+      "license": "MIT",
+      "author": "https://github.com/mathuo",
+      "homepage": "https://github.com/mathuo/dockview",
+      "description": "React docking layout manager — tabs, groups, grids, splitviews, drag and drop, floating panels"
+    },
+    {
+      "name": "dockview-core",
+      "versions": [
+        "6.2.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/dockview-core@6.2.2/node_modules/dockview-core"
+      ],
+      "license": "MIT",
+      "author": "https://github.com/mathuo",
+      "homepage": "https://github.com/mathuo/dockview",
+      "description": "Zero dependency layout manager supporting tabs, groups, grids and splitviews for vanilla TypeScript"
+    },
+    {
+      "name": "escape-latex",
+      "versions": [
+        "1.2.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/escape-latex@1.2.0/node_modules/escape-latex"
+      ],
+      "license": "MIT",
+      "author": "Dang Mai",
+      "homepage": "https://github.com/dangmai/escape-latex#readme",
+      "description": "Escape LaTeX special characters with Javascript"
+    },
+    {
+      "name": "fancy-canvas",
+      "versions": [
+        "2.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/fancy-canvas@2.1.0/node_modules/fancy-canvas"
+      ],
+      "license": "MIT",
+      "author": "smakarov@tradingview.com",
+      "description": "Functionality on top of HTML canvas element, including support for HiDPI and pixel-perfect rendering"
+    },
+    {
+      "name": "fast-equals",
+      "versions": [
+        "5.4.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/fast-equals@5.4.0/node_modules/fast-equals"
+      ],
+      "license": "MIT",
+      "author": "tony_quetano@planttheidea.com",
+      "homepage": "https://github.com/planttheidea/fast-equals#readme",
+      "description": "A blazing fast equality comparison, either shallow or deep"
+    },
+    {
+      "name": "fast-png",
+      "versions": [
+        "6.4.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/fast-png@6.4.0/node_modules/fast-png"
+      ],
+      "license": "MIT",
+      "author": "Michaël Zasso",
+      "homepage": "https://github.com/image-js/fast-png#readme",
+      "description": "PNG image decoder and encoder written entirely in JavaScript"
+    },
+    {
+      "name": "fflate",
+      "versions": [
+        "0.8.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/fflate@0.8.3/node_modules/fflate"
+      ],
+      "license": "MIT",
+      "author": "Arjun Barrett",
+      "homepage": "https://101arrowz.github.io/fflate",
+      "description": "High performance (de)compression in an 8kB package"
+    },
+    {
+      "name": "fraction.js",
+      "versions": [
+        "5.3.4"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/fraction.js@5.3.4/node_modules/fraction.js"
+      ],
+      "license": "MIT",
+      "author": "Robert Eisele",
+      "homepage": "https://raw.org/article/rational-numbers-in-javascript/",
+      "description": "The RAW rational numbers library"
+    },
+    {
+      "name": "framer-motion",
+      "versions": [
+        "12.38.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/framer-motion@12.38.0_react-dom@19.2.6_react@19.2.6__react@19.2.6/node_modules/framer-motion"
+      ],
+      "license": "MIT",
+      "author": "Matt Perry",
+      "homepage": "https://github.com/motiondivision/motion#readme",
+      "description": "A simple and powerful JavaScript animation library"
+    },
+    {
+      "name": "get-nonce",
+      "versions": [
+        "1.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/get-nonce@1.0.1/node_modules/get-nonce"
+      ],
+      "license": "MIT",
+      "author": "Anton Korzunov",
+      "homepage": "https://github.com/theKashey/get-nonce",
+      "description": "returns nonce"
+    },
+    {
+      "name": "html-to-image",
+      "versions": [
+        "1.11.13"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/html-to-image@1.11.13/node_modules/html-to-image"
+      ],
+      "license": "MIT",
+      "author": "bubkooo",
+      "homepage": "https://github.com/bubkoo/html-to-image#readme",
+      "description": "Generates an image from a DOM node using HTML5 canvas and SVG."
+    },
+    {
+      "name": "html2canvas",
+      "versions": [
+        "1.4.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/html2canvas@1.4.1/node_modules/html2canvas"
+      ],
+      "license": "MIT",
+      "author": "Niklas von Hertzen",
+      "homepage": "https://html2canvas.hertzen.com",
+      "description": "Screenshots with JavaScript"
+    },
+    {
+      "name": "iobuffer",
+      "versions": [
+        "5.4.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/iobuffer@5.4.0/node_modules/iobuffer"
+      ],
+      "license": "MIT",
+      "author": "Michaël Zasso",
+      "homepage": "https://github.com/image-js/iobuffer#readme",
+      "description": "Read and write binary data on ArrayBuffers"
+    },
+    {
+      "name": "javascript-natural-sort",
+      "versions": [
+        "0.7.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/javascript-natural-sort@0.7.1/node_modules/javascript-natural-sort"
+      ],
+      "license": "MIT",
+      "author": "Jim Palmer",
+      "homepage": "https://github.com/Bill4Time/javascript-natural-sort",
+      "description": "Natural Sort algorithm for Javascript - Version 0.7 - Released under MIT license"
+    },
+    {
+      "name": "jspdf",
+      "versions": [
+        "4.2.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/jspdf@4.2.1/node_modules/jspdf"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/parallax/jsPDF",
+      "description": "PDF Document creation from JavaScript"
+    },
+    {
+      "name": "jspdf-autotable",
+      "versions": [
+        "5.0.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/jspdf-autotable@5.0.8_jspdf@4.2.1/node_modules/jspdf-autotable"
+      ],
+      "license": "MIT",
+      "author": "Simon Bengtsson",
+      "homepage": "https://simonbengtsson.github.io/jsPDF-AutoTable",
+      "description": "Generate pdf tables with javascript (jsPDF plugin)"
+    },
+    {
+      "name": "linkifyjs",
+      "versions": [
+        "4.3.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/linkifyjs@4.3.3/node_modules/linkifyjs"
+      ],
+      "license": "MIT",
+      "author": "Nick Frasser",
+      "homepage": "https://linkify.js.org",
+      "description": "Find URLs, email addresses, #hashtags and @mentions in plain-text strings, then convert them into HTML <a> links."
+    },
+    {
+      "name": "marked",
+      "versions": [
+        "17.0.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/marked@17.0.6/node_modules/marked"
+      ],
+      "license": "MIT",
+      "author": "Christopher Jeffrey",
+      "homepage": "https://marked.js.org",
+      "description": "A markdown parser built for speed"
+    },
+    {
+      "name": "motion-dom",
+      "versions": [
+        "12.38.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/motion-dom@12.38.0/node_modules/motion-dom"
+      ],
+      "license": "MIT",
+      "author": "Matt Perry",
+      "homepage": "https://github.com/motiondivision/motion#readme"
+    },
+    {
+      "name": "motion-utils",
+      "versions": [
+        "12.36.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/motion-utils@12.36.0/node_modules/motion-utils"
+      ],
+      "license": "MIT",
+      "author": "Matt Perry",
+      "homepage": "https://github.com/motiondivision/motion#readme"
+    },
+    {
+      "name": "orderedmap",
+      "versions": [
+        "2.1.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/orderedmap@2.1.1/node_modules/orderedmap"
+      ],
+      "license": "MIT",
+      "author": "Marijn Haverbeke",
+      "homepage": "https://github.com/marijnh/orderedmap#readme",
+      "description": "Persistent ordered mapping from strings"
+    },
+    {
+      "name": "performance-now",
+      "versions": [
+        "2.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/performance-now@2.1.0/node_modules/performance-now"
+      ],
+      "license": "MIT",
+      "author": "Braveg1rl",
+      "homepage": "https://github.com/braveg1rl/performance-now",
+      "description": "Implements performance.now (based on process.hrtime)."
+    },
+    {
+      "name": "prosemirror-changeset",
+      "versions": [
+        "2.4.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-changeset@2.4.1/node_modules/prosemirror-changeset"
+      ],
+      "license": "MIT",
+      "description": "Distills a series of editing steps into deleted and added ranges"
+    },
+    {
+      "name": "prosemirror-commands",
+      "versions": [
+        "1.7.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-commands@1.7.1/node_modules/prosemirror-commands"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-commands#readme",
+      "description": "Editing commands for ProseMirror"
+    },
+    {
+      "name": "prosemirror-dropcursor",
+      "versions": [
+        "1.8.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-dropcursor@1.8.2/node_modules/prosemirror-dropcursor"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-dropcursor#readme",
+      "description": "Drop cursor plugin for ProseMirror"
+    },
+    {
+      "name": "prosemirror-gapcursor",
+      "versions": [
+        "1.4.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-gapcursor@1.4.1/node_modules/prosemirror-gapcursor"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-gapcursor#readme",
+      "description": "ProseMirror plugin for cursors at normally impossible-to-reach positions"
+    },
+    {
+      "name": "prosemirror-history",
+      "versions": [
+        "1.5.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-history@1.5.0/node_modules/prosemirror-history"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-history#readme",
+      "description": "Undo history for ProseMirror"
+    },
+    {
+      "name": "prosemirror-inputrules",
+      "versions": [
+        "1.5.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-inputrules@1.5.1/node_modules/prosemirror-inputrules"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-inputrules#readme",
+      "description": "Automatic transforms on text input for ProseMirror"
+    },
+    {
+      "name": "prosemirror-keymap",
+      "versions": [
+        "1.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-keymap@1.2.3/node_modules/prosemirror-keymap"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-keymap#readme",
+      "description": "Keymap plugin for ProseMirror"
+    },
+    {
+      "name": "prosemirror-model",
+      "versions": [
+        "1.25.7"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-model@1.25.7/node_modules/prosemirror-model"
+      ],
+      "license": "MIT",
+      "description": "ProseMirror's document model"
+    },
+    {
+      "name": "prosemirror-schema-list",
+      "versions": [
+        "1.5.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-schema-list@1.5.1/node_modules/prosemirror-schema-list"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-schema-list#readme",
+      "description": "List-related schema elements and commands for ProseMirror"
+    },
+    {
+      "name": "prosemirror-state",
+      "versions": [
+        "1.4.4"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-state@1.4.4/node_modules/prosemirror-state"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-state#readme",
+      "description": "ProseMirror editor state"
+    },
+    {
+      "name": "prosemirror-tables",
+      "versions": [
+        "1.8.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-tables@1.8.5/node_modules/prosemirror-tables"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/ProseMirror/prosemirror-tables#readme",
+      "description": "ProseMirror's rowspan/colspan tables component"
+    },
+    {
+      "name": "prosemirror-transform",
+      "versions": [
+        "1.12.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-transform@1.12.0/node_modules/prosemirror-transform"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/prosemirror/prosemirror-transform#readme",
+      "description": "ProseMirror document transformations"
+    },
+    {
+      "name": "prosemirror-view",
+      "versions": [
+        "1.41.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/prosemirror-view@1.41.8/node_modules/prosemirror-view"
+      ],
+      "license": "MIT",
+      "description": "ProseMirror's view component"
+    },
+    {
+      "name": "radix-ui",
+      "versions": [
+        "1.4.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/radix-ui@1.4.3_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@19.2.14_react_7c84db1ddd2e1c1401fd07328a1340a2/node_modules/radix-ui"
+      ],
+      "license": "MIT",
+      "homepage": "https://radix-ui.com/primitives"
+    },
+    {
+      "name": "raf",
+      "versions": [
+        "3.4.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/raf@3.4.1/node_modules/raf"
+      ],
+      "license": "MIT",
+      "author": "Chris Dickinson",
+      "homepage": "https://github.com/chrisdickinson/raf#readme",
+      "description": "requestAnimationFrame polyfill for node and the browser"
+    },
+    {
+      "name": "react",
+      "versions": [
+        "19.2.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/react@19.2.6/node_modules/react"
+      ],
+      "license": "MIT",
+      "homepage": "https://react.dev/",
+      "description": "React is a JavaScript library for building user interfaces."
+    },
+    {
+      "name": "react-dom",
+      "versions": [
+        "19.2.6"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom"
+      ],
+      "license": "MIT",
+      "homepage": "https://react.dev/",
+      "description": "React package for working with the DOM."
+    },
+    {
+      "name": "react-remove-scroll",
+      "versions": [
+        "2.7.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/react-remove-scroll@2.7.2_@types+react@19.2.14_react@19.2.6/node_modules/react-remove-scroll"
+      ],
+      "license": "MIT",
+      "author": "Anton Korzunov",
+      "homepage": "https://github.com/theKashey/react-remove-scroll#readme",
+      "description": "Disables scroll outside of `children` node."
+    },
+    {
+      "name": "react-remove-scroll-bar",
+      "versions": [
+        "2.3.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/react-remove-scroll-bar@2.3.8_@types+react@19.2.14_react@19.2.6/node_modules/react-remove-scroll-bar"
+      ],
+      "license": "MIT",
+      "author": "Anton Korzunov",
+      "homepage": "https://github.com/theKashey/react-remove-scroll-bar#readme",
+      "description": "Removes body scroll without content _shake_"
+    },
+    {
+      "name": "react-style-singleton",
+      "versions": [
+        "2.2.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/react-style-singleton@2.2.3_@types+react@19.2.14_react@19.2.6/node_modules/react-style-singleton"
+      ],
+      "license": "MIT",
+      "author": "Anton Korzunov",
+      "homepage": "https://github.com/theKashey/react-style-singleton#readme",
+      "description": "Just create a single stylesheet..."
+    },
+    {
+      "name": "regenerator-runtime",
+      "versions": [
+        "0.13.11"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/regenerator-runtime@0.13.11/node_modules/regenerator-runtime"
+      ],
+      "license": "MIT",
+      "author": "Ben Newman",
+      "homepage": "https://github.com/facebook/regenerator/tree/main#readme",
+      "description": "Runtime for Regenerator-compiled generator and async functions."
+    },
+    {
+      "name": "rgbcolor",
+      "versions": [
+        "1.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/rgbcolor@1.0.1/node_modules/rgbcolor"
+      ],
+      "license": "MIT",
+      "author": "Sebastian Vollnhals",
+      "homepage": "https://github.com/yetzt/node-rgbcolor#readme",
+      "description": "A module to parse color values"
+    },
+    {
+      "name": "rope-sequence",
+      "versions": [
+        "1.3.4"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/rope-sequence@1.3.4/node_modules/rope-sequence"
+      ],
+      "license": "MIT",
+      "author": "Marijn Haverbeke",
+      "homepage": "https://github.com/marijnh/rope-sequence#readme",
+      "description": "Rope-based persistent sequence type"
+    },
+    {
+      "name": "scheduler",
+      "versions": [
+        "0.27.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/scheduler@0.27.0/node_modules/scheduler"
+      ],
+      "license": "MIT",
+      "homepage": "https://react.dev/",
+      "description": "Cooperative scheduler for the browser environment."
+    },
+    {
+      "name": "seedrandom",
+      "versions": [
+        "3.0.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/seedrandom@3.0.5/node_modules/seedrandom"
+      ],
+      "license": "MIT",
+      "author": "David Bau",
+      "homepage": "http://davidbau.com/archives/2010/01/30/random_seeds_coded_hints_and_quintillions.html",
+      "description": "Seeded random number generator for Javascript."
+    },
+    {
+      "name": "stackblur-canvas",
+      "versions": [
+        "2.7.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/stackblur-canvas@2.7.0/node_modules/stackblur-canvas"
+      ],
+      "license": "MIT",
+      "author": "Mario Klingemann",
+      "homepage": "http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html",
+      "description": "Fast and almost Gaussian blur by Mario Klingemann"
+    },
+    {
+      "name": "svg-pathdata",
+      "versions": [
+        "6.0.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/svg-pathdata@6.0.3/node_modules/svg-pathdata"
+      ],
+      "license": "MIT",
+      "author": "Nicolas Froidure",
+      "homepage": "https://github.com/nfroidure/svg-pathdata#readme",
+      "description": "Manipulate SVG path data (path[d] attribute content) simply and efficiently."
+    },
+    {
+      "name": "tailwind-merge",
+      "versions": [
+        "3.6.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/tailwind-merge@3.6.0/node_modules/tailwind-merge"
+      ],
+      "license": "MIT",
+      "author": "Dany Castillo",
+      "homepage": "https://github.com/dcastil/tailwind-merge",
+      "description": "Merge Tailwind CSS classes without style conflicts"
+    },
+    {
+      "name": "text-segmentation",
+      "versions": [
+        "1.0.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/text-segmentation@1.0.3/node_modules/text-segmentation"
+      ],
+      "license": "MIT",
+      "author": "Niklas von Hertzen",
+      "homepage": "https://github.com/niklasvh/text-segmentation",
+      "description": ""
+    },
+    {
+      "name": "tiny-emitter",
+      "versions": [
+        "2.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/tiny-emitter@2.1.0/node_modules/tiny-emitter"
+      ],
+      "license": "MIT",
+      "author": "Scott Corgan",
+      "homepage": "https://github.com/scottcorgan/tiny-emitter#readme",
+      "description": "A tiny (less than 1k) event emitter library"
+    },
+    {
+      "name": "typed-function",
+      "versions": [
+        "4.2.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/typed-function@4.2.2/node_modules/typed-function"
+      ],
+      "license": "MIT",
+      "author": "Jos de Jong",
+      "homepage": "https://github.com/josdejong/typed-function",
+      "description": "Type checking for JavaScript functions"
+    },
+    {
+      "name": "use-callback-ref",
+      "versions": [
+        "1.3.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/use-callback-ref@1.3.3_@types+react@19.2.14_react@19.2.6/node_modules/use-callback-ref"
+      ],
+      "license": "MIT",
+      "author": "theKashey",
+      "homepage": "https://github.com/theKashey/use-callback-ref#readme",
+      "description": "The same useRef, but with callback"
+    },
+    {
+      "name": "use-sidecar",
+      "versions": [
+        "1.1.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/use-sidecar@1.1.3_@types+react@19.2.14_react@19.2.6/node_modules/use-sidecar"
+      ],
+      "license": "MIT",
+      "author": "theKashey",
+      "homepage": "https://github.com/theKashey/use-sidecar",
+      "description": "Sidecar code splitting utils"
+    },
+    {
+      "name": "use-sync-external-store",
+      "versions": [
+        "1.6.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/use-sync-external-store@1.6.0_react@19.2.6/node_modules/use-sync-external-store"
+      ],
+      "license": "MIT",
+      "homepage": "https://github.com/facebook/react#readme",
+      "description": "Backwards compatible shim for React's useSyncExternalStore. Works with any React that supports hooks."
+    },
+    {
+      "name": "utrie",
+      "versions": [
+        "1.0.2"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/utrie@1.0.2/node_modules/utrie"
+      ],
+      "license": "MIT",
+      "author": "Niklas von Hertzen",
+      "homepage": "https://github.com/niklasvh/utrie",
+      "description": "Unicode Trie"
+    },
+    {
+      "name": "w3c-keyname",
+      "versions": [
+        "2.2.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/w3c-keyname@2.2.8/node_modules/w3c-keyname"
+      ],
+      "license": "MIT",
+      "author": "Marijn Haverbeke",
+      "homepage": "https://github.com/marijnh/w3c-keyname#readme",
+      "description": "Get a KeyboardEvent.key-style string from an event"
+    },
+    {
+      "name": "zustand",
+      "versions": [
+        "4.5.7",
+        "5.0.13"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/zustand@4.5.7_@types+react@19.2.14_react@19.2.6/node_modules/zustand",
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/zustand@5.0.13_@types+react@19.2.14_react@19.2.6_use-sync-external-store@1.6.0_react@19.2.6_/node_modules/zustand"
+      ],
+      "license": "MIT",
+      "author": "Paul Henschel",
+      "homepage": "https://github.com/pmndrs/zustand",
+      "description": "🐻 Bear necessities for state management in React"
+    }
+  ],
+  "Apache-2.0 OR MIT": [
+    {
+      "name": "@tauri-apps/api",
+      "versions": [
+        "2.11.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tauri-apps+api@2.11.0/node_modules/@tauri-apps/api"
+      ],
+      "license": "Apache-2.0 OR MIT",
+      "homepage": "https://github.com/tauri-apps/tauri#readme",
+      "description": "Tauri API definitions"
+    }
+  ],
+  "MIT OR Apache-2.0": [
+    {
+      "name": "@tauri-apps/plugin-notification",
+      "versions": [
+        "2.3.3"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tauri-apps+plugin-notification@2.3.3/node_modules/@tauri-apps/plugin-notification"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "homepage": "https://github.com/tauri-apps/plugins-workspace#readme"
+    },
+    {
+      "name": "@tauri-apps/plugin-shell",
+      "versions": [
+        "2.3.5"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tauri-apps+plugin-shell@2.3.5/node_modules/@tauri-apps/plugin-shell"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "homepage": "https://github.com/tauri-apps/plugins-workspace#readme"
+    },
+    {
+      "name": "@tauri-apps/plugin-updater",
+      "versions": [
+        "2.10.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/@tauri-apps+plugin-updater@2.10.1/node_modules/@tauri-apps/plugin-updater"
+      ],
+      "license": "MIT OR Apache-2.0",
+      "homepage": "https://github.com/tauri-apps/plugins-workspace#readme"
+    }
+  ],
+  "Apache-2.0": [
+    {
+      "name": "class-variance-authority",
+      "versions": [
+        "0.7.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/class-variance-authority@0.7.1/node_modules/class-variance-authority"
+      ],
+      "license": "Apache-2.0",
+      "author": "Joe Bell",
+      "homepage": "https://github.com/joe-bell/cva#readme",
+      "description": "Class Variance Authority 🧬"
+    },
+    {
+      "name": "lightweight-charts",
+      "versions": [
+        "5.2.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/lightweight-charts@5.2.0/node_modules/lightweight-charts"
+      ],
+      "license": "Apache-2.0",
+      "author": "TradingView, Inc.",
+      "homepage": "https://www.tradingview.com/lightweight-charts/",
+      "description": "Performant financial charts built with HTML5 canvas"
+    },
+    {
+      "name": "mathjs",
+      "versions": [
+        "15.2.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/mathjs@15.2.0/node_modules/mathjs"
+      ],
+      "license": "Apache-2.0",
+      "author": "Jos de Jong",
+      "homepage": "https://mathjs.org",
+      "description": "Math.js is an extensive math library for JavaScript and Node.js. It features a flexible expression parser with support for symbolic computation, comes with a large set of built-in functions and constants, and offers an integrated solution to work with different data types like numbers, big numbers, complex numbers, fractions, units, and matrices."
+    }
+  ],
+  "ISC": [
+    {
+      "name": "d3-color",
+      "versions": [
+        "3.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-color@3.1.0/node_modules/d3-color"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-color/",
+      "description": "Color spaces! RGB, HSL, Cubehelix, Lab and HCL (Lch)."
+    },
+    {
+      "name": "d3-dispatch",
+      "versions": [
+        "3.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-dispatch@3.0.1/node_modules/d3-dispatch"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-dispatch/",
+      "description": "Register named callbacks and call them with arguments."
+    },
+    {
+      "name": "d3-drag",
+      "versions": [
+        "3.0.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-drag@3.0.0/node_modules/d3-drag"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-drag/",
+      "description": "Drag and drop SVG, HTML or Canvas using mouse or touch input."
+    },
+    {
+      "name": "d3-interpolate",
+      "versions": [
+        "3.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-interpolate@3.0.1/node_modules/d3-interpolate"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-interpolate/",
+      "description": "Interpolate numbers, colors, strings, arrays, objects, whatever!"
+    },
+    {
+      "name": "d3-selection",
+      "versions": [
+        "3.0.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-selection@3.0.0/node_modules/d3-selection"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-selection/",
+      "description": "Data-driven DOM manipulation: select elements and join them to data."
+    },
+    {
+      "name": "d3-timer",
+      "versions": [
+        "3.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-timer@3.0.1/node_modules/d3-timer"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-timer/",
+      "description": "An efficient queue capable of managing thousands of concurrent animations."
+    },
+    {
+      "name": "d3-transition",
+      "versions": [
+        "3.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-transition@3.0.1_d3-selection@3.0.0/node_modules/d3-transition"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-transition/",
+      "description": "Animated transitions for D3 selections."
+    },
+    {
+      "name": "d3-zoom",
+      "versions": [
+        "3.0.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-zoom@3.0.0/node_modules/d3-zoom"
+      ],
+      "license": "ISC",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-zoom/",
+      "description": "Pan and zoom SVG, HTML or Canvas using mouse or touch input."
+    },
+    {
+      "name": "lucide-react",
+      "versions": [
+        "1.14.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/lucide-react@1.14.0_react@19.2.6/node_modules/lucide-react"
+      ],
+      "license": "ISC",
+      "author": "Eric Fennis",
+      "homepage": "https://lucide.dev",
+      "description": "A Lucide icon library package for React applications."
+    }
+  ],
+  "BSD-3-Clause": [
+    {
+      "name": "d3-ease",
+      "versions": [
+        "3.0.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/d3-ease@3.0.1/node_modules/d3-ease"
+      ],
+      "license": "BSD-3-Clause",
+      "author": "Mike Bostock",
+      "homepage": "https://d3js.org/d3-ease/",
+      "description": "Easing functions for smooth animation."
+    }
+  ],
+  "(MPL-2.0 OR Apache-2.0)": [
+    {
+      "name": "dompurify",
+      "versions": [
+        "3.4.8"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/dompurify@3.4.8/node_modules/dompurify"
+      ],
+      "license": "(MPL-2.0 OR Apache-2.0)",
+      "author": "Dr.-Ing. Mario Heiderich, Cure53",
+      "homepage": "https://github.com/cure53/DOMPurify",
+      "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not."
+    }
+  ],
+  "(MIT AND Zlib)": [
+    {
+      "name": "pako",
+      "versions": [
+        "2.1.0"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/pako@2.1.0/node_modules/pako"
+      ],
+      "license": "(MIT AND Zlib)",
+      "homepage": "https://github.com/nodeca/pako#readme",
+      "description": "zlib port to javascript - fast, modularized, with browser support"
+    }
+  ],
+  "0BSD": [
+    {
+      "name": "tslib",
+      "versions": [
+        "2.8.1"
+      ],
+      "paths": [
+        "/Users/lokavyasingh/Documents/dev/vysted-terminal/node_modules/.pnpm/tslib@2.8.1/node_modules/tslib"
+      ],
+      "license": "0BSD",
+      "author": "Microsoft Corp.",
+      "homepage": "https://www.typescriptlang.org/",
+      "description": "Runtime library for TypeScript helper functions"
+    }
+  ]
+}

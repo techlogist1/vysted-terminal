@@ -1,0 +1,77 @@
+{
+ "tag": "world-ideate-R",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your task was killed by a usage wall: your output files may already exist, partial or complete - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "fable",
+   "prompt": "Your task spec is the {{spec}} section of docs/redesign/verification/r15/tooling/PROMPT_census.md. {{vars}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "cmp-harness-context",
+   "spec": "WORLD-COMPARE",
+   "vars": "<topic> = \"harness-context\""
+  },
+  {
+   "id": "cmp-harness-tools",
+   "spec": "WORLD-COMPARE",
+   "vars": "<topic> = \"harness-tools\""
+  },
+  {
+   "id": "cmp-agent-native-ux",
+   "spec": "WORLD-COMPARE",
+   "vars": "<topic> = \"agent-native-ux\"",
+   "model": "opus"
+  },
+  {
+   "id": "opp-ledger",
+   "spec": "OPP-LEDGER",
+   "vars": "(CENSUS/OPPORTUNITY_LEDGER.md and raw/world-table-stakes.json may already be complete - verify against the spec, incl. that every table-stakes gap was checked against the code.)",
+   "model": "opus"
+  },
+  {
+   "id": "bloomberg",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"bloomberg\"; <seat> = a Bloomberg Terminal power user of 15 years (buy-side PM, lives in functions, launchpad, alerts, MSG; knows exactly what a terminal must do before it earns desk space and what Bloomberg still cannot do)"
+  },
+  {
+   "id": "retail",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"retail\"; <seat> = a first-time Indian retail investor, 24, opened a Zerodha account last year, holds 9 stocks picked from YouTube and Telegram tips, intimidated by annual reports, terrified of operators and pump-and-dumps in small caps"
+  },
+  {
+   "id": "forensic",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"forensic\"; <seat> = a micro-cap forensic investor from the ValuePickr school: reads every annual report, related-party note, auditor change, pledge filing and credit-rating rationale; has been burned by governance blow-ups; trusts filings, not aggregators"
+  },
+  {
+   "id": "quant",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"quant\"; <seat> = a quant who runs systematic factor and event strategies on Indian equities: cares about point-in-time data, survivorship, corporate-action adjustment, reproducibility, backtest honesty and turning any research answer into a testable rule",
+   "model": "opus"
+  },
+  {
+   "id": "sellside",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"sellside\"; <seat> = a sell-side equity analyst covering Indian mid and small caps: builds models, tracks management guidance vs delivery across concalls, writes initiations and results notes on deadline, judged on being first and being right"
+  },
+  {
+   "id": "designer",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"designer\"; <seat> = a Linear- or Raycast-grade product designer obsessed with keyboard-first flow, latency, progressive disclosure and the feeling that the tool is one step ahead of you; allergic to chatbots bolted onto dashboards"
+  },
+  {
+   "id": "hn-sceptic",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"hn-sceptic\"; <seat> = a sceptical Hacker News commenter who has seen a hundred 'AI for finance' launches: asks what is actually new, what is a wrapper, where the hallucinations hide, why local-first matters, and what would make them star the repo anyway",
+   "model": "opus"
+  },
+  {
+   "id": "journalist",
+   "spec": "IDEATE",
+   "vars": "<seat-id> = \"journalist\"; <seat> = the technology journalist writing the launch review: needs the one demo that makes readers gasp, the honest limitation paragraph, and the sentence that explains why this exists when Perplexity Finance and screener.in already do"
+  }
+ ]
+}

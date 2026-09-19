@@ -1,0 +1,87 @@
+{
+ "tag": "code-F2",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. A previous attempt at your task was killed by a usage wall: your output files may already exist, partial or complete - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "fable",
+   "prompt": "Your task spec is the CRITIQUE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  },
+  {
+   "label": "refute",
+   "model": "fable",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\". (You did not write these findings: a different worker did.)"
+  }
+ ],
+ "items": [
+  {
+   "id": "rust-core"
+  },
+  {
+   "id": "frontend-panels-data-surfaces"
+  },
+  {
+   "id": "frontend-panels-shell-chrome"
+  },
+  {
+   "id": "workflow-engine"
+  },
+  {
+   "id": "runs-durable-delegate"
+  },
+  {
+   "id": "backtest",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "brokers-adapters",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "frontend-panels-agent-shell",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "macro-quant",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "market-data-providers-2",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "market-data-providers-3",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "mcp-servers",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "portfolio",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "scripts-build",
+   "skip": [
+    0
+   ]
+  }
+ ]
+}

@@ -153,3 +153,13 @@ Target: 13 files + 5 integration files, all read fully. Ignore list: none
 sub-agent tool in this worker; A recorded before B. Snapshot to `.aposd/critique/`: **skipped**
 on purpose (would drop an untracked dir into a repo with a stray-capture push guard; this file
 is the archive). No tests run beyond the two proof snippets; no full pytest/cargo.
+
+**Resume verification pass (second attempt, after the usage wall).** Both output files were found
+complete; nothing was restarted. Every cited `file:line` in all 14 findings was re-opened and
+holds; the grep claims (zero listeners for `kill-switch:requested`, zero callers of
+`fireKillSwitch` / `has_session_ack` / `range_` / `ACK_BUDGET_NS`, no writer of
+`kill-switch-reset`, no `_on_kill_switch` override) were re-run and hold; `proof.py` + `proof2.py`
+were re-run and reproduce P1-P6 + the replace-order result byte-for-byte (P5 now 2.5 ms/append).
+One live check added for COD-7: `POST :52152/safety/kill-switch {"firedBy":"user-menu"}` -> `422`,
+status after -> `{"fired":false,"lastResult":null}` (validation-rejected, so nothing fired on the
+shared isolated sidecar). JSON re-validated: 14 entries, COMMON.md shape, 3 high / 10 medium / 1 low.

@@ -233,3 +233,59 @@ status 200, 0.76s, 268 bytes
 ```
 {"query":"urban company","region":"IN","candidates":[{"symbol":"URBANCO","name":"Urban Company Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"URBANCO.NS","confidence":0.9,"isin":null,"bse_code":null,"industry":null,"former_name":null}]}
 ```
+
+## Pass 1 (resumed after usage wall) — /resolve, what a stranger types
+
+### GET /resolve?q=zomato&region=IN
+status 200, 2.27s, 148 bytes
+```
+{"ok":false,"query":"zomato","region":"IN","message":"No instrument matched 'zomato'.","resolved":null,"needs_disambiguation":false,"candidates":[]}
+```
+
+### GET /resolve?q=Tata%20Power&region=IN
+status 200, 2.44s, 1256 bytes
+```
+{"ok":true,"query":"Tata Power","region":"IN","resolved":{"symbol":"TATAPOWER","name":"Tata Power Company Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TATAPOWER.NS","confidence":1.0,"isin":"INE245A01021","bse_code":"500400","industry":"Power / Integrated Power Utilities","former_name":null},"needs_disambiguation":false,"candidates":[{"symbol":"TATAPOWER","name":"Tata Power Company Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TATAPOWER.NS","confidence":1.0,"isin":"INE245A01021","bse_code":"500400","industry":"Power / Integrated Power Utilities","former_name":null},{"symbol":"SPOWF","name":"Strata Power Corp","exchange":"US","…[trunc]
+```
+
+### GET /resolve?q=mamaearth&region=IN
+status 200, 2.89s, 154 bytes
+```
+{"ok":false,"query":"mamaearth","region":"IN","message":"No instrument matched 'mamaearth'.","resolved":null,"needs_disambiguation":false,"candidates":[]}
+```
+
+### GET /resolve?q=policybazaar
+status 200, 13.47s, 160 bytes
+```
+{"ok":false,"query":"policybazaar","region":"IN","message":"No instrument matched 'policybazaar'.","resolved":null,"needs_disambiguation":false,"candidates":[]}
+```
+
+### GET /resolve?q=bajaj%20finanse&region=IN
+status 200, 0.77s, 1130 bytes
+```
+{"ok":true,"query":"bajaj finanse","region":"IN","resolved":null,"needs_disambiguation":true,"candidates":[{"symbol":"BAJFINANCE","name":"Bajaj Finance Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"BAJFINANCE.NS","confidence":0.7059,"isin":"INE296A01032","bse_code":"500034","industry":"Financial Services / Non Banking Financial Company (NBFC)","former_name":null},{"symbol":"BANASFN","name":"Banas Finance Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"BANASFN.BO","confidence":0.6667,"isin":"INE521L01030","bse_code":"509053","industry":null,"former_name":null},{"symbol":"BAJAJFINSV","name":"Bajaj Finserv Limited","exchange":"NSE","re…[trunc]
+```
+
+### GET /resolve?q=irctc
+status 200, 0.51s, 1007 bytes
+```
+{"ok":true,"query":"irctc","region":"IN","resolved":{"symbol":"IRCTC","name":"Indian Railway Catering And Tourism Corporation Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"IRCTC.NS","confidence":1.0,"isin":"INE335Y01020","bse_code":"542830","industry":"Consumer Services / Tour, Travel Related Services","former_name":null},"needs_disambiguation":false,"candidates":[{"symbol":"IRCTC","name":"Indian Railway Catering And Tourism Corporation Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"IRCTC.NS","confidence":1.0,"isin":"INE335Y01020","bse_code":"542830","industry":"Consumer Services / Tour, Travel Related Services","former_name":n…[trunc]
+```
+
+### GET /resolve?q=apple
+status 200, 1.53s, 1343 bytes
+```
+{"ok":true,"query":"apple","region":"IN","resolved":null,"needs_disambiguation":true,"candidates":[{"symbol":"AAPL","name":"Apple Inc.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"AAPL","confidence":0.97,"isin":null,"bse_code":null,"industry":null,"former_name":null},{"symbol":"APLE","name":"Apple Hospitality REIT, Inc.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"APLE","confidence":0.97,"isin":null,"bse_code":null,"industry":null,"former_name":null},{"symbol":"AAPI","name":"Apple iSports Group, Inc.","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"AAPI","confidence":0.97,"isin":null,"bse_code":null,"industry":null,"forme…[trunc]
+```
+
+### GET /resolve?q=
+status 200, 0.10s, 146 bytes
+```
+{"ok":false,"query":"","region":"IN","message":"Empty query — nothing to resolve.","resolved":null,"needs_disambiguation":false,"candidates":[]}
+```
+
+### GET /resolve?q=asdfqwerzz&region=IN
+status 200, 2.81s, 156 bytes
+```
+{"ok":false,"query":"asdfqwerzz","region":"IN","message":"No instrument matched 'asdfqwerzz'.","resolved":null,"needs_disambiguation":false,"candidates":[]}
+```

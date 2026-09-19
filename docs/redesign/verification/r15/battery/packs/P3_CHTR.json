@@ -1,0 +1,14 @@
+{
+ "collected_at": "2026-09-19",
+ "slot": "P3",
+ "symbol": "CHTR",
+ "status": "in-progress (relaunch after usage wall; raw material in session scratch p3/)",
+ "identity": {
+  "bse_code": {
+   "value": "544546",
+   "unit": "scrip code",
+   "as_of": "2026-09-18",
+   "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+  }
+ }
+}

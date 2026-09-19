@@ -1,0 +1,2409 @@
+{
+ "slot": "P20",
+ "symbol": "SMR",
+ "manifest_name": "NuScale Power Corp",
+ "exchange": "NYSE",
+ "bse_code": null,
+ "collected_at": "2026-09-19T15:30:45+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=SMR",
+   "status": 200,
+   "elapsed_ms": 84,
+   "body": {
+    "ok": true,
+    "query": "SMR",
+    "region": "IN",
+    "resolved": {
+     "symbol": "SMR",
+     "name": "SMR Jewels Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "SMR.BO",
+     "confidence": 1.0,
+     "isin": "INE11XK01017",
+     "bse_code": "544774",
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "SMR",
+      "name": "SMR Jewels Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SMR.BO",
+      "confidence": 1.0,
+      "isin": "INE11XK01017",
+      "bse_code": "544774",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "SMR",
+      "name": "NUSCALE POWER Corp",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "SMR",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=NuScale+Power+Corp",
+   "status": 200,
+   "elapsed_ms": 4387,
+   "body": {
+    "ok": true,
+    "query": "NuScale Power Corp",
+    "region": "IN",
+    "resolved": {
+     "symbol": "SMR",
+     "name": "NUSCALE POWER Corp",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "SMR",
+     "confidence": 1.0,
+     "isin": null,
+     "bse_code": null,
+     "industry": null,
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "SMR",
+      "name": "NUSCALE POWER Corp",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "SMR",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "SPOWF",
+      "name": "Strata Power Corp",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "SPOWF",
+      "confidence": 0.7429,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "CREG",
+      "name": "Smart Powerr Corp.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "CREG",
+      "confidence": 0.7222,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "NUE",
+      "name": "NUCOR CORP",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "NUE",
+      "confidence": 0.7143,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "CPXXY",
+      "name": "Capital Power Corp/ADR",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "CPXXY",
+      "confidence": 0.7,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "CPWPF",
+      "name": "Capital Power Corp/ADR",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "CPWPF",
+      "confidence": 0.7,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/SMR?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 313,
+   "body": {
+    "symbol": "SMR",
+    "price": 95.0,
+    "change": -1.0,
+    "change_percent": -1.0416666666666665,
+    "volume": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/SMR",
+   "status": 200,
+   "elapsed_ms": 3179,
+   "body": {
+    "symbol": "SMR.BO",
+    "name": "SMR Jewels Limited",
+    "sector": "Consumer Cyclical",
+    "industry": "Luxury Goods",
+    "currency": "INR",
+    "market_cap": 1772105728.0,
+    "pe_ratio": 17.02509,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 2.811233,
+    "price_to_sales": 0.40986186,
+    "ev_to_ebitda": 4.369,
+    "book_value": 33.793,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 5.58,
+    "beta": null,
+    "fifty_two_week_high": 115.0,
+    "fifty_two_week_low": 75.85,
+    "fifty_two_week_change": -0.06841338,
+    "roe": 0.66652,
+    "roa": 0.34366,
+    "gross_margin": 0.08988,
+    "operating_margin": 0.0731,
+    "profit_margin": 0.057239998,
+    "debt_to_equity": 0.34527,
+    "current_ratio": 3.306,
+    "quick_ratio": 0.846,
+    "revenue_ttm": 4323665920.0,
+    "net_income_ttm": 247484992.0,
+    "free_cash_flow": -226368880.0,
+    "shares_outstanding": 18653743.0,
+    "revenue_growth": null,
+    "earnings_growth": null,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.78556,
+    "held_percent_institutions": 0.06583,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roa": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "current_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T10:00:32.831414+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/SMR/income",
+   "status": 200,
+   "elapsed_ms": 809,
+   "body": {
+    "symbol": "SMR",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2025-12-31": 31479000.0,
+       "2024-12-31": 37045000.0,
+       "2023-12-31": 22810000.0,
+       "2022-12-31": 11804000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2025-12-31": 31479000.0,
+       "2024-12-31": 37045000.0,
+       "2023-12-31": 22810000.0,
+       "2022-12-31": 11804000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2025-12-31": 20048000.0,
+       "2024-12-31": 4937000.0,
+       "2023-12-31": 18961000.0,
+       "2022-12-31": 7317000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2025-12-31": 11431000.0,
+       "2024-12-31": 32108000.0,
+       "2023-12-31": 3849000.0,
+       "2022-12-31": 4487000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_gand_a",
+      "values": {
+       "2025-12-31": 609825000.0,
+       "2024-12-31": 75901000.0,
+       "2023-12-31": 65404000.0,
+       "2022-12-31": 55307000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2025-12-31": 609825000.0,
+       "2024-12-31": 75901000.0,
+       "2023-12-31": 65404000.0,
+       "2022-12-31": 55307000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2025-12-31": 609825000.0,
+       "2024-12-31": 75901000.0,
+       "2023-12-31": 65404000.0,
+       "2022-12-31": 55307000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "research_and_development_expense",
+      "values": {
+       "2025-12-31": 45532000.0,
+       "2024-12-31": 46817000.0,
+       "2023-12-31": 156050000.0,
+       "2022-12-31": 127662000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2025-12-31": 45645000.0,
+       "2024-12-31": 48115000.0,
+       "2023-12-31": 57960000.0,
+       "2022-12-31": 51513000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2025-12-31": 701002000.0,
+       "2024-12-31": 170833000.0,
+       "2023-12-31": 279414000.0,
+       "2022-12-31": 234482000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2025-12-31": -689571000.0,
+       "2024-12-31": -138725000.0,
+       "2023-12-31": -275565000.0,
+       "2022-12-31": -229995000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 8388000.0,
+       "2023-12-31": 10792000.0,
+       "2022-12-31": 3760000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": -10792000.0,
+       "2022-12-31": -3938000.0,
+       "2021-12-31": 1715000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 8388000.0,
+       "2023-12-31": 10792000.0,
+       "2022-12-31": 3760000.0,
+       "2021-12-31": -1715000.0
+      }
+     },
+     {
+      "label": "gain_on_sale_of_security",
+      "values": {
+       "2025-12-31": 25302000.0,
+       "2024-12-31": -214611000.0,
+       "2023-12-31": 34419000.0,
+       "2022-12-31": 12148000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2025-12-31": 149000.0,
+       "2024-12-31": 6884000.0,
+       "2023-12-31": 61031000.0,
+       "2022-12-31": 72514000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_income_expense",
+      "values": {
+       "2025-12-31": 25451000.0,
+       "2024-12-31": -207727000.0,
+       "2023-12-31": 95450000.0,
+       "2022-12-31": 84662000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2025-12-31": -664120000.0,
+       "2024-12-31": -346452000.0,
+       "2023-12-31": -180115000.0,
+       "2022-12-31": -141573000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2025-12-31": 342000.0,
+       "2024-12-31": 1935000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2025-12-31": -664462000.0,
+       "2024-12-31": -348387000.0,
+       "2023-12-31": -180115000.0,
+       "2022-12-31": -141573000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2025-12-31": -664462000.0,
+       "2024-12-31": -348387000.0,
+       "2023-12-31": -180115000.0,
+       "2022-12-31": -141573000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "minority_interests",
+      "values": {
+       "2025-12-31": 308668000.0,
+       "2024-12-31": 211764000.0,
+       "2023-12-31": 121753000.0,
+       "2022-12-31": 84504000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2025-12-31": -355794000.0,
+       "2024-12-31": -136623000.0,
+       "2023-12-31": -58362000.0,
+       "2022-12-31": -57069000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -31155000.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2025-12-31": -355794000.0,
+       "2024-12-31": -136623000.0,
+       "2023-12-31": -58362000.0,
+       "2022-12-31": -25914000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2025-12-31": -355794000.0,
+       "2024-12-31": -136623000.0,
+       "2023-12-31": -58362000.0,
+       "2022-12-31": -25914000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2025-12-31": -2.17,
+       "2024-12-31": -1.47,
+       "2023-12-31": -0.8,
+       "2022-12-31": -0.51,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2025-12-31": -2.17,
+       "2024-12-31": -1.47,
+       "2023-12-31": -0.8,
+       "2022-12-31": -0.51,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2025-12-31": 163731673.0,
+       "2024-12-31": 93249872.0,
+       "2023-12-31": 73386018.0,
+       "2022-12-31": 50763844.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2025-12-31": 163731673.0,
+       "2024-12-31": 93249872.0,
+       "2023-12-31": 73386018.0,
+       "2022-12-31": 50763844.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_operating_income_as_reported",
+      "values": {
+       "2025-12-31": -689571000.0,
+       "2024-12-31": -138725000.0,
+       "2023-12-31": -275565000.0,
+       "2022-12-31": -229995000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2025-12-31": 721050000.0,
+       "2024-12-31": 175770000.0,
+       "2023-12-31": 298375000.0,
+       "2022-12-31": 241799000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2025-12-31": -355794000.0,
+       "2024-12-31": -136623000.0,
+       "2023-12-31": -58362000.0,
+       "2022-12-31": -57069000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2025-12-31": -381096000.0,
+       "2024-12-31": 32919690.0,
+       "2023-12-31": -92781000.0,
+       "2022-12-31": -69217000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 8388000.0,
+       "2023-12-31": 10792000.0,
+       "2022-12-31": 3760000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 8388000.0,
+       "2023-12-31": 10792000.0,
+       "2022-12-31": 3760000.0,
+       "2021-12-31": -1715000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2025-12-31": -689571000.0,
+       "2024-12-31": -138725000.0,
+       "2023-12-31": -275565000.0,
+       "2022-12-31": -229995000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2025-12-31": -688390000.0,
+       "2024-12-31": -136883000.0,
+       "2023-12-31": -273008000.0,
+       "2022-12-31": -227297000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2025-12-31": 20048000.0,
+       "2024-12-31": 4937000.0,
+       "2023-12-31": 18961000.0,
+       "2022-12-31": 7317000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2025-12-31": 1181000.0,
+       "2024-12-31": 1842000.0,
+       "2023-12-31": 2557000.0,
+       "2022-12-31": 2698000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2025-12-31": -355794000.0,
+       "2024-12-31": -136623000.0,
+       "2023-12-31": -58362000.0,
+       "2022-12-31": -57069000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2025-12-31": 25302000.0,
+       "2024-12-31": -214611000.0,
+       "2023-12-31": 34419000.0,
+       "2022-12-31": 12148000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2025-12-31": 25302000.0,
+       "2024-12-31": -214611000.0,
+       "2023-12-31": 34419000.0,
+       "2022-12-31": 12148000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2025-12-31": -713692000.0,
+       "2024-12-31": 77728000.0,
+       "2023-12-31": -307427000.0,
+       "2022-12-31": -239445000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.21,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": -45068310.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/SMR/balance",
+   "status": 200,
+   "elapsed_ms": 2045,
+   "body": {
+    "symbol": "SMR",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2025-12-31": 836417000.0,
+       "2024-12-31": 401556000.0,
+       "2023-12-31": 120265000.0,
+       "2022-12-31": 217685000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2025-12-31": 417800000.0,
+       "2024-12-31": 40000000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 50000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2025-12-31": 1254217000.0,
+       "2024-12-31": 441556000.0,
+       "2023-12-31": 120265000.0,
+       "2022-12-31": 267685000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 22104000.0,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": -1000000.0,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2025-12-31": 8378000.0,
+       "2024-12-31": 21104000.0,
+       "2023-12-31": 10127000.0,
+       "2022-12-31": 11199000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_receivables",
+      "values": {
+       "2025-12-31": 8378000.0,
+       "2024-12-31": 21104000.0,
+       "2023-12-31": 10127000.0,
+       "2022-12-31": 11199000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 19054000.0,
+       "2022-12-31": 5531000.0,
+       "2021-12-31": 4147000.0
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2025-12-31": 5100000.0,
+       "2024-12-31": 5100000.0,
+       "2023-12-31": 5100000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2025-12-31": 4877000.0,
+       "2024-12-31": 3377000.0,
+       "2023-12-31": 19054000.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2025-12-31": 1272572000.0,
+       "2024-12-31": 471137000.0,
+       "2023-12-31": 154546000.0,
+       "2022-12-31": 284415000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2025-12-31": 16949000.0,
+       "2024-12-31": 16932000.0,
+       "2023-12-31": 21403000.0,
+       "2022-12-31": 21430000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2025-12-31": 1165000.0,
+       "2024-12-31": 1165000.0,
+       "2023-12-31": 1165000.0,
+       "2022-12-31": 347000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2025-12-31": 61000.0,
+       "2024-12-31": 44000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 112000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "leases",
+      "values": {
+       "2025-12-31": 489000.0,
+       "2024-12-31": 2189000.0,
+       "2023-12-31": 2293000.0,
+       "2022-12-31": 2312000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2025-12-31": 18664000.0,
+       "2024-12-31": 20330000.0,
+       "2023-12-31": 24861000.0,
+       "2022-12-31": 24201000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2025-12-31": -16740000.0,
+       "2024-12-31": -17909000.0,
+       "2023-12-31": -20745000.0,
+       "2022-12-31": -19431000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2025-12-31": 1924000.0,
+       "2024-12-31": 2421000.0,
+       "2023-12-31": 4116000.0,
+       "2022-12-31": 4770000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2025-12-31": 8255000.0,
+       "2024-12-31": 8255000.0,
+       "2023-12-31": 8255000.0,
+       "2022-12-31": 8255000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2025-12-31": 17427000.0,
+       "2024-12-31": 17604000.0,
+       "2023-12-31": 17782000.0,
+       "2022-12-31": 17959000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2025-12-31": 25682000.0,
+       "2024-12-31": 25859000.0,
+       "2023-12-31": 26037000.0,
+       "2022-12-31": 26214000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investments_and_advances",
+      "values": {
+       "2025-12-31": 32954000.0,
+       "2024-12-31": 0.0,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_accounts_receivable",
+      "values": {
+       "2025-12-31": 63767000.0,
+       "2024-12-31": 43388000.0,
+       "2023-12-31": 36361000.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2025-12-31": 15613000.0,
+       "2024-12-31": 1868000.0,
+       "2023-12-31": 3798000.0,
+       "2022-12-31": 33236000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2025-12-31": 139940000.0,
+       "2024-12-31": 73536000.0,
+       "2023-12-31": 70312000.0,
+       "2022-12-31": 64220000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2025-12-31": 1412512000.0,
+       "2024-12-31": 544673000.0,
+       "2023-12-31": 224858000.0,
+       "2022-12-31": 348635000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2025-12-31": 286515000.0,
+       "2024-12-31": 47947000.0,
+       "2023-12-31": 44925000.0,
+       "2022-12-31": 27951000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2025-12-31": 286515000.0,
+       "2024-12-31": 47947000.0,
+       "2023-12-31": 44925000.0,
+       "2022-12-31": 27951000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_accrued_expenses",
+      "values": {
+       "2025-12-31": 648000.0,
+       "2024-12-31": 1356000.0,
+       "2023-12-31": 1664000.0,
+       "2022-12-31": 1568000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "payables_and_accrued_expenses",
+      "values": {
+       "2025-12-31": 287163000.0,
+       "2024-12-31": 49303000.0,
+       "2023-12-31": 46589000.0,
+       "2022-12-31": 29519000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2025-12-31": 8280000.0,
+       "2024-12-31": 7330000.0,
+       "2023-12-31": 8546000.0,
+       "2022-12-31": 9038000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_current_borrowings",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": 14041000.0
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": null,
+       "2021-12-31": 14041000.0
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 1495000.0,
+       "2022-12-31": 1568000.0,
+       "2021-12-31": 1440000.0
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 1495000.0,
+       "2022-12-31": 1568000.0,
+       "2021-12-31": 15481000.0
+      }
+     },
+     {
+      "label": "current_deferred_revenue",
+      "values": {
+       "2025-12-31": 613000.0,
+       "2024-12-31": 762000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_deferred_liabilities",
+      "values": {
+       "2025-12-31": 613000.0,
+       "2024-12-31": 762000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 32327000.0,
+       "2023-12-31": 32323000.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2025-12-31": 296056000.0,
+       "2024-12-31": 89722000.0,
+       "2023-12-31": 87458000.0,
+       "2022-12-31": 38557000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_revenue",
+      "values": {
+       "2025-12-31": 335000.0,
+       "2024-12-31": 181000.0,
+       "2023-12-31": 898000.0,
+       "2022-12-31": 856000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_liabilities",
+      "values": {
+       "2025-12-31": 335000.0,
+       "2024-12-31": 181000.0,
+       "2023-12-31": 898000.0,
+       "2022-12-31": 856000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "derivative_product_liabilities",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 5722000.0,
+       "2022-12-31": 29349000.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2025-12-31": 2570000.0,
+       "2024-12-31": 1650000.0,
+       "2023-12-31": 1442000.0,
+       "2022-12-31": 2786000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2025-12-31": 2905000.0,
+       "2024-12-31": 1831000.0,
+       "2023-12-31": 8062000.0,
+       "2022-12-31": 32991000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2025-12-31": 298961000.0,
+       "2024-12-31": 91553000.0,
+       "2023-12-31": 95520000.0,
+       "2022-12-31": 71548000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "limited_partnership_capital",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 850018000.0
+      }
+     },
+     {
+      "label": "total_partnership_capital",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": -240454000.0,
+       "2022-12-31": -182092000.0,
+       "2021-12-31": 68398000.0
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2025-12-31": 34000.0,
+       "2024-12-31": 27000.0,
+       "2023-12-31": 23000.0,
+       "2022-12-31": 23000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2025-12-31": 34000.0,
+       "2024-12-31": 27000.0,
+       "2023-12-31": 23000.0,
+       "2022-12-31": 23000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2025-12-31": 1901678000.0,
+       "2024-12-31": 995745000.0,
+       "2023-12-31": 333888000.0,
+       "2022-12-31": 296748000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2025-12-31": -732871000.0,
+       "2024-12-31": -377077000.0,
+       "2023-12-31": -240454000.0,
+       "2022-12-31": -182092000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2025-12-31": 1168841000.0,
+       "2024-12-31": 618695000.0,
+       "2023-12-31": 93457000.0,
+       "2022-12-31": 296771000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "minority_interest",
+      "values": {
+       "2025-12-31": -55290000.0,
+       "2024-12-31": -165575000.0,
+       "2023-12-31": 35881000.0,
+       "2022-12-31": 162408000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2025-12-31": 1113551000.0,
+       "2024-12-31": 453120000.0,
+       "2023-12-31": 129338000.0,
+       "2022-12-31": 277087000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2025-12-31": 1168841000.0,
+       "2024-12-31": 618695000.0,
+       "2023-12-31": 93457000.0,
+       "2022-12-31": 114679000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2025-12-31": 1168841000.0,
+       "2024-12-31": 618695000.0,
+       "2023-12-31": 93457000.0,
+       "2022-12-31": 296771000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 1495000.0,
+       "2022-12-31": 1568000.0,
+       "2021-12-31": 1440000.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2025-12-31": 1143159000.0,
+       "2024-12-31": 592836000.0,
+       "2023-12-31": 67420000.0,
+       "2022-12-31": 270557000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2025-12-31": 976516000.0,
+       "2024-12-31": 381415000.0,
+       "2023-12-31": 67088000.0,
+       "2022-12-31": 245858000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2025-12-31": 1168841000.0,
+       "2024-12-31": 618695000.0,
+       "2023-12-31": 93457000.0,
+       "2022-12-31": 296771000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2025-12-31": 1143159000.0,
+       "2024-12-31": 592836000.0,
+       "2023-12-31": 67420000.0,
+       "2022-12-31": 270557000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 1495000.0,
+       "2022-12-31": 1568000.0,
+       "2021-12-31": 15481000.0
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2025-12-31": 318480601.0,
+       "2024-12-31": 122842474.0,
+       "2023-12-31": 76895166.0,
+       "2022-12-31": 69353019.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2025-12-31": 318480601.0,
+       "2024-12-31": 122842474.0,
+       "2023-12-31": 76895166.0,
+       "2022-12-31": 69353019.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/SMR/cashflow",
+   "status": 200,
+   "elapsed_ms": 1786,
+   "body": {
+    "symbol": "SMR",
+    "periods": [
+     "2025-12-31",
+     "2024-12-31",
+     "2023-12-31",
+     "2022-12-31",
+     "2021-12-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2025-12-31": -664462000.0,
+       "2024-12-31": -348387000.0,
+       "2023-12-31": -180115000.0,
+       "2022-12-31": -141573000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": -122000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 222999000.0,
+       "2023-12-31": -23627000.0,
+       "2022-12-31": -12148000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_gains_losses",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 222877000.0,
+       "2023-12-31": -23627000.0,
+       "2022-12-31": -12148000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2025-12-31": 1004000.0,
+       "2024-12-31": 1665000.0,
+       "2023-12-31": 2380000.0,
+       "2022-12-31": 2521000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_of_intangibles",
+      "values": {
+       "2025-12-31": 177000.0,
+       "2024-12-31": 177000.0,
+       "2023-12-31": 177000.0,
+       "2022-12-31": 177000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2025-12-31": 177000.0,
+       "2024-12-31": 177000.0,
+       "2023-12-31": 177000.0,
+       "2022-12-31": 177000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2025-12-31": 1181000.0,
+       "2024-12-31": 1842000.0,
+       "2023-12-31": 2557000.0,
+       "2022-12-31": 2698000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "depreciation_amortization_depletion",
+      "values": {
+       "2025-12-31": 1181000.0,
+       "2024-12-31": 1842000.0,
+       "2023-12-31": 2557000.0,
+       "2022-12-31": 2698000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "asset_impairment_charge",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 71000.0,
+       "2023-12-31": 797000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "provisionand_write_offof_assets",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 1000000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2025-12-31": 19160000.0,
+       "2024-12-31": 13642000.0,
+       "2023-12-31": 16239000.0,
+       "2022-12-31": 9331000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": -68000.0,
+       "2023-12-31": -2360000.0,
+       "2022-12-31": 2385000.0,
+       "2021-12-31": 1628000.0
+      }
+     },
+     {
+      "label": "changes_in_account_receivables",
+      "values": {
+       "2025-12-31": 9553000.0,
+       "2024-12-31": -11977000.0,
+       "2023-12-31": 1072000.0,
+       "2022-12-31": -6366000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2025-12-31": 9553000.0,
+       "2024-12-31": -11977000.0,
+       "2023-12-31": 1072000.0,
+       "2022-12-31": -6366000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2025-12-31": -17206000.0,
+       "2024-12-31": -7017000.0,
+       "2023-12-31": -36361000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_prepaid_assets",
+      "values": {
+       "2025-12-31": -15722000.0,
+       "2024-12-31": 16413000.0,
+       "2023-12-31": -10043000.0,
+       "2022-12-31": -2243000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_account_payable",
+      "values": {
+       "2025-12-31": 238363000.0,
+       "2024-12-31": 5717000.0,
+       "2023-12-31": 18246000.0,
+       "2022-12-31": 2987000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2025-12-31": 238363000.0,
+       "2024-12-31": 5717000.0,
+       "2023-12-31": 18246000.0,
+       "2022-12-31": 2987000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_accrued_expense",
+      "values": {
+       "2025-12-31": 950000.0,
+       "2024-12-31": -1216000.0,
+       "2023-12-31": -323000.0,
+       "2022-12-31": -1513000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_payables_and_accrued_expense",
+      "values": {
+       "2025-12-31": 239313000.0,
+       "2024-12-31": 4501000.0,
+       "2023-12-31": 17923000.0,
+       "2022-12-31": 1474000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2025-12-31": -31432000.0,
+       "2024-12-31": -1676000.0,
+       "2023-12-31": 28262000.0,
+       "2022-12-31": -1504000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_other_working_capital",
+      "values": {
+       "2025-12-31": 5000.0,
+       "2024-12-31": 45000.0,
+       "2023-12-31": 42000.0,
+       "2022-12-31": -663000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2025-12-31": 184511000.0,
+       "2024-12-31": 289000.0,
+       "2023-12-31": 895000.0,
+       "2022-12-31": -9302000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_operating_activities",
+      "values": {
+       "2025-12-31": -459610000.0,
+       "2024-12-31": -108666000.0,
+       "2023-12-31": -183254000.0,
+       "2022-12-31": -148609000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2025-12-31": -459610000.0,
+       "2024-12-31": -108666000.0,
+       "2023-12-31": -183254000.0,
+       "2022-12-31": -148609000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2025-12-31": -508000.0,
+       "2024-12-31": -44000.0,
+       "2023-12-31": -1725000.0,
+       "2022-12-31": -2332000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2025-12-31": 0.0,
+       "2024-12-31": 195000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2025-12-31": -508000.0,
+       "2024-12-31": 151000.0,
+       "2023-12-31": -1725000.0,
+       "2022-12-31": -2332000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2025-12-31": -666845000.0,
+       "2024-12-31": -65000000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -50000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2025-12-31": 256091000.0,
+       "2024-12-31": 25000000.0,
+       "2023-12-31": 50000000.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2025-12-31": -410754000.0,
+       "2024-12-31": -40000000.0,
+       "2023-12-31": 50000000.0,
+       "2022-12-31": -50000000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_investing_activities",
+      "values": {
+       "2025-12-31": -411262000.0,
+       "2024-12-31": -39849000.0,
+       "2023-12-31": 48275000.0,
+       "2022-12-31": -52332000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2025-12-31": -411262000.0,
+       "2024-12-31": -39849000.0,
+       "2023-12-31": 48275000.0,
+       "2022-12-31": -52332000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": null,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": -20000000.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": -20000000.0
+      }
+     },
+     {
+      "label": "short_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 27200000.0
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": -27200000.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 0.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": -20000000.0
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2025-12-31": 1299734000.0,
+       "2024-12-31": 204648000.0,
+       "2023-12-31": 9836000.0,
+       "2022-12-31": 20000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -566000.0,
+       "2021-12-31": -17000.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2025-12-31": 1299734000.0,
+       "2024-12-31": 204648000.0,
+       "2023-12-31": 9836000.0,
+       "2022-12-31": -546000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "preferred_stock_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 192500000.0
+      }
+     },
+     {
+      "label": "net_preferred_stock_issuance",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 192500000.0
+      }
+     },
+     {
+      "label": "proceeds_from_stock_option_exercised",
+      "values": {
+       "2025-12-31": 6415000.0,
+       "2024-12-31": 227780000.0,
+       "2023-12-31": 6291000.0,
+       "2022-12-31": 29549000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2025-12-31": -416000.0,
+       "2024-12-31": -2622000.0,
+       "2023-12-31": null,
+       "2022-12-31": 339061000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "cash_flow_from_continuing_financing_activities",
+      "values": {
+       "2025-12-31": 1305733000.0,
+       "2024-12-31": 429806000.0,
+       "2023-12-31": 16127000.0,
+       "2022-12-31": 368064000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2025-12-31": 1305733000.0,
+       "2024-12-31": 429806000.0,
+       "2023-12-31": 16127000.0,
+       "2022-12-31": 368064000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2025-12-31": 434861000.0,
+       "2024-12-31": 281291000.0,
+       "2023-12-31": -118852000.0,
+       "2022-12-31": 167123000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2025-12-31": 406656000.0,
+       "2024-12-31": 125365000.0,
+       "2023-12-31": 244217000.0,
+       "2022-12-31": 77094000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2025-12-31": 841517000.0,
+       "2024-12-31": 406656000.0,
+       "2023-12-31": 125365000.0,
+       "2022-12-31": 244217000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "income_tax_paid_supplemental_data",
+      "values": {
+       "2025-12-31": 2300000.0,
+       "2024-12-31": 3224000.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": null,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "interest_paid_supplemental_data",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 1478000.0
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2025-12-31": -508000.0,
+       "2024-12-31": -44000.0,
+       "2023-12-31": -1725000.0,
+       "2022-12-31": -2332000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2025-12-31": 1299734000.0,
+       "2024-12-31": 204648000.0,
+       "2023-12-31": 9836000.0,
+       "2022-12-31": 20000.0,
+       "2021-12-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": 27200000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": null,
+       "2023-12-31": 0.0,
+       "2022-12-31": 0.0,
+       "2021-12-31": -47200000.0
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2025-12-31": null,
+       "2024-12-31": 0.0,
+       "2023-12-31": 0.0,
+       "2022-12-31": -566000.0,
+       "2021-12-31": -17000.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2025-12-31": -460118000.0,
+       "2024-12-31": -108710000.0,
+       "2023-12-31": -184979000.0,
+       "2022-12-31": -150941000.0,
+       "2021-12-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/SMR/ratings",
+   "status": 200,
+   "elapsed_ms": 344,
+   "body": {
+    "symbol": "SMR.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=SMR",
+   "status": 200,
+   "elapsed_ms": 986,
+   "body": {
+    "symbol": "SMR",
+    "count": 0,
+    "patterns": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=SMR&limit=25",
+   "status": 200,
+   "elapsed_ms": 415,
+   "body": {
+    "symbol": "SMR",
+    "exchange": null,
+    "count": 5,
+    "announcements": [
+     {
+      "symbol": "SMR",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0a72b379-dc80-4a72-aa63-ec40a947117c.pdf",
+      "ts": "2026-08-29T17:39:12.003000+05:30"
+     },
+     {
+      "symbol": "SMR",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for  Outcome Of Board Meeting Held On Thursday, August 27, 2026 Pursuant To Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/f7a21660-0950-4125-9585-cf19fd1b7698.pdf",
+      "ts": "2026-08-27T15:45:39.330000+05:30"
+     },
+     {
+      "symbol": "SMR",
+      "exchange": "BSE",
+      "headline": "Company Announces Significant Milestone In Driving Growth And Innovation In The Jewellery Market",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/02b08dd4-16cc-4764-9ab9-bbb113415a73.pdf",
+      "ts": "2026-08-26T12:12:21.520000+05:30"
+     },
+     {
+      "symbol": "SMR",
+      "exchange": "BSE",
+      "headline": "Disclosure Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015 - Utilization Of Funds Raised Through IPO Proceeds",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/0d51e484-abda-4391-bd1b-0f425aa4895e.pdf",
+      "ts": "2026-08-25T11:02:31.433000+05:30"
+     },
+     {
+      "symbol": "SMR",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Intimation Of Board Meeting Pursuant To Regulation 29 Of The SEBI (Listing Obligations & Disclosure Requirements) Regulations, 2015.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/4a34d68a-5ad9-4bf9-96f3-e6fae111713f.pdf",
+      "ts": "2026-08-22T17:31:29.860000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {}
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=SMR",
+   "status": 502,
+   "elapsed_ms": 19,
+   "body": {
+    "detail": "nse_direct: 'SMR' is not a known NSE instrument"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

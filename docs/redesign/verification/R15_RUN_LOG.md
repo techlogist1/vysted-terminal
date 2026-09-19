@@ -16,12 +16,19 @@ Owned by the telemetry worker; appended at every wave boundary. Times are IST, f
 
 ## Strategy changes
 
+- 15:25 IST: low-priority mode serves Fable, not Opus → all-Opus workflows stopped and re-issued on Fable (run-state L7).
+- 15:45 IST: operator directives for the resume — conserve the weekly allowance, more Opus + Sonnet, never Haiku (run-state header).
+
 - 10:17–14:36 IST: not a usage wall — the MacBook battery died (Low Power Sleep → hibernate). ~50 agents lost mid-flight; files-as-you-go + per-item outputs kept the loss to in-flight work. Operator re-logged in 14:41.
 
 ## Limit walls
+
+- ~15:05 IST: 5-hour session wall. ~95 of ~100 agents died (each burned its 3 retries at once). Resumed 15:08 in low-priority mode.
+- 15:08–15:45 IST low-priority mode: Opus starved completely (0 progressing / 105 starved at 15:25, 0 / 32 at 15:33); Fable served (72 ok / 5 starved). Sonnet and Haiku answered a probe at 15:40; Opus did not.
+- **15:45–16:10 IST: operator-requested graceful pause** — all workflows stopped, own sidecars stopped, caffeinate released, state pushed. Not a wall.
 
 - 10:17–14:36 IST: not a usage wall — the MacBook battery died (Low Power Sleep → hibernate). ~50 agents lost mid-flight; files-as-you-go + per-item outputs kept the loss to in-flight work. Operator re-logged in 14:41.
 
 ## API spend
 
-(budget pending `r15/stage0/BUDGET.md`)
+Budget: $2.00 hard stop on OpenAI-direct, OpenRouter `:free` lane otherwise (enforced by `scripts/r15/vy.py`). At the 16:10 IST pause: 8 ledgered LLM calls, 5 on the free lane, paid estimate $0.0015.

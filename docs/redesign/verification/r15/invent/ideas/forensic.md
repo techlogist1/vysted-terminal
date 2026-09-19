@@ -14,9 +14,16 @@ Trusts filings, not aggregators.
   verified before anything is built on it. Nothing in (c) is load-bearing for mechanics.
 - **Scenes use real small-caps from `battery/manifest.json` as the stage. The events in a scene are
   hypothetical unless a manifest fact is quoted.** No scene is a claim about that company.
-- `census/world/investor-asks-forums.md` is an empty shell (32 lines, PART A unpopulated) and
-  `census/OPPORTUNITY_LEDGER.md` does not exist yet, so the demand side here is my seat, plus
-  `fey-tijori-trendlyne.md` §10 and `perplexity-screener.md`.
+- `census/world/investor-asks-forums.md` is an empty shell (32 lines, PART A unpopulated), so the
+  demand side here is my seat, plus `fey-tijori-trendlyne.md` §10 and `perplexity-screener.md`.
+- `census/OPPORTUNITY_LEDGER.md` landed while this file was being written; reconciled on resume.
+  Overlap, so the lead can merge without double-counting: the Tape is a concrete shape for OPP-1's
+  missing trigger (a sweep with a per-symbol cursor rather than a clock scheduler, because the
+  laptop sleeps); forensic-6 is OPP-1's thesis watcher with the LLM removed from evaluation;
+  forensic-3 supplies OPP-8's missing pledge input (`WLD-T-8`) from the XBRL already downloaded;
+  forensic-5 is OPP-8 delivered as inspectable rules with suppressions instead of a score, and
+  shares its `WLD-T-4` dependency; forensic-7 extends OPP-12 (lineage) down to page + hash.
+  forensic-1, -2, -4, -8, -9 have no ledger entry.
 
 ### The one live probe I ran (it reframes three ideas)
 
@@ -24,7 +31,7 @@ The app already downloads the SEBI shareholding-pattern XBRL per quarter
 (`sidecar/services/bse_provider.py:672-691`) and reads **one concept** out of it
 (`_SHP_PCT_CONCEPT`, `:594`), for six summary categories (`:596-603`), explicitly skipping every
 multi-member context (`if len(members) != 1: continue`, `:744`). I fetched the exact file the
-fixture index names (`tests/fixtures/bse/shp_quarters_509470.json` → `509470_872026152119_SHP.xml`,
+fixture index names (`sidecar/tests/fixtures/bse/shp_quarters_509470.json` → `509470_872026152119_SHP.xml`,
 one polite GET via the repo's own curl_cffi lane): HTTP 200, 126,455 bytes, **83 distinct
 `in-bse-shp:` concepts**. Among the ones the app throws away:
 
@@ -41,7 +48,7 @@ cap table is already on the user's disk path and 82 of 83 concepts are discarded
 
 Same shape on announcements. A BSE row carries `SUBCATNAME`, `News_submission_dt`, `DissemDT`,
 `TimeDiff`, `CRITICALNEWS`, `ANNOUNCEMENT_TYPE`, `FILESTATUS`, `Fld_Attachsize`
-(`tests/fixtures/bse/ann_sub_category_get_data.json`, row 0). `_bse_row_to_announcement` keeps
+(`sidecar/tests/fixtures/bse/ann_sub_category_get_data.json`, row 0). `_bse_row_to_announcement` keeps
 headline, one of category-or-subcategory, attachment and one timestamp
 (`sidecar/services/corporate_disclosures.py:161-178`; subcategory is dropped whenever a category
 exists, `:166`; submission-vs-dissemination collapses to the first key present, `:180-195`). The

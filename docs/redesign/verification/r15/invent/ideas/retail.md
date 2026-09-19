@@ -227,7 +227,7 @@ someone said so: −22%. Your best decision had the longest reason."* The receip
 **Mechanics.** Read-only diff of successive holdings snapshots — `GET /brokers/{id}/holdings`
 (`routers/brokers.py:225-231`; `BrokerHolding` `models/broker_reads.py:77-87`); manual portfolios
 (`src/store/portfolios.ts`) are the same diff source without a broker. The frozen state reuses the
-deterministic claims extractor (`src/lib/brief-claims.ts:46` `extractBriefClaims`, claim shape
+deterministic claims extractor (`src/lib/brief-claims.ts:47` `extractBriefClaims`, claim shape
 `types/research-space.ts:35-44`). The "why" lands in the per-symbol note
 (`src/store/notes.ts:31` `appendSymbolNote`) via gated `write_note` (`catalog.py:1374`). *New:* a
 `holdings_snapshots` + `decisions` store, the diff, the ask-card, a yearly review brief published

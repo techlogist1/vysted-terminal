@@ -1,0 +1,43 @@
+{
+ "tag": "w2-opus-B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "opus",
+   "prompt": "Your task spec is in docs/redesign/verification/r15/tooling/PROMPT_wave2.md: the `{{id}}` bullet of the PROBES section. <task-id> = \"{{id}}\", <port> = {{port}}. {{extra}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "route-fuzzer",
+   "port": 52242,
+   "extra": "EXCEPTION to the read-only rule: you may create scripts/r15/route_fuzz.py in the main checkout (do not commit)."
+  },
+  {
+   "id": "licence-audit",
+   "port": 0,
+   "extra": "(no sidecar needed)"
+  },
+  {
+   "id": "history-secrets",
+   "port": 0,
+   "extra": "(no sidecar needed)"
+  },
+  {
+   "id": "docs-truth",
+   "port": 52152,
+   "extra": "Use the shared isolated sidecar on :52152 for /openapi.json (GET only)."
+  },
+  {
+   "id": "patch-proof",
+   "port": 52152,
+   "extra": "Use the shared isolated sidecar on :52152 (it runs from current source, so it includes the patch); its log is under the session scratchpad iso/logs/sidecar.log - find it with: /bin/ls /private/tmp/claude-501/*/*/scratchpad/iso/logs/."
+  },
+  {
+   "id": "deps-runtime",
+   "port": 0,
+   "extra": "(no sidecar needed)"
+  }
+ ]
+}

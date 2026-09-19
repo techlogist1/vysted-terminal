@@ -1,0 +1,63 @@
+{
+ "tag": "w2-mixed",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read the preamble of docs/redesign/verification/r15/tooling/PROMPT_wave2.md. A previous attempt at your task was killed by a usage wall: your output files and a sidecar on your port may already exist - verify and continue, never restart.",
+ "stages": [
+  {
+   "label": "task",
+   "model": "opus",
+   "prompt": "Your task spec is in docs/redesign/verification/r15/tooling/{{spec}}. <task-id> = <id> = \"{{id}}\", <port> = {{port}}. {{extra}}"
+  }
+ ],
+ "items": [
+  {
+   "id": "agent-behaviour",
+   "spec": "PROMPT_wave2.md: the `agent-behaviour` bullet of the PROBES section",
+   "port": 52241,
+   "model": "fable"
+  },
+  {
+   "id": "test-quality",
+   "spec": "PROMPT_wave2.md: the `test-quality` bullet of the PROBES section",
+   "port": 0
+  },
+  {
+   "id": "harness-design",
+   "spec": "PROMPT_wave2.md: the `harness-design` bullet of the PROBES section",
+   "port": 0,
+   "model": "fable"
+  },
+  {
+   "id": "L3-diagnostics",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L3-diagnostics`",
+   "port": 52233
+  },
+  {
+   "id": "L5-bounds",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L5-bounds`",
+   "port": 52235
+  },
+  {
+   "id": "L6-longsession",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L6-longsession`",
+   "port": 52236,
+   "model": "fable",
+   "extra": "The operator's instance restarted its sidecars after the machine hibernated today (pids on ports ~53693-53695): sample those read-only."
+  },
+  {
+   "id": "L1-stranger",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L1-stranger`",
+   "port": 52231
+  },
+  {
+   "id": "L2-rot",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L2-rot`",
+   "port": 52232
+  },
+  {
+   "id": "L4-upgrade",
+   "spec": "PROMPT_census.md: the LIFECYCLE section, question `L4-upgrade`",
+   "port": 52234,
+   "model": "fable"
+  }
+ ]
+}

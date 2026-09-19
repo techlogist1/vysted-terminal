@@ -1,0 +1,3746 @@
+{
+ "slot": "P12",
+ "symbol": "DHANBANK",
+ "manifest_name": "Dhanlaxmi Bank Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "532180",
+ "collected_at": "2026-09-19T15:18:09+0530",
+ "sidecar": "http://127.0.0.1:52152",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52152/resolve?q=DHANBANK",
+   "status": 200,
+   "elapsed_ms": 15,
+   "body": {
+    "ok": true,
+    "query": "DHANBANK",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DHANBANK",
+     "name": "Dhanlaxmi Bank Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DHANBANK.NS",
+     "confidence": 1.0,
+     "isin": "INE680A01011",
+     "bse_code": "532180",
+     "industry": "Banks - Regional",
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DHANBANK",
+      "name": "Dhanlaxmi Bank Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANBANK.NS",
+      "confidence": 1.0,
+      "isin": "INE680A01011",
+      "bse_code": "532180",
+      "industry": "Banks - Regional",
+      "former_name": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "name": "Dhanlaxmi Bank Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANBANK.BO",
+      "confidence": 1.0,
+      "isin": "INE680A01011",
+      "bse_code": "532180",
+      "industry": "Banks - Regional",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52152/resolve?q=Dhanlaxmi+Bank+Ltd",
+   "status": 200,
+   "elapsed_ms": 1688,
+   "body": {
+    "ok": true,
+    "query": "Dhanlaxmi Bank Ltd",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "DHANBANK",
+      "name": "Dhanlaxmi Bank Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANBANK.NS",
+      "confidence": 1.0,
+      "isin": "INE680A01011",
+      "bse_code": "532180",
+      "industry": "Banks - Regional",
+      "former_name": null
+     },
+     {
+      "symbol": "DHAN-RE",
+      "name": "Dhanlaxmi Bank Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHAN-RE.BO",
+      "confidence": 1.0,
+      "isin": "INE680A20011",
+      "bse_code": "750942",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DHANFAB",
+      "name": "Dhanlaxmi Fabrics Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANFAB.BO",
+      "confidence": 0.7692,
+      "isin": "INE953D01016",
+      "bse_code": "521151",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "DHANCOT",
+      "name": "Dhanlaxmi Cotex Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANCOT.BO",
+      "confidence": 0.7568,
+      "isin": "INE977F01010",
+      "bse_code": "512485",
+      "industry": null,
+      "former_name": null
+     },
+     {
+      "symbol": "AXISBANK",
+      "name": "Axis Bank Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AXISBANK.NS",
+      "confidence": 0.6857,
+      "isin": "INE238A01034",
+      "bse_code": "532215",
+      "industry": "Financial Services / Private Sector Bank",
+      "former_name": null
+     },
+     {
+      "symbol": "BANDHANBNK",
+      "name": "Bandhan Bank Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "BANDHANBNK.NS",
+      "confidence": 0.6842,
+      "isin": "INE545U01014",
+      "bse_code": "541153",
+      "industry": "Financial Services / Private Sector Bank",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52152/resolve?q=532180",
+   "status": 200,
+   "elapsed_ms": 6,
+   "body": {
+    "ok": true,
+    "query": "532180",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DHANBANK",
+     "name": "Dhanlaxmi Bank Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DHANBANK.BO",
+     "confidence": 1.0,
+     "isin": "INE680A01011",
+     "bse_code": "532180",
+     "industry": "Banks - Regional",
+     "former_name": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DHANBANK",
+      "name": "Dhanlaxmi Bank Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHANBANK.BO",
+      "confidence": 1.0,
+      "isin": "INE680A01011",
+      "bse_code": "532180",
+      "industry": "Banks - Regional",
+      "former_name": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52152/quotes/DHANBANK?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 430,
+   "body": {
+    "symbol": "DHANBANK",
+    "price": 29.47,
+    "change": 0.5899999999999999,
+    "change_percent": 2.0429362880886424,
+    "volume": 262185.0,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-18T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52152/fundamentals/DHANBANK",
+   "status": 200,
+   "elapsed_ms": 3880,
+   "body": {
+    "symbol": "DHANBANK.NS",
+    "name": "Dhanlaxmi Bank Limited",
+    "sector": "Financial Services",
+    "industry": "Banks - Regional",
+    "currency": "INR",
+    "market_cap": 11631774720.0,
+    "pe_ratio": 10.092465,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.77003473,
+    "price_to_sales": 1.4990172,
+    "ev_to_ebitda": null,
+    "book_value": 38.271,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 2.92,
+    "beta": 0.662,
+    "fifty_two_week_high": 36.85,
+    "fifty_two_week_low": 19.45,
+    "fifty_two_week_change": 0.10144925,
+    "roe": 0.07915,
+    "roa": 0.00566,
+    "gross_margin": 0.0,
+    "operating_margin": 0.18077,
+    "profit_margin": 0.14882,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "revenue_ttm": 7759600128.0,
+    "net_income_ttm": 1154800000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 394698851.0,
+    "revenue_growth": 0.25,
+    "earnings_growth": 1.032,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.51176,
+    "held_percent_institutions": 0.060159996,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "ev_to_ebitda": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "roa": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "debt_to_equity": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "held_percent_institutions": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": null,
+      "label": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-19T09:46:10.023237+00:00",
+      "reason": "provider did not publish this field",
+      "label": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52152/fundamentals/DHANBANK/income",
+   "status": 200,
+   "elapsed_ms": 1152,
+   "body": {
+    "symbol": "DHANBANK.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023"
+    ],
+    "lines": [
+     {
+      "label": "Tax Effect Of Unusual Items",
+      "values": {
+       "2026": 321290.183484,
+       "2025": 168678.74266,
+       "2024": 453427.328378,
+       "2023": 2300700.0
+      }
+     },
+     {
+      "label": "Tax Rate For Calcs",
+      "values": {
+       "2026": 0.256622,
+       "2025": 0.06953,
+       "2024": 0.179646,
+       "2023": 0.3
+      }
+     },
+     {
+      "label": "Total Unusual Items",
+      "values": {
+       "2026": 1252000.0,
+       "2025": 2426000.0,
+       "2024": 2524000.0,
+       "2023": 7669000.0
+      }
+     },
+     {
+      "label": "Total Unusual Items Excluding Goodwill",
+      "values": {
+       "2026": 1252000.0,
+       "2025": 2426000.0,
+       "2024": 2524000.0,
+       "2023": 7669000.0
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operation Net Minority Interest",
+      "values": {
+       "2026": 1027482000.0,
+       "2025": 666414000.0,
+       "2024": 578219000.0,
+       "2023": 493625000.0
+      }
+     },
+     {
+      "label": "Reconciled Depreciation",
+      "values": {
+       "2026": 299668000.0,
+       "2025": 253266000.0,
+       "2024": 250769000.0,
+       "2023": 211074000.0
+      }
+     },
+     {
+      "label": "Net Interest Income",
+      "values": {
+       "2026": 6223288000.0,
+       "2025": 4832853000.0,
+       "2024": 4584517000.0,
+       "2023": 4757533000.0
+      }
+     },
+     {
+      "label": "Interest Expense",
+      "values": {
+       "2026": 9791547000.0,
+       "2025": 8365919000.0,
+       "2024": 7485389000.0,
+       "2023": 5954838000.0
+      }
+     },
+     {
+      "label": "Interest Income",
+      "values": {
+       "2026": 16014835000.0,
+       "2025": 13198772000.0,
+       "2024": 12069906000.0,
+       "2023": 10712371000.0
+      }
+     },
+     {
+      "label": "Normalized Income",
+      "values": {
+       "2026": 1026551290.183484,
+       "2025": 664156678.74266,
+       "2024": 576148427.328378,
+       "2023": 488256700.0
+      }
+     },
+     {
+      "label": "Net Income From Continuing And Discontinued Operation",
+      "values": {
+       "2026": 1027482000.0,
+       "2025": 666414000.0,
+       "2024": 578219000.0,
+       "2023": 493625000.0
+      }
+     },
+     {
+      "label": "Diluted Average Shares",
+      "values": {
+       "2026": 394698851.0,
+       "2025": 280808754.0,
+       "2024": 322325654.0,
+       "2023": 311989327.0
+      }
+     },
+     {
+      "label": "Basic Average Shares",
+      "values": {
+       "2026": 394698851.0,
+       "2025": 280808754.0,
+       "2024": 322325654.0,
+       "2023": 311989327.0
+      }
+     },
+     {
+      "label": "Diluted EPS",
+      "values": {
+       "2026": 2.6,
+       "2025": 2.37,
+       "2024": 1.79223,
+       "2023": 1.58138
+      }
+     },
+     {
+      "label": "Basic EPS",
+      "values": {
+       "2026": 2.6,
+       "2025": 2.37,
+       "2024": 1.79223,
+       "2023": 1.58138
+      }
+     },
+     {
+      "label": "Diluted NI Availto Com Stockholders",
+      "values": {
+       "2026": 1027482000.0,
+       "2025": 666414000.0,
+       "2024": 578219000.0,
+       "2023": 493625000.0
+      }
+     },
+     {
+      "label": "Net Income Common Stockholders",
+      "values": {
+       "2026": 1027482000.0,
+       "2025": 666414000.0,
+       "2024": 578219000.0,
+       "2023": 493625000.0
+      }
+     },
+     {
+      "label": "Net Income",
+      "values": {
+       "2026": 1027482000.0,
+       "2025": 666414000.0,
+       "2024": 578219000.0,
+       "2023": 493625000.0
+      }
+     },
+     {
+      "label": "Net Income Including Noncontrolling Interests",
+      "values": {
+       "2026": 1027491000.0,
+       "2025": 666442000.0,
+       "2024": 578118000.0,
+       "2023": 493637000.0
+      }
+     },
+     {
+      "label": "Net Income Extraordinary",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0,
+       "2023": 0.0
+      }
+     },
+     {
+      "label": "Net Income Continuous Operations",
+      "values": {
+       "2026": 1027491000.0,
+       "2025": 666442000.0,
+       "2024": 578118000.0,
+       "2023": 493637000.0
+      }
+     },
+     {
+      "label": "Tax Provision",
+      "values": {
+       "2026": 354700000.0,
+       "2025": 49800000.0,
+       "2024": 126600000.0,
+       "2023": -177500000.0
+      }
+     },
+     {
+      "label": "Pretax Income",
+      "values": {
+       "2026": 1382191000.0,
+       "2025": 716242000.0,
+       "2024": 704718000.0,
+       "2023": 316137000.0
+      }
+     },
+     {
+      "label": "Special Income Charges",
+      "values": {
+       "2026": 1252000.0,
+       "2025": 2426000.0,
+       "2024": 2524000.0,
+       "2023": 7669000.0
+      }
+     },
+     {
+      "label": "Other Special Charges",
+      "values": {
+       "2026": -1252000.0,
+       "2025": -2426000.0,
+       "2024": -2524000.0,
+       "2023": -7669000.0
+      }
+     },
+     {
+      "label": "Gain On Sale Of Security",
+      "values": {
+       "2026": 86119000.0,
+       "2025": 131899000.0,
+       "2024": 190247000.0,
+       "2023": -424322000.0
+      }
+     },
+     {
+      "label": "Operating Expense",
+      "values": {
+       "2026": 5988105000.0,
+       "2025": 5569383000.0,
+       "2024": 5414695000.0,
+       "2023": 4277566000.0
+      }
+     },
+     {
+      "label": "Other Operating Expenses",
+      "values": {
+       "2026": 1507098000.0,
+       "2025": 1330720000.0,
+       "2024": 1078834000.0,
+       "2023": 875839000.0
+      }
+     },
+     {
+      "label": "Depreciation And Amortization In Income Statement",
+      "values": {
+       "2026": 299668000.0,
+       "2025": 253266000.0,
+       "2024": 250769000.0,
+       "2023": 211074000.0
+      }
+     },
+     {
+      "label": "Depreciation Income Statement",
+      "values": {
+       "2026": 299668000.0,
+       "2025": 253266000.0,
+       "2024": 250769000.0,
+       "2023": 211074000.0
+      }
+     },
+     {
+      "label": "Selling General And Administration",
+      "values": {
+       "2026": 45854000.0,
+       "2025": 43909000.0,
+       "2024": 46305000.0,
+       "2023": 49277000.0
+      }
+     },
+     {
+      "label": "Selling And Marketing Expense",
+      "values": {
+       "2026": 12653000.0,
+       "2025": 12075000.0,
+       "2024": 11489000.0,
+       "2023": 9537000.0
+      }
+     },
+     {
+      "label": "General And Administrative Expense",
+      "values": {
+       "2026": 33201000.0,
+       "2025": 31834000.0,
+       "2024": 34816000.0,
+       "2023": 39740000.0
+      }
+     },
+     {
+      "label": "Insurance And Claims",
+      "values": {
+       "2026": 266673000.0,
+       "2025": 232046000.0,
+       "2024": 216165000.0,
+       "2023": 193467000.0
+      }
+     },
+     {
+      "label": "Rent And Landing Fees",
+      "values": {
+       "2026": 588306000.0,
+       "2025": 560982000.0,
+       "2024": 497097000.0,
+       "2023": 468393000.0
+      }
+     },
+     {
+      "label": "Total Revenue",
+      "values": {
+       "2026": 7872887000.0,
+       "2025": 6355483000.0,
+       "2024": 5805774000.0,
+       "2023": 5495034000.0
+      }
+     },
+     {
+      "label": "Operating Revenue",
+      "values": {
+       "2026": 7872887000.0,
+       "2025": 6355483000.0,
+       "2024": 5805774000.0,
+       "2023": 5495034000.0
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52152/fundamentals/DHANBANK/balance",
+   "status": 200,
+   "elapsed_ms": 884,
+   "body": {
+    "symbol": "DHANBANK.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023",
+     "2022"
+    ],
+    "lines": [
+     {
+      "label": "Ordinary Shares Number",
+      "values": {
+       "2026": 394698851.0,
+       "2025": 394698851.0,
+       "2024": 311989327.0,
+       "2023": 311989327.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Share Issued",
+      "values": {
+       "2026": 394698851.0,
+       "2025": 394698851.0,
+       "2024": 311989327.0,
+       "2023": 311989327.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Debt",
+      "values": {
+       "2026": 5366256000.0,
+       "2025": 2000000000.0,
+       "2024": 2990350000.0,
+       "2023": 4923785000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Tangible Book Value",
+      "values": {
+       "2026": 14739237000.0,
+       "2025": 13952857000.0,
+       "2024": 10297622000.0,
+       "2023": 9611506000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Invested Capital",
+      "values": {
+       "2026": 20105493000.0,
+       "2025": 15952900000.0,
+       "2024": 13287972000.0,
+       "2023": 14535291000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Tangible Assets",
+      "values": {
+       "2026": 14739237000.0,
+       "2025": 13952857000.0,
+       "2024": 10297622000.0,
+       "2023": 9611506000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock Equity",
+      "values": {
+       "2026": 14739237000.0,
+       "2025": 13952857000.0,
+       "2024": 10297622000.0,
+       "2023": 9611506000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Capitalization",
+      "values": {
+       "2026": 20105493000.0,
+       "2025": 15952900000.0,
+       "2024": 13287972000.0,
+       "2023": 14535291000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Equity Gross Minority Interest",
+      "values": {
+       "2026": 14739237000.0,
+       "2025": 13952857000.0,
+       "2024": 10297622000.0,
+       "2023": 9611506000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Stockholders Equity",
+      "values": {
+       "2026": 14739237000.0,
+       "2025": 13952857000.0,
+       "2024": 10297622000.0,
+       "2023": 9611506000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Fixed Assets Revaluation Reserve",
+      "values": {
+       "2026": 1647911000.0,
+       "2025": 1586381000.0,
+       "2024": 1593682000.0,
+       "2023": 1601036000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Retained Earnings",
+      "values": {
+       "2026": -6406401000.0,
+       "2025": -7112474000.0,
+       "2024": -7612278000.0,
+       "2023": -7887965000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Additional Paid In Capital",
+      "values": {
+       "2026": 11560538000.0,
+       "2025": 11560538000.0,
+       "2024": 10054482000.0,
+       "2023": 10054482000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Capital Stock",
+      "values": {
+       "2026": 3946989000.0,
+       "2025": 3946989000.0,
+       "2024": 2530121000.0,
+       "2023": 2530121000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock",
+      "values": {
+       "2026": 3946989000.0,
+       "2025": 3946989000.0,
+       "2024": 2530121000.0,
+       "2023": 2530121000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Liabilities Net Minority Interest",
+      "values": {
+       "2026": 197637316000.0,
+       "2025": 165416516000.0,
+       "2024": 149321266000.0,
+       "2023": 141709819000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Long Term Debt And Capital Lease Obligation",
+      "values": {
+       "2026": 5366256000.0,
+       "2025": 2000000000.0,
+       "2024": 2990350000.0,
+       "2023": 4923785000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Payables",
+      "values": {
+       "2026": 642520000.0,
+       "2025": 510576000.0,
+       "2024": 436462000.0,
+       "2023": 549058000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Payable",
+      "values": {
+       "2026": 216338000.0,
+       "2025": 267753000.0,
+       "2024": 173000000.0,
+       "2023": 270374000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Accounts Payable",
+      "values": {
+       "2026": 426182000.0,
+       "2025": 242823000.0,
+       "2024": 263462000.0,
+       "2023": 278684000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Total Assets",
+      "values": {
+       "2026": 212376553000.0,
+       "2025": 179369373000.0,
+       "2024": 159618888000.0,
+       "2023": 151321325000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Investments And Advances",
+      "values": {
+       "2026": 42574415000.0,
+       "2025": 39551519000.0,
+       "2024": 39423992000.0,
+       "2023": 38886427000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Investmentin Financial Assets",
+      "values": {
+       "2026": 42574415000.0,
+       "2025": 39551519000.0,
+       "2024": 39423992000.0,
+       "2023": 38886427000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Available For Sale Securities",
+      "values": {
+       "2026": 1000.0,
+       "2025": null,
+       "2024": 258323000.0,
+       "2023": 13278000.0,
+       "2022": 717143000.0
+      }
+     },
+     {
+      "label": "Long Term Equity Investment",
+      "values": {
+       "2026": 0.0,
+       "2025": 0.0,
+       "2024": 0.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net PPE",
+      "values": {
+       "2026": 2900362000.0,
+       "2025": 2815576000.0,
+       "2024": 2743353000.0,
+       "2023": 2575741000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Accumulated Depreciation",
+      "values": {
+       "2026": -3682958000.0,
+       "2025": -2829019000.0,
+       "2024": -2705769000.0,
+       "2023": -2491812000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Gross PPE",
+      "values": {
+       "2026": 6583320000.0,
+       "2025": 5644595000.0,
+       "2024": 5449122000.0,
+       "2023": 5067553000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Construction In Progress",
+      "values": {
+       "2026": 65379000.0,
+       "2025": 151426000.0,
+       "2024": 78224000.0,
+       "2023": 67153000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Properties",
+      "values": {
+       "2026": 3604157000.0,
+       "2025": null,
+       "2024": 3113763000.0,
+       "2023": 2743265000.0,
+       "2022": 2538561000.0
+      }
+     },
+     {
+      "label": "Properties",
+      "values": {
+       "2026": 2913784000.0,
+       "2025": 2257135000.0,
+       "2024": 2257135000.0,
+       "2023": 2257135000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Prepaid Assets",
+      "values": {
+       "2026": 312770000.0,
+       "2025": 571328000.0,
+       "2024": 597363000.0,
+       "2023": 514313000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Receivables",
+      "values": {
+       "2026": 4112708000.0,
+       "2025": 3306871000.0,
+       "2024": 3036755000.0,
+       "2023": 2257006000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash And Cash Equivalents",
+      "values": {
+       "2026": 12626246000.0,
+       "2025": 12576909000.0,
+       "2024": 12115329000.0,
+       "2023": 11019914000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Equivalents",
+      "values": {
+       "2026": 0.0,
+       "2025": 499970000.0,
+       "2024": 1999975000.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Financial",
+      "values": {
+       "2026": 952207000.0,
+       "2025": 960710000.0,
+       "2024": 1060649000.0,
+       "2023": 1051031000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Cash Cash Equivalents And Federal Funds Sold",
+      "values": {
+       "2026": 12626246000.0,
+       "2025": 12576909000.0,
+       "2024": 12115329000.0,
+       "2023": 11019914000.0,
+       "2022": null
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52152/fundamentals/DHANBANK/cashflow",
+   "status": 200,
+   "elapsed_ms": 1152,
+   "body": {
+    "symbol": "DHANBANK.NS",
+    "periods": [
+     "2026",
+     "2025",
+     "2024",
+     "2023",
+     "2022"
+    ],
+    "lines": [
+     {
+      "label": "Free Cash Flow",
+      "values": {
+       "2026": 5979514000.0,
+       "2025": -374092000.0,
+       "2024": -246126000.0,
+       "2023": 1812029000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Issuance Of Capital Stock",
+      "values": {
+       "2026": 0.0,
+       "2025": 2922923000.0,
+       "2024": 0.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Capital Expenditure",
+      "values": {
+       "2026": -335356000.0,
+       "2025": -326216000.0,
+       "2024": -419051000.0,
+       "2023": -351927000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "End Cash Position",
+      "values": {
+       "2026": 10718029000.0,
+       "2025": 10798231000.0,
+       "2024": 9746247000.0,
+       "2023": 8466269000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Cash Adjustment Outside Changein Cash",
+      "values": {
+       "2026": null,
+       "2025": 100000.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Beginning Cash Position",
+      "values": {
+       "2026": 10798231000.0,
+       "2025": 9746247000.0,
+       "2024": 8466269000.0,
+       "2023": 7358407000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Changes In Cash",
+      "values": {
+       "2026": -80202000.0,
+       "2025": 1051984000.0,
+       "2024": 1279978000.0,
+       "2023": 1107862000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Financing Cash Flow",
+      "values": {
+       "2026": 1500000000.0,
+       "2025": 1422923000.0,
+       "2024": 0.0,
+       "2023": 0.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Other Financing Charges",
+      "values": {
+       "2026": 1500000000.0,
+       "2025": -1500000000.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Common Stock Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": 2922923000.0,
+       "2024": 0.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Common Stock Issuance",
+      "values": {
+       "2026": 0.0,
+       "2025": 2922923000.0,
+       "2024": 0.0,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Issuance Payments Of Debt",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": 0.0
+      }
+     },
+     {
+      "label": "Net Long Term Debt Issuance",
+      "values": {
+       "2026": null,
+       "2025": null,
+       "2024": null,
+       "2023": null,
+       "2022": 0.0
+      }
+     },
+     {
+      "label": "Investing Cash Flow",
+      "values": {
+       "2026": -7895072000.0,
+       "2025": -323063000.0,
+       "2024": 1107053000.0,
+       "2023": -1056094000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Other Investing Changes",
+      "values": {
+       "2026": null,
+       "2025": -100000.0,
+       "2024": null,
+       "2023": null,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Investment Purchase And Sale",
+      "values": {
+       "2026": -7582885000.0,
+       "2025": 0.0,
+       "2024": 1522910000.0,
+       "2023": -712700000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net PPE Purchase And Sale",
+      "values": {
+       "2026": -312187000.0,
+       "2025": -323063000.0,
+       "2024": -415857000.0,
+       "2023": -343394000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Sale Of PPE",
+      "values": {
+       "2026": 23169000.0,
+       "2025": 3153000.0,
+       "2024": 3194000.0,
+       "2023": 8533000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Purchase Of PPE",
+      "values": {
+       "2026": -335356000.0,
+       "2025": -326216000.0,
+       "2024": -419051000.0,
+       "2023": -351927000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Operating Cash Flow",
+      "values": {
+       "2026": 6314870000.0,
+       "2025": -47876000.0,
+       "2024": 172925000.0,
+       "2023": 2163956000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Taxes Refund Paid",
+      "values": {
+       "2026": -22195000.0,
+       "2025": 93840000.0,
+       "2024": -70487000.0,
+       "2023": 1260000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Working Capital",
+      "values": {
+       "2026": 3814540000.0,
+       "2025": -1335974000.0,
+       "2024": -789812000.0,
+       "2023": 101700000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Other Current Liabilities",
+      "values": {
+       "2026": 456553000.0,
+       "2025": -225091000.0,
+       "2024": 110886000.0,
+       "2023": -218757000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Change In Other Current Assets",
+      "values": {
+       "2026": -726490000.0,
+       "2025": -69063000.0,
+       "2024": 52110000.0,
+       "2023": -201217000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Other Non Cash Items",
+      "values": {
+       "2026": 37184000.0,
+       "2025": -7624000.0,
+       "2024": 207341000.0,
+       "2023": 203554000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Provisionand Write Offof Assets",
+      "values": {
+       "2026": 780589000.0,
+       "2025": 221541000.0,
+       "2024": -259821000.0,
+       "2023": 943552000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Depreciation And Amortization",
+      "values": {
+       "2026": 299668000.0,
+       "2025": 253266000.0,
+       "2024": 250769000.0,
+       "2023": 211074000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Depreciation",
+      "values": {
+       "2026": 299668000.0,
+       "2025": 253266000.0,
+       "2024": 250769000.0,
+       "2023": 211074000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Pension And Employee Benefit Expense",
+      "values": {
+       "2026": null,
+       "2025": 0.0,
+       "2024": 85800000.0,
+       "2023": 28585000.0,
+       "2022": 28585000.0
+      }
+     },
+     {
+      "label": "Gain Loss On Sale Of PPE",
+      "values": {
+       "2026": -1252000.0,
+       "2025": -2426000.0,
+       "2024": -2524000.0,
+       "2023": -7669000.0,
+       "2022": null
+      }
+     },
+     {
+      "label": "Net Income From Continuing Operations",
+      "values": {
+       "2026": 1382202000.0,
+       "2025": 716224000.0,
+       "2024": 704777000.0,
+       "2023": 316135000.0,
+       "2022": null
+      }
+     }
+    ],
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52152/fundamentals/DHANBANK/ratings",
+   "status": 200,
+   "elapsed_ms": 1458,
+   "body": {
+    "symbol": "DHANBANK.NS",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 65.4
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52152/disclosures/shareholding?symbol=DHANBANK",
+   "status": 200,
+   "elapsed_ms": 25245,
+   "body": {
+    "symbol": "DHANBANK",
+    "count": 89,
+    "patterns": [
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2026-06-30",
+      "promoter_percent": null,
+      "fii_percent": 14.21,
+      "dii_percent": 0.05,
+      "institutions_percent": 14.26,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 85.75,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-07-15",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_1572026133142_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2026-03-31",
+      "promoter_percent": null,
+      "fii_percent": 15.42,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.47,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.53,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_1842026124616_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2025-12-31",
+      "promoter_percent": null,
+      "fii_percent": 15.32,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.37,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.63,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_141202615720_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2025-12-31",
+      "promoter_percent": null,
+      "fii_percent": 15.32,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.37,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.63,
+      "employee_trusts_percent": null,
+      "submission_date": "2026-01-07",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_712026161146_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2025-09-30",
+      "promoter_percent": null,
+      "fii_percent": 15.28,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.33,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.68,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-10-15",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_15102025151924_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2025-06-30",
+      "promoter_percent": null,
+      "fii_percent": 15.52,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.57,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.43,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-07-19",
+      "xbrl_url": "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/532180_1972025112158_SP.html",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2025-03-31",
+      "promoter_percent": null,
+      "fii_percent": 15.26,
+      "dii_percent": 0.05,
+      "institutions_percent": 15.31,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 84.69,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-04-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_194202517519_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-12-31",
+      "promoter_percent": null,
+      "fii_percent": 6.95,
+      "dii_percent": 0.16,
+      "institutions_percent": 7.11,
+      "public_percent": 100.0,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 92.89,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_122025113214_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2025-01-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1812025174826_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_511202413326_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_14102024122616_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-07-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1172024155149_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2024-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-04-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1642024153844_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2023-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_32202411211_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2023-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2024-01-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1512024123947_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2023-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1810202315292_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2023-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-07-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1572023153157_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2023-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-04-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_194202316845_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2022-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2023-01-10",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1012023151954_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2022-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_18102022115447_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2022-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-07-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_16720221216_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2022-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-04-19",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_194202211436_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2021-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2022-01-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1312022121137_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2021-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-10-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_181020211385_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2021-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-07-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1672021125911_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2021-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-04-16",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1642021113152_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2020-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2021-01-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_121202115425_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2020-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-10-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_20102020114438_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2020-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-07-20",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_20720201621_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2020-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-04-28",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_2842020131834_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2019-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2020-01-17",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1712020115536_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2019-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-10-11",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_11102019114440_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2019-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1872019161255_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2019-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-04-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_184201912628_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2018-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2019-01-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1512019163216_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2018-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-10-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_6102018154943_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2018-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-07-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_137201816128_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2018-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_184201816949_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2017-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2018-01-06",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_61201815626_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2017-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-10-14",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1310201717344_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2017-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-07-12",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1272017164242_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2017-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-04-13",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_134201715237_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2016-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2017-01-09",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_912017131732_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2016-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-10-07",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_7102016174954_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2016-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-07-18",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/532180_1872016144535_SHP.xml",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2016-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": "2016-04-15",
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2015-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2015-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2015-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2015-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2014-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2014-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2014-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2014-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2013-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2013-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2013-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2013-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2012-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2012-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2012-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2012-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2011-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2011-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2011-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2011-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2010-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2010-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2006-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2005-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2005-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2005-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2005-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2004-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2004-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2004-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2004-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2003-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2003-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2003-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2003-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2002-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2002-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2002-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2002-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2001-12-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2001-09-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2001-06-30",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     },
+     {
+      "symbol": "DHANBANK",
+      "quarter_end": "2001-03-31",
+      "promoter_percent": null,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": null,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": null,
+      "submission_date": null,
+      "xbrl_url": "https://www.bseindia.com/XBRL1/",
+      "source": "BSE",
+      "split_source": null,
+      "split_as_of": null
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52152/disclosures/announcements?symbol=DHANBANK&limit=25",
+   "status": 200,
+   "elapsed_ms": 20307,
+   "body": {
+    "symbol": "DHANBANK",
+    "exchange": null,
+    "count": 6,
+    "announcements": [
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Newspaper Publication W.R.T Dispatch Of Notice Of 99Th AGM And Annual Report For The FY 2025-26",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/fbb5808c-0876-41e3-b951-dd7e50f6a84c.pdf",
+      "ts": "2026-09-01T15:27:19.417000+05:30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Intimation Of Book Closure Or Record Date",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/66797bbc-8abc-4e6e-a0f4-7dbdf48efd91.pdf",
+      "ts": "2026-08-31T18:47:39.197000+05:30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/a59a4500-ca86-4e2c-9d23-7d992320c577.pdf",
+      "ts": "2026-08-31T18:39:03.460000+05:30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Notice Of 99Th Annual General Meeting",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/658d20fd-fd03-4fa9-8864-2c82eb0c1bb8.pdf",
+      "ts": "2026-08-31T18:25:26.653000+05:30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/ece09842-1a38-47f0-bf13-4bc70bf74a60.pdf",
+      "ts": "2026-08-20T17:27:47.703000+05:30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "exchange": "BSE",
+      "headline": "Intimation Of Credit Rating",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/be7dba72-6c55-4a54-b090-453a74792050.pdf",
+      "ts": "2026-08-20T12:28:15.830000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {
+     "NSE": "nse_direct: transport failure on /api/corporate-announcements: Failed to perform, curl: (28) Operation timed out after 20004 milliseconds with 0 bytes received. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."
+    }
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52152/disclosures/results?symbol=DHANBANK",
+   "status": 200,
+   "elapsed_ms": 200,
+   "body": {
+    "symbol": "DHANBANK",
+    "count": 71,
+    "events": [
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Other business matters",
+      "description": "Consider and approve  Dhanlaxmi Bank Limited Employee Stock Option Plan   2025  in accordance with the Securities and Exchange Board of India (Share Based Employee Benefits and Sweat Equity) Regulations, 2021, subject to the approval of the shareholders of the Bank.",
+      "date": "2026-08-19"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+      "date": "2026-07-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2026",
+      "date": "2026-04-28"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2025",
+      "date": "2026-01-21"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2025",
+      "date": "2025-10-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2025",
+      "date": "2025-07-21"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2025",
+      "date": "2025-05-09"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2025-03-19"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "Sub:  Intimation of Board Meeting for raising of fund by issuance of Non-Convertible Debentures (NCDs)",
+      "date": "2025-02-22"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2024",
+      "date": "2025-02-04"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2024-12-19"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2024-10-22"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2024",
+      "date": "2024-10-17"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2024",
+      "date": "2024-08-12"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2024",
+      "date": "2024-05-22"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2023",
+      "date": "2024-02-02"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2023",
+      "date": "2023-11-09"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2023",
+      "date": "2023-07-31"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2023",
+      "date": "2023-05-22"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2022",
+      "date": "2023-01-31"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial results",
+      "description": "Dhanlaxmi Bank Limited  has informed the Exchange about Board Meeting to be held on 09-Nov-2022 to consider financial statements for the period ended September 2022",
+      "date": "2022-11-09"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial results",
+      "description": "Dhanlaxmi Bank Limited  has informed the Exchange about Board Meeting to be held on 08-Aug-2022 to consider financial statements for the period ended June 2022",
+      "date": "2022-08-08"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial results",
+      "description": "Dhanlaxmi Bank Limited  has informed the Exchange about Board Meeting to be held on 19-May-2022 to consider financial statements for the period ended March 2022",
+      "date": "2022-05-19"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2021",
+      "date": "2022-02-11"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2021",
+      "date": "2021-11-05"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2021",
+      "date": "2021-07-28"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2021",
+      "date": "2021-05-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "DHANBANK : 01-May-2021 :  The Company has informed the Exchange that a Board meeting to be held on April 29, 2021 has been re-scheduled. Further, the Company has informed the Exchange that the meeting of the Board of Directors of the Company will be held on May 01, 2021,  To consider Fund Raising",
+      "date": "2021-04-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2021-04-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2020",
+      "date": "2021-02-09"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2020",
+      "date": "2020-11-03"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2020",
+      "date": "2020-08-03"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2020",
+      "date": "2020-06-22"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2019",
+      "date": "2020-02-04"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2019",
+      "date": "2019-10-31"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2019",
+      "date": "2019-07-17"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2019-07-16"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2019",
+      "date": "2019-05-08"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2018",
+      "date": "2019-01-18"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2018",
+      "date": "2018-11-02"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2018.We hereby inform you that a meeting of the Board of Directors of the Bank is scheduled to be held on Monday, August 06, 2018, inter-alia to consider/approve the financial results of the Bank for the quarter ended June 30, 2018.As per Bank\ufffd\ufffds Code of Conduct to Regulate, Monitor and Report Trading by Insiders, the Trading Window shall remain closed for all the insiders of the Bank including Directors, designated employees and their immediate relatives from opening of trading hours on July 26, 2018 (Thursday) to closing of trading hours on August 08, 2018 (Wednesday).",
+      "date": "2018-08-06"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018- Further to our letter no: SH:39/2018-19 dated May 15, 2018, we  hereby inform you that that a meeting of Board of Directors of the Bank is scheduled to be held on Wednesday, May 23, 2018, inter-alia to consider/approve the financial results of the Bank for the quarter / year ended March 31, 2018.Kindly note that the closure of Trading Window of the Bank has been extended till the closing of trading hours on May 25, 2018 (Friday). The Directors, designated employees and their immediate relatives are not permitted to trade in the securities of the Bank during the closure of trading window.",
+      "date": "2018-05-23"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018.It is hereby informed that the meeting of Board of Directors of the Bank held on May 15, 2018 considered other items on the agenda and decided to defer the adoption of accounts to Wednesday, May 23, 2018, in order to rework by including certain items, which are eligible to be deferred as per regulatory dispensation, in view of better presentation on conservative basis.",
+      "date": "2018-05-23"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2018.As per Bank's Code of Conduct to Regulate, Monitor and Report Trading by Insiders, the Trading Window shall remain closed for all the insiders of the Bank including Directors, designated employees and their immediate relatives from opening of trading hours on May 02, 2018 (Wednesday) to closing of trading hours on May 17, 2018 (Thursday).",
+      "date": "2018-05-15"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising-It is hereby informed that a meeting of the Board of Directors of the Bank is scheduled to be held on March 20, 2018 to consider and approve the proposal for raising further capital by issue of Unsecured Redeemable Non-Convertible Basel III compliant Subordinated Tier II Bonds in the nature of Debentures (\"Bonds\") up to Rs.150 crore on private placement basis.As per the Bank's Code of Conduct to Regulate, Monitor and Report Trading by Insiders, the Trading Window shall remain closed for all insiders of the Bank  including Directors, designated employees and their immediate relatives from opening of trading hours on March 14, 2018 (Wednesday) to closing of trading hours on March 22, 2018 (Thursday).",
+      "date": "2018-03-20"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "Inter-alia to consider/approve the financial results of the Bank for the quarter ended December 31, 2017.",
+      "date": "2018-02-08"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "Inter-alia to consider/approve the financial results of the Bank for the quarter ended September 30, 2017.",
+      "date": "2017-11-13"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "inter-alia to consider/approve the financial results of the Bank for the quarter ended June 30, 2017.",
+      "date": "2017-08-11"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "Inter-alia to consider/approve the financial results of the Bank for the year/quarter ended March 31, 2017.",
+      "date": "2017-05-16"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "inter-alia to consider/approve the financial results of the Bank for the quarter ended December 31, 2016.",
+      "date": "2017-02-14"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Others",
+      "description": "To inter-alia consider the proposal for raising further equity shares on preferential allotment basis and seek shareholders approval for the same.",
+      "date": "2017-02-14"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "Inter alia to consider/approve the financial results of the Bank for the quarter and half year ended September 30, 2016.",
+      "date": "2016-11-11"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "Inter-alia to consider/approve the financial results of the Bank for the quarter ended June 30, 2016.",
+      "date": "2016-08-11"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Preferential issue",
+      "description": "To inter alia consider the proposal for raising further equity shares on preferential allotment basis and seek shareholders approval for the same.",
+      "date": "2016-07-04"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "inter-alia consider and take on record the audited financial results of the Bank for the quarter and year ended March 31, 2016.",
+      "date": "2016-05-30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results of the Bank for the quarter ended December 31, 2015.",
+      "date": "2016-02-12"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Others",
+      "description": "to inter- alia, consider the proposal for raising capital by further issue of equity shares.",
+      "date": "2016-01-29"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results of the Bank for the quarter and half-year ended September 30, 2015.",
+      "date": "2015-11-13"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia, consider and take on record, the un-audited financial results for the quarter ended June 30, 2015.",
+      "date": "2015-08-12"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results/Dividend",
+      "description": "To inter-alia consider and take on record the audited financial results for the quarter/year ended March 31, 2015 and to recommend dividend, if any.",
+      "date": "2015-05-28"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results for the quarter ended December 31, 2014.",
+      "date": "2015-02-12"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results for the quarter and half-year ended September 30, 2014.",
+      "date": "2014-11-11"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results for the quarter ended June 30, 2014.",
+      "date": "2014-08-14"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results/Dividend",
+      "description": "To inter-alia consider and take on record, the audited financial results for the quarter / year ended March 31, 2014 and to recommend dividend, if any.",
+      "date": "2014-05-23"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To Inter-alia consider and take on record, the un-audited financial results for the quarter ended December 31, 2013.",
+      "date": "2014-02-10"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results for the quarter and half-year ended September 30, 2013.",
+      "date": "2013-11-09"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results",
+      "description": "To inter-alia consider and take on record, the un-audited financial results for the quarter ended June 30, 2013.",
+      "date": "2013-08-12"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results/Dividend",
+      "description": "To inter-alia consider and take on record, the audited financial results for the quarter/year ended March 31, 2013 and to recommend dividend, if any.",
+      "date": "2013-05-17"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results/Dividend",
+      "description": "To inter-alia consider and take on record, the audited financial results for the quarter/year ended March 31, 2012 and to recommend dividend, if any.",
+      "date": "2012-05-30"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Results/Dividend",
+      "description": "To inter-alia consider and take on record, the audited financial results for the quarter / year ended March 31, 2011 and to recommend dividend, if any.",
+      "date": "2011-04-23"
+     },
+     {
+      "symbol": "DHANBANK",
+      "company": "Dhanlaxmi Bank Limited",
+      "purpose": "Rights Issue",
+      "description": "To consider, inter alia, a rights issue of equity shares.",
+      "date": "2007-04-16"
+     }
+    ]
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

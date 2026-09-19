@@ -1,0 +1,48 @@
+{
+ "tag": "code-B",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly: context, hard rules, raw finding shape.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "fable",
+   "prompt": "Your task spec is the CRITIQUE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "prompt": "Your task spec is the REFUTE section of docs/redesign/verification/r15/tooling/PROMPT_code.md, with <id> = \"{{id}}\"."
+  }
+ ],
+ "items": [
+  {
+   "id": "disclosures-witnesses",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "research-depth-iter-deep",
+   "skip": [
+    0
+   ]
+  },
+  {
+   "id": "safety-audit"
+  },
+  {
+   "id": "host-actions-proposed-changes"
+  },
+  {
+   "id": "workspace-layout"
+  },
+  {
+   "id": "runs-durable-delegate"
+  },
+  {
+   "id": "error-layer"
+  },
+  {
+   "id": "frontend-stores"
+  }
+ ]
+}

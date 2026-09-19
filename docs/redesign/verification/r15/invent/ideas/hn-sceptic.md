@@ -32,7 +32,8 @@ That is the moat, and the product hides it inside one JSON leg of one panel.
 
 1. The only deterministic number firewall — `company_narrative._verify_text`
    (`sidecar/services/company_narrative.py:209-248`) — guards ONE surface (the overview
-   narrative; sole caller `routers/fundamentals.py:168`). Chat prose and brief prose get at most
+   narrative: its only call sites are `company_narrative.py:487,491` inside `generate_narrative`,
+   whose sole caller is `routers/fundamentals.py:168`). Chat prose and brief prose get at most
    an LLM spot-audit capped at 8 claims (`sidecar/services/research/citecheck.py:40`), and only
    when 15 s of wall budget remain (`citecheck.py:43`). An LLM grading an LLM, sampled.
 2. That firewall's regex speaks dollars and K/M/B/T only
@@ -85,14 +86,16 @@ have to be suspicious; the terminal was suspicious for you.
 
 **Mechanics.** Generalise `_verify_text` (`company_narrative.py:209`) from one surface to every
 agent turn. Source set = every numeric leaf of every tool result in the turn (the runtime already
-holds them in the loop — `agent_runtime.py` tool rounds) plus the `field_meta`-approved
+holds them in the loop — each tool result is appended as a `role="tool"` message at
+`sidecar/services/agent_runtime.py:1571-1587`) plus the `field_meta`-approved
 fundamentals. Three verdicts per numeric token: **sourced** (matches a leaf within the existing
 tolerances, `company_narrative.py:49-50`), **derived** (equals `a/b`, `a-b`, `(a-b)/b`, `a*b` over
 two sourced leaves — brute force, bounded by a leaf cap so it stays well under a second in Python;
 the hover shows the formula), **orphan** (struck, never silently deleted in chat; redacted in brief metric prose).
 New: ₹ / Rs / crore / lakh / Cr / L / mn scale tokens in `_NUMBER_RE` (today `$` + K/M/B/T only,
 `company_narrative.py:64-77`); a `number_receipts` array on the final stream event; a renderer in
-`src/modules/chat/chat-markdown.ts` and `src/modules/research/brief-blocks.tsx`. Runs after the
+`src/modules/chat/chat-markdown.ts` and `src/modules/research/brief-blocks.tsx` (`BriefBody`,
+`brief-blocks.tsx:1061`). Runs after the
 stream completes, deterministic, zero tokens, no wall-budget gate (unlike `citecheck.py:43`).
 
 **Why it is Jarvis.** Receipts — at the granularity of the digit, not the paragraph. Every other
@@ -204,7 +207,9 @@ release scale: 24 hostile names × ~25 fields, green/red, failures left in.
 
 **Mechanics.** Two halves, one principle.
 (a) **In-app conflict ledger.** Every conflict `derive_semantics` emits
-(`sidecar/services/research/semantics.py:298-350, 366-440, 543-596`) is appended to a local SQLite
+(dividend, growth and ownership legs at `sidecar/services/research/semantics.py:292-350, 362-440,
+537-596`; earnings-quality, range and market-cap-witness legs at `semantics.py:666, 748-784, 787`;
+all gathered by `derive_semantics`, `semantics.py:992`) is appended to a local SQLite
 table `{ts, symbol, segment(mainboard/SME/bank/holdco), field, provider, provider_value, witness,
 witness_value, kind}` instead of dying with the brief. A tiny aggregate feeds the terminal preamble
 next to the prior-stated-values block (`agent_runtime.py:329-353`) and a Settings → Trust table.
@@ -245,11 +250,11 @@ The grammar exists — `screener_formula.py` is a no-`eval` recursive-descent bo
 language with a hand-mirrored TS twin for the editor (`sidecar/services/screener_formula.py:1-30`);
 extend its FIELD set with event fields (`announcement.category`, `announcement.headline ~ "..."`,
 `promoter_percent.delta_4q`, `results.opm`) rather than inventing a DSL. Compiled tripwires go
-through the existing proposed-changes gate (`src/store/proposed-changes.ts`) like every other
+through the existing proposed-changes gate (`src/store/proposed-changes.ts:92`) like every other
 mutation. Watcher = one sidecar asyncio loop (registered and torn down in the `app.py` lifespan
-next to `run_manager.shutdown()`), polling `get_announcements` (`corporate_disclosures.py:265`),
+next to `run_manager.shutdown()`, `sidecar/app.py:153`), polling `get_announcements` (`corporate_disclosures.py:265`),
 shareholding and the results calendar for holdings ∪ watchlist, paced by the existing breaker
-(`sidecar/services/provider_health.py`) and the 15-minute disclosures TTL
+(`is_open` / `cooldown_remaining`, `sidecar/services/provider_health.py:140-151`) and the 15-minute disclosures TTL
 (`sidecar/routers/disclosures.py:39`). Fire → `desktop-notification.ts:56` + a card carrying the
 locker receipt. It needs no key, which is the point: the key is unavailable unattended by design
 (`run_manager.py:36-38`).
@@ -389,7 +394,7 @@ Six months later that line resolves itself, green or red, in the persona's recor
 structured tail to persona output `{symbol, metric, comparator, value, by_date, confidence}`,
 validated in code (metric ∈ resolvable enum; confidence ∈ [0.5, 0.99]). Store locally; resolve
 deterministically on wake against fundamentals/results (shares the Idea 6 wake hook); compute Brier
-score and a calibration curve per persona and per custom agent (`agents_store`). The copilot may
+score and a calibration curve per persona and per custom agent (`sidecar/services/agents_store.py:42`). The copilot may
 quote a persona's record when routing to it. Forecasts are about reported fundamentals, never
 price targets or buy/sell — and nowhere near the order surface.
 
