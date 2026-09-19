@@ -26,10 +26,16 @@ def _map_path() -> Path:
 
 
 def _nse_symbols() -> list[str]:
+    # The NSE master is ``{"exchange": ..., "instruments": [[SYMBOL, NAME, TYPE], …]}``
+    # (mirror symbol_resolver._nse_master), NOT a flat row list.
     raw = json.loads(
         (resources.files("services.resolver_masters") / "nse_instruments.json").read_text()
     )
-    return [str(row[0]).strip().upper() for row in raw if row and row[0]]
+    out: list[str] = []
+    for row in raw.get("instruments", []):
+        if row and row[0]:
+            out.append(str(row[0]).strip().upper())
+    return out
 
 
 def main() -> int:
