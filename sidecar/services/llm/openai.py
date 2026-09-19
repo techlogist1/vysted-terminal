@@ -42,7 +42,8 @@ from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent, is_chat_model
 from .native_search import (
-    openai_web_search_tool,
+    openai_native_search_supported,
+    openai_web_search_options,
     openrouter_web_search_tool,
     xai_search_parameters,
 )
@@ -368,6 +369,24 @@ def _retry_after_seconds(exc: openai.APIError) -> float | None:
     return min(seconds, _RETRY_MAX_DELAY)
 
 
+def _is_reasoning_effort_tool_conflict(exc: BaseException) -> bool:
+    """True for the gpt-5.x "function tools + reasoning_effort" 400.
+
+    OpenAI's reasoning models refuse function tools on ``/v1/chat/completions``
+    unless reasoning is off: *"Function tools with reasoning_effort are not
+    supported for <model> in /v1/chat/completions. To use function tools, use
+    /v1/responses or set reasoning_effort to 'none'."* We never send the
+    parameter — the model's own default trips it — so the repair is to send it
+    explicitly as ``"none"`` and retry once. Matched on the message rather than a
+    model-name list so a future reasoning model needs no code change.
+    """
+    return (
+        isinstance(exc, openai.APIStatusError)
+        and getattr(exc, "status_code", None) == 400
+        and "reasoning_effort" in str(exc)
+    )
+
+
 def _is_retryable_transport_error(exc: BaseException) -> bool:
     """True only for transient transport failures worth retrying (Step 3).
 
@@ -434,7 +453,10 @@ class OpenAIProvider(LLMProvider):
         :data:`_MAX_TRANSPORT_RETRIES` times, honouring a ``Retry-After`` header
         when the server sends one. A single 429 no longer kills the stream. A
         deterministic 4xx (e.g. a 400) is NOT retried — it re-raises immediately
-        so the bug surfaces. Ported as original code from the vercel/ai
+        so the bug surfaces, with ONE exception: the gpt-5.x "function tools with
+        reasoning_effort" 400, which is repaired in place by sending
+        ``reasoning_effort="none"`` once (see
+        :func:`_is_reasoning_effort_tool_conflict`). Ported as original code from the vercel/ai
         ``retry-with-exponential-backoff`` pattern (no vercel-ai import).
         """
         attempt = 0
@@ -442,6 +464,14 @@ class OpenAIProvider(LLMProvider):
             try:
                 return await client.chat.completions.create(**request_kwargs)
             except Exception as exc:  # noqa: BLE001 — classify then re-raise/retry
+                # One-shot repair (not a transport retry, so it costs no budget):
+                # a reasoning model that refuses function tools unless reasoning
+                # is off. Retried at most once — the key is set on the way in.
+                if _is_reasoning_effort_tool_conflict(exc) and "reasoning_effort" not in (
+                    request_kwargs
+                ):
+                    request_kwargs["reasoning_effort"] = "none"
+                    continue
                 if attempt >= _MAX_TRANSPORT_RETRIES or not _is_retryable_transport_error(exc):
                     raise
                 delay = None
@@ -649,7 +679,8 @@ class OpenAIProvider(LLMProvider):
 
             tools.extend(openai_tools(tool_ids))
         # Native server-side web search (FR-081), opt-in via ``web_search``.
-        # OpenAI takes a ``{"type": "web_search"}`` tools entry; OpenRouter (WS5)
+        # OpenAI takes a ``web_search_options`` param (search-preview models only);
+        # OpenRouter (WS5)
         # takes its own ``{"type": "openrouter:web_search"}`` tools entry to ride
         # the upstream model's native search; xAI (dispatched through this adapter
         # via the x.ai base_url) speaks Live Search through a top-level
@@ -665,7 +696,13 @@ class OpenAIProvider(LLMProvider):
             elif self._provider_id == "openrouter":
                 tools.append(openrouter_web_search_tool())
             elif self._provider_id == "openai":
-                tools.append(openai_web_search_tool())
+                # Chat-completions takes ``web_search_options`` — NOT a tools
+                # entry. A ``{"type": "web_search"}`` tool 400s ("Supported
+                # values are: 'function' and 'custom'"), and the param itself is
+                # only accepted on the *-search-preview models, so anything else
+                # rides the local search tool instead.
+                if openai_native_search_supported(model):
+                    request_kwargs["web_search_options"] = openai_web_search_options()
         if tools:
             request_kwargs["tools"] = tools
         # OpenRouter cheapest-capable routing (FINDINGS §2.2): pick the cheapest

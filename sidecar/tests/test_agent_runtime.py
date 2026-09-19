@@ -531,11 +531,20 @@ async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPa
 
 
 def test_native_search_enabled_provider_level() -> None:
-    # The five provider-level native providers always qualify (any model rides
-    # the provider's own search), regardless of the per-model hint.
-    for prov in ("anthropic", "openai", "gemini", "groq", "xai"):
+    # The provider-level native providers always qualify (any model rides the
+    # provider's own search), regardless of the per-model hint.
+    for prov in ("anthropic", "gemini", "groq", "xai"):
         assert agent_runtime._native_search_enabled(prov, None) is True
         assert agent_runtime._native_search_enabled(prov, "none") is True
+
+
+def test_native_search_enabled_openai_is_per_model() -> None:
+    # OpenAI chat-completions serves native search only on *-search-preview
+    # models; anything else 400s on a web_search tool, so it keeps the local one.
+    assert agent_runtime._native_search_enabled("openai", None, "gpt-4o-search-preview") is True
+    assert agent_runtime._native_search_enabled("openai", None, "gpt-5.6-luna") is False
+    assert agent_runtime._native_search_enabled("openai", "native", "gpt-4.1-mini") is False
+    assert agent_runtime._native_search_enabled("openai", None, None) is False
 
 
 def test_native_search_enabled_openrouter_is_per_model() -> None:
@@ -634,7 +643,7 @@ async def test_invoke_tier_a_compounds_native_search(
             agent_id="copilot",
             prompt="what is the latest market news?",
             provider="openai",
-            model="gpt-4.1-mini",
+            model="gpt-4o-search-preview",
             api_key="sk-test",
             mode="ask",
         ):
@@ -744,11 +753,11 @@ async def test_invoke_scrubs_unknown_options_and_aliases_depth(
 
 
 @pytest.mark.asyncio
-async def test_invoke_openai_provider_level_native_search(
+async def test_invoke_openai_native_search_is_per_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # A provider-level native provider (openai) rides native search with no
-    # per-model hint at all — the existing five must not regress.
+    # OpenAI serves native search on chat-completions only for *-search-preview
+    # models; that model rides it with no per-model hint at all.
     agent_runtime.reload()
     provider = _FakeProvider()
     _patch_provider(monkeypatch, provider)
@@ -756,7 +765,7 @@ async def test_invoke_openai_provider_level_native_search(
         agent_id="copilot",
         prompt="what is the latest market news?",
         provider="openai",
-        model="gpt-4.1-mini",
+        model="gpt-4o-search-preview",
         api_key="sk-test",
         mode="ask",
     ):
@@ -765,6 +774,31 @@ async def test_invoke_openai_provider_level_native_search(
     assert kwargs is not None
     assert kwargs.get("web_search") is True
     assert "web_search" not in (kwargs.get("tool_ids") or [])
+
+
+@pytest.mark.asyncio
+async def test_invoke_openai_non_search_model_keeps_local_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Regression: a normal OpenAI model must NOT get the native-search opt-in —
+    # the adapter would otherwise send a web_search tools entry the API rejects
+    # 400 — and must keep the local web_search tool (FR-082).
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is the latest market news?",
+        provider="openai",
+        model="gpt-5.6-luna",
+        api_key="sk-test",
+        mode="ask",
+    ):
+        pass
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert kwargs.get("web_search") is not True
+    assert "web_search" in (kwargs.get("tool_ids") or [])
 
 
 @pytest.mark.asyncio

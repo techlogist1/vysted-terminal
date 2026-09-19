@@ -639,7 +639,7 @@ async def test_content_leaked_tool_call_not_rescued_for_chatty_providers(
 # ---------------------------------------------------------------------------
 
 
-def _make_status_error(status: int) -> openai.APIStatusError:
+def _make_status_error(status: int, message: str | None = None) -> openai.APIStatusError:
     """Build an APIStatusError (or RateLimitError for 429) with a status code."""
 
     class _Resp:
@@ -651,7 +651,7 @@ def _make_status_error(status: int) -> openai.APIStatusError:
     resp = _Resp(status)
     cls = openai.RateLimitError if status == 429 else openai.APIStatusError
     err = cls.__new__(cls)
-    Exception.__init__(err, f"HTTP {status}")
+    Exception.__init__(err, message or f"HTTP {status}")
     err.response = resp  # type: ignore[attr-defined]
     err.status_code = status  # type: ignore[attr-defined]
     err.request = resp.request  # type: ignore[attr-defined]
@@ -666,8 +666,9 @@ class _RetryingCompletions:
         self._chunks = chunks
         self.attempts = 0
 
-    async def create(self, **_kwargs: Any) -> AsyncIterator[Any]:
+    async def create(self, **kwargs: Any) -> AsyncIterator[Any]:
         self.attempts += 1
+        self.last_kwargs = kwargs
         if self._errors:
             raise self._errors.pop(0)
         return _make_iter(self._chunks)
@@ -727,6 +728,60 @@ async def test_400_bad_request_does_not_retry(monkeypatch: pytest.MonkeyPatch) -
         )
     ]
     assert completions.attempts == 1  # NO retry on a 400
+    assert any(e.kind == "error" for e in out)
+
+
+@pytest.mark.asyncio
+async def test_reasoning_effort_conflict_is_repaired_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A gpt-5.x "function tools + reasoning_effort" 400 retries with it off.
+
+    We never send ``reasoning_effort`` — the model's own default trips the
+    refusal — so the repair is to send it explicitly as ``"none"`` once.
+    """
+    msg = (
+        "Error code: 400 - Function tools with reasoning_effort are not supported "
+        "for gpt-5.6-luna in /v1/chat/completions. To use function tools, use "
+        "/v1/responses or set reasoning_effort to 'none'."
+    )
+    chunks = [_Chunk([_Choice(_Delta(content="ok"), finish_reason="stop")])]
+    completions = _RetryingCompletions([_make_status_error(400, msg)], chunks)
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-5.6-luna",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2
+    assert completions.last_kwargs["reasoning_effort"] == "none"
+    assert [e.kind for e in out] == ["delta", "done"]
+
+
+@pytest.mark.asyncio
+async def test_reasoning_effort_repair_is_not_infinite(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the repaired request 400s the same way, it surfaces — no retry loop."""
+    msg = "Error code: 400 - ... set reasoning_effort to 'none'."
+    completions = _RetryingCompletions(
+        [_make_status_error(400, msg), _make_status_error(400, msg)], chunks=[]
+    )
+    _patch_retrying_client(monkeypatch, completions)
+    provider = OpenAIProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gpt-5.6-luna",
+            api_key="sk-test",
+        )
+    ]
+    assert completions.attempts == 2  # one repair attempt, then surface
     assert any(e.kind == "error" for e in out)
 
 

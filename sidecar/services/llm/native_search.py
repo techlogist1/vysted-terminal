@@ -53,11 +53,13 @@ except Exception:  # ImportError today; broaden so a half-built module can't cra
 #: rung at all"; the runtime gate is ``agent_runtime._native_search_enabled``.
 SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai", "openrouter"}
 
-#: The five providers whose native search is a PROVIDER-level guarantee (any model
-#: routes the provider's own search). OpenRouter is deliberately excluded — it is
-#: per-model. The runtime uses this to keep the existing five working unchanged
-#: while gating OpenRouter on the resolved model's capability.
-PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai"}
+#: The providers whose native search is a PROVIDER-level guarantee (any model
+#: routes the provider's own search). OpenRouter is excluded — it is per-model —
+#: and so is **openai**: on the chat-completions surface OpenAI serves native
+#: search only on its ``*-search-preview`` models (see
+#: :func:`openai_native_search_supported`); the Responses-API ``web_search``
+#: tools entry is rejected 400 on every other model.
+PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "gemini", "groq", "xai"}
 
 #: Anthropic's server-side web-search tool type (dated tool version).
 ANTHROPIC_WEB_SEARCH_TYPE = "web_search_20250305"
@@ -85,15 +87,32 @@ def anthropic_web_search_tool(max_uses: int = DEFAULT_WEB_SEARCH_MAX_USES) -> di
     }
 
 
-def openai_web_search_tool() -> dict[str, Any]:
-    """The OpenAI ``tools`` entry enabling server-side web search.
+#: Marker in an OpenAI model id that means the model serves native web search on
+#: the chat-completions surface (``gpt-4o-search-preview`` &c).
+OPENAI_SEARCH_MODEL_MARKER = "search-preview"
 
-    The chat-completions / Responses ``tools`` array takes a bare
-    ``{"type": "web_search"}`` entry; the model decides when to call it and the
-    SDK returns ``url_citation`` annotations. OpenAI exposes no per-request cap,
-    so the agent runtime enforces a loop-level search counter (PASS_B_RESEARCH §C.1).
+
+def openai_native_search_supported(model: str | None) -> bool:
+    """Whether THIS OpenAI model serves native search on chat-completions.
+
+    Only the ``*-search-preview`` models do, via the ``web_search_options``
+    request parameter. The Responses-API ``{"type": "web_search"}`` tools entry
+    is NOT accepted here — every other model 400s with *"Invalid value:
+    'web_search'. Supported values are: 'function' and 'custom'"* — so an
+    unsupported model must fall back to the local search tool (FR-082).
     """
-    return {"type": "web_search"}
+    return OPENAI_SEARCH_MODEL_MARKER in (model or "").lower()
+
+
+def openai_web_search_options() -> dict[str, Any]:
+    """The OpenAI chat-completions ``web_search_options`` block.
+
+    An empty object takes the API defaults (medium search context, no user
+    location). OpenAI exposes no per-request cap, so the agent runtime enforces
+    a loop-level search counter (PASS_B_RESEARCH §C.1). Only send it on a model
+    :func:`openai_native_search_supported` accepts.
+    """
+    return {}
 
 
 def openrouter_web_search_tool() -> dict[str, Any]:
@@ -144,14 +163,19 @@ def provider_supports_native_search(provider_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def native_search_available(provider_id: str, model_web_search: str | None = None) -> bool:
+def native_search_available(
+    provider_id: str, model_web_search: str | None = None, model: str | None = None
+) -> bool:
     """Decide whether THIS (provider, resolved-model) pair serves native search.
 
     THE one detection truth (the agent runtime's injection gate and Team B's
     tier_a cross-verify both read it, so the two surfaces can never disagree):
 
-    * the five PROVIDER-level providers (anthropic/openai/gemini/groq/xai)
-      always qualify — every routable model rides the provider's own search;
+    * the PROVIDER-level providers (anthropic/gemini/groq/xai) always qualify —
+      every routable model rides the provider's own search;
+    * ``openai`` is per-MODEL: only its ``*-search-preview`` models take the
+      chat-completions ``web_search_options`` param (anything else 400s on a
+      ``web_search`` tool), so the rest keep the local search tool;
     * ``openrouter`` is a broker, so native search is a per-MODEL property:
       ``model_web_search`` is the resolved model's ``web_search`` capability
       flag (threaded from the frontend's public catalog) — only ``"native"``
@@ -161,6 +185,8 @@ def native_search_available(provider_id: str, model_web_search: str | None = Non
     """
     if provider_id in PROVIDER_LEVEL_NATIVE_SEARCH:
         return True
+    if provider_id == "openai":
+        return openai_native_search_supported(model)
     if provider_id == "openrouter":
         return (model_web_search or "").strip().lower() == "native"
     return False
@@ -201,7 +227,7 @@ async def native_search_oneshot(
     per-model); an unavailable pair returns an honest ``ok: False`` rather than
     a silent ungrounded run.
     """
-    if not native_search_available(provider_id, model_web_search):
+    if not native_search_available(provider_id, model_web_search, model):
         return {"ok": False, "reason": "unavailable", "text": "", "citations": []}
 
     import asyncio
@@ -385,6 +411,7 @@ __all__ = [
     "ANTHROPIC_WEB_SEARCH_TYPE",
     "DEFAULT_WEB_SEARCH_MAX_USES",
     "NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS",
+    "OPENAI_SEARCH_MODEL_MARKER",
     "PROVIDER_LEVEL_NATIVE_SEARCH",
     "SUPPORTS_NATIVE_SEARCH",
     "Citation",
@@ -396,7 +423,8 @@ __all__ = [
     "normalize_gemini",
     "normalize_openai",
     "normalize_xai",
-    "openai_web_search_tool",
+    "openai_native_search_supported",
+    "openai_web_search_options",
     "openrouter_web_search_tool",
     "provider_supports_native_search",
     "xai_search_parameters",

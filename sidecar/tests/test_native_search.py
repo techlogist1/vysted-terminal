@@ -63,7 +63,9 @@ def test_supports_native_search_set() -> None:
 def test_provider_level_native_search_excludes_openrouter() -> None:
     # OpenRouter is a broker: native search is per-MODEL, so it is NOT in the
     # provider-level set the runtime uses to keep the existing five unchanged.
-    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "openai", "gemini", "groq", "xai"}
+    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "gemini", "groq", "xai"}
+    # OpenAI is per-MODEL too (chat-completions search is *-search-preview only).
+    assert "openai" not in PROVIDER_LEVEL_NATIVE_SEARCH
     assert "openrouter" not in PROVIDER_LEVEL_NATIVE_SEARCH
 
 
@@ -353,21 +355,46 @@ def _patch_openai(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
 
 
 @pytest.mark.asyncio
-async def test_openai_injects_web_search_tool(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_openai_injects_web_search_options(monkeypatch: pytest.MonkeyPatch) -> None:
     state = _patch_openai(monkeypatch)
     provider = OpenAIProvider(provider_id="openai")
     await _drain(
         provider.stream_chat(
             messages=[LLMMessage(role="user", content="news")],
-            model="gpt-4.1-mini",
+            model="gpt-4o-search-preview",
             api_key="sk-test",
             web_search=True,
         )
     )
     last_kwargs = state["last"].chat.completions.last_kwargs
-    assert {"type": "web_search"} in last_kwargs["tools"]
+    # Chat-completions takes the ``web_search_options`` param, never a tools entry.
+    assert last_kwargs["web_search_options"] == {}
+    assert {"type": "web_search"} not in last_kwargs.get("tools", [])
     assert "web_search" not in last_kwargs
     assert "search_parameters" not in last_kwargs.get("extra_body", {})
+
+
+@pytest.mark.asyncio
+async def test_openai_web_search_noops_on_non_search_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Regression: a ``{"type": "web_search"}`` tools entry 400s on every model
+    # but the *-search-preview ones ("Supported values are: 'function' and
+    # 'custom'"), so a normal model must send neither the tool nor the param.
+    state = _patch_openai(monkeypatch)
+    provider = OpenAIProvider(provider_id="openai")
+    await _drain(
+        provider.stream_chat(
+            messages=[LLMMessage(role="user", content="news")],
+            model="gpt-5.6-luna",
+            api_key="sk-test",
+            web_search=True,
+        )
+    )
+    last_kwargs = state["last"].chat.completions.last_kwargs
+    assert "web_search_options" not in last_kwargs
+    assert {"type": "web_search"} not in last_kwargs.get("tools", [])
+    assert "web_search" not in last_kwargs
 
 
 @pytest.mark.asyncio
@@ -516,10 +543,13 @@ async def test_gemini_no_search_by_default(monkeypatch: pytest.MonkeyPatch) -> N
 def test_native_search_available_is_the_one_detection_truth() -> None:
     from services.llm.native_search import native_search_available
 
-    # The five provider-level providers always qualify, hint or not.
-    for prov in ("anthropic", "openai", "gemini", "groq", "xai"):
+    # The provider-level providers always qualify, hint or not.
+    for prov in ("anthropic", "gemini", "groq", "xai"):
         assert native_search_available(prov) is True
         assert native_search_available(prov, "none") is True
+    # OpenAI is per-model: only the *-search-preview models take web_search_options.
+    assert native_search_available("openai", None, "gpt-4o-search-preview") is True
+    assert native_search_available("openai", None, "gpt-4.1-mini") is False
     # OpenRouter is per-model: only the "native" capability rides.
     assert native_search_available("openrouter", "native") is True
     assert native_search_available("openrouter", "NATIVE ") is True
@@ -536,7 +566,7 @@ def test_runtime_gate_delegates_to_the_same_truth() -> None:
     from services import agent_runtime
     from services.llm.native_search import native_search_available
 
-    for prov, hint in (("openai", None), ("openrouter", "native"), ("openrouter", "plugin")):
+    for prov, hint in (("anthropic", None), ("openrouter", "native"), ("openrouter", "plugin")):
         assert agent_runtime._native_search_enabled(prov, hint) == native_search_available(
             prov, hint
         )
@@ -577,7 +607,7 @@ async def test_native_search_oneshot_grounds_and_returns_text(
     provider = _OneshotProvider()
     monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
 
-    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk-test", "nvda revenue?")
+    out = await native_search_oneshot("openai", "gpt-4o-search-preview", "sk-test", "nvda revenue?")
     assert out["ok"] is True
     assert out["text"] == "grounded answer"
     assert isinstance(out["citations"], list)
@@ -594,6 +624,9 @@ async def test_native_search_oneshot_honest_on_unavailable_pair() -> None:
     out = await native_search_oneshot("deepseek", "deepseek-v4-flash", "sk", "q")
     assert out == {"ok": False, "reason": "unavailable", "text": "", "citations": []}
     out = await native_search_oneshot("openrouter", "some/model", "sk", "q")
+    assert out["ok"] is False and out["reason"] == "unavailable"
+    # OpenAI is per-model too: a non-search-preview model has no native rung.
+    out = await native_search_oneshot("openai", "gpt-5.6-luna", "sk", "q")
     assert out["ok"] is False and out["reason"] == "unavailable"
 
 
@@ -619,10 +652,10 @@ async def test_native_search_oneshot_never_raises(monkeypatch: pytest.MonkeyPatc
 
     provider = _OneshotProvider(error=True)
     monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
-    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk", "q")
+    out = await native_search_oneshot("openai", "gpt-4o-search-preview", "sk", "q")
     assert out["ok"] is False and out["reason"] == "error"
 
     provider = _OneshotProvider(parts=[])
     monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
-    out = await native_search_oneshot("openai", "gpt-4.1-mini", "sk", "q")
+    out = await native_search_oneshot("openai", "gpt-4o-search-preview", "sk", "q")
     assert out["ok"] is False and out["reason"] == "empty"

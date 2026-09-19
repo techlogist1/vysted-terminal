@@ -548,7 +548,9 @@ _MAX_TOOL_ROUNDS = 6
 _WEB_SEARCH_CAP = 5
 
 
-def _native_search_enabled(provider_id: str, model_web_search: str | None) -> bool:
+def _native_search_enabled(
+    provider_id: str, model_web_search: str | None, model: str | None = None
+) -> bool:
     """Decide whether THIS turn rides the provider's native server-side search.
 
     Delegates to :func:`services.llm.native_search.native_search_available` —
@@ -560,7 +562,7 @@ def _native_search_enabled(provider_id: str, model_web_search: str | None) -> bo
     is OpenRouter's billed plugin, never auto-enabled; ``"none"``/unknown keeps
     the local tool — the FR-082 fallback, which never fabricates).
     """
-    return native_search.native_search_available(provider_id, model_web_search)
+    return native_search.native_search_available(provider_id, model_web_search, model)
 
 
 #: Research tool(s) whose result the runtime auto-publishes to the brief panel.
@@ -1306,8 +1308,10 @@ async def invoke_agent(
     # model's own server-side search when THIS model supports it (the adapter
     # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
     # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The five provider-level native providers (anthropic/openai/gemini/groq/xai)
-    # always qualify; OpenRouter is gated PER-MODEL on the resolved model's
+    # The provider-level native providers (anthropic/gemini/groq/xai) always
+    # qualify; OpenAI is per-MODEL (chat-completions serves native search only on
+    # its *-search-preview models — a `web_search` tools entry 400s elsewhere),
+    # and OpenRouter is gated PER-MODEL on the resolved model's
     # `web_search` capability ("native"), threaded from the frontend catalog as
     # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
     # local tier, a non-native provider, or an OpenRouter model that is plugin-/
@@ -1329,7 +1333,7 @@ async def invoke_agent(
     # local web_search tool stays for plain retrieval, so the chat model's
     # server-side search never double-runs (or double-bills) a tier_b session.
     if config.get_effective_research_tier() != config.SEARCH_TIER_B and _native_search_enabled(
-        provider_id, model_web_search
+        provider_id, model_web_search, resolved_model
     ):
         opts["web_search"] = True
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP

@@ -334,7 +334,7 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
 
     native_search = None
     model_web_search = config.get_request_model_web_search()
-    if native_search_mod.native_search_available(provider, model_web_search):
+    if native_search_mod.native_search_available(provider, model_web_search, model):
 
         async def native_search(prompt: str) -> dict[str, Any]:
             return await native_search_mod.native_search_oneshot(
