@@ -36,6 +36,30 @@ anything it did not do? Use FRESH symbols suited to your seat — never the marq
 you see it. Two passes: after your first pass, re-drive the areas where you found the most
 smoke.
 
+Seats by task id (`<seat>`):
+
+- `seat-retail` (port 52211): a first-time Indian retail investor, 24, holds a few stocks from
+  YouTube tips, asks naive but real questions (is this stock safe? why did it fall? what is
+  promoter pledge?), types company NAMES not tickers, makes typos, expects plain-English
+  answers and is easily misled by a confident wrong number.
+- `seat-microcap` (port 52212): a micro-cap hunter: screens for sub-₹500 cr names, BSE-only
+  scrips by numeric code, SME-board listings; wants shareholding changes, pledges,
+  related-party notes, the last 5 announcements, dividend history, and gets angry at blanks,
+  stale quarters and unit errors (lakh vs crore).
+- `seat-us` (port 52213): a US-stock user who also holds Indian ADRs: US large and small caps,
+  ETFs, SEC filings + insider transactions, options pricing / greeks tools, earnings
+  calendars, USD vs INR display, mixed India+US comparisons and watchlists.
+- `seat-breaker` (port 52214): a power user trying to BREAK it: 40-symbol comparisons, 500-row
+  watchlists, 10k-character prompts, rapid-fire concurrent requests, contradictory
+  instructions, prompt-injection inside symbol names and notes, huge notes, deleting things
+  mid-run, the same research 5 times concurrently, backtests with absurd params, code nodes /
+  workflow engine with infinite loops or huge outputs, every numeric limit at 0, -1 and 1e12.
+- `seat-stranger` (port 52215): a stranger with NO keys and NO Docker on a CLEAN profile (empty
+  data dir + seeded keystore guard; do NOT copy the operator's data). Everything keyless: what
+  works, what is dead, what explains itself. At most 2 `vy.py invoke ... --no-key` calls to see
+  the keyless error experience; never trigger an ollama model load (check
+  `/system/ollama/status` only).
+
 ## INDUCER — induced failures at the app's edge
 
 Induce and record EXACTLY what the user would see (HTTP status, error frame JSON, the text the

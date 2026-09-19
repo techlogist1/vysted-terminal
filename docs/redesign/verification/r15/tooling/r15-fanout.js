@@ -5,6 +5,7 @@ export const meta = {
 }
 // args = { tag, common, stages: [{label, model, effort?, prompt}], items: [{id, skip?: [stageIdx], ...vars}] }
 // {{var}} in a stage prompt is replaced from the item. A stage listed in item.skip is not run.
+// item.model overrides the stage model (lets one workflow mix Fable and Opus).
 const RESULT = {
   type: 'object',
   properties: {
@@ -33,7 +34,7 @@ const stageFns = args.stages.map((st, si) => async (prev, item) => {
   if (si > 0 && !prev) return null
   return run(args.common + '\n' + fill(st.prompt, item), {
     label: `${args.tag}:${st.label}:${item.id}`, phase: `Stage ${si + 1}`, schema: RESULT,
-    model: st.model, effort: st.effort,
+    model: item.model || st.model, effort: st.effort,
   })
 })
 const out = await pipeline(args.items, ...stageFns)

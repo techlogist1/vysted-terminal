@@ -35,6 +35,12 @@ orchestrates; you do one bounded job and return.
   targeted test file is fine when it settles a claim
   (`sidecar/.venv/bin/python -m pytest <file> -q`, `pnpm exec vitest run <file>`).
 - Never print, log or write a secret. Never touch the operator's other products on this Mac.
+- Web: the session's `WebSearch` budget is EXHAUSTED (200/200) — do not call it. `WebFetch` and
+  `curl` still work: fetch known URL shapes directly (`https://api.bseindia.com/BseIndiaAPI/api/...`
+  answers with a browser UA + `Referer: https://www.bseindia.com/`, while www.bseindia.com HTML
+  403s; `https://www.screener.in/company/<SYMBOL-or-BSE-code>/`;
+  `https://stockanalysis.com/quote/bom/<code>/`; nsearchives; SEC EDGAR) and search via
+  `curl -s 'https://html.duckduckgo.com/html/?q=<query>'` (≤1 req / 3 s).
 - Never speculate about code you have not opened: `file:line` for every code claim, URL +
   quote for every world claim.
 - WRITE YOUR OUTPUT FILE(S) AS YOU GO. If one already exists, a previous attempt died when the
