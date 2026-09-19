@@ -12,6 +12,7 @@ Exit 1 if any raw id is unaccounted for (neither in an entry nor rejected) — t
 run's highest fan-in, so a dropped finding must be a countable error, never a matter of trust.
 
   register.py status   # raw / refuted / merged counts, no writes
+  register.py bundle   # write merge-in/<cluster>.json (surviving raw findings + verdicts) for the mergers
   register.py build    # write the register; fails on unaccounted raw ids
 """
 
@@ -24,7 +25,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] / "docs/redesign/verification"
 CENSUS = ROOT / "r15/census"
 SEVERITIES = ["critical", "high", "medium", "low"]
-OPERATOR_AREAS = {"ui": "UI / panels / layout", "agent": "Agent / chat", "research": "Research / web search", "data": "Data on small or obscure stocks"}
+OPERATOR_AREAS = {
+    "ui": "UI / panels / layout",
+    "agent": "Agent / chat",
+    "research": "Research / web search",
+    "data": "Data on small or obscure stocks",
+}
 
 
 def _rows(path: Path) -> list[dict]:
@@ -48,7 +54,11 @@ def load() -> tuple[dict[str, dict], dict[str, dict], list[dict], dict[str, str]
             if rid in raw:
                 rid = f"{rid}@{f.stem}"  # two sweeps reused an id: keep both, disambiguated
             raw[rid] = {**r, "raw_id": rid, "_file": f.name}
-    verdicts = {str(v.get("raw_id")): v for f in sorted((CENSUS / "refute").glob("*.json")) for v in _rows(f)}
+    verdicts = {
+        str(v.get("raw_id")): v
+        for f in sorted((CENSUS / "refute").glob("*.json"))
+        for v in _rows(f)
+    }
     entries: list[dict] = []
     rejections: dict[str, str] = {}
     for f in sorted((CENSUS / "merge").glob("*.json")):
@@ -58,13 +68,63 @@ def load() -> tuple[dict[str, dict], dict[str, dict], list[dict], dict[str, str]
             print(f"  ! unreadable merge file {f.name}: {exc}", file=sys.stderr)
             continue
         entries += [e for e in doc.get("entries", []) if isinstance(e, dict)]
-        rejections.update({str(r["raw_id"]): str(r.get("reason", "")) for r in doc.get("rejections", []) if "raw_id" in r})
+        rejections.update(
+            {
+                str(r["raw_id"]): str(r.get("reason", ""))
+                for r in doc.get("rejections", [])
+                if "raw_id" in r
+            }
+        )
     return raw, verdicts, entries, rejections
+
+
+CODE_GROUPS = {
+    "research": ("research-",),
+    "agent": ("agent-", "llm-", "runs-", "mcp-"),
+    "data": ("resolver", "fundamentals", "disclosures", "market-data", "screener"),
+    "frontend": ("frontend-", "host-actions", "workspace-"),
+}
+
+
+def _cluster(r: dict) -> str:
+    area = str(r.get("area") or "code").lower()
+    if area != "code":
+        return area
+    stem = r["_file"].removeprefix("code-").removesuffix(".json")
+    for group, prefixes in CODE_GROUPS.items():
+        if stem.startswith(prefixes):
+            return f"code-{group}"
+    return "code-platform"
+
+
+def bundle(raw: dict[str, dict], verdicts: dict[str, dict]) -> int:
+    out_dir = CENSUS / "merge-in"
+    out_dir.mkdir(exist_ok=True)
+    clusters: dict[str, list[dict]] = {}
+    for rid, r in raw.items():
+        v = verdicts.get(rid) or verdicts.get(rid.split("@")[0])
+        if v and v.get("verdict") == "refuted":
+            continue
+        row = {k: val for k, val in r.items() if k != "_file"}
+        row["source_file"] = r["_file"]
+        if v:
+            row["refuter"] = {
+                k: v.get(k) for k in ("verdict", "severity_final", "reason")
+            }
+        clusters.setdefault(_cluster(r), []).append(row)
+    for name, rows in sorted(clusters.items()):
+        (out_dir / f"{name}.json").write_text(
+            json.dumps(rows, indent=1, ensure_ascii=False) + "\n"
+        )
+        print(f"  merge-in/{name}.json: {len(rows)}")
+    return 0
 
 
 def main() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
     raw, verdicts, entries, rejections = load()
+    if cmd == "bundle":
+        return bundle(raw, verdicts)
     cited = {rid for e in entries for rid in e.get("raw_ids", [])}
     # A refuted finding is a rejection by construction; the refuter's reason is the one-liner.
     for rid, v in verdicts.items():
@@ -73,33 +133,83 @@ def main() -> int:
     unaccounted = sorted(set(raw) - cited - set(rejections))
     phantom = sorted(cited - set(raw))
     by_sev = {s: sum(1 for e in entries if e.get("severity") == s) for s in SEVERITIES}
-    print(f"raw findings: {len(raw)} in {len(list((CENSUS / 'raw').glob('*.json')))} files")
-    print(f"refuter verdicts: {len(verdicts)} (no verdict yet: {len(set(raw) - set(verdicts))})")
+    print(
+        f"raw findings: {len(raw)} in {len(list((CENSUS / 'raw').glob('*.json')))} files"
+    )
+    print(
+        f"refuter verdicts: {len(verdicts)} (no verdict yet: {len(set(raw) - set(verdicts))})"
+    )
     print(f"register entries: {len(entries)} {by_sev} · rejections: {len(rejections)}")
-    print(f"unaccounted raw ids: {len(unaccounted)} · entries citing unknown raw ids: {len(phantom)}")
+    print(
+        f"unaccounted raw ids: {len(unaccounted)} · entries citing unknown raw ids: {len(phantom)}"
+    )
     if cmd != "build":
         for rid in unaccounted[:40]:
             print("   unaccounted:", rid)
         return 0
     if unaccounted or phantom:
-        print("REFUSING to build: every raw id must resolve to an entry or a one-line rejection.", file=sys.stderr)
+        print(
+            "REFUSING to build: every raw id must resolve to an entry or a one-line rejection.",
+            file=sys.stderr,
+        )
         for rid in unaccounted[:80]:
             print("   unaccounted:", rid, file=sys.stderr)
         for rid in phantom[:40]:
             print("   phantom:", rid, file=sys.stderr)
         return 1
-    entries.sort(key=lambda e: (SEVERITIES.index(e.get("severity", "low")) if e.get("severity") in SEVERITIES else 9, str(e.get("id"))))
+    entries.sort(
+        key=lambda e: (
+            SEVERITIES.index(e.get("severity", "low"))
+            if e.get("severity") in SEVERITIES
+            else 9,
+            str(e.get("id")),
+        )
+    )
     for e in entries:
         e.setdefault("status", "open")
-    out = {"entries": entries, "rejections": [{"raw_id": k, "reason": v} for k, v in sorted(rejections.items())], "counts": {"raw": len(raw), "entries": len(entries), "rejections": len(rejections), **by_sev}}
-    (ROOT / "vysted-r15-register.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
-    md = ["# R15 register (readable view)", "", f"{len(raw)} raw findings → {len(entries)} entries + {len(rejections)} rejections. " + " · ".join(f"{s}: {by_sev[s]}" for s in SEVERITIES), ""]
+    out = {
+        "entries": entries,
+        "rejections": [
+            {"raw_id": k, "reason": v} for k, v in sorted(rejections.items())
+        ],
+        "counts": {
+            "raw": len(raw),
+            "entries": len(entries),
+            "rejections": len(rejections),
+            **by_sev,
+        },
+    }
+    (ROOT / "vysted-r15-register.json").write_text(
+        json.dumps(out, indent=1, ensure_ascii=False) + "\n"
+    )
+    md = [
+        "# R15 register (readable view)",
+        "",
+        f"{len(raw)} raw findings → {len(entries)} entries + {len(rejections)} rejections. "
+        + " · ".join(f"{s}: {by_sev[s]}" for s in SEVERITIES),
+        "",
+    ]
     md += ["## The operator's four areas", ""]
     for area, label in OPERATOR_AREAS.items():
         rows = [e for e in entries if e.get("area") == area]
-        md += [f"### {label} ({len(rows)})", ""] + [f"- **{e.get('id')}** [{e.get('severity')}] {e.get('title')} — _{e.get('status')}_" for e in rows] + [""]
-    md += ["## All entries by severity", "", "| id | sev | area | subsystem | title | status | raw ids |", "|---|---|---|---|---|---|---|"]
-    md += [f"| {e.get('id')} | {e.get('severity')} | {e.get('area')} | {e.get('subsystem', '')} | {str(e.get('title', '')).replace('|', '/')} | {e.get('status')} | {', '.join(e.get('raw_ids', []))} |" for e in entries]
+        md += (
+            [f"### {label} ({len(rows)})", ""]
+            + [
+                f"- **{e.get('id')}** [{e.get('severity')}] {e.get('title')} — _{e.get('status')}_"
+                for e in rows
+            ]
+            + [""]
+        )
+    md += [
+        "## All entries by severity",
+        "",
+        "| id | sev | area | subsystem | title | status | raw ids |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    md += [
+        f"| {e.get('id')} | {e.get('severity')} | {e.get('area')} | {e.get('subsystem', '')} | {str(e.get('title', '')).replace('|', '/')} | {e.get('status')} | {', '.join(e.get('raw_ids', []))} |"
+        for e in entries
+    ]
     (ROOT / "vysted-r15-register.md").write_text("\n".join(md) + "\n")
     print("register written.")
     return 0
