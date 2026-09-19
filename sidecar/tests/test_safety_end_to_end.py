@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import os
 import re
 import sqlite3
 import subprocess
@@ -331,7 +332,13 @@ def test_audit_5_kill_switch_under_2s(temp_audit_dir):
         "result": "PASS",
         "per_subscriber_ack_ms": result.ack_times_ms,
     }
-    _save_capture("kill-switch-benchmark.json", json.dumps(capture, indent=2))
+    # Timings differ on every run, so the tracked v0.5.0 baseline is refreshed only
+    # on request (VYSTED_REFRESH_SAFETY_CAPTURES=1); a normal run leaves the tree clean.
+    body = json.dumps(capture, indent=2)
+    if os.environ.get("VYSTED_REFRESH_SAFETY_CAPTURES"):
+        _save_capture("kill-switch-benchmark.json", body)
+    else:
+        (temp_audit_dir / "kill-switch-benchmark.json").write_text(body, encoding="utf-8")
 
     # Keep the adapters reachable to avoid premature GC mid-test.
     _ = adapters
