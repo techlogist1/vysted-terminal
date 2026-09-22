@@ -37,6 +37,30 @@ recommendation, and how to undo it in one step.
 - **Undo:** nothing to undo on `origin`. To publish the brief anyway: remove its line from
   `.gitignore` and commit the file.
 
+### 1.4 Relicensed to PolyForm Strict 1.0.0 (your decision, given 23 Sep 2026)
+
+- **What:** the core moved from AGPL-3.0 to PolyForm Strict 1.0.0 (public, noncommercial-use
+  license) with the commercial license as the only other path; the plugin contract
+  (`types/plugin.ts`, `types/plugin-runtime.ts`) and the example plugin (`plugins/example/*`)
+  were carved out under Apache-2.0 so third-party plugin authors are never blocked by the
+  core's license. Trading was also removed as a product surface by your decision, so no
+  license text promises or mentions live order placement anymore.
+- **Undo:** `git revert <the relicense commit>` — named by subject, since the sha is only
+  assigned at commit time: `chore(license): relicense core to PolyForm Strict 1.0.0`.
+- **What PolyForm Strict actually covers:** noncommercial use only (personal use, research,
+  education, nonprofit/public-sector use) — full grant text in `LICENSE`. Whether **your own
+  personal trading** counts as "noncommercial" under the license is a real, unresolved
+  question — that's for your lawyer, not for me to decide.
+- **Yours alone, not touched here:** landing-page copy for the new licensing model, and any
+  trademark filing for the "Vysted" name. Both are business decisions outside this repo's
+  scope.
+- **Source of the license text:** fetched verbatim from
+  `https://polyformproject.org/licenses/strict/1.0.0.txt` (the project's own official plain-text
+  download, linked from the license's canonical page). sha256:
+  `e2361f52ad5be22b937a6e983c824a534c5cffa454b6c34af2f8ce0c2cdf7c1a`.
+- Neither of us is a lawyer: this is a summary, never legal advice; the license text itself
+  was never edited.
+
 ## 2. Yours to decide (R15 routed around each; census findings, not yet fixed)
 
 Recorded at the 19 Sep pause so they are not lost. 2.1, 2.2, 2.6 and 2.7 are measured facts; 2.3–2.5 are census findings with `file:line` evidence that have NOT yet been through a refuter — each is re-adjudicated when the register is built.

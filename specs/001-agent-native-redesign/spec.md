@@ -16,7 +16,7 @@ and agents ship **pre-installed as built-in plugins** (bundled + enabled by defa
 populated), brokers ship with **none** pre-installed, and the keyless data default (yfinance) is a
 pre-installed data plugin. See Clarifications → Sessions 2026-05-31 / 2026-05-31b, US10, FR-050–FR-055.
 
-**Input**: Reframe Vysted Terminal as an open-source, AI-native finance workspace —
+**Input**: Reframe Vysted Terminal as a source-available, AI-native finance workspace —
 "Cursor for finance" as the internal design metaphor, **not** the external tagline.
 Keep the working foundation (sidecar + data layer, dockview panels + persistent
 layouts, §6.5 safety, Kite read-only + BYOK keychain, the copilot tool loop); rebuild

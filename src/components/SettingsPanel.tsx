@@ -1876,7 +1876,7 @@ function AboutSection() {
       <Card>
         <div className="text-charcoal-300 text-caption flex flex-col gap-2 px-4 py-3">
           <p>
-            Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — an open-source,
+            Vysted <span className="text-charcoal-500">v{HOST_VERSION}</span> — a source-available,
             AI-native finance terminal.
           </p>
           <p className="text-charcoal-400">

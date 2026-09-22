@@ -41,7 +41,7 @@ By continuing you acknowledge:
 - All orders sent to your broker are your own. The terminal will surface a confirmation dialog before any order is placed.
 - AI-generated proposals are AI-generated; you remain solely responsible for any order you confirm.
 - Live trading mode requires per-broker disclaimer acknowledgment.
-- The AGPL-3.0 license attaches to every distribution of the terminal source.
+- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) plus a commercial license — see LICENSING.md.
 - A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally; use it in any emergency.`;
 
 export function FirstLaunchTosDialog() {

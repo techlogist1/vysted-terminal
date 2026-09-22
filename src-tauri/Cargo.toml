@@ -1,10 +1,11 @@
 [package]
 name = "vysted-terminal"
 version = "0.8.0"
-description = "Vysted Terminal — open-source AI-native finance terminal."
+description = "Vysted Terminal — source-available AI-native finance terminal."
 authors = ["Lokavya <commercial@vysted.com>"]
 edition = "2021"
 rust-version = "1.77"
+license-file = "../LICENSE"
 
 [lib]
 name = "vysted_terminal_lib"

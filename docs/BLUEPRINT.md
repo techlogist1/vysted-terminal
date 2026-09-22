@@ -5,13 +5,13 @@
 **Owner:** Lokavya (github.com/techlogist1)
 **Repo (planned):** github.com/techlogist1/vysted-terminal
 **Domain structure:** vysted.com (org) + terminal.vysted.com (product)
-**License:** AGPL-3.0 + Commercial Dual License
+**License:** PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md)
 
 ---
 
 ## TL;DR
 
-Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-level coverage, TradingView-killer charting, JARVIS-style AI sandboxability, all in a desktop app that runs locally with bring-your-own-keys. Tradesa V2 is the first plugin proving the platform architecture.
+Vysted Terminal is a **source-available AI-native finance terminal** — Bloomberg-level coverage, TradingView-killer charting, JARVIS-style AI sandboxability, all in a desktop app that runs locally with bring-your-own-keys. Tradesa V2 is the first plugin proving the platform architecture.
 
 **Product identity:** *Finance sandbox* — modular, plug-and-play, infinitely extensible by users and plugins.
 
@@ -34,9 +34,9 @@ Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-l
 **Voice:** Research lab style (Tauric Research, OpenBB, Anthropic). Serious, technical credibility. Not startup-pitch energy. Not retail-app energy.
 
 **Tagline candidates** (TBD — not v1.0 critical path):
-- "Open-source AI toolkit for finance"
+- "Source-available AI toolkit for finance"
 - "The finance sandbox"
-- "Open-source intelligence terminal for traders, quants, and researchers"
+- "Source-available intelligence terminal for traders, quants, and researchers"
 
 **Positioning:** Professional-grade market tooling has long been gated behind closed terminals and five-figure subscriptions. Vysted Terminal opens that ground — Bloomberg-level data coverage, AI-native research and workflow automation, and a plugin architecture that lets users and third parties extend the platform — for everyone who doesn't need exclusive institutional feeds.
 
@@ -55,7 +55,7 @@ Vysted Terminal is an **open-source AI-native finance terminal** — Bloomberg-l
 | Data layer | OpenBB ODP wrapped as runtime sidecar (~100 providers) |
 | AI | BYOK for all major LLM providers + local Ollama + 12 pre-built agents + Custom Agent Builder |
 | Plugin architecture | Full VystedPlugin contract; Tradesa V2 = plugin #1 |
-| License | AGPL-3.0 + Commercial Dual License |
+| License | PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md) |
 | OS targets | Windows + macOS + Linux at v1.0 |
 | Distribution | GitHub Releases + Tauri auto-updater + SignPath.io (Win, free OSS) + ad-hoc + bypass docs (Mac at $0 launch) + AppImage (Linux) + Homebrew cask |
 | Customization | Sandbox model — default layout + drag-drop + module toggles + workspace export/share (NO role-based presets) |
@@ -280,7 +280,7 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 38. Backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration)
 
 ### Customization Layer (3, baked into core)
-- License gate UI (AGPL/commercial choice on first launch)
+- License gate UI (PolyForm Strict/commercial choice on first launch)
 - Module toggle UI in settings (every module enable/disable)
 - Workspace save/load/export/import (`.vysted-workspace` JSON files)
 
@@ -348,11 +348,12 @@ Execution is a v1.0 capability, not a deferral. Each broker is a **separate plug
 
 ### 6.1 License
 
-**AGPL-3.0 (default) + Commercial Dual License (paid)**
+**PolyForm Strict 1.0.0 (default) + Commercial License (paid)** — relicensed 23 Sep 2026,
+operator decision, see `LICENSING.md`.
 
-- `LICENSE` file in repo: full AGPL-3.0 text
+- `LICENSE` file in repo: full PolyForm Strict 1.0.0 text
 - `COMMERCIAL_LICENSE.md`: commercial terms + pricing + contact (placeholder: commercial@vysted.com)
-- `README.md` explicit: "Free for personal, academic, and open-source use under AGPL-3.0. Commercial use requires a paid license."
+- `README.md` explicit: "Free for noncommercial use under PolyForm Strict 1.0.0. Commercial use requires a paid license."
 - CLA required on all contributions (so Lokavya retains right to dual-license contributed code)
 
 **Commercial license pricing (TBD, finalized at v1.0 launch):**
@@ -399,7 +400,7 @@ Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
 From v1.0, Vysted Terminal places live orders against real brokerage accounts. Order placement carries real financial risk — market, execution, and operational risk all sit with the user, not the software.
 
 - **Vysted Terminal is a tool, not financial advice.** Nothing the terminal displays, computes, or generates — including AI-agent output — is a recommendation to buy, sell, or hold any instrument. Trading decisions and their consequences are the user's alone.
-- **No warranty for trading losses.** The AGPL-3.0 (§15 Disclaimer of Warranty, §16 Limitation of Liability) already disclaims all warranties and all liability for the software. For the avoidance of doubt, that disclaimer extends explicitly to trading and financial losses — including losses arising from defects, data errors, latency, failed or duplicated orders, or AI-agent behaviour. The software is provided "as is."
+- **No warranty for trading losses.** PolyForm Strict 1.0.0's "No Liability" clause already disclaims all warranties and all liability for the software. For the avoidance of doubt, that disclaimer extends explicitly to trading and financial losses — including losses arising from defects, data errors, or latency. The software is provided "as is."
 - **The user owns the broker relationship.** Each broker's own terms, margin rules, and regulatory obligations continue to apply. Vysted Terminal is not a broker, an introducing broker, or an investment adviser.
 
 `COMMERCIAL_LICENSE.md` mirrors this with an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer in their own contract. The operational safety design that backs these commitments is §6.5.
@@ -423,7 +424,7 @@ Live order placement is gated behind a fixed set of safeguards. These are non-ne
 **7. Plugins can be marked read-only.** Even with live trading globally enabled, any individual broker plugin can be set to view-only — useful, for example, for an Interactive Brokers institutional account the user wants to research from but never execute against. Read-only is enforced at the plugin boundary, not just in the UI.
 
 **8. Liability is disclosed at every entry point.** The disclaimers in §6.4 are surfaced to the user at four touchpoints, not buried in a file:
-- **AGPL-3.0 `LICENSE`** — §15–16 disclaim all warranty and liability; §6.4 records that this extends explicitly to trading losses. (The AGPL text itself is verbatim and unmodified.)
+- **PolyForm Strict 1.0.0 `LICENSE`** — "No Liability" disclaims all warranty and liability; §6.4 records that this extends explicitly to trading losses. (The license text itself is verbatim and unmodified.)
 - **`COMMERCIAL_LICENSE.md`** — an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer.
 - **First-launch app TOS dialog** — a one-time acknowledgment the user must accept before *any* broker plugin can be enabled at all.
 - **Per-broker first-connect dialog** — a broker-specific terms-and-conditions reminder shown the first time the user connects each broker.

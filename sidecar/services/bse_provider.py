@@ -28,7 +28,8 @@ retry, the IST trading-date recovery, and EOD labelling.
 Licensing / provenance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is an **idea-level reimplementation** under the project's AGPL-3.0 — the
+This is an **idea-level reimplementation** under the project's license (PolyForm
+Strict 1.0.0 + commercial; AGPL-3.0 on commits before the 23 Sep 2026 relicense) — the
 BhavCopy URL shape, the ``getScripHeaderData`` request, and the throttle are
 *modelled on* the public BennyThadikaran/BseIndiaApi (GPL) but written here from
 scratch. We do **not** import BseIndiaApi / bsedata / mthrottle or any GPL lib,

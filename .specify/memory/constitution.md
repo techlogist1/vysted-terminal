@@ -1,6 +1,6 @@
 # Vysted Terminal Constitution
 
-The non-negotiable principles for the Vysted Terminal — an open-source, AI-native,
+The non-negotiable principles for the Vysted Terminal — a source-available, AI-native,
 extensible finance workspace. These principles govern the "agent-at-the-center"
 redesign and every feature and plugin built on the platform. They supersede
 convenience, velocity, and individual preference. Where a spec or plan conflicts with
@@ -122,8 +122,9 @@ assistant does not dead-end; the illusion of effortless competence rests on it.
 **Stack (Locked — BLUEPRINT §2):** Tauri 2.x (Rust core) + Next.js 16 static export +
 React 19 + TypeScript strict + Tailwind 4 + shadcn/ui + Zustand; lightweight-charts +
 `@xyflow/react`; a Python 3.13 FastAPI sidecar (loopback, PyInstaller `--onefile`) for
-data + AI compute; OS targets Windows + macOS + Linux; **AGPL-3.0 + commercial dual
-license**. No hosted backend.
+data + AI compute; OS targets Windows + macOS + Linux; **PolyForm Strict 1.0.0 +
+commercial license** (relicensed 23 Sep 2026 — operator decision, see LICENSING.md).
+No hosted backend.
 
 **Foundation to keep (reframe, don't rebuild):** the FastAPI sidecar + data layer,
 dockview panels + persistent workspace layouts, the §6.5 safety architecture, Kite

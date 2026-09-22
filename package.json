@@ -1,6 +1,7 @@
 {
   "name": "vysted-terminal",
   "version": "0.8.0",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "type": "module",
   "scripts": {

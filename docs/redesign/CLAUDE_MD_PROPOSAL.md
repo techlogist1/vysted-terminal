@@ -64,3 +64,21 @@ spawns each built sidecar on an ephemeral port, TCP-probes MCP binds, and assert
 `/health` version + `/agents` count + `/mcp/status`; its pre-flight is ATTENDED-SAFE (reaps
 only its own PID ledger from a prior crashed run — never a blanket `vysted-*` name match, so
 it never touches the operator's running app)."
+
+## 2026-09-23 proposal — relicense (Tier-4 sign-off given)
+
+The Decision authority §1 "Locked" line currently reads:
+
+> Stack; AGPL-3.0 + commercial dual license; MCP server in v1.0.
+
+It should read:
+
+> Stack; PolyForm Strict 1.0.0 + commercial license (relicensed 23 Sep 2026); MCP server
+> in v1.0.
+
+Context: the operator relicensed the core from AGPL-3.0 to PolyForm Strict 1.0.0 (public,
+noncommercial-only) + commercial license (the only other path), with the plugin contract
+(`types/plugin.ts`, `types/plugin-runtime.ts`) and the example plugin
+(`plugins/example/*`) carved out under Apache-2.0 so third-party plugin authors are never
+blocked. Every commit before the relicensing commit remains AGPL-3.0. See `LICENSING.md`
+and `docs/redesign/DECISIONS_FOR_OPERATOR.md` §1.4 for the full record.

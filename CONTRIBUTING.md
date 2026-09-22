@@ -1,7 +1,9 @@
 # Contributing to Vysted Terminal
 
-Contributions are welcome. This document covers the mechanics: environment setup, coding standards,
-the commit and PR workflow, the Contributor License Agreement, and a note on the plugin contract.
+**Contributions are closed for now.** We are not accepting pull requests at this time. Issues and
+bug reports are still welcome — please open one if you hit a problem. This document is kept as
+reference for when contributions reopen: environment setup, coding standards, the commit and PR
+workflow, the Contributor License Agreement, and a note on the plugin contract.
 
 **Scope note.** Phases 0–10 are merged (data layer, charting, agentic copilot, node editor +
 backtest, broker read-only + §6.5 safety, macro/research/QuantLib, integrations) and an
@@ -81,23 +83,19 @@ Common types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`.
 
 ---
 
-## Contributor License Agreement
+## Licensing
 
-Vysted Terminal is dual-licensed under AGPL-3.0 (open-source) and a commercial license
-(see [`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md)). To keep both licensing tracks legally
-sound, all contributors must agree to a Contributor License Agreement (CLA) before their
-contribution can be merged.
+Vysted Terminal is source-available under **PolyForm Strict 1.0.0** (noncommercial use) with a
+commercial license as the only other path (see [`LICENSING.md`](./LICENSING.md) and
+[`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md)); the plugin contract and the example plugin
+carry a separate **Apache-2.0** carve-out so third-party plugin authors are never blocked by the
+core's license. Contributions are currently closed, so the Contributor License Agreement process
+described below does not apply until they reopen.
 
-**The formal CLA process is still being finalized** and will be in place before v1.0. In the
-meantime, contributors confirm CLA agreement by including the following statement in their PR
-description:
-
-> I have read the CONTRIBUTING.md CLA section and agree to license my contribution under the
-> project CLA, permitting Vysted Terminal to include it under both the AGPL-3.0 and the commercial
-> license.
-
-This statement is a placeholder acknowledgement, not a waiver of any rights. The finalized CLA
-document will supersede it.
+**The formal CLA process is still being finalized** and will be in place before contributions
+reopen. When they do, contributors will confirm CLA agreement by including a statement in their PR
+description agreeing to license their contribution under the project CLA, permitting Vysted
+Terminal to include it under both PolyForm Strict 1.0.0 and the commercial license.
 
 ---
 

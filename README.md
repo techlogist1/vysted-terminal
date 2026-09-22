@@ -1,6 +1,6 @@
 # Vysted Terminal
 
-Open-source, AI-native desktop finance terminal — Bloomberg-level data coverage,
+Source-available, AI-native desktop finance terminal — Bloomberg-level data coverage,
 agent-assisted, **local-first**, and **bring-your-own-keys**. No account, no hosted
 backend, no telemetry: data and secrets stay on your machine.
 
@@ -90,7 +90,7 @@ Grab the latest `.dmg` from the
 M-series — an Intel build isn't published yet), open it, and drag **Vysted Terminal** to
 Applications.
 
-Because the app is **open-source and unsigned** (no paid Apple Developer certificate),
+Because the app is **source-available and unsigned** (no paid Apple Developer certificate),
 macOS Gatekeeper blocks it on first launch. To open it the first time:
 
 1. Double-click the app — macOS says it "cannot be opened." Click **Done** (do _not_ move
@@ -169,8 +169,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-Free for personal, academic, and open-source use under [AGPL-3.0](./LICENSE). Commercial
-use requires a paid license — see [`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md).
+Source-available. Free for noncommercial use under
+[PolyForm Strict 1.0.0](./LICENSE). Commercial use, modification, or redistribution
+requires a paid license — see [`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md) and
+[`LICENSING.md`](./LICENSING.md) for the plain-language summary. Every commit before the
+relicensing commit remains available under its original AGPL-3.0 terms. The plugin
+contract and example plugin are separately licensed under
+[Apache-2.0](./LICENSE-APACHE).
 
 ## Status
 
