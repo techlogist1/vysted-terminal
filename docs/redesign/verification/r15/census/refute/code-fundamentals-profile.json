@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-fundamentals-profile-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: field_meta is Optional (models/fundamentals.py:128) and only yfinance_provider fills the full map (:404); row_to_pair, openbb_mcp_provider and yahoo_batch_provider emit None, and correctness_gate only adds withheld/flagged entries. But the claimed consequence is wrong: the screener never renders field_meta, and every screener row already carries its own provenance labels (data_basis/data_as_of per row, plus a freshness block with seed_as_of, screener.py:776-806); the equity panel treats an absent map gracefully (EquityOverviewPanel.tsx:190-201). A documented-additive contract choice with no user-visible defect found: high -> low.",
+    "evidence": "sidecar/models/fundamentals.py:35-36, sidecar/models/fundamentals.py:128, sidecar/services/fundamentals_store.py:529-558, sidecar/services/yfinance_provider.py:404, sidecar/services/correctness_gate.py:285-305, sidecar/services/openbb_mcp_provider.py:396-417, sidecar/services/screener.py:776-806, src/modules/equity-overview/EquityOverviewPanel.tsx:190-201",
+    "evidence_checked": "code-only: grep of every Fundamentals( constructor and field_meta writer in sidecar/services; read the screener result-row labelling and the TS consumer",
+    "repro_check": "grep -rn 'Fundamentals(' sidecar/services -> 4 constructors, only yfinance sets field_meta; screener.py:779-781 stamps currency/data_basis/data_as_of on every served row"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: _SCHEMA builds its columns from _NUMERIC_FIELDS (:133), but _migrate only ALTERs a hand-written 3-tuple (:176-182). A new numeric field would exist on fresh DBs but not on existing ones, and upsert_v7_batch/upsert_info would raise OperationalError. It is a trap for the next change, not a defect in shipped code (all 27 columns exist today), so per the scale it is medium, not high.",
+    "evidence": "sidecar/services/fundamentals_store.py:121-152, sidecar/services/fundamentals_store.py:164-182, sidecar/services/fundamentals_store.py:346-367",
+    "evidence_checked": "code-only: read the schema, _connect and _migrate, and the batch upsert",
+    "repro_check": "would run: build a DB from a trimmed _NUMERIC_FIELDS, re-add a field, call upsert_v7 -> OperationalError; code reading alone confirms _migrate never looks at _NUMERIC_FIELDS"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: only GET /fundamentals/{symbol} maps kind to 429/404 (routers/fundamentals.py:104-115). /income, /balance, /cashflow and /ratings fall through to app.py:312-315, which flattens every ProviderError to 502, even though yfinance classifies rate_limited errors (yfinance_provider.py:53-65, 424-463). The stated consequence is wrong, though. The frontend has no status-aware behaviour: loadEquityOverview collapses every rejected leg to null (equity-overview/api.ts:82-124), and src/ contains no 429 handling, so nothing 'retries into the throttle'. A registered exception handler's response also keeps its CORS headers. The inconsistency only affects API/MCP consumers: high -> medium.",
+    "evidence": "sidecar/routers/fundamentals.py:102-115, sidecar/routers/fundamentals.py:177-198, sidecar/app.py:312-315, sidecar/services/yfinance_provider.py:53-65, sidecar/services/yfinance_provider.py:418-463, src/modules/equity-overview/api.ts:82-124",
+    "evidence_checked": "code-only: read the router, the global handler, the yfinance classifier and the frontend client; grep -rn 429 src returned nothing",
+    "repro_check": "grep -rn '429' src --include=*.ts --include=*.tsx -> no hits; api.ts settled() maps any rejection to null regardless of status"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real and reproduced: _fetch_once stringifies the ProviderError and drops .kind (agent_tools/fundamentals.py:67-68). _classify_reason then returns 'provider_error' for both yfinance not_found messages (yfinance_provider.py:334-342) and for the registry's own kind=not_found 'no provider returned usable' error (provider_registry.py:435-438). The test at test_fundamentals_tool.py:90-101 only exercises the substring path. Severity is medium, not high: the wrong label errs conservatively ('our feed gap', never a false world-absence claim), and the raw error text ('Yahoo has no company record ...') still reaches the model alongside it.",
+    "evidence": "sidecar/services/agent_tools/fundamentals.py:33-51, sidecar/services/agent_tools/fundamentals.py:60-71, sidecar/services/agent_tools/fundamentals.py:211, sidecar/services/yfinance_provider.py:332-342, sidecar/services/provider_registry.py:435-438, sidecar/tests/test_fundamentals_tool.py:90-101",
+    "evidence_checked": "code read plus an in-process repro of _classify_reason in the sidecar venv",
+    "repro_check": "sidecar/.venv/bin/python -c \"from services.agent_tools.fundamentals import _classify_reason; ...\" on the three real not_found messages -> provider_error x3"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: the vocabulary is declared by hand in fundamentals_store._NUMERIC_FIELDS, regenerate_fundamentals_seed._NUMERIC_FIELDS, models/screener.ScreenerNumericField and yahoo_batch_provider._ENRICHMENT_FIELDS. _criterion_fails_sql interpolates criterion.field as a SQL identifier (:658, :672, :683). A Literal-only addition outside _ENRICHMENT_FIELDS is 'cheap' (screener.py:461-462) and reaches prefilter -> OperationalError. Correction: the lists are NOT byte-identical today. ScreenerNumericField lacks shares_outstanding, which the store and exporter both carry, so drift has already happened (harmless direction). It is a latent maintainer trap with no shipped failure: high -> medium.",
+    "evidence": "sidecar/services/fundamentals_store.py:67-95, sidecar/services/fundamentals_store.py:642-688, sidecar/services/screener_universes/regenerate_fundamentals_seed.py:33-61, sidecar/models/screener.py:58-94, sidecar/services/screener.py:454-465, sidecar/services/yahoo_batch_provider.py:547-553",
+    "evidence_checked": "code read plus a set-diff of the store tuple against the Literal",
+    "repro_check": "python set-diff of the Literal vs the store tuple -> store-only {'shares_outstanding'}, Literal-only {price, change_percent_1d, volume}: 29 vs 27, not identical"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The change coercion is real but latent: row_to_pair maps a NULL quote_change/percent to 0.0 (:550-551), and the bhavcopy lane writes NULL change when prev_close is missing (:432-439). Currently no row has that shape. The USD half is effectively unreachable: every writer of quote_price also writes quote_currency (_quote_columns :305-317; the EOD lane defaults to 'INR' at :441). The screener's served-row currency reads the store's own currency column first anyway (screener.py:779). medium -> low.",
+    "evidence": "sidecar/services/fundamentals_store.py:305-317, sidecar/services/fundamentals_store.py:425-447, sidecar/services/fundamentals_store.py:547-557, sidecar/services/screener.py:392, sidecar/services/screener.py:779",
+    "evidence_checked": "code read plus a read-only SQL count on the isolated stack's fundamentals_cache.db (the :52152 data dir)",
+    "repro_check": "sqlite3 ro: count rows with quote_price NOT NULL and quote_change NULL -> 0, and with quote_currency NULL -> 0 (of 2658 priced rows)"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: on an IN boot, start_warm_fundamentals schedules _boot_seed (fundamentals_warm.py:416-424), and _sweep_loop independently calls seed_india_store on its first IN cycle behind a local flag (:197-208). The row build and the seed-pack load therefore run twice. Both are idempotent NULL-fills serialized on the store lock, and both run off-loop (asyncio.to_thread), so the only cost is duplicated background boot work nobody sees: medium -> low.",
+    "evidence": "sidecar/services/fundamentals_warm.py:107-152, sidecar/services/fundamentals_warm.py:191-208, sidecar/services/fundamentals_warm.py:403-430",
+    "evidence_checked": "code-only (the isolated stack's log is WARNING-level, so the INFO seed lines are not visible)",
+    "repro_check": "would run: IN-region boot with INFO logging -> expect two 'seeded N india rows' lines; code shows two uncoordinated call sites"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: loop.create_task(_boot_seed()) is never stored (:424), stop_warm_fundamentals cancels only the three module tasks (:436), and the leak test runs in the US region, so the IN branch never fires (test_fundamentals_warm.py:289-290). Severity is low: the task is a roughly one-second local seed, and if it is lost or garbage-collected mid-flight, _sweep_loop's own first-cycle seed covers it (:203-208).",
+    "evidence": "sidecar/services/fundamentals_warm.py:416-424, sidecar/services/fundamentals_warm.py:433-444, sidecar/services/fundamentals_warm.py:203-208, sidecar/tests/test_fundamentals_warm.py:287-302",
+    "evidence_checked": "code-only: read start/stop and the leak test",
+    "repro_check": "code reading: the handle from create_task at :424 is discarded, and the test comment states 'Region defaults to US in tests'"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: upsert_info at :362 sits outside the per-symbol try (:344-361), and gather at :366 has no return_exceptions. A store error therefore escapes, _crawl_loop logs it at DEBUG with fetched=0 (:378-384), and sibling coroutines keep running with unretrieved exceptions. It only triggers on a sqlite write failure, which is rare in normal use (the cited trigger, finding 2, is hypothetical), so medium -> low.",
+    "evidence": "sidecar/services/fundamentals_warm.py:337-367, sidecar/services/fundamentals_warm.py:370-391",
+    "evidence_checked": "code-only",
+    "repro_check": "would run: monkeypatch fundamentals_store.upsert_info to raise sqlite3.OperationalError and call _crawl_once -> it raises instead of returning a count"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: three near-identical cache/fetch/store blocks (routers/fundamentals.py:206-260), each with an except ProviderError -> 502 that duplicates app.py:312-315. This is repetition and redundancy, not a defect: behaviour is identical to the global handler, so medium -> low. The 'blocks the kind-aware fix' point holds only if that fix is placed in the global handler.",
+    "evidence": "sidecar/routers/fundamentals.py:206-260, sidecar/app.py:312-315",
+    "evidence_checked": "code-only",
+    "repro_check": "code reading: the three blocks differ only in cache-key suffix, model and service call"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-11",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The store's freshness() omits seed_updated_at (:805-809), but its only caller is the screener (grep), which adds seed_as_of itself (screener.py:803-806), so no surface shows an empty block for seed-served data. The screener's stamp is also not a duplicate of a store tier: it is the oldest seed stamp among values whose ONLY provenance is the seed (_field_serving used_seed, screener.py:605-635, 740-741). The proposed fix, adding seed_updated_at to the store loop, would report seed_as_of for rows whose seed values were already overwritten by fresher fetches, making the label less honest.",
+    "evidence": "sidecar/services/fundamentals_store.py:799-813, sidecar/services/screener.py:605-641, sidecar/services/screener.py:734-747, sidecar/services/screener.py:803-806",
+    "evidence_checked": "code-only: grep for all freshness() callers and read the screener's seed-stamp logic",
+    "repro_check": "grep -rn 'fundamentals_store.freshness' sidecar -> single caller screener.py:803, which injects seed_as_of from used-seed stamps only"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: Pydantic FieldMeta.status is a plain str (models/fundamentals.py:39), while the TS mirror is a closed union (types/data.ts:179). But every producer emits one of the three literals, and the TS consumer degrades safely on an unknown value: no chip, no tooltip (EquityOverviewPanel.tsx:190-220), not a wrong render. This is a type-tightening nit: medium -> low.",
+    "evidence": "sidecar/models/fundamentals.py:19-43, types/data.ts:178-184, src/modules/equity-overview/EquityOverviewPanel.tsx:190-220",
+    "evidence_checked": "code-only",
+    "repro_check": "code reading: fieldReasonChip returns null for any status that is neither withheld nor unavailable"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-13",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The design point holds: growth_basis defaults to 'mrq_yoy' (models/fundamentals.py:102), so a forgetful provider inherits the claim. The claimed wrong provenance does not. The only producer of revenue_growth/earnings_growth in the tree is yfinance .info: openbb_mcp_provider (:396-417) and yahoo_batch never set them. The seed pack is exported from a store DB fed by that same path (regenerate_fundamentals_seed build_pack), so a seeded growth value really is MRQ-YoY. Its age is labelled separately (data_basis/seed_as_of). This is a latent future-provider hazard: medium -> low.",
+    "evidence": "sidecar/models/fundamentals.py:97-102, sidecar/services/openbb_mcp_provider.py:396-417, sidecar/services/fundamentals_store.py:370-403, sidecar/services/screener_universes/regenerate_fundamentals_seed.py:33-65",
+    "evidence_checked": "code-only: grep for growth_basis and for every Fundamentals constructor",
+    "repro_check": "grep -rn growth_basis sidecar -> no producer sets it; the openbb/yahoo_batch constructors carry no growth fields"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-14",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated. /income, /balance, /cashflow and /ratings call provider_registry directly with no cache (routers/fundamentals.py:177-198), and the registry has no cache of its own. The three ratings-history routes cache into data_cache, which never evicts and has no size bound (data_cache.py:98-150) and runs its sqlite calls on the event loop under an asyncio lock. On the operator's data copy the cache is already 2753 rows / 5.7 MB.",
+    "evidence": "sidecar/routers/fundamentals.py:177-260, sidecar/services/data_cache.py:98-150, sidecar/services/provider_registry.py:495-520",
+    "evidence_checked": "code read plus a read-only count on the isolated stack's data_cache.db",
+    "repro_check": "sqlite3 ro data_cache.db: select count(*), sum(length(value)) -> 2753 rows, ~5.7 MB; no delete path besides invalidate/clear"
+  },
+  {
+    "raw_id": "COD-fundamentals-profile-15",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, and the blocking half is worse than stated: _canonicalize calls symbol_resolver.resolve synchronously on the event loop (agent_tools/fundamentals.py:119), and resolve can make a live sync yf.Search network call (symbol_resolver.py:770, 1001). The router twin threads and guards the same call (routers/fundamentals.py:72-75). Correction on the raise: agent_runtime catches any tool exception and returns {ok: False, error: 'tool raised'} (agent_runtime.py:671-672), so the run survives. What is lost is the closed reason vocabulary. Also, asyncio.wait_for cannot preempt the blocking call.",
+    "evidence": "sidecar/services/agent_tools/fundamentals.py:104-146, sidecar/services/agent_tools/fundamentals.py:196, sidecar/routers/fundamentals.py:72-75, sidecar/services/symbol_resolver.py:652-673, sidecar/services/symbol_resolver.py:770, sidecar/services/symbol_resolver.py:1001, sidecar/services/agent_runtime.py:648-672",
+    "evidence_checked": "code-only: read the tool, the router twin, the resolver entry and live fallback, and the runtime dispatch guard",
+    "repro_check": "code reading: resolve() is not awaited or threaded at :119, and the live rung calls yf.Search synchronously"
+  }
+]

@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-workspace-layout-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds. buildWorkspacePayload captures every global store (portfolios, watchlist, notes, settings, keybindings, research-space archive) into every named save, and deserializeWorkspace unconditionally overwrites those stores on loadWorkspace; the page.tsx subscriptions then autosave the rolled-back state over __autosave__. Portfolios/notes/research memory persist ONLY in this blob (portfolios.ts:14, notes.ts:6, research-spaces.ts:10), so the rollback is real, unrecoverable loss of user-authored holdings while the dialog copy promises 'panel layout and the enabled modules' only.",
+    "evidence": "src/lib/workspace.ts:198-226, src/lib/workspace.ts:283-289, src/lib/workspace.ts:322-355, src/lib/workspace.ts:417-433, src/app/page.tsx:108-117, src/app/page.tsx:173-181, src/modules/platform/WorkspaceDialog.tsx:82-84, src/modules/platform/WorkspaceDialog.tsx:228-230, src/store/portfolios.ts:14",
+    "evidence_checked": "Read buildWorkspacePayload, deserializeWorkspace, loadWorkspace, the page.tsx autosave subscriptions and the dialog copy; grepped portfolios/notes/research-spaces stores for any independent persistence (none, blob-only).",
+    "repro_check": "Code trace: loadWorkspace(name) -> deserializeWorkspace -> usePortfoliosStore.setAll(blob.portfolios.list) (workspace.ts:287-289) -> portfolios subscription (page.tsx:113-117) -> autosaveLayout writes the stale set to __autosave__; no guard or confirmation on the path."
+  },
+  {
+    "raw_id": "COD-workspace-layout-2",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds, reproduced live. The sidecar name regex ^[A-Za-z0-9 _-]+$ rejects the colon that researchSpaceName always emits, so every research space save/load 400s; createResearchSpace mutates the cockpit (switchSpace, setResearchSymbol, applyResearchSpaceLayout) before the doomed saveWorkspace with no rollback, and saveWorkspace surfaces only 'HTTP 400'.",
+    "evidence": "sidecar/services/workspace_store.py:31, sidecar/services/workspace_store.py:42-50, src/lib/workspace.ts:560-565, src/lib/workspace.ts:609-639, src/lib/workspace.ts:408-410",
+    "evidence_checked": "Read workspace_store.py + routers/workspace.py and the TS name generator/createResearchSpace; GET against the isolated stack at :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/workspace/Research%3A%20NVDA' -> {\"detail\":\"Invalid workspace name 'Research: NVDA': use letters, digits, spaces, hyphens, or underscores.\"} (the same _validate_name guards POST and DELETE)."
+  },
+  {
+    "raw_id": "COD-workspace-layout-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. page.tsx subscriptions call autosaveLayout from mount, and autosaveLayout has no restore gate, debounce or single-flight. buildWorkspacePayload runs synchronously inside each call, so every store restored in deserializeWorkspace POSTs a partial snapshot. The last subscribed store (notes) fires before researchSpaces.replaceAll/setResearchSymbol, so the final write drops the research-memory archive. The page.tsx:171-172 'debounced' comment is false (the only debounce is PanelHost's private timer). A later full autosave repairs the disk copy, so the loss needs a session with no further autosave trigger, e.g. launch, read, quit.",
+    "evidence": "src/app/page.tsx:108-181, src/app/page.tsx:171-172, src/lib/workspace.ts:541-556, src/lib/workspace.ts:341-370, src/components/PanelHost.tsx:145-147, src/components/PanelHost.tsx:164-166, src/components/PanelHost.tsx:187-193, sidecar/services/workspace_store.py:72-88",
+    "evidence_checked": "Read all cited code; re-ran the census repro test (copied to my scratch dir, run with a scratch vitest config rooted at the repo, never placed in src/).",
+    "repro_check": "pnpm exec vitest run --config <scratch>/wsl/vitest.config.mts on docs/redesign/verification/r15/census/code/evidence/workspace-layout-repro.test.ts.txt -> 2/2 passed (>1 POST mid-restore, POST[0] holdings=0, last POST lacks researchSymbol and researchSpaces.byName={})."
+  },
+  {
+    "raw_id": "COD-workspace-layout-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. restoreLastSessionOrDefault's unknown-component skip path returns before deserializeWorkspace, so no non-layout state (portfolios, notes, watchlist, settings, research memory) is restored. A fromJSON throw in deserializeWorkspace also aborts before every store after it. Plugin panels register asynchronously (bootstrapPlugins awaits the sidecar) while PanelHost mounts once first-party modules exist, so a saved plugin panel or a renamed component id reaches the skip path, and the next autosave persists the defaults over the user's blob.",
+    "evidence": "src/lib/workspace.ts:509-515, src/lib/workspace.ts:262-270, src/lib/workspace.ts:522-533, src/lib/workspace.ts:462-480, src/lib/plugin-bootstrap.ts:220-265, src/components/PanelHost.tsx:214-224",
+    "evidence_checked": "Read restore path, deserializeWorkspace ordering, plugin bootstrap timing and PanelHost mount gate; re-ran repro test #2.",
+    "repro_check": "Same scratch vitest run: 'unknown-component skip path restores NONE of the non-layout state' passed (restored=false, holdings.length==0, notes.general=='')."
+  },
+  {
+    "raw_id": "COD-workspace-layout-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. chartDrawings, keybindingOverrides and researchSpaces are serialized, but no subscription or call site anywhere triggers autosaveLayout when they change. A drawn level or a remapped shortcut survives relaunch only if some unrelated trigger happens to fire. Other fields are triggered two or three ways (store self-persist, page.tsx subscription, SettingsPanel call site).",
+    "evidence": "src/lib/workspace.ts:202, src/lib/workspace.ts:217, src/lib/workspace.ts:225, src/app/page.tsx:108-181, src/components/SettingsPanel.tsx:493, src/components/SettingsPanel.tsx:627, src/components/SettingsPanel.tsx:1406",
+    "evidence_checked": "grep -rln autosaveLayout src (non-test) = page.tsx, SettingsPanel, PanelHost, OnboardingFlow, workspace.ts, settings.ts, search-settings.ts, brief.ts; grep for .subscribe on chart-drawings/keybindings/research-spaces/chat-history stores = none; setBinding call at SettingsPanel:1406 has no autosave.",
+    "repro_check": "grep -rn 'useChartDrawingsStore.subscribe\\|useKeybindingsStore.subscribe\\|useResearchSpacesStore.subscribe' src -> no matches; runtime path: draw -> quit -> relaunch (not driven, GUI forbidden)."
+  },
+  {
+    "raw_id": "COD-workspace-layout-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. setSavedScreens has no non-test caller, SerializedWorkspace has no savedScreens field, and nothing in the sidecar persists saved screens, so user- and agent-saved screens are session-only despite the store doc claiming deserializeWorkspace wiring.",
+    "evidence": "src/store/screener.ts:68, src/store/screener.ts:224-226, src/store/screener.ts:637, src/lib/workspace.ts:198-226, src/lib/host-actions.ts:850-851",
+    "evidence_checked": "grep -rn 'setSavedScreens|savedScreens' over src + sidecar (non-test): only screener.ts and ScreenerPanel reads; no localStorage/persist in screener.ts.",
+    "repro_check": "grep -rn setSavedScreens src sidecar | grep -v test -> only the definition at screener.ts:226/637."
+  },
+  {
+    "raw_id": "COD-workspace-layout-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. autosaveLayout discards the fetch Response and swallows exceptions with a bare catch and no log, so a persistent failure (read-only dir, disk full: save_workspace raises OSError, which the router does not map) fails silently for the whole session.",
+    "evidence": "src/lib/workspace.ts:546-555, sidecar/routers/workspace.py:53-60, sidecar/services/workspace_store.py:86-88",
+    "evidence_checked": "Read autosaveLayout and the POST route and store; code-only (did not induce a disk failure on the shared stack).",
+    "repro_check": "Would run: chmod a-w <data-dir>/workspaces on a private sidecar, trigger autosave -> 500, no console output, no UI signal; code trace confirms the response is never inspected."
+  },
+  {
+    "raw_id": "COD-workspace-layout-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. load_workspace maps JSONDecodeError/UnicodeDecodeError to WorkspaceNotFoundError (404), so the frontend boots the default and the next autosave os.replace()s the damaged file with no .bak. list_workspaces globs without parsing, so a corrupt named workspace is listed and then 404s. A valid non-dict JSON body is returned and fails the dict-typed route.",
+    "evidence": "sidecar/services/workspace_store.py:97-112, sidecar/services/workspace_store.py:58-66, sidecar/services/workspace_store.py:80-88, sidecar/routers/workspace.py:42-48",
+    "evidence_checked": "Read workspace_store.py and the router; code-only (did not corrupt files on the shared isolated stack's data dir).",
+    "repro_check": "Would run: printf '{\"trunc' > <private-data-dir>/workspaces/x.vysted-workspace; curl /workspace -> lists 'x'; curl /workspace/x -> 404. Code at :108-112 shows exactly this mapping."
+  },
+  {
+    "raw_id": "COD-workspace-layout-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism is real: four appliers defer applyPlan to requestAnimationFrame while host-actions returns 'Arranged ...' synchronously, contradicting the file's own no-rAF rationale at :697-698. But rAF is only deferred, not cancelled: the arrangement lands as soon as the window paints again, which is before the user can see it. The remaining harm is a stale layout snapshot if the agent reads layout within the same occluded turn, plus a throw inside the rAF escaping the host-action error path. That is edge-case polish, not a medium defect.",
+    "evidence": "src/lib/layout-templates.ts:310-315, src/lib/layout-templates.ts:341-347, src/lib/layout-templates.ts:411-416, src/lib/layout-templates.ts:620-625, src/lib/layout-templates.ts:697-698, src/lib/host-actions.ts:1002-1008, src/lib/host-actions.ts:1031-1036, src/lib/host-actions.ts:1047-1069",
+    "evidence_checked": "Read all four rAF wrappers, the synchronous applyLayoutMode/applyResearchSpaceLayout, and the arrange_layout host action; code-only (occluded-window drive would need GUI).",
+    "repro_check": "Code trace: fitLayoutTemplate returns {applied, downgraded} before the rAF callback runs; host-actions:1069 returns 'Arranged the ... layout' unconditionally."
+  },
+  {
+    "raw_id": "COD-workspace-layout-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. 'single-focus' is a single maximized chart via arrange_layout but chart+watchlist+news via the menu mode. 'compare' is one maximized chart via the agent but chart+equity-overview via the menu. The LLM-facing description promises 'full-width chart + stats', 'dual charts side by side' and a 'heatmap' that planLayout never places (the code notes no heatmap panel exists).",
+    "evidence": "src/lib/layout-templates.ts:188-194, src/lib/layout-templates.ts:223-234, src/lib/layout-templates.ts:236-258, src/lib/layout-templates.ts:648-688, sidecar/services/agent_tools/catalog.py:1122-1125",
+    "evidence_checked": "Read planLayout, MODE_PLANS and the arrange_layout catalog description.",
+    "repro_check": "Side-by-side read: catalog.py:1124 'dual charts side by side' vs layout-templates.ts:228-233 'Do NOT add a second chart panel' + maximize chart."
+  },
+  {
+    "raw_id": "COD-workspace-layout-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. arrange_layout defaults pattern to 'default' (host-actions:987, schema default catalog.py:1147), and any unmatched pattern falls through to resetToDefaultLayout. That function also re-enables every module (setEnabledMap({})) and wipes all chart drawings, while its interface doc says only 'clear the cockpit and re-apply the default layout' and the review gate text says only 'clears layout customisations'.",
+    "evidence": "src/store/workspace.ts:75-76, src/store/workspace.ts:145-165, src/lib/host-actions.ts:683-688, src/lib/host-actions.ts:987, src/lib/host-actions.ts:1071-1072, sidecar/services/agent_tools/catalog.py:1147",
+    "evidence_checked": "Read resetToDefaultLayout, the arrange_layout host action + gate description, and the catalog schema; did not verify the autonomy='auto' no-review claim (not needed for the verdict).",
+    "repro_check": "Code trace: arrange_layout {} -> pattern='default' -> no branch matches -> ws.resetToDefaultLayout() -> useChartDrawingsStore.replaceAll({byPanel:{}})."
+  },
+  {
+    "raw_id": "COD-workspace-layout-12",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds, confirmed live. The sidecar lists __autosave__, and LoadWorkspaceList renders listWorkspaces() unfiltered with Load and Delete buttons (only SettingsPanel filters with isReservedLayoutName). Loading it sets the active name to '__autosave__' via deserializeWorkspace:271. The Save form guards only non-empty, so '__x' names save and then vanish from Settings > Layouts.",
+    "evidence": "src/modules/platform/WorkspaceDialog.tsx:172-176, src/modules/platform/WorkspaceDialog.tsx:274-296, src/modules/platform/WorkspaceDialog.tsx:99, src/components/SettingsPanel.tsx:1598, src/store/workspace.ts:22-27, src/lib/workspace.ts:271, src/lib/workspace.ts:381-391",
+    "evidence_checked": "Read dialog, SettingsPanel filter, store helper and listWorkspaces; GET against :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/workspace -> [\"__autosave__\"]; that list is passed straight to names.map(...) at WorkspaceDialog.tsx:274."
+  },
+  {
+    "raw_id": "COD-workspace-layout-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. The id/component tables are hand-maintained with only a comment ('MUST match') guarding parity, and no test references ARRANGEABLE or cross-checks PanelSpecs. The rail definitions disagree: portfolio is in the store's RAIL_PANEL_IDS but absent from layout-templates RAIL_PANELS and scored 60 as a main panel.",
+    "evidence": "src/lib/layout-templates.ts:27-31, src/lib/layout-templates.ts:37, src/lib/layout-templates.ts:450-456, src/lib/layout-templates.ts:466, src/store/workspace.ts:31",
+    "evidence_checked": "grep -rln ARRANGEABLE src -> only layout-templates.ts (no test); grep of layout-templates.test.ts for ARRANGEABLE/PanelSpec/collectPanelComponents -> none.",
+    "repro_check": "grep -n 'ARRANGEABLE\\|PanelSpec\\|collectPanelComponents' src/lib/layout-templates.test.ts -> no match."
+  },
+  {
+    "raw_id": "COD-workspace-layout-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. deserializeWorkspace restores the watchlist only when length > 0, so a user-emptied watchlist (persisted as []) is indistinguishable from an absent field and the default symbols come back on relaunch.",
+    "evidence": "src/lib/workspace.ts:281-285, src/lib/workspace.ts:204",
+    "evidence_checked": "Read the watchlist restore guard and the payload builder.",
+    "repro_check": "Code trace: blob.watchlist=[] -> guard at workspace.ts:283 false -> store keeps its seed list."
+  }
+]

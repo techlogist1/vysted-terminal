@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-plugins-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: PluginRow.handleToggle calls runtime.loadPlugin/unloadPlugin directly; unloadPlugin persists nothing, so boot re-reads enabled:true and reloads it, and no unbridge/agent-sync runs. The reverse direction is also dead: toggling ON a Marketplace-disabled plugin is a no-op because loadPlugin honours persisted enabled:false. Severity corrected high->medium: the designated lifecycle surface (Marketplace store enable/disable) is correct; this is a second, lying control on a secondary panel, not a broken core flow.",
+    "evidence": "src/components/PluginManagerPanel.tsx:171-185, src/lib/plugin-runtime.ts:278-295, src/lib/plugin-runtime.ts:243-247, src/store/marketplace.ts:176-191, src/lib/plugin-bootstrap.ts:256-270",
+    "evidence_checked": "code-only: opened PluginManagerPanel handleToggle, runtime load/unload/disablePlugin, marketplace store disable, bootstrap loop",
+    "repro_check": "Traced: toggle off -> unloadPlugin (no persistence.save) -> next boot persistence.load returns enabled:true -> loadPlugin -> active; not driven live (GUI forbidden)."
+  },
+  {
+    "raw_id": "COD-plugins-2",
+    "verdict": "removed_with_feature",
+    "severity_final": "high",
+    "reason": "Every preinstalled:false catalog row is a broker/order-execution plugin (kite, dhan, angelone, alpaca, ib, oanda, ccxt-exec); the auto-install surface is the broker plugin set being deleted with trading. Once they go, every remaining row is preinstalled:true so loadPlugin's installed:true default agrees; the residual four-way default duplication is tracked in COD-plugins-12.",
+    "evidence": "src/lib/marketplace.ts:94,111,128,143,179 (preinstalled:true), src/lib/marketplace.ts:196,216,242,259,276,293,319 (preinstalled:false brokers), src/lib/plugin-runtime.ts:218-232",
+    "evidence_checked": "grep of every preinstalled flag in CATALOG_ROWS; loadPlugin default",
+    "repro_check": "grep -n preinstalled src/lib/marketplace.ts -> only the 7 broker rows are false."
+  },
+  {
+    "raw_id": "COD-plugins-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism holds: configure() calls enablePlugin -> patchConfig -> loadPlugin, which returns early for an active record, so initialize() never re-runs and PluginConfig.secrets stays stale; the green test locks that idempotence. Severity corrected high->medium because it is latent: no bundled plugin reads config.secrets for a credential (only plugins/example reports the key ids), vysted-news reads its key out-of-band, and the broker consumers are being removed.",
+    "evidence": "src/store/marketplace.ts:237-244, src/lib/plugin-runtime.ts:195-202, src/lib/plugin-runtime.ts:339-342, src/lib/plugin-runtime.test.ts:171-177, types/plugin.ts:44-45, plugins/example/index.ts:86",
+    "evidence_checked": "code-only: configure/enablePlugin/loadPlugin path; grep 'secrets' across plugins/ (single hit in example)",
+    "repro_check": "grep -rn secrets plugins --include=*.ts -> only plugins/example/index.ts:86 (Object.keys(config.secrets)); no live key-consuming plugin."
+  },
+  {
+    "raw_id": "COD-plugins-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "syncPluginAgents is the only writer of the plugin agent into the sidecar custom-agent store and its only production callers are the Marketplace store install/enable/disable/remove; the boot loop loads vysted-lenses but never calls it, and no sidecar seed registers Quant Tutor. The isolated stack (a copy of the operator's data dir) returns an empty custom-agent roster, consistent with the reference agent pack never having been registered.",
+    "evidence": "src/lib/plugin-agents.ts:28-70, src/store/marketplace.ts:149,167,184,201, src/lib/plugin-bootstrap.ts:252-271, src/lib/marketplace.ts:121-132, plugins/vysted-lenses/index.ts:28-47, src/modules/chat/ChatSidebar.tsx:393-394",
+    "evidence_checked": "grep of syncPluginAgents callers (non-test); grep for quant-tutor in sidecar/src (only tests + plugin-agents); live GET /custom-agents on :52152",
+    "repro_check": "curl -s 127.0.0.1:52152/custom-agents -> [] (no custom:vysted-lenses-quant-tutor) while vysted-lenses is preinstalled+enabled."
+  },
+  {
+    "raw_id": "COD-plugins-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Core claim holds: the boot loop discards loadPlugin's snapshot and appendModules unconditionally (modules default enabled), unlike the three guarded store paths. Mechanism corrected: the cited hardcoded versions at marketplace.ts:91/125/140 are MarketplaceEntry.version, which checkCompatibility never reads, and manifest/instance version drift for bundled rows is CI-guarded by marketplace.test.ts:44; the reachable first-party path is a transient persistence.load failure at boot (config-load error) or an initialize() throw. Severity medium->low: plugins are compiled in, and after broker removal only vysted-example contributes commands and none contribute panels.",
+    "evidence": "src/lib/plugin-bootstrap.ts:256-270, src/store/modules.ts:54-73, src/store/marketplace.ts:147,165,241, src/lib/plugin-runtime.ts:218-235,366-378, src/lib/marketplace.ts:91,125,140, src/lib/marketplace.test.ts:39-46, plugins/example/index.ts:68",
+    "evidence_checked": "code + grep of contributesPanels/contributesCommands across plugins/; ran pnpm exec vitest run src/lib/marketplace.test.ts (5 passed)",
+    "repro_check": "grep contributesCommands: true -> 7 broker plugins + plugins/example only; marketplace.test.ts asserts manifest.version === instance.version for every row."
+  },
+  {
+    "raw_id": "COD-plugins-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real duplication: moduleForPlugin calls getPanels/getCommands with no try/catch or missing-getter errored event, while callIfFlagged has both; a throw at plugin-bootstrap.ts:266 would reject bootstrapPlugins mid-loop (page.tsx only .then()s it). Severity medium->low: every plugin is compiled in, and post-trading-removal the only panel/command contributor is plugins/example with a static getCommands array, so the throw path is latent.",
+    "evidence": "src/lib/plugin-bootstrap.ts:133-138,183-186,198,266, src/lib/plugin-runtime.ts:389-416, src/app/page.tsx:85-92, plugins/example/index.ts:112",
+    "evidence_checked": "code-only: moduleForPlugin vs callIfFlagged; caller sites; plugin getters",
+    "repro_check": "grep getCommands()/getPanels() in plugins/ -> brokers + example only, all static returns."
+  },
+  {
+    "raw_id": "COD-plugins-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Bug holds: both call openPanel(\"marketplace-panel\"), a component id; findPanel matches PanelSpec.id (\"marketplace\") and openPanel returns silently. Severity medium->low: the Plugin Manager empty-state CTA is effectively unreachable (bootstrap attaches the runtime then synchronously discovers all catalog rows, emitting events the store re-pulls on), and the reachable Settings instance sits in an Integrations section whose only stated purpose is broker connections, which goes with trading.",
+    "evidence": "src/components/PluginManagerPanel.tsx:62-73, src/components/SettingsPanel.tsx:1563-1580, src/store/workspace.ts:92-100, src/store/modules.ts:83, src/modules/marketplace/index.ts:17-20, src/lib/plugin-bootstrap.ts:250-255, src/store/plugins.ts:54-71",
+    "evidence_checked": "code-only: both call sites, openPanel/findPanel, marketplace PanelSpec, plugins store attach/refresh",
+    "repro_check": "grep openPanel(\"marketplace -> 2 hits both 'marketplace-panel'; PanelSpec id is 'marketplace' -> findPanel undefined -> silent return."
+  },
+  {
+    "raw_id": "COD-plugins-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds: setSecret in the configure loop is unguarded (deleteSecret is .catch'd), updateConfig only runs after the loop, and CredentialForm does `void configure(...).then(onDone)` with no catch, so a keychain rejection is silent with the form left open. Scope corrected: the 2-field partial-write example is a broker credential (being removed); the surviving surface is the single optional vysted-news NewsAPI key, where the failure is still silent but cannot be partial.",
+    "evidence": "src/store/marketplace.ts:215-236, src/modules/marketplace/MarketplacePanel.tsx:249-258, src/lib/keychain.ts:58-60, src/lib/marketplace.ts:150-160",
+    "evidence_checked": "code-only: configure loop, CredentialForm submit, setSecret invoke",
+    "repro_check": "Traced: setSecret rejects -> configure rejects before updateConfig -> .then(onDone) skipped, no catch -> unhandled rejection, no validationError set."
+  },
+  {
+    "raw_id": "COD-plugins-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "syncPluginAgents never inspects the fetch Response, so a 4xx (422 unknown tool id via the Pydantic validator, 409 collision) is indistinguishable from success. Beyond the latent unknown-tool case (all 7 Quant Tutor tools are in the 50-id allow-list today), the 409 path is live in effect: the store is persistent and POST never updates, so a revised plugin AgentSpec (e.g. new systemPrompt) silently never replaces the stale registered one.",
+    "evidence": "src/lib/plugin-agents.ts:43-68, sidecar/routers/custom_agents.py:67-84, sidecar/models/custom_agent.py:38,59-62",
+    "evidence_checked": "code + python import check of KNOWN_TOOL_IDS against the 7 lenses tool ids",
+    "repro_check": "sidecar/.venv/bin/python -c 'from models.custom_agent import KNOWN_TOOL_IDS' -> 50 ids, 0 of 7 Quant Tutor tools missing."
+  },
+  {
+    "raw_id": "COD-plugins-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The lost update is real: healthCheckOne captures the record from activePlugins() before awaiting healthCheck() and writes {...record, healthHistory} back, overwriting any transition (stopping/stopped/error) that landed during the await. Severity medium->low: the bundled healthChecks are a loopback GET /health (or synchronous), so the window is milliseconds every 30s, and a stale 'active' is corrected by the persisted enabled:false on next launch.",
+    "evidence": "src/lib/plugin-runtime.ts:472-503, src/lib/plugin-runtime.ts:550-567, src/lib/plugin-bootstrap.ts:40,273-276, plugins/yfinance/index.ts:59-80, plugins/vysted-news/index.ts:61-82, plugins/example/index.ts:100-106",
+    "evidence_checked": "code-only: healthCheckAll/One, transition(), bundled healthCheck bodies",
+    "repro_check": "Traced: disablePlugin during awaited healthCheck -> transition sets stopped -> healthCheckOne plugins.set({...staleRecord(state:active)}) reverts it."
+  },
+  {
+    "raw_id": "COD-plugins-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "True that sidecar-client and the persistence save have no timeout and that installed+enabled plugins get persistence.load twice (bootstrap:258 then loadPlugin:220), serially. Corrected: bootstrapPlugins is fire-and-forget from page.tsx (void ...then), so a hang stalls only the plugin layer, not app startup; the double read hits only the 5 loaded rows (the 7 not-installed brokers get one), all over loopback.",
+    "evidence": "src/lib/sidecar-client.ts:154-200, src/lib/plugin-bootstrap.ts:81-98,252-271, src/lib/plugin-runtime.ts:218-232, src/app/page.tsx:83-92",
+    "evidence_checked": "code-only: grep Abort/timeout/signal in sidecar-client.ts (none), persistence.load call sites, page.tsx boot",
+    "repro_check": "grep -n 'Abort\\|timeout\\|signal' src/lib/sidecar-client.ts -> no hits; grep persistence.load -> bootstrap:258 + runtime:220 for the same id."
+  },
+  {
+    "raw_id": "COD-plugins-12",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: plugins.db enabled and the workspace blob's enabledModules['plugin:<id>'] are independent; disablePlugin writes only the former, unbridgePluginModule only the latter, and workspace restore replaces the whole enabled map (so an older named workspace carrying plugin:x=false hides panels of a plugin re-enabled since). The never-persisted default is spelled at four sites with two answers.",
+    "evidence": "sidecar/services/plugins_store.py:37-45, src/lib/workspace.ts:50-51,262-263, src/lib/plugin-runtime.ts:221-227,310-316,344-348, src/lib/plugin-bootstrap.ts:193-194,262-263, src/store/marketplace.ts:108-111,123-126",
+    "evidence_checked": "code-only: all cited write sites and defaults",
+    "repro_check": "design finding; confirmed by reading each writer: only store/marketplace.ts:182-183 writes both stores."
+  },
+  {
+    "raw_id": "COD-plugins-13",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The invariant is guarded, by exactly the fix the finding proposes: a vitest over every CATALOG_ROWS entry asserts discovered.manifest.id === entry.pluginId and discovered.instance.pluginId === entry.pluginId, and it runs in CI (vitest is a ci-local gate). A typo in a bundled row fails the build.",
+    "evidence": "src/lib/marketplace.test.ts:39-46",
+    "evidence_checked": "opened the test and ran it",
+    "repro_check": "pnpm exec vitest run src/lib/marketplace.test.ts -> 5 passed (incl. 'every catalog row is runtime-loadable: manifest id+version match the instance')."
+  },
+  {
+    "raw_id": "COD-plugins-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "parseSemver's stripped class includes '<', so '<0.9.0' parses as 0.9.0 and hostSatisfies applies >=, inverting the constraint, and the error message hardcodes '>='. Latent: bundled manifests use bare x.y.z or '>=0.4.0'.",
+    "evidence": "src/lib/plugin-runtime.ts:113-125, src/lib/plugin-runtime.ts:133-139, src/lib/plugin-runtime.ts:374-376, plugins/openbb-mcp/manifest.json:6",
+    "evidence_checked": "code-only: parseSemver regex, hostSatisfies, checkCompatibility message; grep of requiredHostVersion in bundled manifests",
+    "repro_check": "Read regex /^[\\^~>=<\\s]+/ -> '<0.9.0' -> [0,9,0]; hostSatisfies('0.8.0','<0.9.0') = false."
+  }
+]

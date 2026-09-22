@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "INT-spec-135-137",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Reproduced live: /quotes/ZZZZNOTREAL returns 502 with a raw yfinance AttributeError string, /macro/GDP a raw World Bank APIError+URL, and /history/ZZZZNOTREAL 200 bars:[] reason:'in_eod_only'. The ProviderError handler is a bare str(exc) passthrough, the frontend shows `detail` verbatim, services/errors.humanize is only called from LLM adapters/llm+agents routers, and _empty_series_reason falls back to the active IN locale when region_hint is None (unknown symbol), so the chart tells the user India is EOD-only for a ticker that does not exist.",
+    "evidence": "sidecar/app.py:312-315, src/lib/sidecar-client.ts:47-52,197-204, sidecar/routers/history.py:15-28, sidecar/services/symbol_resolver.py:424-445, src/modules/chart/ChartPanel.tsx:386-389, sidecar/services/errors.py:104 (callers: services/llm/*.py, routers/llm.py:143, routers/agents.py:107 only), specs FR-062 (spec.md:991-995)",
+    "evidence_checked": "Opened handler, client error extraction, history router, region_hint, chart copy, grep of humanize callers; re-ran all three repros against :52152",
+    "repro_check": "curl :52152/quotes/ZZZZNOTREAL -> 502 {\"detail\":\"yfinance quote failed ... 'PriceHistory' object has no attribute '_dividends'\"}; /history/ZZZZNOTREAL?timeframe=1d -> 200 reason in_eod_only; /macro/GDP -> 502 raw 'APIError: JSON decoding error (https://api.worldbank.org/...)'"
+  },
+  {
+    "raw_id": "INT-spec-135-139",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Gap is real: the registry's only IN quote/ohlcv lanes are nse_direct/nse/bse (keyless EOD) + yfinance, no EODHD/Twelve Data exists anywhere, and the marketplace catalog has no India data-source row, contrary to FR-064. Corrected scope: the broker half of the proposed fix (Kite/Dhan/Angel One as a BYOK quote upgrade) is gone with the 23 Sep trading/broker removal and must not be built; what survives is (a) no non-broker BYOK realtime/intraday India vendor and no marketplace row for the keyless India lane, and (b) the chart's in_eod_only copy now points users at 'a BYOK broker (Kite/Upstox/Dhan)', a feature being deleted, so the copy must change regardless.",
+    "evidence": "sidecar/services/provider_registry.py:113-213, src/lib/marketplace.ts:84-180 (rows: Yahoo, OpenBB, Lenses, Market News, Example), types/marketplace.ts:60-70, src/modules/chart/ChartPanel.tsx:387-388, specs FR-064 (spec.md:1002-1005)",
+    "evidence_checked": "Opened provider declarations and marketplace catalog, grepped sidecar/src/types/plugins for eodhd|twelve data (no hits), read chart empty-state copy; code-only (design finding)",
+    "repro_check": "grep -rniE 'eodhd|twelve ?data|twelvedata' sidecar src types plugins -> no files; provider_registry _PROVIDERS has no broker-backed or paid IN quote declaration"
+  },
+  {
+    "raw_id": "INT-spec-135-141",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "R13 report records NORMAL at 33s and 38s against FR-070's <=15s typical target; fast.py runs the structured legs and the seven witness legs in asyncio.gather with no per-leg timeout, and no test asserts a fast-path latency budget (test_research_depth only exercises step ceilings). Part of the wall time is the model's prose turn on the free lane, but nothing measures or guards the budget, so the regression is invisible.",
+    "evidence": "docs/redesign/verification/R13_RUN_REPORT.md:30,46, sidecar/services/research/fast.py:329-332,377-385,630, specs FR-070 (spec.md:1014-1018), sidecar/tests/test_research_depth.py:186-372",
+    "evidence_checked": "Read R13 report lines, fast.py gather sites (grep for timeout/wait_for: none in fast.py), spec FR-070, grep of tests for latency assertions; no live LLM drive (cost/budget)",
+    "repro_check": "grep -n 'timeout\\|wait_for' sidecar/services/research/fast.py -> none; R13_RUN_REPORT.md shows 'NORMAL (15:07, 33s, 12 steps)' and 'NORMAL (19:37, 38s)'"
+  },
+  {
+    "raw_id": "INT-spec-135-143",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed: DEEP/ULTRA builds BudgetGuard with only max_steps + max_wall_seconds, oneshot.complete returns a bare str so usage is dropped, and every loop site calls budget.record(None, ...) (deep.py's docstring admits real usage is never wired), so brief.cost carries zero tokens/spend and BriefPanel omits the segments. Wall and step ceilings do bound the number of billed calls, so spend is indirectly bounded but never metered, capped or shown, violating FR-072/074 on the most expensive BYOK path.",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:232-236,322-325, sidecar/services/llm/oneshot.py:46-53, sidecar/services/research/iter.py:585,962,1023,1146, sidecar/services/research/deep.py:19-25,1214, sidecar/services/research/verify.py:319, sidecar/services/budget_guard.py:95-125, src/modules/research/BriefPanel.tsx:112-146",
+    "evidence_checked": "Opened guard construction, llm_call wrapper, oneshot.complete signature, all budget.record call sites, BudgetGuard ctor/record, BriefPanel cost rendering; code-only (no paid DEEP drive)",
+    "repro_check": "grep -n 'budget.record' sidecar/services/research/{iter,deep,verify}.py -> every call passes None; BudgetGuard(...) in deep_research.py:232 has no max_tokens/max_spend_usd"
+  },
+  {
+    "raw_id": "INT-spec-135-144",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Both Tier B lanes attach cost_estimate_usd to the result only after backend.research() returns, and no chat/composer surface computes or shows a per-run estimate before dispatch (FR-073 MUST). Only mitigation: Settings shows per-token unit rates (priceHint) beside each stop's model select, which is not a per-run pre-start estimate, so low stands.",
+    "evidence": "sidecar/services/agent_tools/deep_research.py:147-152,180-185, sidecar/services/research/sonar.py:110-123, src/store/search-settings.ts:112-125, src/components/SettingsPanel.tsx:1026-1033, src/modules/chat/ChatSidebar.tsx:811-848, specs FR-073 (spec.md:1027-1028)",
+    "evidence_checked": "Opened both Tier B runners, estimate_cost_usd, store pricing table, Settings render, grepped src for estimate/cost surfaces in chat; code-only",
+    "repro_check": "grep -rn 'RESEARCH_MODEL_OPTIONS|priceHint' src --include=*.tsx -> SettingsPanel only; out.setdefault('cost_estimate_usd', ...) runs after await backend.research(...)"
+  }
+]

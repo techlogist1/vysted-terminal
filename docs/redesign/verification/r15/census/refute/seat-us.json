@@ -1,0 +1,11 @@
+[
+  {
+    "raw_id": "SEAT-US-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The hardcoded literals are real in all four panels (valuation 2026-05-16, expiry 2026-06-30; bond issue/settlement 2026-05-16, maturity 2036-05-16; yield-curve DEFAULT_VALUATION_DATE 2026-05-16), so every open prefills a months-stale example. Corrected on consequence: the sidecar pins QuantLib's evaluationDate to the SUPPLIED valuation date (not today), so the prefilled price/theta is internally correct for the dated hypothetical shown in editable rail inputs; nothing wrong is presented as current data, the user just has to retype two dates every time. That is polish, not a medium defect; fix shape (derive defaults from today at mount via one shared helper) stands.",
+    "evidence": "src/modules/quant/OptionPricerPanel.tsx:235-236, src/modules/quant/OptionPricerPanel.tsx:264-267, src/modules/quant/OptionPricerPanel.tsx:318-319, src/modules/quant/GreeksDashboard.tsx:174-175, src/modules/quant/BondPricerPanel.tsx:107-109, src/modules/quant/YieldCurvePanel.tsx:81, src/modules/quant/YieldCurvePanel.tsx:141, sidecar/services/quant/_common.py:34-41, sidecar/services/quant/options.py:65-69, sidecar/services/quant/bonds.py:52",
+    "evidence_checked": "code-only at HEAD d7b7167: opened all four cited panel lines, the option panel's validation + request builder, and the sidecar quant services that consume valuation_date. No stack repro needed; behaviour is fully determined by the literals and the evaluationDate pinning.",
+    "repro_check": "grep -rn '2026-0[0-9]-[0-9][0-9]' src/modules/quant/ -> 7 literal hits across the 4 panels (matches the finding); grep evaluationDate sidecar/services/quant -> set from req.valuation_date / req.settlement_date, never date.today(), so outputs are self-consistent for the stale example."
+  }
+]

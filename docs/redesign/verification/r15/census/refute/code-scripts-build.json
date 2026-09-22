@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-scripts-build-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, and I reproduced it: SOURCE_EXT does not match '*.json.gz', so the bundled seed pack is invisible to both isStale (the auto-rebuild) and assertFresh (the gate), and a regenerated pack ships the old snapshot. Downgraded from high because the pack is NULL-fill only and stamped seed_updated_at/_generated, so its values are labeled with their vintage and are never presented as live. An out-of-date labeled seed is not wrong data shown as true. Also, CI builds from scratch (src-tauri/binaries/ is gitignored), so only a local incremental release build is exposed.",
+    "evidence": "scripts/sidecar-staleness.mjs:41, scripts/sidecar-staleness.mjs:62-63, scripts/ensure-sidecar.mjs:81-86, scripts/ensure-sidecar.mjs:178-189, sidecar/services/fundamentals_seed.py:21-23, sidecar/services/fundamentals_seed.py:37-43, sidecar/services/fundamentals_warm.py:141-151, .gitignore:14",
+    "evidence_checked": "Read the staleness module, ensure-sidecar --add-data list, seed loader + consumer; listed sidecar/services/screener_universes (716902-byte .json.gz present); ran isStale against a scratch tree",
+    "repro_check": "scratch dir with bin mtime 2020 + fresh seed.json.gz -> node import isStale(bin, src) printed 'stale with only .gz newer: false', newestSourceMtime=0"
+  },
+  {
+    "raw_id": "COD-scripts-build-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed: _assertAllFresh hard-codes its own copy of each sidecar's dirs/excludeDirs/extraFiles, separate from the STALE_OPTS in each ensure script. The copies match today. Downgraded to medium because nothing has diverged yet, so it is a latent maintainer hazard (it would bite as soon as COD-scripts-build-1 is fixed on one side only), not a flow that currently breaks.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:861-888, scripts/ensure-sidecar.mjs:73-81, scripts/ensure-openbb-mcp-sidecar.mjs:88-91, scripts/ensure-sec-edgar-mcp-sidecar.mjs:78-81",
+    "evidence_checked": "Opened all four sites side by side; the excludeDirs + extraFiles sets are equivalent today",
+    "repro_check": "sed -n 855,925p scripts/smoke-test-sidecars.mjs vs sed -n 69,91p of each ensure script: same sets, maintained independently"
+  },
+  {
+    "raw_id": "COD-scripts-build-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. targetTriple/run/sleepSync/copyWithRetry are copied across the three ensure scripts (the sec-edgar copy differs from ensure-sidecar's only in log prefixes and a docstring), smoke-test has a fourth triple helper, and the venv/pip/staleness/copy/sign/tidy sequence repeats in each. Adding a sidecar touches ensure-all SCRIPTS, the smoke-test spec + loop, and externalBin.",
+    "evidence": "scripts/ensure-sidecar.mjs:29-62, scripts/ensure-sec-edgar-mcp-sidecar.mjs:36-68, scripts/ensure-openbb-mcp-sidecar.mjs:46-78, scripts/smoke-test-sidecars.mjs:519, scripts/ensure-all-sidecars.mjs:28-32, scripts/smoke-test-sidecars.mjs:904-910",
+    "evidence_checked": "grep of helper definitions across the scripts plus a diff of ensure-sidecar.mjs:29-62 against ensure-sec-edgar-mcp-sidecar.mjs:36-68",
+    "repro_check": "diff <(sed -n 29,62p ensure-sidecar.mjs) <(sed -n 36,68p ensure-sec-edgar-mcp-sidecar.mjs) -> only log-prefix/docstring lines differ"
+  },
+  {
+    "raw_id": "COD-scripts-build-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism is real. The BSE bhavcopy probe (4s), the NSE curl_cffi probe (60s execFileSync), and the /history/ICONIKSPEV probe (30s) can only console.warn, and main() calls them no matter how the gating tests went. Downgraded to low: they add at most ~95s of wall clock, and they never make a broken binary pass (the gating checks run separately and still push failures). The cost is CI time plus advisory signal nobody sees, and _httpGetOk's swallow means a URL-shape break cannot be told apart from 'offline'.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:370-399, scripts/smoke-test-sidecars.mjs:413-471, scripts/smoke-test-sidecars.mjs:706-720, scripts/smoke-test-sidecars.mjs:916-919, scripts/smoke-test-sidecars.mjs:334-345, .github/workflows/test.yml:69, .github/workflows/build.yml:74",
+    "evidence_checked": "Read all three probes, their helpers and main(); grep of the workflows for the call sites. Did not run the smoke test (heavy lane)",
+    "repro_check": "code-only: every miss/err branch in the three probes is console.warn with no failures.push/exit; timeouts are 4000, 60_000 and 30000 ms"
+  },
+  {
+    "raw_id": "COD-scripts-build-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The PNGs are PIL-drawn mocks with hard-coded rows and the retired amber/charcoal palette. They do not pose as captures, though: both READMEs say they are Pillow 'stand-ins' produced by the generator scripts, and they sit in the version-scoped v0.6.0 folder, which the protocol says must never be overwritten. They are not presented as v0.8.0 proof. What remains is low doc hygiene: mislabelled-by-location mock images, plus two dead generator scripts.",
+    "evidence": "scripts/render_phase_6_e_screenshots.py:1-14, scripts/render_phase_6_e_screenshots.py:25-34, scripts/render_phase_6_e_screenshots.py:81-87, docs/screenshots/v0.6.0/teammate-e/README.md (Generator script section: 'The screenshots are stand-ins'), docs/screenshots/v0.6.0/teammate-sc/README.md ('Capture method: Pillow-rendered shape-for-shape stand-ins')",
+    "evidence_checked": "Read the generator headers/rows, listed both screenshot dirs (4 + 2 PNGs), read both READMEs' capture-method sections, listed docs/screenshots/ (later per-release folders exist)",
+    "repro_check": "ls docs/screenshots/v0.6.0/teammate-{e,sc}; sed README capture-method sections -> they explicitly disclose PIL stand-ins"
+  },
+  {
+    "raw_id": "COD-scripts-build-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed by simulating the path on win32. ROOT becomes '/C:/Users/.../' (percent-escaped), path.win32.join gives '\\\\C:\\\\...\\\\src', and that resolves to '<drive>:\\\\C:\\\\...', an invalid path. statSync throws, the catch hits continue, and the script prints 'design-token audit clean' having scanned nothing. The operator's primary dev machine is Windows, so a manual run there (the workflow R9_DESIGN_SYSTEM.md:133 prescribes) gives a false clean today.",
+    "evidence": "scripts/audit-design-tokens.mjs:23, scripts/audit-design-tokens.mjs:75-81, scripts/audit-design-tokens.mjs:121, scripts/ensure-sidecar.mjs:18, docs/redesign/R9_DESIGN_SYSTEM.md:133",
+    "evidence_checked": "Read the script; ran a node simulation of the URL->pathname->path.win32.join/resolve chain",
+    "repro_check": "node -e with path.win32: new URL('..','file:///C:/Users/Lokavya%20S/vysted-terminal/scripts/x.mjs').pathname -> '/C:/Users/Lokavya%20S/vysted-terminal/' -> join 'src' = '\\\\C:\\\\Users\\\\Lokavya%20S\\\\...\\\\src' -> resolve = 'D:\\\\C:\\\\Users\\\\...' (invalid)"
+  },
+  {
+    "raw_id": "COD-scripts-build-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. R9_DESIGN_SYSTEM.md:40-42 says the audit 'runs in the gate battery', but no package.json script, no ci-local step and no workflow invokes it; lint.yml runs only eslint/prettier/ruff. The spec's only automated token enforcement is not wired in.",
+    "evidence": "docs/redesign/R9_DESIGN_SYSTEM.md:40-42, package.json:10-20, .github/workflows/lint.yml:87-89",
+    "evidence_checked": "grep -rn audit-design-tokens across package.json, .github/, scripts/ and the R9 doc",
+    "repro_check": "grep -rn 'audit-design-tokens' package.json .github/ -> no hits; only the script's own usage line and R9 doc:40,133"
+  },
+  {
+    "raw_id": "COD-scripts-build-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The fixed-path ledger and the unlocked read-modify-write are real. The consequence is misstated. In a concurrent run, B's pre-flight does not just drop A's live rows: it sees them alive and marker/comm-matched (they really are smoke children), so it TREE-KILLS A's in-flight sidecars, then clears the file. The visible result is a spurious failure of run A, not a silent orphan. The orphan-loss path needs an RMW interleave followed by a hard kill of A. Low: concurrent smoke runs on one host are an edge case (GitHub-hosted jobs get separate VMs).",
+    "evidence": "scripts/smoke-test-sidecars.mjs:116-119, scripts/smoke-test-sidecars.mjs:122-150, scripts/smoke-test-sidecars.mjs:283-330 (pre-flight: _isPidAlive -> _confirmOwnedByMarker -> _killTree, then _writeState([]))",
+    "evidence_checked": "Read the ledger helpers, cleanup handlers and _scopedOrphanPreflight in full; not run concurrently (heavy lane)",
+    "repro_check": "code-only: a second concurrent run enters _scopedOrphanPreflight, and for each of run A's live rows _confirmOwnedByMarker returns true -> _killTree(pid)"
+  },
+  {
+    "raw_id": "COD-scripts-build-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The statSync at :63 is unguarded while :51-55 and :79-85 are guarded, which is real. The headline repro is wrong: readdirSync(withFileTypes) returns a symlink Dirent whose isFile() is false, so a dangling symlink is skipped and nothing crashes (verified). All that remains is a TOCTOU window where a SOURCE_EXT file outside IGNORE_DIRS is deleted between readdir and stat, which is rare because the cache dirs are already pruned. Side note: symlinked real sources are ignored for staleness for the same reason.",
+    "evidence": "scripts/sidecar-staleness.mjs:26-36, scripts/sidecar-staleness.mjs:51-55, scripts/sidecar-staleness.mjs:58-65, scripts/sidecar-staleness.mjs:79-85",
+    "evidence_checked": "Read the module; ran newestSourceMtime on a scratch tree containing a dangling .py symlink",
+    "repro_check": "ln -s /nonexistent scratch/src/dangling.py; node import newestSourceMtime(scratch/src) -> returned 0, no throw"
+  },
+  {
+    "raw_id": "COD-scripts-build-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. MCP_BIND_TIMEOUT_MS=90_000 is tied to lib.rs MCP_PORT_WAIT_SECS=45 x ATTEMPTS=2 only by a comment. The one Rust guard, mcp_wait_budget_constants_drive_the_helper, asserts only budget_secs >= 15, so dropping it to 20 passes every test while the smoke gate keeps certifying 90s binds.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:97-100, src-tauri/src/lib.rs:78, src-tauri/src/lib.rs:83, src-tauri/src/lib.rs:600-622, src-tauri/src/openbb_mcp.rs:149-152, src-tauri/src/sec_edgar_mcp.rs:148-151",
+    "evidence_checked": "Read the smoke constant plus comment, grep of MCP_PORT_WAIT across src-tauri, read the Rust test",
+    "repro_check": "code-only: lib.rs:611 assert!(budget_secs >= 15) is the only bound; nothing in scripts/ reads the Rust constant"
+  },
+  {
+    "raw_id": "COD-scripts-build-11",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. _httpGetOk wraps the fetch in try/catch returning false and clears its timer in finally, so the awaited promise cannot reject and the catch at :393-398 is dead. The status/error distinction the probe's own comment asks for is thrown away at :341.",
+    "evidence": "scripts/smoke-test-sidecars.mjs:334-345, scripts/smoke-test-sidecars.mjs:382-398",
+    "evidence_checked": "Read _httpGetOk and _probeBseBhavcopyNoSla",
+    "repro_check": "code-only: _httpGetOk body is try{fetch; return resp.ok}catch{return false}finally{clearTimeout} -> no rejection path"
+  },
+  {
+    "raw_id": "COD-scripts-build-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed that ruff runs only on sidecar/ in lint.yml and ci-local, and that ruff 0.15.12 on scripts/ reports F541 + F841 and would reformat 2 files. Scope correction: 12 tracked .py files sit outside the gate, not just the two screenshot generators. The others are the r15 tooling (vy.py, register.py, ...) and scripts/rig/ including test_rig_guard.py. Those are real tools today, so the blind spot is not only hypothetical. Still low.",
+    "evidence": ".github/workflows/lint.yml:87-89, package.json:20, scripts/render_phase_6_sc_screenshots.py:191",
+    "evidence_checked": "git ls-files 'scripts/**/*.py'; ran sidecar/.venv/bin/ruff (0.15.12) check + format --check on scripts/",
+    "repro_check": "sidecar/.venv/bin/ruff check scripts --statistics -> F541 x1, F841 x1; ruff format --check scripts -> 2 files would be reformatted, 10 already formatted"
+  },
+  {
+    "raw_id": "COD-scripts-build-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. Pillow is in none of the four requirements files and the sidecar venv has no PIL. load_font tries only two C:/Windows/Fonts paths, then falls back to ImageFont.load_default() with no size argument, so every requested size collapses to one default font on macOS/Linux. These are dead v0.6.0-era scripts, and deleting them under COD-scripts-build-5 closes this too.",
+    "evidence": "scripts/render_phase_6_e_screenshots.py:20, scripts/render_phase_6_e_screenshots.py:37-48, scripts/render_phase_6_e_screenshots.py:55-57, scripts/render_phase_6_sc_screenshots.py:39-47, scripts/render_phase_6_sc_screenshots.py:88-96",
+    "evidence_checked": "grep -il pillow over the sidecar requirements files (no hits); imported PIL in the sidecar venv; read both load_font helpers",
+    "repro_check": "sidecar/.venv/bin/python -c 'import PIL' -> ModuleNotFoundError: No module named 'PIL'"
+  },
+  {
+    "raw_id": "COD-scripts-build-14",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed. The partition lists no tests, no test file references the staleness, ensure, smoke or audit scripts, and a scratch-tree check proves a unit test would have caught COD-scripts-build-1. Fix-shape correction: vitest.config includes only src/** and plugins/** test files, so a scripts/*.test.mjs would NOT run under 'pnpm test' until the include list is widened. The raw note's 'no new tooling' is slightly wrong.",
+    "evidence": "docs/redesign/verification/r15/census/CODE_PARTITION.json (scripts-build: \"tests\": []), scripts/sidecar-staleness.mjs:41-124, vitest.config (include: [\"src/**/*.test.{ts,tsx}\", \"plugins/**/*.test.{ts,tsx}\"])",
+    "evidence_checked": "Parsed CODE_PARTITION.json, ran git ls-files/grep for tests touching these scripts, grepped the vitest include",
+    "repro_check": "git ls-files | grep -E '(sidecar-staleness|ensure-|smoke-test|audit-design).*(test|spec)' -> none; vitest include line 11 excludes scripts/"
+  }
+]

@@ -1,0 +1,128 @@
+[
+  {
+    "raw_id": "COD-runs-durable-delegate-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. _drive_run keeps only delta text and '[tool_use name]' markers (publish_brief/host-action/progress events are dropped, and host actions are frontend-executed so they never apply), fuses all rounds' deltas into one message after every tool marker, the digest truncates each message to 500 chars, and no frontend code fetches GET /runs/{id}; the rail shows running|paused only and onForeground prints a one-line status.",
+    "evidence": "sidecar/services/run_manager.py:164-181, sidecar/services/runs_store.py:184, src/modules/chat/AgentsRail.tsx:29-32, src/modules/chat/ChatSidebar.tsx:1177-1187, src/modules/chat/ChatSidebar.tsx:846-850, src/lib/delegate-runs.ts:174-179, sidecar/services/agent_tools/catalog.py:58",
+    "evidence_checked": "code read + live GET against :52152; grep over src/ for '/runs' callers (only /runs list, /cancel, /answer, /resume)",
+    "repro_check": "curl :52152/runs/3aa27a3b2ebb4e64bd8d48c2da23ae26 -> done run, 54,450 tokens/$0.1089, transcript = prompt + 8 '[tool_use \u2026]' markers + one assistant message of exactly 500 chars ending 'Let me screen the major IT names an'"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Mechanism fully confirmed: resume_run spawns with provider/model/api_key=None, routes never pass a key, RunAnswerRequest has no key field, provider/model are not persisted, and cost is reset to RunCost(); 10 of 13 bundled agents default to keyless anthropic. Severity lowered high->medium because no UI path reaches either resume (resumeDelegateRun has zero callers) or answer (no pause trigger, finding 10), so no user hits the failure today - it is a dead/false SC-008 claim rather than a broken core flow.",
+    "evidence": "sidecar/services/run_manager.py:394-412, sidecar/routers/runs.py:118, sidecar/routers/runs.py:130, sidecar/models/run.py:144-149, sidecar/services/runs_store.py:75, sidecar/services/agent_runtime.py:524-526, sidecar/agents/*.json defaultProvider, src/lib/delegate-runs.ts:226",
+    "evidence_checked": "code read + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir); grep for resumeDelegateRun callers in src/ (none)",
+    "repro_check": "proof.py P4: spy on agent_runtime.invoke_agent during run_manager.resume_run -> {'provider': None, 'model': None, 'api_key': None}"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. _on_round_usage only sets a flag; invoke_agent fires the callback then breaks to tool dispatch without yielding, so the consumer can only stop on the NEXT yielded event - after that round's tools run and (for tools that yield no progress) the next provider request is sent and never metered.",
+    "evidence": "sidecar/services/run_manager.py:133-140, sidecar/services/run_manager.py:176-178, sidecar/services/agent_runtime.py:1461-1473, sidecar/services/agent_runtime.py:1550-1575, sidecar/services/budget_guard.py:1-8",
+    "evidence_checked": "code read + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir)",
+    "repro_check": "proof.py P5: looping provider (tool_use + done 100k tokens), RunBudget(max_tokens=1000) -> status error 'token ceiling 1000 reached (100000 used)', provider calls = 2, recorded cost tokens=100000 steps=1"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. breach() uses >= for steps, the callback flags the breach on the final round's done, the consumer breaks on the yielded done, and breach_reason wins over natural completion, so a finished run is recorded as error; breach_reason also carries agent error text.",
+    "evidence": "sidecar/services/budget_guard.py:162, sidecar/services/run_manager.py:174-188",
+    "evidence_checked": "code read + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir)",
+    "repro_check": "proof.py P2: one-shot provider, RunBudget(max_steps=1) -> status error 'step ceiling 1 reached (1 taken)' while transcript holds ['x', 'final answer']"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. cancel_run and pause_run perform no status check, resume_run only rejects a live task, update_run writes any status, and the router classifies errors by substring with answer mapping 'already running' to 404 where resume maps it to 409. The UI-reachable form is the cancel race (row visible until the next 2 s poll after completion); resume-of-done is API-only. Note the runs table is not the \u00a76.5 audit log.",
+    "evidence": "sidecar/services/run_manager.py:285-316, sidecar/services/run_manager.py:361-400, sidecar/services/runs_store.py:271-304, sidecar/routers/runs.py:117-134",
+    "evidence_checked": "code read + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir)",
+    "repro_check": "proof.py P3: completed run (status done) -> run_manager.cancel_run -> status cancelled"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The CancelledError path writes only the checkpoint (no status), shutdown() cancels tasks, the lifespan has no startup sweep of running rows (run_manager appears only in the shutdown finally), the checkpoint is written only at terminal exits so a hard kill leaves checkpoint NULL (resume then raises 'no checkpoint' -> 404), and the 'FIRST' comment is wrong (runs are cancelled after fundamentals_warm and screener).",
+    "evidence": "sidecar/services/run_manager.py:183-220, sidecar/services/run_manager.py:421-438, sidecar/app.py:136-155, sidecar/services/runs_store.py:6-8",
+    "evidence_checked": "code read (grep run_manager/runs_store in app.py: only import + shutdown) + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir)",
+    "repro_check": "proof.py P6: hanging provider, launch, await run_manager.shutdown() -> row status still 'running'"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The runs store is in-memory, the poller skips sidecar runs with no local mirror, polling is a no-op unless a local run is active and only starts from launch/resume, and nothing on boot reads GET /runs, so after a renderer reload a live run is invisible and uncancellable from the UI while it continues to its ceiling.",
+    "evidence": "src/store/agent-runs.ts:75-76, src/lib/delegate-runs.ts:61-66, src/lib/delegate-runs.ts:124, src/lib/delegate-runs.ts:133-143, src/lib/delegate-runs.ts:164-166",
+    "evidence_checked": "code read; grep over src/ for pollDelegateRuns/launchDelegateRun/'/runs' callers (no boot-time adoption)",
+    "repro_check": "code-only (no GUI allowed): launch delegate run, reload webview -> store starts with runs:[]; poll returns early at delegate-runs.ts:137"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real: cancelRun flips local status to cancelled independent of the POST, cancelDelegateRun swallows errors and never checks response.ok. Two corrections: (a) reconciliation is not impossible - if another delegate run keeps the poll alive, updateRun (no terminal guard) at delegate-runs.ts:175 resets the row to running; (b) the realistic failure window is narrow, since /cancel only non-2xx's for an unknown run (404) and a loopback fetch failure usually means the sidecar (and therefore the run) is down - so medium->low.",
+    "evidence": "src/store/agent-runs.ts:85-111, src/lib/delegate-runs.ts:174-175, src/lib/delegate-runs.ts:183-192, src/lib/delegate-runs.ts:133-143, sidecar/routers/runs.py:106-111",
+    "evidence_checked": "code read (frontend store + poller + cancel route)",
+    "repro_check": "code-only: a rejected fetch in cancelDelegateRun leaves the store row 'cancelled' (agent-runs.ts:106-108) and, with no other active run, the poll returns at delegate-runs.ts:137"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds exactly as described: _drive_run writes history then the prompt, resume_run takes the first user turn as the prompt, and invoke_agent appends the prompt last, so after one answer the original prompt is replayed as the newest turn and after a second answer the first answer becomes the prompt. Reachable only via API (finding 10), so medium stands.",
+    "evidence": "sidecar/services/run_manager.py:126-129, sidecar/services/run_manager.py:338-343, sidecar/services/run_manager.py:368-393, sidecar/services/agent_runtime.py:1272, sidecar/services/agent_runtime.py:507-522",
+    "evidence_checked": "code read + scratch proof /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/runs/proof.py (sidecar venv, fake provider patched at agent_runtime.get_provider, temp data dir)",
+    "repro_check": "proof.py P1a -> [assistant, user 'ANSWER ONE', user 'ORIGINAL PROMPT']; P1b -> [..., user 'ORIGINAL PROMPT', assistant, user 'ANSWER TWO', user 'ANSWER ONE']"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. pause_run has no non-test caller and no route, so status 'paused', the question column, answer_run/POST /answer, answerDelegateRun and the rail's answer form can never fire; resumeDelegateRun, clearFinished (which also drops paused runs), active_run_ids and RunLaunchResponse are likewise unused, and models/run.py describes a different 'suspended on a future' design.",
+    "evidence": "sidecar/services/run_manager.py:24-34, sidecar/services/run_manager.py:301-316, sidecar/services/run_manager.py:416-418, sidecar/routers/runs.py:13-18, sidecar/models/run.py:30-31, sidecar/models/run.py:95-104, src/modules/chat/AgentsRail.tsx:139-160, src/lib/delegate-runs.ts:226, src/store/agent-runs.ts:116",
+    "evidence_checked": "grep -rn 'pause_run|active_run_ids|RunLaunchResponse' sidecar (non-test: definitions only); grep src/ for resumeDelegateRun/clearFinished (definitions only)",
+    "repro_check": "grep -rn pause_run sidecar --include=*.py | grep -v tests -> only run_manager.py:25 docstring and :301 def"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Mechanism confirmed: the guard is priced with str(provider or '') and an empty provider falls to the 5 $/M default, and the callback receives the resolved model but not the resolved provider. Severity medium->low: the UI always sends a resolved provider (providerOverride ?? agent preference ?? defaultProviderId), there is no MCP launch tool, and resume is unreachable from the UI, so only raw-HTTP launches that omit provider are mispriced.",
+    "evidence": "sidecar/services/run_manager.py:116, sidecar/services/run_manager.py:136, sidecar/services/budget_guard.py:60-79, sidecar/config/model_registry.json:77-80, sidecar/services/agent_runtime.py:1467, src/modules/chat/ChatSidebar.tsx:775-782, src/modules/chat/ChatSidebar.tsx:852-858, sidecar/services/mcp_server.py:338-364",
+    "evidence_checked": "code read; grep for launch_run callers outside run_manager/router (tests only); MCP surface has list_runs only",
+    "repro_check": "code-only: price_per_million('', 'claude-opus-4-8') -> no provider key matches '' -> DEFAULT_RATE_PER_M 5.0 vs registry claude-opus 30.0"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-12",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. Every RunBudget ceiling is Optional with no default or gt=0, launch uses the body's budget as-is, BudgetConfig maps an empty field to undefined (dropped by JSON.stringify) and allows 0, and asyncio.timeout(None) is a no-op with adapters carrying no per-stream timeout.",
+    "evidence": "sidecar/models/run.py:53-59, sidecar/models/run.py:91, sidecar/services/run_manager.py:142-152, sidecar/services/run_manager.py:258, src/modules/chat/BudgetConfig.tsx:36-44",
+    "evidence_checked": "code read + live GET :52152/runs",
+    "repro_check": "curl :52152/runs -> done run 3aa27a3b\u2026 has budget {max_tokens:None, max_spend_usd:None, max_wall_seconds:None, max_steps:None} and ran 54,450 tokens with no ceiling"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. _dual_case emits both spellings, models/run.py claims a camelCase wire mirrored in types/data.ts (no run types exist in types/), the frontend RunWire reads only snake_case spend_usd, and docs/SIDECAR_API.md has no runs section.",
+    "evidence": "sidecar/routers/runs.py:44-60, sidecar/models/run.py:10-17, src/lib/delegate-runs.ts:29-38, src/lib/delegate-runs.ts:167-172",
+    "evidence_checked": "code read; grep types/*.ts and docs/SIDECAR_API.md for runs/spendUsd/delegate (no mirror, no section)",
+    "repro_check": "curl :52152/runs -> each run's cost carries both spend_usd and spendUsd"
+  },
+  {
+    "raw_id": "COD-runs-durable-delegate-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. list_runs is SELECT * with no LIMIT (checkpoint_json pulled and discarded), every connection runs CREATE TABLE + PRAGMA table_info, update_run re-reads the full row via get_run for a result run_manager ignores, the sync SQLite write runs on the event loop inside the per-round callback, and the 2 s setInterval poll has no in-flight guard or timeout; no retention/delete path exists.",
+    "evidence": "sidecar/services/runs_store.py:105-116, sidecar/services/runs_store.py:246-250, sidecar/services/runs_store.py:296-304, sidecar/services/run_manager.py:133-137, src/lib/delegate-runs.ts:40, src/lib/delegate-runs.ts:61-66, src/lib/delegate-runs.ts:145-147",
+    "evidence_checked": "code read",
+    "repro_check": "code-only (design finding): runs_store.list_runs executes 'SELECT * FROM runs ORDER BY created_at DESC, id DESC' with no LIMIT"
+  }
+]

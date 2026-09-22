@@ -1,0 +1,38 @@
+[
+  {
+    "raw_id": "INT-spec-90-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real but much narrower than stated. The global handler does emit str(exc) as a raw 502 detail (app.py:312-315) and unclassified ProviderErrors leak internals (the /quotes/ZZZQNOPE repro reproduces verbatim), and no failure message carries a 'what would unlock it'. But the claim that three panels print that string does not hold for this repro: /fundamentals already maps not_found/rate_limited to human 404/429 text (fundamentals.py:~103-114, live 404 'No instrument matches ... check the symbol.'); Watchlist uses batch /quotes, which silently drops a failed symbol (200, row gets a null quote, watchlist/api.ts:37-41); Chart's /history returns 200 with empty bars and reason 'in_eod_only'; Equity Overview uses allSettled and on all-failed shows 'No data available for X' (EquityOverviewPanel.tsx:754-756), so the catch at :763 is effectively unreachable. The leak remains only for unclassified (kind=None) errors: the single-symbol /quotes route, the fundamentals 502 fall-through (fundamentals.py:115 -> EmptyState hint at EquityOverviewPanel.tsx:1048), and the chart catch at ChartPanel.tsx:408. Secondary defect: a nonexistent symbol on /quotes/{symbol} is misclassified as an unclassified yfinance attribute error instead of not_found. Downgraded to low because common failures are already humanized and the remaining leak is a polish and edge case.",
+    "evidence": "sidecar/app.py:312-315, sidecar/routers/fundamentals.py:88-115, sidecar/routers/quotes.py:52-62, sidecar/services/yfinance_provider.py:52-65, sidecar/services/errors.py:26-40, src/lib/sidecar-client.ts:42-52,198-204, src/modules/equity-overview/api.ts:85-125, src/modules/equity-overview/EquityOverviewPanel.tsx:752-763,1043-1050, src/modules/watchlist/api.ts:30-64, src/modules/watchlist/WatchlistPanel.tsx:200-208, src/modules/chart/ChartPanel.tsx:403-411",
+    "evidence_checked": "Opened all cited code plus callers; ran GET repros against :52152 for /quotes/ZZZQNOPE, /quotes?symbols=ZZZQNOPE,AAPL, /fundamentals/ZZZQNOPE, /history/ZZZQNOPE.",
+    "repro_check": "curl :52152/quotes/ZZZQNOPE -> 502 raw yfinance '_dividends' string (confirmed); /quotes?symbols=ZZZQNOPE,AAPL -> 200 AAPL only (failed symbol dropped); /fundamentals/ZZZQNOPE -> 404 humanized; /history/ZZZQNOPE -> 200 bars=[] reason=in_eod_only."
+  },
+  {
+    "raw_id": "INT-spec-90-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. PortfolioPanel fetches quotes and badges only a rejected fetch (setQuotesError, PortfolioPanel.tsx:141-160). Nothing in src/modules/portfolio references freshness, StalenessBadge or ProvenanceBadge, and there is no 'as of' on the totals. Watchlist renders StalenessBadge from quote.freshness (WatchlistPanel.tsx:72-75), and the sidecar does populate freshness on quotes (live AAPL quote carries freshness='eod'). So after-hours or stale values drive portfolio market value and P&L with no label.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:137-163, src/modules/watchlist/WatchlistPanel.tsx:70-76, sidecar/routers/quotes.py:30,52-62",
+    "evidence_checked": "Opened PortfolioPanel.tsx and WatchlistPanel.tsx; grepped the whole src/modules/portfolio dir for freshness/Staleness/Provenance (no hits beyond a comment); confirmed via GET :52152/quotes?symbols=AAPL that Quote.freshness is populated.",
+    "repro_check": "grep -rn 'freshness\\|Staleness' src/modules/portfolio -> no matches; curl :52152/quotes?symbols=AAPL -> freshness:'eod' present on the wire but unused by the portfolio."
+  },
+  {
+    "raw_id": "INT-spec-90-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. On a native-search tier, the runtime sets opts web_search=True with web_search_max_uses=5 and strips the local web_search tool (agent_runtime.py:1335-1340). OpenAI/xAI/OpenRouter, Gemini and Groq adapters pop web_search_max_uses unused (openai.py:665-667, gemini.py:112, groq.py:117), and only Anthropic applies it, per request. The only loop counter (web_search_calls, agent_runtime.py:1416,1553-1556) increments on local 'web_search' tool calls, which are absent on that tier. This contradicts the native_search.py:109-113 docstring that promises a loop-level counter. No native-search usage is metered anywhere (grep for server_tool_use/web_search_requests/search_count finds nothing), and BudgetGuard prices tokens only (budget_guard.py:82-84), so per-search charges are invisible to the spend ceiling.",
+    "evidence": "sidecar/services/agent_runtime.py:543-548,1335-1340,1416,1553-1565, sidecar/services/llm/openai.py:664-667, sidecar/services/llm/gemini.py:110-112, sidecar/services/llm/groq.py:117, sidecar/services/llm/anthropic.py:113,132, sidecar/services/llm/native_search.py:109-140, sidecar/services/budget_guard.py:70-84",
+    "evidence_checked": "Code-only (an LLM-backed repro would cost spend and is not needed). Opened the runtime, all adapter pop sites, the native_search helpers and budget_guard, and grepped for any native-search metering.",
+    "repro_check": "grep -rn 'web_search_max_uses' sidecar/services/llm -> popped and discarded in openai/gemini/groq, used only in anthropic; grep for server_tool_use|web_search_requests|search_count in the runtime/adapters/budget_guard -> no matches."
+  },
+  {
+    "raw_id": "INT-spec-90-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. In the registry, only openbb-mcp (rank 10) and yfinance (rank 50) serve fundamentals, income_statement, balance_sheet, cash_flow and analyst_rating. The IN-scoped providers nse_direct, nse and bse serve quote and ohlcv only, and the code comments say 'IN fundamentals fall through to yfinance'. A live GET /fundamentals/RELIANCE.NS on :52152 returns provider='yfinance'. That contradicts spec.md:817 ('yfinance is never the trusted India primary'). D72 documents openbb's all-null IN shells, so yfinance is in practice the primary for the numbers shown.",
+    "evidence": "sidecar/services/provider_registry.py:127-215, sidecar/routers/fundamentals.py:88-104, specs/001-agent-native-redesign/spec.md:817, docs/redesign/DECISIONS.md:127 (D72)",
+    "evidence_checked": "Opened the registry declarations, the fundamentals router and the spec clause; ran a live GET against :52152.",
+    "repro_check": "curl :52152/fundamentals/RELIANCE.NS -> provider='yfinance', market_cap=16785679056896.0, pe_ratio=22.45 (yfinance is the serving primary for an IN large-cap)."
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-45-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The shadow formatter suite is real (brief-blocks.tsx:55-101, en-US hardcoded at :61) and withCode (:187-192) renders a null OR 'USD' currency as a bare number while EquityOverview routes through formatCompactMoney with the instrument code, so the two surfaces spell the same money differently. Severity lowered from high: on the primary Indian path the currency resolves (live SUZLON.NS quote=INR via nse_direct, fundamentals=INR via yfinance), so the brief shows 'INR 591B', which is labelled and not wrong. Quote.currency also defaults to 'USD' at the model level (sidecar/models/market.py:22), so the null case only arises when there is no quote and fundamentals carry no currency. This is a consistency and maintenance defect, not wrong money shown as true.",
+    "evidence": "src/modules/research/brief-blocks.tsx:55-101, :61, :187-192, :351, :368, :458; src/lib/format.ts:38-48, :74-114; src/modules/equity-overview/EquityOverviewPanel.tsx:58; sidecar/models/market.py:22",
+    "evidence_checked": "Opened the brief formatter and the currency threading at :458, format.ts resolveCurrency/currencyAffix/formatCompactMoney, EquityOverview call site and the Quote model; GET against :52152 for RELIANCE.NS/SUZLON.NS quotes and SUZLON.NS fundamentals",
+    "repro_check": "curl 127.0.0.1:52152/quotes/SUZLON.NS -> currency INR (nse_direct); /fundamentals/SUZLON.NS -> currency INR; so the brief path prints 'INR <n>' and only the no-quote, null-fundamentals-currency edge renders bare"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "scripts/audit-design-tokens.mjs exists and passes, but nothing automated runs it: package.json lint and ci-local (:10, :20) omit it and no workflow, test or hook references it. That contradicts R9_DESIGN_SYSTEM.md:40-41, which says it 'runs in the gate battery'.",
+    "evidence": "package.json:7-24; docs/redesign/R9_DESIGN_SYSTEM.md:40-41, :133; scripts/audit-design-tokens.mjs",
+    "evidence_checked": "Grepped the whole repo (excluding node_modules/verification) for audit-design-tokens: only the script itself; read the package.json scripts block; ran the audit",
+    "repro_check": "grep -rln audit-design-tokens (ts/tsx/mjs/js/yml/json) -> only the script; node scripts/audit-design-tokens.mjs -> 'design-token audit clean' exit 0"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Scope is overstated. The hand-rolled tables at ScreenerResultsTable.tsx:347, WatchlistPanel.tsx:437 and EarningsCalendarPanel.tsx:216 are loading skeletons only; their data renders through DataTable (Screener :457, Watchlist :470). So there is no 'intra-file split' of data tables. The real survivors are the brief markdown table (brief-blocks.tsx:926), AuditLogViewer.tsx:155, BacktestResultView.tsx:242 and the Earnings data table (:278). Four divergent implementations of one law is a maintainability gap, not something a user hits, so it is low.",
+    "evidence": "src/components/DataTable.tsx:13-39; src/modules/screener/ScreenerResultsTable.tsx:343-360, :457; src/modules/watchlist/WatchlistPanel.tsx:436-470; src/modules/earnings/EarningsCalendarPanel.tsx:215-216, :278; src/modules/backtest/BacktestResultView.tsx:242; src/modules/research/brief-blocks.tsx:926",
+    "evidence_checked": "grep '<table' over src/*.tsx, then opened each site's surrounding branch (loading vs data)",
+    "repro_check": "grep -rn '<table' src --include=*.tsx -> 7 sites; 3 sit in loading branches (status==='loading' / rows===null / upcomingStatus loading)"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Confirmed: max-w-prose appears nowhere in src/. BriefBody's prose class (brief-blocks.tsx:1001) and the EquityOverview narrative (EquityOverviewPanel.tsx:419) have no width cap, and neither does the BriefPanel host (:737), which contradicts R9 §7's 'max-w-prose'. Lowered to low: long lines are a reading-comfort issue, and the text is never clipped, overlapping or unreadable.",
+    "evidence": "src/modules/research/brief-blocks.tsx:1001; src/modules/research/BriefPanel.tsx:737; src/modules/equity-overview/EquityOverviewPanel.tsx:419; docs/redesign/R9_DESIGN_SYSTEM.md:122-124",
+    "evidence_checked": "grep max-w-prose across src/ (zero hits); read the BriefBody container and the BriefPanel host plus the EquityOverview narrative block",
+    "repro_check": "grep -rn max-w-prose src -> no output; would confirm visually by widening the brief panel past 1200px (GUI not permitted)"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Each slash-menu row is a fixed h-8 (32px, default Tailwind spacing, no numeric --spacing-N overrides per tokens.css:134-137). It is a flex-col that stacks two text-caption spans at 13px x leading-body 1.5, which is 19.5px each and 39px in total. Flex items keep their min-height:auto content size, so each row overflows about 3.5px top and bottom into its neighbours, and the active row's bg-charcoal-800 cuts across the next item's text.",
+    "evidence": "src/modules/notes/NotesPanel.tsx:357, :364, :375-376; styles/tokens.css:114, :127, :134-137; src/app/globals.css (@utility text-caption -> --leading-body)",
+    "evidence_checked": "Read the slash-menu JSX and the type/leading/spacing tokens; code-only (no GUI allowed)",
+    "repro_check": "Arithmetic from source: 2 x (0.8125rem x 1.5) = 39px > h-8 32px in a justify-center flex-col; would confirm by typing '/' in Notes"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "The Lists group has only bullet and ordered buttons (NotesToolbar.tsx:210-224), while task lists work through the slash command (slash-commands.ts:44-46). PDD §12 line 261 promises 'Lists (bullet, numbered, task)'. This is a discoverability gap, which is low as stated.",
+    "evidence": "src/modules/notes/NotesToolbar.tsx:210-224; src/modules/notes/slash-commands.ts:44-46; docs/redesign/PRODUCT_DESIGN_DECISIONS.md:261",
+    "evidence_checked": "Read the toolbar Lists group, the slash commands and the PDD §12 line",
+    "repro_check": "grep -n 'TaskList\\|taskList' NotesToolbar.tsx -> no hits; slash-commands.ts:46 toggleTaskList"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "globals.css:113-116 sets tabular-nums plus 'tnum' 1, 'calt' 0 and has no 'zero' feature. tokens.css:101 still claims 'tabular figures + slashed zero (globals.css)', and PDD:176 says 'already set'. The only real harm is a false comment, because the default JetBrains Mono zero is already distinct from O. Low, as stated.",
+    "evidence": "src/app/globals.css:110-116; styles/tokens.css:99-101; docs/redesign/PRODUCT_DESIGN_DECISIONS.md:176",
+    "evidence_checked": "Read the body font-feature block; grepped src/ and styles/ for \"zero\", ss01 and slashed (only the tokens.css comment)",
+    "repro_check": "grep -rn '\"zero\"\\|ss01\\|slashed' src styles -> only styles/tokens.css:101"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-8",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: the .notes-prose fallbacks are 1.375rem, 1.125rem, 0.9375rem and 0.75rem, with weight 590. The warm-palette colour fallbacks (#4d463b, #ada294, #2d2820, #17140f, #3e372d) are stale in the same way. tokens.css is imported unconditionally at globals.css:7, so none of these fallbacks ever renders today. It is dead or stale code, low as stated.",
+    "evidence": "src/app/globals.css:7, :242-305, :70-77; styles/tokens.css:110-124",
+    "evidence_checked": "Read the .notes-prose block and the token scale",
+    "repro_check": "sed -n 238,305p src/app/globals.css -> literal fallbacks as cited"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-9",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "DataTable.tsx:29-30 promises an amber active-sort caret, but the caret renders text-charcoal-300 (:261-262). NotesToolbar.tsx:10 says 'amber TEXT', but active is text-charcoal-300 (#cccccc) against idle text-charcoal-400 (#a8a8a8) with no fill or weight (:104-106; tokens.css:42-43), so the active cue is one faint luminance step. Stale contract comments plus a weak active indicator: low.",
+    "evidence": "src/components/DataTable.tsx:29-30, :261-262; src/modules/notes/NotesToolbar.tsx:10, :104-106; styles/tokens.css:42-43; docs/redesign/R9_DESIGN_SYSTEM.md:78-81",
+    "evidence_checked": "Read both header comments, both active-state class lists and the charcoal ramp values",
+    "repro_check": "sed -n 255,265p DataTable.tsx -> caret text-charcoal-300; NotesToolbar :104-106 active 'text-charcoal-300' vs idle 'text-charcoal-400'"
+  },
+  {
+    "raw_id": "INT-pdd-readme-45-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "A literal '$' prefixes the bond clean price (BondPricerPanel.tsx:301), dirty price (:323), accrued interest (:326) and the option price (OptionPricerPanel.tsx:525), and neither panel collects a currency. One correction: the Monte Carlo standard error (:531-532) renders as '± n (1 SE)' with no '$', so only four figures carry the hardcoded dollar, not five. Severity holds at medium.",
+    "evidence": "src/modules/quant/BondPricerPanel.tsx:301, :323, :326; src/modules/quant/OptionPricerPanel.tsx:525, :531-532",
+    "evidence_checked": "Read the result-render blocks of both pricers; grepped both files for 'currency' (no hits)",
+    "repro_check": "grep -n '\\$\\${' BondPricerPanel.tsx -> :323, :326; JSX literal '$' at Bond :301 and Option :525; SE line has no '$'"
+  }
+]

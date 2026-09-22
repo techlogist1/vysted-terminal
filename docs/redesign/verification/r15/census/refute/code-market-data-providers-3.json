@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "COD-market-data-providers-3-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The code claim holds: no production file under src/modules/earnings or src/modules/analyst-ratings reads `currency` (grep), fmt()/eps()/formatPrice drop it, and EarningsSurpriseChart hardcodes 'Surprise (EPS $)'. But the stated repro (AAPL + RELIANCE-NS rendering 42.10 INR beside 2.35 USD) cannot happen today: earnings_provider._normalise_symbol and analyst_ratings_extended._normalise_symbol turn RELIANCE.NS into RELIANCE-NS, which yfinance 404s, so every .NS/.BO symbol returns zero events/history/targets and every row that renders is USD. Nothing false is on screen now, so not critical. Kept at high because it is coupled to COD-market-data-providers-1-3: the moment that one-line symbol fix lands, INR rows flow into these currency-blind columns and the cross-currency sort becomes real, so the two must ship together.",
+    "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:34-37, src/modules/earnings/EarningsCalendarPanel.tsx:51-66, src/modules/earnings/EarningsCalendarPanel.tsx:360-365, src/modules/earnings/EpsEstimateGrid.tsx:25-31, src/modules/earnings/EarningsSurpriseChart.tsx:83, src/modules/analyst-ratings/IndividualAnalystTable.tsx:64-69, src/modules/analyst-ratings/PriceTargetTimeline.tsx:93-111, types/earnings.ts:41, types/analyst.ts:80, sidecar/services/earnings_provider.py:79-81, sidecar/services/earnings_provider.py:147-181, sidecar/services/earnings_provider.py:272, sidecar/services/analyst_ratings_extended.py:131",
+    "evidence_checked": "Opened every cited display file plus both providers. Ran GETs against :52152, and ran yfinance directly in the sidecar venv for RELIANCE.NS vs RELIANCE-NS.",
+    "repro_check": "curl '127.0.0.1:52152/earnings/upcoming?days=60&watchlist=AAPL,RELIANCE.NS,TCS.NS,MSFT,INFY.NS,HDFCBANK.NS,NKE,FDX,ORCL' -> only NKE/FDX/MSFT/AAPL, all USD; /earnings/RELIANCE.NS/history -> {symbol:'RELIANCE-NS',history:[]}; /fundamentals/RELIANCE.NS/ratings/price-target-history -> []; yfinance Ticker('RELIANCE.NS').calendar has Earnings Date 2026-10-16 with currency INR, while Ticker('RELIANCE-NS') 404s"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: every getX in both stores returns the cached payload unconditionally, with no timestamp and no eviction. The Load button sets the same symbol string and retryTab calls the same short-circuiting accessor, so nothing in the panel can refetch, and no as-of is shown. The headline mechanism is overstated, though: the sidecar route caches the same data for 6 h (ratings) or 24 h (earnings history), so a frontend refresh would not reveal an 11:00 downgrade after a 09:00 load anyway. The frontend's permanence only adds staleness beyond the sidecar TTL in long desktop sessions. The durable defect is the missing as-of and the missing refresh on a data-trust surface: medium, not high.",
+    "evidence": "src/store/analyst-ratings.ts:51-54, src/store/analyst-ratings.ts:79-82, src/store/analyst-ratings.ts:107-110, src/store/earnings.ts:105-108, src/store/earnings.ts:133-136, src/store/earnings.ts:161-164, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:63-77, src/modules/analyst-ratings/AnalystRatingsPanel.tsx:96-102, sidecar/routers/fundamentals.py:51, sidecar/routers/fundamentals.py:211, sidecar/routers/earnings.py:36-38",
+    "evidence_checked": "Code only: both stores, the panel's submit/retry paths, and the sidecar TTLs in both routers. No repro, since it is a session-lifetime property.",
+    "repro_check": "Read store/analyst-ratings.ts getHistory: `const cached = get().histories[normalized]; if (cached) return cached;` has no fetchedAt; `grep -n 'refresh|fetchedAt|asOf' src/store/analyst-ratings.ts src/store/earnings.ts src/modules/analyst-ratings src/modules/earnings` finds no match; fundamentals.py:51 `_TTL_RATINGS = 6 * 60 * 60`"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: doLoad (740-769) has no sequence guard, while fetchNarrative right above it does (narrativeSeqRef). The command-bus effect (821-831) calls doLoad without checking `loading`, so the load that settles last wins, and the first one's finally clears the spinner early. Downgraded because the stale result is labelled honestly: the heading renders data.symbol (:992), and loadEquityOverview stamps the symbol it was called with (api.ts:113-116). The user sees company A labelled A after asking for B, with no figure attributed to the wrong company. The agent context also publishes ticker A. That is a real race in a core flow, but not silent corruption.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:703-734, src/modules/equity-overview/EquityOverviewPanel.tsx:740-769, src/modules/equity-overview/EquityOverviewPanel.tsx:821-831, src/modules/equity-overview/EquityOverviewPanel.tsx:645-655, src/modules/equity-overview/EquityOverviewPanel.tsx:922, src/modules/equity-overview/EquityOverviewPanel.tsx:992, src/modules/equity-overview/api.ts:101-125",
+    "evidence_checked": "Code only: the panel's doLoad, fetchNarrative, command effect, submit button and heading, plus api.ts. The race is timing-dependent and was not driven live, since that needs a UI.",
+    "repro_check": "Read doLoad: there is no seq capture before `await loadEquityOverview(symbol)` and setData/finally run unconditionally; compare narrativeSeqRef at :709-712. Heading at :992 is `{data.symbol}`"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The smell is real: selectFilings/selectFilingDetail/selectInsider call useSecStore.getState() and are not selectors, so reactivity depends on a separate hook plus a `void x;` statement inside useMemo. The stated failure mode is wrong, though. The subscription is the hook at SecFilingsPanel.tsx:40 (and InsiderTradingTable.tsx:105), and the map stays in the useMemo dependency array (:77, :115). Deleting only the `void` line leaves both in place, so the component still re-renders and recomputes. It only freezes if someone also drops the dependency, for example after react-hooks/exhaustive-deps flags it as unnecessary once it is unreferenced. A latent maintainability trap: low, not high.",
+    "evidence": "src/store/sec.ts:17-21, src/store/sec.ts:274-297, src/modules/sec/SecFilingsPanel.tsx:40, src/modules/sec/SecFilingsPanel.tsx:74-77, src/modules/sec/InsiderTradingTable.tsx:100-115",
+    "evidence_checked": "Code only: the store selectors and both call sites. No lint run.",
+    "repro_check": "Read SecFilingsPanel.tsx:40 `const filingsByIdentifier = useSecStore((s) => s.filingsByIdentifier);` and :77 deps `[filingsByIdentifier, activeIdentifier, formFilter]`. The subscription and recompute do not depend on the `void` statement"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The headline repro is disproven. /news never returns 4xx for a bad NewsAPI key: _fetch_newsapi_resilient swallows the failure and returns [], and RSS still answers. The only error is ProviderError when all sources fail, which is a 502 and legitimately retriable. Live: an invalid key header gives 200 in 2.4 s. The retry-hook consumers (macro/earnings/SEC) likewise map provider failures to 502, so the proposed 4xx gate would never fire. What survives is narrower: a permanent upstream failure disguised as 502 still waits about 50 s through 12 retries, and store/sec.ts:241-243 discards the error message. That second point is in searchCompanies, which has no UI (see -7).",
+    "evidence": "src/modules/news/NewsFeedPanel.tsx:152-156, src/modules/news/NewsFeedPanel.tsx:220-251, src/modules/news/api.ts:28-48, sidecar/services/news_provider.py:316-329, sidecar/services/news_provider.py:371-384, sidecar/routers/macro.py:56, sidecar/routers/earnings.py:77-78, src/lib/use-sidecar-retry.ts:32-33, src/store/sec.ts:241-243",
+    "evidence_checked": "Opened the panel, api, news provider, macro/earnings routers and the retry hook. Repro against :52152 with an invalid key header.",
+    "repro_check": "curl -H 'X-Vysted-Newsapi-Key: invalid-test-key-000' '127.0.0.1:52152/news?symbols=AAPL&limit=50' -> HTTP 200 in 2.45 s (no 401, no retry loop)"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Both halves hold: no file under src/modules/earnings, analyst-ratings or sec references the panel-context bus or the equity/chart command stores, and news symbol chips are plain <span>s (NewsFeedPanel.tsx:136-143). The mechanism and fix are understated, though. The agent's snapshot builder (context-provider.ts captureTerminalState) only reads chart*, watchlist and portfolio sources from the bus and drops every other source, including news and equity, which already publish. So copying NewsFeedPanel's publish effect would still leave these panels invisible to the agent; captureTerminalState must also be taught the new sources. The agent does see these panels' ids via openPanels (:280-292), but not their contents.",
+    "evidence": "src/modules/news/NewsFeedPanel.tsx:136-143, src/modules/chat/context-provider.ts:216-261, src/modules/chat/context-provider.ts:280-292, src/modules/chat/ChatSidebar.tsx:839-843, src/modules/earnings/EarningsCalendarPanel.tsx:347",
+    "evidence_checked": "Grepped the three module dirs for bus/command references (only news matched), read the news chip JSX, and read captureTerminalState plus the ChatSidebar call site that sends it as the agent snapshot.",
+    "repro_check": "grep -rln 'usePanelContextBus|equity-command|chart-command|loadSymbolIntoChart' src/modules/{earnings,analyst-ratings,sec,news} -> only NewsFeedPanel.tsx; captureTerminalState branches only on source.startsWith('chart') / 'watchlist' / 'portfolio'"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "No UI: searchCompanies/searchResults/searchStatus/clearSearch have no consumer outside sec.ts and its test, and the panel has only a 'Symbol / CIK' field. The 'fully built on the sidecar' premise is wrong, however. The route returns empty results for every query, including 'Apple', 'AAPL' and 'NVIDIA', even though /sec/status reports sec-edgar-mcp available with lastToolCallOk=true. So wiring an autocomplete onto the store would ship a search that finds nothing; the sidecar tool contract or decoding in sec_filings_provider.search_companies has to be fixed first.",
+    "evidence": "src/store/sec.ts:228-248, src/modules/sec/SecFilingsPanel.tsx:123-138, sidecar/routers/sec.py:74, sidecar/services/sec_filings_provider.py:612-645",
+    "evidence_checked": "Grepped consumers across src/ and types/, read the panel form and the provider, and ran live GETs against :52152.",
+    "repro_check": "curl '127.0.0.1:52152/sec/filings/search?q=Apple&limit=3' (also NVIDIA, AAPL, nvidia) -> {\"results\":[]} each time; curl 127.0.0.1:52152/sec/status -> available:true, lastToolCallOk:true"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The per-day unweighted mean labelled 'Price Target' exists (PriceTargetTimeline.tsx:93-111), but it is unreachable today. analyst_ratings_extended reads row 'PriceTarget'/'Target'/'Price Target' (:286, :289), while current yfinance ships 'currentPriceTarget'/'priorPriceTarget' (verified live). So the per-firm path never yields a row, and the provider falls back to a single 'Consensus' snapshot dated today (:315-327). The real current defect: the Price Targets 'timeline' is always one point, and the Individual table's Target column is always null (:369-370), though a full per-firm target history is available upstream. Fixing the column names then makes the finding's labelling/n-per-point concern live, so fix both together.",
+    "evidence": "src/modules/analyst-ratings/PriceTargetTimeline.tsx:51-57, src/modules/analyst-ratings/PriceTargetTimeline.tsx:71-77, src/modules/analyst-ratings/PriceTargetTimeline.tsx:93-111, sidecar/services/analyst_ratings_extended.py:255-329, sidecar/services/analyst_ratings_extended.py:369-370",
+    "evidence_checked": "Opened the chart and provider. Live GET against :52152, plus yfinance run directly in the sidecar venv to list the upgrades_downgrades columns.",
+    "repro_check": "curl 127.0.0.1:52152/fundamentals/AAPL/ratings/price-target-history -> 1 entry {firm:'Consensus', date:'2026-09-22', target_to:328.22}; yfinance Ticker('AAPL').upgrades_downgrades.columns -> ['Firm','ToGrade','FromGrade','Action','priceTargetAction','currentPriceTarget','priorPriceTarget'] (rows like Evercore 365->380 on 2026-09-18)"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Accurate: the skeleton (:217-225) and loaded table (:279-287) carry two identical seven-width colgroups, and SortableHeader re-implements DataTable's sortable <th>. But the only consequence of drift is a misaligned loading skeleton, a cosmetic loading-state glitch with no data or flow impact. The sortable-header behaviour is the same as DataTable's (both put onClick on a <th>), so nothing functional is lost. Duplication smell: low, not medium.",
+    "evidence": "src/modules/earnings/EarningsCalendarPanel.tsx:216-225, src/modules/earnings/EarningsCalendarPanel.tsx:279-287, src/modules/earnings/EarningsCalendarPanel.tsx:453-480, src/components/DataTable.tsx:51, src/components/DataTable.tsx:232-256",
+    "evidence_checked": "Code only: both colgroups, SortableHeader, and DataTable's header.",
+    "repro_check": "sed -n 216,225p and 279,287p of EarningsCalendarPanel.tsx show the same 5/16/14/23/16/14/12% widths twice"
+  },
+  {
+    "raw_id": "COD-market-data-providers-3-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "All parts hold. (a) The 'error + cached data' banner is unreachable in production: once a slice is cached, getX never refetches or sets an error, and a success clears the error to ''. Only a dev StrictMode double-fetch race could produce it. (b) SortKey 'analysts' has a sortValue case but handleSort is wired only for symbol/scheduled_date/time_of_day/consensus/dispersion. (c) RATING_LABEL/RATING_COLOR/fmtDate are byte-identical across IndividualAnalystTable and RatingsHistoryTable (diff empty), and fmtDate is a third copy in EarningsCalendarPanel. (d) The EarningsSurpriseChart comment contradicts the ascending sort. Side note on the shared fmtDate: `new Date('YYYY-MM-DD')` parses as UTC midnight, so a viewer west of UTC sees the previous day.",
+    "evidence": "src/modules/analyst-ratings/AnalystRatingsPanel.tsx:152-164, src/store/analyst-ratings.ts:51-71, src/modules/earnings/EarningsCalendarPanel.tsx:22, src/modules/earnings/EarningsCalendarPanel.tsx:39-43, src/modules/earnings/EarningsCalendarPanel.tsx:63-64, src/modules/earnings/EarningsCalendarPanel.tsx:295-321, src/modules/analyst-ratings/IndividualAnalystTable.tsx:11-31, src/modules/analyst-ratings/RatingsHistoryTable.tsx:15-35, src/modules/earnings/EarningsSurpriseChart.tsx:102-105",
+    "evidence_checked": "Code only: the panel banner, store accessors, handleSort call sites, a diff of the two analyst tables' map blocks, and the surprise chart.",
+    "repro_check": "grep -n 'handleSort(' EarningsCalendarPanel.tsx -> 5 keys, no 'analysts'; diff of IndividualAnalystTable.tsx:11-31 vs RatingsHistoryTable.tsx:15-35 -> identical"
+  }
+]

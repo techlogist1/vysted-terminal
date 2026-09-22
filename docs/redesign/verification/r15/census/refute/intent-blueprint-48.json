@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "INT-blueprint-48-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds exactly. The inspector field key is `prompt` (node-registry.ts:457), graph-state serializes config verbatim (graph-state.ts:99), and the handler only reads `config.get(\"prompt_template\") or \"{context}\"` (builtin.py:167); no other code path maps `prompt` to `prompt_template` (grep of src/modules/node-editor, workflow_engine, models/workflow finds `prompt` only at node-registry.ts:457). The user's typed prompt is never sent to the agent.",
+    "evidence": "src/modules/node-editor/node-registry.ts:448-462, src/modules/node-editor/graph-state.ts:95-100, sidecar/services/workflow_nodes/builtin.py:130-170",
+    "evidence_checked": "Opened all three cited files; grepped src/ and sidecar/ for `prompt_template` (only builtin.py:154,167) and for a `prompt` key in node-editor/engine/models (only node-registry.ts:457). Did not run a keyed LLM drive (no key threaded, see -2), so the drop is proven from code, not from an agent reply.",
+    "repro_check": "grep -rn prompt_template src sidecar -> only builtin.py:154,167; the form key `prompt` is never read by the handler."
+  },
+  {
+    "raw_id": "INT-blueprint-48-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Reproduced: a workflow with an ai.agent_invoke node (strategy_critic, anthropic default) run against :52152 emits node-output {content:'(no provider key configured)', error:'Something went wrong with Anthropic.'} and run-complete with no error, because the handler swallows the LLMErrorEvent into a sentinel and returns normally (builtin.py:185-207), so the engine records ok (workflow_engine.py:367-386, 284). The panel POSTs only {spec, mode} (NodeEditorPanel.tsx:386-390) and WorkflowRunRequest has no credential fields (models/workflow.py:66-74); the `VYSTED_<PROV>_API_KEY` env read documented at builtin.py:158 exists nowhere. Correction: the claim that no keyless provider is reachable from the form is overstated: agent `copilot` defaults to `ollama` (sidecar/agents/copilot.json:58), so typing agent_id `copilot` gives a keyless local path; every other agent (11 anthropic + researcher on openai) has no key. The error text is also returned in `outputs.error`, but the overlay never surfaces it.",
+    "evidence": "src/modules/node-editor/NodeEditorPanel.tsx:383-391, sidecar/models/workflow.py:66-74, sidecar/services/workflow_nodes/builtin.py:151-207, sidecar/services/workflow_engine.py:284-287,367-386, sidecar/services/agent_runtime.py:524-525, sidecar/agents/copilot.json:58, sidecar/agents/researcher.json:27",
+    "evidence_checked": "Opened the cited files, grepped sidecar for env API-key reads (only NEWSAPI/FRED), counted agent defaultProviders, and ran a live repro against the isolated :52152 stack via vy.py.",
+    "repro_check": "python3 scripts/r15/vy.py post --port 52152 /workflow/run '{spec: one ai.agent_invoke node agent_id=strategy_critic, prompt=...}' -> node-output content='(no provider key configured)' error='Something went wrong with Anthropic.', then run-complete (no node-error)."
+  },
+  {
+    "raw_id": "INT-blueprint-48-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The mechanism holds. captureTerminalState branches only on `chart*`, `watchlist` and `portfolio` (context-provider.ts:224-259), and ChatSidebar sends only `bySource: {__terminal__: ...}` (ChatSidebar.tsx:839-843, 999-1003), so the payloads from `backtest-panel`, `news` and `equity` are dropped. Exactly six publishers exist (chart, watchlist, portfolio, equity, news, backtest). Correction: the claim that the Strategy Critic 'cannot see the run the user is staring at' is overstated. The 'Open in Strategy Critic' button puts the run id into the prompt text itself (BacktestPanel.tsx:136-145), so the named flagship flow works through that button. Only a free-typed question loses the run.",
+    "evidence": "src/modules/chat/context-provider.ts:216-289, src/modules/chat/ChatSidebar.tsx:426-431,839-843,999-1003, src/modules/backtest/BacktestResultView.tsx:403-433, src/modules/backtest/BacktestPanel.tsx:136-148,280",
+    "evidence_checked": "Code-only: opened the consumer, the chat send path and the backtest publisher, and grepped every `publishPanelContext({` source across src/. No UI drive (headless rule).",
+    "repro_check": "grep -rn -A2 'publishPanelContext({' src -> 6 sources; context-provider.ts:224-259 handles 3; ChatSidebar sends only __terminal__. Would confirm live by capturing the invoke request body with the backtest panel focused."
+  },
+  {
+    "raw_id": "INT-blueprint-48-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Accurate: openCryptoStream (sidecar-client.ts:246) has no caller, it is the only `new WebSocket` in src/, and the watchlist polls every 5 s (WatchlistPanel.tsx:24,219-221), while /crypto/stream plus ccxt.pro watch_ticker are complete (crypto.py:50-63, ccxt_provider.py:109-121). Severity lowered from medium to low. The stream serves only ccxt crypto pairs, and the product focuses on Indian equities, which have no streaming route at all. A 5 s poll is near-real-time for a watchlist. What remains is dead code and a maintainer trap, not a defect hit in normal use.",
+    "evidence": "src/lib/sidecar-client.ts:245-252, src/modules/watchlist/WatchlistPanel.tsx:23-24,212-225, sidecar/routers/crypto.py:50-63, sidecar/services/ccxt_provider.py:109-121",
+    "evidence_checked": "Code-only: grepped src/ for openCryptoStream and WebSocket, and opened the watchlist poll plus the sidecar route and provider.",
+    "repro_check": "grep -rn 'openCryptoStream\\|new WebSocket' src -> only the definition at sidecar-client.ts:246,251."
+  },
+  {
+    "raw_id": "INT-blueprint-48-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. getDataSources() output goes only into the plugins store (plugin-runtime.ts:422, store/plugins.ts:62,86), and its only reader is the PluginManagerPanel count (PluginManagerPanel.tsx:28,42). Nothing in src/ calls `VystedPlugin.subscribe`: the runtime's own `subscribe` (plugin-runtime.ts:525) is a UI-listener API. So `DataSource.realtime` (types/plugin.ts:86) cannot be honoured, and yfinance/index.ts:1-11 admits the plugin is a declaration only. This does not reopen the plugin system's existence; it is an inert contract slice.",
+    "evidence": "types/plugin.ts:74-89,238-252, src/lib/plugin-runtime.ts:422,524-525, src/store/plugins.ts:32-86, src/components/PluginManagerPanel.tsx:28,42, plugins/yfinance/index.ts:1-12",
+    "evidence_checked": "Code-only: grepped src/ and plugins/ for getDataSources, dataSources and .subscribe( and read every hit.",
+    "repro_check": "grep -rn 'dataSources' src (excluding store/plugins.ts and PluginManagerPanel) -> no hits; no host call site of plugin.subscribe."
+  },
+  {
+    "raw_id": "INT-blueprint-48-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The only action nodes are action.log and action.notify_desktop, in both the frontend registry (node-registry.ts:135-149) and sidecar registration (workflow_nodes/__init__.py:53-54). There is no webhook, Telegram, email, HTTP or notes/journal node; grep for telegram, webhook and ntfy over src, sidecar services/routers, plugins and types returns nothing. The code node is a mathjs sandbox (code-node.ts:2,16) with no network path. The BLUEPRINT.md:209 flagship workflow ('alert via Telegram, otherwise log to journal') therefore cannot end as specified.",
+    "evidence": "src/modules/node-editor/node-registry.ts:87-333 (ids), sidecar/services/workflow_nodes/__init__.py:37-54, src/modules/node-editor/code-node.ts:2-20, docs/BLUEPRINT.md:209",
+    "evidence_checked": "Code-only: listed every registered node id on both sides, grepped for alert channels, and checked that the code node cannot fetch.",
+    "repro_check": "grep -n 'id: \"' node-registry.ts -> the only action.* ids are log and notify_desktop; grep -rniI 'telegram|webhook|ntfy' -> 0 hits."
+  },
+  {
+    "raw_id": "INT-blueprint-48-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. BLUEPRINT.md:86 and :122 list 'AI agent orchestration (LangGraph)'. LangGraph and langchain are absent from sidecar requirements/code except the 'LangGraph-style' phrasing (research/deep.py:4, research/__init__.py:12), and no decision entry exists in CHANGELOG.md or CURRENT_STATE.md, unlike the recorded custom-backtest-engine decision (CHANGELOG.md:1041-1045). This is doc drift only.",
+    "evidence": "docs/BLUEPRINT.md:86,122, sidecar/services/research/deep.py:4, sidecar/services/research/__init__.py:12, CHANGELOG.md:1041-1045",
+    "evidence_checked": "Code-only: grepped BLUEPRINT, CHANGELOG, sidecar requirements/pyproject/code for langgraph/langchain, and CHANGELOG/CURRENT_STATE for any orchestration decision.",
+    "repro_check": "grep -rni 'langgraph\\|langchain' sidecar (excluding .venv) -> only 'LangGraph-style' comments; grep -i langgraph CHANGELOG.md -> none."
+  }
+]

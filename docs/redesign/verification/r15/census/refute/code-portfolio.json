@@ -1,0 +1,137 @@
+[
+  {
+    "raw_id": "COD-portfolio-1",
+    "verdict": "removed_with_feature",
+    "severity_final": "critical",
+    "reason": "The subject is the broker_portfolio agent tool, which exists only to read a connected broker account (Kite/Dhan/AngelOne adapter.account_info()), including its paper-mode constants. Broker connectivity and the simulated paper brokerage are being deleted in the 23 Sep trading removal, so the tool, its adapters and the unlabelled paper constants go with it. The user's hand-entered portfolio (get_portfolio / portfolios store) is a separate path and is not affected.",
+    "evidence": "sidecar/services/agent_tools/broker_portfolio.py:1-36",
+    "evidence_checked": "Opened broker_portfolio.py and confirmed it is a pure broker-adapter read (brokers_registry.get -> adapter.account_info()). Did not refute further, per the scope-change rule.",
+    "repro_check": "None needed (removed_with_feature). The code confirms the tool returns summary.model_dump(by_alias=True) with no provenance field."
+  },
+  {
+    "raw_id": "COD-portfolio-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The mechanism is real. Holding ids are 'h-<uuid>' (portfolios.ts genId), so sidecarPositionId returns undefined and PUT/DELETE go to the bare /portfolio/positions, which has no PUT/DELETE route (only GET/POST); syncPositionToSidecar's return value is then discarded. Corrected from high to medium: no product surface reads the ledger (see COD-portfolio-3), so no user flow breaks or degrades today; the harm is a diverging dead table that would mislead a future maintainer.",
+    "evidence": "src/lib/host-actions.ts:1255-1259, 1281-1317, 1342, 1361, 1381; src/lib/host-actions.ts:545-561 (resolveHolding by frontend id); src/store/portfolios.ts:53-60 (genId uses randomUUID), 105; sidecar/routers/portfolio.py:21-47; sidecar/services/agent_tools/catalog.py:1345",
+    "evidence_checked": "Read the host-action apply path, the id generator and the router. On the :52152 stack, GET /portfolio/positions returned []. An OPTIONS request to /portfolio/positions returned 405.",
+    "repro_check": "Code trace: Number('h-<uuid>') is NaN, so id is undefined and the URL is /portfolio/positions; the router declares only @router.put('/positions/{position_id}'), so the request gets a 405 and false is discarded at host-actions.ts:1361/1381. No PUT was sent, because non-GET requests are only allowed through vy.py."
+  },
+  {
+    "raw_id": "COD-portfolio-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Confirmed. A repo-wide grep finds no production reader of /portfolio/positions or portfolio_db: only tests, the router itself and the host-actions write-only sync. api.ts:4-7 says there is 'NO sidecar positions CRUD', portfolio_db.py:1-12 says the sidecar owns persistence, and host-actions.ts:1319-1323 says writes 'ride' the sidecar. Corrected from high to medium: this is a maintainability and truth-ambiguity defect with no user-visible break, because every surface reads the store. Deletion is the right fix.",
+    "evidence": "src/modules/portfolio/api.ts:1-8; sidecar/services/portfolio_db.py:1-12; src/store/portfolios.ts:10-17, 209-213; src/lib/host-actions.ts:1254, 1273-1277, 1319-1323; sidecar/routers/portfolio.py:15-47; sidecar/models/__init__.py:74",
+    "evidence_checked": "Grepped src, sidecar, plugins and types for portfolio/positions, portfolio_db and models.portfolio. The only hits are tests, test_app route listing, docstring cross-references and the host-actions sync. GET :52152/portfolio/positions returned [], consistent with an unread and rarely written ledger.",
+    "repro_check": "grep -rn 'portfolio/positions\\|portfolio_db' sidecar src plugins types shows no non-test reader. curl :52152/portfolio/positions returned []."
+  },
+  {
+    "raw_id": "COD-portfolio-4",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed. fetchPositionQuote catches everything and returns null, and fetchPositionQuotes Promise.all's those non-rejecting promises, so the panel's .catch (which is the only setQuotesError(true)) can never run. The banner and Retry at 794-808 are unreachable. High holds because, combined with no polling (COD-portfolio-9), Retry is the panel's only recovery path: a sidecar blip at mount leaves every Price/Mkt val/P&L cell at a dash, labelled as 'N without a live quote', until the holding set changes or the panel remounts.",
+    "evidence": "src/modules/portfolio/api.ts:22-45; src/modules/portfolio/PortfolioPanel.tsx:109-113, 141-164, 783-808",
+    "evidence_checked": "Read api.ts and the panel effect, banner and footer. grep shows setQuotesNonce is called only from the unreachable Retry at line 803. Code-only, no outage was simulated.",
+    "repro_check": "Code trace: api.ts:27-31 swallows the error, so Promise.all resolves and the .then path runs setQuotesError(false). Would confirm with a vitest that mocks sidecarApi.quote to reject and asserts that the banner text never renders."
+  },
+  {
+    "raw_id": "COD-portfolio-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed. handleExport writes Weight % whenever weight !== null, and weight is marketValue / totalMarketValue, a cross-currency sum when currencies are mixed. There is also no Currency column, while the table drops Wt when mixedCurrencies (D57). So the exported file carries a fabricated money ratio and ambiguous-unit values in exactly the case the panel guards against.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:400-411, 466-499; src/modules/portfolio/metrics.ts:56-62, 110, 144-149",
+    "evidence_checked": "Read the export handler, the Wt column gating and the buildPortfolioSummary weight and total computation. Code-only.",
+    "repro_check": "Code trace: with a RELIANCE (INR quote) and an AAPL (USD quote), rows[i].weight = mv_i / (mv_inr + mv_usd), and PortfolioPanel.tsx:495 emits it unconditionally, with a header row that has no Currency column."
+  },
+  {
+    "raw_id": "COD-portfolio-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The select's onChange only calls setActive, and nothing clears editingId on a portfolio change (the only resets are resetForm at 257-260 and handleDelete). handleSubmit then calls updateHolding(active.id, editingId, ...) on the new portfolio, where the id is absent, so the store's map is a silent no-op, followed by setError(null) and resetForm(). The user's edit is lost behind a success-shaped reset.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:106, 257-291, 294-309, 556-569; src/store/portfolios.ts:164-177",
+    "evidence_checked": "Read the form handlers, the portfolio select and the store updateHolding. grep for setEditingId and resetForm found no reset tied to active changes. Code-only.",
+    "repro_check": "Code trace as in the repro. Would confirm with a vitest: add a holding to A, click edit, setActive(B), submit, and assert A's holding is unchanged with no error shown."
+  },
+  {
+    "raw_id": "COD-portfolio-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. addPosition, updatePosition, deletePosition and refresh have no production importer: only src/store/portfolios.test.ts plus vi.fn() mocks in panel-context-publishers.test.tsx. host-actions.ts imports only usePortfoliosStore and its types and calls addHolding/updateHolding/removeHolding directly. The block comment at 209-213 names a consumer that does not use it, and addPosition keeps the count-before/after re-read pattern.",
+    "evidence": "src/store/portfolios.ts:209-276; src/lib/host-actions.ts:43, 1342, 1366, 1386; src/store/portfolios.test.ts:4-7; src/modules/panel-context-publishers.test.tsx:89-90",
+    "evidence_checked": "Grepped src, plugins and types for the four exported names and for store/portfolios importers. Code-only.",
+    "repro_check": "grep -rnE '\\b(addPosition|updatePosition|deletePosition)\\b' src plugins types, excluding portfolios.ts itself, returns test files only."
+  },
+  {
+    "raw_id": "COD-portfolio-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. normalizeHolding drops only an empty symbol and coerces a non-finite quantity or costBasis to 0, with no sign checks; setAll (workspace restore) runs it. It is also broader than stated: the agent apply path at host-actions.ts:1334/1358 guards only quantity > 0, and the catalog schema puts no minimum on cost_basis, so a negative agent-supplied cost basis also lands in the store.",
+    "evidence": "src/store/portfolios.ts:68-89, 186-206; src/modules/portfolio/PortfolioPanel.tsx:262-277; src/lib/host-actions.ts:1260-1270, 1331-1335, 1357-1359; sidecar/services/agent_tools/catalog.py:1318-1329",
+    "evidence_checked": "Read normalizeHolding, setAll, the form guards, positionBody and the add/update guards, and the catalog input schemas. Code-only.",
+    "repro_check": "Code trace: setAll([{holdings:[{symbol:'RELIANCE',quantity:'abc',costBasis:-100}]}]) gives quantity 0 and costBasis -100 retained. Would confirm with a one-line vitest against usePortfoliosStore."
+  },
+  {
+    "raw_id": "COD-portfolio-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The quote effect depends only on [quotesKey, quotesNonce]; quotesKey is symbol:assetClass, and quotesNonce is bumped only by the unreachable Retry (COD-portfolio-4). So prices never refresh while the panel is open, and the summary bar renders no as-of time. WatchlistPanel polls with setInterval(refresh, POLL_INTERVAL_MS).",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:141-164, 717-792, 803; src/modules/watchlist/WatchlistPanel.tsx:214-225",
+    "evidence_checked": "Read both panels' quote effects and the portfolio summary bar. grep for setInterval, asOf and timestamp in PortfolioPanel.tsx found nothing. Code-only.",
+    "repro_check": "grep -n 'setInterval\\|asOf\\|timestamp' src/modules/portfolio/PortfolioPanel.tsx finds no match, so there is no refresh timer and no capture time."
+  },
+  {
+    "raw_id": "COD-portfolio-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The Trash2 button calls deletePortfolio(active.id) directly, with no confirm and no undo; the only 'Confirm' in the panel is the create/rename inline edit. The store filters the portfolio out, and page.tsx subscribes to the portfolios store for autosave, so the loss persists.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:607-616, 534; src/store/portfolios.ts:136-146; src/app/page.tsx:113",
+    "evidence_checked": "Read the toolbar, the store deletePortfolio and the page.tsx portfolios subscription. grep -i 'undo|confirm' in the panel found only line 534, which is the pfAction confirm. Code-only.",
+    "repro_check": "Code trace: onClick={() => deletePortfolio(active.id)}, then the store drops the portfolio and its holdings, then the page.tsx:113 subscription triggers autosave."
+  },
+  {
+    "raw_id": "COD-portfolio-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. The form label is 'Cost basis' with no placeholder or hint, the column header is 'Cost', and metrics compute costValue = cost_basis * quantity. Only the catalog schema, which only the LLM sees, says 'Per-share cost'. A user entering the total invested scales cost, and so P&L, by the quantity.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:645-654, 351-361; src/modules/portfolio/metrics.ts:94; sidecar/services/agent_tools/catalog.py:1321-1324",
+    "evidence_checked": "Read the form input, the column definition, the metrics cost computation and the catalog schema. Code-only.",
+    "repro_check": "Code trace: quantity 100 and costBasis 120000 give costValue 12,000,000 and P&L of about -11.88M at price 1250."
+  },
+  {
+    "raw_id": "COD-portfolio-12",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. The panel adapts Holding to the snake_case Position with id: i, citing 'keeps metrics.ts + its tests untouched', and tableRows re-joins summary.rows[i] to holdings[i] by index; the ordering invariant holds only because buildPortfolioSummary maps in order. It is correct today and latent, so low is right.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:121-136, 312-317; src/modules/portfolio/metrics.ts:8, 91-99, 143-149",
+    "evidence_checked": "Read the adapter, the tableRows join and the metrics signature and row mapping. Code-only.",
+    "repro_check": "Design finding; confirmed by reading. partials and rows are straight .map calls, so order is preserved today."
+  },
+  {
+    "raw_id": "COD-portfolio-13",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. pnlTone at 43-45 is used in the summary bar, and the P&L cell at 389-392 inlines the same ternary.",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:43-45, 389-392, 742, 748",
+    "evidence_checked": "Read both sites. Code-only.",
+    "repro_check": "grep -n 'text-positive' src/modules/portfolio/PortfolioPanel.tsx shows the helper and the inlined duplicate."
+  },
+  {
+    "raw_id": "COD-portfolio-14",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. The interface comment at 105 says 'Patch an existing holding.' while updateHolding rebuilds the holding from input via normalizeHolding (a missing numeric becomes 0). The sibling updatePosition doc at 239-246 states the replace semantics correctly. The typed HoldingInput prevents misuse today, so this is doc-only, low.",
+    "evidence": "src/store/portfolios.ts:104-105, 164-177, 80-86, 239-246",
+    "evidence_checked": "Read the interface and the implementations. Code-only.",
+    "repro_check": "Design finding; confirmed by reading."
+  },
+  {
+    "raw_id": "COD-portfolio-15",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed. concentration = max(row.weight), where weight divides by the cross-currency totalMarketValue. Its doc ('Largest single-position weight') carries no D57 caveat, unlike totalMarketValue and totalPnl, and the panel alone withholds it. grep shows buildPortfolioSummary has no other production consumer today, so this is latent, low.",
+    "evidence": "src/modules/portfolio/metrics.ts:56-71, 143-150; src/modules/portfolio/PortfolioPanel.tsx:752-779",
+    "evidence_checked": "Read the metrics contract and the panel gating, and grepped src for buildPortfolioSummary consumers (only the panel). Code-only.",
+    "repro_check": "grep -rln buildPortfolioSummary src (excluding tests) returns metrics.ts and PortfolioPanel.tsx only."
+  }
+]
