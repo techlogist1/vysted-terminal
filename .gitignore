@@ -62,5 +62,6 @@ dev-keystore.json
 
 # R15: operator-private material stays on this machine (origin is PUBLIC) - the verbatim
 # run brief and machine-level evidence (process tables, account balances).
-docs/redesign/verification/R15_BRIEF.md
+docs/redesign/verification/R15_BRIEF*.md
 docs/redesign/verification/r15/local/
+Claude outputs/

@@ -6,6 +6,19 @@ export const meta = {
 // args = { tag, common, stages: [{label, model, effort?, prompt}], items: [{id, skip?: [stageIdx], ...vars}] }
 // {{var}} in a stage prompt is replaced from the item. A stage listed in item.skip is not run.
 // item.model overrides the stage model (lets one workflow mix Fable and Opus).
+// R15 session-2 pacing law (operator, 23 Sep): the limit lives in the tool, not in the lead's memory.
+// A launch never exceeds the per-workflow cap (CPUs-2 = 6 on this Mac; machine-wide ceiling 8 agents at
+// once, so a second concurrent workflow may hold at most 2), every stage names its model AND effort
+// explicitly (agents never inherit the session's), and Haiku / the fast tier are never used.
+const MAX_ITEMS = 6
+const BANNED = /haiku|fast/i
+if (!args || !Array.isArray(args.items) || !Array.isArray(args.stages)) throw new Error('r15-fanout: REFUSED - args.items and args.stages are required')
+if (args.items.length > MAX_ITEMS) throw new Error(`r15-fanout: REFUSED - ${args.items.length} items exceed the per-workflow cap of ${MAX_ITEMS}; split into waves`)
+for (const st of args.stages) {
+  if (!st.model || !st.effort) throw new Error(`r15-fanout: REFUSED - stage "${st.label}" must name model and effort explicitly`)
+  if (BANNED.test(st.model)) throw new Error(`r15-fanout: REFUSED - stage "${st.label}" model "${st.model}" is banned (never Haiku, never the fast tier)`)
+}
+for (const it of args.items) if (it.model && BANNED.test(it.model)) throw new Error(`r15-fanout: REFUSED - item "${it.id}" model "${it.model}" is banned`)
 const RESULT = {
   type: 'object',
   properties: {

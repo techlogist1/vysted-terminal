@@ -32,9 +32,10 @@ KEYSTORE = (
 )
 
 FREE_DEFAULT = "inclusionai/ling-3.0-flash-vl:free"
-#: Hard stops (R15 budget: $2.00 run total, OpenRouter paid lane unfunded).
+#: Hard stops (R15 session-2 budget: $8.00 OpenAI-direct run total per the operator 23 Sep;
+#: the guard refuses at $7.50 so the cap cannot be crossed. OpenRouter paid lane unfunded).
 FREE_CALLS_PER_DAY = 700
-PAID_USD_CAP = 1.80
+PAID_USD_CAP = 7.50
 #: $/M tokens (input, output) for the OpenAI-direct lane; unknown models are priced high
 #: on purpose so an unpriced model can only under-spend the cap.
 PRICES = {
