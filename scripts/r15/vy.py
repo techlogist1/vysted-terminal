@@ -47,6 +47,9 @@ UNKNOWN_PRICE = (3.0, 12.0)
 
 
 def _is_free(provider: str, model: str) -> bool:
+    # Ollama runs local (no network spend, ever) — always free for ledger/budget purposes.
+    if provider == "ollama":
+        return True
     return provider == "openrouter" and (
         model.endswith(":free") or model == "openrouter/free"
     )
@@ -126,15 +129,22 @@ def cmd_plain(args) -> int:
 
 def cmd_invoke(args) -> int:
     model = args.model or (
-        FREE_DEFAULT if args.provider == "openrouter" else "gpt-4o-mini"
+        FREE_DEFAULT
+        if args.provider == "openrouter"
+        else "qwen2.5:7b"
+        if args.provider == "ollama"
+        else "gpt-4o-mini"
     )
     _budget_check(args.provider, model)
+    # Ollama is BYOK-free (sidecar/services/llm/ollama.py — stream_chat's api_key
+    # param is unused, local server, no key round-trips anywhere); never look one
+    # up or require one.
     key = (
         None
-        if args.no_key
+        if args.no_key or args.provider == "ollama"
         else ("sk-invalid-r15-induced-401" if args.bad_key else _key(args.provider))
     )
-    if key is None and not args.no_key:
+    if key is None and not args.no_key and args.provider != "ollama":
         sys.exit(f"vy: no key for provider {args.provider!r} in the dev keystore")
     payload = {
         "prompt": args.prompt,
