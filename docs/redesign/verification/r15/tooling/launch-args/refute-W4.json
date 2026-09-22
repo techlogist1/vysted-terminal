@@ -1,0 +1,50 @@
+{
+ "tag": "refute-W4",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "code-market-data-providers-2",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-market-data-providers-2.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-market-data-providers-2.json",
+   "count": 14
+  },
+  {
+   "id": "code-market-data-providers-3",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-market-data-providers-3.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-market-data-providers-3.json",
+   "count": 10
+  },
+  {
+   "id": "code-plugins",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-plugins.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-plugins.json",
+   "count": 14
+  },
+  {
+   "id": "code-resolver",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-resolver.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-resolver.json",
+   "count": 11
+  },
+  {
+   "id": "code-mcp-servers",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-mcp-servers.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-mcp-servers.json",
+   "count": 13
+  },
+  {
+   "id": "code-runs-durable-delegate",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-runs-durable-delegate.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-runs-durable-delegate.json",
+   "count": 14
+  }
+ ]
+}

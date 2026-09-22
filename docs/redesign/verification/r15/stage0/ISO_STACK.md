@@ -56,7 +56,7 @@ Full record: `$ISO/pids.json`.
 
 | Role | Sleep pid (kill this) | Worker pid | Port |
 |---|---|---|---|
-| Main sidecar | 37894 | 37895 | 52152 |
+| Main sidecar | 43764 (restarted 2026-09-23 for the num_ctx fix; was 37894) | 43765 (was 37895; `bash -c` wrapper 43762) | 52152 |
 | openbb-mcp | 37799 | 37800 (bootloader) / 37808 (worker) | 52153 |
 | sec-edgar-mcp | 37801 | 37802 (bootloader) / 37809 (worker) | 52154 |
 
@@ -117,7 +117,7 @@ Kill the three **sleep** pids (closes each subprocess's stdin → its own watchd
 cleanly; never `kill -9` a PyInstaller bootloader):
 
 ```bash
-kill 37894 37799 37801
+kill 43764 37799 37801
 ```
 
 The stack was left **running** at the end of this session (per the task's instruction), with the

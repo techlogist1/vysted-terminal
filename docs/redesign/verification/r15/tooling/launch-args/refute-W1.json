@@ -1,0 +1,50 @@
+{
+ "tag": "refute-W1",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "code-market-data-providers-1",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-market-data-providers-1.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-market-data-providers-1.json",
+   "count": 16
+  },
+  {
+   "id": "world-table-stakes",
+   "raw_file": "docs/redesign/verification/r15/census/raw/world-table-stakes.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/world-table-stakes.json",
+   "count": 14
+  },
+  {
+   "id": "code-frontend-panels-agent-shell",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-frontend-panels-agent-shell.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-frontend-panels-agent-shell.json",
+   "count": 15
+  },
+  {
+   "id": "code-agent-runtime",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-agent-runtime.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-agent-runtime.json",
+   "count": 15
+  },
+  {
+   "id": "code-research-retrieval-relevance",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-research-retrieval-relevance.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-research-retrieval-relevance.json",
+   "count": 15
+  },
+  {
+   "id": "code-safety-audit",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-safety-audit.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-safety-audit.json",
+   "count": 14
+  }
+ ]
+}

@@ -32,6 +32,20 @@ from services.errors import humanize
 
 from .base import LLMProvider, LLMStreamEvent
 
+#: Ollama's per-model default (4096) silently truncates the prompt once the
+#: copilot agent's ~50 tool schemas are serialized into it, before the user's
+#: own message gets a turn — root cause of R15 stage0 local-lane failures
+#: (empty output on qwen2.5:7b, fabrication on llama3.1:8b; see
+#: docs/redesign/verification/r15/stage0/LOCAL_LANE_PROOF.md). 16384 fits a
+#: 7-8B q4 model's KV cache (measured ~0.95 GiB extra resident VRAM going
+#: 4096→16384 via `ollama ps` size_vram delta on a real qwen2.5:7b-q4 load:
+#: 4,806,766,592 → 5,828,081,664 bytes) alongside the rest of the app on a
+#: 16 GB Mac (model weight ~4.5 GiB + ~1 GiB KV cache at this ceiling still
+#: leaves headroom for the OS + Tauri/Next.js UI). Overridable per-call via
+#: an explicit ``options={"num_ctx": ...}`` kwarg; this is only the floor
+#: default.
+DEFAULT_NUM_CTX = 16384
+
 
 def _attr(obj: Any, key: str, default: Any = None) -> Any:
     """Read a field from either a dict or an attr-styled SDK object."""
@@ -119,6 +133,14 @@ class OllamaProvider(LLMProvider):
         tool_ids = kwargs.pop("tool_ids", None)
         client = self._client()
         api_messages = _to_api_messages(messages)
+
+        # Always set num_ctx — Ollama's baked-in per-model default (4096 for
+        # every model we've seen) truncates before the prompt is fully read
+        # once tool schemas are attached. Merge rather than overwrite so an
+        # explicit caller-supplied options dict still wins on a conflicting key.
+        request_options = dict(kwargs.pop("options", None) or {})
+        request_options.setdefault("num_ctx", DEFAULT_NUM_CTX)
+        kwargs["options"] = request_options
 
         tools: list[dict[str, Any]] | None = None
         if tool_ids:

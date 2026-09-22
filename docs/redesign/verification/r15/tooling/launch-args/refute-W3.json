@@ -1,0 +1,50 @@
+{
+ "tag": "refute-W3",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "code-fundamentals-profile",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-fundamentals-profile.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-fundamentals-profile.json",
+   "count": 15
+  },
+  {
+   "id": "code-portfolio",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-portfolio.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-portfolio.json",
+   "count": 15
+  },
+  {
+   "id": "code-rust-core",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-rust-core.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-rust-core.json",
+   "count": 15
+  },
+  {
+   "id": "code-screener",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-screener.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-screener.json",
+   "count": 15
+  },
+  {
+   "id": "code-agent-tools-catalog-ledger",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-agent-tools-catalog-ledger.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-agent-tools-catalog-ledger.json",
+   "count": 15
+  },
+  {
+   "id": "code-research-extraction-synthesis",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-research-extraction-synthesis.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-research-extraction-synthesis.json",
+   "count": 12
+  }
+ ]
+}

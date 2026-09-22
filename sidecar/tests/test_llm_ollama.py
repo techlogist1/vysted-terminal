@@ -26,9 +26,11 @@ class _FakeAsyncClient:
     def __init__(self, chunks: list[Any], list_raises: BaseException | None = None) -> None:
         self._chunks = chunks
         self._list_raises = list_raises
+        self.chat_calls: list[dict[str, Any]] = []
 
     async def chat(self, **kwargs: Any) -> AsyncIterator[Any]:
         assert kwargs["stream"] is True
+        self.chat_calls.append(kwargs)
         return _iter(self._chunks)
 
     async def list(self) -> Any:
@@ -42,12 +44,10 @@ def _patch(
     *,
     chunks: list[Any] | None = None,
     list_raises: BaseException | None = None,
-) -> None:
-    monkeypatch.setattr(
-        ollama,
-        "AsyncClient",
-        lambda **_: _FakeAsyncClient(chunks or [], list_raises=list_raises),
-    )
+) -> _FakeAsyncClient:
+    fake = _FakeAsyncClient(chunks or [], list_raises=list_raises)
+    monkeypatch.setattr(ollama, "AsyncClient", lambda **_: fake)
+    return fake
 
 
 @pytest.mark.asyncio
@@ -77,6 +77,38 @@ async def test_stream_chat_emits_dict_deltas_and_usage(monkeypatch: pytest.Monke
     assert out[2].usage.input_tokens == 9
     assert out[2].usage.output_tokens == 6
     assert out[2].finish_reason == "stop"
+
+
+@pytest.mark.asyncio
+async def test_stream_chat_sets_num_ctx_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15 stage0 root cause: Ollama's baked-in 4096 default truncates the
+    tool-schema-laden prompt before the user's message gets a turn (empty
+    output on qwen2.5:7b, fabrication on llama3.1:8b). Every request must
+    carry an explicit options.num_ctx floor high enough to hold the copilot
+    agent's ~50 tool schemas plus the prompt."""
+    chunks = [
+        {
+            "message": {"content": ""},
+            "done": True,
+            "done_reason": "stop",
+            "prompt_eval_count": 9,
+            "eval_count": 6,
+        },
+    ]
+    fake = _patch(monkeypatch, chunks=chunks)
+    provider = OllamaProvider()
+    out = [
+        e
+        async for e in provider.stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="qwen2.5:7b",
+        )
+    ]
+    assert out[-1].kind == "done"
+    assert len(fake.chat_calls) == 1
+    options = fake.chat_calls[0].get("options")
+    assert options is not None
+    assert options.get("num_ctx", 0) >= 8192
 
 
 @pytest.mark.asyncio

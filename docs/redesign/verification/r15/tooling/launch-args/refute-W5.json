@@ -1,0 +1,50 @@
+{
+ "tag": "refute-W5",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md then docs/redesign/verification/r15/tooling/PROMPT_refute.md in full before touching anything. Your raw file and output file are given per-item below; if the output file already exists, verify it and finish it, never restart.",
+ "stages": [
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Raw file: {{raw_file}} ({{count}} findings). Output: {{out_file}}. Follow PROMPT_refute.md exactly; return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "intent-blueprint-192",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-blueprint-192.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-blueprint-192.json",
+   "count": 7
+  },
+  {
+   "id": "code-scripts-build",
+   "raw_file": "docs/redesign/verification/r15/census/raw/code-scripts-build.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/code-scripts-build.json",
+   "count": 14
+  },
+  {
+   "id": "intent-blueprint-48",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-blueprint-48.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-blueprint-48.json",
+   "count": 7
+  },
+  {
+   "id": "intent-pdd-readme-45",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-pdd-readme-45.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-pdd-readme-45.json",
+   "count": 10
+  },
+  {
+   "id": "intent-spec-135",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-spec-135.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-spec-135.json",
+   "count": 5
+  },
+  {
+   "id": "intent-spec-90",
+   "raw_file": "docs/redesign/verification/r15/census/raw/intent-spec-90.json",
+   "out_file": "docs/redesign/verification/r15/census/refute/intent-spec-90.json",
+   "count": 4
+  }
+ ]
+}
