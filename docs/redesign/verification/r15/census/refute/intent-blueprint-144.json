@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "INT-blueprint-144-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds and is live-confirmed: build.yml triggers only on push-to-main/pull_request and ends in actions/upload-artifact (ephemeral); no workflow listens for tags or creates a Release. The repo is public with tags v0.6.0..v0.8.0 but the GitHub releases API returns 0 releases, so there is no user-downloadable build at all.",
+    "evidence": ".github/workflows/build.yml:3-6, :76-84; .github/workflows/ (build.yml, lint.yml, test.yml only); src-tauri/tauri.conf.json:45; docs/BLUEPRINT.md §4 Infrastructure + §6.2 pipeline",
+    "evidence_checked": "Opened build.yml and tauri.conf.json at HEAD f763a44; listed .github/workflows; queried GitHub API for releases; listed git tags.",
+    "repro_check": "gh api repos/techlogist1/vysted-terminal/releases --jq length -> 0; gh api .../releases/latest -> 404; git tag -> v0.6.0 .. v0.8.0 (tags exist, never released)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The gap holds: no signing identity, certificate, sign command or signing secret exists anywhere in tauri.conf.json or .github/workflows, and a local release bundle carries only the linker ad-hoc signature (Info.plist not bound, no sealed resources), which Gatekeeper reports as 'damaged' once quarantined. Correction to the fix shape: the promised Windows route is no longer available. SignPath Foundation's free OSS tier requires 'an OSI-approved Open Source license without commercial dual-licensing', and PolyForm Strict + commercial (the 23 Sep relicense) fails both conditions, so Windows signing now needs a paid certificate or service. Findings 3 and 4 are per-platform duplicates of this one and should merge into it.",
+    "evidence": "src-tauri/tauri.conf.json:30-46 (no macOS/windows signing blocks); .github/workflows/build.yml:76; scripts/macos-dev-setup.sh:129-134 (dev-only identity); https://signpath.org/terms: 'OSS License: The project must use an OSI-approved Open Source license without commercial dual-licensing for all components.'",
+    "evidence_checked": "Opened tauri.conf.json + build.yml; grepped src-tauri/ and scripts/ for signingIdentity/APPLE_SIGNING/signCommand/certificateThumbprint (dev-setup script only); ran codesign -dv on the existing local bundle; fetched signpath.org/terms.",
+    "repro_check": "codesign -dv 'src-tauri/target/release/bundle/macos/Vysted Terminal.stale-r7.app' -> flags=0x20002(adhoc,linker-signed), Info.plist=not bound, Sealed Resources=none."
+  },
+  {
+    "raw_id": "INT-blueprint-144-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. tauri.conf.json has no macOS signingIdentity (not even '-' for ad-hoc), and the produced .app is only linker-signed with no sealed resources, so a downloaded, quarantined copy gets 'damaged' rather than the milder unidentified-developer prompt. This is a per-platform duplicate of finding 2 and should merge into it. Note that even a correct ad-hoc signature needs System Settings > Open Anyway on macOS 15 rather than right-click Open, so the documented bypass text needs updating too.",
+    "evidence": "src-tauri/tauri.conf.json:30-46; .github/workflows/build.yml:13, :54-61, :76",
+    "evidence_checked": "Opened tauri.conf.json + build.yml; codesign -dv on the local release .app bundle.",
+    "repro_check": "codesign -dv on the local bundle -> Signature=adhoc (linker-signed), Info.plist=not bound, Sealed Resources=none; the Gatekeeper dialog on a downloaded copy is NEEDS-GUI (not run)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The unsigned-Windows-installer half holds (targets are nsis with no sign step, secret or certificate). The '.msi not .exe' half is not a defect: NSIS is Tauri's recommended Windows installer and is supported by the updater, so format drift from the blueprint changes no user outcome. Also, SignPath's free OSS tier is unavailable under PolyForm Strict + commercial (see finding 2). Duplicate of finding 2; merge.",
+    "evidence": "src-tauri/tauri.conf.json:32 targets [deb, appimage, nsis, app, dmg]; .github/workflows/build.yml:76; https://signpath.org/terms (OSI-approved, no commercial dual-licensing)",
+    "evidence_checked": "Opened tauri.conf.json + build.yml; grepped the workflows for signing; fetched signpath.org/terms.",
+    "repro_check": "grep -rn 'sign|certificate|SIGN' .github/workflows -> only the 'Build Tauri bundle (unsigned)' step name; SmartScreen behavior itself is NEEDS-GUI / Windows host (not run)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds on both ends, and it is worse than stated. The plugin is registered (lib.rs:393) and the endpoint + pubkey are configured, but createUpdaterArtifacts=false, no frontend or Rust code ever calls check/downloadAndInstall, and src-tauri/capabilities/*.json grants no updater permission, so even a future frontend check() would be denied. The configured endpoint returns 404 live.",
+    "evidence": "src-tauri/src/lib.rs:393; src-tauri/tauri.conf.json:45, :47-53; package.json:29 (only reference to @tauri-apps/plugin-updater); src-tauri/capabilities/default.json + dev-tools.json (no 'updater' entry)",
+    "evidence_checked": "Opened tauri.conf.json; grepped src-tauri/src for updater/UpdaterExt/check (only the plugin registration), src/ for plugin-updater/downloadAndInstall/check() (none), capabilities for updater (none); curled the endpoint.",
+    "repro_check": "curl -sL -o /dev/null -w '%{http_code}' https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json -> 404; grep -n updater src-tauri/capabilities/*.json -> no match."
+  },
+  {
+    "raw_id": "INT-blueprint-144-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. dockview 6.2.2 is installed, but nothing in src/ references addPopoutGroup, addFloatingGroup or WebviewWindow, so a panel cannot leave the main window. Fix-shape caveat: dockview's popout uses window.open, which a Tauri webview does not honor by default, so the fix needs a Tauri-side window handler, not only a dockview call.",
+    "evidence": "src/components/PanelHost.tsx (227 lines, no popout wiring); package.json:44 dockview 6.2.2",
+    "evidence_checked": "grep -rni 'popout|addFloatingGroup|WebviewWindow|floating' src/ -> only unrelated CSS/comment hits (globals.css:60, ChatSidebar.tsx:1489, EquityOverviewPanel.tsx:988).",
+    "repro_check": "grep above returns no pop-out wiring; the drag-off-window gesture itself is NEEDS-GUI (not run)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real: Settings Export/Import handles only vysted-settings.json, and no UI gesture exports or imports a .vysted-workspace file (WorkspaceDialog modes are save/load/research-space against the sidecar store). Lowered to low: workspaces already live as plain JSON files at <data-dir>/workspaces/<name>.vysted-workspace (config.py:552-556), so backing one up or sharing it is a manual file copy, and a solo local-first user rarely needs even that.",
+    "evidence": "src/components/SettingsPanel.tsx:1775-1812 (a.download='vysted-settings.json' at :1790); src/modules/platform/workspace-dialog-store.ts:8; sidecar/services/workspace_store.py:1-26; sidecar/config.py:552-556",
+    "evidence_checked": "Opened SettingsPanel ExportImportSection, workspace_store.py header, config.get_workspaces_dir; grepped src/ + sidecar/routers/workspace.py for export/import of workspace files (none).",
+    "repro_check": "grep -rni 'exportWorkspace|importWorkspace|export.*workspace' src/ -> only serialize/save/load/delete helpers in src/lib/workspace.ts, no file export/import UI."
+  },
+  {
+    "raw_id": "INT-blueprint-144-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The persisted SettingsBundle has only defaultAgentId, region and deepResearchBackend, and ChartPanel seeds symbol/timeframe from constants (DEFAULT_SYMBOL='SPY', DEFAULT_TIMEFRAME='1d'). Chart symbol/timeframe are panel-local useState, and the workspace blob carries only chartDrawings for the chart, so the default applies on every chart mount, not only on new panels. A US-ETF default in an India-first terminal compounds this.",
+    "evidence": "src/store/settings.ts:50-68; src/modules/chart/ChartPanel.tsx:80-81, :259-261; src/lib/workspace.ts:56, :202, :272-273",
+    "evidence_checked": "Opened settings.ts SettingsBundle, ChartPanel defaults/useState, grepped workspace.ts for chart state (drawings only).",
+    "repro_check": "grep -n 'DEFAULT_SYMBOL|DEFAULT_TIMEFRAME' src/modules/chart/ChartPanel.tsx -> constants SPY / 1d used as useState seeds; no settings read point."
+  },
+  {
+    "raw_id": "INT-blueprint-144-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Correction on mechanism: 'pricing TBD until v1.0' and a placeholder address are both what the blueprint itself specifies (§6.1), so the TBD pricing is not drift. The real defect is narrower and live-confirmed: vysted.com has Cloudflare nameservers but no MX and no A record, so commercial@vysted.com (the only commercial contact in COMMERCIAL_LICENSE.md and LICENSING.md) cannot receive mail. PolyForm Strict forbids all commercial use, modification and redistribution, so a public release gives would-be licensees no working path.",
+    "evidence": "COMMERCIAL_LICENSE.md:3, :50-59, :61-63; LICENSING.md:35-37; README.md:172-174; docs/BLUEPRINT.md §6.1 ('placeholder: commercial@vysted.com', 'pricing (TBD, finalized at v1.0 launch)')",
+    "evidence_checked": "Grepped COMMERCIAL_LICENSE.md / LICENSING.md / README.md for contact and placeholder text; read BLUEPRINT §6.1; DNS lookup on vysted.com.",
+    "repro_check": "dig +short MX vysted.com -> empty; dig +short A vysted.com -> empty; dig +short NS vysted.com -> ara/leonard.ns.cloudflare.com (control: dig MX gmail.com resolves)."
+  },
+  {
+    "raw_id": "INT-blueprint-144-10",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated. There is no CLA workflow in .github/workflows, CONTRIBUTING.md says the CLA process is still being finalized, and contributions are closed, so low is right. The planned mechanism (a statement in the PR description) is also not an enforced gate.",
+    "evidence": ".github/workflows/ (build.yml, lint.yml, test.yml); CONTRIBUTING.md:3, :92-97",
+    "evidence_checked": "Listed .github and .github/workflows; grepped CONTRIBUTING.md for CLA/closed.",
+    "repro_check": "/bin/ls .github/workflows -> build.yml lint.yml test.yml (no CLA check)."
+  }
+]

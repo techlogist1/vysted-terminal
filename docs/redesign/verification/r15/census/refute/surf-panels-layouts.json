@@ -1,0 +1,83 @@
+[
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-1",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. _sections_from_payload only accepts payload['sections'] as a list (a dict of section strings yields 0 sections), and _insider_rows_from_payload skips every row without transaction_date/trade_date and reads the issuer from issuer_name/company_name, so the upstream filing-level Form-4 rows and top-level 'name' are all dropped. The empty FilingDetail and insider response are then cached (24 h / 1 h), and the 200 carries no parse-failure signal.",
+  "evidence": "sidecar/services/sec_filings_provider.py:325-355, sidecar/services/sec_filings_provider.py:393-430, sidecar/services/sec_filings_provider.py:75-76, sidecar/services/sec_filings_provider.py:520-559, docs/redesign/verification/r15/surface/panels-layouts/P-sec-parser-check.txt",
+  "evidence_checked": "Read the two parsers, the TTL constants and get_filing's cache write at HEAD f763a44, plus the driver's upstream-shape capture. Re-ran both GETs against :52152 (a separate stack from the drive's :52220).",
+  "repro_check": "curl :52152/sec/filings/0000320193-25-000079/sections?identifier=AAPL -> {\"sections\":[]}; curl :52152/sec/insider/AAPL?limit=50 -> {\"cik\":\"0000320193\",\"issuer_name\":\"\",\"transactions\":[]}. Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-2",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. news_provider formats each requested symbol into the Yahoo per-symbol feed URL verbatim, and its own comment calls un-suffixed Indian symbols best-effort. earnings_provider._normalise_symbol only upper-cases and swaps '.' for '-', with no region resolution, so bare BDL and INFY resolve to the US listings. EpsEstimateGrid renders EPS and revenue with no currency, so the ADR's USD EPS appears next to INR-scale revenue.",
+  "evidence": "sidecar/services/news_provider.py:94-99, sidecar/services/news_provider.py:275-290, sidecar/routers/news.py:48-58, sidecar/services/earnings_provider.py:79-81, sidecar/services/earnings_provider.py:147-179, src/modules/earnings/EpsEstimateGrid.tsx:25-31, src/modules/earnings/EpsEstimateGrid.tsx:56-83",
+  "evidence_checked": "Read the news router, the feed builder, the earnings normaliser and fetcher, and the estimate grid. Re-ran both GETs on :52152 with X-Vysted-Region: IN.",
+  "repro_check": "curl -H 'X-Vysted-Region: IN' ':52152/news?symbols=RELIANCE,TCS,KAYNES,BDL&limit=50' -> 2 'Flanigan's' items from 'Yahoo! Finance: BDL News' tagged ['BDL']. curl :52152/earnings/INFY/estimates -> eps_estimate_mean 0.20543 with revenue_estimate_mean 491465874980.0 and currency 'USD'. Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The yfinance timeframe map requests '30m' with a '3mo' lookback, beyond Yahoo's 60-day intraday window, so every 30m request comes back empty. The history route turns that empty series into a 200 with provider 'none' and, for IN, reason 'in_eod_only'. ChartPanel maps that reason to the 'BSE/NSE serve end-of-day only' copy, even though 15m loads for the same symbol.",
+  "evidence": "sidecar/services/yfinance_provider.py:69-78, sidecar/routers/history.py:16-28, sidecar/routers/history.py:71-80, src/modules/chart/ChartPanel.tsx:77, src/modules/chart/ChartPanel.tsx:375-391",
+  "evidence_checked": "Read the timeframe map, the empty-series downgrade and the chart's empty-state copy. Re-ran GETs on :52152.",
+  "repro_check": "curl ':52152/history/SPY?timeframe=30m' -> 0 bars, provider none, reason null; RELIANCE.NS 30m -> 0 bars, reason in_eod_only; SPY 15m -> 546 bars (yfinance); RELIANCE.NS 15m -> 522 bars. Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-4",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "The core claim holds: _label_series_freshness feeds bars[-1].timestamp (the period-start date for yfinance) to freshness_for with a 3-session tolerance, so the current monthly bar is badged 'stale' and the chart adds a 'Stale data' session label. Correction: the chart never renders 'EOD as of <future date>'. ChartPanel mounts StalenessBadge without asOf, so an eod series shows a plain 'EOD' and 'Market closed'. The nse_direct period-end future dates (27 and 30 Sep) exist only on the wire, not in the rendered badge. Severity stays medium on the false-stale half.",
+  "evidence": "sidecar/routers/history.py:31-52, sidecar/services/locale.py:127, sidecar/services/locale.py:226-251, src/modules/chart/ChartPanel.tsx:1424, src/components/DataBadges.tsx:86-107, src/lib/market-session.ts:124-135",
+  "evidence_checked": "Read the freshness labeller, freshness_for and its threshold, the badge component, the chart's badge call site and sessionLabelFromFreshness. Re-ran period-bar GETs on :52152.",
+  "repro_check": "curl ':52152/history/SPY?timeframe=1mo' -> last bar 2026-09-01, freshness 'stale' on 2026-09-23 (current month). RELIANCE.NS 1wk -> last 2026-09-27, 'eod'; 1mo -> last 2026-09-30, 'eod'. These wire dates are in the future, but ChartPanel.tsx:1424 passes no asOf, so the badge reads 'EOD'."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-5",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The series route is declared '/{series_id}' (not ':path'), every IMF catalog id is slash-delimited ('IFS/A.US.NGDP_R_K_IX'), and the store sends encodeURIComponent(seriesId). Both the %2F and the raw-slash forms 404 before reaching the handler, so the IMF tab cannot load any entry the catalog advertises.",
+  "evidence": "sidecar/routers/macro.py:71-75, src/store/macro.ts:75-84, sidecar/services/macro/imf_provider.py:4-6, sidecar/services/macro/imf_provider.py:39-52",
+  "evidence_checked": "Read the route decorators, the store's loadSeries and the IMF catalog. Re-ran GETs on :52152.",
+  "repro_check": "curl ':52152/macro/catalog?provider=imf' -> ids 'IFS/A.US.NGDP_R_K_IX', 'IFS/Q.US...'. curl ':52152/macro/IFS%2FA.IN.NGDP_R_K_IX?provider=imf' -> 404 {\"detail\":\"Not Found\"}, and the raw-slash form also 404s. Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-6",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. _greeks_fd takes gamma as a second difference of CRR tree NPVs with a 1%-of-spot bump. A CRR price is piecewise-linear in spot between node crossings, so the stencil measures tree discretisation: 2.82x Black-Scholes at the panel's default 200 steps, and 0 at 201. Binomial is the only engine the panel allows for American exercise (OptionPricerPanel.tsx:246-249 blocks BS and MC there), so every American option's gamma comes from this path. Theta is positive for a long call here and negative under BS.",
+  "evidence": "sidecar/services/quant/options.py:95-117, sidecar/services/quant/options.py:120-146, src/modules/quant/OptionPricerPanel.tsx:229-249, src/modules/quant/OptionPricerPanel.tsx:321-322",
+  "evidence_checked": "Read the CRR pricer, the FD Greeks and the panel's method and steps defaults. Re-ran three POSTs through scripts/r15/vy.py against :52152.",
+  "repro_check": "vy.py post /quant/option/price (european call S=K=100, r 0.05, vol 0.2, 1y): binomial 200 steps -> gamma 0.0530, theta +6.41; 201 steps -> gamma 8.9e-15; black-scholes -> gamma 0.018762, theta -6.41. Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-7",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The batch route fans symbols out with asyncio.to_thread, but every nse_direct call goes through a process-global _lock plus a _Throttle that sleeps ~1.0-1.4 s while holding a worker thread. nse_provider has no quote cache, so an IN batch costs about 1.2 s per symbol, and the watchlist re-polls it every 5 s. The cross-route starvation was not re-measured; it follows from the shared default executor and matches the driver's log.",
+  "evidence": "sidecar/routers/quotes.py:1-13, sidecar/routers/quotes.py:64-88, sidecar/services/nse_provider.py:154-185, sidecar/services/nse_provider.py:305-320, sidecar/services/nse_provider.py:480-497, src/modules/watchlist/WatchlistPanel.tsx:24, src/modules/watchlist/WatchlistPanel.tsx:195-221",
+  "evidence_checked": "Read the batch route, the throttle, the global-lock request path, get_quote (no cache) and the watchlist poll loop. Timed warm batches on :52152.",
+  "repro_check": "curl ':52152/quotes?symbols=<N .NS names>' warm: N=1 -> 0.15 s (no wait after idle), N=6 -> 7.34 s, N=12 -> 14.61 s. Every row came from nse_direct, a linear ~1.2 s per symbol. The serialisation reproduced; the 9x contention on /quotes/SPY was not re-run."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-8",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. _fiscal_period_for maps the report month to the calendar quarter it falls in (Oct -> Q4) and stamps the report's year. It is applied to every EarningsEvent and EarningsEstimateDetail, so a report on the prior quarter is always labelled one quarter late. The earnings_upcoming tool returns event.model_dump(), fiscal_period included, to the model. The panel does not render the field (no non-test .tsx reference), so the harm reaches users through the agent.",
+  "evidence": "sidecar/services/earnings_provider.py:102-125, sidecar/services/earnings_provider.py:262-268, sidecar/services/earnings_provider.py:434-437, sidecar/services/agent_tools/earnings_tools.py:53-61",
+  "evidence_checked": "Read the inference function, both call sites and the agent tool's return. Grepped src/modules/earnings for fiscal_period. Re-ran the GET on :52152.",
+  "repro_check": "curl ':52152/earnings/upcoming?days=60' -> JPM, TSLA, V, GOOGL, META, MSFT all {quarter: Q4, year: 2026} for October reports (JPM's is its Q3; MSFT's is FY27 Q1). Reproduced."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-9",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds. The yield-curve route maps only ValueError to 400, so QuantLib's RuntimeError on a duplicate pillar propagates as a 500. app.py registers only a ProviderError handler, and a 500 raised past CORSMiddleware carries no CORS header, which is the documented CORS-masks-500 trap. The panel's validationError checks only that each tenor is at least 1 and each rate is positive, never duplicates.",
+  "evidence": "sidecar/routers/quant.py:63-69, sidecar/app.py:299-312, src/modules/quant/YieldCurvePanel.tsx:149-165",
+  "evidence_checked": "Read the route, the middleware and handler registration, and the panel's validation. Re-ran the driver's duplicate-10y body through vy.py on :52152. vy.py does not print response headers, so the missing CORS header was not observed directly; it rests on the middleware ordering.",
+  "repro_check": "vy.py post /quant/yield-curve <panel defaults + a second 10y swap> --header Origin=http://localhost:3000 -> HTTP 500 'Internal Server Error'. Reproduced."
+ }
+]

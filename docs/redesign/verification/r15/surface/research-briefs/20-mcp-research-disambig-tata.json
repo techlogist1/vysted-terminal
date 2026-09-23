@@ -1,0 +1,67 @@
+{
+ "query": "Tata",
+ "depth": "normal",
+ "secs": 0.0,
+ "has_research_tool": true,
+ "result": {
+  "ok": true,
+  "needs_disambiguation": true,
+  "query": "Tata",
+  "candidates": [
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Limited",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TCS.NS"
+   },
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Limited",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TMCV.NS"
+   },
+   {
+    "symbol": "TATASTEEL",
+    "name": "Tata Steel Limited",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TATASTEEL.NS"
+   },
+   {
+    "symbol": "TATAPOWER",
+    "name": "Tata Power Company Limited",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TATAPOWER.NS"
+   },
+   {
+    "symbol": "TATACONSUM",
+    "name": "TATA CONSUMER PRODUCTS LIMITED",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TATACONSUM.NS"
+   },
+   {
+    "symbol": "TITAN",
+    "name": "Titan Company Limited",
+    "exchange": "NSE",
+    "score": 0.6,
+    "yahoo_symbol": "TITAN.NS"
+   }
+  ],
+  "message": "'Tata' matches more than one listed instrument \u2014 which did you mean? TCS (Tata Consultancy Services Limited), TMCV (Tata Motors Limited), TATASTEEL (Tata Steel Limited), TATAPOWER (Tata Power Company Limited), TATACONSUM (TATA CONSUMER PRODUCTS LIMITED), TITAN (Titan Company Limited)",
+  "execution_loop": "fast",
+  "depth": "normal",
+  "execution": {
+   "run_id": "1751cff04ce446088b8da14bc26db482",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1790129409.4793012,
+   "finished_at": 1790129409.481503,
+   "degraded_reason": null
+  }
+ }
+}

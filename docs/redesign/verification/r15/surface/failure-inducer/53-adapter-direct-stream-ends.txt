@@ -1,0 +1,6 @@
+openai junk-chunkdrop -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMErrorEvent:Could not reach OpenAI — check your network.']
+openai junk-orerror -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMErrorEvent:OpenAI returned a server error — it may be a temporary outage.']
+openai junk-truncated -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMDoneEvent:None']
+openrouter junk-chunkdrop -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMErrorEvent:Could not reach OpenRouter — check your network.']
+openrouter junk-orerror -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMErrorEvent:OpenRouter returned a server error — it may be a temporary outage.']
+openrouter junk-truncated -> ['LLMDeltaEvent:RELIANCE closed at Rs 1,4', 'LLMDoneEvent:None']

@@ -1,0 +1,8 @@
+[   2.0s] error: {"kind": "error", "message": "OpenAI is rate-limiting your account \u2014 try again in a minute.", "action": "Wait a moment, then try again.", "detail": "Error code: 429 - {'error': {'message': 'Rate limit reached for requests', 'type': 'requests', 'code': 'rate_limit_exceeded'}}", "code": "rate_limit"}
+[   2.0s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 2.0s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · junk-429
+exit=0

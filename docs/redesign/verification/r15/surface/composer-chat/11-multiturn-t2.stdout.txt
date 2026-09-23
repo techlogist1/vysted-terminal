@@ -1,0 +1,10 @@
+[ 143.7s] tool_use compare_symbols {"symbols": ["COCHINSHIP", "MAZAGONDOCK"], "asset_class": "equity"}
+
+=== TEXT ===
+It looks like Mazagon Dock does not have a current quote available. I can still provide the comparison for Cochin Shipyard Limited.
+
+Cochin Shipyard Limited's P/E ratio is 53.625484, and its market capitalization is ₹365,392,920,576.
+
+If you'd like to proceed with researching Mazagon Dock or exploring other companies, please let me know how I can assist you.
+
+=== ok 230.4s kinds={'tool_use': 1, 'delta': 85, 'done': 1} usage={'input_tokens': 3043, 'output_tokens': 86, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

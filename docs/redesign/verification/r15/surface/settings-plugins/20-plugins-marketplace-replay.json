@@ -1,0 +1,363 @@
+{
+ "P1": {
+  "panelText": "Plugins5 active of 12 loaded · 6 data sources · 1 agents · 0 nodesYahoo Finance (keyless equities)activev1.0.0 · Vysted · id vysted-yfinanceThe no-key equity + fundamentals data default — works out of the box, zero credentials. Pre-installed.just nowOpenBB (MCP)activev0.1.0 · Vysted Team · id openbb-mcpOpenBB Open Data Platform via the Model Context Protocol — replaces the Phase-2 in-process plugin with a Tauri-Rust-spawned openbb-mcp-server subprocess (architectural fix for the Windows subprocess.Popen deadlock).just nowVysted Lenses (agent pack)activev1.0.0 · Vysted · id vysted-lensesA first-party agent pack — adds the Quant Tutor lens. The reference agent-collection marketplace plugin. Pre-installed.just nowMarket News (RSS + optional NewsAPI)activev1.0.0 · Vysted · id vysted-newsSentiment-scored market news. Works keyless over RSS; supply a BYOK NewsAPI key to add NewsAPI breadth. Pre-installed.just nowVysted Example Pluginactivev0.1.0 · Vysted Team · id vysted-exampleMinimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.just nowKite Connectdiscoveredv0.1.0 · Vysted Team · id vysted-kiteKite Connect (Zerodha) execution adapter. SEBI/NSE retail-algo compliance requires a registered static IP for order placement; this plugin surfaces a banner when the detected public IP does not match the configured static IP.awaiting first health checkno health samples yetDhandiscoveredv0.1.0 · Vysted Team · id vysted-dhanDhan execution adapter (India equities + F&O). Routes every order through the safety-layer-enforced BrokerAdapter on the sidecar; paper mode is the default.awaiting first health checkno health samples yetAngel Onediscoveredv0.1.0 · Vysted Team · id vysted-angeloneAngel One (SmartAPI) execution adapter for India equities + F&O. Paper mode default; all orders gated by the safety-layer BrokerAdapter.awaiting first health checkno health samples yetAlpaca (US equities + options + crypto)discoveredv0.1.0 · Vysted Team · id broker-alpacaBroker execution plugin for Alpaca commission-free US equities, options, and crypto. Paper-mode default; BYOK via the OS keychain (broker:alpaca:api_key + broker:alpaca:api_secret). Order placement gated by the v0.5.0 safety layer (BLUEPRINT §6.5).awaiting first health checkno health samples yetInteractive Brokers (TWS / IB Gateway)discoveredv0.1.0 · Vysted Team · id broker-ibBroker execution plugin for Interactive Brokers via the ib_async SDK. Requires Trader Workstation",
+  "states": [
+   "vysted-yfinance:active",
+   "openbb-mcp:active",
+   "vysted-lenses:active",
+   "vysted-news:active",
+   "vysted-example:active",
+   "vysted-kite:discovered",
+   "vysted-dhan:discovered",
+   "vysted-angelone:discovered",
+   "broker-alpaca:discovered",
+   "broker-ib:discovered",
+   "broker-oanda:discovered",
+   "ccxt-exec:discovered"
+  ],
+  "pluginModules": [
+   "plugin:vysted-example"
+  ],
+  "persisted": [
+   {
+    "plugin_id": "openbb-mcp",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "tradesa-v2",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-example",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-kite",
+    "enabled": false,
+    "installed": false,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-lenses",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-news",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   },
+   {
+    "plugin_id": "vysted-yfinance",
+    "enabled": true,
+    "installed": true,
+    "settings": {},
+    "granted_secret_ids": []
+   }
+  ],
+  "fetches": [
+   "GET /health -> 200",
+   "GET /plugins/vysted-yfinance/config -> 200",
+   "GET /plugins/vysted-yfinance/config -> 200",
+   "GET /plugins/openbb-mcp/config -> 200",
+   "GET /plugins/openbb-mcp/config -> 200",
+   "GET /openbb-mcp/status -> 200",
+   "GET /plugins/vysted-lenses/config -> 200",
+   "GET /plugins/vysted-lenses/config -> 200",
+   "GET /plugins/vysted-news/config -> 200",
+   "GET /plugins/vysted-news/config -> 200",
+   "GET /plugins/vysted-example/config -> 200",
+   "GET /plugins/vysted-example/config -> 200",
+   "GET /plugins/vysted-kite/config -> 200",
+   "GET /plugins/vysted-dhan/config -> 404",
+   "GET /plugins/vysted-angelone/config -> 404",
+   "GET /plugins/broker-alpaca/config -> 404",
+   "GET /plugins/broker-ib/config -> 404",
+   "GET /plugins/broker-oanda/config -> 404",
+   "GET /plugins/ccxt-exec/config -> 404",
+   "GET /health -> 200",
+   "GET /openbb-mcp/status -> 200",
+   "GET /health -> 200",
+   "GET /plugins -> 200"
+  ]
+ },
+ "P2": {
+  "switchFound": true,
+  "switchLabel": "Vysted Example Plugin enabled",
+  "statesAfter": [
+   "vysted-yfinance:active",
+   "openbb-mcp:active",
+   "vysted-lenses:active",
+   "vysted-news:active",
+   "vysted-example:stopped",
+   "vysted-kite:discovered",
+   "vysted-dhan:discovered",
+   "vysted-angelone:discovered",
+   "broker-alpaca:discovered",
+   "broker-ib:discovered",
+   "broker-oanda:discovered",
+   "ccxt-exec:discovered"
+  ],
+  "pluginModulesBefore": [
+   "plugin:vysted-example"
+  ],
+  "pluginModulesAfter": [
+   "plugin:vysted-example"
+  ],
+  "requestsDuringToggle": [],
+  "persistedAfter": {
+   "plugin_id": "vysted-example",
+   "enabled": true,
+   "installed": true,
+   "settings": {},
+   "granted_secret_ids": []
+  },
+  "rowText": "Vysted Example Pluginstoppedv0.1.0 · Vysted Team · id vysted-exampleMinimal example plugin proving the runtime end-to-end. Contributes one fake data source and one slash command.5s ago"
+ },
+ "P2_afterRelaunch": {
+  "example": [
+   "vysted-example:active"
+  ]
+ },
+ "P3": {
+  "sections": [
+   "Brokers: 7",
+   "Data providers: 4",
+   "Agents: 1"
+  ],
+  "cards": [
+   "Kite Connect (Zerodha)AvailableThe reference broker plugin — genuine read-only Kite Connect OAuth + granular positions/holdings/margins. Read-only; no order exe",
+   "DhanAvailableRead-only Dhan account + positions. Read-only; no order execution.Install",
+   "Angel OneAvailableRead-only Angel One account + positions. Read-only; no order execution.Install",
+   "AlpacaAvailableRead-only Alpaca account + positions. Read-only; no order execution.Install",
+   "Interactive BrokersAvailableRead-only IBKR account + positions. Read-only; no order execution.Install",
+   "OANDAAvailableRead-only OANDA account + positions. Read-only; no order execution.Install",
+   "Crypto exchange (ccxt)AvailableRead-only crypto-exchange account via ccxt. Read-only; no order execution.Install",
+   "Yahoo Finance (keyless equities)Pre-installedThe no-key equity + fundamentals default. Works out of the box, zero credentials.Disable",
+   "OpenBB (fundamentals + macro)Pre-installedRicher fundamentals + macro series via the bundled OpenBB MCP subprocess.Disable",
+   "Market News (RSS + optional NewsAPI)Pre-installedSentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAP",
+   "Example data sourcePre-installedA pedagogical data-source plugin that proves the contract end-to-end.Disable",
+   "Vysted Lenses (agent pack)Pre-installedA first-party agent pack — the Quant Tutor lens. The reference agent plugin.Disable"
+  ],
+  "ops": {
+   "disable:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": false,
+     "runtimeState": "stopped",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:stopped"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": false,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/broker-alpaca/config -> 404",
+     "GET /plugins/vysted-dhan/config -> 404",
+     "GET /plugins/vysted-kite/config -> 200",
+     "GET /plugins/vysted-angelone/config -> 404",
+     "GET /plugins/broker-oanda/config -> 404",
+     "GET /plugins/ccxt-exec/config -> 404",
+     "GET /plugins/broker-ib/config -> 404",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "enable:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:active"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/broker-alpaca/config -> 404",
+     "GET /plugins/broker-oanda/config -> 404",
+     "GET /plugins/broker-ib/config -> 404",
+     "GET /plugins/ccxt-exec/config -> 404",
+     "GET /plugins/vysted-dhan/config -> 404",
+     "GET /plugins/vysted-angelone/config -> 404",
+     "GET /plugins/vysted-kite/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "remove:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": false,
+     "enabled": false,
+     "runtimeState": "stopped",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:stopped"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": false,
+     "installed": false,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-dhan/config -> 404",
+     "GET /plugins/broker-oanda/config -> 404",
+     "GET /plugins/ccxt-exec/config -> 404",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/broker-ib/config -> 404",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/vysted-angelone/config -> 404",
+     "GET /plugins/broker-alpaca/config -> 404",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/vysted-kite/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   },
+   "install:vysted-example": {
+    "stateFor": {
+     "pluginId": "vysted-example",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "runtime": [
+     "vysted-example:active"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-example",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": []
+    },
+    "pluginModules": [
+     "plugin:vysted-example"
+    ],
+    "requests": [
+     "GET /plugins/vysted-example/config -> 200",
+     "POST /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/vysted-dhan/config -> 404",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins/broker-alpaca/config -> 404",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/broker-ib/config -> 404",
+     "GET /plugins/vysted-angelone/config -> 404",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/vysted-kite/config -> 200",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/broker-oanda/config -> 404",
+     "GET /plugins/ccxt-exec/config -> 404",
+     "GET /plugins -> 200"
+    ]
+   },
+   "configure:vysted-news": {
+    "stateFor": {
+     "pluginId": "vysted-news",
+     "installed": true,
+     "enabled": true,
+     "runtimeState": "active",
+     "configured": true
+    },
+    "keychainAccounts": [
+     "plugin-secret:vysted-news:newsapi_key"
+    ],
+    "persisted": {
+     "plugin_id": "vysted-news",
+     "enabled": true,
+     "installed": true,
+     "settings": {},
+     "granted_secret_ids": [
+      "plugin-secret:vysted-news:newsapi_key"
+     ]
+    },
+    "requests": [
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "POST /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-news/config -> 200",
+     "POST /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-yfinance/config -> 200",
+     "GET /plugins/broker-oanda/config -> 404",
+     "GET /plugins/broker-alpaca/config -> 404",
+     "GET /plugins/vysted-dhan/config -> 404",
+     "GET /plugins/vysted-example/config -> 200",
+     "GET /plugins/ccxt-exec/config -> 404",
+     "GET /plugins/vysted-news/config -> 200",
+     "GET /plugins/vysted-angelone/config -> 404",
+     "GET /plugins/broker-ib/config -> 404",
+     "GET /plugins/vysted-lenses/config -> 200",
+     "GET /plugins/vysted-kite/config -> 200",
+     "GET /plugins/openbb-mcp/config -> 200",
+     "GET /plugins -> 200"
+    ]
+   }
+  },
+  "configureForm": {
+   "button": "Configure Market News (RSS + optional NewsAPI)",
+   "formText": "Market News (RSS + optional NewsAPI)Pre-installedSentiment-scored, symbol-tagged market news. Keyless over RSS out of the box; add a BYOK NewsAPI key for NewsAPI breadth.DisableNews works with no key over RSS. For NewsAPI breadth, register a free key at newsapi.org and paste it here.Where to get credentials →NewsAPI key (optional)CancelSave credentialsStored in your OS keychain — never written to disk or logs. Broker access is read-only; order execution stays deferred (paper-default, host §6.5-gated)."
+  },
+  "openPanelSpyCalls": []
+ }
+}

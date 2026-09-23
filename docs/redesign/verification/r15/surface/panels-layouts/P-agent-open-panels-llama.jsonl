@@ -1,0 +1,47 @@
+{"kind": "tool_use", "tool_call_id": "", "name": "open_panel", "input": {"panel": "sec_filings_list", "symbol": "AAPL"}}
+{"kind": "tool_use", "tool_call_id": "", "name": "arrange_layout", "input": {"panels": "[{'chart', 'above'}, {'yield_curve', 'left'}]", "pattern": "custom"}}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " SEC"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " earnings"}
+{"kind": "delta", "text": " calendar"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": " staged"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " queue"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " awaiting"}
+{"kind": "delta", "text": " acceptance"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " yield"}
+{"kind": "delta", "text": " curve"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " next"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " To"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2901, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}

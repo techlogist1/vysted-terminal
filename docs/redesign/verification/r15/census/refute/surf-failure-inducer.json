@@ -1,0 +1,47 @@
+[
+ {
+  "raw_id": "SURF-FAILURE-INDUCER-1",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Real but narrower than titled: driving the adapter directly shows the REALISTIC mid-stream failures are surfaced honestly - a chunked-transfer cut raises and is humanized to 'Could not reach <provider>', and an OpenRouter-style error chunk (error field + finish_reason 'error') becomes '<provider> returned a server error' (53-adapter-direct-stream-ends.txt). What stays silent is (a) a clean close-delimited EOF with no finish_reason (the 'Rs 1,4' case), (b) a 200 non-SSE body, and (c) any round with zero text and zero tool calls - (c) is the one users actually hit (empty free-model completions; qwen3 think-only rounds in LOCAL_LANE_PROOF.md), and it is runtime/frontend-wide, not OpenAI-adapter-only: agent_runtime handles only content_filter and chat-history finalizes any done as success. Severity lowered to medium because the truncated-number path needs an unusual transport; the blank-turn path is common but not money-wrong.",
+  "evidence": "sidecar/services/llm/openai.py:751, sidecar/services/llm/openai.py:830, sidecar/services/agent_runtime.py:1461-1505, src/store/chat-history.ts:213-219, src/modules/chat/ChatSidebar.tsx:914-919, src/modules/chat/ChatSidebar.tsx:1239-1250, docs/redesign/verification/r15/surface/failure-inducer/53-adapter-direct-stream-ends.txt, docs/redesign/verification/r15/surface/failure-inducer/50-junk-truncated.txt, docs/redesign/verification/r15/surface/failure-inducer/50-junk-emptychoices.txt",
+  "evidence_checked": "Opened the adapter stream loop, the runtime LLMDoneEvent branch, the router (no empty/finish handling), chat-history finalize and the ChatSidebar ErrorRow condition; re-ran three stream-end shapes against the adapter directly (harness/adapter_direct.py, loopback stub, no sidecar) for provider openai and openrouter.",
+  "repro_check": "cd sidecar && ./.venv/bin/python3 ../docs/redesign/verification/r15/surface/failure-inducer/harness/adapter_direct.py with junk_provider.py on :52294 -> chunkdrop: delta + LLMErrorEvent network; orerror: delta + LLMErrorEvent 5xx; truncated: delta + LLMDoneEvent(None) (silent)."
+ },
+ {
+  "raw_id": "SURF-FAILURE-INDUCER-2",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Could not disprove: web_search is a registered read tool, so agent_runtime wraps it in wait_for(catalog.timeout_for('web_search')) = 25 s, and the keyless chain is fixed ddg->brave->mojeek with 2 attempts per engine and no per-engine deadline; the measured cold per-engine trace (DDG 20.5 s + 20.4 s, Brave 0.9 s) makes the cap fire before Brave, and both agent runs relayed the research-domain timeout hint verbatim. Conditional on DDG failing (it failed in every run today, 09:30-09:55 IST); the research tool's own longer guard is unaffected, so the defect is the chat's direct web search, which is still a core agent flow on the default no-Docker tier.",
+  "evidence": "sidecar/services/agent_runtime.py:652-666, sidecar/services/agent_tools/catalog.py:288-313, sidecar/services/agent_tools/catalog.py:1568-1581, sidecar/services/search/keyless.py:53, sidecar/services/search/keyless.py:150-190, sidecar/services/search/keyless.py:201-232, sidecar/services/search/pacing.py:42, sidecar/services/search/ddg.py:60, sidecar/services/search/ddg.py:84, docs/redesign/verification/r15/surface/failure-inducer/44-keyless-engine-timing.txt",
+  "evidence_checked": "Opened the dispatch timeout path, the web_search catalog entry (domain research, timeout 25.0), TIMEOUT_HINTS, the keyless rotation and _try_engine; re-read the per-engine timing and both agent transcripts. Did not re-run (own sidecar stopped; :52152 not used - a web_search there would need a POST invoke and a model).",
+  "repro_check": "PATH=/usr/bin:/bin:/usr/sbin:/sbin ./.venv/bin/python3 harness/eng_timing.py 'Tata Elxsi quarterly results' from sidecar/ -> ddg FAIL 20.5 s x2, brave ok 0.9 s, TOTAL 42.5 s (> the 25 s tool cap)."
+ },
+ {
+  "raw_id": "SURF-FAILURE-INDUCER-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds: AsyncOpenAI is constructed with max_retries=0 and no timeout, so the installed SDK's Timeout(read=600) governs; no heartbeat is emitted while awaiting the first chunk, and neither streaming.ts nor ChatSidebar.tsx has any timer/idle/stall logic (grep: 0 hits). The 150 s zero-event capture is the direct consequence; Stop is the only exit.",
+  "evidence": "sidecar/services/llm/openai.py:440-445, src/modules/chat/streaming.ts, src/modules/chat/ChatSidebar.tsx, docs/redesign/verification/r15/surface/failure-inducer/52-junk-hang.txt",
+  "evidence_checked": "Opened the client constructor; printed openai.__version__ 2.36.0 and _constants.DEFAULT_TIMEOUT from the sidecar venv; grepped streaming.ts and ChatSidebar.tsx for setTimeout|setInterval|stall|idle|elapsed|timeout (none); grepped the adapter/runtime/router for timeout= (none).",
+  "repro_check": "vy.py invoke copilot ... --provider openai --bad-key --model junk-hang --timeout 150 against a sidecar with OPENAI_BASE_URL at the stub -> 0 events in 150 s."
+ },
+ {
+  "raw_id": "SURF-FAILURE-INDUCER-4",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds: under a blackholed network the yfinance path logs 'possibly delisted; no price data found', the correctness gate raises EmptySeriesError and history.py:73-80 downgrades it to a 200 empty series whose null reason renders 'No price data for this symbol' (ChartPanel.tsx:385-391); the batch quote route drops failed symbols by design; no frontend surface has an offline indicator (no navigator.onLine / offline handling anywhere in src/) and /health + /system/provider-health stayed green (yahoo circuit opens_total 0, because the swallowed transport error is never classified).",
+  "evidence": "sidecar/routers/history.py:73-80, sidecar/routers/quotes.py:78-89, src/modules/chart/ChartPanel.tsx:385-391, docs/redesign/verification/r15/surface/failure-inducer/30-netdown-data-routes.txt, docs/redesign/verification/r15/surface/failure-inducer/31-netdown-sidecar-log-excerpt.txt",
+  "evidence_checked": "Opened the history downgrade, the batch quote gather/filter and the chart empty-state branch; grepped src/ for navigator.onLine/offline (none); re-read the netdown route captures and log excerpt. Proxy-blackhole is a faithful stand-in for offline for this path (curl_cffi honoured the proxy: 'Failed to connect to 127.0.0.1 port 9').",
+  "repro_check": "boot.sh netdown then curl 127.0.0.1:52224/history/AAPL?timeframe=1d -> 200 bars [] reason null in 3 ms; /quotes?symbols=RELIANCE,TCS,AAPL -> 2 rows."
+ },
+ {
+  "raw_id": "SURF-FAILURE-INDUCER-5",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds: humanize() branches on 402, 401/403, 404, 429 and >=500 only; a 400 with 'is not a valid model ID' falls through the class-name heuristics to the generic 'Something went wrong ... Try again or switch provider' (code unknown). Low: needs a hand-typed or stale custom id; the real reason is one click away in Details.",
+  "evidence": "sidecar/services/errors.py:148-196, sidecar/services/errors.py:295-300, docs/redesign/verification/r15/surface/failure-inducer/21-nonsense-slug.txt",
+  "evidence_checked": "Opened humanize() in full; re-read the captured frame.",
+  "repro_check": "vy.py invoke copilot 'What is the price of RELIANCE?' --provider openrouter --model zzz-nonsense/not-a-model-9000:free -> code unknown, 'Try again or switch provider'."
+ }
+]

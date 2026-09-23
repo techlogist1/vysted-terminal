@@ -1,0 +1,65 @@
+[
+ {
+  "raw_id": "INT-blueprint-0-1",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Re-counted src/modules/index.ts's import list directly: 22 first-party module imports (lines 3-27), none commented out, all wired into vystedModules[]. TL;DR's \"~38 modules\" is unmet by a wide margin with no decision on file trimming scope.",
+  "evidence": "src/modules/index.ts:3-27,60",
+  "evidence_checked": "opened src/modules/index.ts and counted every import feeding vystedModules[]; did not re-derive the historical ~38 figure's basis (assumed accurate as BLUEPRINT.md's own stated target)",
+  "repro_check": "grep -c \"^import.*Module }\" src/modules/index.ts -> 22"
+ },
+ {
+  "raw_id": "INT-blueprint-0-2",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "DNS resolution genuinely fails for both hosts from this machine; BLUEPRINT.md's domain-structure lines are phrased as present-tense fact rather than a plan, so the finding's framing (doc tense) holds even though the missing domains themselves are unremarkable pre-launch.",
+  "evidence": "docs/BLUEPRINT.md:31-32",
+  "evidence_checked": "re-ran the DNS lookups myself (curl to both hosts) and confirmed exit 6 / could-not-resolve; did not check registrar records directly",
+  "repro_check": "curl -s -o /dev/null -w '%{http_code}\\n' --max-time 8 https://vysted.com and https://terminal.vysted.com -> both exit code 6"
+ },
+ {
+  "raw_id": "INT-blueprint-0-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "package.json has no \"next\" key anywhere and the dev/build scripts invoke vite directly; D6 in DECISIONS.md is the real authorizing decision and confirms this was deliberate, not drift. BLUEPRINT.md \u00a72 (line 52) still literally reads \"Next.js 16\" while \u00a76.1's license line one section over was corrected for its own D-numbered decision, so the asymmetry is real, not a misreading of the doc.",
+  "evidence": "package.json:8,82; docs/BLUEPRINT.md:52; docs/redesign/DECISIONS.md:28",
+  "evidence_checked": "opened package.json in full, grepped for \\\"next\\\" (zero hits), re-read BLUEPRINT.md \u00a72 table and \u00a76.1 license line side by side, opened DECISIONS.md:28 (D6)",
+  "repro_check": "grep -n '\"next\"' package.json -> no match; grep -n 'Next.js' docs/BLUEPRINT.md -> line 52 (and TL;DR) still present"
+ },
+ {
+  "raw_id": "INT-blueprint-0-4",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "The requirements.txt comment is unambiguous about the Phase-2 in-process OpenBB plugin being retired in favor of an out-of-process openbb-mcp subprocess; BLUEPRINT.md \u00a72/\u00a73.1 were not updated to match. Data breadth itself is a separate, already-covered question (the parallel data-quality census track), so this is scoped correctly as a documentation-only finding.",
+  "evidence": "sidecar/requirements.txt:32-36; docs/BLUEPRINT.md:55,84",
+  "evidence_checked": "read the requirements.txt comment block in full, confirmed sidecar/openbb_mcp_subprocess/ and sidecar/services/openbb_mcp_provider.py exist, re-read BLUEPRINT.md \u00a72/\u00a73.1 wording",
+  "repro_check": "ls sidecar/openbb_mcp_subprocess/ -> present; grep 'wrapped as a runtime sidecar' docs/BLUEPRINT.md -> still present at :55"
+ },
+ {
+  "raw_id": "INT-blueprint-0-5",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed no release.yml exists and build.yml's own step is explicitly named \"Build Tauri bundle (unsigned)\"; gh release list returned nothing; grep for signpath across .github/workflows and scripts/ is genuinely empty. This is expected for a project that has not tagged v1.0/public 0.9.0 yet, which is why it lands at medium rather than high \u2014 it is a real gap against the locked promise, not a functional break today.",
+  "evidence": ".github/workflows/build.yml:76; .github/workflows/ (dir listing)",
+  "evidence_checked": "listed .github/workflows/ contents, opened build.yml around the bundle step, ran gh release list, grepped signpath across workflows+scripts",
+  "repro_check": "ls .github/workflows -> build.yml, lint.yml, test.yml only; gh release list -> empty; grep -rli signpath .github/workflows scripts -> no output"
+ },
+ {
+  "raw_id": "INT-blueprint-0-6",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "No tray/Tray token anywhere in src-tauri's Rust sources or tauri.conf.json; the .plugin(...) chain in lib.rs (shell, updater, notification, kill_switch, mcp) confirms no tray-related plugin or manual TrayIconBuilder call either. Windowing and OS integration (keychain, sidecar lifecycle) are real, so only the named tray sub-feature is missing, consistent with a low/polish-tier finding.",
+  "evidence": "src-tauri/src/lib.rs:392-404; src-tauri/tauri.conf.json",
+  "evidence_checked": "grepped tray/Tray across src-tauri/src and tauri.conf.json (zero hits), read the .plugin() registration chain in lib.rs directly",
+  "repro_check": "grep -rn 'tray\\|Tray' src-tauri/src/*.rs src-tauri/tauri.conf.json -> no output"
+ },
+ {
+  "raw_id": "INT-blueprint-0-7",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Re-verified independently: capabilities/default.json's permission list has no fs:* entry, neither tauri-plugin-fs nor @tauri-apps/plugin-fs appears in Cargo.toml/package.json, and lib.rs's full .plugin() chain (shell/updater/notification/kill_switch/mcp) confirms fs was never registered. PortfolioPanel's CSV export genuinely goes through a Blob/anchor download helper, not a Tauri command. Tauri v2's core:default does not itself grant fs \u2014 fs is always a separate opt-in plugin \u2014 so this isn't a case of the capability being implicitly covered elsewhere.",
+  "evidence": "src-tauri/capabilities/default.json:6-11; src-tauri/src/lib.rs:392-404; src/modules/portfolio/PortfolioPanel.tsx:9,504; src/lib/csv.ts",
+  "evidence_checked": "read capabilities/default.json in full, grepped plugin-fs/plugin-dialog across package.json and Cargo.toml (zero hits), read the full .plugin() chain in lib.rs, opened src/lib/csv.ts's downloadCsv implementation",
+  "repro_check": "grep -rn 'plugin-fs\\|plugin-dialog' package.json src-tauri/Cargo.toml -> no output; grep '\\.plugin(' src-tauri/src/lib.rs -> shell/updater/notification/kill_switch/mcp only"
+ }
+]

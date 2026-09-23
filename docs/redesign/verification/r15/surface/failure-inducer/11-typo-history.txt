@@ -1,0 +1,3 @@
+RELIANC {'symbol': 'RELIANC', 'provider': 'none', 'reason': 'in_eod_only', 'freshness': None} bars 0 [200 1.577588s]
+INFOSYS {'symbol': 'INFOSYS', 'provider': 'none', 'reason': 'in_eod_only', 'freshness': None} bars 0 [200 1.253837s]
+RELIANCE {'symbol': 'RELIANCE', 'provider': 'nse_direct', 'reason': None, 'freshness': 'eod'} bars 258 [200 5.272657s]

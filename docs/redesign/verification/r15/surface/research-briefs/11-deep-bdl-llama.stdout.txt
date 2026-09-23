@@ -1,0 +1,22 @@
+[ 205.9s] tool_use research {"query": "Bharat Dynamics \u2014 order book, margins and valuation"}
+[ 207.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 5791bf9b704148bab1a203ae0815bc8f depth=deep query=Bharat Dynamics \u2014 order book, margins and valuation", "latency_ms": null, "status": "ok", "index": 1, "_t": 207.69}
+[ 207.7s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "Your active model \u2014 ollama/llama3.1:8b \u00b7 IterResearch (evolving report)", "latency_ms": null, "status": "ok", "index": 2, "_t": 207.7}
+[ 223.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "round 1: seeded 3 sub-question(s) (planning rides round 2)", "latency_ms": 0, "status": "ok", "index": 3, "_t": 223.03}
+[ 301.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "researcher: What is the recent price action and trend for BDL?", "latency_ms": 78185, "status": "ok", "index": 4, "_t": 301.24}
+[ 301.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "researcher: What do the latest fundamentals say about BDL?", "latency_ms": 78185, "status": "ok", "index": 5, "_t": 301.24}
+[ 301.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "researcher: What recent news or catalysts affect BDL?", "latency_ms": 78186, "status": "ok", "index": 6, "_t": 301.24}
+[ 313.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "reflect", "detail": "round overran its 90s slice \u2014 winding down", "latency_ms": null, "status": "skipped", "index": 7, "_t": 313.05}
+[ 313.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "one wind-down round (1 researcher, visits off)", "latency_ms": null, "status": "ok", "index": 8, "_t": 313.06}
+[ 373.1s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "round 2: rebuilt workspace \u2192 1 sub-question(s)", "latency_ms": 60004, "status": "ok", "index": 9, "_t": 373.05}
+[ 446.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "wrote brief from evolving report", "latency_ms": 60007, "status": "ok", "index": 10, "_t": 446.04}
+[ 446.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "reflect", "detail": "citation check: stripped 0 out-of-range marker(s); audit skipped (-60s wall remaining < 15s)", "latency_ms": 0, "status": "skipped", "index": 11, "_t": 446.04}
+[ 446.0s] tool_use publish_brief {"query": "Bharat Dynamics \u2014 order book, margins and valuation", "symbol": "BDL", "mode": "deep", "depth": "deep", "execution": {"run_id": "5791bf9b704148bab1a203ae0815bc8f", "requested_depth": "deep", "loop": "iter", "backend": "native", "started_at": 1790128865.881483, "finished_at": 17901291
+
+=== TEXT ===
+The current price of Bharat Dynamics (BDL) is ₹1168.0 with a change of -7.0 and a change percentage of -0.5957446808510638. The 52-week high for BDL is ₹1654.0, and the 52-week low is ₹1086.0.
+
+The market capitalization of BDL is ₹428144984064.0, and the P/E ratio is 82.13783. The dividend yield is 0.0042, and the dividend per share (ttm) is 4.9. The EPS is 14.22, and the beta is 0.321.
+
+The latest news for BDL includes an announcement under Regulation 30 (LODR)-Change in Management on September 18, 2026, where it was informed that Mr Prakash Rajpurohit has been appointed as a Non-Executive Director of the company with effect from September 17, 2026.
+
+=== ok 597.5s kinds={'tool_use': 2, 'research_step': 11, 'delta': 202, 'done': 1} usage={'input_tokens': 14923, 'output_tokens': 203, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

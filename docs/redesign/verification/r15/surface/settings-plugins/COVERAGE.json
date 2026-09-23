@@ -1,0 +1,312 @@
+[
+ {
+  "id": "panel-settings",
+  "area": "settings",
+  "surface": "Settings panel shell",
+  "entry": "src/modules/platform/index.ts:29; src/components/SettingsPanel.tsx:116",
+  "states": [
+   "populated(only)"
+  ],
+  "drive": "browser",
+  "notes": "Section list mounted always: SectionNav, ProvidersSection, ResearchSection, RegionSection, KeybindingsSection, AdvancedSection (SettingsPanel.tsx:116-122). Vitest: SettingsPanel.test.tsx.",
+  "driven": "ok",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S1 (all 5 sections + 5 Advanced subsections render populated against :52222; 8 GETs all 200)",
+  "states_driven": {
+   "populated(only)": "ok"
+  }
+ },
+ {
+  "id": "panel-plugin-manager",
+  "area": "plugins",
+  "surface": "Plugin Manager panel",
+  "entry": "src/modules/plugin-manager/index.ts:19; src/components/PluginManagerPanel.tsx",
+  "states": [
+   "empty(no plugins loaded, :64 EmptyState)",
+   "populated",
+   "error(plugin health state 'error' badge :140)"
+  ],
+  "drive": "browser",
+  "notes": "enable/disable toggle :97-128; health-history sample badge; enabledCount summary line :42. Backed by usePluginsStore (attached to PluginRuntime). Vitest: PluginManagerPanel.test.tsx.",
+  "driven": "broken",
+  "evidence": "surface/settings-plugins/20-plugins-marketplace-replay.json P1/P2",
+  "states_driven": {
+   "populated": "ok ('5 active of 12 loaded', 12 rows with health lines)",
+   "enable/disable toggle": "BROKEN - toggling 'Vysted Example Plugin' off stops it in-session but sends ZERO requests, persisted row stays enabled:true, and a re-bootstrap brings it back active (COD-plugins-1 reproduced live)",
+   "empty(no plugins)": "NOT TESTED - unreachable in practice (12 catalog rows always discovered)",
+   "error badge": "NOT TESTED (no plugin failed on :52222; COD-plugins-5 covers the errored-plugin path by code)"
+  },
+  "notes_s2c": "7 of the 12 rows are broker execution adapters in 'discovered' state - out of the product (scope fact 1), not analysed.",
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json P1-plugins (bootstrapPlugins on :52222: 5 active of 12; empty-state 'Open Marketplace' CTA -> fake dockview addPanel never called; control openPanel('marketplace') adds, 13-openpanel-ids-disabled-module.json)"
+ },
+ {
+  "id": "panel-marketplace",
+  "area": "plugins",
+  "surface": "Marketplace panel",
+  "entry": "src/modules/marketplace/index.ts:17; src/modules/marketplace/MarketplacePanel.tsx:38",
+  "states": [
+   "populated(catalog)",
+   "error(entry.errorMessage :129)",
+   "installed/enabled/preinstalled badge states (StateBadge :126)"
+  ],
+  "drive": "browser",
+  "notes": "install() at :104 -> useMarketplaceStore. Read-only broker connections blurb (:18) — installing a broker adds no execution path (FR-055). Vitest: lib/marketplace.test.ts, lib/marketplace-lifecycle.test.ts.",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/20-plugins-marketplace-replay.json P3; http-log.jsonl F01/F02",
+  "states_driven": {
+   "populated(catalog)": "ok (Data providers 4, Agents 1; Brokers 7 = out of scope)",
+   "installed/enabled/preinstalled badges": "ok (Pre-installed + Disable on the 5 first-party rows)",
+   "disable/enable/remove/install (vysted-example)": "ok - each persists (enabled/installed flags read back from GET /plugins)",
+   "configure (News, NewsAPI key)": "BROKEN - any string saves as configured with no probe; a rejected key is swallowed and the feed silently stays RSS-only -> SURF-SETTINGS-PLUGINS-4",
+   "error(entry.errorMessage)": "NOT TESTED (no errored plugin)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json P1-plugins (vysted-example disable -> POST config enabled:false; remove -> card 'Available/Install'; install -> active + config enabled:true; vysted-news configure with a canary NewsAPI key -> configured:true, granted_secret_ids persisted, no probe (= SURF-SETTINGS-PLUGINS-4))"
+ },
+ {
+  "id": "settings-section-nav",
+  "area": "settings",
+  "surface": "Settings section nav / jump links",
+  "entry": "src/components/SettingsPanel.tsx:161,156",
+  "states": [
+   "populated(5 sections: Providers, Research, Region, Keybindings, Advanced)"
+  ],
+  "drive": "browser",
+  "notes": "jumpToSection (:156) is a DOM scrollIntoView call — needs a real/jsdom DOM, not pure logic.",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S1.nav (5 chips, full-label step; every target id #settings-providers/-research/-region/-keybindings/-advanced resolves)",
+  "states_driven": {
+   "populated(5 sections)": "ok",
+   "scroll-to-section": "NEEDS-GUI (jumpToSection is a DOM scrollIntoView, stubbed in jsdom)",
+   "short/overflow collapse steps": "NEEDS-GUI (width-keyed)"
+  }
+ },
+ {
+  "id": "settings-providers",
+  "area": "settings",
+  "surface": "AI Providers section (BYOK keys)",
+  "entry": "src/components/SettingsPanel.tsx:410",
+  "states": [
+   "no-key",
+   "key-set",
+   "validating",
+   "invalid-key"
+  ],
+  "drive": "browser",
+  "notes": "Opens KeyEntryDialog (src/components/KeyEntryDialog.tsx:42) with Status='idle'|'validating'|'valid'|'invalid'|'save-error'. POST /llm/keys/validate. Secret NEVER logged (keychain-only, per CLAUDE.md BYOK rule) — do not print any key value while exercising this.",
+  "driven": "broken",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S1/S2/S3; http-log.jsonl B01-B12",
+  "states_driven": {
+   "no-key": "ok (8 rows 'No key yet', Ollama 'No key required')",
+   "key-set": "BROKEN - a fake OpenRouter key validates ok:true and saves as 'Key configured' (S2, B01/B12; COD-llm-adapters-2-4 live) -> SURF-SETTINGS-PLUGINS-1",
+   "invalid-key": "partial - openai/anthropic/groq/deepseek say 'unauthorized or no key supplied'; gemini/xai say 'transport error: 400 ...' raw dict (COD-llm-adapters-2-4/-9)",
+   "validating": "ok (Save disabled + 'Validating...' by code; 0.2-1.7 s live)",
+   "whitespace-key": "BROKEN - trailing space/newline -> 'transport error: Connection error.' (S3, B08-B11) -> SURF-SETTINGS-PLUGINS-2",
+   "remove-key": "NOT TESTED headless beyond code (COD-frontend-panels-shell-chrome-7: no error path)",
+   "defaults group": "ok (13 agents from GET /agents, 8 providers, live Ollama model list)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json S1-keys (OpenRouter canary key -> dialog closes, keychain_set, row 'Key configured'; OpenAI canary -> 'unauthorized or no key supplied'; remove -> keychain_delete, row 'No key yet') + 11-key-validate-http.jsonl (7 providers x canary key, 5 x dead base_url; gemini ignores base_url; canary never in the sidecar log)"
+ },
+ {
+  "id": "settings-research",
+  "area": "settings",
+  "surface": "Research section (depth/model tiers + SearXNG)",
+  "entry": "src/components/SettingsPanel.tsx:1210,1011,1058,1124,1184",
+  "states": [
+   "tier-cards(TierCard :1124)",
+   "model-controls(ResearchModelControls :1058)",
+   "stop-options(:1003)"
+  ],
+  "drive": "api",
+  "notes": "GET /search/status, /search/tiers/status; POST /search/tiers/setup,/teardown (state-changing — read status only against the live stack).",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S1.research + S2.researchTierBText; G01-tierb-fake-openrouter-key.jsonl",
+  "states_driven": {
+   "tier-cards": "ok (two radio cards, Tier A default)",
+   "model-controls (no key)": "ok ('Needs your OpenRouter API key ... Add OpenRouter key')",
+   "model-controls (key)": "BROKEN with an unvalidated key: 'OpenRouter key configured - research bills to it.' then the hosted-research 401 never reaches the trace/UI (G01) -> SURF-SETTINGS-PLUGINS-1",
+   "stop-options": "partial (per-stop selects render only with a key; populated by code, RESEARCH_MODEL_OPTIONS)",
+   "hardware card": "ok (Apple M1 Pro, 16 GiB, 3 Ollama models scored, frontier candidates)"
+  }
+ },
+ {
+  "id": "settings-searxng",
+  "area": "settings",
+  "surface": "SearXNG managed-instance flow",
+  "entry": "src/components/SettingsPanel.tsx:785 (SearxngManagedFlow), :960 (SearxngAdvancedUrl), :762 (SearxngStatusChip), :741 (searxngChipMeta)",
+  "states": [
+   "stopped",
+   "starting",
+   "running",
+   "error"
+  ],
+  "drive": "browser",
+  "notes": "searxngChipMeta(state) is a pure label/className mapper — exported and headless-testable without mounting the chip.",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/http-log.jsonl C05; 10-settings-panel-replay.json S1.research ('Ready ... Running at http://127.0.0.1:8888')",
+  "states_driven": {
+   "running/ready": "ok (chip Ready + Stop action)",
+   "stopped/not_installed_docker/pulling/starting/error": "NOT TESTED - inducing them needs Docker teardown/setup of the SHARED vysted-searxng container (forbidden, scope fact 5); searxngChipMeta is pure and unit-tested; failure-inducer owns the Docker-absent drive",
+   "ready-but-dead": "see SURF-RESEARCH-BRIEFS-4 + COD-frontend-panels-shell-chrome-8 (read once on mount)"
+  }
+ },
+ {
+  "id": "settings-region",
+  "area": "settings",
+  "surface": "Region section",
+  "entry": "src/components/SettingsPanel.tsx:1297",
+  "states": [
+   "populated"
+  ],
+  "drive": "api",
+  "notes": "Backs lib/region.ts (region.test.ts); likely affects default exchange/session formatting (lib/market-session.ts).",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/11-modules-region-replay.json region (IN -> US round-trips in the store); 10-settings-panel-replay.json S1.region",
+  "states_driven": {
+   "populated": "ok (US/India/Global)",
+   "copy": "wrong - row says 'Defaults to United States.' while the live default is IN (COD-frontend-panels-shell-chrome-4, reproduced live)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/12-region-resolve-probe.jsonl: /resolve with X-Vysted-Region US vs IN -> 'infosys' INFY(US ADR) vs INFY(NSE), 'hdfc' HDB(US ADR) vs HDFCBANK(NSE), so region reroutes resolution today while the section copy says 'number formatting ... later release' (COD-frontend-panels-shell-chrome region finding, live)"
+ },
+ {
+  "id": "settings-keybindings",
+  "area": "settings",
+  "surface": "Keybindings remap section",
+  "entry": "src/components/SettingsPanel.tsx:1365,1348",
+  "states": [
+   "populated(default combo)",
+   "recording(comboFromEvent capturing keydown, :1348)",
+   "conflict(two actions share a combo, conflicts() in store)"
+  ],
+  "drive": "browser",
+  "notes": "useKeybindingsStore.conflicts() (store/keybindings.ts) is pure/headless-testable (keybindings.test.ts) for the conflict-detection logic without any DOM.",
+  "driven": "broken",
+  "evidence": "surface/settings-plugins/12-keybindings-record-replay.json; 10-settings-panel-replay.json S1.keybindings",
+  "states_driven": {
+   "populated(default combo)": "ok (11 actions, 6 categories)",
+   "recording": "ok (kbd reads 'Press keys... (Esc to cancel)', combo stored)",
+   "conflict": "BROKEN - recording Ctrl+K on 'Toggle agent panel' collides with palette.open (both matchesEvent true) yet conflicts()=[] and no banner (COD-frontend-panels-shell-chrome-3, reproduced live on the non-mac path too)",
+   "dispatch": "COD-frontend-stores-4 (only 1 of 11 remaps honoured) - not re-derived",
+   "persistence": "COD-workspace-layout-5 (no autosave trigger) - not re-derived"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json S2 (Record on 'Open command palette' + Alt+1 -> override alt+1, conflict banner 'Alt+1 is bound to Open command palette and Agent mode.')"
+ },
+ {
+  "id": "settings-advanced-integrations",
+  "area": "settings",
+  "surface": "Advanced > Integrations subsection",
+  "entry": "src/components/SettingsPanel.tsx:1563",
+  "states": [
+   "populated"
+  ],
+  "drive": "browser",
+  "notes": "Child of AdvancedSection (:1532-1545).",
+  "driven": "broken",
+  "evidence": "COD-frontend-panels-shell-chrome-2 / COD-plugins-7 (vitest-proven: openPanel('marketplace-panel') finds no panel); surface/settings-plugins/10-settings-panel-replay.json S1.integrations",
+  "states_driven": {
+   "populated": "ok (copy + 'Open Marketplace' button render)",
+   "Open Marketplace click": "broken (dead - prior vitest proof; the S7 spy here was attached after render so it could not observe the call; not re-claimed)"
+  },
+  "notes_s2c": "Copy still pitches broker connections; trading is out of the product (scope fact 1) - the broker pitch itself is removed_with_feature, the dead button is not."
+ },
+ {
+  "id": "settings-advanced-layouts",
+  "area": "settings",
+  "surface": "Advanced > Layouts subsection (arrange templates management)",
+  "entry": "src/components/SettingsPanel.tsx:1587",
+  "states": [
+   "populated"
+  ],
+  "drive": "browser",
+  "notes": "Likely surfaces/edits the same 4 templates as lib/layout-templates.ts (single-focus/research-cockpit/compare/macro-scan) — verify by reading this subsection fully in Stage 1 execution, not yet opened line-by-line here.",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/http-log.jsonl D01-D13; 10-settings-panel-replay.json S1.layouts + S6",
+  "resolved": "Finding-6 row RESOLVED: the subsection is named-workspace management (Save current layout as..., Reset to default, list of saved layouts with Load / X-delete, autosave-slot footnote) - it does NOT surface or edit the 4 arrange templates (layout-templates.ts).",
+  "states_driven": {
+   "populated": "ok ('R15 Swing' listed, __autosave__ hidden)",
+   "save via UI": "NEEDS-GUI - serializeWorkspace needs the mounted dockview ('The panel layout is not ready yet.' in jsdom, S6)",
+   "save/list/load/delete via API": "ok",
+   "reserved '__x' name": "saves then vanishes from the list (D03/D09; COD-workspace-layout-12)",
+   "invalid name (Hindi, '/', '..')": "400 with a clear reason the frontend discards -> SURF-SETTINGS-PLUGINS-6",
+   "long name": "500 Errno 63 at >=~210 chars (D07/D07b) -> SURF-SETTINGS-PLUGINS-6",
+   "delete": "one unconfirmed click (COD-frontend-panels-shell-chrome-7)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json S3 (list from GET /workspace shows 'R15 Swing'; save/load with a FAKE dockview api fails as 'Layout operation failed.', which is a harness artifact: serializeWorkspace needs a real dockview, so NEEDS-GUI for the save/load leg)"
+ },
+ {
+  "id": "settings-advanced-modules",
+  "area": "settings",
+  "surface": "Advanced > Modules subsection (module enable/disable toggles)",
+  "entry": "src/components/SettingsPanel.tsx:1710",
+  "states": [
+   "all-enabled",
+   "some-disabled"
+  ],
+  "drive": "browser",
+  "notes": "Backed by store/modules.ts (modules.test.ts) — toggling a module changes collectPanels/collectCommands output (lib/module-registry.ts) which is pure and headless-testable.",
+  "driven": "partial",
+  "evidence": "surface/settings-plugins/11-modules-region-replay.json",
+  "states_driven": {
+   "all-enabled": "ok (22 modules, Platform locked 'always on')",
+   "some-disabled": "ok (Notes off -> notes.open leaves enabledCommands)",
+   "AI Assistant row": "dead control (0 panels / 0 commands, nothing reads enabled.chat) -> SURF-SETTINGS-PLUGINS-5"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/13-openpanel-ids-disabled-module.json + 10-settings-plugins-replay.json S4-modules: a disabled module's panel still opens via openPanel/host actions -> SURF-SETTINGS-PLUGINS-7"
+ },
+ {
+  "id": "settings-advanced-export-import",
+  "area": "settings",
+  "surface": "Advanced > Export/Import settings",
+  "entry": "src/components/SettingsPanel.tsx:1775,1767 (buildSettingsExport)",
+  "states": [
+   "export(populated JSON)",
+   "import-error(malformed file)"
+  ],
+  "drive": "browser",
+  "notes": "buildSettingsExport() is exported and pure — headless-testable for the export shape without touching the DOM.",
+  "driven": "broken",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S4 + S5",
+  "states_driven": {
+   "export(populated JSON)": "partial - bundle = {keybindingOverrides, settings:{defaultAgentId, region, deepResearchBackend}}; omits research tier/models/SearXNG URL/default provider+model/modules -> SURF-SETTINGS-PLUGINS-3; file save path is <a download> (WLD-T-2, NEEDS-GUI)",
+   "import-error(malformed file)": "ok for non-JSON ('Could not read that file')",
+   "import wrong-shaped JSON": "BROKEN - '{}' and another app's JSON both report 'Imported settings.' with nothing applied -> SURF-SETTINGS-PLUGINS-3",
+   "import numeric bindings/unknown region": "ok (dropped by setOverrides/setAll guards)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/10-settings-plugins-replay.json S2 export/imports (6 import files; malformed JSON is the only one that errors)"
+ },
+ {
+  "id": "settings-advanced-about",
+  "area": "settings",
+  "surface": "Advanced > About subsection",
+  "entry": "src/components/SettingsPanel.tsx:1872",
+  "states": [
+   "populated(version strings)"
+  ],
+  "drive": "api",
+  "notes": "Cross-check against GET /health (request.app.version) and the multi-source version fields CLAUDE.md warns must move together (package.json/Cargo.toml/tauri.conf.json/sidecar app.py/HOST_VERSION).",
+  "driven": "ok",
+  "evidence": "surface/settings-plugins/10-settings-panel-replay.json S1.about ('Vysted v0.8.0'); http-log.jsonl A01 (/health version 0.8.0); package.json:3, src-tauri/Cargo.toml:3, src-tauri/tauri.conf.json:4, sidecar/app.py:289, src/lib/plugin-bootstrap.ts:37 all 0.8.0",
+  "states_driven": {
+   "populated(version strings)": "ok - all five version sources agree"
+  }
+ },
+ {
+  "id": "provider-health-breaker",
+  "area": "settings",
+  "surface": "Provider health / circuit-breaker status",
+  "entry": "sidecar/routers/system.py:203,215,227 (GET /system/provider-health, POST /trip,/reset)",
+  "states": [
+   "healthy",
+   "tripped(circuit open)",
+   "reset"
+  ],
+  "drive": "api",
+  "notes": "No frontend surface for this located in this pass (not opened) — likely internal/ops-only; flag for Stage 1 to confirm whether Settings > Advanced actually surfaces it or if it's sidecar-internal only. GET is safe; the trip/reset POSTs mutate shared provider state — never call them against the operator's live session.",
+  "driven": "ok",
+  "evidence": "surface/settings-plugins/http-log.jsonl C06 (GET /system/provider-health -> yahoo open:true, opens_total 3, throttles_total 126)",
+  "resolved": "Finding-6 row RESOLVED: NO frontend surface - `grep -rn 'provider-health\\|providerHealth' src` returns 0 non-test hits; the breaker is sidecar-internal/ops-only. trip/reset POSTs not called (they mutate the process's provider state; GET suffices to answer the question).",
+  "states_driven": {
+   "healthy/tripped": "observed tripped (open) via GET",
+   "reset": "NOT TESTED (mutating POST, not needed to resolve the row)"
+  },
+  "merged_evidence_agent_P": "surface/settings-plugins/14-provider-health.json (yahoo open:true, cooldown 903 s, throttles_total 232 at 09:18) + 16-provider-health-frontend-grep.txt (0 references under src/)"
+ }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "raw_id": "INT-blueprint-240-1",
+        "verdict": "admitted_with_correction",
+        "severity_final": "medium",
+        "reason": "Core defect holds and is live: both the calendar event and the estimate-detail paths set eps_estimate_stddev = (high-low)/4 unconditionally (earnings_provider.py:259-261 and :428-429; the estimate frame is never read for a real dispersion), and the TS contract (types/earnings.ts:36) and EpsEstimateGrid (EpsEstimateGrid.tsx:68 'Std. dev.') present it as a true standard deviation with no approximation flag; the range/4 rule also underestimates sigma for small analyst counts (few-analyst small/mid caps are exactly where it is shown). Corrections: (a) the calendar table header is already 'Dispersion / # analysts' (EarningsCalendarPanel.tsx:318), so only the grid label and TS doc claim 'standard deviation'; (b) the '/0 analysts' half is not reproduced - AAPL returns 27 and SIFY 1 from numberOfAnalysts, and a single-analyst range of 0 yields stddev null via the `or None`, so the stddev-with-zero-analysts pairing needs a frame lacking numberOfAnalysts while the calendar carries high!=low (possible, since analyst_count defaults to 0 rather than null, but unobserved); (c) the repro's 'common outside large-cap US names' is wrong for Indian listings - RELIANCE.NS/TCS.NS return no upcoming event at all, so the field never renders for them.",
+        "evidence": "sidecar/services/earnings_provider.py:243-261, sidecar/services/earnings_provider.py:422-429, sidecar/services/earnings_provider.py:167-178, sidecar/models/earnings.py:42-43, types/earnings.ts:36-39, src/modules/earnings/EpsEstimateGrid.tsx:68-73, src/modules/earnings/EarningsCalendarPanel.tsx:318, src/modules/earnings/EarningsCalendarPanel.tsx:364",
+        "evidence_checked": "Opened provider (both event and estimate-detail builders plus the yfinance fetch), pydantic model, TS mirror, both UI components at HEAD f763a44; ran GETs against the isolated stack :52152.",
+        "repro_check": "curl 127.0.0.1:52152/earnings/AAPL/estimates -> high 2.07, low 1.93, eps_estimate_stddev 0.035 = exactly (2.07-1.93)/4 with estimate_analyst_count 27 (approximation shipped as 'stddev'); SIFY -> count 1, stddev null; RELIANCE.NS/TCS.NS -> 404 'no upcoming earnings event' (no zero-analyst case observed)."
+    }
+]

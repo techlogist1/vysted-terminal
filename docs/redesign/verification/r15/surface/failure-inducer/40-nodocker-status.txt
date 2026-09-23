@@ -1,0 +1,12 @@
+== GET /search/searxng/status
+{"state":"not_installed_docker","detail":"docker CLI not found — install Docker Desktop or OrbStack","reason":null,"port":null,"url":null,"container":null,"container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":false,"daemon_running":false,"runtime":null}}
+[200 0.002928s]
+== GET /search/status
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo available"},{"id":"brave","label":"Brave","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave available"},{"id":"mojeek","label":"Mojeek","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek available"}]}
+[200 0.002311s]
+== GET /health
+{"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"}}
+[200 0.005223s]
+== GET /search/status with X-Vysted-Searxng-Url: http://127.0.0.1:9
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo available"},{"id":"brave","label":"Brave","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave available"},{"id":"mojeek","label":"Mojeek","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek available"}]}
+[200 0.001301s]

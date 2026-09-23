@@ -1,0 +1,3 @@
+{"kind": "delta", "text": "Partial ans"}
+{"kind": "error", "message": "Ollama returned an unreadable response.", "action": "Try again; if the problem persists, check the provider's status page.", "detail": "Unterminated string starting at: line 1 column 36 (char 35)", "code": "parse_error"}
+{"kind": "done", "usage": null, "finish_reason": null}

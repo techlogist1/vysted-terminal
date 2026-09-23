@@ -1,0 +1,7 @@
+### 08:06:03 (restarted sidecar pid 15507) prior turn's panel ack for its auto-publish, id '__autobrief'
+{"ok":true} [HTTP 200]
+### 08:12 verdict (run 36-staleack-run2-final, same sidecar pid 15507, NO ack posted by the client)
+run2 t0 08:09:30; auto publish_brief tool_call_id '__autobrief' at t+151.65 s = 08:12:02 (inside the 600 s TTL of the 08:06:03 ack).
+"did not confirm" notices: run 30 (fresh process, no prior ack) = 1; run 36 = 0. The model closed with
+"Built a brief on Mazagon Dock Shipbuilders." although no panel confirmed this publish.
+-> the earlier turn's ack for the constant id '__autobrief' satisfied this turn's read-back.

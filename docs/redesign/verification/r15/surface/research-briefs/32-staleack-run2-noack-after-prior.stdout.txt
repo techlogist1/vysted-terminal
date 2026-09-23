@@ -1,0 +1,40 @@
+[  61.6s] tool_use research {"query": "Mazagon Dock Shipbuilders", "depth": "quick"}
+[  62.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 61fce61d079a4385852cee06b29e65fb depth=normal query=Mazagon Dock Shipbuilders", "latency_ms": null, "status": "ok", "index": 1, "_t": 62.05}
+[  62.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"Mazagon Dock Shipbuilders\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 62.05}
+[  62.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 MAZDOCK", "latency_ms": 414, "status": "ok", "index": 3, "_t": 62.05}
+[  62.0s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for MAZDOCK", "latency_ms": null, "status": "ok", "index": 4, "_t": 62.05}
+[  80.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 18697, "status": "ok", "index": 5, "_t": 80.75}
+[  80.8s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for Mazagon Dock Shipbuilders Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 80.75}
+[ 107.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 26480, "status": "ok", "index": 7, "_t": 107.23}
+[ 107.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 107.23}
+[ 107.2s] tool_use publish_brief {"query": "Mazagon Dock Shipbuilders", "symbol": "MAZDOCK", "mode": "fast", "depth": "quick", "execution": {"run_id": "61fce61d079a4385852cee06b29e65fb", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790130742.707157, "finished_at": 1790130788.30119, "degraded_reason":
+
+=== TEXT ===
+Here is the answer to the user's question:
+
+Built you a brief on Mazagon Dock Shipbuilders — it's at the top of the cockpit; click any ticker to dig in.
+
+The brief includes the following information:
+
+* Symbol: MAZDOCK
+* Name: Mazagon Dock Shipbuilders Limited
+* Exchange: NSE
+* Region: IN
+* Asset Class: Equity
+* Yahoo Symbol: MAZDOCK.NS
+* Confidence: 1.0
+* ISIN: INE249Z01020
+* BSE Code: 543237
+* Industry: Capital Goods / Ship Building & Allied Services
+
+The brief also includes the following data:
+
+* Price: ₹2204.00
+* Change: -₹28.00
+* Change Percent: -1.25%
+* Volume: 611823.00
+* Currency: INR
+* Market State: CLOSED
+* Timestamp: 2026-09-22T00:00
+
+=== ok 229.3s kinds={'tool_use': 2, 'research_step': 8, 'delta': 200} usage={}

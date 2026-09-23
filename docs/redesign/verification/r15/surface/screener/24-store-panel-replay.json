@@ -1,0 +1,399 @@
+{
+ "S1-default-sp500": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 0,
+   "result_count": 0,
+   "rows": 0,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 0 of 506 — 506 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 0 of 506 — 506 unavailableData provider is throttling this IP — showing cached/snapshot values; they refresh automatically.506 unavailable — 506 rate-limited> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, r",
+  "request": {
+   "url": "http://127.0.0.1:52219/screener/run/stream",
+   "body": {
+    "universe": "sp500",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "lt",
+      "value": 20
+     },
+     {
+      "field": "market_cap",
+      "operator": "gt",
+      "value": 100000000000
+     },
+     {
+      "field": "sector",
+      "operator": "eq",
+      "value": "Technology"
+     }
+    ],
+    "limit": 200
+   }
+  }
+ },
+ "S2-indiaall-loose": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 5066,
+   "result_count": 200,
+   "rows": 200,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 5,066 of 5,156 — 90 unavailable · 183 rows on stale/snapshot basis (oldest 2026-07-09)"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 5,066 of 5,156 — 90 unavailable · 183 rows on stale/snapshot basis (oldest 2026-07-09)Data provider is throttling this IP — showing cached/snapshot values; they refresh automatically.17 live · 183 mixed90 unavailable — 90 rate-limitedquotes 70d ago · valuation 75d ago · deep fields 75d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweentoCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders200 rows (5066 evaluated, 90 skipped, 966 ms) Export CSVindia-allSymbolNameSectorMarket cap▼P/EFwd P/EROED/EDivPrice1d %VolumeRELIANCEmixedReliance Industries LimitedEnergy₹16.8T22.1617.189.14%0.366530.48%₹1,240.40-0.56%10.7MHDFCBANKmixedHDFC Bank Limited"
+ },
+ "S3-malformed-formula": {
+  "status": "error",
+  "error": "Formula: unexpected character '%' (col 21)",
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screenerFormula: unexpected character '%' (col 21)Retry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedpe < 20 and roe > 15% ^ unexpected character '%'Examplesvalue + qualityyield, low debtcalm compoundersCould not load resultsThe screener run failed. Retr",
+  "network_calls": 0
+ },
+ "S4-preset-after-advanced": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 42,
+   "result_count": 3,
+   "rows": 3,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 42 of 50 — 8 unavailable · 3 rows on stale/snapshot basis (oldest 2026-09-14)"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 42 of 50 — 8 unavailable · 3 rows on stale/snapshot basis (oldest 2026-09-14)Data provider is throttling this IP — showing cached/snapshot values; they refresh automatically.3 mixed8 unavailable — 7 missing debt_to_equity · 1 rate-limitedquotes 7m ago · valuation 8d ago · deep fields 8d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYCriterionGroupMatch ALLMatch ANYCriterionGroupNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenorNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenCustom form",
+  "request": [
+   {
+    "url": "http://127.0.0.1:52219/screener/run/stream",
+    "body": {
+     "universe": "nifty50",
+     "criteria": [
+      {
+       "field": "held_percent_insiders",
+       "operator": "gt",
+       "value": 0.4
+      },
+      {
+       "field": "roe",
+       "operator": "gt",
+       "value": 0.12
+      },
+      {
+       "field": "debt_to_equity",
+       "operator": "lt",
+       "value": 1
+      }
+     ],
+     "limit": 200,
+     "group": {
+      "combinator": "and",
+      "criteria": [
+       {
+        "combinator": "or",
+        "criteria": [
+         {
+          "field": "pe_ratio",
+          "operator": "lt",
+          "value": 12
+         },
+         {
+          "field": "dividend_yield",
+          "operator": "gt",
+          "value": 0.04
+         }
+        ]
+       }
+      ]
+     },
+     "formula": "pe < 12"
+    }
+   }
+  ],
+  "state_after": {
+   "universe": "nifty50",
+   "criteria": [
+    {
+     "field": "held_percent_insiders",
+     "operator": "gt",
+     "value": 0.4
+    },
+    {
+     "field": "roe",
+     "operator": "gt",
+     "value": 0.12
+    },
+    {
+     "field": "debt_to_equity",
+     "operator": "lt",
+     "value": 1
+    }
+   ],
+   "advanced": true,
+   "formula": "pe < 12",
+   "group": {
+    "combinator": "and",
+    "criteria": [
+     {
+      "combinator": "or",
+      "criteria": [
+       {
+        "field": "pe_ratio",
+        "operator": "lt",
+        "value": 12
+       },
+       {
+        "field": "dividend_yield",
+        "operator": "gt",
+        "value": 0.04
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "symbols": [
+   [
+    "NTPC.NS",
+    10.079414,
+    0.0375,
+    null,
+    0.13695
+   ],
+   [
+    "ONGC.NS",
+    6.730269,
+    0.0623,
+    null,
+    0.12703
+   ],
+   [
+    "COALINDIA.NS",
+    8.110407,
+    0.050199999999999995,
+    null,
+    0.28124002
+   ]
+  ]
+ },
+ "S5-preset-clean": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 42,
+   "result_count": 18,
+   "rows": 18,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 42 of 50 — 8 unavailable · 1 rows on stale/snapshot basis (oldest 2026-09-14)"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 42 of 50 — 8 unavailable · 1 rows on stale/snapshot basis (oldest 2026-09-14)Data provider is throttling this IP — showing cached/snapshot values; they refresh automatically.17 live · 1 mixed8 unavailable — 7 missing debt_to_equity · 1 rate-limitedquotes 7m ago · valuation 8d ago · deep fields 8d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ",
+  "request": [
+   {
+    "url": "http://127.0.0.1:52219/screener/run/stream",
+    "body": {
+     "universe": "nifty50",
+     "criteria": [
+      {
+       "field": "held_percent_insiders",
+       "operator": "gt",
+       "value": 0.4
+      },
+      {
+       "field": "roe",
+       "operator": "gt",
+       "value": 0.12
+      },
+      {
+       "field": "debt_to_equity",
+       "operator": "lt",
+       "value": 1
+      }
+     ],
+     "limit": 200
+    }
+   }
+  ],
+  "symbols": [
+   [
+    "TCS.NS",
+    15.456347,
+    0.47743,
+    0.10211
+   ],
+   [
+    "HINDUNILVR.NS",
+    43.290802,
+    0.21603,
+    0.03016
+   ],
+   [
+    "SUNPHARMA.NS",
+    37.03912,
+    0.1472,
+    0.055170000000000004
+   ],
+   [
+    "ADANIPORTS.NS",
+    30.485733,
+    0.15592,
+    0.64051
+   ],
+   [
+    "MARUTI.NS",
+    26.666374,
+    0.14434,
+    0.00096
+   ],
+   [
+    "HCLTECH.NS",
+    19.921593,
+    0.24067,
+    0.07058
+   ],
+   [
+    "BAJAJ-AUTO.NS",
+    27.122591,
+    0.28046,
+    0.56352
+   ],
+   [
+    "JSWSTEEL.NS",
+    12.579882,
+    0.27261,
+    0.9537399999999999
+   ],
+   [
+    "ONGC.NS",
+    6.730269,
+    0.12703,
+    0.42548
+   ],
+   [
+    "BEL.NS",
+    47.15827,
+    0.27556,
+    0.0027300000000000002
+   ],
+   [
+    "COALINDIA.NS",
+    8.110407,
+    0.28124002,
+    0.11628999999999999
+   ],
+   [
+    "NESTLEIND.NS",
+    69.52381,
+    0.76338995,
+    0.08621000000000001
+   ],
+   [
+    "DIVISLAB.NS",
+    85.21952,
+    0.16187,
+    0.00042
+   ],
+   [
+    "ASIANPAINT.NS",
+    49.451283,
+    0.20889999,
+    0.17847000000000002
+   ],
+   [
+    "EICHERMOT.NS",
+    35.82118,
+    0.23774,
+    0.02048
+   ],
+   [
+    "WIPRO.NS",
+    13.240476,
+    0.16128999,
+    0.27398
+   ],
+   [
+    "TRENT.NS",
+    80.507225,
+    0.27126,
+    0.36034
+   ],
+   [
+    "BRITANNIA.NS",
+    46.23069,
+    0.53314,
+    0.26875
+   ]
+  ]
+ },
+ "S6-error-frame": {
+  "status": "error",
+  "error": "Stream ended without a result frame",
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screenerStream ended without a result frameRetry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compoundersCould not l"
+ },
+ "S7-custom": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 3,
+   "result_count": 3,
+   "rows": 3,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 3 of 3 — 0 unavailable · 3 rows on stale/snapshot basis (oldest 2026-09-23)"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSESymbols (comma or space)Run screener> SavedNo saved screensSave screenscreened 3 of 3 — 0 unavailable · 3 rows on stale/snapshot basis (oldest 2026-09-23)Data provider is throttling this IP — showing cached/snapshot values; they refresh automatically.3 mixedquotes 2m ago · valuation 2m ago · deep fields 2m ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders3 rows (3 evaluated, 9 ms) Export CSVcustomSymbolNameSectorMarket cap▼P/EFwd P/EROED/EDivPrice1d %VolumeRELIANCEmixedReliance Industries LimitedEnergy₹16.8T22.4517.37—0.366530.48%₹1,240.40-0.56%10.7MTCSmixedTata Consultancy Services LimitedTechnology₹7.62T15.4612.9447.74%0.102113.05%₹2,105.00-1.11%3.6MINFYm",
+  "run_disabled_when_empty": true,
+  "request": {
+   "url": "http://127.0.0.1:52219/screener/run/stream",
+   "body": {
+    "universe": "custom",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "gt",
+      "value": 0
+     }
+    ],
+    "limit": 200,
+    "custom_symbols": [
+     "RELIANCE",
+     "TCS",
+     "INFY"
+    ]
+   }
+  }
+ },
+ "S8-cancel": {
+  "status": "idle",
+  "error": null,
+  "result": {
+   "evaluated": 0,
+   "result_count": 0,
+   "rows": 0,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 0 of 506 — 506 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 0 of 506 — 506 unavailableData provider is throttling this IP — showing cached/snapshot values; they refresh automatically.506 unavailable — 506 rate-limited> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, r",
+  "status_mid": "ready",
+  "returned": "result"
+ },
+ "S9-saved-screens": {
+  "status": "idle",
+  "error": null,
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityFounder-aligned (NSE)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetMarket capP/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook valueDividend yield (frac, 0.02 = 2%)EPSBetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high52w low1y change (frac)Insider/promoter holding (frac)Institutional holding (frac)Price1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedFields: roe — run the screener to apply.Examplesvalue + qualityyield, low debtcalm compoundersNo results yetSet your criteria above and run the screener to find matching stocks.Run screener",
+  "loaded": {
+   "universe": "nse-all",
+   "formula": "roe > 0.2"
+  },
+  "after_delete": 0,
+  "after_reset_count": 0
+ }
+}

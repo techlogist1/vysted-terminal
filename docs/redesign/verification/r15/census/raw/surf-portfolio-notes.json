@@ -1,0 +1,82 @@
+[
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-1",
+  "title": "A portfolio with no live quote renders 'Market value ₹0.00 · Total P&L ₹0.00 (0.00%) · Concentration 0.0%' and publishes totalValue: 0 to the agent, which is the fabricated zero the snapshot contract forbids",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "repro": "Portfolio panel (real component, jsdom, live sidecar :52221): add ZZZZNOTREAL x10 @100, or a BTC/USDT crypto lot, or any holding while the quote fetch fails (induced TypeError on /quotes, P7). Summary row reads 'Market value: ₹0.00 · Total P&L: ₹0.00 (0.00%) · Concentration: 0.0% · 1 without a live quote'. captureTerminalState().portfolio = {positionCount:1, totalValue:0, ...}. In the partial case (some holdings priced) totalValue silently excludes the unpriced ones and carries no totalValueNote.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P5-unresolved-crypto (unresolved.summary, unresolved.bus.totalValue=0), P7-quotes-down (panelText); src/modules/portfolio/PortfolioPanel.tsx:202 (totalValue = mixedCurrencies ? null : summary.totalMarketValue), :717-750 (summary rendered whenever rows>0, formatCompactMoney(0, undefined)); src/modules/portfolio/metrics.ts:111-113 (sums of resolved rows default to 0); src/modules/chat/context-provider.ts:53-61 ('NEVER 0 as a stand-in for unknown ... the E3/E6 honesty defect')",
+  "notes": "Unknown is presented as a money value. The UI's '₹0.00 market value / 0.00% P&L' reads as a real (flat, worthless) book, and the agent's get_portfolio reads totalValue 0, which the TerminalPortfolio contract names as the exact defect it exists to prevent. It fires in normal use: any crypto pair entered in the app's own format (SURF-PORTFOLIO-NOTES-2), any delisted or mistyped symbol, and every holding while quotes are unreachable (the Retry banner never shows, COD-portfolio-4). Smallest fix: when byCurrency is empty publish totalValue null with totalValueNote 'no live quotes resolved' and render 'Market value: — (no live quotes)'; when unresolvedCount > 0 add a totalValueNote naming the excluded holdings."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-2",
+  "title": "Crypto holdings entered as 'BTC/USDT' (the app's own pair format) never get a price: the portfolio calls /quotes/BTC%2FUSDT, which 404s, and shows the cost in rupees",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "portfolio",
+  "repro": "Portfolio form: symbol BTC/USDT, qty 0.5, cost 60000, class Crypto -> GET /quotes/BTC%2FUSDT?asset_class=crypto -> 404 {'detail':'Not Found'} (1 ms, Starlette decodes %2F before routing). Row: 'BTC/USDT 0.5 ₹60,000.00 — — — —'. The same lot as BTCUSDT prices (ccxt:binance, $86,700) and the batch /quotes?symbols=BTC/USDT also prices (currency USDT). The watchlist prices the default BTC/USDT row through /crypto/ticker.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P5-unresolved-crypto (cryptoSlash vs cryptoNoSlash, net), docs/redesign/verification/r15/surface/portfolio-notes/11-portfolio-routes-http.jsonl; src/modules/portfolio/api.ts:23-32; src/lib/sidecar-client.ts:266-267 (`/quotes/${encodeURIComponent(symbol)}`); src/modules/watchlist/api.ts:44-47 (crypto via cryptoTicker); src/store/symbols.ts:24 (default watchlist BTC/USDT)",
+  "notes": "The same slash-in-path-segment class as the macro IFS/ series (SURF-PANELS-LAYOUTS-5) and the crypto chart/overview 404 (COD-frontend-panels-data-surfaces-9), here on the tracked-holdings surface. A user copying a pair from the watchlist gets a permanently unpriced lot, which also triggers SURF-PORTFOLIO-NOTES-1's ₹0 total, and the cost column falls back to the region currency (₹ for a USDT pair). Smallest fix: route crypto holdings through the same cryptoTicker call the watchlist uses (or the batch /quotes query parameter), and never format a crypto cost in the region currency."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-3",
+  "title": "The holding Delete button does nothing in any portfolio that was not the active one when the panel mounted",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "repro": "Render the Portfolio panel on 'Portfolio', add RELIANCE.NS. Create 'Second' with the New-portfolio button, add TCS.NS, click the TCS.NS trash icon -> holdings unchanged (['TCS.NS']), no error. Edit in the same portfolio works; delete in the mount-time portfolio works; a fresh mount on 'Second' deletes correctly (P4b).",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P4-stale-closure (before/afterDelete), P4b-fresh-mount-delete; src/modules/portfolio/PortfolioPanel.tsx:305-310 (handleDelete -> removeHolding(active.id, id)), :332-443 (holdingColumns useMemo, deps [showQty, showCost, showPrice, showWeight, mixedCurrencies] only, eslint exhaustive-deps disabled at :442), :432 (action cell calls the memoised handleDelete)",
+  "notes": "A stale closure: the columns memo captures the first render's handleDelete, which closes over the first render's `active`, so removeHolding targets the mount-time portfolio id and silently no-ops for a holding that lives elsewhere. The comment at :440-441 ('stable enough across renders') is the wrong assumption. It resolves itself only when something rebuilds the columns (a width breakpoint or a mixed-currency flip), so in the GUI it is intermittent. Smallest fix: add handleDelete/handleEdit (or active.id) to the deps, or have the cell call a ref-held handler."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-4",
+  "title": "With the Portfolio panel open, get_portfolio carries no position ids, so an agent update or delete lands on the first lot of that symbol, not the lot the user meant",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "portfolio",
+  "repro": "Panel open with RELIANCE x10, TCS x5 @2500, TCS x20 @3900 ('second lot'). captureTerminalState().portfolio.holdings has no `id` on any row (the closed-panel store fallback does carry ids). The catalog tells the model to 'read the current positions first with get_portfolio to learn the position_id'. applyHostActionAsync('portfolio_update_position', {position_id:'2', symbol:'TCS.NS', quantity:25}) -> 'Updated TCS.NS: ×25 @ ₹2,500': the x5 lot became x25, the x20 lot untouched. The same call also sent PUT /portfolio/positions/2 to the sidecar ledger: a numeric id the model invents addresses an unrelated ledger row (PUT /portfolio/positions/3 with a TCS body overwrote the RELIANCE ledger row, 200).",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P9-agent (openPanelSnapshot vs closedPanelSnapshot, describe_update_by_symbol, after_update, net), docs/redesign/verification/r15/surface/portfolio-notes/11-portfolio-routes-http.jsonl put-3-overwrite; src/modules/portfolio/PortfolioPanel.tsx:212-221 (published holdings omit id); src/modules/chat/context-provider.ts:242-258 (bus preferred), :166-187 (store fallback carries id); src/lib/host-actions.ts:545-560 (resolveHolding: id miss -> first symbol match), :1312-1317; sidecar/services/agent_tools/catalog.py:1338-1341, :1365",
+  "notes": "The handle the tool contract depends on is dropped on the common path (the panel is usually open when a user asks about their portfolio), and the symbol fallback then guesses. The review-bar diff shows only 'TCS.NS: ×5 @ ₹2,500 -> ×25', so a user with two lots cannot tell which one changes. Distinct from COD-host-actions-proposed-changes-1 (active portfolio switched before Accept). Smallest fix: publish `id: holding.id` in publishedHoldings (PortfolioPanel.tsx:214-221), and make resolveHolding refuse a symbol fallback when more than one lot matches."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-5",
+  "title": "The intent gate strips the portfolio write tools for everyday phrasings such as 'Delete TCS from my portfolio' or 'I bought 10 INFY at 1500, track it', and nothing happens",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "portfolio",
+  "repro": "classify_intent on 15 portfolio/notes phrasings: 'Delete TCS from my portfolio', 'Update my RELIANCE cost basis to 1180', 'My RELIANCE lot is actually 12 shares', 'I bought 10 shares of INFY at 1500, track it in my portfolio', 'Put 25 HDFC Bank at 1600 in my paper portfolio' -> intent 'read' (no signal), so the write tools are removed from the tool list. Live, local lane, AUTO: 'Delete TCS from my portfolio' -> no tool_use; llama3.1:8b types {\"name\": \"portfolio_delete_position\", ...} as chat text and the turn ends (A1). Control 'Add 10 INFY.NS at 1500 to my portfolio' -> real portfolio_add_position tool_use with correct args (A2).",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/30-intent-gate-portfolio-notes.txt, docs/redesign/verification/r15/surface/portfolio-notes/A1-agent-delete-tcs-llama.stdout.txt, docs/redesign/verification/r15/surface/portfolio-notes/A2-agent-add-infy-llama.stdout.txt; sidecar/services/planner.py:76-90 (_EDIT_SIGNALS: add/remove/change/buy..., no delete/update/bought/put/track), :167 (classify_intent)",
+  "notes": "Extends SURF-COMPOSER-CHAT-5 (notes and save phrasings) to the portfolio verbs: the three portfolio write tools exist and are allow-listed, but 'delete', 'update', 'bought', 'put', 'track' and 'log' are not edit cues, so the most natural way to maintain a tracked portfolio silently strips the tools. On the local lane the model then prints the call as text (SURF-COMPOSER-CHAT-1). Smallest fix: add delete|update|bought|sold|track|put .* in my portfolio|log to _EDIT_SIGNALS, or keep the portfolio/notes write tools in the read set with the proposed-changes gate as the safety net."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-6",
+  "title": "Holding validation differs by entry path: the form saves a blank cost basis as 0 and a 1e20 quantity, and the agent path accepts a negative cost basis the form and the sidecar both reject",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "repro": "Form: TCS.NS qty 5, cost basis left blank -> saved as cost 0 with no error, although the error copy says 'Symbol, quantity, and cost basis are required' (Number('') = 0 passes isFinite); the row then shows the whole market value as profit with P&L% '—'. qty '1e20' -> saved. qty '1,000' -> 'Symbol, quantity, and cost basis are required' (misleading). Agent: portfolio_add_position {symbol:'INFY.NS', quantity:4, cost_basis:-1500} -> 'Added 4 INFY.NS @ ₹-1,500 to the paper portfolio' in the store; the sidecar mirror POST returned 422 (cost_basis ge=0) and was ignored.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P2-validation (cost-blank, qty-1e20, qty-comma), P9-agent (add_neg_cost, net POST 422); src/modules/portfolio/PortfolioPanel.tsx:264-277; src/lib/host-actions.ts:1262-1273 (positionBody), :1333-1336 (checks symbol and quantity>0 only), :1337 (sync result discarded); sidecar/models/portfolio.py PositionInput (quantity gt=0 le=1e12, cost_basis ge=0)",
+  "notes": "Three writers, three rule sets: the sidecar model is the strictest, the form is looser, the agent path loosest; normalizeHolding in the store (COD-portfolio-8) validates nothing. A forgotten cost basis turns a holding into an all-profit line. Related to WLD-harness-tools-3 (missing cost_basis argument becomes zero). Smallest fix: one validateHolding() in the store used by the form, the agent path and restore (require a non-empty cost string, quantity in (0, 1e12], cost >= 0), with the form's message naming the failing field."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-7",
+  "title": "Portfolio (and watchlist) CSV export writes cells starting with '=', '+', '-' or '@' verbatim, so a note becomes a live spreadsheet formula",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "portfolio",
+  "repro": "Holding note '=HYPERLINK(\"http://example.invalid\",\"x\")' -> Export CSV -> the cell is written as \"=HYPERLINK(\"\"http://example.invalid\"\",\"\"x\"\")\" (RFC-4180 quoted only because it contains quotes). Excel, Numbers and Sheets evaluate a quoted cell that starts with '=' as a formula.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P6-mixed-csv (csv.content); src/lib/csv.ts:12-15 (escapeCsvCell quotes on [\",\\n\\r] only), src/modules/portfolio/PortfolioPanel.tsx:469-504",
+  "notes": "Notes and symbols are user-typed, but the agent can also write a holding note (portfolio_add_position.note) from text it read on the web, so a prompt-injected page can plant a formula that runs when the user opens the export. Smallest fix: in escapeCsvCell, prefix a cell that starts with = + - @ (or tab/CR) with a single quote. The browser Blob download in the desktop webview is a separate known issue (intent-blueprint-0 / world-table-stakes) and NEEDS-GUI."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-8",
+  "title": "Notes wikilinks: the '[[' picker never learns watchlist symbols added after the panel opened, the toolbar's wikilink button deletes the selected text, and an inserted link is saved as escaped plain text",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "notes",
+  "repro": "NotesPanel (real Tiptap editor, jsdom): watchlist RELIANCE.NS + BTC/USDT at mount; later add TCS.NS -> typing '[[' still offers only KAYNES / RELIANCE.NS / BTC/USDT. Select 'alpha' in 'alpha beta gamma' and click 'Insert [[wikilink]]' -> '[[ beta gamma' (the word is replaced). Pick RELIANCE.NS from the picker -> editor text '[[RELIANCE.NS]]', getMarkdown() = 'see \\\\[\\\\[RELIANCE.NS\\\\]\\\\]', so the stored note and the exported .md carry escaped brackets that Obsidian-style tools do not read as links.",
+  "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/20-notes-panel-replay.json N5-menus (wikiItems, wikiItemsAfterWatchlistAdd, afterWiki.md), docs/redesign/verification/r15/surface/portfolio-notes/21-notes-toolbar-replay.json 'Insert [[wikilink]]'; src/modules/notes/NotesPanel.tsx:105-110,113-126 (getWikiSymbols captured once by useEditor), src/modules/notes/WikiLinkExtension.ts:47,62; src/modules/notes/NotesToolbar.tsx:155-158",
+  "notes": "Adds three driven defects to COD-frontend-panels-data-surfaces-10 (links are not clickable): the suggestion source is a closure frozen at editor creation (symbolEntries from the first render), the toolbar inserts '[[' over the selection instead of wrapping it, and the Markdown serializer escapes the literal brackets. Smallest fix: read symbols through a ref or store getState() inside getSymbols; wrap the selection as [[text]] when one exists; make the wikilink a real inline node or mark with its own Markdown serializer."
+ }
+]

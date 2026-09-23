@@ -1,13 +1,167 @@
 [
- {
-  "raw_id": "INT-deferred-0-1",
-  "pid": "INT-DF-1",
-  "title": "Every app launch blocks the data sidecar behind two slow MCP binds (24-34s+), and the named fix (--onedir) is still not taken",
-  "severity": "high",
-  "area": "lifecycle",
-  "subsystem": "tauri-core/sidecar-lifecycle",
-  "repro": "design + measured: launch the packaged app cold (after reboot). lib.rs setup spawns openbb-mcp + sec-edgar-mcp, JOINS both bind waits (measured 34.2s/33.6s cold in isolation, 13.6s/24.6s warm; up to 90s each under contention), and only then calls start_main_sidecar. The UI sits 'disconnected' for that whole window; if sec-edgar overruns 90s it is unavailable for the session (/sec -> 501).",
-  "evidence": "src-tauri/src/lib.rs:66-83, src-tauri/src/lib.rs:472-493, scripts/ensure-openbb-mcp-sidecar.mjs:172, scripts/ensure-sec-edgar-mcp-sidecar.mjs:152, src-tauri/tauri.conf.json:40-44, DECISIONS.md D76",
-  "notes": "Covers INT-DF-1/2/22/24. A stranger's first minute of a public 0.9.0 is a dead cockpit; the wait budget hides a startup-latency defect instead of removing it. Two fix shapes, smallest first: (1) do not join the MCP threads before start_main_sidecar — spawn main sidecar immediately and hand it the MCP ports lazily (env var is read once at import in openbb_mcp_provider.py:131-141, so switch that to a late-resolved port file / Tauri command) so the terminal is usable in seconds and MCP attaches when it binds; (2) the operator-attended --onedir conversion (Tier-1 tauri.conf.json externalBin -> resources + Rust inner-exe path + one full tauri build). (1) is not Tier-1 and also fixes INT-DF-22's 'late bind is lost for the session'."
- }
+  {
+    "raw_id": "INT-deferred-0-1",
+    "pid": "INT-DF-1",
+    "title": "Every app launch blocks the data sidecar behind two slow MCP binds (24-34s+), and the named fix (--onedir) is still not taken",
+    "severity": "high",
+    "area": "lifecycle",
+    "subsystem": "tauri-core/sidecar-lifecycle",
+    "repro": "design + measured: launch the packaged app cold (after reboot). lib.rs setup spawns openbb-mcp + sec-edgar-mcp, JOINS both bind waits (measured 34.2s/33.6s cold in isolation, 13.6s/24.6s warm; up to 90s each under contention), and only then calls start_main_sidecar. The UI sits 'disconnected' for that whole window; if sec-edgar overruns 90s it is unavailable for the session (/sec -> 501).",
+    "evidence": "src-tauri/src/lib.rs:66-83, src-tauri/src/lib.rs:472-493, scripts/ensure-openbb-mcp-sidecar.mjs:172, scripts/ensure-sec-edgar-mcp-sidecar.mjs:152, src-tauri/tauri.conf.json:40-44, DECISIONS.md D76",
+    "notes": "Covers INT-DF-1/2/22/24. A stranger's first minute of a public 0.9.0 is a dead cockpit; the wait budget hides a startup-latency defect instead of removing it. Two fix shapes, smallest first: (1) do not join the MCP threads before start_main_sidecar \u2014 spawn main sidecar immediately and hand it the MCP ports lazily (env var is read once at import in openbb_mcp_provider.py:131-141, so switch that to a late-resolved port file / Tauri command) so the terminal is usable in seconds and MCP attaches when it binds; (2) the operator-attended --onedir conversion (Tier-1 tauri.conf.json externalBin -> resources + Rust inner-exe path + one full tauri build). (1) is not Tier-1 and also fixes INT-DF-22's 'late bind is lost for the session'."
+  },
+  {
+    "raw_id": "INT-deferred-0-2",
+    "pid": "INT-DF-17, INT-DF-21",
+    "title": "The openbb-mcp/sec-edgar-mcp 'deadlock fix' is a spawn-mechanism side-step, never a transport-level root-cause fix, and its production-build efficacy is unproven",
+    "severity": "medium",
+    "area": "lifecycle",
+    "subsystem": "tauri-core/sidecar-lifecycle",
+    "repro": "design: src-tauri/src/openbb_mcp.rs replaces Python subprocess.Popen with Tauri's app.shell().sidecar() spawn (side-steps the anyio/_MEIPASS/handle-inheritance deadlock class per CLAUDE.md's own gotcha) but never touches the openbb-mcp-server / sec-edgar-mcp streamable-http transport itself; BLOCKERS.md:159-177 reclassifies the residual as slow cold bind + disk contention, which is what INT-DF-1/2/22/24 already cover. Separately, the 'workflow+backtest chain actually unblocked' claim (DF-17) is only evidenced by dev-built-binary smoke tests (scripts/smoke-test-sidecars.mjs) and dev-mode backtest runs (D65) \u2014 no repo evidence of a packaged `tauri build` cold boot exercising the chain.",
+    "evidence": "src-tauri/src/openbb_mcp.rs:1-13, scripts/smoke-test-sidecars.mjs:810, docs/redesign/DECISIONS.md D80 (dev binaries), D65 (dev backtest parity), BLOCKERS.md:159-177",
+    "notes": "Two related but distinct gaps beyond the cold-boot-latency finding (INT-deferred-0-1): (a) the streamable-http transport's own deadlock surface was never investigated/fixed, only avoided by changing who spawns the process; (b) nothing in the repo proves the fix holds on a packaged release build, only dev/smoke-test builds. Smallest fix shape: run one `tauri build` + cold-boot smoke pass on a clean machine and record the result in DECISIONS.md; upstream transport investigation stays deferred per BLOCKERS.md (already ruled out at Phase 9.5, see INT-DF-23)."
+  },
+  {
+    "raw_id": "INT-deferred-0-3",
+    "pid": "INT-DF-6, INT-DF-7, INT-DF-8",
+    "title": "The copilot's multi-round tool-calling loop has never been run against a real BYOK key (Anthropic, Gemini, or Ollama) \u2014 only a scripted fake provider",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "sidecar/agent_runtime + llm adapters",
+    "repro": "design: sidecar/tests/test_tool_loop_e2e.py drives the full loop (tool schema sent, tool_use dispatched, result fed back, terminal-context preamble) against a _ScriptedProvider fake only. Grep across sidecar/tests for a live-key fixture, VCR cassette, or recorded live response for any of anthropic.py, gemini.py, or ollama.py's stream_chat finds none.",
+    "evidence": "sidecar/tests/test_tool_loop_e2e.py:1-34, sidecar/services/llm/gemini.py:99, sidecar/services/llm/ollama.py:126",
+    "notes": "The mocked test proves the loop's plumbing is correct but not that any real provider actually emits tool_use in the expected shape or that the adapters parse a live response correctly \u2014 this is exactly the class of bug a mock can't catch (wire-format drift, auth header shape, streaming chunk boundaries). Smallest fix shape: one operator-attended pass per provider (Settings -> AI Providers, ask a tool-triggering question, confirm a correct multi-round answer), logged in DECISIONS.md/CHANGELOG."
+  },
+  {
+    "raw_id": "INT-deferred-0-4",
+    "pid": "INT-DF-27",
+    "title": "LLMProvider.stream_chat's ABC declaration ('async def -> AsyncIterator') is typed as a coroutine but every adapter implements and every caller uses it as an async generator",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "sidecar/services/llm",
+    "repro": "sidecar/services/llm/base.py:83-90 declares '@abstractmethod async def stream_chat(...) -> AsyncIterator[LLMStreamEvent]'. Every concrete adapter (anthropic.py:103, gemini.py:99, groq.py:101, ollama.py:126, openai.py:656) is an async-generator function (contains 'yield' directly in its async def body). The only call site, sidecar/services/agent_runtime.py:1434, does 'async for event in adapter.stream_chat(...)' with no 'await' before it -- correct for an async generator, but inconsistent with what the ABC's 'async def' signature would imply (call, then await the coroutine to get the iterator).",
+    "evidence": "sidecar/services/llm/base.py:83-90, sidecar/services/llm/anthropic.py:103, sidecar/services/agent_runtime.py:1434",
+    "notes": "Functionally harmless today because every override and the one caller agree with each other, but the ABC lies about the contract it enforces -- a new adapter written to match the ABC's literal 'async def' type (return a coroutine that resolves to an iterator, e.g. via an inner helper) would be call-site-incompatible without a type checker catching it, since no mypy run currently gates this file (no mypy config/binary found in the repo). Smallest fix: drop 'async' from the base.py declaration, matching BLOCKERS.md's own named fix, which was never applied."
+  },
+  {
+    "raw_id": "INT-deferred-0-5",
+    "pid": "INT-DF-28",
+    "title": "The four macro-provider modules' PROVIDER constant is an untyped str, not narrowed to the MacroProvider Literal the model layer already defines",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "sidecar/services/macro",
+    "repro": "sidecar/models/macro_extended.py:27 defines 'MacroProvider = Literal[\"fred\",\"ecb\",\"imf\",\"world-bank\"]' and uses it on MacroSeriesExtended.provider. But sidecar/services/macro/fred_provider.py:48, imf_provider.py:31, ecb_provider.py:30, world_bank_provider.py:37 each write 'PROVIDER = \"<id>\"' with no type annotation, so a type checker infers plain str for the constant that gets passed into the Literal-typed model field.",
+    "evidence": "sidecar/models/macro_extended.py:27-42, sidecar/services/macro/fred_provider.py:48, imf_provider.py:31, ecb_provider.py:30, world_bank_provider.py:37",
+    "notes": "Only the model layer got the Literal narrowing from the original audit's fix; the four provider modules' own constants were missed. Smallest fix: annotate each as 'PROVIDER: MacroProvider = \"fred\"' (etc.), one line per file."
+  },
+  {
+    "raw_id": "INT-deferred-0-6",
+    "pid": "INT-DF-30",
+    "title": "All three Rust kill() shutdown closures still hold a MutexGuard through the whole if-let body instead of releasing it right after .take()",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "src-tauri (sidecar/MCP process supervisors)",
+    "repro": "src-tauri/src/lib.rs:510 (main sidecar exit handler), src-tauri/src/openbb_mcp.rs:188, src-tauri/src/sec_edgar_mcp.rs:185 each still write 'if let Some(child) = state.0.lock().unwrap().take() { let _ = child.kill(); }' -- the MutexGuard temporary from '.lock().unwrap()' lives for the whole if-let block (the clippy::significant_drop_in_scrutinee shape), not just for the .take() call.",
+    "evidence": "src-tauri/src/lib.rs:508-513, src-tauri/src/openbb_mcp.rs:186-192, src-tauri/src/sec_edgar_mcp.rs:183-189",
+    "notes": "Low real-world blast radius (single-threaded app-exit path), but it is exactly the pattern clippy's significant_drop_in_scrutinee/significant_drop_tightening lints exist to catch, and it widens the window where a concurrent lock().unwrap() call on the same process-state mutex would block. Smallest fix (identical at all 3 sites): 'let child = state.0.lock().unwrap().take(); if let Some(child) = child { let _ = child.kill(); }'."
+  },
+  {
+    "raw_id": "INT-deferred-0-7",
+    "pid": "INT-DF-34, INT-DF-35",
+    "title": "BLUEPRINT.md section 10 (UC2/UC4) and section 4 (Module 7) still overclaim behavior the codebase does not have",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "docs/BLUEPRINT.md",
+    "repro": "docs/BLUEPRINT.md:735 (Use Case 2: 'AI Researcher pulls everything') and :738 (Use Case 4) say nothing about the MCP subprocess startup gap or the F1 port-bind degrade-to-yfinance/501 behavior a user can actually hit mid-flow. Separately, :235 (Module 7 'Theming engine (dark default + light option + future custom themes)') still claims a light theme option ships, though no light-theme CSS exists anywhere in styles/ (see INT-DF-19).",
+    "evidence": "docs/BLUEPRINT.md:235, docs/BLUEPRINT.md:735-738",
+    "notes": "Doc-drift only, no code change required. Smallest fix: a one-line caveat under UC2/UC4 noting the MCP-unavailable degrade path, and either strike 'light option' from Module 7 or footnote it as deferred to v1.1 (matches the S2 item 10 recommendation already on record in BLOCKERS.md)."
+  },
+  {
+    "raw_id": "INT-deferred-0-8",
+    "pid": "INT-DF-36",
+    "title": "Far more than the '10 fields' the original audit counted are still missing id/name attributes -- 70+ <input> elements across 40+ component files",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "src/modules, src/components (form controls)",
+    "repro": "grep every '<input' tag in src/**/*.tsx (excluding tests) for a same-tag 'id=' attribute: 70+ instances across 41 files have none, e.g. src/components/SettingsPanel.tsx:319-327 (a checkbox switch with an aria-label but no id/name), plus PortfolioPanel.tsx, ScreenerCriteriaBuilder.tsx, BrokerOrderEntry.tsx, OptionPricerPanel.tsx, and many more.",
+    "evidence": "src/components/SettingsPanel.tsx:319-327, src/modules/portfolio/PortfolioPanel.tsx, src/modules/screener/ScreenerCriteriaBuilder.tsx, src/modules/quant/OptionPricerPanel.tsx (representative sample of 41 files)",
+    "notes": "Functional defect per COMMON.md's UI-findings rule (broken/incomplete form-control semantics, not visual taste): missing id/name breaks autofill, password-manager integration, and any test or automation tool that targets inputs by id. The scale (70+, not 10) means this needs a sweep, not a spot-fix -- smallest fix shape is a lint rule (eslint-plugin-jsx-a11y 'label-has-associated-control' or a custom rule) plus a batch pass, not fixing individual call sites piecemeal."
+  },
+  {
+    "raw_id": "INT-deferred-0-9",
+    "pid": "INT-DF-38",
+    "title": "Settings -> Keybindings lets a user remap a shortcut, but the app-wide keydown handlers mostly ignore the remap -- only 1 of 11 defined actions is actually wired to it",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "src/store/keybindings.ts + shell keydown handlers",
+    "repro": "src/store/keybindings.ts:58-152 defines 11 remappable actions with a working store (bindingFor/setBinding/matchesEvent). But 'matchesEvent' -- the only function that consults the LIVE, possibly-remapped binding -- is imported and called in exactly one place, src/components/AgentDock.tsx:71 (agent.toggle). src/components/CommandPalette.tsx:77-83 instead hardcodes '(event.metaKey||event.ctrlKey) && event.key.toLowerCase()===\"k\"' directly in its own keydown listener -- remapping palette.open in Settings has no effect on the actual global handler.",
+    "evidence": "src/store/keybindings.ts:58-152 (action defs), :367 (matchesEvent), src/components/AgentDock.tsx:70-71 (the one live consumer), src/components/CommandPalette.tsx:72-83 (hardcoded combo, bypasses the store)",
+    "notes": "A shipped settings surface that silently doesn't do what it promises for 10 of 11 actions is a real trust defect (BLOCKERS.md flagged this as L11-keyboard-handlers-minimal but undercounted how close-yet-broken it is: the store + UI are fully built, only the wiring is missing). Smallest fix shape: route every hardcoded handler (CommandPalette and whichever others own 'their' bindings per the keybindings.ts comment at :99-102) through 'useKeybindingsStore.getState().bindingFor(actionId)' + 'matchesEvent' instead of a literal key comparison."
+  },
+  {
+    "raw_id": "INT-deferred-0-10",
+    "pid": "INT-DF-39",
+    "title": "The openbb-mcp PyInstaller spec still carries a redundant --copy-metadata=fastmcp-slim entry for a package that isn't even installed",
+    "severity": "low",
+    "area": "release",
+    "subsystem": "scripts/ensure-openbb-mcp-sidecar.mjs",
+    "repro": "scripts/ensure-openbb-mcp-sidecar.mjs:147 already does '--collect-all=fastmcp' (which bundles fastmcp's own dist-info metadata); the separate copyMeta list at :159-160 additionally does '--copy-metadata=fastmcp' (redundant with collect-all) and '--copy-metadata=fastmcp-slim'. 'sidecar/.venv/bin/pip show fastmcp-slim' returns 'WARNING: Package(s) not found: fastmcp-slim' -- it isn't in the dependency tree at all.",
+    "evidence": "scripts/ensure-openbb-mcp-sidecar.mjs:140-153 (collectAll), :155-169 (copyMeta); sidecar/.venv pip show output",
+    "notes": "Harmless today (PyInstaller likely just warns and skips the missing metadata target) but dead configuration that will confuse the next person auditing the build. Smallest fix: drop 'fastmcp-slim' from copyMeta and drop the redundant 'fastmcp' copy-metadata entry since collect-all already covers it."
+  },
+  {
+    "raw_id": "INT-deferred-0-11",
+    "pid": "INT-DF-42",
+    "title": "vitest.config.ts has no coverage block -- 'pnpm test -- --coverage' has nothing configured to report against",
+    "severity": "low",
+    "area": "release",
+    "subsystem": "vitest.config.ts",
+    "repro": "vitest.config.ts:1-18 (full file) -- the 'test' block has environment, globals, setupFiles, include, but no 'coverage' key (provider, thresholds, or reporters).",
+    "evidence": "vitest.config.ts:1-18",
+    "notes": "No coverage regression gate exists for the frontend test suite. Smallest fix: add 'coverage: { provider: \"v8\", reporter: [\"text\",\"html\"] }' (thresholds optional, add once a baseline is measured)."
+  },
+  {
+    "raw_id": "INT-deferred-0-12",
+    "pid": "INT-DF-12, INT-DF-13",
+    "title": "Two Phase-10 copilot/customizability promises are architected but not built: the agent-roster endpoint/panel and the data-source connector hub",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "sidecar routers + src/lib/plugin-runtime.ts",
+    "repro": "design: grep for 'agents/roster' and 'delegate_to_persona' across sidecar/routers/*.py and sidecar/services/agent_tools/*.py returns zero hits -- no GET /agents/roster endpoint, no 3-pane roster panel, no hard delegate_to_persona hand-off exists. Separately, src/lib/plugin-runtime.ts:419 collectDataSources() is wired into src/store/plugins.ts:62,86 but its only consumer, src/components/PluginManagerPanel.tsx:28,42, renders just an 'N data sources' count string -- no panel gallery, saved screens, or command-palette-as-action-driver.",
+    "evidence": "sidecar/routers/*.py (no roster route), src/lib/plugin-runtime.ts:418-423, src/store/plugins.ts:62,86, src/components/PluginManagerPanel.tsx:28,42",
+    "notes": "Both are explicitly deferred in BLOCKERS.md Phase 10 items 5-6, architected in docs/research/phase-10/blueprint-copilot.md and blueprint-customizability.md respectively, not newly discovered defects. Listed because a public 0.9.0's copilot/customizability promise reads as 'built' in BLUEPRINT.md without either caveat. No fix proposed here -- both are sized builds, not bugs."
+  },
+  {
+    "raw_id": "INT-deferred-0-13",
+    "pid": "INT-DF-14",
+    "title": "No BYOK provider (Anthropic/OpenAI/Google/Groq/Mistral/Cohere/Ollama) has a recorded first-token latency measurement",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "docs/archive/PHASE_8_PERF_BASELINE.md",
+    "repro": "docs/archive/PHASE_8_PERF_BASELINE.md:126-140 'Agent first-token latency -- Not measured this session ... Deferred to Phase 9 operator manual test'; no later doc or CHANGELOG entry supersedes it.",
+    "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:126-140",
+    "notes": "Documentation/measurement gap only, no code defect. A demanding public 0.9.0 release would want at least an order-of-magnitude latency figure per provider in the docs so a BYOK user knows what to expect. Fix is purely operator-time (run the Phase-9 procedure already written at PERF_BASELINE.md:133-138), not code."
+  },
+  {
+    "raw_id": "INT-deferred-0-14",
+    "pid": "INT-DF-19",
+    "title": "No light theme exists and no axe-core/Lighthouse audit tooling is wired into the repo, despite BLUEPRINT.md claiming a light option ships",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "styles/tokens.css, package.json",
+    "repro": "grep 'prefers-color-scheme: light' and '[data-theme=\"light\"]' across styles/*.css: zero hits (dark-only, per CLAUDE.md's '003 rebuild' gotcha). grep -i 'axe|lighthouse' package.json: zero hits.",
+    "evidence": "styles/tokens.css (no light-theme block), package.json (no axe-core or lighthouse dependency)",
+    "notes": "Overlaps INT-DF-35 (the doc-drift finding) but is listed separately since the promise here is the capability itself (light theme + audited accessibility/performance), not just the doc claim. BLOCKERS.md already tracks this as a v1.1 target (D-4). No fix proposed here -- sized build, not a bug."
+  },
+  {
+    "raw_id": "INT-deferred-0-15",
+    "pid": "INT-DF-20",
+    "title": "The macOS release build has no code-signing (Developer ID or notarization) configured",
+    "severity": "medium",
+    "area": "release",
+    "subsystem": "src-tauri/tauri.conf.json",
+    "repro": "src-tauri/tauri.conf.json:30-45 (bundle block) has no macOS signingIdentity or notarization keys. docs/redesign/KEYCHAIN_DEV_SIGNING.md + scripts/macos-dev-setup.sh cover only a dev-loop ad-hoc re-signing workaround for the keychain ACL (so 'tauri dev' doesn't re-prompt every rebuild) -- not a release signing pipeline.",
+    "evidence": "src-tauri/tauri.conf.json:30-45, docs/redesign/KEYCHAIN_DEV_SIGNING.md",
+    "notes": "A macOS build distributed to a stranger without Developer ID signing triggers Gatekeeper's 'unidentified developer' block on first launch -- a real first-minute defect for a public 0.9.0 release, not merely cosmetic. BLOCKERS.md already tracks this (v0.8.0->Phase 9 item 6); still open at current HEAD. Fix requires an Apple Developer ID (operator-owned credential), out of this worker's reach."
+  }
 ]

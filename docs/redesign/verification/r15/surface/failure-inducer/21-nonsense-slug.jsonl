@@ -1,0 +1,2 @@
+{"kind": "error", "message": "Something went wrong with OpenRouter.", "action": "Try again or switch provider in Settings.", "detail": "Error code: 400 - {'error': {'message': 'zzz-nonsense/not-a-model-9000:free is not a valid model ID', 'code': 400}, 'user_id': 'user_<redacted>'}", "code": "unknown"}
+{"kind": "done", "usage": null, "finish_reason": null}

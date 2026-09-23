@@ -1,0 +1,98 @@
+[
+ {
+  "id": "panel-screener",
+  "area": "screener",
+  "surface": "Screener panel shell",
+  "entry": "src/modules/screener/index.ts:16-32; src/modules/screener/ScreenerPanel.tsx:90",
+  "states": [
+   "error(:298-305, truncated backend error message)",
+   "universe-status-error(:107,214)",
+   "populated",
+   "tenth-item(results table)"
+  ],
+  "drive": "api",
+  "notes": "POST /screener/run, /screener/run/stream (SSE), /screener/formula/validate, GET /screener/universe. Uses useRetryOnSidecarReady per CLAUDE.md comment.",
+  "driven": "partial",
+  "evidence": "surface/screener/runs.jsonl (01-16); surface/screener/24-store-panel-replay.json S1,S6,S7; EVIDENCE.md s1-2,6",
+  "states_driven": {
+   "populated": "ok (runs 02,03,05,06,09,14)",
+   "tenth-item": "partial (200-row cap presented as the match count, runs 11/12)",
+   "error": "broken (stream error frame discarded -> 'Stream ended without a result frame', replay S6)",
+   "universe-status-error": "ok (all 6 universes 200; custom 400 never called)",
+   "zero-evaluated": "broken (runs 01/16, replay S1)"
+  }
+ },
+ {
+  "id": "screener-criteria-builder",
+  "area": "screener",
+  "surface": "Screener criteria builder (AND/OR groups)",
+  "entry": "src/modules/screener/ScreenerCriteriaBuilder.tsx:390; src/modules/screener/CriterionGroupEditor.tsx:317",
+  "states": [
+   "empty(no criteria)",
+   "populated(nested groups)"
+  ],
+  "drive": "browser",
+  "notes": "ScreenerCriteriaBuilder.test.tsx exists — pure component test, no sidecar needed for structural states.",
+  "driven": "partial",
+  "evidence": "surface/screener/24-store-panel-replay.json S4/S5; runs.jsonl 06",
+  "states_driven": {
+   "populated(nested groups)": "ok server-side (run 06 OR group; S4 nested tree evaluated)",
+   "empty(no criteria)": "ok (run 14, 49 rows)",
+   "preset-over-advanced": "broken (S4: preset leaves the old nested tree + formula active)"
+  },
+  "notes_s2b": "typing/operator switching is DOM-interactive; COD-screener-13 covers operator-change data loss"
+ },
+ {
+  "id": "screener-formula-input",
+  "area": "screener",
+  "surface": "Screener formula leaf (raw expression input)",
+  "entry": "src/modules/screener/ScreenerFormulaLeaf.tsx:46,202",
+  "states": [
+   "parse-error(data-testid=screener-formula-error, :202-207 shows caret at compiled.position)",
+   "valid"
+  ],
+  "drive": "browser",
+  "notes": "Compiler lives in lib/screener-expr.ts (screener-expr.test.ts) — fully headless unit-testable for parser edge cases independent of the leaf component.",
+  "driven": "ok",
+  "evidence": "surface/screener/10-formula-parity.json (39 formulas, 0 TS/server drift); 22-formula-leaf-states.json; 24-store-panel-replay.json S3 (0 network calls on a bad formula)"
+ },
+ {
+  "id": "screener-results-table",
+  "area": "screener",
+  "surface": "Screener results table",
+  "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
+  "states": [
+   "empty",
+   "populated",
+   "tenth-item(scroll/virtualization)"
+  ],
+  "drive": "browser",
+  "notes": "ScreenerResultsTable.test.tsx exists.",
+  "driven": "partial",
+  "evidence": "surface/screener/24b-store-panel-replay-tail.json S1/S2; runs.jsonl 04/11/12",
+  "states_driven": {
+   "empty": "broken when nothing was evaluated (S1 text), ok when evaluated (run 04)",
+   "populated": "ok (S2 200 rows rendered, basis markers 'mixed', INR money)",
+   "tenth-item": "partial (200-row page, count line = page size)",
+   "row-click / CSV / narrow overflow": "NEEDS-GUI"
+  }
+ },
+ {
+  "id": "screener-presets",
+  "area": "screener",
+  "surface": "Screener saved/preset screens",
+  "entry": "src/modules/screener/ScreenerPresets.tsx:119,125,141",
+  "states": [
+   "populated(PRESETS catalog)",
+   "applied(criteria+universe overwritten, combinator reset to AND :128-129)"
+  ],
+  "drive": "browser",
+  "notes": "Presets are a static catalog (not sidecar-persisted 'saved screens' in this build — verify against BLUEPRINT before assuming a user-save flow exists here).",
+  "driven": "broken",
+  "evidence": "surface/screener/24-store-panel-replay.json S4 vs S5; runs.jsonl 01",
+  "states_driven": {
+   "populated": "ok (8 presets render)",
+   "applied": "broken (S4: old nested group + formula ride along; 7/8 presets are sp500 -> 0 evaluated on a throttled IP)"
+  }
+ }
+]

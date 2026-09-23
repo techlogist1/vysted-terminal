@@ -1,0 +1,38 @@
+[
+ {
+  "raw_id": "LIFE-L4-UPGRADE-1",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "Mechanism holds at HEAD: restoreLastSessionOrDefault returns to the default layout before deserializeWorkspace whenever any panel's contentComponent is unregistered, so no non-layout slice is applied, and the store subscriptions plus onDidLayoutChange autosave (ungated) then persist defaults over __autosave__. Correction: the cited real blob (bak-r7-sweep) does NOT carry 'a portfolio with holdings, notes, a research space'. Its portfolio has 0 holdings, notes are empty, researchSpaces.byName is {} and brief is null, so the measured loss on that blob is one user-added watchlist symbol (ROUTE) plus settings/search/model prefs. The holdings-loss consequence is inferred for any user whose blob combines holdings with a docked broker panel, and it is not observed. Severity stays high because the trading removal is scheduled and the trigger is deterministic.",
+  "evidence": "src/lib/workspace.ts:471-480 (layoutReferencesUnknownComponent), src/lib/workspace.ts:512-516 (early return before deserializeWorkspace), src/lib/workspace.ts:286-289, src/lib/workspace.ts:541-556 (autosaveLayout, no restore gate), src/components/PanelHost.tsx:188-193, src/app/page.tsx:108-181, src/modules/broker-connect/index.ts:12-28; $ISO/seat-l4-upgrade/data/workspaces/__autosave__.vysted-workspace.bak-r7-sweep",
+  "evidence_checked": "Opened the restore/gate/autosave code at HEAD f763a44. Read the GATE lines in evidence/workspace-upgrade-vitest.txt. Parsed all 9 historical blobs with python and listed layout components, portfolio holdings, watchlist, notes and researchSpaces. Only bak-r7-sweep has broker panels, and its portfolio/notes/spaces are empty. bak-r11-prune is the only blob with a holding and it has no broker panel.",
+  "repro_check": "python3 json.load(bak-r7-sweep) -> contentComponents include broker-connect-panel + broker-order-entry; portfolios.list[0].holdings == []; notes.general == ''; researchSpaces == {'byName': {}}; watchlist = DEFAULT_SYMBOLS + 'ROUTE' (src/store/symbols.ts:21-27)."
+ },
+ {
+  "raw_id": "LIFE-L4-UPGRADE-2",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed. No sidecar or frontend code reads or writes PRAGMA user_version or any schemaVersion field. All 8 DBs in the seat copy report user_version 0, and the only migration code is three PRAGMA table_info additive guards. portfolio_db and agents_store are CREATE IF NOT EXISTS only, and agents_store documents 'no schema migrations'. Nothing in sidecar/services, app.py or src-tauri/src backs up the data dir before a new build touches it.",
+  "evidence": "sidecar/services/fundamentals_store.py:170-181, sidecar/services/runs_store.py:94-102, sidecar/services/plugins_store.py:50-67, sidecar/services/portfolio_db.py:24-35, sidecar/services/agents_store.py:23, src/lib/workspace.ts:174",
+  "evidence_checked": "grep -rn 'user_version|schemaVersion|schema_version' over sidecar (non-test) and src returned no hits. grep 'backup' over sidecar/services, app.py and src-tauri/src returned no hits. Opened each cited guard. Ran sqlite3 PRAGMA user_version read-only on every DB in $ISO/seat-l4-upgrade/data.",
+  "repro_check": "for f in seat-l4-upgrade/data/*.db: sqlite3 file:$f?mode=ro 'PRAGMA user_version' -> 0 for audit_log, custom_agents, data_cache, delegate_runs, fundamentals_cache, plugins, portfolio, workflows."
+ },
+ {
+  "raw_id": "LIFE-L4-UPGRADE-3",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Confirmed. At v0.8.0 the Portfolio panel did CRUD against /portfolio/positions. Commit 12862d3 (1 Jun) moved holdings into the workspace blob and 'Drops the dead sidecar CRUD' with no import step. Today the frontend's only /portfolio/positions caller is the agent write-sync in host-actions.ts. The restore keeps the empty seeded portfolio when a blob has no portfolios key, so a tag user's holdings stay on disk but never appear. The affected population is people who built from the pushed tag (no binary release), which the finding already states. It stays high because the loss is silent and hits user-owned tracked data.",
+  "evidence": "src/modules/portfolio/api.ts:1-8, src/lib/workspace.ts:286-289, src/store/portfolios.ts:112-114, src/lib/host-actions.ts:1257,1321; git show v0.8.0:src/modules/portfolio/api.ts (fetchPositions/POST/PUT/DELETE /portfolio/positions); git show v0.8.0:src/modules/portfolio/PortfolioPanel.tsx:55; git show 12862d3 (commit message)",
+  "evidence_checked": "grep -rn 'portfolio/positions' src (non-test) returned only host-actions.ts:1257/1321. Opened the current api.ts header, the workspace restore guard and the store seed. Read the tag's api.ts and PortfolioPanel via git show, and 12862d3's message and stat, which has no migration file. Read evidence/v080tag-frontend-vitest.txt as the worker's measured run. I did not re-run the vitest myself because the seat sidecar is stopped.",
+  "repro_check": "git show v0.8.0:src/modules/portfolio/api.ts | grep portfolio/positions -> fetch/POST/PUT/DELETE present; grep -rn 'portfolio/positions' src -> host-actions only; workspace.ts:287 restores portfolios only if the blob has portfolios.list."
+ },
+ {
+  "raw_id": "LIFE-L4-UPGRADE-4",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Confirmed. The tag's KNOWN_TOOL_IDS included 'macro', and the current allow-list is derived from the catalog (agent_selectable_tool_ids), which has only macro_series and macro_search. The runtime builds a custom AgentSpec straight from the stored row with no tool validation, despite its docstring claiming 'catalog-validated'. _known() then drops unknown ids with no log, and the PUT validator rejects the stored list with a 422. Capability.aliases exists but has no reader in sidecar.",
+  "evidence": "sidecar/services/agent_tools/schemas.py:49-50 (_known silent filter), sidecar/services/agent_runtime.py:295-314 (custom spec built from the store, tools unvalidated), sidecar/models/custom_agent.py:38 + :55-63 (derived allow-list, PUT rejects), sidecar/services/agent_tools/catalog.py:94-96 (aliases field), sidecar/services/agent_tools/catalog.py:461,486 (macro_series/macro_search), src/modules/agent-builder/form.tsx:139-141; git show v0.8.0:sidecar/models/custom_agent.py:28-40",
+  "evidence_checked": "Opened every cited file at HEAD and the tag's custom_agent.py. grep for 'aliases' across sidecar (non-test) finds no reader of Capability.aliases, only unrelated uses (symbol_resolver, runs serializer, config tier ids). Read evidence/v080tag-agent-tools.txt for the in-process projection and the PUT 422.",
+  "repro_check": "git show v0.8.0:sidecar/models/custom_agent.py -> KNOWN_TOOL_IDS has 'macro'; current catalog has no 'macro' capability id (only a Domain literal); schemas._known(['price_data','macro','news']) -> ['price_data','news'] per the evidence file, consistent with schemas.py:49-50."
+ }
+]

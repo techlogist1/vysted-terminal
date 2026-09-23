@@ -1,0 +1,26 @@
+### 08:08:01 openbb-mcp child DOWN (my :53217 pair died ~08:04 with the first B sidecars); sidecar env VYSTED_OPENBB_MCP_PORT=53217
+GET /openbb-mcp/status -> {"available":true,"provider":"openbb-mcp","endpoint":"http://127.0.0.1:53217/mcp","lastToolCallOk":null,"lastError":null}
+GET /fundamentals/MAZDOCK -> Internal Server Error [HTTP 500]
+GET /fundamentals/KPITTECH -> Internal Server Error [HTTP 500]
+GET /quotes/MAZDOCK -> ,"change":-28.0,"change_percent":-1.2544802867383513,"volume":611823.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-22T00:00:00Z","provider":"nse_direct","freshness":"eod"} [HTTP 200]
+sidecar log: ERROR:    ASGI callable returned without completing response. (the /agents/copilot/invoke stream of 34-staleack-run2-rerun, cut at 63.8 s right after 'pulling market data for MAZDOCK', no done/error frame)
+traceback frames:
+  16:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/anyio/streams/memory.py", line 117, in receive
+  19:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/anyio/streams/memory.py", line 112, in receive_nowait
+  26:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/httptools_impl.py", line 421, in run_asgi
+  33:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 56, in __call__
+  36:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/fastapi/applications.py", line 1159, in __call__
+  38:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/starlette/applications.py", line 90, in __call__
+  40:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+  42:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/app.py", line 278, in __call__
+  44:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 88, in __call__
+  46:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+  48:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+  50:  File "/Users/lokavyasingh/Documents/dev/vysted-terminal/sidecar/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+  120:asyncio.exceptions.CancelledError: Cancelled via cancel scope 11734b410
+  123:future: <Task finished name='Task-266' coro=<<async_generator_athrow without __name__>()> exception=RuntimeError('Attempted to exit cancel scope in a different task than it was entered in')>
+  168:    | httpcore.ConnectError: All connection attempts failed
+  220:    | httpx.ConnectError: All connection attempts failed
+  255:    raise RuntimeError(
+  258:RuntimeError: Attempted to exit cancel scope in a different task than it was entered in
+### 08:09:30 MCP pair restarted (sleep pids 16192/16195) -> GET /fundamentals/MAZDOCK 200 again (recovers once the child is back)

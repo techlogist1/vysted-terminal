@@ -1,0 +1,72 @@
+[
+ {
+  "raw_id": "INT-blueprint-0-1",
+  "title": "v1.0 scope claims ~38 modules; only 22 are registered",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "module registry / BLUEPRINT scope",
+  "repro": "grep -c import src/modules/index.ts (22 module imports at lines 3-27) vs docs/BLUEPRINT.md TL;DR (L20) \"~38 modules\"",
+  "evidence": "src/modules/index.ts:3-27; docs/BLUEPRINT.md TL;DR L20",
+  "notes": "No recorded decision trims the module count. A public 0.9.0 release described against this TL;DR overstates scope by ~42%. Smallest fix: either land the missing ~16 modules or correct the TL;DR/locked-decisions count to the real number so the release description is honest."
+ },
+ {
+  "raw_id": "INT-blueprint-0-2",
+  "title": "Org/product domains (vysted.com, terminal.vysted.com) do not resolve",
+  "severity": "low",
+  "area": "release",
+  "subsystem": "distribution / brand",
+  "repro": "curl -s -o /dev/null -w '%{http_code}' https://vysted.com and https://terminal.vysted.com -> both exit 6 (could not resolve host)",
+  "evidence": "docs/BLUEPRINT.md:31-32 (domain structure); DNS lookup failure for both hosts",
+  "notes": "Expected pre-launch, but the BLUEPRINT.md claim reads as a current fact (\"vysted.com IS the org/lab landing page\") rather than a plan. Smallest fix: register + park a minimal landing page before a public 0.9.0 announcement, or soften the doc's tense to future/planned."
+ },
+ {
+  "raw_id": "INT-blueprint-0-3",
+  "title": "Locked UI stack still names Next.js 16; the shipped bundler is Vite",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "BLUEPRINT.md \u00a72 locked decisions",
+  "repro": "grep next package.json -> no match; package.json:8 \"dev\": \"vite\", :82 vite ^8.0.16",
+  "evidence": "package.json:8,82; docs/BLUEPRINT.md:52 (Locked Decisions table still says \"Tauri 2.x + Next.js 16 + TypeScript + Tailwind 4 + shadcn/ui\"); docs/redesign/DECISIONS.md:28 (D6, the Vite migration decision)",
+  "notes": "D6 authorized the migration and the license line at BLUEPRINT.md:8/:58 was corrected in place for its own decision (D83) \u2014 the stack line at :52 never got the same treatment. A Tier-1 \"Locked\" document describing its own architecture incorrectly is exactly the kind of drift that erodes trust in a research-lab-voice public release. Smallest fix: one-line edit to BLUEPRINT.md:52/:14 swapping Next.js 16 for Vite, citing D6."
+ },
+ {
+  "raw_id": "INT-blueprint-0-4",
+  "title": "OpenBB data layer no longer matches its locked \"wrapped as a runtime sidecar\" description",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "BLUEPRINT.md \u00a72/\u00a73.1 data layer",
+  "repro": "sidecar/requirements.txt:32-36 comment: \"the retired Phase-2 OpenBB Tier-2 plugin is gone in v0.4.0; its data surface is preserved through openbb-mcp\" (a separate subprocess, not an in-process wrap)",
+  "evidence": "sidecar/requirements.txt:32-36; sidecar/openbb_mcp_subprocess/; sidecar/services/openbb_mcp_provider.py; docs/BLUEPRINT.md:55,84 (still says \"wrapped as a runtime sidecar\")",
+  "notes": "Provider breadth is preserved so this is not a functional gap, but the architecture description is stale in a Locked doc, same class of issue as the Vite drift above. Smallest fix: update BLUEPRINT.md:55/:84 to describe the openbb-mcp subprocess architecture."
+ },
+ {
+  "raw_id": "INT-blueprint-0-5",
+  "title": "Distribution promise (SignPath signing, Homebrew cask, GitHub Releases) is unbuilt; CI ships unsigned bundles",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "CI / distribution",
+  "repro": "grep -rli signpath .github/workflows scripts -> 0 hits; .github/workflows/build.yml:76 step name \"Build Tauri bundle (unsigned)\"; gh release list -> empty; no Homebrew formula/cask file anywhere in the repo",
+  "evidence": ".github/workflows/build.yml:76; .github/workflows/ (only build.yml, lint.yml, test.yml \u2014 no release.yml)",
+  "notes": "Auto-updater plugin and AppImage bundle target are wired; signing and cask distribution are not. This is normal for pre-0.9.0 but would block an actual public release as promised (users would get SmartScreen/Gatekeeper warnings with no bypass docs shipped either). Smallest fix: track as an explicit release-blocking TODO with an owner, not silently assumed done."
+ },
+ {
+  "raw_id": "INT-blueprint-0-6",
+  "title": "Rust layer never built a system tray",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "src-tauri desktop shell",
+  "repro": "grep -rn 'tray|Tray' src-tauri/src/*.rs src-tauri/tauri.conf.json -> 0 hits",
+  "evidence": "src-tauri/tauri.conf.json (no trayIcon config); src-tauri/src/lib.rs (623 lines, window lifecycle + sidecar/MCP spawn + keychain + kill-switch, no tray setup)",
+  "notes": "Windowing and OS integration (the other two thirds of this promise) are real and substantial. Tray is a named sub-feature with zero implementation, not a partial attempt. Smallest fix: either implement a minimal tray (status icon + quit) or drop the claim from BLUEPRINT.md \u00a73.1."
+ },
+ {
+  "raw_id": "INT-blueprint-0-7",
+  "title": "\"Rust layer provides file system access\" is not implemented \u2014 no fs permission, CSV export bypasses native fs entirely",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "src-tauri capabilities / portfolio CSV export",
+  "repro": "cat src-tauri/capabilities/default.json -> permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open], no fs:*; grep tauri-plugin-fs src-tauri/Cargo.toml package.json -> 0 hits",
+  "evidence": "src-tauri/capabilities/default.json:6-11; src/modules/portfolio/PortfolioPanel.tsx:9,504 (imports downloadCsv from src/lib/csv.ts, a webview Blob/anchor download, not a Tauri fs write)",
+  "notes": "The only file-writing user flow in the product today (portfolio CSV export) never touches Rust at all. If a future feature (e.g. workspace import/export to a chosen path, or writing research briefs to disk) assumes this capability exists per BLUEPRINT.md \u00a73.1, it will discover there is no fs permission granted. Smallest fix: either grant a scoped fs:* capability + wire a real save-to-path flow, or correct the promise to describe the current browser-download mechanism."
+ }
+]

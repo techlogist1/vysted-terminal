@@ -1,0 +1,29 @@
+[
+  {
+    "raw_id": "LIFE-L1-STRANGER-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "_run_docker execs a bare \"docker\" through PATH and maps FileNotFoundError to code 127 -> cli_present=False -> state not_installed_docker with 'docker CLI not found - install Docker Desktop or OrbStack'; nothing in sidecar/ (outside .venv) or src-tauri/src extends PATH or probes known install dirs, and the Tauri core spawns the sidecar with args only, so a Finder/Dock-launched macOS app (launchd PATH /usr/bin:/bin:/usr/sbin:/sbin) cannot see /usr/local/bin/docker (on this Mac a symlink into OrbStack). Settings then renders 'Docker not found' + 'Install Docker first'. macOS-only (Windows/Linux GUI launches inherit a PATH containing docker); the packaged-app launch itself remains NEEDS-GUI, but the sidecar behaviour under that PATH is measured and the code path is unambiguous.",
+    "evidence": "sidecar/services/searxng_manager.py:137-144, sidecar/services/searxng_manager.py:359-361, sidecar/services/searxng_manager.py:418-424, src-tauri/src/lib.rs:206-208, src/components/SettingsPanel.tsx:743-744, src/components/SettingsPanel.tsx:874-884, docs/redesign/verification/r15/lifecycle/L1-stranger/http-log.jsonl:2",
+    "evidence_checked": "Opened the docker subprocess seam, detect() and the not_installed_docker branch, the Tauri sidecar spawn, and both Settings render sites; grepped sidecar/ (non-.venv) and src-tauri/ for PATH/which/homebrew/orbstack handling (none); confirmed /usr/local/bin/docker -> OrbStack xbin on this Mac; read the D02 response in the lifecycle http-log. :52152 up but runs with a shell PATH, so not a useful repro target.",
+    "repro_check": "grep -rn 'fix_path|shutil.which|/opt/homebrew|orbstack/bin|\"PATH\"' sidecar src-tauri/src (excluding .venv) -> no hits; D02 on the launchd-PATH sidecar returned state not_installed_docker, docker.cli_present false."
+  },
+  {
+    "raw_id": "LIFE-L1-STRANGER-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "_refresh_guarded sets _refreshed_on = today in a finally regardless of outcome, and fetch_latest returns None (not raises) on a failed download with no cached fallback, so schedule_refresh (the only refresh driver: the lifespan call and both /resolve routes) short-circuits until IST midnight; lookup_current against the empty map returns None and apply-rename is a documented no-op, so a renamed scrip resolves to its dead identity with no signal. The warning logs str(exc), which is empty for httpx timeout classes, matching the observed 'request failed ()'.",
+    "evidence": "sidecar/services/nse_symbol_change.py:376-386, sidecar/services/nse_symbol_change.py:418-427, sidecar/services/nse_symbol_change.py:430-437, sidecar/services/nse_symbol_change.py:440-455, sidecar/app.py:134, sidecar/routers/resolve.py:91, sidecar/routers/resolve.py:140, sidecar/services/symbol_resolver.py:788-799, docs/redesign/verification/r15/lifecycle/L1-stranger/rename-gate-proof.txt",
+    "evidence_checked": "Opened the download/fetch/refresh/schedule functions, every caller of schedule_refresh (app.py lifespan, resolve.py x2 - no periodic retry elsewhere), and the resolver's rename application; read the mock-transport proof output (attempts stays 1 across 3 more schedule_refresh calls, retries only on day rollover).",
+    "repro_check": "grep -rn nse_symbol_change sidecar/app.py sidecar/routers sidecar/services -> only schedule_refresh callers; rename-gate-proof.txt shows attempts=1 after 3 more schedule_refresh() calls, attempts=2 only after the day rolls over."
+  },
+  {
+    "raw_id": "LIFE-L1-STRANGER-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "_WARM_UNIVERSES is the constant ('sp500',) and start_warm_precompute runs unconditionally in the lifespan while the region default is IN (default universe nifty50), so an India install spends the shared Yahoo budget on 506 US symbols every ~40 s from boot, beside the India warm worker; the loop does back off and skips while the circuit is open or a foreground screen runs, which limits but does not remove the pressure. The finding's own confound note is correct: the 27 s circuit open and the 0-of-506 run were measured with other isolated sidecars on the same IP and with the India warm worker also on Yahoo, so they are not attributable to this loop alone - the region-blindness and boot-time start are the defect, and they stand on the code.",
+    "evidence": "sidecar/services/screener.py:107-117, sidecar/services/screener.py:147-148, sidecar/services/screener.py:1205-1224, sidecar/services/screener.py:1242-1262, sidecar/app.py:124-130, sidecar/config.py:43",
+    "evidence_checked": "Opened the warm constants, _warm_once (fetch_quotes_batch over the warm universe -> upsert), _warm_loop's circuit/foreground skip and backoff, the lifespan start, the per-region default-universe map and the region default; code-only for the throttle timings (read the finding's sampler evidence, not re-run - a boot-time idle soak is not cheap and the IP is shared).",
+    "repro_check": "grep -n '_WARM_UNIVERSES' sidecar/services/screener.py -> ('sp500',) with no region lookup; app.py:127 calls start_warm_precompute() with no region condition."
+  }
+]

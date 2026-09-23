@@ -1,0 +1,688 @@
+{
+ "planLayout": {
+  "single-focus": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    }
+   ],
+   "focus": "chart",
+   "maximize": "chart"
+  },
+  "research-cockpit": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    },
+    {
+     "id": "equity-overview",
+     "component": "equity-overview-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "right"
+     }
+    },
+    {
+     "id": "brief",
+     "component": "brief-panel",
+     "position": {
+      "referencePanel": "equity-overview",
+      "direction": "below"
+     }
+    },
+    {
+     "id": "news",
+     "component": "news-panel",
+     "position": {
+      "referencePanel": "brief",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "brief"
+  },
+  "compare": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    }
+   ],
+   "focus": "chart",
+   "maximize": "chart"
+  },
+  "macro-scan": {
+   "panels": [
+    {
+     "id": "macro",
+     "component": "macro-panel"
+    },
+    {
+     "id": "chart",
+     "component": "chart-panel",
+     "position": {
+      "referencePanel": "macro",
+      "direction": "right"
+     }
+    },
+    {
+     "id": "screener-panel",
+     "component": "screener-panel",
+     "position": {
+      "referencePanel": "macro",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "macro"
+  }
+ },
+ "modeIds": [
+  "research-cockpit",
+  "single-focus",
+  "macro-scan",
+  "compare"
+ ],
+ "modeVsTemplate": {
+  "single-focus": {
+   "menuMode": [
+    "chart",
+    "watchlist",
+    "news"
+   ],
+   "agentTemplate": [
+    "chart"
+   ]
+  },
+  "research-cockpit": {
+   "menuMode": [
+    "chart",
+    "equity-overview",
+    "brief"
+   ],
+   "agentTemplate": [
+    "chart",
+    "equity-overview",
+    "brief",
+    "news"
+   ]
+  },
+  "compare": {
+   "menuMode": [
+    "chart",
+    "equity-overview"
+   ],
+   "agentTemplate": [
+    "chart"
+   ]
+  },
+  "macro-scan": {
+   "menuMode": [
+    "macro",
+    "chart",
+    "screener-panel"
+   ],
+   "agentTemplate": [
+    "macro",
+    "chart",
+    "screener-panel"
+   ]
+  }
+ },
+ "fit": {
+  "single-focus@0": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@0": {
+   "res": {
+    "applied": "research-cockpit",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@0": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@0": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@800": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@800": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@800": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@800": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@1079": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@1079": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@1079": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@1079": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@1080": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@1080": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@1080": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@1080": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@1179": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@1179": {
+   "res": {
+    "applied": "essentials-research",
+    "downgraded": true
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@1179": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@1179": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@1180": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@1180": {
+   "res": {
+    "applied": "research-cockpit",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@1180": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@1180": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@1920": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@1920": {
+   "res": {
+    "applied": "research-cockpit",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@1920": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@1920": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "single-focus@2560": {
+   "res": {
+    "applied": "single-focus",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "research-cockpit@2560": {
+   "res": {
+    "applied": "research-cockpit",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "compare@2560": {
+   "res": {
+    "applied": "compare",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  },
+  "macro-scan@2560": {
+   "res": {
+    "applied": "macro-scan",
+    "downgraded": false
+   },
+   "err": null,
+   "panelsSyncAfterReturn": [
+    "chart",
+    "watchlist"
+   ],
+   "maximized": null
+  }
+ },
+ "contentAware": {
+  "briefHeavy": {
+   "panels": [
+    {
+     "id": "brief",
+     "component": "brief-panel",
+     "widthFraction": 0.52
+    },
+    {
+     "id": "chart",
+     "component": "chart-panel",
+     "position": {
+      "referencePanel": "brief",
+      "direction": "right"
+     },
+     "widthFraction": 0.3
+    },
+    {
+     "id": "notes",
+     "component": "notes-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "watchlist",
+     "component": "watchlist-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "right"
+     },
+     "widthFraction": 0.18
+    },
+    {
+     "id": "news",
+     "component": "news-panel",
+     "position": {
+      "referencePanel": "watchlist",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "brief"
+  },
+  "empty": {
+   "panels": []
+  },
+  "tenPanels": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel",
+     "widthFraction": 0.52
+    },
+    {
+     "id": "screener-panel",
+     "component": "screener-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "right"
+     },
+     "widthFraction": 0.3
+    },
+    {
+     "id": "portfolio",
+     "component": "portfolio-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "macro",
+     "component": "macro-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "equity-overview",
+     "component": "equity-overview-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "sec-filings",
+     "component": "sec-filings-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "brief",
+     "component": "brief-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "notes",
+     "component": "notes-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "within"
+     }
+    },
+    {
+     "id": "watchlist",
+     "component": "watchlist-panel",
+     "position": {
+      "referencePanel": "screener-panel",
+      "direction": "right"
+     },
+     "widthFraction": 0.18
+    },
+    {
+     "id": "news",
+     "component": "news-panel",
+     "position": {
+      "referencePanel": "watchlist",
+      "direction": "below"
+     }
+    }
+   ],
+   "focus": "chart"
+  }
+ },
+ "custom": {
+  "unknownTokens": {
+   "panels": [
+    {
+     "id": "chart",
+     "component": "chart-panel"
+    },
+    {
+     "id": "brief",
+     "component": "brief-panel",
+     "position": {
+      "referencePanel": "chart",
+      "direction": "right"
+     }
+    }
+   ],
+   "focus": "chart"
+  }
+ },
+ "researchSpaceNarrow": [
+  "chart",
+  "brief",
+  "notes"
+ ],
+ "deserializeAutosave": {
+  "ok": false,
+  "err": "WorkspaceError: The panel layout is not ready yet.",
+  "type": "object",
+  "keys": null
+ },
+ "deserializeOlderBlob": {
+  "ok": false,
+  "err": "WorkspaceError: The panel layout is not ready yet."
+ },
+ "serializeSignature": "function serializeWorkspace(name) {\n\treturn buildWorkspacePayload(name);\n}"
+}

@@ -1,0 +1,2 @@
+{"kind": "error", "message": "The requested model is not available on Ollama \u2014 pick another model.", "action": "Choose a different model in Settings.", "detail": "model 'gemma3:1b' not found (status code: 404)", "code": "model_not_found"}
+{"kind": "done", "usage": null, "finish_reason": null}

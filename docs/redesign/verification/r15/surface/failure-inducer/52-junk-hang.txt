@@ -1,0 +1,7 @@
+TRANSPORT TimeoutError: timed out
+
+=== ASSISTANT TEXT ===
+
+
+=== transport_TimeoutError · 150.0s · events {} · usage in=0 out=0 · est $0.00000 · junk-hang
+exit=4

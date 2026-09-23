@@ -1,0 +1,8 @@
+[   0.0s] error: {"kind": "error", "message": "Ollama returned an unreadable response.", "action": "Try again; if the problem persists, check the provider's status page.", "detail": "Unterminated string starting at: line 1 column 36 (char 35)", "code": "parse_error"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+Partial ans
+
+=== ok · 0.0s · events {'delta': 1, 'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · junk-ndjson-truncated
+exit=0

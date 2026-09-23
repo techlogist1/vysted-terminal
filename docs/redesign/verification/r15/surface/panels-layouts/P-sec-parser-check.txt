@@ -1,0 +1,7 @@
+# SEC parser check — real sec-edgar-mcp payloads (MCP :53220) run through sidecar/services/sec_filings_provider.py parsers, 2026-09-23 ~08:36 IST
+# driver: sidecar venv, services.sec_filings_provider._call_tool + _sections_from_payload / _insider_rows_from_payload
+RES insider top keys: ['success', 'cik', 'name', 'transactions', 'count', 'form_types', 'days_back', 'filing_reference'] n tx: 5 tx0 keys: ['filing_date', 'form_type', 'accession_number', 'company_name', 'cik', 'url', 'sec_url', 'data_source']
+RES parsed insider -> 0000320193 '' 0
+RES top keys: ['success', 'form_type', 'sections', 'available_sections'] sections type: dict
+RES section keys/types: [('business', 'str', 10000), ('risk_factors', 'str', 10000), ('has_financials', 'bool', True)]
+RES parsed sections -> 0

@@ -1,0 +1,149 @@
+[
+ {
+  "id": "chat-error-row",
+  "area": "composer",
+  "surface": "Chat transcript error row + Details disclosure",
+  "entry": "src/modules/chat/ChatSidebar.tsx:1430 (ErrorRow); src/modules/chat/message-notices.ts:19",
+  "states": [
+   "message-error(plain .error string)",
+   "structured-error-frame(action/detail/code behind 'Details' disclosure, D43)"
+  ],
+  "drive": "browser",
+  "notes": "message-notices.test.ts covers the structured-frame store logic headlessly. | failure-inducer: composer-chat owns this row (scored ok on the happy error path); this group drove every induced provider failure into it.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/inducer/01-401-badkey.jsonl, docs/redesign/verification/r15/surface/inducer/03-402-deepseek.jsonl, docs/redesign/verification/r15/surface/inducer/05-network-unreachable.jsonl, docs/redesign/verification/r15/surface/failure-inducer/20-retired-slug-glm45air.jsonl, 21-nonsense-slug.jsonl, 50-junk-429.jsonl, 50-junk-500.jsonl, 50-junk-badsse.jsonl, 50-junk-truncated.jsonl, 50-junk-emptychoices.jsonl, 50-junk-html.jsonl, 52-junk-hang.txt; src/modules/chat/streaming.ts:344-356, ChatSidebar.tsx:900-911,914-919,1239-1250",
+  "state_scores": {
+   "structured-error-frame(action/detail/code)": "ok - 401 auth, 402 balance, 404 retired slug, 429 rate-limit, 500 server, network, parse_error all arrive as {message,action,detail,code} and map to ErrorRow",
+   "nonsense slug (400)": "misleading - code unknown \"Try again or switch provider\" (SURF-FAILURE-INDUCER-5)",
+   "stream ends without finish_reason / 200 non-SSE / empty choices": "broken - only a done frame, no ErrorRow, no Retry; truncated text shown as a finished answer (SURF-FAILURE-INDUCER-1)",
+   "provider accepts and never streams": "broken - zero frames for 150 s, 600 s SDK read timeout, no stall watchdog (SURF-FAILURE-INDUCER-3)",
+   "rendered pixels": "NEEDS-GUI - text derived from the cited components, not screenshotted"
+  }
+ },
+ {
+  "id": "generic-error-frame-pattern",
+  "area": "toasts-and-frames",
+  "surface": "Per-panel inline error text pattern (no toast library)",
+  "entry": "src/modules/chat/message-notices.ts:19 (MessageErrorFrame); repeated data-testid='*-error' rows across option-pricer(:495), greeks(:343), bond(:274), yield-curve(:353), sec-filings(:174), screener-formula(:202)",
+  "states": [
+   "no-error",
+   "error-shown",
+   "dismissible(portfolio :701-708 has an explicit dismiss button; most others clear on next successful action)"
+  ],
+  "drive": "browser",
+  "notes": "CONFIRMED: no toast/sonner library in the frontend (grepped, zero hits) — every 'toast' in this app is an inline, panel-local error/notice row. Treat 'toasts' in the Stage-1 test plan as this per-panel error-row pattern, not a global notification stack.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/30-netdown-data-routes.txt, 31-netdown-sidecar-log-excerpt.txt, 10-malformed-symbols.jsonl, 11-typo-history.txt; src/modules/news/NewsFeedPanel.tsx:151-155, src/modules/equity-overview/api.ts:86-98,166-174, src/modules/chart/ChartPanel.tsx:385-391",
+  "state_scores": {
+   "error-shown (news, network down)": "partial - 502 \"all news sources failed\" -> \"Sidecar error 502: all news sources failed\" (NewsFeedPanel.tsx:154): visible but names no cause",
+   "error-shown (equity-overview fundamentals, network down)": "broken - raw \"curl: (7) Failed to connect to 127.0.0.1 port 9 ...\" becomes the section reason via SidecarError.message (SURF-FAILURE-INDUCER-4)",
+   "no-error where there should be one (chart, network down)": "broken - /history 200 bars:[] reason:null -> \"No price data for this symbol\" (SURF-FAILURE-INDUCER-4)",
+   "error-shown (malformed symbol, quotes)": "broken - library AttributeError \"PriceHistory object has no attribute _dividends\" as the message (already SURF-COMPOSER-CHAT-3 / INT-spec-135-137)",
+   "dismissible": "NEEDS-GUI"
+  }
+ },
+ {
+  "id": "settings-research",
+  "area": "settings",
+  "surface": "Research section (depth/model tiers + SearXNG)",
+  "entry": "src/components/SettingsPanel.tsx:1210,1011,1058,1124,1184",
+  "states": [
+   "tier-cards(TierCard :1124)",
+   "model-controls(ResearchModelControls :1058)",
+   "stop-options(:1003)"
+  ],
+  "drive": "api",
+  "notes": "GET /search/status, /search/tiers/status; POST /search/tiers/setup,/teardown (state-changing — read status only against the live stack).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/40-nodocker-status.txt; src/components/SettingsPanel.tsx:710,743,874",
+  "state_scores": {
+   "SearXNG section, Docker absent": "ok - /search/searxng/status state not_installed_docker, detail \"docker CLI not found - install Docker Desktop or OrbStack\", rendered by SettingsPanel.tsx:710-874",
+   "keyless-tier engine health (/search/status)": "broken as a signal - reports all three engines \"available\" before a web_search that times out at 25 s (SURF-FAILURE-INDUCER-2); grep of src/ finds NO frontend consumer of /search/status at all (only /search/searxng/status, SettingsPanel.tsx:710)",
+   "tier-cards / model-controls / stop-options": "owned by settings-plugins, not re-driven here"
+  }
+ },
+ {
+  "id": "provider-health-breaker",
+  "area": "settings",
+  "surface": "Provider health / circuit-breaker status",
+  "entry": "sidecar/routers/system.py:203,215,227 (GET /system/provider-health, POST /trip,/reset)",
+  "states": [
+   "healthy",
+   "tripped(circuit open)",
+   "reset"
+  ],
+  "drive": "api",
+  "notes": "No frontend surface for this located in this pass (not opened) — likely internal/ops-only; flag for Stage 1 to confirm whether Settings > Advanced actually surfaces it or if it's sidecar-internal only. GET is safe; the trip/reset POSTs mutate shared provider state — never call them against the operator's live session.",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/30-netdown-data-routes.txt (GET /system/provider-health under netdown)",
+  "state_scores": {
+   "healthy under a full network outage": "observed - yahoo breaker open:false, opens_total 0, throttles_total 0 while every yfinance call failed: the breaker counts throttles, not transport failures, so it is no outage signal; not filed (by design: it is a 429 breaker), covered in spirit by SURF-FAILURE-INDUCER-4 (\"nothing says offline\")",
+   "tripped / reset": "NOT TESTED here - POST /trip,/reset mutate provider state; settings-plugins owns the row"
+  }
+ },
+ {
+  "id": "x-llm-provider-failures",
+  "area": "failure-inducer",
+  "surface": "(extra) every LLM-provider failure class at the adapter edge",
+  "drive": "api",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/inducer/*, docs/redesign/verification/r15/surface/failure-inducer/20-*,21-*,22-*,50-*,51-*,52-*,53-adapter-direct-stream-ends.txt; EVIDENCE.md scorecard",
+  "state_scores": {
+   "401": "ok",
+   "no key": "partial (UI blocks keyless send; COD-error-layer-6)",
+   "402": "ok",
+   "429 (+Retry-After, 3 attempts)": "ok",
+   "500 (3 attempts)": "ok",
+   "network unreachable": "ok (1.4 s, code network)",
+   "retired slug z-ai/glm-4.5-air:free": "ok",
+   "nonsense slug": "misleading (SURF-FAILURE-INDUCER-5)",
+   "ollama model not pulled": "partial (COD-error-layer-2-2)",
+   "junk: non-JSON SSE / ollama HTML / ollama truncated NDJSON": "ok (parse_error)",
+   "junk: 200 HTML / empty choices / clean EOF without finish_reason": "broken (SURF-FAILURE-INDUCER-1)",
+   "junk: chunked cut / error chunk": "ok (53)",
+   "hang": "broken (SURF-FAILURE-INDUCER-3)",
+   "real paid-lane 429": "NOT TESTED (~$0.01; stub reproduces the adapter path)"
+  }
+ },
+ {
+  "id": "x-search-degraded",
+  "area": "failure-inducer",
+  "surface": "(extra) SearXNG down + Docker absent -> web search in chat",
+  "drive": "api",
+  "driven": "broken",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/40-nodocker-status.txt, 41-deadsearxng-nodocker-websearch.*, 42-websearch-direct.txt, 43-nodocker-websearch-2nd.*, 44-keyless-engine-timing.txt",
+  "state_scores": {
+   "dead custom SearXNG URL": "ok (immediate keyless degrade, web_search.py:140-144)",
+   "keyless tier cold web_search in chat": "broken - 25 s tool cap < ~42 s DDG-first rotation, model blames \"network issues\" (SURF-FAILURE-INDUCER-2)",
+   "warm call same process": "ok 1.7-4 s"
+  }
+ },
+ {
+  "id": "x-malformed-symbols",
+  "area": "failure-inducer",
+  "surface": "(extra) malformed symbols x 9 routes (81 GETs)",
+  "drive": "api",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/10-malformed-symbols.jsonl, 11-typo-history.txt, harness/malformed.py",
+  "state_scores": {
+   "SQL/HTML/unicode": "ok - inert, echoed as data, no 500",
+   "whitespace/$$$/300 chars/RELIANCE.NS.NS on /quotes": "broken - raw AttributeError (already registered, not re-filed)",
+   "typo on /history": "broken - \"EOD only, needs a broker\" (already INT-spec-135-137 / SURF-PANELS-LAYOUTS-3)",
+   "symbols containing /": "broken - 404 on every path route (already registered)"
+  }
+ },
+ {
+  "id": "x-network-down-data",
+  "area": "failure-inducer",
+  "surface": "(extra) network unreachable -> data routes",
+  "drive": "api",
+  "driven": "broken",
+  "evidence": "docs/redesign/verification/r15/surface/failure-inducer/30-netdown-data-routes.txt, 31-netdown-sidecar-log-excerpt.txt",
+  "state_scores": {
+   "IN quotes from cached exchange EOD": "ok",
+   "US history/quotes": "broken - reads as \"no data\" (SURF-FAILURE-INDUCER-4)",
+   "news": "partial - 502 shown, cause unnamed",
+   "/health, /search/status": "stay green (SURF-FAILURE-INDUCER-4)"
+  }
+ }
+]

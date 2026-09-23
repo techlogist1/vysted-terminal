@@ -1,0 +1,197 @@
+[
+  {
+    "file": "composer-chat/12-multiturn-t3-watchlist.jsonl",
+    "frontendEvents": {
+      "tool_use": 2,
+      "delta": 45,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [
+      {
+        "name": "add_to_watchlist",
+        "toolCallId": "",
+        "label": "Added COCHINSHIP to your watchlist",
+        "threw": null,
+        "ack": "applied"
+      },
+      {
+        "name": "add_to_watchlist",
+        "toolCallId": "",
+        "label": "Added MAZAGONDOCK to your watchlist",
+        "threw": null,
+        "ack": "applied"
+      }
+    ],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 244
+  },
+  {
+    "file": "composer-chat/13-multiturn-t4-note.jsonl",
+    "frontendEvents": {
+      "delta": 1,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 140
+  },
+  {
+    "file": "composer-chat/10-multiturn-t1.jsonl",
+    "frontendEvents": {
+      "tool_use": 2,
+      "research_step": 8,
+      "delta": 232,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [
+      {
+        "name": "publish_brief",
+        "toolCallId": "__autobrief",
+        "label": "Published the FAST research brief",
+        "threw": null,
+        "ack": "applied"
+      }
+    ],
+    "notices": [],
+    "briefPanel": {
+      "phase": "published",
+      "symbol": "COCHINSHIP",
+      "depth": "quick",
+      "mode": "FAST",
+      "webAvailable": true,
+      "noWebBanner": false,
+      "sourceCount": 6,
+      "backend": "keyless-fallback",
+      "markdownChars": 0,
+      "execution": {
+        "runId": "472c0c1809c840168682ed596d7bf911",
+        "requestedDepth": "normal",
+        "loop": "fast",
+        "backend": null,
+        "startedAt": 1790128198.063881,
+        "finishedAt": 1790128226.2405188,
+        "degradedReason": null
+      },
+      "metrics": {
+        "symbol": "COCHINSHIP",
+        "provider": "nse_direct",
+        "price": 1388.9,
+        "change": 3.900000000000091,
+        "changePercent": 0.28158844765343616,
+        "currency": "INR",
+        "assetClass": "equity",
+        "items": [
+          {
+            "label": "Below 52-week high",
+            "value": "-29.75% · vs 52w high",
+            "title": "(52w high - price) / 52w high"
+          },
+          {
+            "label": "52-week price change (Yahoo)",
+            "value": "-26.91% · trailing 52 weeks",
+            "title": "trailing 52 weeks"
+          },
+          {
+            "label": "Dividend yield",
+            "value": "0.81% · fraction of price",
+            "title": "dividend per share / price"
+          },
+          {
+            "label": "Dividend per share",
+            "value": "INR 11.25 · per share, INR",
+            "title": "per share, INR"
+          },
+          {
+            "label": "Dividend/share (trailing 12m paid)",
+            "value": "INR 9.00 · corporate-action history",
+            "title": "sum of dividends paid in the trailing 12 months"
+          },
+          {
+            "label": "Revenue growth",
+            "value": "+2.40% · quarterly YoY (MRQ)",
+            "title": "quarterly YoY (MRQ)"
+          },
+          {
+            "label": "Earnings growth",
+            "value": "-19.30% · quarterly YoY (MRQ)",
+            "title": "quarterly YoY (MRQ)"
+          },
+          {
+            "label": "Promoter group (exchange filing)",
+            "value": "67.91% · NSE shareholding filing, 2026-06-30",
+            "title": "NSE shareholding filing, 2026-06-30"
+          },
+          {
+            "label": "Institutional holding (exchange filing)",
+            "value": "9.79% · NSE shareholding filing, 2026-06-30",
+            "title": "NSE shareholding filing, 2026-06-30"
+          },
+          {
+            "label": "Market cap",
+            "value": "INR 365.39B"
+          },
+          {
+            "label": "P/E",
+            "value": "53.63"
+          },
+          {
+            "label": "Fwd P/E",
+            "value": "31.07"
+          },
+          {
+            "label": "Price/Book",
+            "value": "6.22"
+          },
+          {
+            "label": "EPS",
+            "value": "25.90"
+          },
+          {
+            "label": "Beta",
+            "value": "0.58"
+          },
+          {
+            "label": "Net margin",
+            "value": "13.48%"
+          },
+          {
+            "label": "Debt/Equity",
+            "value": "0.28"
+          },
+          {
+            "label": "Revenue",
+            "value": "INR 50.47B"
+          },
+          {
+            "label": "52w range",
+            "value": "1,187–1,977"
+          },
+          {
+            "label": "Volume",
+            "value": "830.4K"
+          }
+        ],
+        "conflicts": [
+          {
+            "text": "Sources disagree on dividend per share: 11.25 (yfinance (dividendRate)) vs 9 (derived (trailing-12m paid history)) — The provider's dividend per share (Yahoo dividendRate, 11.25) EXCEEDS the trailing-12-month dividends actually PAID (9) by more than 10% — the scalar may anticipate a declared-but-unpaid dividend or ride a forward/inflated basis; the paid history is the settled figure.",
+            "kind": "data_conflict"
+          },
+          {
+            "text": "Sources disagree on held percent insiders: 63.335 (yfinance (heldPercentInsiders)) vs 67.91 (NSE shareholding filing) — The provider's heldPercentInsiders (63.33%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 67.91% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+            "kind": "data_conflict"
+          }
+        ]
+      }
+    },
+    "chatTextChars": 1011
+  }
+]

@@ -1,0 +1,101 @@
+[
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds, with the raw file's own Agent-B amendment folded in: openai.py is the only adapter with a content-leak rescue (_rescue_content_leaked_tool_call :267, sole call site :824); ollama.py has none. The genuine offered-tool leaks are turn 5's second screener_run (printed as a JSON blob after a validation error, 14-multiturn-t5-screen.stdout.txt) and set_chart_indicators in the ASK drive (15-ask-autonomy-chart.stdout.txt) — both silent no-ops. The turn-4 write_note leg is a different root (the intent gate withheld the tool, SURF-COMPOSER-CHAT-5), so any rescue must check the leaked name against the tools actually sent.",
+    "evidence": "sidecar/services/llm/openai.py:267, sidecar/services/llm/openai.py:824, sidecar/services/llm/ollama.py:205-215, docs/redesign/verification/r15/surface/composer-chat/14-multiturn-t5-screen.stdout.txt, docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.stdout.txt",
+    "evidence_checked": "re-spot-checked the earlier verdict after the raw finding was amended: grep for the rescue across sidecar/services (only openai.py), read ollama.py's tool-call emit path, read the turn-5 and ASK transcripts (1 structured tool_use each, the retry emitted as text)",
+    "repro_check": "grep -rn _rescue_content_leaked_tool_call sidecar/services -> openai.py:267,:824 only; 14-multiturn-t5-screen.stdout.txt ends with a literal {\"name\": \"screener_run\", ...} delta and kinds={'tool_use': 1}"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-2",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: compare_symbols.py's _compare_one takes the model-supplied symbol string straight into provider_registry.get_quote with no resolver call anywhere in the module, and a live GET /resolve?q=Mazagon+Dock on the same sidecar correctly resolves to MAZDOCK at 0.92 confidence — proving the resolver exists and would have caught this, it just isn't wired into this one tool.",
+    "evidence": "sidecar/services/agent_tools/compare_symbols.py:43-58; live repro against 127.0.0.1:52217",
+    "evidence_checked": "opened compare_symbols.py in full (imports + _compare_one body); ran the live GET /resolve repro against the item's own isolated sidecar",
+    "repro_check": "curl -s 'http://127.0.0.1:52217/resolve?q=Mazagon%20Dock' -> resolved.symbol=MAZDOCK, confidence 0.92 — the resolver the tool skips"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-3",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Reproduced live against the item's own isolated sidecar: HTTP 502 with the exact leaked yfinance AttributeError text. get_quote's except clause (yfinance_provider.py:233-250) is a bare `except Exception` and _provider_error (:53-64) just interpolates str(exc) with no classification for a library-internal failure vs a real provider outage, so this is a genuine (if low-severity) message-quality gap, not a wrong-data bug.",
+    "evidence": "sidecar/services/yfinance_provider.py:233-250, :53-64; live repro against 127.0.0.1:52217",
+    "evidence_checked": "opened yfinance_provider.py get_quote and _provider_error in full; ran the live curl repro with -i status code check; re-confirmed on :52152 during this refute (HTTP 502)",
+    "repro_check": "curl -s -o /dev/null -w 'HTTP %{http_code}\\n' http://127.0.0.1:52152/quotes/MAZAGONDOCK -> HTTP 502"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Corrected from the earlier 'refuted': the skip-on-failure is deliberate (quotes.py:1-4, :69-76) so one bad symbol never aborts the batch, but the earlier verdict's premise that no consumer is harmed does not hold — the named consumer, the watchlist, maps a dropped symbol to quote=null (watchlist/api.ts:55-60) and renders a permanent '—' price/change (WatchlistPanel.tsx:103,127) indistinguishable from a not-yet-loaded row, which is exactly what SURF-COMPOSER-CHAT-7's model-invented MAZAGONDOCK row shows. Real but low, and the user-visible half overlaps SURF-COMPOSER-CHAT-7 (dedupe candidate at register).",
+    "evidence": "sidecar/routers/quotes.py:1-4, sidecar/routers/quotes.py:64-88, src/modules/watchlist/api.ts:23-60, src/modules/watchlist/WatchlistPanel.tsx:103, src/modules/watchlist/WatchlistPanel.tsx:127",
+    "evidence_checked": "re-read quotes.py docstrings + get_quotes; read the watchlist api.ts row mapping and WatchlistPanel price/change cells to see what the consumer does with a dropped symbol",
+    "repro_check": "curl 'http://127.0.0.1:52217/quotes?symbols=COCHINSHIP,MAZAGONDOCK' -> 1-element array (raw evidence); api.ts sets quote null for the missing key -> WatchlistPanel renders '—' with no reason"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-5",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed in-process: classify_intent returns intent 'read' with zero signals for 'Write a note on …', 'screen for defence stocks P/E < 40' (the exact /screener slash expansion, slash-commands.ts:187), 'Save this screen as …' and 'Jot down …'. _EDIT/_BUILD tables have no note/screen/save/jot cue, and on an inferred read the runtime keeps only catalog read-only tools plus _READ_SAFE_PANEL_ACTIONS, which omits write_note, write_screener_filters, save_screen and save_layout — so the default 'agent' mode (streaming.ts:171) strips the very tool these advertised flows need, on every provider.",
+    "evidence": "sidecar/services/planner.py:61-110, sidecar/services/planner.py:163-175, sidecar/services/agent_runtime.py:76-85, sidecar/services/agent_runtime.py:1280-1304, src/modules/chat/slash-commands.ts:183-187, src/modules/chat/streaming.ts:171",
+    "evidence_checked": "read the signal tables and classify_intent docstring, the runtime read-only gate and read-safe set; ran classify_intent in-process on 4 prompts; read 52-intent-gate-probe.txt",
+    "repro_check": "sidecar/.venv/bin/python -c 'from services.planner import classify_intent; print(classify_intent(\"screen for defence stocks P/E < 40\").to_dict())' -> {'intent': 'read', 'signals': [], 'mutates': False} (same for the note/save/jot prompts)"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-6",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed by code and an in-process repro: _dispatch_tool_with_progress runs the tool as asyncio.create_task(_run()) and its finally only resets the step sink, never cancelling the task; `await task` is reached only on the happy path. Closing the generator mid-dispatch (what a client disconnect does to the SSE generator) left a stubbed 1 s tool running to completion after aclose(). Matches the already-admitted code finding COD-agent-runtime-4; the live watch file (Ollama connections held ~3 min after the 07:51:01 close) corroborates, though the host-wide Ollama was shared with a twin agent at the time, so the code + in-process repro are the load-bearing proof.",
+    "evidence": "sidecar/services/agent_runtime.py:724-765, docs/redesign/verification/r15/surface/composer-chat/40-stop-midstream-watch.txt, docs/redesign/verification/r15/census/refute/code-agent-runtime.json (COD-agent-runtime-4)",
+    "evidence_checked": "read the generator body; ran a throwaway in-process repro (stub _dispatch_tool sleeping 1 s, cancel the pending __anext__, aclose the generator, observe the stub still completes); read the watch/stdout evidence",
+    "repro_check": "in-process: after gen.aclose() done=[]; 1.5 s later done=['tool finished'] — the orphaned tool task ran to completion"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: the add_to_watchlist apply path passes the model's raw symbol to useSymbolsStore.addSymbol (host-actions.ts:1133-1139), which only trims/uppercases/dedupes (symbols.ts:44-54); neither the frontend nor the sidecar resolves or validates it. The transcript shows add_to_watchlist{symbol:'MAZAGONDOCK'} and GET /quotes/MAZAGONDOCK still 502s on :52152, so the row never prices (see SURF-COMPOSER-CHAT-4 for the silent '—').",
+    "evidence": "src/lib/host-actions.ts:1133-1139, src/lib/host-actions.ts:716-727, src/store/symbols.ts:44-54, docs/redesign/verification/r15/surface/composer-chat/12-multiturn-t3-watchlist.jsonl",
+    "evidence_checked": "read the apply case, the review-diff case and the store's addSymbol; grepped sidecar/services for any add_to_watchlist handler (only schema/prompt/allow-list mentions); grepped the transcript for the tool_use inputs; live GET on :52152",
+    "repro_check": "grep '\"name\": \"add_to_watchlist\"' 12-multiturn-t3-watchlist.jsonl -> inputs COCHINSHIP and MAZAGONDOCK; curl -w '%{http_code}' 127.0.0.1:52152/quotes/MAZAGONDOCK -> 502"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: the Ollama adapter emits tool_call_id=_attr(tool_call,'id','') or '' (ollama.py:212) and nothing in the runtime mints a replacement; ackHostAction returns immediately on an empty id (host-actions.ts:1452-1457), so the ledger never gets an entry and the runtime's read-back returns status 'dispatched_unconfirmed' with 'do not report it as done' (agent_runtime.py:1106-1115). Both transcripts carry tool_call_id '' and the model narrates 'pending confirmation'. Same root as SURF-RESEARCH-BRIEFS-9 and the admitted COD-llm-adapters-2-5 — dedupe at register.",
+    "evidence": "sidecar/services/llm/ollama.py:205-215, src/lib/host-actions.ts:1452-1457, sidecar/services/agent_runtime.py:1094-1115, docs/redesign/verification/r15/surface/composer-chat/12-multiturn-t3-watchlist.jsonl, docs/redesign/verification/r15/surface/composer-chat/16-multiturn-t6-arrange.jsonl",
+    "evidence_checked": "read the adapter emit, ackHostAction guard and the runtime's unconfirmed branch; grepped the two transcripts for tool_call_id values and the narration",
+    "repro_check": "grep -o '\"tool_call_id\": \"[^\"]*\"' 12-*.jsonl 16-*.jsonl -> all ''; both stdout files contain 'pending confirmation.'"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "critical",
+    "reason": "The percent half holds exactly: semantics.py labels fraction values unit 'percent' (growth :392, promoter/institutional :569/:584 via /100, dividend yield :889 whose basis is 'fraction of price'); the panel's formatDerived treats 'percent' as a fraction and multiplies (brief-blocks.tsx:199-201), but the model gets the raw bundle — the KPIT tool result carries dividend_yield {value 0.01417…, unit 'percent'} and the chat printed 'Dividend Yield: 0.0142%' (100x low); no agent prompt explains the convention. Correction: the market-cap half is a different mechanism — market_cap reaches the model as a raw rupee number (144021815296.0) with no mislabelled unit, and the model mis-converted it (₹1.44 lakh crore vs the true ~₹14,402 crore, 10x); the fix shape (pre-scaled, unit-spelled crore) still applies. Severity unchanged: wrong money figures stated as true in the primary chat surface.",
+    "evidence": "sidecar/services/research/semantics.py:157-181, :386-392, :565-569, :580-584, :885-890, src/modules/research/brief-blocks.tsx:194-205, docs/redesign/verification/r15/surface/research-briefs/10-normal-kpit.stdout.txt, docs/redesign/verification/r15/surface/research-briefs/10-normal-kpit.jsonl",
+    "evidence_checked": "read each cited semantics.py site and _value (no display/scaled field), the panel formatter, the KPIT tool-result payload (derived dividend_yield + fundamentals market_cap) and the chat narration; grepped agent JSONs/runtime for any fraction-vs-percent guidance (none)",
+    "repro_check": "grep in 10-normal-kpit.jsonl -> '\"dividend_yield\": {\"value\": 0.014176…, \"basis\": \"fraction of price\", \"unit\": \"percent\"' and '\"market_cap\": 144021815296.0'; stdout: 'Market Cap: ₹1.44 lakh crores', 'Dividend Yield: 0.0142%'"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-10",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: in ASK the non-order host-action handler returns status awaiting_user_review with 'do not claim it is done' (agent_runtime.py:1213-1219), the system prompt says the same (:170-175), and no post-turn check rewrites or annotates a staged-action claim (the only end-of-stream read-back is _publish_divergence_notices, publish_brief only). The model still said 'I've set Bharat Dynamics (BDL) as the new symbol on your chart'. Note: the replay harness applied set_chart_symbol directly, but the real ChatSidebar stages it in ASK (ChatSidebar.tsx:959-969 'Proposed: … — review below'), so the chat step row contradicts the prose rather than the change landing — medium stands.",
+    "evidence": "sidecar/services/agent_runtime.py:170-175, sidecar/services/agent_runtime.py:1190-1219, sidecar/services/agent_runtime.py:991-1050, src/modules/chat/ChatSidebar.tsx:959-969, docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.jsonl, docs/redesign/verification/r15/surface/composer-chat/15-ask-autonomy-chart.stdout.txt",
+    "evidence_checked": "read the host-action handler, prompt text and divergence-notice function; confirmed the request carried autonomy 'ask'; read ChatSidebar's ASK staging path to separate the harness artefact from real UI behaviour",
+    "repro_check": "grep '\"autonomy\"' 15-ask-autonomy-chart.jsonl -> \"ask\"; stdout text begins 'I've set Bharat Dynamics (BDL) as the new symbol on your chart'"
+  },
+  {
+    "raw_id": "SURF-COMPOSER-CHAT-11",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: resume_run spawns with provider=None, model=None (run_manager.py:402-407); launch_run persists only options+region, never provider/model (:260-269), and the resume route takes no provider/model (routers/runs.py:127-130), so a resumed run falls to the agent default — matching the Ollama log in the evidence (Qwen2.5 loaded in place of llama3.1). pause_run (:301) has no caller outside tests, so answer_run always 409s and the rail's paused/answer UI (AgentsRail.tsx:30, delegate-runs.ts) is unreachable. Live confirmation of already-admitted COD-runs-durable-delegate-2 and -10.",
+    "evidence": "sidecar/services/run_manager.py:236-282, sidecar/services/run_manager.py:301-310, sidecar/services/run_manager.py:346-412, sidecar/routers/runs.py:127-130, src/modules/chat/AgentsRail.tsx:30, docs/redesign/verification/r15/surface/composer-chat/31-delegate-lifecycle.txt",
+    "evidence_checked": "read launch_run, pause_run, resume_run and the resume route; grepped sidecar for pause_run callers (definition + docstring only); read the lifecycle transcript; cross-checked the code-census verdicts",
+    "repro_check": "grep -rn pause_run sidecar --include=*.py (excluding tests) -> run_manager.py:25 (doc) and :301 (def) only; 31-delegate-lifecycle.txt: POST /runs/{B}/answer -> 409 'not awaiting an answer'"
+  }
+]

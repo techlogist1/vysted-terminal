@@ -1,0 +1,608 @@
+[
+ {
+  "src": "roe > 0.2 and debt_to_equity < 0.3 and pe_ratio < 25",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "debt_to_equity",
+   "pe_ratio",
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 42
+  }
+ },
+ {
+  "src": "pe < 20 and roe > 15%",
+  "ts_ok": false,
+  "ts_err": "unexpected character '%'",
+  "ts_pos": 20,
+  "py_ok": false,
+  "py_err": "unexpected character '%'",
+  "py_pos": 20,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected character '%' (col 21)\",\"input\":\"pe < 20 and roe > 15%\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "ROE > 0.15",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "PE < 20",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "market_cap > 1e11",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "market_cap"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe<20 && roe>0.1",
+  "ts_ok": false,
+  "ts_err": "unexpected character '&'",
+  "ts_pos": 6,
+  "py_ok": false,
+  "py_err": "unexpected character '&'",
+  "py_pos": 6,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected character '&' (col 7)\",\"input\":\"pe<20 && roe>0.1\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "sector == 'IT'",
+  "ts_ok": false,
+  "ts_err": "unexpected character '''",
+  "ts_pos": 10,
+  "py_ok": false,
+  "py_err": "unexpected character \"'\"",
+  "py_pos": 10,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected character \\\"'\\\" (col 11)\",\"input\":\"sector == 'IT'\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": ".5 < pe",
+  "ts_ok": false,
+  "ts_err": "unexpected character '.'",
+  "ts_pos": 0,
+  "py_ok": false,
+  "py_err": "unexpected character '.'",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected character '.' (col 1)\",\"input\":\".5 < pe\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "pe < 20,",
+  "ts_ok": false,
+  "ts_err": "unexpected ','",
+  "ts_pos": 7,
+  "py_ok": false,
+  "py_err": "unexpected ','",
+  "py_pos": 7,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected ',' (col 8)\",\"input\":\"pe < 20,\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "pe_ratio > 10 and",
+  "ts_ok": false,
+  "ts_err": "unexpected end of formula",
+  "ts_pos": 17,
+  "py_ok": false,
+  "py_err": "unexpected end of formula",
+  "py_pos": 17,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected end of formula (col 18)\",\"input\":\"pe_ratio > 10 and\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "min(pe, forward_pe) < 15",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "forward_pe",
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "min(pe) < 15",
+  "ts_ok": false,
+  "ts_err": "min() takes at least 2 arguments, e.g. min(roe, roa)",
+  "ts_pos": 0,
+  "py_ok": false,
+  "py_err": "min() takes at least 2 arguments, e.g. min(roe, roa)",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: min() takes at least 2 arguments, e.g. min(roe, roa) (col 1)\",\"input\":\"min(pe) < 15\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "abs(change_percent_1d) > 2",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "change_percent_1d"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 2,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "not (pe > 30)",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe > 10 > 5",
+  "ts_ok": false,
+  "ts_err": "chained comparisons are not supported \u2014 combine with 'and'",
+  "ts_pos": 8,
+  "py_ok": false,
+  "py_err": "chained comparisons are not supported \u2014 combine with 'and'",
+  "py_pos": 8,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: chained comparisons are not supported \u2014 combine with 'and' (col 9)\",\"input\":\"pe > 10 > 5\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "roce > 0.15",
+  "ts_ok": false,
+  "ts_err": "unknown field 'roce' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_growth, fifty_two_week_high, fifty_two_week_low, fifty_two_week_change, held_percent_insiders, held_percent_institutions, price, change_percent_1d, volume; functions: abs, max, min",
+  "ts_pos": 0,
+  "py_ok": false,
+  "py_err": "unknown field 'roce' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_growth, fifty_two_week_high, fifty_two_week_low, fifty_two_week_change, held_percent_insiders, held_percent_institutions, price, change_percent_1d, volume; functions: abs, max, min",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unknown field 'roce' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, pro"
+  }
+ },
+ {
+  "src": "promoter_holding > 0.5",
+  "ts_ok": false,
+  "ts_err": "unknown field 'promoter_holding' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_growth, fifty_two_week_high, fifty_two_week_low, fifty_two_week_change, held_percent_insiders, held_percent_institutions, price, change_percent_1d, volume; functions: abs, max, min",
+  "ts_pos": 0,
+  "py_ok": false,
+  "py_err": "unknown field 'promoter_holding' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating_margin, profit_margin, debt_to_equity, current_ratio, quick_ratio, revenue_growth, earnings_growth, fifty_two_week_high, fifty_two_week_low, fifty_two_week_change, held_percent_insiders, held_percent_institutions, price, change_percent_1d, volume; functions: abs, max, min",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unknown field 'promoter_holding' \u2014 fields: market_cap, pe_ratio, forward_pe, peg_ratio, price_to_book, price_to_sales, ev_to_ebitda, book_value, dividend_yield, eps, beta, roe, roa, gross_margin, operating"
+  }
+ },
+ {
+  "src": "pe + (roe > 0.1) > 5",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio",
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe / 0 > 1",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 0,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "1 > 0",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe",
+  "ts_ok": false,
+  "ts_err": "formula must be a comparison or boolean expression, e.g. pe_ratio < 15",
+  "ts_pos": 0,
+  "py_ok": false,
+  "py_err": "formula must be a comparison or boolean expression, e.g. pe_ratio < 15",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: formula must be a comparison or boolean expression, e.g. pe_ratio < 15 (col 1)\",\"input\":\"pe\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "pe_ratio < 20 AND roe > 0.1",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio",
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "marketCap > 1e11",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "market_cap"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe < 20 and\nroe > 0.1",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio",
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe < 1_000",
+  "ts_ok": false,
+  "ts_err": "unexpected '_000'",
+  "ts_pos": 6,
+  "py_ok": false,
+  "py_err": "unexpected '_000'",
+  "py_pos": 6,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected '_000' (col 7)\",\"input\":\"pe < 1_000\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "pe < 20 \u2014 roe > 0.1",
+  "ts_ok": false,
+  "ts_err": "unexpected character '\u2014'",
+  "ts_pos": 8,
+  "py_ok": false,
+  "py_err": "unexpected character '\u2014'",
+  "py_pos": 8,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected character '\u2014' (col 9)\",\"input\":\"pe < 20 \u2014 roe > 0.1\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "   ",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": false,
+  "py_err": "empty formula",
+  "py_pos": 0,
+  "py_fields": [],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "((((((((((((((((((((((((((((((((((pe>1))))))))))))))))))))))))))))))))))",
+  "ts_ok": false,
+  "ts_err": "formula too deeply nested \u2014 max depth 32",
+  "ts_pos": 32,
+  "py_ok": false,
+  "py_err": "formula too deeply nested \u2014 max depth 32",
+  "py_pos": 32,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: formula too deeply nested \u2014 max depth 32 (col 33)\",\"input\":\"((((((((((((((((((((((((((((((((((pe>1))))))))))))))))))))))))))))))))))\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "pe > 1 and pe > 1 and pe > 1 and pe > 1 and pe > 1 and pe > 1 and pe > 1 and pe > 1 and pe",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "eps > 0 and fifty_two_week_change > 0.2",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "eps",
+   "fifty_two_week_change"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "Pe < 20",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "de < 0.5",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "debt_to_equity"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 42
+  }
+ },
+ {
+  "src": "roe >= 0.2 or pe <= 10",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio",
+   "roe"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe == 20.5",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 0,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe != 0",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "-pe < -5",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "pe_ratio"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ },
+ {
+  "src": "pe < 2e",
+  "ts_ok": false,
+  "ts_err": "unexpected 'e'",
+  "ts_pos": 6,
+  "py_ok": false,
+  "py_err": "unexpected 'e'",
+  "py_pos": 6,
+  "py_fields": [],
+  "run": {
+   "status": 422,
+   "body": "{\"detail\":[{\"type\":\"value_error\",\"loc\":[\"body\",\"formula\"],\"msg\":\"Value error, invalid formula: unexpected 'e' (col 7)\",\"input\":\"pe < 2e\",\"ctx\":{\"error\":{}}}]}"
+  }
+ },
+ {
+  "src": "price > 100 and volume > 1e6",
+  "ts_ok": true,
+  "ts_err": null,
+  "ts_pos": null,
+  "py_ok": true,
+  "py_err": null,
+  "py_pos": null,
+  "py_fields": [
+   "price",
+   "volume"
+  ],
+  "run": {
+   "status": 200,
+   "result_count": 5,
+   "evaluated": 49
+  }
+ }
+]

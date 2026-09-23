@@ -1,0 +1,28 @@
+[  66.5s] tool_use research {"query": "KPIT Technologies", "depth": "quick"}
+[  66.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "engine", "detail": "research:begin 9a44ce1ba1824fea81f6cab41f81706b depth=normal query=KPIT Technologies", "latency_ms": null, "status": "ok", "index": 1, "_t": 66.93}
+[  66.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolving \"KPIT Technologies\"", "latency_ms": null, "status": "ok", "index": 2, "_t": 66.93}
+[  66.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 KPITTECH", "latency_ms": 353, "status": "ok", "index": 3, "_t": 66.93}
+[  66.9s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulling market data for KPITTECH", "latency_ms": null, "status": "ok", "index": 4, "_t": 66.93}
+[  86.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "tool", "detail": "pulled 4/4 data sources", "latency_ms": 19235, "status": "ok", "index": 5, "_t": 86.15}
+[  86.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "searching the web for KPIT Technologies Limited", "latency_ms": null, "status": "ok", "index": 6, "_t": 86.15}
+[  95.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "search", "detail": "6 web source(s)", "latency_ms": 9011, "status": "ok", "index": 7, "_t": 95.18}
+[  95.2s] research_step {"kind": "research_step", "tool_call_id": "", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 8, "_t": 95.18}
+[  95.2s] tool_use publish_brief {"query": "KPIT Technologies", "symbol": "KPITTECH", "mode": "fast", "depth": "quick", "execution": {"run_id": "9a44ce1ba1824fea81f6cab41f81706b", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790128267.701602, "finished_at": 1790128296.3174899, "degraded_reason": null
+
+=== TEXT ===
+Built you a brief on KPIT Technologies — it's at the top of the cockpit; click any ticker to dig in.
+
+* Current Price: ₹529.05
+* Market Cap: ₹1.44 lakh crores
+* P/E Ratio: 24.88
+* Dividend Yield: 0.0142%
+* Revenue Growth (TTM): 8.9%
+* Earnings Growth (TTM): -31.8%
+
+Note: The above figures are based on the latest available data and may not reflect the current market situation.
+
+You can also view the news and filings related to KPIT Technologies by clicking on the "News" and "Filings" tabs in the brief.
+
+Additionally, you can click on any ticker symbol in the brief to view its detailed chart and analysis.
+
+=== ok 283.8s kinds={'tool_use': 2, 'research_step': 8, 'delta': 163, 'done': 1} usage={'input_tokens': 10044, 'output_tokens': 164, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

@@ -1,0 +1,38 @@
+{
+ "tag": "surf-S2D",
+ "common": "FIRST read docs/redesign/verification/r15/tooling/COMMON.md (in /Users/lokavyasingh/Documents/dev/vysted-terminal) and obey it exactly. THEN read docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md in full. A previous attempt at your task may have died to a usage wall or power loss: your sidecar, evidence dir and raw file may already exist - verify and continue, never restart. Before any pnpm/node/cargo command: export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH.",
+ "stages": [
+  {
+   "label": "drive",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Item \"{{id}}\" ({{kind}}). <port> = {{port}}, data dir = {{data_dir}}. {{instructions}} Write SURFACE/{{id}}/ evidence{{coverage_note}} and CENSUS/raw/surf-{{id}}.json (raw_id prefix SURF-{{group_prefix}}, area per the finding, empty [] allowed). Stop your sidecar (kill the sleep pid) when done. Return the RESULT object with count = raw findings written."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "Refute the findings you (or a prior attempt) wrote for \"{{id}}\". Raw file: docs/redesign/verification/r15/census/raw/surf-{{id}}.json. Output: docs/redesign/verification/r15/census/refute/surf-{{id}}.json. Follow PROMPT_surface_s2.md's REFUTE section (which points to PROMPT_refute.md) exactly, including the trading-scope removed_with_feature handling. If the raw file is [], confirm and write [] as your verdict file. Return the RESULT object."
+  }
+ ],
+ "items": [
+  {
+   "id": "onboarding-stranger",
+   "kind": "owner-drive, CLEAN keyless profile",
+   "port": 52223,
+   "data_dir": "<scratchpad>/vysted-iso/seat-onboarding-stranger/data (CLEAN: create empty, do NOT cp -R the operator's data; seed dev-keystore.json as {\"secrets\": {}, \"migrated\": true} per ISO_STACK.md)",
+   "instructions": "Run PROMPT_surface_s2.md's OWNER-DRIVE section, onboarding-stranger group (keyless, read SURFACE/seat-stranger/transcript.md first and continue past it).",
+   "coverage_note": " and SURFACE/{{id}}/COVERAGE.json",
+   "group_prefix": "ONBOARDING-STRANGER"
+  },
+  {
+   "id": "failure-inducer",
+   "kind": "inducer, seeded profile",
+   "port": 52224,
+   "data_dir": "<scratchpad>/vysted-iso/seat-failure-inducer/data (cp -R <scratchpad>/vysted-iso/data into it per ISO_STACK.md)",
+   "instructions": "Run PROMPT_surface_s2.md's OWNER-DRIVE section, failure-inducer group: finish SURFACE/inducer/05-network-unreachable (.txt exists, .jsonl missing) then add 429/SearXNG-down/Docker-absent/malformed-symbols/retired-slug/nonsense-slug/junk-provider-output.",
+   "coverage_note": "",
+   "group_prefix": "FAILURE-INDUCER"
+  }
+ ]
+}

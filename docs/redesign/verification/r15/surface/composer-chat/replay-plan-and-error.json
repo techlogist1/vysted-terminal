@@ -1,0 +1,56 @@
+[
+  {
+    "file": "composer-chat/18-plan-compound-4omini.jsonl",
+    "frontendEvents": {
+      "agent_plan": 1,
+      "tool_use": 2,
+      "delta": 33,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [
+      {
+        "name": "set_chart_symbol",
+        "toolCallId": "call_b73pkq8a7ZCjKNaQA71Urzxe",
+        "label": "Loaded BEL.NS into the chart",
+        "threw": null,
+        "ack": "applied"
+      },
+      {
+        "name": "add_to_watchlist",
+        "toolCallId": "call_F0j5kr818PVNDBu9g8lVBzcv",
+        "label": "Added BEL.NS to your watchlist",
+        "threw": null,
+        "ack": "applied"
+      }
+    ],
+    "notices": [],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 158
+  },
+  {
+    "file": "composer-chat/20-err-nokey-openai.jsonl",
+    "frontendEvents": {
+      "error": 1,
+      "done": 1
+    },
+    "transportErrors": [],
+    "hostActionsApplied": [],
+    "notices": [
+      {
+        "error": "Something went wrong with the AI provider.",
+        "frame": {
+          "action": "Try again or switch provider in Settings.",
+          "detail": "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.",
+          "code": "unknown"
+        }
+      }
+    ],
+    "briefPanel": {
+      "phase": "empty"
+    },
+    "chatTextChars": 0
+  }
+]

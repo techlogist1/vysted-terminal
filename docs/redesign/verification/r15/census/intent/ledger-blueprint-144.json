@@ -2,17 +2,17 @@
   {
     "pid": "INT-BP-145",
     "promise": "Tradesa V2 plugin has 9-12 panels (decisions feed, open positions, P&L chart, trade history, watcher activity, sentinel/health, alerts, LLM cost, settings drift, reflection stream).",
-    "source": "§4 Broker Plugins (L293)",
+    "source": "\u00a74 Broker Plugins (L293)",
     "kind": "capability",
     "status": "dropped",
-    "evidence": "plugins/ contains brokers, example, openbb-mcp, vysted-lenses, vysted-news, yfinance — no tradesa dir; src/lib/marketplace.ts has no Tradesa row.",
+    "evidence": "plugins/ contains brokers, example, openbb-mcp, vysted-lenses, vysted-news, yfinance \u2014 no tradesa dir; src/lib/marketplace.ts has no Tradesa row.",
     "gap": "",
-    "decision_ref": "docs/redesign/DECISIONS.md:84 (D44 — Tradesa V2 removed completely: plugin dir, sidecar provider/router/model/tests, types, marketplace row, keychain namespace); COMMON.md out-of-scope list names Tradesa."
+    "decision_ref": "docs/redesign/DECISIONS.md:84 (D44 \u2014 Tradesa V2 removed completely: plugin dir, sidecar provider/router/model/tests, types, marketplace row, keychain namespace); COMMON.md out-of-scope list names Tradesa."
   },
   {
     "pid": "INT-BP-146",
     "promise": "Tradesa V2 plugin has a real-time WebSocket connection to the Tradesa bot.",
-    "source": "§4 Broker Plugins (L294)",
+    "source": "\u00a74 Broker Plugins (L294)",
     "kind": "capability",
     "status": "dropped",
     "evidence": "No tradesa plugin or sidecar provider exists (plugins/, sidecar/services/brokers/).",
@@ -21,18 +21,18 @@
   },
   {
     "pid": "INT-BP-147",
-    "promise": "Tradesa V2 plugin supports crypto execution via Bybit testnet, wrapped in the §6.5 safety layer.",
-    "source": "§4 Broker Plugins (L295)",
+    "promise": "Tradesa V2 plugin supports crypto execution via Bybit testnet, wrapped in the \u00a76.5 safety layer.",
+    "source": "\u00a74 Broker Plugins (L295)",
     "kind": "capability",
     "status": "dropped",
     "evidence": "No tradesa plugin; crypto execution surface is plugins/brokers/ccxt-exec + sidecar/services/brokers/ccxt_exec.py, not Tradesa.",
     "gap": "",
-    "decision_ref": "docs/redesign/DECISIONS.md:84 (D44) + :120 (D70 — live broker order execution is not in scope; deferred v1.0 roadmap); COMMON.md out-of-scope list."
+    "decision_ref": "docs/redesign/DECISIONS.md:84 (D44) + :120 (D70 \u2014 live broker order execution is not in scope; deferred v1.0 roadmap); COMMON.md out-of-scope list."
   },
   {
     "pid": "INT-BP-148",
     "promise": "Tradesa V2 plugin has an optional control plane (kill switch trigger, manual position close).",
-    "source": "§4 Broker Plugins (L295)",
+    "source": "\u00a74 Broker Plugins (L295)",
     "kind": "capability",
     "status": "dropped",
     "evidence": "No tradesa plugin. The kill switch survives independently (sidecar/services/kill_switch.py + src-tauri/src/kill_switch.rs).",
@@ -42,7 +42,7 @@
   {
     "pid": "INT-BP-149",
     "promise": "Tradesa V2 plugin has Tradesa-specific agents (Decision Reviewer, Reflection Analyst) and node-editor nodes (e.g. 'Wait for Tradesa decision').",
-    "source": "§4 Broker Plugins (L296)",
+    "source": "\u00a74 Broker Plugins (L296)",
     "kind": "capability",
     "status": "dropped",
     "evidence": "sidecar/agents/*.json carries no Tradesa persona; no tradesa plugin dir.",
@@ -51,88 +51,88 @@
   },
   {
     "pid": "INT-BP-150",
-    "promise": "Broker execution plugins in v1.0: six brokers plus a ccxt crypto execution wrap — seven broker integrations total — each free or near-free for retail.",
-    "source": "§4 Broker Plugins (L298)",
+    "promise": "Broker execution plugins in v1.0: six brokers plus a ccxt crypto execution wrap \u2014 seven broker integrations total \u2014 each free or near-free for retail.",
+    "source": "\u00a74 Broker Plugins (L298)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "Seven plugin shells exist — plugins/brokers/{kite,dhan,angelone,alpaca,ib,oanda,ccxt-exec}/index.ts — each with a sidecar adapter (sidecar/services/brokers/{kite,dhan,angelone,alpaca,ib,oanda,ccxt_exec}.py, 2662 lines total) and all seven wired as marketplace rows (src/lib/marketplace.ts:188-300+).",
-    "gap": "The EXECUTION half is deliberately deferred: every marketplace row is labelled 'Read-only; no order execution' (src/lib/marketplace.ts:192, 212, 238, 251, 265, 279) and no broker registers at boot (sidecar/services/brokers/registry.py:9-20, FR-051). What ships is read-only account/positions/holdings/margins. Only Kite has a real end-to-end login (sidecar/services/brokers/kite.py:522 exchange_request_token); the other six are credential-field shells whose live path has never been exercised against the real SDK.",
-    "decision_ref": "COMMON.md out-of-scope: 'live broker order execution (1.0 roadmap…)'; docs/redesign/DECISIONS.md:120 (D70)."
+    "status": "dropped",
+    "evidence": "Seven plugin shells exist \u2014 plugins/brokers/{kite,dhan,angelone,alpaca,ib,oanda,ccxt-exec}/index.ts \u2014 each with a sidecar adapter (sidecar/services/brokers/{kite,dhan,angelone,alpaca,ib,oanda,ccxt_exec}.py, 2662 lines total) and all seven wired as marketplace rows (src/lib/marketplace.ts:188-300+). [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-151",
     "promise": "Dhan broker plugin (India, free): dhanhq (MIT, v2.1.0+); orders, holdings, 200-level market depth, WebSocket; built-in static-IP management.",
-    "source": "§4 Broker Plugins (L302)",
+    "source": "\u00a74 Broker Plugins (L302)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "dhanhq==2.1.0 pinned (sidecar/requirements.txt:45); adapter sidecar/services/brokers/dhan.py:43-229 (DhanContext/dhanhq import at :90-91, paper/live split, _account_info, _place_confirmed); plugin shell plugins/brokers/dhan/index.ts:114.",
-    "gap": "No WebSocket and no market depth anywhere in sidecar/services/brokers/ (grep for 'websocket'/'depth' across all seven adapters returns zero hits). 'Built-in static-IP management' is Kite-only: the static-IP routes are /brokers/kite/static-ip (sidecar/routers/brokers.py:368-383) and there is no Dhan equivalent.",
-    "decision_ref": ""
+    "status": "dropped",
+    "evidence": "dhanhq==2.1.0 pinned (sidecar/requirements.txt:45); adapter sidecar/services/brokers/dhan.py:43-229 (DhanContext/dhanhq import at :90-91, paper/live split, _account_info, _place_confirmed); plugin shell plugins/brokers/dhan/index.ts:114. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-152",
     "promise": "Angel One SmartAPI broker plugin (India, free incl. historical data): smartapi-python; REST + WebSocket; no static-IP requirement.",
-    "source": "§4 Broker Plugins (L303)",
+    "source": "\u00a74 Broker Plugins (L303)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "smartapi-python==1.5.5 pinned (sidecar/requirements.txt:46); adapter sidecar/services/brokers/angelone.py:33-176 (SmartConnect import at :70, REST account/order path); plugins/brokers/angelone/index.ts; marketplace row src/lib/marketplace.ts:235-247.",
-    "gap": "REST only — no WebSocket in angelone.py or any adapter. Angel One's free historical data is not consumed anywhere: no quote/candle call to SmartAPI exists, so the 'free incl. historical data' half of the promise buys the product nothing.",
-    "decision_ref": ""
+    "status": "dropped",
+    "evidence": "smartapi-python==1.5.5 pinned (sidecar/requirements.txt:46); adapter sidecar/services/brokers/angelone.py:33-176 (SmartConnect import at :70, REST account/order path); plugins/brokers/angelone/index.ts; marketplace row src/lib/marketplace.ts:235-247. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-153",
     "promise": "Zerodha Kite Connect broker plugin (India): kiteconnect SDK; personal API free for execution + account data; Connect API ~$6/mo adds real-time + historical data; static IP required for order placement since 1 April 2025 (SEBI/NSE rule, up to 2 static IPs per account); data/holdings/positions endpoints unaffected.",
-    "source": "§4 Broker Plugins (L304)",
+    "source": "\u00a74 Broker Plugins (L304)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "kiteconnect==5.2.0 pinned (sidecar/requirements.txt:47); adapter sidecar/services/brokers/kite.py (539 lines; KiteConnect import :98/:522; real session exchange at :522 exchange_request_token; granular positions_info/holdings_info/margins_info at :241/:256/:269); static-IP detector sidecar/services/static_ip_detector.py + configured-IP routes sidecar/routers/brokers.py:368-383.",
-    "gap": "Kite is an ACCOUNT source only. kite.py contains no ltp/quote/historical_data call — the ~$6/mo 'real-time + historical data' half is unwired, so a paying Kite Connect user gets no market data from it. Execution stays deferred (marketplace row src/lib/marketplace.ts:192 'Read-only; no order execution'). The static-IP detector warns but does not pre-block (CLAUDE.md gotcha).",
-    "decision_ref": "COMMON.md out-of-scope for the execution half."
+    "status": "dropped",
+    "evidence": "kiteconnect==5.2.0 pinned (sidecar/requirements.txt:47); adapter sidecar/services/brokers/kite.py (539 lines; KiteConnect import :98/:522; real session exchange at :522 exchange_request_token; granular positions_info/holdings_info/margins_info at :241/:256/:269); static-IP detector sidecar/services/static_ip_detector.py + configured-IP routes sidecar/routers/brokers.py:368-383. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-154",
     "promise": "Alpaca broker plugin (US/global): alpaca-py (not the deprecated alpaca-trade-api); free Basic trading (commission-free US equities/options/crypto); paid Algo Trader Plus for full market data; paper trading free.",
-    "source": "§4 Broker Plugins (L305)",
+    "source": "\u00a74 Broker Plugins (L305)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "alpaca-py==0.42.0 pinned (sidecar/requirements.txt:50) — the modern SDK, not alpaca-trade-api; adapter sidecar/services/brokers/alpaca.py:104 (TradingClient), :162-163 (order requests/enums); plugins/brokers/alpaca/index.ts; marketplace row src/lib/marketplace.ts:251.",
-    "gap": "Trading is deferred (read-only row). Alpaca's paper endpoint is not used — 'paper' is the adapter's own synthetic local mode (sidecar/services/brokers/dhan.py:_synthetic_paper_result, reused by every adapter incl. angelone.py:28), so 'paper trading free' resolves to a fake fill, not an Alpaca paper account. No Alpaca market-data client anywhere.",
-    "decision_ref": "COMMON.md out-of-scope for the execution half."
+    "status": "dropped",
+    "evidence": "alpaca-py==0.42.0 pinned (sidecar/requirements.txt:50) \u2014 the modern SDK, not alpaca-trade-api; adapter sidecar/services/brokers/alpaca.py:104 (TradingClient), :162-163 (order requests/enums); plugins/brokers/alpaca/index.ts; marketplace row src/lib/marketplace.ts:251. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-155",
     "promise": "Interactive Brokers plugin (global, multi-asset, free account-based): ib_async v2.1.0 (not the discontinued ib_insync); requires TWS or IB Gateway running locally.",
-    "source": "§4 Broker Plugins (L306)",
+    "source": "\u00a74 Broker Plugins (L306)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "ib_async==2.1.0 pinned (sidecar/requirements.txt:51) — correct SDK, not ib_insync; adapter sidecar/services/brokers/ib.py:113 (IB import), :224 (order types); marketplace row src/lib/marketplace.ts:265.",
-    "gap": "Execution deferred (read-only row). The TWS/IB-Gateway prerequisite is not surfaced in the marketplace row's setup copy the way Kite's is (compare src/lib/marketplace.ts:201, which spells out the Kite setup) — an IBKR user installs the plugin, enters credentials and gets a connection failure with no stated cause.",
-    "decision_ref": "COMMON.md out-of-scope for the execution half."
+    "status": "dropped",
+    "evidence": "ib_async==2.1.0 pinned (sidecar/requirements.txt:51) \u2014 correct SDK, not ib_insync; adapter sidecar/services/brokers/ib.py:113 (IB import), :224 (order types); marketplace row src/lib/marketplace.ts:265. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-156",
     "promise": "OANDA v20 broker plugin (forex, free with fxTrade demo or live account): oandapyV20; no API cost beyond holding the brokerage account.",
-    "source": "§4 Broker Plugins (L307)",
+    "source": "\u00a74 Broker Plugins (L307)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "oandapyV20==0.7.2 pinned (sidecar/requirements.txt:54); adapter sidecar/services/brokers/oanda.py:91-118 (API + accounts endpoints); plugins/brokers/oanda/index.ts; marketplace row src/lib/marketplace.ts:279 with account_id + access_token fields.",
-    "gap": "Execution deferred (read-only row). oanda.py:3 itself notes the SDK was last released 2021-08 — an unmaintained dependency shipped in a v1.0 surface with no stated replacement plan.",
-    "decision_ref": "COMMON.md out-of-scope for the execution half."
+    "status": "dropped",
+    "evidence": "oandapyV20==0.7.2 pinned (sidecar/requirements.txt:54); adapter sidecar/services/brokers/oanda.py:91-118 (API + accounts endpoints); plugins/brokers/oanda/index.ts; marketplace row src/lib/marketplace.ts:279 with account_id + access_token fields. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-157",
-    "promise": "Crypto (ccxt) execution plugin (global, per-exchange cost): execution wrap over the Phase 1 ccxt data layer, same §6.5 safety layer as every other broker plugin.",
-    "source": "§4 Broker Plugins (L308)",
+    "promise": "Crypto (ccxt) execution plugin (global, per-exchange cost): execution wrap over the Phase 1 ccxt data layer, same \u00a76.5 safety layer as every other broker plugin.",
+    "source": "\u00a74 Broker Plugins (L308)",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "ccxt==4.5.53 pinned (sidecar/requirements.txt:5, shared with the Phase-1 crypto data layer); adapter sidecar/services/brokers/ccxt_exec.py:47 (import ccxt), 445 lines, subclassing services.broker_base.BrokerAdapter so it inherits the §6.5 propose→confirm gate; plugins/brokers/ccxt-exec/index.ts.",
-    "gap": "Execution deferred: the marketplace row is read-only like the rest and no adapter registers at boot (sidecar/services/brokers/registry.py:9-20).",
-    "decision_ref": "COMMON.md out-of-scope: 'live broker order execution'."
+    "status": "dropped",
+    "evidence": "ccxt==4.5.53 pinned (sidecar/requirements.txt:5, shared with the Phase-1 crypto data layer); adapter sidecar/services/brokers/ccxt_exec.py:47 (import ccxt), 445 lines, subclassing services.broker_base.BrokerAdapter so it inherits the \u00a76.5 propose\u2192confirm gate; plugins/brokers/ccxt-exec/index.ts. [session-2 correction: this entire subject (broker connectivity/plugin) is out of the product per D81 \u2014 the read-only shell evidence above is retained for record but the promise as written (order execution / broker plugin capability) is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin."
   },
   {
     "pid": "INT-BP-158",
     "promise": "Infrastructure: GitHub Releases pipeline with Tauri auto-update.",
-    "source": "§4 Infrastructure (L312)",
+    "source": "\u00a74 Infrastructure (L312)",
     "kind": "capability",
     "status": "partial",
     "evidence": "Updater plugin registered in Rust (src-tauri/src/lib.rs:393 tauri_plugin_updater) with endpoint + minisign pubkey configured (src-tauri/tauri.conf.json:47-54); @tauri-apps/plugin-updater 2.10.1 in package.json:28.",
@@ -142,67 +142,67 @@
   {
     "pid": "INT-BP-159",
     "promise": "Infrastructure: code signing pipeline (SignPath integration for Win, ad-hoc for Mac).",
-    "source": "§4 Infrastructure (L313)",
+    "source": "\u00a74 Infrastructure (L313)",
     "kind": "capability",
     "status": "missing",
-    "evidence": "Grep for sign/cert/notar/APPLE/SIGNPATH across .github/workflows/ returns exactly one hit: build.yml:76 'Build Tauri bundle (unsigned)'. src-tauri/tauri.conf.json has no macOS signingIdentity and no windows certificate block (whole file is 55 lines). docs/CURRENT_STATE.md:680-681 confirms: 'bundles built unsigned (no signing/notarization anywhere → Gatekeeper/SmartScreen will trip)'.",
-    "gap": "No SignPath integration, no macOS ad-hoc signing step. The only signing script in the repo is scripts/macos-dev-sign.mjs, which exists solely to stop the keychain ACL re-prompting on `tauri dev` (docs/redesign/KEYCHAIN_DEV_SIGNING.md) — it signs the debug binary, not a release bundle.",
+    "evidence": "Grep for sign/cert/notar/APPLE/SIGNPATH across .github/workflows/ returns exactly one hit: build.yml:76 'Build Tauri bundle (unsigned)'. src-tauri/tauri.conf.json has no macOS signingIdentity and no windows certificate block (whole file is 55 lines). docs/CURRENT_STATE.md:680-681 confirms: 'bundles built unsigned (no signing/notarization anywhere \u2192 Gatekeeper/SmartScreen will trip)'.",
+    "gap": "No SignPath integration, no macOS ad-hoc signing step. The only signing script in the repo is scripts/macos-dev-sign.mjs, which exists solely to stop the keychain ACL re-prompting on `tauri dev` (docs/redesign/KEYCHAIN_DEV_SIGNING.md) \u2014 it signs the debug binary, not a release bundle.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-160",
     "promise": "Infrastructure: CLA gate on PRs so the dual license stays clean.",
-    "source": "§4 Infrastructure (L314)",
+    "source": "\u00a74 Infrastructure (L314)",
     "kind": "guarantee",
     "status": "partial",
     "evidence": "CONTRIBUTING.md:84-99 documents a CLA section and asks contributors to paste an agreement statement into the PR body.",
-    "gap": "No gate. .github/ holds only workflows/ (build, lint, test) — no CLA-assistant action, no PR template, no check that fails when the statement is absent. CONTRIBUTING.md:91 itself says 'The formal CLA process is still being finalized' and :99 calls the statement 'a placeholder acknowledgement, not a waiver of any rights'.",
+    "gap": "No gate. .github/ holds only workflows/ (build, lint, test) \u2014 no CLA-assistant action, no PR template, no check that fails when the statement is absent. CONTRIBUTING.md:91 itself says 'The formal CLA process is still being finalized' and :99 calls the statement 'a placeholder acknowledgement, not a waiver of any rights'.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-161",
     "promise": "Infrastructure: opt-in anonymous telemetry (basic crash + usage; respects privacy posture).",
-    "source": "§4 Infrastructure (L315)",
+    "source": "\u00a74 Infrastructure (L315)",
     "kind": "guarantee",
     "status": "missing",
     "evidence": "No crash/usage telemetry client anywhere: grep for telemetry/analytics/posthog/sentry across src/, sidecar/, src-tauri/src/ returns only the sidecar's internal run-scoped search telemetry (sidecar/config.py:232-251) and UI copy about step traces.",
     "gap": "Not built. Not filed as a finding: the product's stated posture is 'No cloud, no account, no sync, no telemetry' (docs/CURRENT_STATE.md:819, :108) and an absent opt-in crash reporter does not block a local-first BYOK 0.9.0.",
-    "decision_ref": "docs/CURRENT_STATE.md:819 (local-first privacy posture, not a formal amendment — flagged as a soft supersession)."
+    "decision_ref": "docs/CURRENT_STATE.md:819 (local-first privacy posture, not a formal amendment \u2014 flagged as a soft supersession)."
   },
   {
     "pid": "INT-BP-162",
-    "promise": "No role-based presets — users get one sensible default layout on first launch and customize from there.",
-    "source": "§5 (L321)",
+    "promise": "No role-based presets \u2014 users get one sensible default layout on first launch and customize from there.",
+    "source": "\u00a75 (L321)",
     "kind": "guarantee",
     "status": "delivered",
-    "evidence": "src/config/default-layout.ts:32-58 — one DEFAULT_PANELS list, applied by applyDefaultLayout (:66) from src/lib/workspace.ts:494-533 restoreLastSessionOrDefault. No role/persona branch anywhere. (src/lib/layout-templates.ts arrange templates are user- or agent-invoked rearrangements, not first-launch role presets.)",
+    "evidence": "src/config/default-layout.ts:32-58 \u2014 one DEFAULT_PANELS list, applied by applyDefaultLayout (:66) from src/lib/workspace.ts:494-533 restoreLastSessionOrDefault. No role/persona branch anywhere. (src/lib/layout-templates.ts arrange templates are user- or agent-invoked rearrangements, not first-launch role presets.)",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-163",
     "promise": "Default first-launch layout: main chart (default SPY) at 50% of screen.",
-    "source": "§5.1 (L324)",
+    "source": "\u00a75.1 (L324)",
     "kind": "capability",
     "status": "delivered",
     "evidence": "src/modules/chart/ChartPanel.tsx:80 DEFAULT_SYMBOL = \"SPY\"; src/config/default-layout.ts:33 chart is the first panel and :61/:96 sizes the chart group to CHART_WIDTH_FRACTION = 0.6 of the cockpit host width.",
-    "gap": "Fraction is 0.6 of the cockpit rather than 0.5 of the screen — but the AgentDock now owns its own shell column (default-layout.ts:4-8, FR-001), so 60% of the remaining cockpit lands at roughly half the screen. Intent met.",
+    "gap": "Fraction is 0.6 of the cockpit rather than 0.5 of the screen \u2014 but the AgentDock now owns its own shell column (default-layout.ts:4-8, FR-001), so 60% of the remaining cockpit lands at roughly half the screen. Intent met.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-164",
     "promise": "Default first-launch layout: watchlist pre-loaded with SPY, QQQ, BTC, ETH, NVDA, AAPL.",
-    "source": "§5.1 (L325)",
+    "source": "\u00a75.1 (L325)",
     "kind": "capability",
     "status": "delivered",
-    "evidence": "src/store/symbols.ts:20-28 DEFAULT_SYMBOLS = SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL (comment at :11 cites BLUEPRINT §5.1); seeded into the store at :43. Watchlist panel placed by src/config/default-layout.ts:40-45.",
+    "evidence": "src/store/symbols.ts:20-28 DEFAULT_SYMBOLS = SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL (comment at :11 cites BLUEPRINT \u00a75.1); seeded into the store at :43. Watchlist panel placed by src/config/default-layout.ts:40-45.",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-165",
     "promise": "Default first-launch layout: news feed filtered to watchlist tickers.",
-    "source": "§5.1 (L326)",
+    "source": "\u00a75.1 (L326)",
     "kind": "capability",
     "status": "delivered",
     "evidence": "src/modules/news/NewsFeedPanel.tsx:165-170 reads useSymbolsStore entries and projects them via toNewsSymbol; :224 fetchNews(newsSymbols); :251 re-fetches when the watchlist changes. Panel placed by src/config/default-layout.ts:46-51.",
@@ -212,17 +212,17 @@
   {
     "pid": "INT-BP-166",
     "promise": "Default first-launch layout: AI chat sidebar with welcome message + suggested first commands.",
-    "source": "§5.1 (L327)",
+    "source": "\u00a75.1 (L327)",
     "kind": "capability",
     "status": "delivered",
-    "evidence": "src/modules/chat/ChatSidebar.tsx:1200 renders <EmptyState> (defined :1479-1507) — a centred identity block plus <SuggestionChips /> (:1507); src/modules/chat/SuggestionChips.tsx:29 DEFAULT_SUGGESTIONS with symbol-scoped variants at :70-95. The chat is the shell's primary column (AgentDock), not a dockview panel (default-layout.ts:5-7).",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1200 renders <EmptyState> (defined :1479-1507) \u2014 a centred identity block plus <SuggestionChips /> (:1507); src/modules/chat/SuggestionChips.tsx:29 DEFAULT_SUGGESTIONS with symbol-scoped variants at :70-95. The chat is the shell's primary column (AgentDock), not a dockview panel (default-layout.ts:5-7).",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-167",
     "promise": "Default first-launch layout: portfolio panel, empty until user adds positions.",
-    "source": "§5.1 (L328)",
+    "source": "\u00a75.1 (L328)",
     "kind": "capability",
     "status": "delivered",
     "evidence": "src/config/default-layout.ts:52-57 places the portfolio panel below news in the right column on first launch; src/modules/portfolio/ renders from useportfolios store state with no seeded positions.",
@@ -232,7 +232,7 @@
   {
     "pid": "INT-BP-168",
     "promise": "Default first-launch layout: optional Tradesa V2 plugin panel if connected.",
-    "source": "§5.1 (L329)",
+    "source": "\u00a75.1 (L329)",
     "kind": "capability",
     "status": "dropped",
     "evidence": "No Tradesa plugin exists; src/config/default-layout.ts:32-58 has no plugin slot.",
@@ -242,7 +242,7 @@
   {
     "pid": "INT-BP-169",
     "promise": "Customization primitive: drag-drop panel layout (resize, hide, pop-out to second window).",
-    "source": "§5.2 (L332)",
+    "source": "\u00a75.2 (L332)",
     "kind": "capability",
     "status": "partial",
     "evidence": "dockview is the layout engine (src/components/PanelHost.tsx, DockviewReact) giving drag-drop tab reorder, group splits and resize; src-tauri/tauri.conf.json:23 `dragDropEnabled: false` is set specifically so in-webview HTML5 drag works. Panels close (hide) via dockview's own tab close and src/lib/plugin-bootstrap.ts:203-210.",
@@ -252,27 +252,27 @@
   {
     "pid": "INT-BP-170",
     "promise": "Customization primitive: tab groups (multiple panel sets in one window).",
-    "source": "§5.2 (L333)",
+    "source": "\u00a75.2 (L333)",
     "kind": "capability",
     "status": "delivered",
-    "evidence": "dockview groups panels into tabbed groups natively (src/components/PanelHost.tsx mounts DockviewReact); the first-launch layout already creates one — src/config/default-layout.ts:34-39 places Equity Overview `within` the chart group, i.e. as a second tab. Group state round-trips through SerializedWorkspace.layout (src/lib/workspace.ts:45).",
+    "evidence": "dockview groups panels into tabbed groups natively (src/components/PanelHost.tsx mounts DockviewReact); the first-launch layout already creates one \u2014 src/config/default-layout.ts:34-39 places Equity Overview `within` the chart group, i.e. as a second tab. Group state round-trips through SerializedWorkspace.layout (src/lib/workspace.ts:45).",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-171",
     "promise": "Customization primitive: named workspaces (save layout, switch between them).",
-    "source": "§5.2 (L334)",
+    "source": "\u00a75.2 (L334)",
     "kind": "capability",
     "status": "delivered",
-    "evidence": "src/lib/workspace.ts:381 listWorkspaces / :397 saveWorkspace / :417 loadWorkspace / :642 deleteWorkspace over the sidecar store (sidecar/services/workspace_store.py); two UIs — src/modules/platform/WorkspaceDialog.tsx:69/:172/:199 and SettingsPanel 'Layouts' section (src/components/SettingsPanel.tsx:1630, 1597-1680). Agent-drivable too (src/lib/host-actions.ts:1393).",
+    "evidence": "src/lib/workspace.ts:381 listWorkspaces / :397 saveWorkspace / :417 loadWorkspace / :642 deleteWorkspace over the sidecar store (sidecar/services/workspace_store.py); two UIs \u2014 src/modules/platform/WorkspaceDialog.tsx:69/:172/:199 and SettingsPanel 'Layouts' section (src/components/SettingsPanel.tsx:1630, 1597-1680). Agent-drivable too (src/lib/host-actions.ts:1393).",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-172",
     "promise": "Customization primitive: workspace export/import as .vysted-workspace JSON files.",
-    "source": "§5.2 (L335)",
+    "source": "\u00a75.2 (L335)",
     "kind": "capability",
     "status": "partial",
     "evidence": "The on-disk FORMAT exists exactly as promised: sidecar/services/workspace_store.py:1-11 and :26 WORKSPACE_SUFFIX = \".vysted-workspace\", one JSON file per workspace under config.get_workspaces_dir(); the blob shape is src/lib/workspace.ts:45 SerializedWorkspace.",
@@ -281,18 +281,18 @@
   },
   {
     "pid": "INT-BP-173",
-    "promise": "Customization primitive: module enable/disable in settings — disabled modules don't load and don't appear in the command bar.",
-    "source": "§5.2 (L336)",
+    "promise": "Customization primitive: module enable/disable in settings \u2014 disabled modules don't load and don't appear in the command bar.",
+    "source": "\u00a75.2 (L336)",
     "kind": "behaviour",
     "status": "delivered",
-    "evidence": "src/components/SettingsPanel.tsx:1710-1731 ModulesSection renders a toggle per module (hint at :1720 'Disabled modules contribute no panels or ⌘K commands'); src/store/modules.ts:74 setModuleEnabled, :81-84 enabledPanels/enabledCommands/commandHandler all derive from enabledModules(), so the palette and dockview both read the filtered projection.",
+    "evidence": "src/components/SettingsPanel.tsx:1710-1731 ModulesSection renders a toggle per module (hint at :1720 'Disabled modules contribute no panels or \u2318K commands'); src/store/modules.ts:74 setModuleEnabled, :81-84 enabledPanels/enabledCommands/commandHandler all derive from enabledModules(), so the palette and dockview both read the filtered projection.",
     "gap": "",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-174",
     "promise": "Customization primitive: command bar (cmd+K) for discovery without UI clutter.",
-    "source": "§5.2 (L337)",
+    "source": "\u00a75.2 (L337)",
     "kind": "capability",
     "status": "delivered",
     "evidence": "src/components/CommandPalette.tsx:77 binds (metaKey || ctrlKey) + 'k'; scoring/filtering in src/store/command-palette.ts (paletteFilter), symbol + agent + command entries.",
@@ -302,97 +302,97 @@
   {
     "pid": "INT-BP-175",
     "promise": "Customization primitive: module-specific settings (e.g. chart timeframe defaults, color schemes per module).",
-    "source": "§5.2 (L338)",
+    "source": "\u00a75.2 (L338)",
     "kind": "capability",
     "status": "missing",
-    "evidence": "The whole persisted settings bundle is three fields — src/store/settings.ts:59-68: defaultAgentId, region, deepResearchBackend. The Settings panel's sections are AI Providers, Research, Region & locale, Keybindings, Advanced (Integrations / Layouts / Modules / Export-Import / About) — src/components/SettingsPanel.tsx:433, 1229, 1305, 1414, 1537, 1570, 1630, 1719, 1818, 1875. None is module-scoped.",
-    "gap": "No per-module settings surface at all. Chart timeframe/indicator defaults are hardcoded (src/lib/indicator-presets.ts:22-55 presets keyed by asset class, not user preference; ChartPanel.tsx:80 DEFAULT_SYMBOL) — a user who works on 15m charts re-sets the timeframe on every fresh chart.",
+    "evidence": "The whole persisted settings bundle is three fields \u2014 src/store/settings.ts:59-68: defaultAgentId, region, deepResearchBackend. The Settings panel's sections are AI Providers, Research, Region & locale, Keybindings, Advanced (Integrations / Layouts / Modules / Export-Import / About) \u2014 src/components/SettingsPanel.tsx:433, 1229, 1305, 1414, 1537, 1570, 1630, 1719, 1818, 1875. None is module-scoped.",
+    "gap": "No per-module settings surface at all. Chart timeframe/indicator defaults are hardcoded (src/lib/indicator-presets.ts:22-55 presets keyed by asset class, not user preference; ChartPanel.tsx:80 DEFAULT_SYMBOL) \u2014 a user who works on 15m charts re-sets the timeframe on every fresh chart.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-176",
     "promise": "Future (v2.0): community workspace gallery.",
-    "source": "§5.3 (L341)",
+    "source": "\u00a75.3 (L341)",
     "kind": "deferred-item",
     "status": "dropped",
     "evidence": "Not built; no gallery route or UI.",
     "gap": "",
-    "decision_ref": "BLUEPRINT §5.3 (L341) labels it Future (v2.0) — out of scope for 0.9.0 by the source document itself."
+    "decision_ref": "BLUEPRINT \u00a75.3 (L341) labels it Future (v2.0) \u2014 out of scope for 0.9.0 by the source document itself."
   },
   {
     "pid": "INT-BP-177",
     "promise": "Future (v2.0): import workspace from a GitHub gist URL.",
-    "source": "§5.3 (L342)",
+    "source": "\u00a75.3 (L342)",
     "kind": "deferred-item",
     "status": "dropped",
     "evidence": "Not built.",
     "gap": "",
-    "decision_ref": "BLUEPRINT §5.3 (L342) labels it Future (v2.0)."
+    "decision_ref": "BLUEPRINT \u00a75.3 (L342) labels it Future (v2.0)."
   },
   {
     "pid": "INT-BP-178",
     "promise": "Future (v2.0): share workspace via QR code / link.",
-    "source": "§5.3 (L343)",
+    "source": "\u00a75.3 (L343)",
     "kind": "deferred-item",
     "status": "dropped",
     "evidence": "Not built.",
     "gap": "",
-    "decision_ref": "BLUEPRINT §5.3 (L343) labels it Future (v2.0)."
+    "decision_ref": "BLUEPRINT \u00a75.3 (L343) labels it Future (v2.0)."
   },
   {
     "pid": "INT-BP-179",
     "promise": "License is AGPL-3.0 (default) + Commercial Dual License (paid).",
-    "source": "§6.1 (L351)",
+    "source": "\u00a76.1 (L351)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "LICENSE:1-2 'GNU AFFERO GENERAL PUBLIC LICENSE Version 3'; COMMERCIAL_LICENSE.md present (66 lines) with the paid tier; README.md:172-173 states both halves.",
+    "status": "dropped",
+    "evidence": "STALE as of D83 (23 Sep, same session): core license is now PolyForm Strict 1.0.0 (LICENSE:1 'PolyForm Strict License 1.0.0'), not AGPL-3.0. COMMERCIAL_LICENSE.md still present as the paid path; README.md:173-174 states the new PolyForm-Strict-plus-commercial split. Prior evidence (AGPL-3.0 text) was correct for pre-0c63d46 HEAD.",
     "gap": "",
-    "decision_ref": ""
+    "decision_ref": "docs/redesign/DECISIONS.md:143 (D83 \u2014 core relicensed AGPL-3.0 -> PolyForm Strict 1.0.0 in commit 0c63d46, operator Tier-4 sign-off 23 Sep 2026, reversing BLUEPRINT \u00a72's locked AGPL-3.0 choice). Every commit before 0c63d46 remains AGPL-3.0 (LICENSING.md); current HEAD is PolyForm Strict."
   },
   {
     "pid": "INT-BP-180",
     "promise": "LICENSE file in repo contains the full AGPL-3.0 text.",
-    "source": "§6.1 (L353)",
+    "source": "\u00a76.1 (L353)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "LICENSE is 661 lines, opening at :1-12 with the canonical AGPLv3 header + preamble — the unmodified upstream text.",
+    "status": "dropped",
+    "evidence": "STALE as of D83: LICENSE now opens '# PolyForm Strict License 1.0.0' (LICENSE:1), not the AGPLv3 header. The promise (AGPL-3.0 full text in LICENSE) is superseded, not missing.",
     "gap": "",
-    "decision_ref": ""
+    "decision_ref": "docs/redesign/DECISIONS.md:143 (D83 \u2014 core relicensed AGPL-3.0 -> PolyForm Strict 1.0.0 in commit 0c63d46, operator Tier-4 sign-off 23 Sep 2026, reversing BLUEPRINT \u00a72's locked AGPL-3.0 choice). Every commit before 0c63d46 remains AGPL-3.0 (LICENSING.md); current HEAD is PolyForm Strict."
   },
   {
     "pid": "INT-BP-181",
     "promise": "COMMERCIAL_LICENSE.md contains commercial terms + pricing + contact.",
-    "source": "§6.1 (L354)",
+    "source": "\u00a76.1 (L354)",
     "kind": "capability",
     "status": "partial",
-    "evidence": "COMMERCIAL_LICENSE.md exists with a pricing-tier table (:46-48) and a Contact section (:57-59).",
-    "gap": "Every commercial-facing value is a placeholder: :3 'STATUS: DRAFT. Commercial terms and pricing below are placeholders'; :46 'Pricing tiers (DRAFT — TBD, finalized at v1.0 launch)'; :59 contact is 'commercial@vysted.com (placeholder address'. A commercial user who reads the AGPL notice and wants to buy a license has no price and no address that resolves.",
+    "evidence": "COMMERCIAL_LICENSE.md rewritten under D83 (still exists) with a pricing-tier table (:50-59) and a Contact section (:61-63); licensing-paths section (:7-14) now describes PolyForm Strict + commercial, live-order clause removed per D81.",
+    "gap": "Every commercial-facing value is still a placeholder: :3 'STATUS: DRAFT. Commercial terms and pricing below are placeholders'; :50 'Pricing tiers (DRAFT \u2014 TBD, finalized at v1.0 launch)'; :63 contact is 'commercial@vysted.com (placeholder address'. A commercial user who reads the PolyForm Strict notice and wants to buy a license still has no price and no address that resolves. [session-2: re-verified against the post-D83 file; same underlying gap, different license text around it.]",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-182",
     "promise": "README.md states explicitly: 'Free for personal, academic, and open-source use under AGPL-3.0. Commercial use requires a paid license.'",
-    "source": "§6.1 (L355)",
+    "source": "\u00a76.1 (L355)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "README.md:172-173 — 'Free for personal, academic, and open-source use under [AGPL-3.0](./LICENSE). Commercial use requires a paid license — see [`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md).'",
+    "status": "dropped",
+    "evidence": "STALE as of D83: that exact AGPL-3.0 sentence no longer appears in README.md (grep for 'Free for personal' / 'AGPL' returns only README.md:176, a historical note that pre-0c63d46 commits remain AGPL-3.0). Current README:172-177 states the PolyForm Strict + commercial-license split instead.",
     "gap": "",
-    "decision_ref": ""
+    "decision_ref": "docs/redesign/DECISIONS.md:143 (D83 \u2014 core relicensed AGPL-3.0 -> PolyForm Strict 1.0.0 in commit 0c63d46, operator Tier-4 sign-off 23 Sep 2026, reversing BLUEPRINT \u00a72's locked AGPL-3.0 choice). Every commit before 0c63d46 remains AGPL-3.0 (LICENSING.md); current HEAD is PolyForm Strict."
   },
   {
     "pid": "INT-BP-183",
     "promise": "CLA is required on all contributions so the owner retains the right to dual-license contributed code.",
-    "source": "§6.1 (L356)",
+    "source": "\u00a76.1 (L356)",
     "kind": "guarantee",
     "status": "partial",
-    "evidence": "CONTRIBUTING.md:84-97 asks every contributor to paste a CLA-agreement statement in the PR body.",
-    "gap": "'Required' is unenforced and, by the document's own words, not yet legally effective: CONTRIBUTING.md:91 'The formal CLA process is still being finalized and will be in place before v1.0'; :99 'This statement is a placeholder acknowledgement, not a waiver of any rights.' No CI gate exists (.github/workflows/ = build, lint, test only). Same defect as INT-BP-160.",
+    "evidence": "CONTRIBUTING.md:92-97 (line numbers shifted by the D83/Stage-C rewrite) still documents a CLA section asking contributors to paste an agreement statement into the PR body when contributions reopen.",
+    "gap": "'Required' is still unenforced and not yet legally effective: CONTRIBUTING.md:3 now states 'Contributions are closed for now' entirely, and :95 'The formal CLA process is still being finalized' (unchanged claim, new location). No CI gate exists (.github/workflows/ = build, lint, test only \u2014 confirmed unchanged at current HEAD). Same defect as INT-BP-160; moot in practice while contributions stay closed, but the promise as written (a CLA gate) is still not built. [session-2: re-verified against the post-D83 CONTRIBUTING.md rewrite; same underlying gap.]",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-184",
     "promise": "GitHub Actions builds Tauri bundles for Linux as .AppImage + .deb (unsigned, fine).",
-    "source": "§6.2 (L370)",
+    "source": "\u00a76.2 (L370)",
     "kind": "capability",
     "status": "delivered",
     "evidence": ".github/workflows/build.yml:13 matrix includes ubuntu-latest, :18-32 installs the webkit2gtk/appindicator deps, :77 `pnpm tauri build`; src-tauri/tauri.conf.json:32 targets include \"deb\" and \"appimage\". Unsigned is the promised state (build.yml:76).",
@@ -402,57 +402,57 @@
   {
     "pid": "INT-BP-185",
     "promise": "GitHub Actions builds Tauri bundles for macOS as an ad-hoc signed .dmg (first-launch bypass at $0 launch).",
-    "source": "§6.2 (L371)",
+    "source": "\u00a76.2 (L371)",
     "kind": "capability",
     "status": "partial",
     "evidence": ".github/workflows/build.yml:13 includes macos-latest and :54-61 fixes the runner's cargo layout; src-tauri/tauri.conf.json:32 targets include \"dmg\" and \"app\", so a .dmg IS produced.",
-    "gap": "The 'ad-hoc signed' half is absent — build.yml:76 is literally 'Build Tauri bundle (unsigned)' and tauri.conf.json carries no macOS signingIdentity. An unsigned .dmg does not get the documented first-launch bypass; it gets a Gatekeeper 'damaged / cannot be opened' dialog (docs/CURRENT_STATE.md:680-681).",
+    "gap": "The 'ad-hoc signed' half is absent \u2014 build.yml:76 is literally 'Build Tauri bundle (unsigned)' and tauri.conf.json carries no macOS signingIdentity. An unsigned .dmg does not get the documented first-launch bypass; it gets a Gatekeeper 'damaged / cannot be opened' dialog (docs/CURRENT_STATE.md:680-681).",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-186",
     "promise": "GitHub Actions builds Tauri bundles for Windows as a .msi signed by SignPath.io (free OSS tier).",
-    "source": "§6.2 (L372)",
+    "source": "\u00a76.2 (L372)",
     "kind": "capability",
     "status": "partial",
     "evidence": ".github/workflows/build.yml:13 includes windows-latest; a Windows installer is produced.",
-    "gap": "Two drifts. (a) Format: src-tauri/tauri.conf.json:32 targets are [deb, appimage, nsis, app, dmg] — `nsis` (a .exe setup), no `msi` bundler at all. (b) Signing: no SignPath step or secret anywhere in .github/workflows/ (build.yml:76 'unsigned'), so SmartScreen will flag every download.",
+    "gap": "Two drifts. (a) Format: src-tauri/tauri.conf.json:32 targets are [deb, appimage, nsis, app, dmg] \u2014 `nsis` (a .exe setup), no `msi` bundler at all. (b) Signing: no SignPath step or secret anywhere in .github/workflows/ (build.yml:76 'unsigned'), so SmartScreen will flag every download.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-187",
     "promise": "Built bundles are attached to the GitHub Release.",
-    "source": "§6.2 (L374)",
+    "source": "\u00a76.2 (L374)",
     "kind": "behaviour",
     "status": "missing",
-    "evidence": ".github/workflows/ contains build.yml, lint.yml, test.yml only. build.yml:3-6 triggers on push-to-main and pull_request — no `tags:` filter, no `release:` event, no softprops/action-gh-release or `gh release` step. :79-84 uploads to actions/upload-artifact@v4, which expires and is not a release asset.",
-    "gap": "There is no path from a git tag to a downloadable bundle. Corroborated by docs/CURRENT_STATE.md:682-683 ('no release/publish workflow exists — CI only runs on push/PR + uploads ephemeral artifacts').",
+    "evidence": ".github/workflows/ contains build.yml, lint.yml, test.yml only. build.yml:3-6 triggers on push-to-main and pull_request \u2014 no `tags:` filter, no `release:` event, no softprops/action-gh-release or `gh release` step. :79-84 uploads to actions/upload-artifact@v4, which expires and is not a release asset.",
+    "gap": "There is no path from a git tag to a downloadable bundle. Corroborated by docs/CURRENT_STATE.md:682-683 ('no release/publish workflow exists \u2014 CI only runs on push/PR + uploads ephemeral artifacts').",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-188",
     "promise": "The Tauri auto-updater pulls updates on existing installs.",
-    "source": "§6.2 (L376)",
+    "source": "\u00a76.2 (L376)",
     "kind": "capability",
     "status": "partial",
     "evidence": "Plugin registered at src-tauri/src/lib.rs:393 (tauri_plugin_updater::Builder); endpoint + minisign pubkey at src-tauri/tauri.conf.json:47-53; JS binding @tauri-apps/plugin-updater 2.10.1 declared in package.json:28.",
-    "gap": "Dead end-to-end, on both sides. Producer: src-tauri/tauri.conf.json:45 `createUpdaterArtifacts: false`, and no release workflow, so the configured https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json never exists. Consumer: zero callers — grep for `@tauri-apps/plugin-updater`, `.check()` or `downloadAndInstall` across src/ returns only the package.json dependency line. docs/CURRENT_STATE.md:232-235 says the same.",
+    "gap": "Dead end-to-end, on both sides. Producer: src-tauri/tauri.conf.json:45 `createUpdaterArtifacts: false`, and no release workflow, so the configured https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json never exists. Consumer: zero callers \u2014 grep for `@tauri-apps/plugin-updater`, `.check()` or `downloadAndInstall` across src/ returns only the package.json dependency line. docs/CURRENT_STATE.md:232-235 says the same.",
     "decision_ref": ""
   },
   {
     "pid": "INT-BP-189",
     "promise": "terminal.vysted.com/download serves 'Download for [your OS]' via the GitHub Releases API.",
-    "source": "§6.2 (L378)",
+    "source": "\u00a76.2 (L378)",
     "kind": "capability",
     "status": "missing",
     "evidence": "No landing-page source in this repo; README.md:86 'Download & install (macOS, Apple Silicon)' documents a manual path with no vysted.com link.",
     "gap": "Not built. Not filed as a finding: the landing page is explicitly a separate private repo (docs/archive/PHASE_7_HANDOFF.md:152), so it is out of this repository's census scope; the GitHub Release (INT-BP-187) is the blocking channel.",
-    "decision_ref": "docs/archive/PHASE_7_HANDOFF.md:152 — landing page lives in a separate private repo."
+    "decision_ref": "docs/archive/PHASE_7_HANDOFF.md:152 \u2014 landing page lives in a separate private repo."
   },
   {
     "pid": "INT-BP-190",
     "promise": "Homebrew cask is updated separately (PR to homebrew-cask).",
-    "source": "§6.2 (L380)",
+    "source": "\u00a76.2 (L380)",
     "kind": "capability",
     "status": "missing",
     "evidence": "No cask file, no cask workflow; the only repo mentions are carry-forward Phase-10 to-dos (docs/archive/PHASE_6.5_HANDOFF.md:280, PHASE_7_HANDOFF.md:151, PHASE_8_HANDOFF.md:203).",
@@ -462,21 +462,21 @@
   {
     "pid": "INT-BP-191",
     "promise": "When revenue/business interest arrives: $99/year Apple Developer Program funds fully notarized macOS builds with zero install friction.",
-    "source": "§6.2 (L386)",
+    "source": "\u00a76.2 (L386)",
     "kind": "deferred-item",
     "status": "dropped",
     "evidence": "No Apple Developer ID / notarization config (src-tauri/tauri.conf.json has no macOS signing block).",
     "gap": "",
-    "decision_ref": "BLUEPRINT §6.2 (L386) conditions it on revenue arriving — out of scope for 0.9.0 by the source document itself."
+    "decision_ref": "BLUEPRINT \u00a76.2 (L386) conditions it on revenue arriving \u2014 out of scope for 0.9.0 by the source document itself."
   },
   {
     "pid": "INT-BP-192",
     "promise": "Eventually: Microsoft Store / Mac App Store submissions.",
-    "source": "§6.2 (L387)",
+    "source": "\u00a76.2 (L387)",
     "kind": "deferred-item",
     "status": "dropped",
     "evidence": "No store packaging targets (src-tauri/tauri.conf.json:32 targets = deb, appimage, nsis, app, dmg).",
     "gap": "",
-    "decision_ref": "BLUEPRINT §6.2 (L387) labels it 'Eventually'."
+    "decision_ref": "BLUEPRINT \u00a76.2 (L387) labels it 'Eventually'."
   }
 ]

@@ -1,0 +1,139 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/10-normal-kpit.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the FAST research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [],
+  "brief": {
+   "symbol": "KPITTECH",
+   "depth": "quick",
+   "mode": "FAST",
+   "backend": "keyless-fallback",
+   "webAvailable": true,
+   "sourceCount": 6,
+   "sourcesStored": 6,
+   "sourcesRendered": 6,
+   "markdownLen": 0,
+   "markersInBody": [],
+   "maxMarker": 0,
+   "markersAfterSanitize": 0,
+   "execution": {
+    "runId": "9a44ce1ba1824fea81f6cab41f81706b",
+    "requestedDepth": "normal",
+    "loop": "fast",
+    "backend": null,
+    "startedAt": 1790128267.701602,
+    "finishedAt": 1790128296.3174899,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "KPITTECH",
+    "provider": "nse_direct",
+    "price": 529.05,
+    "change": -7.75,
+    "changePercent": -1.4437406855439645,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-58.83% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "-57.67% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "1.42% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "INR 7.50 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+8.90% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "-31.80% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "38.60% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "36.83% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "INR 144.02B"
+     },
+     {
+      "label": "P/E",
+      "value": "24.88"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "16.72"
+     },
+     {
+      "label": "Price/Book",
+      "value": "4.07"
+     },
+     {
+      "label": "EPS",
+      "value": "21.26"
+     },
+     {
+      "label": "Beta",
+      "value": "-0.01"
+     },
+     {
+      "label": "Net margin",
+      "value": "8.84%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.24"
+     },
+     {
+      "label": "Revenue",
+      "value": "INR 65.91B"
+     },
+     {
+      "label": "52w range",
+      "value": "524–1,285"
+     },
+     {
+      "label": "Volume",
+      "value": "1.58M"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on held percent insiders: 45.283 (yfinance (heldPercentInsiders)) vs 38.6 (NSE shareholding filing) — The provider's heldPercentInsiders (45.28%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 38.60% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "renderedText": " Copy markdownFASTKPITTECH6 sources FASTweb + structured dataEOD as of 2026-09-23KPIT TechnologiesLimited keyless search — set up Unlimited local research for full capability.KPITTECHINR 529.05-7.75 (-1.44%)nse_directBelow 52-week high-58.83% · vs 52w high52-week price change (Yahoo)-57.67% · trailing 52 weeksDividend yield1.42% · fraction of priceDividend per shareINR 7.50 · per share, INRRevenue growth+8.90% · quarterly YoY (MRQ)Earnings growth-31.80% · quarterly YoY (MRQ)Promoter group (exchange filing)38.60% · NSE shareholding filing, 2026-06-30Institutional holding (exchange filing)36.83% · NSE shareholding filing, 2026-06-30Market capINR 144.02BP/E24.88Fwd P/E16.72Price/Book4.07EPS21.26Beta-0.01Net margin8.84%Debt/Equity0.24RevenueINR 65.91B52w range524–1,285Volume1.58MCONFLICTSources disagree on held percent insiders: 45.283 (yfinance (heldPercentInsiders)) vs 38.6 (NSE shareholding filing) — The provider's heldPercentInsiders (45.28%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 38.60% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.Sources(6)"
+ }
+}

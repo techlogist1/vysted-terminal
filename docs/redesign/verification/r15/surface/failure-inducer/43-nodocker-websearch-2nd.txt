@@ -1,0 +1,14 @@
+[  43.1s] tool_use: {"kind": "tool_use", "tool_call_id": "", "name": "web_search", "input": {"query": "Dixon Technologies", "category": "financial", "num_results": 10}}
+[ 183.3s] done: {"kind": "done", "usage": {"input_tokens": 2703, "output_tokens": 141, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}
+
+=== ASSISTANT TEXT ===
+Based on the tool call response, it appears that there was a timeout error while trying to fetch news about Dixon Technologies. This could be due to various reasons such as network issues, provider errors, or an unusually high demand for information.
+
+However, I can suggest trying again with a narrower query or at a lighter depth to see if we can retrieve some relevant results. Alternatively, you may want to try fetching news from other providers or using different tools to gather more information.
+
+In the meantime, let me provide you with any previously fetched news about Dixon Technologies that might be available in our terminal's knowledge database. 
+
+Would you like to retry the web search with a narrower query or at a lighter depth?
+
+=== ok · 183.3s · events {'tool_use': 1, 'delta': 140, 'done': 1} · usage in=2703 out=141 · est $0.00000 · llama3.1:8b
+exit=0

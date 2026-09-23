@@ -1,0 +1,83 @@
+[
+  {
+    "raw_id": "INT-deferred-84-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: a BSE AttachLive PDF gets exactly one fetch attempt with no retry or backoff. A transient BSE failure comes back as `{ok:false, error:'fetch failed'/'HTTP n'}`, which looks the same as a genuine miss. Corrected locus: the fetch is not in corporate_disclosures.py, which only builds the URL (:84, :175). It is extract.py `_default_pdf_fetch`, where bseindia.com hosts go straight to `_impersonated()`, a single curl_cffi GET, and `_fetch_pdf_page` does not retry. Note that D31 says SAKSOFT's results TABLES are raster scans, so retry only helps the transient-serving part of this item, not the scanned-table part.",
+    "evidence": "sidecar/services/search/extract.py:98-100, sidecar/services/search/extract.py:264-321, sidecar/services/search/extract.py:540-555, sidecar/services/corporate_disclosures.py:84, sidecar/services/corporate_disclosures.py:175, docs/redesign/DECISIONS.md:65 (D31), docs/redesign/verification/R9_RUN_REPORT.md:99-103",
+    "evidence_checked": "Code-only. Opened the PDF fetch lane and its callers and grepped corporate_disclosures.py for retry/backoff (none). By contrast, ddg.py:57-61 has a bounded retry. Did not re-induce BSE intermittency live.",
+    "repro_check": "grep -n 'retry\\|backoff\\|attempt' sidecar/services/corporate_disclosures.py -> none. In extract.py, `_needs_impersonated_pdf_lane(url)` makes one `_impersonated()` call, and a raised TransportError returns straight up through `_fetch_pdf_page` as ok:false."
+  },
+  {
+    "raw_id": "INT-deferred-84-2",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "No defect is claimed or shown. The finding's own repro says 'visual correctness unverified', and the R9 source (item 7) filed it as a taste-sweep advisory. COMMON.md limits UI findings to FUNCTIONAL defects, never visual taste. Functionally the menu is a bounded scroll container (`max-h-[min(20rem,50vh)]` + `overflow-y-auto`, py-1 inside the scroller), so every item stays reachable. Any bottom-inset look is taste, and an open verification item is not a defect.",
+    "evidence": "src/modules/chat/ComposerPlusMenu.tsx:207-214, docs/redesign/verification/R9_RUN_REPORT.md:111-115",
+    "evidence_checked": "Opened the menu container code and the R9 source item. The GUI lane is unavailable, but no functional claim needs it.",
+    "repro_check": "sed -n 207,214p src/modules/chat/ComposerPlusMenu.tsx -> role=menu div with overflow-y-auto + max-h cap. Content is scrollable, so there is no clipping or unreachable-item defect."
+  },
+  {
+    "raw_id": "INT-deferred-84-3",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "Out of scope by decision. Whether the depth chip reads 'one notch louder than Claude's' is a pure visual-taste judgment on the R9 design system's depth-heat tokens. COMMON.md excludes both visual taste and reopening the R9 design system. The tokens are deliberate, documented values (near-white, peach, ember) with no functional failure such as unreadable text.",
+    "evidence": "styles/tokens.css:84-91, docs/redesign/verification/R9_RUN_REPORT.md:111-112",
+    "evidence_checked": "Opened the depth-heat token block and the R9 advisory source.",
+    "repro_check": "sed -n 84,91p styles/tokens.css -> --color-depth-normal/deep/ultra defined with an R9 design rationale. The finding claims no functional defect."
+  },
+  {
+    "raw_id": "INT-deferred-84-4",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. The model-selector button renders only the label (or a Cpu icon at icon density) plus optional warning glyphs, and no chevron. Only lucide `Cpu` and `RefreshCw` are imported. The only open-affordance cues are cursor-pointer, a hover colour change and a title tooltip. This is a discoverability affordance on a core control, so low.",
+    "evidence": "src/modules/chat/ModelControl.tsx:4, src/modules/chat/ModelControl.tsx:155-188",
+    "evidence_checked": "Opened the ModelControl button render and imports at HEAD f763a44.",
+    "repro_check": "grep -n 'Chevron' src/modules/chat/ModelControl.tsx -> no match. The button children are the text/Cpu icon, ⚠ and 'no key' only."
+  },
+  {
+    "raw_id": "INT-deferred-84-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism is real, but the subject and scope are wrong. No 'search-tier plugin' exists: the Exa/R7-R8 search lanes are dead (search-headers.ts:27-30) and the marketplace catalog has no search entry. The actual gap is that `remove()` on ANY credentialed non-broker plugin (e.g. vysted-news `plugin-secret:vysted-news:newsapi_key`) never calls deleteSecret. runtime.removePlugin only patches config and unloads, and disconnectBroker is broker-only and does not touch the keychain. Leaving the secret on `disable()` is correct: disable is reversible and the plugin stays installed. The legacy `plugin-secret:vysted-search-exa` orphan also has no migration that cleans it. The secret stays in the user's own OS keychain and is never exposed, so low.",
+    "evidence": "src/store/marketplace.ts:25-45, src/store/marketplace.ts:176-208, src/lib/plugin-runtime.ts:343-353, src/lib/marketplace.ts:135-160, src/lib/search-headers.ts:27-30, src/lib/keychain.ts:34",
+    "evidence_checked": "Opened the marketplace store disable/remove/configure, plugin-runtime removePlugin, the catalog entries, the keychain namespaces and the search-headers dead-lane note.",
+    "repro_check": "Read the remove() path: runtime.removePlugin -> patchConfig({installed:false}) + unloadPlugin. There is no deleteSecret/keychainDelete call, while configure() does call deleteSecret for emptied optional fields (marketplace.ts:227). So the removed plugin's secret survives."
+  },
+  {
+    "raw_id": "INT-deferred-84-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Partly true, but the headline overstates it. The static store default is 'ollama', yet a clean install opens OnboardingFlow. Its Cloud step validates and stores an OpenRouter key AND sets defaultProviderId='openrouter' plus the model, so the guided path does work out of the box. On a true clean install no funded key exists (BYOK), so the keyless local default is the local-first choice. What remains real: skipping onboarding, or adding the key later through Settings or `/key`, leaves the default on ollama. Only Settings 'Set default' and `/provider` flip it, so the user must switch lanes by hand after adding a key. That is a medium onboarding snag, not a high broken core flow.",
+    "evidence": "src/store/llm-providers.ts:133-136, src/components/OnboardingFlow.tsx:103-150, src/components/OnboardingFlow.tsx:337-360, src/components/OnboardingFlow.tsx:483-487, src/modules/chat/ChatSidebar.tsx:508-516, src/modules/chat/ChatSidebar.tsx:713-732, src/components/SettingsPanel.tsx:486-492, src/lib/workspace.ts:278-280",
+    "evidence_checked": "Opened the store default, every setDefaultProviderId caller (grep), the onboarding gate plus Cloud/Local steps, and the chat provider resolution. Code-only (the GUI lane is unavailable to confirm the onboarding dialog renders on a truly fresh profile).",
+    "repro_check": "grep -rn setDefaultProviderId src -> OnboardingFlow.tsx:356 sets 'openrouter' after a validated key. The key-set path (ChatSidebar.tsx:724-732) only opens the key dialog and never changes the default."
+  },
+  {
+    "raw_id": "INT-deferred-84-7",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Holds. The shipped OpenRouter default is still `deepseek/deepseek-v4-flash` in onboarding, the provider store and model selection. R11's live evidence shows this exact model returning finish_reason=content_filter with ZERO tool calls on the portfolio host-action ask (and on a research ask), while glm-5.1 and kimi-k2.6 on the same key call `portfolio_add_position` correctly. The app only humanizes the refusal (agent_runtime.py:1480-1496) and never moved the default. The core agent-write flow fails on the default lane, so high.",
+    "evidence": "src/components/OnboardingFlow.tsx:61, src/store/llm-providers.ts:100, src/store/model-selection.ts:34, sidecar/services/agent_runtime.py:1480-1496, docs/redesign/verification/R11_RUN_REPORT.md:141, docs/redesign/verification/R11_RUN_REPORT.md:153, docs/redesign/verification/r11/v2-redrive/",
+    "evidence_checked": "Opened the default-model constants and the content_filter handler, and read the R11 V2 disposition plus its capture directory. NOT re-driven live: DeepSeek V4 Flash via OpenRouter is a paid slug outside this addendum's lanes (local / free OpenRouter / OpenAI-direct). A re-drive would cost about $0.001 per invoke.",
+    "repro_check": "Would run: python3 scripts/r15/vy.py invoke copilot 'add 10 shares of INFY at 1500 to my portfolio' --provider openrouter --model deepseek/deepseek-v4-flash --port 52152 --tag refute-df84-7, then check finish_reason and tool_calls. NOT TESTED (paid lane, ~$0.001)."
+  },
+  {
+    "raw_id": "INT-deferred-84-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Worse than stated. The finding says the full total is 'visible as a separate cross-check fact + conflict flag', but that D56 leg runs ONLY in research semantics. The /fundamentals route leaves dividend_per_share_ttm as None (a _DERIVED_FIELDS entry, computed downstream only). The Equity Overview panel renders 'Dividend / share' from the bare Yahoo dividendRate with field_meta status 'ok' and no conflict, so the primary data surface shows the understated figure as true. The screener example is wrong: the screener carries dividend_yield only, not dividend_per_share. This is money-relevant data under-reported without disclosure on a core panel, but only in special-dividend years, so high rather than critical.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-179, sidecar/services/yfinance_provider.py:374, sidecar/services/research/semantics.py:292-336, sidecar/routers/fundamentals.py:88-110, src/modules/equity-overview/EquityOverviewPanel.tsx:129-133, sidecar/services/screener.py:388, sidecar/services/dividend_history.py:1-8",
+    "evidence_checked": "Opened the provider mapping, the derived-field exclusion, the research-only TTM leg, the fundamentals route and the overview panel field map. Ran a live GET against the isolated stack :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/ABBOTINDIA.NS -> dividend_per_share=525.0, dividend_per_share_ttm=None, field_meta.dividend_per_share.status='ok' (D56's true FY total is 656 = 525 final + 131 special). No conflict on the route."
+  },
+  {
+    "raw_id": "INT-deferred-84-9",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. growth_check fetches `yf.Ticker(symbol).quarterly_income_stmt` and compares it against yfinance's own revenueGrowth/earningsGrowth scalars. It catches scalar-vs-statement inconsistency (the real ICICIBANK/SBIN errors), but a systematic error in yfinance's statements themselves passes silently. D66 discloses 'within-provider check only', and no later decision adds an exchange-filed source. Medium: this is a trust gap in a flagship data-trust check, not wrong data shown.",
+    "evidence": "sidecar/services/growth_check.py:1-20, sidecar/services/growth_check.py:178-194, docs/redesign/DECISIONS.md:116 (D66)",
+    "evidence_checked": "Opened growth_check.py (module doc and fetch seam) and the D66 entry. Code-only.",
+    "repro_check": "grep -n 'yf\\.' sidecar/services/growth_check.py -> the only data source is yf.Ticker(...).quarterly_income_stmt (:180). There is no NSE/BSE XBRL or other independent leg."
+  }
+]

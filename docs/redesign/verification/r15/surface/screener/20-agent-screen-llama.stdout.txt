@@ -1,0 +1,12 @@
+[  85.5s] tool_use write_screener_filters {"criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"roe\",\"operator\":\"gt\",\"value\":{\"min\":15,\"max\":15}}, {\"field\":\"debt_to_equity\",\"operator\":\"lt\",\"value\":0.5}]", "universe": "nse-all"}
+
+=== TEXT ===
+To run the screener, I'll use the tool call response to format an answer to your original question:
+
+"Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it."
+
+I have dispatched the filters for your review in the panel. Please accept or modify them before running the screen.
+
+You can check the status of the action by calling `get_terminal_state`. If you'd like to adjust the filters or add more criteria, feel free to let me know!
+
+=== ok 99.1s kinds={'tool_use': 1, 'delta': 118, 'done': 1} usage={'input_tokens': 2847, 'output_tokens': 119, 'cache_read_input_tokens': None, 'cache_creation_input_tokens': None}

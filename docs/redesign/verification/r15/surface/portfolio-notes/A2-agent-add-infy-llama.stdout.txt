@@ -1,0 +1,7 @@
+[  50.0s] tool_use: {"kind": "tool_use", "tool_call_id": "", "name": "portfolio_add_position", "input": {"asset_class": "equity", "symbol": "INFY.NS", "quantity": 10, "cost_basis": 1500}}
+[  53.9s] done: {"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 35, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop"}
+
+=== ASSISTANT TEXT ===
+Your proposal to add 10 shares of INFY.NS at ₹1,500 is awaiting your review in the proposal bar. Confirm it yourself before it's executed.
+
+=== ok · 53.9s · events {'tool_use': 1, 'delta': 34, 'done': 1} · usage in=2738 out=35 · est $0.00000 · llama3.1:8b

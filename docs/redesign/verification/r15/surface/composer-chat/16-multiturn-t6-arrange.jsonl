@@ -1,0 +1,46 @@
+{"_meta": {"t0": 1790130527.088732, "status": 200, "request": {"prompt": "Arrange my workspace to compare Cochin Shipyard and Bharat Dynamics side by side", "context_snapshot": {"focused_source": "chart-1", "by_source": {"__terminal__": {"focusedPanel": "chart-1", "capturedAt": 0, "charts": [{"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}], "focusedChart": {"panelId": "chart-1", "symbol": "COCHINSHIP", "timeframe": "1d", "indicators": ["SMA20"]}, "watchlist": {"symbols": ["KPITTECH", "BDL", "CAMS"], "selected": "KPITTECH"}, "portfolio": {"positionCount": 1, "totalValue": null, "activePortfolioName": "Main", "holdings": [{"id": "h1", "symbol": "BDL", "quantity": 10, "costBasis": 1450, "assetClass": "equity", "marketValue": null, "pnl": null}]}, "openPanels": ["chart", "watchlist", "brief"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}}, "captured_at": 1790130527088}, "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "auto", "options": {"history": "<10 turns>", "deepResearchBackend": "auto", "research_depth": "normal"}}}}
+{"kind": "tool_use", "tool_call_id": "", "name": "arrange_layout", "input": {"pattern": "compare", "symbols": ["COCHINSHIP", "BDL"], "symbol": ""}, "_t": 69.47}
+{"_ack_skipped": "empty tool_call_id (host-actions.ts ackHostAction returns early)", "_t": 69.47}
+{"kind": "delta", "text": "Your", "_t": 144.39}
+{"kind": "delta", "text": " workspace", "_t": 144.44}
+{"kind": "delta", "text": " is", "_t": 144.49}
+{"kind": "delta", "text": " now", "_t": 144.54}
+{"kind": "delta", "text": " arranged", "_t": 144.6}
+{"kind": "delta", "text": " to", "_t": 144.65}
+{"kind": "delta", "text": " compare", "_t": 144.71}
+{"kind": "delta", "text": " Co", "_t": 144.76}
+{"kind": "delta", "text": "chin", "_t": 144.81}
+{"kind": "delta", "text": " Ship", "_t": 144.87}
+{"kind": "delta", "text": "yard", "_t": 144.92}
+{"kind": "delta", "text": " and", "_t": 144.97}
+{"kind": "delta", "text": " Bhar", "_t": 145.03}
+{"kind": "delta", "text": "at", "_t": 145.08}
+{"kind": "delta", "text": " Dynamics", "_t": 145.14}
+{"kind": "delta", "text": " side", "_t": 145.19}
+{"kind": "delta", "text": " by", "_t": 145.25}
+{"kind": "delta", "text": " side", "_t": 145.3}
+{"kind": "delta", "text": ".", "_t": 145.36}
+{"kind": "delta", "text": " Please", "_t": 145.41}
+{"kind": "delta", "text": " note", "_t": 145.47}
+{"kind": "delta", "text": " that", "_t": 145.52}
+{"kind": "delta", "text": " this", "_t": 145.58}
+{"kind": "delta", "text": " arrangement", "_t": 145.63}
+{"kind": "delta", "text": " is", "_t": 145.68}
+{"kind": "delta", "text": " pending", "_t": 145.74}
+{"kind": "delta", "text": " confirmation", "_t": 145.79}
+{"kind": "delta", "text": ".\n\n", "_t": 145.85}
+{"kind": "delta", "text": "Would", "_t": 145.9}
+{"kind": "delta", "text": " you", "_t": 145.95}
+{"kind": "delta", "text": " like", "_t": 146.01}
+{"kind": "delta", "text": " to", "_t": 146.06}
+{"kind": "delta", "text": " proceed", "_t": 146.12}
+{"kind": "delta", "text": " with", "_t": 146.17}
+{"kind": "delta", "text": " the", "_t": 146.22}
+{"kind": "delta", "text": " comparison", "_t": 146.28}
+{"kind": "delta", "text": " or", "_t": 146.33}
+{"kind": "delta", "text": " make", "_t": 146.39}
+{"kind": "delta", "text": " any", "_t": 146.44}
+{"kind": "delta", "text": " adjustments", "_t": 146.5}
+{"kind": "delta", "text": "?", "_t": 146.55}
+{"kind": "done", "usage": {"input_tokens": 3507, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}, "finish_reason": "stop", "_t": 146.6}
+{"_summary": {"status": "ok", "secs": 151.6, "kinds": {"tool_use": 1, "delta": 41, "done": 1}, "usage": {"input_tokens": 3507, "output_tokens": 42, "cache_read_input_tokens": null, "cache_creation_input_tokens": null}}}

@@ -1,0 +1,7 @@
+[   0.5s] error: {"kind": "error", "message": "The OpenRouter API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Missing Authentication header', 'code': 401}}", "code": "auth"}
+[   0.5s] done: {"kind": "done", "usage": null, "finish_reason": null}
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 0.5s · events {'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · inclusionai/ling-3.0-flash-vl:free

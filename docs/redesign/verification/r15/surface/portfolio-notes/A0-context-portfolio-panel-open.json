@@ -1,0 +1,4 @@
+{"focusedPanel": "portfolio", "capturedAt": 0, "charts": [], "focusedChart": null,
+ "watchlist": {"symbols": ["RELIANCE.NS", "TCS.NS"], "selected": null},
+ "portfolio": {"positionCount": 3, "totalValue": 65029, "activePortfolioId": "default", "activePortfolioName": "Portfolio", "holdings": [{"symbol": "RELIANCE.NS", "quantity": 10, "costBasis": 1200, "assetClass": "equity", "marketValue": 12404, "pnl": 404}, {"symbol": "TCS.NS", "quantity": 5, "costBasis": 2500, "assetClass": "equity", "marketValue": 10525, "pnl": -1975}, {"symbol": "TCS.NS", "quantity": 20, "costBasis": 3900, "assetClass": "equity", "marketValue": 42100, "pnl": -35900}]},
+ "openPanels": ["portfolio", "watchlist"], "brief": {"phase": "empty"}, "viewport": {"width": 1920, "height": 1080}}

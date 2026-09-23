@@ -1,0 +1,65 @@
+[
+ {
+  "raw_id": "SURF-SCREENER-1",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Real: when every symbol is skipped (open Yahoo circuit, rate_limited), partial stays false because it is only set by budget paths, and the results table picks its empty state on rows.length===0 alone, so it renders 'No stocks in this universe passed every filter. Loosen a threshold' plus a 'Reset filters' CTA that restores the same DEFAULT_CRITERIA. Corrected from high to medium, and 'silent' is wrong: the same panel header shows the coverage line 'screened 0 of 506 - 506 unavailable' and the skip breakdown '506 unavailable - 506 rate-limited' (captured in S1 panelText), so the failure is disclosed but contradicted by the empty-state copy and the 'showing cached/snapshot values' throttle line.",
+  "evidence": "sidecar/services/screener.py:515-517, :808-812, :1165-1190; src/modules/screener/ScreenerResultsTable.tsx:447-455; src/modules/screener/ScreenerPanel.tsx:401-440; src/store/screener.ts:231-235, :286-287; docs/redesign/verification/r15/surface/screener/24b-store-panel-replay-tail.json S1-default-sp500.panelText",
+  "evidence_checked": "Opened the finalize path (partial = state.partial and bool(skip_details)), every state.partial assignment (budget/timeout/cancel only), the rate_limited short-circuit, the table empty-state branch, the panel header (coverage, throttle notice, skip breakdown), DEFAULT_CRITERIA and resetCriteria; read S's rendered-panel capture. GET :52152/system/provider-health shows opens_total 137, which backs 'throttled is the normal state'.",
+  "repro_check": "Read 24b-store-panel-replay-tail.json S1: result {evaluated 0, partial false, throttled true, coverage 'screened 0 of 506 - 506 unavailable'}; panelText has both the disclosure lines and 'No rows matched the criteria ... Loosen a threshold'. Code confirms the empty-state choice ignores evaluated_count."
+ },
+ {
+  "raw_id": "SURF-SCREENER-2",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. ScreenerPresets.apply calls only setUniverse/setCriteria/setCombinator('and') before runScreener. setCriteria is a bare set({criteria}) and does not clear group, advanced or formula, while runScreener sends the pruned nested tree, which takes precedence, and always attaches the trimmed formula. A preset click from Nested mode therefore runs the old tree plus the old formula under the preset's name. resetCriteria and applyFilters both clear these fields, so the preset path is the inconsistent one.",
+  "evidence": "src/modules/screener/ScreenerPresets.tsx:119-131; src/store/screener.ts:282-287, :315-373",
+  "evidence_checked": "Opened the preset apply handler, the store setters and resetCriteria, and runScreener's group-precedence and formula logic; read S's replay S4 vs S5 (3 rows vs 18 rows for the same preset).",
+  "repro_check": "Code path: advanced=true + a nested group + a formula, then a preset click leaves group/advanced/formula untouched, so the pruned group has nesting and runScreener sends req.group=old tree and req.formula=old formula. S's jsdom replay recorded exactly that request body."
+ },
+ {
+  "raw_id": "SURF-SCREENER-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The router emits {event:'error', message} for ProviderError and crashes by contract (ScreenerErrorFrame in types/screener.ts), but the store's processFrame handles only 'progress' and 'result'. An error frame is dropped, the stream closes with finalResult unset, and the store reports 'Stream ended without a result frame'. The table's error empty state then suggests loosening a criterion.",
+  "evidence": "sidecar/routers/screener.py:118-140; types/screener.ts:280-303; src/store/screener.ts:495-510, :555-560; src/modules/screener/ScreenerResultsTable.tsx:400-409",
+  "evidence_checked": "Opened the producer (router _run), the TS frame contract, the consumer (processFrame and the no-result branch), and the table's error state. grep over src/ finds no screener consumer of event==='error'.",
+  "repro_check": "grep -rn 'event === \"error\"' src | grep -i screen returns nothing. processFrame has no else-branch for 'error', so the message is unreachable."
+ },
+ {
+  "raw_id": "SURF-SCREENER-4",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The engine slices rows = matched[:limit] and sets result_count=len(rows). ScreenerResult has no total-matched field. The store always sends limit=200 and no control passes a larger one, so the header's 'N rows' is the page cap, not the match count, whenever at least 200 names pass.",
+  "evidence": "sidecar/services/screener.py:770-771, :814-821; sidecar/models/screener.py:338-368; src/store/screener.ts:315, :368; src/modules/screener/ScreenerResultsTable.tsx:423-426",
+  "evidence_checked": "Opened the slice and the result construction, listed every ScreenerResult field (no matched_count/total), and checked every runScreener() call site in the screener module and presets (none passes a limit).",
+  "repro_check": "grep -rn 'matched_count|total_matched' sidecar/models src/modules/screener types/screener.ts returns nothing. S's runs 11 vs 12 (same screen, limit 200 vs 1000, result_count 200 vs 1000) are consistent with the code."
+ },
+ {
+  "raw_id": "SURF-SCREENER-5",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "The core claim holds: parseScreenerCriteria returns [] for a non-array, so a JSON-string criteria arg (captured verbatim in the SSE tool_use frame; no sidecar or ChatSidebar normalisation exists) makes applyHostAction return null and nothing is applied. Correction on mechanism: the failure is not fully silent in the UI. proposed-changes.accept re-pends the change with 'Could not apply this change - its arguments were incomplete.' and acks 'failed'. What misleads is ChatSidebar's synchronous 'Applied: ...' step in AUTO mode plus the model's own 'dispatched' prose. Severity stays high because the agent-native screen flow does nothing on the local lane.",
+  "evidence": "src/lib/host-actions.ts:407-413, :1140-1147; src/store/proposed-changes.ts:113-175; src/modules/chat/ChatSidebar.tsx:940-970; docs/redesign/verification/r15/surface/screener/20-agent-screen-llama.jsonl (tool_use input.criteria is a string)",
+  "evidence_checked": "Opened the parser and the write_screener_filters case, traced onToolUse -> enqueueChange -> accept -> applyHostActionAsync -> applyHostAction (raw input passed through at every hop, no JSON.parse), read the null-label handling in accept, and grepped the captured SSE for the string-typed criteria.",
+  "repro_check": "grep -o '\"write_screener_filters\"...' 20-agent-screen-llama.jsonl shows \"criteria\": \"[{...}]\" (string). 21-agent-screen-replay.json captured.applyLabel=null with the store unchanged. Code: !Array.isArray(raw) -> [] -> null."
+ },
+ {
+  "raw_id": "SURF-SCREENER-6",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. parseScreenerCriterion returns null for gt/lt with a non-number value, and the list filters nulls out. The success label counts only the surviving criteria ('Wrote 2 screener criteria'), and a non-null label acks 'applied' back to the runtime. Neither the user nor the model learns that a leaf was dropped. Dropping {min:15,max:15} is correct as validation (it is also a percent-vs-fraction error); the defect is the silence.",
+  "evidence": "src/lib/host-actions.ts:358-373, :407-413, :1169-1173; src/store/proposed-changes.ts:149-163",
+  "evidence_checked": "Opened the per-leaf parser, the list filter, the label builder (count = criteria.length after filtering) and the ack path; read S's array_variant replay (label 'Wrote 2', store without roe) and its run (2,087 evaluated, no ROE condition).",
+  "repro_check": "Code: operator 'gt' with value {min,max} gives typeof !== 'number', so null is filtered, criteria.length=2 and the label reads 'Wrote 2 screener criteria - review and Run'. That matches 21-agent-screen-replay.json array_variant."
+ },
+ {
+  "raw_id": "SURF-SCREENER-7",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. Custom symbols are only stripped and uppercased (no resolver or exchange suffix), the per-symbol path looks up the store by that literal key (the warm India rows are keyed '.NS'), and a miss with an open Yahoo circuit short-circuits to 'rate_limited' without a fetch. Bare Indian tickers are therefore all skipped while the data sits on disk. The input placeholder is the US 'AAPL MSFT NVDA'.",
+  "evidence": "sidecar/services/screener.py:204-211, :1142-1162, :515-517; src/modules/screener/ScreenerPanel.tsx:230-236",
+  "evidence_checked": "Opened custom-universe construction, _run_per_symbol's cache-first lookup and to_fetch selection, _fetch_pair's open-circuit short-circuit, and the placeholder. Did not re-run the POST (the shared stack is GET-only for me; S's runs 07/07b/08 are the repro).",
+  "repro_check": "Code: 'RELIANCE' -> rows.get('RELIANCE') is None -> to_fetch -> _fetch_pair -> provider_health.is_open(YAHOO) -> (None,'rate_limited'). S's runs.jsonl 07 (bare, 0/5) vs 08 ('.NS', 5/5 from store) confirm it."
+ }
+]

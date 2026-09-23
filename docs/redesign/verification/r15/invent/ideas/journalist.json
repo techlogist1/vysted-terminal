@@ -1,0 +1,204 @@
+[
+  {
+    "idea_id": "journalist-1",
+    "name": "Red Pen — \"check this\" for anything anyone tells you",
+    "one_liner": "Paste any figure-laden claim (a rival's answer, a Telegram tip) and get it marked up line by line — OK, wrong (with both sources named), different-basis, or honestly unverified — by running the app's own hostile-battery witnesses outward instead of only on itself.",
+    "rides_on": [
+      "sidecar/services/company_narrative.py:64,185,209 (_NUMBER_RE / _normalise_token / _verify_text — numeric token extraction + tolerance match against source values)",
+      "sidecar/services/company_narrative.py:49-50,80 (tolerance match against source values)",
+      "sidecar/routers/fundamentals.py:154-168 (today private to one route)",
+      "sidecar/services/company_narrative.py:97 (_source_values — bare list[float], can only redact to [unverified])",
+      "sidecar/services/research/semantics.py:255-764 (witness conflicts already emitted in field/sources/note shape)",
+      "sidecar/services/agent_tools/catalog.py:170 (resolve_symbol, reused for entity binding)",
+      "sidecar/services/agent_tools/catalog.py:1469-1474 (catalog's one rule — a read_handler capability auto-projects to the external MCP surface)"
+    ],
+    "new_parts": [
+      "labelled source map (value -> {field, provider, as_of, url}) so every tick carries its receipt",
+      "rupee literacy in the token grammar: ₹, Rs, crore/lakh/lakh-crore scale words, Indian comma grouping (1,05,130)",
+      "four-state verdict (OK / X / BASIS / ?), with BASIS fed directly by existing witness conflicts",
+      "new check_claims capability, kind=\"read_handler\", in catalog.py (auto-projects to MCP surface)",
+      "marked-up-text block in src/modules/research/brief-blocks.tsx"
+    ],
+    "jarvis_axis": [
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "A red pen that is wrong is worse than no red pen. Consolidated vs standalone, TTM vs FY, reported vs adjusted are all \"different basis\", not \"wrong\"; an [X] may only fire when the witness is the same basis and period and names its source and as-of date, otherwise the mark degrades to BASIS or ?. The default must be humility."
+  },
+  {
+    "idea_id": "journalist-2",
+    "name": "The Blind-Spot Ledger — the app writes its own limitation paragraph",
+    "one_liner": "End every brief with a specific, numbered confession of what was not read or checked (pages skipped, lanes that failed, citations dropped, depth downgraded) instead of a generic disclaimer, assembled deterministically from signals the pipeline already computes and drops.",
+    "rides_on": [
+      "sidecar/services/search/extract.py:528-537 (extract_pdf_text returns pages_used, page_count, pages_empty)",
+      "sidecar/models/announcements.py:56 (announcements merge records failed lanes in errors)",
+      "sidecar/services/corporate_disclosures.py:271-274 (failed lanes recorded in errors)",
+      "sidecar/services/research/citecheck.py:12-20,216 (citecheck knows which claims it softened)",
+      "types/brief.ts:196 (brief already carries degradedReason)",
+      "sidecar/services/agent_tools/catalog.py:1553-1563 (tool timeouts and open circuit breakers known at dispatch)",
+      "sidecar/services/provider_health.py (circuit breaker state)",
+      "sidecar/services/research/deep.py:331-351 (raw-evidence store already shared per run)"
+    ],
+    "new_parts": [
+      "fold existing coverage signals into one brief.structured[\"coverage\"] object per run",
+      "short, specific \"What I could not see\" block rendered in brief-blocks.tsx",
+      "deterministic, zero LLM tokens, works on the keyless lane"
+    ],
+    "jarvis_axis": [
+      "receipts"
+    ],
+    "size": "S",
+    "risk": "Boilerplate: if it prints on every brief it becomes a disclaimer nobody reads; it must print only non-trivial gaps, in one to four lines, with numbers."
+  },
+  {
+    "idea_id": "journalist-3",
+    "name": "The Scorecard — the first finance AI that keeps score on itself",
+    "one_liner": "Persist every figure the agent states, with period/as-of/provider, and re-check it deterministically against later primary filings, so reopening a name later surfaces \"my record on this name: 8 of 9 figures held\" instead of a fresh, memory-less answer.",
+    "rides_on": [
+      "src/lib/brief-claims.ts:1-14 (extractBriefClaims / recordBriefClaims — figures off brief.structured metric cards, no LLM)",
+      "types/research-space.ts:34-42 (ResearchSpaceClaim {symbol, metric, value, statedAt})",
+      "sidecar/services/agent_runtime.py:344-353,402 (surfaced as PRIOR STATED VALUES in the preamble)",
+      "sidecar/services/runs_store.py:55 (SQLite shape-discipline precedent)"
+    ],
+    "new_parts": [
+      "sidecar claims.db (SQLite) keyed by symbol, each claim carrying period, as_of, provider, source_url",
+      "deterministic re-check on a new brief publish for the same symbol (same metric+period+different value = graded miss; different period = a change, not a miss)",
+      "read-only track_record capability",
+      "small Settings \"Track record\" page"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "Grading unfairly in either direction. A price that moved is not an error; a restated prior-period figure is ambiguous. Only same-period, same-basis contradictions from a primary filing may count as a miss, and the page must show the denominator."
+  },
+  {
+    "idea_id": "journalist-4",
+    "name": "Brief Diff — ask again, see only what changed",
+    "one_liner": "Re-researching a name the user already researched renders a \"changed since <date>\" strip (new filings, flipped metrics, new conflicts) with everything unchanged collapsed to a count, instead of a second wall of prose.",
+    "rides_on": [
+      "src/store/brief.ts:49,165-173 (brief store already carries the prior brief into the new run)",
+      "src/store/brief.ts:5-9,94 (a restored brief always lands archived, never silently current)",
+      "src/lib/brief-ingest.ts (briefFromInput preserves structured across re-publishes; existing pure-helper precedent)",
+      "sidecar/models/announcements.py:41 (Announcement ts field)"
+    ],
+    "new_parts": [
+      "pure diffBriefs(prior, next) helper beside the other pure helpers in src/lib/brief-ingest.ts (metric cards by label, sources by URL, conflicts by field)",
+      "\"changed since\" block at the top of BriefBody",
+      "announcements filtered to ts > prior.createdAt"
+    ],
+    "jarvis_axis": [
+      "memory"
+    ],
+    "size": "S",
+    "risk": "Noise: price-derived metrics change every day. Diff must separate \"filing facts\" from \"market-moved values\" and lead with the former, or the strip degrades to the same wall of prose it replaces."
+  },
+  {
+    "idea_id": "journalist-5",
+    "name": "The Rulebook — it holds you to your own words",
+    "one_liner": "Rules the user once wrote in plain English (\"no debt/equity above 1\") become a live gate: a proposed portfolio change that breaks one arrives with an objection quoting the rule, its date and the filing figure — never blocking, always with a receipt.",
+    "rides_on": [
+      "sidecar/services/agent_tools/catalog.py:1374 (write_note exists today)",
+      "src/lib/host-actions.ts:803-813 (write_note applied)",
+      "src/modules/chat/context-provider.ts:99-121 (notes never ride the snapshot today; no read tool exists)",
+      "sidecar/services/agent_runtime.py:376-402 (preamble slot beside prior stated values)",
+      "sidecar/services/screener_formula.py:441,563 (compile_formula / evaluate_formula — recursive-descent, no eval)",
+      "src/store/proposed-changes.ts:92-214 (the diff/accept gate every mutation already passes through)"
+    ],
+    "new_parts": [
+      "a \"Rules\" note bucket in src/store/notes.ts that DOES ride the snapshot, capped",
+      "quantitative rules compiled once to the existing screener formula grammar, evaluated deterministically against one symbol, no LLM in the judgment",
+      "rule check wired into the diff/accept gate for portfolio_add_position and add_to_watchlist",
+      "qualitative theses handed to idea 6 (The Handover) to be tested against new filings"
+    ],
+    "jarvis_axis": [
+      "memory",
+      "initiative"
+    ],
+    "size": "M",
+    "risk": "Nagging. One objection per action, never on reads, and a rule the user overrides twice should ask once whether it should be retired. Rules referencing fields the fundamentals model lacks must fail loudly at compile time, never silently pass."
+  },
+  {
+    "idea_id": "journalist-6",
+    "name": "The Handover — the app speaks first",
+    "one_liner": "On wake, before the user types anything: a catch-up pass over the user's own holdings and watchlist surfaces what matters (a bonus that changed cost basis, a results date, a rating action) with proposed portfolio edits waiting at the gate, never auto-applied.",
+    "rides_on": [
+      "sidecar/services/corporate_disclosures.py:265 (get_announcements)",
+      "sidecar/services/corporate_disclosures.py:251 (_dedup_key — the seen-set key a cursor needs)",
+      "sidecar/services/corporate_disclosures.py:335 (get_results_calendar, fetched today but with no surface)",
+      "sidecar/services/research/disclosures.py:15-18 (results calendar has no surface today)",
+      "sidecar/services/corporate_disclosures.py:366 (get_shareholding)",
+      "sidecar/services/dividend_actions.py:1-16 (declared-unpaid dividends)",
+      "sidecar/services/nse_symbol_change.py:1-12 (renames)",
+      "sidecar/app.py:130,142 (background-task lifecycle precedent: started in lifespan, stopped in finally)",
+      "sidecar/services/fundamentals_warm.py:403,433 (the warm loop precedent)",
+      "sidecar/services/run_manager.py:237 (durable run for a budget-capped LLM pass)",
+      "sidecar/services/budget_guard.py:87-166 (metering)",
+      "src-tauri/src/lib.rs:394 (OS notification already registered on the plugin)",
+      "src/lib/desktop-notification.ts:1-24 (frontend bridge today only drains workflow intents)",
+      "sidecar/services/portfolio_db.py:27-34 (the portfolio is sidecar-side already; the watchlist is not)"
+    ],
+    "new_parts": [
+      "watch.db cursor store",
+      "holdings+watchlist push from the renderer at launch",
+      "deterministic triage first (exchange category + phrase list: auditor resignation, pledge, SAST, related party, rating action, bonus/split), zero tokens",
+      "at most one budget-capped LLM pass over survivors, as a durable run",
+      "handover card; polite pacing (<=1 req/s/host)",
+      "portfolio edits arrive only as proposed changes, never applied"
+    ],
+    "jarvis_axis": [
+      "initiative",
+      "watching"
+    ],
+    "size": "L",
+    "risk": "Silence that looks like \"nothing happened\" — the card must always state what it checked, when, and which lanes failed (idea 2's ledger applied to the watcher). Second risk: fan-out against exchanges from a user IP on every launch; cap symbols and cache per day."
+  },
+  {
+    "idea_id": "journalist-7",
+    "name": "Page-anchored receipts and the Receipt Bundle",
+    "one_liner": "Every figure in a brief hovers to its exact source page and quoted line and opens the PDF there; exporting a brief carries a manifest with URL, page, quote, fetch time and SHA-256 per figure, so a sceptical reader who does not own Vysted can verify it and a journalist can print it.",
+    "rides_on": [
+      "sidecar/services/search/extract.py:506 (pages_used already selected and recorded per PDF)",
+      "sidecar/services/search/extract.py:516-518 (pages flattened into anonymous paragraphs today)",
+      "sidecar/services/research/citecheck.py:12-16,235 (evidence audit already judges a claim against the full extracted page text)",
+      "types/brief.ts:230-250 (BriefSource type)",
+      "src/lib/export-artifact.ts:1-15 (existing atomic export path)"
+    ],
+    "new_parts": [
+      "a [p.N] marker per paragraph kept through assembly instead of discarded",
+      "citecheck returns the page on which it found the figure",
+      "page?: number and quote?: string added to BriefSource (mirrored in sidecar/models, same commit)",
+      "PDF opens with #page=N",
+      "receipt-bundle manifest JSON (URL, page, quote, fetch time, SHA-256 per figure) riding the existing export path"
+    ],
+    "jarvis_axis": [
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "Scanned PDFs have no text layer, so there is no page to anchor; the receipt must then say \"scanned — figure taken from the aggregator, not this page\" rather than fake an anchor. No OCR exists in the sidecar today."
+  },
+  {
+    "idea_id": "journalist-8",
+    "name": "Audit Me — the shipped lie-detector test",
+    "one_liner": "A command-palette \"Trust audit\", runnable with no API key at all, runs the app's own resolver, fundamentals and witnesses across a bundled set of names chosen to break it and publishes a report card of resolved-correctly / conflicts-disclosed / wrong-and-silent, with the failures printed in full.",
+    "rides_on": [
+      "docs/redesign/verification/r15/battery/manifest.json (the battery and its outside-truth packs already exist as build artefacts)",
+      "docs/redesign/verification/r15/battery/packs/ (outside-truth packs)",
+      "sidecar/services/agent_tools/catalog.py:170 (resolve_symbol handler)",
+      "sidecar/services/agent_tools/catalog.py:225 (fundamentals handler)",
+      "sidecar/services/agent_tools/catalog.py:686 (shareholding_pattern handler)"
+    ],
+    "new_parts": [
+      "bundled fixture: a structural subset of the battery (identity, exchange, board, face value, scale, \"has no NSE line\"), fields that do not move daily, each with as_of",
+      "a runner that calls the existing handlers directly and collects the witness conflicts",
+      "a report-card block, no LLM",
+      "doubles as the regression suite for idea 1 (Red Pen) and idea 7 (Receipt Bundle)"
+    ],
+    "jarvis_axis": [
+      "receipts"
+    ],
+    "size": "M",
+    "risk": "Looks like a stunt if the failures never shrink. It only works if the numbers in the README are the numbers the button prints. Truth packs also rot (renames, delistings, new collisions) and need an as_of-aware refresh each release."
+  }
+]

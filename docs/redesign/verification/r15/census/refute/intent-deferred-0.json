@@ -5,7 +5,133 @@
   "severity_final": "high",
   "reason": "Real: the setup closure spawns openbb-mcp and sec-edgar-mcp on threads and then joins both before start_main_sidecar (lib.rs:476-491), with each bind waiting up to 45s x 2 attempts (lib.rs:79,84). A timed-out child is killed and its env var removed, so a late bind is lost for the whole session (openbb_mcp.rs:160-171, openbb_mcp.rs:59). --onedir is still not taken (both ensure scripts pass --onefile; D76 affirms the workaround). One correction to the mechanism: Tauri 2.11.1 runs the user setup hook inside the event loop's RuntimeRunEvent::Ready callback on the main thread, after the config windows are built (tauri app.rs:1415-1417, 2513-2523). So the joins do not leave a live UI sitting 'disconnected'. They freeze the app's main event loop for the whole bind window (about 25s warm, 34s+ cold, up to 90s). That means fix shape (1) must also move the joins and the main-sidecar spawn off the setup thread, not only stop joining before the spawn. Severity stays high.",
   "evidence": "src-tauri/src/lib.rs:57-84, src-tauri/src/lib.rs:437-493, src-tauri/src/lib.rs:200-212, src-tauri/src/openbb_mcp.rs:59-60,95-96,149-171, src-tauri/src/sec_edgar_mcp.rs:58-59,95-96,148-162, scripts/ensure-openbb-mcp-sidecar.mjs:171-176, scripts/ensure-sec-edgar-mcp-sidecar.mjs:151-157, src-tauri/tauri.conf.json:40-44, docs/redesign/DECISIONS.md:131, sidecar/services/openbb_mcp_provider.py:132-144, sidecar/services/sec_filings_provider.py:63-64,89-92, ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tauri-2.11.1/src/app.rs:1415-1417,2513-2523 (Cargo.lock tauri 2.11.1)",
-  "evidence_checked": "Code only, at HEAD d7b7167. Opened the cited lib.rs regions, both MCP spawn supervisors, both ensure scripts, tauri.conf externalBin, DECISIONS D76, both Python env-var readers, and the vendored Tauri 2.11.1 app.rs to see which thread runs setup. The timings come from the Phase-9.5 measurement recorded in lib.rs:66-69; they were not re-measured. No packaged cold launch was done because it needs GUI and app launch, which COMMON.md forbids.",
+  "evidence_checked": "Code only, at HEAD d7b7167. Opened the cited lib.rs regions, both MCP spawn supervisors, both ensure scripts, tauri.conf externalBin, DECISIONS D76, both Python env-var readers, and the vendored Tauri 2.11.1 app.rs to see which thread runs setup. The timings come from the Phase-9.5 measurement recorded in lib.rs:66-69; they were not re-measured. No packaged cold launch was done because it needs GUI and app launch, which COMMON.md forbids. Re-spot-checked by the session-2 refute pass at HEAD f763a44: lib.rs:457-486 still spawns both MCP threads and joins them before start_main_sidecar (lib.rs:493); MCP_PORT_WAIT_SECS=45 x 2 attempts (lib.rs:78,83); vendored tauri-2.11.1 app.rs:1415-1417 runs setup inside RuntimeRunEvent::Ready and app.rs:2513-2523 builds config windows before the user setup closure. Verdict unchanged.",
   "repro_check": "Would run: cold-launch the packaged .app after a reboot and time launch until the [openbb-mcp]/[sec-edgar-mcp] 'subprocess healthy' lines, then until the main sidecar's /health answers. Expect about 34s cold, with the window unresponsive (main thread parked in thread.join) throughout. Not run: forbidden GUI/app launch."
+ },
+ {
+  "raw_id": "INT-deferred-0-2",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "Part (a) does not hold: the deadlock was a Python subprocess.Popen + anyio + _MEIPASS + Windows handle-inheritance problem in the SPAWN path, and replacing Popen with the Tauri Rust spawn removes that path, so it is a root-cause fix, which BLOCKERS.md:513-516 records as resolved in v0.4.0. The residual slow bind is not a transport deadlock and is already covered by INT-deferred-0-1. Part (b) holds only narrowly: CI (build.yml, matrix windows/macos/ubuntu) builds the three PyInstaller binaries, smoke-tests that they bind (smoke-test-sidecars.mjs:809-820, which is the Windows no-deadlock proof) and runs `pnpm tauri build`, so a packaged bundle is built on every push. What is never exercised is the Tauri-Rust spawn inside a launched packaged app, which needs an app launch. Lowered to low and narrowed to that one verification step.",
+  "evidence": "src-tauri/src/openbb_mcp.rs:1-20, BLOCKERS.md:159-177, BLOCKERS.md:513-516, .github/workflows/build.yml:9-13,70-77, scripts/smoke-test-sidecars.mjs:800-820, docs/redesign/DECISIONS.md:135 (D80)",
+  "evidence_checked": "Code and docs only. Opened the openbb_mcp.rs module header, the BLOCKERS Phase-9.5 UC1 section and the 'Resolved in v0.5.0' Popen-deadlock entry, the full build.yml, the smoke-test bind gate, and D80. No packaged app launch (COMMON.md forbids app launch/GUI).",
+  "repro_check": "Would run: download the build.yml windows-latest bundle artifact, install it and launch it cold, then check the [openbb-mcp] 'subprocess healthy' log line and /mcp/status ready. Not run: it needs a packaged app launch."
+ },
+ {
+  "raw_id": "INT-deferred-0-3",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Only partly right. Ollama has been driven live through the real multi-round loop. r15/surface/composer-chat/conv1-t1.stdout.txt shows llama3.1:8b calling get_terminal_state, then research, then writing an answer that uses the first tool's result ('chart for KEI ... watchlist includes KEI, DIXON, and TRENT'). The spend ledger also records live openai, openrouter and deepseek runs (21 ollama, 8 openrouter, 2 openai, 1 deepseek). So the claim that nothing but a scripted fake has run is wrong. What still holds: neither the Anthropic adapter (anthropic.py) nor the Gemini adapter (gemini.py:99) has any recorded live tool-loop run. D35 records that this machine's keychain holds only deepseek and openrouter keys. Those are two headline BYOK providers whose wire format is unproven, so severity stays medium, with scope narrowed to anthropic and gemini.",
+  "evidence": "docs/redesign/verification/r15/surface/composer-chat/conv1-t1.stdout.txt:1-9, docs/redesign/verification/r15/surface/composer-chat/conv1-t1.jsonl, docs/redesign/verification/r15/spend-ledger.jsonl (provider counts), docs/redesign/DECISIONS.md:70 (D35), sidecar/services/llm/gemini.py:99, sidecar/services/llm/anthropic.py:103",
+  "evidence_checked": "Parsed the r15 composer-chat live-drive jsonl/stdout files and counted providers in the spend ledger. Read D35 for which keys exist. I did not drive anthropic or gemini: no key on the machine, and it would be off the free lane.",
+  "repro_check": "grep -o '\"provider\": *\"[a-z]*\"' r15/spend-ledger.jsonl | sort | uniq -c -> ollama 21 / openrouter 8 / openai 2 / deepseek 1 / none 1; no anthropic or gemini. Closing the gap needs one vy.py --provider anthropic and one --provider gemini tool-triggering drive once a key exists."
+ },
+ {
+  "raw_id": "INT-deferred-0-4",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The mismatch is real: base.py:85-108 is an abstract 'async def' whose body is just 'raise NotImplementedError' (no yield), so it declares a coroutine, while all five adapters are async generators. Two corrections. There are three call sites, not one: agent_runtime.py:1434, native_search.py:242 and oneshot.py:79, and all of them iterate without await. Severity also drops to low, because no type checker runs anywhere (no mypy/pyright config or CI step), so nothing enforces the ABC. Nothing changes at runtime; this is a one-word annotation fix.",
+  "evidence": "sidecar/services/llm/base.py:85-108, sidecar/services/llm/anthropic.py:103, sidecar/services/agent_runtime.py:1434, sidecar/services/llm/native_search.py:240-250, sidecar/services/llm/oneshot.py:77-86",
+  "evidence_checked": "Opened the ABC and grepped every def stream_chat and every stream_chat( call site. Checked for a mypy/pyright config or CI step and found none.",
+  "repro_check": "grep -n 'stream_chat(' sidecar/services/*.py sidecar/services/**/*.py -> 3 call sites, all 'async for' or assigned then 'async for', none awaited."
+ },
+ {
+  "raw_id": "INT-deferred-0-5",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds as stated: MacroProvider is a Literal at macro_extended.py:27, and the four PROVIDER constants are unannotated at fred_provider.py:48, ecb_provider.py:30, imf_provider.py:31 and world_bank_provider.py:37, then passed as provider=PROVIDER (e.g. ecb_provider.py:40). Pydantic still validates the Literal at runtime and no type checker runs, so this is pure typing hygiene. Low is correct.",
+  "evidence": "sidecar/models/macro_extended.py:27, sidecar/services/macro/fred_provider.py:48, sidecar/services/macro/ecb_provider.py:30,40, sidecar/services/macro/imf_provider.py:31, sidecar/services/macro/world_bank_provider.py:37",
+  "evidence_checked": "Opened the model Literal and grepped the four PROVIDER assignments and their use sites.",
+  "repro_check": "grep -n '^PROVIDER' sidecar/services/macro/*.py -> four unannotated str constants."
+ },
+ {
+  "raw_id": "INT-deferred-0-6",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The pattern is present at all three sites (lib.rs:510, openbb_mcp.rs:188, sec_edgar_mcp.rs:185), and on edition 2021 (Cargo.toml:6) the guard does live through the if-let body. The claimed consequence does not hold, though. Each of these mutexes is locked in exactly one place, the kill path itself; grep finds no other lock() on SidecarProcess, OpenbbMcpProcess or SecEdgarMcpProcess. So no concurrent locker can be blocked. child.kill() only sends a signal and never re-enters the mutex, so there is no deadlock either. significant_drop_in_scrutinee is a nursery lint that clippy -D warnings does not enable. This is lint hygiene with zero behavioural effect: lowered from medium to low.",
+  "evidence": "src-tauri/src/lib.rs:506-513, src-tauri/src/openbb_mcp.rs:182-192, src-tauri/src/sec_edgar_mcp.rs:180-189, src-tauri/Cargo.toml:6",
+  "evidence_checked": "Opened all three kill paths and the crate edition, then grepped every lock() in lib.rs, openbb_mcp.rs and sec_edgar_mcp.rs: only these three lines lock.",
+  "repro_check": "grep -n 'lock()' src-tauri/src/{lib,openbb_mcp,sec_edgar_mcp}.rs -> exactly lib.rs:510, openbb_mcp.rs:188, sec_edgar_mcp.rs:185."
+ },
+ {
+  "raw_id": "INT-deferred-0-7",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "Real doc drift, and slightly worse than stated. The Module 7 line is BLUEPRINT.md:237, not :235, and still promises a 'light option'. That now contradicts the adopted spec (specs/001-agent-native-redesign/spec.md:888 FR-030 'dark-only (light theme remains deferred)') and the constitution (.specify/memory/constitution.md:89 'dark-only'). The line above it, :233, still describes the superseded 'charcoal + warm amber + sage' aesthetic. UC2 (:737) still makes no mention of the MCP-unavailable degrade. docs/CURRENT_STATE.md:894 already records light theme as deferred, so the overclaim is confined to BLUEPRINT. Low stands; only the line numbers and scope are corrected.",
+  "evidence": "docs/BLUEPRINT.md:233-237, docs/BLUEPRINT.md:736-737, specs/001-agent-native-redesign/spec.md:888-890, .specify/memory/constitution.md:88-89, docs/CURRENT_STATE.md:894",
+  "evidence_checked": "Opened the BLUEPRINT Module list and section 10, the spec's FR-030, the constitution's UI principle, and the CURRENT_STATE deferred table.",
+  "repro_check": "grep -n -i 'light' docs/BLUEPRINT.md -> :237 'dark default + light option'; spec.md:888 says dark-only."
+ },
+ {
+  "raw_id": "INT-deferred-0-8",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The count holds: 74 of 76 non-test <input> tags in src/ and plugins/ have neither id nor name, across 39 files (SettingsPanel.tsx:319-327 confirmed). The stated consequence is overstated. This is a Tauri desktop webview with no submitted forms, where browser autofill and password managers do not apply (and BYOK key fields should not be autofilled anyway). Tests target inputs by role and label, not id. About half the inputs carry aria-label, and the rest may be wrapped in a <label>. What remains is Chrome's 'form field should have id or name' audit hygiene, plus a possible label-association gap in the other 38, which would need a separate a11y check. Lowered from medium to low.",
+  "evidence": "src/components/SettingsPanel.tsx:319-327 (plus a scripted scan of src/**/*.tsx and plugins/**/*.tsx)",
+  "evidence_checked": "Ran a regex scan over every non-test .tsx for <input> tags: 76 total, 74 with no id and no name, 39 files, 38 of those also without aria-label/aria-labelledby (wrapping <label> not checked). Opened the cited SettingsPanel switch.",
+  "repro_check": "python3 regex scan of '<input\\b(.*?)/?>' over src/**/*.tsx and plugins/**/*.tsx -> inputs 76, no id+name 74, files 39."
+ },
+ {
+  "raw_id": "INT-deferred-0-9",
+  "verdict": "admitted_with_correction",
+  "severity_final": "medium",
+  "reason": "Real, and worse than stated. DEFAULT_KEYBINDINGS merges SHELL_DEFAULTS and MODULE_COMMAND_BINDINGS into 13 actions, not 11 (keybindings.ts:154-157). Only agent.toggle reads the live binding (AgentDock.tsx:70-71). Five more work only at their hardcoded default: palette.open (CommandPalette.tsx:77), agent.mode.* via Alt+digit and changes.acceptAll/rejectAll via Mod+Enter/Backspace (ChatSidebar.tsx:540-560). The other seven (platform.save-workspace mod+s, load-workspace mod+o, open-settings mod+,, chart/watchlist/news/portfolio.open mod+1..4) have no keydown handler anywhere, so Settings advertises shortcuts that do nothing even unremapped. The keybindings.ts:99-104 comment claims the dispatch 'lives in their owning components', which is false for those seven. Medium holds; count and mechanism corrected.",
+  "evidence": "src/store/keybindings.ts:99-157, src/components/AgentDock.tsx:66-77, src/components/CommandPalette.tsx:72-83, src/modules/chat/ChatSidebar.tsx:540-565",
+  "evidence_checked": "Opened the keybinding defs and grepped every importer of @/store/keybindings: only SettingsPanel, AgentDock and workspace.ts, and only AgentDock dispatches. Grepped every window/document keydown listener in src, and grepped for mod+s/o/,/digit handlers and Tauri accelerators: none besides the kill-switch shortcut.",
+  "repro_check": "grep -rn 'matchesEvent\\|bindingFor' src --include=*.ts* (non-test, outside keybindings.ts) -> only AgentDock.tsx:70-71. grep for key==='s'/'o'/','/'1' or Digit1 or CmdOrCtrl -> no handler."
+ },
+ {
+  "raw_id": "INT-deferred-0-10",
+  "verdict": "refuted",
+  "severity_final": "low",
+  "reason": "The finding checked the wrong venv. The openbb-mcp binary is built from its own venv at sidecar/openbb_mcp_subprocess/.venv (ensure-openbb-mcp-sidecar.mjs:38-43), and that venv does have fastmcp_slim-3.3.1.dist-info installed; fastmcp 3.3.1 itself Requires-Dist fastmcp-slim. The entry is also load-bearing: fastmcp/__init__.py:28-31 calls importlib.metadata.version('fastmcp-slim') first and only falls back to 'fastmcp'. So --copy-metadata=fastmcp-slim is exactly the per-package metadata the CLAUDE.md PyInstaller gotcha requires, and dropping it as proposed would push the version probe onto its fallback path.",
+  "evidence": "scripts/ensure-openbb-mcp-sidecar.mjs:38-43,143-169, sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/fastmcp/__init__.py:28-31, sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages/fastmcp-3.3.1.dist-info/METADATA:21",
+  "evidence_checked": "Opened the ensure script's venv path and its collectAll/copyMeta lists, listed the openbb-mcp build venv's site-packages, and read fastmcp's __init__ version probe and its dist-info Requires-Dist.",
+  "repro_check": "ls sidecar/openbb_mcp_subprocess/.venv/lib/python3.13/site-packages | grep -i ^fastmcp -> fastmcp, fastmcp-3.3.1.dist-info, fastmcp_slim-3.3.1.dist-info."
+ },
+ {
+  "raw_id": "INT-deferred-0-11",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "It is true that vitest.config.ts has no coverage key. The stated consequence is wrong: @vitest/coverage-v8 is a devDependency (package.json:69) and installed (node_modules/@vitest/coverage-v8), and vitest's default coverage provider is v8, so 'pnpm test -- --coverage' does produce a report with no config block. The actual gap is narrower: there is no coverage threshold and no CI step that gates on it. Low stands.",
+  "evidence": "vitest.config.ts:1-18, package.json:14,69",
+  "evidence_checked": "Opened the full vitest config, package.json scripts/devDependencies, and node_modules/@vitest.",
+  "repro_check": "Would run: pnpm exec vitest run --coverage, expecting a v8 text report with default settings. Not run: a full frontend suite run is a heavy lane."
+ },
+ {
+  "raw_id": "INT-deferred-0-12",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The code facts hold: no /agents/roster route (the openapi.json paths on :52152 list /agents, /agents/{id}/invoke, /agents/{id}/runs, /custom-agents, /runs*), no delegate_to_persona anywhere in catalog.py, and PluginManagerPanel.tsx:23 shows data sources only as a count. Two corrections. First, the claim that 0.9.0 'reads as built without either caveat' is wrong: docs/CURRENT_STATE.md:891-892 lists both as Deferred. Second, much of the roster need is already met: GET /agents, a persona roster in ComposerPlusMenu.tsx:178, an agent roster group in CommandPalette.tsx:8, and durable Delegate runs via /agents/{id}/runs. What remains is the 3-pane panel, the hard persona hand-off and the connector hub/gallery/saved screens, all sized builds and all deferred. Low stands.",
+  "evidence": "src/components/PluginManagerPanel.tsx:23, src/modules/chat/ComposerPlusMenu.tsx:178, src/components/CommandPalette.tsx:8, docs/CURRENT_STATE.md:891-892, sidecar/services/agent_tools/catalog.py (no delegate/roster ids)",
+  "evidence_checked": "GET :52152/openapi.json (read-only) for agent routes. Grepped catalog.py for delegate/handoff and src for roster. Read the CURRENT_STATE deferred table.",
+  "repro_check": "curl -s 127.0.0.1:52152/openapi.json | python3 filter for paths containing agent/roster -> no /agents/roster; /agents present."
+ },
+ {
+  "raw_id": "INT-deferred-0-13",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The gap is real: PHASE_8_PERF_BASELINE.md:126-140 still says 'Not measured', and no current doc records per-provider first-token latency. The provider list is wrong, though. The app's /llm/providers serves anthropic, openai, gemini, groq, ollama, deepseek, xai and openrouter; Mistral and Cohere are not providers at all. The r15 live drives carry per-event timestamps for ollama, openrouter, openai and deepseek, so rough figures exist for those lanes but are not written up. Low stands.",
+  "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:126-140, GET http://127.0.0.1:52152/llm/providers",
+  "evidence_checked": "Opened the perf baseline section, queried /llm/providers read-only on :52152, and grepped non-archive docs for first-token/TTFT.",
+  "repro_check": "curl -s 127.0.0.1:52152/llm/providers -> ['anthropic','openai','gemini','groq','ollama','deepseek','xai','openrouter']."
+ },
+ {
+  "raw_id": "INT-deferred-0-14",
+  "verdict": "admitted_with_correction",
+  "severity_final": "low",
+  "reason": "The light-theme half does not hold as a defect. Dark-only is an adopted decision: spec FR-030 (specs/001-agent-native-redesign/spec.md:888 'dark-only (light theme remains deferred)'), spec.md:1272 and the constitution (.specify/memory/constitution.md:89). The design system is out of scope to reopen per COMMON.md, so that half is a doc-drift item already covered by INT-deferred-0-7. The residual holds: no axe-core, jest-axe, vitest-axe or Lighthouse tooling exists in package.json or src. Narrowed to the missing automated a11y audit; low.",
+  "evidence": "specs/001-agent-native-redesign/spec.md:888-890, specs/001-agent-native-redesign/spec.md:1272, .specify/memory/constitution.md:88-89, package.json (no axe/lighthouse)",
+  "evidence_checked": "Opened the spec FR-030, the constitution UI principle and CURRENT_STATE:894, then grepped package.json and src for axe/lighthouse.",
+  "repro_check": "grep -n 'axe\\|lighthouse' package.json -> no hits; spec.md:888 -> dark-only is a spec requirement."
+ },
+ {
+  "raw_id": "INT-deferred-0-15",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The tauri.conf.json bundle block (:30-45) has no macOS signingIdentity, entitlements or notarization settings. CI's build step is literally named 'Build Tauri bundle (unsigned)' (build.yml:76-77) and passes no APPLE_* secrets. The Windows NSIS target is likewise unsigned, so SmartScreen will warn too. The only signing tooling is the dev-loop keychain workaround (scripts/macos-dev-setup.sh). DECISIONS.md:33 (D11) asserts 'release builds for end users are signed properly', which the config contradicts; that claim should be corrected in the same fix. The fix needs an operator-owned Apple Developer ID.",
+  "evidence": "src-tauri/tauri.conf.json:30-45, .github/workflows/build.yml:76-77, scripts/macos-dev-setup.sh:129-134, docs/redesign/DECISIONS.md:33 (D11)",
+  "evidence_checked": "Opened the bundle config and the full build.yml, grepped .github, scripts and tauri.conf for APPLE_SIGNING/APPLE_ID/notar, and read D11.",
+  "repro_check": "grep -rn 'APPLE_SIGNING\\|APPLE_ID\\|notar' .github scripts src-tauri/tauri.conf.json -> only the dev-setup script's advisory."
  }
 ]

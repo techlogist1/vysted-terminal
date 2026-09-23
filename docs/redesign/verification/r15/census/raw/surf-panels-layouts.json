@@ -1,0 +1,92 @@
+[
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-1",
+  "title": "SEC Filings panel's filing viewer and Insider tab are always empty: both parsers drop 100% of what sec-edgar-mcp actually returns",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "sidecar/services/sec_filings_provider.py (SEC Filings panel)",
+  "repro": "GET /sec/filings/0000320193-25-000079/sections?identifier=AAPL (a real Apple 10-K from the panel's own list) -> {\"sections\":[]}; GET /sec/filings/0000320193-25-000079?identifier=AAPL -> sections [] total_chars 0; GET /sec/insider/AAPL?limit=50 (and NVDA, and form=4) -> transactions []. The same upstream tools called directly return a 10-K sections DICT {business: 10,000 chars, risk_factors: 10,000 chars, has_financials: true} and 5 Form-4 rows (filing_date, form_type, accession_number, company_name, cik, url) with issuer under 'name'. Running the sidecar's own parsers on those payloads: _sections_from_payload -> 0 sections, _insider_rows_from_payload -> ('0000320193', '', 0 rows).",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-sec-parser-check.txt, docs/redesign/verification/r15/surface/panels-layouts/P-sec-detail.json, docs/redesign/verification/r15/surface/panels-layouts/P-sec-sections.json, docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels sec-filing-detail, sec-filing-sections, sec-insider-AAPL-50, sec-insider-AAPL-form4, sec-insider-NVDA), sidecar/services/sec_filings_provider.py:325-355 (sections accepted only as a list), sidecar/services/sec_filings_provider.py:393-430 (rows skipped when transaction_date missing; issuer read from issuer_name/company_name, upstream sends name), sidecar/services/sec_filings_provider.py:559 + :75 (the empty FilingDetail is cached for 24 h)",
+  "notes": "Contract drift at a system boundary with no failure signal: the upstream sec-edgar-mcp (bundled binary) changed/never matched the shapes the parser was written for, and every mismatch degrades to an empty-but-successful 200, which the panel renders as 'no sections' / 'no insider trades' for Apple. Consequence: two of the SEC panel's three views are dead for every issuer, and the empty result is cached (24 h filing / 1 h insider) so a later fix to the upstream would not show until expiry. Not covered by COD-market-data-providers-2-1 (that is the fabricated metadata row on the same route). Smallest fix: accept the dict-of-sections shape (key -> title, skip non-str values) and the filing-level insider rows (filing_date as the date, 'name' as issuer), and treat an upstream 'success:true' payload that parses to zero rows as a logged parse error rather than a cacheable empty."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-2",
+  "title": "Bare NSE tickers (the form autocomplete and the watchlist store) go to Yahoo verbatim in News and Earnings and come back as a different, US-listed company",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "sidecar/services/news_provider.py + sidecar/services/earnings_provider.py (News, Earnings Calendar panels)",
+  "repro": "Region IN, watchlist RELIANCE,TCS,KAYNES,BDL (exactly what /resolve/autocomplete returns: bare NSE symbols). (a) GET /news?symbols=RELIANCE,TCS,KAYNES,BDL&limit=50 -> 3 items, 2 of them 'Flanigan's Stock Gains Post Q3 Earnings' / 'FLANIGAN'S REPORTS EARNINGS' from source 'Yahoo! Finance: BDL News', tagged symbols ['BDL'] (Flanigan's Enterprises, NYSE American: BDL, not Bharat Dynamics). (b) GET /earnings/upcoming?days=30&watchlist=RELIANCE,TCS,INFY,KAYNES,BDL -> one event, INFY 2026-10-23, eps_estimate_mean 0.20543, currency 'USD' - the Infosys NYSE ADR; GET /earnings/INFY/estimates -> eps 0.205 alongside revenue_estimate_mean 491,465,874,980 (INR-scale, Infosys quarterly revenue ~Rs 49,000 cr) under the same 'USD' label. The Earnings panel renders both without a currency (EpsEstimateGrid.tsx:25-31), so an Indian user reads Infosys EPS as 0.21.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-news-IN.json, docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels news-IN-watchlist, earn-upcoming-INwatch, earn-estimates-INFY, earn-estimates-INFY.NS, autocomplete-*), sidecar/services/news_provider.py:94-99 (comment: 'For un-suffixed Indian symbols this is best-effort'), sidecar/services/news_provider.py:275-290 (symbol formatted into the Yahoo feed URL verbatim), sidecar/services/earnings_provider.py:79-81 (_normalise_symbol only upper-cases and swaps '.'->'-'), sidecar/services/earnings_provider.py:147-179, src/modules/earnings/EpsEstimateGrid.tsx:25-31, src/modules/earnings/EarningsCalendarPanel.tsx:145-152",
+  "notes": "Wrong-entity data presented as the user's company: headlines of a US restaurant chain shown as Bharat Dynamics news, and an ADR's USD EPS mixed with INR revenue shown as Infosys' estimate. Root cause is that neither service resolves region-IN bare symbols to their exchange listing (the .NS/.BO suffix forms fail differently and are already filed: COD-market-data-providers-1-3 for earnings/ratings, COD-market-data-providers-2-3 for news). Distinct from SURF-RESEARCH-BRIEFS-10 (the deep-research news leg). Smallest fix: run request symbols through symbol_resolver (region-aware) before building the Yahoo feed / ticker, the way /history and /fundamentals already do (RELIANCE -> RELIANCE.NS), and render the contract's currency in the earnings grid."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-3",
+  "title": "Chart's 30m timeframe is dead for every symbol, and its empty state gives a false reason (for IN symbols: 'BSE/NSE serve end-of-day only - intraday needs a broker' while 1m/5m/15m/1h load)",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "sidecar/services/yfinance_provider.py + routers/history.py + ChartPanel timeframe select",
+  "repro": "GET /history/{SPY|AAPL|RELIANCE|RELIANCE.NS|TCS.NS}?timeframe=30m -> 200 bars [] provider 'none' (reason null for US, 'in_eod_only' for IN). Same symbols at 1m/5m/15m/1h -> 1,805/1,530/522/860-889 bars. sidecar.log: 'possibly delisted; no price data found (period=3mo) (Yahoo error = \"... data not available ... The requested range must be within the last 60 days.\")'. GET /indicators/SPY?indicators=rsi,sma&timeframe=30m -> 502 'correctness gate: empty series'. ChartPanel then shows 'No price data for this symbol' (US) or 'No EOD data for this symbol. BSE/NSE serve end-of-day only - intraday/realtime needs a BYOK broker (Kite/Upstox/Dhan).' (IN).",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels chart-*-30m, chart-*-1m/5m/15m/1h, indicators-SPY-rsi-30m), sidecar/services/yfinance_provider.py:69-78 ('30m': ('30m', '3mo')), sidecar/routers/history.py:16-28 and :71-80, src/modules/chart/ChartPanel.tsx:77 and :380-391",
+  "notes": "One of the eight load-bearing timeframe options is a dead control, and the fallback copy blames the symbol (US) or the exchange/broker model (IN) for what is a lookback-window bug in one provider map entry. Smallest fix: '30m' -> ('30m', '1mo') (inside Yahoo's 60-day intraday cap); separately only emit reason 'in_eod_only' when no intraday provider could serve the symbol at ANY intraday timeframe."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-4",
+  "title": "Weekly/monthly chart freshness badge is computed from the bar's period-start date: current monthly charts always read 'stale', weekly flips to 'stale' by Friday, and NSE period-end bars are 'EOD as of' a future date",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "sidecar/routers/history.py _label_series_freshness (Chart StalenessBadge)",
+  "repro": "GET /history/SPY?timeframe=1mo and /history/AAPL?timeframe=1mo (yfinance) -> last bar 2026-09-01, freshness 'stale' on 2026-09-23 although it is the live current month. freshness_for('IN', 2026-09-21 (current weekly bar), now=Fri 2026-09-25) -> 'stale'. GET /history/RELIANCE.NS?timeframe=1wk / 1mo (nse_direct) -> last bar 2026-09-27 / 2026-09-30, freshness 'eod', i.e. badge 'EOD as of 27 Sep / 30 Sep' on 23 Sep for closes that have not happened.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-freshness-period-bars.txt, docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels chart-SPY-1mo, chart-AAPL-1mo, chart-RELIANCE.NS-1wk, chart-RELIANCE.NS-1mo), sidecar/routers/history.py:31-52 (bars[-1].timestamp fed to freshness_for with intraday=False), sidecar/services/locale.py:227-254 (>3 sessions behind -> stale), src/modules/chart/ChartPanel.tsx:1423-1424, src/components/DataBadges.tsx:86-107",
+  "notes": "The freshness contract (FR-041, 'a stale series is never read as current') is inverted for period bars: current data is badged stale (erodes trust in the badge) and a period-end stamp dates a close in the future; the two providers also disagree on the bar-date convention, so the same chart shifts a whole period when the provider falls through. Smallest fix: for 1wk/1mo classify the series by 'is the last bar's period the current/most-recent period' (or pass as_of = min(period_end, most_recent_session)), and normalise bar timestamps to one convention in the registry."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-5",
+  "title": "Macro panel's IMF provider is 100% dead: every IMF catalog id contains '/', and the panel's encoded request never reaches the non-path route (404 'Not Found' for all 8 entries, including the only India series)",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "routers/macro.py + src/store/macro.ts (Macro panel)",
+  "repro": "GET /macro/catalog?provider=imf -> 8 entries, all 'IFS/<freq>.<cc>.<code>' (incl. 'IFS/A.IN.NGDP_R_K_IX'). The panel loads a pick via sidecarGet(`/macro/${encodeURIComponent(seriesId)}`, {provider}) -> /macro/IFS%2FA.US.NGDP_R_K_IX?provider=imf -> 404 {\"detail\":\"Not Found\"}; raw slash form /macro/IFS/A.US.NGDP_R_K_IX -> 404 too. The error row shows 'Not Found'.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels macro-catalog-imf-full, macro-imf-first, macro-imf-IFS/A.US.NGDP_R_K_IX-raw-slash, macro-imf-IFS/Q.US.NGDP_R_K_IX-raw-slash), sidecar/routers/macro.py:71 (@router.get('/{series_id}') - not '{series_id:path}'), src/store/macro.ts:82-84, sidecar/services/macro/imf_provider.py:6 and :44-52",
+  "notes": "Same class as the crypto-symbol 404 (Starlette decodes %2F before routing), here killing an entire provider tab that the catalog advertises; a keyless India-first user has exactly one India macro series in any catalog and it is this one. Smallest fix: declare the route as '/{series_id:path}' (or pass series_id as a query param) and add one IMF id to the router test."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-6",
+  "title": "Option Pricer's binomial Greeks: gamma is off by 1.4x-5.6x at normal step counts and exactly 0 at odd step counts (finite difference across CRR tree nodes)",
+  "severity": "high",
+  "area": "data",
+  "subsystem": "sidecar/services/quant/options.py _greeks_fd (Option Pricer panel, price_option agent tool)",
+  "repro": "POST /quant/option/price european call S=K=100, r=0.05, q=0, vol=0.2, 1y, method binomial: gamma 0.1056 at 50 steps, 0.0749 at 100, 0.0530 at 200 (panel default), 0.0000 at 201, 0.0336 at 500, 0.0237 at 1000, 0.0203 at 2000 vs Black-Scholes 0.018762 (5.63x, 3.99x, 2.82x, 0x, 1.79x, 1.26x, 1.08x). Panel default inputs (S=K=220, vol 0.28, 45 days, 200 steps): binomial gamma 0.02545 vs BS 0.01833 (1.39x). Theta is positive for a long call on every step count (the COD-macro-quant-1 sign bug, reproduced live).",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels quant-binomial-gamma-steps50..2000, quant-binomial-panel-defaults, quant-bs-panel-defaults, quant-option-call-binomial), sidecar/services/quant/options.py:121-146 (spot_bump = 0.01*spot; gamma = second difference of _price_binomial_npv), sidecar/services/quant/options.py:96-117 (CRR tree)",
+  "notes": "A CRR price is piecewise in spot at the node spacing (~S*vol*sqrt(dt) = 0.89 at 500 steps), so a +/-1% bump straddles a node boundary and the second difference measures tree discretisation, not curvature; odd/even step parity flips it to zero. The panel and the agent tool present these as the option's gamma with no caveat. Smallest fix: take delta/gamma from the tree itself (QuantLib's BinomialVanillaEngine exposes delta()/gamma() for the CRR lattice) or bump by several node widths and average adjacent step counts; add a BS-convergence test at 200 steps."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-7",
+  "title": "An Indian watchlist refresh is serialised by nse_direct's global 1 req/s throttle and saturates the shared thread pool: 20 names take 23 s warm (25 cold: 85 s), repeated back-to-back by the 5 s poll, stalling unrelated quote routes ~9x",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "routers/quotes.py batch + services/nse_provider.py throttle (Watchlist panel)",
+  "repro": "GET /quotes?symbols=<20 NIFTY names> warm -> 23.0 s (24.0 s under load); 25 mixed IN names cold -> 85.3 s. While a 20-name batch is in flight, GET /quotes/SPY takes 9.5 s vs 1.1 s idle (/history, a sync route on the anyio pool, is unaffected: 78 ms). The quotes are EOD closes (market_state CLOSED, freshness eod) re-fetched unchanged every cycle; WatchlistPanel polls every 5 s with an in-flight guard, so the refresh loop never idles.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels watchlist-25-mixed, watchlist-20-good-warm, idle-quote-SPY, contended-quote-SPY, contended-history-SPY, contended-watchlist-20), sidecar/routers/quotes.py:1-12 (docstring promises batch latency = slowest single symbol) and :64-88 (asyncio.to_thread fan-out on the default executor), sidecar/services/nse_provider.py:154-185 (process-global _Throttle, min_interval 1.0 s + 0.4 s jitter, sleeping while holding the worker thread), src/modules/watchlist/WatchlistPanel.tsx:24 and :195-221",
+  "notes": "Two designs fight: the batch route fans out to threads for parallelism, and the provider serialises every call behind one sleep-holding lock, so N IN symbols cost ~1.2*N seconds and pin ~min(N, executor size) threads that other to_thread routes (single quote, agent price_data, bar_loader) queue behind. It also hits NSE ~4 req/s continuously while the app is open, which is how the anti-bot breaker gets tripped. Smallest fix: cache IN EOD quotes until the next session close (they cannot change) and serve the batch from the bhavcopy/EOD store in one call; or take the throttle wait outside the executor (async sleep) and poll the watchlist on an EOD cadence when the market is closed."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-8",
+  "title": "Earnings events carry a fiscal quarter inferred from the report month, so every upcoming report is labelled one quarter late (JPM/TSLA October Q3 reports -> 'Q4 2026'), and the agent tool hands that label to the model",
+  "severity": "medium",
+  "area": "data",
+  "subsystem": "sidecar/services/earnings_provider.py _fiscal_period_for (Earnings Calendar, earnings_upcoming/earnings_estimates tools)",
+  "repro": "GET /earnings/upcoming?days=60 -> JPM scheduled 2026-10-13 fiscal_period {Q4, 2026}; TSLA 2026-10-22 {Q4, 2026}; INFY 2026-10-23 {Q4, 2026} (Infosys FY27 Q2). GET /earnings/AAPL/estimates -> {Q4, 2026} for the late-October report of Apple's fiscal Q4 only by coincidence. The earnings_upcoming tool returns event.model_dump() including fiscal_period to the model.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (labels earn-upcoming-default-60d, earn-upcoming-INwatch, earn-estimates-AAPL), sidecar/services/earnings_provider.py:102-125 (month<=3 -> Q1 ... month>=10 -> Q4, calendar year of the report; its own docstring says companies report Q1 in calendar Q2), sidecar/services/earnings_provider.py:268 and :437, sidecar/services/agent_tools/earnings_tools.py:60",
+  "notes": "A deterministic, always-wrong derived field on the wire: for calendar-year US companies it is one quarter late, for April-March Indian fiscal years it is wrong in both quarter and year. The panel does not render it, but the agent narrates it ('JPM reports Q4 2026 on 13 Oct'). Smallest fix: label the quarter that ENDED before the report date (previous calendar quarter), or omit fiscal_period when the provider does not supply one; never infer it for non-calendar fiscal years."
+ },
+ {
+  "raw_id": "SURF-PANELS-LAYOUTS-9",
+  "title": "Yield Curve: two instruments on the same pillar crash the bootstrap with an uncaught 500 that carries no CORS header, so the panel shows a generic fetch failure instead of the cause",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "routers/quant.py yield-curve + YieldCurvePanel validation",
+  "repro": "POST /quant/yield-curve with the panel's default instruments plus a second 10-year swap (or any tenor edited to collide, e.g. the 6-month deposit changed to 2 years) -> 500 text/plain 'Internal Server Error' with no access-control-allow-origin (a 200 from the same route carries 'access-control-allow-origin: *'); sidecar.log: 'RuntimeError: more than one instrument with pillar May 18th, 2036'. The panel's inline validation (tenor >= 1, finite rate) passes it through.",
+  "evidence": "docs/redesign/verification/r15/surface/panels-layouts/P-http-log.jsonl (label quant-yc-dup-tenor), sidecar/routers/quant.py:63-69 (catches ValueError only), src/modules/quant/YieldCurvePanel.tsx:149-160, src/store/quant.ts:58-78, sidecar/app.py:303",
+  "notes": "The CLAUDE.md CORS-error-masks-500 trap on a user-reachable input: QuantLib raises RuntimeError, the route maps only ValueError, and in the webview the fetch rejects before the body is readable, so the error row cannot say 'duplicate tenor'. Smallest fix: reject duplicate (tenor, unit) pillars in the panel's validationError and map RuntimeError to a 400 in the route."
+ }
+]

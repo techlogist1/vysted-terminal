@@ -5,6 +5,14 @@
 claimed table-stakes gap against the actual code before filing it.
 Read-only: no repo file was modified except this one and `raw/world-table-stakes.json`.
 
+**Session-2 verify pass:** `OPP-LEDGER verify` · **Worker model:** `claude-sonnet-5` ·
+**Date:** 2026-09-23. Every Tier-A entry (OPP-1…OPP-7) re-checked against current HEAD and against
+the operator's 23 Sep 03:46 IST trading-removal decision. Result: 3 held as written (OPP-1, OPP-2,
+OPP-4), 3 corrected in place (OPP-3: a shipped deliverable narrowed the remaining work; OPP-6,
+OPP-7: broker-only evidence struck, non-broker/local evidence retained), 1 struck (OPP-5: subject
+is entirely broker connection, on the trading-removal surface). Detail in
+`census/opp-ledger-verify.md`.
+
 ## Inputs
 
 | File | State | Opportunities carried |
@@ -86,6 +94,13 @@ and it is a composition of four shipped subsystems.
 **Table-stakes floor underneath it:** `WLD-T-1` (critical). Ship the floor first; the watcher is
 what makes the floor worth having.
 
+`verified: 2026-09-23` — every citation re-opened at current HEAD (`runs.py:63`/`:126`,
+`builtin.py:321-336`, `workflow.ts:180`, `disclosures.py:36-40`, `catalog.py:1309,946,1374`) still
+matches the code at those lines verbatim; `sidecar/` has zero `APScheduler`/`croniter`/
+`CronTrigger`/`schedule.every` hits, so no trigger/scheduler capability has shipped since this
+entry was filed. Not on the trading-removal surface (no broker dependency in the composition).
+Holds as written.
+
 ### OPP-2 — The ₹ lakh/crore scale witness
 
 **Score:** 3 × 3 × 3 · **Size:** S
@@ -119,9 +134,15 @@ the figure extracted from it, and **flags**. This is the highest-leverage item i
 it converts the benchmark's most-cited failure into a stated Vysted guarantee, using a contract
 that already shipped twice.
 
+`verified: 2026-09-23` — `range_check.py:1-20`, `market_cap_witness.py:1-20`,
+`extract.py:75,86-87` and `semantics.py:603-607` all still match verbatim at current HEAD; no third
+(scale-vs-magnitude) witness exists anywhere in `sidecar/services/research/`. Not on the
+trading-removal surface. Holds as written.
+
 ### OPP-3 — Make the trust machinery visible (disagreement card, per-figure source, benchmark page)
 
-**Score:** 3 × 3 × 3 · **Size:** S–M
+**Score:** 3 × 3 × 2 (evidence unchanged, moat unchanged, proximity now 2 — deliverable (a) already
+shipped) · **Size:** S (down from S–M — one of the three deliverables is done)
 
 **Unmet need.** Citations are table stakes and they actively mislead: users report that "the
 presence of sources can create a false sense of certainty, and if the sources are mid, outdated, or
@@ -143,11 +164,19 @@ between sources** as a visible object.
 strips invalid markers and softens unsupported sentences; the brief renders typed blocks with a
 metric grid whose `deriveMetrics` returns `null` rather than fabricate
 (`src/modules/research/brief-blocks.tsx`); `shareholding_pattern` already carries `split_source` /
-`split_as_of` provenance stamps. Three deliverables, ascending cost: (a) a "two sources disagree —
-here are both, as of these dates" card in `BriefBody`; (b) per-figure source attribution on the
-metric cards; (c) a public benchmark page showing the exact number Perplexity got wrong by 1000×
-next to Vysted's answer and the filing page it came from. Neither benchmark can copy (a) without
-rebuilding their provenance.
+`split_as_of` provenance stamps. Three deliverables, ascending cost: ~~(a) a "two sources disagree
+— here are both" card in `BriefBody`~~ **[CORRECTED 2026-09-23: already shipped, not one step
+away.]** `src/modules/research/brief-blocks.tsx:129-176` (`ConflictLine`/`conflictLines`) already
+renders exactly this — one line per flagged conflict naming both values and both providers
+(`"Sources disagree on {field}: {value} ({provider}) vs {value} ({provider}) — {note}"`), tiered by
+`conflict_kind` (`definitional_expected` vs `data_conflict`) with distinct tone/chip per
+`types/brief.ts:93-108` (`BriefMetricConflict`). It landed in `38d08e6` (R10) and was refined by
+`ac694ea` (R13) — both predate this ledger's 2026-09-19 filing, so this was a miss, not a
+regression. Remaining deliverables: (b) per-figure source attribution on the metric cards
+themselves (not just the conflict-flag row — a card with only one source today shows no
+attribution at all); (c) a public benchmark page showing the exact number Perplexity got wrong by
+1000× next to Vysted's answer and the filing page it came from. Neither benchmark can copy (b) or
+(c) without rebuilding their provenance.
 
 ### OPP-4 — Guidance vs delivery: the concall tracker nobody ships
 
@@ -171,7 +200,23 @@ is a new agent prompt over shipped tools plus one stored object per call — **n
 pipeline. Blocked on having the transcript at all (`WLD-T-6`); the *schedule* half is already on
 the wire and merely unregistered (`WLD-T-7`).
 
-### OPP-5 — One-click, keyless broker connect ⚠ TIER-4 ADJACENT
+`verified: 2026-09-23` — `catalog.py:528,537,547,655,1177` all still match verbatim; no
+`transcript` capability exists anywhere in `catalog.py` (grep, zero hits), so `WLD-T-6` still
+blocks it exactly as stated. Not on the trading-removal surface (earnings calls and corporate
+announcements are not a broker dependency). Holds as written.
+
+### [STRUCK] OPP-5 — One-click, keyless broker connect ⚠ TIER-4 ADJACENT
+
+**`struck: 2026-09-23`** — this entry's entire subject is connecting a broker (a keyless MCP path
+to a broker account). Operator decision 23 Sep 03:46 IST removed trading from the product; per
+`stage0/RECONCILE_MANIFEST.md`, the whole `brokers-adapters` partition (adapters/routes/panels/
+plugins/orders store) is `removed_with_feature`, and this opportunity's subject "exists only to
+connect a broker" per the session-2 scope note — never a defect or an opportunity to file. The
+underlying code citations (`openbb_mcp.rs`, `sec_edgar_mcp.rs`, `brokers.py:415`, `kite.py:13-17`)
+are still accurate as of this HEAD, but the code they describe (the broker adapters + the
+Kite-session exchange route) is itself on the removal surface and will not survive the removal
+batch — building toward it now would be building on ground about to be cleared. Kept, not deleted,
+per the ledger's own instruction that the record of what was considered matters.
 
 **Score:** 3 × 2 × 2 · **Size:** S–M · **Do not bake in: surface to the operator.**
 
@@ -200,20 +245,29 @@ touch one.
 **Score:** 3 × 2 × 3 · **Size:** M
 
 **Unmet need.** MCP's entire premise is servers the user brings. The Indian ecosystem is already
-populated and Vysted can consume none of it: Zerodha official
-(https://github.com/zerodha/kite-mcp-server), Upstox ×2
+populated: ~~Zerodha official (https://github.com/zerodha/kite-mcp-server), Upstox ×2
 (https://glama.ai/mcp/servers/adibhattar95/upstox-mcp-server), Angel One SmartAPI, Dhan, Groww,
-5paisa, INDmoney, a multi-broker server (https://lobehub.com/mcp/sharuniyer-indian-broker-mcp), and
-~8 screener.in scrapers (https://github.com/ronyv89/screener-mcp). Fiscal.ai charges $588/yr for a
-tier that includes "REST + MCP" (https://quantbrainai.net/blog/fiscal-ai-review-jul-2026/) — the
-surface is commercially validated.
+5paisa, INDmoney, a multi-broker server (https://lobehub.com/mcp/sharuniyer-indian-broker-mcp)~~
+**[CORRECTED 2026-09-23: the broker examples above are on the trading-removal surface —
+connecting to any of these servers exists only to reach a broker account, so they no longer
+motivate this entry; struck from the evidence, not the opportunity]**, plus ~8 screener.in
+scrapers (https://github.com/ronyv89/screener-mcp) and Fiscal.ai's $588/yr "REST + MCP" tier
+(https://quantbrainai.net/blog/fiscal-ai-review-jul-2026/) — both broker-independent and both
+still fully in scope. The opportunity itself — a user-config'd MCP server list, not any one
+server — is a general platform capability, not a broker-connect feature, so it survives the
+removal on its own non-broker evidence.
 
 **One step away.** Vysted owns the hard half already (Rust-spawned subprocess lifecycle, port-wait,
 graceful degrade; `crate::wait_for_port`). What is missing is a user-config'd server list —
 `sidecar/routers/mcp.py` exposes only `/mcp/status` (:28) and `/openbb-mcp/status` (:44). Turns
-"add a broker" from "write a Python adapter" into "paste a URL and declare it read-only". Files
-as table stakes too (`WLD-T-5`) because MCP-server-only while calling MCP the universal tool layer
-is a positioning contradiction.
+"add a screener-scrape or filing server" from "write a Python adapter" into "paste a URL and
+declare it read-only". Files as table stakes too (`WLD-T-5`) because MCP-server-only while calling
+MCP the universal tool layer is a positioning contradiction.
+
+`verified: 2026-09-23` — `mcp.py:28,44` still match verbatim (`GET /mcp/status`,
+`GET /openbb-mcp/status`); no user-config'd or third `@router` route exists in that file. Holds,
+corrected (broker examples struck from evidence per above; screener/filing MCP examples and the
+core capability stand).
 
 ### OPP-7 — Portfolio-aware research (the thing a local-first app can do privately)
 
@@ -225,13 +279,23 @@ structural, not a roadmap item: Perplexity's Portfolio is Plaid-backed and Plaid
 aggregation is US/Canada. **The Indian Perplexity user has free quotes, news, transcripts and an NL
 screener — and no book.**
 
-**One step away.** `get_portfolio` and `broker_portfolio` are shipped capabilities
-(`catalog.py:946,911`), granular broker reads carry FR-041 provenance
-(`sidecar/models/broker_reads.py`), and `portfolio_advisor.json` is one of the 14 first-party
-agents (`sidecar/agents/`). Threading "your actual position and cost basis" into the research
-context assembly is a prompt/context step over data Vysted already holds **locally** — which is
-precisely the thing a cloud product cannot do privately, and the reason this is a moat rather than
-a feature.
+**One step away.** `get_portfolio` is a shipped capability (`catalog.py:946`,
+`domain="portfolio"`) reading the user's **local, manually-tracked** positions — squarely in scope
+per the 23 Sep scope note (tracked holdings/cost bases/P&L stay). ~~`broker_portfolio` is also a
+shipped capability (`catalog.py:911`), granular broker reads carry FR-041 provenance
+(`sidecar/models/broker_reads.py`)~~ **[CORRECTED 2026-09-23: struck from evidence —
+`broker_portfolio` (`sidecar/services/agent_tools/broker_portfolio.py:1-41`) reads a REAL
+connected-broker account via `services.brokers.registry`, so it is on the trading-removal surface
+along with the rest of `brokers-adapters`; it will not survive the removal batch.]**
+`portfolio_advisor.json` is one of the first-party agents (`sidecar/agents/`). Threading "your
+actual position and cost basis" into the research context assembly is a prompt/context step over
+the **local** portfolio data Vysted already holds — `get_portfolio` alone is sufficient evidence
+for this opportunity; it never needed the broker read.
+
+`verified: 2026-09-23` — `catalog.py:946` and `sidecar/agents/portfolio_advisor.json` confirmed
+present and matching. Holds, corrected (broker-read evidence struck; local-portfolio evidence
+alone still supports the opportunity, unweakened — arguably strengthened, since "local-first
+private portfolio reasoning" is now the *entire* mechanism rather than one of two).
 
 ---
 

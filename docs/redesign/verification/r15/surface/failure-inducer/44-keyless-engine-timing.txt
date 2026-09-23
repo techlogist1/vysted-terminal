@@ -1,0 +1,9 @@
+# Per-engine timing of ONE cold web_search call (harness/eng_timing.py, run from sidecar/ with
+# PATH=/usr/bin:/bin:/usr/sbin:/sbin so the managed SearXNG lane is not_installed_docker), 23 Sep ~09:50 IST
+   0.0s manager.ready_base_url_detected ok in 0.0s -> NoneType
+  20.6s engine[ddg].search FAIL in 20.5s -> SearchError: keyless web search (DuckDuckGo) is unreachable — check your network, or add an Exa key / local SearXNG for a dedicated search route
+  41.5s engine[ddg].search FAIL in 20.4s -> SearchError: keyless web search (DuckDuckGo) is unreachable — check your network, or add an Exa key / local SearXNG for a dedicated search route
+  42.5s engine[brave].search ok in 0.9s -> SearchResponse
+TOTAL 42.5s ok=True backend=keyless-fallback n=5
+# Agent dispatch cap for web_search: catalog.py timeout_seconds=25.0 (agent_runtime.py:652-666 wait_for)
+# => in-agent the call is cut at 25 s, while DDG's two attempts alone take ~41 s; Brave (0.9 s) is never reached.

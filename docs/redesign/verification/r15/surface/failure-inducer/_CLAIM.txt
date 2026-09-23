@@ -1,0 +1,2 @@
+continued 09:53:36 - COVERAGE.json written from existing evidence; no sidecar booted; raw 5 / refute 5 unchanged
+verified 09:54:31 by continuation agent (claude-opus-5-5[1m]): raw/refute parity + verdict fields OK, COVERAGE rows all terminal, own ports free; spot-checked catalog.py:313, chat-history.ts:213-219, openai.py:785-830; nothing rewritten
