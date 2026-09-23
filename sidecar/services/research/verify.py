@@ -47,6 +47,7 @@ not renumbered into the rail).
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -60,7 +61,6 @@ from services.research.deep import (
     _emit,
     _safe_llm,
     _safe_tool,
-    _split_subquestions,
     leading_token,
 )
 from services.research.models import ResearchBrief, ResearchStep
@@ -169,9 +169,37 @@ async def _extract_claims(llm_call: LLMCall, brief: ResearchBrief) -> list[str]:
             {"role": "user", "content": brief.markdown[:_MAX_BRIEF_CHARS]},
         ],
     )
-    claims = _split_subquestions(text, limit=_MAX_CLAIMS)
+    claims = _split_claims(text, limit=_MAX_CLAIMS)
     # A "claim" without a digit cannot be numerically cross-checked — drop it.
     return [c for c in claims if any(ch.isdigit() for ch in c)]
+
+
+#: A list marker a model may put before a claim line despite "no numbering":
+#: a bullet or an ordered prefix, each only when WHITESPACE follows — so the
+#: sign of "-0.4%" and the integer part of "40.5%" are never read as markers.
+_CLAIM_MARKER = re.compile(r"^(?:[-*•]|\d+[.)])\s+")
+
+
+def _split_claims(text: str, *, limit: int) -> list[str]:
+    """Parse the claim-extraction reply into claim lines, figures intact.
+
+    One claim per line (a claim's own text may carry ``;``), list markers
+    stripped by :data:`_CLAIM_MARKER`, empties and case-insensitive repeats
+    dropped, capped at ``limit``.
+    """
+    seen: set[str] = set()
+    out: list[str] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        while match := _CLAIM_MARKER.match(line):
+            line = line[match.end() :]
+        if not line or line.lower() in seen:
+            continue
+        seen.add(line.lower())
+        out.append(line)
+        if len(out) >= limit:
+            break
+    return out
 
 
 async def _verdict_for(
@@ -378,15 +406,21 @@ async def cross_check(
             for row in (native_res.get("citations") or [])
             if isinstance(row, dict) and row.get("url")
         ]
-        domains = _row_domains(rows) | _row_domains(native_rows)
+        searxng_domains = _row_domains(rows)
+        native_domains = _row_domains(native_rows)
+        domains = searxng_domains | native_domains
         channels: list[str] = []
         if rows:
             channels.append("searxng")
         if native_text:
             channels.append("native")
-        # Independence: distinct registrable domains, plus the native grounded
-        # completion counting as ONE additional independent retrieval path.
-        independence = len(domains) + (1 if native_text else 0)
+        # Independence: distinct registrable domains. A native completion that
+        # cites its sources is already counted by those domains; only an
+        # UNCITED native completion adds one retrieval path of its own.
+        independence = len(domains) + (1 if native_text and not native_rows else 0)
+        # The lanes corroborate each other only when the native lane rests on
+        # a domain the SearXNG lane did not already reach.
+        distinct_lanes = not native_rows or not native_domains <= searxng_domains
         if independence < max(1, min_domains):
             verdict, detail = (
                 _VERDICT_UNVERIFIED,
@@ -405,7 +439,10 @@ async def cross_check(
         if native_search is not None:
             check["channels"] = channels
             check["corroborated"] = (
-                verdict == _VERDICT_AGREE and "searxng" in channels and "native" in channels
+                verdict == _VERDICT_AGREE
+                and "searxng" in channels
+                and "native" in channels
+                and distinct_lanes
             )
         checks.append(check)
 
@@ -427,10 +464,12 @@ async def cross_check(
         brief.note = f"{brief.note}; {flag}" if brief.note else flag
 
     lane = " across both channels" if native_search is not None else ""
+    agreed = sum(1 for c in checks if c["verdict"] == _VERDICT_AGREE)
+    unverified = sum(1 for c in checks if c["verdict"] == _VERDICT_UNVERIFIED)
     step = ResearchStep(
         "reflect",
-        f"cross-check: verified {len(checks)} numeric claim(s){lane}, "
-        f"{disagreements} disagreement(s)",
+        f"cross-check: checked {len(checks)} numeric claim(s){lane}: "
+        f"{agreed} verified, {unverified} unverified, {disagreements} disagreement(s)",
         latency_ms=int((time.monotonic() - t0) * 1000),
     )
     brief.steps.append(step)

@@ -413,3 +413,56 @@ def test_no_native_channel_keeps_single_lane_shape() -> None:
     assert set(payload["claims"][0].keys()) == {"claim", "verdict", "detail", "domains"}
     assert "single-channel" not in brief.markdown
     assert "corroborated across channels" not in brief.markdown
+
+
+def test_claims_keep_their_sign_and_decimal() -> None:
+    """R15-RESEARCH-004: a figure that starts a claim line reaches the
+    cross-check intact, and the step label counts each verdict separately."""
+    claims = "40.5% revenue growth\n-0.4% earnings growth\n67.13953 P/E"
+    llm = _FakeLLM(claims=claims, verdict="UNVERIFIED - no matching figure")
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    checked = [c["claim"] for c in brief.structured["cross_check"]["claims"]]
+    assert checked == ["40.5% revenue growth", "-0.4% earnings growth", "67.13953 P/E"]
+    assert any("0 verified, 3 unverified, 0 disagreement(s)" in s.detail for s in brief.steps), [
+        s.detail for s in brief.steps
+    ]
+
+
+def test_numbered_claim_line_loses_only_its_marker() -> None:
+    from services.research.verify import _split_claims
+
+    assert _split_claims("1. 40.5% revenue growth", limit=5) == ["40.5% revenue growth"]
+    assert _split_claims("- -0.4% earnings growth", limit=5) == ["-0.4% earnings growth"]
+
+
+def test_one_domain_reached_by_both_lanes_is_not_independent() -> None:
+    """R15-RESEARCH-015: the native lane's cited domain is already counted in
+    ``domains`` — the same lane may not add a second independence point."""
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE — both state $12.96")
+    native = {
+        "ok": True,
+        "text": "EPS was $12.96 per blog.example.",
+        "citations": [{"url": "https://blog.example/native", "title": "t"}],
+    }
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(["https://blog.example/a"]),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(native),
+        )
+    )
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["corroborated"] is False
+    assert llm.verdict_prompts == []
+    assert "corroborated across channels" not in brief.markdown
