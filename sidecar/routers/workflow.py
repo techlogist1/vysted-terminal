@@ -4,7 +4,7 @@ Routes:
 
   - ``POST /workflow/run``        — SSE stream of :class:`WorkflowRunEvent`
   - ``POST /workflow/save``       — persist a workflow spec (upsert)
-  - ``GET  /workflow/saved``      — list all saved workflows
+  - ``GET  /workflow/saved``      — list saved workflows (+ ``unreadable`` rows)
   - ``GET  /workflow/saved/{id}`` — load one saved workflow
   - ``DELETE /workflow/saved/{id}`` — delete a saved workflow
 
@@ -23,7 +23,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 import config
-from models.workflow import WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec
+from models.workflow import SavedWorkflows, WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec
 from services import workflow_engine, workflow_store
 
 logger = logging.getLogger(__name__)
@@ -95,15 +95,18 @@ def save_workflow(spec: WorkflowSpec) -> WorkflowSpec:
 
 
 @router.get("/saved")
-def list_saved_workflows() -> dict[str, list[WorkflowSpec]]:
-    """Return every saved workflow, newest-updated first."""
-    return {"workflows": workflow_store.list_workflows()}
+def list_saved_workflows() -> SavedWorkflows:
+    """Return every openable saved workflow (newest first) plus the unreadable rows."""
+    return workflow_store.list_workflows()
 
 
 @router.get("/saved/{workflow_id}")
 def get_saved_workflow(workflow_id: str) -> WorkflowSpec:
-    """Load one saved workflow."""
-    spec = workflow_store.get_workflow(workflow_id)
+    """Load one saved workflow; 409 when it is another schema major."""
+    try:
+        spec = workflow_store.get_workflow(workflow_id)
+    except workflow_store.UnsupportedWorkflowVersion as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if spec is None:
         raise HTTPException(status_code=404, detail=f"unknown workflow {workflow_id!r}")
     return spec

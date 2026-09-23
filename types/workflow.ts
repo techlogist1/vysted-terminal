@@ -64,12 +64,28 @@ export interface WorkflowSpec {
   name: string;
   /** Optional one-line description shown in the workflow list. */
   description?: string;
-  /** Schema version; the engine refuses unknown majors. v0.5.0 ships `1`. */
+  /**
+   * Schema version; v0.5.0 ships `1`. The sidecar refuses to load a saved
+   * spec of another major (409) and lists it under `unreadable`.
+   */
   version: number;
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
   /** Epoch milliseconds when this workflow was last saved. */
   updatedAt: number;
+}
+
+/** A saved row this build cannot open (invalid spec or another schema major). */
+export interface UnreadableWorkflow {
+  id: string;
+  name: string;
+  reason: string;
+}
+
+/** `GET /workflow/saved` — the openable specs plus the rows that are not. */
+export interface SavedWorkflows {
+  workflows: WorkflowSpec[];
+  unreadable: UnreadableWorkflow[];
 }
 
 // ---------------------------------------------------------------------------

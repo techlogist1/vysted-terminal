@@ -59,7 +59,12 @@ import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
 import { useWorkflowStore } from "@/store/workflow";
 
-import type { WorkflowRunRequest, WorkflowSpec } from "../../../types/workflow";
+import type {
+  SavedWorkflows,
+  UnreadableWorkflow,
+  WorkflowRunRequest,
+  WorkflowSpec,
+} from "../../../types/workflow";
 import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
 import { CodeNodeInspector } from "./code-node-inspector";
 import { evaluateCodeNodes, partitionWorkflow } from "./code-node-run";
@@ -163,6 +168,7 @@ function NodeEditorPanelInner() {
   // --- Load dialog (a simple modal list) ------------------------------------
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [savedList, setSavedList] = useState<SavedSummary[]>([]);
+  const [unreadableList, setUnreadableList] = useState<UnreadableWorkflow[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -309,6 +315,7 @@ function NodeEditorPanelInner() {
   const openLoadDialog = useCallback(async () => {
     setLoadError(null);
     setSavedList([]);
+    setUnreadableList([]);
     setLoadingList(true);
     setLoadDialogOpen(true);
     try {
@@ -317,7 +324,7 @@ function NodeEditorPanelInner() {
       if (!response.ok) {
         throw new Error(`list failed (${response.status})`);
       }
-      const payload = (await response.json()) as { workflows: WorkflowSpec[] };
+      const payload = (await response.json()) as SavedWorkflows;
       const summaries: SavedSummary[] = payload.workflows.map((spec) => ({
         id: spec.id,
         name: spec.name,
@@ -325,6 +332,7 @@ function NodeEditorPanelInner() {
         updatedAt: spec.updatedAt,
       }));
       setSavedList(summaries);
+      setUnreadableList(payload.unreadable);
     } catch (error: unknown) {
       setLoadError(error instanceof Error ? error.message : "Failed to list workflows.");
     } finally {
@@ -648,6 +656,7 @@ function NodeEditorPanelInner() {
       {loadDialogOpen && (
         <LoadDialog
           summaries={savedList}
+          unreadable={unreadableList}
           loadingList={loadingList}
           error={loadError}
           onClose={() => setLoadDialogOpen(false)}
@@ -857,13 +866,21 @@ function FreeFormConfigEditor({
 
 interface LoadDialogProps {
   summaries: readonly SavedSummary[];
+  unreadable: readonly UnreadableWorkflow[];
   loadingList: boolean;
   error: string | null;
   onClose: () => void;
   onPick: (id: string) => void;
 }
 
-function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDialogProps) {
+function LoadDialog({
+  summaries,
+  unreadable,
+  loadingList,
+  error,
+  onClose,
+  onPick,
+}: LoadDialogProps) {
   // Close on Escape — the dialog is a hand-rolled modal (no Radix), so wire the
   // keyboard dismissal explicitly while it's mounted.
   useEffect(() => {
@@ -910,7 +927,7 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
           <p className="text-charcoal-400 text-caption animate-pulse font-mono">
             Fetching workflows…
           </p>
-        ) : summaries.length === 0 ? (
+        ) : summaries.length === 0 && unreadable.length === 0 ? (
           <p className="text-charcoal-400 text-caption font-mono">No saved workflows yet.</p>
         ) : (
           <ul
@@ -918,6 +935,19 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
               "flex max-h-72 flex-col gap-1 overflow-y-auto" /* tokens-ok: saved-workflow list scroll cap - layout */
             }
           >
+            {unreadable.map((u) => (
+              <li
+                key={u.id}
+                data-testid={`unreadable-workflow-${u.id}`}
+                title={u.reason}
+                className="border-charcoal-800 rounded-control text-caption border border-dashed px-2 py-2 font-mono"
+              >
+                <div className="text-charcoal-400">{u.name}</div>
+                <div className="text-charcoal-500 text-micro">
+                  Can&apos;t be opened by this version
+                </div>
+              </li>
+            ))}
             {summaries.map((s) => (
               <li key={s.id}>
                 <button

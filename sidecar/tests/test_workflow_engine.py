@@ -9,6 +9,7 @@ implementations.
 from __future__ import annotations
 
 import asyncio
+import json
 from typing import Any
 
 import pytest
@@ -328,9 +329,49 @@ def test_workflow_store_list_and_delete(temp_data_dir: object) -> None:
     workflow_store.save_workflow(b)
 
     saved = workflow_store.list_workflows()
-    assert {s.id for s in saved} == {"wf-a", "wf-b"}
+    assert {s.id for s in saved.workflows} == {"wf-a", "wf-b"}
 
     assert workflow_store.delete_workflow("wf-a") is True
     assert workflow_store.delete_workflow("wf-a") is False  # idempotent
     remaining = workflow_store.list_workflows()
-    assert {s.id for s in remaining} == {"wf-b"}
+    assert {s.id for s in remaining.workflows} == {"wf-b"}
+
+
+def _insert_raw_row(row_id: str, name: str, spec_json: str) -> None:
+    with workflow_store._connect() as conn:
+        conn.execute(
+            "INSERT INTO workflows (id, name, spec_json, updated_at) VALUES (?, ?, ?, ?)",
+            (row_id, name, spec_json, 1),
+        )
+
+
+def test_one_unreadable_row_does_not_hide_the_rest(temp_data_dir: object) -> None:
+    from fastapi.testclient import TestClient
+
+    from app import create_app
+
+    workflow_store.save_workflow(_spec([_node("a", "t")], []))
+    good = json.loads(_spec([_node("a", "t")], []).model_dump_json(by_alias=True))
+    _insert_raw_row("wf-bad", "Renamed field", json.dumps({**good, "id": "wf-bad", "extra": 1}))
+
+    body = TestClient(create_app()).get("/workflow/saved").json()
+
+    assert [w["id"] for w in body["workflows"]] == ["wf-test"]
+    assert [(u["id"], u["name"]) for u in body["unreadable"]] == [("wf-bad", "Renamed field")]
+    assert "extra" in body["unreadable"][0]["reason"]
+
+
+def test_a_spec_of_another_schema_major_is_refused_on_load(temp_data_dir: object) -> None:
+    from fastapi.testclient import TestClient
+
+    from app import create_app
+
+    future = json.loads(_spec([_node("a", "t")], []).model_dump_json(by_alias=True))
+    _insert_raw_row("wf-next", "From v2", json.dumps({**future, "id": "wf-next", "version": 2}))
+
+    with pytest.raises(workflow_store.UnsupportedWorkflowVersion, match="version 2"):
+        workflow_store.get_workflow("wf-next")
+    client = TestClient(create_app())
+    assert client.get("/workflow/saved/wf-next").status_code == 409
+    listed = client.get("/workflow/saved").json()
+    assert [u["id"] for u in listed["unreadable"]] == ["wf-next"]

@@ -13,13 +13,21 @@ echoes it back on every subsequent save (upsert).
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 
 from config import get_data_dir
-from models.workflow import WorkflowSpec
+from models.workflow import (
+    WORKFLOW_SPEC_VERSION,
+    SavedWorkflows,
+    UnreadableWorkflow,
+    WorkflowSpec,
+)
+
+_log = logging.getLogger(__name__)
 
 DB_FILENAME = "workflows.db"
 
@@ -50,17 +58,40 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
+class UnsupportedWorkflowVersion(ValueError):
+    """A saved spec's schema major is not the one this build reads."""
+
+
 def _row_to_spec(row: sqlite3.Row) -> WorkflowSpec:
-    return WorkflowSpec.model_validate(json.loads(row["spec_json"]))
+    spec = WorkflowSpec.model_validate(json.loads(row["spec_json"]))
+    if spec.version != WORKFLOW_SPEC_VERSION:
+        raise UnsupportedWorkflowVersion(
+            f"saved with workflow schema version {spec.version}; "
+            f"this build reads version {WORKFLOW_SPEC_VERSION}"
+        )
+    return spec
 
 
-def list_workflows() -> list[WorkflowSpec]:
-    """Return every saved workflow, newest-updated first."""
+def list_workflows() -> SavedWorkflows:
+    """Return every openable saved workflow, newest-updated first.
+
+    A row that no longer validates (or is another schema major) is logged and
+    listed under ``unreadable`` instead of failing the whole list.
+    """
     with _connect() as conn:
         rows = conn.execute(
             "SELECT id, name, spec_json, updated_at FROM workflows ORDER BY updated_at DESC"
         ).fetchall()
-    return [_row_to_spec(row) for row in rows]
+    saved = SavedWorkflows(workflows=[])
+    for row in rows:
+        try:
+            saved.workflows.append(_row_to_spec(row))
+        except ValueError as exc:  # ValidationError / JSONDecodeError / version
+            _log.warning("workflow_store: saved workflow %r is unreadable: %s", row["id"], exc)
+            saved.unreadable.append(
+                UnreadableWorkflow(id=row["id"], name=row["name"], reason=str(exc))
+            )
+    return saved
 
 
 def get_workflow(workflow_id: str) -> WorkflowSpec | None:
