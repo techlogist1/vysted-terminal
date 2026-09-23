@@ -25,7 +25,11 @@ from typing import Any
 TTL_SECONDS = 600.0
 
 #: The statuses the frontend may report for one applied host action.
-KNOWN_STATUSES = ("applied", "kept_previous", "failed")
+#: ``staged`` (D-B3-2, contract C1) is NON-terminal: an AUTO-session change that
+#: waits in the review queue. A later terminal ack replaces it; it never
+#: replaces a terminal ack (the two POSTs can arrive out of order).
+KNOWN_STATUSES = ("applied", "kept_previous", "failed", "staged")
+_NON_TERMINAL = frozenset({"staged"})
 
 # tool_call_id -> (expires_at_monotonic, entry)
 _LEDGER: dict[str, tuple[float, dict[str, Any]]] = {}
@@ -66,6 +70,13 @@ def record(
     now = time.monotonic()
     with _LOCK:
         _prune_locked(now)
+        existing = _LEDGER.get(tool_call_id)
+        if (
+            status in _NON_TERMINAL
+            and existing is not None
+            and existing[1]["status"] not in _NON_TERMINAL
+        ):
+            return
         _LEDGER[tool_call_id] = (
             now + TTL_SECONDS,
             {

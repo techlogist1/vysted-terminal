@@ -1232,6 +1232,19 @@ def _grounded_host_action_result(tool_call: LLMToolUseEvent, entry: dict[str, An
                     "run superseded this) — do NOT claim this change rendered."
                 ),
             }
+        elif status == "staged":
+            # D-B3-2: AUTO does not skip review for this kind; it waits in the
+            # user's review queue. Not applied, and not a failure either.
+            payload = {
+                "ok": True,
+                "status": "staged",
+                "detail": descriptor,
+                "note": (
+                    "Staged in the user's review queue, awaiting their review — it has "
+                    "NOT been applied yet. Tell the user you proposed it; do not claim "
+                    "it is done."
+                ),
+            }
         else:  # failed / unknown — an honest non-application.
             payload = {
                 "ok": False,
