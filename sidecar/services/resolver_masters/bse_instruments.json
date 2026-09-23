@@ -3,7 +3,7 @@
   "_generated": "2026-06-09",
   "_source": "https://api.bseindia.com/BseIndiaAPI/api/ListOfScripData/w?Group=&Scripcode=&industry=&segment=Equity&status=Active",
   "_note": "Full BSE scrip master regenerated via regenerate_bse_master.py from the ListOfScripData endpoint (all equity groups incl. the SME M/MT tiers). Rows are [SCRIP_CODE, SYMBOL, NAME, GROUP, ISIN, STATUS], market-cap ordered. Do not hand-edit; rerun the script to refresh.",
-  "_groups": {"B": 1621, "X": 1296, "A": 724, "XT": 399, "M": 327, "T": 205, "MT": 155, "Z": 67, "P": 57, "MS": 6, "ZP": 5, "TS": 5, "IP": 3, "Y": 2, "R": 1},
+  "_groups": {"B": 1621, "X": 1296, "A": 724, "XT": 399, "M": 327, "T": 205, "MT": 155, "Z": 67, "P": 57, "MS": 6, "ZP": 5, "TS": 5, "IP": 3, "Y": 2},
   "instruments": [
     ["500325", "RELIANCE", "Reliance Industries Ltd", "A", "INE002A01018", "Active"],
     ["500180", "HDFCBANK", "HDFC Bank Ltd", "A", "INE040A01034", "Active"],
@@ -4874,7 +4874,6 @@
     ["590157", "GROWWDEFNC", "Groww Nifty India Defence ETF", "B", "INF666M01IO8", "Active"],
     ["590158", "GROWWRAIL", "Groww Nifty India Railways PSU ETF", "B", "INF666M01JJ6", "Active"],
     ["590160", "NETF", "Tata Nifty 50 Exchange Traded Fund", "B", "INF277K015R5", "Active"],
-    ["750942", "DHAN-RE", "Dhanlaxmi Bank Ltd", "R", "INE680A20011", "Active"],
     ["780014", "HASJUICE", "Has Lifestyle Ltd", "IP", "INE888Q01016", "Active"],
     ["780016", "WEBSL", "Web Element Solutions Ltd", "IP", "INE562Q01017", "Active"],
     ["780018", "ADHIRAJ", "Adhiraj Distributors Ltd", "IP", "INE067R01015", "Active"]

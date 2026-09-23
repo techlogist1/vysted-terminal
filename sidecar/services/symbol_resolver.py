@@ -96,6 +96,7 @@ from services.resolution_policy import (
     decide,
     same_instrument,
 )
+from services.resolver_masters.regenerate_bse_master import is_rights_entitlement
 
 logger = logging.getLogger(__name__)
 
@@ -301,7 +302,7 @@ def _bse_master() -> dict[str, tuple[str, str, str, str]]:
         name = str(row[2]).strip() if len(row) > 2 else ""
         group = str(row[3]).strip().upper() if len(row) > 3 else ""
         isin = str(row[4]).strip().upper() if len(row) > 4 else ""
-        if sym:
+        if sym and not is_rights_entitlement(sym, group, isin):
             out[sym] = (name, group, code, isin)
     return out
 

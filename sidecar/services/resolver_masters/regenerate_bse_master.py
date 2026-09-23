@@ -127,6 +127,19 @@ def fetch_records() -> list[dict]:
     raise SystemExit(f"regenerate_bse_master: all {_ATTEMPTS} attempts failed: {last_exc}")
 
 
+def is_rights_entitlement(symbol: str, group: str, isin: str) -> bool:
+    """True for a rights-entitlement line (R15-DATA-057): BSE group ``R``, a
+    ``-RE`` ticker, or an Indian ISIN whose security-type digits are ``20``
+    (DHAN-RE, INE680A20011). An RE is a short-lived entitlement, not the
+    company's equity; listed as equity it outranks the real share in a search."""
+    isin = isin.strip().upper()
+    return (
+        group.strip().upper() == "R"
+        or symbol.strip().upper().endswith("-RE")
+        or (isin.startswith("IN") and isin[7:9] == "20")
+    )
+
+
 def _mktcap(record: dict) -> float:
     """Market cap for the prominence sort; unknown caps sort to the tail."""
     try:
@@ -153,6 +166,8 @@ def build_master(records: list[dict], *, min_rows: int = _MIN_ROWS) -> dict:
         isin = str(rec.get("ISIN_NUMBER") or rec.get("ISIN") or "").strip()
         status = str(rec.get("Status") or "").strip()
         if not code or not symbol or symbol in seen:
+            continue
+        if is_rights_entitlement(symbol, group, isin):
             continue
         seen.add(symbol)
         rows.append([code, symbol, name, group, isin, status])
