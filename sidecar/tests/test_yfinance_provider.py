@@ -68,6 +68,7 @@ class _RecordingTicker:
             "beta": 0.85,
             "fiftyTwoWeekHigh": 500.0,
             "fiftyTwoWeekLow": 380.0,
+            "regularMarketTime": 1_789_847_400,  # the last trade, epoch seconds
         }
 
     @property
@@ -451,3 +452,36 @@ def test_same_currency_reporter_has_no_financial_currency(
     assert f.financial_currency is None
     assert f.price_to_sales == 0.021275874
     assert f.field_meta["price_to_sales"].status == "ok"
+
+
+# --- R15-DATA-006: price-derived fields are dated by the price's trade time ---
+
+
+def test_price_derived_as_of_is_the_last_trade_not_the_fetch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DAL last traded on 2025-03-12: its market cap / P/E / P/B rest on that
+    print, so their as_of says so instead of the fetch time; a non-price field
+    keeps the fetch time. With no trade time Yahoo named, the as_of is unknown."""
+    from datetime import UTC, datetime
+
+    last_trade = datetime(2025, 3, 12, 10, 30, tzinfo=UTC)
+    info = {
+        "longName": "Dynamic Archistructures Ltd",
+        "currency": "INR",
+        "currentPrice": 49.88,
+        "marketCap": 249_900_000,
+        "trailingPE": 5.6044946,
+        "priceToBook": 0.6,
+        "beta": 0.2,
+        "regularMarketTime": int(last_trade.timestamp()),
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    meta = yfinance_provider.get_fundamentals("DAL.BO").field_meta
+    for field_name in ("ratio_price", "market_cap", "pe_ratio", "price_to_book"):
+        assert meta[field_name].as_of == last_trade.isoformat()
+    assert not meta["beta"].as_of.startswith("2025-03-12")
+
+    info.pop("regularMarketTime")
+    meta = yfinance_provider.get_fundamentals("DAL.BO").field_meta
+    assert meta["market_cap"].as_of is None

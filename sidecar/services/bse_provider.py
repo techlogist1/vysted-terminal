@@ -503,16 +503,33 @@ def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
     return _quote_from_header(bare, payload)
 
 
+def _ason_trade_day(raw: object) -> date | None:
+    """The trade date in a header's ``Ason`` stamp (``'12 Mar 25 | 16:00'``), or
+    ``None`` when it is missing or unparseable."""
+    if not isinstance(raw, str):
+        return None
+    try:
+        return datetime.strptime(raw.split("|")[0].strip(), "%d %b %y").date()
+    except ValueError:
+        return None
+
+
 def _quote_from_header(bare: str, payload: dict) -> Quote | None:
     """Build a Quote for ``bare`` from a ``getScripHeaderData`` payload, or ``None``.
 
     The endpoint returns ``{"Header": [{"Scrip_Cd"/"ScripCode","LTP"/"CurrVal",
-    "PrevClose"/"Prev_Cls","Volume",...}]}`` — keyed by the numeric scrip code,
-    with NO ticker field. We read the latest close and the official prior close
-    defensively (BSE has renamed these fields over time) and stamp the requested
-    ``bare`` symbol (NOT the scrip code) so the registry's symbol-match
-    correctness gate accepts the quote, mirroring india_provider. The bar is
-    labelled at the most-recent IST session.
+    "PrevClose"/"Prev_Cls","Volume","Ason",...}]}`` — keyed by the numeric scrip
+    code, with NO ticker field. We read the latest close and the official prior
+    close defensively (BSE has renamed these fields over time) and stamp the
+    requested ``bare`` symbol (NOT the scrip code) so the registry's symbol-match
+    correctness gate accepts the quote, mirroring india_provider.
+
+    The quote is dated by the header's own ``Ason`` trade date (R15-DATA-006),
+    never by today's session: an illiquid scrip's last print can be months old
+    (DAL: 12 Mar 25). When that date is before the most recent session the move
+    belongs to that date, not to today, so ``change``/``change_percent`` are 0. A
+    header without a readable ``Ason`` returns ``None`` so the caller falls back
+    to the dated bhavcopy quote.
     """
     header_list = payload.get("Header") if isinstance(payload, dict) else None
     if not header_list:
@@ -521,10 +538,13 @@ def _quote_from_header(bare: str, payload: dict) -> Quote | None:
     close = _num(h.get("LTP") or h.get("CurrVal") or h.get("Close"))
     if close is None or close <= 0:
         return None
+    trade_day = _ason_trade_day(h.get("Ason"))
+    if trade_day is None:
+        return None
     prev = _num(h.get("PrevClose") or h.get("Prev_Cls") or h.get("PreviousClose"))
-    change = close - prev if prev else 0.0
-    change_percent = (change / prev * 100.0) if prev else 0.0
-    trading_day = locale.most_recent_session(locale.REGION_IN)
+    traded_this_session = trade_day >= locale.most_recent_session(locale.REGION_IN)
+    change = close - prev if prev and traded_this_session else 0.0
+    change_percent = (change / prev * 100.0) if prev and traded_this_session else 0.0
     return Quote(
         symbol=bare,
         price=close,
@@ -533,7 +553,7 @@ def _quote_from_header(bare: str, payload: dict) -> Quote | None:
         volume=_num(h.get("Volume") or h.get("TotalTradedQty")),
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
-        timestamp=_bar_timestamp(trading_day),
+        timestamp=_bar_timestamp(trade_day),
         provider=PROVIDER,
     )
 

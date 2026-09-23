@@ -245,6 +245,37 @@ _MIXED_BASIS_RATIOS: dict[str, str] = {
 }
 
 
+#: Fields computed from the snapshot's price: their ``as_of`` is that price's
+#: trade time, not the fetch time (R15-DATA-006).
+_PRICE_DERIVED_FIELDS = (
+    "ratio_price",
+    "market_cap",
+    "pe_ratio",
+    "forward_pe",
+    "peg_ratio",
+    "price_to_book",
+    "price_to_sales",
+    "ev_to_ebitda",
+    "dividend_yield",
+    "fifty_two_week_change",
+)
+
+
+def _stamp_price_trade_time(meta: dict[str, FieldMeta], market_time: Any) -> None:
+    """Date the price-derived fields by Yahoo's ``regularMarketTime`` (epoch
+    seconds of the last trade). An illiquid scrip's last print can be months old
+    (DAL: 2025-03-12), so the fetch time would present it as today's; when Yahoo
+    names no trade time the as-of is left unknown (``None``), never now()."""
+    trade_time = (
+        datetime.fromtimestamp(market_time, tz=UTC).isoformat()
+        if isinstance(market_time, (int, float))
+        else None
+    )
+    for name in _PRICE_DERIVED_FIELDS:
+        if name in meta:
+            meta[name].as_of = trade_time
+
+
 def _financial_currency(info: dict[str, Any]) -> str | None:
     """Yahoo's ``financialCurrency`` when it differs from the trading ``currency``.
 
@@ -457,6 +488,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     # R13: stamp per-field provenance for every value actually served (the gate
     # then merges its withheld/flag entries on top).
     fund.field_meta = _served_field_meta(fund, fetched_at)
+    _stamp_price_trade_time(fund.field_meta, info.get("regularMarketTime"))
     if fund.financial_currency is not None:
         _withhold_mixed_basis_ratios(fund)
     return fund

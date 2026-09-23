@@ -64,6 +64,14 @@ _SHARE_BASIS_DIVERGENCE = 0.05
 _EPS_DIVERGENCE = 0.05
 
 
+# The exchange-direct India quote lanes that date a quote by the exchange's own
+# last-trade record (the BSE scrip header's Ason / bhavcopy day, NSE's
+# historicalOR rows). The jugaad ``nse`` lane is not here: it reads through an
+# on-disk cache, so an old date there can be a stale cache, which the rejection
+# rightly routes past.
+_EXCHANGE_DATED_PROVIDERS = frozenset({"bse", "nse_direct"})
+
+
 class CorrectnessError(ProviderError):
     """A provider response was rejected by the correctness gate (FR-063).
 
@@ -106,6 +114,12 @@ def symbols_match(requested: str, returned: str) -> bool:
 def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
     """Reject a quote that is empty-priced, mis-symboled, or broken-feed stale.
 
+    An exchange lane's quote (:data:`_EXCHANGE_DATED_PROVIDERS`) is dated by the
+    exchange's own last-trade record, so an old date there is the truth about an
+    illiquid scrip, not a broken feed: it is served with that date and labelled
+    stale by the quotes router (R15-DATA-006), never rejected into a lane that
+    would present the same print as fresh.
+
     Returns the quote unchanged on success so callers can use it inline.
     """
     if quote.price is None or quote.price <= 0:
@@ -119,7 +133,8 @@ def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
             f"{quote.symbol!r} for requested {requested_symbol!r} (symbol mismatch)"
         )
     as_of = quote.timestamp.date() if quote.timestamp else None
-    if locale.is_rejectably_stale(region, as_of):
+    exchange_dated = quote.provider in _EXCHANGE_DATED_PROVIDERS
+    if not exchange_dated and locale.is_rejectably_stale(region, as_of):
         raise CorrectnessError(
             f"correctness gate: quote for {requested_symbol!r} from "
             f"{quote.provider!r} is dated {as_of} — too stale for the {region} calendar"
