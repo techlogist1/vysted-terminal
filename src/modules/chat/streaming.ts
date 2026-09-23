@@ -108,11 +108,20 @@ export interface ChatRequest {
   options?: Record<string, unknown>;
 }
 
+/**
+ * Every stream call ends in exactly ONE terminal callback: the first `done` or
+ * `error` event, or `onError` (sidecar not ready, network, HTTP error, a
+ * malformed frame, a consumer throw, or a stream that closed without a
+ * terminal frame). Later terminal frames are dropped; the call never rejects.
+ */
 export interface StreamingHandlers {
   onEvent: (event: LLMStreamEvent) => void;
   onError?: (error: Error) => void;
   signal?: AbortSignal;
 }
+
+/** The `onError` message for a stream that closed without a `done`/`error` frame. */
+export const STREAM_ENDED_EARLY = "The stream ended before the answer finished.";
 
 /**
  * Map the camelCase frontend `options` onto the wire body. `researchDepth` (the
@@ -131,8 +140,6 @@ function wireOptions(options?: Record<string, unknown>): Record<string, unknown>
 
 /** Stream a raw chat completion (no agent). */
 export async function streamChat(payload: ChatRequest, handlers: StreamingHandlers): Promise<void> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/llm/chat", base);
   const body = JSON.stringify({
     provider: payload.provider,
     model: payload.model,
@@ -141,7 +148,7 @@ export async function streamChat(payload: ChatRequest, handlers: StreamingHandle
     base_url: payload.baseUrl,
     options: wireOptions(payload.options),
   });
-  await consumeSseStream(url, body, handlers);
+  await consumeSseStream("/llm/chat", body, handlers);
 }
 
 /** Stream an agent invocation. */
@@ -150,8 +157,6 @@ export async function streamAgentInvocation(
   payload: AgentInvocationRequest,
   handlers: StreamingHandlers,
 ): Promise<void> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL(`/agents/${encodeURIComponent(agentId)}/invoke`, base);
   const body = JSON.stringify({
     prompt: payload.prompt,
     context_snapshot: payload.contextSnapshot
@@ -175,52 +180,67 @@ export async function streamAgentInvocation(
     autonomy: payload.autonomy,
     options: wireOptions(payload.options),
   });
-  await consumeSseStream(url, body, handlers);
+  await consumeSseStream(`/agents/${encodeURIComponent(agentId)}/invoke`, body, handlers);
 }
 
 async function consumeSseStream(
-  url: URL,
+  path: string,
   body: string,
   handlers: StreamingHandlers,
 ): Promise<void> {
-  // The three-tier web-search contract (FR-080/083/084): the active tier, the
-  // BYOK Exa key (keychain), and the local SearXNG URL ride the chat/agent
-  // request so the sidecar dispatches web search to the right backend during a
-  // research run. Undefined values are dropped (never an empty header).
-  const searchHeaders = await buildSearchHeaders();
-  const requestHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "text/event-stream",
-    // Region (FR-060): the sidecar reads this so the agent's tool calls
-    // (price_data / resolve_symbol / …) route to the user's locale source.
-    "X-Vysted-Region": useSettingsStore.getState().region,
-  };
-  for (const [key, value] of Object.entries(searchHeaders)) {
-    if (value !== undefined) {
-      requestHeaders[key] = value;
+  let settled = false;
+  const fail = (err: unknown): void => {
+    if (!settled) {
+      settled = true;
+      handlers.onError?.(toError(err));
     }
-  }
-  let response: Response;
+  };
+  const onEvent = (event: LLMStreamEvent): void => {
+    const terminal = event.kind === "done" || event.kind === "error";
+    if (terminal && settled) {
+      return;
+    }
+    settled ||= terminal;
+    if (event.kind === "research_step") {
+      feedBriefLifecycle(event);
+    }
+    handlers.onEvent(event);
+  };
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   try {
-    response = await fetch(url.toString(), {
+    // Inside the try: a sidecar that is not ready rejects here, and that must
+    // reach onError like any other failure (R15-AGENT-029).
+    const url = new URL(path, await getSidecarBaseUrl());
+    // The three-tier web-search contract (FR-080/083/084): the active tier, the
+    // BYOK Exa key (keychain), and the local SearXNG URL ride the chat/agent
+    // request so the sidecar dispatches web search to the right backend during a
+    // research run. Undefined values are dropped (never an empty header).
+    const searchHeaders = await buildSearchHeaders();
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+      // Region (FR-060): the sidecar reads this so the agent's tool calls
+      // (price_data / resolve_symbol / …) route to the user's locale source.
+      "X-Vysted-Region": useSettingsStore.getState().region,
+    };
+    for (const [key, value] of Object.entries(searchHeaders)) {
+      if (value !== undefined) {
+        requestHeaders[key] = value;
+      }
+    }
+    const response = await fetch(url.toString(), {
       method: "POST",
       headers: requestHeaders,
       body,
       signal: handlers.signal,
     });
-  } catch (err) {
-    handlers.onError?.(toError(err));
-    return;
-  }
-  if (!response.ok || !response.body) {
-    const detail = await safeReadDetail(response);
-    handlers.onError?.(new Error(detail ?? `sidecar returned ${response.status}`));
-    return;
-  }
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder("utf-8");
-  let buffer = "";
-  try {
+    if (!response.ok || !response.body) {
+      const detail = await safeReadDetail(response);
+      throw new Error(detail ?? `sidecar returned ${response.status}`);
+    }
+    reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
     for (;;) {
       const { done, value } = await reader.read();
       if (done) {
@@ -233,22 +253,28 @@ async function consumeSseStream(
       while (separator !== -1) {
         const frame = buffer.slice(0, separator);
         buffer = buffer.slice(separator + 2);
-        dispatchFrame(frame, handlers);
+        dispatchFrame(frame, onEvent);
         separator = buffer.indexOf("\n\n");
       }
     }
     // Flush any trailing partial frame that has no terminator.
     if (buffer.trim()) {
-      dispatchFrame(buffer, handlers);
+      dispatchFrame(buffer, onEvent);
     }
   } catch (err) {
-    handlers.onError?.(toError(err));
+    fail(err);
+    // Stop the server-side run too: nothing reads a settled message's frames.
+    await reader?.cancel().catch(() => undefined);
   } finally {
-    reader.releaseLock();
+    reader?.releaseLock();
   }
+  fail(new Error(STREAM_ENDED_EARLY));
 }
 
-function dispatchFrame(frame: string, handlers: StreamingHandlers): void {
+/** Parse one frame and hand its event to `onEvent`. Only the parse is guarded:
+ *  a throw from the consumer propagates with its own message instead of being
+ *  relabelled a malformed frame (R15-CODE-PLATFORM-037). */
+function dispatchFrame(frame: string, onEvent: (event: LLMStreamEvent) => void): void {
   // SSE frames have multiple fields; we only care about ``data:`` lines.
   const dataLines = frame
     .split("\n")
@@ -259,14 +285,14 @@ function dispatchFrame(frame: string, handlers: StreamingHandlers): void {
     return;
   }
   const payload = dataLines.join("\n");
+  let event: LLMStreamEvent | null;
   try {
-    const parsed = JSON.parse(payload) as Record<string, unknown> & { kind?: unknown };
-    const event = normalizeEvent(parsed);
-    if (event) {
-      handlers.onEvent(event);
-    }
+    event = normalizeEvent(JSON.parse(payload) as Record<string, unknown> & { kind?: unknown });
   } catch (err) {
-    handlers.onError?.(new Error(`unparseable SSE frame: ${(err as Error).message}`));
+    throw new Error(`unparseable SSE frame: ${(err as Error).message}`);
+  }
+  if (event) {
+    onEvent(event);
   }
 }
 
@@ -298,9 +324,6 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       status: String(payload.status ?? "ok"),
       index: Number(payload.index ?? 0),
     };
-    // One chokepoint: the brief panel's lifecycle (in_flight begin + live
-    // steps) is fed here so EVERY stream consumer keeps the panel honest.
-    feedBriefLifecycle(step);
     return step;
   }
   if (kind === "agent_plan") {

@@ -104,7 +104,9 @@ def is_available() -> bool:
 async def status() -> dict[str, Any]:
     """Status payload for ``GET /sec/status`` (consumed by plugin manager)."""
     endpoint = _resolve_endpoint()
-    available = endpoint is not None
+    # Configured is not enough: after a failed call the provider is down until
+    # the next call succeeds (R15-LIFECYCLE-005).
+    available = endpoint is not None and _last_tool_call_ok is not False
     return {
         "available": available,
         "provider": PROVIDER,
@@ -140,20 +142,29 @@ def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
             f"sec-edgar-mcp tool {tool_name!r} reported error: {result.get('content')!r}"
         )
     blocks = result.get("content") or []
+    decoded: Any = None
     for block in blocks:
         if isinstance(block, dict) and block.get("type") == "text":
             text = block.get("text", "")
             try:
-                return json.loads(text)
+                decoded = json.loads(text)
             except (TypeError, ValueError):
                 # Some tools (e.g. filing-content) return long-form prose;
                 # surface as the raw text body.
                 return text
-    # Fallback: structured content (FastMCP 3.x with output_schema).
-    structured = result.get("structuredContent")
-    if isinstance(structured, dict):
-        return structured
-    raise ProviderError(f"sec-edgar-mcp tool {tool_name!r} returned no content")
+            break
+    else:
+        # Fallback: structured content (FastMCP 3.x with output_schema).
+        decoded = result.get("structuredContent")
+        if not isinstance(decoded, dict):
+            raise ProviderError(f"sec-edgar-mcp tool {tool_name!r} returned no content")
+    # sec-edgar-mcp reports its own failures in-band as ``{"success": false,
+    # "error": ...}``; parsed as data they became a cached empty (R15-DATA-038).
+    if isinstance(decoded, dict) and decoded.get("success") is False:
+        raise ProviderError(
+            f"sec-edgar-mcp tool {tool_name!r} failed: {decoded.get('error') or 'unknown error'}"
+        )
+    return decoded
 
 
 async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
@@ -161,12 +172,15 @@ async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     global _last_tool_call_ok, _last_error
     client = await _get_client()
     try:
-        raw = await client.call_tool(name, arguments)
+        # One try over the call AND the decode: an ``isError`` / undecodable
+        # payload is a failed call too, so the health flags record it (R15-DATA-083).
+        decoded = _decode_tool_result(await client.call_tool(name, arguments), name)
     except Exception as exc:
         _last_tool_call_ok = False
         _last_error = f"{type(exc).__name__}: {exc}"
+        if isinstance(exc, ProviderError):
+            raise
         raise ProviderError(f"sec-edgar-mcp call {name!r} failed: {exc}") from exc
-    decoded = _decode_tool_result(raw, name)
     _last_tool_call_ok = True
     _last_error = None
     return decoded
@@ -214,26 +228,18 @@ def _coerce_str(value: Any) -> str | None:
     return str(value)
 
 
-def _coerce_form_type(value: Any) -> FilingFormType | None:
-    """Coerce the upstream form-type string to the Literal we surface."""
+def _coerce_form_type(value: Any) -> str | None:
+    """Normalise the upstream form-type string; ``None`` only when absent.
+
+    EDGAR's form space is open (20-F, 6-K, 10-K/A, SC 13D, 424B4, ...), so any
+    form is kept as filed; only the undashed spellings of the common forms are
+    mapped (R15-DATA-039).
+    """
     if value is None:
         return None
     raw = str(value).strip().upper()
-    # sec-edgar-mcp normalises common form types; map a few edge cases.
-    mapping = {
-        "10-K": "10-K",
-        "10K": "10-K",
-        "10-Q": "10-Q",
-        "10Q": "10-Q",
-        "8-K": "8-K",
-        "8K": "8-K",
-        "DEF 14A": "DEF 14A",
-        "DEF14A": "DEF 14A",
-        "3": "3",
-        "4": "4",
-        "5": "5",
-    }
-    return mapping.get(raw)  # type: ignore[return-value]
+    mapping = {"10K": "10-K", "10Q": "10-Q", "8K": "8-K", "DEF14A": "DEF 14A"}
+    return mapping.get(raw, raw) or None
 
 
 def _edgar_url(accession: str, cik: str) -> str:
@@ -287,7 +293,6 @@ def _filings_from_payload(
     for raw in rows:
         form_type = _coerce_form_type(raw.get("form") or raw.get("form_type"))
         if form_type is None:
-            # Skip exotic forms not in our v0.6.0 set.
             continue
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:
@@ -322,22 +327,40 @@ def _filings_from_payload(
     return cik_padded, company_name, symbol, filings
 
 
+_SECTION_TITLES = {
+    "business": "Business",
+    "risk_factors": "Risk Factors",
+    "mda": "Management's Discussion and Analysis",
+}
+
+
+def _parse_error(tool_name: str, detail: str) -> ProviderError:
+    """A success payload the parser could not read: logged, raised, never cached."""
+    _log.warning("sec-edgar-mcp %s payload not parsed: %s", tool_name, detail)
+    return ProviderError(f"sec-edgar-mcp {tool_name} returned a payload Vysted could not parse")
+
+
 def _sections_from_payload(payload: Any) -> list[FilingSection]:
     """Pull sections out of ``get_filing_sections`` / ``get_filing_content``.
 
-    sec-edgar-mcp 1.x emits sections as a list of dicts (id / title /
-    text). Tolerate a bare-text shape for filings the parser cannot
-    section (older 8-K filings, exhibits) by wrapping in one synthetic
-    section.
+    sec-edgar-mcp 1.0.8 emits ``sections`` as a dict of ``name -> text``
+    (plus non-text flags such as ``has_financials``); a list of dicts
+    (id / title / text) is also accepted. A bare-text shape for filings the
+    parser cannot section (older 8-K filings, exhibits) is wrapped in one
+    synthetic section. An empty ``sections`` is a real empty (the upstream
+    sections only 10-K/10-Q); any other shape raises, uncached.
     """
     sections: list[FilingSection] = []
     rows: list[dict[str, Any]] = []
-    if isinstance(payload, dict):
-        raw_sections = payload.get("sections")
-        if isinstance(raw_sections, list):
-            for item in raw_sections:
-                if isinstance(item, dict):
-                    rows.append(item)
+    if isinstance(payload, dict) and isinstance(payload.get("sections"), dict):
+        for key, text in payload["sections"].items():
+            if isinstance(text, str) and text.strip():
+                title = _SECTION_TITLES.get(key) or key.replace("_", " ").title()
+                rows.append({"id": key, "title": title, "text": text})
+    elif isinstance(payload, dict) and isinstance(payload.get("sections"), list):
+        for item in payload["sections"]:
+            if isinstance(item, dict):
+                rows.append(item)
     elif isinstance(payload, list):
         for item in payload:
             if isinstance(item, dict):
@@ -353,6 +376,8 @@ def _sections_from_payload(payload: Any) -> list[FilingSection]:
                 word_count=len(text.split()),
             )
         ]
+    else:
+        raise _parse_error("get_filing_sections", f"unrecognised shape {type(payload).__name__}")
 
     for i, raw in enumerate(rows):
         text = str(raw.get("text") or raw.get("body") or raw.get("content") or "")
@@ -391,27 +416,44 @@ def _direction_from_code(code: str | None) -> InsiderTransactionDirection:
 
 
 def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTransaction]]:
-    """Pull ``(cik, issuer_name, transactions)`` out of an insider payload."""
+    """Pull ``(cik, issuer_name, transactions)`` out of an insider payload.
+
+    sec-edgar-mcp 1.0.8 returns FILING-level rows (``filing_date``,
+    ``form_type``, ``accession_number``, ``company_name``, ``cik``, optional
+    ``owner_name``/``owner_title``) under a top-level issuer ``name``, with no
+    per-trade date, code, direction or share count. Such a row is kept with its
+    filing date and a null direction/shares; per-trade rows keep their detail.
+    An unrecognised shape, or rows that all fail to parse, raises.
+    """
     cik = ""
     issuer_name = ""
     rows: list[dict[str, Any]] = []
     if isinstance(payload, dict):
         cik = str(payload.get("cik") or payload.get("issuer_cik") or "")
-        issuer_name = str(payload.get("issuer_name") or payload.get("company_name") or "")
-        raw_list = (
-            payload.get("transactions")
-            or payload.get("insider_transactions")
-            or payload.get("results")
-            or []
+        issuer_name = str(
+            payload.get("issuer_name") or payload.get("company_name") or payload.get("name") or ""
         )
-        if isinstance(raw_list, list):
-            for row in raw_list:
-                if isinstance(row, dict):
-                    rows.append(row)
+        raw_list = next(
+            (
+                payload[key]
+                for key in ("transactions", "insider_transactions", "results")
+                if isinstance(payload.get(key), list)
+            ),
+            None,
+        )
+        if raw_list is None:
+            raise _parse_error("get_insider_transactions", f"no rows list in {sorted(payload)}")
+        for row in raw_list:
+            if isinstance(row, dict):
+                rows.append(row)
     elif isinstance(payload, list):
         for row in payload:
             if isinstance(row, dict):
                 rows.append(row)
+    else:
+        raise _parse_error(
+            "get_insider_transactions", f"unrecognised shape {type(payload).__name__}"
+        )
 
     transactions: list[InsiderTransaction] = []
     for raw in rows:
@@ -424,16 +466,22 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:
             continue
-        txn_date = _coerce_date(raw.get("transaction_date") or raw.get("trade_date"))
+        txn_date = _coerce_date(
+            raw.get("transaction_date") or raw.get("trade_date") or raw.get("filing_date")
+        )
         if txn_date is None:
             continue
         direction_str = str(raw.get("direction") or "").strip().lower()
-        direction: InsiderTransactionDirection
+        direction: InsiderTransactionDirection | None
         if direction_str in {"acquired", "disposed"}:
             direction = direction_str  # type: ignore[assignment]
-        else:
+        elif raw.get("transaction_code"):
             direction = _direction_from_code(raw.get("transaction_code"))
-        shares = str(raw.get("shares") or raw.get("transaction_shares") or raw.get("amount") or "0")
+        else:
+            direction = None  # a filing-level row carries no trade to classify
+        shares = _coerce_str(
+            raw.get("shares") or raw.get("transaction_shares") or raw.get("amount")
+        )
         price = _coerce_str(raw.get("price_per_share") or raw.get("price"))
         value = _coerce_str(raw.get("transaction_value") or raw.get("value"))
         issuer_cik_raw = str(raw.get("issuer_cik") or raw.get("cik") or cik)
@@ -448,7 +496,7 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
                 reporter_name=str(raw.get("reporter_name") or raw.get("owner_name") or ""),
                 reporter_cik=reporter_cik,
                 issuer_cik=issuer_cik,
-                issuer_name=str(raw.get("issuer_name") or issuer_name),
+                issuer_name=str(raw.get("issuer_name") or raw.get("company_name") or issuer_name),
                 issuer_symbol=_coerce_str(raw.get("issuer_symbol") or raw.get("ticker")),
                 form_type=form,
                 transaction_date=txn_date,
@@ -457,9 +505,13 @@ def _insider_rows_from_payload(payload: Any) -> tuple[str, str, list[InsiderTran
                 price_per_share=price,
                 transaction_value=value,
                 transaction_code=str(raw.get("transaction_code") or raw.get("code") or ""),
-                reporter_title=_coerce_str(raw.get("reporter_title") or raw.get("title")),
+                reporter_title=_coerce_str(
+                    raw.get("reporter_title") or raw.get("owner_title") or raw.get("title")
+                ),
             )
         )
+    if rows and not transactions:
+        raise _parse_error("get_insider_transactions", f"{len(rows)} rows, none parsed")
     cik_padded = cik.zfill(10) if cik.isdigit() else cik
     return cik_padded, issuer_name, transactions
 

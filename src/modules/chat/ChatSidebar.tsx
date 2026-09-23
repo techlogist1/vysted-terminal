@@ -849,7 +849,8 @@ export function ChatSidebar() {
         appendDelta(
           noteId,
           "Delegated to a background run — track its cost + status in the agents rail above. " +
-            "It works autonomously under your budget; any changes it proposes still need your review.",
+            "It works autonomously under your budget. When it finishes, its answer lands in this " +
+            "chat and any changes it proposes go through the same review gate as a live reply.",
         );
         finalize(noteId, null);
         void launchDelegateRun({
@@ -861,6 +862,7 @@ export function ChatSidebar() {
           model,
           apiKey: apiKey ?? undefined,
           budget: delegateBudget,
+          threadId: useAgentSpacesStore.getState().activeId,
           // Carry only the non-secret backend choice + per-model search capability
           // into a DURABLE run (its state is persisted; secrets stay off disk).
           options: { history, ...deepResearchOptions },
@@ -881,6 +883,9 @@ export function ChatSidebar() {
       // composer's stop square aborts the SAME in-flight run.
       const controller = new AbortController();
       abortRef.current = controller;
+      // Registered with the transcript owner: a tab or research-space switch
+      // stops this run before it swaps the transcript (R15-CODE-FRONTEND-002).
+      useChatHistoryStore.getState().setLiveAbort(() => controller.abort());
       const runId = startRun({
         agentId: agentForCall,
         agentName,
@@ -998,44 +1003,54 @@ export function ChatSidebar() {
         onPlan: (plan) => setPlan(assistantId, plan),
       });
 
-      if (agentForCall) {
-        const terminalState = captureTerminalState();
-        const snapshot: AgentContextSnapshot = {
-          focusedSource: terminalState.focusedPanel,
-          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-          capturedAt: terminalState.capturedAt,
-        };
-        await streamAgentInvocation(
-          agentForCall,
-          {
-            prompt,
-            contextSnapshot: snapshot,
-            provider,
-            model,
-            mode,
-            // Autonomy rides the request so the sidecar narrates host-actions
-            // truthfully (auto = applied/past-tense, ask = staged for review).
-            autonomy: useAgentAutonomyStore.getState().autonomy,
-            apiKey: apiKey ?? undefined,
-            options: { history, ...deepResearchOptions },
-          },
-          { ...handlers, signal: controller.signal },
-        );
-      } else {
-        // FR-116 / coherence: the raw-chat path must preserve conversation context
-        // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
-        // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
-        // excludes the current prompt) is prepended; previously this path sent only
-        // the single current turn and silently dropped everything before it.
-        await streamChat(
-          {
-            provider,
-            model,
-            messages: [...history, { role: "user", content: prompt }],
-            apiKey: apiKey ?? undefined,
-          },
-          { ...handlers, signal: controller.signal },
-        );
+      // The stream client settles every call through exactly one terminal
+      // callback; anything thrown around it (snapshot capture, a throwing
+      // handler) still settles the message instead of leaving it streaming
+      // forever with later prompts queued behind it (R15-AGENT-029).
+      try {
+        if (agentForCall) {
+          const terminalState = captureTerminalState();
+          const snapshot: AgentContextSnapshot = {
+            focusedSource: terminalState.focusedPanel,
+            bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
+            capturedAt: terminalState.capturedAt,
+          };
+          await streamAgentInvocation(
+            agentForCall,
+            {
+              prompt,
+              contextSnapshot: snapshot,
+              provider,
+              model,
+              mode,
+              // Autonomy rides the request so the sidecar narrates host-actions
+              // truthfully (auto = applied/past-tense, ask = staged for review).
+              autonomy: useAgentAutonomyStore.getState().autonomy,
+              apiKey: apiKey ?? undefined,
+              options: { history, ...deepResearchOptions },
+            },
+            { ...handlers, signal: controller.signal },
+          );
+        } else {
+          // FR-116 / coherence: the raw-chat path must preserve conversation context
+          // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
+          // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
+          // excludes the current prompt) is prepended; previously this path sent only
+          // the single current turn and silently dropped everything before it.
+          await streamChat(
+            {
+              provider,
+              model,
+              messages: [...history, { role: "user", content: prompt }],
+              apiKey: apiKey ?? undefined,
+            },
+            { ...handlers, signal: controller.signal },
+          );
+        }
+      } catch (err) {
+        if (useChatHistoryStore.getState().streamingMessageId === assistantId) {
+          handlers.onError(err instanceof Error ? err : new Error(String(err)));
+        }
       }
     },
     [

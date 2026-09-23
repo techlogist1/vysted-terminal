@@ -50,6 +50,7 @@ from models.agent import AgentContextSnapshot
 from models.llm import LLMMessage, LLMProviderId, LLMUsage
 from models.run import RunBudget, RunCost
 from services import agent_runtime, runs_store
+from services.agent_tools.schemas import HOST_ACTION_TOOLS
 from services.budget_guard import BudgetGuard
 
 logger = logging.getLogger(__name__)
@@ -129,6 +130,18 @@ async def _drive_run(
     transcript.append({"role": "user", "content": prompt})
     breach_reason: str | None = None
     delta_buffer: list[str] = []
+    # The run's collectable output (R15-AGENT-013): the last brief it published
+    # and the host actions it proposed, delivered once to the originating chat
+    # thread on the terminal poll — never applied here.
+    brief: dict[str, Any] | None = None
+    host_actions: list[dict[str, Any]] = []
+
+    def _output() -> dict[str, Any]:
+        return {
+            "answer": "".join(delta_buffer).strip() or None,
+            "brief": brief,
+            "host_actions": list(host_actions),
+        }
 
     def _on_round_usage(usage: LLMUsage, used_model: str) -> None:
         # Fold the round's usage into the guard, then persist the running cost so
@@ -161,21 +174,32 @@ async def _drive_run(
                 mode="delegate",
                 on_round_usage=_on_round_usage,
             ):
+                # A round's terminator may have flagged a breach; stop before
+                # anything of the next round lands in the output.
+                if breach_reason is not None:
+                    break
                 kind = getattr(event, "kind", None)
                 if kind == "delta":
                     delta_buffer.append(getattr(event, "text", ""))
                 elif kind == "tool_use":
-                    transcript.append(
-                        {
-                            "role": "assistant",
-                            "content": f"[tool_use {getattr(event, 'name', '?')}]",
-                        }
-                    )
+                    name = getattr(event, "name", "?")
+                    transcript.append({"role": "assistant", "content": f"[tool_use {name}]"})
+                    # A tool round ends the model's paragraph; the next round's
+                    # text starts a new one instead of running on.
+                    if delta_buffer and delta_buffer[-1] != "\n\n":
+                        delta_buffer.append("\n\n")
+                    if name == "publish_brief":
+                        brief = dict(event.input)
+                    elif name in HOST_ACTION_TOOLS:
+                        host_actions.append(
+                            {
+                                "tool_call_id": event.tool_call_id,
+                                "name": name,
+                                "input": dict(event.input),
+                            }
+                        )
                 elif kind == "error":
                     breach_reason = breach_reason or getattr(event, "message", "agent error")
-                # After each round's terminator the guard may have flagged a breach.
-                if breach_reason is not None:
-                    break
 
         if delta_buffer:
             transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
@@ -183,12 +207,20 @@ async def _drive_run(
         if breach_reason is not None:
             # SC-008 — abort with the stated reason + a resumable checkpoint.
             runs_store.update_run(
-                run_id, status="error", detail=breach_reason, checkpoint=list(transcript)
+                run_id,
+                status="error",
+                detail=breach_reason,
+                checkpoint=list(transcript),
+                output=_output(),
             )
             return
 
         runs_store.update_run(
-            run_id, status="done", detail="completed", checkpoint=list(transcript)
+            run_id,
+            status="done",
+            detail="completed",
+            checkpoint=list(transcript),
+            output=_output(),
         )
     except TimeoutError:
         # The wall-clock backstop fired (asyncio.timeout). It cancels mid-round, so
@@ -207,7 +239,9 @@ async def _drive_run(
             # own timeout) — report it as a generic failure, never mislabeled as a
             # ceiling breach.
             reason = "run failed: operation timed out"
-        runs_store.update_run(run_id, status="error", detail=reason, checkpoint=list(transcript))
+        runs_store.update_run(
+            run_id, status="error", detail=reason, checkpoint=list(transcript), output=_output()
+        )
     except asyncio.CancelledError:
         # cancel_run already wrote status="cancelled"; persist the partial
         # transcript and re-raise so the task finishes in its cancelled state.
@@ -216,7 +250,11 @@ async def _drive_run(
     except Exception as exc:  # noqa: BLE001 — any agent failure ends the run
         logger.exception("delegate run %s crashed: %s", run_id, exc)
         runs_store.update_run(
-            run_id, status="error", detail=f"run failed: {exc}", checkpoint=list(transcript)
+            run_id,
+            status="error",
+            detail=f"run failed: {exc}",
+            checkpoint=list(transcript),
+            output=_output(),
         )
     finally:
         _TASKS.pop(run_id, None)

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAgentSpacesStore } from "./agent-spaces";
 import { type ChatMessage, useChatHistoryStore } from "./chat-history";
@@ -52,5 +52,38 @@ describe("agent spaces", () => {
     // The last remaining space cannot be closed.
     useAgentSpacesStore.getState().closeSpace("a");
     expect(useAgentSpacesStore.getState().spaces).toHaveLength(1);
+  });
+
+  it("switching tab mid-stream stops the run first and archives the partial as stopped (R15-CODE-FRONTEND-002)", () => {
+    const chat = useChatHistoryStore.getState();
+    useAgentSpacesStore.setState({
+      spaces: [
+        { id: "a", title: "A" },
+        { id: "b", title: "B" },
+      ],
+      activeId: "a",
+      archived: { b: [msg("in B")] },
+    });
+    const replyId = chat.beginAssistantMessage({});
+    chat.appendAssistantDelta(replyId, "Partial ");
+    // The abort must fire while thread A is still the live transcript.
+    const abort = vi.fn(() => expect(useChatHistoryStore.getState().messages[0]?.id).toBe(replyId));
+    chat.setLiveAbort(abort);
+
+    useAgentSpacesStore.getState().switchTo("b");
+
+    expect(abort).toHaveBeenCalledTimes(1);
+    const partial = useAgentSpacesStore.getState().archived.a?.[0];
+    expect(partial).toMatchObject({
+      id: replyId,
+      content: "Partial ",
+      pending: false,
+      stopped: true,
+    });
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull();
+    expect(useChatHistoryStore.getState().liveAbort).toBeNull();
+    // A late delta of the stopped run never lands in thread B.
+    useChatHistoryStore.getState().appendAssistantDelta(replyId, "late");
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual(["in B"]);
   });
 });

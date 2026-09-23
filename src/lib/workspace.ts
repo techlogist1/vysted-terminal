@@ -20,6 +20,7 @@ import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { fetchLegacyPositions } from "@/modules/portfolio/api";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -1027,6 +1028,9 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
   const name = researchSpaceName(symbol);
+  // A reply still streaming is stopped (its partial finalized in its own
+  // thread) BEFORE the snapshot, so a rollback never restores a dead stream.
+  useChatHistoryStore.getState().stopLive();
   // Everything the build below mutates, so a failed save can undo it.
   const before = {
     layout: api.toJSON(),
@@ -1037,6 +1041,7 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
       streamingMessageId: useChatHistoryStore.getState().streamingMessageId,
     },
     notesFocus: useNotesStore.getState().focusSymbol,
+    agentSpacesArchived: useAgentSpacesStore.getState().archived,
   };
   // Archive the transcript of any space we're leaving, then start this new
   // space with a clean transcript (S-19 per-space memory). Marking the store's
@@ -1058,6 +1063,7 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
     api.fromJSON(before.layout);
     useResearchSpacesStore.getState().replaceAll(before.researchSpaces);
     useChatHistoryStore.setState(before.chat);
+    useAgentSpacesStore.setState({ archived: before.agentSpacesArchived });
     useWorkspaceStore.getState().setResearchSymbol(before.researchSymbol);
     useNotesStore.getState().setFocusSymbol(before.notesFocus);
     throw error;

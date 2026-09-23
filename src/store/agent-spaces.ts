@@ -17,11 +17,20 @@ export interface AgentSpace {
 interface AgentSpacesState {
   spaces: AgentSpace[];
   activeId: string;
-  /** Transcripts for the NON-active spaces (the active one lives in chat-history). */
+  /** Transcripts for the NON-active spaces (the active one lives in chat-history),
+   *  plus the ACTIVE space's own while a research space holds the live chat. */
   archived: Record<string, ChatMessage[]>;
   newSpace: () => void;
   switchTo: (id: string) => void;
   closeSpace: (id: string) => void;
+  /** Entering a research space: park the active space's live transcript. */
+  parkActive: () => void;
+  /** Leaving a research space: bring the parked transcript back live (empty if none). */
+  unparkActive: () => void;
+  /** Append a finished message to a space's transcript, live or archived (a
+   *  Delegate run's answer, R15-AGENT-013). An unknown or closed space's message
+   *  lands in the live transcript, never dropped. */
+  deliverTo: (spaceId: string | undefined, message: ChatMessage) => void;
   /** Rename the active space (e.g. auto-titled from the first prompt). */
   renameActive: (title: string) => void;
 }
@@ -41,8 +50,10 @@ export const useAgentSpacesStore = create<AgentSpacesState>((set, get) => ({
   archived: {},
 
   newSpace: () => {
+    useChatHistoryStore.getState().stopLive();
     const { activeId, spaces, archived } = get();
-    const liveMessages = useChatHistoryStore.getState().messages;
+    // A parked transcript (a research space holds the live chat) is this space's.
+    const liveMessages = archived[activeId] ?? useChatHistoryStore.getState().messages;
     const id = uid();
     set({
       spaces: [...spaces, { id, title: `Chat ${spaces.length + 1}` }],
@@ -57,9 +68,10 @@ export const useAgentSpacesStore = create<AgentSpacesState>((set, get) => ({
     if (id === activeId) {
       return;
     }
-    const liveMessages = useChatHistoryStore.getState().messages;
-    const target = archived[id] ?? [];
-    set({ activeId: id, archived: { ...archived, [activeId]: liveMessages } });
+    useChatHistoryStore.getState().stopLive();
+    const liveMessages = archived[activeId] ?? useChatHistoryStore.getState().messages;
+    const { [id]: target = [], ...rest } = archived;
+    set({ activeId: id, archived: { ...rest, [activeId]: liveMessages } });
     useChatHistoryStore.getState().loadMessages(target);
   },
 
@@ -78,6 +90,27 @@ export const useAgentSpacesStore = create<AgentSpacesState>((set, get) => ({
       delete nextArchived[nextActive]; // it's now the live thread, not archived
     }
     set({ spaces: remaining, activeId: nextActive, archived: nextArchived });
+  },
+
+  parkActive: () =>
+    set((state) => ({
+      archived: { ...state.archived, [state.activeId]: useChatHistoryStore.getState().messages },
+    })),
+
+  unparkActive: () => {
+    const { activeId, archived } = get();
+    const { [activeId]: parked = [], ...rest } = archived;
+    set({ archived: rest });
+    useChatHistoryStore.getState().loadMessages(parked);
+  },
+
+  deliverTo: (spaceId, message) => {
+    const { archived } = get();
+    if (spaceId !== undefined && spaceId in archived) {
+      set({ archived: { ...archived, [spaceId]: [...archived[spaceId], message] } });
+    } else {
+      useChatHistoryStore.setState((state) => ({ messages: [...state.messages, message] }));
+    }
   },
 
   renameActive: (title) =>

@@ -199,3 +199,87 @@ describe("streaming — structured error frames (R10 D43)", () => {
     expect(errorFrameOf(events[0] as never)).toBeNull();
   });
 });
+
+// ── One terminal callback per stream call (R15-AGENT-029 / CODE-PLATFORM-037 / LIFECYCLE-005) ──
+
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { STREAM_ENDED_EARLY } from "./streaming";
+
+describe("streaming — exactly one terminal callback", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    fetchMock.mockClear();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  function recorder() {
+    const events: unknown[] = [];
+    const errors: string[] = [];
+    return {
+      events,
+      errors,
+      handlers: {
+        onEvent: (e: unknown) => events.push(e),
+        onError: (err: Error) => errors.push(err.message),
+      },
+    };
+  }
+
+  it("a sidecar that is not ready reaches onError once; the call does not reject", async () => {
+    vi.mocked(getSidecarBaseUrl).mockRejectedValueOnce(
+      new Error("The data engine did not become ready in time."),
+    );
+    const rec = recorder();
+    await expect(
+      streamChat({ provider: "openai", model: "gpt", messages: [] }, rec.handlers),
+    ).resolves.toBeUndefined();
+    expect(rec.errors).toEqual(["The data engine did not become ready in time."]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("a consumer throw surfaces its own message once, not 'unparseable SSE frame'", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "delta", text: "a" }, { kind: "delta", text: "b" }, { kind: "done" }]),
+    );
+    const errors: string[] = [];
+    await streamChat(
+      { provider: "openai", model: "gpt", messages: [] },
+      {
+        onEvent: (e) => {
+          if (e.kind === "delta") {
+            throw new Error("enqueueChange blew up");
+          }
+        },
+        onError: (err) => errors.push(err.message),
+      },
+    );
+    expect(errors).toEqual(["enqueueChange blew up"]);
+  });
+
+  it("a raw-chat stream that closes without done calls onError once", async () => {
+    fetchMock.mockImplementationOnce(async () => sseFrames([{ kind: "delta", text: "partial" }]));
+    const rec = recorder();
+    await streamChat({ provider: "openai", model: "gpt", messages: [] }, rec.handlers);
+    expect(rec.events).toEqual([{ kind: "delta", text: "partial" }]);
+    expect(rec.errors).toEqual([STREAM_ENDED_EARLY]);
+  });
+
+  it("an agent-invocation stream that closes without done calls onError once", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "tool_use", tool_call_id: "t1", name: "research", input: {} }]),
+    );
+    const rec = recorder();
+    await streamAgentInvocation("copilot", { prompt: "hi" }, rec.handlers);
+    expect(rec.errors).toEqual([STREAM_ENDED_EARLY]);
+  });
+
+  it("an error frame is the terminal; the server's trailing done is not a second one", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "error", message: "declined" }, { kind: "done" }]),
+    );
+    const rec = recorder();
+    await streamAgentInvocation("copilot", { prompt: "hi" }, rec.handlers);
+    expect(rec.events).toEqual([{ kind: "error", message: "declined" }]);
+    expect(rec.errors).toEqual([]);
+  });
+});

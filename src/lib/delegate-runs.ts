@@ -7,10 +7,17 @@
  * cost-so-far + status even after the launching connection closes (durability).
  * Cancel, resume, and human-in-the-loop answers route to the run routes. A run
  * that breaches its budget comes back as `error` with the breach reason (SC-008).
+ *
+ * When a run ends (`done` or `error`) its output is delivered ONCE to the chat
+ * thread it was launched from (R15-AGENT-013): the answer is appended to that
+ * thread (live or archived), and the host actions and the brief it produced go
+ * through the normal proposed-changes gate, exactly like a foreground reply's.
  */
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type AgentRunBudget, type AgentRunStatus, useAgentRunsStore } from "@/store/agent-runs";
+import { useProposedChangesStore } from "@/store/proposed-changes";
 
 import type { AgentContextSnapshot, LLMProviderId } from "../../types/ai";
 
@@ -24,6 +31,27 @@ export interface DelegateLaunch {
   apiKey?: string;
   budget: AgentRunBudget;
   options?: Record<string, unknown>;
+  /** The agent space (chat thread) the run was launched from; its answer lands
+   *  there. Without one it lands in the live transcript. */
+  threadId?: string;
+}
+
+/** Where each launched run delivers its output, keyed by sidecar run id.
+ *  An entry is consumed by its one delivery. */
+const origins = new Map<string, { threadId?: string; agentId: string; agentName: string }>();
+
+/** `GET /runs/{id}` output fields (either spelling for the host actions). */
+interface RunOutputWire {
+  answer?: string | null;
+  brief?: Record<string, unknown> | null;
+  hostActions?: HostActionWire[];
+  host_actions?: HostActionWire[];
+}
+
+interface HostActionWire {
+  tool_call_id: string;
+  name: string;
+  input: Record<string, unknown>;
 }
 
 /** Wire shape of a run from `GET /runs` (snake_case from the sidecar). */
@@ -121,6 +149,13 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
       sidecarRunId,
       abort: sidecarRunId ? () => void cancelDelegateRun(sidecarRunId) : undefined,
     });
+    if (sidecarRunId) {
+      origins.set(sidecarRunId, {
+        threadId: launch.threadId,
+        agentId: launch.agentId,
+        agentName: launch.agentName,
+      });
+    }
     ensurePolling();
   } catch (err) {
     useAgentRunsStore
@@ -176,7 +211,69 @@ export async function pollDelegateRuns(): Promise<void> {
     } else {
       store.updateRun(local.id, { cost, detail: w.detail });
       store.endRun(local.id, w.status, w.detail);
+      if (w.status === "done" || w.status === "error") {
+        await deliverRunOutput(w.id, w.status, w.detail);
+      }
     }
+  }
+}
+
+/**
+ * Deliver a finished run's output to its originating thread, once: the answer
+ * (with the error, if the run failed) is appended there, then each proposed
+ * host action and the brief are enqueued through the proposed-changes gate.
+ */
+async function deliverRunOutput(
+  sidecarRunId: string,
+  status: "done" | "error",
+  detail?: string,
+): Promise<void> {
+  const origin = origins.get(sidecarRunId);
+  if (!origin) {
+    return;
+  }
+  origins.delete(sidecarRunId);
+  let output: RunOutputWire;
+  try {
+    const base = await getSidecarBaseUrl();
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}`, base).toString(),
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    output = (await response.json()) as RunOutputWire;
+  } catch (err) {
+    output = {};
+    detail = `The run finished but its answer could not be fetched (${
+      err instanceof Error ? err.message : String(err)
+    }).`;
+    status = "error";
+  }
+  const messageId = `delegate-${sidecarRunId}`;
+  if (output.answer || status === "error") {
+    useAgentSpacesStore.getState().deliverTo(origin.threadId, {
+      id: messageId,
+      role: "assistant",
+      content: output.answer ?? "",
+      agentId: origin.agentId,
+      createdAt: Date.now(),
+      ...(status === "error" ? { error: detail ?? "The run failed." } : {}),
+      ...(output.brief ? { briefPublished: true } : {}),
+    });
+  }
+  const enqueue = useProposedChangesStore.getState().enqueue;
+  const gate = { batchId: messageId, agentId: origin.agentId, agentName: origin.agentName };
+  for (const action of output.hostActions ?? output.host_actions ?? []) {
+    enqueue({ toolCallId: action.tool_call_id, name: action.name, input: action.input, ...gate });
+  }
+  if (output.brief) {
+    enqueue({
+      toolCallId: `${messageId}-brief`,
+      name: "publish_brief",
+      input: output.brief,
+      ...gate,
+    });
   }
 }
 
