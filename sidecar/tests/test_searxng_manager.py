@@ -89,6 +89,67 @@ def _manager(fake: FakeDocker, tmp_path, **overrides) -> SearxngManager:
 
 
 # ---------------------------------------------------------------------------
+# _resolve_docker_binary() / _run_docker() — the real (uninjected) seam
+# (R15-LIFECYCLE-007: a bare "docker" exec trusts the sidecar process's own
+# PATH, which is minimal when the app is launched from Finder/Dock rather
+# than a terminal — the CLI is installed but invisible).
+# ---------------------------------------------------------------------------
+
+
+def _write_fake_docker(tmp_path, echoed: str) -> str:
+    fake = tmp_path / "docker"
+    fake.write_text(f"#!/bin/sh\necho {echoed}\n")
+    fake.chmod(0o755)
+    return str(fake)
+
+
+def test_resolve_docker_binary_falls_back_to_a_known_install_location(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")  # no docker on this PATH
+    fake_path = _write_fake_docker(tmp_path, "fake-docker")
+    monkeypatch.setattr(searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (fake_path,))
+
+    assert searxng_manager._resolve_docker_binary() == fake_path
+
+
+def test_resolve_docker_binary_returns_none_when_nothing_matches(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setattr(
+        searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (str(tmp_path / "nope" / "docker"),)
+    )
+
+    assert searxng_manager._resolve_docker_binary() is None
+
+
+@pytest.mark.asyncio
+async def test_run_docker_invokes_the_resolved_known_install_location(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    fake_path = _write_fake_docker(tmp_path, "ran-fake-docker")
+    monkeypatch.setattr(searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (fake_path,))
+
+    code, out, _err = await searxng_manager._run_docker("version")
+
+    assert code == 0
+    assert "ran-fake-docker" in out
+
+
+@pytest.mark.asyncio
+async def test_run_docker_reports_not_found_when_no_binary_resolves(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setattr(
+        searxng_manager, "_KNOWN_DOCKER_LOCATIONS", (str(tmp_path / "nope" / "docker"),)
+    )
+
+    code, _out, err = await searxng_manager._run_docker("version")
+
+    assert code == 127
+    assert "docker CLI not found" in err
+
+
+# ---------------------------------------------------------------------------
 # refresh() / detect() — passive state derivation
 # ---------------------------------------------------------------------------
 

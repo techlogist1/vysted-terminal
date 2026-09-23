@@ -48,6 +48,7 @@ import asyncio
 import json
 import logging
 import secrets
+import shutil
 import socket
 import time
 from collections.abc import Awaitable, Callable
@@ -124,18 +125,46 @@ DockerRunner = Callable[..., Awaitable[tuple[int, str, str]]]
 HealthProbe = Callable[[str], Awaitable[bool]]
 PortChecker = Callable[[int], bool]
 
+#: R15-LIFECYCLE-007: a bare "docker" exec relies on the sidecar process's own
+#: PATH, which is minimal/empty when the app is launched from Finder/Dock (or
+#: any non-shell launcher) rather than a terminal — the CLI is installed but
+#: invisible, and every call wrongly reports ``not_installed_docker``. These
+#: are the install locations Docker Desktop, OrbStack, and Homebrew actually
+#: use on macOS; checked only after ``PATH`` itself has a hit.
+_KNOWN_DOCKER_LOCATIONS = (
+    "/usr/local/bin/docker",
+    "/opt/homebrew/bin/docker",
+    str(Path.home() / ".orbstack" / "bin" / "docker"),
+    "/Applications/Docker.app/Contents/Resources/bin/docker",
+)
+
+
+def _resolve_docker_binary() -> str | None:
+    """Find the docker CLI's absolute path: ``PATH`` first, then known installs."""
+    found = shutil.which("docker")
+    if found:
+        return found
+    for candidate in _KNOWN_DOCKER_LOCATIONS:
+        if Path(candidate).is_file():
+            return candidate
+    return None
+
 
 async def _run_docker(*args: str, timeout: float = _DOCKER_TIMEOUT_SECS) -> tuple[int, str, str]:
     """Run a docker CLI command via asyncio subprocess; return ``(code, stdout, stderr)``.
 
     All failure modes collapse into the same return shape so callers branch on
-    one thing: ``127`` models "docker CLI not found" (FileNotFoundError), ``126``
+    one thing: ``127`` models "docker CLI not found" (FileNotFoundError, or no
+    resolvable binary at all — see :func:`_resolve_docker_binary`), ``126``
     "CLI present but not executable", ``124`` a timeout (CLI present, daemon or
     network wedged). This is the single subprocess seam tests monkeypatch.
     """
+    binary = _resolve_docker_binary()
+    if binary is None:
+        return 127, "", "docker CLI not found"
     try:
         proc = await asyncio.create_subprocess_exec(
-            "docker",
+            binary,
             *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
