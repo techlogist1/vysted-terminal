@@ -8,6 +8,7 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useNotesStore } from "@/store/notes";
+import { usePortfoliosStore } from "@/store/portfolios";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
@@ -747,6 +748,89 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
     expect(restored).toBe(false);
     expect(api.fromJSON).not.toHaveBeenCalled(); // never risked the throwing deserialize
     expect(api.addPanel).toHaveBeenCalled(); // applyDefaultLayout ran instead
+  });
+
+  it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useNotesStore.getState().fromBundle(null);
+    useSymbolsStore.setState({ entries: [{ symbol: "SPY", assetClass: "equity" }] });
+    const fetchMock = vi.fn(
+      async () =>
+        ({
+          ok: true,
+          json: async () => ({
+            name: "__autosave__",
+            // A removed panel (the broker connect panel) is docked in the blob.
+            layout: {
+              grid: { root: "a" },
+              panels: { broker: { contentComponent: "broker-connect-panel" } },
+            },
+            enabledModules: {},
+            watchlist: [{ symbol: "INFY", assetClass: "equity" }],
+            portfolios: {
+              list: [
+                {
+                  id: "p1",
+                  name: "Long-term",
+                  holdings: [
+                    {
+                      id: "h1",
+                      symbol: "INFY",
+                      quantity: 10,
+                      costBasis: 1500,
+                      assetClass: "equity",
+                    },
+                  ],
+                },
+              ],
+              activeId: "p1",
+            },
+            notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+          }),
+        }) as unknown as Response,
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(restored).toBe(false);
+    expect(api.fromJSON).not.toHaveBeenCalled(); // never risked the throwing deserialize
+    expect(api.addPanel).toHaveBeenCalled(); // default layout applied instead
+    const portfolios = usePortfoliosStore.getState();
+    expect(portfolios.activeId).toBe("p1");
+    expect(
+      portfolios.portfolios[0].holdings.map((h) => [h.symbol, h.quantity, h.costBasis]),
+    ).toEqual([["INFY", 10, 1500]]);
+    expect(useNotesStore.getState().general).toBe("thesis notes");
+    expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+    expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["INFY"]);
+    expect(useWorkspaceStore.getState().name).toBe("default");
+    // Only the restore GET went out — no default-state POST overwrote the blob.
+    const methods = (fetchMock.mock.calls as unknown as [string, RequestInit?][]).map(
+      ([, init]) => init?.method ?? "GET",
+    );
+    expect(methods).toEqual(["GET"]);
+  });
+
+  it("loadWorkspace keeps the data and falls back to the default layout on an unregistered panel", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    useNotesStore.getState().fromBundle(null);
+    stubFetchResolving({
+      name: "old",
+      layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "audit-log-viewer" } } },
+      enabledModules: {},
+      notes: { general: "kept", bySymbol: {} },
+    });
+
+    await loadWorkspace("old");
+
+    expect(api.fromJSON).not.toHaveBeenCalled();
+    expect(api.clear).toHaveBeenCalled();
+    expect(useNotesStore.getState().general).toBe("kept");
+    expect(useWorkspaceStore.getState().name).toBe("old");
   });
 
   it("re-bases on a clean grid when the restore fetch fails", async () => {
