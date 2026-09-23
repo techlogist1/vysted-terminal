@@ -683,6 +683,60 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
+  it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(
+      <>
+        <textarea aria-label="Composer" />
+        <ChartPanel api={{ id: "chart-A" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Select trendline" }));
+
+    fireEvent.keyDown(screen.getByLabelText("Composer"), { key: "Backspace" });
+    fireEvent.keyDown(screen.getByLabelText("Symbol"), { key: "Backspace" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+
+    // The same key on the chart's own (non-text) control does delete.
+    fireEvent.keyDown(screen.getByRole("button", { name: "Select trendline" }), {
+      key: "Backspace",
+    });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
+  it("a locked drawing survives Delete (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+      locked: true,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    const chip = screen.getByRole("button", { name: "Select trendline" });
+    fireEvent.click(chip);
+
+    fireEvent.keyDown(chip, { key: "Delete" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+  });
+
   it("clears every drawing through the inspector's Clear drawings control", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",

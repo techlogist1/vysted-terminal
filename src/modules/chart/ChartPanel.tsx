@@ -131,6 +131,10 @@ const CANDLE_THEME = {
 
 const COMPARISON_LINE_COLOR = NEUTRAL; // sage-400
 
+/** Elements where Backspace/Delete edit text rather than the chart. */
+const TEXT_ENTRY_SELECTOR =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+
 /** Stable empty drawings reference so the store selector stays referentially equal. */
 const EMPTY_DRAWINGS: readonly DrawingSpec[] = Object.freeze([]);
 
@@ -232,6 +236,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const panelId = usePanelId(props.api);
 
   // --- chart refs ---------------------------------------------------------
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -694,13 +699,24 @@ function ChartPanel(props: ChartPanelProps = {}) {
         setSelectedDrawingId(null);
       }
       if ((event.key === "Delete" || event.key === "Backspace") && selectedDrawingId) {
+        // Panel-scoped: a key typed elsewhere (the agent composer) or into a
+        // field never deletes, and a locked drawing refuses it (R15-UI-021).
+        const target = event.target instanceof Element ? event.target : null;
+        if (
+          !target ||
+          !rootRef.current?.contains(target) ||
+          target.closest(TEXT_ENTRY_SELECTOR) ||
+          drawings.find((d) => d.id === selectedDrawingId)?.locked
+        ) {
+          return;
+        }
         removeDrawing(panelId, selectedDrawingId);
         setSelectedDrawingId(null);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [panelId, removeDrawing, selectedDrawingId]);
+  }, [drawings, panelId, removeDrawing, selectedDrawingId]);
 
   // --- sync bus: subscribe to crosshair / range / symbol broadcasts ------
   useEffect(() => {
@@ -1100,7 +1116,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
     Number(syncSubscriptions.symbol);
 
   return (
-    <div className="bg-charcoal-900 flex h-full w-full flex-col" data-panel-id={panelId}>
+    <div
+      ref={rootRef}
+      className="bg-charcoal-900 flex h-full w-full flex-col"
+      data-panel-id={panelId}
+    >
       {/* The one toolbar row — symbol, timeframe, tools, chips, status. R9 §3:
           everything rides the h-7 toolbar rung with 14px icons; the §3.4
           ladder keeps it ONE row at every panel width ≥360 (no wrap). */}
