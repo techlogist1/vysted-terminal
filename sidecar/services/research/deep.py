@@ -366,7 +366,14 @@ class _Findings:
     store so the merged citecheck sees all angles' page text).
     """
 
-    __slots__ = ("findings", "web_sources", "structured_sources", "coverage", "evidence")
+    __slots__ = (
+        "findings",
+        "web_sources",
+        "structured_sources",
+        "coverage",
+        "evidence",
+        "_numbered",
+    )
 
     def __init__(self, *, evidence: dict[str, str] | None = None) -> None:
         self.findings: list[str] = []
@@ -374,6 +381,7 @@ class _Findings:
         self.structured_sources: list[ResearchSource] = []
         self.coverage: dict[str, bool] = dict.fromkeys(_COVERAGE_DIMS, False)
         self.evidence: dict[str, str] = evidence if evidence is not None else {}
+        self._numbered: list[ResearchSource] = []
 
     def record_evidence(self, visited_pages: list[tuple[str, str]]) -> None:
         """Fold a researcher's visited pages into the raw-evidence store."""
@@ -382,23 +390,25 @@ class _Findings:
                 self.evidence.setdefault(url, text)
 
     def all_sources(self) -> list[ResearchSource]:
-        """Web citations first (they own the low ``[n]`` markers), then
-        structured-provenance sources — de-duplicated by url.
+        """The numbered ``[n]`` source list — APPEND-ONLY, de-duplicated by url.
 
-        R7 finance tuning: the web citations are RANKED by domain tier
-        (exchange/regulator/filings → Tier-1 press → general; stable within a
-        tier) so the primary record takes the low ``[n]`` markers and synthesis
-        cites it preferentially. The numbered prompt lists and ``brief.sources``
-        both come through here, so markers and the rail always agree.
+        A source takes its number the first time the list is read after it was
+        gathered and keeps it for the rest of the run: a marker minted in round
+        1 still resolves to the same source when round 2 gathers more. Sources
+        first seen together are numbered web first, RANKED by domain tier
+        (R7: exchange/regulator/filings → Tier-1 press → general), then
+        structured provenance — ranking orders only the new numbers, never an
+        existing one; the tier of every number rides the prompt as
+        :func:`services.research.finance.priority_note` over this same list.
+        The numbered prompt lists and ``brief.sources`` both come through here,
+        so markers and the rail always agree.
         """
-        seen: set[str] = set()
-        out: list[ResearchSource] = []
+        seen = {src.url for src in self._numbered}
         for src in [*finance.rank_sources(self.web_sources), *self.structured_sources]:
-            if src.url in seen:
-                continue
-            seen.add(src.url)
-            out.append(src)
-        return out
+            if src.url not in seen:
+                seen.add(src.url)
+                self._numbered.append(src)
+        return list(self._numbered)
 
 
 def _record_structured(findings: _Findings, name: str, dim: str, result: dict[str, Any]) -> None:
