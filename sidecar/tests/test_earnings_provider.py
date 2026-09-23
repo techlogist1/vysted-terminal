@@ -163,8 +163,8 @@ async def test_get_estimate_detail(mock_yf_earnings: type[_FakeEarningsTicker]) 
     assert detail.eps_estimate_high == 1.60
     assert detail.eps_estimate_low == 1.40
     assert detail.estimate_analyst_count == 21
-    # Stddev fallback approximation: high-low / 4.
-    assert detail.eps_estimate_stddev == pytest.approx(0.05)
+    # R15-DATA-032: yfinance measures no dispersion — no (high-low)/4 proxy.
+    assert detail.eps_estimate_stddev is None
     assert isinstance(detail.as_of, datetime)
 
 
@@ -199,3 +199,62 @@ async def test_earnings_lane_resolves_india_symbols(monkeypatch: pytest.MonkeyPa
         config.reset_request_region(token)
     assert asked == ["RELIANCE.NS", "INFY.NS"]  # never RELIANCE-NS, never the INFY ADR
     assert (detail.symbol, history.symbol) == ("RELIANCE.NS", "INFY.NS")
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-032 — no proxy statistics on typed estimate fields
+# ---------------------------------------------------------------------------
+
+
+class _InfyShapedTicker(_FakeEarningsTicker):
+    """The batch-4 live INFY shape: mean/high/low, an EPS frame with its own
+    analyst count and a revenue frame with a different one."""
+
+    @property
+    def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+        return {
+            "Earnings Date": [date(2026, 10, 23)],
+            "Earnings Average": 19.58006,
+            "Earnings High": 20.33,
+            "Earnings Low": 19.20,
+            "Revenue Average": 4.9e11,
+            "Revenue High": 5.0e11,
+            "Revenue Low": 4.8e11,
+        }
+
+    @property
+    def earnings_estimate(self) -> pd.DataFrame:
+        return pd.DataFrame([{"avg": 19.58006, "low": 19.2, "high": 20.33, "numberOfAnalysts": 31}])
+
+    @property
+    def revenue_estimate(self) -> pd.DataFrame:
+        return pd.DataFrame(
+            [{"avg": 4.9e11, "low": 4.8e11, "high": 5.0e11, "numberOfAnalysts": 27}]
+        )
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_carries_no_proxy_statistics(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _InfyShapedTicker)
+    detail = await earnings_provider.get_estimate_detail("INFY.NS")
+    assert detail.eps_estimate_median is None  # was == mean (19.58006)
+    assert detail.eps_estimate_stddev is None  # was (20.33 - 19.20) / 4 = 0.2825
+    assert detail.revenue_estimate_median is None
+    assert detail.estimate_analyst_count == 31
+    assert detail.revenue_analyst_count == 27  # the revenue frame's own count
+
+
+@pytest.mark.asyncio
+async def test_calendar_event_without_a_count_reports_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _NoCount(_InfyShapedTicker):
+        @property
+        def earnings_estimate(self) -> pd.DataFrame:  # type: ignore[override]
+            return pd.DataFrame([{"avg": 19.58006, "low": 19.2, "high": 20.33}])
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _NoCount)
+    response = await earnings_provider.get_upcoming(
+        date(2026, 10, 20), date(2026, 10, 25), ["INFY.NS"]
+    )
+    event = response.events[0]
+    assert event.eps_estimate_stddev is None
+    assert event.estimate_analyst_count is None  # never a 0 standing in for unknown

@@ -11,7 +11,8 @@ Public surface
 * :func:`get_surprises(symbol)` — :class:`EarningsSurprisesResponse` —
   the analyst-mean diff against the actual report for each past quarter.
 * :func:`get_estimate_detail(symbol)` — :class:`EarningsEstimateDetail`
-  for the *next* upcoming report — mean / median / high / low / stddev.
+  for the *next* upcoming report — mean / high / low / analyst counts (median
+  and stddev only when the provider supplies them; yfinance does not).
 
 Data sources
 ~~~~~~~~~~~~
@@ -121,6 +122,16 @@ def _fiscal_period_for(ts: date | datetime) -> FiscalPeriod:
     return FiscalPeriod(quarter=quarter, year=d.year)  # type: ignore[arg-type]
 
 
+def _analyst_count(frame: Any) -> int | None:
+    """The current-quarter ``numberOfAnalysts`` of a yfinance estimate frame
+    (``earnings_estimate`` / ``revenue_estimate``), or ``None`` when absent —
+    never a borrowed count or a 0 standing in for "unknown" (R15-DATA-032)."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return None
+    count = _num(frame.iloc[0].get("numberOfAnalysts"))
+    return int(count) if count is not None else None
+
+
 def _surprise_pct(actual: float, estimate: float) -> float | None:
     """Return ``(actual - estimate) / |estimate|`` or None on divide-by-zero."""
     if estimate == 0:
@@ -165,6 +176,10 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
             est_frame = ticker.earnings_estimate
         except Exception:  # noqa: BLE001
             est_frame = None
+        try:
+            rev_frame = ticker.revenue_estimate
+        except Exception:  # noqa: BLE001
+            rev_frame = None
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings calendar failed for {symbol!r}: {exc}") from exc
 
@@ -173,6 +188,7 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
         "calendar": calendar,
         "earnings_dates": earnings_dates,
         "earnings_estimate": est_frame,
+        "revenue_estimate": rev_frame,
         "currency": info.get("currency") or "USD",
         "name": info.get("longName") or info.get("shortName"),
     }
@@ -234,38 +250,16 @@ def _event_from_calendar(
     if scheduled < start_date or scheduled > end_date:
         return None
 
-    eps_mean = _num(cal.get("Earnings Average"))
-    eps_high = _num(cal.get("Earnings High"))
-    eps_low = _num(cal.get("Earnings Low"))
-
-    # Try to compute a coarse dispersion from the high/low spread when the
-    # estimate-frame surfaces a stddev; yfinance's ``earnings_estimate``
-    # DataFrame includes a ``numberOfAnalysts`` column in newer releases.
-    est_frame = payload.get("earnings_estimate")
-    eps_stddev: float | None = None
-    analyst_count = 0
-    if isinstance(est_frame, pd.DataFrame) and not est_frame.empty:
-        # The first row is typically "0q" — current quarter estimate.
-        # Some yfinance versions surface a ``growth`` column but it's
-        # consensus-growth not analyst dispersion, so it is not a valid
-        # stddev source. Fall through to the high/low spread approximation
-        # below, which is what the Strategy Critic consumes.
-        # (Phase 8 T2 S2 hot-patch: was `if False`-guarded dead branch.)
-        row = est_frame.iloc[0]
-        analyst_count = int(_num(row.get("numberOfAnalysts")) or 0)
-    if eps_stddev is None and eps_high is not None and eps_low is not None:
-        # Approximation: assume high/low span ~= 4 stddev (95% CI rule).
-        eps_stddev = max(eps_high - eps_low, 0.0) / 4.0 or None
-
+    # R15-DATA-032: yfinance surfaces no dispersion, so ``eps_estimate_stddev``
+    # stays None (the field is for a provider that measures it).
     return EarningsEvent(
         symbol=payload["symbol"],
         company_name=payload.get("name"),
         scheduled_date=scheduled,
         time_of_day="unknown",
         fiscal_period=_fiscal_period_for(scheduled),
-        eps_estimate_mean=eps_mean,
-        eps_estimate_stddev=eps_stddev,
-        estimate_analyst_count=analyst_count,
+        eps_estimate_mean=_num(cal.get("Earnings Average")),
+        estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
         currency=str(payload.get("currency") or "USD"),
         provider=PROVIDER,
     )
@@ -416,15 +410,6 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     if eps_mean is None or eps_high is None or eps_low is None:
         raise ProviderError(f"incomplete estimate fields for {symbol!r}")
 
-    eps_stddev: float | None = None
-    analyst_count = 0
-    est_frame = payload.get("earnings_estimate")
-    if isinstance(est_frame, pd.DataFrame) and not est_frame.empty:
-        row = est_frame.iloc[0]
-        analyst_count = int(_num(row.get("numberOfAnalysts")) or 0)
-    if eps_stddev is None:
-        eps_stddev = max(eps_high - eps_low, 0.0) / 4.0 or None
-
     rev_mean = _num(cal.get("Revenue Average"))
     rev_high = _num(cal.get("Revenue High"))
     rev_low = _num(cal.get("Revenue Low"))
@@ -432,17 +417,16 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     return EarningsEstimateDetail(
         symbol=normalized,
         fiscal_period=_fiscal_period_for(scheduled),
+        # R15-DATA-032: yfinance surfaces no median or stddev — they stay None
+        # rather than the mean / a (high-low)/4 proxy on a measured-value field.
         eps_estimate_mean=eps_mean,
-        eps_estimate_median=eps_mean,  # yfinance does not surface a separate median
         eps_estimate_high=eps_high,
         eps_estimate_low=eps_low,
-        eps_estimate_stddev=eps_stddev,
-        estimate_analyst_count=analyst_count,
+        estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
         revenue_estimate_mean=rev_mean,
-        revenue_estimate_median=rev_mean,
         revenue_estimate_high=rev_high,
         revenue_estimate_low=rev_low,
-        revenue_analyst_count=analyst_count,
+        revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
         currency=str(payload.get("currency") or "USD"),
         provider=PROVIDER,
         as_of=datetime.now(tz=UTC),

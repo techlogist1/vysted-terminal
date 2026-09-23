@@ -33,10 +33,11 @@ export interface EarningsEvent {
   fiscal_period: FiscalPeriod;
   /** Consensus EPS estimate (analyst-mean), in the reporting currency. */
   eps_estimate_mean: number | null;
-  /** Estimate dispersion (standard deviation of analyst forecasts). */
+  /** Estimate dispersion (standard deviation of analyst forecasts) — null
+   * unless the provider measures it (R15-DATA-032: never a high/low proxy). */
   eps_estimate_stddev: number | null;
-  /** Number of contributing analysts. */
-  estimate_analyst_count: number;
+  /** Number of contributing analysts; null when the provider gives no count. */
+  estimate_analyst_count: number | null;
   /** Currency for the estimates (e.g. ``"USD"``). */
   currency: string;
   provider: string;
@@ -89,13 +90,14 @@ export interface EarningsEstimateDetail {
   eps_estimate_high: number;
   eps_estimate_low: number;
   eps_estimate_stddev: number | null;
-  estimate_analyst_count: number;
-  /** Same fields for revenue. */
+  estimate_analyst_count: number | null;
+  /** Same fields for revenue (median/stddev null unless the provider supplies
+   * them; the count is the revenue frame's own, never the EPS count). */
   revenue_estimate_mean: number | null;
   revenue_estimate_median: number | null;
   revenue_estimate_high: number | null;
   revenue_estimate_low: number | null;
-  revenue_analyst_count: number;
+  revenue_analyst_count: number | null;
   currency: string;
   provider: string;
   /** ISO-8601 timestamp of the most recent estimate refresh from the

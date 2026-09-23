@@ -39,8 +39,10 @@ class EarningsEvent(BaseModel):
     time_of_day: EarningsTimeOfDay
     fiscal_period: FiscalPeriod
     eps_estimate_mean: float | None = None
+    #: Measured dispersion only — None unless the provider supplies it.
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5 = 0
+    #: None when the provider gives no count (never a 0 standing in for unknown).
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
     currency: str = "USD"
     provider: str
 
@@ -86,12 +88,13 @@ class EarningsEstimateDetail(BaseModel):
     eps_estimate_high: float
     eps_estimate_low: float
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
     revenue_estimate_mean: float | None = None
     revenue_estimate_median: float | None = None
     revenue_estimate_high: float | None = None
     revenue_estimate_low: float | None = None
-    revenue_analyst_count: int = 0
+    #: The revenue frame's own count — never the EPS count (R15-DATA-032).
+    revenue_analyst_count: int | None = Field(default=None, ge=0)
     currency: str = "USD"
     provider: str
     as_of: datetime
