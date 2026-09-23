@@ -24,13 +24,15 @@ yfinance is the gated last resort for ``.NS``/``.BO`` — not by this gate.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
+from datetime import date
 from typing import Any
 
-from models.fundamentals import FieldMeta, Fundamentals
+from models.fundamentals import FieldMeta, Fundamentals, IncomeStatement
 from models.market import OHLCVSeries, Quote
-from services import locale, ownership_check
+from services import locale, ownership_check, yfinance_provider
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -471,18 +473,139 @@ def reconcile_ownership(
     return _merge_meta(f, {}, flagged)
 
 
+#: Relative gap between ``revenue_ttm`` and the provider's own latest annual
+#: Total Revenue above which the TTM is flagged (R15-DATA-014). Wide enough for a
+#: fast grower's TTM to run ahead of its last fiscal year (JNPR: 8.49B TTM vs
+#: 7.09B FY, 17%); FUSION's 858cr TTM against a 1,513cr fiscal year (43%) is not
+#: growth but a mis-scoped figure.
+_REVENUE_STATEMENT_DIVERGENCE = 0.30
+#: Absolute gap (fraction) between net income / revenue and the provider's own
+#: ``profit_margin`` above which the revenue is flagged: the two sizes and the
+#: margin come from different periods.
+_MARGIN_GAP = 0.02
+#: A trailing-12-month size needs four filed quarters inside a year; a period end
+#: less than this many days before the latest one falls inside that year.
+_TTM_WINDOW_DAYS = 330
+
+
+def _latest_annual(statement: IncomeStatement, label: str) -> tuple[str, float] | None:
+    """The newest period's value for ``label`` in an annual statement, if any."""
+    for line in statement.lines:
+        if line.label != label:
+            continue
+        for period in statement.periods:
+            value = line.values.get(period)
+            if value is not None:
+                return period, value
+    return None
+
+
+def reconcile_revenue(
+    f: Fundamentals,
+    annual: IncomeStatement | None,
+    quarter_ends: list[date] | None,
+) -> Fundamentals:
+    """Flag a ``revenue_ttm`` its own provider's statements do not bear out
+    (R15-DATA-014), never substituting one.
+
+      * against the latest annual Total Revenue, beyond
+        :data:`_REVENUE_STATEMENT_DIVERGENCE`;
+      * net income / revenue against the provider's own ``profit_margin``,
+        beyond :data:`_MARGIN_GAP`;
+      * fewer than four filed quarters in the trailing year (a half-yearly filer)
+        → the trailing sizes are labelled "annual, not trailing-4Q".
+
+    A witness that could not be fetched (``None``, or an empty quarterly
+    frame) contributes nothing.
+    """
+    revenue = f.revenue_ttm
+    if revenue is None or revenue <= 0:
+        return f
+    reasons: list[str] = []
+    latest = _latest_annual(annual, "Total Revenue") if annual is not None else None
+    if latest is not None and latest[1] > 0:
+        period, annual_revenue = latest
+        gap = _relative_divergence(revenue, annual_revenue)
+        if gap > _REVENUE_STATEMENT_DIVERGENCE:
+            reasons.append(
+                f"revenue_ttm {revenue:,.0f} diverges {gap:.0%} from the provider's own "
+                f"latest annual Total Revenue ({annual_revenue:,.0f}, FY {period}) — the "
+                "trailing figure may be mis-scoped"
+            )
+    margin, net_income = f.profit_margin, f.net_income_ttm
+    if margin is not None and net_income is not None:
+        implied_margin = net_income / revenue
+        if abs(implied_margin - margin) > _MARGIN_GAP:
+            reasons.append(
+                f"net income / revenue ({implied_margin:.1%}) disagrees with the "
+                f"provider's own profit margin ({margin:.1%}) — revenue and net income "
+                "may be from different periods"
+            )
+    flagged: dict[str, str] = {}
+    if reasons:
+        flagged["revenue_ttm"] = "; ".join(reasons) + "; kept, flagged"
+    if quarter_ends:  # an empty frame says nothing about the filing cadence
+        newest = max(quarter_ends)
+        filed = [d for d in quarter_ends if (newest - d).days < _TTM_WINDOW_DAYS]
+        if len(filed) < 4:
+            basis = (
+                f"TTM basis: only {len(filed)} filed quarter(s) in the trailing year "
+                "(e.g. a half-yearly filer) — annual, not trailing-4Q; kept, flagged"
+            )
+            for field_name in ("revenue_ttm", "net_income_ttm"):
+                if getattr(f, field_name) is not None:
+                    prior = flagged.get(field_name)
+                    flagged[field_name] = f"{prior}; {basis}" if prior else basis
+    return _merge_meta(f, {}, flagged)
+
+
+async def _statement_witnesses(
+    f: Fundamentals,
+) -> tuple[IncomeStatement | None, list[date] | None]:
+    """The serving provider's own annual income statement and quarterly period
+    ends for the same listing. Only a yfinance-served payload has a same-provider
+    statement to check against; any fetch failure attaches nothing."""
+
+    async def fetch(fn: Any) -> Any:
+        try:
+            return await asyncio.to_thread(fn, f.symbol)
+        except Exception as exc:  # noqa: BLE001 — a witness must never break the payload
+            logger.debug("statement witness unavailable for %s: %s", f.symbol, exc)
+            return None
+
+    return await asyncio.gather(
+        fetch(yfinance_provider.get_income_statement),
+        fetch(yfinance_provider.get_quarterly_period_ends),
+    )
+
+
 async def apply_witnesses(f: Fundamentals) -> Fundamentals:
     """Run the witnesses that need a network fetch over served fundamentals.
 
     Shared by ``GET /fundamentals`` and the company narrative so both surfaces
-    carry the same flags. For an Indian listing with a served ownership fraction,
-    the exchange shareholding pattern is fetched (``get_exchange_ownership`` never
-    raises and respects its circuit) and :func:`reconcile_ownership` applied.
+    carry the same flags, fetched concurrently:
+
+      * for an Indian listing with a served ownership fraction, the exchange
+        shareholding pattern (``get_exchange_ownership`` never raises and
+        respects its circuit) → :func:`reconcile_ownership`;
+      * for a yfinance-served ``revenue_ttm``, the same provider's annual income
+        statement and quarterly period ends → :func:`reconcile_revenue`.
     """
     has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
-    if has_ownership and _is_india_listing(f.symbol):
-        exchange = await ownership_check.get_exchange_ownership(f.symbol)
+    check_ownership = has_ownership and _is_india_listing(f.symbol)
+    check_revenue = f.revenue_ttm is not None and f.provider == yfinance_provider.PROVIDER
+
+    async def ownership() -> ownership_check.ExchangeOwnership | None:
+        return await ownership_check.get_exchange_ownership(f.symbol) if check_ownership else None
+
+    async def statements() -> tuple[IncomeStatement | None, list[date] | None]:
+        return await _statement_witnesses(f) if check_revenue else (None, None)
+
+    exchange, (annual, quarter_ends) = await asyncio.gather(ownership(), statements())
+    if check_ownership:
         f = reconcile_ownership(f, exchange)
+    if check_revenue:
+        f = reconcile_revenue(f, annual, quarter_ends)
     return f
 
 
@@ -490,6 +613,7 @@ __all__ = [
     "CorrectnessError",
     "apply_witnesses",
     "reconcile_ownership",
+    "reconcile_revenue",
     "symbols_match",
     "validate_fundamentals",
     "validate_quote",

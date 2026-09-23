@@ -12,13 +12,14 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import company_narrative
+from services import company_narrative, yfinance_provider
 from services.company_narrative import (
     _close,
     _normalise_token,
     _source_values,
     _verify_text,
 )
+from services.errors import ProviderError
 
 # --------------------------------------------------------------------------
 # Source fixtures — a realistic, fully-populated company (Apple-shaped).
@@ -233,8 +234,15 @@ def _patch_data(monkeypatch: pytest.MonkeyPatch) -> None:
     def _fake_quote(symbol: str, region: str | None = None) -> Quote:
         return _apple_quote()
 
+    def _no_statement(symbol: str) -> None:
+        raise ProviderError(f"statement witness offline in tests for {symbol!r}")
+
     monkeypatch.setattr(company_narrative.provider_registry, "get_fundamentals", _fake_fundamentals)
     monkeypatch.setattr(company_narrative.provider_registry, "get_quote", _fake_quote)
+    # The revenue witness (R15-DATA-014) fetches the provider's own statements;
+    # keep it off the network — the narrative, not the witness, is under test.
+    monkeypatch.setattr(yfinance_provider, "get_income_statement", _no_statement)
+    monkeypatch.setattr(yfinance_provider, "get_quarterly_period_ends", _no_statement)
 
 
 def _patch_llm(monkeypatch: pytest.MonkeyPatch, output: str) -> None:

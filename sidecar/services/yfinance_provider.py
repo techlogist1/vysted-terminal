@@ -12,7 +12,7 @@ upstream API drifts over time, so each function is defensive and tests mock the
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 import pandas as pd
@@ -483,6 +483,20 @@ def get_income_statement(symbol: str) -> IncomeStatement:
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
+
+
+def get_quarterly_period_ends(symbol: str) -> list[date]:
+    """The period-end dates of Yahoo's quarterly income statement for ``symbol``.
+
+    The witness for how many filed periods back Yahoo's trailing-12-month sizes:
+    a half-yearly filer shows two period ends in a year, not four.
+    """
+    normalized = _yahoo_symbol(symbol)
+    try:
+        frame = yf.Ticker(normalized).quarterly_income_stmt
+        return [pd.Timestamp(column).date() for column in frame.columns]
+    except Exception as exc:  # noqa: BLE001
+        raise _provider_error("quarterly income statement", symbol, exc) from exc
 
 
 def get_balance_sheet(symbol: str) -> BalanceSheet:
