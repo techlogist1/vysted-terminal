@@ -457,8 +457,9 @@ async def run_deep_brief(
             the ``research`` handler, not this engine) is treated as ``"deep"``.
         rounds: Research rounds, clamped to ``[1, 5]``; ``None`` takes the depth
             profile's default (deep 3, ultra 4).
-        wall_seconds: Wall-clock budget, clamped to ``[30, 300]``; ``None``
-            takes the depth profile's default (deep 120, ultra 240).
+        wall_seconds: Wall-clock budget, clamped to ``[30, max(300, the
+            profile's wall)]``; ``None`` takes the depth profile's own wall
+            (``depth.PROFILES``).
         backend: ``"native"`` (default), ``"perplexity"`` (opt-in-per-run,
             paid), or ``"sonar"`` (opt-in-per-run, paid — the same sonar family
             through OpenRouter on the user's OpenRouter key; R7 Component 3).
@@ -479,7 +480,7 @@ async def run_deep_brief(
         # a fast-pass depth gets the DEEP profile, never a silent ultra upgrade.
         profile = depth_mod.PROFILES[depth_mod.DEPTH_DEEP]
     rounds_i = _clamp(rounds, 1, 5, profile.rounds)
-    wall = _clamp(wall_seconds, 30, 300, profile.wall_seconds)
+    wall = _clamp(wall_seconds, 30, max(300, profile.wall_seconds), profile.wall_seconds)
 
     # The user's Settings selection (Track 5) is authoritative when the caller does
     # not pass an explicit backend. Defaults to native; Perplexity (opt-in-per-run,

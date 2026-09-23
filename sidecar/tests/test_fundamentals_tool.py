@@ -296,3 +296,38 @@ def test_a_raising_resolver_leaves_the_provider_error_standing(
         "error": "provider error: upstream 500",
         "reason": "provider_error",
     }
+
+
+def test_financial_statements_quarterly_reaches_the_registry_period(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-026 (C1): ``period="quarterly"`` reaches the registry and the
+    payload carries its ISO period-end labels, newest first, capped at 8."""
+    from models.fundamentals import IncomeStatement, StatementLine
+
+    quarters = [f"20{y}-{m}" for y in (24, 25, 26) for m in ("03-31", "06-30", "09-30", "12-31")]
+    seen: dict[str, Any] = {}
+
+    async def fake_income(symbol: str, region: str | None = None, period: str = "annual"):  # noqa: ANN202
+        seen.update(symbol=symbol, period=period)
+        return IncomeStatement(
+            symbol=symbol,
+            periods=quarters,
+            lines=[StatementLine(label="Total Revenue", values={q: 1.0 for q in quarters})],
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_income_statement", fake_income)
+    out = asyncio.run(
+        fundamentals_tool._financial_statements(
+            {"symbol": "TCS.NS", "statement": "income", "period": "quarterly"}
+        )
+    )
+
+    assert seen == {"symbol": "TCS.NS", "period": "quarterly"}
+    assert out["ok"] is True
+    assert (out["statement"], out["period"]) == ("income", "quarterly")
+    assert out["periods"] == sorted(quarters, reverse=True)[:8]
+    assert out["periods"][0] == "2026-12-31"
+    assert out["periods_available"] == 12
+    assert set(out["lines"][0]["values"]) == set(out["periods"])

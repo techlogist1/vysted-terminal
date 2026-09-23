@@ -216,9 +216,70 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
     return {"ok": False, "error": last_error, "reason": _classify_reason(last_error)}
 
 
+#: Statement periods returned to the model (prompt budget); the payload's
+#: ``periods_available`` says when older periods were cut.
+_MAX_STATEMENT_PERIODS = 8
+_STATEMENT_FETCHERS = {
+    "income": "get_income_statement",
+    "balance": "get_balance_sheet",
+    "cashflow": "get_cash_flow",
+}
+
+
+async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
+    """Return one financial statement (income / balance / cashflow) for
+    ``symbol``, annual or quarterly, as ``{symbol, statement, period, periods,
+    lines}`` (R15-DATA-026).
+
+    Periods are fiscal years (annual) or ISO period-end dates (quarterly),
+    newest first, capped at the newest :data:`_MAX_STATEMENT_PERIODS`;
+    ``periods_available`` counts what the provider served.
+    """
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    statement = str(args.get("statement") or "")
+    if statement not in _STATEMENT_FETCHERS:
+        return {"ok": False, "error": "statement must be one of income, balance, cashflow"}
+    period = str(args.get("period") or "annual")
+    if period not in ("annual", "quarterly"):
+        return {"ok": False, "error": "period must be 'annual' or 'quarterly'"}
+
+    fetch = getattr(provider_registry, _STATEMENT_FETCHERS[statement])
+    try:
+        result = await fetch(symbol, period=period)
+    except ProviderError as exc:
+        return {
+            "ok": False,
+            "error": f"provider error: {exc}",
+            "reason": _classify_reason(str(exc)),
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+
+    periods = sorted(result.periods, reverse=True)[:_MAX_STATEMENT_PERIODS]
+    return {
+        "ok": True,
+        "symbol": result.symbol,
+        "statement": statement,
+        "period": period,
+        "provider": result.provider,
+        "periods": periods,
+        "periods_available": len(result.periods),
+        "lines": [
+            {"label": line.label, "values": {p: line.values.get(p) for p in periods}}
+            for line in result.lines
+        ],
+    }
+
+
 def register() -> None:
-    """Register the ``fundamentals`` tool in the package registry."""
+    """Register the ``fundamentals`` and ``financial_statements`` tools."""
     register_tool("fundamentals", _fundamentals)
+    register_tool("financial_statements", _financial_statements)
 
 
-__all__ = ["_fundamentals", "register"]
+__all__ = ["_financial_statements", "_fundamentals", "register"]
