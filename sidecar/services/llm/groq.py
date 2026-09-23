@@ -109,10 +109,10 @@ class GroqProvider(LLMProvider):
         # Native server-side web search (FR-081): on Groq, search is handled by
         # the Compound system server-side — a Compound model (``compound-*`` /
         # ``groq/compound*``) runs web search automatically, so there is no
-        # explicit tool to inject; pass through. On a non-Compound Groq model
-        # there is no native search, so this is a graceful no-op (the runtime
-        # falls back to a BYOK search plugin). Either way, pop the kwargs so they
-        # never reach the SDK.
+        # explicit tool to inject; pass through. A non-Compound Groq model has
+        # no native search, and ``native_search_available`` gates the flag per
+        # model, so the runtime keeps the local ``web_search`` tool for it.
+        # Either way, pop the kwargs so they never reach the SDK.
         kwargs.pop("web_search", None)
         kwargs.pop("web_search_max_uses", None)
         client = self._client(api_key)
