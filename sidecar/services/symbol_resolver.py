@@ -677,14 +677,15 @@ def resolve(query: str, region: str) -> Resolution:
     Ranking is ``(band, locale_match, raw_score)``; reported confidence is the
     raw score — acceptance is the resolution policy's call, not this module's.
 
-    The banded result then passes through the NSE symbol-change lane (R12, D66):
-    a resolved OLD symbol whose change date has passed is answered as its CURRENT
-    symbol with an explicit :class:`RenameAnnotation` — never a silent swap, and
-    an honest no-op when the rename master is unavailable. Finally (R13) every
-    surviving candidate is enriched with its additive identity metadata (ISIN,
-    BSE scrip code, industry, former name) — a read-only join, never a fabricator.
+    Every candidate is then enriched with its additive identity metadata (R13:
+    ISIN, BSE scrip code, industry) — a read-only join, never a fabricator — and
+    only then passes through the NSE symbol-change lane (R12, D66), whose
+    identity gate needs those ISINs: a resolved OLD symbol whose change date has
+    passed is answered as its CURRENT symbol with an explicit
+    :class:`RenameAnnotation` — never a silent swap, never onto a different
+    company, and an honest no-op when the rename master is unavailable.
     """
-    return _enrich_resolution(_annotate_renamed_symbols(_resolve_masters(query, region)))
+    return _annotate_renamed_symbols(_enrich_resolution(_resolve_masters(query, region)))
 
 
 def _resolve_masters(query: str, region: str) -> Resolution:
@@ -797,16 +798,28 @@ def _rename_instrument(inst: Instrument) -> Instrument:
     """Rewrite a retired Indian symbol to its CURRENT NSE identity, annotated.
 
     The rename master is NSE's ``symbolchange.csv``, so the current symbol is
-    always an NSE listing. A retired symbol can surface as EITHER its NSE row or
-    its dual-listed BSE row (same company, same ISIN) — BOTH rewrite to the ONE
-    current NSE identity so the candidate list COLLAPSES to a single clean row
-    (R12, D67) instead of stranding a stale same-ticker BSE candidate that still
-    carries full confidence and no provenance. Only Indian instruments are
-    considered (a US ticker that happens to equal an NSE old symbol keeps its own
-    identity — the NSE master governs Indian listings only). The rename applies
-    only when the change's effective date has passed; an empty rename map (cold
-    app / no network) is an honest no-op, so this returns ``inst`` unchanged and
-    the resolver behaves exactly as it did before the lane existed.
+    always an NSE listing and the row it describes is an NSE row. The master is
+    keyed by the ticker STRING, which is not an identity: a BSE-only company can
+    share a ticker with a retired NSE symbol (BSE SHREE = Shree Marutinandan
+    Tubes, NSE SHREE → AJMERA in 2009), and NSE reuses retired tickers (DTIL
+    retired to DVL in 2010, reused by Dhunseri Tea). So the rewrite is gated on
+    :func:`~services.resolution_policy.same_instrument` (ISIN-first; the resolver
+    has enriched every candidate before this lane runs):
+
+      * an NSE row is rewritten unless the renamed-to symbol is itself a listing
+        in the NSE master that is a different instrument (the old ticker was
+        reused by another company);
+      * a BSE row is rewritten only when its ISIN is known and equals the ISIN
+        of the renamed NSE instrument — the renamed-to listing when the master
+        carries it, else the NSE row of the retired ticker (a dual listing of the
+        same company collapses to the ONE current row, R12/D67). A BSE row with
+        no ISIN, or with no NSE counterpart, is never rewritten.
+
+    Only Indian instruments are considered (a US ticker that happens to equal an
+    NSE old symbol keeps its own identity). The rename applies only when the
+    change's effective date has passed; an empty rename map (cold app / no
+    network) is an honest no-op, so this returns ``inst`` unchanged and the
+    resolver behaves exactly as it did before the lane existed.
     """
     if inst.region != REGION_IN:
         return inst
@@ -816,16 +829,30 @@ def _rename_instrument(inst: Instrument) -> Instrument:
     new_symbol = applied.renamed_to.strip().upper()
     if not new_symbol or new_symbol == inst.symbol:
         return inst
+    nse = _nse_master()
+    target = (
+        _enrich_instrument(_instrument_nse(new_symbol, inst.score, inst.band))
+        if new_symbol in nse
+        else None
+    )
+    if inst.exchange == "BSE":
+        anchor = target
+        if anchor is None and inst.symbol in nse:
+            anchor = _enrich_instrument(_instrument_nse(inst.symbol, inst.score, inst.band))
+        if not inst.isin or anchor is None or not same_instrument(inst, anchor):
+            return inst
+    elif target is not None and not same_instrument(inst, target):
+        return inst
     effective = applied.effective_date.isoformat()
-    return Instrument(
-        symbol=new_symbol,
-        name=applied.new_name or inst.name,
-        exchange="NSE",
-        region=REGION_IN,
-        asset_class=inst.asset_class,
-        yahoo_symbol=f"{new_symbol}.NS",
+    current = target or replace(
+        inst, symbol=new_symbol, exchange="NSE", yahoo_symbol=f"{new_symbol}.NS"
+    )
+    return replace(
+        current,
+        name=applied.new_name or current.name,
         score=inst.score,
         band=inst.band,
+        former_name=inst.symbol,
         rename=RenameAnnotation(
             renamed_from=inst.symbol,
             renamed_to=new_symbol,
