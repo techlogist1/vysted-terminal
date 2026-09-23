@@ -144,10 +144,12 @@ def get_quote(symbol: str) -> Quote:
     frame = _stock_df(bare, today - timedelta(days=14), today)
 
     last = frame.iloc[-1]
-    close = float(last["CLOSE"])
+    close = _num(last["CLOSE"])
+    if close is None:
+        raise ProviderError(f"nse: no close in the latest EOD row for {bare!r}")
     prev_close = _num(last.get("PREV. CLOSE"))
     if prev_close is None and len(frame) >= 2:
-        prev_close = float(frame.iloc[-2]["CLOSE"])
+        prev_close = _num(frame.iloc[-2]["CLOSE"])
     change = close - prev_close if prev_close else 0.0
     change_percent = (change / prev_close * 100.0) if prev_close else 0.0
     trading_day = _ist_trading_date(last["DATE"])
@@ -189,14 +191,18 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
 def _frame_to_bars(frame: pd.DataFrame) -> list[OHLCVBar]:
     bars: list[OHLCVBar] = []
     for _, row in frame.iterrows():
+        ohlc = [_num(row[column]) for column in ("OPEN", "HIGH", "LOW", "CLOSE")]
+        if any(value is None for value in ohlc):
+            continue  # a row with a NaN/missing price cell is dropped, never served
+        open_, high, low, close = ohlc
         trading_day = _ist_trading_date(row["DATE"])
         bars.append(
             OHLCVBar(
                 timestamp=_bar_timestamp(trading_day),
-                open=float(row["OPEN"]),
-                high=float(row["HIGH"]),
-                low=float(row["LOW"]),
-                close=float(row["CLOSE"]),
+                open=open_,
+                high=high,
+                low=low,
+                close=close,
                 volume=float(_num(row.get("VOLUME")) or 0.0),
             )
         )

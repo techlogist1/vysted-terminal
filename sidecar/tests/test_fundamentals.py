@@ -293,3 +293,190 @@ def test_get_fundamentals_identity_note_absent_when_resolver_cannot_bind(
     resp = client.get("/fundamentals/XXXX")
     assert resp.status_code == 200
     assert resp.json()["identity_note"] is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-004: Yahoo ownership reconciled against the exchange filing
+# ---------------------------------------------------------------------------
+
+
+def _ownership_route(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    exchange: object,
+    **held: float,
+) -> dict:
+    """GET /fundamentals for a stubbed Indian listing with a stubbed exchange
+    shareholding pattern (``exchange`` is an ExchangeOwnership or None)."""
+    from models.fundamentals import FieldMeta, Fundamentals
+    from services import ownership_check, provider_registry, symbol_resolver
+    from services.symbol_resolver import Resolution
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        meta = {k: FieldMeta(status="ok", provider="yfinance") for k in held}
+        return Fundamentals(
+            symbol=symbol,
+            name="X Ltd",
+            provider="yfinance",
+            field_meta=meta,
+            **held,  # type: ignore[arg-type]
+        )
+
+    async def fake_exchange(listing: str) -> object:
+        assert listing == symbol  # the resolved Yahoo listing form (C4)
+        return exchange
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", fake_exchange)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get(f"/fundamentals/{symbol}").json()
+
+
+def _filing(promoter: float | None, institutions: float | None, public: float | None) -> object:
+    from services.ownership_check import ExchangeOwnership
+
+    return ExchangeOwnership(
+        promoter_percent=promoter,
+        institutions_percent=institutions,
+        public_percent=public,
+        as_of_quarter="2026-06-30",
+        source="BSE",
+    )
+
+
+@pytest.mark.parametrize(
+    ("symbol", "field", "value", "filing", "status"),
+    [
+        # DHANBANK: a promoter-less bank; the filing carries no promoter group.
+        ("DHANBANK.NS", "held_percent_insiders", 0.51176, (None, 14.26, 85.74), "flagged"),
+        # JONJUA: 46.6% insiders against a filed 29.67% promoter group.
+        ("JONJUA.BO", "held_percent_insiders", 0.46623, (29.67, 0.0, 70.33), "flagged"),
+        # SAFE: 73.84% against a filed 73.58% sits inside the 3pp band.
+        ("SAFE.BO", "held_percent_insiders", 0.7384, (73.58, 0.1, 26.32), "ok"),
+        # NAPEROL institutions leg: 0 against a filed 1.77% (zero vs non-zero).
+        ("NAPEROL.BO", "held_percent_institutions", 0.0, (60.0, 1.77, 38.23), "flagged"),
+    ],
+)
+def test_ownership_is_flagged_when_the_exchange_filing_disagrees(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    field: str,
+    value: float,
+    filing: tuple,
+    status: str,
+) -> None:
+    body = _ownership_route(client, monkeypatch, symbol, _filing(*filing), **{field: value})
+    assert body[field] == value  # kept, never substituted
+    meta = body["field_meta"][field]
+    assert meta["status"] == status
+    if status == "flagged":
+        assert "BSE" in meta["reason"] and "2026-06-30" in meta["reason"]
+
+
+def test_ownership_is_unreconciled_when_the_exchange_filing_is_unavailable(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    body = _ownership_route(client, monkeypatch, "JONJUA.BO", None, held_percent_insiders=0.46623)
+    meta = body["field_meta"]["held_percent_insiders"]
+    assert meta["status"] == "flagged"
+    assert meta["reason"].startswith("unreconciled: exchange shareholding unavailable")
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-014: revenue_ttm reconciled against the provider's own statements
+# ---------------------------------------------------------------------------
+
+_QUARTERLY = ["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30", "2025-06-30"]
+
+
+def _revenue_route(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    fields: dict,
+    annual_revenue: float | None,
+    quarter_ends: list[str],
+) -> dict:
+    """GET /fundamentals for a stubbed yfinance payload whose own annual income
+    statement carries ``annual_revenue`` (``None`` → the statement fetch fails)."""
+    from datetime import date
+
+    from models.fundamentals import Fundamentals, IncomeStatement, StatementLine
+    from services import provider_registry, symbol_resolver, yfinance_provider
+    from services.errors import ProviderError
+    from services.symbol_resolver import Resolution
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(symbol=symbol, name="X Ltd", provider="yfinance", **fields)
+
+    def fake_income(listing: str) -> IncomeStatement:
+        assert listing == symbol  # the same listing the payload was served for
+        if annual_revenue is None:
+            raise ProviderError("yfinance income statement failed: upstream 500")
+        line = StatementLine(label="Total Revenue", values={"2026": annual_revenue})
+        return IncomeStatement(symbol=symbol, periods=["2026"], lines=[line], provider="yfinance")
+
+    def fake_quarters(listing: str) -> list[date]:  # noqa: ARG001
+        if annual_revenue is None:
+            raise ProviderError("yfinance quarterly income statement failed: upstream 500")
+        return [date.fromisoformat(d) for d in quarter_ends]
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(yfinance_provider, "get_income_statement", fake_income)
+    monkeypatch.setattr(yfinance_provider, "get_quarterly_period_ends", fake_quarters)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get(f"/fundamentals/{symbol}").json()
+
+
+def test_revenue_diverging_from_the_annual_statement_is_flagged(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """FUSION: a 858cr "TTM" against the provider's own 1,513cr fiscal year."""
+    fields = {"revenue_ttm": 8_582_000_128, "net_income_ttm": 1_685_100_032}
+    fields["profit_margin"] = 0.19635
+    body = _revenue_route(client, monkeypatch, "FUSION.NS", fields, 15_131_300_000, _QUARTERLY)
+    assert body["revenue_ttm"] == 8_582_000_128  # kept, never substituted
+    meta = body["field_meta"]["revenue_ttm"]
+    assert meta["status"] == "flagged"
+    assert "15,131,300,000" in meta["reason"]
+
+
+def test_revenue_divergence_on_a_second_listing_is_flagged(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A case the fix was not written against: DAL's 2.76cr against 9.97cr."""
+    fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
+    body = _revenue_route(client, monkeypatch, "DAL.BO", fields, 99_700_000, _QUARTERLY)
+    assert body["field_meta"]["revenue_ttm"]["status"] == "flagged"
+
+
+def test_half_yearly_filer_ttm_is_labelled_annual(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """JONJUA files half-yearly: two period ends in the trailing year, so its
+    trailing sizes are labelled "annual, not trailing-4Q"."""
+    fields = {"revenue_ttm": 239_033_504, "net_income_ttm": 87_482_000, "profit_margin": 0.36598}
+    half_yearly = ["2026-03-31", "2025-09-30", "2025-03-31"]
+    body = _revenue_route(client, monkeypatch, "JONJUA.BO", fields, 212_051_000, half_yearly)
+    for field_name in ("revenue_ttm", "net_income_ttm"):
+        meta = body["field_meta"][field_name]
+        assert meta["status"] == "flagged"
+        assert "annual, not trailing-4Q" in meta["reason"]
+
+
+def test_statement_fetch_failure_leaves_revenue_ok(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fields = {"revenue_ttm": 8_582_000_128, "net_income_ttm": 1_685_100_032}
+    fields["profit_margin"] = 0.19635
+    resp_body = _revenue_route(client, monkeypatch, "FUSION.NS", fields, None, _QUARTERLY)
+    assert resp_body["revenue_ttm"] == 8_582_000_128
+    assert (resp_body["field_meta"] or {}).get("revenue_ttm") is None

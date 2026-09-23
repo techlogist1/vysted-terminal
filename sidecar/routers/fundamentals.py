@@ -36,6 +36,7 @@ from models.fundamentals import (
 from services import (
     analyst_ratings_extended,
     company_narrative,
+    correctness_gate,
     data_cache,
     identity_crosscheck,
     provider_registry,
@@ -98,6 +99,11 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     (:func:`_identity_note`) when the resolver's canonical name and this
     provider's company name materially disagree — e.g. an exchange rename the
     provider has not caught up with. ``None`` when they agree; never a swap.
+
+    R15: the served values then pass the network witnesses
+    (:func:`correctness_gate.apply_witnesses`) — an Indian listing's ownership
+    fractions are reconciled against the exchange shareholding filing and flagged
+    (never replaced) where they disagree.
     """
     try:
         fundamentals = await provider_registry.get_fundamentals(symbol)
@@ -113,6 +119,7 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
                 detail=f"No instrument matches {symbol!r} — check the symbol.",
             ) from exc
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+    fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
     return fundamentals
 

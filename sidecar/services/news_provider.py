@@ -129,10 +129,6 @@ _RETRY_BACKOFF_SECONDS = 0.25
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
-def _utcnow() -> datetime:
-    return datetime.now(tz=UTC)
-
-
 def _stable_id(url: str, title: str) -> str:
     """Derive a stable, deterministic id for a news item from its url+title."""
     digest = hashlib.sha1(f"{url}\n{title}".encode(), usedforsecurity=False)
@@ -148,24 +144,29 @@ def _clean(text: str | None) -> str | None:
     return collapsed or None
 
 
-def _parse_struct_time(value: struct_time | None) -> datetime:
-    """Convert a feedparser ``struct_time`` to a UTC datetime; fall back to now."""
+def _parse_struct_time(value: struct_time | None) -> datetime | None:
+    """Convert a feedparser ``struct_time`` to a UTC datetime.
+
+    ``None`` when the entry carried no date or a malformed one: an undated item
+    is never stamped now() (which would sort it above genuinely recent stories).
+    """
     if value is None:
-        return _utcnow()
+        return None
     try:
         return datetime(*value[:6], tzinfo=UTC)
     except (TypeError, ValueError):
-        return _utcnow()
+        return None
 
 
-def _parse_iso(value: str | None) -> datetime:
-    """Parse an ISO-8601 timestamp (NewsAPI's format); fall back to now."""
+def _parse_iso(value: str | None) -> datetime | None:
+    """Parse an ISO-8601 timestamp (NewsAPI's format); ``None`` when absent or
+    malformed, never now()."""
     if not value:
-        return _utcnow()
+        return None
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
-        return _utcnow()
+        return None
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed
@@ -392,5 +393,7 @@ async def fetch_news(
         seen.add(item.id)
         unique.append(item)
 
-    unique.sort(key=lambda item: item.published_at, reverse=True)
-    return unique
+    # Newest first; an undated item sorts last (its recency is unknown).
+    dated = [item for item in unique if item.published_at is not None]
+    dated.sort(key=lambda item: item.published_at, reverse=True)
+    return dated + [item for item in unique if item.published_at is None]

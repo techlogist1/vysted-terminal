@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 
 from models.fundamentals import CompanyNarrative, Fundamentals, UnverifiedClaim
 from models.market import Quote
-from services import provider_registry
+from services import correctness_gate, provider_registry
 from services.llm.oneshot import complete
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,20 @@ def _close(a: float, b: float) -> bool:
     return scale > 0 and diff / scale <= _REL_TOLERANCE
 
 
+def _served(fundamentals: Fundamentals, name: str) -> float | None:
+    """The field's value, or ``None`` when the correctness gate FLAGGED it.
+
+    A flagged value is kept on the payload for the panel to show beside its
+    reason, but a cross-check disputes it, so it is neither handed to the model
+    as a fact nor accepted by the verifier as a matching number. An absent
+    ``field_meta`` entry leaves the value as served.
+    """
+    meta = (fundamentals.field_meta or {}).get(name)
+    if meta is not None and meta.status == "flagged":
+        return None
+    return getattr(fundamentals, name)
+
+
 def _source_values(fundamentals: Fundamentals | None, quote: Quote | None) -> list[float]:
     """Collect every checkable numeric value from the source data.
 
@@ -140,44 +154,44 @@ def _source_values(fundamentals: Fundamentals | None, quote: Quote | None) -> li
 
     if fundamentals is not None:
         # Plain numeric / ratio fields.
-        for v in (
-            fundamentals.market_cap,
-            fundamentals.pe_ratio,
-            fundamentals.forward_pe,
-            fundamentals.peg_ratio,
-            fundamentals.price_to_book,
-            fundamentals.price_to_sales,
-            fundamentals.ev_to_ebitda,
-            fundamentals.book_value,
-            fundamentals.dividend_per_share,
-            fundamentals.eps,
-            fundamentals.beta,
-            fundamentals.fifty_two_week_high,
-            fundamentals.fifty_two_week_low,
-            fundamentals.debt_to_equity,
-            fundamentals.current_ratio,
-            fundamentals.quick_ratio,
-            fundamentals.revenue_ttm,
-            fundamentals.net_income_ttm,
-            fundamentals.free_cash_flow,
-            fundamentals.shares_outstanding,
+        for name in (
+            "market_cap",
+            "pe_ratio",
+            "forward_pe",
+            "peg_ratio",
+            "price_to_book",
+            "price_to_sales",
+            "ev_to_ebitda",
+            "book_value",
+            "dividend_per_share",
+            "eps",
+            "beta",
+            "fifty_two_week_high",
+            "fifty_two_week_low",
+            "debt_to_equity",
+            "current_ratio",
+            "quick_ratio",
+            "revenue_ttm",
+            "net_income_ttm",
+            "free_cash_flow",
+            "shares_outstanding",
         ):
-            add(v)
+            add(_served(fundamentals, name))
         # Fraction fields — the model may state either form.
-        for f in (
-            fundamentals.dividend_yield,
-            fundamentals.fifty_two_week_change,
-            fundamentals.roe,
-            fundamentals.roa,
-            fundamentals.gross_margin,
-            fundamentals.operating_margin,
-            fundamentals.profit_margin,
-            fundamentals.revenue_growth,
-            fundamentals.earnings_growth,
-            fundamentals.held_percent_insiders,
-            fundamentals.held_percent_institutions,
+        for name in (
+            "dividend_yield",
+            "fifty_two_week_change",
+            "roe",
+            "roa",
+            "gross_margin",
+            "operating_margin",
+            "profit_margin",
+            "revenue_growth",
+            "earnings_growth",
+            "held_percent_insiders",
+            "held_percent_institutions",
         ):
-            add_fraction(f)
+            add_fraction(_served(fundamentals, name))
 
     return values
 
@@ -269,39 +283,48 @@ def _fmt(value: float | None, *, pct: bool = False, money: bool = False) -> str:
 
 def _build_facts(fundamentals: Fundamentals | None, quote: Quote | None) -> list[str]:
     """The numeric ground-truth block handed to the model — ONLY these figures
-    may appear in the narrative."""
+    may appear in the narrative. A value the gate flagged is left out."""
     facts: list[str] = []
     if quote is not None:
         facts.append(f"Last price: {_fmt(quote.price)} {quote.currency}")
         facts.append(f"Daily change: {_fmt(quote.change_percent)}%")
     if fundamentals is not None:
         f = fundamentals
+
+        # Money sizes name their currency: the statement sizes are in the
+        # reporting currency, which for a foreign reporter (SIFY: INR) differs
+        # from the trading currency the market cap is in (R15-DATA-008).
+        def money(name: str, currency: str | None) -> str:
+            text = _fmt(_served(f, name), money=True)
+            return f"{text} {currency}" if currency and text != "n/a" else text
+
+        reporting = f.financial_currency or f.currency
         pairs: list[tuple[str, str]] = [
-            ("Market cap", _fmt(f.market_cap, money=True)),
-            ("P/E", _fmt(f.pe_ratio)),
-            ("Forward P/E", _fmt(f.forward_pe)),
-            ("PEG", _fmt(f.peg_ratio)),
-            ("Price/Book", _fmt(f.price_to_book)),
-            ("Price/Sales", _fmt(f.price_to_sales)),
-            ("EV/EBITDA", _fmt(f.ev_to_ebitda)),
-            ("EPS", _fmt(f.eps)),
-            ("Beta", _fmt(f.beta)),
-            ("Dividend yield", _fmt(f.dividend_yield, pct=True)),
-            ("ROE", _fmt(f.roe, pct=True)),
-            ("ROA", _fmt(f.roa, pct=True)),
-            ("Gross margin", _fmt(f.gross_margin, pct=True)),
-            ("Operating margin", _fmt(f.operating_margin, pct=True)),
-            ("Net margin", _fmt(f.profit_margin, pct=True)),
-            ("Debt/Equity", _fmt(f.debt_to_equity)),
-            ("Current ratio", _fmt(f.current_ratio)),
-            ("Revenue (TTM)", _fmt(f.revenue_ttm, money=True)),
-            ("Net income (TTM)", _fmt(f.net_income_ttm, money=True)),
-            ("Free cash flow", _fmt(f.free_cash_flow, money=True)),
+            ("Market cap", money("market_cap", f.currency)),
+            ("P/E", _fmt(_served(f, "pe_ratio"))),
+            ("Forward P/E", _fmt(_served(f, "forward_pe"))),
+            ("PEG", _fmt(_served(f, "peg_ratio"))),
+            ("Price/Book", _fmt(_served(f, "price_to_book"))),
+            ("Price/Sales", _fmt(_served(f, "price_to_sales"))),
+            ("EV/EBITDA", _fmt(_served(f, "ev_to_ebitda"))),
+            ("EPS", _fmt(_served(f, "eps"))),
+            ("Beta", _fmt(_served(f, "beta"))),
+            ("Dividend yield", _fmt(_served(f, "dividend_yield"), pct=True)),
+            ("ROE", _fmt(_served(f, "roe"), pct=True)),
+            ("ROA", _fmt(_served(f, "roa"), pct=True)),
+            ("Gross margin", _fmt(_served(f, "gross_margin"), pct=True)),
+            ("Operating margin", _fmt(_served(f, "operating_margin"), pct=True)),
+            ("Net margin", _fmt(_served(f, "profit_margin"), pct=True)),
+            ("Debt/Equity", _fmt(_served(f, "debt_to_equity"))),
+            ("Current ratio", _fmt(_served(f, "current_ratio"))),
+            ("Revenue (TTM)", money("revenue_ttm", reporting)),
+            ("Net income (TTM)", money("net_income_ttm", reporting)),
+            ("Free cash flow", money("free_cash_flow", reporting)),
             # D55: yfinance growth is MRQ-YoY, not annual — label the basis so
             # the LLM never narrates it as full-year growth.
-            ("Revenue growth (quarterly YoY)", _fmt(f.revenue_growth, pct=True)),
-            ("Earnings growth (quarterly YoY)", _fmt(f.earnings_growth, pct=True)),
-            ("1Y price change", _fmt(f.fifty_two_week_change, pct=True)),
+            ("Revenue growth (quarterly YoY)", _fmt(_served(f, "revenue_growth"), pct=True)),
+            ("Earnings growth (quarterly YoY)", _fmt(_served(f, "earnings_growth"), pct=True)),
+            ("1Y price change", _fmt(_served(f, "fifty_two_week_change"), pct=True)),
         ]
         facts.extend(f"{label}: {val}" for label, val in pairs if val != "n/a")
     return facts
@@ -424,13 +447,16 @@ async def generate_narrative(
     """
     normalized = symbol.strip().upper()
 
-    # 1. Fetch the SAME real data the panel shows. Each is independent; the quote
-    #    is sync, fundamentals async. A failure of either degrades — we can still
-    #    narrate from whatever resolved (and verify against it).
+    # 1. Fetch the SAME real data the panel shows (witness flags included). Each
+    #    is independent; the quote is sync, fundamentals async. A failure of
+    #    either degrades — we can still narrate from whatever resolved (and
+    #    verify against it).
     fundamentals: Fundamentals | None = None
     quote: Quote | None = None
     try:
-        fundamentals = await provider_registry.get_fundamentals(normalized)
+        fundamentals = await correctness_gate.apply_witnesses(
+            await provider_registry.get_fundamentals(normalized)
+        )
     except Exception as exc:  # noqa: BLE001 — degrade, never 500
         logger.info("narrative: fundamentals unavailable for %s: %s", normalized, exc)
     try:
