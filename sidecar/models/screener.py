@@ -220,6 +220,12 @@ class ScreenerRequest(BaseModel):
     # Upper-bounded to match types/screener.ts ("max 1000") and the runtime
     # clamp in services/screener.py (_MAX_LIMIT=1000) — Phase 9.5.
     limit: int = Field(default=200, ge=1, le=1000)
+    # R15-UI-006: applied BEFORE the ``limit`` cut (services.screener.apply_criteria),
+    # so a header re-sort actually changes which rows survive the cut, not just
+    # their order on the page already served. NULLs sort last regardless of
+    # ``sort_dir`` (a missing value is not "lowest").
+    sort_by: ScreenerNumericField = "market_cap"
+    sort_dir: Literal["asc", "desc"] = "desc"
 
     @field_validator("formula")
     @classmethod
@@ -346,6 +352,10 @@ class ScreenerResult(BaseModel):
     # Defaulted so older callers / fixtures that omit it still validate.
     skip_details: list[SkipDetail] = Field(default_factory=list)
     result_count: int
+    # R15-UI-006: the count that matched the criteria BEFORE the ``limit`` cut —
+    # ``result_count`` (the page served) is capped at the request's ``limit``,
+    # so it alone cannot tell the UI "there are more". Defaulted for back-compat.
+    matched_count: int = 0
     rows: list[ScreenerResultRow]
     duration_ms: float
     # R10 (D40) honest-coverage block — additive, defaulted for back-compat.

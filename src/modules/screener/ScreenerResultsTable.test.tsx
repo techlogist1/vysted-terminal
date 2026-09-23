@@ -7,7 +7,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 
-import type { ScreenerResult } from "../../../types/screener";
+import type { ScreenerResult, ScreenerResultRow } from "../../../types/screener";
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 
@@ -17,6 +17,45 @@ vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
 }));
+
+/**
+ * R15-UI-006: a numeric-column header click now re-runs the sort SERVER-SIDE
+ * (`runScreener`) rather than re-sorting the already-served page — the real
+ * fix, since a client-only re-sort can't surface rows the `limit` cut before
+ * they were ever seen. These tests stub `runScreener` to mimic the server's
+ * sort (mirrors `apply_criteria`'s currency-grouped, null-last ordering)
+ * instead of exercising a real network round trip.
+ */
+function serverSortedRows(rows: ScreenerResultRow[]): ScreenerResultRow[] {
+  const { sortBy, sortDir } = useScreenerStore.getState();
+  const dir = sortDir === "asc" ? 1 : -1;
+  const moneyKeys = new Set(["market_cap", "price"]);
+  return [...rows].sort((a, b) => {
+    if (moneyKeys.has(sortBy) && a.currency !== b.currency) {
+      const ac = a.currency ?? "";
+      const bc = b.currency ?? "";
+      return ac < bc ? -1 : ac > bc ? 1 : 0;
+    }
+    const av = (a as unknown as Record<string, number | null>)[sortBy];
+    const bv = (b as unknown as Record<string, number | null>)[sortBy];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return (av - bv) * dir;
+  });
+}
+
+/** Wires `runScreener` so a header-click-triggered call resolves with `rows`
+ *  re-sorted by whatever `sortBy`/`sortDir` the click just set. */
+function stubServerSort(rows: ScreenerResultRow[]): void {
+  useScreenerStore.setState({
+    runScreener: vi.fn(async () => {
+      const next = { ...RESULT, rows: serverSortedRows(rows) };
+      useScreenerStore.setState({ lastResult: next, status: "ready" });
+      return next;
+    }),
+  });
+}
 
 const RESULT: ScreenerResult = {
   universe: "sp500",
@@ -85,8 +124,14 @@ const INR_SNAPSHOT_ROW = {
   data_as_of: 1_781_611_200, // 2026-06-16T12:00Z (mid-day: "Jun 16" in any test TZ)
 };
 
+// `__resetForTests` only resets DATA fields — `runScreener` is an action the
+// store never rebuilds, so a test that stubs it (`stubServerSort`) must be
+// restored, or the stub leaks into every later test in this file.
+const ORIGINAL_RUN_SCREENER = useScreenerStore.getState().runScreener;
+
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
+  useScreenerStore.setState({ runScreener: ORIGINAL_RUN_SCREENER });
   // R11 (D57): money cells format in the ROW's currency; the region is only
   // the locale (grouping) + the legacy fallback for rows without a currency.
   // Region is pinned US so grouping is deterministic (en-US) AND so the INR
@@ -116,21 +161,31 @@ describe("ScreenerResultsTable", () => {
     expect(screen.getByText("$3.00T")).toBeInTheDocument();
   });
 
-  it("clicking a column header toggles sort direction", () => {
-    useScreenerStore.setState({ lastResult: RESULT, status: "ready" });
+  it("clicking a column header re-runs the sort server-side", () => {
+    stubServerSort(RESULT.rows);
+    useScreenerStore.setState({
+      lastResult: { ...RESULT, rows: serverSortedRows(RESULT.rows) },
+      status: "ready",
+    });
     render(<ScreenerResultsTable />);
 
     // Default sort is market_cap desc — MSFT (3.20T) first.
     let firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("MSFT")).toBeInTheDocument();
 
-    // Click pe_ratio header → desc by P/E → GOOGL (19.5) first.
+    // Click pe_ratio header → desc by P/E → GOOGL (19.5) first. R15-UI-006:
+    // this is a real `runScreener()` call (stubbed above), not a client
+    // re-sort of the page already served — the stub's async body has no
+    // `await`, so its state write lands synchronously within this call.
     fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    expect(useScreenerStore.getState().sortBy).toBe("pe_ratio");
+    expect(useScreenerStore.getState().sortDir).toBe("desc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("GOOGL")).toBeInTheDocument();
 
     // Click again → asc by P/E → AAPL (18.5) first.
     fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    expect(useScreenerStore.getState().sortDir).toBe("asc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("AAPL")).toBeInTheDocument();
   });
@@ -220,10 +275,12 @@ describe("ScreenerResultsTable", () => {
       matched_criteria: [0],
       currency: "INR",
     };
+    const combined = [...RESULT.rows, RELIANCE_NS, TCS_NS];
+    stubServerSort(combined);
     useScreenerStore.setState({
       lastResult: {
         ...RESULT,
-        rows: [...RESULT.rows, RELIANCE_NS, TCS_NS],
+        rows: serverSortedRows(combined),
         result_count: 5,
       },
       status: "ready",
@@ -238,6 +295,7 @@ describe("ScreenerResultsTable", () => {
     expect(symbolOrder).toEqual(["RELIANCE", "TCS", "MSFT", "AAPL", "GOOGL"]);
 
     // Click the Price header — the same currency grouping must hold there.
+    // R15-UI-006: a real (stubbed) `runScreener()` call, not a client re-sort.
     fireEvent.click(screen.getByTestId("column-price"));
     symbolOrder = screen
       .getAllByRole("row")
