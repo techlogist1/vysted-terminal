@@ -1014,28 +1014,36 @@ async def _enrich_survivors(
     async def _one(sym: str) -> None:
         nonlocal done
         key = sym.upper()
-        if provider_health.is_open(provider_health.YAHOO):
-            # D53: open circuit — the field stays missing and the serve-with-
-            # label ladder covers the row from stale/seed basis instead.
-            state.throttled_seen = True
-            done += 1
-            return
-        async with sem:
-            try:
-                rich = await asyncio.wait_for(
-                    provider_registry.get_fundamentals(key),
-                    timeout=_INFO_TIMEOUT_SECONDS,
-                )
-            except (TimeoutError, Exception) as exc:  # noqa: BLE001 — field stays missing
-                if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
-                    state.throttled_seen = True
-                logger.debug("screener: enrichment failed for %s: %s", key, exc)
-                done += 1
+        try:
+            if provider_health.is_open(provider_health.YAHOO):
+                # D53: open circuit — the field stays missing and the serve-with-
+                # label ladder covers the row from stale/seed basis instead.
+                state.throttled_seen = True
                 return
-        await fundamentals_store.upsert_info(key, rich)
-        done += 1
-        if done % 10 == 0 or done == total:
-            emit("enrich", done, total, f"enriching fundamentals {done:,}/{total:,}")
+            async with sem:
+                try:
+                    rich = await asyncio.wait_for(
+                        provider_registry.get_fundamentals(key),
+                        timeout=_INFO_TIMEOUT_SECONDS,
+                    )
+                except (TimeoutError, ProviderError) as exc:  # field stays missing
+                    if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+                        state.throttled_seen = True
+                    logger.debug("screener: enrichment failed for %s: %s", key, exc)
+                    return
+                except Exception as exc:  # noqa: BLE001 — a code bug, not an upstream miss
+                    logger.warning(
+                        "screener: unexpected enrichment error for %s: %s: %s",
+                        key,
+                        type(exc).__name__,
+                        exc,
+                    )
+                    return
+            await fundamentals_store.upsert_info(key, rich)
+        finally:
+            done += 1
+            if done % 10 == 0 or done == total:
+                emit("enrich", done, total, f"enriching fundamentals {done:,}/{total:,}")
 
     try:
         await asyncio.wait_for(asyncio.gather(*(_one(s) for s in to_enrich)), timeout=budget_s)

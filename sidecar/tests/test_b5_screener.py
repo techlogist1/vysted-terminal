@@ -1,0 +1,92 @@
+"""Batch-5 screener pins (R15 Stage C, W5)."""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+import httpx
+import pytest
+
+from models.fundamentals import Fundamentals
+from models.screener import NumericThresholdCriterion, ScreenerRequest, ScreenerUniverse
+from services import data_cache, fundamentals_store, screener
+from services import yahoo_batch_provider as yb
+
+
+@pytest.fixture(autouse=True)
+def _isolated_stores(tmp_path: Path) -> None:
+    data_cache.reset_for_tests(tmp_path / "cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals.db")
+    yb.reset_for_tests()
+    yield
+    data_cache.reset_for_tests(None)
+    fundamentals_store.reset_for_tests(None)
+    yb.reset_for_tests()
+
+
+def _v7_row(symbol: str) -> dict[str, object]:
+    return {
+        "symbol": symbol,
+        "longName": f"{symbol} Inc.",
+        "regularMarketPrice": 150.0,
+        "regularMarketChangePercent": 1.0,
+        "regularMarketVolume": 1_000_000,
+        "regularMarketTime": 1_700_000_000,
+        "currency": "USD",
+        "marketCap": 500_000_000_000,
+        "trailingPE": 20.0,
+    }
+
+
+def _install_v7(symbols: list[str]) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            requested = (request.url.params.get("symbols") or "").split(",")
+            rows = [_v7_row(s) for s in requested if s in symbols]
+            return httpx.Response(200, json={"quoteResponse": {"result": rows}})
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(handler))
+
+
+def _fake_universe(symbols: list[str]):
+    async def _resolve(universe_id, custom_symbols=None):  # noqa: ANN001, ARG001
+        return ScreenerUniverse(id="sp500", label="S&P 500", symbols=symbols, asset_class="equity")
+
+    return _resolve
+
+
+@pytest.mark.asyncio
+async def test_enrichment_code_bug_logs_warning_and_progress_completes(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-LIFECYCLE-017: an adapter bug (AttributeError) during phase E is
+    logged at WARNING with its type, and the enrich progress still reaches m/m."""
+    symbols = ["AAA", "BBB", "CCC"]
+    _install_v7(symbols)
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe(symbols))
+
+    async def broken_adapter(symbol: str) -> Fundamentals:
+        raise AttributeError("'NoneType' object has no attribute 'get'")
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", broken_adapter)
+
+    frames: list[tuple[str, int, int]] = []
+    request = ScreenerRequest(
+        universe="sp500",
+        criteria=[NumericThresholdCriterion(field="roe", operator="gt", value=0.1)],
+        limit=100,
+    )
+    with caplog.at_level(logging.WARNING, logger="services.screener"):
+        await screener.run_screener(
+            request, on_progress=lambda phase, done, total, _d: frames.append((phase, done, total))
+        )
+
+    warnings = [r for r in caplog.records if "unexpected enrichment error" in r.getMessage()]
+    assert len(warnings) == 3
+    assert all("AttributeError" in r.getMessage() for r in warnings)
+    enrich = [(done, total) for phase, done, total in frames if phase == "enrich"]
+    assert enrich and enrich[-1] == (3, 3)
