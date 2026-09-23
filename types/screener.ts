@@ -146,6 +146,15 @@ export interface ScreenerRequest {
   formula?: string | null;
   /** Maximum rows to return (default 200, max 1000). */
   limit: number;
+  /**
+   * R15-UI-006: applied server-side BEFORE the `limit` cut, so a re-sort can
+   * change which rows survive the cut, not just their order on the already-
+   * served page. Defaults to `"market_cap"` / `"desc"` (byte-identical to the
+   * pre-sort_by ranking). A row missing `sort_by` sorts last regardless of
+   * `sort_dir`.
+   */
+  sort_by?: ScreenerNumericField;
+  sort_dir?: "asc" | "desc";
 }
 
 /** One row in the screener results table. */
@@ -246,6 +255,12 @@ export interface ScreenerResult {
   skip_details?: SkipDetail[];
   /** Total rows returned (≤ ``limit``). */
   result_count: number;
+  /**
+   * R15-UI-006: the count that matched the criteria BEFORE the `limit` cut —
+   * `result_count` alone cannot tell the UI "there are more". Optional in the
+   * mirror (older blobs / fixtures may omit it).
+   */
+  matched_count?: number;
   rows: ScreenerResultRow[];
   duration_ms: number;
   /**

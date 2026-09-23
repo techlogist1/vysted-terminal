@@ -2,6 +2,7 @@ import type { SerializedDockview } from "dockview";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AGENT_DOCK_DEFAULT_WIDTH, useAgentDockStore } from "@/store/agent-dock";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -428,6 +429,31 @@ describe("workspace serialization", () => {
     expect(saved).toBeDefined();
     const body = JSON.parse(saved![1]?.body as string) as { name: string };
     expect(body.name).toBe("Research: NVDA");
+  });
+
+  it("opening a research space mid-stream stops the reply and parks it, stopped, under the chat tab (R15-CODE-FRONTEND-002)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "t1", title: "Chat 1" }],
+      activeId: "t1",
+      archived: {},
+    });
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 200 }));
+    const chat = useChatHistoryStore.getState();
+    chat.appendUserMessage("what about NVDA?");
+    const replyId = chat.beginAssistantMessage({});
+    chat.appendAssistantDelta(replyId, "Partial ");
+    const abort = vi.fn();
+    chat.setLiveAbort(abort);
+
+    await createResearchSpace("nvda");
+
+    expect(abort).toHaveBeenCalledTimes(1);
+    expect(useChatHistoryStore.getState().streamingMessageId).toBeNull();
+    const parked = useAgentSpacesStore.getState().archived.t1 ?? [];
+    expect(parked.map((m) => m.content)).toEqual(["what about NVDA?", "Partial "]);
+    expect(parked[1]).toMatchObject({ pending: false, stopped: true });
   });
 
   it("createResearchSpace rejects an empty ticker", async () => {

@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { buildCsv, escapeCsvCell } from "./csv";
+vi.mock("@/lib/export-artifact", () => ({
+  saveTextArtifact: vi.fn(async (subdir: string, filename: string) => ({
+    path: `/data/exports/${subdir}/${filename}`,
+    fellBack: false,
+  })),
+}));
+
+import { saveTextArtifact } from "@/lib/export-artifact";
+import { buildCsv, downloadCsv, escapeCsvCell } from "./csv";
 
 describe("csv helpers", () => {
   describe("escapeCsvCell", () => {
@@ -35,6 +43,14 @@ describe("csv helpers", () => {
 
     it("emits a header-only string for no data rows", () => {
       expect(buildCsv(["A", "B"], [])).toBe("A,B");
+    });
+  });
+
+  describe("downloadCsv", () => {
+    it("R15-UI-009: saves through saveTextArtifact, never a Blob + <a download> (WKWebView blocks it)", async () => {
+      const result = await downloadCsv("out.csv", "A,B\n1,2");
+      expect(saveTextArtifact).toHaveBeenCalledWith("csv", "out.csv", "A,B\n1,2");
+      expect(result.path).toBe("/data/exports/csv/out.csv");
     });
   });
 });

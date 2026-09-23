@@ -299,6 +299,9 @@ def _mock_registry(monkeypatch: pytest.MonkeyPatch, fundamentals: dict[str, Fund
 @pytest.mark.asyncio
 async def test_run_screener_formula_filters_rows(monkeypatch: pytest.MonkeyPatch) -> None:
     """The formula AND-combines with the flat criteria."""
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
     _mock_registry(
         monkeypatch,
         {
@@ -328,6 +331,9 @@ async def test_run_screener_formula_missing_field_skips_honestly(
 ) -> None:
     """A row missing a formula-referenced field is itemized ``missing_field:<f>``
     — and the ledger invariant ``skipped_count == len(skip_details)`` holds."""
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
     _mock_registry(
         monkeypatch,
         {
@@ -355,6 +361,9 @@ async def test_run_screener_formula_missing_field_skips_honestly(
 async def test_run_screener_formula_div_by_zero_row_stays_evaluated(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
     _mock_registry(
         monkeypatch,
         {

@@ -595,3 +595,68 @@ def test_book_value_is_witnessed_by_the_newest_quarter_over_an_older_annual(
     )
     meta = body["field_meta"] or {}
     assert meta.get("book_value") is None and meta.get("price_to_book") is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-047/049: the paid-TTM dividend leg runs on /fundamentals too.
+# ---------------------------------------------------------------------------
+
+
+def _dividend_route(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, ttm: object, **fields: float | None
+) -> dict:
+    from models.fundamentals import FieldMeta, Fundamentals
+    from services import dividend_history, provider_registry, symbol_resolver
+    from services.symbol_resolver import Resolution
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        meta = {k: FieldMeta(status="ok", provider="yfinance") for k, v in fields.items() if v}
+        return Fundamentals(
+            symbol="X.NS", name="X Ltd", provider="yfinance", field_meta=meta, **fields
+        )
+
+    async def fake_ttm(symbol: str) -> object:
+        assert symbol == "X.NS"
+        return ttm
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", fake_ttm)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get("/fundamentals/X.NS").json()
+
+
+def test_special_dividend_year_flags_dividend_per_share(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from services.dividend_history import DividendTTM
+
+    body = _dividend_route(
+        client,
+        monkeypatch,
+        DividendTTM(656.0, "paid"),
+        dividend_per_share=525.0,
+        dividend_yield=0.0193,
+        ratio_price=26935.0,
+    )
+    assert body["dividend_per_share"] == 525.0
+    assert body["dividend_per_share_ttm"] == 656.0
+    assert body["field_meta"]["dividend_per_share"]["status"] == "flagged"
+
+
+def test_never_payer_reads_an_affirmed_zero_yield(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from services.dividend_history import AFFIRMED_ZERO_LABEL, DividendTTM
+
+    body = _dividend_route(
+        client,
+        monkeypatch,
+        DividendTTM(0.0, "affirmed_zero", AFFIRMED_ZERO_LABEL),
+        ratio_price=49.88,
+    )
+    assert body["dividend_per_share_ttm"] == 0.0
+    assert body["dividend_yield"] == 0.0
+    assert body["field_meta"]["dividend_yield"]["label"] == AFFIRMED_ZERO_LABEL

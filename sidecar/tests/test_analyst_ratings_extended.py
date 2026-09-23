@@ -168,3 +168,21 @@ async def test_price_target_history_fallback_to_snapshot(
     assert len(response.history) == 1
     assert response.history[0].firm == "Consensus"
     assert response.history[0].target_to == 225.0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("symbol", ["RELIANCE.NS", "532540.BO"])
+async def test_ratings_lane_keeps_india_suffixes(
+    monkeypatch: pytest.MonkeyPatch, symbol: str
+) -> None:
+    """R15-DATA-029: the old dot-to-dash normaliser sent RELIANCE-NS / 532540-BO."""
+    asked: list[str] = []
+
+    def _recording(sym: str) -> _FakeRatingsTicker:
+        asked.append(sym)
+        return _FakeRatingsTicker(sym)
+
+    monkeypatch.setattr(analyst_ratings_extended, "_yf_ticker", _recording)
+    result = await analyst_ratings_extended.get_ratings_history(symbol)
+    assert asked == [symbol]
+    assert result.symbol == symbol

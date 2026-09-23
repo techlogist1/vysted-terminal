@@ -152,7 +152,9 @@ async def status() -> dict[str, Any]:
     UI needs to colour the openbb-mcp plugin chip.
     """
     endpoint = _resolve_endpoint()
-    available = endpoint is not None
+    # Configured is not enough: after a failed call the provider is down until
+    # the next call succeeds (R15-LIFECYCLE-005).
+    available = endpoint is not None and _last_tool_call_ok is not False
     return {
         "available": available,
         "provider": PROVIDER,
@@ -241,12 +243,15 @@ async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     global _last_tool_call_ok, _last_error
     client = await _get_client()
     try:
-        raw = await client.call_tool(name, arguments)
+        # One try over the call AND the decode: an ``isError`` / undecodable
+        # payload is a failed call too, so the health flags record it (R15-DATA-083).
+        decoded = _decode_tool_result(await client.call_tool(name, arguments), name)
     except Exception as exc:
         _last_tool_call_ok = False
         _last_error = f"{type(exc).__name__}: {exc}"
+        if isinstance(exc, ProviderError):
+            raise
         raise ProviderError(f"openbb-mcp call {name!r} failed: {exc}") from exc
-    decoded = _decode_tool_result(raw, name)
     _last_tool_call_ok = True
     _last_error = None
     return decoded

@@ -89,6 +89,9 @@ async def test_screener_query_runs_from_config(monkeypatch: pytest.MonkeyPatch) 
 @pytest.mark.asyncio
 async def test_screener_query_inputs_override_config(monkeypatch: pytest.MonkeyPatch) -> None:
     """Upstream node outputs (inputs) take precedence over static config."""
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
 
     async def fake_get_fundamentals(symbol: str) -> Fundamentals:
         return _make_fundamentals(symbol)

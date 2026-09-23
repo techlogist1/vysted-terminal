@@ -452,9 +452,11 @@ def get_quote(symbol: str, asset_class: str = "equity", region: str | None = Non
 
     ``region`` (default: inferred from the symbol then the active request region)
     routes between the US (yfinance) and IN (nse) equity providers; the
-    correctness gate validates equity results before acceptance (FR-062/063)."""
+    correctness gate validates every result before acceptance (FR-062/063). A
+    crypto quote skips only the session-staleness leg: crypto trades around the
+    clock, off any exchange calendar."""
     eff = _effective_region(symbol, region)
-    validate = None if asset_class == "crypto" else _quote_validator(symbol, eff)
+    validate = _quote_validator(symbol, eff, check_staleness=asset_class != "crypto")
     return _resolve_sync("quote", asset_class, eff, validate, symbol)
 
 
@@ -467,8 +469,9 @@ def get_history(
 ) -> OHLCVSeries:
     """Return an OHLCV series; resolved by the ``ohlcv`` model-key. Synchronous."""
     eff = _effective_region(symbol, region)
-    validate = None if asset_class == "crypto" else _series_validator(symbol, eff)
-    return _resolve_sync("ohlcv", asset_class, eff, validate, symbol, timeframe, range_)
+    return _resolve_sync(
+        "ohlcv", asset_class, eff, _series_validator(symbol, eff), symbol, timeframe, range_
+    )
 
 
 async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamentals:
@@ -545,8 +548,10 @@ async def get_macro_series(series_id: str, provider: str | None = None) -> Macro
 # --- Correctness-gate validators (closures binding the requested symbol+region) ---
 
 
-def _quote_validator(symbol: str, region: str) -> Validator:
-    return lambda result: correctness_gate.validate_quote(result, symbol, region)
+def _quote_validator(symbol: str, region: str, *, check_staleness: bool = True) -> Validator:
+    return lambda result: correctness_gate.validate_quote(
+        result, symbol, region, check_staleness=check_staleness
+    )
 
 
 def _series_validator(symbol: str, region: str) -> Validator:

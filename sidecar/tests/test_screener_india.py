@@ -602,6 +602,9 @@ async def test_sse_stream_emits_progress_then_result(monkeypatch: pytest.MonkeyP
             "POST",
             "/screener/run/stream",
             json={"universe": "custom", "custom_symbols": ["AAA", "BBB"], "criteria": []},
+            # Fictional bare tickers: pin US so the region-aware custom-symbol
+            # canonicalisation (R15-DATA-093) keeps them literal.
+            headers={"X-Vysted-Region": "US"},
         ) as response:
             assert response.status_code == 200
             assert response.headers["content-type"].startswith("text/event-stream")

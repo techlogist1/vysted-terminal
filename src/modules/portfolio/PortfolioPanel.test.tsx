@@ -67,7 +67,8 @@ beforeEach(() => {
   // assertions below prove the instrument's symbol wins over the region
   // (an INR quote renders ₹ under region US).
   useSettingsStore.setState({ region: "US" });
-  mockFetchQuotes.mockResolvedValue(new Map());
+  mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 0 });
+  mockDownloadCsv.mockResolvedValue({ path: "/tmp/exports/csv/out.csv", fellBack: false });
 });
 
 afterEach(() => {
@@ -98,8 +99,74 @@ describe("PortfolioPanel", () => {
     });
   });
 
+  it("R15-UI-004: a failed live-quote fetch shows the banner and Retry re-fetches", async () => {
+    // Persistent rejection: the initial (empty-holdings) mount fetch and the
+    // post-add refetch both reject — the banner is gated on holdings.length,
+    // not on which call rejected.
+    mockFetchQuotes.mockRejectedValue(new Error("network down"));
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+
+    expect(await screen.findByText(/Couldn.t refresh live quotes/)).toBeInTheDocument();
+    const retry = screen.getByRole("button", { name: "Retry" });
+
+    mockFetchQuotes.mockResolvedValueOnce({
+      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+      failed: 0,
+    });
+    await act(async () => {
+      fireEvent.click(retry);
+    });
+
+    expect(screen.queryByText(/Couldn.t refresh live quotes/)).not.toBeInTheDocument();
+    // Mount (0 holdings) + post-add refetch + the Retry click.
+    expect(mockFetchQuotes).toHaveBeenCalledTimes(3);
+  });
+
+  it("R15-UI-005: no live quote resolves -> null total with a note, never a fabricated 0", async () => {
+    // Case the fix was not written against (per PLAN.md): one holding priced,
+    // one holding whose quote fails — a PARTIAL total, not the all-unresolved
+    // case above; the note must name the excluded holding.
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+      failed: 1,
+    });
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+    await addHolding("zzznotreal", "10", "100");
+
+    expect((await screen.findAllByText("$2,000.00")).length).toBeGreaterThanOrEqual(1);
+    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+      totalValue: number | null;
+      totalValueNote?: string | null;
+    };
+    expect(payload.totalValue).toBe(2000);
+    expect(payload.totalValueNote).toMatch(/ZZZNOTREAL/i);
+  });
+
+  it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
+    mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1 });
+    render(<PortfolioPanel />);
+    await addHolding("zzznotreal", "10", "100");
+
+    expect(await screen.findByText("— (no live quotes)")).toBeInTheDocument();
+    expect(screen.getByText("—", { selector: ".text-charcoal-400" })).toBeInTheDocument();
+    expect(screen.queryByText(/Concentration:/)).toBeInTheDocument();
+    expect(screen.queryByText("0.0%")).not.toBeInTheDocument();
+
+    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+      totalValue: number | null;
+      totalValueNote?: string | null;
+    };
+    expect(payload.totalValue).toBeNull();
+    expect(payload.totalValueNote).toBe("no live quotes resolved");
+  });
+
   it("computes P&L and weight from a live quote", async () => {
-    mockFetchQuotes.mockResolvedValue(new Map([["AAPL", quote("AAPL", 200)]]));
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+      failed: 0,
+    });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
 
@@ -115,12 +182,25 @@ describe("PortfolioPanel", () => {
     expect(payload.totalValueNote ?? null).toBeNull();
   });
 
+  it("R15-UI-090: an eod quote renders a staleness cue on its holding row", async () => {
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),
+      failed: 0,
+    });
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+
+    const badge = await screen.findByTestId("staleness-badge");
+    expect(badge).toHaveTextContent("EOD");
+  });
+
   it("renders the instrument's currency, not the region's (D57 — the V6 defect)", async () => {
     // Region is pinned US (beforeEach) — an INR-quoted NSE holding must still
     // render ₹ everywhere. V6 live-confirmed ₹1,293 rendered as $1,293.
-    mockFetchQuotes.mockResolvedValue(
-      new Map([["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")]]),
-    );
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")]]),
+      failed: 0,
+    });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
 
@@ -137,12 +217,13 @@ describe("PortfolioPanel", () => {
   });
 
   it("mixed currencies: per-currency subtotals, null published total (D57)", async () => {
-    mockFetchQuotes.mockResolvedValue(
-      new Map([
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([
         ["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")],
         ["AAPL", quote("AAPL", 120, "USD")],
       ]),
-    );
+      failed: 0,
+    });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
     await addHolding("aapl", "10", "100");
@@ -238,7 +319,10 @@ describe("PortfolioPanel", () => {
   });
 
   it("exports the active portfolio to CSV with live-quote P&L", async () => {
-    mockFetchQuotes.mockResolvedValue(new Map([["AAPL", quote("AAPL", 200)]]));
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+      failed: 0,
+    });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
     await screen.findAllByText("+$500.00 (+33.33%)");
@@ -268,12 +352,13 @@ describe("PortfolioPanel", () => {
   });
 
   it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
-    mockFetchQuotes.mockResolvedValue(
-      new Map([
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([
         ["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")],
         ["AAPL", quote("AAPL", 120, "USD")],
       ]),
-    );
+      failed: 0,
+    });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
     await addHolding("aapl", "10", "100");

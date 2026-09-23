@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const { sidecarGetMock } = vi.hoisted(() => ({ sidecarGetMock: vi.fn() }));
+
 vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
+  sidecarGet: sidecarGetMock,
 }));
 
 import {
@@ -15,6 +18,7 @@ import {
   publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
+import { useBacktestStore } from "@/store/backtest";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useChartCommandStore } from "@/store/chart-command";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
@@ -1129,5 +1133,52 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
       }),
     );
     useScreenerStore.getState().__resetForTests();
+  });
+});
+
+describe("open_panel backtest run_id (R15-AGENT-011)", () => {
+  const RESULT = {
+    runId: "bt-1",
+    strategyId: "sma_cross",
+    request: {
+      strategyId: "sma_cross",
+      params: {},
+      symbols: ["SPY"],
+      startDate: "2024-01-01",
+      endDate: "2024-12-31",
+      initialCapital: 100_000,
+    },
+    metrics: {},
+    trades: [],
+    equityCurve: [],
+    startedAt: 1_710_000_000_000,
+    durationMs: 250,
+  };
+
+  beforeEach(() => {
+    useBacktestStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    sidecarGetMock.mockReset();
+  });
+
+  it("loads the agent's run as complete and makes it the active run", async () => {
+    sidecarGetMock.mockResolvedValueOnce(RESULT);
+    const label = await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "bt-1" });
+    expect(label).toBe("Opened Backtest");
+    expect(sidecarGetMock).toHaveBeenCalledWith("/backtest/runs/bt-1");
+    const state = useBacktestStore.getState();
+    expect(state.activeRunId).toBe("bt-1");
+    expect(state.runs["bt-1"]).toMatchObject({ status: "complete", result: RESULT });
+    expect(describeHostAction("open_panel", { panel: "backtest", run_id: "bt-1" }).title).toBe(
+      "Open Backtest — run bt-1",
+    );
+  });
+
+  it("a run the sidecar does not hold is an honest failure, not an empty panel", async () => {
+    sidecarGetMock.mockRejectedValueOnce(new Error("404 unknown run_id"));
+    expect(
+      await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "gone" }),
+    ).toBeNull();
+    expect(useBacktestStore.getState().activeRunId).toBeNull();
   });
 });

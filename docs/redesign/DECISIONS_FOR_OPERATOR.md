@@ -196,3 +196,12 @@ are done-and-revertable like §1; these are yours to review or act on.
   an operator call; the spec (SC-025, FR-094) settles it, and the D81 docs rewrite of acceptance
   scenario 4 had widened AUTO by drafting drift. **Reversible in one predicate**
   (`types/proposed-change.ts` `autoApplies`) if you want AUTO to apply data writes.
+
+### 3.6 D-B4-1 — context admission on window-bound lanes (Stage C batch 4; done, revertable)
+
+- Tool results reaching the model are capped with an elision marker, the oldest tool results are
+  elided when a round's token estimate exceeds the model's window, and on a window-bound adapter
+  (today only Ollama) the tool schemas sent are subset by domain cue words from the catalog. The
+  agent allow-list (D21) is unchanged; hosted lanes report no window and still receive the full
+  tool set. This replaces Ollama's silent head truncation with a deliberate subset.
+  **Reversible** by having `LLMProvider.context_window` return `None` for Ollama.

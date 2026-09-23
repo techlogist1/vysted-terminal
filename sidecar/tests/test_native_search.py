@@ -45,14 +45,14 @@ from services.llm.openai import OpenAIProvider
 
 
 def test_supports_native_search_set() -> None:
-    # Five provider-level native-search providers plus OpenRouter (WS5), whose
-    # native search is gated PER-MODEL by the runtime, not by mere membership.
+    # Four native-search providers plus OpenRouter (WS5), whose native search
+    # is gated PER-MODEL by the runtime, not by mere membership. xAI retired
+    # Live Search (410, R15-LEAD-008), so it has no native rung.
     assert SUPPORTS_NATIVE_SEARCH == {
         "anthropic",
         "openai",
         "gemini",
         "groq",
-        "xai",
         "openrouter",
     }
     # DeepSeek + Ollama explicitly excluded (no native search at all).
@@ -63,7 +63,7 @@ def test_supports_native_search_set() -> None:
 def test_provider_level_native_search_excludes_openrouter() -> None:
     # OpenRouter is a broker: native search is per-MODEL, so it is NOT in the
     # provider-level set. Gemini and Groq are per-model too (R15-AGENT-005).
-    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "xai"}
+    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic"}
     # OpenAI is per-MODEL too (chat-completions search is *-search-preview only).
     assert "openai" not in PROVIDER_LEVEL_NATIVE_SEARCH
     assert "openrouter" not in PROVIDER_LEVEL_NATIVE_SEARCH
@@ -398,7 +398,9 @@ async def test_openai_web_search_noops_on_non_search_model(
 
 
 @pytest.mark.asyncio
-async def test_xai_injects_search_parameters(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_xai_sends_no_search_parameters(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-LEAD-008: xAI answers ``search_parameters`` (Live Search) with 410, so
+    # even a stray web_search=True must not put it on the request.
     state = _patch_openai(monkeypatch)
     # xAI rides OpenAIProvider with provider_id="xai" + the x.ai base_url.
     provider = OpenAIProvider(base_url="https://api.x.ai/v1", provider_id="xai")
@@ -411,9 +413,8 @@ async def test_xai_injects_search_parameters(monkeypatch: pytest.MonkeyPatch) ->
         )
     )
     last_kwargs = state["last"].chat.completions.last_kwargs
-    # Live Search rides ``search_parameters`` in extra_body, NOT a tools entry.
-    assert "search_parameters" in last_kwargs["extra_body"]
-    assert last_kwargs["extra_body"]["search_parameters"]["mode"] == "auto"
+    assert "search_parameters" not in last_kwargs.get("extra_body", {})
+    assert "search_parameters" not in last_kwargs
     assert "tools" not in last_kwargs
 
 
@@ -543,10 +544,11 @@ async def test_gemini_no_search_by_default(monkeypatch: pytest.MonkeyPatch) -> N
 def test_native_search_available_is_the_one_detection_truth() -> None:
     from services.llm.native_search import native_search_available
 
-    # The provider-level providers always qualify, hint or not.
-    for prov in ("anthropic", "xai"):
-        assert native_search_available(prov) is True
-        assert native_search_available(prov, "none") is True
+    # The provider-level provider always qualifies, hint or not.
+    assert native_search_available("anthropic") is True
+    assert native_search_available("anthropic", "none") is True
+    # xAI retired Live Search (R15-LEAD-008): no native rung on any model.
+    assert native_search_available("xai", None, "grok-4") is False
     # OpenAI is per-model: only the *-search-preview models take web_search_options.
     assert native_search_available("openai", None, "gpt-4o-search-preview") is True
     assert native_search_available("openai", None, "gpt-4.1-mini") is False
@@ -711,6 +713,16 @@ async def test_native_search_oneshot_honest_on_unavailable_pair() -> None:
     # OpenAI is per-model too: a non-search-preview model has no native rung.
     out = await native_search_oneshot("openai", "gpt-5.6-luna", "sk", "q")
     assert out["ok"] is False and out["reason"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_never_picks_xai() -> None:
+    # R15-LEAD-008: the cross-verify channel must not route to xAI's retired
+    # Live Search (410); it reports the pair unavailable instead.
+    from services.llm.native_search import native_search_oneshot
+
+    out = await native_search_oneshot("xai", "grok-4", "sk", "q")
+    assert out == {"ok": False, "reason": "unavailable", "text": "", "citations": []}
 
 
 @pytest.mark.asyncio

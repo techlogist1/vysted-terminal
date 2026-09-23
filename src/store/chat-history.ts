@@ -89,6 +89,16 @@ interface ChatHistoryState {
   messages: ChatMessage[];
   /** Id of the assistant message currently receiving deltas, or ``null``. */
   streamingMessageId: string | null;
+  /** Aborts the live stream; registered by the sender, cleared when it settles. */
+  liveAbort: (() => void) | null;
+  setLiveAbort: (abort: () => void) => void;
+  /**
+   * Stop the live stream (if any) and finalize its partial as ``stopped`` in
+   * the CURRENT transcript. Every transcript swap (agent tab, research space,
+   * clear) calls this first, so a reply never streams into a thread that is no
+   * longer on screen and no second run starts beside a live one.
+   */
+  stopLive: () => void;
   appendUserMessage: (content: string) => string;
   beginAssistantMessage: (params: {
     agentId?: string;
@@ -105,8 +115,10 @@ interface ChatHistoryState {
    *  partial content stands, marked ``stopped`` — distinct from an error. */
   stopAssistantMessage: (id: string) => void;
   failAssistantMessage: (id: string, error: string) => void;
+  /** Empty the transcript (stops a live stream first). */
   clear: () => void;
-  /** Replace the whole transcript (used to swap between agent spaces/threads). */
+  /** Replace the whole transcript (used to swap between agent spaces/threads);
+   *  stops a live stream first. */
   loadMessages: (messages: ChatMessage[]) => void;
 }
 
@@ -128,9 +140,23 @@ function _uuid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
+/** The settle patch: the live stream is over once its message settles. */
+function _settled(state: ChatHistoryState, id: string): Partial<ChatHistoryState> {
+  return state.streamingMessageId === id ? { streamingMessageId: null, liveAbort: null } : {};
+}
+
+export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
   messages: [],
   streamingMessageId: null,
+  liveAbort: null,
+  setLiveAbort: (abort) => set({ liveAbort: abort }),
+  stopLive: () => {
+    const { streamingMessageId, liveAbort } = get();
+    liveAbort?.();
+    if (streamingMessageId) {
+      get().stopAssistantMessage(streamingMessageId);
+    }
+  },
   appendUserMessage: (content) => {
     const id = _uuid();
     set((state) => ({
@@ -155,6 +181,7 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
         },
       ],
       streamingMessageId: id,
+      liveAbort: null,
     }));
     return id;
   },
@@ -215,7 +242,7 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, pending: false, usage: usage ?? null } : message,
       ),
-      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+      ..._settled(state, id),
     })),
   stopAssistantMessage: (id) =>
     set((state) => ({
@@ -224,15 +251,21 @@ export const useChatHistoryStore = create<ChatHistoryState>((set) => ({
           ? { ...message, pending: false, stopped: true, usage: message.usage ?? null }
           : message,
       ),
-      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+      ..._settled(state, id),
     })),
   failAssistantMessage: (id, error) =>
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id ? { ...message, pending: false, error } : message,
       ),
-      streamingMessageId: state.streamingMessageId === id ? null : state.streamingMessageId,
+      ..._settled(state, id),
     })),
-  clear: () => set({ messages: [], streamingMessageId: null }),
-  loadMessages: (messages) => set({ messages, streamingMessageId: null }),
+  clear: () => {
+    get().stopLive();
+    set({ messages: [], streamingMessageId: null, liveAbort: null });
+  },
+  loadMessages: (messages) => {
+    get().stopLive();
+    set({ messages, streamingMessageId: null, liveAbort: null });
+  },
 }));

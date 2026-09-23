@@ -1,10 +1,12 @@
 """Native server-side web search — provider tool injection + citation normalizer.
 
-Five of the BYOK providers expose a *native* server-side web-search capability
+Four of the BYOK providers expose a *native* server-side web-search capability
 billed to the user's own key (Pass B research, ``docs/redesign/PASS_B_RESEARCH.md``
 §C.1; FR-081): Anthropic ``web_search``, OpenAI ``web_search``, Gemini
-``google_search`` grounding, Groq Compound (search runs server-side, no explicit
-tool), and xAI Live Search (``search_parameters`` in the request body, not a tool).
+``google_search`` grounding, and Groq Compound (search runs server-side, no
+explicit tool). xAI retired Live Search (``search_parameters`` now answers 410,
+R15-LEAD-008), so xAI has no native rung until it moves to the Agent Tools API
+and keeps the local ``web_search`` tool.
 
 This module is the single source for two concerns:
 
@@ -53,7 +55,7 @@ except Exception:  # ImportError today; broaden so a half-built module can't cra
 #: :attr:`LLMModelOption.web_search` flag, not on mere membership here.
 #: Membership only means "this provider has a native-search rung at all"; the
 #: runtime gate is ``agent_runtime._native_search_enabled``.
-SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai", "openrouter"}
+SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "openrouter"}
 
 #: The providers whose native search is a PROVIDER-level guarantee (any model
 #: routes the provider's own search). Everything else is per-model: OpenRouter
@@ -62,7 +64,7 @@ SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xa
 #: systems search, see :func:`groq_native_search_supported`) and **gemini**
 #: (``google_search`` combines with function tools on Gemini 3 only, see
 #: :func:`gemini_native_search_supported`).
-PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "xai"}
+PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic"}
 
 #: Anthropic's server-side web-search tool type (dated tool version).
 ANTHROPIC_WEB_SEARCH_TYPE = "web_search_20250305"
@@ -158,17 +160,6 @@ def openrouter_web_search_tool() -> dict[str, Any]:
     return {"type": "openrouter:web_search"}
 
 
-def xai_search_parameters() -> dict[str, Any]:
-    """xAI Live Search ``search_parameters`` block for the request body.
-
-    xAI rides the OpenAI adapter via a ``base_url`` override but does NOT use a
-    ``tools`` entry for search — it takes a top-level ``search_parameters``
-    object instead, and returns a ``citations[]`` array. ``mode="auto"`` lets
-    Grok decide whether a query needs live data. (PASS_B_RESEARCH §C.1.)
-    """
-    return {"mode": "auto", "return_citations": True}
-
-
 def gemini_google_search_tool() -> dict[str, Any]:
     """The Gemini ``config.tools`` entry enabling ``google_search`` grounding.
 
@@ -206,7 +197,7 @@ def native_search_available(
     ``with_function_tools`` says whether the request also carries function
     tools (an agent round does; the one-shot cross-verify call does not):
 
-    * the PROVIDER-level providers (anthropic/xai) always qualify — every
+    * the PROVIDER-level provider (anthropic) always qualifies — every
       routable model rides the provider's own search;
     * ``openai`` is per-MODEL: only its ``*-search-preview`` models take the
       chat-completions ``web_search_options`` param (anything else 400s on a
@@ -472,5 +463,4 @@ __all__ = [
     "openai_web_search_options",
     "openrouter_web_search_tool",
     "provider_supports_native_search",
-    "xai_search_parameters",
 ]

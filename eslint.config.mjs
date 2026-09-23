@@ -18,6 +18,29 @@ const config = [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      // R15-UI-009/UI-025 (D-B4-20): the desktop WKWebView implements none of
+      // these — they silently no-op instead of erroring, so the bug hides
+      // until someone clicks it on macOS. Use a real UI affordance instead.
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "window",
+          property: "prompt",
+          message: "window.prompt is a no-op in the Tauri desktop webview — use an inline popover.",
+        },
+        {
+          object: "window",
+          property: "alert",
+          message:
+            "window.alert is a no-op in the Tauri desktop webview — use an inline banner/toast.",
+        },
+        {
+          object: "window",
+          property: "confirm",
+          message:
+            "window.confirm is a no-op in the Tauri desktop webview — use an inline confirm control.",
+        },
+      ],
     },
     settings: { react: { version: "detect" } },
   },

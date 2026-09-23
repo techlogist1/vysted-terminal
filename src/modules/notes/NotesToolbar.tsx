@@ -13,7 +13,7 @@
  * events (subscribed below) so moving the cursor doesn't thrash React render.
  */
 
-import { useCallback, useRef, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Editor } from "@tiptap/react";
 import {
   Heading1,
@@ -30,6 +30,7 @@ import {
   Brackets,
 } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // ── Active-state subscription ───────────────────────────────────────────────
@@ -115,6 +116,87 @@ function ToolbarButton({
   );
 }
 
+// ── Link popover ────────────────────────────────────────────────────────────
+// R15-UI-025: `window.prompt` is a browser-only primitive WKWebView does not
+// implement (it silently no-ops in the desktop app) — an inline popover
+// replaces it, with the house click-outside/Escape idiom (ModelControl.tsx).
+
+function LinkPopover({
+  initialHref,
+  hasLink,
+  onApply,
+  onRemove,
+  onClose,
+}: {
+  initialHref: string;
+  hasLink: boolean;
+  onApply: (href: string) => void;
+  onRemove: () => void;
+  onClose: () => void;
+}) {
+  const [value, setValue] = useState(initialHref);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      const el = rootRef.current;
+      if (el && event.target instanceof Node && !el.contains(event.target)) {
+        onClose();
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={rootRef}
+      role="dialog"
+      aria-label="Edit link"
+      className="border-charcoal-700 bg-charcoal-875 rounded-control absolute top-full left-0 z-30 mt-1 flex w-64 items-center gap-1 border p-1"
+    >
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        placeholder="https://…"
+        aria-label="Link URL"
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            onApply(value.trim());
+          }
+        }}
+        className="bg-charcoal-800 text-charcoal-100 text-caption rounded-control h-7 min-w-0 flex-1 px-2 outline-none"
+      />
+      {hasLink && (
+        <Button type="button" size="xs" variant="ghost" onClick={onRemove}>
+          Remove
+        </Button>
+      )}
+      <Button type="button" size="xs" variant="outline" onClick={() => onApply(value.trim())}>
+        Apply
+      </Button>
+    </div>
+  );
+}
+
 function Group({ children }: { children: React.ReactNode }) {
   return <div className="flex items-center gap-1">{children}</div>;
 }
@@ -131,6 +213,9 @@ function GroupRule() {
 export function NotesToolbar({ editor }: { editor: Editor | null }) {
   // Subscribe to editor changes so active states stay live without per-render thrash.
   useEditorTick(editor);
+  // R15-UI-025: hooks stay above the early return below (rules of hooks) even
+  // though the popover only matters once `editor` is non-null.
+  const [linkOpen, setLinkOpen] = useState(false);
 
   if (!editor) {
     // Placeholder matches the real bar's box (py-1 + h-7 row) — no layout jump.
@@ -141,15 +226,18 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
     );
   }
 
-  const setLink = () => {
-    const prev = (editor.getAttributes("link").href as string | undefined) ?? "";
-    const href = window.prompt("Link URL", prev);
-    if (href === null) return; // cancelled
-    if (href.trim() === "") {
+  const applyLink = (href: string) => {
+    if (href === "") {
       editor.chain().focus().unsetLink().run();
-      return;
+    } else {
+      editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: href.trim() }).run();
+    setLinkOpen(false);
+  };
+
+  const removeLink = () => {
+    editor.chain().focus().unsetLink().run();
+    setLinkOpen(false);
   };
 
   const insertWikiLink = () => {
@@ -243,12 +331,23 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
 
       {/* Link + wikilink */}
       <Group>
-        <ToolbarButton
-          icon={LinkIcon}
-          label="Link"
-          active={editor.isActive("link")}
-          onClick={setLink}
-        />
+        <div className="relative">
+          <ToolbarButton
+            icon={LinkIcon}
+            label="Link"
+            active={editor.isActive("link")}
+            onClick={() => setLinkOpen((v) => !v)}
+          />
+          {linkOpen && (
+            <LinkPopover
+              initialHref={(editor.getAttributes("link").href as string | undefined) ?? ""}
+              hasLink={editor.isActive("link")}
+              onApply={applyLink}
+              onRemove={removeLink}
+              onClose={() => setLinkOpen(false)}
+            />
+          )}
+        </div>
         <ToolbarButton icon={Brackets} label="Insert [[wikilink]]" onClick={insertWikiLink} />
       </Group>
     </div>

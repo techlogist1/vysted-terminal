@@ -28,6 +28,7 @@ from models.custom_agent import (
     CustomAgentUpdate,
 )
 from services import agents_store
+from services.agent_tools.catalog import agent_selectable_tool_ids
 
 router = APIRouter(prefix="/custom-agents", tags=["custom-agents"])
 
@@ -52,6 +53,20 @@ def _ensure_custom_prefix(agent_id: str) -> None:
 def list_custom_agents() -> list[CustomAgentRead]:
     """Return every stored custom agent."""
     return agents_store.list_agents()
+
+
+@router.get("/tool-ids")
+def list_tool_ids() -> list[str]:
+    """Return every tool id the Custom Agent Builder may offer.
+
+    R15-UI-003 / R15-CODE-FRONTEND-020: the SAME source `models.custom_agent.
+    KNOWN_TOOL_IDS` derives from (`agent_selectable_tool_ids`, the capability
+    catalog) — so the builder's tool vocabulary can never drift from what the
+    host actually resolves. MUST stay declared before `/{agent_id:path}`
+    below: that path converter is greedy and would otherwise swallow
+    `/tool-ids` as an agent id.
+    """
+    return sorted(agent_selectable_tool_ids())
 
 
 @router.get("/{agent_id:path}")

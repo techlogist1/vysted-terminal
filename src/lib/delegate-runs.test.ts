@@ -153,3 +153,105 @@ describe("delegate-runs", () => {
     });
   });
 });
+
+// ── R15-AGENT-013: a finished run's output reaches its originating thread once ──
+
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { useChatHistoryStore } from "@/store/chat-history";
+import { useProposedChangesStore } from "@/store/proposed-changes";
+
+describe("delegate-runs — output delivery", () => {
+  const LONG_ANSWER = "Round 1 valuation. ".repeat(40);
+
+  function routedFetch(status: "done" | "error", output: Record<string, unknown>) {
+    return vi.fn(async (url: string, init?: RequestInit) => {
+      const path = new URL(String(url)).pathname;
+      if (init?.method === "POST") {
+        return jsonResponse({ runId: "run-7" });
+      }
+      if (path === "/runs") {
+        return jsonResponse({
+          runs: [{ id: "run-7", agent_id: "copilot", status, detail: "token ceiling hit" }],
+        });
+      }
+      return jsonResponse({ id: "run-7", status, ...output });
+    });
+  }
+
+  beforeEach(() => {
+    resetAgentRunsStoreForTests();
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
+    useProposedChangesStore.setState({ changes: [] });
+    useChatHistoryStore.getState().clear();
+    useAgentSpacesStore.setState({
+      spaces: [
+        { id: "t1", title: "Chat 1" },
+        { id: "t2", title: "Chat 2" },
+      ],
+      activeId: "t2",
+      archived: { t1: [] },
+    });
+  });
+
+  afterEach(() => {
+    stopDelegatePolling();
+    vi.restoreAllMocks();
+  });
+
+  it("appends the answer to the launching thread and gates the note and the brief", async () => {
+    const fetchMock = routedFetch("done", {
+      answer: LONG_ANSWER,
+      brief: { symbol: "NVDA", markdown: "## Thesis" },
+      hostActions: [
+        { tool_call_id: "c-note", name: "write_note", input: { scope: "NVDA", text: "margin" } },
+      ],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await launchDelegateRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      prompt: "research NVDA",
+      budget: BUDGET,
+      threadId: "t1",
+    });
+
+    await pollDelegateRuns();
+    await pollDelegateRuns(); // a later poll never delivers twice
+
+    const thread = useAgentSpacesStore.getState().archived.t1;
+    expect(thread).toHaveLength(1);
+    expect(thread[0]).toMatchObject({
+      role: "assistant",
+      content: LONG_ANSWER,
+      agentId: "copilot",
+    });
+    expect(useChatHistoryStore.getState().messages).toEqual([]); // not the live tab
+    const changes = useProposedChangesStore.getState().changes;
+    expect(changes.map((c) => [c.action.name, c.status])).toEqual([
+      ["write_note", "pending"],
+      ["publish_brief", "pending"],
+    ]);
+    expect(changes[1].action.input).toEqual({ symbol: "NVDA", markdown: "## Thesis" });
+    const detailFetches = fetchMock.mock.calls.filter(([u]) => String(u).endsWith("/runs/run-7"));
+    expect(detailFetches).toHaveLength(1);
+  });
+
+  it("a run that ends in error still delivers its partial text with the error", async () => {
+    vi.stubGlobal("fetch", routedFetch("error", { answer: "Partial analysis." }));
+    await launchDelegateRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      prompt: "go",
+      budget: BUDGET,
+      threadId: "t2",
+    });
+
+    await pollDelegateRuns();
+
+    const live = useChatHistoryStore.getState().messages;
+    expect(live).toHaveLength(1);
+    expect(live[0]).toMatchObject({ content: "Partial analysis.", error: "token ceiling hit" });
+    expect(useProposedChangesStore.getState().changes).toEqual([]);
+  });
+});

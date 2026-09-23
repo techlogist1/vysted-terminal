@@ -30,7 +30,18 @@ import { create } from "zustand";
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 
-import type { WorkflowRunEvent, WorkflowSpec } from "../../types/workflow";
+import type { WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec } from "../../types/workflow";
+
+/** Per-run options for {@link WorkflowState.runWorkflow}. */
+export interface RunWorkflowOptions extends Pick<
+  WorkflowRunRequest,
+  "provider" | "model" | "apiKey"
+> {
+  /** Aborts the request and the stream (panel Stop / unmount). */
+  signal?: AbortSignal;
+  /** Called with every server event after it lands in the store. */
+  onEvent?: (event: WorkflowRunEvent) => void;
+}
 
 // ---------------------------------------------------------------------------
 // Desktop notification intent — the node-output sentinel
@@ -78,17 +89,22 @@ interface WorkflowState {
   drainNotifications: () => DesktopNotificationIntent[];
 
   /**
-   * POST the spec to ``/workflow/run`` and consume the SSE stream.
+   * POST the spec to ``/workflow/run`` and consume the SSE stream — the one
+   * client for this wire (the node editor runs through it).
    *
-   * Returns a promise that resolves with the run id once the ``run-start``
-   * event arrives (so callers can await knowing-they-can-render-now). The
-   * SSE stream continues to flow into the store after the promise resolves;
-   * the consumer rejects with a structured error if the request itself
-   * fails (network error / non-2xx). Per-node errors land as ``node-error``
-   * events in the run log and DO NOT reject the outer promise — the run
-   * still ran, the engine just reported some failed nodes.
+   * Every event is appended to the store (so notification intents reach the
+   * desktop bridge) and handed to ``options.onEvent``. Resolves with the run
+   * id once the stream ends on a terminal frame. Per-node errors land as
+   * ``node-error`` events and DO NOT reject — the engine reported them.
+   * Rejects when the request fails (network / non-2xx / abort) or the stream
+   * ends or breaks without a terminal frame; after ``run-start`` it first
+   * appends a terminal ``run-error`` row so the run log never reads as live.
    */
-  runWorkflow: (spec: WorkflowSpec, inputs?: Record<string, unknown>) => Promise<string>;
+  runWorkflow: (
+    spec: WorkflowSpec,
+    inputs?: Record<string, unknown>,
+    options?: RunWorkflowOptions,
+  ) => Promise<string>;
 }
 
 // ---------------------------------------------------------------------------
@@ -237,10 +253,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     return drained;
   },
 
-  runWorkflow: async (spec, inputs) => {
+  runWorkflow: async (spec, inputs, options = {}) => {
+    const { signal, onEvent, provider, model, apiKey } = options;
     const base = await getSidecarBaseUrl();
     const url = new URL("/workflow/run", base);
-    const body = JSON.stringify({ spec, inputs: inputs ?? {} });
+    const body = JSON.stringify({ spec, inputs: inputs ?? {}, provider, model, apiKey });
 
     const response = await fetch(url.toString(), {
       method: "POST",
@@ -249,6 +266,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         Accept: "text/event-stream",
       },
       body,
+      signal,
     });
 
     if (!response.ok || !response.body) {
@@ -256,57 +274,58 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       throw new Error(detail ?? `sidecar returned ${response.status}`);
     }
 
-    // Consume the stream until we see ``run-start`` (resolve the outer
-    // promise) and continue draining the rest into the store in the
-    // background. The first event the engine emits is always ``run-start``;
-    // we resolve the moment it lands so the UI can render the run shell.
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
-    let resolvedRunId: string | null = null;
+    // Written from the frame callback, so widen past the initialiser narrowing.
+    let runId = null as string | null;
+    let terminal = false as boolean;
+    const handleEvent = (event: WorkflowRunEvent) => {
+      get().appendEvent(event);
+      if (event.kind === "run-start") runId = event.runId;
+      if (_isTerminal(event)) terminal = true;
+      onEvent?.(event);
+    };
 
-    return await new Promise<string>((resolve, reject) => {
-      const handleEvent = (event: WorkflowRunEvent) => {
-        get().appendEvent(event);
-        if (!resolvedRunId && event.kind === "run-start") {
-          resolvedRunId = event.runId;
-          resolve(event.runId);
+    let failure = null as string | null;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
         }
-      };
-
-      const consume = async () => {
-        try {
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) {
-              break;
-            }
-            buffer += decoder.decode(value, { stream: true });
-            let sep = buffer.indexOf("\n\n");
-            while (sep !== -1) {
-              const frame = buffer.slice(0, sep);
-              buffer = buffer.slice(sep + 2);
-              _dispatchFrame(frame, handleEvent);
-              sep = buffer.indexOf("\n\n");
-            }
-          }
-          if (buffer.trim()) {
-            _dispatchFrame(buffer, handleEvent);
-          }
-          if (!resolvedRunId) {
-            reject(new Error("workflow stream closed before run-start event"));
-          }
-        } catch (err) {
-          if (!resolvedRunId) {
-            reject(err instanceof Error ? err : new Error(String(err)));
-          }
-        } finally {
-          reader.releaseLock();
+        buffer += decoder.decode(value, { stream: true });
+        let sep = buffer.indexOf("\n\n");
+        while (sep !== -1) {
+          const frame = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          _dispatchFrame(frame, handleEvent);
+          sep = buffer.indexOf("\n\n");
         }
-      };
-
-      void consume();
-    });
+      }
+      if (buffer.trim()) {
+        _dispatchFrame(buffer, handleEvent);
+      }
+    } catch (err) {
+      failure = `workflow stream failed: ${err instanceof Error ? err.message : String(err)}`;
+    } finally {
+      reader.releaseLock();
+    }
+    if (runId === null) {
+      throw new Error(
+        failure ??
+          "workflow stream ended without a terminal frame (no run-start event) — the " +
+            "sidecar rejected the spec before starting (e.g. a node type with no " +
+            "server-side handler)",
+      );
+    }
+    if (!terminal) {
+      const message =
+        failure ?? "workflow stream ended without a terminal frame — the sidecar crashed mid-run";
+      get().appendEvent({ kind: "run-error", runId, message, durationMs: 0 });
+      throw new Error(message);
+    }
+    return runId;
   },
 }));
 

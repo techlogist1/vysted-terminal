@@ -90,12 +90,13 @@ def test_pick_equity_row_prefers_eq_series() -> None:
         "2026-06-08,FOO,500001,A1,990.0,999.0,980.0,999.0,10\n"
         "2026-06-08,FOO,500001,EQ,120.0,124.0,119.0,123.0,5000\n"
     )
-    frame = bse_provider.parse_bhavcopy(csv)
-    match = frame[frame["ticker"] == "FOO"]
-    assert bse_provider._pick_equity_row(match)["close"] == 123.0
+    rows = bse_provider.parse_bhavcopy(csv).to_dict("records")
+    assert bse_provider._pick_equity_row(rows)["close"] == 123.0
     # No EQ row present → fall back to the first row (never drop the name).
-    no_eq = frame[(frame["ticker"] == "FOO") & (frame["series"] == "A1")]
+    no_eq = [row for row in rows if row["series"] == "A1"]
     assert bse_provider._pick_equity_row(no_eq)["close"] == 999.0
+    # The one-row day-file scan applies the same preference.
+    assert bse_provider._scrip_row(csv, "FOO", "500001")["close"] == 123.0
 
 
 # --- get_history assembled from (mocked) downloaded bhavcopies --------------
@@ -306,6 +307,169 @@ def test_bhavcopy_for_retries_on_cache_dir_race(tmp_path, monkeypatch: pytest.Mo
     # No cached file exists → returns None after surviving the cache-dir race.
     assert bse_provider._bhavcopy_for(date(2026, 6, 8)) is None
     assert calls["n"] == 2  # retried past the race
+
+
+# --- empty markers vs publication time (R15-DATA-035) ---------------------
+
+
+def _ist_epoch(day: date, hour: int) -> float:
+    from datetime import datetime, time
+
+    tz = locale.market_timezone(locale.REGION_IN)
+    return datetime.combine(day, time(hour), tzinfo=tz).timestamp()
+
+
+def test_unpublished_html_day_is_not_cached_and_later_fetch_returns_it(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Before publication BSE answers 200 text/html, not a 404.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 9, 23)
+    html = httpx.Response(
+        200,
+        content=b"<!DOCTYPE html>\n<html><head><title>BSE</title></head></html>",
+        headers={"content-type": "text/html; charset=utf-8"},
+    )
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: html)
+    assert bse_provider._download_bhavcopy(day) is None
+    assert not (tmp_path / f"{day.isoformat()}.csv").exists()  # no marker cached
+    assert bse_provider._bhavcopy_for(day) is None  # still a day to fetch
+
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    text = bse_provider._download_bhavcopy(day)
+    assert text is not None
+    assert bse_provider._scrip_row(text, "ICONIKSPEV", "511260")["close"] == 43.09
+
+
+def test_marker_written_on_its_own_day_is_refetched(tmp_path, monkeypatch) -> None:
+    # A marker left by the pre-fix code (written the same IST day, before BSE
+    # published) must not hide the day: it reads as not cached and the history
+    # assembly fetches the day again.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 9, 22)
+    marker = tmp_path / f"{day.isoformat()}.csv"
+    marker.write_text("")
+    import os
+
+    os.utime(marker, (_ist_epoch(day, 11), _ist_epoch(day, 11)))
+    assert bse_provider._bhavcopy_for(day) is None
+
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    bars = bse_provider._assemble_history("ICONIKSPEV", "511260", day, day)
+    assert [b.close for b in bars] == [43.09]
+
+    # A marker written after its day (a holiday BSE never published) is honoured.
+    holiday = date(2026, 9, 21)
+    marker = tmp_path / f"{holiday.isoformat()}.csv"
+    marker.write_text("")
+    os.utime(marker, (_ist_epoch(date(2026, 9, 22), 9), _ist_epoch(date(2026, 9, 22), 9)))
+    assert bse_provider._bhavcopy_for(holiday) == ""
+
+    def no_network(url: str) -> httpx.Response:
+        raise AssertionError(f"an honoured marker must not be re-fetched: {url}")
+
+    monkeypatch.setattr(bse_provider, "_http_get", no_network)
+    assert bse_provider._assemble_history("ICONIKSPEV", "511260", holiday, holiday) == []
+
+
+# --- one scrip row per cached day file (R15-DATA-036) ----------------------
+
+
+def _trading_days_back(end: date, count: int) -> list[date]:
+    from datetime import timedelta
+
+    days: list[date] = []
+    day = end
+    while len(days) < count:
+        if day.weekday() < 5 and day.isoformat() not in bse_provider._bse_holidays():
+            days.append(day)
+        day -= timedelta(days=1)
+    return sorted(days)
+
+
+def test_year_of_cached_whole_market_files_assembles_one_scrip_fast(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # 250 cached 5,000-row day files: a year of one scrip must not parse the
+    # whole market once per day (that took ~8.7 s warm for KSE).
+    import time
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: pytest.fail(f"network: {url}"))
+    header = "TradDt,FinInstrmId,TckrSymb,SctySrs,OpnPric,HghPric,LwPric,ClsPric,TtlTradgVol\n"
+    market = "".join(
+        f"2026-01-01,{600000 + i},SCRIP{i},A,10.0,11.0,9.0,10.5,{100 + i}\n" for i in range(4999)
+    )
+    days = _trading_days_back(date(2026, 9, 18), 250)
+    for n, day in enumerate(days):
+        target = f"{day.isoformat()},511260,ICONIKSPEV,X,40.0,45.0,39.0,{40 + n / 100:.2f},57\n"
+        (tmp_path / f"{day.isoformat()}.csv").write_text(header + market + target)
+
+    started = time.perf_counter()
+    bars = bse_provider._assemble_history("ICONIKSPEV", "511260", days[0], days[-1])
+    elapsed = time.perf_counter() - started
+
+    assert len(bars) == 250
+    assert bars[-1].close == pytest.approx(40 + 249 / 100)
+    assert elapsed < 1.0, f"a year of one scrip took {elapsed:.2f}s"
+
+
+def test_bhavcopy_quote_path_reads_the_same_bars_as_a_full_parse(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The 14-day quote fallback over cached files carrying a drifted ticker and a
+    # non-EQ series row before the EQ row: each day's bar is the one the whole-
+    # market parse would pick (code first, EQ preferred).
+    from datetime import UTC, datetime, timedelta
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: httpx.Response(500))
+    today = datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
+    expected = []
+    for n, day in enumerate(_trading_days_back(today - timedelta(days=1), 6)):
+        text = (
+            "TradDt,FinInstrmId,TckrSymb,SctySrs,OpnPric,HghPric,LwPric,ClsPric,TtlTradgVol\n"
+            f"{day},511260,ICONIKOLD,A1,1.0,1.0,1.0,999.0,1\n"
+            f"{day},511260,ICONIKOLD,EQ,40.0,45.0,39.0,{41 + n}.0,57\n"
+            f"{day},511261,ICONIKSPEV,EQ,1.0,1.0,1.0,1.0,1\n"
+        )
+        (tmp_path / f"{day.isoformat()}.csv").write_text(text)
+        full = bse_provider.parse_bhavcopy(text)
+        rows = full[full["code"] == "511260"].to_dict("records")
+        expected.append(bse_provider._pick_equity_row(rows)["close"])
+
+    quote = bse_provider._quote_from_bhavcopy("ICONIKSPEV", "511260")
+    assert quote.price == expected[-1]
+    assert quote.change == pytest.approx(expected[-1] - expected[-2])
+
+
+# --- file shape drift (R15-LIFECYCLE-004) -----------------------------------
+
+
+@pytest.mark.parametrize(
+    ("column", "field"),
+    [("OpnPric", "open"), ("HghPric", "high"), ("LwPric", "low"), ("TtlTradgVol", "volume")],
+)
+def test_renamed_ohlv_column_is_a_parse_failure(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, column: str, field: str
+) -> None:
+    # A renamed column fails the lane (the registry falls through), never
+    # serves close-filled flat bars with zero volume.
+    drifted = _BHAVCOPY_CSV.replace(f",{column},", f",{column}X,", 1)
+    with pytest.raises(ProviderError, match=field):
+        bse_provider.parse_bhavcopy(drifted)
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(drifted))
+    with pytest.raises(ProviderError, match=field):
+        bse_provider.get_history("ICONIKSPEV", "1d", "1mo")
+
+
+def test_cached_day_with_renamed_column_is_a_parse_failure(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 6, 9)
+    (tmp_path / f"{day.isoformat()}.csv").write_text(_BHAVCOPY_CSV.replace(",LwPric,", ",Low,"))
+    with pytest.raises(ProviderError, match="low"):
+        bse_provider._assemble_history("ICONIKSPEV", "511260", day, day)
 
 
 # --- ZIP-wrapped bhavcopy decode --------------------------------------------

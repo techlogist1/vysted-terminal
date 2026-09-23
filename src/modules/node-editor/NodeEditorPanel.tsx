@@ -17,10 +17,10 @@
  * handler reads the `application/x-vysted-node-type` MIME the palette
  * stamps.
  *
- * The run lifecycle opens a `fetch` stream against `POST /workflow/run`,
- * parses each SSE frame, and reduces it into `RunOverlayState` via
- * `applyEvent`. The reduce is a pure function (testable without the
- * network).
+ * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+ * `POST /workflow/run`); each event it hands back is reduced into
+ * `RunOverlayState` via `applyEvent`. The reduce is a pure function
+ * (testable without the network).
  */
 
 import "@xyflow/react/dist/style.css";
@@ -51,11 +51,15 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
+import { useWorkflowStore } from "@/store/workflow";
 
-import type { WorkflowRunEvent, WorkflowSpec } from "../../../types/workflow";
+import type { WorkflowRunRequest, WorkflowSpec } from "../../../types/workflow";
 import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
 import { CodeNodeInspector } from "./code-node-inspector";
 import { evaluateCodeNodes, partitionWorkflow } from "./code-node-run";
@@ -97,6 +101,26 @@ interface SavedSummary {
   name: string;
   description?: string;
   updatedAt: number;
+}
+
+// ---------------------------------------------------------------------------
+// Run creds
+// ---------------------------------------------------------------------------
+
+/**
+ * The chat's current provider/model selection and its keychain key, for the
+ * run's `ai.agent_invoke` nodes (the sidecar cannot read the keychain). A
+ * missing key is sent as absent: the agent node then fails with the
+ * provider's own error instead of the run faking an answer.
+ */
+async function resolveRunCreds(): Promise<
+  Pick<WorkflowRunRequest, "provider" | "model" | "apiKey">
+> {
+  const { providers, defaultProviderId: provider } = useLLMProvidersStore.getState();
+  const model = useModelSelectionStore.getState().modelFor(provider);
+  const requiresKey = providers.find((p) => p.id === provider)?.requiresKey ?? true;
+  const apiKey = requiresKey ? await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider)) : null;
+  return { provider, model, ...(apiKey ? { apiKey } : {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -371,73 +395,56 @@ function NodeEditorPanelInner() {
     const startedMark = performance.now();
     const outputsByNode = new Map<string, Record<string, unknown>>();
     const failedServerIds: string[] = [];
-    // The engine validates BEFORE emitting run-start (`_validate_spec` is
-    // the first statement of `run_workflow`) and routers/workflow.py
-    // swallows the exception, so a rejected spec — unregistered plugin node
-    // type, dangling edge ref — closes the SSE stream with ZERO frames.
-    // Track whether a terminal frame ever arrived; its absence is a run
-    // failure, never a green "ok" over a board of pending rows.
-    let serverTerminalSeen = false;
+    // The store is the one client for this wire: every server event lands in
+    // `useWorkflowStore` (so a notify_desktop intent reaches the desktop
+    // bridge) and is handed back here for the overlay. It rejects when the
+    // stream ends or breaks without a terminal frame (e.g. the engine
+    // rejected the spec before run-start), so that is never a green run.
     let serverErrorMessage: string | null = null;
     let runId = generateId("local");
     try {
       if (partition.server.nodes.length > 0) {
-        const base = await getSidecarBaseUrl();
-        const response = await fetch(new URL("/workflow/run", base).toString(), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spec: partition.server, mode: "full" }),
+        await useWorkflowStore.getState().runWorkflow(partition.server, undefined, {
+          ...(await resolveRunCreds()),
           signal: controller.signal,
-        });
-        if (!response.ok || response.body === null) {
-          throw new Error(`run failed (${response.status})`);
-        }
-        await consumeSse(response.body, (event) => {
-          switch (event.kind) {
-            case "run-start":
-              // Adopt the server's run id WITHOUT the reducer's node-list
-              // reset, so the code-node rows stay visible as pending while
-              // the server wave runs.
-              runId = event.runId;
-              setRunState((prev) => ({
-                ...prev,
-                runId: event.runId,
-                status: "running",
-                startedAt: event.startedAt,
-              }));
-              return;
-            case "node-output":
-              outputsByNode.set(event.nodeId, event.outputs);
-              break;
-            case "node-error":
-              failedServerIds.push(event.nodeId);
-              break;
-            case "run-complete":
-              // Held — the run isn't over until the code nodes evaluated;
-              // server-side failures are folded into the final event below.
-              serverTerminalSeen = true;
-              return;
-            case "run-error":
-              // Held like run-complete, but keep the engine's message so an
-              // engine-level failure that produced no node-error frames
-              // still surfaces instead of folding into a fake success.
-              serverTerminalSeen = true;
-              serverErrorMessage = event.message;
-              return;
-            default:
-              break;
-          }
-          setRunState((prev) => applyEvent(prev, event));
+          onEvent: (event) => {
+            switch (event.kind) {
+              case "run-start":
+                // Adopt the server's run id WITHOUT the reducer's node-list
+                // reset, so the code-node rows stay visible as pending while
+                // the server wave runs.
+                runId = event.runId;
+                setRunState((prev) => ({
+                  ...prev,
+                  runId: event.runId,
+                  status: "running",
+                  startedAt: event.startedAt,
+                }));
+                return;
+              case "node-output":
+                outputsByNode.set(event.nodeId, event.outputs);
+                break;
+              case "node-error":
+                failedServerIds.push(event.nodeId);
+                break;
+              case "run-complete":
+                // Held — the run isn't over until the code nodes evaluated;
+                // server-side failures are folded into the final event below.
+                return;
+              case "run-error":
+                // Held like run-complete, but keep the engine's message so an
+                // engine-level failure that produced no node-error frames
+                // still surfaces instead of folding into a fake success.
+                serverErrorMessage = event.message;
+                return;
+              default:
+                break;
+            }
+            setRunState((prev) => applyEvent(prev, event));
+          },
         });
         if (controller.signal.aborted) {
           return;
-        }
-        if (!serverTerminalSeen) {
-          throw new Error(
-            "workflow stream ended without a terminal frame — the sidecar " +
-              "rejected the spec before starting (e.g. a node type with no " +
-              "server-side handler) or crashed mid-run",
-          );
         }
       } else {
         // Pure-code workflow — no sidecar round-trip at all.
@@ -928,49 +935,4 @@ function LoadDialog({ summaries, loadingList, error, onClose, onPick }: LoadDial
       </div>
     </div>
   );
-}
-
-// ---------------------------------------------------------------------------
-// SSE consumer
-// ---------------------------------------------------------------------------
-
-async function consumeSse(
-  stream: ReadableStream<Uint8Array>,
-  onEvent: (event: WorkflowRunEvent) => void,
-): Promise<void> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let separator = buffer.indexOf("\n\n");
-      while (separator !== -1) {
-        const frame = buffer.slice(0, separator);
-        buffer = buffer.slice(separator + 2);
-        const dataLine = frame
-          .split("\n")
-          .map((line) => (line.startsWith("data:") ? line.slice(5).trim() : ""))
-          .filter((line) => line.length > 0)
-          .join("");
-        if (dataLine !== "") {
-          try {
-            const event = JSON.parse(dataLine) as WorkflowRunEvent;
-            onEvent(event);
-          } catch (err) {
-            // The engine should never emit malformed frames; surface it so a
-            // dropped run event isn't completely silent (Phase 9.5).
-            console.warn("workflow SSE: dropping malformed frame", err);
-          }
-        }
-        separator = buffer.indexOf("\n\n");
-      }
-    }
-  } finally {
-    // Always release the lock — on a throw/abort mid-stream the previous code
-    // leaked the locked reader, wedging the ReadableStream (Phase 9.5).
-    reader.releaseLock();
-  }
 }

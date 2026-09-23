@@ -140,3 +140,32 @@ def test_get_history_integrity_failure_still_502(client: TestClient, monkeypatch
     monkeypatch.setattr(provider_registry, "get_history", _integrity_fail)
     resp = client.get("/history/AAPL", params={"timeframe": "1d"})
     assert resp.status_code == 502
+
+
+def test_us_series_in_an_in_session_reads_the_us_calendar(client: TestClient, monkeypatch) -> None:
+    # R15-UI-090: an AAPL intraday series whose last bar is from NSE hours, read
+    # in an IN session, is dated against the (closed) US session, not NSE's.
+    from datetime import UTC, datetime
+
+    from models.market import OHLCVBar, OHLCVSeries
+    from services import locale, provider_registry
+
+    now = datetime(2026, 9, 23, 5, 0, tzinfo=UTC)
+
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):  # noqa: ANN001, ANN206
+            return now.astimezone(tz) if tz else now
+
+    monkeypatch.setattr(locale, "datetime", _Frozen)
+    bar = OHLCVBar(timestamp=now, open=1.0, high=2.0, low=1.0, close=1.5, volume=10.0)
+
+    def series(symbol, timeframe, range_=None, asset_class="equity"):  # noqa: ANN001, ANN202, ARG001
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=[bar], provider="yfinance")
+
+    monkeypatch.setattr(provider_registry, "get_history", series)
+    headers = {"X-Vysted-Region": "IN"}
+    body = client.get("/history/AAPL", params={"timeframe": "5m"}, headers=headers).json()
+    assert body["freshness"] != "live"
+    body = client.get("/history/RELIANCE.NS", params={"timeframe": "5m"}, headers=headers).json()
+    assert body["freshness"] == "live"

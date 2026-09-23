@@ -132,12 +132,20 @@ class RunDetail(RunSummary):
     accumulated (system prompts elided) so the foreground view can show what the
     background run has been doing; ``checkpoint_messages`` is the count of
     messages persisted to ``checkpoint_json`` for a resume.
+
+    The collectable output, set once the run ends (R15-AGENT-013): ``answer`` is
+    the full final text (untruncated), ``brief`` the last ``publish_brief``
+    input, and ``host_actions`` the proposed host actions as
+    ``{tool_call_id, name, input}``. None of it is applied by the sidecar.
     """
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     transcript: list[dict[str, Any]] = Field(default_factory=list)
     checkpoint_messages: int = Field(default=0, alias="checkpointMessages")
+    answer: str | None = None
+    brief: dict[str, Any] | None = None
+    host_actions: list[dict[str, Any]] = Field(default_factory=list, alias="hostActions")
 
 
 class RunAnswerRequest(BaseModel):

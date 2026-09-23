@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
+import { StalenessBadge } from "@/components/DataBadges";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { buildCsv, downloadCsv } from "@/lib/csv";
@@ -14,6 +15,7 @@ import {
   formatSignedMoney,
   formatUnit,
 } from "@/lib/format";
+import { useMarketSession } from "@/lib/market-session";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
 import {
@@ -42,6 +44,33 @@ function fmtQuantity(quantity: number): string {
 /** The P&L signal tone — green/red by direction, quiet neutral at zero. */
 function pnlTone(pnl: number): string {
   return pnl > 0 ? "text-positive" : pnl < 0 ? "text-negative" : "text-charcoal-200";
+}
+
+/**
+ * R15-UI-090: the Symbol cell — plain symbol text plus a staleness cue when a
+ * live quote resolved, so an `eod`/`stale` holding value never reads as if it
+ * just ticked (same FR-118 guard as the Watchlist's `SymbolCell`; mirrors its
+ * `StalenessBadge` + `useMarketSession` usage — no wire change, the quote
+ * already carries `freshness`/`market_state`).
+ */
+function PortfolioSymbolCell({ row }: { row: PortfolioTableRow }) {
+  const { position, quote } = row;
+  const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="truncate">{position.symbol}</span>
+      {quote?.freshness != null && (
+        <span className="flex items-center gap-1">
+          <StalenessBadge freshness={quote.freshness} />
+        </span>
+      )}
+      {session.label !== null && session.tone === "muted" && (
+        <span className="text-charcoal-500 text-micro truncate" title={`Session: ${session.label}`}>
+          {session.label}
+        </span>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -111,6 +140,10 @@ export function PortfolioPanel() {
   // designed for). `quotesNonce` lets the banner's Retry re-run the fetch.
   const [quotesError, setQuotesError] = useState(false);
   const [quotesNonce, setQuotesNonce] = useState(0);
+  // R15-UI-009: the CSV export now writes a real file via the Rust
+  // atomic-write path — surface the saved path (or a write failure) since
+  // there is no browser download UI to confirm it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
   const symbolInputRef = useRef<HTMLInputElement | null>(null);
 
   // Portfolio header inline-edit state (create / rename).
@@ -144,10 +177,12 @@ export function PortfolioPanel() {
     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
     // clears its quotes via the async path — no synchronous setState in-effect.
     void fetchPositionQuotes(holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))
-      .then((q) => {
+      .then(({ quotes: resolved, failed }) => {
         if (!cancelled) {
-          setQuotes(q);
-          setQuotesError(false);
+          setQuotes(resolved);
+          // R15-UI-004: `failed` counts real fetch failures (never a swallowed
+          // null), so the banner + Retry now actually reach the DOM.
+          setQuotesError(failed > 0);
         }
       })
       .catch(() => {
@@ -199,12 +234,29 @@ export function PortfolioPanel() {
   // with a stated reason, never a made-up aggregate (the D50 `totalValue: 0`
   // class). Per-holding marketValue/pnl stay honest (each is in its own
   // listing currency).
-  const totalValue = summary.mixedCurrencies ? null : summary.totalMarketValue;
+  // R15-UI-005: an empty `byCurrency` means NOTHING resolved — the sum then
+  // starts and stays at 0, which is a fabricated value, not a real zero
+  // total. Publish null with a reason instead, same as the mixed-currency case.
+  // An empty portfolio has nothing unresolved: its 0 is a real total.
+  const hasLiveQuotes = summary.byCurrency.length > 0;
+  const totalValue =
+    summary.mixedCurrencies || (!hasLiveQuotes && positionCount > 0)
+      ? null
+      : summary.totalMarketValue;
+  const unresolvedSymbols = summary.rows
+    .filter((row) => row.quote === null)
+    .map((row) => row.position.symbol);
   const totalValueNote = summary.mixedCurrencies
     ? `holdings span multiple currencies (${summary.byCurrency
         .map((b) => b.currency || "unknown")
         .join(", ")}) — no cross-currency total; read per-holding values`
-    : null;
+    : !hasLiveQuotes
+      ? positionCount > 0
+        ? "no live quotes resolved"
+        : null
+      : unresolvedSymbols.length > 0
+        ? `excludes ${unresolvedSymbols.join(", ")} (no live quote)`
+        : null;
   const activePortfolioId = active?.id ?? null;
   const activePortfolioName = active?.name ?? null;
   // Serialise the published holdings as a stable string so the publish effect
@@ -334,8 +386,7 @@ export function PortfolioPanel() {
       {
         key: "symbol",
         header: "Symbol",
-        truncate: true,
-        format: (r) => r.position.symbol,
+        cell: (r) => <PortfolioSymbolCell row={r} />,
       },
     ];
     if (showQty) {
@@ -466,7 +517,7 @@ export function PortfolioPanel() {
   // Export the active portfolio to CSV — the hand-entered fields plus the
   // live-quote-derived market value / P&L / weight (blank where no quote
   // resolved, so the export stays provenance-honest). No-op when empty.
-  const handleExport = () => {
+  const handleExport = async () => {
     if (summary.rows.length === 0) {
       return;
     }
@@ -507,7 +558,12 @@ export function PortfolioPanel() {
         .trim()
         .replace(/[^a-z0-9]+/gi, "-")
         .toLowerCase() || "portfolio";
-    downloadCsv(`vysted-portfolio-${safeName}.csv`, csv);
+    try {
+      const r = await downloadCsv(`vysted-portfolio-${safeName}.csv`, csv);
+      setExportStatus(r.path ? `Saved ${r.path}` : "Downloaded .csv");
+    } catch (e) {
+      setExportStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
   };
 
   return (
@@ -605,7 +661,7 @@ export function PortfolioPanel() {
               variant="ghost"
               aria-label="Export portfolio to CSV"
               title="Export portfolio to CSV"
-              onClick={handleExport}
+              onClick={() => void handleExport()}
               disabled={holdings.length === 0}
             >
               <Download />
@@ -733,7 +789,9 @@ export function PortfolioPanel() {
                 ? summary.byCurrency
                     .map((b) => formatCompactMoney(b.marketValue, b.currency))
                     .join(" + ")
-                : formatCompactMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency)}
+                : hasLiveQuotes
+                  ? formatCompactMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency)
+                  : "— (no live quotes)"}
             </span>
           </span>
           <span aria-hidden="true" className="text-charcoal-600">
@@ -750,11 +808,13 @@ export function PortfolioPanel() {
                   </span>
                 </Fragment>
               ))
-            ) : (
+            ) : hasLiveQuotes ? (
               <span className={`whitespace-nowrap ${pnlTone(summary.totalPnl)}`}>
                 {formatSignedMoney(summary.totalPnl, true, summary.byCurrency[0]?.currency)} (
                 {formatPercent(summary.totalPnlPercent)})
               </span>
+            ) : (
+              <span className="text-charcoal-400 whitespace-nowrap">—</span>
             )}
           </span>
           {/* Concentration is a share of the SUMMED market value — meaningless
@@ -809,6 +869,21 @@ export function PortfolioPanel() {
             onClick={() => setQuotesNonce((n) => n + 1)}
           >
             Retry
+          </Button>
+        </div>
+      )}
+
+      {exportStatus !== null && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-charcoal-200 text-caption">{exportStatus}</span>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label="Dismiss export status"
+            onClick={() => setExportStatus(null)}
+          >
+            <X />
           </Button>
         </div>
       )}

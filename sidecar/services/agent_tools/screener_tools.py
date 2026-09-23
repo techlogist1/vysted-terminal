@@ -15,6 +15,7 @@ patterns; ``screener_run`` is data-only and stays well clear of that surface.
 from __future__ import annotations
 
 import logging
+from collections import Counter
 from typing import Any
 
 from pydantic import ValidationError
@@ -22,6 +23,9 @@ from pydantic import ValidationError
 from services.agent_tools import register_tool
 
 logger = logging.getLogger(__name__)
+
+#: Skipped symbols the model sees by name; the rest are counted per reason.
+_SKIP_EXAMPLES = 5
 
 
 async def _screener_run(args: dict[str, Any]) -> dict[str, Any]:
@@ -42,7 +46,10 @@ async def _screener_run(args: dict[str, Any]) -> dict[str, Any]:
 
     Returns ``{"ok": True, "result": ScreenerResult-as-JSON}`` on
     success; ``{"ok": False, "error": "..."}`` on validation /
-    provider failure.
+    provider failure. The per-symbol ``skip_details`` ledger (up to ~5,000
+    rows for india-all) is replaced by ``skip_summary`` ({reason: count}) and
+    at most five ``skip_examples`` so it never floods the model's context
+    (R15-AGENT-009); the HTTP route and the panel keep the full ledger.
     """
     from models.screener import ScreenerRequest
     from services import screener
@@ -64,10 +71,11 @@ async def _screener_run(args: dict[str, Any]) -> dict[str, Any]:
         logger.exception("screener_run unexpected error")
         return {"ok": False, "error": f"unexpected error: {exc}"}
 
-    return {
-        "ok": True,
-        "result": result.model_dump(mode="json"),
-    }
+    body = result.model_dump(mode="json")
+    skips = body.pop("skip_details")
+    body["skip_summary"] = dict(Counter(skip["reason"] for skip in skips))
+    body["skip_examples"] = skips[:_SKIP_EXAMPLES]
+    return {"ok": True, "result": body}
 
 
 def register() -> None:

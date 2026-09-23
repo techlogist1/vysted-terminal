@@ -45,6 +45,11 @@ export interface ConfigField {
 // ---------------------------------------------------------------------------
 // Built-in node specs (mirror sidecar/services/workflow_nodes/builtin.py)
 // ---------------------------------------------------------------------------
+//
+// Port ids and config keys are the sidecar handlers' names verbatim
+// (`workflow_nodes.BUILTIN_NODE_SPECS`): `flowToSpec` copies them into the
+// spec unchanged and the engine wires `inputs[targetPort] = outputs[sourcePort]`.
+// `sidecar/tests/fixtures/workflow_node_types.json` pins the parity.
 
 /**
  * The 10 built-in node ids — duplicated as exported constants so the test
@@ -105,7 +110,7 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
     category: "transform",
     description: "Compute a technical indicator over a price series.",
     inputs: [PORT("series", "Series", "object")],
-    outputs: [PORT("values", "Values", "object")],
+    outputs: [PORT("result", "Result", "object")],
   },
   "ai.agent_invoke": {
     id: "ai.agent_invoke",
@@ -113,22 +118,22 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
     category: "action",
     description: "Invoke a first-party or custom AI agent with a prompt.",
     inputs: [PORT("context", "Context", "any")],
-    outputs: [PORT("response", "Response", "string")],
+    outputs: [PORT("content", "Response", "string")],
   },
   "logic.branch": {
     id: "logic.branch",
     label: "Branch",
     category: "condition",
     description: "Route execution down the true or false branch.",
-    inputs: [PORT("condition", "Condition", "boolean")],
-    outputs: [PORT("true", "True", "signal"), PORT("false", "False", "signal")],
+    inputs: [PORT("value", "Value", "any")],
+    outputs: [PORT("true_path", "True", "any"), PORT("false_path", "False", "any")],
   },
   "logic.compare": {
     id: "logic.compare",
     label: "Compare",
     category: "condition",
     description: "Compare two values and emit a boolean.",
-    inputs: [PORT("left", "Left", "any"), PORT("right", "Right", "any")],
+    inputs: [PORT("a", "A", "any"), PORT("b", "B", "any")],
     outputs: [PORT("result", "Result", "boolean")],
   },
   "action.log": {
@@ -144,7 +149,7 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
     label: "Notify Desktop",
     category: "action",
     description: "Show a native desktop notification.",
-    inputs: [PORT("message", "Message", "string")],
+    inputs: [PORT("value", "Value", "any")],
     outputs: [PORT("notified", "Notified", "signal")],
   },
   "transform.json_path": {
@@ -152,16 +157,16 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
     label: "JSON Path",
     category: "transform",
     description: "Extract a value from an object via a dotted path.",
-    inputs: [PORT("input", "Input", "object")],
-    outputs: [PORT("value", "Value", "any")],
+    inputs: [PORT("value", "Input", "object")],
+    outputs: [PORT("extracted", "Value", "any")],
   },
   "flow.sleep": {
     id: "flow.sleep",
     label: "Sleep",
     category: "transform",
-    description: "Pause the workflow for a fixed number of milliseconds.",
-    inputs: [PORT("trigger", "Trigger", "signal")],
-    outputs: [PORT("done", "Done", "signal")],
+    description: "Pause the workflow for a fixed number of seconds.",
+    inputs: [PORT("value", "Value", "any")],
+    outputs: [PORT("value", "Value", "any")],
   },
 };
 
@@ -437,13 +442,12 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
     ],
     "compute.indicator": [
       {
-        key: "indicator",
+        key: "indicator_id",
         label: "Indicator",
         kind: "select",
         options: ["sma", "ema", "rsi", "macd", "bollinger", "atr", "stoch", "obv"],
         defaultValue: "rsi",
       },
-      { key: "period", label: "Period", kind: "number", placeholder: "14", defaultValue: 14 },
     ],
     "ai.agent_invoke": [
       {
@@ -454,10 +458,10 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
         defaultValue: "",
       },
       {
-        key: "prompt",
+        key: "prompt_template",
         label: "Prompt",
         kind: "textarea",
-        placeholder: "What is the technical outlook for {symbol}?",
+        placeholder: "What is the technical outlook given {context}?",
         defaultValue: "",
       },
     ],
@@ -467,7 +471,7 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
         key: "op",
         label: "Operator",
         kind: "select",
-        options: ["eq", "ne", "lt", "lte", "gt", "gte"],
+        options: ["eq", "neq", "lt", "lte", "gt", "gte"],
         defaultValue: "gt",
       },
     ],
@@ -488,23 +492,30 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
         placeholder: "Vysted Workflow",
         defaultValue: "",
       },
+      {
+        key: "message_template",
+        label: "Message",
+        kind: "string",
+        placeholder: "{value}",
+        defaultValue: "{value}",
+      },
     ],
     "transform.json_path": [
       {
         key: "path",
         label: "Path",
         kind: "string",
-        placeholder: "data.results[0].close",
+        placeholder: "data.results.0.close",
         defaultValue: "",
       },
     ],
     "flow.sleep": [
       {
-        key: "duration_ms",
-        label: "Duration (ms)",
+        key: "seconds",
+        label: "Duration (s)",
         kind: "number",
-        placeholder: "1000",
-        defaultValue: 1000,
+        placeholder: "1",
+        defaultValue: 1,
       },
     ],
   };

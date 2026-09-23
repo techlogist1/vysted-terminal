@@ -151,3 +151,44 @@ def test_get_quote_provider_error(client: TestClient, monkeypatch: pytest.Monkey
     response = client.get("/quotes/AAPL")
     assert response.status_code == 502
     assert "upstream down" in response.json()["detail"]
+
+
+#: 2026-09-23 10:30 IST: NSE is open, the US session is closed (01:00 ET).
+_NSE_HOURS = datetime(2026, 9, 23, 5, 0, tzinfo=UTC)
+
+
+def _freeze_locale_clock(monkeypatch: pytest.MonkeyPatch, now: datetime) -> None:
+    from services import locale
+
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):  # noqa: ANN001, ANN206
+            return now.astimezone(tz) if tz else now
+
+    monkeypatch.setattr(locale, "datetime", _Frozen)
+
+
+def test_us_quote_in_an_in_session_reads_the_us_calendar(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # R15-UI-090: region IN during NSE hours; AAPL's own session is closed, so
+    # its quote is not live. An NSE listing at the same moment still is.
+    from services import provider_registry
+
+    _freeze_locale_clock(monkeypatch, _NSE_HOURS)
+
+    def quote(symbol: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        provider = "nse_direct" if symbol == "RELIANCE" else "yfinance"
+        return Quote(
+            symbol=symbol,
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=_NSE_HOURS,
+            provider=provider,
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    headers = {"X-Vysted-Region": "IN"}
+    assert client.get("/quotes/AAPL", headers=headers).json()["freshness"] != "live"
+    assert client.get("/quotes/RELIANCE", headers=headers).json()["freshness"] == "live"

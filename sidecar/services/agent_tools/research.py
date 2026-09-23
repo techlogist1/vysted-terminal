@@ -112,6 +112,9 @@ def _stamp_execution(payload: Any, *, run_id: str, requested_depth: str, started
     from services.research.models import ResearchExecution
 
     loop, degraded_reason = _derive_loop(payload)
+    # An engine that states its own degradation (the deep engine's
+    # ``synthesis_timeout``) is the truth for the record (R15-RESEARCH-005).
+    degraded_reason = payload.get("degraded_reason") or degraded_reason
     if requested_depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA) and loop == "fast":
         note = payload.get("note")
         web = payload.get("web") if isinstance(payload.get("web"), dict) else None

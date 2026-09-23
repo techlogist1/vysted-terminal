@@ -123,6 +123,10 @@ class OllamaProvider(LLMProvider):
     def __init__(self, base_url: str | None = None) -> None:
         self._base_url = base_url
 
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """Every request runs at ``num_ctx``; past it Ollama drops the prompt's head."""
+        return DEFAULT_NUM_CTX
+
     def _client(self) -> ollama.AsyncClient:
         # The SDK keyword is ``host``, not ``base_url``.
         if self._base_url:

@@ -485,3 +485,58 @@ def test_price_derived_as_of_is_the_last_trade_not_the_fetch(
     info.pop("regularMarketTime")
     meta = yfinance_provider.get_fundamentals("DAL.BO").field_meta
     assert meta["market_cap"].as_of is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-016: Yahoo's forward-filled untraded bars are not served
+# ---------------------------------------------------------------------------
+
+
+def _history_ticker(monkeypatch: pytest.MonkeyPatch, frame: object) -> None:
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        def history(self, period: str, interval: str) -> object:  # noqa: ARG002
+            return frame
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+
+
+def test_history_drops_forward_filled_untraded_bars(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Live DAL.BO capture: 1,238 daily bars, 33 of them traded; the rest repeat
+    the prior close at zero volume through to today."""
+    from pathlib import Path
+
+    import pandas as pd
+
+    fixture = Path(__file__).parent / "fixtures" / "bse" / "dal_bo_yahoo_history_20260923.csv"
+    frame = pd.read_csv(fixture, index_col="Date")
+    frame.index = pd.to_datetime(frame.index, utc=True)
+    _history_ticker(monkeypatch, frame)
+
+    series = yfinance_provider.get_history("DAL.BO", "1d", "5y")
+    assert len(series.bars) == 33
+    assert all(bar.volume > 0 for bar in series.bars)
+    assert series.bars[-1].timestamp.date().isoformat() == "2023-12-06"  # 00:00 IST
+    assert series.bars[-1].close == pytest.approx(46.58)
+
+
+def test_history_keeps_zero_volume_bars_whose_prices_move(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An index carries no volume; its bars are real and all kept."""
+    import pandas as pd
+
+    frame = pd.DataFrame(
+        {
+            "Open": [25000.0, 25100.0, 25050.0],
+            "High": [25200.0, 25150.0, 25300.0],
+            "Low": [24900.0, 25000.0, 25000.0],
+            "Close": [25100.0, 25050.0, 25250.0],
+            "Volume": [0, 0, 0],
+        },
+        index=pd.to_datetime(["2026-09-18", "2026-09-21", "2026-09-22"]),
+    )
+    _history_ticker(monkeypatch, frame)
+    assert len(yfinance_provider.get_history("^NSEI", "1d", "1mo").bars) == 3

@@ -19,6 +19,7 @@
 
 import { create } from "zustand";
 
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { type ChatMessage, useChatHistoryStore } from "@/store/chat-history";
 import {
   RESEARCH_SPACE_CLAIMS_CAP,
@@ -203,15 +204,21 @@ export const useResearchSpacesStore = create<ResearchSpacesState>((set, get) => 
     chat.loadMessages(turnsToMessages(memory.transcript));
   },
   switchSpace: (prev, next) => {
+    // Stop a live reply first, so its partial is finalized (stopped) in the
+    // transcript it belongs to before that transcript is saved or parked.
+    useChatHistoryStore.getState().stopLive();
     if (prev?.name) {
       get().saveSpace(prev.name, prev.symbol);
     }
     if (next?.name) {
+      if (!prev?.name) {
+        // Entering from a chat tab: park the tab's conversation, never drop it.
+        useAgentSpacesStore.getState().parkActive();
+      }
       get().restoreSpace(next.name);
     } else if (prev?.name) {
-      // Leaving a research space for a non-research space — start the ambient
-      // copilot fresh rather than carrying the space's transcript over.
-      useChatHistoryStore.getState().clear();
+      // Leaving a research space for the chat tab: bring its conversation back.
+      useAgentSpacesStore.getState().unparkActive();
     }
   },
 }));

@@ -94,6 +94,20 @@ def test_validate_series_accepts_old_but_valid() -> None:
     assert correctness_gate.validate_series(old, "GOLDBEES", "IN") is old
 
 
+def test_validate_series_rejects_an_all_flat_zero_volume_series() -> None:
+    # R15-LIFECYCLE-004: open = high = low = close with zero volume on every bar
+    # is a parser filling missing fields (or no trade at all), never a price
+    # history. One real bar in the series keeps it.
+    flat = _series("GOLDBEES", 100.0, n=5)
+    flat.bars = [b.model_copy(update={"volume": 0.0}) for b in flat.bars]
+    with pytest.raises(CorrectnessError, match="flat with zero volume"):
+        correctness_gate.validate_series(flat, "GOLDBEES", "IN")
+
+    traded = flat.model_copy(deep=True)
+    traded.bars[2] = traded.bars[2].model_copy(update={"high": 101.0, "volume": 10.0})
+    assert correctness_gate.validate_series(traded, "GOLDBEES", "IN") is traded
+
+
 # ---------------------------------------------------------------------------
 # validate_fundamentals — identity + numeric plausibility bounds (R13, D4)
 # ---------------------------------------------------------------------------
@@ -469,3 +483,124 @@ def test_a_failed_witness_fetch_is_not_cached(monkeypatch: pytest.MonkeyPatch) -
     calls = _count_witness_fetches(monkeypatch, fail=True)
     _witnessed_twice()
     assert calls == {"ownership": 2, "income": 2, "quarters": 2, "equity": 2}
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-015/016: the 52-week range is witnessed against both Indian venues
+# ---------------------------------------------------------------------------
+
+_TODAY = datetime(2026, 9, 23, tzinfo=UTC)
+
+
+def _daily(start: datetime, days: int, high: float, low: float, **plant: float) -> OHLCVSeries:
+    """Weekday bars from ``start`` for ``days`` calendar days in a flat ``low``..``high``
+    band; ``plant`` puts an ISO-date ``high_<date>``/``low_<date>`` extreme on one day."""
+    bars = []
+    for i in range(days):
+        ts = start + timedelta(days=i)
+        if ts.weekday() >= 5:
+            continue
+        day = ts.date().isoformat()
+        h = plant.get(f"high_{day}", high)
+        lo = plant.get(f"low_{day}", low)
+        bars.append(OHLCVBar(timestamp=ts, open=lo, high=h, low=lo, close=h, volume=500.0))
+    return OHLCVSeries(symbol="X", timeframe="1d", bars=bars, provider="bse")
+
+
+def _venues(monkeypatch: pytest.MonkeyPatch, nse: object, bse: object) -> object:
+    import asyncio
+
+    from services.research import range_check
+
+    def serve(result: object) -> object:
+        def fetch(symbol: str) -> object:  # noqa: ARG001
+            if isinstance(result, Exception):
+                raise result
+            return result
+
+        return fetch
+
+    monkeypatch.setattr(range_check, "_fetch_nse_venue", serve(nse))
+    monkeypatch.setattr(range_check, "_fetch_bse_venue", serve(bse))
+    return asyncio.run(range_check.get_venue_history("ELCIDIN.NS"))
+
+
+def test_52w_low_printed_on_the_other_venue_is_flagged(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ELCIDIN: Yahoo's .NS range (1,02,210-1,37,000) covers NSE since the
+    2026-04-20 listing; BSE printed 87,003 inside the year."""
+    nse = _daily(datetime(2026, 4, 20, tzinfo=UTC), 156, 137000.0, 102210.0)
+    bse = _daily(
+        _TODAY - timedelta(days=364),
+        364,
+        130000.0,
+        104000.0,
+        **{"low_2025-12-15": 87003.0, "high_2026-02-02": 144500.0},
+    )
+    history = _venues(monkeypatch, nse, bse)
+    f = _fund(symbol="ELCIDIN.NS", fifty_two_week_high=137000.0, fifty_two_week_low=102210.0)
+    out = correctness_gate.reconcile_52w_range(f, history, today=_TODAY.date())
+
+    assert out.fifty_two_week_low == 102210.0  # disclosed, never replaced
+    low = out.field_meta["fifty_two_week_low"]
+    assert low.status == "flagged"
+    assert "87,003.00" in low.reason and "NSE + BSE" in low.reason
+    assert "fifty_two_week_high" not in out.field_meta  # 1,37,000 is within 10% of 1,44,500
+
+
+def test_short_exchange_series_flags_only_an_extreme_outside_the_range() -> None:
+    """Three months of bars cannot contradict a provider high set before them,
+    but a low below the provider's is a print the provider missed."""
+    start = datetime(2026, 6, 22, tzinfo=UTC)
+    bars = _daily(start, 90, 120.0, 95.0, **{"low_2026-07-01": 80.0}).bars
+    f = _fund(symbol="X.NS", fifty_two_week_high=150.0, fifty_two_week_low=100.0)
+    out = correctness_gate.reconcile_52w_range(f, (bars, ["NSE"]), today=_TODAY.date())
+
+    assert "fifty_two_week_high" not in out.field_meta
+    assert out.field_meta["fifty_two_week_low"].status == "flagged"
+    assert "since 2026-06-22" in out.field_meta["fifty_two_week_low"].reason
+
+
+def test_agreeing_dual_listed_range_is_untouched(monkeypatch: pytest.MonkeyPatch) -> None:
+    year = _TODAY - timedelta(days=364)
+    history = _venues(
+        monkeypatch,
+        _daily(year, 364, 1600.0, 1115.0),
+        _daily(year, 364, 1601.0, 1114.0),
+    )
+    f = _fund(symbol="RELIANCE.NS", fifty_two_week_high=1608.8, fifty_two_week_low=1114.85)
+    assert correctness_gate.reconcile_52w_range(f, history, today=_TODAY.date()) is f
+
+
+def test_no_trade_in_52_weeks_withholds_the_range(monkeypatch: pytest.MonkeyPatch) -> None:
+    """DAL.BO: last trade 2025-03-12, no exchange bar in the year; Yahoo still
+    serves a 52-week range off its forward-filled bars."""
+    import asyncio
+
+    from services import dividend_history
+    from services.research import range_check
+
+    async def no_history(symbol: str) -> None:  # noqa: ARG001
+        return None
+
+    async def no_dividends(symbol: str) -> None:  # noqa: ARG001
+        return None
+
+    monkeypatch.setattr(range_check, "get_venue_history", no_history)
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", no_dividends)
+    correctness_gate.reset_witness_cache_for_tests()
+    f = _fund(
+        symbol="DAL.BO",
+        fifty_two_week_high=46.58,
+        fifty_two_week_low=46.58,
+        ratio_price=46.58,
+        field_meta={
+            "ratio_price": FieldMeta(
+                status="ok", provider="yfinance", as_of="2025-03-12T03:58:51+00:00"
+            )
+        },
+    )
+    out = asyncio.run(correctness_gate.apply_witnesses(f))
+    for name in ("fifty_two_week_high", "fifty_two_week_low"):
+        assert getattr(out, name) is None
+        assert out.field_meta[name].status == "withheld"
+        assert "last trade 2025-03-12" in out.field_meta[name].reason

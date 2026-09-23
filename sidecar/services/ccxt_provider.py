@@ -49,7 +49,9 @@ def _sync_exchange(exchange: str) -> ccxt.Exchange:
 
 
 def _ticker_to_quote(ticker: dict[str, Any], exchange: str, symbol: str) -> Quote:
-    price = ticker.get("last") or ticker.get("close") or 0.0
+    price = ticker.get("last") or ticker.get("close")
+    if price is None:
+        raise ProviderError(f"ccxt ticker for {exchange}:{symbol} carries no last or close price")
     change = ticker.get("change")
     if change is None and ticker.get("previousClose"):
         change = float(price) - float(ticker["previousClose"])

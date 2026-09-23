@@ -35,6 +35,9 @@ beforeEach(() => {
   // per test as needed.
   fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
     const url = input.toString();
+    if (url.endsWith("/custom-agents/tool-ids")) {
+      return new Response(JSON.stringify([...KNOWN_TOOL_IDS]), { status: 200 });
+    }
     if (
       url.includes("/custom-agents") &&
       (url.endsWith("/custom-agents") || url.endsWith("custom-agents"))
@@ -105,15 +108,18 @@ describe("validate()", () => {
     }
   });
 
-  it("payload only emits tools from the allow-list", () => {
-    // Inject an unknown tool — the form's `toggleTool` is typed so this can
-    // only happen in pathological cases, but the validator MUST still drop
-    // unknown ids so the server doesn't 422.
-    const state = fillState({ tools: new Set(["price_data", "bogus"]) });
+  it("R15-UI-003: payload keeps every selected tool, not just the fallback allow-list", () => {
+    // The OLD behaviour filtered against the static fallback array, which
+    // silently dropped any tool id the array didn't happen to list — the
+    // defect this batch fixes. The sidecar's own POST/PUT route is the one
+    // place that validates tool ids now (against the LIVE catalog).
+    const state = fillState({ tools: new Set(["price_data", "openrouter_only_tool"]) });
     const result = validate(state);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.payload.tools).toEqual(["price_data"]);
+      expect(result.payload.tools).toEqual(
+        expect.arrayContaining(["price_data", "openrouter_only_tool"]),
+      );
     }
   });
 
@@ -137,10 +143,12 @@ describe("AgentBuilderPanel", () => {
     for (const tool of KNOWN_TOOL_IDS) {
       expect(screen.getByRole("button", { name: tool })).toBeInTheDocument();
     }
-    // The provider dropdown surfaces every BYOK provider.
+    // R15-UI-003: the provider dropdown reads the LIVE catalog
+    // (`useLLMProvidersStore`, `DEFAULT_PROVIDERS` fallback) — which, unlike
+    // the old static `KNOWN_PROVIDER_IDS` array, also carries "openrouter".
     const select = screen.getByLabelText("Default provider") as HTMLSelectElement;
     const options = Array.from(select.options).map((o) => o.value);
-    expect(options).toEqual([...KNOWN_PROVIDER_IDS]);
+    expect(options).toEqual([...KNOWN_PROVIDER_IDS, "openrouter"]);
   });
 
   it("surfaces field errors when submitted empty", async () => {
@@ -253,5 +261,87 @@ describe("AgentBuilderPanel", () => {
     const idInput = screen.getByLabelText("Agent ID") as HTMLInputElement;
     expect(idInput.value).toBe("macro-quant");
     expect(idInput).toBeDisabled();
+  });
+
+  it("R15-UI-003: edit and save round-trips a tool set + provider the fallback arrays don't list", async () => {
+    // "research"/"web_search" aren't in the static KNOWN_TOOL_IDS fallback,
+    // and "openrouter" isn't in KNOWN_PROVIDER_IDS — the exact shape of the
+    // old defect (both got silently stripped/reset on edit). The builder
+    // renders from the MOCKED live responses here, not the constants.
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input.toString();
+      if (url.endsWith("/custom-agents/tool-ids")) {
+        return new Response(JSON.stringify(["research", "web_search"]), { status: 200 });
+      }
+      if (init?.method === "PUT") {
+        const body = JSON.parse(String(init.body)) as {
+          tools: string[];
+          default_provider: string;
+        };
+        expect(body.tools).toEqual(expect.arrayContaining(["research", "web_search"]));
+        expect(body.default_provider).toBe("openrouter");
+        return new Response(
+          JSON.stringify({ id: "custom:macro-quant", ...body, created_at: 1, updated_at: 2 }),
+          { status: 200 },
+        );
+      }
+      return new Response(
+        JSON.stringify([
+          {
+            id: "custom:macro-quant",
+            name: "Macro Quant",
+            philosophy: "Mean reversion.",
+            system_prompt: "x".repeat(40),
+            tools: ["research", "web_search"],
+            default_provider: "openrouter",
+            default_model: null,
+            icon: null,
+            created_at: 1,
+            updated_at: 1,
+          },
+        ]),
+        { status: 200 },
+      );
+    });
+
+    render(<AgentBuilderPanel />);
+    await screen.findByText("Macro Quant");
+    fireEvent.click(screen.getByText("Macro Quant"));
+    await screen.findByText("Edit custom agent");
+
+    // Neither tool was stripped on load into the form...
+    expect(screen.getByRole("button", { name: "research" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "web_search" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    // ...and the provider select shows "openrouter", not a reset "anthropic".
+    const select = screen.getByLabelText("Default provider") as HTMLSelectElement;
+    expect(select.value).toBe("openrouter");
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    });
+    await waitFor(() => expect(screen.queryByText("Updated.")).toBeInTheDocument());
+  });
+
+  it("case not written against: a tool id the sidecar lists but the fallback array lacks is selectable", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.endsWith("/custom-agents/tool-ids")) {
+        return new Response(JSON.stringify(["brand_new_tool"]), { status: 200 });
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    });
+    render(<AgentBuilderPanel />);
+    await screen.findByText("New custom agent");
+
+    const button = await screen.findByRole("button", { name: "brand_new_tool" });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "true");
   });
 });

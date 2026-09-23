@@ -14,7 +14,9 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from models.llm import LLMModelId, LLMProviderId
 
 
 class NodePosition(BaseModel):
@@ -35,6 +37,18 @@ class WorkflowNode(BaseModel):
     type: str
     position: NodePosition
     config: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("config")
+    @classmethod
+    def _no_api_key(cls, value: dict[str, Any]) -> dict[str, Any]:
+        # A saved spec is persisted as plaintext JSON: a key never rides it.
+        # Credentials come from the run request (WorkflowRunRequest) only.
+        if "api_key" in value:
+            raise ValueError(
+                "node config must not carry 'api_key'; the run uses the selected "
+                "provider's key from the request"
+            )
+        return value
 
 
 class WorkflowEdge(BaseModel):
@@ -72,6 +86,11 @@ class WorkflowRunRequest(BaseModel):
     inputs: dict[str, Any] = Field(default_factory=dict)
     mode: Literal["full", "resume-from"] = "full"
     resume_from: str | None = Field(default=None, alias="resumeFrom")
+    #: Foreground BYOK creds for ``ai.agent_invoke`` nodes, the same names as
+    #: ``AgentInvocationRequest``. Held for the run only; never persisted or logged.
+    provider: LLMProviderId | None = None
+    model: LLMModelId | None = None
+    api_key: str | None = Field(default=None, alias="apiKey", repr=False)
 
 
 class WorkflowRunEvent(BaseModel):

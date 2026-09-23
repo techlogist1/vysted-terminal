@@ -108,6 +108,28 @@ async def test_status_returns_endpoint_when_available(
     assert status["provider"] == "sec-edgar-mcp"
 
 
+@pytest.mark.asyncio
+async def test_is_error_payload_marks_the_provider_down(
+    recorder: _RecordingClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An ``isError`` tool result is a failed call: the health flags record it and
+    status reports unavailable until the next success (R15-DATA-083)."""
+    recorder.respond("search_companies", {"results": []})
+    await sec_filings_provider.search_companies("apple")
+    assert (await sec_filings_provider.status())["lastToolCallOk"] is True
+
+    async def _is_error(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        return {"isError": True, "content": [{"type": "text", "text": "upstream 500"}]}
+
+    monkeypatch.setattr(recorder, "call_tool", _is_error)
+    with pytest.raises(ProviderError, match="upstream 500"):
+        await sec_filings_provider.search_companies("nvidia")
+    status = await sec_filings_provider.status()
+    assert status["lastToolCallOk"] is False
+    assert "upstream 500" in status["lastError"]
+    assert status["available"] is False
+
+
 # ---------------------------------------------------------------------------
 # list_filings
 # ---------------------------------------------------------------------------
@@ -357,3 +379,166 @@ async def test_search_companies_empty_query_returns_no_call(
     rows = await sec_filings_provider.search_companies("  ", limit=5)
     assert rows == []
     assert not any(c["name"] == "search_companies" for c in recorder.calls)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-038: the shapes sec-edgar-mcp 1.0.8 actually sends
+# (docs/redesign/verification/r15/surface/panels-layouts/P-sec-parser-check.txt)
+# ---------------------------------------------------------------------------
+
+
+_EDGAR_SECTIONS_PAYLOAD = {
+    "success": True,
+    "form_type": "10-K",
+    "sections": {
+        "business": "Apple designs smartphones. " * 370,
+        "risk_factors": "Macro conditions may harm demand. " * 290,
+        "has_financials": True,
+    },
+    "available_sections": ["business", "risk_factors", "has_financials"],
+}
+
+_EDGAR_INSIDER_PAYLOAD = {
+    "success": True,
+    "cik": 320193,
+    "name": "Apple Inc.",
+    "transactions": [
+        {
+            "filing_date": f"2026-09-{day:02d}",
+            "form_type": "4",
+            "accession_number": f"0001140361-26-03{n:04d}",
+            "company_name": "Apple Inc.",
+            "cik": 320193,
+            "url": f"https://www.sec.gov/Archives/edgar/data/320193/00011403612603{n:04d}/",
+            "sec_url": "https://www.sec.gov/Archives/edgar/data/320193/x.txt",
+            "data_source": "SEC EDGAR Filing, extracted directly from insider filing data",
+        }
+        for n, day in ((7020, 17), (6226, 10), (5636, 3), (5362, 1), (4741, 1))
+    ],
+    "count": 5,
+    "form_types": ["4"],
+    "days_back": 90,
+    "filing_reference": {"data_source": "SEC EDGAR Insider Trading Filings (Forms 3, 4, 5)"},
+}
+
+
+@pytest.mark.asyncio
+async def test_dict_of_sections_parses_to_sections(recorder: _RecordingClient) -> None:
+    """The upstream's dict of section strings becomes titled sections; the
+    non-text ``has_financials`` flag is not a section."""
+    recorder.respond("get_filing_sections", _EDGAR_SECTIONS_PAYLOAD)
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+
+    detail = await sec_filings_provider.get_filing("0000320193-24-000123", cik_or_symbol="AAPL")
+
+    assert [(s.id, s.title) for s in detail.sections] == [
+        ("business", "Business"),
+        ("risk_factors", "Risk Factors"),
+    ]
+    assert detail.total_chars > 19000
+
+
+@pytest.mark.asyncio
+async def test_filing_level_form4_rows_are_listed(recorder: _RecordingClient) -> None:
+    """Filing-level Form-4 rows (no trade date/code/shares) are kept with their
+    filing date, the issuer from the top-level ``name`` and no guessed direction."""
+    recorder.respond("get_insider_transactions", _EDGAR_INSIDER_PAYLOAD)
+
+    response = await sec_filings_provider.list_insider_transactions("AAPL", form_type="4")
+
+    assert response.issuer_name == "Apple Inc."
+    assert response.cik == "0000320193"
+    assert len(response.transactions) == 5
+    first = response.transactions[0]
+    assert first.accession == "0001140361-26-037020"
+    assert first.issuer_cik == "0000320193"
+    assert first.transaction_date == date(2026, 9, 17)
+    assert first.direction is None and first.shares is None
+
+
+@pytest.mark.asyncio
+async def test_unparseable_success_payload_raises_and_is_not_cached(
+    recorder: _RecordingClient,
+) -> None:
+    """A success payload in a shape the parser does not know is a logged parse
+    error, never a cached empty (case the fix was not written against)."""
+    recorder.respond("get_insider_transactions", {"success": True, "filings": [{"x": 1}]})
+    with pytest.raises(ProviderError, match="could not parse"):
+        await sec_filings_provider.list_insider_transactions("AAPL", form_type="4")
+    assert await data_cache.get("sec:insider:AAPL:4:50", 3600.0) is None
+
+    recorder.respond("get_filing_sections", {"success": True, "items": {"business": "text"}})
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+    with pytest.raises(ProviderError, match="could not parse"):
+        await sec_filings_provider.get_filing("0000320193-24-000123", cik_or_symbol="AAPL")
+    assert await data_cache.get("sec:filing:0000320193-24-000123", 86400.0) is None
+
+
+@pytest.mark.asyncio
+async def test_in_band_upstream_failure_raises(recorder: _RecordingClient) -> None:
+    """sec-edgar-mcp's own ``{"success": false}`` is an error, not an empty list."""
+    recorder.respond("get_insider_transactions", {"success": False, "error": "no CIK for XYZ"})
+    with pytest.raises(ProviderError, match="no CIK for XYZ"):
+        await sec_filings_provider.list_insider_transactions("XYZ")
+    assert await data_cache.get("sec:insider:XYZ:all:50", 3600.0) is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-039: a filing's form type is an open string, rows are never dropped
+# ---------------------------------------------------------------------------
+
+
+def _edgar_filings(company: str, cik: str, forms: list[tuple[str, str]]) -> dict[str, Any]:
+    """``get_recent_filings`` as sec-edgar-mcp 1.0.8 sends it (FilingInfo.to_dict rows)."""
+    return {
+        "success": True,
+        "filings": [
+            {
+                "accession_number": accession,
+                "filing_date": "2026-06-20T00:00:00",
+                "form_type": form,
+                "company_name": company,
+                "cik": cik,
+                "file_number": None,
+                "acceptance_datetime": None,
+                "period_of_report": None,
+                "items": None,
+            }
+            for form, accession in forms
+        ],
+        "count": len(forms),
+    }
+
+
+@pytest.mark.asyncio
+async def test_foreign_private_issuer_forms_are_listed(recorder: _RecordingClient) -> None:
+    """An India ADR files only 20-F and 6-K; every row is listed."""
+    recorder.respond(
+        "get_recent_filings",
+        _edgar_filings(
+            "Infosys Ltd",
+            "1067491",
+            [("20-F", "0001067491-26-000010"), ("6-K", "0001067491-26-000011")],
+        ),
+    )
+    response = await sec_filings_provider.list_filings("INFY")
+    assert [f.form_type for f in response.filings] == ["20-F", "6-K"]
+
+
+@pytest.mark.asyncio
+async def test_amendments_and_schedules_are_listed(recorder: _RecordingClient) -> None:
+    """Case the fix was not written against: AAPL's 10-K/A and SC 13D rows."""
+    recorder.respond(
+        "get_recent_filings",
+        _edgar_filings(
+            "Apple Inc.",
+            "320193",
+            [
+                ("10-K/A", "0000320193-26-000020"),
+                ("SC 13D", "0000320193-26-000021"),
+                ("10-K", "0000320193-26-000022"),
+            ],
+        ),
+    )
+    response = await sec_filings_provider.list_filings("AAPL", limit=3)
+    assert [f.form_type for f in response.filings] == ["10-K/A", "SC 13D", "10-K"]

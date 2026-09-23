@@ -33,6 +33,7 @@ import { regionConfig, isRegion, type Region } from "@/lib/region";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
+import { useBacktestStore } from "@/store/backtest";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -543,6 +544,15 @@ function symbolAwarePanelTarget(panelToken: string): "equity" | "chart" | null {
   return null;
 }
 
+/**
+ * The backtest run an `open_panel` should display: `run_id` when the target is
+ * the backtest panel (the agent's `run_custom_backtest` result), else "".
+ */
+function backtestRunTarget(input: Record<string, unknown>): string {
+  const runId = str(input, "run_id");
+  return runId && resolvePanelToken(str(input, "panel"))?.id === "backtest" ? runId : "";
+}
+
 /** Human-friendly panel label from a panel id. */
 function panelLabel(id: string): string {
   return id.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -657,11 +667,13 @@ export function describeHostAction(
       // Render the symbol only when the target panel actually consumes one —
       // the diff must promise exactly what the apply will do.
       const sym = symbolAwarePanelTarget(panel) ? symbol : "";
+      const runId = backtestRunTarget(input);
+      const detail = sym ? ` — ${sym}` : runId ? ` — run ${runId}` : "";
       return {
         kind: "panel",
-        title: `Open ${panelLabel(panel)}${sym ? ` — ${sym}` : ""}`,
+        title: `Open ${panelLabel(panel)}${detail}`,
         before: `${panelLabel(panel)} panel: not open`,
-        after: `${panelLabel(panel)} panel: open${sym ? ` — ${sym} loaded` : ""}`,
+        after: `${panelLabel(panel)} panel: open${detail ? `${detail} loaded` : ""}`,
       };
     }
     case "close_panel": {
@@ -1437,6 +1449,20 @@ export async function applyHostActionAsync(
       usePortfoliosStore.getState().removeHolding(portfolio.id, target.id);
       useWorkspaceStore.getState().openPanel("portfolio");
       return `Removed ${target.symbol} from the portfolio`;
+    }
+    case "open_panel": {
+      // An agent-started backtest: load its run into the backtest store (made
+      // active) before opening the panel; a run the sidecar no longer holds
+      // is an honest failure, never an empty panel narrated as opened.
+      const runId = backtestRunTarget(input);
+      if (runId) {
+        try {
+          await useBacktestStore.getState().loadRun(runId);
+        } catch {
+          return null;
+        }
+      }
+      return applyHostAction(name, input);
     }
     case "save_layout": {
       const layoutName = saveLayoutName(input);

@@ -150,6 +150,9 @@ class LLMToolUseEvent(BaseModel):
     tool_call_id: str
     name: str
     input: dict[str, Any] = Field(default_factory=dict)
+    #: Provider state the next round must echo back on this call (Gemini's
+    #: base64 ``thought_signature``). Runtime-internal: never on the SSE wire.
+    provider_meta: dict[str, Any] | None = Field(default=None, exclude=True)
 
 
 class LLMResearchStepEvent(BaseModel):

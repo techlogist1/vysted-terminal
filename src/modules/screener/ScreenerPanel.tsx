@@ -6,6 +6,7 @@ import { Play, Square, AlertCircle, BookmarkPlus, BookmarkX, FolderOpen } from "
 import { Button } from "@/components/ui/button";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useScreenerStore } from "@/store/screener";
+import { useSettingsStore } from "@/store/settings";
 
 import type { ScreenerUniverseId } from "../../../types/screener";
 import { ScreenerCriteriaBuilder } from "./ScreenerCriteriaBuilder";
@@ -76,7 +77,17 @@ const N = (n: number): string => n.toLocaleString("en-US");
  * (P/E < 20 AND market cap > 100B AND sector = "Technology") are seeded
  * so the panel renders in a populated-state shape on first mount.
  */
+/** R15-DATA-093: the custom-symbols placeholder follows the session region —
+ *  "AAPL MSFT NVDA" reads as unreachable filler for an IN session, where the
+ *  bare tickers a person would actually type are NSE names. */
+const CUSTOM_SYMBOLS_PLACEHOLDER: Record<string, string> = {
+  IN: "RELIANCE TCS INFY",
+  US: "AAPL MSFT NVDA",
+  GLOBAL: "AAPL MSFT NVDA",
+};
+
 export function ScreenerPanel() {
+  const region = useSettingsStore((s) => s.region);
   const universe = useScreenerStore((s) => s.universe);
   const setUniverse = useScreenerStore((s) => s.setUniverse);
   const customSymbols = useScreenerStore((s) => s.customSymbols);
@@ -232,7 +243,7 @@ export function ScreenerPanel() {
               type="text"
               value={customSymbols}
               onChange={(e) => setCustomSymbols(e.target.value)}
-              placeholder="AAPL MSFT NVDA"
+              placeholder={CUSTOM_SYMBOLS_PLACEHOLDER[region]}
               className="border-border bg-charcoal-850 rounded-control text-body h-8 border px-2"
             />
           </div>

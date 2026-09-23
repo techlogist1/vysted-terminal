@@ -15,6 +15,7 @@ symbols resolve (a comparison of one is meaningless) or the input is malformed.
 from __future__ import annotations
 
 import asyncio
+from datetime import date, timedelta
 from typing import Any
 
 from services.agent_tools import register_tool
@@ -23,6 +24,9 @@ _VALID_TIMEFRAMES = ("1d", "1h", "1wk", "1mo")
 _VALID_ASSET_CLASSES = ("equity", "crypto")
 #: Window over which trailing relative performance is measured.
 _RETURN_WINDOW = "6mo"
+#: How far after the earliest window start a symbol's first bar may land and
+#: still be ranked against it (about five trading days).
+_WINDOW_START_SLACK = timedelta(days=7)
 
 
 def _return_pct_window(series: Any) -> float | None:
@@ -72,6 +76,7 @@ async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[st
     # History backs the relative-performance ranking — a failure degrades the
     # window to None but keeps the (more important) quote in the comparison.
     return_pct: float | None = None
+    bars: list[Any] = []
     try:
         series = await asyncio.to_thread(
             provider_registry.get_history,
@@ -81,6 +86,7 @@ async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[st
             asset_class,
         )
         return_pct = _return_pct_window(series)
+        bars = list(getattr(series, "bars", []) or [])
     except (ProviderError, Exception):  # noqa: BLE001
         return_pct = None
 
@@ -107,7 +113,38 @@ async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[st
             else None
         ),
         "return_pct_window": return_pct,
+        # The window the return was measured over, so a short history (a new
+        # listing, a provider gap) is visible rather than read as 6 months.
+        "bars": len(bars),
+        "window_start": bars[0].timestamp.date().isoformat() if bars else None,
+        "window_end": bars[-1].timestamp.date().isoformat() if bars else None,
     }
+
+
+def _rank(resolved: list[dict[str, Any]]) -> dict[str, Any]:
+    """Best/worst by trailing return, across comparable windows only.
+
+    A symbol whose window starts well after the earliest one (a recent listing,
+    a history gap) measured a shorter period, so it is left out of the ranking
+    and named in ``note``; with fewer than two comparable windows there is no
+    ranking at all.
+    """
+    ranked = [r for r in resolved if r.get("return_pct_window") is not None]
+    if not ranked:
+        return {"best": None, "worst": None}
+    common_start = min(date.fromisoformat(r["window_start"]) for r in ranked)
+    cutoff = (common_start + _WINDOW_START_SLACK).isoformat()
+    comparable = [r for r in ranked if r["window_start"] <= cutoff]
+    short = [r for r in ranked if r["window_start"] > cutoff]
+    relative: dict[str, Any] = {"best": None, "worst": None}
+    if len(comparable) >= 2:
+        relative["best"] = max(comparable, key=lambda r: r["return_pct_window"])["symbol"]
+        relative["worst"] = min(comparable, key=lambda r: r["return_pct_window"])["symbol"]
+    if short:
+        relative["note"] = "windows not comparable: " + "; ".join(
+            f"{r['symbol']} has {r['bars']} bars since {r['window_start']}" for r in short
+        )
+    return relative
 
 
 async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
@@ -120,8 +157,10 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
         asset_class: ``equity`` (default) or ``crypto``.
 
     Returns ``{"ok": True, "timeframe", "symbols": [...], "relative":
-    {"best", "worst"}}`` where ``relative`` ranks the resolved symbols by
-    ``return_pct_window`` (``None`` when no symbol has a measurable window).
+    {"best", "worst"[, "note"]}}`` where ``relative`` ranks the resolved symbols
+    by ``return_pct_window`` across comparable windows only (see :func:`_rank`;
+    ``None`` when fewer than two are comparable). Each symbol carries ``bars``,
+    ``window_start`` and ``window_end``.
     Symbols that fail entirely are still listed with an ``error`` field. When
     fewer than two symbols resolve, returns ``{"ok": False, "message": ...}``.
     """
@@ -153,19 +192,11 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
             ),
         }
 
-    ranked = [r for r in resolved if r.get("return_pct_window") is not None]
-    if ranked:
-        best = max(ranked, key=lambda r: r["return_pct_window"])["symbol"]
-        worst = min(ranked, key=lambda r: r["return_pct_window"])["symbol"]
-        relative = {"best": best, "worst": worst}
-    else:
-        relative = {"best": None, "worst": None}
-
     return {
         "ok": True,
         "timeframe": timeframe,
         "symbols": results,
-        "relative": relative,
+        "relative": _rank(resolved),
     }
 
 
