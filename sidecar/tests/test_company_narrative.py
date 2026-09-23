@@ -156,6 +156,24 @@ def test_flagged_insider_figure_is_not_a_verifiable_number() -> None:
     assert [c.text for c in unverified] == ["51.18%"]
 
 
+def test_facts_state_statement_sizes_in_their_reporting_currency() -> None:
+    """R15-DATA-008: SIFY trades in USD but reports in INR — the model is told the
+    revenue is INR and the market cap USD, so it cannot narrate "$46.5B revenue"."""
+    from services.company_narrative import _build_facts
+
+    sify = Fundamentals(
+        symbol="SIFY",
+        provider="yfinance",
+        currency="USD",
+        financial_currency="INR",
+        market_cap=989_456_832,
+        revenue_ttm=46_506_049_536,
+    )
+    facts = _build_facts(sify, None)
+    assert "Revenue (TTM): 46.51B INR" in facts
+    assert "Market cap: 989.46M USD" in facts
+
+
 # --------------------------------------------------------------------------
 # Unit: the verification pass — the core safety property.
 # --------------------------------------------------------------------------

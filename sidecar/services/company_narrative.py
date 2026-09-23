@@ -290,8 +290,17 @@ def _build_facts(fundamentals: Fundamentals | None, quote: Quote | None) -> list
         facts.append(f"Daily change: {_fmt(quote.change_percent)}%")
     if fundamentals is not None:
         f = fundamentals
+
+        # Money sizes name their currency: the statement sizes are in the
+        # reporting currency, which for a foreign reporter (SIFY: INR) differs
+        # from the trading currency the market cap is in (R15-DATA-008).
+        def money(name: str, currency: str | None) -> str:
+            text = _fmt(_served(f, name), money=True)
+            return f"{text} {currency}" if currency and text != "n/a" else text
+
+        reporting = f.financial_currency or f.currency
         pairs: list[tuple[str, str]] = [
-            ("Market cap", _fmt(_served(f, "market_cap"), money=True)),
+            ("Market cap", money("market_cap", f.currency)),
             ("P/E", _fmt(_served(f, "pe_ratio"))),
             ("Forward P/E", _fmt(_served(f, "forward_pe"))),
             ("PEG", _fmt(_served(f, "peg_ratio"))),
@@ -308,9 +317,9 @@ def _build_facts(fundamentals: Fundamentals | None, quote: Quote | None) -> list
             ("Net margin", _fmt(_served(f, "profit_margin"), pct=True)),
             ("Debt/Equity", _fmt(_served(f, "debt_to_equity"))),
             ("Current ratio", _fmt(_served(f, "current_ratio"))),
-            ("Revenue (TTM)", _fmt(_served(f, "revenue_ttm"), money=True)),
-            ("Net income (TTM)", _fmt(_served(f, "net_income_ttm"), money=True)),
-            ("Free cash flow", _fmt(_served(f, "free_cash_flow"), money=True)),
+            ("Revenue (TTM)", money("revenue_ttm", reporting)),
+            ("Net income (TTM)", money("net_income_ttm", reporting)),
+            ("Free cash flow", money("free_cash_flow", reporting)),
             # D55: yfinance growth is MRQ-YoY, not annual — label the basis so
             # the LLM never narrates it as full-year growth.
             ("Revenue growth (quarterly YoY)", _fmt(_served(f, "revenue_growth"), pct=True)),
