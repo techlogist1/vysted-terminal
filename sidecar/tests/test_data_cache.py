@@ -124,3 +124,31 @@ async def test_value_can_be_nested_json() -> None:
     await data_cache.set("complex", payload)
     got = await data_cache.get("complex", 60)
     assert got == payload
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_keeps_rows_of_the_same_build() -> None:
+    await data_cache.ensure_build("0.8.0")
+    await data_cache.set("sec:filings:AAPL", {"rows": 1})
+    assert await data_cache.ensure_build("0.8.0") is False
+    assert await data_cache.get("sec:filings:AAPL", 60) == {"rows": 1}
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_drops_rows_written_by_another_build() -> None:
+    # A cache from a build that predates the version stamp is stale too.
+    await data_cache.set("shareholding:SIL", {"split": "pre-fix"})
+    assert await data_cache.ensure_build("0.8.0") is True
+    await data_cache.set("sec:filings:AAPL", {"rows": "0.8.0"})
+    assert await data_cache.ensure_build("0.8.1") is True
+    assert await data_cache.get("sec:filings:AAPL", 60) is None
+    assert await data_cache.size() == 0
+
+
+@pytest.mark.asyncio
+async def test_ensure_build_keeps_rows_written_after_the_switch() -> None:
+    await data_cache.ensure_build("0.8.0")
+    assert await data_cache.ensure_build("0.8.1") is True
+    await data_cache.set("macro:fred:GDP", {"v": 1})
+    assert await data_cache.ensure_build("0.8.1") is False
+    assert await data_cache.get("macro:fred:GDP", 60) == {"v": 1}

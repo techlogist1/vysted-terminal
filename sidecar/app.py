@@ -53,6 +53,7 @@ from routers import (
 from services import (
     agent_tools,
     backtest_strategies,
+    data_cache,
     fundamentals_warm,
     mcp_client,
     mcp_server,
@@ -114,6 +115,9 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     pooling eliminates the cold-first-fetch 502 cascade documented in #38;
     per-request clients re-paid the TLS handshake on every fetch.
     """
+    # A persisted cache row must not outlive the build that computed it (an
+    # upgrade may carry a provider fix). Before any warm task can read it.
+    await data_cache.ensure_build(app.version)
     mcp_app = mcp_server.get_streamable_http_app()
     async with mcp_app.lifespan(mcp_app):
         # Kick off the screener's warm-universe precompute (R4 / FR-126). It spawns
