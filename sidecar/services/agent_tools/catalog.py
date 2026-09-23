@@ -195,7 +195,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "price_data",
             description=(
                 "Recent OHLCV bars + the latest quote for a symbol. Use to check "
-                "price, recent action, volatility, or drawdown."
+                "price, recent action, volatility, or drawdown. Returns at most "
+                "the newest 90 bars: bars_returned, bars_available and "
+                "window_start say which window the bars actually cover, so compute "
+                "a figure over that window (or a shorter range), not the one asked."
             ),
             input_schema=_obj(
                 {

@@ -13,6 +13,9 @@ from typing import Any
 
 from services.agent_tools import register_tool
 
+#: Prompt-budget cap on the bars returned; the payload's counts say when it cut.
+_MAX_BARS = 90
+
 
 async def _price_data(args: dict[str, Any]) -> dict[str, Any]:
     """Return a recent OHLCV slice + the latest quote for ``symbol``.
@@ -29,8 +32,10 @@ async def _price_data(args: dict[str, Any]) -> dict[str, Any]:
             drawdown context without bloating the model prompt.
         asset_class: ``"equity"`` (default) or ``"crypto"``.
 
-    Returns the most recent 90 bars (compact for the model) plus the
-    latest quote. On provider failure returns ``{"ok": False, ...}``.
+    Returns the most recent ``_MAX_BARS`` bars (compact for the model) plus
+    the latest quote, with ``bars_returned`` / ``bars_available`` /
+    ``window_start`` so a cut window is visible. On provider failure returns
+    ``{"ok": False, ...}``.
     """
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
@@ -56,26 +61,31 @@ async def _price_data(args: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"unexpected error: {exc}"}
 
-    recent_bars = list(series.bars)[-90:]
+    all_bars = list(series.bars)
+    recent_bars = all_bars[-_MAX_BARS:]
+    bars = [
+        {
+            "timestamp": bar.timestamp.isoformat()
+            if hasattr(bar.timestamp, "isoformat")
+            else str(bar.timestamp),
+            "open": bar.open,
+            "high": bar.high,
+            "low": bar.low,
+            "close": bar.close,
+            "volume": bar.volume,
+        }
+        for bar in recent_bars
+    ]
     return {
         "ok": True,
         "symbol": series.symbol,
         "timeframe": series.timeframe,
         "provider": series.provider,
         "quote": quote.model_dump(by_alias=True, mode="json"),
-        "bars": [
-            {
-                "timestamp": bar.timestamp.isoformat()
-                if hasattr(bar.timestamp, "isoformat")
-                else str(bar.timestamp),
-                "open": bar.open,
-                "high": bar.high,
-                "low": bar.low,
-                "close": bar.close,
-                "volume": bar.volume,
-            }
-            for bar in recent_bars
-        ],
+        "bars_returned": len(bars),
+        "bars_available": len(all_bars),
+        "window_start": bars[0]["timestamp"] if bars else None,
+        "bars": bars,
     }
 
 
