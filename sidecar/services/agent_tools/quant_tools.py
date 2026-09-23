@@ -19,7 +19,6 @@ Registered tool ids:
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 from pydantic import ValidationError
@@ -32,6 +31,7 @@ from models.quant import (
 )
 from services.agent_tools import register_tool
 from services.quant import bonds, greeks, options, yield_curve
+from services.quant.pool import run_quant
 
 
 def _bad(msg: str) -> dict[str, Any]:
@@ -51,7 +51,7 @@ async def _price_option(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid OptionPricingRequest: {exc.errors()[0]['msg']}")
     try:
-        result = await asyncio.to_thread(options.price, req)
+        result = await run_quant(options.price, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -64,7 +64,7 @@ async def _compute_greeks(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid GreeksRequest: {exc.errors()[0]['msg']}")
     try:
-        result = await asyncio.to_thread(greeks.compute_greeks, req)
+        result = await run_quant(greeks.compute_greeks, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -77,7 +77,7 @@ async def _price_bond(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid BondPricingRequest: {exc.errors()[0]['msg']}")
     try:
-        result = await asyncio.to_thread(bonds.price_bond, req)
+        result = await run_quant(bonds.price_bond, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}
@@ -95,7 +95,7 @@ async def _yield_curve_value(args: dict[str, Any]) -> dict[str, Any]:
     except ValidationError as exc:
         return _bad(f"invalid YieldCurveRequest: {exc.errors()[0]['msg']}")
     try:
-        result = await asyncio.to_thread(yield_curve.bootstrap_curve, req)
+        result = await run_quant(yield_curve.bootstrap_curve, req)
     except ValueError as exc:
         return _bad(str(exc))
     return {"ok": True, "result": result.model_dump(mode="json")}

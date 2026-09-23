@@ -1,6 +1,7 @@
 """QuantLib pricing router — Phase 6 (Teammate Q).
 
-In-process pricing — every endpoint is a thin wrapper over one of
+Every endpoint prices in the :mod:`services.quant.pool` worker process
+(off the event loop) and is a thin wrapper over one of
 :mod:`services.quant.options`, :mod:`services.quant.greeks`,
 :mod:`services.quant.bonds`, :mod:`services.quant.yield_curve`. The
 service modules return the Pydantic response shapes directly, so the
@@ -29,42 +30,43 @@ from models.quant import (
     YieldCurveResult,
 )
 from services.quant import bonds, greeks, options, yield_curve
+from services.quant.pool import run_quant
 
 router = APIRouter(prefix="/quant", tags=["quant"])
 
 
 @router.post("/option/price", response_model=OptionPricingResult)
-def option_price(req: OptionPricingRequest) -> OptionPricingResult:
+async def option_price(req: OptionPricingRequest) -> OptionPricingResult:
     """Price one option via the engine named in ``req.method``."""
     try:
-        return options.price(req)
+        return await run_quant(options.price, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/option/greeks", response_model=GreeksResult)
-def option_greeks(req: GreeksRequest) -> GreeksResult:
+async def option_greeks(req: GreeksRequest) -> GreeksResult:
     """Compute analytic Greeks (and price) for a European vanilla option."""
     try:
-        return greeks.compute_greeks(req)
+        return await run_quant(greeks.compute_greeks, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/bond/price", response_model=BondPricingResult)
-def bond_price(req: BondPricingRequest) -> BondPricingResult:
+async def bond_price(req: BondPricingRequest) -> BondPricingResult:
     """Price a fixed-rate bond at a given YTM."""
     try:
-        return bonds.price_bond(req)
+        return await run_quant(bonds.price_bond, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/yield-curve", response_model=YieldCurveResult)
-def yield_curve_bootstrap(req: YieldCurveRequest) -> YieldCurveResult:
+async def yield_curve_bootstrap(req: YieldCurveRequest) -> YieldCurveResult:
     """Bootstrap and sample a zero curve from depo + swap instruments."""
     try:
-        return yield_curve.bootstrap_curve(req)
+        return await run_quant(yield_curve.bootstrap_curve, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
