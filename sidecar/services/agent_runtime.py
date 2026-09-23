@@ -55,7 +55,7 @@ from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot
-from services.llm.base import LLMStreamEvent
+from services.llm.base import LLMStreamEvent, is_length_finish
 from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
 from services.search.scrub import wrap_untrusted
@@ -1146,6 +1146,36 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     )
 
 
+#: The truncation notice for an answer cut at the model's output ceiling.
+_LENGTH_NOTICE = (
+    "The answer hit the model's output limit and was cut off. Ask me to continue for the rest."
+)
+_RETRY_ACTION = "Retry, or switch the composer to a different model."
+
+
+def _unfinished_round_error(streamed_text: bool, model: str) -> LLMErrorEvent:
+    """The error frame for a round that never finished (R15-AGENT-026): the
+    provider closed with no terminator, so a partial answer is not a complete one
+    and an empty one is not an answer. The chat renders it with Retry."""
+    if streamed_text:
+        return LLMErrorEvent(
+            message="The provider closed the stream before the answer finished.",
+            action=_RETRY_ACTION,
+            detail=f"no finish reason from {model}",
+            code="truncated",
+        )
+    return _empty_response_error(model)
+
+
+def _empty_response_error(model: str) -> LLMErrorEvent:
+    return LLMErrorEvent(
+        message="The model returned an empty answer.",
+        action=_RETRY_ACTION,
+        detail=f"no text and no tool call from {model}",
+        code="empty_response",
+    )
+
+
 #: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
 #: chat branches on it, so notice copy can change without breaking the chip.
 NOTICE_STEP_KIND = "notice"
@@ -1716,6 +1746,9 @@ async def invoke_agent(
     # Host actions this turn staged for review (awaiting_user_review), named in
     # one end-of-turn notice (R15-AGENT-033).
     staged_actions: list[LLMToolUseEvent] = []
+    # Any prose streamed this turn (every round): a turn that ends with none
+    # is an empty answer, never a silent success (R15-AGENT-026).
+    turn_text = False
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -1735,6 +1768,7 @@ async def invoke_agent(
         # reasoner. Empty for non-reasoner providers (no thinking events).
         round_reasoning_parts: list[str] = []
         seen_done = False
+        round_error = False
         async for event in adapter.stream_chat(
             messages=messages,
             model=resolved_model,
@@ -1786,6 +1820,15 @@ async def invoke_agent(
                     break
                 if capped and not streamed_text:
                     yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
+                    turn_text = True
+                if is_length_finish(event.finish_reason):
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool="runtime",
+                        step_kind=NOTICE_STEP_KIND,
+                        detail=_LENGTH_NOTICE,
+                        status="error",
+                    )
                 for notice in await _end_of_turn_notices(
                     autonomy, publish_brief_calls, staged_actions
                 ):
@@ -1806,10 +1849,15 @@ async def invoke_agent(
                         detail=f"finish_reason=content_filter from {resolved_model}",
                         code="content_filter",
                     )
+                elif not turn_text:
+                    yield _empty_response_error(resolved_model)
                 yield event
                 return
             if isinstance(event, LLMDeltaEvent) and event.text.strip():
                 streamed_text = True
+                turn_text = True
+            if isinstance(event, LLMErrorEvent):
+                round_error = True
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
@@ -1818,6 +1866,10 @@ async def invoke_agent(
                 yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
             for notice in await _end_of_turn_notices(autonomy, publish_brief_calls, staged_actions):
                 yield notice
+            # A provider that closed without a terminator and without saying why
+            # did not finish: say so, with Retry (R15-AGENT-026).
+            if not round_error and not (capped and not streamed_text):
+                yield _unfinished_round_error(streamed_text, resolved_model)
             yield LLMDoneEvent()
             return
         if not pending_tools:

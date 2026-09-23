@@ -48,6 +48,17 @@ LLMStreamEvent = (
 INVALID_ARGS_SENTINEL = "__vysted_invalid_args__"
 
 
+#: Normalised finish reasons meaning the output hit its token ceiling: OpenAI,
+#: Groq and Ollama say ``length``, Anthropic ``max_tokens``, Gemini
+#: ``FinishReason.MAX_TOKENS``.
+_LENGTH_FINISHES = frozenset({"length", "max_tokens"})
+
+
+def is_length_finish(reason: str | None) -> bool:
+    """True when a ``done`` finish reason says the answer was cut at the limit."""
+    return bool(reason) and reason.rsplit(".", 1)[-1].lower() in _LENGTH_FINISHES
+
+
 def invalid_tool_args(reason: str, raw: str) -> dict[str, str]:
     """The sentinel ``input`` for a call whose raw arguments were unusable."""
     return {INVALID_ARGS_SENTINEL: f"{reason}: {raw[:200]}"}

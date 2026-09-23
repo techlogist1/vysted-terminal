@@ -706,7 +706,14 @@ class OpenAIProvider(LLMProvider):
                     for event in await self._resolve_tool_events(
                         [rescued], [], model=model, api_key=api_key
                     ):
+                        emitted_tool_events = True
                         yield event
+            # A stream that ended with no finish_reason and no tool call never
+            # finished (a cut socket, a 200 non-SSE body, empty choices): do not
+            # fabricate a clean ``done`` for it — the consumer reports the
+            # missing terminator (R15-AGENT-026).
+            if finish_reason is None and not emitted_tool_events:
+                return
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except openai.OpenAIError as exc:  # pragma: no cover — network path
             _h = humanize(self._provider_id, exc)

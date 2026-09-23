@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { resetMessageNoticesForTests } from "@/modules/chat/message-notices";
+import { LENGTH_NOTICE } from "@/modules/chat/streaming";
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -475,6 +476,21 @@ describe("ChatSidebar", () => {
     expect(getSecretMock).toHaveBeenCalledWith("llm-provider:anthropic");
     expect(useChatHistoryStore.getState().messages).toHaveLength(2);
     expect(useChatHistoryStore.getState().messages[0].role).toBe("user");
+  });
+
+  it("a raw chat cut at the output limit says so under the answer (R15-AGENT-026)", async () => {
+    streamChatMock.mockImplementationOnce((async (
+      _payload: unknown,
+      handlers: { onEvent: (event: unknown) => void },
+    ) => {
+      handlers.onEvent({ kind: "delta", text: "RELIANCE closed at Rs 1,4" });
+      handlers.onEvent({ kind: "done", finishReason: "length" });
+    }) as unknown as () => Promise<undefined>);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/ask price of RELIANCE?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(LENGTH_NOTICE)).toBeInTheDocument());
   });
 
   it("/agent buffett invokes the agent endpoint with the context snapshot", async () => {

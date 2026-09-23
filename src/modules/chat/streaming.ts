@@ -120,6 +120,18 @@ export interface StreamingHandlers {
   signal?: AbortSignal;
 }
 
+/** True when a `done` finish reason says the answer was cut at the output limit
+ *  (`length` on OpenAI/Groq/Ollama, `max_tokens` on Anthropic, Gemini's
+ *  `FinishReason.MAX_TOKENS`) — mirrors the sidecar's `is_length_finish`. */
+export function isLengthFinish(reason: string | undefined): boolean {
+  const tail = reason?.split(".").pop()?.toLowerCase();
+  return tail === "length" || tail === "max_tokens";
+}
+
+/** The truncation notice for an answer cut at the model's output limit. */
+export const LENGTH_NOTICE =
+  "The answer hit the model's output limit and was cut off. Ask me to continue for the rest.";
+
 /** The `onError` message for a stream that closed without a `done`/`error` frame. */
 export const STREAM_ENDED_EARLY = "The stream ended before the answer finished.";
 

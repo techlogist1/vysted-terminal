@@ -89,7 +89,13 @@ import {
   matchSlash,
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
-import { errorFrameOf, streamAgentInvocation, streamChat } from "./streaming";
+import {
+  errorFrameOf,
+  isLengthFinish,
+  LENGTH_NOTICE,
+  streamAgentInvocation,
+  streamChat,
+} from "./streaming";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { SuggestionChips } from "./SuggestionChips";
 
@@ -915,9 +921,14 @@ export function ChatSidebar() {
             endRun(runId, "error", message);
           }
         },
-        onDone: (usage) => {
+        onDone: (usage, finishReason) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
+          }
+          // A raw chat has no runtime to notice a cut-off answer; the agent
+          // path's runtime emits the same notice itself (R15-AGENT-026).
+          if (!agentForCall && isLengthFinish(finishReason)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
           }
           finalize(assistantId, usage);
           if (usage) {
@@ -2002,7 +2013,10 @@ interface InternalHandlers {
   /** `frame` carries the STRUCTURED part of an R10 error frame (D43) — null
    *  for a legacy plain-string error or a transport failure. */
   onError: (message: string, frame?: MessageErrorFrame | null) => void;
-  onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
+  onDone: (
+    usage: { inputTokens: number; outputTokens: number } | null,
+    finishReason?: string,
+  ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView) => void;
   onPlan: (plan: AgentPlanView) => void;
@@ -2039,6 +2053,7 @@ function makeHandlers(internal: InternalHandlers): {
           event.usage
             ? { inputTokens: event.usage.inputTokens, outputTokens: event.usage.outputTokens }
             : null,
+          event.finishReason,
         );
       }
     },
