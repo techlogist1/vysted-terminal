@@ -85,6 +85,13 @@ interface BacktestStoreState {
    */
   startRun: (request: BacktestRequest, options?: { signal?: AbortSignal }) => Promise<string>;
 
+  /**
+   * Load a run this panel did not start (e.g. an agent's `run_custom_backtest`)
+   * from `GET /backtest/runs/{runId}` as a complete run and make it active.
+   * Rejects when the sidecar has no such run.
+   */
+  loadRun: (runId: string) => Promise<void>;
+
   /** Switch the active run shown in the panel. */
   setActiveRunId: (runId: string | null) => void;
 
@@ -295,6 +302,28 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
     }
 
     return resolvedRunId;
+  },
+
+  loadRun: async (runId) => {
+    const result = await sidecarGet<BacktestResult>(`/backtest/runs/${encodeURIComponent(runId)}`);
+    set((state) => ({
+      runs: {
+        ...state.runs,
+        [runId]: {
+          runId,
+          request: result.request,
+          status: "complete",
+          barsProcessed: 0,
+          totalBars: PENDING_TOTAL_BARS,
+          trades: result.trades,
+          result,
+          error: null,
+          startedAt: result.startedAt,
+          finishedAt: result.startedAt + result.durationMs,
+        },
+      },
+      activeRunId: runId,
+    }));
   },
 
   setActiveRunId: (runId) => set({ activeRunId: runId }),

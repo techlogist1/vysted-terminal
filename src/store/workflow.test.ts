@@ -205,7 +205,7 @@ describe("useWorkflowStore.runWorkflow — SSE consumption", () => {
     vi.restoreAllMocks();
   });
 
-  it("POSTs to /workflow/run with the spec + inputs and resolves on run-start", async () => {
+  it("POSTs to /workflow/run with the spec + inputs and resolves with the run id", async () => {
     const events = [
       { kind: "run-start", runId: "run-abc", startedAt: 100 },
       {

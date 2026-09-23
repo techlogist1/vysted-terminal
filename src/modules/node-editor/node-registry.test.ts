@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import NODE_TYPES_JSON from "../../../sidecar/tests/fixtures/workflow_node_types.json";
 import type { NodeSpec } from "../../../types/plugin";
 import { CODE_NODE_ID } from "./code-node";
 import {
@@ -17,6 +18,11 @@ import {
   firstPartyEntries,
   groupByCategory,
 } from "./node-registry";
+
+const NODE_TYPES_FIXTURE: Record<
+  string,
+  { inputs: string[]; outputs: string[]; config: Record<string, string[] | null> }
+> = NODE_TYPES_JSON;
 
 describe("node-registry: built-in specs", () => {
   it("ships exactly the 10 documented built-in node ids", () => {
@@ -52,9 +58,28 @@ describe("node-registry: built-in specs", () => {
 
   it("defaultConfigFor returns declared defaults for built-in nodes", () => {
     const cfg = defaultConfigFor("flow.sleep");
-    expect(cfg).toEqual({ duration_ms: 1000 });
+    expect(cfg).toEqual({ seconds: 1 });
     const indicator = defaultConfigFor("compute.indicator");
-    expect(indicator).toEqual({ indicator: "rsi", period: 14 });
+    expect(indicator).toEqual({ indicator_id: "rsi" });
+  });
+
+  it("uses only the sidecar handlers' port, config and option names", () => {
+    // flowToSpec copies handle ids and config keys verbatim, so any name the
+    // handler does not read wires nothing. The fixture is the handlers'
+    // declared contract (workflow_nodes.BUILTIN_NODE_SPECS), pinned by pytest.
+    for (const id of BUILT_IN_NODE_IDS) {
+      const declared = NODE_TYPES_FIXTURE[id];
+      const spec = BUILT_IN_NODE_SPECS[id];
+      expect(declared.inputs).toEqual(expect.arrayContaining(spec.inputs.map((p) => p.id)));
+      expect(declared.outputs).toEqual(expect.arrayContaining(spec.outputs.map((p) => p.id)));
+      for (const field of BUILT_IN_NODE_CONFIG_FIELDS[id]) {
+        expect(Object.keys(declared.config)).toContain(field.key);
+        const allowed = declared.config[field.key];
+        if (allowed && field.options) {
+          expect(allowed).toEqual(expect.arrayContaining([...field.options]));
+        }
+      }
+    }
   });
 
   it("defaultConfigFor returns {} for unknown / plugin node types", () => {

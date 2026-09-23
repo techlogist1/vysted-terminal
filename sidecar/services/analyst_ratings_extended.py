@@ -44,6 +44,7 @@ from models.analyst_extended import (
     RatingsHistoryResponse,
 )
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -128,10 +129,6 @@ def _normalise_action(raw: str | None) -> AnalystAction | None:
     return _RATING_MAP.get(key)
 
 
-def _normalise_symbol(symbol: str) -> str:
-    return symbol.strip().upper().replace(".", "-")
-
-
 def _num(value: Any) -> float | None:
     if value is None:
         return None
@@ -179,8 +176,12 @@ def _yf_ticker(symbol: str) -> Any:
 
 
 def _fetch_ratings_sync(symbol: str) -> dict[str, Any]:
-    """Pull recommendations + upgrades/downgrades + price targets."""
-    normalized = _normalise_symbol(symbol)
+    """Pull recommendations + upgrades/downgrades + price targets.
+
+    ``symbol`` is resolved once here, region-aware (``_yahoo_symbol``), and
+    echoed back as ``payload["symbol"]``.
+    """
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
         try:
@@ -217,8 +218,8 @@ def _fetch_ratings_sync(symbol: str) -> dict[str, Any]:
 
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     entries: list[RatingsHistoryEntry] = []
 
     frame = payload.get("upgrades_downgrades")
@@ -264,8 +265,8 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     this; older ones do not). The frontend renders an empty-state when
     no rows return.
     """
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     currency = str(payload.get("currency") or "USD")
     frame = payload.get("upgrades_downgrades")
     entries: list[PriceTargetEntry] = []
@@ -339,8 +340,8 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     (openbb-mcp ``equity_estimates_*`` / TipRanks-style providers) and
     surfaced by the frontend with em-dash placeholders.
     """
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_ratings_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_ratings_sync, symbol)
+    normalized = payload["symbol"]
     currency = str(payload.get("currency") or "USD")
     frame = payload.get("upgrades_downgrades")
     forecasts: list[IndividualAnalystForecast] = []

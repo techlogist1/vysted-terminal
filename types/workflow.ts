@@ -18,6 +18,8 @@
  * so the run-overlay UI can dispatch each event narrowly.
  */
 
+import type { LLMProviderId } from "./ai";
+
 // ---------------------------------------------------------------------------
 // Graph
 // ---------------------------------------------------------------------------
@@ -87,6 +89,14 @@ export interface WorkflowRunRequest {
   mode?: "full" | "resume-from";
   /** Node id to resume from when `mode === "resume-from"`. */
   resumeFrom?: string;
+  /**
+   * Foreground BYOK creds for `ai.agent_invoke` nodes (the chat selection),
+   * the same names as the agent-invoke request. Held for the run only; never
+   * persisted. A node config never carries a key (the sidecar rejects it).
+   */
+  provider?: LLMProviderId;
+  model?: string;
+  apiKey?: string;
 }
 
 /**

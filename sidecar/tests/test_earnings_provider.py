@@ -173,3 +173,29 @@ async def test_get_estimate_detail_no_event(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(earnings_provider, "_yf_ticker", _NoCalendarTicker)
     with pytest.raises(ProviderError):
         await earnings_provider.get_estimate_detail("AAPL")
+
+
+# ---------------------------------------------------------------------------
+# India symbols resolve through _yahoo_symbol (R15-DATA-029)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_earnings_lane_resolves_india_symbols(monkeypatch: pytest.MonkeyPatch) -> None:
+    import config
+
+    asked: list[str] = []
+
+    def _recording(symbol: str) -> _FakeEarningsTicker:
+        asked.append(symbol)
+        return _FakeEarningsTicker(symbol)
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _recording)
+    detail = await earnings_provider.get_estimate_detail("RELIANCE.NS")
+    token = config.set_request_region("IN")
+    try:
+        history = await earnings_provider.get_history("INFY")
+    finally:
+        config.reset_request_region(token)
+    assert asked == ["RELIANCE.NS", "INFY.NS"]  # never RELIANCE-NS, never the INFY ADR
+    assert (detail.symbol, history.symbol) == ("RELIANCE.NS", "INFY.NS")

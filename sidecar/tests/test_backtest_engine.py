@@ -419,3 +419,57 @@ def test_sortino_nonzero_for_identical_losses() -> None:
     curve = _curve_from_returns(returns)
     metrics = _compute_metrics(curve, [], 100_000.0)
     assert metrics.sortino != 0.0
+
+
+# ---------------------------------------------------------------------------
+# Partial universe (R15-DATA-040)
+# ---------------------------------------------------------------------------
+
+
+def _partial_request() -> BacktestRequest:
+    return BacktestRequest(
+        strategyId="buy_and_hold",
+        params={},
+        symbols=["AAPL", "MSFT", "RELIANCE.NS"],
+        startDate="2025-01-01",
+        endDate="2025-12-31",
+        initialCapital=100_000.0,
+    )
+
+
+@pytest.mark.asyncio
+async def test_symbol_whose_history_load_fails_is_named_in_warnings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from models.market import OHLCVBar, OHLCVSeries
+    from services import bar_loader
+    from services.errors import ProviderError
+
+    def fake_get_history(symbol: str, timeframe: str, range_: str, asset_class: str):
+        if symbol == "RELIANCE.NS":
+            raise ProviderError("yahoo 502")
+        rows = [
+            OHLCVBar(timestamp=f"2025-01-0{d}T00:00:00Z", open=1, high=1, low=1, close=1, volume=1)
+            for d in (2, 3, 6)
+        ]
+        return OHLCVSeries(symbol=symbol, timeframe="1d", bars=rows, provider="yfinance")
+
+    monkeypatch.setattr(bar_loader.provider_registry, "get_history", fake_get_history)
+    backtest_engine.register_strategy("buy_and_hold", BuyAndHoldDay2)
+    result = await backtest_engine.run_backtest(_partial_request(), bar_loader=bar_loader.load_bars)
+    assert result.warnings is not None
+    assert "RELIANCE.NS" in result.warnings[0]
+    assert "AAPL" not in result.warnings[0]
+    assert "metrics cover 2 of 3 symbols" in result.warnings[0]
+
+
+@pytest.mark.asyncio
+async def test_symbol_with_an_empty_series_is_named_in_warnings() -> None:
+    async def loader(_symbols: list[str], _start: str, _end: str) -> list[Bar]:
+        return _bars("AAPL") + _bars("RELIANCE.NS")  # MSFT: empty, no error
+
+    backtest_engine.register_strategy("buy_and_hold", BuyAndHoldDay2)
+    result = await backtest_engine.run_backtest(_partial_request(), bar_loader=loader)
+    assert result.warnings is not None
+    assert "No price history loaded for MSFT " in result.warnings[0]
+    assert "metrics cover 2 of 3 symbols" in result.warnings[0]

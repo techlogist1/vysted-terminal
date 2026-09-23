@@ -17,10 +17,9 @@ without coupling this module to the engine's error type. Provider errors
 propagate verbatim — the workflow run records them on the node and
 marks downstream nodes failed.
 
-The agent-invoke handler is intentionally tolerant of "no provider key
-configured" — workflows must run end-to-end in CI where no real LLM
-keys exist, so the handler degrades to a sentinel content string rather
-than failing the run.
+The agent-invoke handler raises on any LLM failure (no key, bad agent id,
+401, rate limit, network) so the engine records the node as ``error``;
+it never substitutes placeholder text for the agent's answer.
 """
 
 from __future__ import annotations
@@ -29,6 +28,7 @@ import asyncio
 import logging
 from typing import Any
 
+from config import get_llm_creds
 from models.agent import AgentContextSnapshot
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMErrorEvent
 from services import agent_runtime, indicators, provider_registry
@@ -151,15 +151,14 @@ def _render_template(template: str, context: dict[str, Any]) -> str:
 async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Invoke a first-party agent and aggregate its streamed reply.
 
-    Config: ``agent_id`` (required), ``prompt_template`` (required —
-    a ``str.format``-style template rendered with ``inputs`` as the
-    context dict, so ``{context}`` interpolates ``inputs["context"]``).
-    Optional ``provider`` / ``model`` overrides ride through to the
-    agent runtime; ``api_key`` is read from the env (``VYSTED_<PROV>_API_KEY``)
-    in production. In a CI / no-key environment the agent runtime returns
-    an LLMErrorEvent — this handler still completes by returning a
-    sentinel ``"(no provider key configured)"`` string rather than failing
-    the workflow.
+    Config: ``agent_id`` (required), ``prompt_template`` (a ``str.format``-style
+    template rendered with ``inputs`` as the context dict, so ``{context}``
+    interpolates ``inputs["context"]``; default ``"{context}"``). Optional
+    ``provider`` / ``model`` override the run's. Credentials come only from the
+    run request (``POST /workflow/run`` publishes them via
+    :func:`config.set_request_llm_creds`); the key is used only when the node's
+    provider is the request's. An ``LLMErrorEvent`` or a raised exception fails
+    the node with the real message.
     """
     agent_id = config.get("agent_id")
     if not agent_id:
@@ -167,9 +166,11 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     template = config.get("prompt_template") or "{context}"
     # Render the prompt with the inputs dict as the format context.
     prompt = _render_template(str(template), inputs)
-    api_key = config.get("api_key") or inputs.get("api_key")
-    provider = config.get("provider")
-    model = config.get("model")
+    creds = get_llm_creds()
+    provider = config.get("provider") or (creds[0] if creds else None)
+    same_provider = creds is not None and provider == creds[0]
+    model = config.get("model") or (creds[1] if same_provider else None) or None
+    api_key = creds[2] if same_provider else None
     context_snapshot: AgentContextSnapshot | None = None
     if "context_snapshot" in inputs and isinstance(inputs["context_snapshot"], dict):
         try:
@@ -178,33 +179,21 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
             context_snapshot = None
 
     text_chunks: list[str] = []
-    error_message: str | None = None
-    try:
-        async for event in agent_runtime.invoke_agent(
-            agent_id=str(agent_id),
-            prompt=prompt,
-            context_snapshot=context_snapshot,
-            api_key=api_key,
-            provider=provider,
-            model=model,
-        ):
-            if isinstance(event, LLMDeltaEvent):
-                text_chunks.append(event.text)
-            elif isinstance(event, LLMErrorEvent):
-                error_message = event.message
-            elif isinstance(event, LLMDoneEvent):
-                continue
-    except Exception as exc:  # noqa: BLE001 — degrade gracefully on transport errors
-        error_message = str(exc)
-
-    content = "".join(text_chunks)
-    if not content:
-        # No-key / CI path: return a deterministic sentinel so the run
-        # completes without surfacing an error. The intent is "this ran but
-        # the LLM call was a no-op" — useful in tests and offline demos.
-        if error_message:
-            content = "(no provider key configured)"
-    return {"content": content, "agent_id": str(agent_id), "error": error_message}
+    async for event in agent_runtime.invoke_agent(
+        agent_id=str(agent_id),
+        prompt=prompt,
+        context_snapshot=context_snapshot,
+        api_key=api_key,
+        provider=provider,
+        model=model,
+    ):
+        if isinstance(event, LLMDeltaEvent):
+            text_chunks.append(event.text)
+        elif isinstance(event, LLMErrorEvent):
+            raise RuntimeError(f"ai.agent_invoke ({agent_id}): {event.message}")
+        elif isinstance(event, LLMDoneEvent):
+            continue
+    return {"content": "".join(text_chunks), "agent_id": str(agent_id)}
 
 
 # ---------------------------------------------------------------------------
