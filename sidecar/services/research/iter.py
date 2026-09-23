@@ -45,6 +45,7 @@ from services.research.deep import (
     BUDGET_STOP_NOTE,
     MIN_ROUND_WALL_SECS,
     SYNTHESIS_TIMEOUT_NOTE,
+    SYNTHESIS_TRUNCATED_NOTE,
     LLMCall,
     OnStep,
     ToolCall,
@@ -58,10 +59,12 @@ from services.research.deep import (
     _run_researcher,
     _safe_llm,
     _split_subquestions,
+    _synthesis_llm,
     _synthesize_brief,
     build_structured_floor,
     coverage_floor_met,
     finalize_markdown,
+    join_notes,
     record_snapshot_sources,
     remaining_wall,
     snapshot_context,
@@ -215,19 +218,20 @@ async def _synthesis_from_report(
     report: _Report,
     findings: _Findings,
     structured: dict[str, Any] | None = None,
-) -> tuple[str, bool]:
+) -> tuple[str, bool, bool]:
     """Write the final brief markdown from the evolving report + numbered sources.
 
-    Returns ``(markdown, synthesized)``. Falls back to the raw report (then the
-    structured floor, then a terse stub) so a dead LLM still ships;
+    Returns ``(markdown, synthesized, truncated)``. Falls back to the raw report
+    (then the structured floor, then a terse stub) so a dead LLM still ships;
     ``synthesized`` is ``False`` on every fallback, so the caller can state the
-    degradation instead of shipping it silently."""
+    degradation instead of shipping it silently. ``truncated`` is True when the
+    synthesis was cut at the model's output limit (R15-RESEARCH-014)."""
     priority = finance.priority_note(findings.all_sources())
     snapshot = snapshot_context(structured or {})
     # R10 (E8): the derived metric facts ride the prompt so the prose states
     # figures under the SAME labels/bases the metric cards render.
     metric_facts = prompt_block((structured or {}).get("derived"))
-    body = await _safe_llm(
+    body, truncated = await _synthesis_llm(
         llm_call,
         [
             {
@@ -265,10 +269,10 @@ async def _synthesis_from_report(
         ],
     )
     if body.strip():
-        return body.strip(), True
+        return body.strip(), True, truncated
     rendered = report.render()
     if rendered and rendered != "(no findings distilled yet)":
-        return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}", False
+        return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}", False, False
     # R13 filings floor: a dead-LLM wind-down with no distilled report still
     # ships a brief built from the structured legs + exchange filings — never the
     # bare "No findings" line when price/announcements/fundamentals were gathered.
@@ -279,11 +283,15 @@ async def _synthesis_from_report(
         web_sources=len(findings.web_sources),
     )
     if floor is not None:
-        return floor, False
+        return floor, False, False
     return (
-        f"# Research brief: {query}\n\nSymbol: {symbol}\n\n"
-        "_No findings were gathered before the run ended._"
-    ), False
+        (
+            f"# Research brief: {query}\n\nSymbol: {symbol}\n\n"
+            "_No findings were gathered before the run ended._"
+        ),
+        False,
+        False,
+    )
 
 
 async def run_iter_research(
@@ -382,7 +390,7 @@ async def run_iter_research(
         from services.research.citecheck import ensure_citation_integrity
 
         t0 = time.monotonic()
-        markdown, synthesized = await _synthesis_from_report(
+        markdown, synthesized, truncated = await _synthesis_from_report(
             llm_call,
             query=query,
             symbol=symbol,
@@ -418,9 +426,11 @@ async def run_iter_research(
             structured=structured,
             steps=steps,
             budget=budget,
-            note=BUDGET_STOP_NOTE
-            if synthesized
-            else f"{BUDGET_STOP_NOTE} {SYNTHESIS_TIMEOUT_NOTE}",
+            note=join_notes(
+                BUDGET_STOP_NOTE,
+                None if synthesized else SYNTHESIS_TIMEOUT_NOTE,
+                SYNTHESIS_TRUNCATED_NOTE if truncated else None,
+            ),
         )
 
     async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
@@ -658,7 +668,7 @@ async def run_iter_research(
     from services.research.citecheck import ensure_citation_integrity
 
     synth_t0 = time.monotonic()
-    markdown, synthesized = await _synthesis_from_report(
+    markdown, synthesized, truncated = await _synthesis_from_report(
         llm_call,
         query=query,
         symbol=symbol,
@@ -692,7 +702,10 @@ async def run_iter_research(
         structured=structured,
         steps=steps,
         budget=budget,
-        note=None if synthesized else SYNTHESIS_TIMEOUT_NOTE,
+        note=join_notes(
+            None if synthesized else SYNTHESIS_TIMEOUT_NOTE,
+            SYNTHESIS_TRUNCATED_NOTE if truncated else None,
+        ),
     )
 
 
@@ -1082,8 +1095,9 @@ async def run_heavy_research(
         )
         if markdown:
             synth_mode = "webweaver outline"
+    truncated = False
     if not markdown.strip():
-        markdown = await _safe_llm(
+        markdown, truncated = await _synthesis_llm(
             llm_call,
             [
                 {
@@ -1193,7 +1207,10 @@ async def run_heavy_research(
         # already carries the angle data, and brief.note renders to the USER —
         # human sentences only (a failed-angle count is a dev detail). A lead
         # synthesis that never came back is stated, never shipped silently.
-        note=None if lead_synthesized else SYNTHESIS_TIMEOUT_NOTE,
+        note=join_notes(
+            None if lead_synthesized else SYNTHESIS_TIMEOUT_NOTE,
+            SYNTHESIS_TRUNCATED_NOTE if truncated else None,
+        ),
     )
 
 

@@ -486,13 +486,20 @@ async def test_malformed_args_triggers_exactly_one_repair_then_recovers(
 
     calls: list[Any] = []
 
-    async def _fake_complete(provider: str, model: str, api_key: str | None, messages: Any) -> str:
+    async def _fake_complete(
+        provider: str,
+        model: str,
+        api_key: str | None,
+        messages: Any,
+        *,
+        timeout: float | None = None,
+    ) -> tuple[str, None]:
         calls.append((provider, model, messages))
-        return '{"symbol": "AAPL"}'
+        return '{"symbol": "AAPL"}', None
 
     import services.llm.oneshot as oneshot_mod
 
-    monkeypatch.setattr(oneshot_mod, "complete", _fake_complete)
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
 
     provider = OpenAIProvider()
     out: list[Any] = []
@@ -520,12 +527,12 @@ async def test_malformed_json_args_repaired_not_coerced_to_empty(
     chunks = _tool_call_chunks("price_data", '{"symbol": "AAP')  # truncated JSON
     _patch_client(monkeypatch, chunks=chunks)
 
-    async def _fake_complete(*_a: Any, **_k: Any) -> str:
-        return '{"symbol": "AAPL"}'
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return '{"symbol": "AAPL"}', None
 
     import services.llm.oneshot as oneshot_mod
 
-    monkeypatch.setattr(oneshot_mod, "complete", _fake_complete)
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
 
     provider = OpenAIProvider()
     out = [
@@ -553,13 +560,13 @@ async def test_repair_still_fails_surfaces_error_sentinel_not_empty(
     chunks = _tool_call_chunks("price_data", '{"timeframe": "1d"}')  # missing symbol
     _patch_client(monkeypatch, chunks=chunks)
 
-    async def _fake_complete(*_a: Any, **_k: Any) -> str:
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
         # Repair returns args that ALSO fail validation (still no symbol).
-        return '{"range": "1y"}'
+        return '{"range": "1y"}', None
 
     import services.llm.oneshot as oneshot_mod
 
-    monkeypatch.setattr(oneshot_mod, "complete", _fake_complete)
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
 
     provider = OpenAIProvider()
     out = [
@@ -577,6 +584,55 @@ async def test_repair_still_fails_surfaces_error_sentinel_not_empty(
     assert tool_use[0].input != {}
     assert INVALID_ARGS_SENTINEL in tool_use[0].input
     assert "invalid arguments for price_data" in tool_use[0].input[INVALID_ARGS_SENTINEL]
+
+
+@pytest.mark.asyncio
+async def test_repairs_are_capped_timed_and_metered_per_round(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-048: five bad calls in one round cost at most the capped number
+    of repairs, each with a wall-clock cap, and their tokens land in the round's
+    usage instead of vanishing."""
+    from models.llm import LLMUsage
+    from services.llm import openai as openai_adapter
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    bad = [
+        _ToolCall(f"call-{i}", _ToolFunction("price_data", '{"range": "1y"}'), i) for i in range(5)
+    ]
+    chunks = [
+        _Chunk([_Choice(_Delta(content=None, tool_calls=bad))]),
+        _Chunk([_Choice(_Delta(content=""), finish_reason="tool_calls")]),
+        _Chunk([], usage=_Usage(1_000, 200)),
+    ]
+    _patch_client(monkeypatch, chunks=chunks)
+    timeouts: list[float | None] = []
+
+    async def _fake_complete(*_a: Any, timeout: float | None = None) -> tuple[str, LLMUsage]:
+        timeouts.append(timeout)
+        return '{"symbol": "BDL.NS"}', LLMUsage(input_tokens=300, output_tokens=12)
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="quote BDL on five timeframes")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    cap = openai_adapter._MAX_REPAIRS_PER_ROUND
+    assert timeouts == [openai_adapter._REPAIR_TIMEOUT_S] * cap
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert [INVALID_ARGS_SENTINEL in e.input for e in tool_use] == [False] * cap + [True] * (
+        5 - cap
+    )
+    done = out[-1]
+    assert done.kind == "done"
+    assert done.usage == LLMUsage(input_tokens=1_000 + 300 * cap, output_tokens=200 + 12 * cap)
 
 
 # ---------------------------------------------------------------------------

@@ -6,10 +6,13 @@ R7 Component 3. Serves the typed feeds from
 shareholding patterns) through :mod:`services.data_cache` with domain-tuned
 TTLs:
 
-* announcements — 15 minutes (the live-ish feed; also respects the NSE
-  throttle by not re-walking the cookie dance per panel refresh)
+* announcements — 15 minutes, cached inside the service
+  (:func:`corporate_disclosures.get_announcements_cached`, shared with the agent
+  tool and research; also respects the NSE throttle)
 * results calendar — 6 hours
 * shareholding — 24 hours (a quarterly series)
+* corporate actions — 6 hours (NSE+BSE dividends/bonuses/splits/rights/buybacks)
+* deals — 6 hours (bulk/block deals and SAST disclosures)
 
 The service functions are synchronous (they drive the sync exchange lanes), so
 each route runs them in ``asyncio.to_thread``. Registration: see
@@ -26,6 +29,8 @@ from fastapi import APIRouter, HTTPException, Query
 
 from models.announcements import (
     AnnouncementsResponse,
+    CorporateActionsResponse,
+    ExchangeDealsResponse,
     ResultsCalendarResponse,
     ShareholdingResponse,
 )
@@ -36,9 +41,10 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/disclosures", tags=["disclosures"])
 
-_TTL_ANNOUNCEMENTS = 15 * 60  # 15 minutes
 _TTL_RESULTS = 6 * 60 * 60  # 6 hours
 _TTL_SHAREHOLDING = 24 * 60 * 60  # 24 hours
+_TTL_CORPORATE_ACTIONS = 6 * 60 * 60  # 6 hours
+_TTL_DEALS = 6 * 60 * 60  # 6 hours (the exchanges publish deals end of day)
 
 
 @router.get("/announcements")
@@ -53,22 +59,10 @@ async def get_announcements(
     ),
 ) -> AnnouncementsResponse:
     """Merged BSE+NSE corporate announcements for ``symbol``, newest first."""
-    normalized = symbol.strip().upper()
-    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
-    cached = await data_cache.get(cache_key, _TTL_ANNOUNCEMENTS)
-    if isinstance(cached, dict):
-        try:
-            return AnnouncementsResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
     try:
-        response = await asyncio.to_thread(
-            corporate_disclosures.get_announcements, normalized, exchange, limit
-        )
+        return await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
-    return response
 
 
 @router.get("/results")
@@ -107,6 +101,52 @@ async def get_shareholding(
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
     try:
         response = await asyncio.to_thread(corporate_disclosures.get_shareholding, normalized)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/corporate-actions")
+async def get_corporate_actions(
+    symbol: Annotated[str, Query(min_length=1, description="NSE/BSE ticker, e.g. JONJUA")],
+) -> CorporateActionsResponse:
+    """Dividends, bonuses, splits, rights and buybacks (NSE+BSE), newest first."""
+    normalized = symbol.strip().upper()
+    cache_key = f"disclosures:corporate-actions:{normalized}"
+    cached = await data_cache.get(cache_key, _TTL_CORPORATE_ACTIONS)
+    if isinstance(cached, dict):
+        try:
+            return CorporateActionsResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, normalized)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/deals")
+async def get_deals(
+    symbol: Annotated[str, Query(min_length=1, description="NSE/BSE ticker, e.g. KOPRAN")],
+    kind: Annotated[
+        Literal["bulk", "block", "sast"] | None,
+        Query(description="Optional filter; omit for bulk, block and SAST together."),
+    ] = None,
+) -> ExchangeDealsResponse:
+    """Bulk deals, block deals and SAST disclosures for ``symbol``, newest first."""
+    normalized = symbol.strip().upper()
+    cache_key = f"disclosures:deals:{normalized}:{kind or 'ALL'}"
+    cached = await data_cache.get(cache_key, _TTL_DEALS)
+    if isinstance(cached, dict):
+        try:
+            return ExchangeDealsResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_deals, normalized, kind)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     await data_cache.set(cache_key, response.model_dump(mode="json"))

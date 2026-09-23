@@ -81,6 +81,8 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
         accession: SEC accession number, e.g. ``"0000320193-24-000123"``.
             Required.
         identifier: CIK or symbol that owns the filing. Required.
+        form_type: The filing's form from ``sec_filings_list`` — a lookup
+            hint (R15-LEAD-010). Optional.
     """
     accession = args.get("accession")
     if not isinstance(accession, str) or not accession:
@@ -98,7 +100,9 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
             "error": _UNAVAILABLE_ERROR,
         }
     try:
-        detail = await sec_filings_provider.get_filing(accession, cik_or_symbol=identifier)
+        detail = await sec_filings_provider.get_filing(
+            accession, cik_or_symbol=identifier, form_type=args.get("form_type") or None
+        )
     except ProviderError as exc:
         return {"ok": False, "error": f"provider error: {exc}"}
     except Exception as exc:  # noqa: BLE001

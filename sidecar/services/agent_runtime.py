@@ -44,6 +44,7 @@ from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
+    LLMHeartbeatEvent,
     LLMMessage,
     LLMProviderId,
     LLMResearchStepEvent,
@@ -55,7 +56,12 @@ from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot
-from services.llm.base import LLMStreamEvent
+from services.llm.base import (
+    IDLE_TIMEOUT_S,
+    LOCAL_IDLE_TIMEOUT_S,
+    LLMStreamEvent,
+    is_length_finish,
+)
 from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
 from services.search.scrub import wrap_untrusted
@@ -407,11 +413,20 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
         prior_values = _render_prior_stated_values(rs.get("claims"))
         if prior_values:
             lines.append(prior_values)
-    charts = ts.get("charts") or []
-    if charts:
-        c = charts[0]
-        ind = ", ".join(c.get("indicators") or []) or "no indicators"
-        lines.append(f"Focused chart: {c.get('symbol')} ({c.get('timeframe')}, {ind}).")
+    # "Focused" is the panel the user last touched (its dockview id), not the
+    # first chart in the list (R15-AGENT-051).
+    focused_panel = ts.get("focusedPanel")
+    charts = [c for c in ts.get("charts") or [] if isinstance(c, dict)]
+    focused_chart = next((c for c in charts if c.get("panelId") == focused_panel), None)
+    shown = focused_chart or (charts[0] if charts else None)
+    if shown is not None:
+        ind = ", ".join(shown.get("indicators") or []) or "no indicators"
+        label = "Focused chart" if focused_chart is not None else "Chart"
+        lines.append(f"{label}: {shown.get('symbol')} ({shown.get('timeframe')}, {ind}).")
+    if focused_panel and focused_chart is None:
+        # Its symbol, when it has one, is the snapshot's focusedSymbol (the
+        # "this" line below).
+        lines.append(f"Focused panel: {focused_panel}.")
     wl = ts.get("watchlist") or {}
     if wl.get("symbols"):
         lines.append("Watchlist: " + ", ".join(wl["symbols"][:12]) + ".")
@@ -446,6 +461,55 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+#: How much of the focused symbol's note the preamble quotes; the full (capped)
+#: text is one ``read_notes`` call away.
+_NOTE_EXCERPT_CHARS = 300
+
+
+def _notes_of(snapshot: AgentContextSnapshot | None) -> dict[str, Any]:
+    """The ``__notes__`` entry (C2): ``{"general": str, "bySymbol": {SYM: str}}``,
+    each note already capped by the client. Empty when absent or malformed."""
+    if snapshot is None or not isinstance(snapshot.by_source, dict):
+        return {}
+    notes = snapshot.by_source.get("__notes__")
+    return notes if isinstance(notes, dict) else {}
+
+
+def _note_for(notes: dict[str, Any], scope: str) -> tuple[str, str]:
+    """``(scope label, note text)`` for a ``read_notes`` scope: 'global' (or
+    'general' / empty) is the general note, anything else a symbol's."""
+    key = scope.strip().upper()
+    if key in ("", "GLOBAL", "GENERAL"):
+        text = notes.get("general")
+        return "global", text if isinstance(text, str) else ""
+    by_symbol = notes.get("bySymbol")
+    text = by_symbol.get(key) if isinstance(by_symbol, dict) else None
+    return key, text if isinstance(text, str) else ""
+
+
+def _render_notes_line(notes: dict[str, Any], focused: Any) -> str | None:
+    """One line naming the scopes that hold a note, plus an excerpt of the
+    focused symbol's note, so the agent knows the user's thesis exists
+    (R15-AGENT-020: notes were write-only for the agent)."""
+    scopes = []
+    if _note_for(notes, "global")[1].strip():
+        scopes.append("global")
+    by_symbol = notes.get("bySymbol")
+    if isinstance(by_symbol, dict):
+        scopes += sorted(k for k, v in by_symbol.items() if isinstance(v, str) and v.strip())
+    if not scopes:
+        return None
+    line = f"User notes exist for: {', '.join(scopes)} (read them with read_notes)."
+    if isinstance(focused, str) and focused.strip():
+        label, text = _note_for(notes, focused)
+        if label != "global" and text.strip():
+            excerpt = " ".join(text.split())
+            if len(excerpt) > _NOTE_EXCERPT_CHARS:
+                excerpt = excerpt[:_NOTE_EXCERPT_CHARS] + "..."
+            line += f' Their note on {label}: "{excerpt}"'
+    return line
+
+
 def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None:
     """Render the focused panel + per-panel context into a system-prompt blob.
 
@@ -458,7 +522,9 @@ def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None
     by_source = snapshot.by_source or {}
     terminal = by_source.get("__terminal__")
     if isinstance(terminal, dict):
-        return _render_terminal_preamble(terminal)
+        preamble = _render_terminal_preamble(terminal)
+        notes_line = _render_notes_line(_notes_of(snapshot), terminal.get("focusedSymbol"))
+        return f"{preamble}\n{notes_line}" if notes_line else preamble
     if not by_source and snapshot.focused_source is None:
         return None
     sections = ["## Terminal context (read-only — describe accurately, do not invent fields)"]
@@ -471,20 +537,68 @@ def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None
     return "\n".join(sections)
 
 
-def _coerce_history(raw: Any) -> list[LLMMessage]:
+#: The newest history the model sees verbatim (R15-AGENT-040); older turns
+#: fold into one summary message instead of silently falling off a window.
+_HISTORY_VERBATIM_MESSAGES = 8
+_HISTORY_VERBATIM_CHARS = 24_000
+#: How much of each older user ask the summary keeps.
+_FOLDED_ASK_CHARS = 300
+_HISTORY_SUMMARY_HEAD = "Earlier in this conversation (older turns, summarised):"
+#: The client's compact trailer lines on an assistant turn (its tool steps and
+#: its failure), carried verbatim into the summary.
+_HISTORY_TRAILER_PREFIXES = ("[tool steps:", "[failed:")
+#: The notice tool that marks a compaction, so the transcript renders its marker.
+HISTORY_NOTICE_TOOL = "history"
+
+
+def _coerce_history(raw: Any) -> tuple[list[LLMMessage], int]:
     """Coerce ``options["history"]`` (a list of {role, content} dicts) into
-    LLMMessages, dropping anything malformed. Bounded by the caller."""
+    LLMMessages, dropping anything malformed.
+
+    The newest turns stay verbatim within a message and character budget,
+    starting on a user turn. Anything older folds into ONE separate, stable
+    "Earlier in this conversation" message placed before them: each older user
+    ask (truncated) and each assistant turn's tool-step and failure trailer
+    verbatim. Deterministic, no extra LLM call. Returns the messages and how
+    many were folded (R15-AGENT-040: the old ``[-10:]`` dropped the rest).
+    """
     if not isinstance(raw, list):
-        return []
-    out: list[LLMMessage] = []
+        return [], 0
+    turns: list[LLMMessage] = []
     for item in raw:
         if not isinstance(item, dict):
             continue
         role = item.get("role")
         content = item.get("content")
         if role in ("user", "assistant") and isinstance(content, str) and content:
-            out.append(LLMMessage(role=role, content=content))
-    return out[-10:]  # cap at ~10 turns to bound tokens
+            turns.append(LLMMessage(role=role, content=content))
+    keep = used = 0
+    for message in reversed(turns):
+        if keep >= _HISTORY_VERBATIM_MESSAGES or (
+            keep and used + len(message.content) > _HISTORY_VERBATIM_CHARS
+        ):
+            break
+        keep += 1
+        used += len(message.content)
+    while keep and turns[len(turns) - keep].role != "user":
+        keep -= 1
+    older, recent = turns[: len(turns) - keep], turns[len(turns) - keep :]
+    if not older:
+        return recent, 0
+    lines = [_HISTORY_SUMMARY_HEAD]
+    for message in older:
+        if message.role == "user":
+            ask = " ".join(message.content.split())
+            if len(ask) > _FOLDED_ASK_CHARS:
+                ask = ask[:_FOLDED_ASK_CHARS] + "..."
+            lines.append(f"- The user asked: {ask}")
+        else:
+            lines += [
+                f"- {line.strip()}"
+                for line in message.content.splitlines()
+                if line.strip().startswith(_HISTORY_TRAILER_PREFIXES)
+            ]
+    return [LLMMessage(role="user", content="\n".join(lines)), *recent], len(older)
 
 
 def _render_session_preamble() -> str:
@@ -876,6 +990,61 @@ class _ToolDone:
 #: knows no more live steps are coming.
 _STEP_SENTINEL = object()
 
+#: A heartbeat frame goes out after this much silence while the runtime waits on
+#: a provider or a tool, so the chat's stall watchdog can tell a slow turn from
+#: a dead one (R15-AGENT-025).
+_HEARTBEAT_SECONDS = 10.0
+#: The planner pre-pass runs before the turn's first frame; past this it is
+#: skipped and the turn proceeds without a visible plan (R15-AGENT-025).
+_PLANNER_TIMEOUT_SECONDS = 20.0
+
+
+async def _relay_provider(stream: AsyncIterator[Any], idle: float) -> AsyncIterator[Any]:
+    """Relay one provider round from a producer task so the wait is timed.
+
+    A heartbeat goes out every :data:`_HEARTBEAT_SECONDS` of silence; after
+    ``idle`` seconds with no provider event the relay ends the round with an
+    error frame instead of waiting on the socket (R15-AGENT-025). A failure in
+    the stream re-raises here; closing the relay cancels the provider call.
+    """
+    queue: asyncio.Queue[Any] = asyncio.Queue()
+
+    async def _produce() -> None:
+        try:
+            async for event in stream:
+                queue.put_nowait(event)
+        finally:
+            queue.put_nowait(_STEP_SENTINEL)
+
+    task = asyncio.create_task(_produce())
+    quiet = 0.0
+    try:
+        while True:
+            try:
+                item = await asyncio.wait_for(queue.get(), _HEARTBEAT_SECONDS)
+            except TimeoutError:
+                quiet += _HEARTBEAT_SECONDS
+                if quiet >= idle:
+                    yield LLMErrorEvent(
+                        message="The provider went quiet and did not finish the answer.",
+                        action="Retry, or switch the composer to a different model.",
+                        detail=f"no provider event for {int(idle)}s",
+                        code="provider_idle",
+                    )
+                    return
+                yield LLMHeartbeatEvent()
+                continue
+            if item is _STEP_SENTINEL:
+                await task
+                return
+            quiet = 0.0
+            yield item
+    finally:
+        if not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
 
 def _step_event(tool_call: LLMToolUseEvent, step: Any, index: int) -> LLMResearchStepEvent:
     """Build a ``research_step`` SSE event from a tool's emitted step.
@@ -908,7 +1077,7 @@ def _step_event(tool_call: LLMToolUseEvent, step: Any, index: int) -> LLMResearc
 async def _dispatch_tool_with_progress(
     tool_call: LLMToolUseEvent,
     local_tools: dict[str, LocalToolHandler] | None = None,
-) -> AsyncIterator[LLMResearchStepEvent | _ToolDone]:
+) -> AsyncIterator[LLMResearchStepEvent | LLMHeartbeatEvent | _ToolDone]:
     """Dispatch a tool, streaming any live research steps it emits, then yield a
     terminal :class:`_ToolDone` carrying the JSON result string (Track A).
 
@@ -937,7 +1106,11 @@ async def _dispatch_tool_with_progress(
     index = 0
     try:
         while True:
-            item = await queue.get()
+            try:
+                item = await asyncio.wait_for(queue.get(), _HEARTBEAT_SECONDS)
+            except TimeoutError:
+                yield LLMHeartbeatEvent()  # a quiet tool is still running
+                continue
             if item is _STEP_SENTINEL:
                 break
             index += 1
@@ -1146,6 +1319,40 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     )
 
 
+#: The truncation notice for an answer cut at the model's output ceiling.
+_LENGTH_NOTICE = (
+    "The answer hit the model's output limit and was cut off. Ask me to continue for the rest."
+)
+_RETRY_ACTION = "Retry, or switch the composer to a different model."
+
+
+def _unfinished_round_error(streamed_text: bool, model: str) -> LLMErrorEvent:
+    """The error frame for a round that never finished (R15-AGENT-026): the
+    provider closed with no terminator, so a partial answer is not a complete one
+    and an empty one is not an answer. The chat renders it with Retry."""
+    if streamed_text:
+        return LLMErrorEvent(
+            message="The provider closed the stream before the answer finished.",
+            action=_RETRY_ACTION,
+            detail=f"no finish reason from {model}",
+            code="truncated",
+        )
+    return _empty_response_error(model)
+
+
+def _empty_response_error(model: str) -> LLMErrorEvent:
+    return LLMErrorEvent(
+        message="The model returned an empty answer.",
+        action=_RETRY_ACTION,
+        detail=f"no text and no tool call from {model}",
+        code="empty_response",
+    )
+
+
+#: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
+#: chat branches on it, so notice copy can change without breaking the chip.
+NOTICE_STEP_KIND = "notice"
+
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
 #: check polls the ledger briefly before declaring a publish unconfirmed.
@@ -1212,9 +1419,9 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
     "richer brief" claim); ``failed`` → the apply failed. A call SUPERSEDED by a
     later successful publish of the same panel/symbol in the SAME turn emits
     NOTHING (:func:`_superseded_by_later_apply`) — the panel shows the applied
-    one, so a per-call contradiction would lie (R13 JARVIS 1c). Rides the
-    existing ``research_step`` event vocabulary (the step/notice channel) — the
-    frontend renders these as quiet system chips (Team FRONTEND-BRIEF).
+    one, so a per-call contradiction would lie (R13 JARVIS 1c). Each rides a
+    ``research_step`` with ``step_kind="notice"`` (C9): the frontend renders it
+    as a transcript chip by KIND, never by matching this copy (R15-AGENT-031).
     """
     from services import action_ledger
 
@@ -1253,12 +1460,69 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
             LLMResearchStepEvent(
                 tool_call_id=call_id,
                 tool="publish_brief",
-                step_kind="engine",
+                step_kind=NOTICE_STEP_KIND,
                 detail=detail,
                 status=step_status,
                 index=index,
             )
         )
+    return notices
+
+
+def _staged_actions_notice(staged: list[LLMToolUseEvent]) -> LLMResearchStepEvent | None:
+    """One deterministic notice naming every host action this turn STAGED for
+    review (R15-AGENT-033): under ASK the model may still narrate "I've set BDL
+    on your chart", so the transcript states what actually happened."""
+    if not staged:
+        return None
+    summaries = []
+    for call in staged:
+        args = call.input if isinstance(call.input, dict) else {}
+        target = next(
+            (
+                args[k]
+                for k in ("symbol", "panel", "scope", "pattern")
+                if isinstance(args.get(k), str)
+            ),
+            None,
+        )
+        summaries.append(f"{call.name} {target}" if target else call.name)
+    return LLMResearchStepEvent(
+        tool_call_id=staged[-1].tool_call_id,
+        tool="host_action",
+        step_kind=NOTICE_STEP_KIND,
+        detail=(
+            "Staged for your review, not applied yet: "
+            + "; ".join(summaries)
+            + ". Accept it below to apply."
+        ),
+        status="ok",
+    )
+
+
+def _result_status(result_str: str) -> Any:
+    """The ``status`` field of a JSON tool result, or ``None``."""
+    try:
+        payload = json.loads(result_str)
+    except (TypeError, ValueError):
+        return None
+    return payload.get("status") if isinstance(payload, dict) else None
+
+
+async def _end_of_turn_notices(
+    autonomy: str | None,
+    publish_brief_calls: list[str],
+    staged_actions: list[LLMToolUseEvent],
+) -> list[LLMResearchStepEvent]:
+    """The notices that precede the turn's terminator, whichever way it ends."""
+    notices: list[LLMResearchStepEvent] = []
+    # E3.3 end-of-stream read-back: under AUTO a publish was DISPATCHED
+    # optimistically — surface any divergence the panel acked (or never acked).
+    if autonomy == "auto" and publish_brief_calls:
+        notices.extend(await _publish_divergence_notices(publish_brief_calls))
+    staged = _staged_actions_notice(staged_actions)
+    if staged is not None:
+        notices.append(staged)
     return notices
 
 
@@ -1407,9 +1671,24 @@ def _build_local_tools(
     async def _portfolio(_args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": True, "portfolio": (terminal or {}).get("portfolio")}
 
+    notes = _notes_of(snapshot)
+
+    async def _read_notes(args: dict[str, Any]) -> dict[str, Any]:
+        scope, text = _note_for(notes, str(args.get("scope") or ""))
+        if not text.strip():
+            return {
+                "ok": True,
+                "scope": scope,
+                "note": "",
+                "empty": True,
+                "message": f"The user has no {scope} note.",
+            }
+        return {"ok": True, "scope": scope, "note": text, "empty": False}
+
     local: dict[str, LocalToolHandler] = {
         "get_terminal_state": _terminal_state,
         "get_portfolio": _portfolio,
+        "read_notes": _read_notes,
     }
 
     def _make_host_action(tool_id: str) -> LocalToolHandler:
@@ -1485,7 +1764,7 @@ async def invoke_agent(
     provider_id = _resolve_provider_id(spec, provider)
     resolved_model = _resolve_model(spec, model)
     opts = dict(options or {})
-    history = _coerce_history(opts.pop("history", None))
+    history, folded = _coerce_history(opts.pop("history", None))
     tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
@@ -1563,6 +1842,15 @@ async def invoke_agent(
 
     local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
+    if folded:
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool=HISTORY_NOTICE_TOOL,
+            step_kind=NOTICE_STEP_KIND,
+            detail=f"Older turns summarised: the {folded} earliest messages of this "
+            "thread were folded into a summary of your asks, tool steps and failures.",
+            status="ok",
+        )
     adapter = get_provider(provider_id)
     # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
     # and elides old results; hosted lanes (no window) send the full set. The
@@ -1624,7 +1912,11 @@ async def invoke_agent(
 
             async def _plan_llm_call(p: str) -> str:
                 return await oneshot.complete(
-                    provider_id, resolved_model, api_key, [{"role": "user", "content": p}]
+                    provider_id,
+                    resolved_model,
+                    api_key,
+                    [{"role": "user", "content": p}],
+                    timeout=_PLANNER_TIMEOUT_SECONDS,
                 )
 
             plan = await decompose(
@@ -1642,6 +1934,7 @@ async def invoke_agent(
             logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
 
     rounds = 0
+    idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
     # R10 (E2): the latest research execution record of THIS invoke. When the
     # model issues its own publish_brief without an ``execution`` (it almost
@@ -1652,6 +1945,12 @@ async def invoke_agent(
     # AND synthetic) — checked against the ack ledger at end-of-stream so a
     # publish the panel never confirmed gets an honest divergence notice.
     publish_brief_calls: list[str] = []
+    # Host actions this turn staged for review (awaiting_user_review), named in
+    # one end-of-turn notice (R15-AGENT-033).
+    staged_actions: list[LLMToolUseEvent] = []
+    # Any prose streamed this turn (every round): a turn that ends with none
+    # is an empty answer, never a silent success (R15-AGENT-026).
+    turn_text = False
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -1671,12 +1970,16 @@ async def invoke_agent(
         # reasoner. Empty for non-reasoner providers (no thinking events).
         round_reasoning_parts: list[str] = []
         seen_done = False
-        async for event in adapter.stream_chat(
-            messages=messages,
-            model=resolved_model,
-            api_key=api_key,
-            tool_ids=tool_ids,
-            **opts,
+        round_error = False
+        async for event in _relay_provider(
+            adapter.stream_chat(
+                messages=messages,
+                model=resolved_model,
+                api_key=api_key,
+                tool_ids=tool_ids,
+                **opts,
+            ),
+            idle,
         ):
             if isinstance(event, LLMThinkingEvent):
                 round_reasoning_parts.append(event.text)
@@ -1722,12 +2025,19 @@ async def invoke_agent(
                     break
                 if capped and not streamed_text:
                     yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-                # E3.3 end-of-stream read-back: under AUTO autonomy a publish
-                # was DISPATCHED optimistically — surface any divergence the
-                # panel acked (or never acked) before the terminator.
-                if autonomy == "auto" and publish_brief_calls:
-                    for notice in await _publish_divergence_notices(publish_brief_calls):
-                        yield notice
+                    turn_text = True
+                if is_length_finish(event.finish_reason):
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool="runtime",
+                        step_kind=NOTICE_STEP_KIND,
+                        detail=_LENGTH_NOTICE,
+                        status="error",
+                    )
+                for notice in await _end_of_turn_notices(
+                    autonomy, publish_brief_calls, staged_actions
+                ):
+                    yield notice
                 # R11 (V2 evidence): a provider content-filter finish leaves
                 # the user with an unexplained refusal (DeepSeek V4 Flash
                 # answers host-action asks with a foreign-language refusal +
@@ -1744,19 +2054,28 @@ async def invoke_agent(
                         detail=f"finish_reason=content_filter from {resolved_model}",
                         code="content_filter",
                     )
+                elif not turn_text:
+                    yield _empty_response_error(resolved_model)
+                event.context_window = window
                 yield event
                 return
             if isinstance(event, LLMDeltaEvent) and event.text.strip():
                 streamed_text = True
+                turn_text = True
+            if isinstance(event, LLMErrorEvent):
+                round_error = True
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
             # framing stays well-formed for the consumer.
             if capped and not streamed_text:
                 yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-            if autonomy == "auto" and publish_brief_calls:
-                for notice in await _publish_divergence_notices(publish_brief_calls):
-                    yield notice
+            for notice in await _end_of_turn_notices(autonomy, publish_brief_calls, staged_actions):
+                yield notice
+            # A provider that closed without a terminator and without saying why
+            # did not finish: say so, with Retry (R15-AGENT-026).
+            if not round_error and not (capped and not streamed_text):
+                yield _unfinished_round_error(streamed_text, resolved_model)
             yield LLMDoneEvent()
             return
         if not pending_tools:
@@ -1849,6 +2168,8 @@ async def invoke_agent(
                 metadata={"name": tool_call.name},
             )
             messages.append(tool_result_msg)
+            if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
+                staged_actions.append(tool_call)
             # Queue a host action dispatched under AUTO for the grounded
             # read-back below. An invalid-args call was never dispatched to the
             # panel, so its {ok: false, error} result stands as is.

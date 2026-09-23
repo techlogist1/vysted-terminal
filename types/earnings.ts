@@ -12,7 +12,9 @@
  * to lay out the day strip (before-open / during / after-close / unknown). */
 export type EarningsTimeOfDay = "before-open" | "during-market" | "after-close" | "unknown";
 
-/** Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``. */
+/** Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``. Every
+ * `fiscal_period` field is null unless the provider supplies the period — it
+ * is never inferred from a report date (R15-DATA-067). */
 export interface FiscalPeriod {
   /** ``"Q1" | "Q2" | "Q3" | "Q4" | "FY"``. */
   quarter: "Q1" | "Q2" | "Q3" | "Q4" | "FY";
@@ -30,13 +32,14 @@ export interface EarningsEvent {
   /** ISO-8601 date the company is expected to report. */
   scheduled_date: string;
   time_of_day: EarningsTimeOfDay;
-  fiscal_period: FiscalPeriod;
+  fiscal_period: FiscalPeriod | null;
   /** Consensus EPS estimate (analyst-mean), in the reporting currency. */
   eps_estimate_mean: number | null;
-  /** Estimate dispersion (standard deviation of analyst forecasts). */
+  /** Estimate dispersion (standard deviation of analyst forecasts) — null
+   * unless the provider measures it (R15-DATA-032: never a high/low proxy). */
   eps_estimate_stddev: number | null;
-  /** Number of contributing analysts. */
-  estimate_analyst_count: number;
+  /** Number of contributing analysts; null when the provider gives no count. */
+  estimate_analyst_count: number | null;
   /** Currency for the estimates (e.g. ``"USD"``). */
   currency: string;
   provider: string;
@@ -56,7 +59,7 @@ export interface EarningsSurprise {
   /** ISO-8601 date the company reported (may differ from the originally
    * scheduled date if rescheduled). */
   reported_date: string;
-  fiscal_period: FiscalPeriod;
+  fiscal_period: FiscalPeriod | null;
   /** Actual reported EPS. */
   eps_actual: number;
   /** Pre-report consensus mean. */
@@ -83,19 +86,20 @@ export interface EarningsSurprise {
  */
 export interface EarningsEstimateDetail {
   symbol: string;
-  fiscal_period: FiscalPeriod;
+  fiscal_period: FiscalPeriod | null;
   eps_estimate_mean: number;
   eps_estimate_median: number | null;
   eps_estimate_high: number;
   eps_estimate_low: number;
   eps_estimate_stddev: number | null;
-  estimate_analyst_count: number;
-  /** Same fields for revenue. */
+  estimate_analyst_count: number | null;
+  /** Same fields for revenue (median/stddev null unless the provider supplies
+   * them; the count is the revenue frame's own, never the EPS count). */
   revenue_estimate_mean: number | null;
   revenue_estimate_median: number | null;
   revenue_estimate_high: number | null;
   revenue_estimate_low: number | null;
-  revenue_analyst_count: number;
+  revenue_analyst_count: number | null;
   currency: string;
   provider: string;
   /** ISO-8601 timestamp of the most recent estimate refresh from the
@@ -124,7 +128,7 @@ export interface EarningsSurprisesResponse {
 
 /** Returned by ``/earnings/{symbol}/history``. */
 export interface EarningsHistoryEntry {
-  fiscal_period: FiscalPeriod;
+  fiscal_period: FiscalPeriod | null;
   reported_date: string;
   eps_actual: number;
   eps_estimate_mean: number | null;

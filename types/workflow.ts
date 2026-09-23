@@ -64,12 +64,28 @@ export interface WorkflowSpec {
   name: string;
   /** Optional one-line description shown in the workflow list. */
   description?: string;
-  /** Schema version; the engine refuses unknown majors. v0.5.0 ships `1`. */
+  /**
+   * Schema version; v0.5.0 ships `1`. The sidecar refuses to load a saved
+   * spec of another major (409) and lists it under `unreadable`.
+   */
   version: number;
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
   /** Epoch milliseconds when this workflow was last saved. */
   updatedAt: number;
+}
+
+/** A saved row this build cannot open (invalid spec or another schema major). */
+export interface UnreadableWorkflow {
+  id: string;
+  name: string;
+  reason: string;
+}
+
+/** `GET /workflow/saved` — the openable specs plus the rows that are not. */
+export interface SavedWorkflows {
+  workflows: WorkflowSpec[];
+  unreadable: UnreadableWorkflow[];
 }
 
 // ---------------------------------------------------------------------------
@@ -111,10 +127,13 @@ export type WorkflowRunEvent =
       kind: "node-output";
       runId: string;
       nodeId: string;
+      /** A port on an un-taken branch path is omitted (not `null`). */
       outputs: Record<string, unknown>;
       durationMs: number;
     }
   | { kind: "node-error"; runId: string; nodeId: string; message: string; durationMs: number }
+  /** Every input came from an un-taken branch path, so the node did not run. */
+  | { kind: "node-skipped"; runId: string; nodeId: string; nodeType: string }
   | { kind: "run-complete"; runId: string; durationMs: number }
   | { kind: "run-error"; runId: string; message: string; durationMs: number };
 
@@ -122,7 +141,7 @@ export type WorkflowRunEvent =
 export interface NodeRunResult {
   nodeId: string;
   nodeType: string;
-  status: "ok" | "error";
+  status: "ok" | "error" | "skipped";
   outputs: Record<string, unknown>;
   error?: string;
   durationMs: number;

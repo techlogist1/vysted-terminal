@@ -32,6 +32,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
 from services.indicators import SUPPORTED_INDICATORS
+from services.research.depth import DEPTH_DEEP, DEPTH_ULTRA, PROFILES
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
 # the domain tag projected to the MCP surface (FR-021).
@@ -88,6 +89,13 @@ DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
         "disclosure",
         "shareholding",
         "promoter",
+        "bulk deal",
+        "block deal",
+        "sast",
+        "corporate action",
+        "dividend",
+        "bonus",
+        "stock split",
     ),
     "quant": ("option", "greeks", "black-scholes", "bond", "yield curve", "implied vol"),
     "agents": ("agent", "delegate"),
@@ -104,6 +112,13 @@ ToolKind = Literal["read_handler", "per_invocation", "host_action", "mcp_endpoin
 
 _TF_ENUM = ["1d", "1h", "1wk", "1mo"]
 _ASSET_ENUM = ["equity", "crypto"]
+#: The research wall range, read from the depth table so the schema can never
+#: advertise a ceiling below a profile's own wall (R15-CODE-RESEARCH-001).
+_RESEARCH_WALL_DESCRIPTION = (
+    f"30-{max(300, *(p.wall_seconds for p in PROFILES.values()))} seconds "
+    "(deep/heavy only). Omit it: each depth sets its own budget (deep "
+    f"{PROFILES[DEPTH_DEEP].wall_seconds}, heavy {PROFILES[DEPTH_ULTRA].wall_seconds})."
+)
 _MACRO_PROVIDERS = ["fred", "ecb", "imf", "world-bank"]
 _DATE = {"type": "string", "description": "ISO date, YYYY-MM-DD"}
 # R10 (D40): the screener universes, including the full-market India universes
@@ -195,7 +210,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "price_data",
             description=(
                 "Recent OHLCV bars + the latest quote for a symbol. Use to check "
-                "price, recent action, volatility, or drawdown."
+                "price, recent action, volatility, or drawdown. Returns at most "
+                "the newest 90 bars: bars_returned, bars_available and "
+                "window_start say which window the bars actually cover, so compute "
+                "a figure over that window (or a shorter range), not the one asked."
             ),
             input_schema=_obj(
                 {
@@ -285,6 +303,33 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             kind="read_handler",
             timeout_seconds=15.0,
         ),
+        _cap(
+            "financial_statements",
+            description=(
+                "One financial statement for a company — income, balance sheet or "
+                "cash flow — annual (fiscal years) or quarterly (ISO period-end "
+                "dates), newest first, capped at the newest 8 periods "
+                "(periods_available says how many exist). Use for revenue, margin, "
+                "debt or cash-flow series over years or quarters; fundamentals "
+                "gives only point-in-time ratios."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string", "description": "Ticker, e.g. AAPL or TCS.NS"},
+                    "statement": {"type": "string", "enum": ["income", "balance", "cashflow"]},
+                    "period": {
+                        "type": "string",
+                        "enum": ["annual", "quarterly"],
+                        "default": "annual",
+                    },
+                },
+                ["symbol", "statement"],
+            ),
+            domain="fundamentals",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=30.0,
+        ),
         # --- news ------------------------------------------------------------
         _cap(
             "news",
@@ -316,7 +361,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "moved'). Resolves the user's benchmark indices (US: S&P 500 / "
                 "Nasdaq / Dow + SPY/QQQ; IN: Nifty 50 / Sensex), fetches a live "
                 "quote for each, and pulls recent market headlines. Returns "
-                "{region, indices:[...], headlines:[...]}. Synthesize from it — "
+                "{region, indices:[...], headlines:[...]}; headlines_error is set "
+                "when the news feed is down (then say headlines are unavailable, "
+                "not that there is no news). Synthesize from it — "
                 "never answer market state from memory."
             ),
             input_schema=_obj(
@@ -420,8 +467,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                     "wall_seconds": {
                         "type": "integer",
-                        "default": 120,
-                        "description": "30-300 (deep/heavy only).",
+                        "description": _RESEARCH_WALL_DESCRIPTION,
                     },
                     "backend": {
                         "type": "string",
@@ -666,6 +712,13 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "type": "string",
                         "description": "CIK or ticker that owns the filing.",
                     },
+                    "form_type": {
+                        "type": "string",
+                        "description": (
+                            "Optional: the filing's form as sec_filings_list reported it "
+                            "(e.g. 10-K) — speeds up the lookup."
+                        ),
+                    },
                 },
                 ["accession", "identifier"],
             ),
@@ -740,17 +793,20 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
         _cap(
             "shareholding_pattern",
             description=(
-                "Quarterly shareholding pattern for an NSE-listed Indian company — "
-                "promoter(+group), public, and employee-trust percentages per quarter, "
-                "newest first, with each quarter's XBRL filing link (which carries the "
-                "full FII/DII split). Use to check promoter-stake trends and ownership "
-                "shifts on Indian names."
+                "Quarterly shareholding pattern for an NSE- or BSE-listed Indian "
+                "company, newest quarter first: promoter(+group), public (incl. "
+                "institutions) and the non-institutional float, the FII/DII/"
+                "institutions split, and the promoter pledge (pledged or encumbered, "
+                "percent of the promoter holding; 0 when the filing declares none, "
+                "null when it declares nothing). source/split_source/split_as_of/"
+                "split_basis state where each figure came from. Use to check "
+                "promoter-stake and pledge trends and ownership shifts on Indian names."
             ),
             input_schema=_obj(
                 {
                     "symbol": {
                         "type": "string",
-                        "description": "NSE ticker, e.g. RELIANCE.",
+                        "description": "NSE/BSE ticker, e.g. RELIANCE.",
                     }
                 },
                 ["symbol"],
@@ -759,6 +815,54 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+        ),
+        _cap(
+            "corporate_actions",
+            description=(
+                "Corporate actions of an Indian (NSE/BSE) listed company from BOTH "
+                "exchanges — dividends, bonuses, splits, rights issues and buybacks, "
+                "newest ex-date first. Each row: kind, the exchange's verbatim "
+                "purpose, ratio (e.g. '7:24'), amount_per_share, ex_date, "
+                "record_date, payment_date and exchange ('NSE+BSE' when both carry "
+                "it). Use for 'last dividend and its dates', bonus/split history or "
+                "dilution on Indian names."
+            ),
+            input_schema=_obj(
+                {"symbol": {"type": "string", "description": "NSE/BSE ticker, e.g. JONJUA."}},
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=30.0,
+        ),
+        _cap(
+            "exchange_deals",
+            description=(
+                "Bulk deals, block deals and SAST (SEBI Reg 29 substantial-"
+                "acquisition) disclosures for an Indian (NSE/BSE) listed company, "
+                "newest first — who bought or sold a large block, at what price, and "
+                "(SAST) their holding after. Each row: kind, date, party, side, "
+                "quantity, price, value, percent_after, exchange, source_url. NSE "
+                "listings get all three (bulk/block over the last year); a BSE-only "
+                "scrip gets BSE bulk/block. The India counterpart of "
+                "sec_insider_transactions."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string", "description": "NSE/BSE ticker, e.g. KOPRAN."},
+                    "kind": {
+                        "type": "string",
+                        "enum": ["bulk", "block", "sast"],
+                        "description": "Optional filter; omit for every kind.",
+                    },
+                },
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=45.0,
         ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(
@@ -980,6 +1084,26 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             description="Read the user's local (manually-entered) portfolio positions with P&L.",
             input_schema=_obj({}),
             domain="portfolio",
+            read_only=True,
+            kind="per_invocation",
+        ),
+        _cap(
+            "read_notes",
+            description=(
+                "Read the user's own notes (their thesis) for a scope. Call it "
+                "before write_note with mode 'replace', and whenever the user refers "
+                "to their notes, thesis or plan for a stock."
+            ),
+            input_schema=_obj(
+                {
+                    "scope": {
+                        "type": "string",
+                        "description": "'global' or a symbol, e.g. 'BDL'",
+                    }
+                },
+                ["scope"],
+            ),
+            domain="workspace",
             read_only=True,
             kind="per_invocation",
         ),

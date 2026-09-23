@@ -441,7 +441,7 @@ async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     provider = _FakeProvider()
     _patch_provider(monkeypatch, provider)
 
-    async def _fake_complete(prov, model, key, messages):  # noqa: ANN001, ANN202
+    async def _fake_complete(prov, model, key, messages, *, timeout=None):  # noqa: ANN001, ANN202
         return (
             '[{"action":"set_chart_symbol","args":{"symbol":"AAPL"},"rationale":"chart AAPL"},'
             '{"action":"add_to_watchlist","args":{"symbol":"NVDA"},"rationale":"watch NVDA"}]'

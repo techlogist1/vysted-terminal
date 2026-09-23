@@ -7,14 +7,16 @@ keyless-first, locale-ranked, with disambiguation when confidence is low —
 Design (research §A.3 — keep resolution and data-fetch separate):
 
   * **Stage 1 — bundled masters (offline, deterministic):** the SEC
-    ``company_tickers`` snapshot (US) + the NSE ``EQUITY_L`` + ETF list + the
-    full regenerated BSE scrip master, shipped under
-    :mod:`services.resolver_masters`. An exact ticker hit is instant; a
+    ``company_tickers`` snapshot (US) + the NSE ``EQUITY_L`` + Emerge + ETF lists
+    + the full regenerated BSE scrip master, shipped under
+    :mod:`services.resolver_masters` and unioned with a daily runtime refresh of
+    the same exchange lists (R15-DATA-017). An exact ticker hit is instant; a
     name query is fuzzy-matched and locale-ranked.
-  * **Stage 2 — live keyless fallback (best-effort):** only when the masters
-    miss, a guarded ``yfinance.Search`` lookup catches names/tickers not in the
-    bundle. Network-guarded so it never blocks (and tests of bundled symbols
-    never touch the network).
+  * **Stage 2 — live keyless fallback (best-effort):** when the masters miss,
+    or their best hit is a fuzzy match on generic words only, a guarded
+    ``yfinance.Search`` lookup catches names/tickers not in the bundle.
+    Network-guarded so it never blocks (and tests of bundled symbols never touch
+    the network).
 
 Master hygiene (R7 Component 4)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,6 +76,7 @@ from difflib import SequenceMatcher
 from functools import lru_cache
 from importlib import resources
 
+import config
 from services import nse_symbol_change, provider_health
 from services.locale import (
     REGION_GLOBAL,
@@ -96,6 +99,8 @@ from services.resolution_policy import (
     decide,
     same_instrument,
 )
+from services.resolver_masters import regenerate_bse_master, regenerate_nse_master
+from services.resolver_masters.regenerate_bse_master import is_rights_entitlement
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +129,32 @@ _MAX_CANDIDATES = 6
 # a throttled/blocked upstream once per unresolved query.
 _LIVE_CACHE_MAX_ENTRIES = 128
 _LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
-_live_cache: OrderedDict[tuple[str, str], list[Instrument]] = OrderedDict()
+# A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
+# a post-snapshot listing, so a stale negative would hide it until restart.
+_LIVE_EMPTY_TTL_SECONDS = 300.0
+_live_cache: OrderedDict[tuple[str, str], tuple[float, list[Instrument]]] = OrderedDict()
 _live_cache_lock = threading.Lock()
 _live_cooldown_until = 0.0  # monotonic deadline; 0 = no cooldown
+# A name token found in at least this many master names is generic ("engineering",
+# "green", "bank"); a fuzzy best hit sharing only such tokens with the query does
+# not stop the live rung (R15-DATA-017). ponytail: a document-frequency cut, not
+# a curated list; tune the number if a real name misfires.
+_GENERIC_TOKEN_MIN_NAMES = 20
+
+# --- runtime master refresh (R15-DATA-017, D-B5-7) ----------------------------
+# The bundled masters are a snapshot; a daily off-hot-path fetch of the same
+# exchange lists lands in ``<data-dir>/resolver_masters/`` and the loaders union
+# it with the bundled file. Membership never does network I/O at call time.
+_REFRESH_INTERVAL_SECONDS = 24 * 60 * 60
+# How often the refresh thread checks for a day-old copy (a stat when fresh), so
+# a fetch that failed at boot is retried within the hour, not the next day.
+_REFRESH_CHECK_SECONDS = 60 * 60
+_REFRESH_FETCHERS = {
+    "nse_instruments.json": regenerate_nse_master.fetch_master,
+    "bse_instruments.json": regenerate_bse_master.fetch_master,
+}
+_refresh_lock = threading.Lock()
+_refresh_thread: threading.Thread | None = None
 
 # Leading command verbs the models prepend to a company name ("research
 # Reliance") — stripped during query cleaning so the verb never fuzzy-binds an
@@ -266,15 +294,18 @@ class Resolution:
 
 @lru_cache(maxsize=1)
 def _nse_master() -> dict[str, tuple[str, str]]:
-    """``{SYMBOL: (name, type)}`` for NSE equities + ETFs (type EQ | ETF)."""
-    raw = _load_master("nse_instruments.json")
+    """``{SYMBOL: (name, type)}`` for NSE equities, Emerge names and ETFs (type
+    EQ | SM | ETF): the bundled master unioned with the runtime-refreshed one (a
+    refreshed row wins; bundled order is kept). Rights-entitlement lines are
+    skipped."""
     out: dict[str, tuple[str, str]] = {}
-    for row in raw.get("instruments", []):
-        sym = str(row[0]).strip().upper()
-        name = str(row[1]).strip()
-        typ = str(row[2]).strip().upper() if len(row) > 2 else "EQ"
-        if sym:
-            out[sym] = (name, typ)
+    for raw in _master_layers("nse_instruments.json"):
+        for row in raw.get("instruments", []):
+            sym = str(row[0]).strip().upper()
+            name = str(row[1]).strip()
+            typ = str(row[2]).strip().upper() if len(row) > 2 else "EQ"
+            if sym and not is_rights_entitlement(sym, "", ""):
+                out[sym] = (name, typ)
     return out
 
 
@@ -290,16 +321,16 @@ def _bse_master() -> dict[str, tuple[str, str, str, str]]:
     payload so a BSE-only micro-cap (KSE Ltd, INE953E01022) is anchored to the
     ONE real company, never its foreign-ticker collision.
     """
-    raw = _load_master("bse_instruments.json")
     out: dict[str, tuple[str, str, str, str]] = {}
-    for row in raw.get("instruments", []):
-        code = str(row[0]).strip() if len(row) > 0 else ""
-        sym = str(row[1]).strip().upper() if len(row) > 1 else ""
-        name = str(row[2]).strip() if len(row) > 2 else ""
-        group = str(row[3]).strip().upper() if len(row) > 3 else ""
-        isin = str(row[4]).strip().upper() if len(row) > 4 else ""
-        if sym:
-            out[sym] = (name, group, code, isin)
+    for raw in _master_layers("bse_instruments.json"):
+        for row in raw.get("instruments", []):
+            code = str(row[0]).strip() if len(row) > 0 else ""
+            sym = str(row[1]).strip().upper() if len(row) > 1 else ""
+            name = str(row[2]).strip() if len(row) > 2 else ""
+            group = str(row[3]).strip().upper() if len(row) > 3 else ""
+            isin = str(row[4]).strip().upper() if len(row) > 4 else ""
+            if sym and not is_rights_entitlement(sym, group, isin):
+                out[sym] = (name, group, code, isin)
     return out
 
 
@@ -377,6 +408,70 @@ def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
         return fallback if fallback is not None else {"instruments": []}
 
 
+def _refreshed_master(filename: str) -> dict | None:
+    """The runtime-refreshed copy of a bundled master, or ``None``.
+
+    The first call starts the daily background refresh; reading the file is the
+    only I/O here (no network on the hot path)."""
+    _schedule_master_refresh()
+    try:
+        raw = json.loads((config.get_data_dir() / "resolver_masters" / filename).read_text("utf-8"))
+    except (OSError, ValueError):
+        return None
+    return raw if isinstance(raw, dict) else None
+
+
+def _master_layers(filename: str) -> list[dict]:
+    """The bundled master, then its refreshed copy when one exists."""
+    refreshed = _refreshed_master(filename)
+    bundled = _load_master(filename)
+    return [bundled, refreshed] if refreshed else [bundled]
+
+
+def _schedule_master_refresh() -> None:
+    """Start the daily refresh thread once per process (daemon, off the hot path)."""
+    global _refresh_thread
+    with _refresh_lock:
+        if _refresh_thread is None:
+            _refresh_thread = threading.Thread(
+                target=_refresh_loop, name="resolver-master-refresh", daemon=True
+            )
+            _refresh_thread.start()
+
+
+def _refresh_loop() -> None:
+    while True:
+        refresh_masters()
+        time.sleep(_REFRESH_CHECK_SECONDS)
+
+
+def refresh_masters() -> None:
+    """Fetch the NSE and BSE lists into ``<data-dir>/resolver_masters/`` when the
+    copy there is missing or a day old, then drop the loader caches so the next
+    lookup unions the new rows. A failed fetch keeps the previous copy."""
+    folder = config.get_data_dir() / "resolver_masters"
+    folder.mkdir(parents=True, exist_ok=True)
+    fetched = False
+    for filename, fetch in _REFRESH_FETCHERS.items():
+        path = folder / filename
+        if path.exists() and time.time() - path.stat().st_mtime < _REFRESH_INTERVAL_SECONDS:
+            continue
+        try:
+            master = fetch()
+        except (Exception, SystemExit) as exc:  # noqa: BLE001 - the bundled master still serves
+            logger.warning("symbol_resolver: master refresh failed for %s: %s", filename, exc)
+            continue
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(master, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(path)
+        fetched = True
+    if fetched:
+        _nse_master.cache_clear()
+        _bse_master.cache_clear()
+        _bse_scrip_index.cache_clear()
+        _generic_tokens.cache_clear()
+
+
 def reset_caches_for_tests() -> None:
     """Drop the in-process master caches + the live-lookup budget (test helper)."""
     _nse_master.cache_clear()
@@ -385,6 +480,7 @@ def reset_caches_for_tests() -> None:
     _us_master.cache_clear()
     _marquee_aliases.cache_clear()
     _india_sector_map.cache_clear()
+    _generic_tokens.cache_clear()
     _reset_live_lookup_for_tests()
 
 
@@ -404,6 +500,13 @@ def _reset_live_lookup_for_tests() -> None:
 def is_nse_symbol(symbol: str) -> bool:
     """True if the bare form of ``symbol`` is a known NSE equity/ETF."""
     return strip_exchange_suffix(symbol) in _nse_master()
+
+
+def is_nse_emerge(symbol: str) -> bool:
+    """True if ``symbol`` is an NSE Emerge (SME) listing, which Yahoo serves as
+    ``<SYMBOL>-SM.NS`` (R15-DATA-017)."""
+    entry = _nse_master().get(strip_exchange_suffix(symbol))
+    return entry is not None and entry[1] == "SM"
 
 
 def is_us_symbol(symbol: str) -> bool:
@@ -488,7 +591,7 @@ def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instru
         exchange="NSE",
         region=REGION_IN,
         asset_class=asset_class,
-        yahoo_symbol=f"{symbol}.NS",
+        yahoo_symbol=f"{symbol}-SM.NS" if typ == "SM" else f"{symbol}.NS",
         score=score,
         band=band,
     )
@@ -763,8 +866,8 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     for sym, (name, _typ) in nse_symbols.items():
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_nse, sym)
     for sym, (name, _group, _code, _isin) in _bse_master().items():
-        if sym in nse_symbols:
-            continue  # canonical row is the NSE instrument (dual-listed)
+        if sym in nse_symbols and suffix_exchange != "BSE":
+            continue  # canonical row is the NSE instrument (dual-listed), unless .BO pins BSE
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
     for sym, name in _us_master().items():
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
@@ -789,16 +892,53 @@ def _resolve_masters(query: str, region: str) -> Resolution:
                 query=query, best=retired, candidates=[retired, *ranked][:_MAX_CANDIDATES]
             )
 
-    if ranked:
+    if ranked and not _only_generic_overlap(ranked[0], query_lc):
         return Resolution(query=query, best=ranked[0], candidates=ranked[:_MAX_CANDIDATES])
 
     # 4. Live keyless fallback (best-effort; never blocks; never binds — every
     #    row rides _DISAMBIGUATE_SCORE, which the policy maps to disambiguate).
+    #    Also run when the best master hit is a fuzzy match on generic words only
+    #    ("Sumax Engineering Limited" → six "… Engineering Ltd"): the live rows
+    #    join the candidates after the top master hits (R15-DATA-017).
     live = _live_lookup(cleaned, region) or []
+    if ranked:
+        known = {i.symbol for i in ranked}
+        live = [i for i in live if i.symbol not in known]
+        candidates = (ranked[: _MAX_CANDIDATES // 2] + live + ranked[_MAX_CANDIDATES // 2 :])[
+            :_MAX_CANDIDATES
+        ]
+        return Resolution(query=query, best=ranked[0], candidates=candidates)
     if live:
         return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
 
     return Resolution(query=query, best=None, candidates=[])
+
+
+@lru_cache(maxsize=1)
+def _generic_tokens() -> frozenset[str]:
+    """Name tokens common across the masters (see :data:`_GENERIC_TOKEN_MIN_NAMES`)."""
+    counts: dict[str, int] = {}
+    names = [n for n, _ in _nse_master().values()]
+    names += [row[0] for row in _bse_master().values()]
+    names += list(_us_master().values())
+    for name in names:
+        for token in set(_name_tokens(name.lower())):
+            counts[token] = counts.get(token, 0) + 1
+    return frozenset(t for t, n in counts.items() if n >= _GENERIC_TOKEN_MIN_NAMES)
+
+
+def _name_tokens(name_lc: str) -> list[str]:
+    tokens = (t.strip(_EDGE_PUNCT) for t in name_lc.split())
+    return [t for t in tokens if t and t not in _CORP_SUFFIXES]
+
+
+def _only_generic_overlap(best: Instrument, query_lc: str) -> bool:
+    """True when ``best`` is a fuzzy hit sharing no distinctive (non-generic,
+    non-corporate-suffix) token with the query."""
+    if best.band != BAND_FUZZY:
+        return False
+    distinctive = set(_name_tokens(query_lc)) - _generic_tokens()
+    return not distinctive & set(_name_tokens(best.name.lower()))
 
 
 # ---------------------------------------------------------------------------
@@ -1137,9 +1277,10 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     rows rank first. Network/parse failures degrade to ``[]`` (the caller
     surfaces an honest "unresolved" — never raw JSON, never a guess).
 
-    Budgeted (R11, D58d): results — including a successful empty search — are
-    LRU-cached per ``(query, region)`` so repeated unresolved queries never
-    re-hit the network; ANY failure opens a short module-level cooldown during
+    Budgeted (R11, D58d): results are LRU-cached per ``(query, region)`` so
+    repeated unresolved queries never re-hit the network; a successful EMPTY
+    search expires after :data:`_LIVE_EMPTY_TTL_SECONDS` (a stock listed after
+    the first miss becomes findable); ANY failure opens a short module-level cooldown during
     which the live rung returns ``[]`` immediately. Rate-limit-shaped failures
     (``YFRateLimitError``) are reported to :mod:`services.provider_health`
     (the Yahoo family shares one IP reputation across every yfinance path);
@@ -1149,9 +1290,11 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     key = (query, region)
     with _live_cache_lock:
         cached = _live_cache.get(key)
-        if cached is not None:
+        if cached is not None and (
+            cached[1] or time.monotonic() - cached[0] < _LIVE_EMPTY_TTL_SECONDS
+        ):
             _live_cache.move_to_end(key)
-            return list(cached)
+            return list(cached[1])
         if time.monotonic() < _live_cooldown_until:
             return []
 
@@ -1191,7 +1334,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     if region == REGION_IN:
         out.sort(key=lambda i: i.region == REGION_IN, reverse=True)
     with _live_cache_lock:
-        _live_cache[key] = list(out)
+        _live_cache[key] = (time.monotonic(), list(out))
         _live_cache.move_to_end(key)
         while len(_live_cache) > _LIVE_CACHE_MAX_ENTRIES:
             _live_cache.popitem(last=False)
@@ -1207,9 +1350,11 @@ __all__ = [
     "bse_scrip_code",
     "dual_listed_bse_code",
     "is_bse_symbol",
+    "is_nse_emerge",
     "is_nse_symbol",
     "is_us_symbol",
     "region_hint",
+    "refresh_masters",
     "reset_caches_for_tests",
     "resolve",
 ]

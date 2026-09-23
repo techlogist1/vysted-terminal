@@ -11,6 +11,8 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { useScreenerStore } from "@/store/screener";
 
+import type { CriterionGroup } from "../../../types/screener";
+import { CriterionGroupEditor } from "./CriterionGroupEditor";
 import { ScreenerCriteriaBuilder } from "./ScreenerCriteriaBuilder";
 
 vi.mock("@/lib/sidecar-client", () => ({
@@ -64,6 +66,57 @@ describe("ScreenerCriteriaBuilder", () => {
 
     expect(screen.getByLabelText(/numeric min/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/numeric max/i)).toBeInTheDocument();
+  });
+
+  it("R15-UI-045: an operator change carries the typed threshold through", () => {
+    useScreenerStore.getState().setCriteria([{ field: "pe_ratio", operator: "lt", value: 8 }]);
+    render(<ScreenerCriteriaBuilder />);
+    const opSelect = screen
+      .getByTestId("criterion-row-0")
+      .querySelector('select[aria-label="numeric operator"]')!;
+
+    fireEvent.change(opSelect, { target: { value: "between" } });
+    expect(useScreenerStore.getState().criteria[0]).toEqual({
+      field: "pe_ratio",
+      operator: "between",
+      value: { min: 8, max: 8 },
+    });
+
+    fireEvent.change(opSelect, { target: { value: "lt" } });
+    expect(useScreenerStore.getState().criteria[0]).toEqual({
+      field: "pe_ratio",
+      operator: "lt",
+      value: 8,
+    });
+  });
+
+  it("R15-UI-045: the nested-group editor keeps the value across an operator change too", () => {
+    const tree: CriterionGroup = {
+      combinator: "and",
+      criteria: [
+        { combinator: "or", criteria: [{ field: "market_cap", operator: "gt", value: 1e11 }] },
+      ],
+    };
+    const onChange = vi.fn();
+    const { rerender } = render(<CriterionGroupEditor group={tree} onChange={onChange} />);
+    const opSelect = () => document.querySelector('select[aria-label="numeric operator"]')!;
+
+    fireEvent.change(opSelect(), { target: { value: "between" } });
+    const between = onChange.mock.lastCall![0] as CriterionGroup;
+    expect((between.criteria[0] as CriterionGroup).criteria[0]).toEqual({
+      field: "market_cap",
+      operator: "between",
+      value: { min: 1e11, max: 1e11 },
+    });
+
+    rerender(<CriterionGroupEditor group={between} onChange={onChange} />);
+    fireEvent.change(opSelect(), { target: { value: "gte" } });
+    const scalar = onChange.mock.lastCall![0] as CriterionGroup;
+    expect((scalar.criteria[0] as CriterionGroup).criteria[0]).toEqual({
+      field: "market_cap",
+      operator: "gte",
+      value: 1e11,
+    });
   });
 
   it("Empty criteria list renders a friendly placeholder", () => {

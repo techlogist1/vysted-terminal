@@ -4,7 +4,14 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { usePortfoliosStore } from "@/store/portfolios";
 import type { PanelContextEvent } from "../../../types/panel-context";
 
-import { captureTerminalState } from "./context-provider";
+import { useNotesStore } from "@/store/notes";
+
+import {
+  captureNotes,
+  captureTerminalState,
+  NOTE_CHAR_CAP,
+  NOTE_TRUNCATION_MARKER,
+} from "./context-provider";
 
 /** Publish a portfolio snapshot event onto the live bus. */
 function publishPortfolio(payload: unknown): void {
@@ -193,5 +200,20 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         pnl: null,
       },
     ]);
+  });
+});
+
+describe("captureNotes — the __notes__ entry (R15-AGENT-020)", () => {
+  afterEach(() => {
+    useNotesStore.setState({ general: "", bySymbol: {} });
+  });
+
+  it("caps a long note with a marker and drops empty ones", () => {
+    const long = "Order book covers 3.5 years of revenue. ".repeat(200);
+    useNotesStore.setState({ general: "  ", bySymbol: { BDL: long, HAL: "" } });
+    const notes = captureNotes();
+    expect(notes.general).toBe("");
+    expect(Object.keys(notes.bySymbol)).toEqual(["BDL"]);
+    expect(notes.bySymbol.BDL).toBe(long.slice(0, NOTE_CHAR_CAP) + NOTE_TRUNCATION_MARKER);
   });
 });

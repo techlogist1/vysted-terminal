@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { resetMessageNoticesForTests } from "@/modules/chat/message-notices";
+import { LENGTH_NOTICE } from "@/modules/chat/streaming";
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
@@ -14,6 +15,7 @@ import { useChatPendingStore } from "@/store/chat-pending";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useOnboardingStore } from "@/store/onboarding";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useNotesStore } from "@/store/notes";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
 
@@ -477,6 +479,21 @@ describe("ChatSidebar", () => {
     expect(useChatHistoryStore.getState().messages[0].role).toBe("user");
   });
 
+  it("a raw chat cut at the output limit says so under the answer (R15-AGENT-026)", async () => {
+    streamChatMock.mockImplementationOnce((async (
+      _payload: unknown,
+      handlers: { onEvent: (event: unknown) => void },
+    ) => {
+      handlers.onEvent({ kind: "delta", text: "RELIANCE closed at Rs 1,4" });
+      handlers.onEvent({ kind: "done", finishReason: "length" });
+    }) as unknown as () => Promise<undefined>);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/ask price of RELIANCE?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(LENGTH_NOTICE)).toBeInTheDocument());
+  });
+
   it("/agent buffett invokes the agent endpoint with the context snapshot", async () => {
     // Seed a chart panel context so the snapshot has content.
     usePanelContextBus.setState({
@@ -514,6 +531,55 @@ describe("ChatSidebar", () => {
     };
     expect(terminal.focusedSymbol).toBe("SPY");
     expect(terminal.charts[0].symbol).toBe("SPY");
+  });
+
+  it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
+    // The real dockview ids: PanelHost focuses "equity-overview" while the
+    // chart ("chart") still shows SPY.
+    const bus = usePanelContextBus.getState();
+    bus.publish({
+      source: "chart",
+      kind: "snapshot",
+      payload: { symbol: "SPY", timeframe: "1d" },
+      emittedAt: 1,
+    });
+    bus.publish({
+      source: "equity-overview",
+      kind: "symbol",
+      payload: { ticker: "INFY", loadedSections: ["quote"] },
+      emittedAt: 2,
+    });
+    bus.setFocusedSource("equity-overview");
+    render(<ChatSidebar />);
+    expect(screen.getByLabelText("Panel context")).toHaveTextContent(
+      "Context: equity-overview (INFY)",
+    );
+    expect(screen.getByRole("button", { name: /Research \$INFY/ })).toBeInTheDocument();
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/agent buffett is this a moat business?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = streamAgentInvocationMock.mock.calls[0]![1] as unknown as {
+      contextSnapshot: { bySource: Record<string, { focusedSymbol: string }> };
+    };
+    expect(payload.contextSnapshot.bySource["__terminal__"].focusedSymbol).toBe("INFY");
+  });
+
+  it("an agent send carries the user's notes as __notes__ (R15-AGENT-020)", async () => {
+    useNotesStore.setState({ general: "", bySymbol: { BDL: "exit if promoter pledge > 20%" } });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/agent buffett does BDL still fit my thesis?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = streamAgentInvocationMock.mock.calls[0]![1] as unknown as {
+      contextSnapshot: { bySource: Record<string, unknown> };
+    };
+    expect(payload.contextSnapshot.bySource["__notes__"]).toEqual({
+      general: "",
+      bySymbol: { BDL: "exit if promoter pledge > 20%" },
+    });
+    useNotesStore.setState({ general: "", bySymbol: {} });
   });
 
   it("/help shows the cheat-sheet without sending a message", () => {
@@ -730,16 +796,52 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
   });
 
-  it("renders the runtime's publish-divergence notice as a quiet chip, not a step row (D39)", async () => {
+  it("a history compaction notice renders the older-turns marker and the context meter (R15-AGENT-040)", async () => {
     streamAgentInvocationMock.mockImplementationOnce(
       async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
         handlers.onEvent({
           kind: "research_step",
           toolCallId: "",
-          tool: "research",
-          stepKind: "engine",
-          detail: "The panel kept the previous, richer brief.",
+          tool: "history",
+          stepKind: "notice",
+          detail: "Older turns summarised: the 4 earliest messages of this thread were folded.",
           status: "ok",
+          index: 1,
+        });
+        handlers.onEvent({ kind: "delta", text: "BDL delivered 92% of FY26 guidance." });
+        handlers.onEvent({
+          kind: "done",
+          usage: { inputTokens: 6_000, outputTokens: 192 },
+          contextWindow: 32_768,
+        });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "and the latest quarter?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByRole("note", { name: "Older turns summarised" })).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/the 4 earliest messages/)).toBeNull();
+    expect(screen.getByLabelText("Context meter")).toHaveTextContent(
+      "Context 6,192 / 32,768 tokens (19%)",
+    );
+  });
+
+  // R15-AGENT-031 / R15-UI-054: this used to feed the regex's own stale copy on
+  // the engine kind; the chip now keys on the notice kind, so the runtime's
+  // current wording (which the old regex never matched) renders as a chip.
+  it("renders a runtime notice as a quiet chip by kind, not a step row (C9)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "research_step",
+          toolCallId: "pub-1",
+          tool: "publish_brief",
+          stepKind: "notice",
+          detail: "The brief panel reported the publish failed (AAPL).",
+          status: "error",
           index: 1,
         });
         handlers.onEvent({ kind: "delta", text: "Here is the report." });
@@ -751,7 +853,9 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     fireEvent.change(input, { target: { value: "research reliance" } });
     fireEvent.submit(input.closest("form")!);
     await waitFor(() =>
-      expect(screen.getByText("The panel kept the previous, richer brief.")).toBeInTheDocument(),
+      expect(
+        screen.getByText("The brief panel reported the publish failed (AAPL)."),
+      ).toBeInTheDocument(),
     );
     // It is a transcript chip — NOT a collapsed step-trace entry.
     expect(screen.queryByRole("button", { name: /step trace/i })).toBeNull();

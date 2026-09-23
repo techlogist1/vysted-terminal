@@ -556,10 +556,21 @@ async def list_filings(
     return response
 
 
+#: ``get_filing``'s metadata-lookup windows, smallest first (R15-LEAD-010).
+#: sec-edgar-mcp 1.0.8 reads each row's ``period_of_report``, which fetches that
+#: filing's SGML from EDGAR, so a window's cost grows per row: 200+ rows time
+#: out or fail ("cannot unpack non-iterable NoneType") and 400 hangs past the
+#: client timeout. The lookup opens with base's 40-row request and widens once.
+# ponytail: an unhinted filing past row 100 is not_found; the form hint (a
+# form-filtered list) is how deeper filings resolve.
+_FILING_WINDOWS = (40, 100)
+
+
 async def get_filing(
     accession: str,
     *,
     cik_or_symbol: str | None = None,
+    form_type: str | None = None,
 ) -> FilingDetail:
     """Return the parsed filing detail for one accession.
 
@@ -572,6 +583,12 @@ async def get_filing(
     a synthesised ``Filing`` — so an accession outside the list window (or
     one sec-edgar-mcp doesn't recognise) surfaces as an honest 404, not a
     filing that reads "10-K filed today" with no company name.
+
+    R15-LEAD-010: ``form_type`` is the listed row's form — the lookup runs over
+    that form-filtered list first (what the panel showed), then, with no hint
+    or on a miss, over the unfiltered list. Each pass opens with a 40-row
+    window and widens to 100 only when a full window misses. A failed hinted
+    lookup falls back to the unfiltered list; a failed unfiltered one raises.
     """
     if not accession:
         raise ProviderError("accession is required")
@@ -584,12 +601,24 @@ async def get_filing(
     # Metadata FIRST — the sectioning call below needs the filing's REAL
     # form_type (a 10-Q sectioned as "10-K" mis-parses its headings), and a
     # miss here must raise, not synthesise a filing (§6 D-B2, R15-DATA-007).
-    list_payload = await _call_tool(
-        "get_recent_filings",
-        {"identifier": identifier, "limit": 40},
-    )
-    _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
-    match = next((f for f in filings if f.accession == accession), None)
+    match = None
+    for form_filter in ([{"form_type": form_type}] if form_type else []) + [{}]:
+        for limit in _FILING_WINDOWS:
+            try:
+                list_payload = await _call_tool(
+                    "get_recent_filings",
+                    {"identifier": identifier, "limit": limit, **form_filter},
+                )
+            except ProviderError:
+                if not form_filter:
+                    raise
+                break  # the hinted list failed: fall back to the unfiltered list
+            _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
+            match = next((f for f in filings if f.accession == accession), None)
+            if match is not None or len(filings) < limit:
+                break  # found, or the list is exhausted: a wider window adds nothing
+        if match is not None:
+            break
     if match is None:
         raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
 

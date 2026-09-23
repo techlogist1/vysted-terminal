@@ -121,10 +121,10 @@ def test_normalize_symbol(raw: str, expected: str) -> None:
         ("SAFE", "SAFE.BO"),
         ("CSL", "CSL.BO"),
         ("ICON", "ICON.BO"),
-        ("AMAL", "AMAL.BO"),
+        ("AMAL", "AMAL.NS"),  # NSE-listed since 2026-08-17
         ("SMR", "SMR.BO"),
         ("TTC", "TTC.BO"),
-        ("SUMAX", "SUMAX.NS"),
+        ("SUMAX", "SUMAX-SM.NS"),  # NSE Emerge: Yahoo -SM.NS (R15-DATA-017)
     ],
 )
 def test_in_session_statement_asks_for_the_indian_listing(

@@ -1,14 +1,19 @@
 """Corporate-disclosure agent tools (R7 Component 3).
 
-Registers two read-only tools the copilot + research agents can invoke so a
+Registers read-only tools the copilot + research agents can invoke so a
 research run on an Indian name can pull real filings:
 
 * ``corporate_announcements(symbol, exchange=None, limit=20)`` — the merged
   BSE+NSE announcement feed (deduped, newest first) from
   :mod:`services.corporate_disclosures`.
 * ``shareholding_pattern(symbol)`` — the quarterly shareholding patterns
-  (promoter/public/employee-trust percentages; the FII/DII split rides the
-  linked XBRL filing and is honest ``None`` here — never fabricated).
+  (promoter/public/employee-trust percentages, the FII/DII split and the
+  promoter pledge; each pattern's ``source``/``split_source``/``split_as_of``/
+  ``split_basis`` carry the provenance — never fabricated).
+* ``corporate_actions(symbol)`` — dividends, bonuses, splits, rights and
+  buybacks from both exchanges with ex/record/payment dates.
+* ``exchange_deals(symbol, kind=None)`` — bulk/block deals and SAST (Reg 29)
+  disclosures, newest first.
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. Both are
@@ -47,9 +52,7 @@ async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": "limit must be an integer"}
     limit = max(1, min(limit, _MAX_LIMIT))
     try:
-        response = await asyncio.to_thread(
-            corporate_disclosures.get_announcements, symbol, exchange, limit
-        )
+        response = await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
     except ProviderError as exc:
         return {"ok": False, "error": f"provider error: {exc}"}
     except Exception as exc:  # noqa: BLE001
@@ -82,10 +85,52 @@ async def _shareholding_pattern(args: dict[str, Any]) -> dict[str, Any]:
         "symbol": response.symbol,
         "count": len(patterns),
         "patterns": [pattern.model_dump(mode="json") for pattern in patterns],
-        "note": (
-            "promoter/public/employee-trust percentages come from the NSE master; "
-            "the FII/DII split lives in each quarter's linked xbrl_url filing."
-        ),
+    }
+
+
+async def _corporate_actions(args: dict[str, Any]) -> dict[str, Any]:
+    """NSE+BSE corporate actions for ``symbol``, newest ex-date first."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, symbol)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+    return {
+        "ok": True,
+        "symbol": response.symbol,
+        "sources": response.sources,
+        "errors": response.errors,
+        "count": response.count,
+        "actions": [action.model_dump(mode="json") for action in response.actions],
+    }
+
+
+async def _exchange_deals(args: dict[str, Any]) -> dict[str, Any]:
+    """Bulk/block deals and SAST disclosures for ``symbol``, newest first."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    kind = args.get("kind")
+    if kind is not None and kind not in corporate_disclosures.DEAL_KINDS:
+        return {"ok": False, "error": f"unknown kind {kind!r} (use bulk, block or sast)"}
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_deals, symbol, kind)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+    return {
+        "ok": True,
+        "symbol": response.symbol,
+        "kind": response.kind,
+        "sources": response.sources,
+        "errors": response.errors,
+        "count": response.count,
+        "deals": [deal.model_dump(mode="json") for deal in response.deals],
     }
 
 
@@ -93,10 +138,14 @@ def register() -> None:
     """Register the disclosure family with the agent-tool registry."""
     register_tool("corporate_announcements", _corporate_announcements)
     register_tool("shareholding_pattern", _shareholding_pattern)
+    register_tool("corporate_actions", _corporate_actions)
+    register_tool("exchange_deals", _exchange_deals)
 
 
 __all__ = [
+    "_corporate_actions",
     "_corporate_announcements",
+    "_exchange_deals",
     "_shareholding_pattern",
     "register",
 ]

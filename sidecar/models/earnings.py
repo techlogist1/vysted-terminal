@@ -20,7 +20,10 @@ QuarterLabel = Literal["Q1", "Q2", "Q3", "Q4", "FY"]
 
 
 class FiscalPeriod(BaseModel):
-    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``."""
+    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``.
+
+    Every ``fiscal_period`` field is ``None`` unless the provider supplies the
+    period — it is never inferred from a report date (R15-DATA-067)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -37,10 +40,12 @@ class EarningsEvent(BaseModel):
     company_name: str | None = None
     scheduled_date: date
     time_of_day: EarningsTimeOfDay
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_estimate_mean: float | None = None
+    #: Measured dispersion only — None unless the provider supplies it.
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5 = 0
+    #: None when the provider gives no count (never a 0 standing in for unknown).
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
     currency: str = "USD"
     provider: str
 
@@ -57,7 +62,7 @@ class EarningsSurprise(BaseModel):
 
     symbol: str
     reported_date: date
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_actual: float
     eps_estimate_mean: float
     eps_surprise: float
@@ -80,18 +85,19 @@ class EarningsEstimateDetail(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     symbol: str
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_estimate_mean: float
     eps_estimate_median: float | None = None
     eps_estimate_high: float
     eps_estimate_low: float
     eps_estimate_stddev: float | None = None
-    estimate_analyst_count: int = Field(ge=0)  # a count, never negative — Phase 9.5
+    estimate_analyst_count: int | None = Field(default=None, ge=0)
     revenue_estimate_mean: float | None = None
     revenue_estimate_median: float | None = None
     revenue_estimate_high: float | None = None
     revenue_estimate_low: float | None = None
-    revenue_analyst_count: int = 0
+    #: The revenue frame's own count — never the EPS count (R15-DATA-032).
+    revenue_analyst_count: int | None = Field(default=None, ge=0)
     currency: str = "USD"
     provider: str
     as_of: datetime
@@ -126,7 +132,7 @@ class EarningsHistoryEntry(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     reported_date: date
     eps_actual: float
     eps_estimate_mean: float | None = None

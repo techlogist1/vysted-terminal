@@ -190,7 +190,12 @@ export type LLMStreamEvent =
       note?: string;
     }
   | { kind: "thinking"; text: string }
-  | { kind: "done"; usage?: LLMUsage; finishReason?: string }
+  /** Liveness while the runtime waits on a provider or a tool (R15-AGENT-025):
+   *  carries nothing; the stream's stall watchdog resets on it. */
+  | { kind: "heartbeat" }
+  /** `contextWindow`: the lane's token window when it has one (Ollama's
+   *  num_ctx), for the composer's context meter (R15-AGENT-040). */
+  | { kind: "done"; usage?: LLMUsage; finishReason?: string; contextWindow?: number }
   | { kind: "error"; message: string };
 
 /** One step of an {@link LLMStreamEvent} `agent_plan` (Track 6 #2). */

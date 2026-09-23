@@ -121,6 +121,18 @@ describe("useSecStore.loadFilingDetail", () => {
     expect(useSecStore.getState().filingDetailStatus).toBe("ready");
     expect(useSecStore.getState().activeAccession).toBe("0000320193-24-000123");
   });
+
+  it("R15-LEAD-010: passes the listed row's form type as the lookup hint", async () => {
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce(FILINGS_FIXTURE)
+      .mockResolvedValueOnce(DETAIL_FIXTURE);
+    await useSecStore.getState().loadFilings("AAPL", "10-Q");
+    await useSecStore.getState().loadFilingDetail("0000320193-24-000100", "AAPL");
+    expect(sidecarGet).toHaveBeenLastCalledWith("/sec/filings/0000320193-24-000100", {
+      identifier: "AAPL",
+      form_type: "10-Q",
+    });
+  });
 });
 
 describe("useSecStore.loadInsider", () => {

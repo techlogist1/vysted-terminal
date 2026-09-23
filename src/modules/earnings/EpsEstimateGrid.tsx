@@ -95,7 +95,10 @@ export function EpsEstimateGrid({ estimate }: Props) {
               {
                 id: "eps-analysts",
                 label: "Analysts",
-                value: String(estimate.estimate_analyst_count),
+                value:
+                  estimate.estimate_analyst_count === null
+                    ? null
+                    : String(estimate.estimate_analyst_count),
               },
             ],
           },

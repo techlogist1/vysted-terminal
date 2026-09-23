@@ -307,6 +307,59 @@ describe("useScreenerStore", () => {
       expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
     }, 10000);
 
+    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+      const RESULT_A: ScreenerResult = { ...RESULT_SAMPLE, universe: "nifty50", rows: [] };
+      let resolveUnaryA!: (r: Response) => void;
+      const unaryA = new Promise<Response>((r) => {
+        resolveUnaryA = r;
+      });
+      let calls = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+        calls++;
+        if (calls === 1) return new Response(null, { status: 404 }); // A: older sidecar
+        if (calls === 2) return unaryA; // A: unary fallback, answered late
+        return makeStreamResponse(RESULT_SAMPLE); // B
+      });
+
+      const runA = useScreenerStore.getState().runScreener();
+      await vi.waitFor(() => expect(calls).toBe(2));
+      await useScreenerStore.getState().runScreener();
+      resolveUnaryA(
+        new Response(JSON.stringify(RESULT_A), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      expect(await runA).toBeNull();
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+      expect(useScreenerStore.getState().status).toBe("ready");
+    });
+
+    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+      const frames = [
+        { event: "progress", phase: "universe", done: 0, total: 1, detail: "resolving" },
+        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+      ];
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const f of frames)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
+          controller.close();
+        },
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+      );
+
+      expect(await useScreenerStore.getState().runScreener()).toBeNull();
+      const state = useScreenerStore.getState();
+      expect(state.status).toBe("error");
+      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");
+      expect(state.progress).toBeNull();
+    });
+
     it("for the custom universe, serialises custom_symbols from the raw text", async () => {
       const fetchMock = mockFetchFallback(RESULT_SAMPLE);
 
@@ -510,6 +563,33 @@ describe("useScreenerStore", () => {
       const before = useScreenerStore.getState().universe;
       useScreenerStore.getState().loadScreen("Ghost");
       expect(useScreenerStore.getState().universe).toBe(before);
+    });
+  });
+
+  describe("adoptRegionDefaultUniverse (R15-CODE-DATA-004)", () => {
+    it("adopts the sidecar's IN default (nifty50) on first mount", async () => {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "nifty50" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(vi.mocked(sidecarGet)).toHaveBeenCalledWith("/screener/default-universe");
+      expect(useScreenerStore.getState().universe).toBe("nifty50");
+    });
+
+    it("keeps sp500 for a US session", async () => {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "sp500" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(useScreenerStore.getState().universe).toBe("sp500");
+    });
+
+    it("never overrides a restored saved screen's universe", async () => {
+      useScreenerStore
+        .getState()
+        .setSavedScreens([
+          { name: "crypto", universe: "crypto-top50", criteria: [], combinator: "and" },
+        ]);
+      useScreenerStore.getState().loadScreen("crypto");
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "nifty50" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(useScreenerStore.getState().universe).toBe("crypto-top50");
     });
   });
 

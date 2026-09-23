@@ -544,7 +544,12 @@ def test_52w_low_printed_on_the_other_venue_is_flagged(monkeypatch: pytest.Monke
     low = out.field_meta["fifty_two_week_low"]
     assert low.status == "flagged"
     assert "87,003.00" in low.reason and "NSE + BSE" in low.reason
-    assert "fifty_two_week_high" not in out.field_meta  # 1,37,000 is within 10% of 1,44,500
+    # 1,37,000 is within 10% of 1,44,500, but it comes from the same provider window
+    # the low proved short, so it is not served ok (R15-DATA-015).
+    high = out.field_meta["fifty_two_week_high"]
+    assert out.fifty_two_week_high == 137000.0
+    assert high.status == "flagged"
+    assert "same provider 52-week window as the flagged low" in high.reason
 
 
 def test_short_exchange_series_flags_only_an_extreme_outside_the_range() -> None:
@@ -555,9 +560,26 @@ def test_short_exchange_series_flags_only_an_extreme_outside_the_range() -> None
     f = _fund(symbol="X.NS", fifty_two_week_high=150.0, fifty_two_week_low=100.0)
     out = correctness_gate.reconcile_52w_range(f, (bars, ["NSE"]), today=_TODAY.date())
 
-    assert "fifty_two_week_high" not in out.field_meta
     assert out.field_meta["fifty_two_week_low"].status == "flagged"
     assert "since 2026-06-22" in out.field_meta["fifty_two_week_low"].reason
+    # The high is not contradicted on its own, but it shares the window the low
+    # proved off, so it is flagged with that reason (R15-DATA-015).
+    assert "as the flagged low" in out.field_meta["fifty_two_week_high"].reason
+
+
+def test_a_flagged_high_flags_the_low_of_the_same_window() -> None:
+    """R15-DATA-015, the other direction: only the high is off by more than the
+    tolerance, and the in-tolerance low is flagged with it."""
+    start = _TODAY - timedelta(days=364)
+    bars = _daily(start, 364, 150.0, 100.0).bars
+    f = _fund(symbol="X.NS", fifty_two_week_high=120.0, fifty_two_week_low=98.0)
+    out = correctness_gate.reconcile_52w_range(f, (bars, ["NSE"]), today=_TODAY.date())
+
+    assert out.field_meta["fifty_two_week_high"].status == "flagged"
+    low = out.field_meta["fifty_two_week_low"]
+    assert low.status == "flagged"
+    assert "as the flagged high" in low.reason
+    assert out.fifty_two_week_low == 98.0
 
 
 def test_agreeing_dual_listed_range_is_untouched(monkeypatch: pytest.MonkeyPatch) -> None:

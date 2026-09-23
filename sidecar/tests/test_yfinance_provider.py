@@ -269,7 +269,9 @@ def test_get_fundamentals_accepts_a_legitimate_bse_name(monkeypatch) -> None:  #
 @pytest.mark.parametrize(
     ("bare", "expected"),
     [
-        ("KSE", "KSE.BO"),  # BSE-only listing (BSE 519421, never on NSE) → .BO
+        # BSE-only listing (BSE 542669; KSE, the old example, listed on NSE in
+        # 2026-08, so the regenerated master makes it dual-listed) → .BO
+        ("BMW", "BMW.BO"),
         ("GOLDBEES", "GOLDBEES.NS"),  # NSE-only → .NS
         ("RELIANCE", "RELIANCE.NS"),  # dual NSE+BSE — the INR NSE listing wins
         ("TCS", "TCS.NS"),  # dual NSE+BSE → .NS
@@ -294,18 +296,19 @@ def test_yahoo_symbol_routes_bse_only_to_bo(bare: str, expected: str) -> None:
 def test_get_fundamentals_bse_only_ticker_fetches_bo(
     recording_ticker: type[_RecordingTicker],
 ) -> None:
-    """End-to-end: get_fundamentals('KSE') must construct a Yahoo Ticker for
-    ``KSE.BO`` (the BSE listing), not ``KSE.NS`` — every fundamentals call routes
-    through the same ``_yahoo_symbol`` mapper the pinning test above covers."""
+    """End-to-end: get_fundamentals('BMW') (BMW Industries, BSE-only) must
+    construct a Yahoo Ticker for ``BMW.BO`` (the BSE listing), not ``BMW.NS`` —
+    every fundamentals call routes through the same ``_yahoo_symbol`` mapper the
+    pinning test above covers."""
     import config
 
     token = config.set_request_region("IN")
     try:
-        fundamentals = yfinance_provider.get_fundamentals("KSE")
+        fundamentals = yfinance_provider.get_fundamentals("BMW")
     finally:
         config.reset_request_region(token)
-    assert recording_ticker.instances == ["KSE.BO"]
-    assert fundamentals.symbol == "KSE.BO"
+    assert recording_ticker.instances == ["BMW.BO"]
+    assert fundamentals.symbol == "BMW.BO"
 
 
 # --- R13 deliverable 2: honest husk vs fund-id-blob messages ------------------
@@ -540,3 +543,60 @@ def test_history_keeps_zero_volume_bars_whose_prices_move(
     )
     _history_ticker(monkeypatch, frame)
     assert len(yfinance_provider.get_history("^NSEI", "1d", "1mo").bars) == 3
+
+
+@pytest.mark.parametrize("index", ["^NSEI", "^BSESN"])
+def test_yahoo_symbol_passes_caret_index_through_in_an_in_session(index: str) -> None:
+    """R15-LEAD-011: Yahoo serves a caret index unsuffixed; ``^NSEI.NS`` is empty."""
+    import config
+
+    token = config.set_request_region("IN")
+    try:
+        assert yfinance_provider._yahoo_symbol(index) == index
+    finally:
+        config.reset_request_region(token)
+
+
+def test_30m_history_asks_within_yahoos_60_day_intraday_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-064: a 3mo lookback at 30m is past Yahoo's cap and comes back empty."""
+    import pandas as pd
+
+    asked: list[tuple[str, str]] = []
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        def history(self, period: str, interval: str) -> object:
+            asked.append((period, interval))
+            return pd.DataFrame(columns=["Open", "High", "Low", "Close", "Volume"])
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    yfinance_provider.get_history("SPY", "30m")
+    assert asked == [("1mo", "30m")]
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: yfinance_provider.get_history("AAPL", "1d"),
+        lambda: yfinance_provider.get_income_statement("AAPL"),
+    ],
+    ids=["history", "income_statement"],
+)
+def test_a_successful_yahoo_call_closes_the_breaker(
+    recording_ticker: type[_RecordingTicker], call
+) -> None:  # noqa: ANN001
+    """R15-DATA-072: three throttles open the Yahoo breaker; the next healthy
+    round-trip on any data path closes it."""
+    from services import provider_health
+
+    provider_health.reset_for_tests()
+    for _ in range(3):
+        provider_health.record_rate_limited(provider_health.YAHOO)
+    assert provider_health.is_open(provider_health.YAHOO)
+    call()
+    assert not provider_health.is_open(provider_health.YAHOO)
+    provider_health.reset_for_tests()

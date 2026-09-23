@@ -24,7 +24,7 @@
 //
 // Run via: ``node scripts/ensure-openbb-mcp-sidecar.mjs [--force]``.
 
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { platform } from "node:os";
@@ -155,7 +155,7 @@ const collectAll = [
 // fastmcp + mcp inspect their own importlib.metadata at import time, so
 // PyInstaller must explicitly bundle their dist-info — otherwise the
 // package version probe raises PackageNotFoundError on first import.
-const copyMeta = [
+const copyMetaDists = [
   "fastmcp",
   "fastmcp-slim",
   "mcp",
@@ -165,9 +165,27 @@ const copyMeta = [
   "httpx",
   "starlette",
   "uvicorn",
-]
-  .map((m) => `--copy-metadata=${m}`)
-  .join(" ");
+];
+// Every copy-metadata target must be installed in the venv, or PyInstaller
+// dies mid-build with a bare PackageNotFoundError (R15-LEAD-001: an unpinned
+// resolve pulled an mcp built on httpx2). Name the missing ones up front.
+const missingMeta = execFileSync(
+  venvPython,
+  [
+    "-c",
+    "import importlib.metadata as m, sys; " +
+      "print(' '.join(d for d in sys.argv[1:] if not any(True for _ in m.distributions(name=d))))",
+    ...copyMetaDists,
+  ],
+  { encoding: "utf8" },
+).trim();
+if (missingMeta) {
+  throw new Error(
+    `[ensure-openbb-mcp-sidecar] --copy-metadata targets not installed in ${VENV_DIR}: ` +
+      `${missingMeta}. Check the pins in sidecar/openbb_mcp_subprocess/requirements.txt.`,
+  );
+}
+const copyMeta = copyMetaDists.map((m) => `--copy-metadata=${m}`).join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-openbb-mcp-sidecar ` +
     `${hidden} ${collectAll} ${copyMeta} --distpath "${distDir}" --workpath "${buildDir}" ` +

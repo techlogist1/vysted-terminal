@@ -211,3 +211,15 @@ def test_web_search_timeout_hint_is_not_the_research_depth_copy() -> None:
     assert hint != timeout_hint_for("research")
     assert "depth" not in hint
     assert "narrower query" in hint
+
+
+# --- R15-AGENT-020 (C2): the agent can read the notes it writes ---
+
+
+def test_read_notes_is_a_local_read_with_a_scope_arg() -> None:
+    cap = CAPABILITY_CATALOG["read_notes"]
+    assert (cap.kind, cap.read_only, cap.domain) == ("per_invocation", True, "workspace")
+    assert cap.input_schema["properties"].keys() == {"scope"}
+    assert cap.input_schema["required"] == ["scope"]
+    assert "read_notes" in PER_INVOCATION_READ_TOOLS
+    assert not cap.mcp  # answered from the invocation's snapshot, never over MCP

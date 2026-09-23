@@ -22,6 +22,8 @@ from config import DATA_DIR_ENV
 from models.announcements import (
     Announcement,
     AnnouncementsResponse,
+    CorporateAction,
+    CorporateActionsResponse,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
@@ -256,3 +258,34 @@ def test_shareholding_caches_within_ttl(
     assert client.get("/disclosures/shareholding", params={"symbol": "RELIANCE"}).status_code == 200
     assert client.get("/disclosures/shareholding", params={"symbol": "RELIANCE"}).status_code == 200
     assert calls == ["RELIANCE"]
+
+
+def test_corporate_actions_wire_shape(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    def stub(symbol: str) -> CorporateActionsResponse:
+        action = CorporateAction(
+            symbol=symbol,
+            kind="bonus",
+            purpose="Bonus issue 7:24",
+            ratio="7:24",
+            ex_date=date(2026, 9, 4),
+            record_date=date(2026, 9, 4),
+            exchange="BSE",
+        )
+        return CorporateActionsResponse(symbol=symbol, count=1, actions=[action], sources=["BSE"])
+
+    monkeypatch.setattr(corporate_disclosures, "get_corporate_actions", stub)
+    resp = client.get("/disclosures/corporate-actions", params={"symbol": "jonjua"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["symbol"] == "JONJUA"
+    assert body["actions"][0] == {
+        "symbol": "JONJUA",
+        "kind": "bonus",
+        "purpose": "Bonus issue 7:24",
+        "ratio": "7:24",
+        "amount_per_share": None,
+        "ex_date": "2026-09-04",
+        "record_date": "2026-09-04",
+        "payment_date": None,
+        "exchange": "BSE",
+    }

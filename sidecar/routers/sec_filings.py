@@ -115,11 +115,16 @@ async def list_filings(
 async def get_filing(
     accession: str,
     identifier: str,
+    form_type: str | None = None,
 ) -> FilingDetail:
-    """Return the parsed filing detail (metadata + sections)."""
+    """Return the parsed filing detail (metadata + sections).
+
+    ``form_type`` is the listed row's form — a lookup hint (R15-LEAD-010)."""
     _require_available()
     try:
-        return await sec_filings_provider.get_filing(accession, cik_or_symbol=identifier)
+        return await sec_filings_provider.get_filing(
+            accession, cik_or_symbol=identifier, form_type=form_type
+        )
     except ProviderError as exc:
         # R15-DATA-007: a genuine miss (accession outside the issuer's recent
         # filings) is a 404, never the same 502 an upstream tool failure gets.

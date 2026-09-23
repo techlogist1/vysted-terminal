@@ -80,7 +80,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let port = match pick_free_port() {
         Some(port) => port,
         None => {
-            eprintln!(
+            diag_eprintln!(
                 "[openbb-mcp] could not bind a free port; \
                  falling back to yfinance for OpenBB-backed routes."
             );
@@ -102,7 +102,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     {
         Ok(cmd) => cmd,
         Err(err) => {
-            eprintln!(
+            diag_eprintln!(
                 "[openbb-mcp] subprocess binary unavailable ({err}); \
                  falling back to yfinance for OpenBB-backed routes."
             );
@@ -114,7 +114,9 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let (mut rx, child) = match sidecar.spawn() {
         Ok(parts) => parts,
         Err(err) => {
-            eprintln!("[openbb-mcp] failed to spawn subprocess: {err}; falling back to yfinance.");
+            diag_eprintln!(
+                "[openbb-mcp] failed to spawn subprocess: {err}; falling back to yfinance."
+            );
             register_unavailable(app);
             return Ok(());
         }
@@ -127,10 +129,10 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         while let Some(event) = rx.recv().await {
             match event {
                 CommandEvent::Stdout(line) => {
-                    println!("[openbb-mcp] {}", String::from_utf8_lossy(&line));
+                    diag_println!("[openbb-mcp] {}", String::from_utf8_lossy(&line));
                 }
                 CommandEvent::Stderr(line) => {
-                    eprintln!("[openbb-mcp] {}", String::from_utf8_lossy(&line));
+                    diag_eprintln!("[openbb-mcp] {}", String::from_utf8_lossy(&line));
                 }
                 _ => {}
             }
@@ -151,14 +153,14 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         MCP_PORT_WAIT_SECS,
         MCP_PORT_WAIT_ATTEMPTS,
         |attempt, total| {
-            eprintln!(
+            diag_eprintln!(
                 "[openbb-mcp] not bound on 127.0.0.1:{port} after attempt {attempt}/{total} \
                  ({MCP_PORT_WAIT_SECS}s); cold PyInstaller extraction may be slow — retrying."
             );
         },
     );
     if !bound {
-        eprintln!(
+        diag_eprintln!(
             "[openbb-mcp] subprocess did not bind to 127.0.0.1:{port} within \
              {MCP_PORT_WAIT_SECS}s x {MCP_PORT_WAIT_ATTEMPTS} attempts; treating as \
              unavailable. /fundamentals + /macro + /screener + /earnings + \
@@ -175,7 +177,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     app.manage(OpenbbMcpPort(port));
     app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
 
-    println!("[openbb-mcp] subprocess healthy on 127.0.0.1:{port}");
+    diag_println!("[openbb-mcp] subprocess healthy on 127.0.0.1:{port}");
     Ok(())
 }
 

@@ -24,7 +24,8 @@ from typing import Any
 
 import pytest
 
-from services import agent_tools, corporate_disclosures, nse_provider, symbol_resolver
+from config import DATA_DIR_ENV
+from services import agent_tools, corporate_disclosures, data_cache, nse_provider, symbol_resolver
 from services.errors import ProviderError
 
 _NSE_FIXTURES = Path(__file__).parent / "fixtures" / "nse"
@@ -37,8 +38,14 @@ _BSE_ANNOUNCEMENTS = json.loads((_BSE_FIXTURES / "ann_sub_category_get_data.json
 
 
 @pytest.fixture(autouse=True)
-def _isolate() -> None:
+def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     symbol_resolver.reset_caches_for_tests()
+    # The announcements tool reads through the service's data_cache
+    # (R15-DATA-074): pin it to a per-test db so no run serves another's rows.
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    yield
+    data_cache.reset_for_tests()
 
 
 def _patch_nse_announcements(monkeypatch: pytest.MonkeyPatch, rows: list[dict] | Exception) -> None:
@@ -245,6 +252,69 @@ def test_live_hdfcbank_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
     response = corporate_disclosures.get_announcements("HDFCBANK")
     assert response.count == 3
     assert {item.exchange for item in response.announcements} == {"NSE"}
+
+
+# Live feeds captured 2026-09-24 (40 rows per lane, verbatim): NSE's templated
+# text ("HDFC Bank Limited has informed the Exchange about Schedule of meet")
+# shares under 60% of its words with BSE's subject ("Announcement under
+# Regulation 30 (LODR)-Analyst / Investor Meet - Intimation"), so these pairs
+# collapse on the exchanges' own category instead (R15-DATA-020 residual).
+_HDFC_TCS_NSE = json.loads((_NSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
+_HDFC_TCS_BSE = json.loads((_BSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
+
+
+def _merged_live_feed(monkeypatch: pytest.MonkeyPatch, symbol: str) -> list[Any]:
+    _serve_crossfeed(monkeypatch, _HDFC_TCS_NSE[symbol], _HDFC_TCS_BSE[symbol])
+    return corporate_disclosures.get_announcements(symbol, limit=100).announcements
+
+
+def test_live_hdfcbank_schedule_of_meet_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
+    items = _merged_live_feed(monkeypatch, "HDFCBANK")
+    bse_meets = [
+        i
+        for i in items
+        if i.exchange == "BSE" and i.headline.endswith("Analyst / Investor Meet - Intimation")
+    ]
+    assert bse_meets == []  # every one paired with NSE's "Schedule of meet"
+    # 80 rows: 32 BSE copies of an NSE filing and one NSE re-dissemination.
+    assert len(items) == 47
+
+
+def test_live_tcs_pairs_collapse_on_category(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The case the category rule was not written against (TCS)."""
+    items = _merged_live_feed(monkeypatch, "TCS")
+    hypervault = [i for i in items if i.ts.strftime("%m-%d") == "09-05"]
+    newspaper_0917 = [i for i in items if i.ts.strftime("%m-%d %H") == "09-17 18"]
+    newspaper_0710 = [i for i in items if i.ts.strftime("%m-%d %H") == "07-10 18"]
+    for rows in (hypervault, newspaper_0917, newspaper_0710):
+        assert [i.exchange for i in rows] == ["NSE"]
+    acquisition_day = [i for i in items if i.ts.strftime("%m-%d %H") == "08-24 16"]
+    # NSE's acquisition, press release and order filings; BSE's copies of the
+    # acquisition and the order collapse, its press release pairs on text.
+    assert sorted(i.category for i in acquisition_day) == sorted(
+        ["Acquisition", "Press Release", "Bagging/Receiving of orders/contracts"]
+    )
+
+
+def test_two_same_category_filings_in_one_window_stay_separate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A BSE analyst-meet item with two NSE analyst-meet candidates in its window
+    is ambiguous: no category pairing, every row stays."""
+    nse_recording = next(
+        r for r in _HDFC_TCS_NSE["HDFCBANK"] if r["sort_date"] == "2026-07-18 21:41:03"
+    )
+    other_meet = next(
+        r for r in _HDFC_TCS_NSE["HDFCBANK"] if r["sort_date"].startswith("2026-08-16")
+    )
+    other_meet = {**other_meet, "sort_date": "2026-07-18 21:46:00", "an_dt": "18-Jul-2026 21:46:00"}
+    bse_outcome = next(
+        r for r in _HDFC_TCS_BSE["HDFCBANK"] if r["NEWS_DT"].startswith("2026-07-18T21:44")
+    )
+    _serve_crossfeed(monkeypatch, [other_meet, nse_recording], [bse_outcome])
+
+    response = corporate_disclosures.get_announcements("HDFCBANK")
+    assert sorted(i.exchange for i in response.announcements) == ["BSE", "NSE", "NSE"]
 
 
 def test_bse_only_symbol_skips_the_nse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -525,6 +595,9 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
                 "institutions_percent": 42.9,
                 "fii_percent": 38.86,
                 "dii_percent": 4.04,
+                "split_basis": "filed",
+                "promoter_pledged_percent": 0.0,
+                "promoter_pledge_basis": "filed",
             }
         ],
     )
@@ -542,6 +615,9 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
     # Provenance of the merged split is honest: from BSE, as-of the same quarter.
     assert latest.split_source == "BSE"
     assert latest.split_as_of == date(2026, 3, 31)
+    assert latest.split_basis == "filed"  # the BSE row's basis rides the merge
+    # ...and so does the filed promoter pledge (R15-DATA-023): a filed 0, not None.
+    assert (latest.promoter_pledged_percent, latest.promoter_pledge_basis) == (0.0, "filed")
 
 
 def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -789,6 +865,89 @@ def test_shareholding_for_a_non_listed_symbol_raises() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Corporate actions (R15-DATA-025): live NSE + BSE feeds captured 2026-09-24.
+# ---------------------------------------------------------------------------
+
+
+def _fixture(folder: Path, name: str) -> Any:
+    return json.loads((folder / name).read_text())
+
+
+def _serve_actions(monkeypatch: pytest.MonkeyPatch, nse_rows: Any, bse_payload: Any) -> None:
+    def nse(symbol: str) -> list[dict]:
+        if nse_rows is None:
+            raise AssertionError("NSE lane must not run for a BSE-only symbol")
+        return nse_rows
+
+    monkeypatch.setattr(nse_provider, "get_corporate_actions", nse)
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", lambda url, params: bse_payload)
+
+
+def test_bse_only_jonjua_bonuses_are_typed_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    _serve_actions(
+        monkeypatch,
+        None,
+        _fixture(_BSE_FIXTURES, "corporate_action_542446_jonjua_20260924.json"),
+    )
+    response = corporate_disclosures.get_corporate_actions("JONJUA")
+
+    assert response.sources == ["BSE"]
+    bonuses = [(a.ratio, a.record_date) for a in response.actions if a.kind == "bonus"]
+    assert ("7:24", date(2026, 9, 4)) in bonuses
+    assert ("5:40", date(2026, 1, 23)) in bonuses
+    assert response.actions[0].purpose == "Bonus issue 7:24"  # newest ex-date first
+    assert {a.exchange for a in response.actions} == {"BSE"}
+
+
+def test_elcidin_final_dividend_carries_its_dates(monkeypatch: pytest.MonkeyPatch) -> None:
+    _serve_actions(
+        monkeypatch,
+        _fixture(_NSE_FIXTURES, "corporate_actions_elcidin_20260924.json"),
+        _fixture(_BSE_FIXTURES, "corporate_action_503681_elcidin_20260924.json"),
+    )
+    latest = corporate_disclosures.get_corporate_actions("ELCIDIN").actions[0]
+
+    assert (latest.kind, latest.amount_per_share) == ("dividend", 25.0)
+    assert latest.ex_date == latest.record_date == date(2026, 7, 24)
+    assert latest.payment_date == date(2026, 8, 30)  # carried only by the BSE feed
+    assert latest.exchange == "NSE+BSE"
+
+
+def test_dual_listed_actions_collapse_to_one_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The case not written against: RELIANCE's five BSE rows are all actions the
+    NSE feed carries (dividends and the 2024 bonus), so none is listed twice."""
+    nse_rows = _fixture(_NSE_FIXTURES, "corporate_actions_reliance_20260924.json")
+    _serve_actions(
+        monkeypatch,
+        nse_rows,
+        _fixture(_BSE_FIXTURES, "corporate_action_500325_reliance_20260924.json"),
+    )
+    actions = corporate_disclosures.get_corporate_actions("RELIANCE").actions
+
+    assert len(actions) == len(nse_rows)
+    bonus = next(a for a in actions if a.kind == "bonus")
+    assert (bonus.ratio, bonus.ex_date, bonus.exchange) == ("1:1", date(2024, 10, 28), "NSE+BSE")
+    assert sum(a.exchange == "NSE+BSE" for a in actions) == 5
+
+
+def test_corporate_actions_lane_failure_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
+    def blocked(symbol: str) -> list[dict]:
+        raise ProviderError("nse_direct: blocked (HTTP 401)")
+
+    monkeypatch.setattr(nse_provider, "get_corporate_actions", blocked)
+    monkeypatch.setattr(
+        corporate_disclosures,
+        "_bse_get_json",
+        lambda url, params: _fixture(
+            _BSE_FIXTURES, "corporate_action_503681_elcidin_20260924.json"
+        ),
+    )
+    response = corporate_disclosures.get_corporate_actions("ELCIDIN")
+    assert response.sources == ["BSE"] and "NSE" in response.errors
+    assert response.count == 5
+
+
+# ---------------------------------------------------------------------------
 # Agent tools — corporate_announcements / shareholding_pattern handlers.
 # ---------------------------------------------------------------------------
 
@@ -861,7 +1020,24 @@ def test_shareholding_pattern_tool_round_trip(
     assert result["patterns"][0]["promoter_percent"] == 50.0
     assert result["patterns"][0]["fii_percent"] is None
     assert result["patterns"][0]["public_basis"] == "incl. institutions"
-    assert "xbrl_url" in result["note"]
+    # No prose note: the typed provenance fields say where the split came from
+    # (R15-AGENT-060; the old note claimed the split lived only in the XBRL).
+    assert "note" not in result
+
+
+def test_corporate_actions_tool_round_trip(
+    monkeypatch: pytest.MonkeyPatch, _registered_tools: Any
+) -> None:
+    _serve_actions(
+        monkeypatch,
+        None,
+        _fixture(_BSE_FIXTURES, "corporate_action_542446_jonjua_20260924.json"),
+    )
+    result = asyncio.run(agent_tools.invoke_tool("corporate_actions", {"symbol": "JONJUA"}))
+    assert result["ok"] is True
+    assert result["count"] == len(result["actions"]) == 5
+    assert result["actions"][0]["ratio"] == "7:24"
+    assert result["actions"][0]["record_date"] == "2026-09-04"
 
 
 def test_shareholding_pattern_tool_surfaces_provider_error(_registered_tools: Any) -> None:

@@ -123,6 +123,23 @@ function isInCriterion(c: ScreenerCriterion): c is Extract<ScreenerCriterion, { 
   return c.operator === "in";
 }
 
+type NumericCriterion = Extract<
+  ScreenerCriterion,
+  { operator: "gt" | "lt" | "gte" | "lte" | "between" }
+>;
+
+/** R15-UI-045: an operator change carries the typed threshold through —
+ *  `between` seeds `{min: v, max: v}`; back to a scalar keeps `min`. */
+export function withNumericOperator(
+  criterion: NumericCriterion,
+  operator: NumericCriterion["operator"],
+): NumericCriterion {
+  const v = criterion.operator === "between" ? criterion.value.min : criterion.value;
+  return operator === "between"
+    ? { field: criterion.field, operator, value: { min: v, max: v } }
+    : { field: criterion.field, operator, value: v };
+}
+
 /** A default leaf for "Add criterion". */
 export function defaultLeaf(): ScreenerCriterion {
   return { field: "pe_ratio", operator: "lt", value: 20 };
@@ -196,18 +213,11 @@ function LeafEditor({ index, criterion, onChange, onRemove, moneyUnit }: LeafEdi
             aria-label="numeric operator"
             className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.operator}
-            onChange={(e) => {
-              const op = e.target.value as "gt" | "lt" | "gte" | "lte" | "between";
-              if (op === "between") {
-                onChange({
-                  field: criterion.field,
-                  operator: "between",
-                  value: { min: 0, max: 100 },
-                });
-              } else {
-                onChange({ field: criterion.field, operator: op, value: 20 });
-              }
-            }}
+            onChange={(e) =>
+              onChange(
+                withNumericOperator(criterion, e.target.value as NumericCriterion["operator"]),
+              )
+            }
           >
             {NUMERIC_OPERATORS.map((o) => (
               <option key={o.value} value={o.value}>

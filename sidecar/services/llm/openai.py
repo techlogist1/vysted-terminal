@@ -42,7 +42,13 @@ from services.errors import humanize, says_invalid_key
 
 #: The sentinel lives in ``base`` (every adapter stamps it); re-exported here
 #: for the runtime's existing ``from services.llm.openai import`` path.
-from .base import INVALID_ARGS_SENTINEL, LLMProvider, LLMStreamEvent, is_chat_model
+from .base import (
+    INVALID_ARGS_SENTINEL,
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    is_chat_model,
+)
 from .native_search import (
     openai_native_search_supported,
     openai_web_search_options,
@@ -127,6 +133,13 @@ def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
             }
         )
     return api_messages
+
+
+#: Tool-arg repairs per provider round, and the wall-clock cap on each one
+#: (R15-AGENT-048): five bad calls used to cost five serial, untimed completions
+#: whose usage was never counted. Calls past the cap get the error turn at once.
+_MAX_REPAIRS_PER_ROUND = 2
+_REPAIR_TIMEOUT_S = 30.0
 
 
 #: A buffered tool call whose argument JSON could not be parsed/validated and
@@ -329,6 +342,7 @@ class OpenAIProvider(LLMProvider):
             base_url=self._base_url,
             default_headers=default_headers,
             max_retries=0,
+            timeout=client_timeout(),
         )
 
     async def _create_with_retry(
@@ -386,6 +400,7 @@ class OpenAIProvider(LLMProvider):
         *,
         model: str,
         api_key: str | None,
+        repairs: list[LLMUsage | None],
     ) -> list[LLMToolUseEvent]:
         """Validate each parsed call's args; repair-once or surface an error turn.
 
@@ -399,6 +414,8 @@ class OpenAIProvider(LLMProvider):
           re-validate the repaired args.
         * A call whose args could not even be parsed (``_ToolArgFailure``) gets
           the same one repair round, re-parsed + re-validated.
+        * At most :data:`_MAX_REPAIRS_PER_ROUND` repairs run per round (the
+          ``repairs`` list is the round's ledger: one usage entry per repair).
         * If repair STILL fails, the call's ``input`` is stamped with
           :data:`INVALID_ARGS_SENTINEL` carrying the reason. The runtime's
           ``_dispatch_tool`` turns that into a ``role="tool"`` ``{"ok": False,
@@ -423,6 +440,7 @@ class OpenAIProvider(LLMProvider):
                 schema=schema,
                 model=model,
                 api_key=api_key,
+                repairs=repairs,
             )
             if repaired is not None:
                 resolved.append(
@@ -454,6 +472,7 @@ class OpenAIProvider(LLMProvider):
                 schema=schema,
                 model=model,
                 api_key=api_key,
+                repairs=repairs,
             )
             if repaired is not None:
                 resolved.append(
@@ -485,6 +504,7 @@ class OpenAIProvider(LLMProvider):
         schema: dict[str, Any] | None,
         model: str,
         api_key: str | None,
+        repairs: list[LLMUsage | None],
     ) -> dict[str, Any] | None:
         """Run ONE repair round; return valid args dict or ``None`` on failure.
 
@@ -494,9 +514,11 @@ class OpenAIProvider(LLMProvider):
         own raw args. The reply is parsed, schema-re-validated, and returned —
         ``None`` if it still cannot be parsed or still fails validation (the
         caller then surfaces an error turn). No network on the test path: the
-        ``oneshot.complete`` call is mocked.
+        ``oneshot`` call is mocked. Past the round's repair cap it returns
+        ``None`` without a call; each call is timed and its usage appended to
+        ``repairs`` so it reaches the round's ``done``.
         """
-        if not schema:
+        if not schema or len(repairs) >= _MAX_REPAIRS_PER_ROUND:
             return None
         from services.llm import oneshot
 
@@ -510,12 +532,14 @@ class OpenAIProvider(LLMProvider):
             "prose, no code fence, no explanation. It must satisfy the schema."
         )
         try:
-            reply = await oneshot.complete(
+            reply, repair_usage = await oneshot.complete_with_usage(
                 self._provider_id,
                 model,
                 api_key,
                 [{"role": "user", "content": prompt}],
+                timeout=_REPAIR_TIMEOUT_S,
             )
+            repairs.append(repair_usage)
         except Exception:  # noqa: BLE001 — a failed repair is a non-fatal miss
             logger.debug("tool-arg repair call failed for %s", tool_name, exc_info=True)
             return None
@@ -613,6 +637,7 @@ class OpenAIProvider(LLMProvider):
         try:
             stream = await self._create_with_retry(client, request_kwargs)
             usage: LLMUsage | None = None
+            repairs: list[LLMUsage | None] = []
             finish_reason: str | None = None
             # Function-call streaming sends the id/name once and the arguments
             # JSON in fragments across many chunks, keyed by the tool_call
@@ -668,7 +693,7 @@ class OpenAIProvider(LLMProvider):
                     if reason == "tool_calls":
                         events, failures = _drain_tool_buffers(tool_buffers)
                         for event in await self._resolve_tool_events(
-                            events, failures, model=model, api_key=api_key
+                            events, failures, model=model, api_key=api_key, repairs=repairs
                         ):
                             emitted_tool_events = True
                             yield event
@@ -684,7 +709,7 @@ class OpenAIProvider(LLMProvider):
             if tool_buffers:
                 events, failures = _drain_tool_buffers(tool_buffers)
                 for event in await self._resolve_tool_events(
-                    events, failures, model=model, api_key=api_key
+                    events, failures, model=model, api_key=api_key, repairs=repairs
                 ):
                     emitted_tool_events = True
                     yield event
@@ -704,9 +729,23 @@ class OpenAIProvider(LLMProvider):
                 rescued = rescue_leaked_tool_call("".join(content_parts), known_tool_ids)
                 if rescued is not None:
                     for event in await self._resolve_tool_events(
-                        [rescued], [], model=model, api_key=api_key
+                        [rescued], [], model=model, api_key=api_key, repairs=repairs
                     ):
+                        emitted_tool_events = True
                         yield event
+            # A stream that ended with no finish_reason and no tool call never
+            # finished (a cut socket, a 200 non-SSE body, empty choices): do not
+            # fabricate a clean ``done`` for it — the consumer reports the
+            # missing terminator (R15-AGENT-026).
+            if finish_reason is None and not emitted_tool_events:
+                return
+            metered = [u for u in repairs if u is not None]
+            if metered:
+                base = usage or LLMUsage()
+                usage = LLMUsage(
+                    input_tokens=base.input_tokens + sum(u.input_tokens for u in metered),
+                    output_tokens=base.output_tokens + sum(u.output_tokens for u in metered),
+                )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except openai.OpenAIError as exc:  # pragma: no cover — network path
             _h = humanize(self._provider_id, exc)

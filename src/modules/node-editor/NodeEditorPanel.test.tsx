@@ -132,6 +132,7 @@ describe("NodeEditorPanel", () => {
                 updatedAt: 20,
               },
             ],
+            unreadable: [],
           }),
           { status: 200 },
         );
@@ -146,6 +147,29 @@ describe("NodeEditorPanel", () => {
       expect(screen.getByText("Research: AAPL")).toBeInTheDocument();
       expect(screen.getByText("Research: MSFT")).toBeInTheDocument();
     });
+  });
+
+  it("lists an unreadable saved row as not openable by this version", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      if (input.toString().endsWith("/workflow/saved")) {
+        return new Response(
+          JSON.stringify({
+            workflows: [],
+            unreadable: [{ id: "wf-old", name: "Old flow", reason: "extra inputs" }],
+          }),
+          { status: 200 },
+        );
+      }
+      return new Response("{}", { status: 200 });
+    });
+
+    render(<NodeEditorPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    const row = await screen.findByTestId("unreadable-workflow-wf-old");
+    expect(within(row).getByText("Old flow")).toBeInTheDocument();
+    expect(within(row).getByText("Can't be opened by this version")).toBeInTheDocument();
+    expect(within(row).queryByRole("button")).toBeNull();
+    expect(screen.queryByText("No saved workflows yet.")).toBeNull();
   });
 
   it("surfaces an error message when /workflow/save returns a non-2xx", async () => {
@@ -202,7 +226,9 @@ describe("NodeEditorPanel", () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.endsWith("/workflow/saved")) {
-        return new Response(JSON.stringify({ workflows: [serverNodeSpec] }), { status: 200 });
+        return new Response(JSON.stringify({ workflows: [serverNodeSpec], unreadable: [] }), {
+          status: 200,
+        });
       }
       if (url.endsWith("/workflow/saved/wf-run")) {
         return new Response(JSON.stringify(serverNodeSpec), { status: 200 });
@@ -303,7 +329,9 @@ describe("NodeEditorPanel", () => {
     fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = input.toString();
       if (url.endsWith("/workflow/saved")) {
-        return new Response(JSON.stringify({ workflows: [serverNodeSpec] }), { status: 200 });
+        return new Response(JSON.stringify({ workflows: [serverNodeSpec], unreadable: [] }), {
+          status: 200,
+        });
       }
       if (url.endsWith("/workflow/saved/wf-run")) {
         return new Response(JSON.stringify(serverNodeSpec), { status: 200 });

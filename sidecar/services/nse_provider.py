@@ -92,6 +92,8 @@ _ANNOUNCEMENTS_PATH = "/api/corporate-announcements"
 _EVENT_CALENDAR_PATH = "/api/event-calendar"
 _SHAREHOLDING_PATH = "/api/corporate-share-holdings-master"
 _CORPORATE_ACTIONS_PATH = "/api/corporates-corporateActions"
+_BULK_BLOCK_PATH = "/api/historicalOR/bulk-block-short-deals"
+_SAST_PATH = "/api/corporate-sast-reg29"
 
 # Browser headers for the API hits. TLS fingerprint, User-Agent and the
 # sec-ch-ua family come from curl_cffi's ``impersonate="chrome"``; these are the
@@ -640,6 +642,47 @@ def get_corporate_actions(symbol: str) -> list[dict]:
     dividend the trailing scalars anticipate (R13 / D57).
     """
     return _fetch_corporate_list(_CORPORATE_ACTIONS_PATH, symbol)
+
+
+def get_bulk_block_deals(symbol: str, option_type: str, start: date, end: date) -> list[dict]:
+    """Raw bulk (``option_type="bulk_deals"``) or block (``"block_deals"``) deal
+    rows for ``symbol`` between ``start`` and ``end`` (R15-DATA-024).
+
+    Observed item shape (live probe 2026-09-24, KOPRAN / ADANIENT): ``{BD_DT_DATE
+    "23-DEC-2025", BD_SYMBOL, BD_CLIENT_NAME, BD_BUY_SELL "BUY"|"SELL",
+    BD_QTY_TRD, BD_TP_WATP (weighted average trade price), BD_REMARKS}`` under
+    ``{"data": [...]}``.
+    """
+    bare = _require_nse(symbol)
+    params = {
+        "optionType": option_type,
+        "symbol": bare,
+        "from": start.strftime("%d-%m-%Y"),
+        "to": end.strftime("%d-%m-%Y"),
+    }
+    return _data_rows(_BULK_BLOCK_PATH, _get_json(_BULK_BLOCK_PATH, params, _quote_referer(bare)))
+
+
+def get_sast_disclosures(symbol: str) -> list[dict]:
+    """Raw SEBI SAST Regulation 29 disclosure rows for ``symbol``.
+
+    Observed item shape (live probe 2026-09-24, KOPRAN): ``{acquirerName,
+    acqSaleType "Acquisition"|"Sale", acquirerDate "07-SEP-2026 to
+    07-SEP-2026", noOfShareAcq, noOfShareSale, noOfShareAft, totAftShare
+    (percent after), promoterType, regType "Reg29(2)", attachement, ...}``
+    under ``{"data": [...], "acqNameList": [...]}``.
+    """
+    bare = _require_nse(symbol)
+    params = {"index": "equities", "symbol": bare}
+    return _data_rows(_SAST_PATH, _get_json(_SAST_PATH, params, _quote_referer(bare)))
+
+
+def _data_rows(path: str, payload: object) -> list[dict]:
+    """The ``data`` list of a ``{"data": [...]}`` payload."""
+    rows = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        raise ProviderError(f"nse_direct: malformed payload from {path}")
+    return [row for row in rows if isinstance(row, dict)]
 
 
 # ---------------------------------------------------------------------------

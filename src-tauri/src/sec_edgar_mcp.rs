@@ -80,7 +80,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let port = match pick_free_port() {
         Some(port) => port,
         None => {
-            eprintln!(
+            diag_eprintln!(
                 "[sec-edgar-mcp] could not bind a free port; \
                  /sec routes will 501 until relaunch."
             );
@@ -102,7 +102,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     {
         Ok(cmd) => cmd,
         Err(err) => {
-            eprintln!(
+            diag_eprintln!(
                 "[sec-edgar-mcp] subprocess binary unavailable ({err}); \
                  /sec routes will 501 until the bundle is rebuilt."
             );
@@ -114,7 +114,9 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     let (mut rx, child) = match sidecar.spawn() {
         Ok(parts) => parts,
         Err(err) => {
-            eprintln!("[sec-edgar-mcp] failed to spawn subprocess: {err}; /sec routes will 501.");
+            diag_eprintln!(
+                "[sec-edgar-mcp] failed to spawn subprocess: {err}; /sec routes will 501."
+            );
             register_unavailable(app);
             return Ok(());
         }
@@ -127,10 +129,10 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         while let Some(event) = rx.recv().await {
             match event {
                 CommandEvent::Stdout(line) => {
-                    println!("[sec-edgar-mcp] {}", String::from_utf8_lossy(&line));
+                    diag_println!("[sec-edgar-mcp] {}", String::from_utf8_lossy(&line));
                 }
                 CommandEvent::Stderr(line) => {
-                    eprintln!("[sec-edgar-mcp] {}", String::from_utf8_lossy(&line));
+                    diag_eprintln!("[sec-edgar-mcp] {}", String::from_utf8_lossy(&line));
                 }
                 _ => {}
             }
@@ -150,14 +152,14 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
         MCP_PORT_WAIT_SECS,
         MCP_PORT_WAIT_ATTEMPTS,
         |attempt, total| {
-            eprintln!(
+            diag_eprintln!(
                 "[sec-edgar-mcp] not bound on 127.0.0.1:{port} after attempt {attempt}/{total} \
                  ({MCP_PORT_WAIT_SECS}s); cold PyInstaller extraction may be slow — retrying."
             );
         },
     );
     if !bound {
-        eprintln!(
+        diag_eprintln!(
             "[sec-edgar-mcp] subprocess did not bind to 127.0.0.1:{port} within \
              {MCP_PORT_WAIT_SECS}s x {MCP_PORT_WAIT_ATTEMPTS} attempts; treating as \
              unavailable. /sec routes will 501. Check the bundled binary for a \
@@ -172,7 +174,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
     app.manage(SecEdgarMcpPort(port));
     app.manage(SecEdgarMcpProcess(Mutex::new(Some(child))));
 
-    println!("[sec-edgar-mcp] subprocess healthy on 127.0.0.1:{port}");
+    diag_println!("[sec-edgar-mcp] subprocess healthy on 127.0.0.1:{port}");
     Ok(())
 }
 

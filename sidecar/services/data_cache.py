@@ -37,6 +37,8 @@ Public surface
     with the prefix. Useful for "drop the whole macro / FRED bucket"
     on user demand.
   - :func:`clear()` — delete every row.
+  - :func:`ensure_build(version)` — clear every row once when the sidecar
+    version changes (called from the app lifespan).
   - :func:`size()` — current row count. Test helper.
   - :func:`reset_for_tests(path=None)` — close the live connection and
     re-point at an optional alternate db file.
@@ -64,6 +66,9 @@ CREATE TABLE IF NOT EXISTS cache (
 )
 """
 
+#: One row per setting; ``build`` holds the sidecar version that wrote the cache.
+_META_DDL = "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+
 logger = logging.getLogger(__name__)
 
 _lock = asyncio.Lock()
@@ -76,7 +81,35 @@ def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(_DDL)
+    conn.execute(_META_DDL)
     return conn
+
+
+async def ensure_build(version: str) -> bool:
+    """Clear the cache when it was written by a different sidecar build.
+
+    Rows persist across restarts for up to their TTL, so without this a row
+    computed by a build with a since-fixed provider bug keeps being served
+    after the upgrade. The lifespan calls this once at boot with the app
+    version. Returns ``True`` when the cache was cleared.
+    """
+    async with _lock:
+        conn = _get_conn()
+        row = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
+        if row is not None and row[0] == version:
+            return False
+        conn.execute("DELETE FROM cache")
+        conn.execute(
+            "INSERT INTO meta(key, value) VALUES('build', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (version,),
+        )
+    logger.info(
+        "data_cache: build %s (cache written by %s) - cleared",
+        version,
+        row[0] if row else "an unversioned build",
+    )
+    return True
 
 
 def _get_conn() -> sqlite3.Connection:

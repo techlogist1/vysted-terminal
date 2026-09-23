@@ -461,38 +461,41 @@ def _statement_lines(rows: list[dict[str, Any]]) -> tuple[list[str], list[Statem
 
 
 async def _financial_statement(
-    symbol: str, tool_name: str
+    symbol: str, tool_name: str, period: str = "annual"
 ) -> tuple[list[str], list[StatementLine]]:
-    """Fetch a financial-statement tool and pivot to (periods, lines)."""
+    """Fetch a financial-statement tool and pivot to (periods, lines).
+
+    ``period="quarterly"`` asks the tool for ``period="quarter"`` (OpenBB's
+    spelling); its rows are labelled by ISO ``period_ending`` either way."""
     normalized = _normalize_symbol(symbol)
-    decoded = await _call_tool(
-        tool_name,
-        {"symbol": normalized, "provider": _DEFAULT_PROVIDERS["income"]},
-    )
+    args = {"symbol": normalized, "provider": _DEFAULT_PROVIDERS["income"]}
+    if period == "quarterly":
+        args["period"] = "quarter"
+    decoded = await _call_tool(tool_name, args)
     rows = _result_rows(decoded)
     if not rows:
         raise ProviderError(f"openbb-mcp {tool_name!r} returned no rows for {symbol!r}")
     return _statement_lines(rows)
 
 
-async def get_income_statement(symbol: str) -> IncomeStatement:
+async def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement:
     """Return the income-statement excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_income")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_income", period)
     return IncomeStatement(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 
-async def get_balance_sheet(symbol: str) -> BalanceSheet:
+async def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     """Return the balance-sheet excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_balance")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_balance", period)
     return BalanceSheet(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 
-async def get_cash_flow(symbol: str) -> CashFlowStatement:
+async def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     """Return the cash-flow excerpt for ``symbol`` via openbb-mcp."""
     normalized = _normalize_symbol(symbol)
-    periods, lines = await _financial_statement(symbol, "equity_fundamental_cash")
+    periods, lines = await _financial_statement(symbol, "equity_fundamental_cash", period)
     return CashFlowStatement(symbol=normalized, periods=periods, lines=lines, provider=PROVIDER)
 
 

@@ -25,3 +25,11 @@ openbb-fred==1.6.0
 openbb-fmp==1.6.0
 openbb-news==1.6.0
 
+
+# The MCP stack, pinned to the known-good freeze (R15-LEAD-001): unpinned, a
+# fresh venv resolved fastmcp 4.x / an mcp built on httpx2, and the build's
+# --copy-metadata=httpx then failed. Bump these together, deliberately.
+fastmcp==3.3.1
+fastmcp-slim==3.3.1
+mcp==1.27.1
+httpx==0.28.1

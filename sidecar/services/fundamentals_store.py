@@ -44,6 +44,7 @@ from models.screener import (
     SetInCriterion,
     StringEqCriterion,
 )
+from services import fundamentals_seed
 
 DB_FILENAME = "fundamentals_cache.db"
 
@@ -189,6 +190,7 @@ def reset_for_tests(path: Path | str | None = None) -> None:
     global _db_path_override, _lock
     _db_path_override = Path(path) if path is not None else None
     _lock = asyncio.Lock()
+    _seeded_packs.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -300,6 +302,20 @@ async def seed_fundamentals(rows: list[dict[str, Any]]) -> int:
 
     async with _lock:
         return await asyncio.to_thread(_work)
+
+
+#: Markets whose bundled seed pack this store already applied (R15-DATA-110);
+#: cleared by :func:`reset_for_tests` with the store it describes.
+_seeded_packs: set[str] = set()
+
+
+async def ensure_seed_pack(market: str) -> None:
+    """Apply ``market``'s bundled seed pack to this store once — NULL-fill only
+    (:func:`seed_fundamentals`), so a repeat could only cost time."""
+    if market in _seeded_packs:
+        return
+    _seeded_packs.add(market)
+    await seed_fundamentals(await asyncio.to_thread(fundamentals_seed.load_seed_rows, market))
 
 
 def _quote_columns(quote: Quote | None) -> dict[str, Any]:

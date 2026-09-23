@@ -43,6 +43,7 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import FunctionTool
 from mcp.types import ToolAnnotations
 
@@ -103,6 +104,28 @@ def bind_app(app: FastAPI) -> None:
     _app_reference = app
 
 
+#: Header an MCP client's own config may set to pass a BYOK key to
+#: ``invoke_agent``. It is never a tool argument, so the key never enters the
+#: calling model's context or transcript.
+API_KEY_HEADER = "x-vysted-api-key"
+
+
+async def _get_list(path: str, key: str) -> dict[str, Any]:
+    """GET a list route; a bare list is wrapped as ``{key: [...]}``.
+
+    Any HTTP failure (a 404 or 5xx from the in-process route included) is
+    reported as ``{"ok": False, "error": ...}``, never as an empty list.
+    """
+    async with _internal_client() as client:
+        try:
+            response = await client.get(path)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            return {"ok": False, "error": f"GET {path} failed: {exc}"}
+    body = response.json()
+    return body if isinstance(body, dict) else {key: body}
+
+
 def _make_catalog_tool(tool_id: str) -> Any:
     """Build an MCP tool handler that dispatches to the registered agent_tools
     handler for ``tool_id`` — the SAME handler the internal copilot loop calls.
@@ -160,29 +183,14 @@ def _build_server() -> FastMCP:
     async def list_agents() -> dict[str, Any]:
         """List the agents available in this Vysted sidecar.
 
-        Maps to GET /agents (Teammate A). When the agents router is not
-        mounted (Teammate A pre-merge) this tool returns an empty list
-        rather than erroring — keeps the MCP surface stable across
-        teammate merges.
+        Maps to GET /agents, which returns a bare JSON list; FastMCP requires
+        a dict output, so it is wrapped as ``{"agents": [...]}``. A failing
+        route is ``{"ok": False, "error": ...}``, never "no agents".
         """
-        async with _internal_client() as client:
-            try:
-                response = await client.get("/agents")
-                if response.status_code == 404:
-                    return {"agents": []}
-                response.raise_for_status()
-                # A's `/agents` returns a bare JSON list (REST convention);
-                # FastMCP requires tool outputs to be a dict (or declare an
-                # output_schema), so wrap the list at the MCP-tool boundary.
-                return {"agents": response.json()}
-            except httpx.HTTPError as exc:
-                _log.debug("list_agents: agents router not reachable: %s", exc)
-                return {"agents": []}
+        return await _get_list("/agents", "agents")
 
     @mcp.tool
-    async def invoke_agent(
-        agent_id: str, prompt: str, api_key: str | None = None
-    ) -> dict[str, Any]:
+    async def invoke_agent(agent_id: str, prompt: str) -> dict[str, Any]:
         """Invoke an agent and aggregate its streaming reply into a single string.
 
         Maps to POST /agents/{agent_id}/invoke. The sidecar's agent runtime
@@ -192,6 +200,9 @@ def _build_server() -> FastMCP:
         ``{"agent_id", "content", "usage"}``.
         """
         body: dict[str, Any] = {"prompt": prompt}
+        # A BYOK key rides the MCP client's own HTTP header (its config), never
+        # a tool argument the calling model would see; never logged.
+        api_key = get_http_headers().get(API_KEY_HEADER)
         if api_key:
             body["api_key"] = api_key
         text_buffer: list[str] = []
@@ -289,28 +300,10 @@ def _build_server() -> FastMCP:
     async def list_workflows() -> dict[str, Any]:
         """List every saved workflow.
 
-        Maps to ``GET /workflow/saved``. The router returns a dict
-        ``{workflows: [...]}`` already, but this tool keeps that wrap rule
-        explicit at the MCP boundary per the v0.4.0 Gotcha (FastMCP rejects
-        bare-list outputs; always return a dict).
+        Maps to ``GET /workflow/saved``, which already returns a dict
+        ``{workflows: [...]}``. A failing route is ``{"ok": False, "error": ...}``.
         """
-        async with _internal_client() as client:
-            try:
-                response = await client.get("/workflow/saved")
-                if response.status_code == 404:
-                    return {"workflows": []}
-                response.raise_for_status()
-                body = response.json()
-                # Router already returns {workflows: [...]}; normalise to that
-                # shape if a future revision flattens to a bare list.
-                if isinstance(body, list):
-                    return {"workflows": body}
-                if isinstance(body, dict) and "workflows" in body:
-                    return body
-                return {"workflows": []}
-            except httpx.HTTPError as exc:
-                _log.debug("list_workflows: workflow router not reachable: %s", exc)
-                return {"workflows": []}
+        return await _get_list("/workflow/saved", "workflows")
 
     @mcp.tool
     async def save_workflow(spec_json: str) -> dict[str, Any]:
@@ -343,25 +336,10 @@ def _build_server() -> FastMCP:
 
         Hand-written + MCP-only (it is a runtime/framework surface, not a
         catalog data capability), mirroring ``list_workspaces``. The router
-        already returns ``{runs: [...]}``; this keeps the dict-wrap rule explicit
-        at the MCP boundary (FastMCP rejects bare-list outputs — the v0.4.0
-        Gotcha).
+        already returns ``{runs: [...]}``. A failing route is
+        ``{"ok": False, "error": ...}``.
         """
-        async with _internal_client() as client:
-            try:
-                response = await client.get("/runs")
-                if response.status_code == 404:
-                    return {"runs": []}
-                response.raise_for_status()
-                body = response.json()
-                if isinstance(body, list):
-                    return {"runs": body}
-                if isinstance(body, dict) and "runs" in body:
-                    return body
-                return {"runs": []}
-            except httpx.HTTPError as exc:
-                _log.debug("list_runs: runs router not reachable: %s", exc)
-                return {"runs": []}
+        return await _get_list("/runs", "runs")
 
     return mcp
 

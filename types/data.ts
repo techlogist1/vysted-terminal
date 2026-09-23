@@ -413,6 +413,88 @@ export interface ShareholdingPattern {
    * on an exact-quarter merge; differs when the nearest BSE quarter supplied it.
    */
   split_as_of: string | null;
+  /**
+   * How the FII/DII legs were obtained: "filed" (read from the filing) or
+   * "derived" (a leg the filing omits = the filed institutions total minus the
+   * other leg, or 0 from a 0 total). Null when no leg is known.
+   */
+  split_basis: "filed" | "derived" | null;
+  /**
+   * Promoter + promoter-group shares pledged or otherwise encumbered, percent of
+   * the promoter holding (SEBI SHP XBRL). 0 when the filing declares none; null
+   * when the filing declares nothing (never inferred as 0).
+   */
+  promoter_pledged_percent: number | null;
+  /** "filed" when the filing states the pledge (including an explicit 0); else null. */
+  promoter_pledge_basis: "filed" | null;
+}
+
+/**
+ * One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+ * listing. Fields a feed does not carry are null (bulk/block carry no holding
+ * after; SAST carries no price).
+ */
+export interface ExchangeDeal {
+  symbol: string;
+  kind: "bulk" | "block" | "sast";
+  /** ISO date: the deal date, or the SAST acquisition/sale date. */
+  date: string | null;
+  party: string | null;
+  side: "buy" | "sell" | null;
+  quantity: number | null;
+  /** Weighted average trade price (bulk/block). */
+  price: number | null;
+  /** quantity x price (bulk/block). */
+  value: number | null;
+  /** The party's holding after the transaction, percent of shares (SAST). */
+  percent_after: number | null;
+  exchange: string;
+  /** The filed disclosure (SAST attachment). */
+  source_url: string | null;
+}
+
+/** `GET /disclosures/deals` — bulk/block deals and SAST, newest first. */
+export interface ExchangeDealsResponse {
+  symbol: string;
+  /** The kind filter applied, or null for every kind. */
+  kind: string | null;
+  count: number;
+  deals: ExchangeDeal[];
+  /** Lanes that served ("NSE bulk", "NSE sast", "BSE block", ...). */
+  sources: string[];
+  /** Lanes attempted but failed, with the reason (partial result served). */
+  errors: Record<string, string>;
+}
+
+/**
+ * One corporate action of an Indian listing: a dividend, bonus, split, rights
+ * issue or buyback. `purpose` is the exchange's verbatim line; `ratio` and
+ * `amount_per_share` are parsed from it (null when absent). `exchange` is
+ * "NSE", "BSE" or "NSE+BSE" when both feeds carry the action.
+ */
+export interface CorporateAction {
+  symbol: string;
+  kind: "dividend" | "bonus" | "split" | "rights" | "buyback" | "other";
+  purpose: string;
+  /** e.g. "7:24" for a bonus or rights issue. */
+  ratio: string | null;
+  amount_per_share: number | null;
+  /** ISO dates; null when the feed carried none. */
+  ex_date: string | null;
+  record_date: string | null;
+  payment_date: string | null;
+  exchange: string;
+}
+
+/** `GET /disclosures/corporate-actions` — NSE+BSE actions, newest ex-date first. */
+export interface CorporateActionsResponse {
+  symbol: string;
+  count: number;
+  actions: CorporateAction[];
+  /** Exchanges that served this response. */
+  sources: string[];
+  /** Exchanges attempted but failed, with the reason (partial merge served). */
+  errors: Record<string, string>;
 }
 
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */

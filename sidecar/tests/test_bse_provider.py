@@ -590,8 +590,10 @@ def test_parse_shp_xbrl_older_schema_recovers_real_values() -> None:
     assert summary["public_percent"] == 26.71
     assert summary["institutions_percent"] == 0.06
     assert summary["dii_percent"] == 0.06
-    for value in summary.values():
-        assert 0.0 <= value <= 100.5
+    for field_name in bse_provider._SHP_PCT_FIELDS:
+        value = summary.get(field_name)
+        if value is not None:
+            assert 0.0 <= value <= 100.5
 
 
 def test_parse_shp_xbrl_corrupt_quarter_invalidates_whole_split() -> None:
@@ -703,3 +705,100 @@ def test_get_shareholding_index_failure_raises(tmp_path, monkeypatch: pytest.Mon
 def test_get_shareholding_non_bse_symbol_fast_fails() -> None:
     with pytest.raises(ProviderError, match="not a known BSE instrument"):
         bse_provider.get_shareholding("AAPL")
+
+
+# --- R15-DATA-056: a leg the filing omits is derived from the filed total -----
+
+
+def _row_from_cached_summary(tmp_path, monkeypatch: pytest.MonkeyPatch, summary: dict) -> dict:
+    """``get_shareholding`` over one quarter whose parsed summary is already in
+    the disk cache without a derived leg: the derivation runs on read."""
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    index = {"Table": [{**_SHP_INDEX["Table"][0], "XbrlFile": "cached.xml"}]}
+    bse_provider._shp_write_cache("cached.xml", {**summary, "promoter_pledge_basis": None})
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(index=index))
+    return bse_provider.get_shareholding("BOMOXY-B1")[0]
+
+
+def test_shareholding_derives_the_missing_dii_leg_crest(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path,
+        monkeypatch,
+        {"promoter_percent": 69.84, "fii_percent": 1.71, "institutions_percent": 1.71},
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (1.71, 0.0, "derived")
+
+
+def test_shareholding_zero_total_derives_both_legs_vertex(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path, monkeypatch, {"promoter_percent": 36.43, "institutions_percent": 0.0}
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (0.0, 0.0, "derived")
+
+
+def test_shareholding_derives_the_missing_fii_leg_ttc(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path, monkeypatch, {"dii_percent": 5.83, "institutions_percent": 5.83}
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (0.0, 5.83, "derived")
+
+
+def test_shareholding_both_legs_missing_under_a_nonzero_total_stay_none(
+    tmp_path, monkeypatch
+) -> None:
+    row = _row_from_cached_summary(tmp_path, monkeypatch, {"institutions_percent": 4.2})
+    assert row.get("fii_percent") is None and row.get("dii_percent") is None
+    assert row.get("split_basis") is None
+
+
+# --- R15-DATA-023: promoter pledge from the SEBI SHP XBRL ---------------------
+#
+# Trimmed live filings captured 2026-09-24: BAJAJHIND (500032) Jun 2026, every
+# promoter share pledged (current schema) and Sep 2024 (the older
+# "PledgedOrEncumbered..." schema); CSL (538868) and DAL (539681), whose
+# filings declare no pledge or encumbrance.
+
+
+def _bse_fixture(name: str) -> str:
+    return (_BSE_FIXTURES / name).read_text()
+
+
+def test_parse_shp_xbrl_reads_the_promoter_pledge() -> None:
+    summary = bse_provider.parse_shp_xbrl(_bse_fixture("shp_xbrl_500032_jun2026_pledged.xml"))
+    assert summary["promoter_percent"] == 13.33
+    assert summary["promoter_pledged_percent"] == 100.0
+    assert summary["promoter_pledge_basis"] == "filed"
+
+
+def test_parse_shp_xbrl_reads_the_older_schema_pledge() -> None:
+    summary = bse_provider.parse_shp_xbrl(
+        _bse_fixture("shp_xbrl_500032_sep2024_pledged_old_schema.xml")
+    )
+    assert summary["promoter_percent"] == 24.95
+    assert summary["promoter_pledged_percent"] == 100.0
+    assert summary["promoter_pledge_basis"] == "filed"
+
+
+@pytest.mark.parametrize(
+    "fixture", ["shp_xbrl_538868_csl_aug2026.xml", "shp_xbrl_539681_dal_jun2026.xml"]
+)
+def test_parse_shp_xbrl_declared_no_pledge_is_a_filed_zero(fixture: str) -> None:
+    summary = bse_provider.parse_shp_xbrl(_bse_fixture(fixture))
+    assert summary["promoter_pledged_percent"] == 0.0
+    assert summary["promoter_pledge_basis"] == "filed"
+
+
+def test_parse_shp_xbrl_without_a_pledge_declaration_is_none_not_zero() -> None:
+    summary = bse_provider.parse_shp_xbrl(_SHP_XBRL)  # carries no declaration
+    assert summary["promoter_pledged_percent"] is None
+    assert summary["promoter_pledge_basis"] is None
+
+
+def test_summary_cached_before_the_pledge_parse_is_reparsed(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    index = {"Table": [{**_SHP_INDEX["Table"][0], "XbrlFile": "pledged.xml"}]}
+    bse_provider._shp_write_cache("pledged.xml", {"promoter_percent": 13.33})
+    pledged = _bse_fixture("shp_xbrl_500032_jun2026_pledged.xml")
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(index=index, xbrl=pledged))
+    row = bse_provider.get_shareholding("BOMOXY-B1")[0]
+    assert (row["promoter_pledged_percent"], row["promoter_pledge_basis"]) == (100.0, "filed")

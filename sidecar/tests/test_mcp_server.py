@@ -17,6 +17,8 @@ import asyncio
 from typing import Any
 
 import pytest
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from fastapi.testclient import TestClient
 
 from services import mcp_server
@@ -217,3 +219,54 @@ def test_list_workflows_tool_returns_dict_wrap(client: TestClient) -> None:
     assert isinstance(payload, dict)
     workflows = payload.get("workflows")
     assert isinstance(workflows, list)
+
+
+def test_invoke_agent_takes_its_key_from_the_request_header_not_an_argument() -> None:
+    """The key is never in the tool schema (the calling model's context); an
+    ``X-Vysted-Api-Key`` header on the /mcp request reaches the invoke body."""
+    tools = {t.name: t for t in asyncio.run(mcp_server.get_mcp_server().list_tools())}
+    assert "api_key" not in tools["invoke_agent"].parameters["properties"]
+
+    seen: dict[str, Any] = {}
+    stub = FastAPI()
+
+    @stub.post("/agents/{agent_id}/invoke")
+    async def _invoke(agent_id: str, request: Request) -> StreamingResponse:
+        seen["body"] = await request.json()
+        frame = b'data: {"kind":"done","usage":{}}\n\n'
+        return StreamingResponse(iter([frame]), media_type="text/event-stream")
+
+    mcp_server.bind_app(stub)
+    call = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {"name": "invoke_agent", "arguments": {"agent_id": "buffett", "prompt": "hi"}},
+    }
+    with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+        response = mcp_client.post(
+            "/",
+            headers={
+                "Accept": "application/json, text/event-stream",
+                "X-Vysted-Api-Key": "canary-key",
+            },
+            json=call,
+        )
+    assert response.status_code == 200
+    assert seen["body"] == {"prompt": "hi", "api_key": "canary-key"}
+
+
+@pytest.mark.parametrize(("tool", "path"), [("list_agents", "/agents"), ("list_runs", "/runs")])
+def test_list_tool_reports_a_failing_route_as_not_ok(tool: str, path: str) -> None:
+    """A 5xx from the in-process route is ``ok: false``, never an empty list."""
+    broken = FastAPI()
+
+    @broken.get(path)
+    def _fail() -> None:
+        raise HTTPException(status_code=500, detail="store unreadable")
+
+    mcp_server.bind_app(broken)
+    result = asyncio.run(mcp_server.get_mcp_server().call_tool(tool, {}))
+    payload = result.structured_content or {}
+    assert payload.get("ok") is False
+    assert "500" in payload["error"]

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-  isDivergenceNotice,
+  isRuntimeNotice,
   resetMessageNoticesForTests,
   useMessageNoticesStore,
 } from "./message-notices";
@@ -24,11 +24,12 @@ describe("message-notices store (R10 D39/D43)", () => {
     expect(useMessageNoticesStore.getState().notices).toEqual({});
   });
 
-  it("recognises ONLY the runtime's divergence notices on the engine channel", () => {
-    expect(isDivergenceNotice("engine", "The brief panel did not confirm the publish")).toBe(true);
-    expect(isDivergenceNotice("engine", "The panel kept the previous, richer brief.")).toBe(true);
-    // Ordinary engine lines + non-engine steps stay in the step trace.
-    expect(isDivergenceNotice("engine", "backend searxng ready")).toBe(false);
-    expect(isDivergenceNotice("search", "kept the previous, richer brief")).toBe(false);
+  // The old test pinned the regex's own stale copy ("kept the previous, richer
+  // brief"), which the runtime had already reworded (R15-AGENT-031): a notice is
+  // now recognised by its kind, whatever its copy says.
+  it("recognises a runtime notice by its step kind, never its copy", () => {
+    expect(isRuntimeNotice("notice")).toBe(true);
+    expect(isRuntimeNotice("engine")).toBe(false);
+    expect(isRuntimeNotice("search")).toBe(false);
   });
 });

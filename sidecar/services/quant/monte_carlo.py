@@ -26,7 +26,7 @@ import QuantLib as ql
 
 from models.quant import OptionPayoff
 
-from ._common import build_bsm_process, ql_option_type, to_ql_date
+from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
 
 #: Default Monte Carlo paths for path-dependent engines (variance is
 #: higher than the analytic-collapse European path so we raise the floor).
@@ -36,6 +36,7 @@ DEFAULT_PATH_DEPENDENT_PATHS = 50_000
 DEFAULT_SEED = 42
 
 
+@holds_ql_lock
 def price_asian_mc(
     spot: float,
     strike: float,
@@ -112,6 +113,7 @@ def price_asian_mc(
     }
 
 
+@holds_ql_lock
 def price_barrier_mc(
     spot: float,
     strike: float,

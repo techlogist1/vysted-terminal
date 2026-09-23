@@ -32,6 +32,7 @@ from config import get_llm_creds
 from models.agent import AgentContextSnapshot
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMErrorEvent
 from services import agent_runtime, indicators, provider_registry
+from services.workflow_engine import SKIP
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,10 @@ logger = logging.getLogger(__name__)
 #: sidecar for hours. 300s matches the plan brief.
 _SLEEP_MAX_SECONDS = 300.0
 
-#: Truthy strings that ``logic.branch`` recognises when routing a string-valued
-#: condition. Anything else is treated by Python's normal truthiness.
+#: Strings that ``logic.branch`` reads as a boolean (case- and whitespace-
+#: insensitive). Any other string falls back to Python truthiness.
 _TRUTHY_STRINGS = frozenset({"true", "yes", "1", "on"})
+_FALSY_STRINGS = frozenset({"false", "no", "0", "off", ""})
 
 
 # ---------------------------------------------------------------------------
@@ -202,9 +204,13 @@ async def agent_invoke(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
 
 
 def _is_truthy(value: Any) -> bool:
-    """Return Python truthiness with a small string-aware override."""
+    """Return Python truthiness, reading boolean-like strings as their boolean."""
     if isinstance(value, str):
-        return value.strip().lower() in _TRUTHY_STRINGS or bool(value.strip())
+        text = value.strip().lower()
+        if text in _TRUTHY_STRINGS:
+            return True
+        if text in _FALSY_STRINGS:
+            return False
     return bool(value)
 
 
@@ -217,9 +223,9 @@ async def logic_branch(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     currently informational only. ``mode`` may be ``"truthy"`` (default)
     or ``"gt"`` (greater-than threshold).
 
-    Outputs: ``true_path`` carries the value on a positive condition and is
-    ``None`` otherwise; ``false_path`` is the inverse. Downstream nodes wire
-    to whichever port they want to consume.
+    Outputs: ``true_path`` carries the value on a positive condition and
+    :data:`workflow_engine.SKIP` otherwise; ``false_path`` is the inverse. The
+    engine skips (never runs) a node fed only by the un-taken port.
     """
     value = inputs.get("value")
     mode = config.get("mode", "truthy")
@@ -235,8 +241,8 @@ async def logic_branch(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
     else:
         condition = _is_truthy(value)
     if condition:
-        return {"true_path": value, "false_path": None}
-    return {"true_path": None, "false_path": value}
+        return {"true_path": value, "false_path": SKIP}
+    return {"true_path": SKIP, "false_path": value}
 
 
 # ---------------------------------------------------------------------------

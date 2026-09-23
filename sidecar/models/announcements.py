@@ -7,6 +7,9 @@ Typed shapes for the India corporate-disclosure feeds served by
   feed / BSE ``AnnSubCategoryGetData`` feed), merged + deduped by the service.
 * :class:`ResultsEvent` — one results-calendar / board-meeting event (the NSE
   ``event-calendar`` feed).
+* :class:`ExchangeDeal` — one bulk deal, block deal or SAST disclosure.
+* :class:`CorporateAction` — one dividend / bonus / split / rights / buyback
+  (NSE + BSE corporate-action feeds, merged).
 * :class:`ShareholdingPattern` — one quarterly shareholding-pattern row. The
   NSE shareholding MASTER carries the promoter(+group), public, and
   employee-trust percentages; the FII/DII split lives only in the linked XBRL
@@ -21,6 +24,7 @@ from __future__ import annotations
 
 import datetime as _dt
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr
 
@@ -43,6 +47,10 @@ class Announcement(BaseModel):
     #: ``HEADLINE``; NSE's ``attchmntText`` is already the headline) — the BSE
     #: display headline is a short subject that never matches NSE's. Not served.
     _body: str | None = PrivateAttr(default=None)
+    #: The exchange category mapped to one canonical kind (NSE ``desc``, BSE
+    #: ``SUBCATNAME``/``CATEGORYNAME``), which the cross-feed pairing compares
+    #: when the two texts share too few words. Not served.
+    _kind: str | None = PrivateAttr(default=None)
 
 
 class AnnouncementWindow(BaseModel):
@@ -159,6 +167,19 @@ class ShareholdingPattern(BaseModel):
     #: supplied the split (an honest as-of, never silently aligned). ``None`` when
     #: no split was merged.
     split_as_of: date | None = None
+    #: How the FII/DII legs were obtained: ``"filed"`` (both read from the
+    #: filing), ``"derived"`` (a leg the filing omits, computed as the filed
+    #: institutions total minus the other leg, or 0 from a 0 total). ``None``
+    #: when no leg is known.
+    split_basis: Literal["filed", "derived"] | None = None
+    #: Promoter + promoter-group shares pledged or otherwise encumbered, as a
+    #: percent of the promoter holding (SEBI SHP Table II, from the XBRL; merged
+    #: onto a dual-listed NSE pattern with the split). ``0.0`` when the filing
+    #: declares no pledge/encumbrance; ``None`` when it declares nothing.
+    promoter_pledged_percent: float | None = None
+    #: ``"filed"`` when the filing states the pledge (including an explicit 0);
+    #: ``None`` when the filing carries no declaration. Never inferred.
+    promoter_pledge_basis: Literal["filed"] | None = None
 
 
 class ShareholdingResponse(BaseModel):
@@ -167,3 +188,75 @@ class ShareholdingResponse(BaseModel):
     symbol: str
     count: int
     patterns: list[ShareholdingPattern] = []
+
+
+class CorporateAction(BaseModel):
+    """One corporate action of an Indian listing (R15-DATA-025): a dividend,
+    bonus, split, rights issue or buyback, with its record/ex/payment dates.
+
+    ``purpose`` is the exchange's verbatim line; ``ratio`` ("7:24") and
+    ``amount_per_share`` are parsed from it (a dividend's amount from BSE's
+    ``Details`` when NSE does not carry the action) and ``None`` when absent.
+    ``exchange`` is ``"NSE"``, ``"BSE"`` or ``"NSE+BSE"`` when both feeds carry
+    one action (collapsed on its kind and ex-date).
+    """
+
+    symbol: str
+    kind: Literal["dividend", "bonus", "split", "rights", "buyback", "other"]
+    purpose: str
+    ratio: str | None = None
+    amount_per_share: float | None = None
+    ex_date: date | None = None
+    record_date: date | None = None
+    payment_date: date | None = None
+    exchange: str
+
+
+class CorporateActionsResponse(BaseModel):
+    """``GET /disclosures/corporate-actions`` — NSE+BSE actions, newest first."""
+
+    symbol: str
+    count: int
+    actions: list[CorporateAction] = []
+    #: Exchanges that served this response.
+    sources: list[str] = []
+    #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}
+
+
+class ExchangeDeal(BaseModel):
+    """One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+    listing (R15-DATA-024). Fields a feed does not carry stay ``None``: bulk and
+    block deals carry no holding after; a SAST disclosure carries no price."""
+
+    symbol: str
+    kind: Literal["bulk", "block", "sast"]
+    #: Deal date (bulk/block) or the acquisition/sale date (SAST).
+    date: _dt.date | None = None
+    #: The client (bulk/block) or the acquirer/seller (SAST), verbatim.
+    party: str | None = None
+    side: Literal["buy", "sell"] | None = None
+    quantity: float | None = None
+    #: Weighted average trade price (bulk/block).
+    price: float | None = None
+    #: ``quantity`` x ``price`` (bulk/block).
+    value: float | None = None
+    #: The party's holding after the transaction, percent of shares (SAST).
+    percent_after: float | None = None
+    exchange: str
+    #: The filed disclosure (SAST attachment).
+    source_url: str | None = None
+
+
+class ExchangeDealsResponse(BaseModel):
+    """``GET /disclosures/deals`` — bulk/block deals and SAST, newest first."""
+
+    symbol: str
+    #: The kind filter applied, or ``None`` for every kind.
+    kind: str | None = None
+    count: int
+    deals: list[ExchangeDeal] = []
+    #: The lanes that served ("NSE bulk", "NSE sast", "BSE block", ...).
+    sources: list[str] = []
+    #: Lanes attempted but failed, with the reason (partial result served).
+    errors: dict[str, str] = {}

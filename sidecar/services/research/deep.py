@@ -39,6 +39,8 @@ from contextvars import ContextVar
 from typing import Any
 
 from services.budget_guard import BudgetGuard
+from services.llm import oneshot
+from services.llm.base import is_length_finish
 from services.research import finance
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
@@ -115,6 +117,18 @@ SYNTHESIS_TIMEOUT_NOTE = (
     "The model did not finish writing the synthesis within its per-call time limit, "
     "so this brief is assembled from the gathered report, data and filings."
 )
+
+
+#: The user-facing note when the synthesis hit the model's output limit
+#: (R15-RESEARCH-014): the prose is cut, so the brief must not read as complete.
+SYNTHESIS_TRUNCATED_NOTE = (
+    "The model hit its output limit while writing this synthesis, so the brief's prose ends early."
+)
+
+
+def join_notes(*notes: str | None) -> str | None:
+    """The brief's user-facing note: every given sentence, or ``None``."""
+    return " ".join(n for n in notes if n) or None
 
 
 def remaining_wall(budget: BudgetGuard) -> float | None:
@@ -196,6 +210,14 @@ async def _safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
     except Exception:  # noqa: BLE001 — an LLM failure or per-call overrun ends the round, not the run
         return ""
     return out if isinstance(out, str) else ""
+
+
+async def _synthesis_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> tuple[str, bool]:
+    """:func:`_safe_llm` for a synthesis call, plus whether the completion was
+    cut at the model's output limit (R15-RESEARCH-014)."""
+    with oneshot.finish_reasons() as reasons:
+        body = await _safe_llm(llm_call, messages)
+    return body, any(is_length_finish(r) for r in reasons)
 
 
 def _split_subquestions(text: str, *, limit: int) -> list[str]:
@@ -1033,8 +1055,11 @@ async def _final_synthesis(
     symbol: str,
     findings: _Findings,
     structured: dict[str, Any] | None = None,
-) -> str:
+) -> tuple[str, bool]:
     """Ask the LLM to write the brief markdown with inline ``[n]`` citations.
+
+    Returns ``(markdown, truncated)``: ``truncated`` is True when the model's
+    synthesis was cut at its output limit.
 
     The numbered source list is handed to the model so its ``[n]`` markers line
     up with :meth:`_Findings.all_sources`. On an empty/failed completion a terse
@@ -1052,7 +1077,7 @@ async def _final_synthesis(
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(sources))
     priority = finance.priority_note(sources)
     snapshot = snapshot_context(structured or {})
-    body = await _safe_llm(
+    body, truncated = await _synthesis_llm(
         llm_call,
         [
             {
@@ -1090,13 +1115,13 @@ async def _final_synthesis(
         ],
     )
     if body.strip():
-        return body.strip()
+        return body.strip(), truncated
     # Deterministic fallback — abort path with a dead LLM still ships a brief.
     lines = [f"# Research brief: {query}", "", f"Symbol: {symbol}", ""]
     if findings.findings:
         lines.append("## Findings")
         lines.extend(f"- {f}" for f in findings.findings)
-        return "\n".join(lines)
+        return "\n".join(lines), False
     # R13 filings floor: never "No findings" when structured legs carried data —
     # build the brief from the price/announcements/fundamentals snapshot instead.
     floor = build_structured_floor(
@@ -1106,9 +1131,9 @@ async def _final_synthesis(
         web_sources=len(findings.web_sources),
     )
     if floor is not None:
-        return floor
+        return floor, False
     lines.append("_No findings were gathered before the run ended._")
-    return "\n".join(lines)
+    return "\n".join(lines), False
 
 
 async def run_deep_research(
@@ -1169,7 +1194,7 @@ async def run_deep_research(
     async def abort_synthesize(reason: str) -> ResearchBrief:
         """Immediate abort→synthesis from whatever is gathered (never raises)."""
         t0 = time.monotonic()
-        markdown = await _final_synthesis(
+        markdown, truncated = await _final_synthesis(
             llm_call, query=query, symbol=symbol, findings=findings, structured=structured
         )
         markdown = finalize_markdown(
@@ -1189,7 +1214,7 @@ async def run_deep_research(
             structured=structured,
             steps=steps,
             budget=budget,
-            note=BUDGET_STOP_NOTE,
+            note=join_notes(BUDGET_STOP_NOTE, SYNTHESIS_TRUNCATED_NOTE if truncated else None),
         )
 
     async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
@@ -1401,7 +1426,7 @@ async def run_deep_research(
 
     # --- clean completion: final synthesize ---------------------------------
     synth_t0 = time.monotonic()
-    markdown = await _final_synthesis(
+    markdown, truncated = await _final_synthesis(
         llm_call, query=query, symbol=symbol, findings=findings, structured=structured
     )
     markdown = finalize_markdown(markdown, target=target, structured=structured, findings=findings)
@@ -1420,7 +1445,7 @@ async def run_deep_research(
         structured=structured,
         steps=steps,
         budget=budget,
-        note=None,
+        note=SYNTHESIS_TRUNCATED_NOTE if truncated else None,
     )
 
 
@@ -1430,6 +1455,7 @@ __all__ = [
     "LLMCall",
     "SYNTHESIS_TIMEOUT_NOTE",
     "SYNTHESIS_TIMEOUT_REASON",
+    "SYNTHESIS_TRUNCATED_NOTE",
     "MIN_ROUND_WALL_SECS",
     "OnStep",
     "ROUND_SLICE_LATENCY_MULT",

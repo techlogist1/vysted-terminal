@@ -297,6 +297,26 @@ describe("ScreenerPanel", () => {
     });
   });
 
+  it("R15-UI-055: throttled with no stale/snapshot rows shown claims no cached values", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      makeStreamResponse({
+        ...RESULT_WITH_BASIS,
+        rows: [],
+        result_count: 0,
+        evaluated_count: 0,
+        partial: true,
+        basis_counts: null,
+      }),
+    );
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("partial-badge")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("throttle-notice")).not.toBeInTheDocument();
+  });
+
   it("throttled absent/false renders no throttle notice", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(makeStreamResponse(RESULT_WITH_PARTIAL));
     render(<ScreenerPanel />);

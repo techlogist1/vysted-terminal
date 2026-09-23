@@ -9,10 +9,11 @@ paid history) is stated without separating the declared-not-yet-paid leg,
 "paid" and "declared" collapse into one number and the D56 note mis-attributes
 the gap.
 
-:func:`get_declared_unpaid_dividend` reads the NSE corporate-actions feed (via
-:func:`services.nse_provider.get_corporate_actions`) and returns the NEAREST
-dividend whose record/ex date is still in the future — the amount + record date
-the derived semantics leg surfaces as a SEPARATE "declared, not yet paid" fact.
+:func:`get_declared_unpaid_dividend` reads the merged NSE+BSE corporate-actions
+lane (:func:`services.corporate_disclosures.get_corporate_actions`, so a
+BSE-only name is covered too; R15-DATA-025) and returns the NEAREST dividend
+whose record/ex date is still in the future — the amount + record date the
+derived semantics leg surfaces as a SEPARATE "declared, not yet paid" fact.
 It NEVER raises into research: any failure becomes ``None`` (absence is honest),
 and a detected block is reported to the shared EXCHANGE circuit breaker
 (mirroring :mod:`services.ownership_check`)."""
@@ -21,12 +22,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime
 from typing import Any
 
-from services import locale, nse_provider, provider_health, symbol_resolver
+from models.announcements import CorporateAction
+from services import corporate_disclosures, locale, provider_health, symbol_resolver
+from services.errors import ProviderError
 from services.ownership_check import EXCHANGE
 from services.witness import is_block_error, is_india_listing
 
@@ -35,12 +37,6 @@ logger = logging.getLogger(__name__)
 #: The fundamentals-leg key the snapshot builder attaches this result under, and
 #: that :func:`services.research.semantics.derive_semantics` reads.
 DECLARED_KEY = "dividend_declared"
-
-#: A corporate-action ``subject`` is a dividend when it names one (the feed also
-#: carries bonuses / splits / rights we ignore for the dividend leg).
-_DIVIDEND_SUBJECT_RE = re.compile(r"dividend", re.IGNORECASE)
-#: The per-share amount inside a subject like "Dividend - Rs 3.95 Per Share".
-_AMOUNT_RE = re.compile(r"(?:rs\.?|₹|inr)\s*([0-9]+(?:\.[0-9]+)?)", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -62,63 +58,39 @@ class DeclaredDividend:
 
 
 def is_applicable(symbol: str) -> bool:
-    """True when ``symbol`` is an NSE listing (the corporate-actions lane is NSE).
+    """True when ``symbol`` is an NSE or BSE listing (the corporate-actions lane
+    merges both exchanges).
 
     Decided on the resolved listing (``.NS``/``.BO``, via
-    :func:`services.witness.is_india_listing`) whose bare ticker is an NSE symbol
-    — never on bare-ticker membership alone, so a US-bound listing is skipped
-    without a network call.
+    :func:`services.witness.is_india_listing`) whose bare ticker is in an India
+    master — never on bare-ticker membership alone, so a US-bound listing is
+    skipped without a network call.
     """
     if not is_india_listing(symbol):
         return False
-    return symbol_resolver.is_nse_symbol(locale.strip_exchange_suffix(symbol))
-
-
-def _parse_amount(subject: str) -> float | None:
-    """The per-share amount in a dividend subject, or ``None``."""
-    match = _AMOUNT_RE.search(subject)
-    if not match:
-        return None
-    try:
-        return float(match.group(1))
-    except ValueError:
-        return None
-
-
-def _parse_action_date(raw: object) -> date | None:
-    """A corporate-action date ("31-Jul-2026") → ``date``; ``None`` if unparseable."""
-    if not isinstance(raw, str):
-        return None
-    text = raw.strip()
-    if not text or text == "-":
-        return None
-    try:
-        return datetime.strptime(text, "%d-%b-%Y").date()  # %b is case-insensitive
-    except ValueError:
-        return None
+    bare = locale.strip_exchange_suffix(symbol)
+    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
 
 
 def _ist_today() -> date:
     return datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
 
 
-def _select_declared(rows: list[dict], today: date) -> DeclaredDividend | None:
+def _select_declared(actions: list[CorporateAction], today: date) -> DeclaredDividend | None:
     """The nearest dividend whose record/ex date is still in the future."""
     candidates: list[DeclaredDividend] = []
-    for row in rows:
-        if not isinstance(row, dict):
+    for action in actions:
+        if action.kind != "dividend" or action.amount_per_share is None:
             continue
-        subject = row.get("subject")
-        if not isinstance(subject, str) or not _DIVIDEND_SUBJECT_RE.search(subject):
-            continue
-        record = _parse_action_date(row.get("recDate")) or _parse_action_date(row.get("exDate"))
+        record = action.record_date or action.ex_date
         if record is None or record <= today:
             continue  # already ex-date / paid, or undated — not declared-unpaid
-        amount = _parse_amount(subject)
-        if amount is None:
-            continue
         candidates.append(
-            DeclaredDividend(amount=amount, record_date=record.isoformat(), subject=subject.strip())
+            DeclaredDividend(
+                amount=action.amount_per_share,
+                record_date=record.isoformat(),
+                subject=action.purpose,
+            )
         )
     if not candidates:
         return None
@@ -126,32 +98,37 @@ def _select_declared(rows: list[dict], today: date) -> DeclaredDividend | None:
     return min(candidates, key=lambda d: d.record_date)
 
 
-def _fetch(symbol: str) -> DeclaredDividend | None:
-    """The declared-unpaid dividend (BLOCKING; runs under ``to_thread``)."""
-    rows = nse_provider.get_corporate_actions(symbol)
-    return _select_declared(rows, _ist_today())
+def _fetch(symbol: str) -> tuple[DeclaredDividend | None, bool]:
+    """The declared-unpaid dividend plus whether an exchange lane was blocked
+    while the other served (BLOCKING; runs under ``to_thread``)."""
+    response = corporate_disclosures.get_corporate_actions(symbol)
+    blocked = any(is_block_error(ProviderError(msg)) for msg in response.errors.values())
+    return _select_declared(response.actions, _ist_today()), blocked
 
 
 async def get_declared_unpaid_dividend(symbol: str) -> DeclaredDividend | None:
     """The nearest declared-but-unpaid dividend for ``symbol``, or ``None``.
 
-    ``None`` when the listing is not an NSE name, the exchange circuit is open,
-    the feed is unreachable, or no future-record dividend is declared — never
-    raises into the research snapshot.
+    ``None`` when the listing is not an NSE/BSE name, the exchange circuit is
+    open, the feed is unreachable, or no future-record dividend is declared —
+    never raises into the research snapshot.
     """
     if not is_applicable(symbol):
         return None
     if provider_health.is_open(EXCHANGE):
         return None  # circuit open — serve no exchange facts this round (D52)
     try:
-        result = await asyncio.to_thread(_fetch, symbol)
+        result, blocked = await asyncio.to_thread(_fetch, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
         if is_block_error(exc):
             provider_health.record_rate_limited(EXCHANGE)
         else:
             logger.debug("declared-dividend lane unavailable for %s: %s", symbol, exc)
         return None
-    provider_health.record_success(EXCHANGE)
+    if blocked:
+        provider_health.record_rate_limited(EXCHANGE)
+    else:
+        provider_health.record_success(EXCHANGE)
     return result
 
 

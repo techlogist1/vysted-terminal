@@ -7,7 +7,8 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 * **Announcements** — merged from BOTH exchange feeds, newest first. A
   within-feed re-dissemination collapses on ``(symbol, body-prefix-hash,
   date)``; an NSE item and a BSE item of one filing pair on the same day, a
-  short dissemination gap and similar text (:func:`_pair_cross_feed`):
+  short dissemination gap and similar text or one unambiguous exchange
+  category (:func:`_pair_cross_feed`):
 
   - NSE: :func:`services.nse_provider.get_corporate_announcements` (the
     curl_cffi cookie-danced lane; observed item keys ``an_dt``,
@@ -34,6 +35,13 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 * **Results calendar** — the NSE ``event-calendar`` feed (board meetings,
   results, dividends), parsed dates, newest first.
 
+* **Deals** — bulk and block deals (NSE, or BSE for a BSE-only scrip) and SAST
+  Reg 29 disclosures (NSE), newest first (:func:`get_deals`).
+
+* **Corporate actions** — dividends, bonuses, splits, rights and buybacks from
+  the NSE and BSE corporate-action feeds, a dual-listed action collapsed to one
+  row (:func:`get_corporate_actions`).
+
 * **Shareholding** — the NSE quarterly shareholding MASTER (promoter+group,
   public, employee-trust percentages + the XBRL filing URL). The FII/DII split
   lives only inside the XBRL, so on the NSE lane those fields are ``None`` — but
@@ -51,21 +59,27 @@ accessors and :func:`_bse_get_json`.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import re
+from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 
 from models.announcements import (
     Announcement,
     AnnouncementsResponse,
     AnnouncementWindow,
+    CorporateAction,
+    CorporateActionsResponse,
+    ExchangeDeal,
+    ExchangeDealsResponse,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
     ShareholdingResponse,
 )
-from services import locale, nse_provider, symbol_resolver
+from services import data_cache, locale, nse_provider, symbol_resolver
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -76,6 +90,10 @@ EXCHANGES = (EXCHANGE_NSE, EXCHANGE_BSE)
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
+#: The merged announcements feed is cached for 15 minutes for every caller (the
+#: panel route, the agent tool and research's gather), which also keeps the NSE
+#: throttle from re-walking the cookie dance per call (R15-DATA-074).
+ANNOUNCEMENTS_TTL_SECONDS = 15 * 60
 
 # The exchange "Public" category (NSE quarterly master ``public_val`` and the BSE
 # SEBI ``PublicShareholdingMember``) FOLDS institutions in — it is the full public
@@ -228,6 +246,7 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     )
     # HEADLINE is the body text NSE's attchmntText carries; NEWSSUB is a subject.
     item._body = _clean(row.get("HEADLINE"))
+    item._kind = _canonical_kind(row.get("SUBCATNAME")) or _canonical_kind(row.get("CATEGORYNAME"))
     return item
 
 
@@ -273,7 +292,7 @@ def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     headline = _clean(row.get("attchmntText")) or _clean(row.get("desc"))
     if not headline:
         return None
-    return Announcement(
+    item = Announcement(
         symbol=_clean(row.get("symbol")) or bare,
         exchange=EXCHANGE_NSE,
         headline=headline,
@@ -281,6 +300,8 @@ def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         attachment_url=_clean(row.get("attchmntFile")) or None,
         ts=_parse_nse_ts(row),
     )
+    item._kind = _canonical_kind(row.get("desc"))
+    return item
 
 
 def _parse_nse_ts(row: dict) -> datetime | None:
@@ -322,6 +343,43 @@ _PAIR_WINDOW = timedelta(minutes=10)
 #: one company minutes apart score up to 0.53 (shared "Company executives ...
 #: Institutional Investors' Meeting" boilerplate).
 _PAIR_MIN_OVERLAP = 0.6
+#: Exchange category labels (NSE ``desc``; BSE ``SUBCATNAME``, else
+#: ``CATEGORYNAME``) mapped to one canonical kind, from the labels on the live
+#: HDFCBANK/TCS/RELIANCE/INFY feeds (2026-09). NSE's templated text ("... has
+#: informed the Exchange about Schedule of meet") shares few words with BSE's
+#: subject ("Announcement under Regulation 30 (LODR)-Analyst / Investor Meet -
+#: Intimation"), but both feeds file it under the same category. Catch-all
+#: labels (NSE "Updates", "Disclosure of material issue") are left out.
+_CANONICAL_KIND = {
+    "analysts/institutional investor meet/con. call updates": "analyst_meet",
+    "investor presentation": "analyst_meet",
+    "analyst / investor meet": "analyst_meet",
+    "earnings call transcript": "analyst_meet",
+    "credit rating": "credit_rating",
+    "press release": "press_release",
+    "press release / media release": "press_release",
+    "copy of newspaper publication": "newspaper",
+    "newspaper publication": "newspaper",
+    "board meeting intimation": "board_meeting",
+    "board meeting": "board_meeting",
+    "outcome of board meeting": "board_outcome",
+    "shareholders meeting": "shareholder_meeting",
+    "agm": "shareholder_meeting",
+    "egm": "shareholder_meeting",
+    "general updates": "general",
+    "general": "general",
+    "acquisition": "acquisition",
+    "bagging/receiving of orders/contracts": "order",
+    "award of order / receipt of order": "order",
+    "esop/esos/esps": "esop",
+    "allotment of esop / esps": "esop",
+    "change in management": "management_change",
+    "dividend": "dividend",
+    "certificate under sebi (depositories and participants) regulations, 2018": "dp_certificate",
+    "certificate under reg. 74 (5) of sebi (dp) regulations, 2018": "dp_certificate",
+    "news verification": "clarification",
+    "clarification": "clarification",
+}
 _STOPWORDS = frozenset(
     "the a an of to in on for and is has have that this with by as at be we you our its it "
     "are from under about regarding please note inform wish will been was were or".split()
@@ -365,36 +423,61 @@ def _overlap(a: frozenset[str], b: frozenset[str]) -> float:
     return len(a & b) / min(len(a), len(b))
 
 
+def _canonical_kind(label: object) -> str | None:
+    """An exchange category label's canonical kind (:data:`_CANONICAL_KIND`)."""
+    text = _clean(label)
+    return _CANONICAL_KIND.get(text.casefold()) if text else None
+
+
 def _pair_cross_feed(items: list[Announcement]) -> list[Announcement]:
     """Drop each BSE item that pairs with an NSE item of the same filing
     (R15-DATA-020); NSE wins a pair.
 
     Candidates share the symbol and IST day and were disseminated within
-    :data:`_PAIR_WINDOW`. Their similarity is the word overlap of the NSE text
-    against the BSE body or its subject, whichever is higher (BSE's body is
-    often boilerplate — "Enclosed" — while its subject names the filing). Pairs
-    are taken best-first (highest overlap, then the shortest gap) and each item
-    pairs at most once, so two filings minutes apart each keep their own match.
+    :data:`_PAIR_WINDOW`. A candidate pairs when the word overlap of the NSE text
+    against the BSE body or its subject, whichever is higher, reaches
+    :data:`_PAIR_MIN_OVERLAP` (BSE's body is often boilerplate — "Enclosed" —
+    while its subject names the filing), or when both items carry the same
+    canonical category (:data:`_CANONICAL_KIND`) and each is the other's only
+    same-category candidate in the window (NSE's templated text rarely shares
+    words with BSE's subject). Pairs are taken best-first (highest overlap, then
+    the shortest gap) and each item pairs at most once, so two filings minutes
+    apart each keep their own match.
     """
     nse = [i for i in items if i.exchange == EXCHANGE_NSE and i.ts is not None]
     bse = [i for i in items if i.exchange == EXCHANGE_BSE and i.ts is not None]
-    candidates: list[tuple[float, float, int, int]] = []
+    in_window: list[tuple[int, int, float]] = []
     for n_idx, n_item in enumerate(nse):
-        n_words = _words(n_item.headline)
         n_day = n_item.ts.astimezone(_ist()).date()
         for b_idx, b_item in enumerate(bse):
             gap = abs(n_item.ts - b_item.ts)
             if (
-                n_item.symbol.upper() != b_item.symbol.upper()
-                or gap > _PAIR_WINDOW
-                or b_item.ts.astimezone(_ist()).date() != n_day
+                n_item.symbol.upper() == b_item.symbol.upper()
+                and gap <= _PAIR_WINDOW
+                and b_item.ts.astimezone(_ist()).date() == n_day
             ):
-                continue
-            score = max(
-                _overlap(n_words, _words(b_item._body)), _overlap(n_words, _words(b_item.headline))
-            )
-            if score >= _PAIR_MIN_OVERLAP:
-                candidates.append((-score, gap.total_seconds(), n_idx, b_idx))
+                in_window.append((n_idx, b_idx, gap.total_seconds()))
+    same_kind = [
+        (n_idx, b_idx)
+        for n_idx, b_idx, _gap in in_window
+        if nse[n_idx]._kind is not None and nse[n_idx]._kind == bse[b_idx]._kind
+    ]
+    kind_matches_nse = Counter(n_idx for n_idx, _b in same_kind)
+    kind_matches_bse = Counter(b_idx for _n, b_idx in same_kind)
+    candidates: list[tuple[float, float, int, int]] = []
+    for n_idx, b_idx, gap_seconds in in_window:
+        n_words = _words(nse[n_idx].headline)
+        b_item = bse[b_idx]
+        score = max(
+            _overlap(n_words, _words(b_item._body)), _overlap(n_words, _words(b_item.headline))
+        )
+        unique_kind = (
+            (n_idx, b_idx) in same_kind
+            and kind_matches_nse[n_idx] == 1
+            and kind_matches_bse[b_idx] == 1
+        )
+        if score >= _PAIR_MIN_OVERLAP or unique_kind:
+            candidates.append((-score, gap_seconds, n_idx, b_idx))
     paired_nse: set[int] = set()
     paired_bse: set[int] = set()
     for _score, _gap, n_idx, b_idx in sorted(candidates):
@@ -482,6 +565,25 @@ def get_announcements(
     )
 
 
+async def get_announcements_cached(
+    symbol: str, exchange: str | None = None, limit: int = DEFAULT_LIMIT
+) -> AnnouncementsResponse:
+    """:func:`get_announcements` through :mod:`services.data_cache` — the one
+    cached entry point the router, the agent tool and research share. Raises
+    :class:`ProviderError` like the uncached call; a failure is never cached."""
+    normalized = symbol.strip().upper()
+    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
+    cached = await data_cache.get(cache_key, ANNOUNCEMENTS_TTL_SECONDS)
+    if isinstance(cached, dict):
+        try:
+            return AnnouncementsResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+    response = await asyncio.to_thread(get_announcements, normalized, exchange, limit)
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Results calendar (NSE event-calendar feed).
 # ---------------------------------------------------------------------------
@@ -511,6 +613,338 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
         )
     events.sort(key=lambda e: e.date or date.min, reverse=True)
     return ResultsCalendarResponse(symbol=bare, count=len(events), events=events)
+
+
+# ---------------------------------------------------------------------------
+# Corporate actions (NSE corporates-corporateActions + BSE CorporateAction).
+# ---------------------------------------------------------------------------
+
+#: BSE's per-scrip corporate-action feed. Observed live 2026-09-24 (scrip 542446
+#: JONJUA; fixtures under ``tests/fixtures/bse/``): ``{"Table": [dividend
+#: history], "Table1": [bonus history], "Table2": [{purpose "Bonus issue 7:24",
+#: purpose_code, Ex_date "04 Sep 2026", BCRD "RD 04/09/2026" (or "BC <from>-<to>"
+#: for a book closure), Details "25.00" (a dividend's amount), PAYMENT_DATE
+#: "2026-08-30T00:00:00" | null}, ...]}``; Table2 is the combined recent list.
+_BSE_CA_URL = "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w"
+#: The purpose line's kind, checked in order (an AGM line that names a dividend
+#: is a dividend; "Right Issue of Equity Shares" is a rights issue).
+_ACTION_KINDS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("bonus", re.compile(r"\bbonus\b", re.IGNORECASE)),
+    ("split", re.compile(r"split|sub-?division", re.IGNORECASE)),
+    ("rights", re.compile(r"\brights?\b", re.IGNORECASE)),
+    ("buyback", re.compile(r"buy\s*-?\s*back", re.IGNORECASE)),
+    ("dividend", re.compile(r"dividend", re.IGNORECASE)),
+)
+_RATIO_RE = re.compile(r"(\d+)\s*:\s*(\d+)")
+_AMOUNT_RE = re.compile(r"(?:rs\.?|₹|inr)\s*([0-9]+(?:\.[0-9]+)?)", re.IGNORECASE)
+
+
+def _action_kind(purpose: str) -> str:
+    return next((kind for kind, pattern in _ACTION_KINDS if pattern.search(purpose)), "other")
+
+
+def _action_ratio(kind: str, purpose: str) -> str | None:
+    """A bonus/rights/split ratio ("7:24") in the purpose line, else ``None``."""
+    match = _RATIO_RE.search(purpose) if kind in ("bonus", "rights", "split") else None
+    return f"{match.group(1)}:{match.group(2)}" if match else None
+
+
+def _dividend_amount(kind: str, purpose: str) -> float | None:
+    """A dividend's per-share amount in the purpose line ("Rs 25 Per Share")."""
+    match = _AMOUNT_RE.search(purpose) if kind == "dividend" else None
+    return float(match.group(1)) if match else None
+
+
+def _parse_bse_day(value: object) -> date | None:
+    """BSE's action dates: "04 Sep 2026", "RD 04/09/2026", "2026-08-30T00:00:00"."""
+    raw = _clean(value)
+    if not raw:
+        return None
+    for fmt in ("%d %b %Y", "RD %d/%m/%Y", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _nse_corporate_actions(bare: str) -> list[CorporateAction]:
+    """The NSE lane: ``subject`` + ``exDate``/``recDate`` rows (no payment date)."""
+    actions: list[CorporateAction] = []
+    for row in nse_provider.get_corporate_actions(bare):
+        purpose = _clean(row.get("subject"))
+        if not purpose:
+            continue
+        kind = _action_kind(purpose)
+        actions.append(
+            CorporateAction(
+                symbol=bare,
+                kind=kind,
+                purpose=purpose,
+                ratio=_action_ratio(kind, purpose),
+                amount_per_share=_dividend_amount(kind, purpose),
+                ex_date=_parse_day(row.get("exDate")),
+                record_date=_parse_day(row.get("recDate")),
+                exchange=EXCHANGE_NSE,
+            )
+        )
+    return actions
+
+
+def _bse_corporate_actions(bare: str, code: str) -> list[CorporateAction]:
+    """The BSE lane: the ``Table2`` rows of the scrip's CorporateAction feed."""
+    payload = _bse_get_json(_BSE_CA_URL, {"scripcode": code})
+    table = payload.get("Table2") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse corporate actions: malformed payload for {bare!r}")
+    actions: list[CorporateAction] = []
+    for row in table:
+        purpose = _clean(row.get("purpose")) if isinstance(row, dict) else None
+        if not purpose:
+            continue
+        kind = _action_kind(purpose)
+        amount = _pct(row.get("Details")) if kind == "dividend" else None
+        actions.append(
+            CorporateAction(
+                symbol=bare,
+                kind=kind,
+                purpose=purpose,
+                ratio=_action_ratio(kind, purpose),
+                amount_per_share=amount if amount is not None else _dividend_amount(kind, purpose),
+                ex_date=_parse_bse_day(row.get("Ex_date")),
+                record_date=_parse_bse_day(row.get("BCRD")),
+                payment_date=_parse_bse_day(row.get("PAYMENT_DATE")),
+                exchange=EXCHANGE_BSE,
+            )
+        )
+    return actions
+
+
+def _merge_actions(nse: list[CorporateAction], bse: list[CorporateAction]) -> list[CorporateAction]:
+    """NSE rows plus each BSE row that is not the same action: a dual-listed
+    action (same kind and ex-date) collapses onto the NSE row, which takes the
+    fields only BSE carries (the payment date) and is labelled ``NSE+BSE``."""
+    merged = list(nse)
+    open_by_key: dict[tuple[str, date], list[int]] = {}
+    for idx, action in enumerate(nse):
+        if action.ex_date is not None:
+            open_by_key.setdefault((action.kind, action.ex_date), []).append(idx)
+    for action in bse:
+        slots = open_by_key.get((action.kind, action.ex_date)) if action.ex_date else None
+        if not slots:
+            merged.append(action)
+            continue
+        idx = slots.pop(0)
+        filled = {
+            name: getattr(action, name)
+            for name in ("ratio", "amount_per_share", "record_date", "payment_date")
+            if getattr(merged[idx], name) is None
+        }
+        merged[idx] = merged[idx].model_copy(update={**filled, "exchange": "NSE+BSE"})
+    return merged
+
+
+def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
+    """Dividends, bonuses, splits, rights and buybacks for ``symbol`` from BOTH
+    exchanges, newest ex-date first (R15-DATA-025).
+
+    A BSE-only name is served from BSE; a dual-listed name's action on both
+    feeds collapses to one row. Lanes the symbol is not listed on are skipped; a
+    failing applicable lane is recorded in ``errors`` and the rest is served;
+    every applicable lane failing raises :class:`ProviderError`.
+    """
+    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    if not bare:
+        raise ProviderError("disclosures: empty symbol")
+    on_nse = symbol_resolver.is_nse_symbol(bare)
+    # A dual-listed name's own BSE scrip only: a same-ticker BSE scrip of another
+    # company would merge that company's actions into this one.
+    bse_code = (
+        symbol_resolver.dual_listed_bse_code(bare)
+        if on_nse
+        else symbol_resolver.bse_scrip_code(bare)
+    )
+    if not on_nse and not bse_code:
+        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+
+    by_lane: dict[str, list[CorporateAction]] = {}
+    errors: dict[str, str] = {}
+    lanes = [
+        (EXCHANGE_NSE, on_nse, lambda: _nse_corporate_actions(bare)),
+        (EXCHANGE_BSE, bool(bse_code), lambda: _bse_corporate_actions(bare, bse_code)),
+    ]
+    for name, applicable, fetch in lanes:
+        if not applicable:
+            continue
+        try:
+            by_lane[name] = fetch()
+        except ProviderError as exc:
+            logger.debug("disclosures: %s corporate actions failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+    if not by_lane:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(
+            f"disclosures: every corporate-action source failed for {bare!r} ({detail})"
+        )
+    actions = _merge_actions(by_lane.get(EXCHANGE_NSE, []), by_lane.get(EXCHANGE_BSE, []))
+    actions.sort(key=lambda a: a.ex_date or date.min, reverse=True)
+    return CorporateActionsResponse(
+        symbol=bare, count=len(actions), actions=actions, sources=list(by_lane), errors=errors
+    )
+
+
+# ---------------------------------------------------------------------------
+# Bulk / block deals and SAST disclosures (R15-DATA-024).
+# ---------------------------------------------------------------------------
+
+DEAL_KINDS = ("bulk", "block", "sast")
+#: How far back the NSE bulk/block lanes are asked for (the feed is dated).
+_DEALS_LOOKBACK_DAYS = 365
+#: BSE's per-scrip bulk/block feed (the stock page's "Bulk / Block Deals" tab;
+#: ``type`` 1 = bulk, 2 = block). Observed live 2026-09-24 (scrip 539091 CCDL):
+#: ``{"Table": [{DEAL_DATE "23 Sep 2026", SCRIP_CODE, scripname, CLIENT_NAME,
+#: TRANSACTION_TYPE "B"|"S", QUANTITY, PRICE}], "Table1": [scrip meta]}``.
+_BSE_DEALS_URL = "https://api.bseindia.com/BseIndiaAPI/api/BulkblockDeal/w"
+_BSE_DEAL_TYPE = {"bulk": "1", "block": "2"}
+_SIDES = {"BUY": "buy", "B": "buy", "SELL": "sell", "S": "sell"}
+
+
+def _nse_deals(bare: str, kind: str) -> list[ExchangeDeal]:
+    """One NSE lane: bulk or block deals over the lookback, or SAST disclosures."""
+    if kind == "sast":
+        return [_nse_sast_deal(bare, row) for row in nse_provider.get_sast_disclosures(bare)]
+    today = _today_ist()
+    rows = nse_provider.get_bulk_block_deals(
+        bare, f"{kind}_deals", today - timedelta(days=_DEALS_LOOKBACK_DAYS), today
+    )
+    return [
+        _trade_deal(
+            bare,
+            kind,
+            EXCHANGE_NSE,
+            _parse_day(row.get("BD_DT_DATE")),
+            row.get("BD_CLIENT_NAME"),
+            row.get("BD_BUY_SELL"),
+            row.get("BD_QTY_TRD"),
+            row.get("BD_TP_WATP"),
+        )
+        for row in rows
+    ]
+
+
+def _bse_deals(bare: str, code: str, kind: str) -> list[ExchangeDeal]:
+    """One BSE lane (bulk or block) for a BSE-only scrip."""
+    payload = _bse_get_json(
+        _BSE_DEALS_URL, {"fromdt": "", "todt": "", "type": _BSE_DEAL_TYPE[kind], "scripcode": code}
+    )
+    table = payload.get("Table") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse {kind} deals: malformed payload for {bare!r}")
+    return [
+        _trade_deal(
+            bare,
+            kind,
+            EXCHANGE_BSE,
+            _parse_bse_day(row.get("DEAL_DATE")),
+            row.get("CLIENT_NAME"),
+            row.get("TRANSACTION_TYPE"),
+            row.get("QUANTITY"),
+            row.get("PRICE"),
+        )
+        for row in table
+        if isinstance(row, dict)
+    ]
+
+
+def _trade_deal(
+    bare: str,
+    kind: str,
+    exchange: str,
+    day: date | None,
+    party: object,
+    side: object,
+    quantity: object,
+    price: object,
+) -> ExchangeDeal:
+    qty, px = _pct(quantity), _pct(price)
+    return ExchangeDeal(
+        symbol=bare,
+        kind=kind,
+        date=day,
+        party=_clean(party),
+        side=_SIDES.get((_clean(side) or "").upper()),
+        quantity=qty,
+        price=px,
+        value=round(qty * px, 2) if qty is not None and px is not None else None,
+        exchange=exchange,
+    )
+
+
+def _nse_sast_deal(bare: str, row: dict) -> ExchangeDeal:
+    """A Reg 29 row: dated by the transaction's last day ("... to 07-SEP-2026")."""
+    sale = (_clean(row.get("acqSaleType")) or "").lower() == "sale"
+    period = _clean(row.get("acquirerDate")) or ""
+    return ExchangeDeal(
+        symbol=bare,
+        kind="sast",
+        date=_parse_day(period.rsplit(" to ", 1)[-1]),
+        party=_clean(row.get("acquirerName")),
+        side="sell" if sale else "buy",
+        quantity=_pct(row.get("noOfShareSale" if sale else "noOfShareAcq")),
+        percent_after=_pct(row.get("totAftShare")),
+        exchange=EXCHANGE_NSE,
+        source_url=_clean(row.get("attachement")),
+    )
+
+
+def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
+    """Bulk deals, block deals and SAST (Reg 29) disclosures for ``symbol``,
+    newest first (R15-DATA-024).
+
+    An NSE listing is served from NSE's bulk, block and SAST feeds; a BSE-only
+    scrip from BSE's bulk and block feeds (BSE carries no SAST lane here).
+    ``kind`` filters to one of :data:`DEAL_KINDS`. A failing lane is recorded in
+    ``errors`` and the rest is served; every applicable lane failing (or none
+    applying) raises :class:`ProviderError`.
+    """
+    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    if not bare:
+        raise ProviderError("disclosures: empty symbol")
+    if kind is not None and kind not in DEAL_KINDS:
+        raise ProviderError(f"disclosures: unknown deal kind {kind!r} (use bulk, block or sast)")
+    kinds = [kind] if kind else list(DEAL_KINDS)
+    if symbol_resolver.is_nse_symbol(bare):
+        lanes = [(f"{EXCHANGE_NSE} {k}", lambda k=k: _nse_deals(bare, k)) for k in kinds]
+    elif code := symbol_resolver.bse_scrip_code(bare):
+        lanes = [
+            (f"{EXCHANGE_BSE} {k}", lambda k=k: _bse_deals(bare, code, k))
+            for k in kinds
+            if k in _BSE_DEAL_TYPE
+        ]
+        if not lanes:
+            raise ProviderError(
+                f"disclosures: SAST disclosures come from NSE; {bare!r} is BSE-only"
+            )
+    else:
+        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+
+    deals: list[ExchangeDeal] = []
+    sources: list[str] = []
+    errors: dict[str, str] = {}
+    for name, fetch in lanes:
+        try:
+            deals.extend(fetch())
+            sources.append(name)
+        except ProviderError as exc:
+            logger.debug("disclosures: %s deals failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+    if not sources:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(f"disclosures: every deal source failed for {bare!r} ({detail})")
+    deals.sort(key=lambda d: d.date or date.min, reverse=True)
+    return ExchangeDealsResponse(
+        symbol=bare, kind=kind, count=len(deals), deals=deals, sources=sources, errors=errors
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -645,6 +1079,9 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
                     row.get("public_non_institutional_percent")
                 ),
                 employee_trusts_percent=None,
+                split_basis=row.get("split_basis"),
+                promoter_pledged_percent=_as_float(row.get("promoter_pledged_percent")),
+                promoter_pledge_basis=row.get("promoter_pledge_basis"),
                 submission_date=submission if isinstance(submission, date) else None,
                 xbrl_url=xbrl_url,
                 source=EXCHANGE_BSE,
@@ -717,6 +1154,10 @@ def _merge_bse_split(
                     "public_non_institutional_percent": match.public_non_institutional_percent,
                     "split_source": EXCHANGE_BSE,
                     "split_as_of": match.quarter_end,
+                    "split_basis": match.split_basis,
+                    # The pledge rides the same filing as the split (R15-DATA-023).
+                    "promoter_pledged_percent": match.promoter_pledged_percent,
+                    "promoter_pledge_basis": match.promoter_pledge_basis,
                 }
             )
         )
@@ -774,12 +1215,16 @@ def _as_float(value: object) -> float | None:
 
 
 __all__ = [
+    "DEAL_KINDS",
     "DEFAULT_LIMIT",
     "EXCHANGES",
     "EXCHANGE_BSE",
     "EXCHANGE_NSE",
     "MAX_LIMIT",
     "get_announcements",
+    "get_announcements_cached",
+    "get_corporate_actions",
+    "get_deals",
     "get_results_calendar",
     "get_shareholding",
 ]
