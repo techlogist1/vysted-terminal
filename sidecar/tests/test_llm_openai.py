@@ -599,7 +599,7 @@ def test_balanced_json_objects_brackets_nested_and_skips_trailing() -> None:
     """The brace-depth scanner extracts each top-level object whole — a nested
     arguments object stays intact and a trailing object is a SEPARATE candidate,
     never merged into the first."""
-    from services.llm.openai import _balanced_json_objects
+    from services.llm.tool_call_rescue import balanced_json_objects as _balanced_json_objects
 
     text = 'x {"name": "a", "arguments": {"b": {"c": 1}}} y {"d": 2}'
     objects = _balanced_json_objects(text)

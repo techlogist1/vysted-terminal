@@ -49,6 +49,7 @@ from .native_search import (
     openrouter_web_search_tool,
     xai_search_parameters,
 )
+from .tool_call_rescue import rescue_leaked_tool_call
 
 logger = logging.getLogger(__name__)
 
@@ -211,113 +212,6 @@ def _validate_tool_args(name: str, args: dict[str, Any]) -> str | None:
         return exc.message
     except jsonschema.SchemaError:  # pragma: no cover — our own schemas are valid
         return None
-    return None
-
-
-def _balanced_json_objects(text: str) -> list[str]:
-    """Yield every brace-balanced ``{...}`` substring of ``text``, outermost only.
-
-    A leaked tool call is a ``{"name": ..., "arguments": {...}}`` block that a
-    chatty model embeds in prose (``Sure, calling: {...} now.``) — possibly with
-    a NESTED ``arguments`` object and possibly with OTHER ``{...}`` JSON later in
-    the same message. A single regex cannot reliably bracket such a block: a
-    non-greedy ``.*?\\}`` truncates at the first inner brace (the original WS8
-    bug), while a greedy ``\\{.*\\}`` over-captures across a trailing JSON object.
-    A brace-depth scan extracts each top-level object intact, letting
-    ``json.loads`` be the real validator (mirrors the repair-path intent without
-    its single-block limitation). Strings (with escapes) are tracked so a brace
-    inside a quoted value never miscounts depth.
-    """
-    objects: list[str] = []
-    depth = 0
-    start = -1
-    in_string = False
-    escaped = False
-    for i, ch in enumerate(text):
-        if in_string:
-            if escaped:
-                escaped = False
-            elif ch == "\\":
-                escaped = True
-            elif ch == '"':
-                in_string = False
-            continue
-        if ch == '"':
-            in_string = True
-            continue
-        if ch == "{":
-            if depth == 0:
-                start = i
-            depth += 1
-        elif ch == "}":
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start >= 0:
-                    objects.append(text[start : i + 1])
-                    start = -1
-    return objects
-
-
-def _rescue_content_leaked_tool_call(text: str, known_tool_ids: set[str]) -> LLMToolUseEvent | None:
-    """Recover a tool call a model emitted as plain text (Step 2).
-
-    Some models (DeepSeek's documented text-fall-through; many OpenRouter-routed
-    and Ollama-local models) answer a tool-capable turn by writing a
-    ``{"name": ..., "arguments": {...}}`` JSON block into ``delta.content``
-    instead of using the native ``tool_calls`` array. When the accumulated
-    assistant text contains such a block whose ``name`` matches a KNOWN tool id,
-    parse it into a :class:`LLMToolUseEvent` so the round still drives the loop.
-
-    Returns ``None`` when no valid leaked call is found (the common case — the
-    text is a genuine final answer). The CALLER gates this on the provider id so
-    a chatty OpenAI/Anthropic model never has a real call mis-fired from prose.
-    Ported as original code from the round-trip pattern litellm uses to coax a
-    function call out of a text-only response (no litellm import).
-    """
-    if not text or not known_tool_ids:
-        return None
-    # First try the whole text as a single JSON object, then scan for an
-    # embedded block (models often wrap the call in prose or a code fence).
-    # The embedded scan uses a brace-depth pass (``_balanced_json_objects``) so a
-    # leaked block with a NESTED ``arguments`` object is captured WHOLE and a
-    # trailing JSON object later in the prose does not get swept in — a
-    # non-greedy regex truncated the former, a greedy regex over-captured the
-    # latter. ``json.loads`` is the real validator.
-    candidates: list[str] = []
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        # Strip a ```json … ``` fence if present.
-        stripped = re.sub(r"^```[a-zA-Z]*\n?", "", stripped)
-        stripped = re.sub(r"\n?```$", "", stripped).strip()
-    candidates.append(stripped)
-    candidates.extend(_balanced_json_objects(text))
-    for candidate in candidates:
-        try:
-            obj = json.loads(candidate)
-        except (json.JSONDecodeError, TypeError):
-            continue
-        if not isinstance(obj, dict):
-            continue
-        name = obj.get("name")
-        args = obj.get("arguments")
-        if not isinstance(name, str) or name not in known_tool_ids:
-            continue
-        # ``arguments`` may itself be a JSON string (the OpenAI tool-call shape)
-        # or an inline object. Normalise to a dict; a non-dict/unparseable args
-        # block is treated as a zero-argument call so the dispatcher still runs.
-        if isinstance(args, str):
-            try:
-                args = json.loads(args) if args.strip() else {}
-            except json.JSONDecodeError:
-                args = {}
-        if not isinstance(args, dict):
-            args = {}
-        leaked_id = obj.get("id")
-        return LLMToolUseEvent(
-            tool_call_id=str(leaked_id) if isinstance(leaked_id, str) and leaked_id else "leaked-0",
-            name=name,
-            input=args,
-        )
     return None
 
 
@@ -815,7 +709,7 @@ class OpenAIProvider(LLMProvider):
                 and self._provider_id in _CONTENT_LEAK_PROVIDERS
                 and known_tool_ids
             ):
-                rescued = _rescue_content_leaked_tool_call("".join(content_parts), known_tool_ids)
+                rescued = rescue_leaked_tool_call("".join(content_parts), known_tool_ids)
                 if rescued is not None:
                     for event in await self._resolve_tool_events(
                         [rescued], [], model=model, api_key=api_key

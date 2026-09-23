@@ -193,3 +193,54 @@ async def test_native_tool_call_arguments_never_coerce_to_empty(
         assert set(tool_use[0].input) == {INVALID_ARGS_SENTINEL}
     else:
         assert tool_use[0].input == expected
+
+
+async def _ollama_text_round(monkeypatch: pytest.MonkeyPatch, text: str) -> list[Any]:
+    """A round where the model streams ``text`` as content and no tool_calls."""
+    half = len(text) // 2
+    chunks = [
+        {"message": {"content": text[:half]}, "done": False},
+        {"message": {"content": text[half:]}, "done": False},
+        {"message": {"content": ""}, "done": True, "done_reason": "stop"},
+    ]
+    _patch(monkeypatch, chunks=chunks)
+    return [
+        e
+        async for e in OllamaProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="note that Cochin looks stretched")],
+            model="llama3.1:8b",
+            tool_ids=["write_note", "price_data"],
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_leaked_text_tool_call_is_rescued(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-AGENT-018: the captured llama3.1:8b turn (composer-chat 13) wrote the
+    # call as literal JSON text with "parameters"; it must become a tool_use.
+    leaked = (
+        '{"name": "write_note", "parameters": {"scope": "COCHINSHIP.NS", '
+        '"text": "Valuation looks stretched at ~54x trailing P/E."}}'
+    )
+    out = await _ollama_text_round(monkeypatch, leaked)
+    assert [e.kind for e in out] == ["delta", "delta", "tool_use", "done"]
+    call = out[2]
+    assert call.name == "write_note"
+    assert call.input == {
+        "scope": "COCHINSHIP.NS",
+        "text": "Valuation looks stretched at ~54x trailing P/E.",
+    }
+    assert call.tool_call_id
+    # Two rescued calls never share an id.
+    again = await _ollama_text_round(monkeypatch, leaked)
+    assert again[2].tool_call_id != call.tool_call_id
+
+
+@pytest.mark.asyncio
+async def test_leaked_json_for_a_tool_not_offered_stays_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    out = await _ollama_text_round(
+        monkeypatch, '{"name": "screener_run", "parameters": {"sector": "Defence"}}'
+    )
+    assert [e.kind for e in out] == ["delta", "delta", "done"]
