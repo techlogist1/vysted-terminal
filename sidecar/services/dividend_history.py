@@ -7,10 +7,13 @@ corporate-action history cannot omit a payment, so summing the trailing-12-month
 dividends actually paid gives a deterministic completeness check the arithmetic
 unit-reconciliation in :mod:`services.research.semantics` cannot.
 
-:func:`get_dividend_ttm` is the ONLY entry point. It returns a
+:func:`get_dividend_ttm` is the ONLY fetching entry point. It returns a
 :class:`DividendTTM` carrying the null-vs-AFFIRMED-ZERO distinction (a company
 with real history depth that paid nothing in the trailing window affirms ``0.0``,
-never an unknown null). It never raises into the research path: every yfinance
+never an unknown null). :func:`apply_dividend_ttm` threads that result onto a
+fundamentals payload — the ONE paid-TTM leg shared by ``GET /fundamentals``
+(:func:`services.correctness_gate.apply_witnesses`) and the research snapshot
+(R15-DATA-047/049). It never raises into the research path: every yfinance
 failure becomes an ``"unavailable"`` result (the caller then emits no paid figure,
 only an honest reason). A detected throttle is reported to the shared
 Yahoo-family circuit breaker so a dividend-history 429 backs the same cooldown
@@ -23,11 +26,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import pandas as pd
 import yfinance as yf
 
 from services import provider_health
+from services.research.semantics import _DIVIDEND_TTM_DIVERGENCE
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +52,8 @@ AFFIRMED_ZERO_LABEL = "no dividends paid (trailing 12m)"
 INSUFFICIENT_DEPTH_REASON = "insufficient dividend-history depth to affirm a trailing-12m zero"
 #: The reason carried when the history round-trip itself failed (throttle / error).
 UNAVAILABLE_REASON = "dividend history unavailable"
+#: The provider the paid history comes from (Yahoo's corporate-action series).
+PROVIDER = "yfinance"
 
 
 @dataclass(frozen=True)
@@ -89,6 +96,14 @@ def _is_rate_limited(exc: BaseException) -> bool:
     return False
 
 
+def _utc(raw_ts: Any) -> pd.Timestamp:
+    """yfinance indexes in the exchange timezone (tz-aware for most listings,
+    occasionally tz-naive) — normalise to UTC either way so a window comparison
+    never raises on a tz mismatch."""
+    ts = pd.Timestamp(raw_ts)
+    return ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+
+
 def _sum_trailing_dividends(symbol: str) -> DividendTTM:
     """Sum per-share dividends paid in the trailing 12 months (BLOCKING).
 
@@ -98,21 +113,22 @@ def _sum_trailing_dividends(symbol: str) -> DividendTTM:
     :func:`asyncio.to_thread`; may raise on a network/throttle failure, which the
     async wrapper classifies and swallows.
     """
-    series = yf.Ticker(symbol).dividends
-    if series is None or len(series) == 0:
-        # No history at all — cannot affirm a zero (never paid vs data missing are
-        # indistinguishable from an empty series alone).
-        return DividendTTM(None, "unavailable", INSUFFICIENT_DEPTH_REASON)
+    ticker = yf.Ticker(symbol)
+    series = ticker.dividends
     cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=_TRAILING_DAYS)
+    if series is None or len(series) == 0:
+        # No dividend ever recorded: a zero is affirmed only when the listing's
+        # price history reaches back past the window (a year of trading with no
+        # dividend event), never for a listing too young to say (R15-DATA-049).
+        prices = ticker.history(period="2y", interval="1mo")
+        if len(prices) and _utc(prices.index[0]) <= cutoff:
+            return DividendTTM(0.0, "affirmed_zero", AFFIRMED_ZERO_LABEL)
+        return DividendTTM(None, "unavailable", INSUFFICIENT_DEPTH_REASON)
     total = 0.0
     found_in_window = False
     has_depth = False  # a real dividend OLDER than the window → ≥12 months covered
     for raw_ts, amount in series.items():
-        ts = pd.Timestamp(raw_ts)
-        # yfinance indexes dividends in the exchange timezone (tz-aware for most
-        # listings, occasionally tz-naive) — normalise to UTC either way so the
-        # window comparison never raises on a tz mismatch.
-        ts = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+        ts = _utc(raw_ts)
         if amount is None or pd.isna(amount):
             continue
         if ts < cutoff:
@@ -154,9 +170,76 @@ async def get_dividend_ttm(symbol: str) -> DividendTTM:
     return result
 
 
+def apply_dividend_ttm(fund: dict[str, Any], ttm: DividendTTM | None) -> None:
+    """Thread the trailing-12m PAID result onto a fundamentals wire dict, in place.
+
+    * ``paid`` sets ``dividend_per_share_ttm``; a ``dividend_yield`` the
+      provider did not publish is served as paid / the ratio price.
+    * ``affirmed_zero`` sets ``dividend_per_share_ttm`` and an unpublished
+      ``dividend_yield`` to ``0.0``, both labelled :data:`AFFIRMED_ZERO_LABEL`.
+    * ``unavailable`` (or ``None``) leaves the field null with the reason.
+    * A ``dividend_per_share`` (Yahoo ``dividendRate``) that diverges from the
+      paid figure past the D56 tolerance is flagged, never replaced (an
+      omitted special dividend, or an anticipated unpaid one).
+    """
+    if ttm is None:
+        ttm = DividendTTM(None, "unavailable", UNAVAILABLE_REASON)
+    meta = fund.get("field_meta") or {}
+    fund["field_meta"] = meta
+    if ttm.value is None:
+        meta["dividend_per_share_ttm"] = {
+            "status": "unavailable",
+            "provider": PROVIDER,
+            "reason": ttm.reason,
+        }
+        return
+    paid, affirmed = ttm.value, ttm.is_affirmed_zero
+    label = AFFIRMED_ZERO_LABEL if affirmed else None
+    fund["dividend_per_share_ttm"] = paid
+    meta["dividend_per_share_ttm"] = {
+        "status": "ok",
+        "provider": PROVIDER,
+        "reason": ttm.reason,
+        "label": label,
+    }
+
+    price = fund.get("ratio_price")
+    yield_meta = meta.get("dividend_yield") or {}
+    if fund.get("dividend_yield") is None and yield_meta.get("status") != "withheld":
+        reason = None
+        if affirmed:
+            fund["dividend_yield"], reason = 0.0, AFFIRMED_ZERO_LABEL
+        elif isinstance(price, (int, float)) and price > 0:
+            fund["dividend_yield"] = paid / price
+            reason = f"trailing-12m dividends paid ({paid:g}) / price ({price:g})"
+        if reason is not None:
+            meta["dividend_yield"] = {
+                "status": "ok",
+                "provider": PROVIDER,
+                "reason": reason,
+                "label": label,
+            }
+
+    dps = fund.get("dividend_per_share")
+    if isinstance(dps, (int, float)) and max(abs(dps), paid) > 0:
+        gap = abs(dps - paid) / max(abs(dps), paid)
+        if gap > _DIVIDEND_TTM_DIVERGENCE:
+            direction = "exceeds" if dps > paid else "is below"
+            reason = (
+                f"dividend per share {dps:g} (Yahoo dividendRate) {direction} the "
+                f"{paid:g} actually paid in the trailing 12 months by {gap:.0%} — the "
+                "rate can omit a special dividend or anticipate an unpaid one; kept, flagged"
+            )
+            prev = meta.get("dividend_per_share") or {"provider": PROVIDER}
+            if prev.get("status") == "flagged" and prev.get("reason"):
+                reason = f"{prev['reason']}; {reason}"
+            meta["dividend_per_share"] = {**prev, "status": "flagged", "reason": reason}
+
+
 __all__ = [
     "AFFIRMED_ZERO_LABEL",
     "INSUFFICIENT_DEPTH_REASON",
     "DividendTTM",
+    "apply_dividend_ttm",
     "get_dividend_ttm",
 ]

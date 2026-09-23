@@ -42,6 +42,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from services import provider_health
+from services.errors import ProviderError
 from services.witness import is_block_error, is_india_listing
 
 logger = logging.getLogger(__name__)
@@ -219,12 +220,82 @@ async def get_52w_range(symbol: str) -> Range52w | None:
     return compute_range(bars, source)
 
 
+def _fetch_nse_venue(symbol: str) -> Any:
+    """A year of NSE daily bars (BLOCKING): the exchange-direct lane, then the
+    jugaad lane when it is down. Raises the last lane's error when neither serves."""
+    from services import india_provider, nse_provider
+
+    error: Exception = ProviderError(f"nse: no history lane available for {symbol!r}")
+    for lane in (nse_provider, india_provider):
+        if not lane.is_available():
+            continue
+        try:
+            return lane.get_history(symbol, "1d", "1y")
+        except Exception as exc:  # noqa: BLE001 — the next lane is the fallback
+            error = exc
+    raise error
+
+
+def _fetch_bse_venue(symbol: str) -> Any:
+    """A year of BSE daily bars from the BhavCopy cache (BLOCKING)."""
+    from services import bse_provider
+
+    return bse_provider.get_history(symbol, "1d", "1y")
+
+
+async def get_venue_history(symbol: str) -> tuple[list[Any], list[str]] | None:
+    """A year of daily bars from BOTH Indian venues, merged by trading day.
+
+    The registry's single-lane history (:func:`get_52w_range`) witnesses one
+    venue; a dual-listed scrip's 52-week extreme can print on the other
+    (ELCIDIN: NSE low 1,02,210 vs BSE 87,003), and a scrip listed on NSE
+    mid-year has a short series there (R15-DATA-015). Each day keeps the higher
+    high and the lower low across venues. Returns ``(bars, venues)`` naming the
+    venues that served, or ``None`` when neither did, the listing is not Indian,
+    or the exchange-history circuit is open. Never raises.
+    """
+    if not is_applicable(symbol) or provider_health.is_open(EXCHANGE_HISTORY):
+        return None
+    results = await asyncio.gather(
+        asyncio.to_thread(_fetch_nse_venue, symbol),
+        asyncio.to_thread(_fetch_bse_venue, symbol),
+        return_exceptions=True,
+    )
+    by_day: dict[Any, Any] = {}
+    venues: list[str] = []
+    for venue, result in zip(("NSE", "BSE"), results, strict=True):
+        if isinstance(result, BaseException):
+            if is_block_error(result):
+                provider_health.record_rate_limited(EXCHANGE_HISTORY)
+            logger.debug("%s history unavailable for %s: %s", venue, symbol, result)
+            continue
+        bars = [b for b in getattr(result, "bars", None) or [] if _bar_timestamp(b)]
+        if not bars:
+            continue
+        venues.append(venue)
+        for bar in bars:
+            day = _bar_timestamp(bar).date()  # type: ignore[union-attr]
+            prev = by_day.get(day)
+            by_day[day] = (
+                bar
+                if prev is None
+                else prev.model_copy(
+                    update={"high": max(prev.high, bar.high), "low": min(prev.low, bar.low)}
+                )
+            )
+    if not venues:
+        return None
+    provider_health.record_success(EXCHANGE_HISTORY)
+    return [by_day[d] for d in sorted(by_day)], venues
+
+
 __all__ = [
     "EXCHANGE_HISTORY",
     "RANGE_KEY",
     "Range52w",
     "compute_range",
     "get_52w_range",
+    "get_venue_history",
     "is_applicable",
     "should_cross_check",
 ]

@@ -4,8 +4,10 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 :mod:`models.announcements` for the ``/disclosures`` router and the
 ``corporate_announcements`` / ``shareholding_pattern`` agent tools:
 
-* **Announcements** — merged from BOTH exchange feeds and deduplicated by
-  ``(symbol, body-prefix-hash, date)``, newest first:
+* **Announcements** — merged from BOTH exchange feeds, newest first. A
+  within-feed re-dissemination collapses on ``(symbol, body-prefix-hash,
+  date)``; an NSE item and a BSE item of one filing pair on the same day, a
+  short dissemination gap and similar text (:func:`_pair_cross_feed`):
 
   - NSE: :func:`services.nse_provider.get_corporate_announcements` (the
     curl_cffi cookie-danced lane; observed item keys ``an_dt``,
@@ -309,19 +311,32 @@ def _parse_nse_ts(row: dict) -> datetime | None:
 #: the full NSE text of the same filing (D-B3-10).
 _DEDUP_PREFIX_CHARS = 120
 #: NSE's wrapper around a filing's own title ("Reliance Industries Limited has
-#: informed the Exchange regarding 'Presentation on ...'"); BSE carries the bare
-#: title, so the wrapper is dropped before comparing.
-_NSE_WRAPPER_RE = re.compile(r"^.*? has informed the exchange regarding ")
+#: informed the Exchange regarding 'Presentation on ...'", "... about Credit
+#: Rating"); BSE carries the bare title, so the wrapper is dropped before comparing.
+_NSE_WRAPPER_RE = re.compile(r"^.*? has informed (?:the exchange )?(?:regarding|about|that) ")
+#: The two feeds disseminate one filing a few minutes apart (0-10 min observed
+#: live, 2026-09-23); two filings further apart are never paired.
+_PAIR_WINDOW = timedelta(minutes=10)
+#: Share of the shorter text's words the other text must carry for two items to
+#: be one filing. Live pairs score 0.67-1.0; two different same-day filings of
+#: one company minutes apart score up to 0.53 (shared "Company executives ...
+#: Institutional Investors' Meeting" boilerplate).
+_PAIR_MIN_OVERLAP = 0.6
+_STOPWORDS = frozenset(
+    "the a an of to in on for and is has have that this with by as at be we you our its it "
+    "are from under about regarding please note inform wish will been was were or".split()
+)
 
 
 def _dedup_key(item: Announcement) -> tuple[str, str, str]:
-    """The dedup key: ``(symbol, body-prefix-hash, date)``.
+    """The exact dedup key: ``(symbol, body-prefix-hash, date)``.
 
-    The compared text is the disclosure body (NSE ``attchmntText``, BSE
-    ``HEADLINE``), never BSE's short ``NEWSSUB`` subject, which no NSE text
-    matches (R15-DATA-020). It is casefolded, punctuation and whitespace runs
-    collapse to one space (BSE doubles quotes and spaces), NSE's "has informed
-    the Exchange regarding" wrapper is dropped, and the first
+    Collapses a re-disseminated item (and an exact cross-feed copy); an NSE and
+    a BSE item whose texts differ are paired by :func:`_pair_cross_feed`. The
+    compared text is the disclosure body (NSE ``attchmntText``, BSE
+    ``HEADLINE``), never BSE's short ``NEWSSUB`` subject. It is casefolded,
+    punctuation and whitespace runs collapse to one space (BSE doubles quotes and
+    spaces), NSE's "has informed the Exchange" wrapper is dropped, and the first
     :data:`_DEDUP_PREFIX_CHARS` characters are hashed. The date component is the
     announcement's IST calendar day (timestamp-less items use an empty day and
     only collapse on identical text). The display headline is unchanged.
@@ -331,6 +346,63 @@ def _dedup_key(item: Announcement) -> tuple[str, str, str]:
     digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:16]
     day = item.ts.astimezone(_ist()).date().isoformat() if item.ts else ""
     return (item.symbol.upper(), digest, day)
+
+
+def _words(text: str | None) -> frozenset[str]:
+    """The content words of one announcement text: casefolded, apostrophes
+    dropped (BSE doubles them), NSE's "has informed the Exchange" wrapper removed,
+    stopwords and one-letter tokens skipped."""
+    folded = re.sub(r"['\u2019]", "", (text or "").casefold())
+    normalized = _NSE_WRAPPER_RE.sub("", re.sub(r"[\W_]+", " ", folded).strip())
+    return frozenset(w for w in normalized.split() if len(w) > 1 and w not in _STOPWORDS)
+
+
+def _overlap(a: frozenset[str], b: frozenset[str]) -> float:
+    """Share of the shorter word set found in the other; 0 when either side has
+    fewer than two words (a boilerplate "Enclosed" body says nothing)."""
+    if len(a) < 2 or len(b) < 2:
+        return 0.0
+    return len(a & b) / min(len(a), len(b))
+
+
+def _pair_cross_feed(items: list[Announcement]) -> list[Announcement]:
+    """Drop each BSE item that pairs with an NSE item of the same filing
+    (R15-DATA-020); NSE wins a pair.
+
+    Candidates share the symbol and IST day and were disseminated within
+    :data:`_PAIR_WINDOW`. Their similarity is the word overlap of the NSE text
+    against the BSE body or its subject, whichever is higher (BSE's body is
+    often boilerplate — "Enclosed" — while its subject names the filing). Pairs
+    are taken best-first (highest overlap, then the shortest gap) and each item
+    pairs at most once, so two filings minutes apart each keep their own match.
+    """
+    nse = [i for i in items if i.exchange == EXCHANGE_NSE and i.ts is not None]
+    bse = [i for i in items if i.exchange == EXCHANGE_BSE and i.ts is not None]
+    candidates: list[tuple[float, float, int, int]] = []
+    for n_idx, n_item in enumerate(nse):
+        n_words = _words(n_item.headline)
+        n_day = n_item.ts.astimezone(_ist()).date()
+        for b_idx, b_item in enumerate(bse):
+            gap = abs(n_item.ts - b_item.ts)
+            if (
+                n_item.symbol.upper() != b_item.symbol.upper()
+                or gap > _PAIR_WINDOW
+                or b_item.ts.astimezone(_ist()).date() != n_day
+            ):
+                continue
+            score = max(
+                _overlap(n_words, _words(b_item._body)), _overlap(n_words, _words(b_item.headline))
+            )
+            if score >= _PAIR_MIN_OVERLAP:
+                candidates.append((-score, gap.total_seconds(), n_idx, b_idx))
+    paired_nse: set[int] = set()
+    paired_bse: set[int] = set()
+    for _score, _gap, n_idx, b_idx in sorted(candidates):
+        if n_idx not in paired_nse and b_idx not in paired_bse:
+            paired_nse.add(n_idx)
+            paired_bse.add(b_idx)
+    dropped = {id(bse[b_idx]) for b_idx in paired_bse}
+    return [item for item in items if id(item) not in dropped]
 
 
 def get_announcements(
@@ -364,7 +436,7 @@ def get_announcements(
     sources: list[str] = []
     errors: dict[str, str] = {}
     windows: dict[str, AnnouncementWindow] = {}
-    for name in applicable:  # NSE first — it wins a cross-feed dedup collision
+    for name in applicable:  # NSE first — it wins an exact-text collision
         fetch = _fetch_nse_announcements if name == EXCHANGE_NSE else _fetch_bse_announcements
         try:
             items, windows[name] = fetch(bare, limit)
@@ -387,6 +459,7 @@ def get_announcements(
             continue
         seen.add(key)
         deduped.append(item)
+    deduped = _pair_cross_feed(deduped)
     floor = datetime.min.replace(tzinfo=UTC)
     deduped.sort(key=lambda a: a.ts or floor, reverse=True)
     trimmed = deduped[:limit]

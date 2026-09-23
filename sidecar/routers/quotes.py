@@ -19,10 +19,9 @@ import asyncio
 
 from fastapi import APIRouter, Query
 
-import config
 from models.market import Quote
 from services import provider_registry
-from services.locale import freshness_for
+from services.locale import freshness_for, instrument_region
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
 
@@ -34,16 +33,15 @@ def _label_freshness(quote: Quote, asset_class: str) -> Quote:
     fabricated; this adds the live/eod/stale label the UI badges so a legitimate
     weekend/holiday close is not mistaken for a live tick and a genuinely stale
     value is shown as stale, never as live. Crypto trades 24/7, so a fresh fetch
-    is always ``live``; equity/ETF freshness is read against the locale's trading
-    calendar (region from the per-request ContextVar set by the middleware).
+    is always ``live``; equity/ETF freshness is read against the trading calendar
+    of the instrument's own exchange, not the session region (R15-UI-090).
     """
     if asset_class == "crypto":
         quote.freshness = "live"
         return quote
     try:
-        quote.freshness = freshness_for(
-            config.get_region(), quote.timestamp.date(), intraday=True
-        ).state
+        region = instrument_region(quote.symbol, quote.provider)
+        quote.freshness = freshness_for(region, quote.timestamp.date(), intraday=True).state
     except Exception:  # noqa: BLE001 — a label failure must never drop the quote
         quote.freshness = None
     return quote

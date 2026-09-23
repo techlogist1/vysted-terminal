@@ -447,3 +447,44 @@ def test_registry_skips_nse_direct_when_curl_cffi_absent(
     monkeypatch.setattr(nse_provider, "is_available", lambda: False)
     ids = [p.id for p in provider_registry._candidates("quote", "equity", "IN")]
     assert ids == ["nse", "bse", "yfinance"]
+
+
+# ---------------------------------------------------------------------------
+# Payload field drift (R15-LIFECYCLE-004): a renamed open/high/low/volume key
+# is a parse failure the registry falls through, never flat zero-volume bars.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "key",
+    ["CH_OPENING_PRICE", "CH_TRADE_HIGH_PRICE", "CH_TRADE_LOW_PRICE", "CH_TOT_TRADED_QTY"],
+)
+def test_renamed_ohlv_key_raises_and_registry_falls_through(
+    monkeypatch: pytest.MonkeyPatch, key: str
+) -> None:
+    from datetime import UTC, datetime
+
+    from models.market import OHLCVBar, OHLCVSeries
+    from services import india_provider
+
+    rows = [
+        {("RENAMED_" + k if k == key else k): v for k, v in row.items()}
+        for row in _HISTORICAL["data"]
+    ]
+    drifted = {**_HISTORICAL, "data": rows}
+    _install(monkeypatch, _ok_responder({"/api/historicalOR/cm/equity": drifted}))
+    with pytest.raises(ProviderError, match=key):
+        nse_provider.get_history("RELIANCE", "1d", "1mo")
+
+    bar = OHLCVBar(
+        timestamp=datetime.now(tz=UTC),
+        open=1269.0,
+        high=1274.2,
+        low=1257.5,
+        close=1269.2,
+        volume=23620214.0,
+    )
+    jugaad = OHLCVSeries(symbol="RELIANCE", timeframe="1d", bars=[bar], provider="nse")
+    monkeypatch.setattr(india_provider, "is_available", lambda: True)
+    monkeypatch.setattr(india_provider, "get_history", lambda *a, **k: jugaad)
+    assert provider_registry.get_history("RELIANCE.NS", "1d", "1mo").provider == "nse"

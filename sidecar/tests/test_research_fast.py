@@ -781,3 +781,34 @@ def test_snapshot_insufficient_dividend_depth_stays_null_with_reason(
     meta = fund["field_meta"]["dividend_per_share_ttm"]
     assert meta["status"] == "unavailable"
     assert meta["reason"] == dividend_history.INSUFFICIENT_DEPTH_REASON
+
+
+def test_snapshot_special_dividend_research_output_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-047: the research snapshot runs the same shared paid-TTM leg as
+    /fundamentals; its derived D56 conflict and paid fact for the ABBOTINDIA
+    shape are what they were (dividendRate 525 vs 656 paid)."""
+    from services import dividend_history
+
+    _stub_offline_crosschecks(monkeypatch)
+
+    async def paid(_symbol: str) -> dividend_history.DividendTTM:
+        return dividend_history.DividendTTM(656.0, "paid")
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", paid)
+    fund_in = {
+        "symbol": "ABBOTINDIA.NS",
+        "provider": "yfinance",
+        "dividend_per_share": 525.0,
+        "dividend_yield": 0.0193,
+        "ratio_price": 26935.0,
+    }
+    snap = asyncio.run(snapshot_structured(_fund_tool(fund_in), "ABBOTINDIA"))
+    fund = snap["fundamentals"]["data"]
+    assert fund["dividend_per_share_ttm"] == 656.0
+    derived = snap["derived"]["data"]
+    assert derived["dividend_per_share_ttm"]["value"] == 656.0
+    conflicts = [c for c in derived["conflicts"] if c["field"] == "dividend_per_share"]
+    assert len(conflicts) == 1
+    assert {s["value"] for s in conflicts[0]["sources"]} == {525.0, 656.0}
