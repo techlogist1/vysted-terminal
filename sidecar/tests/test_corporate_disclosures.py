@@ -87,7 +87,7 @@ def test_merged_feed_combines_both_exchanges_newest_first(
     assert response.count == len(response.announcements) > 0
     exchanges = {item.exchange for item in response.announcements}
     assert exchanges == {"NSE", "BSE"}
-    # Newest first (the fixtures' distinct headlines never collide in dedup).
+    # Newest first.
     stamps = [item.ts for item in response.announcements if item.ts is not None]
     assert stamps == sorted(stamps, reverse=True)
     # The BSE lane was asked with the observed query contract, scrip-code keyed,
@@ -138,29 +138,44 @@ def test_observed_bse_row_parse(monkeypatch: pytest.MonkeyPatch) -> None:
     assert (first.ts.year, first.ts.month, first.ts.day) == (2026, 6, 9)
 
 
+@pytest.mark.parametrize(
+    "index",
+    [
+        0,  # 2026-06-09 ICICI update: BSE HEADLINE truncated, quotes/spaces doubled
+        1,  # 2026-06-08 AGM presentation: NSE wraps the title in "has informed ..."
+    ],
+)
 def test_dedup_collapses_the_same_story_across_exchanges(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, index: int
 ) -> None:
-    """Same symbol + same (normalised) headline + same IST day → ONE item, NSE wins."""
-    nse_row = _NSE_ANNOUNCEMENTS[0]
-    duplicate_headline = "  " + str(nse_row["attchmntText"]).upper() + "  "  # cosmetic drift
-    bse_payload = {
-        "Table": [
-            dict(
-                _BSE_ANNOUNCEMENTS["Table"][0],
-                NEWSSUB=duplicate_headline,
-                NEWS_DT="2026-06-09T19:44:02.21",  # same IST calendar day as the NSE row
-            )
-        ],
-        "Table1": [{"ROWCNT": 1}],
-    }
-    _patch_nse_announcements(monkeypatch, [nse_row])
-    _patch_bse_payload(monkeypatch, bse_payload)
+    """R15-DATA-020: the UNMODIFIED NSE and BSE fixture rows of one RELIANCE
+    filing (NSE's attchmntText body; BSE's short NEWSSUB subject plus its
+    HEADLINE body) are ONE item, and NSE wins."""
+    _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS[index : index + 1])
+    bse_rows = _BSE_ANNOUNCEMENTS["Table"][index : index + 1]
+    _patch_bse_payload(monkeypatch, {"Table": bse_rows, "Table1": [{"ROWCNT": 1}]})
 
     response = corporate_disclosures.get_announcements("RELIANCE")
     assert response.sources == ["NSE", "BSE"]
     assert response.count == 1
     assert response.announcements[0].exchange == "NSE"  # the NSE lane merges first
+
+
+def test_dedup_keeps_two_distinct_same_day_filings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: two different filings by the same
+    company on the same IST day stay two."""
+    first = _NSE_ANNOUNCEMENTS[0]
+    other = dict(
+        first,
+        attchmntText="Reliance Industries Limited has informed the Exchange regarding "
+        "'Allotment of Non-Convertible Debentures on private placement basis'.",
+        sort_date="2026-06-09 11:02:10",
+    )
+    _patch_nse_announcements(monkeypatch, [first, other])
+    _patch_bse_payload(monkeypatch, ProviderError("bse down"))
+
+    response = corporate_disclosures.get_announcements("RELIANCE")
+    assert response.count == 2
 
 
 def test_bse_only_symbol_skips_the_nse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -627,13 +642,15 @@ def test_corporate_announcements_tool_round_trip(
     _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS)
     _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
 
+    # limit 3: the fixtures' six rows are three filings on both exchanges, and
+    # the cross-exchange dedup collapses the pairs it can match.
     result = asyncio.run(
-        agent_tools.invoke_tool("corporate_announcements", {"symbol": "RELIANCE", "limit": 5})
+        agent_tools.invoke_tool("corporate_announcements", {"symbol": "RELIANCE", "limit": 3})
     )
     assert result["ok"] is True
     assert result["symbol"] == "RELIANCE"
     assert result["sources"] == ["NSE", "BSE"]
-    assert result["count"] == len(result["announcements"]) == 5
+    assert result["count"] == len(result["announcements"]) == 3
     item = result["announcements"][0]
     assert {"symbol", "exchange", "headline", "category", "attachment_url", "ts"} <= set(item)
 

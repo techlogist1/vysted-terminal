@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime as _dt
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 
 class Announcement(BaseModel):
@@ -39,6 +39,10 @@ class Announcement(BaseModel):
     #: Dissemination timestamp (IST-aware); None when the feed row had no
     #: parseable timestamp (kept rather than dropped — the text still informs).
     ts: datetime | None = None
+    #: The disclosure body text the cross-exchange dedup compares (BSE
+    #: ``HEADLINE``; NSE's ``attchmntText`` is already the headline) — the BSE
+    #: display headline is a short subject that never matches NSE's. Not served.
+    _body: str | None = PrivateAttr(default=None)
 
 
 class AnnouncementWindow(BaseModel):

@@ -5,7 +5,7 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 ``corporate_announcements`` / ``shareholding_pattern`` agent tools:
 
 * **Announcements** — merged from BOTH exchange feeds and deduplicated by
-  ``(symbol, headline-hash, date)``, newest first:
+  ``(symbol, body-prefix-hash, date)``, newest first:
 
   - NSE: :func:`services.nse_provider.get_corporate_announcements` (the
     curl_cffi cookie-danced lane; observed item keys ``an_dt``,
@@ -214,7 +214,7 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     attachment = _clean(row.get("ATTACHMENTNAME"))
     # PDFFLAG 1 files the attachment under the history path, 0 under the live one.
     base = _BSE_ATTACHMENT_HIS if row.get("PDFFLAG") == 1 else _BSE_ATTACHMENT_LIVE
-    return Announcement(
+    item = Announcement(
         # The BSE payload carries only the numeric SCRIP_CD + the long company
         # name — stamp the requested bare ticker (mirrors bse_provider quotes).
         symbol=bare,
@@ -224,6 +224,9 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         attachment_url=(base + attachment) if attachment else None,
         ts=_parse_bse_ts(row),
     )
+    # HEADLINE is the body text NSE's attchmntText carries; NEWSSUB is a subject.
+    item._body = _clean(row.get("HEADLINE"))
+    return item
 
 
 def _parse_bse_ts(row: dict) -> datetime | None:
@@ -301,15 +304,30 @@ def _parse_nse_ts(row: dict) -> datetime | None:
 # ---------------------------------------------------------------------------
 
 
-def _dedup_key(item: Announcement) -> tuple[str, str, str]:
-    """The brief's dedup key: ``(symbol, headline-hash, date)``.
+#: How much of the normalised body the dedup compares: BSE truncates HEADLINE
+#: near 200 characters ("... ICICI ...."), so a prefix well inside that matches
+#: the full NSE text of the same filing (D-B3-10).
+_DEDUP_PREFIX_CHARS = 120
+#: NSE's wrapper around a filing's own title ("Reliance Industries Limited has
+#: informed the Exchange regarding 'Presentation on ...'"); BSE carries the bare
+#: title, so the wrapper is dropped before comparing.
+_NSE_WRAPPER_RE = re.compile(r"^.*? has informed the exchange regarding ")
 
-    The headline is whitespace-collapsed + casefolded before hashing so a
-    re-dissemination with cosmetic spacing differences still collapses; the
-    date component is the announcement's IST calendar day (timestamp-less
-    items use an empty day and only collapse on identical text).
+
+def _dedup_key(item: Announcement) -> tuple[str, str, str]:
+    """The dedup key: ``(symbol, body-prefix-hash, date)``.
+
+    The compared text is the disclosure body (NSE ``attchmntText``, BSE
+    ``HEADLINE``), never BSE's short ``NEWSSUB`` subject, which no NSE text
+    matches (R15-DATA-020). It is casefolded, punctuation and whitespace runs
+    collapse to one space (BSE doubles quotes and spaces), NSE's "has informed
+    the Exchange regarding" wrapper is dropped, and the first
+    :data:`_DEDUP_PREFIX_CHARS` characters are hashed. The date component is the
+    announcement's IST calendar day (timestamp-less items use an empty day and
+    only collapse on identical text). The display headline is unchanged.
     """
-    normalized = re.sub(r"\s+", " ", item.headline).strip().casefold()
+    text = re.sub(r"[\W_]+", " ", (item._body or item.headline).casefold()).strip()
+    normalized = _NSE_WRAPPER_RE.sub("", text)[:_DEDUP_PREFIX_CHARS]
     digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:16]
     day = item.ts.astimezone(_ist()).date().isoformat() if item.ts else ""
     return (item.symbol.upper(), digest, day)
