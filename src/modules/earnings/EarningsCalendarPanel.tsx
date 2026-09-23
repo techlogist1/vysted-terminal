@@ -6,7 +6,7 @@ import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
-import { formatPrice } from "@/lib/format";
+import { currencyAffix, formatPrice } from "@/lib/format";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useEarningsStore } from "@/store/earnings";
 
@@ -23,6 +23,10 @@ type SortKey =
   | "analysts";
 type SortDirection = "asc" | "desc";
 
+/** Money-valued sort keys — a mixed-currency watchlist must never rank a
+ *  USD row against an INR row by raw magnitude (R15-DATA-031). */
+const MONEY_SORT_KEYS: readonly SortKey[] = ["consensus", "dispersion"];
+
 const TIME_OF_DAY_LABEL: Record<string, string> = {
   "before-open": "Pre-open",
   "during-market": "Intraday",
@@ -30,10 +34,13 @@ const TIME_OF_DAY_LABEL: Record<string, string> = {
   unknown: "—",
 };
 
-/** A bare EPS / dispersion figure — routed through the single price formatter. */
-function fmt(value: number | null, digits = 2): string {
+/** An EPS / dispersion figure in its row's currency — the event's own
+ *  ISO-4217 code (R15-DATA-031: EPS and revenue render unlabelled, and a
+ *  mixed-currency watchlist sorts USD against INR by raw magnitude). */
+function fmt(value: number | null, currency: string, digits = 2): string {
   if (value === null) return "—";
-  return formatPrice(value, digits);
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }
 
 function fmtDate(iso: string): string {
@@ -127,9 +134,20 @@ export function EarningsCalendarPanel() {
 
   const sortedEvents = useMemo(() => {
     if (!upcoming) return [];
-    return [...upcoming.events].sort((a, b) =>
-      compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection),
-    );
+    const events = [...upcoming.events];
+    if (MONEY_SORT_KEYS.includes(sortKey)) {
+      // R15-DATA-031: group by currency first (never interleave USD/INR
+      // rows), then order within the group by the chosen direction.
+      events.sort((a, b) => {
+        if (a.currency !== b.currency) {
+          return a.currency < b.currency ? -1 : 1;
+        }
+        return compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection);
+      });
+      return events;
+    }
+    events.sort((a, b) => compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection));
+    return events;
   }, [upcoming, sortKey, sortDirection]);
 
   const handleSort = (key: SortKey) => {
@@ -358,10 +376,11 @@ export function EarningsCalendarPanel() {
                         {TIME_OF_DAY_LABEL[event.time_of_day] ?? event.time_of_day}
                       </td>
                       <td className="text-charcoal-100 px-3 py-1 text-right tabular-nums">
-                        {fmt(event.eps_estimate_mean)}
+                        {fmt(event.eps_estimate_mean, event.currency)}
                       </td>
                       <td className="text-charcoal-200 px-3 py-1 text-right tabular-nums">
-                        {fmt(event.eps_estimate_stddev, 3)} / {event.estimate_analyst_count}
+                        {fmt(event.eps_estimate_stddev, event.currency, 3)} /{" "}
+                        {event.estimate_analyst_count}
                       </td>
                     </tr>
                     {isExpanded && (

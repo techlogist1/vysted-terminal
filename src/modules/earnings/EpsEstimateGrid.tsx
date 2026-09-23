@@ -4,7 +4,7 @@ import { ListX } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
-import { formatPrice, formatUnit } from "@/lib/format";
+import { currencyAffix, formatPrice, formatUnit } from "@/lib/format";
 
 import type { EarningsEstimateDetail } from "../../../types/earnings";
 
@@ -22,12 +22,18 @@ const COLUMNS: DataColumn<EstimateRow>[] = [
   { key: "value", header: "Estimate", numeric: true, width: "40%", format: (r) => r.value },
 ];
 
-function eps(value: number | null, digits = 2): string | null {
-  return value === null ? null : formatPrice(value, digits);
+/** R15-DATA-031: EPS values carried no currency at all. */
+function eps(value: number | null, currency: string, digits = 2): string | null {
+  if (value === null) return null;
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }
 
-function revenue(value: number | null): string | null {
-  return value === null ? null : formatUnit(value);
+/** R15-DATA-031: revenue's K/M/B suffix carried no currency symbol either. */
+function revenue(value: number | null, currency: string): string | null {
+  if (value === null) return null;
+  const { prefix, suffix } = currencyAffix(currency);
+  return `${prefix}${formatUnit(value)}${suffix}`;
 }
 
 interface Props {
@@ -61,11 +67,31 @@ export function EpsEstimateGrid({ estimate }: Props) {
           {
             label: "EPS",
             rows: [
-              { id: "eps-mean", label: "Mean", value: eps(estimate.eps_estimate_mean) },
-              { id: "eps-median", label: "Median", value: eps(estimate.eps_estimate_median) },
-              { id: "eps-high", label: "High", value: eps(estimate.eps_estimate_high) },
-              { id: "eps-low", label: "Low", value: eps(estimate.eps_estimate_low) },
-              { id: "eps-stddev", label: "Std. dev.", value: eps(estimate.eps_estimate_stddev, 3) },
+              {
+                id: "eps-mean",
+                label: "Mean",
+                value: eps(estimate.eps_estimate_mean, estimate.currency),
+              },
+              {
+                id: "eps-median",
+                label: "Median",
+                value: eps(estimate.eps_estimate_median, estimate.currency),
+              },
+              {
+                id: "eps-high",
+                label: "High",
+                value: eps(estimate.eps_estimate_high, estimate.currency),
+              },
+              {
+                id: "eps-low",
+                label: "Low",
+                value: eps(estimate.eps_estimate_low, estimate.currency),
+              },
+              {
+                id: "eps-stddev",
+                label: "Std. dev.",
+                value: eps(estimate.eps_estimate_stddev, estimate.currency, 3),
+              },
               {
                 id: "eps-analysts",
                 label: "Analysts",
@@ -76,9 +102,21 @@ export function EpsEstimateGrid({ estimate }: Props) {
           {
             label: "Revenue",
             rows: [
-              { id: "rev-mean", label: "Mean", value: revenue(estimate.revenue_estimate_mean) },
-              { id: "rev-high", label: "High", value: revenue(estimate.revenue_estimate_high) },
-              { id: "rev-low", label: "Low", value: revenue(estimate.revenue_estimate_low) },
+              {
+                id: "rev-mean",
+                label: "Mean",
+                value: revenue(estimate.revenue_estimate_mean, estimate.currency),
+              },
+              {
+                id: "rev-high",
+                label: "High",
+                value: revenue(estimate.revenue_estimate_high, estimate.currency),
+              },
+              {
+                id: "rev-low",
+                label: "Low",
+                value: revenue(estimate.revenue_estimate_low, estimate.currency),
+              },
             ],
           },
         ]}
