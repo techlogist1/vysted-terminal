@@ -29,12 +29,14 @@ import asyncio
 import logging
 import math
 import re
+import time
+from collections.abc import Awaitable, Callable
 from datetime import date
 from typing import Any
 
 from models.fundamentals import FieldMeta, Fundamentals, IncomeStatement
 from models.market import OHLCVSeries, Quote
-from services import locale, ownership_check, yfinance_provider
+from services import fundamentals_store, locale, ownership_check, yfinance_provider
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -618,6 +620,36 @@ def reconcile_book_value(f: Fundamentals, equity: tuple[date, float] | None) -> 
     return _merge_meta(f, {}, flagged)
 
 
+#: How long a fetched witness input is reused (R15-LEAD-002, D-B3-9): the
+#: fundamentals valuation-tier row TTL, so a witness is never older than the row
+#: it checks. Filings and statements change quarterly; without this every
+#: /fundamentals load re-fetched them (Indian median 2-3 s rising to 4-8.5 s).
+_WITNESS_TTL_SECONDS = fundamentals_store.TTL_V7_SECONDS
+#: ``(witness, listing)`` → ``(fetched at, input)``. In-process only, so a
+#: restart (or a fix) starts clean; flags are always recomputed from the inputs.
+_witness_cache: dict[tuple[str, str], tuple[float, Any]] = {}
+
+
+def reset_witness_cache_for_tests() -> None:
+    """Drop every cached witness input (test isolation)."""
+    _witness_cache.clear()
+
+
+async def _cached_witness(kind: str, symbol: str, fetch: Callable[[], Awaitable[Any]]) -> Any:
+    """The ``kind`` witness input for ``symbol``, fetched at most once per
+    :data:`_WITNESS_TTL_SECONDS`. A failed or empty fetch (``None``) is not
+    cached, so the next request tries again."""
+    key = (kind, symbol.upper())
+    now = time.monotonic()
+    hit = _witness_cache.get(key)
+    if hit is not None and now - hit[0] < _WITNESS_TTL_SECONDS:
+        return hit[1]
+    value = await fetch()
+    if value is not None:
+        _witness_cache[key] = (now, value)
+    return value
+
+
 async def _statement_witness(fn: Any, symbol: str) -> Any:
     """One same-provider statement fetch for ``symbol``; any failure attaches
     nothing (``None``) — a witness must never break the payload."""
@@ -641,6 +673,9 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         statement and quarterly period ends → :func:`reconcile_revenue`;
       * for a yfinance-served ``book_value``/``price_to_book``, the same
         provider's newest filed stockholders' equity → :func:`reconcile_book_value`.
+
+    Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`;
+    the reconcile functions run on every call.
     """
     yfinance_served = f.provider == yfinance_provider.PROVIDER
     has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
@@ -649,16 +684,22 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
     check_book = yfinance_served and (f.book_value is not None or f.price_to_book is not None)
 
     async def ownership() -> ownership_check.ExchangeOwnership | None:
-        return await ownership_check.get_exchange_ownership(f.symbol) if check_ownership else None
+        if not check_ownership:
+            return None
+        return await _cached_witness(
+            "ownership", f.symbol, lambda: ownership_check.get_exchange_ownership(f.symbol)
+        )
 
-    async def statement(fn: Any, wanted: bool) -> Any:
-        return await _statement_witness(fn, f.symbol) if wanted else None
+    async def statement(kind: str, fn: Any, wanted: bool) -> Any:
+        if not wanted:
+            return None
+        return await _cached_witness(kind, f.symbol, lambda: _statement_witness(fn, f.symbol))
 
     exchange, annual, quarter_ends, equity = await asyncio.gather(
         ownership(),
-        statement(yfinance_provider.get_income_statement, check_revenue),
-        statement(yfinance_provider.get_quarterly_period_ends, check_revenue),
-        statement(yfinance_provider.get_newest_equity, check_book),
+        statement("income", yfinance_provider.get_income_statement, check_revenue),
+        statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
+        statement("equity", yfinance_provider.get_newest_equity, check_book),
     )
     if check_ownership:
         f = reconcile_ownership(f, exchange)

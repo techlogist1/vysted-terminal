@@ -28,6 +28,17 @@ def _reset_provider_health() -> None:
     provider_health.reset_for_tests()
 
 
+@pytest.fixture(autouse=True)
+def _reset_witness_cache() -> None:
+    """The correctness gate's witness inputs are cached per listing
+    (R15-LEAD-002) — one test's stubbed filing must never serve the next."""
+    from services import correctness_gate
+
+    correctness_gate.reset_witness_cache_for_tests()
+    yield
+    correctness_gate.reset_witness_cache_for_tests()
+
+
 @pytest.fixture
 def client() -> TestClient:
     """A TestClient bound to a freshly built app instance."""
