@@ -266,6 +266,44 @@ class _RegionMiddleware:
             config.reset_request_region(region_token)
 
 
+#: The only browser origins that may call the sidecar: the Tauri 2 webview
+#: (macOS/Linux ``tauri://localhost``; Windows ``http(s)://tauri.localhost``)
+#: and the Vite dev server (``vite.config.ts`` / ``tauri.conf.json`` devUrl).
+ALLOWED_ORIGINS = (
+    "tauri://localhost",
+    "http://tauri.localhost",
+    "https://tauri.localhost",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+)
+
+
+class _OriginGuardMiddleware:
+    """Pure-ASGI guard: a request carrying an unlisted ``Origin`` gets 403.
+
+    Runs before routing, so it covers every REST route and the ``/mcp`` mount.
+    Binding to 127.0.0.1 does not stop a web page in the user's browser from
+    calling loopback; the browser always stamps such a request with its
+    ``Origin``. A request with no ``Origin`` (a local process, an MCP client
+    over HTTP) passes.
+    """
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope.get("type") in ("http", "websocket"):
+            origin = next((v for k, v in scope.get("headers", []) if k == b"origin"), None)
+            if origin is not None and origin.decode("latin-1") not in ALLOWED_ORIGINS:
+                if scope["type"] == "websocket":
+                    await send({"type": "websocket.close", "code": 1008})
+                    return
+                response = JSONResponse(status_code=403, content={"detail": "origin not allowed"})
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
 def create_app() -> FastAPI:
     """Build and return a fully wired sidecar FastAPI application."""
     app = FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", lifespan=_lifespan)
@@ -277,12 +315,13 @@ def create_app() -> FastAPI:
     # cold-first-fetch 502 cascade (#38).
     app.state.httpx_client = httpx.AsyncClient(follow_redirects=True)
 
-    # The frontend WebView fetches the sidecar cross-origin (dev: localhost:3000,
-    # prod: tauri://localhost). The sidecar binds to 127.0.0.1 only, so a
-    # permissive CORS policy is safe and avoids a tauri-plugin-http dependency.
+    # The frontend WebView fetches the sidecar cross-origin (dev: the Vite
+    # server, prod: the Tauri webview). A loopback bind does not keep other
+    # browser pages out, so CORS names only those origins and the Origin guard
+    # (added last = outermost) refuses any other Origin before routing.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=list(ALLOWED_ORIGINS),
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -290,6 +329,7 @@ def create_app() -> FastAPI:
     # Region threading (FR-060): read the ``X-Vysted-Region`` header into the
     # per-request ContextVar so every handler shapes data for the user's locale.
     app.add_middleware(_RegionMiddleware)
+    app.add_middleware(_OriginGuardMiddleware)
 
     @app.exception_handler(ProviderError)
     async def _provider_error_handler(_request: Request, exc: ProviderError) -> JSONResponse:
