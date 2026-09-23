@@ -336,6 +336,30 @@ describe("useScreenerStore", () => {
       expect(useScreenerStore.getState().status).toBe("ready");
     });
 
+    it("R15-UI-056: the stream's error frame puts the server's reason in store.error", async () => {
+      const frames = [
+        { event: "progress", phase: "universe", done: 0, total: 1, detail: "resolving" },
+        { event: "error", message: "missing universe snapshot 'nifty50.json'" },
+      ];
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        start(controller) {
+          for (const f of frames)
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(f)}\n\n`));
+          controller.close();
+        },
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } }),
+      );
+
+      expect(await useScreenerStore.getState().runScreener()).toBeNull();
+      const state = useScreenerStore.getState();
+      expect(state.status).toBe("error");
+      expect(state.error).toBe("missing universe snapshot 'nifty50.json'");
+      expect(state.progress).toBeNull();
+    });
+
     it("for the custom universe, serialises custom_symbols from the raw text", async () => {
       const fetchMock = mockFetchFallback(RESULT_SAMPLE);
 

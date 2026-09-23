@@ -491,6 +491,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     const decoder = new TextDecoder();
     let buffer = "";
     let finalResult: ScreenerResult | null = null;
+    let serverError: string | null = null;
 
     /** Parse one SSE data line or bare NDJSON line into a frame object, or null. */
     function parseLine(raw: string): Record<string, unknown> | null {
@@ -526,6 +527,11 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
         // Strip the envelope key so the shape matches ScreenerResult exactly.
         const { event: _e, ...resultFields } = frame;
         finalResult = resultFields as unknown as ScreenerResult;
+        return true;
+      }
+      if (frame.event === "error") {
+        // R15-UI-056: the engine's own reason (ScreenerErrorFrame) reaches the panel.
+        serverError = typeof frame.message === "string" ? frame.message : "screener run failed";
         return true;
       }
       return false;
@@ -576,6 +582,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     }
     if (controller.signal.aborted) {
       finish({ status: "idle" });
+      return null;
+    }
+    if (serverError !== null) {
+      finish({ status: "error", error: serverError });
       return null;
     }
     if (!finalResult) {
