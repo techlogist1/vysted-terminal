@@ -701,3 +701,29 @@ def test_never_payer_reads_an_affirmed_zero_yield(
     assert body["dividend_per_share_ttm"] == 0.0
     assert body["dividend_yield"] == 0.0
     assert body["field_meta"]["dividend_yield"]["label"] == AFFIRMED_ZERO_LABEL
+
+
+def test_ratings_cache_is_keyed_on_the_resolved_listing(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: object
+) -> None:
+    """R15-LEAD-009: a region switch inside the TTL refetches for the other
+    listing instead of serving the first region's cached ratings."""
+    from config import DATA_DIR_ENV
+    from models.analyst_extended import RatingsHistoryResponse
+    from services import analyst_ratings_extended, data_cache, yfinance_provider
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    listings: list[str] = []
+
+    async def _history(symbol: str) -> RatingsHistoryResponse:
+        listings.append(yfinance_provider._yahoo_symbol(symbol))
+        return RatingsHistoryResponse(symbol=symbol, history=[])
+
+    monkeypatch.setattr(analyst_ratings_extended, "get_ratings_history", _history)
+    try:
+        for region in ("IN", "US", "IN"):
+            client.get("/fundamentals/INFY/ratings/history", headers={"X-Vysted-Region": region})
+    finally:
+        data_cache.reset_for_tests()
+    assert listings == ["INFY.NS", "INFY"]

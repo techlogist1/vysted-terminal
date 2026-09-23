@@ -20,6 +20,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
+import config
 from models.earnings import (
     EarningsEstimateDetail,
     EarningsHistoryResponse,
@@ -28,6 +29,7 @@ from models.earnings import (
 )
 from services import data_cache, earnings_provider
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,8 @@ _TTL_ESTIMATES = 6 * 60 * 60  # 6 hours
 
 def _watchlist_key(watchlist: list[str] | None) -> str:
     if not watchlist:
-        return "default"
+        # The default universe follows the request region (C4, R15-LEAD-009).
+        return f"default:{config.get_region()}"
     return ",".join(sorted({s.strip().upper() for s in watchlist if s.strip()}))
 
 
@@ -85,7 +88,7 @@ async def get_upcoming(
 async def get_history(symbol: str) -> EarningsHistoryResponse:
     """Return past earnings results for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:history"
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_HISTORY)
     if isinstance(cached, dict):
         try:
@@ -104,7 +107,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
 async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter EPS surprise rows for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:surprises"
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_HISTORY)
     if isinstance(cached, dict):
         try:
@@ -123,7 +126,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
 async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     """Return the next-event analyst-estimate detail for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"earnings:{normalized}:estimates"
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:estimates"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_ESTIMATES)
     if isinstance(cached, dict):
         try:

@@ -44,6 +44,7 @@ from services import (
     symbol_resolver,
 )
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -220,7 +221,7 @@ async def get_analyst_rating(symbol: str) -> AnalystRating:
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:history"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:
@@ -239,7 +240,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     """Return price-target changes for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:price-targets"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:price-targets"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:
@@ -258,7 +259,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     """Return per-firm currently-active forecasts for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:individual"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:individual"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:

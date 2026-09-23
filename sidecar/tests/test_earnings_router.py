@@ -190,3 +190,47 @@ def test_history_caches(
     client.get("/earnings/AAPL/history")
     client.get("/earnings/AAPL/history")
     assert call_count["n"] == 1
+
+
+def test_a_region_switch_does_not_serve_the_other_listings_cache(
+    client: TestClient,
+    stub_provider: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-009: bare INFY is INFY.NS under IN and the ADR under US, so the
+    cache is keyed on the resolved listing, not the bare symbol."""
+    from services import earnings_provider, yfinance_provider
+
+    listings: list[str] = []
+
+    async def _counting(symbol: str):
+        listings.append(yfinance_provider._yahoo_symbol(symbol))
+        return _stub_estimates(symbol)
+
+    monkeypatch.setattr(earnings_provider, "get_estimate_detail", _counting)
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "IN"})
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "US"})
+    client.get("/earnings/INFY/estimates", headers={"X-Vysted-Region": "US"})
+    assert listings == ["INFY.NS", "INFY"]
+
+
+def test_default_upcoming_universe_is_cached_per_region(
+    client: TestClient,
+    stub_provider: Any,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """C4: with no watchlist the default universe follows the region, so its
+    cache key carries the region."""
+    from services import earnings_provider
+
+    calls = {"n": 0}
+
+    async def _counting(start: date, end: date, watchlist: list[str] | None = None):
+        calls["n"] += 1
+        return _stub_upcoming(start, end, watchlist)
+
+    monkeypatch.setattr(earnings_provider, "get_upcoming", _counting)
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "IN"})
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "US"})
+    client.get("/earnings/upcoming", headers={"X-Vysted-Region": "IN"})
+    assert calls["n"] == 2
