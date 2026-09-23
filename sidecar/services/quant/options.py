@@ -32,7 +32,7 @@ import QuantLib as ql
 
 from models.quant import Greeks, OptionPricingRequest, OptionPricingResult
 
-from ._common import build_bsm_process, ql_option_type, to_ql_date
+from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
 
 #: Default number of CRR binomial tree steps when caller omits.
 DEFAULT_BINOMIAL_STEPS = 200
@@ -49,6 +49,7 @@ DEFAULT_MC_SEED = 42
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price_european_bs(req: OptionPricingRequest) -> OptionPricingResult:
     """Price a European option with the analytic Black-Scholes engine.
 
@@ -163,6 +164,7 @@ def _greeks_binomial(req: OptionPricingRequest, steps: int) -> Greeks:
     return Greeks(delta=delta, gamma=gamma, vega=vega, theta=theta, rho=rho)
 
 
+@holds_ql_lock
 def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
     """Price an option on a Cox-Ross-Rubinstein binomial tree.
 
@@ -189,6 +191,7 @@ def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
     """Price a European option with antithetic-variate Monte Carlo.
 
@@ -249,6 +252,7 @@ def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
 # ---------------------------------------------------------------------------
 
 
+@holds_ql_lock
 def price(req: OptionPricingRequest) -> OptionPricingResult:
     """Dispatch an option-pricing request to the engine named by ``req.method``."""
     req.validate_domain()
