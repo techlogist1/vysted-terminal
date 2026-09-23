@@ -149,6 +149,38 @@ def test_binomial_default_steps() -> None:
     assert result.price > 0
 
 
+def test_binomial_theta_sign_and_gamma_within_5pct_of_bs() -> None:
+    """R15-DATA-011: binomial theta must be negative (a long call loses value
+    to time decay) and gamma must sit within 5% of Black-Scholes at both an
+    even and an odd step count — the old finite-difference gamma straddled
+    lattice nodes and gave 1.4-5.6x Black-Scholes (or exactly 0 at odd step
+    counts), and the old finite-difference theta had its sign flipped."""
+    bs = options.price(_make_req())
+    for steps in (200, 201):
+        bn = options.price(_make_req(method="binomial", binomial_steps=steps))
+        assert bn.greeks.theta < 0
+        assert abs(bn.greeks.gamma / bs.greeks.gamma - 1.0) < 0.05
+
+
+def test_american_put_binomial_theta_negative_and_gamma_stable_across_step_parity() -> None:
+    """R15-DATA-011 (case the fix was not written against): American
+    exercise, where the analytic Black-Scholes engine has no equivalent,
+    still gets a negative theta, and the lattice-read gamma stays stable
+    (not 0, not wildly different) between an even and an odd step count —
+    the symptom the old finite-difference re-pricing had."""
+    bn_200 = options.price(
+        _make_req(payoff="put", exercise="american", method="binomial", binomial_steps=200)
+    )
+    bn_201 = options.price(
+        _make_req(payoff="put", exercise="american", method="binomial", binomial_steps=201)
+    )
+    assert bn_200.greeks.theta < 0
+    assert bn_201.greeks.theta < 0
+    assert bn_200.greeks.gamma > 0
+    assert bn_201.greeks.gamma > 0
+    assert abs(bn_200.greeks.gamma / bn_201.greeks.gamma - 1.0) < 0.05
+
+
 # ---------------------------------------------------------------------------
 # Monte Carlo European
 # ---------------------------------------------------------------------------

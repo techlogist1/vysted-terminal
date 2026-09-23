@@ -11,7 +11,7 @@ import type {
   ScreenerNumericField,
   ScreenerStringField,
 } from "../../../types/screener";
-import { CriterionGroupEditor, defaultGroup } from "./CriterionGroupEditor";
+import { CriterionGroupEditor, defaultGroup, universeMoneyUnit } from "./CriterionGroupEditor";
 import { ScreenerFormulaLeaf } from "./ScreenerFormulaLeaf";
 
 /**
@@ -27,39 +27,48 @@ import { ScreenerFormulaLeaf } from "./ScreenerFormulaLeaf";
  * grammar, evaluated server-side with the criteria). The operator pick switches
  * the leaf's value input shape — single number / (min, max) / string / comma-list.
  */
-const NUMERIC_FIELDS: { value: ScreenerNumericField; label: string }[] = [
-  { value: "market_cap", label: "Market cap" },
-  { value: "pe_ratio", label: "P/E ratio" },
-  { value: "forward_pe", label: "Forward P/E" },
-  { value: "peg_ratio", label: "PEG ratio" },
-  { value: "price_to_book", label: "Price / Book" },
-  { value: "price_to_sales", label: "Price / Sales" },
-  { value: "ev_to_ebitda", label: "EV / EBITDA" },
-  { value: "book_value", label: "Book value" },
-  { value: "dividend_yield", label: "Dividend yield (frac, 0.02 = 2%)" },
-  { value: "eps", label: "EPS" },
-  { value: "beta", label: "Beta" },
-  { value: "roe", label: "ROE (frac, 0.2 = 20%)" },
-  { value: "roa", label: "ROA (frac)" },
-  { value: "gross_margin", label: "Gross margin (frac)" },
-  { value: "operating_margin", label: "Operating margin (frac)" },
-  { value: "profit_margin", label: "Net margin (frac)" },
-  { value: "debt_to_equity", label: "Debt / Equity (ratio)" },
-  { value: "current_ratio", label: "Current ratio" },
-  { value: "quick_ratio", label: "Quick ratio" },
-  // D55: yfinance growth is most-recent-quarter vs the year-ago quarter — the
-  // basis is disclosed at every surface, never presented as annual growth.
-  { value: "revenue_growth", label: "Revenue growth (MRQ YoY, frac)" },
-  { value: "earnings_growth", label: "Earnings growth (MRQ YoY, frac)" },
-  { value: "fifty_two_week_high", label: "52w high" },
-  { value: "fifty_two_week_low", label: "52w low" },
-  { value: "fifty_two_week_change", label: "1y change (frac)" },
-  { value: "held_percent_insiders", label: "Insider/promoter holding (frac)" },
-  { value: "held_percent_institutions", label: "Institutional holding (frac)" },
-  { value: "price", label: "Price" },
-  { value: "change_percent_1d", label: "1-day %" },
-  { value: "volume", label: "Volume" },
-];
+/**
+ * Numeric field options, with the money-denominated fields suffixed by the
+ * UNIVERSE's listing currency (R15-DATA-043 — a bare "Market cap" threshold
+ * means $10B on sp500 and Rs 1,000 crore on india-all, with no unit shown).
+ */
+function numericFields(moneyUnit: string): { value: ScreenerNumericField; label: string }[] {
+  return [
+    { value: "market_cap", label: `Market cap (${moneyUnit})` },
+    { value: "pe_ratio", label: "P/E ratio" },
+    { value: "forward_pe", label: "Forward P/E" },
+    { value: "peg_ratio", label: "PEG ratio" },
+    { value: "price_to_book", label: "Price / Book" },
+    { value: "price_to_sales", label: "Price / Sales" },
+    { value: "ev_to_ebitda", label: "EV / EBITDA" },
+    { value: "book_value", label: `Book value (${moneyUnit})` },
+    { value: "dividend_yield", label: "Dividend yield (frac, 0.02 = 2%)" },
+    { value: "eps", label: `EPS (${moneyUnit})` },
+    { value: "beta", label: "Beta" },
+    { value: "roe", label: "ROE (frac, 0.2 = 20%)" },
+    { value: "roa", label: "ROA (frac)" },
+    { value: "gross_margin", label: "Gross margin (frac)" },
+    { value: "operating_margin", label: "Operating margin (frac)" },
+    { value: "profit_margin", label: "Net margin (frac)" },
+    { value: "debt_to_equity", label: "Debt / Equity (ratio)" },
+    { value: "current_ratio", label: "Current ratio" },
+    { value: "quick_ratio", label: "Quick ratio" },
+    // D55: yfinance growth is most-recent-quarter vs the year-ago quarter — the
+    // basis is disclosed at every surface, never presented as annual growth.
+    { value: "revenue_growth", label: "Revenue growth (MRQ YoY, frac)" },
+    { value: "earnings_growth", label: "Earnings growth (MRQ YoY, frac)" },
+    { value: "fifty_two_week_high", label: `52w high (${moneyUnit})` },
+    { value: "fifty_two_week_low", label: `52w low (${moneyUnit})` },
+    { value: "fifty_two_week_change", label: "1y change (frac)" },
+    // R15-DATA-004: this is Yahoo's insider/promoter field — labelled by its
+    // provider, never re-pointed at an exchange promoter field (§6 D-B2-8).
+    { value: "held_percent_insiders", label: "Insider holding (Yahoo)" },
+    { value: "held_percent_institutions", label: "Institutional holding (frac)" },
+    { value: "price", label: `Price (${moneyUnit})` },
+    { value: "change_percent_1d", label: "1-day %" },
+    { value: "volume", label: "Volume" },
+  ];
+}
 
 const STRING_FIELDS: { value: ScreenerStringField; label: string }[] = [
   { value: "sector", label: "Sector" },
@@ -105,6 +114,8 @@ interface CriterionRowProps {
 function CriterionRow({ index, criterion }: CriterionRowProps) {
   const update = useScreenerStore((s) => s.updateCriterion);
   const remove = useScreenerStore((s) => s.removeCriterion);
+  const universe = useScreenerStore((s) => s.universe);
+  const moneyUnit = universeMoneyUnit(universe);
 
   function onCategoryChange(category: "numeric" | "string" | "in") {
     if (category === "numeric") {
@@ -148,7 +159,7 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
               update(index, { ...criterion, field: e.target.value as ScreenerNumericField })
             }
           >
-            {NUMERIC_FIELDS.map((f) => (
+            {numericFields(moneyUnit).map((f) => (
               <option key={f.value} value={f.value}>
                 {f.label}
               </option>
@@ -381,10 +392,17 @@ function SimpleCriteriaEditor() {
 function AdvancedGroupEditor() {
   const group = useScreenerStore((s) => s.group);
   const setGroup = useScreenerStore((s) => s.setGroup);
+  const universe = useScreenerStore((s) => s.universe);
   // The store guarantees a group exists in advanced mode (set on toggle); guard
   // anyway so a direct advanced=true via the agent path still renders.
   const tree = group ?? defaultGroup();
-  return <CriterionGroupEditor group={tree} onChange={setGroup} />;
+  return (
+    <CriterionGroupEditor
+      group={tree}
+      onChange={setGroup}
+      moneyUnit={universeMoneyUnit(universe)}
+    />
+  );
 }
 
 export function ScreenerCriteriaBuilder() {

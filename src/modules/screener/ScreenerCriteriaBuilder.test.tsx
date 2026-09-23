@@ -7,7 +7,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 import { useScreenerStore } from "@/store/screener";
 
@@ -70,5 +70,36 @@ describe("ScreenerCriteriaBuilder", () => {
     useScreenerStore.getState().setCriteria([]);
     render(<ScreenerCriteriaBuilder />);
     expect(screen.getByText(/no criteria/i)).toBeInTheDocument();
+  });
+
+  it("R15-DATA-043: the numeric field selector suffixes money fields with the universe currency", () => {
+    act(() => {
+      useScreenerStore.getState().setUniverse("india-all");
+    });
+    render(<ScreenerCriteriaBuilder />);
+    const row0 = screen.getByTestId("criterion-row-0");
+    const fieldSelect = row0.querySelector('select[aria-label="numeric field"]')!;
+    expect(fieldSelect.querySelector('option[value="market_cap"]')?.textContent).toBe(
+      "Market cap (INR)",
+    );
+
+    act(() => {
+      useScreenerStore.getState().setUniverse("sp500");
+    });
+    const fieldSelectUsd = screen
+      .getByTestId("criterion-row-0")
+      .querySelector('select[aria-label="numeric field"]')!;
+    expect(fieldSelectUsd.querySelector('option[value="market_cap"]')?.textContent).toBe(
+      "Market cap (USD)",
+    );
+  });
+
+  it("R15-DATA-004: the insider-holding field is labelled by its provider, not re-pointed at an exchange field", () => {
+    render(<ScreenerCriteriaBuilder />);
+    const row0 = screen.getByTestId("criterion-row-0");
+    const fieldSelect = row0.querySelector('select[aria-label="numeric field"]')!;
+    expect(fieldSelect.querySelector('option[value="held_percent_insiders"]')?.textContent).toBe(
+      "Insider holding (Yahoo)",
+    );
   });
 });

@@ -121,7 +121,10 @@ async def get_filing(
     try:
         return await sec_filings_provider.get_filing(accession, cik_or_symbol=identifier)
     except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        # R15-DATA-007: a genuine miss (accession outside the issuer's recent
+        # filings) is a 404, never the same 502 an upstream tool failure gets.
+        status_code = 404 if exc.kind == "not_found" else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
 
 @router.get("/filings/{accession}/sections")
@@ -136,7 +139,8 @@ async def get_filing_sections(
             accession, cik_or_symbol=identifier
         )
     except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        status_code = 404 if exc.kind == "not_found" else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
     # Wrap to keep the schema dict-shaped (CLAUDE.md FastMCP-tool gotcha).
     return {"sections": sections}
 

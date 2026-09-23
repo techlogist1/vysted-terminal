@@ -298,6 +298,27 @@ def test_apply_criteria_sorted_by_market_cap_desc_with_none_last() -> None:
     assert [r.symbol for r in result] == ["C", "D", "A", "B"]
 
 
+def test_apply_criteria_groups_by_currency_before_market_cap() -> None:
+    """R15-DATA-043: a mixed-currency universe is grouped by currency first —
+    RELIANCE.NS's raw INR market cap (~1.95e13) must never rank above AAPL's
+    raw USD one (~3.5e12) as though they were the same unit."""
+    rows = [
+        (_make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"), _make_quote("AAPL")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("MSFT", market_cap=3.0e12, currency="USD"), _make_quote("MSFT")),
+    ]
+    result = screener.apply_criteria(rows, [])
+    # Currency groups stay contiguous (never interleaved), and each group is
+    # independently market_cap-desc.
+    currencies = [r.currency for r in result]
+    assert currencies == sorted(currencies)
+    usd_symbols = [r.symbol for r in result if r.currency == "USD"]
+    assert usd_symbols == ["AAPL", "MSFT"]
+
+
 # ---------------------------------------------------------------------------
 # CriterionGroup — AND/OR boolean tree (003 rebuild OR-grammar)
 # ---------------------------------------------------------------------------
@@ -411,6 +432,40 @@ async def test_run_screener_or_group_end_to_end(monkeypatch: pytest.MonkeyPatch)
     )
     result = await screener.run_screener(request)
     assert {row.symbol for row in result.rows} == {"CHEAP", "YIELD"}
+
+
+@pytest.mark.asyncio
+async def test_run_screener_mixed_currency_universe_ranked_within_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-043: custom=[AAPL, RELIANCE.NS] must not rank RELIANCE.NS's
+    raw INR market cap (~1.95e13) above AAPL's raw USD one (~3.5e12) as one
+    number, and the coverage line discloses the currency-grouped basis."""
+
+    fake_fundamentals = {
+        "AAPL": _make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"),
+        "RELIANCE.NS": _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake_fundamentals[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAPL", "RELIANCE.NS"],
+        criteria=[],
+        limit=10,
+    )
+    result = await screener.run_screener(request)
+    assert {r.symbol for r in result.rows} == {"AAPL", "RELIANCE.NS"}
+    assert result.coverage is not None
+    assert "ranked within each currency" in result.coverage
 
 
 @pytest.mark.asyncio

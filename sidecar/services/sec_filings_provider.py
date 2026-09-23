@@ -37,7 +37,7 @@ import json
 import logging
 import os
 import re
-from datetime import UTC, date, datetime
+from datetime import date
 from typing import Any
 
 from models.sec import (
@@ -514,6 +514,12 @@ async def get_filing(
     ``cik_or_symbol`` is required by sec-edgar-mcp's
     ``get_filing_content`` upstream tool; the panel always passes the
     same identifier it used to fetch the list.
+
+    R15-DATA-007: metadata is resolved FIRST, against the issuer's recent
+    filings list. A miss raises ``ProviderError(kind="not_found")`` — never
+    a synthesised ``Filing`` — so an accession outside the list window (or
+    one sec-edgar-mcp doesn't recognise) surfaces as an honest 404, not a
+    filing that reads "10-K filed today" with no company name.
     """
     if not accession:
         raise ProviderError("accession is required")
@@ -523,14 +529,9 @@ async def get_filing(
     if cached is not None:
         return FilingDetail.model_validate(cached)
 
-    sections_payload = await _call_tool(
-        "get_filing_sections",
-        {"identifier": identifier, "accession_number": accession, "form_type": "10-K"},
-    )
-    sections = _sections_from_payload(sections_payload)
-
-    # Pull a minimal filing metadata row by hitting the filings list and
-    # filtering by accession — keeps the FilingDetail payload self-contained.
+    # Metadata FIRST — the sectioning call below needs the filing's REAL
+    # form_type (a 10-Q sectioned as "10-K" mis-parses its headings), and a
+    # miss here must raise, not synthesise a filing (§6 D-B2, R15-DATA-007).
     list_payload = await _call_tool(
         "get_recent_filings",
         {"identifier": identifier, "limit": 40},
@@ -538,21 +539,13 @@ async def get_filing(
     _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
     match = next((f for f in filings if f.accession == accession), None)
     if match is None:
-        # Sec-edgar-mcp returned sections but the listing page no
-        # longer surfaces the accession — synthesise a minimal Filing
-        # so the panel can still render.
-        match = Filing(
-            accession=accession,
-            cik=identifier.zfill(10) if identifier.isdigit() else identifier,
-            company_name="",
-            symbol=None if not identifier.isalpha() else identifier,
-            form_type="10-K",
-            filed_date=datetime.now(tz=UTC).date(),
-            period_of_report=None,
-            edgar_url=_edgar_url(
-                accession, identifier.zfill(10) if identifier.isdigit() else identifier
-            ),
-        )
+        raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
+
+    sections_payload = await _call_tool(
+        "get_filing_sections",
+        {"identifier": identifier, "accession_number": accession, "form_type": match.form_type},
+    )
+    sections = _sections_from_payload(sections_payload)
 
     total_chars = sum(len(s.text) for s in sections)
     detail = FilingDetail(filing=match, sections=sections, total_chars=total_chars)

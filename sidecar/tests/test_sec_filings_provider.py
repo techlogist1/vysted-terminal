@@ -221,19 +221,49 @@ async def test_get_filing_assembles_detail(recorder: _RecordingClient) -> None:
     assert len(detail.sections) == 6
     assert detail.sections[1].title == "Item 1A. Risk Factors"
     assert detail.total_chars > 0
+    # R15-DATA-007: metadata is resolved BEFORE sectioning, so the section
+    # call carries the filing's real form_type, not a hard-coded "10-K".
+    sections_call = next(c for c in recorder.calls if c["name"] == "get_filing_sections")
+    assert sections_call["arguments"]["form_type"] == "10-K"
 
 
 @pytest.mark.asyncio
-async def test_get_filing_synthesises_metadata_on_miss(
+async def test_get_filing_sections_with_the_real_form_type(recorder: _RecordingClient) -> None:
+    """R15-DATA-007 (case the fix was not written against): a 10-Q inside the
+    listing window is sectioned with form_type "10-Q" (not the old hard-coded
+    "10-K"), and its edgar_url carries the numeric CIK."""
+    recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+
+    detail = await sec_filings_provider.get_filing("0000320193-24-000100", cik_or_symbol="AAPL")
+
+    assert detail.filing.form_type == "10-Q"
+    assert "320193" in detail.filing.edgar_url
+    sections_call = next(c for c in recorder.calls if c["name"] == "get_filing_sections")
+    assert sections_call["arguments"]["form_type"] == "10-Q"
+
+
+@pytest.mark.asyncio
+async def test_get_filing_raises_not_found_when_metadata_is_unavailable(
     recorder: _RecordingClient,
 ) -> None:
-    """If the listing no longer shows the accession, return a stub Filing."""
+    """R15-DATA-007: an accession outside the issuer's recent-filings window
+    must raise a not_found ProviderError, never synthesise a fabricated
+    Filing ("10-K filed today", company_name ""). Nothing is cached on a
+    miss, and get_filing_sections (upstream) is never even called, since
+    metadata resolution now runs first.
+
+    (Was ``test_get_filing_synthesises_metadata_on_miss``, which pinned the
+    fabrication this fix removes — rewritten to pin the honest failure.)
+    """
     recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
     recorder.respond("get_recent_filings", {"filings": []})
 
-    detail = await sec_filings_provider.get_filing("0000000000-99-999999", cik_or_symbol="AAPL")
-    assert detail.filing.accession == "0000000000-99-999999"
-    assert len(detail.sections) == 6
+    with pytest.raises(ProviderError) as exc:
+        await sec_filings_provider.get_filing("0000000000-99-999999", cik_or_symbol="AAPL")
+    assert exc.value.kind == "not_found"
+    assert not any(c["name"] == "get_filing_sections" for c in recorder.calls)
+    assert await data_cache.get("sec:filing:0000000000-99-999999", 86400.0) is None
 
 
 # ---------------------------------------------------------------------------

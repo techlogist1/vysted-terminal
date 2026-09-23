@@ -134,7 +134,8 @@ describe("EarningsCalendarPanel", () => {
     render(<EarningsCalendarPanel />);
     await waitFor(() => {
       expect(screen.getByText("Apple Inc.")).toBeInTheDocument();
-      expect(screen.getByText("1.50")).toBeInTheDocument();
+      // R15-DATA-031: the consensus EPS figure carries its currency affix.
+      expect(screen.getByText("$1.50")).toBeInTheDocument();
     });
   });
 
@@ -158,7 +159,8 @@ describe("EarningsCalendarPanel", () => {
     expect(screen.getByText("EPS")).toBeInTheDocument();
     expect(screen.getByText("Revenue")).toBeInTheDocument();
     expect(screen.getByText("Std. dev.")).toBeInTheDocument();
-    expect(screen.getByText("0.05")).toBeInTheDocument();
+    // R15-DATA-031: the estimate-detail figures carry their currency affix.
+    expect(screen.getByText("$0.05")).toBeInTheDocument();
   });
 
   it("captures upcoming-load errors inline", async () => {
@@ -166,6 +168,57 @@ describe("EarningsCalendarPanel", () => {
     render(<EarningsCalendarPanel />);
     await waitFor(() => {
       expect(screen.getByText(/provider blew up/i)).toBeInTheDocument();
+    });
+  });
+
+  it("R15-DATA-031: labels EPS with currency and never interleaves currencies when sorted", async () => {
+    const MIXED_CURRENCY_SAMPLE: EarningsUpcomingResponse = {
+      start_date: "2026-05-16",
+      end_date: "2026-05-23",
+      events: [
+        {
+          symbol: "AAPL",
+          company_name: "Apple Inc.",
+          scheduled_date: "2026-05-20",
+          time_of_day: "after-close",
+          fiscal_period: { quarter: "Q2", year: 2026 },
+          eps_estimate_mean: 2.35,
+          eps_estimate_stddev: 0.05,
+          estimate_analyst_count: 20,
+          currency: "USD",
+          provider: "yfinance",
+        },
+        {
+          symbol: "RELIANCE.NS",
+          company_name: "Reliance Industries",
+          scheduled_date: "2026-05-21",
+          time_of_day: "before-open",
+          fiscal_period: { quarter: "Q2", year: 2026 },
+          eps_estimate_mean: 42.1,
+          eps_estimate_stddev: 1.2,
+          estimate_analyst_count: 15,
+          currency: "INR",
+          provider: "yfinance",
+        },
+      ],
+    };
+    vi.mocked(sidecarGet).mockResolvedValueOnce(MIXED_CURRENCY_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("AAPL")).toBeInTheDocument();
+    });
+    // The unlabelled figures used to read "2.35" and "42.10" — indistinguishable
+    // magnitudes across currencies.
+    expect(screen.getByText("$2.35")).toBeInTheDocument();
+    expect(screen.getByText("₹42.10")).toBeInTheDocument();
+
+    // Sorting by Consensus EPS must never rank the INR row against the USD
+    // row by raw magnitude — the currency groups stay intact.
+    fireEvent.click(screen.getByText("Consensus EPS"));
+    await waitFor(() => {
+      const rows = screen.getAllByTestId(/^earnings-row-/);
+      const order = rows.map((r) => r.getAttribute("data-testid"));
+      expect(order).toEqual(["earnings-row-RELIANCE.NS", "earnings-row-AAPL"]);
     });
   });
 

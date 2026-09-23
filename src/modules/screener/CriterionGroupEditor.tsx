@@ -9,7 +9,26 @@ import type {
   ScreenerCriterion,
   ScreenerNumericField,
   ScreenerStringField,
+  ScreenerUniverseId,
 } from "../../../types/screener";
+
+/** The listing currency label for a universe's money-denominated fields
+ *  (R15-DATA-043) — the sidecar's own screener.py module docstring: "a
+ *  market_cap > 1e10 criterion against india-all means Rs 1,000 crore, not
+ *  $10 B". `custom` and `crypto-top50` span whatever the user pasted, so
+ *  they get the honest generic label instead of a fabricated single code. */
+export function universeMoneyUnit(universe: ScreenerUniverseId): string {
+  if (universe === "sp500") return "USD";
+  if (
+    universe === "nifty50" ||
+    universe === "nse-all" ||
+    universe === "bse-all" ||
+    universe === "india-all"
+  ) {
+    return "INR";
+  }
+  return "listing currency";
+}
 
 /**
  * Recursive nested AND/OR group editor (FR-122 / SC-033).
@@ -22,38 +41,47 @@ import type {
  * `onChange` and never reaches into a store, so it composes at any depth.
  */
 
-const NUMERIC_FIELDS: { value: ScreenerNumericField; label: string }[] = [
-  { value: "market_cap", label: "Market cap" },
-  { value: "pe_ratio", label: "P/E ratio" },
-  { value: "forward_pe", label: "Forward P/E" },
-  { value: "peg_ratio", label: "PEG ratio" },
-  { value: "price_to_book", label: "Price / Book" },
-  { value: "price_to_sales", label: "Price / Sales" },
-  { value: "ev_to_ebitda", label: "EV / EBITDA" },
-  { value: "book_value", label: "Book value" },
-  { value: "dividend_yield", label: "Dividend yield (frac, 0.02 = 2%)" },
-  { value: "eps", label: "EPS" },
-  { value: "beta", label: "Beta" },
-  { value: "roe", label: "ROE (frac, 0.2 = 20%)" },
-  { value: "roa", label: "ROA (frac)" },
-  { value: "gross_margin", label: "Gross margin (frac)" },
-  { value: "operating_margin", label: "Operating margin (frac)" },
-  { value: "profit_margin", label: "Net margin (frac)" },
-  { value: "debt_to_equity", label: "Debt / Equity (ratio)" },
-  { value: "current_ratio", label: "Current ratio" },
-  { value: "quick_ratio", label: "Quick ratio" },
-  // D55: growth is quarterly YoY (MRQ) — labeled, never presented as annual.
-  { value: "revenue_growth", label: "Revenue growth (MRQ YoY, frac)" },
-  { value: "earnings_growth", label: "Earnings growth (MRQ YoY, frac)" },
-  { value: "fifty_two_week_high", label: "52w high" },
-  { value: "fifty_two_week_low", label: "52w low" },
-  { value: "fifty_two_week_change", label: "1y change (frac)" },
-  { value: "held_percent_insiders", label: "Insider/promoter holding (frac)" },
-  { value: "held_percent_institutions", label: "Institutional holding (frac)" },
-  { value: "price", label: "Price" },
-  { value: "change_percent_1d", label: "1-day %" },
-  { value: "volume", label: "Volume" },
-];
+/**
+ * Numeric field options, with the money-denominated fields suffixed by the
+ * UNIVERSE's listing currency (R15-DATA-043 — a bare "Market cap" threshold
+ * means $10B on sp500 and Rs 1,000 crore on india-all, with no unit shown).
+ */
+function numericFields(moneyUnit: string): { value: ScreenerNumericField; label: string }[] {
+  return [
+    { value: "market_cap", label: `Market cap (${moneyUnit})` },
+    { value: "pe_ratio", label: "P/E ratio" },
+    { value: "forward_pe", label: "Forward P/E" },
+    { value: "peg_ratio", label: "PEG ratio" },
+    { value: "price_to_book", label: "Price / Book" },
+    { value: "price_to_sales", label: "Price / Sales" },
+    { value: "ev_to_ebitda", label: "EV / EBITDA" },
+    { value: "book_value", label: `Book value (${moneyUnit})` },
+    { value: "dividend_yield", label: "Dividend yield (frac, 0.02 = 2%)" },
+    { value: "eps", label: `EPS (${moneyUnit})` },
+    { value: "beta", label: "Beta" },
+    { value: "roe", label: "ROE (frac, 0.2 = 20%)" },
+    { value: "roa", label: "ROA (frac)" },
+    { value: "gross_margin", label: "Gross margin (frac)" },
+    { value: "operating_margin", label: "Operating margin (frac)" },
+    { value: "profit_margin", label: "Net margin (frac)" },
+    { value: "debt_to_equity", label: "Debt / Equity (ratio)" },
+    { value: "current_ratio", label: "Current ratio" },
+    { value: "quick_ratio", label: "Quick ratio" },
+    // D55: growth is quarterly YoY (MRQ) — labeled, never presented as annual.
+    { value: "revenue_growth", label: "Revenue growth (MRQ YoY, frac)" },
+    { value: "earnings_growth", label: "Earnings growth (MRQ YoY, frac)" },
+    { value: "fifty_two_week_high", label: `52w high (${moneyUnit})` },
+    { value: "fifty_two_week_low", label: `52w low (${moneyUnit})` },
+    { value: "fifty_two_week_change", label: "1y change (frac)" },
+    // R15-DATA-004: this is Yahoo's insider/promoter field — labelled by its
+    // provider, never re-pointed at an exchange promoter field (§6 D-B2-8).
+    { value: "held_percent_insiders", label: "Insider holding (Yahoo)" },
+    { value: "held_percent_institutions", label: "Institutional holding (frac)" },
+    { value: "price", label: `Price (${moneyUnit})` },
+    { value: "change_percent_1d", label: "1-day %" },
+    { value: "volume", label: "Volume" },
+  ];
+}
 
 const STRING_FIELDS: { value: ScreenerStringField; label: string }[] = [
   { value: "sector", label: "Sector" },
@@ -110,11 +138,12 @@ interface LeafEditorProps {
   criterion: ScreenerCriterion;
   onChange: (next: ScreenerCriterion) => void;
   onRemove: () => void;
+  moneyUnit: string;
 }
 
 /** A single leaf criterion editor — the discriminated-union value-shape picker.
  * Self-contained (value + onChange) so it works at any nesting depth. */
-function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
+function LeafEditor({ index, criterion, onChange, onRemove, moneyUnit }: LeafEditorProps) {
   function onCategoryChange(category: "numeric" | "string" | "in") {
     if (category === "numeric") {
       onChange({ field: "pe_ratio", operator: "lt", value: 20 });
@@ -157,7 +186,7 @@ function LeafEditor({ index, criterion, onChange, onRemove }: LeafEditorProps) {
               onChange({ ...criterion, field: e.target.value as ScreenerNumericField })
             }
           >
-            {NUMERIC_FIELDS.map((f) => (
+            {numericFields(moneyUnit).map((f) => (
               <option key={f.value} value={f.value}>
                 {f.label}
               </option>
@@ -305,6 +334,11 @@ export interface CriterionGroupEditorProps {
   onRemove?: () => void;
   /** Nesting depth (0 = root) — bounds the visual indent + caps deep nesting. */
   depth?: number;
+  /** The selected universe's listing currency (R15-DATA-043), e.g. from
+   *  {@link universeMoneyUnit} — suffixes money-denominated field labels so
+   *  a threshold never reads as a bare unlabelled number. Defaults to the
+   *  honest generic label when the caller has no universe to hand. */
+  moneyUnit?: string;
 }
 
 /** Cap recursion so a runaway tree can't blow the editor up. */
@@ -319,6 +353,7 @@ export function CriterionGroupEditor({
   onChange,
   onRemove,
   depth = 0,
+  moneyUnit = "listing currency",
 }: CriterionGroupEditorProps) {
   const setCombinator = (combinator: "and" | "or") => onChange({ ...group, combinator });
 
@@ -405,6 +440,7 @@ export function CriterionGroupEditor({
                 <CriterionGroupEditor
                   group={child}
                   depth={depth + 1}
+                  moneyUnit={moneyUnit}
                   onChange={(next) => updateChild(i, next)}
                   onRemove={() => removeChild(i)}
                 />
@@ -412,6 +448,7 @@ export function CriterionGroupEditor({
                 <LeafEditor
                   index={i}
                   criterion={child}
+                  moneyUnit={moneyUnit}
                   onChange={(next) => updateChild(i, next)}
                   onRemove={() => removeChild(i)}
                 />
