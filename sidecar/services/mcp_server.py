@@ -43,6 +43,7 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import FunctionTool
 from mcp.types import ToolAnnotations
 
@@ -101,6 +102,12 @@ def bind_app(app: FastAPI) -> None:
     """
     global _app_reference
     _app_reference = app
+
+
+#: Header an MCP client's own config may set to pass a BYOK key to
+#: ``invoke_agent``. It is never a tool argument, so the key never enters the
+#: calling model's context or transcript.
+API_KEY_HEADER = "x-vysted-api-key"
 
 
 async def _get_list(path: str, key: str) -> dict[str, Any]:
@@ -183,9 +190,7 @@ def _build_server() -> FastMCP:
         return await _get_list("/agents", "agents")
 
     @mcp.tool
-    async def invoke_agent(
-        agent_id: str, prompt: str, api_key: str | None = None
-    ) -> dict[str, Any]:
+    async def invoke_agent(agent_id: str, prompt: str) -> dict[str, Any]:
         """Invoke an agent and aggregate its streaming reply into a single string.
 
         Maps to POST /agents/{agent_id}/invoke. The sidecar's agent runtime
@@ -195,6 +200,9 @@ def _build_server() -> FastMCP:
         ``{"agent_id", "content", "usage"}``.
         """
         body: dict[str, Any] = {"prompt": prompt}
+        # A BYOK key rides the MCP client's own HTTP header (its config), never
+        # a tool argument the calling model would see; never logged.
+        api_key = get_http_headers().get(API_KEY_HEADER)
         if api_key:
             body["api_key"] = api_key
         text_buffer: list[str] = []
