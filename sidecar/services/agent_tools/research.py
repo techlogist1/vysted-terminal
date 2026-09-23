@@ -310,7 +310,7 @@ def model_content(result_str: str) -> str:
     view = model_view(payload)
     if view is payload:
         return result_str
-    # ensure_ascii=False: the model reads "₹289,504 cr", not "₹289,504 cr".
+    # ensure_ascii=False: the model reads "₹289,504 cr", not "\u20b9289,504 cr".
     return json.dumps(view, default=str, ensure_ascii=False)
 
 

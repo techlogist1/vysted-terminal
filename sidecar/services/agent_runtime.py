@@ -570,11 +570,12 @@ def _native_search_enabled(
     Delegates to :func:`services.llm.native_search.native_search_available` —
     THE one detection truth (R9 Track A interface; Team B's tier_a cross-verify
     reads the same function, so the two surfaces can never disagree). WS5
-    semantics unchanged: the five provider-level providers always qualify;
-    OpenRouter is gated per-MODEL on the resolved model's
-    :attr:`LLMModelOption.web_search` flag (``"native"`` → ride it; ``"plugin"``
-    is OpenRouter's billed plugin, never auto-enabled; ``"none"``/unknown keeps
-    the local tool — the FR-082 fallback, which never fabricates).
+    semantics: the provider-level providers (anthropic/xai) always qualify;
+    OpenAI, Groq and Gemini are per-MODEL (R15-AGENT-005); OpenRouter is gated
+    per-MODEL on the resolved model's :attr:`LLMModelOption.web_search` flag
+    (``"native"`` → ride it; ``"plugin"`` is OpenRouter's billed plugin, never
+    auto-enabled; ``"none"``/unknown keeps the local tool — the FR-082
+    fallback, which never fabricates).
     """
     return native_search.native_search_available(provider_id, model_web_search, model)
 
@@ -1415,10 +1416,11 @@ async def invoke_agent(
     # model's own server-side search when THIS model supports it (the adapter
     # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
     # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The provider-level native providers (anthropic/gemini/groq/xai) always
-    # qualify; OpenAI is per-MODEL (chat-completions serves native search only on
-    # its *-search-preview models — a `web_search` tools entry 400s elsewhere),
-    # and OpenRouter is gated PER-MODEL on the resolved model's
+    # The provider-level native providers (anthropic/xai) always qualify; Groq
+    # (Compound only) and Gemini (Gemini 3 alongside function tools) are
+    # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
+    # native search only on its *-search-preview models — a `web_search` tools
+    # entry 400s elsewhere), and OpenRouter is gated PER-MODEL on the resolved model's
     # `web_search` capability ("native"), threaded from the frontend catalog as
     # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
     # local tier, a non-native provider, or an OpenRouter model that is plugin-/
