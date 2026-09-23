@@ -1154,6 +1154,11 @@ async def _run_batch_phases(
         if is_full
         else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
     )
+    if universe.id == "sp500":
+        # R15-DATA-110: a cold store serves the bundled US snapshot (labelled
+        # ``snapshot`` with its as-of) rather than skipping a throttled
+        # universe. The India pack rides the IN boot seed (fundamentals_warm).
+        await fundamentals_store.ensure_seed_pack("US")
 
     # Phase P — sound SQL prune on the top-level AND-ed cheap criteria. The
     # universe's serving quote TTL rides along so a curated screen never

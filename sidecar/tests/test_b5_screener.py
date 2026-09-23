@@ -131,6 +131,52 @@ async def test_all_rate_limited_run_is_partial_with_nothing_evaluated(
     assert result.throttled is True
 
 
+@pytest.mark.asyncio
+async def test_throttled_cold_sp500_run_serves_the_us_seed_pack(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-110: from a throttled IP a cold sp500 run evaluates from the
+    bundled US pack, labelled snapshot with its as-of, instead of skipping 100%."""
+    calls = {"v7": 0, "info": 0}
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        calls["v7"] += 1
+        return httpx.Response(429, text="Too Many Requests")
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    async def throttled(symbol: str) -> Fundamentals:
+        calls["info"] += 1
+        raise ProviderError(f"throttled {symbol}", kind="rate_limited")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", throttled)
+    token = config.set_request_region("US")
+    try:
+        request = ScreenerRequest(universe="sp500", criteria=[], limit=1000)
+        result = await screener.run_screener(request, wall_budget_s=30.0)
+        total = result.evaluated_count + result.skipped_count
+        assert total == 506
+        assert result.skipped_count / total < 0.05
+        assert result.throttled is True
+        assert result.rows and all(r.data_basis == "snapshot" for r in result.rows)
+        assert all(r.data_as_of is not None for r in result.rows)
+        assert result.freshness and result.freshness.get("seed_as_of")
+
+        # The seeded store now answers a repeat inside the open circuit with
+        # zero upstream calls (asserted by the stubs, not a wall clock).
+        before = dict(calls)
+        again = await screener.run_screener(request, wall_budget_s=30.0)
+        assert calls == before
+        assert again.skipped_count == result.skipped_count
+    finally:
+        config.reset_request_region(token)
+
+
 def test_default_universe_route_follows_the_request_region(client) -> None:  # noqa: ANN001
     """R15-CODE-DATA-004: the region default comes from the sidecar's one map."""
     assert client.get("/screener/default-universe", headers={"X-Vysted-Region": "IN"}).json() == {
