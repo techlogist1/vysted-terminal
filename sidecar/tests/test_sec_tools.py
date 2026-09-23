@@ -108,7 +108,9 @@ async def test_sec_filing_content(
         total_chars=sum(len(s.text) for s in sections),
     )
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         return fixture
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)

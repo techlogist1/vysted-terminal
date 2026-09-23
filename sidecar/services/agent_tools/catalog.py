@@ -712,6 +712,13 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "type": "string",
                         "description": "CIK or ticker that owns the filing.",
                     },
+                    "form_type": {
+                        "type": "string",
+                        "description": (
+                            "Optional: the filing's form as sec_filings_list reported it "
+                            "(e.g. 10-K) — speeds up the lookup."
+                        ),
+                    },
                 },
                 ["accession", "identifier"],
             ),

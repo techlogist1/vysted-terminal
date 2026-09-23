@@ -558,14 +558,16 @@ _HEAVY_FILER_FORMS = (
 )
 
 
-def _emulate_upstream(recorder: _RecordingClient) -> None:
+def _emulate_upstream(
+    recorder: _RecordingClient, forms: list[tuple[str, str]] = _HEAVY_FILER_FORMS
+) -> None:
     """sec-edgar-mcp 1.0.8: filter by ``form_type``, then cut to ``limit``."""
     original = recorder.call_tool
 
     async def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if name == "get_recent_filings":
             form = arguments.get("form_type")
-            rows = [(f, a) for f, a in _HEAVY_FILER_FORMS if form is None or f == form]
+            rows = [(f, a) for f, a in forms if form is None or f == form]
             recorder.respond(
                 name, _edgar_filings("Apple Inc.", "320193", rows[: arguments["limit"]])
             )
@@ -600,3 +602,61 @@ async def test_get_filing_resolves_a_deep_10q_too(
         "0000320193-25-000071", cik_or_symbol="AAPL", form_type=hint
     )
     assert detail.filing.form_type == "10-Q"
+
+
+def _emulate_upstream_failing_over_100(
+    recorder: _RecordingClient, forms: list[tuple[str, str]] = _HEAVY_FILER_FORMS
+) -> None:
+    """sec-edgar-mcp 1.0.8 on a heavy filer: every window over 100 rows fails."""
+    _emulate_upstream(recorder, forms)
+    emulated = recorder.call_tool
+
+    async def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        if name == "get_recent_filings" and arguments["limit"] > 100:
+            recorder.calls.append({"name": name, "arguments": dict(arguments)})
+            return {
+                "isError": True,
+                "content": [{"type": "text", "text": "cannot unpack non-iterable NoneType object"}],
+            }
+        return await emulated(name, arguments)
+
+    recorder.call_tool = call_tool  # type: ignore[method-assign]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("form_type", [None, "10-K"])
+async def test_sec_filing_content_tool_opens_with_a_small_window(
+    recorder: _RecordingClient, form_type: str | None
+) -> None:
+    """R15-LEAD-010 regression: the agent/MCP tool must load a filing that
+    loaded at base. sec-edgar-mcp fails every window over 100 rows ("cannot
+    unpack non-iterable NoneType"), so no lookup may open with one, and the
+    tool forwards the caller's form hint."""
+    from services.agent_tools import sec_tools
+
+    _emulate_upstream_failing_over_100(recorder)
+    args = {"accession": "0000320193-25-000079", "identifier": "AAPL"}
+    if form_type:
+        args["form_type"] = form_type
+    result = await sec_tools._sec_filing_content(args)
+
+    lookups = [c["arguments"] for c in recorder.calls if c["name"] == "get_recent_filings"]
+    assert all(lookup["limit"] <= 100 for lookup in lookups), lookups
+    assert lookups[0].get("form_type") == form_type
+    assert result["ok"] is True, result
+    assert result["filing"]["filing"]["form_type"] == "10-K"
+
+
+@pytest.mark.asyncio
+async def test_get_filing_never_widens_past_what_the_upstream_serves(
+    recorder: _RecordingClient,
+) -> None:
+    """A heavy filer's miss past row 100 is an honest not_found after the
+    40- and 100-row windows, never a request the upstream cannot serve."""
+    older = [("4", f"0000320193-24-{n:06d}") for n in range(60)]
+    _emulate_upstream_failing_over_100(recorder, _HEAVY_FILER_FORMS + older)
+    with pytest.raises(ProviderError) as info:
+        await sec_filings_provider.get_filing("0000320193-99-999999", cik_or_symbol="AAPL")
+    assert info.value.kind == "not_found"
+    limits = [c["arguments"]["limit"] for c in recorder.calls if c["name"] == "get_recent_filings"]
+    assert limits == [40, 100]
