@@ -4,6 +4,53 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 5: India exchange lanes, resolver masters, runtime liveness and memory, workflow control flow, sidecar boundary, screener and earnings (2026-09-24)
+
+**Scope:** 56 register entries (19 highs plus 37 mediums in the four named areas), planned in
+`docs/redesign/verification/r15/stage-c/batch-5/PLAN.md`, built by five isolated writers and merged in
+plan order W2 → W1 → W4 → W5 → W3 on `worktree-agent-batch-5-int` (base `2edcae9`). No file conflicts.
+
+- **W2 resolver and market data** — NSE/BSE masters regenerated with Emerge and without RE lines, refreshed
+  daily at runtime with an expiring live rung; caret indices pass through `_yahoo_symbol` and `in_eod_only`
+  is intraday-only; `/indicators` downgrades an empty series like `/history`; a 52-week pair is flagged
+  together; crypto history honours range; statements take `period=annual|quarterly`; earnings and ratings
+  caches key on the resolved listing; every Yahoo success closes the breaker (DATA-017/097/057/064/063/015/
+  037/072, LEAD-011/009, DATA-026 route half).
+- **W1 India disclosures and agent surface** — promoter pledge on the shareholding pattern; bulk/block/SAST
+  deals and corporate actions as routes and capabilities; category-aware cross-feed pairing; derived
+  FII/DII legs; the announcements cache moved into `corporate_disclosures`; the news-outage and 90-bar
+  truncation stated; the deep-research wall clamps to the profile; `financial_statements` and the
+  `read_notes` declaration in the catalog (DATA-020/023/024/025/056/074, AGENT-058/060/062,
+  CODE-RESEARCH-001, DATA-026 capability half, AGENT-020 declaration half).
+- **W4 platform, workflows, boundary** — workflow `skipped` state with SKIP propagation, falsy strings,
+  `FIRST_COMPLETED` scheduling and a per-node timeout; one QuantLib lock with the quant work off the loop;
+  an Origin allow-list replaces wildcard CORS; MCP `invoke_agent` takes no key argument and the list tools
+  report failures; unreadable saved workflows listed, not fatal; MCP subprocess deps pinned; a rotating
+  diagnostics log and a redacted Settings bundle; the persisted cache cleared on a version change
+  (CODE-PLATFORM-004/019/005/020, CODE-AGENT-001/012, AGENT-059, LEAD-001/003, LIFECYCLE-008).
+  CODE-PLATFORM-018 was not delivered and stays open.
+- **W5 screener, earnings, SEC** — a US fundamentals seed pack; `evaluated_count` drives the empty state;
+  the stream's error frame reaches the panel; the region default comes from the sidecar; a lazy,
+  region-following warm loop; enrichment failures logged; an operator change keeps the value; no proxy
+  earnings statistics or invented fiscal periods; NSE's event calendar as the IN default universe; SEC
+  `get_filing` resolves with the form hint and the widest window (DATA-110/028/032/067, UI-055/056/045,
+  CODE-DATA-006/004, LIFECYCLE-017/020, LEAD-010).
+- **W3 agent runtime and chat** — typed `notice` steps replace copy-matched notices; a staged-action notice
+  under ASK; length/empty/terminator-less rounds become a notice or an error frame with Retry, Anthropic
+  `max_tokens` from the model's ceiling and truncated syntheses noted on the brief; adapter idle timeouts,
+  a planner timeout, heartbeats, a stall watchdog and capped, timed, metered repairs; a budgeted history
+  window plus a deterministic summary of older turns; `read_notes` answered from `__notes__`; the
+  preamble renders the focused chart and one `focusedSymbolFromBus` derivation (AGENT-031/033/026/025/048/
+  051/040, UI-054, RESEARCH-014, CODE-FRONTEND-015, AGENT-020 handler half). AGENT-052 (bus keys by
+  dockview id) was not delivered and stays open.
+
+**Integration:** no conflicts and no integration fixes. The C1 quarterly statements call was run unmocked
+(AAPL income and RELIANCE balance, ISO period ends) and `read_notes` was driven once through
+`invoke_agent` with a `__notes__` snapshot. The MCP sidecars built from clean venvs against the pinned
+requirements (LEAD-001). AGENT-051 and CODE-FRONTEND-015 match on dockview ids, so their live effect
+waits on AGENT-052: publishers still key the bus `chart-<id>`, `equity` and `backtest-panel`. Tier-3
+decisions D-B5-1…28 are in `docs/redesign/DECISIONS.md`.
+
 ## R15 Stage C — batch 4: context admission, Gemini/xAI lanes, workflows, Delegate output, market-data gate, panels (2026-09-23)
 
 **Scope:** 50 register entries (40 highs plus 10 root-cause mates), planned in
