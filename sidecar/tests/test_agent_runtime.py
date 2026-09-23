@@ -530,12 +530,33 @@ async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPa
 
 
 def test_native_search_enabled_provider_level() -> None:
-    # The provider-level native providers always qualify (any model rides the
+    # The provider-level native provider always qualifies (any model rides the
     # provider's own search), regardless of the per-model hint. Gemini and Groq
     # are per-model (R15-AGENT-005; see test_native_search.py).
-    for prov in ("anthropic", "xai"):
-        assert agent_runtime._native_search_enabled(prov, None) is True
-        assert agent_runtime._native_search_enabled(prov, "none") is True
+    assert agent_runtime._native_search_enabled("anthropic", None) is True
+    assert agent_runtime._native_search_enabled("anthropic", "none") is True
+
+
+@pytest.mark.asyncio
+async def test_xai_turn_keeps_the_local_web_search_tool(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-LEAD-008: xAI's Live Search is retired (410), so an xAI turn gets no
+    # native-search opt-in and keeps the local web_search tool to search with.
+    agent_runtime.reload()
+    provider = _FakeProvider()
+    _patch_provider(monkeypatch, provider)
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="what is the latest market news?",
+        provider="xai",
+        model="grok-4",
+        api_key="sk-test",
+        mode="ask",
+    ):
+        pass
+    kwargs = provider.captured_kwargs
+    assert kwargs is not None
+    assert kwargs.get("web_search") is None
+    assert "web_search" in (kwargs.get("tool_ids") or [])
 
 
 def test_native_search_enabled_openai_is_per_model() -> None:

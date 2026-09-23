@@ -570,7 +570,7 @@ def _native_search_enabled(
     Delegates to :func:`services.llm.native_search.native_search_available` —
     THE one detection truth (R9 Track A interface; Team B's tier_a cross-verify
     reads the same function, so the two surfaces can never disagree). WS5
-    semantics: the provider-level providers (anthropic/xai) always qualify;
+    semantics: the provider-level provider (anthropic) always qualifies;
     OpenAI, Groq and Gemini are per-MODEL (R15-AGENT-005); OpenRouter is gated
     per-MODEL on the resolved model's :attr:`LLMModelOption.web_search` flag
     (``"native"`` → ride it; ``"plugin"`` is OpenRouter's billed plugin, never
@@ -1416,7 +1416,7 @@ async def invoke_agent(
     # model's own server-side search when THIS model supports it (the adapter
     # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
     # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The provider-level native providers (anthropic/xai) always qualify; Groq
+    # The provider-level native provider (anthropic) always qualifies; Groq
     # (Compound only) and Gemini (Gemini 3 alongside function tools) are
     # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
     # native search only on its *-search-preview models — a `web_search` tools
