@@ -254,6 +254,69 @@ def test_live_hdfcbank_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
     assert {item.exchange for item in response.announcements} == {"NSE"}
 
 
+# Live feeds captured 2026-09-24 (40 rows per lane, verbatim): NSE's templated
+# text ("HDFC Bank Limited has informed the Exchange about Schedule of meet")
+# shares under 60% of its words with BSE's subject ("Announcement under
+# Regulation 30 (LODR)-Analyst / Investor Meet - Intimation"), so these pairs
+# collapse on the exchanges' own category instead (R15-DATA-020 residual).
+_HDFC_TCS_NSE = json.loads((_NSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
+_HDFC_TCS_BSE = json.loads((_BSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
+
+
+def _merged_live_feed(monkeypatch: pytest.MonkeyPatch, symbol: str) -> list[Any]:
+    _serve_crossfeed(monkeypatch, _HDFC_TCS_NSE[symbol], _HDFC_TCS_BSE[symbol])
+    return corporate_disclosures.get_announcements(symbol, limit=100).announcements
+
+
+def test_live_hdfcbank_schedule_of_meet_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
+    items = _merged_live_feed(monkeypatch, "HDFCBANK")
+    bse_meets = [
+        i
+        for i in items
+        if i.exchange == "BSE" and i.headline.endswith("Analyst / Investor Meet - Intimation")
+    ]
+    assert bse_meets == []  # every one paired with NSE's "Schedule of meet"
+    # 80 rows: 32 BSE copies of an NSE filing and one NSE re-dissemination.
+    assert len(items) == 47
+
+
+def test_live_tcs_pairs_collapse_on_category(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The case the category rule was not written against (TCS)."""
+    items = _merged_live_feed(monkeypatch, "TCS")
+    hypervault = [i for i in items if i.ts.strftime("%m-%d") == "09-05"]
+    newspaper_0917 = [i for i in items if i.ts.strftime("%m-%d %H") == "09-17 18"]
+    newspaper_0710 = [i for i in items if i.ts.strftime("%m-%d %H") == "07-10 18"]
+    for rows in (hypervault, newspaper_0917, newspaper_0710):
+        assert [i.exchange for i in rows] == ["NSE"]
+    acquisition_day = [i for i in items if i.ts.strftime("%m-%d %H") == "08-24 16"]
+    # NSE's acquisition, press release and order filings; BSE's copies of the
+    # acquisition and the order collapse, its press release pairs on text.
+    assert sorted(i.category for i in acquisition_day) == sorted(
+        ["Acquisition", "Press Release", "Bagging/Receiving of orders/contracts"]
+    )
+
+
+def test_two_same_category_filings_in_one_window_stay_separate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A BSE analyst-meet item with two NSE analyst-meet candidates in its window
+    is ambiguous: no category pairing, every row stays."""
+    nse_recording = next(
+        r for r in _HDFC_TCS_NSE["HDFCBANK"] if r["sort_date"] == "2026-07-18 21:41:03"
+    )
+    other_meet = next(
+        r for r in _HDFC_TCS_NSE["HDFCBANK"] if r["sort_date"].startswith("2026-08-16")
+    )
+    other_meet = {**other_meet, "sort_date": "2026-07-18 21:46:00", "an_dt": "18-Jul-2026 21:46:00"}
+    bse_outcome = next(
+        r for r in _HDFC_TCS_BSE["HDFCBANK"] if r["NEWS_DT"].startswith("2026-07-18T21:44")
+    )
+    _serve_crossfeed(monkeypatch, [other_meet, nse_recording], [bse_outcome])
+
+    response = corporate_disclosures.get_announcements("HDFCBANK")
+    assert sorted(i.exchange for i in response.announcements) == ["BSE", "NSE", "NSE"]
+
+
 def test_bse_only_symbol_skips_the_nse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
     """ICONIKSPEV is BSE-only — the NSE lane is not applicable, not an error."""
 

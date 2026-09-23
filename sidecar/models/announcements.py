@@ -44,6 +44,10 @@ class Announcement(BaseModel):
     #: ``HEADLINE``; NSE's ``attchmntText`` is already the headline) — the BSE
     #: display headline is a short subject that never matches NSE's. Not served.
     _body: str | None = PrivateAttr(default=None)
+    #: The exchange category mapped to one canonical kind (NSE ``desc``, BSE
+    #: ``SUBCATNAME``/``CATEGORYNAME``), which the cross-feed pairing compares
+    #: when the two texts share too few words. Not served.
+    _kind: str | None = PrivateAttr(default=None)
 
 
 class AnnouncementWindow(BaseModel):

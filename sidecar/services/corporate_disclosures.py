@@ -7,7 +7,8 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 * **Announcements** — merged from BOTH exchange feeds, newest first. A
   within-feed re-dissemination collapses on ``(symbol, body-prefix-hash,
   date)``; an NSE item and a BSE item of one filing pair on the same day, a
-  short dissemination gap and similar text (:func:`_pair_cross_feed`):
+  short dissemination gap and similar text or one unambiguous exchange
+  category (:func:`_pair_cross_feed`):
 
   - NSE: :func:`services.nse_provider.get_corporate_announcements` (the
     curl_cffi cookie-danced lane; observed item keys ``an_dt``,
@@ -55,6 +56,7 @@ import asyncio
 import hashlib
 import logging
 import re
+from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 
 from models.announcements import (
@@ -233,6 +235,7 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     )
     # HEADLINE is the body text NSE's attchmntText carries; NEWSSUB is a subject.
     item._body = _clean(row.get("HEADLINE"))
+    item._kind = _canonical_kind(row.get("SUBCATNAME")) or _canonical_kind(row.get("CATEGORYNAME"))
     return item
 
 
@@ -278,7 +281,7 @@ def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     headline = _clean(row.get("attchmntText")) or _clean(row.get("desc"))
     if not headline:
         return None
-    return Announcement(
+    item = Announcement(
         symbol=_clean(row.get("symbol")) or bare,
         exchange=EXCHANGE_NSE,
         headline=headline,
@@ -286,6 +289,8 @@ def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         attachment_url=_clean(row.get("attchmntFile")) or None,
         ts=_parse_nse_ts(row),
     )
+    item._kind = _canonical_kind(row.get("desc"))
+    return item
 
 
 def _parse_nse_ts(row: dict) -> datetime | None:
@@ -327,6 +332,43 @@ _PAIR_WINDOW = timedelta(minutes=10)
 #: one company minutes apart score up to 0.53 (shared "Company executives ...
 #: Institutional Investors' Meeting" boilerplate).
 _PAIR_MIN_OVERLAP = 0.6
+#: Exchange category labels (NSE ``desc``; BSE ``SUBCATNAME``, else
+#: ``CATEGORYNAME``) mapped to one canonical kind, from the labels on the live
+#: HDFCBANK/TCS/RELIANCE/INFY feeds (2026-09). NSE's templated text ("... has
+#: informed the Exchange about Schedule of meet") shares few words with BSE's
+#: subject ("Announcement under Regulation 30 (LODR)-Analyst / Investor Meet -
+#: Intimation"), but both feeds file it under the same category. Catch-all
+#: labels (NSE "Updates", "Disclosure of material issue") are left out.
+_CANONICAL_KIND = {
+    "analysts/institutional investor meet/con. call updates": "analyst_meet",
+    "investor presentation": "analyst_meet",
+    "analyst / investor meet": "analyst_meet",
+    "earnings call transcript": "analyst_meet",
+    "credit rating": "credit_rating",
+    "press release": "press_release",
+    "press release / media release": "press_release",
+    "copy of newspaper publication": "newspaper",
+    "newspaper publication": "newspaper",
+    "board meeting intimation": "board_meeting",
+    "board meeting": "board_meeting",
+    "outcome of board meeting": "board_outcome",
+    "shareholders meeting": "shareholder_meeting",
+    "agm": "shareholder_meeting",
+    "egm": "shareholder_meeting",
+    "general updates": "general",
+    "general": "general",
+    "acquisition": "acquisition",
+    "bagging/receiving of orders/contracts": "order",
+    "award of order / receipt of order": "order",
+    "esop/esos/esps": "esop",
+    "allotment of esop / esps": "esop",
+    "change in management": "management_change",
+    "dividend": "dividend",
+    "certificate under sebi (depositories and participants) regulations, 2018": "dp_certificate",
+    "certificate under reg. 74 (5) of sebi (dp) regulations, 2018": "dp_certificate",
+    "news verification": "clarification",
+    "clarification": "clarification",
+}
 _STOPWORDS = frozenset(
     "the a an of to in on for and is has have that this with by as at be we you our its it "
     "are from under about regarding please note inform wish will been was were or".split()
@@ -370,36 +412,61 @@ def _overlap(a: frozenset[str], b: frozenset[str]) -> float:
     return len(a & b) / min(len(a), len(b))
 
 
+def _canonical_kind(label: object) -> str | None:
+    """An exchange category label's canonical kind (:data:`_CANONICAL_KIND`)."""
+    text = _clean(label)
+    return _CANONICAL_KIND.get(text.casefold()) if text else None
+
+
 def _pair_cross_feed(items: list[Announcement]) -> list[Announcement]:
     """Drop each BSE item that pairs with an NSE item of the same filing
     (R15-DATA-020); NSE wins a pair.
 
     Candidates share the symbol and IST day and were disseminated within
-    :data:`_PAIR_WINDOW`. Their similarity is the word overlap of the NSE text
-    against the BSE body or its subject, whichever is higher (BSE's body is
-    often boilerplate — "Enclosed" — while its subject names the filing). Pairs
-    are taken best-first (highest overlap, then the shortest gap) and each item
-    pairs at most once, so two filings minutes apart each keep their own match.
+    :data:`_PAIR_WINDOW`. A candidate pairs when the word overlap of the NSE text
+    against the BSE body or its subject, whichever is higher, reaches
+    :data:`_PAIR_MIN_OVERLAP` (BSE's body is often boilerplate — "Enclosed" —
+    while its subject names the filing), or when both items carry the same
+    canonical category (:data:`_CANONICAL_KIND`) and each is the other's only
+    same-category candidate in the window (NSE's templated text rarely shares
+    words with BSE's subject). Pairs are taken best-first (highest overlap, then
+    the shortest gap) and each item pairs at most once, so two filings minutes
+    apart each keep their own match.
     """
     nse = [i for i in items if i.exchange == EXCHANGE_NSE and i.ts is not None]
     bse = [i for i in items if i.exchange == EXCHANGE_BSE and i.ts is not None]
-    candidates: list[tuple[float, float, int, int]] = []
+    in_window: list[tuple[int, int, float]] = []
     for n_idx, n_item in enumerate(nse):
-        n_words = _words(n_item.headline)
         n_day = n_item.ts.astimezone(_ist()).date()
         for b_idx, b_item in enumerate(bse):
             gap = abs(n_item.ts - b_item.ts)
             if (
-                n_item.symbol.upper() != b_item.symbol.upper()
-                or gap > _PAIR_WINDOW
-                or b_item.ts.astimezone(_ist()).date() != n_day
+                n_item.symbol.upper() == b_item.symbol.upper()
+                and gap <= _PAIR_WINDOW
+                and b_item.ts.astimezone(_ist()).date() == n_day
             ):
-                continue
-            score = max(
-                _overlap(n_words, _words(b_item._body)), _overlap(n_words, _words(b_item.headline))
-            )
-            if score >= _PAIR_MIN_OVERLAP:
-                candidates.append((-score, gap.total_seconds(), n_idx, b_idx))
+                in_window.append((n_idx, b_idx, gap.total_seconds()))
+    same_kind = [
+        (n_idx, b_idx)
+        for n_idx, b_idx, _gap in in_window
+        if nse[n_idx]._kind is not None and nse[n_idx]._kind == bse[b_idx]._kind
+    ]
+    kind_matches_nse = Counter(n_idx for n_idx, _b in same_kind)
+    kind_matches_bse = Counter(b_idx for _n, b_idx in same_kind)
+    candidates: list[tuple[float, float, int, int]] = []
+    for n_idx, b_idx, gap_seconds in in_window:
+        n_words = _words(nse[n_idx].headline)
+        b_item = bse[b_idx]
+        score = max(
+            _overlap(n_words, _words(b_item._body)), _overlap(n_words, _words(b_item.headline))
+        )
+        unique_kind = (
+            (n_idx, b_idx) in same_kind
+            and kind_matches_nse[n_idx] == 1
+            and kind_matches_bse[b_idx] == 1
+        )
+        if score >= _PAIR_MIN_OVERLAP or unique_kind:
+            candidates.append((-score, gap_seconds, n_idx, b_idx))
     paired_nse: set[int] = set()
     paired_bse: set[int] = set()
     for _score, _gap, n_idx, b_idx in sorted(candidates):
