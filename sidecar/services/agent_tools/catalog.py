@@ -32,6 +32,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
 from services.indicators import SUPPORTED_INDICATORS
+from services.research.depth import DEPTH_DEEP, DEPTH_ULTRA, PROFILES
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
 # the domain tag projected to the MCP surface (FR-021).
@@ -104,6 +105,13 @@ ToolKind = Literal["read_handler", "per_invocation", "host_action", "mcp_endpoin
 
 _TF_ENUM = ["1d", "1h", "1wk", "1mo"]
 _ASSET_ENUM = ["equity", "crypto"]
+#: The research wall range, read from the depth table so the schema can never
+#: advertise a ceiling below a profile's own wall (R15-CODE-RESEARCH-001).
+_RESEARCH_WALL_DESCRIPTION = (
+    f"30-{max(300, *(p.wall_seconds for p in PROFILES.values()))} seconds "
+    "(deep/heavy only). Omit it: each depth sets its own budget (deep "
+    f"{PROFILES[DEPTH_DEEP].wall_seconds}, heavy {PROFILES[DEPTH_ULTRA].wall_seconds})."
+)
 _MACRO_PROVIDERS = ["fred", "ecb", "imf", "world-bank"]
 _DATE = {"type": "string", "description": "ISO date, YYYY-MM-DD"}
 # R10 (D40): the screener universes, including the full-market India universes
@@ -425,8 +433,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     },
                     "wall_seconds": {
                         "type": "integer",
-                        "default": 120,
-                        "description": "30-300 (deep/heavy only).",
+                        "description": _RESEARCH_WALL_DESCRIPTION,
                     },
                     "backend": {
                         "type": "string",

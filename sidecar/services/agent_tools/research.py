@@ -197,8 +197,8 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         out = await run_deep_brief(
             query,
             depth=depth,
-            # ``None`` lets the depth profile supply the default (deep: 3 rounds
-            # / 120s; ultra: 4 rounds / 240s); an explicit arg still wins.
+            # ``None`` lets the depth profile (``depth.PROFILES``) supply the
+            # rounds and wall; an explicit arg still wins.
             rounds=args.get("rounds"),
             wall_seconds=args.get("wall_seconds"),
             backend=args.get("backend"),
