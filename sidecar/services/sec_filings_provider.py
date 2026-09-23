@@ -228,26 +228,18 @@ def _coerce_str(value: Any) -> str | None:
     return str(value)
 
 
-def _coerce_form_type(value: Any) -> FilingFormType | None:
-    """Coerce the upstream form-type string to the Literal we surface."""
+def _coerce_form_type(value: Any) -> str | None:
+    """Normalise the upstream form-type string; ``None`` only when absent.
+
+    EDGAR's form space is open (20-F, 6-K, 10-K/A, SC 13D, 424B4, ...), so any
+    form is kept as filed; only the undashed spellings of the common forms are
+    mapped (R15-DATA-039).
+    """
     if value is None:
         return None
     raw = str(value).strip().upper()
-    # sec-edgar-mcp normalises common form types; map a few edge cases.
-    mapping = {
-        "10-K": "10-K",
-        "10K": "10-K",
-        "10-Q": "10-Q",
-        "10Q": "10-Q",
-        "8-K": "8-K",
-        "8K": "8-K",
-        "DEF 14A": "DEF 14A",
-        "DEF14A": "DEF 14A",
-        "3": "3",
-        "4": "4",
-        "5": "5",
-    }
-    return mapping.get(raw)  # type: ignore[return-value]
+    mapping = {"10K": "10-K", "10Q": "10-Q", "8K": "8-K", "DEF14A": "DEF 14A"}
+    return mapping.get(raw, raw) or None
 
 
 def _edgar_url(accession: str, cik: str) -> str:
@@ -301,7 +293,6 @@ def _filings_from_payload(
     for raw in rows:
         form_type = _coerce_form_type(raw.get("form") or raw.get("form_type"))
         if form_type is None:
-            # Skip exotic forms not in our v0.6.0 set.
             continue
         accession = str(raw.get("accession") or raw.get("accession_number") or "")
         if not accession:

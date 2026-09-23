@@ -481,3 +481,64 @@ async def test_in_band_upstream_failure_raises(recorder: _RecordingClient) -> No
     with pytest.raises(ProviderError, match="no CIK for XYZ"):
         await sec_filings_provider.list_insider_transactions("XYZ")
     assert await data_cache.get("sec:insider:XYZ:all:50", 3600.0) is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-039: a filing's form type is an open string, rows are never dropped
+# ---------------------------------------------------------------------------
+
+
+def _edgar_filings(company: str, cik: str, forms: list[tuple[str, str]]) -> dict[str, Any]:
+    """``get_recent_filings`` as sec-edgar-mcp 1.0.8 sends it (FilingInfo.to_dict rows)."""
+    return {
+        "success": True,
+        "filings": [
+            {
+                "accession_number": accession,
+                "filing_date": "2026-06-20T00:00:00",
+                "form_type": form,
+                "company_name": company,
+                "cik": cik,
+                "file_number": None,
+                "acceptance_datetime": None,
+                "period_of_report": None,
+                "items": None,
+            }
+            for form, accession in forms
+        ],
+        "count": len(forms),
+    }
+
+
+@pytest.mark.asyncio
+async def test_foreign_private_issuer_forms_are_listed(recorder: _RecordingClient) -> None:
+    """An India ADR files only 20-F and 6-K; every row is listed."""
+    recorder.respond(
+        "get_recent_filings",
+        _edgar_filings(
+            "Infosys Ltd",
+            "1067491",
+            [("20-F", "0001067491-26-000010"), ("6-K", "0001067491-26-000011")],
+        ),
+    )
+    response = await sec_filings_provider.list_filings("INFY")
+    assert [f.form_type for f in response.filings] == ["20-F", "6-K"]
+
+
+@pytest.mark.asyncio
+async def test_amendments_and_schedules_are_listed(recorder: _RecordingClient) -> None:
+    """Case the fix was not written against: AAPL's 10-K/A and SC 13D rows."""
+    recorder.respond(
+        "get_recent_filings",
+        _edgar_filings(
+            "Apple Inc.",
+            "320193",
+            [
+                ("10-K/A", "0000320193-26-000020"),
+                ("SC 13D", "0000320193-26-000021"),
+                ("10-K", "0000320193-26-000022"),
+            ],
+        ),
+    )
+    response = await sec_filings_provider.list_filings("AAPL", limit=3)
+    assert [f.form_type for f in response.filings] == ["10-K/A", "SC 13D", "10-K"]

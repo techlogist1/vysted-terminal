@@ -17,7 +17,8 @@
 // Filing identity
 // ---------------------------------------------------------------------------
 
-/** The form types Vysted's filings reader surfaces in v0.6.0. */
+/** The form types the filings list can be FILTERED by. A listed filing's own
+ * ``form_type`` is an open string (20-F, 6-K, 10-K/A, SC 13D, ...). */
 export type FilingFormType = "10-K" | "10-Q" | "8-K" | "DEF 14A" | "3" | "4" | "5";
 
 /**
@@ -33,8 +34,8 @@ export interface Filing {
   company_name: string;
   /** Primary ticker, where the filing exposes one (10-K/10-Q/8-K do). */
   symbol: string | null;
-  /** Form type — e.g. ``"10-K"``, ``"4"``. */
-  form_type: FilingFormType;
+  /** Form type as filed — e.g. ``"10-K"``, ``"20-F"``, ``"SC 13D"``. */
+  form_type: string;
   /** ISO-8601 date the filing was accepted by EDGAR. */
   filed_date: string;
   /** ISO-8601 date the filing's reporting period closes (e.g. fiscal-year end). */
