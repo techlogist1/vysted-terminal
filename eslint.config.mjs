@@ -35,6 +35,9 @@ const config = [
       ".claude/**",
       "**/node_modules/**",
       "**/out/**",
+      // Verification evidence harnesses (R15 surface drives) run under their own
+      // vitest configs; they are captured evidence, not product source.
+      "docs/redesign/verification/**",
     ],
   },
 ];
