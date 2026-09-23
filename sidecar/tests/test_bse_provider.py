@@ -308,6 +308,70 @@ def test_bhavcopy_for_retries_on_cache_dir_race(tmp_path, monkeypatch: pytest.Mo
     assert calls["n"] == 2  # retried past the race
 
 
+# --- empty markers vs publication time (R15-DATA-035) ---------------------
+
+
+def _ist_epoch(day: date, hour: int) -> float:
+    from datetime import datetime, time
+
+    tz = locale.market_timezone(locale.REGION_IN)
+    return datetime.combine(day, time(hour), tzinfo=tz).timestamp()
+
+
+def test_unpublished_html_day_is_not_cached_and_later_fetch_returns_it(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Before publication BSE answers 200 text/html, not a 404.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 9, 23)
+    html = httpx.Response(
+        200,
+        content=b"<!DOCTYPE html>\n<html><head><title>BSE</title></head></html>",
+        headers={"content-type": "text/html; charset=utf-8"},
+    )
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: html)
+    assert bse_provider._download_bhavcopy(day) is None
+    assert not (tmp_path / f"{day.isoformat()}.csv").exists()  # no marker cached
+    assert bse_provider._bhavcopy_for(day) is None  # still a day to fetch
+
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    frame = bse_provider._download_bhavcopy(day)
+    assert frame is not None
+    assert "ICONIKSPEV" in set(frame["ticker"])
+
+
+def test_marker_written_on_its_own_day_is_refetched(tmp_path, monkeypatch) -> None:
+    # A marker left by the pre-fix code (written the same IST day, before BSE
+    # published) must not hide the day: it reads as not cached and the history
+    # assembly fetches the day again.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 9, 22)
+    marker = tmp_path / f"{day.isoformat()}.csv"
+    marker.write_text("")
+    import os
+
+    os.utime(marker, (_ist_epoch(day, 11), _ist_epoch(day, 11)))
+    assert bse_provider._bhavcopy_for(day) is None
+
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    bars = bse_provider._assemble_history("ICONIKSPEV", "511260", day, day)
+    assert [b.close for b in bars] == [43.09]
+
+    # A marker written after its day (a holiday BSE never published) is honoured.
+    holiday = date(2026, 9, 21)
+    marker = tmp_path / f"{holiday.isoformat()}.csv"
+    marker.write_text("")
+    os.utime(marker, (_ist_epoch(date(2026, 9, 22), 9), _ist_epoch(date(2026, 9, 22), 9)))
+    frame = bse_provider._bhavcopy_for(holiday)
+    assert frame is not None and frame.empty
+
+    def no_network(url: str) -> httpx.Response:
+        raise AssertionError(f"an honoured marker must not be re-fetched: {url}")
+
+    monkeypatch.setattr(bse_provider, "_http_get", no_network)
+    assert bse_provider._assemble_history("ICONIKSPEV", "511260", holiday, holiday) == []
+
+
 # --- ZIP-wrapped bhavcopy decode --------------------------------------------
 
 

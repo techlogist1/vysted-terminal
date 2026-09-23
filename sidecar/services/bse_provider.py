@@ -273,25 +273,38 @@ def _decode_bhavcopy_body(resp: httpx.Response) -> str:
 
 
 def _bhavcopy_for(day: date) -> pd.DataFrame | None:
-    """Return the cached/downloaded bhavcopy frame for ``day``, or ``None``.
+    """Return the cached bhavcopy frame for ``day``, or ``None`` when not cached.
 
-    ``None`` means "no trading data for that day" (a weekend/holiday, or a
-    download miss) — the caller simply skips it. A cached empty marker prevents
-    re-downloading a known-empty day every call. Resilient to the cache-dir race
-    (``FileExistsError`` → ensure the dir + retry once), mirroring india_provider.
+    An empty frame means a known-empty day (a holiday the calendar missed): its
+    cached empty marker is honoured only when it was written AFTER its trading
+    day (the file's IST mtime), because a marker written on or before the day was
+    written before BSE could have published it (R15-DATA-035). Such a marker
+    reads as not cached, so the day is fetched again. Resilient to the
+    cache-dir race (``FileExistsError`` → ensure the dir + retry once),
+    mirroring india_provider.
     """
     cache = _cache_dir()
     path = os.path.join(cache, f"{day.isoformat()}.csv")
     for _attempt in range(2):
         try:
             os.makedirs(cache, exist_ok=True)
-            if os.path.exists(path):
-                text = _read_cached(path)
-                return parse_bhavcopy(text) if text else None
-            return None  # not cached — caller decides whether to download
+            if not os.path.exists(path):
+                return None  # not cached — caller decides whether to download
+            text = _read_cached(path)
+            if text:
+                return parse_bhavcopy(text)
+            return pd.DataFrame() if _marker_after_day(path, day) else None
         except FileExistsError:
             continue  # cache-dir race — ensure dir + retry once
     return None
+
+
+def _marker_after_day(path: str, day: date) -> bool:
+    """True when the file at ``path`` was written after ``day`` (IST)."""
+    written = datetime.fromtimestamp(
+        os.path.getmtime(path), tz=locale.market_timezone(locale.REGION_IN)
+    ).date()
+    return written > day
 
 
 def _read_cached(path: str) -> str:
@@ -302,9 +315,11 @@ def _read_cached(path: str) -> str:
 def _download_bhavcopy(day: date) -> pd.DataFrame | None:
     """Download + cache the bhavcopy for ``day``; return its frame or ``None``.
 
-    A 404 (no file for a weekend/holiday/not-yet-published day) is cached as an
-    empty marker so it is not re-fetched. Any other transport failure returns
-    ``None`` (best-effort — the range assembly skips a missing day, never crashes).
+    A 404 or a CSV with no rows is cached as an empty marker (see
+    :func:`_bhavcopy_for` for when it is honoured). Before publication BSE
+    answers ``200`` with an HTML page: that is "not published yet", so nothing
+    is cached. Any other transport failure returns ``None`` (best-effort — the
+    range assembly skips a missing day, never crashes).
     """
     ymd = day.strftime("%Y%m%d")
     url = _BHAVCOPY_URL.format(ymd=ymd)
@@ -325,6 +340,9 @@ def _download_bhavcopy(day: date) -> pd.DataFrame | None:
         text = _decode_bhavcopy_body(resp)
     except ProviderError as exc:
         logger.debug("bse: bhavcopy decode failed for %s: %s", day, exc)
+        return None
+    if text.lstrip().startswith("<"):
+        logger.debug("bse: bhavcopy %s not published yet (HTML page)", day)
         return None
     frame = parse_bhavcopy(text)
     if frame.empty:
