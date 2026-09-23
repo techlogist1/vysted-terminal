@@ -42,9 +42,8 @@ class RunBudget(BaseModel):
     All four ceilings are optional — a run may bound any subset. The
     :class:`~services.budget_guard.BudgetGuard` aborts the run on the FIRST
     breach with a stated reason (SC-008: a breach aborts 100% of the time).
-    The guard governs SPEND only; it has no order/placement authority (§6.5 —
-    a Delegate run uses the same agent loop whose ``propose_order`` only ever
-    proposes).
+    The guard governs SPEND only; a Delegate run uses the same agent loop, in
+    which no trading path exists.
     """
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)

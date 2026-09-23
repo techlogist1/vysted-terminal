@@ -161,8 +161,9 @@ def test_read_only_tags_are_coherent() -> None:
             assert cap.read_only, f"{cap.id}: a read tool must be read_only"
         if cap.kind == "host_action":
             assert not cap.read_only, f"{cap.id}: a host-action mutation must not be read_only"
-    # propose_order is the one broker mutation; it is gated, never read-only.
-    assert CAPABILITY_CATALOG["propose_order"].read_only is False
+    # The most destructive surviving mutation (a tracked-portfolio delete) is
+    # gated, never read-only.
+    assert CAPABILITY_CATALOG["portfolio_delete_position"].read_only is False
 
 
 # --- D64 (R12): screener tool schemas must document the FULL criterion union ---

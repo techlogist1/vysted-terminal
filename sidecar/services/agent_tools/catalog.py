@@ -16,10 +16,10 @@ the single declaration that drives BOTH the internal mutation gate and the
 external MCP ``readOnlyHint`` — a capability cannot be read-only for one consumer
 and mutating for another.
 
-SAFETY (§6.5): no capability id here contains ``place_order`` / ``submit_order``
-/ ``execute_order`` (the substrings ``tests/test_safety_end_to_end.py`` greps the
-*registry* for). The one broker-action capability is ``propose_order``, which
-only ever opens a review dialog — the AI has no path to ``confirm_and_place``.
+SAFETY (§6.5): Vysted has no brokerage connection and no trading path (D81). No
+capability id here contains ``place_order`` / ``submit_order`` / ``execute_order``
+(:data:`FORBIDDEN_TOOL_SUBSTRINGS`), and ``tests/test_no_trading_surface.py``
+pins that no order, broker or simulated-account capability exists.
 This module is pure data: it imports nothing from the ``agent_tools`` package or
 ``models`` so it can be a dependency of both without a cycle.
 """
@@ -44,7 +44,6 @@ Domain = Literal[
     "filings",
     "quant",
     "portfolio",
-    "brokers",
     "news",
     "workspace",
     "agents",
@@ -710,7 +709,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "price_option",
             description=(
                 "Price one option via Black-Scholes, binomial, or Monte-Carlo. "
-                "Read-only math — no broker or order side effects."
+                "Read-only math — no side effects."
             ),
             input_schema=_obj(
                 {
@@ -864,7 +863,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "highest(n), lowest(n), stdev(n), change(n). Operators: "
                 "+ - * /, comparisons, and/or/not. Parsed server-side with a "
                 "restricted grammar (never eval) and executed in the SIMULATED "
-                "backtest engine — §6.5: no order path is reachable. Returns "
+                "backtest engine. Returns "
                 "the digest (metrics, best/worst/recent trades) plus the runId; "
                 "the full result renders in the backtest panel and resolves via "
                 "backtest_summary."
@@ -905,28 +904,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=120.0,
-        ),
-        # --- brokers (read-only) --------------------------------------------
-        _cap(
-            "broker_portfolio",
-            description=(
-                "Read the user's REAL connected-broker account (positions, equity, "
-                "buying power, per-position unrealized P&L) for analysis. Read-only — "
-                "never places an order. `broker` defaults to 'kite' (Zerodha)."
-            ),
-            input_schema=_obj(
-                {
-                    "broker": {
-                        "type": "string",
-                        "enum": ["kite", "dhan", "angelone"],
-                        "default": "kite",
-                    }
-                }
-            ),
-            domain="brokers",
-            read_only=True,
-            kind="read_handler",
-            timeout_seconds=20.0,
         ),
         # --- per-invocation reads (resolved in invoke_agent) -----------------
         _cap(
@@ -1059,32 +1036,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 ["symbol"],
             ),
             domain="portfolio",
-            read_only=False,
-            kind="host_action",
-        ),
-        _cap(
-            "propose_order",
-            description=(
-                "Prepare a broker order for the user to REVIEW. This NEVER places an "
-                "order — it opens a confirmation dialog the user must explicitly "
-                "approve. Use only when the user explicitly asks to buy or sell. "
-                "Tell the user to review and confirm; never claim you placed it."
-            ),
-            input_schema=_obj(
-                {
-                    "symbol": {"type": "string"},
-                    "side": {"type": "string", "enum": ["buy", "sell"]},
-                    "quantity": {"type": "number"},
-                    "order_type": {
-                        "type": "string",
-                        "enum": ["market", "limit"],
-                        "default": "market",
-                    },
-                    "limit_price": {"type": "number", "description": "Required for a limit order."},
-                },
-                ["symbol", "side", "quantity"],
-            ),
-            domain="brokers",
             read_only=False,
             kind="host_action",
         ),
@@ -1300,19 +1251,18 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=False,
             kind="host_action",
         ),
-        # --- data-write host actions (R10 E6/D41/D45) — paper portfolio, notes,
+        # --- data-write host actions (R10 E6/D41/D45) — tracked portfolio, notes,
         # saved screens/layouts, region. Each is a `data-write`/`settings`
         # proposed change on the frontend: auto-applicable under AUTO autonomy,
-        # staged for review otherwise. NONE of these touch the §6.5 order path —
-        # propose_order remains the ONE broker action and it never auto-applies.
+        # staged for review otherwise.
         _cap(
             "portfolio_add_position",
             description=(
                 "Add a position to the user's LOCAL (manually-tracked) portfolio — "
-                "symbol, quantity, and per-share cost basis. This edits the paper "
-                "portfolio ledger only; it is NOT a broker order and never places "
-                "one. Use when the user says they bought/hold something and want "
-                "it tracked."
+                "symbol, quantity, and per-share cost basis. Edits the user's local "
+                "tracked portfolio (manual holdings). Vysted has no brokerage "
+                "connection. Use when the user says they bought/hold something and "
+                "want it tracked."
             ),
             input_schema=_obj(
                 {
@@ -1337,8 +1287,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             description=(
                 "Update an existing LOCAL portfolio position by its id (quantity, "
                 "cost basis, note, …). Read the current positions first with "
-                "get_portfolio to learn the position_id. Paper ledger only — "
-                "never a broker order."
+                "get_portfolio to learn the position_id. Edits the user's local "
+                "tracked portfolio (manual holdings). Vysted has no brokerage "
+                "connection."
             ),
             input_schema=_obj(
                 {
@@ -1363,7 +1314,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "portfolio_delete_position",
             description=(
                 "Delete a LOCAL portfolio position by its id (from get_portfolio). "
-                "Paper ledger only — never touches a broker."
+                "Edits the user's local tracked portfolio (manual holdings). Vysted "
+                "has no brokerage connection."
             ),
             input_schema=_obj({"position_id": {"type": "string"}}, ["position_id"]),
             domain="portfolio",
@@ -1478,8 +1430,8 @@ CAPABILITY_CATALOG = {
 # Projections — the only sanctioned way consumers read the catalog.
 # ---------------------------------------------------------------------------
 
-#: Forbidden order-placement substrings (mirrors the §6.5 audit grep). A catalog
-#: id containing any of these would be a safety regression; asserted in tests.
+#: Forbidden order-placement substrings. A catalog id containing any of these
+#: would be a safety regression; asserted in tests.
 FORBIDDEN_TOOL_SUBSTRINGS = ("place_order", "submit_order", "execute_order", "auto_approve")
 
 
@@ -1522,8 +1474,8 @@ def agent_selectable_tool_ids() -> frozenset[str]:
 
     A custom agent may select any tool the first-party copilot can use; each id
     resolves at the host (registry handler, per-invocation closure, or host
-    action). Safety is host-enforced regardless of selection (``propose_order``
-    only proposes; §6.5 governs placement).
+    action). Safety is host-enforced regardless of selection; no trading tool
+    exists (D81).
     """
     return frozenset(internal_tool_ids())
 
@@ -1576,7 +1528,6 @@ TIMEOUT_HINTS: dict[str, str] = {
     "analyst": "retry shortly — the provider may be slow",
     "filings": "retry with a smaller limit or a specific form type",
     "quant": "reduce the instrument count, steps, or paths and retry",
-    "brokers": "check the broker connection in Settings and retry",
     "workflows": "narrow the date range or symbol list and retry",
 }
 

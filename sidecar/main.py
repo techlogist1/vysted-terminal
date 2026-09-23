@@ -34,7 +34,7 @@ from services.workflow_nodes import registry_v0_6_0 as workflow_nodes_v0_6_0
 def _register_runtime_extensions() -> None:
     """Wire the runtime tool/node registrations the production boot path needs.
 
-    ``create_app`` already invokes the v0.5.0/v0.6.0/v0.6.5 extension hooks at
+    ``create_app`` already invokes the v0.5.0/v0.6.0 extension hooks at
     app-build time; these re-calls are the documented production boot path and
     are idempotent (overwrites by stable id). The workflow node handlers are
     registered HERE (not in ``create_app``) so the pytest TestClient builds do
@@ -45,11 +45,6 @@ def _register_runtime_extensions() -> None:
     # Built-in workflow node handlers against the workflow engine's registry.
     workflow_nodes.register_all()
 
-    # FR-051: no broker is registered at boot — adapters register lazily via
-    # ``brokers_registry.ensure_registered(...)`` on the marketplace/connect
-    # path (``POST /brokers/{id}/connect``). The old eager bootstrap call here
-    # is intentionally removed.
-
     # v0.5.0 runtime extensions — backtest strategy archetypes + the
     # price_data + fundamentals agent tools.
     backtest_strategies.register_all()
@@ -59,13 +54,6 @@ def _register_runtime_extensions() -> None:
     # screener agent tools and workflow nodes. Idempotent.
     agent_tools.register_v0_6_0_tools()
     workflow_nodes_v0_6_0.register_v0_6_0_nodes()
-
-    # v0.6.5 phase extensions — empty aggregator; the function
-    # stub registers no tools. The slot exists so v0.6.6+ write capability has a
-    # per-release stamp matching v0.5.0 / v0.6.0 convention.
-    from services.agent_tools import registry_v0_6_5 as _at_v0_6_5
-
-    _at_v0_6_5.register_v0_6_5_tools()
 
 
 def _exit_when_parent_closes_stdin() -> None:

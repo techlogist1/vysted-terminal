@@ -11,8 +11,8 @@ Scope (keyless, correctness-over-coverage):
 
   * ``get_history`` — EOD OHLCV (daily; weekly/monthly resampled from daily).
     Intraday is **not** served keyless (NSE's live JSON is session-locked and
-    geo-fragile) — it raises so the registry surfaces an honest "needs a BYOK
-    broker (Angel One / Dhan)" rather than a wrong/empty intraday chart.
+    geo-fragile) — it raises so the registry surfaces an honest "BSE/NSE serve
+    end-of-day data only" rather than a wrong/empty intraday chart.
   * ``get_quote`` — derived from the two most-recent EOD closes (last close,
     official prior close → change/%). INR, IST, ``provider="nse"``, EOD-labelled.
   * Fundamentals are intentionally **not** served here — the registry falls
@@ -174,7 +174,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
             f"nse: intraday timeframe {timeframe!r} is not available keyless — "
-            "add a BYOK broker (Angel One / Dhan) for NSE intraday"
+            "BSE/NSE serve end-of-day data only"
         )
     bare = _require_nse(symbol)
     days = _RANGE_DAYS.get(range_ or "", _DEFAULT_RANGE_DAYS)

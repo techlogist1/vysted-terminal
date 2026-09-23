@@ -147,14 +147,12 @@ def test_decompose_empty_request_is_not_ok() -> None:
     [
         "Buy 5 shares of RELIANCE at market price.",
         "sell half my INFY position",
-        "place an order for 10 TATASTEEL",
-        "set a limit order on WENDT at 7200",
     ],
 )
-def test_order_asks_classify_as_action_never_read(text: str) -> None:
-    """R12/D68: an explicit order ask must keep the action toolset — classifying
-    it as read stripped propose_order and made the §6.5 review dialog
-    unreachable from chat (placement stays human-gated in every mode)."""
+def test_buy_sell_asks_classify_as_action_never_read(text: str) -> None:
+    """R12/D68: a buy/sell ask must keep the action toolset — classifying it as
+    read strips the tracked-portfolio write tools (portfolio_add/update/delete),
+    so "sell half my INFY position" could not edit the manual holding."""
     result = classify_intent(text)
     assert result.intent != "read"
     assert result.mutates

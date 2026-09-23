@@ -7,8 +7,8 @@ the router uses, so the agent's invocation is contract-aligned with the
 HTTP surface (a misformatted criterion is a clean ``{"ok": False, ...}``
 return, not a crash).
 
-Read-only by design — the §6.5 audit (``test_safety_end_to_end::test_safety_audit_6_no_bypass``)
-greps the registered tool ids for ``place_order|submit_order|execute_order``
+Read-only by design — the Gate-8 test (``test_no_trading_surface.py``)
+checks the registered tool ids for ``place_order|submit_order|execute_order``
 patterns; ``screener_run`` is data-only and stays well clear of that surface.
 """
 

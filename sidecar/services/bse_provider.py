@@ -18,7 +18,7 @@ EVERY scrip) rather than per-symbol scraping:
     from BSE's ``getScripHeaderData`` endpoint. INR, IST, ``provider="bse"``,
     EOD-labelled.
   * Intraday is **not** served keyless — it raises so the registry surfaces an
-    honest "add a BYOK broker (Kite / Upstox / Dhan)" rather than a wrong/empty
+    honest "BSE/NSE serve end-of-day data only" rather than a wrong/empty
     intraday chart.
 
 Hardening mirrors :mod:`services.india_provider`: a realistic UA/Referer (BSE
@@ -182,7 +182,7 @@ def is_available() -> bool:
     """True — the BSE backend is pure ``httpx`` (always shipped), no extra dep.
 
     Kept as a predicate so the registry declaration reads like the NSE one and a
-    future hard gate (e.g. a region kill-switch) has a single seam.
+    future hard gate (e.g. a region gate) has a single seam.
     """
     return True
 
@@ -392,7 +392,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
             f"bse: intraday timeframe {timeframe!r} is not available keyless — "
-            "add a BYOK broker (Kite / Upstox / Dhan) for BSE intraday"
+            "BSE/NSE serve end-of-day data only"
         )
     bare = _require_bse(symbol)
     code = _scrip_code(bare)

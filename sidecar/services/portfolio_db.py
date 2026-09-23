@@ -1,6 +1,6 @@
 """SQLite-backed positions store for the portfolio panel.
 
-Positions are entered manually in v1.0 — broker connection is Phase 5. The
+Positions are entered manually (the user's tracked portfolio). The
 database lives at ``config.get_data_dir() / "portfolio.db"`` so the sidecar owns
 persistence and the frontend never touches the filesystem. The schema is created
 lazily and idempotently on every access, which keeps a fresh data directory (or

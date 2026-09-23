@@ -7,15 +7,14 @@ Two concerns:
    (tradesa-v2 manifest absent, plugin directory count still healthy).
 
 Note: the positive check is a manifest-file census — it reads
-``plugins/*/manifest.json`` and ``plugins/brokers/*/manifest.json`` to count
-distinct plugin ids. It does NOT import the app or exercise the Python plugin
-store at runtime (which would require a live sidecar). The purpose is to
-confirm the plugins/ filesystem is intact after E11 removal, not to exercise
-the sidecar's in-process plugin registration path.
+``plugins/*/manifest.json`` to count distinct plugin ids. It does NOT import
+the app or exercise the Python plugin store at runtime (which would require a
+live sidecar). The purpose is to confirm the plugins/ filesystem is intact
+after E11 removal, not to exercise the sidecar's in-process plugin
+registration path.
 
 Files legitimately retaining "tradesa" and WHY (surfaced for lead sign-off):
   - types/plugin.ts (Tier-1 locked contract; tradesa-* example ids in JSDoc)
-  - sidecar/services/audit_log.py (§6.5 safety file; never touched per brief)
   - src/lib/workspace.test.ts (R10 lines 273/278 — handoff to Team FRONTEND-BRIEF)
   These are listed in EXEMPT_REL_PATHS below and verified by the grep evidence
   in docs/redesign/R10_TRACK_ERRORS_REPORT.md.
@@ -42,14 +41,12 @@ REPO_ROOT = WORKTREE_ROOT
 #  - docs/ — historical documentation
 #  - CHANGELOG.md — history
 #  - types/plugin.ts — Tier-1 locked contract; examples use tradesa-* ids
-#  - sidecar/services/audit_log.py — §6.5 safety file; never touched
 #  - src/lib/workspace.test.ts — owned by Team FRONTEND-BRIEF (R10)
 #  - sidecar/tests/test_no_tradesa.py — this file necessarily contains the word
 EXEMPT_PREFIXES = ("docs",)
 EXEMPT_NAMES = {"CHANGELOG.md", "CHANGELOG"}
 EXEMPT_REL_PATHS = {
     "types/plugin.ts",
-    "sidecar/services/audit_log.py",
     "src/lib/workspace.test.ts",
     "sidecar/tests/test_no_tradesa.py",
 }
@@ -150,15 +147,12 @@ def test_plugin_system_alive() -> None:
     code path the host runtime exercises on boot.
 
     We count DISTINCT plugin IDs that are importable (i.e. the discovery
-    path works), not necessarily fully loaded. The broker plugins (alpaca,
-    dhan, angelone, kite, ib, oanda, ccxt-exec) plus example and openbb-mcp
-    alone satisfy ≥5.
+    path works), not necessarily fully loaded. The bundled plugins (example,
+    openbb-mcp, vysted-lenses, vysted-news, yfinance) satisfy ≥5.
     """
     # The manifest files the host discovers statically.
     plugins_dir = REPO_ROOT / "plugins"
-    manifest_files = list(plugins_dir.glob("*/manifest.json")) + list(
-        plugins_dir.glob("brokers/*/manifest.json")
-    )
+    manifest_files = list(plugins_dir.glob("*/manifest.json"))
     # De-dupe by reading plugin id from manifest.
     import json
 

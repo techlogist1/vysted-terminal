@@ -34,8 +34,8 @@ autonomous background agent task:
   autonomous self-pause trigger is out of scope here.
 
 The BYOK ``api_key`` lives ONLY on the in-memory task closure — never persisted
-to ``runs_store``, never logged. The guard governs SPEND only; it has no
-order/placement authority (§6.5 — ``propose_order`` only ever proposes).
+to ``runs_store``, never logged. The guard governs SPEND only; no trading
+path exists.
 """
 
 from __future__ import annotations

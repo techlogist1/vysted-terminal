@@ -56,8 +56,7 @@ from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
 
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
-#: vocabulary minus research/answer, which execute inside the loop, and with NO
-#: order verb — so a plan never touches the §6.5 path).
+#: vocabulary minus research/answer, which execute inside the loop).
 _STAGEABLE_PLAN_ACTIONS = frozenset(
     {
         "open_panel",
@@ -71,8 +70,8 @@ _STAGEABLE_PLAN_ACTIONS = frozenset(
 
 #: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
 #: read question may still ground itself by pulling up the relevant chart / index /
-#: layout. These mutate only the cockpit view, never the broker — ``propose_order``
-#: is DELIBERATELY absent, so a read turn can never reach the §6.5 order path.
+#: layout. No ``data-write`` action (portfolio, notes, screens, saved layouts) is
+#: in this set, so a read turn can never edit the user's tracked portfolio.
 _READ_SAFE_PANEL_ACTIONS = frozenset(
     {
         "open_panel",
@@ -161,9 +160,9 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "or remove watchlist symbols (add_to_watchlist / remove_from_watchlist), "
     "publish a research brief (publish_brief), stage screener filters for the "
     "user to review and run (write_screener_filters), save a screen or the "
-    "layout (save_screen / save_layout), maintain the user's LOCAL paper "
+    "layout (save_screen / save_layout), maintain the user's LOCAL tracked "
     "portfolio (portfolio_add_position / portfolio_update_position / "
-    "portfolio_delete_position — a tracking ledger, never a broker order), "
+    "portfolio_delete_position — manual holdings the user tracks), "
     "write notes (write_note), switch the market region (set_region), and run "
     "the research tool for a grounded, cited workup. When showing something on "
     "screen would help the user, do it.\n"
@@ -173,9 +172,10 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "authoritative, never your tool call); a result that says "
     "awaiting_user_review means it is STAGED for the user's review — say "
     "you proposed it, never claim it is done; a result that reports a failure "
-    "means it did NOT happen — say plainly what could not be done. Orders are "
-    "never placed by you: propose_order only ever stages an order behind the "
-    "user's explicit confirm-before-place dialog, in every mode.\n"
+    "means it did NOT happen — say plainly what could not be done. Vysted has "
+    "no brokerage connection: you cannot place, stage or simulate trades. If "
+    "the user asks to buy or sell, say so plainly and offer to research it or "
+    "to track the holding in their local portfolio (portfolio_add_position).\n"
     "Stay consistent across turns: when a figure you are about to state "
     "materially contradicts a PRIOR STATED VALUE listed in the terminal context "
     "(the same symbol + metric you stated earlier this session), do NOT silently "
@@ -199,10 +199,10 @@ def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
     backtesting tool" drift). Custom agents (the agents_store fallback in
     :func:`get_agent`) are NOT unioned; their authors pick tools.
 
-    §6.5 is untouched: this widens the ALLOW-list only. ``propose_order``
-    still rides the proposed-changes gate and the confirm-before-place dialog
-    for EVERY agent, and the read-only mode gate in :func:`invoke_agent`
-    strips mutating tools from read turns exactly as before.
+    §6.5 is untouched: this widens the ALLOW-list only. Every host action
+    still rides the proposed-changes gate for EVERY agent, and the read-only
+    mode gate in :func:`invoke_agent` strips mutating tools from read turns
+    exactly as before.
     """
     merged = list(spec.tools)
     seen = set(merged)
@@ -1154,7 +1154,7 @@ def _build_local_tools(
     ``get_terminal_state`` / ``get_portfolio`` return state passed in the request
     (the sidecar can't read the frontend's stores). The host-action tools return
     a synthetic result carrying a ``host_action`` directive whose narration tracks
-    the user's autonomy: with ``autonomy="auto"`` a NON-ORDER action is
+    the user's autonomy: with ``autonomy="auto"`` the action is
     DISPATCHED to the panel (the frontend's auto-apply lands it asynchronously),
     so the result says ``dispatched`` and tells the model to VERIFY with
     ``get_terminal_state`` before claiming completion — panel state is
@@ -1162,11 +1162,9 @@ def _build_local_tools(
     optimism preceded ``applyHostAction``, whose guards can keep prior state).
     Otherwise (``ask`` / unknown) the action is STAGED in the diff/accept trust
     gate (FR-010), reports ``awaiting_user_review``, and the model must say it
-    *proposed* the change, not that it happened. ``propose_order`` is EXEMPT
-    from the auto path (§6.5): it always returns ``awaiting_user_review`` in
-    EVERY mode — the AI has no path to ``confirm_and_place``. The frontend
-    honours the same split (orders are excluded from the auto-apply branch in
-    proposed-changes), so this narration matches what actually lands.
+    *proposed* the change, not that it happened. The frontend honours the same
+    split (proposed-changes auto-applies under AUTO and stages otherwise), so
+    this narration matches what actually lands.
     """
     from services.agent_tools.schemas import HOST_ACTION_TOOLS
 
@@ -1189,17 +1187,8 @@ def _build_local_tools(
 
     def _make_host_action(tool_id: str) -> LocalToolHandler:
         async def _handler(args: dict[str, Any]) -> dict[str, Any]:
-            if tool_id == "propose_order":
-                # UNCHANGED — orders always staged, every mode (§6.5). The AI has
-                # no path to auto-apply an order, regardless of autonomy.
-                return {
-                    "ok": True,
-                    "proposal_created": True,
-                    "status": "awaiting_user_review",
-                    "host_action": {"type": tool_id, "args": args},
-                }
             if autonomy == "auto":
-                # NON-ORDER action with auto-apply on: the frontend WILL land
+                # Auto-apply on: the frontend WILL land
                 # it — but it has not confirmed yet (E3.3: the old "applied …
                 # past tense" claim preceded applyHostAction, whose guards can
                 # keep prior state). Honest narration: dispatched, verify.
@@ -1285,15 +1274,15 @@ async def invoke_agent(
         read_only = mode == "ask"
     if read_only:
         # Strip every mutating capability SERVER-SIDE so a read turn can never drive
-        # the host or propose an order — enforced here, not in the adapter, so an
+        # the host or write the user's data — enforced here, not in the adapter, so an
         # external MCP client can't bypass it.
         #
         # Decision 4 (pre-approved): on an INFERRED read intent under the collapsed
         # "agent" mode, RETAIN a small read-safe panel allow-list (open_panel /
         # set_chart_symbol / set_chart_indicators / arrange_layout / add_to_watchlist)
         # so a read question can still GROUND itself by pulling up the relevant chart
-        # / index (e.g. "how's the market" -> set_chart_symbol on SPY). propose_order
-        # STAYS stripped on a read intent (§6.5); data/search read tools were never
+        # / index (e.g. "how's the market" -> set_chart_symbol on SPY). Data-write
+        # actions STAY stripped on a read intent (§6.5); data/search read tools were never
         # stripped (read_only=True). The legacy "ask" mode keeps the STRICT gate
         # (full strip) for back-compat — only the inferred-read path is loosened.
         keep_panel_actions = inferred_intent == "read"
@@ -1585,14 +1574,9 @@ async def invoke_agent(
                 metadata={"name": tool_call.name},
             )
             messages.append(tool_result_msg)
-            # Queue a non-order host action dispatched under AUTO for the grounded
-            # read-back below (§6.5: orders never auto-apply, so their staged
-            # awaiting_user_review result is left untouched).
-            if (
-                autonomy == "auto"
-                and tool_call.name in _host_ids
-                and tool_call.name != "propose_order"
-            ):
+            # Queue a host action dispatched under AUTO for the grounded
+            # read-back below.
+            if autonomy == "auto" and tool_call.name in _host_ids:
                 host_action_readbacks.append((tool_call, tool_result_msg))
             # Auto-publish the brief deterministically (Track 3): the full brief
             # is in result_str but only the model sees it. Emit a synthetic
