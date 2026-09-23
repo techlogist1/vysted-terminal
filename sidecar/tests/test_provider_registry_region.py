@@ -198,6 +198,57 @@ def test_nse_still_wins_over_bse_for_dual_listed(monkeypatch: pytest.MonkeyPatch
     assert q.provider == "nse"
 
 
+def test_statement_for_another_listing_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-001: a statement provider that answers the bare US ticker (DAL,
+    Delta Air Lines) for an IN request whose listing is DAL.BO (Dynamic
+    Archistructures) is rejected by the identity gate, and the registry falls
+    through to the provider that fetched the requested listing."""
+    import asyncio
+
+    import config
+    from models.fundamentals import IncomeStatement
+    from services import openbb_mcp_provider, yfinance_provider
+
+    async def us_listing(symbol: str) -> IncomeStatement:
+        return IncomeStatement(symbol="DAL", periods=[], lines=[], provider="openbb-mcp")
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+    monkeypatch.setattr(openbb_mcp_provider, "get_income_statement", us_listing)
+    monkeypatch.setattr(
+        yfinance_provider,
+        "get_income_statement",
+        lambda s: IncomeStatement(symbol="DAL.BO", periods=[], lines=[], provider="yfinance"),
+    )
+    token = config.set_request_region("IN")
+    try:
+        statement = asyncio.run(provider_registry.get_income_statement("DAL"))
+    finally:
+        config.reset_request_region(token)
+    assert statement.provider == "yfinance" and statement.symbol == "DAL.BO"
+
+
+def test_name_only_fundamentals_shell_is_not_served(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-001 (SUMAX): a result carrying only a name is an identity shell,
+    not data. With no provider serving real fields it degrades to an error
+    rather than a 200 showing a different entity's name over blanks."""
+    import asyncio
+
+    from models.fundamentals import Fundamentals
+    from services import openbb_mcp_provider, yfinance_provider
+
+    async def name_only(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, name="Some US Muni Fund", provider="openbb-mcp")
+
+    def yf_down(symbol: str) -> Fundamentals:
+        raise ProviderError("yfinance: no data")
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+    monkeypatch.setattr(openbb_mcp_provider, "get_fundamentals", name_only)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yf_down)
+    with pytest.raises(ProviderError):
+        asyncio.run(provider_registry.get_fundamentals("SUMAX.NS"))
+
+
 def test_in_quote_falls_through_nse_then_bse_then_yfinance(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
