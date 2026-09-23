@@ -94,6 +94,7 @@ from services.resolution_policy import (
     BAND_PREFIX,
     BAND_SUBSTRING,
     decide,
+    same_instrument,
 )
 
 logger = logging.getLogger(__name__)
@@ -419,6 +420,19 @@ def bse_scrip_code(symbol: str) -> str | None:
     """Return the numeric BSE scrip code for ``symbol`` (the header endpoint key)."""
     entry = _bse_master().get(strip_exchange_suffix(symbol))
     return entry[2] if entry and entry[2] else None
+
+
+def dual_listed_bse_code(symbol: str) -> str | None:
+    """The BSE scrip code of the NSE listing ``symbol``'s own BSE dual listing.
+
+    ``None`` when ``symbol`` is not an NSE listing, has no BSE row, or the BSE row
+    under the same ticker is a different company (NSE FOCUS vs BSE FOCUS) — so a
+    BSE lane keyed by that ticker would fetch the other company's filings.
+    """
+    bare = strip_exchange_suffix(symbol)
+    if bare not in _nse_master():
+        return None
+    return _enrich_instrument(_instrument_nse(bare, 1.0)).bse_code
 
 
 def region_hint(symbol: str) -> str | None:
@@ -827,20 +841,19 @@ def _rename_instrument(inst: Instrument) -> Instrument:
 def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
     """Apply the rename lane to a resolution's best + candidates, deduped.
 
-    Rewriting can collapse two rows onto the same current symbol (an old ticker
-    and its new one); duplicates are dropped keeping first-seen order so the best
-    stays first. A no-op when nothing was renamed.
+    Rewriting can collapse two rows onto the same current listing (an old ticker
+    and its new one); a row that is the same instrument
+    (:func:`~services.resolution_policy.same_instrument`) on the same exchange as
+    an earlier one is dropped, keeping first-seen order so the best stays first.
+    A no-op when nothing was renamed.
     """
     if resolution.best is None:
         return resolution
     best = _rename_instrument(resolution.best)
-    seen: set[tuple[str, str]] = set()
     candidates: list[Instrument] = []
     for cand in [best, *(_rename_instrument(c) for c in resolution.candidates)]:
-        key = (cand.symbol, cand.exchange)
-        if key in seen:
+        if any(c.exchange == cand.exchange and same_instrument(c, cand) for c in candidates):
             continue
-        seen.add(key)
         candidates.append(cand)
     return Resolution(
         query=resolution.query,
@@ -852,6 +865,46 @@ def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
 # ---------------------------------------------------------------------------
 # Identity enrichment (R13) — the read-only ISIN / scrip / industry join.
 # ---------------------------------------------------------------------------
+
+
+#: Name-key similarity at or above which an NSE row and the same-ticker BSE row
+#: are one company. Measured over the bundled masters: every genuine dual-listed
+#: equity whose spellings differ scores >= 0.81 ("Black Rose Inds." / "Black Rose
+#: Industries"), while the same-ticker different-company pairs score <= 0.61
+#: (FOCUS: Focus Lighting / Focus Business Solution 0.40; KALYANI: Kalyani
+#: Commercials / Kalyani Cast-Tech 0.61).
+_SAME_COMPANY_NAME_RATIO = 0.75
+
+
+def _company_name_key(name: str) -> str:
+    """A spelling-insensitive key for comparing one company's NSE and BSE names:
+    lowercased, ``&`` read as ``and``, a trailing Ltd/Limited dropped, then only
+    letters and digits kept ("D.B.Corp Limited" and "D. B. Corp Ltd" → "dbcorp")."""
+    tokens = name.lower().replace("&", " and ").split()
+    while len(tokens) > 1 and tokens[-1].strip(_EDGE_PUNCT) in ("ltd", "limited"):
+        tokens.pop()
+    return "".join(ch for ch in "".join(tokens) if ch.isalnum())
+
+
+def _bse_row_is_same_company(inst: Instrument, bse_entry: tuple[str, str, str, str]) -> bool:
+    """True when the BSE master row under ``inst``'s ticker is ``inst``'s own company.
+
+    The NSE master carries no ISIN, so an NSE row's identity can only be joined
+    from the BSE row of the same ticker — and the ticker string alone collides
+    (NSE FOCUS is Focus Lighting and Fixtures, BSE FOCUS is Focus Business
+    Solution, ISIN INE0DXR01010). The join is refused on disagreement: the
+    instrument TYPE must agree (an ETF's units carry an ``INF`` ISIN, an equity's
+    never do), and for an equity the legal NAMES must agree. An ETF is not
+    name-checked — NSE's ETF list carries a scheme code in its name column
+    ("NIPINDETFNIFTYBEES"), not a name that can agree or disagree.
+    """
+    name, _group, _code, isin = bse_entry
+    if (inst.asset_class == "etf") != isin.startswith("INF"):
+        return False
+    if inst.asset_class == "etf":
+        return True
+    ratio = SequenceMatcher(None, _company_name_key(inst.name), _company_name_key(name)).ratio()
+    return ratio >= _SAME_COMPANY_NAME_RATIO
 
 
 def _enrich_instrument(inst: Instrument) -> Instrument:
@@ -867,6 +920,15 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
     never an invented sector. Idempotent: returns the same object when nothing to
     add (US tickers, or an already-enriched instrument).
 
+    Both bundled sources are BSE-sourced and keyed by the bare ticker, so for an
+    NSE row they describe the NSE company only when the same-ticker BSE row IS
+    that company (:func:`_bse_row_is_same_company`). When it is not (NSE FOCUS vs
+    BSE FOCUS), the NSE row takes no ISIN, scrip code or industry from them — one
+    company's identity is never stamped onto another. A sector-map record that
+    carries a BSE scrip code is likewise used for an NSE row only when that code
+    is the verified dual listing's; a record with no scrip code is an NSE-side
+    enrichment row and applies as is.
+
     GUARD (R13 hardening — the ISIN-leak fix): this is an INDIAN-identity
     join keyed on the bare ticker STRING alone, which collides across
     exchanges — a US "TCI" candidate sitting beside NSE "TCI" (Transport
@@ -881,11 +943,17 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         return inst
     bare = strip_exchange_suffix(inst.symbol).upper()
     bse_entry = _bse_master().get(bare)
+    record = _india_sector_map().get(bare)
+    if inst.exchange == "NSE":
+        if bse_entry is not None and not _bse_row_is_same_company(inst, bse_entry):
+            bse_entry = None
+        record_code = record.get("scrip_code") if record is not None else None
+        if record_code and (bse_entry is None or record_code != bse_entry[2]):
+            record = None
     bse_code = bse_entry[2] if bse_entry and bse_entry[2] else None
     isin: str | None = bse_entry[3] if bse_entry and bse_entry[3] else None
 
     industry: str | None = None
-    record = _india_sector_map().get(bare)
     if record is not None:
         if isin is None:
             rec_isin = record.get("isin")
@@ -1045,6 +1113,7 @@ __all__ = [
     "Resolution",
     "autocomplete",
     "bse_scrip_code",
+    "dual_listed_bse_code",
     "is_bse_symbol",
     "is_nse_symbol",
     "is_us_symbol",

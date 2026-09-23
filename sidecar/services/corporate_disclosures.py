@@ -403,7 +403,11 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
         if patterns:
             # A dual-listed NSE result recovers its FII/DII split from the BSE
             # SEBI XBRL (the NSE master carries none) — the highest-leverage fix.
-            if name == EXCHANGE_NSE and is_bse:
+            # Only when the BSE scrip under this ticker IS the NSE company: a
+            # same-ticker BSE scrip of another company (NSE FOCUS = Focus
+            # Lighting, BSE FOCUS = Focus Business Solution) would stamp that
+            # company's split onto this one, so the split stays None instead.
+            if name == EXCHANGE_NSE and symbol_resolver.dual_listed_bse_code(bare):
                 patterns = _merge_bse_split(bare, patterns)
             patterns.sort(key=lambda p: p.quarter_end, reverse=True)
             return ShareholdingResponse(symbol=bare, count=len(patterns), patterns=patterns)
