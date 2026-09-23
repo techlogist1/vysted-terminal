@@ -21,13 +21,17 @@ capability id here contains ``place_order`` / ``submit_order`` / ``execute_order
 (:data:`FORBIDDEN_TOOL_SUBSTRINGS`), and ``tests/test_no_trading_surface.py``
 pins that no order, broker or simulated-account capability exists.
 This module is pure data: it imports nothing from the ``agent_tools`` package or
-``models`` so it can be a dependency of both without a cycle.
+``models.custom_agent`` so it can be a dependency of both without a cycle. Its
+one import, ``services.indicators.SUPPORTED_INDICATORS``, is the indicator
+registry the ``set_chart_indicators`` enum derives from (C10).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal
+
+from services.indicators import SUPPORTED_INDICATORS
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
 # the domain tag projected to the MCP surface (FR-021).
@@ -1010,7 +1014,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "set_chart_indicators",
             description=(
                 "Apply (or replace) the chart's technical indicators by key — e.g. "
-                "sma, ema, rsi, macd, bollinger, vwap, volume. Pass the full desired "
+                "sma, ema, rsi, macd, bollinger, vwap, volume. Use only the listed "
+                "keys: one unknown key fails the whole set. Pass the full desired "
                 "set (it replaces the current selection). When the user says 'add a "
                 "200-day average' or 'set me up to study NVDA', pick a sensible set "
                 "for the asset class. Indicators are server-computed and overlay or "
@@ -1020,7 +1025,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 {
                     "indicators": {
                         "type": "array",
-                        "items": {"type": "string"},
+                        # The registry the chart's /indicators fetch validates
+                        # against (C10) — never a hand copy.
+                        "items": {"type": "string", "enum": list(SUPPORTED_INDICATORS)},
                         "description": (
                             "Indicator keys, e.g. ['sma','volume','rsi','macd']. "
                             "Replaces the current selection."

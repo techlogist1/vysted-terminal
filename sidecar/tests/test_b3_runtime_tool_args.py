@@ -98,3 +98,15 @@ async def test_stringified_screener_criteria_is_yielded_as_a_list(
     assert isinstance(criteria, list) and len(criteria) == 3
     assert criteria[0] == {"field": "pe_ratio", "operator": "lt", "value": 20}
     assert call.input["universe"] == "nse-all"
+
+
+@pytest.mark.asyncio
+async def test_unknown_indicator_key_fails_validation_naming_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-054: one unknown key made the chart's fetch reject the whole set.
+    args = {"indicators": ["rsi", "bollinger_bands"]}
+    events, result = await _invoke(monkeypatch, "set_chart_indicators", args)
+    assert _yielded(events, "set_chart_indicators") == []
+    assert result["ok"] is False
+    assert "bollinger_bands" in result["error"]
