@@ -41,6 +41,16 @@ class Announcement(BaseModel):
     ts: datetime | None = None
 
 
+class AnnouncementWindow(BaseModel):
+    """The date range one exchange lane's items in a response are complete for."""
+
+    #: The oldest IST day covered; ``None`` when nothing older was cut (the
+    #: lane's full history).
+    window_start: date | None = None
+    #: The newest IST day covered (the day of the fetch).
+    window_end: date
+
+
 class AnnouncementsResponse(BaseModel):
     """``GET /disclosures/announcements`` — the merged, deduped feed."""
 
@@ -54,6 +64,10 @@ class AnnouncementsResponse(BaseModel):
     #: Exchanges that were attempted but failed, with the honest reason — a
     #: partial merge is served rather than failing the whole feed.
     errors: dict[str, str] = {}
+    #: Per serving exchange, the date range its items are complete for (the BSE
+    #: feed is requested over a bounded window; an older filing outside it is
+    #: not "absent").
+    windows: dict[str, AnnouncementWindow] = {}
 
 
 class ResultsEvent(BaseModel):

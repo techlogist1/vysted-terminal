@@ -312,6 +312,14 @@ export interface Announcement {
   ts: string | null;
 }
 
+/** The date range one exchange lane's items in a response are complete for. */
+export interface AnnouncementWindow {
+  /** Oldest IST day covered (ISO date); null when nothing older was cut (full history). */
+  window_start: string | null;
+  /** Newest IST day covered (ISO date, the day of the fetch). */
+  window_end: string;
+}
+
 /** `GET /disclosures/announcements` — the merged, deduped feed. */
 export interface AnnouncementsResponse {
   symbol: string;
@@ -323,6 +331,8 @@ export interface AnnouncementsResponse {
   sources: string[];
   /** Exchanges attempted but failed, with the honest reason (partial merge). */
   errors: Record<string, string>;
+  /** Per serving exchange, the date range its items are complete for. */
+  windows: Record<string, AnnouncementWindow>;
 }
 
 /** One results-calendar / board-meeting event (NSE event-calendar feed). */

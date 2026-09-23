@@ -17,14 +17,17 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
     ``tests/fixtures/bse/ann_sub_category_get_data.json``): ``{"Table": [
     {NEWSID, SCRIP_CD, NEWSSUB, HEADLINE, MORE, CATEGORYNAME, SUBCATNAME,
     NEWS_DT/DT_TM "2026-06-09T19:44:02.21" (IST naive), ATTACHMENTNAME,
-    SLONGNAME, ...}], "Table1": [{"ROWCNT": n}]}``. Attachments resolve under
-    ``https://www.bseindia.com/xml-data/corpfiling/AttachLive/<ATTACHMENTNAME>``
-    (verified live: 200 ``application/pdf``; the ``AttachHis`` variant 404s for
-    a current filing).
+    SLONGNAME, PDFFLAG, ...}], "Table1": [{"ROWCNT": n}]}`` — ``ROWCNT`` is the
+    row total for the requested window, served ``pageno`` by ``pageno``.
+    Attachments resolve under ``.../corpfiling/AttachLive/<ATTACHMENTNAME>``
+    when ``PDFFLAG`` is 0 (verified live: 200 ``application/pdf``, while the
+    ``AttachHis`` variant 404s) and under ``.../corpfiling/AttachHis/`` when it
+    is 1 (filings live-probed 404 on ``AttachLive`` and 200 on ``AttachHis``).
 
   One exchange failing degrades honestly to a partial merge (the failure is
   recorded in ``errors``); BOTH failing raises so the caller never sees a
-  silently-empty feed.
+  silently-empty feed. Each served lane states the date range its items are
+  complete for in ``windows`` (the BSE feed is date-bounded, NSE's is not).
 
 * **Results calendar** — the NSE ``event-calendar`` feed (board meetings,
   results, dividends), parsed dates, newest first.
@@ -54,6 +57,7 @@ from datetime import UTC, date, datetime, timedelta
 from models.announcements import (
     Announcement,
     AnnouncementsResponse,
+    AnnouncementWindow,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
@@ -81,11 +85,14 @@ PUBLIC_BASIS_INCL_INSTITUTIONS = "incl. institutions"
 
 # BSE announcements API (observed live 2026-06-10 — module docstring).
 _BSE_ANN_URL = "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w"
-_BSE_ATTACHMENT_BASE = "https://www.bseindia.com/xml-data/corpfiling/AttachLive/"
+_BSE_ATTACHMENT_LIVE = "https://www.bseindia.com/xml-data/corpfiling/AttachLive/"
+_BSE_ATTACHMENT_HIS = "https://www.bseindia.com/xml-data/corpfiling/AttachHis/"
 # The announcements window requested from BSE (the feed is date-bounded; NSE's
-# returns full history trimmed client-side, so a month keeps the lanes roughly
-# comparable while staying one cheap request).
-_BSE_ANN_WINDOW_DAYS = 30
+# returns full history trimmed client-side). Paged by count up to the limit, so
+# an infrequent filer's quarter-old results filing is inside it (R15-DATA-019:
+# a 30-day window showed JUMBO, last filed 50 days earlier, as empty). Live
+# probes have served windows of about six months.
+_BSE_ANN_WINDOW_DAYS = 180
 # Browser headers for the BSE API (it serves an empty/blocked payload to an
 # obvious bot — same posture as bse_provider; TLS/UA via impersonate="chrome").
 _BSE_HEADERS = {
@@ -128,34 +135,74 @@ def _bse_get_json(url: str, params: dict[str, str]) -> object:
             pass
 
 
-def _fetch_bse_announcements(bare: str, limit: int) -> list[Announcement]:
-    """The BSE lane — ``AnnSubCategoryGetData`` rows for the last month."""
+def _today_ist() -> date:
+    return datetime.now(tz=UTC).astimezone(_ist()).date()
+
+
+def _covered_window(
+    items: list[Announcement], limit: int, start: date | None, end: date, cut: bool
+) -> AnnouncementWindow:
+    """The range a lane's (limit-trimmed) items are complete for: from ``start``
+    (``None`` = full history) unless older items were ``cut`` at ``limit``, in
+    which case from the oldest kept item's day."""
+    kept = [item.ts for item in items[:limit] if item.ts is not None]
+    if cut and kept:
+        start = min(kept).astimezone(_ist()).date()
+    return AnnouncementWindow(window_start=start, window_end=end)
+
+
+def _fetch_bse_announcements(
+    bare: str, limit: int
+) -> tuple[list[Announcement], AnnouncementWindow]:
+    """The BSE lane — ``AnnSubCategoryGetData`` rows over the last
+    :data:`_BSE_ANN_WINDOW_DAYS`, paged until ``limit`` items are collected or
+    the window's ``ROWCNT`` rows run out, with the window the items cover."""
     code = symbol_resolver.bse_scrip_code(bare)
     if not code:
         raise ProviderError(f"bse announcements: no scrip code for {bare!r} in the master")
-    today = datetime.now(tz=UTC).astimezone(_ist()).date()
+    today = _today_ist()
+    start = today - timedelta(days=_BSE_ANN_WINDOW_DAYS)
     params = {
-        "pageno": "1",
         "strCat": "-1",
-        "strPrevDate": (today - timedelta(days=_BSE_ANN_WINDOW_DAYS)).strftime("%Y%m%d"),
+        "strPrevDate": start.strftime("%Y%m%d"),
         "strScrip": str(code),
         "strSearch": "P",
         "strToDate": today.strftime("%Y%m%d"),
         "strType": "C",
         "subcategory": "-1",
     }
-    payload = _bse_get_json(_BSE_ANN_URL, params)
-    table = payload.get("Table") if isinstance(payload, dict) else None
-    if not isinstance(table, list):
-        raise ProviderError(f"bse announcements: malformed payload for {bare!r}")
     items: list[Announcement] = []
-    for row in table:
-        if not isinstance(row, dict):
-            continue
-        item = _bse_row_to_announcement(bare, row)
-        if item is not None:
-            items.append(item)
-    return items[: max(limit, 0)]
+    rows_seen = 0
+    page = 1
+    while True:
+        payload = _bse_get_json(_BSE_ANN_URL, {"pageno": str(page), **params})
+        table = payload.get("Table") if isinstance(payload, dict) else None
+        if not isinstance(table, list):
+            raise ProviderError(f"bse announcements: malformed payload for {bare!r}")
+        for row in table:
+            if not isinstance(row, dict):
+                continue
+            item = _bse_row_to_announcement(bare, row)
+            if item is not None:
+                items.append(item)
+        rows_seen += len(table)
+        total = _bse_row_count(payload)
+        exhausted = not table or (total is not None and rows_seen >= total)
+        if exhausted or len(items) >= limit:
+            break
+        page += 1
+    cut = len(items) > limit or not exhausted
+    return items[:limit], _covered_window(items, limit, start, today, cut)
+
+
+def _bse_row_count(payload: dict) -> int | None:
+    """``Table1[0].ROWCNT`` — the window's row total across every page."""
+    meta = payload.get("Table1")
+    if isinstance(meta, list) and meta and isinstance(meta[0], dict):
+        count = meta[0].get("ROWCNT")
+        if isinstance(count, int):
+            return count
+    return None
 
 
 def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
@@ -165,6 +212,8 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         return None
     category = _clean(row.get("CATEGORYNAME")) or _clean(row.get("SUBCATNAME"))
     attachment = _clean(row.get("ATTACHMENTNAME"))
+    # PDFFLAG 1 files the attachment under the history path, 0 under the live one.
+    base = _BSE_ATTACHMENT_HIS if row.get("PDFFLAG") == 1 else _BSE_ATTACHMENT_LIVE
     return Announcement(
         # The BSE payload carries only the numeric SCRIP_CD + the long company
         # name — stamp the requested bare ticker (mirrors bse_provider quotes).
@@ -172,7 +221,7 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         exchange=EXCHANGE_BSE,
         headline=headline,
         category=category,
-        attachment_url=(_BSE_ATTACHMENT_BASE + attachment) if attachment else None,
+        attachment_url=(base + attachment) if attachment else None,
         ts=_parse_bse_ts(row),
     )
 
@@ -195,14 +244,18 @@ def _parse_bse_ts(row: dict) -> datetime | None:
 # ---------------------------------------------------------------------------
 
 
-def _fetch_nse_announcements(bare: str, limit: int) -> list[Announcement]:
+def _fetch_nse_announcements(
+    bare: str, limit: int
+) -> tuple[list[Announcement], AnnouncementWindow]:
+    """The NSE lane — the full history trimmed to ``limit``, so its items cover
+    all of history unless the trim cut older ones."""
     rows = nse_provider.get_corporate_announcements(bare, limit=limit)
     items: list[Announcement] = []
     for row in rows:
         item = _nse_row_to_announcement(bare, row)
         if item is not None:
             items.append(item)
-    return items
+    return items, _covered_window(items, limit, None, _today_ist(), len(rows) >= limit)
 
 
 def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
@@ -292,10 +345,12 @@ def get_announcements(
     merged: list[Announcement] = []
     sources: list[str] = []
     errors: dict[str, str] = {}
+    windows: dict[str, AnnouncementWindow] = {}
     for name in applicable:  # NSE first — it wins a cross-feed dedup collision
         fetch = _fetch_nse_announcements if name == EXCHANGE_NSE else _fetch_bse_announcements
         try:
-            merged.extend(fetch(bare, limit))
+            items, windows[name] = fetch(bare, limit)
+            merged.extend(items)
             sources.append(name)
         except ProviderError as exc:
             logger.debug("disclosures: %s announcements failed for %s: %s", name, bare, exc)
@@ -317,6 +372,14 @@ def get_announcements(
     floor = datetime.min.replace(tzinfo=UTC)
     deduped.sort(key=lambda a: a.ts or floor, reverse=True)
     trimmed = deduped[:limit]
+    if len(deduped) > limit and trimmed[-1].ts is not None:
+        # The merged trim cut older items from the lanes: none is complete
+        # before the oldest item kept.
+        cut = trimmed[-1].ts.astimezone(_ist()).date()
+        windows = {
+            name: window.model_copy(update={"window_start": max(window.window_start or cut, cut)})
+            for name, window in windows.items()
+        }
     return AnnouncementsResponse(
         symbol=bare,
         exchange=exchange,
@@ -324,6 +387,7 @@ def get_announcements(
         announcements=trimmed,
         sources=sources,
         errors=errors,
+        windows=windows,
     )
 
 

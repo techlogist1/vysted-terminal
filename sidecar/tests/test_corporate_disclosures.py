@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -51,12 +51,16 @@ def _patch_nse_announcements(monkeypatch: pytest.MonkeyPatch, rows: list[dict] |
 
 
 def _patch_bse_payload(monkeypatch: pytest.MonkeyPatch, payload: object | Exception) -> list[dict]:
+    """Serve ``payload`` as page 1 of the BSE feed; later pages are empty (the
+    trimmed fixtures hold fewer rows than their ``ROWCNT``)."""
     calls: list[dict] = []
 
     def fake(url: str, params: dict[str, str]) -> object:
         calls.append({"url": url, "params": params})
         if isinstance(payload, Exception):
             raise payload
+        if params.get("pageno") != "1" and isinstance(payload, dict):
+            return dict(payload, Table=[])
         return payload
 
     monkeypatch.setattr(corporate_disclosures, "_bse_get_json", fake)
@@ -86,9 +90,10 @@ def test_merged_feed_combines_both_exchanges_newest_first(
     # Newest first (the fixtures' distinct headlines never collide in dedup).
     stamps = [item.ts for item in response.announcements if item.ts is not None]
     assert stamps == sorted(stamps, reverse=True)
-    # The BSE lane was asked with the observed query contract, scrip-code keyed.
-    assert len(calls) == 1
+    # The BSE lane was asked with the observed query contract, scrip-code keyed,
+    # from page 1 (it pages on while the window's ROWCNT rows remain).
     params = calls[0]["params"]
+    assert params["pageno"] == "1"
     assert params["strScrip"] == "500325"
     assert params["strSearch"] == "P" and params["strType"] == "C"
 
@@ -221,6 +226,98 @@ def test_malformed_bse_payload_is_a_lane_error(monkeypatch: pytest.MonkeyPatch) 
     response = corporate_disclosures.get_announcements("RELIANCE")
     assert response.sources == ["NSE"]
     assert "malformed" in response.errors["BSE"]
+
+
+def _bse_row(newsid: str, subject: str, day: date) -> dict:
+    stamp = f"{day.isoformat()}T17:43:00.00"
+    return {
+        "NEWSID": newsid,
+        "SCRIP_CD": 516078,
+        "NEWSSUB": subject,
+        "HEADLINE": subject,
+        "NEWS_DT": stamp,
+        "DT_TM": stamp,
+        "CATEGORYNAME": "Company Update",
+        "ATTACHMENTNAME": f"{newsid}.pdf",
+        "PDFFLAG": 0,
+    }
+
+
+def _patch_bse_feed(
+    monkeypatch: pytest.MonkeyPatch, rows: list[dict], page_size: int
+) -> list[dict[str, str]]:
+    """Emulate the BSE feed: only rows inside the requested strPrevDate..strToDate
+    window, ``page_size`` per ``pageno``, with the window's ROWCNT."""
+    calls: list[dict[str, str]] = []
+
+    def fake(url: str, params: dict[str, str]) -> object:  # noqa: ARG001
+        calls.append(params)
+        lo = datetime.strptime(params["strPrevDate"], "%Y%m%d").date()
+        hi = datetime.strptime(params["strToDate"], "%Y%m%d").date()
+        window = [r for r in rows if lo <= date.fromisoformat(r["NEWS_DT"][:10]) <= hi]
+        page = int(params["pageno"])
+        return {
+            "Table": window[(page - 1) * page_size : page * page_size],
+            "Table1": [{"ROWCNT": len(window)}],
+        }
+
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", fake)
+    return calls
+
+
+def test_bse_lane_reaches_an_infrequent_filers_older_filings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-019, JUMBO-shaped: a BSE-only filer whose newest filing is 50
+    days old. The 30-day window served an empty feed as complete; the filings
+    now arrive with the covered window stated."""
+    today = corporate_disclosures._today_ist()
+    newest = today - timedelta(days=50)
+    rows = [
+        _bse_row("a1", "Scrutinizers Report", newest),
+        _bse_row("a2", "Outcome of AGM", newest - timedelta(days=1)),
+        _bse_row("a3", "Financial Results for the quarter ended June 30, 2026", newest),
+        _bse_row("a4", "Appointment of Director", newest - timedelta(days=1)),
+    ]
+    _patch_bse_feed(monkeypatch, rows, page_size=50)
+
+    response = corporate_disclosures.get_announcements("JUMBO", limit=25)
+    assert response.sources == ["BSE"]
+    assert response.count == 4
+    window = response.windows["BSE"]
+    assert window.window_end == today
+    assert window.window_start == today - timedelta(days=corporate_disclosures._BSE_ANN_WINDOW_DAYS)
+
+
+def test_bse_lane_pages_until_the_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: two-row pages stop once the limit
+    is reached, and the window starts at the oldest item kept."""
+    today = corporate_disclosures._today_ist()
+    rows = [_bse_row(f"r{i}", f"Filing number {i}", today - timedelta(days=i)) for i in range(6)]
+    calls = _patch_bse_feed(monkeypatch, rows, page_size=2)
+
+    response = corporate_disclosures.get_announcements("JUMBO", limit=3)
+    assert [c["pageno"] for c in calls] == ["1", "2"]
+    assert [a.headline for a in response.announcements] == [f"Filing number {i}" for i in range(3)]
+    assert response.windows["BSE"].window_start == today - timedelta(days=2)
+
+
+def test_bse_pdfflag_row_resolves_under_the_history_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The fixture's PDFFLAG 1 row (the 2026-06-05 Citi update) is filed under
+    AttachHis; a PDFFLAG 0 row stays under AttachLive."""
+    _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("RELIANCE", exchange="BSE")
+    by_file = {a.attachment_url.rsplit("/", 1)[1]: a.attachment_url for a in response.announcements}
+    assert by_file["75dcb382-c995-429e-ac79-be791c57e7c8.pdf"] == (
+        "https://www.bseindia.com/xml-data/corpfiling/AttachHis/"
+        "75dcb382-c995-429e-ac79-be791c57e7c8.pdf"
+    )
+    assert by_file["94035dd9-d667-49df-8161-a90b6c8cd851.pdf"].startswith(
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/"
+    )
 
 
 # ---------------------------------------------------------------------------
