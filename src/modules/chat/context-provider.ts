@@ -12,12 +12,14 @@
 import { researchSpaceName } from "@/lib/workspace";
 import type { Region } from "@/lib/region";
 import { useBriefStore } from "@/store/brief";
+import { useNotesStore } from "@/store/notes";
 import { usePanelContextBus } from "@/store/panel-context";
 import { usePortfoliosStore } from "@/store/portfolios";
 import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
+import type { AgentContextSnapshot } from "../../../types/ai";
 import type { BriefDepth } from "../../../types/brief";
 import type { ResearchSpaceClaim } from "../../../types/research-space";
 
@@ -228,6 +230,48 @@ export function focusedSymbolFromBus(
   }
   const payload = asRecord(bus[focusedSource]?.payload);
   return asString(payload.symbol) ?? asString(payload.ticker);
+}
+
+/** Each note rides the request capped at this many characters (C2). */
+export const NOTE_CHAR_CAP = 4_000;
+export const NOTE_TRUNCATION_MARKER =
+  "\n[note truncated here; the full text is in the Notes panel]";
+
+/** The user's notes as the `__notes__` snapshot entry (C2): the general note
+ *  and every non-empty per-symbol note, each capped. They ride beside
+ *  `__terminal__`, not inside it, so `get_terminal_state` stays compact. */
+export interface TerminalNotes {
+  general: string;
+  bySymbol: Record<string, string>;
+}
+
+function capNote(text: string): string {
+  if (!text.trim()) {
+    return "";
+  }
+  return text.length > NOTE_CHAR_CAP ? text.slice(0, NOTE_CHAR_CAP) + NOTE_TRUNCATION_MARKER : text;
+}
+
+export function captureNotes(): TerminalNotes {
+  const { general, bySymbol } = useNotesStore.getState();
+  const notes: Record<string, string> = {};
+  for (const [symbol, text] of Object.entries(bySymbol)) {
+    if (text.trim()) {
+      notes[symbol] = capNote(text);
+    }
+  }
+  return { general: capNote(general), bySymbol: notes };
+}
+
+/** The context an agent invocation carries: the terminal state plus the
+ *  user's notes, which the agent reads with `read_notes` (R15-AGENT-020). */
+export function captureAgentContext(): AgentContextSnapshot {
+  const terminalState = captureTerminalState();
+  return {
+    focusedSource: terminalState.focusedPanel,
+    bySource: { __terminal__: terminalState, __notes__: captureNotes() },
+    capturedAt: terminalState.capturedAt,
+  };
 }
 
 /** Read the live bus + stores once and assemble a structured snapshot. */

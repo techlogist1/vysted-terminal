@@ -461,6 +461,55 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+#: How much of the focused symbol's note the preamble quotes; the full (capped)
+#: text is one ``read_notes`` call away.
+_NOTE_EXCERPT_CHARS = 300
+
+
+def _notes_of(snapshot: AgentContextSnapshot | None) -> dict[str, Any]:
+    """The ``__notes__`` entry (C2): ``{"general": str, "bySymbol": {SYM: str}}``,
+    each note already capped by the client. Empty when absent or malformed."""
+    if snapshot is None or not isinstance(snapshot.by_source, dict):
+        return {}
+    notes = snapshot.by_source.get("__notes__")
+    return notes if isinstance(notes, dict) else {}
+
+
+def _note_for(notes: dict[str, Any], scope: str) -> tuple[str, str]:
+    """``(scope label, note text)`` for a ``read_notes`` scope: 'global' (or
+    'general' / empty) is the general note, anything else a symbol's."""
+    key = scope.strip().upper()
+    if key in ("", "GLOBAL", "GENERAL"):
+        text = notes.get("general")
+        return "global", text if isinstance(text, str) else ""
+    by_symbol = notes.get("bySymbol")
+    text = by_symbol.get(key) if isinstance(by_symbol, dict) else None
+    return key, text if isinstance(text, str) else ""
+
+
+def _render_notes_line(notes: dict[str, Any], focused: Any) -> str | None:
+    """One line naming the scopes that hold a note, plus an excerpt of the
+    focused symbol's note, so the agent knows the user's thesis exists
+    (R15-AGENT-020: notes were write-only for the agent)."""
+    scopes = []
+    if _note_for(notes, "global")[1].strip():
+        scopes.append("global")
+    by_symbol = notes.get("bySymbol")
+    if isinstance(by_symbol, dict):
+        scopes += sorted(k for k, v in by_symbol.items() if isinstance(v, str) and v.strip())
+    if not scopes:
+        return None
+    line = f"User notes exist for: {', '.join(scopes)} (read them with read_notes)."
+    if isinstance(focused, str) and focused.strip():
+        label, text = _note_for(notes, focused)
+        if label != "global" and text.strip():
+            excerpt = " ".join(text.split())
+            if len(excerpt) > _NOTE_EXCERPT_CHARS:
+                excerpt = excerpt[:_NOTE_EXCERPT_CHARS] + "..."
+            line += f' Their note on {label}: "{excerpt}"'
+    return line
+
+
 def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None:
     """Render the focused panel + per-panel context into a system-prompt blob.
 
@@ -473,7 +522,9 @@ def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None
     by_source = snapshot.by_source or {}
     terminal = by_source.get("__terminal__")
     if isinstance(terminal, dict):
-        return _render_terminal_preamble(terminal)
+        preamble = _render_terminal_preamble(terminal)
+        notes_line = _render_notes_line(_notes_of(snapshot), terminal.get("focusedSymbol"))
+        return f"{preamble}\n{notes_line}" if notes_line else preamble
     if not by_source and snapshot.focused_source is None:
         return None
     sections = ["## Terminal context (read-only — describe accurately, do not invent fields)"]
@@ -1572,9 +1623,24 @@ def _build_local_tools(
     async def _portfolio(_args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": True, "portfolio": (terminal or {}).get("portfolio")}
 
+    notes = _notes_of(snapshot)
+
+    async def _read_notes(args: dict[str, Any]) -> dict[str, Any]:
+        scope, text = _note_for(notes, str(args.get("scope") or ""))
+        if not text.strip():
+            return {
+                "ok": True,
+                "scope": scope,
+                "note": "",
+                "empty": True,
+                "message": f"The user has no {scope} note.",
+            }
+        return {"ok": True, "scope": scope, "note": text, "empty": False}
+
     local: dict[str, LocalToolHandler] = {
         "get_terminal_state": _terminal_state,
         "get_portfolio": _portfolio,
+        "read_notes": _read_notes,
     }
 
     def _make_host_action(tool_id: str) -> LocalToolHandler:

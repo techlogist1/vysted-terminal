@@ -49,7 +49,6 @@ import { useSymbolsStore } from "@/store/symbols";
 import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type {
-  AgentContextSnapshot,
   LLMModelOption,
   LLMProviderId,
   LLMProviderInfo,
@@ -66,7 +65,7 @@ import {
 } from "./composer-collapse";
 import { DEPTH_TOKEN, DepthControl } from "./DepthControl";
 import { ModelControl } from "./ModelControl";
-import { captureTerminalState, focusedSymbolFromBus } from "./context-provider";
+import { captureAgentContext, focusedSymbolFromBus } from "./context-provider";
 import {
   applyMentionPrefixes,
   insertMentionToken,
@@ -841,12 +840,7 @@ export function ChatSidebar() {
       // of a foreground stream — it survives this turn and appears in the agents
       // rail with live cost-so-far; its proposed changes still ride the diff gate.
       if (mode === "delegate" && agentForCall) {
-        const terminalState = captureTerminalState();
-        const snapshot: AgentContextSnapshot = {
-          focusedSource: terminalState.focusedPanel,
-          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-          capturedAt: terminalState.capturedAt,
-        };
+        const snapshot = captureAgentContext();
         const noteId = beginAssistant({ agentId: agentForCall, providerId: provider });
         appendDelta(
           noteId,
@@ -1015,12 +1009,7 @@ export function ChatSidebar() {
       // forever with later prompts queued behind it (R15-AGENT-029).
       try {
         if (agentForCall) {
-          const terminalState = captureTerminalState();
-          const snapshot: AgentContextSnapshot = {
-            focusedSource: terminalState.focusedPanel,
-            bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-            capturedAt: terminalState.capturedAt,
-          };
+          const snapshot = captureAgentContext();
           await streamAgentInvocation(
             agentForCall,
             {

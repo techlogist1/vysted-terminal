@@ -15,6 +15,7 @@ import { useChatPendingStore } from "@/store/chat-pending";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useOnboardingStore } from "@/store/onboarding";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useNotesStore } from "@/store/notes";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
 
@@ -562,6 +563,23 @@ describe("ChatSidebar", () => {
       contextSnapshot: { bySource: Record<string, { focusedSymbol: string }> };
     };
     expect(payload.contextSnapshot.bySource["__terminal__"].focusedSymbol).toBe("INFY");
+  });
+
+  it("an agent send carries the user's notes as __notes__ (R15-AGENT-020)", async () => {
+    useNotesStore.setState({ general: "", bySymbol: { BDL: "exit if promoter pledge > 20%" } });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/agent buffett does BDL still fit my thesis?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = streamAgentInvocationMock.mock.calls[0]![1] as unknown as {
+      contextSnapshot: { bySource: Record<string, unknown> };
+    };
+    expect(payload.contextSnapshot.bySource["__notes__"]).toEqual({
+      general: "",
+      bySymbol: { BDL: "exit if promoter pledge > 20%" },
+    });
+    useNotesStore.setState({ general: "", bySymbol: {} });
   });
 
   it("/help shows the cheat-sheet without sending a message", () => {
