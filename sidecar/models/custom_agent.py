@@ -33,8 +33,8 @@ from services.agent_tools.catalog import agent_selectable_tool_ids
 #: hand-maintained set that listed ``news``/``macro`` (which were not real tool
 #: ids and never resolved) while omitting every Phase-6 tool. Every id here
 #: resolves at the host: a registered handler, a per-invocation closure, or a
-#: host action. Safety stays host-enforced regardless of selection
-#: (``propose_order`` only proposes; §6.5 governs placement).
+#: host action. Safety stays host-enforced regardless of selection; no trading
+#: path exists.
 KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()
 
 #: The BYOK provider ids accepted in ``default_provider`` — derived from the

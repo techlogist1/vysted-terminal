@@ -29,9 +29,8 @@ What this module owns:
 
 Asset class detection: a symbol containing ``/`` is treated as crypto
 (``BTC/USDT``); everything else is equity. The dispatch is
-deliberately tiny — Phase 5 broker integrations can wrap their own
-``BarLoader``s through this same surface if they bundle proprietary
-historical APIs.
+deliberately tiny — a data plugin can wrap its own ``BarLoader`` through
+this same surface if it bundles a proprietary historical API.
 """
 
 from __future__ import annotations

@@ -8,7 +8,6 @@
     "fundamentals",
     "macro_series",
     "macro_search",
-    "broker_portfolio",
     "get_terminal_state"
   ],
   "defaultProvider": "anthropic",

@@ -1,7 +1,7 @@
 """Portfolio router — manual positions CRUD backed by local SQLite.
 
-Owned by Teammate B (Phase 1.B, tabular panels). Positions are entered manually
-in v1.0 — broker connection is Phase 5. Persistence lives in
+Owned by Teammate B (Phase 1.B, tabular panels). Positions are entered
+manually (the user's tracked portfolio). Persistence lives in
 ``services.portfolio_db`` (a SQLite database under ``config.get_data_dir()``);
 the portfolio panel computes P&L, weight, and risk metrics in the frontend by
 joining these stored positions against live quotes. This file is already

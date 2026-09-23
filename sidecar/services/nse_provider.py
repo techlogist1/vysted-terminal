@@ -6,7 +6,7 @@ this module talks to ``www.nseindia.com``'s own JSON APIs through a
 
   * ``get_history`` — EOD OHLCV from ``api/historicalOR/cm/equity`` (daily;
     weekly/monthly resampled). Intraday raises (the keyless live feed is
-    session-locked) so the registry surfaces an honest "needs a BYOK broker".
+    session-locked) so the registry surfaces an honest "end-of-day data only".
   * ``get_quote`` — ``api/quote-equity`` when the edge serves it, falling back
     to an EOD quote derived from the last two ``historicalOR`` rows (close +
     the official ``CH_PREVIOUS_CLS_PRICE``).
@@ -461,7 +461,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
             f"nse_direct: intraday timeframe {timeframe!r} is not available keyless — "
-            "add a BYOK broker (Angel One / Dhan) for NSE intraday"
+            "BSE/NSE serve end-of-day data only"
         )
     bare = _require_nse(symbol)
     days = _RANGE_DAYS.get(range_ or "", _DEFAULT_RANGE_DAYS)
