@@ -354,6 +354,11 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
 
     Routes through :func:`_yahoo_symbol` so ``RELIANCE.NS`` / ``532837.BO`` pass
     through unchanged instead of being mangled to the all-dashes form Yahoo 502s on.
+
+    Yahoo forward-fills an untraded scrip with bars at the prior close and zero
+    volume (DAL.BO: 1,238 bars, 33 traded). Those bars are not trades, so they
+    are dropped (R15-DATA-016); a zero-volume bar whose prices move (an index)
+    is kept.
     """
     normalized = _yahoo_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
@@ -364,12 +369,22 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
         raise _provider_error("history", symbol, exc) from exc
 
     bars: list[OHLCVBar] = []
+    prior_close: float | None = None
     for index, row in frame.iterrows():
         timestamp = index.to_pydatetime() if hasattr(index, "to_pydatetime") else index
         ohlc = [_num(row[column]) for column in ("Open", "High", "Low", "Close")]
         if any(value is None for value in ohlc):
             continue  # a bar with a NaN/missing price cell is dropped, never served
         open_, high, low, close = ohlc
+        volume = _num(row["Volume"]) or 0.0
+        forward_filled = (
+            volume == 0
+            and open_ == high == low == close
+            and prior_close in (None, close)  # the first bar has no prior to differ from
+        )
+        prior_close = close
+        if forward_filled:
+            continue
         bars.append(
             OHLCVBar(
                 timestamp=timestamp,
@@ -377,7 +392,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
                 high=high,
                 low=low,
                 close=close,
-                volume=_num(row["Volume"]) or 0.0,
+                volume=volume,
             )
         )
     return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)

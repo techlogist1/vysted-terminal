@@ -31,7 +31,7 @@ import math
 import re
 import time
 from collections.abc import Awaitable, Callable
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Any
 
 from models.fundamentals import FieldMeta, Fundamentals, IncomeStatement
@@ -44,6 +44,8 @@ from services import (
     yfinance_provider,
 )
 from services.errors import ProviderError
+from services.research import range_check
+from services.research.semantics import _RANGE_TOLERANCE
 
 logger = logging.getLogger(__name__)
 
@@ -692,6 +694,69 @@ async def _statement_witness(fn: Any, symbol: str) -> Any:
         return None
 
 
+def reconcile_52w_range(
+    f: Fundamentals,
+    history: tuple[list[Any], list[str]] | None,
+    today: date | None = None,
+) -> Fundamentals:
+    """Witness the provider's 52-week high/low against both Indian venues' bars.
+
+    ``history`` is :func:`services.research.range_check.get_venue_history`'s
+    ``(bars, venues)``. The last trade is the newer of the last exchange bar and
+    the provider's own trade time (``ratio_price`` as-of):
+
+      * no trade in 52 weeks → both bounds are withheld; a range over forward-
+        filled untraded days describes nothing (DAL: last trade 2025-03-12);
+      * a full year of exchange bars → a bound off the exchange extreme by more
+        than the research leg's 10% tolerance is flagged, either direction;
+      * a shorter series → only an exchange extreme OUTSIDE the provider range
+        by more than the tolerance is flagged, and the reason says "since" the
+        first bar, since the missing months could hold the provider's extreme.
+
+    Disclose, never substitute: flagged bounds keep the provider value.
+    """
+    names = [n for n in ("fifty_two_week_high", "fifty_two_week_low") if getattr(f, n) is not None]
+    if not names:
+        return f
+    bars, venues = history or ([], [])
+    trades = [ts.date() for b in bars if isinstance(ts := getattr(b, "timestamp", None), datetime)]
+    price_meta = (f.field_meta or {}).get("ratio_price")
+    if price_meta is not None and price_meta.as_of:
+        trades.append(datetime.fromisoformat(price_meta.as_of).date())
+    if not trades:
+        return f
+    last_trade = max(trades)
+    today = today or datetime.now(UTC).date()
+    if (today - last_trade).days > 365:
+        reason = f"no trades in 52 weeks (last trade {last_trade.isoformat()}); withheld"
+        return _merge_meta(f, dict.fromkeys(names, reason), {})
+    if not bars:
+        return f
+
+    full = range_check.compute_range(bars, "+".join(venues))
+    ex_high = max(float(b.high) for b in bars)
+    ex_low = min(float(b.low) for b in bars)
+    first = min(
+        ts.date() for b in bars if isinstance(ts := getattr(b, "timestamp", None), datetime)
+    )
+    exchange = {"fifty_two_week_high": ex_high, "fifty_two_week_low": ex_low}
+    flagged: dict[str, str] = {}
+    for name in names:
+        provider_value = float(getattr(f, name))
+        gap = _relative_divergence(provider_value, exchange[name])
+        if gap <= _RANGE_TOLERANCE:
+            continue
+        outside = ex_high > provider_value if name.endswith("high") else ex_low < provider_value
+        if full is None and not outside:
+            continue  # a short series cannot say the provider's extreme did not print
+        label = "high" if name.endswith("high") else "low"
+        flagged[name] = (
+            f"52-week {label} {provider_value:,.2f} is {gap:.0%} off the {' + '.join(venues)} "
+            f"exchange range {ex_low:,.2f}-{ex_high:,.2f} since {first.isoformat()}; kept, flagged"
+        )
+    return _merge_meta(f, {}, flagged)
+
+
 async def _dividend_witness(symbol: str) -> dividend_history.DividendTTM | None:
     """The paid-TTM dividend history for ``symbol``; a failed round-trip is
     ``None`` so :func:`_cached_witness` does not keep it."""
@@ -716,7 +781,9 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         provider's newest filed stockholders' equity → :func:`reconcile_book_value`;
       * for yfinance-served fundamentals, the trailing-12m dividends actually
         paid → :func:`services.dividend_history.apply_dividend_ttm`, the same leg
-        the research snapshot runs (R15-DATA-047/049).
+        the research snapshot runs (R15-DATA-047/049);
+      * for a yfinance-served 52-week range on an Indian listing, a year of
+        NSE + BSE daily bars → :func:`reconcile_52w_range` (R15-DATA-015/016).
 
     Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`;
     the reconcile functions run on every call.
@@ -726,6 +793,8 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
     check_ownership = has_ownership and ownership_check.is_applicable(f.symbol)
     check_revenue = f.revenue_ttm is not None and yfinance_served
     check_book = yfinance_served and (f.book_value is not None or f.price_to_book is not None)
+    has_range = f.fifty_two_week_high is not None or f.fifty_two_week_low is not None
+    check_range = yfinance_served and has_range and range_check.is_applicable(f.symbol)
 
     async def ownership() -> ownership_check.ExchangeOwnership | None:
         if not check_ownership:
@@ -744,12 +813,20 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
             return None
         return await _cached_witness("dividends", f.symbol, lambda: _dividend_witness(f.symbol))
 
-    exchange, annual, quarter_ends, equity, paid = await asyncio.gather(
+    async def venue_history() -> tuple[list[Any], list[str]] | None:
+        if not check_range:
+            return None
+        return await _cached_witness(
+            "range52w", f.symbol, lambda: range_check.get_venue_history(f.symbol)
+        )
+
+    exchange, annual, quarter_ends, equity, paid, venues = await asyncio.gather(
         ownership(),
         statement("income", yfinance_provider.get_income_statement, check_revenue),
         statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
         statement("equity", yfinance_provider.get_newest_equity, check_book),
         dividends(),
+        venue_history(),
     )
     if check_ownership:
         f = reconcile_ownership(f, exchange)
@@ -761,12 +838,15 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         data = f.model_dump()
         dividend_history.apply_dividend_ttm(data, paid)
         f = Fundamentals.model_validate(data)
+    if check_range:
+        f = reconcile_52w_range(f, venues)
     return f
 
 
 __all__ = [
     "CorrectnessError",
     "apply_witnesses",
+    "reconcile_52w_range",
     "reconcile_book_value",
     "reconcile_ownership",
     "reconcile_revenue",
