@@ -1266,6 +1266,63 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
     return notices
 
 
+def _staged_actions_notice(staged: list[LLMToolUseEvent]) -> LLMResearchStepEvent | None:
+    """One deterministic notice naming every host action this turn STAGED for
+    review (R15-AGENT-033): under ASK the model may still narrate "I've set BDL
+    on your chart", so the transcript states what actually happened."""
+    if not staged:
+        return None
+    summaries = []
+    for call in staged:
+        args = call.input if isinstance(call.input, dict) else {}
+        target = next(
+            (
+                args[k]
+                for k in ("symbol", "panel", "scope", "pattern")
+                if isinstance(args.get(k), str)
+            ),
+            None,
+        )
+        summaries.append(f"{call.name} {target}" if target else call.name)
+    return LLMResearchStepEvent(
+        tool_call_id=staged[-1].tool_call_id,
+        tool="host_action",
+        step_kind=NOTICE_STEP_KIND,
+        detail=(
+            "Staged for your review, not applied yet: "
+            + "; ".join(summaries)
+            + ". Accept it below to apply."
+        ),
+        status="ok",
+    )
+
+
+def _result_status(result_str: str) -> Any:
+    """The ``status`` field of a JSON tool result, or ``None``."""
+    try:
+        payload = json.loads(result_str)
+    except (TypeError, ValueError):
+        return None
+    return payload.get("status") if isinstance(payload, dict) else None
+
+
+async def _end_of_turn_notices(
+    autonomy: str | None,
+    publish_brief_calls: list[str],
+    staged_actions: list[LLMToolUseEvent],
+) -> list[LLMResearchStepEvent]:
+    """The notices that precede the turn's terminator, whichever way it ends."""
+    notices: list[LLMResearchStepEvent] = []
+    # E3.3 end-of-stream read-back: under AUTO a publish was DISPATCHED
+    # optimistically — surface any divergence the panel acked (or never acked).
+    if autonomy == "auto" and publish_brief_calls:
+        notices.extend(await _publish_divergence_notices(publish_brief_calls))
+    staged = _staged_actions_notice(staged_actions)
+    if staged is not None:
+        notices.append(staged)
+    return notices
+
+
 _HOST_ACTION_IDS: frozenset[str] | None = None
 
 
@@ -1656,6 +1713,9 @@ async def invoke_agent(
     # AND synthetic) — checked against the ack ledger at end-of-stream so a
     # publish the panel never confirmed gets an honest divergence notice.
     publish_brief_calls: list[str] = []
+    # Host actions this turn staged for review (awaiting_user_review), named in
+    # one end-of-turn notice (R15-AGENT-033).
+    staged_actions: list[LLMToolUseEvent] = []
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -1726,12 +1786,10 @@ async def invoke_agent(
                     break
                 if capped and not streamed_text:
                     yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-                # E3.3 end-of-stream read-back: under AUTO autonomy a publish
-                # was DISPATCHED optimistically — surface any divergence the
-                # panel acked (or never acked) before the terminator.
-                if autonomy == "auto" and publish_brief_calls:
-                    for notice in await _publish_divergence_notices(publish_brief_calls):
-                        yield notice
+                for notice in await _end_of_turn_notices(
+                    autonomy, publish_brief_calls, staged_actions
+                ):
+                    yield notice
                 # R11 (V2 evidence): a provider content-filter finish leaves
                 # the user with an unexplained refusal (DeepSeek V4 Flash
                 # answers host-action asks with a foreign-language refusal +
@@ -1758,9 +1816,8 @@ async def invoke_agent(
             # framing stays well-formed for the consumer.
             if capped and not streamed_text:
                 yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-            if autonomy == "auto" and publish_brief_calls:
-                for notice in await _publish_divergence_notices(publish_brief_calls):
-                    yield notice
+            for notice in await _end_of_turn_notices(autonomy, publish_brief_calls, staged_actions):
+                yield notice
             yield LLMDoneEvent()
             return
         if not pending_tools:
@@ -1853,6 +1910,8 @@ async def invoke_agent(
                 metadata={"name": tool_call.name},
             )
             messages.append(tool_result_msg)
+            if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
+                staged_actions.append(tool_call)
             # Queue a host action dispatched under AUTO for the grounded
             # read-back below. An invalid-args call was never dispatched to the
             # panel, so its {ok: false, error} result stands as is.
