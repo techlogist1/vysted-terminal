@@ -120,8 +120,8 @@ reserved for P&L data columns and caution badges.
 - `--color-positive-bright` `#4ade80` — gain flash peak.
 - `--color-negative` `#e5544b` — losses / muted red, luminance-matched to gain.
 - `--color-negative-bright` `#f87171` — loss flash peak.
-- `--color-warning` `#e0a13a` — caution badge (stale data, paper-vs-live, kill-switch
-  armed). Yellower than the brand amber and only ever appears as a labelled badge, so
+- `--color-warning` `#e0a13a` — caution badge (stale data, degraded connection).
+  Yellower than the brand amber and only ever appears as a labelled badge, so
   it does not read as the accent.
 
 **Amber-vs-loss separation note.** The amber brand accent (hue ~70) and the negative

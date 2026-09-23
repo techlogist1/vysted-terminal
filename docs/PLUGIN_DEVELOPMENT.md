@@ -261,12 +261,13 @@ Tauri Rust core (`Command::new`) — **never via Python `subprocess.Popen`**
 on Windows (CLAUDE.md Gotcha). The sidecar talks to it as an MCP client
 via `sidecar/services/mcp_client.py`.
 
-### 4. Trading-system wrapper plugin (`plugins/tradesa-v2/`, new in v0.6.5)
+### 4. Read-only wrapper plugin (external data systems) (`plugins/tradesa-v2/`, new in v0.6.5)
 
-A first-class pattern for surfacing an external trading bot — your own
-or a third party's — as a Vysted plugin. The wrapper is observation-only
-by default (READ-ONLY); write capability is added later under §6.5
-safety-layer review.
+A first-class pattern for surfacing an external system — your own bot,
+service, or a third party's — as a Vysted plugin. The wrapper is
+observation-only (READ-ONLY) by contract; Vysted has no order-placement
+path (D81, 23 Sep 2026), so no wrapper plugin can ever gain write
+capability through this pattern.
 
 **Layout:**
 
@@ -351,7 +352,7 @@ host's `src/lib/plugin-bootstrap.ts` reads it via `PLUGIN_COMPANIONS`
 and merges into the synthesized `VystedModule`. The locked contract
 (`types/plugin.ts`) stays serializable — no React types leak in.
 
-**TauricResearch and future trading-system plugins** follow this exact
+**TauricResearch and future read-only wrapper plugins** follow this exact
 shape — write `connection.ts` against the bot's data surface, supply a
 `panels.ts` and per-panel components, declare the same capability flags,
 register in `BUNDLED_PLUGINS` + `PLUGIN_COMPANIONS`. The whole pattern

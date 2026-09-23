@@ -115,7 +115,8 @@ Catalog-projected data + analysis tools (each under its catalog id):
 `earnings_estimates`, `analyst_history`, `analyst_individual`,
 `price_target_history`, `sec_filings_list`, `sec_filing_content`,
 `sec_insider_transactions`, `price_option`, `compute_greeks`,
-`price_bond`, `yield_curve_value`, `broker_portfolio`.
+`price_bond`, `yield_curve_value`. No broker tool exists — Vysted has no
+brokerage connection (D81, 23 Sep 2026).
 
 Hand-written agent / workspace / workflow tools:
 

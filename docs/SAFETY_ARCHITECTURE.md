@@ -1,252 +1,148 @@
-# Vysted Terminal — Safety Architecture (BLUEPRINT §6.5)
+# Vysted Terminal — Agent-Write Safety (BLUEPRINT §6.5)
 
-> **Status (2026-05-16, v0.5.0 release):** the dedicated §6.5 8-point safety
-> audit suite (`sidecar/tests/test_safety_end_to_end.py`) passes 9/9. Capture
-> artifacts live in `docs/screenshots/v0.5.0/safety-audit/`. Live execution
-> capability is ENABLED; the conditional-revert clause stays available for
-> v0.5.1 if any subsequent audit fails.
+> **Status (D81, 23 Sep 2026):** trading was removed from the product
+> permanently — no broker connectivity, order placement or simulated account
+> exists anywhere. This document now describes the safety model for the
+> capability that remains: the agent writing to the user's own workspace
+> (panels, chart, watchlist, the tracked portfolio, notes, screens, layouts,
+> settings). The no-trading invariant is pinned by
+> `sidecar/tests/test_no_trading_surface.py`. History of the removed
+> execution-safety model is in `CHANGELOG.md` and in git before the removal
+> commit.
 
-Vysted Terminal v0.5.0 places live orders against real brokerage accounts.
-BLUEPRINT §6.5 prescribes eight non-negotiable safeguards; each is enforced
-in code, at the architectural level rather than by convention, and verified
-by the dedicated audit suite that gates each release.
+Vysted Terminal has no brokerage connection. It cannot place, stage or
+simulate a trade, and it has no simulated account. What it _can_ do is act
+on the user's local workspace — open panels, set the chart symbol, edit the
+watchlist, add or edit tracked-portfolio positions, write notes, save
+screens and layouts, and change a small set of settings. BLUEPRINT §6.5
+covers the safety model for that write surface.
 
-This document is the cross-cutting reference: per-guarantee implementation
-file:line pointers, capture-artifact paths, and the revert procedure if any
-guarantee fails a future audit.
+## 1. What the terminal can and cannot change
 
-## The 8 non-negotiables
+- **Cannot**: connect to a broker, place/stage/simulate an order, or read or
+  write a simulated brokerage account. There is no code path anywhere in the
+  product that does any of this.
+- **Can**: run the 18 catalog host actions, grouped by kind:
 
-| #   | Guarantee               | Enforcement                                                      | Audit artifact                                                   |
-| --- | ----------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| 1   | Paper mode default      | `BrokerAdapter.__init__` hard-codes `_mode = "paper"`            | `safety-audit/paper-default-proof.log`                           |
-| 2   | Every order confirmed   | `_place_confirmed` is private; only `confirm_and_place` calls it | `safety-audit/no-bypass-proof.log`                               |
-| 3   | Position-size limits    | `propose_order` raises `BrokerError` before any broker call      | `safety-audit/position-limit-proof.log`                          |
-| 4   | Append-only audit log   | SQLite triggers `RAISE(ABORT)` on UPDATE/DELETE                  | `safety-audit/append-only-proof.log`                             |
-| 5   | Global kill switch < 2s | `KillSwitchBus.fire` instruments p50/p95/max; benchmark gate     | `safety-audit/kill-switch-benchmark.json`                        |
-| 6   | AI-order gate           | Agent tool registry refuses placement; propose→confirm only      | `safety-audit/ai-order-gate-proof.log`                           |
-| 7   | Read-only mode          | `_read_only` flag checked in `propose_order` + at confirm        | `safety-audit/read-only-proof.log`                               |
-| 8   | Layered disclaimers     | First-launch + per-broker (keychain) + per-session (sidecar)     | `safety-audit/disclaimer-flow-proof.log` + `static-ip-proof.log` |
+| Kind         | Host actions                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `panel`      | `open_panel`, `close_panel`, `focus_panel`, `arrange_layout`, `open_company_overview`, `publish_brief`, `write_screener_filters` |
+| `chart`      | `set_chart_symbol`, `set_chart_indicators`                                                                                       |
+| `watchlist`  | `add_to_watchlist`, `remove_from_watchlist`                                                                                      |
+| `data-write` | `portfolio_add_position`, `portfolio_update_position`, `portfolio_delete_position`, `write_note`, `save_layout`, `save_screen`   |
+| `settings`   | `set_region`                                                                                                                     |
 
-## #1 — Paper mode is the hard-coded default
+## 2. The proposed-changes gate
 
-**File**: `sidecar/services/broker_base.py:107` — `self._mode: BrokerMode = "paper"`
-inside `BrokerAdapter.__init__`.
+**Files**: `src/store/proposed-changes.ts`, `src/lib/host-actions.ts`,
+`src/modules/chat/ProposedChangesReview.tsx`.
 
-**Why architectural, not by convention**: there is no constructor argument
-that flips the default. The ONLY path to live mode is `await
-adapter.set_mode("live")`, which is gated by the UI's first-live-order
-disclaimer (`src/modules/safety/DisclaimerFlow.tsx`).
+Every host action the agent wants to run is staged as a `ProposedChange`
+before it lands. Under ASK autonomy, every kind is staged for the user to
+accept or reject in the review bar. Under AUTO autonomy, every kind
+auto-applies on enqueue — there is no exempt kind, because the one kind that
+used to be exempt (`order`) no longer exists. A persisted AUTO autonomy
+setting restores with the workspace blob (`src/lib/workspace.ts`).
 
-**Verification**: `test_safety_end_to_end.py::test_audit_1_paper_mode_default`
-walks all seven adapter classes + the parametrised ccxt adapter and
-asserts `mode == "paper"` immediately after construction. A grep across
-`sidecar/services/brokers/` for any `_mode = "live"` line must be empty.
+## 3. Honest narration and read-back
 
-## #2 — Every order is confirmed (no bypass path)
+`sidecar/services/agent_runtime.py` `_build_local_tools` reports each host
+action back to the model as `awaiting_user_review` (staged, ASK) or
+`dispatched` (applied, AUTO) — the agent is never told a change landed when
+it is still pending. `services/action_ledger.py` is the in-process
+read-back store behind `POST /agents/actions/ack`; a divergence between what
+the agent proposed and what the user actually accepted (e.g. a partial
+accept) is surfaced back to the model on its next turn.
 
-**File**: `sidecar/services/broker_base.py:182` — `BrokerAdapter.propose_order`
-returns a `BrokerOrderProposal` and writes an `order-proposed` audit row.
+## 4. Read-intent strip
 
-**File**: `sidecar/services/broker_base.py:259` — `BrokerAdapter.confirm_and_place`
-requires `human_confirmed: bool`. When `human_confirmed=False` it writes an
-`order-declined` audit row and raises `BrokerError`. When `human_confirmed=True`
-it re-checks the kill switch + read-only flag, then calls
-`_place_confirmed`.
+`sidecar/services/planner.py` `classify_intent` and its
+`_READ_SAFE_PANEL_ACTIONS` list route read-only requests (e.g. "show me
+AAPL's chart") straight through without staging a proposed change; whether a
+tool call counts as read-only comes from the capability catalog's
+`read_only` flag, not from a special case in the planner.
 
-**Architectural property**: `_place_confirmed` is the only method that
-actually talks to the broker SDK; it's private (leading underscore by
-convention, enforced by inspection grep in `test_audit_2`) and the only
-production call site is `confirm_and_place`. There is no path from any
-caller — including AI agents and workflow nodes — that places an order
-without `human_confirmed=True` being passed in.
+## 5. No hands on its own leash
 
-## #3 — Position-size limits configurable per plugin
+`sidecar/tests/test_toolbelt_integrity.py` enforces
+`FORBIDDEN_TOOL_SUBSTRINGS` — no tool id or MCP-projected name may contain a
+placement-shaped substring (`place_`, `submit_`, `execute_`, `auto_approve`,
+and their trading-adjacent siblings). This guards the capability catalog
+against ever re-introducing an execution tool, agent-authored or otherwise.
 
-**File**: `sidecar/services/broker_base.py:78` — `BrokerAdapter.DEFAULT_LIMITS`:
+## 6. Spend ceiling
 
-- `maxOrderValueAccountCurrency = 10_000`
-- `maxPercentOfAccount = 10.0`
-- `maxPositionSizePerSymbol = 1_000`
-- `dailyLossCircuitBreaker = 2_000`
+`sidecar/services/budget_guard.py` `BudgetGuard` meters every round of a
+durable Delegate run (tokens, spend, wall-clock, steps) via
+`invoke_agent`'s `on_round_usage` callback. The first ceiling breach aborts
+the run to `error` with a stated reason and a resumable checkpoint. A
+running run can also be stopped directly: `POST /runs/{id}/cancel`.
 
-**Enforcement**: `propose_order` raises `BrokerError` BEFORE any broker
-API call if the proposed `quantity * limit_price` exceeds the cap.
+## 7. Plugins
 
-**Configurability**: each plugin can override `DEFAULT_LIMITS` at class
-definition time; users can raise per-broker limits in plugin settings
-(audit-logged as `mode-changed` rows). The `dailyLossCircuitBreaker` is
-the canonical example — it flips the adapter to `read_only=True` when
-realised + unrealised losses cross the threshold for the day.
+Plugin safety is host-enforced, not plugin-authored. The
+**read-only-wrapper rule** — the contract for any future data-source plugin
+— stays exactly as it was under the trading design, because it never
+depended on trading:
 
-## #4 — Audit log append-only at the DB level
+1. No `insert_/update_/delete_/place_/submit_/execute_/create_…` method on
+   the provider's public surface (`inspect.getmembers` audit).
+2. No non-GET route on the plugin's router (`router.routes` audit).
+3. `capabilities.supportsControlPlane = false`.
 
-**Files**:
+## 8. Secrets
 
-- `sidecar/models/audit_log.py:23` — `AUDIT_LOG_DDL` with two triggers:
-  - `audit_orders_no_update` BEFORE UPDATE → `RAISE(ABORT, "audit log is append-only: UPDATE not permitted")`
-  - `audit_orders_no_delete` BEFORE DELETE → `RAISE(ABORT, "audit log is append-only: DELETE not permitted")`
-- `sidecar/services/audit_log.py:55` — writer connection helper
-- `sidecar/services/audit_log.py:72` — reader connection helper (`PRAGMA query_only=ON`)
+BYOK credentials live in the OS keychain (Tauri `keychain_set/get/delete`).
+The sidecar cannot read the keychain; the renderer passes a secret in the
+request only where a plugin needs one (a header, never the body), and it is
+never logged, echoed, or persisted beyond process memory. Transport is
+loopback-only.
 
-**Why DB-level not convention**: even if a broker adapter mistakenly issued
-an UPDATE/DELETE, SQLite would refuse the statement at the driver level.
-The trigger fires before the row is touched. The reader connection
-additionally enforces `query_only=ON` so a misconfigured reader role
-cannot accidentally write either.
+## 9. Accepted gaps (stated explicitly)
 
-**Capture**: `append-only-proof.log` records the literal exception
-messages from real `UPDATE` and `DELETE` attempts.
+- **No durable record of agent writes.** The former append-only audit log
+  (`audit_orders`) existed only to record order placement; it went with the
+  feature (§10). The surviving read-back (`action_ledger.py`) is process
+  memory with a 10-minute TTL — a host action applied under AUTO autonomy
+  has no durable trail after that window. Tracked separately as
+  R15-CODE-FRONTEND-013.
+- **No stop control for AUTO beyond reject or run-cancel.** There is no
+  kill switch any more (§10) and no per-action pause; the available control
+  is rejecting a staged change under ASK, or cancelling a running Delegate
+  run. Tracked separately as R15-CODE-FRONTEND-008.
 
-## #5 — Global kill switch < 2s, instrumented
+## 10. History: what D81 removed
 
-**File**: `sidecar/services/kill_switch.py:104` — `KillSwitchBus.fire`
-records `perf_counter_ns` at fire time, dispatches to every subscriber via
-`asyncio.gather`, captures per-subscriber ack times, computes p50 / p95 /
-max into `KillSwitchFireResult`.
+Operator Tier-4 sign-off, 23 Sep 2026 (`docs/redesign/DECISIONS_FOR_OPERATOR.md`
+2.3–2.5). The former eight order non-negotiables (paper-mode default,
+confirm-before-place, position-size limits, append-only audit log, kill
+switch, AI-order gate, read-only mode, layered disclaimers) existed
+exclusively to gate broker order placement. The census that decided this
+(`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md` §0) found:
 
-**Mandatory subscribers**: every `BrokerAdapter.__init__` subscribes
-(`sidecar/services/broker_base.py:110`); workflow runs subscribe per-run;
-pending-proposal handlers subscribe when a proposal is created. There is
-no way to instantiate an adapter that skips subscription.
+- the kill-switch bus's only subscriber was `BrokerAdapter.__init__`;
+- the only readers of `is_fired` were the order gates;
+- nothing in the UI ever fired the kill switch or listened for its event;
+- every writer of the append-only audit table was a trading path.
 
-**Audit budget**: the dedicated audit asserts `max_ack_ms < 2000`.
-Real measured ack time on the v0.5.0 release configuration (7 brokers +
-3 workflows + 2 pending proposals = 12 subscribers): **max_ack_ms ≈ 20 ms**
-(p50 ≈ 11 ms, p95 ≈ 20 ms). Capture in `kill-switch-benchmark.json`.
-
-**OS-wide trigger**: in addition to the in-window toolbar button, Vysted
-registers `CmdOrCtrl+Shift+K` as an OS-wide keyboard shortcut via
-`tauri-plugin-global-shortcut` (`src-tauri/src/kill_switch.rs`). The
-shortcut fires even when Vysted is not the focused application.
-
-## #6 — AI-order gate
-
-**Tightened from BLUEPRINT in v0.5.0 (Tier-3 operator-brief override):**
-the BLUEPRINT mentions an "optional auto-approve mode" that "exists but
-is off by default and must be enabled explicitly, per agent." v0.5.0
-ships **NO auto-approve mode at all**. AI agents and workflows can
-RECOMMEND orders but CANNOT place them — every order placement is
-operator-initiated through the same human-confirmation gate.
-
-**Files**:
-
-- `sidecar/services/agent_tools.py:41` — tool registry. No
-  `place_order` / `submit_order` / `execute_order` tool exists. The
-  registry only ships `backtest_summary`, `price_data`, `fundamentals`.
-- `sidecar/services/broker_base.py:182` — `propose_order` accepts
-  `source="ai-agent" | "workflow"` and writes an audit row, but does NOT
-  place. The proposal lands in the pending-orders inbox (frontend
-  `src/store/orders.ts`).
-- `src/modules/safety/OrderConfirmationDialog.tsx` — renders the
-  AI-variant of the dialog with Confirm DISABLED by default and a
-  banner naming the originating agent. The user must check
-  "I reviewed this AI-proposed order" to enable Confirm. No auto-approve
-  checkbox is exposed.
-
-**Verification**: `test_audit_6_ai_order_gate` confirms (a) no
-order-placing tool is registered, (b) AI-proposed order goes through the
-propose → confirm flow, (c) confirm with `human_confirmed=False` raises
-
-- writes `order-declined`, (d) grep for `auto_approve` / `autoApprove`
-  assignment patterns finds zero hits.
-
-## #7 — Read-only mode at adapter boundary
-
-**File**: `sidecar/services/broker_base.py:184` — `propose_order` checks
-`self._read_only` and raises `BrokerError` BEFORE any other gate, BEFORE
-audit-log write, BEFORE broker SDK call.
-
-**File**: `sidecar/services/broker_base.py:269` — `confirm_and_place`
-re-checks `read_only` after the human confirms; race-condition safe.
-
-**Use cases**:
-
-- User toggles read-only via `/brokers/{id}/read-only`.
-- Kill switch fire sets `_read_only = True` on every adapter (the bus
-  handler in `_on_kill_switch`).
-- Daily-loss circuit breaker (per `PositionLimits.dailyLossCircuitBreaker`)
-  flips to read-only when realised + unrealised loss exceeds the cap.
-
-## #8 — Layered disclaimers
-
-Three surfaces, three storage backends:
-
-| Surface                      | Stored where                                      | Reset condition       |
-| ---------------------------- | ------------------------------------------------- | --------------------- |
-| First-launch TOS             | OS keychain `broker:_meta:first-launch-tos`       | User deletes app data |
-| Per-broker first-connect     | OS keychain `broker:<id>:_meta:first-connect-ack` | User deletes app data |
-| First-live-order-per-session | Sidecar in-memory `disclaimer_session`            | Sidecar restart       |
-
-**Files**:
-
-- `src/lib/keychain.ts:30` — `KEYCHAIN_NAMESPACES.broker(id, field)`
-  builds the canonical secret-id string.
-- `sidecar/services/disclaimer_session.py` — in-memory session store.
-- `sidecar/routers/safety.py:115` — `POST /safety/disclaimer-ack` records
-  the session ack; audit-logged as `disclaimer-ack`.
-- `src/modules/safety/DisclaimerFlow.tsx` — the three UI surfaces.
-
-**Static-IP UX (Kite Connect)**: SEBI/NSE retail-algo compliance (in
-effect 2026-04-01) requires a registered static IP for order placement.
-The plugin (`src/modules/broker-connect/kite-static-ip-banner.tsx`)
-polls `/safety/static-ip-status?configured=<ip>` when Kite is in live
-mode. Mismatch → banner; match → no banner; the order placement path
-does NOT pre-block (a user behind VPN/VPS with the correct static IP
-may still succeed).
-
-## Conditional revert procedure (if any future audit fails)
-
-Operator-brief mandated path. Per the v0.5.0 plan §"Conditional revert":
-
-If `test_safety_end_to_end.py` fails any of audits 1–8 against a new
-build:
-
-1. The affected broker's live capability reverts to **read-only-forced**:
-   set the adapter's `_read_only = True` in its `__init__` regardless of
-   user setting; override `_place_confirmed` to raise:
-   ```python
-   raise BrokerError(
-       f"{self.BROKER_ID}: live execution disabled pending safety-layer "
-       "audit fix in v0.5.1 (audit failure: <specific guarantee>)"
-   )
-   ```
-2. **The other brokers and the safety layer foundation still ship.** The
-   audit log, kill switch, propose → confirm flow, and read-only paths
-   stay live for the unaffected brokers.
-3. `BLOCKERS.md` gets a v0.5.1 entry naming the specific safety gap and
-   the fix path.
-4. `CHANGELOG.md` records the carry-forward at the affected version's
-   entry.
-
-The brokers can ship without live execution; **the safety layer cannot
-ship broken.**
-
-## Foundation file map
-
-| File                                      | Role                                                                          |
-| ----------------------------------------- | ----------------------------------------------------------------------------- |
-| `types/safety.ts`                         | Wire-level contracts (TS, foundation-frozen)                                  |
-| `types/broker.ts`                         | Broker wire contracts (foundation-frozen)                                     |
-| `sidecar/models/safety.py`                | Pydantic mirrors of `types/safety.ts`                                         |
-| `sidecar/models/broker.py`                | Pydantic mirrors of `types/broker.ts`                                         |
-| `sidecar/models/audit_log.py`             | `AUDIT_LOG_DDL` with append-only triggers                                     |
-| `sidecar/services/audit_log.py`           | Writer + reader connection roles; append/tail/export                          |
-| `sidecar/services/kill_switch.py`         | `KillSwitchBus` with instrumented `fire`                                      |
-| `sidecar/services/broker_base.py`         | `BrokerAdapter` ABC with all 8 enforcements                                   |
-| `sidecar/services/static_ip_detector.py`  | Public IP detection helper                                                    |
-| `sidecar/services/disclaimer_session.py`  | Session-scoped ack store                                                      |
-| `sidecar/routers/safety.py`               | `/safety/*` HTTP surfaces                                                     |
-| `src-tauri/src/kill_switch.rs`            | OS-wide `CmdOrCtrl+Shift+K` shortcut + IPC                                    |
-| `src/store/safety.ts`                     | Frontend safety state                                                         |
-| `src/store/orders.ts`                     | Pending-order proposals inbox                                                 |
-| `src/modules/safety/*.tsx`                | KillSwitchToolbar / OrderConfirmationDialog / DisclaimerFlow / AuditLogViewer |
-| `src/modules/broker-connect/*.tsx`        | BrokerConnectPanel / BrokerOrderEntry / kite-static-ip-banner                 |
-| `sidecar/tests/test_safety_end_to_end.py` | The dedicated audit suite this doc describes                                  |
+With no orders left, there was nothing left for any of these mechanisms to
+gate, so they were deleted rather than kept as dead weight: the broker
+adapters and registry, `broker_base.py`, `kill_switch.py`,
+`services/audit_log.py`, `disclaimer_session.py`,
+`static_ip_detector.py`, the `/brokers/*` and `/safety/*` routers, the
+`PositionLimits` settings (`maxPercentOfAccount`,
+`dailyLossCircuitBreaker` — never exposed in any settings UI), the
+broker-connect and order-review panels, and the OS-wide kill-switch
+shortcut. Full inventory, evidence and file-by-file disposition:
+`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`. The removal
+commits themselves are the reference for exact prior behaviour; reverting
+them restores the whole trading layer, but that is not a decision this doc
+makes.
 
 ## Sources
 
-- BLUEPRINT.md §6.4 — Execution liability
-- BLUEPRINT.md §6.5 — Safety architecture for execution (8 non-negotiables)
-- `docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md` — the v0.5.0 plan
-- `docs/BROKER_INTEGRATIONS.md` — per-broker setup + credentials
+- BLUEPRINT.md §6.4 — Liability
+- BLUEPRINT.md §6.5 — Agent-write safety
+- `docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md` — the D81 removal
+  plan and evidence
+- `docs/redesign/DECISIONS_FOR_OPERATOR.md` — 2.3, 2.4, 2.5 (closed)

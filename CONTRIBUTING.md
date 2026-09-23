@@ -6,7 +6,7 @@ reference for when contributions reopen: environment setup, coding standards, th
 workflow, the Contributor License Agreement, and a note on the plugin contract.
 
 **Scope note.** Phases 0–10 are merged (data layer, charting, agentic copilot, node editor +
-backtest, broker read-only + §6.5 safety, macro/research/QuantLib, integrations) and an
+backtest, agent-write safety, macro/research/QuantLib, integrations) and an
 agent-native redesign is in flight — see [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the
 honest works/buggy/deferred map and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md) for the architecture.
 If you are planning a non-trivial contribution, open an issue first to confirm it aligns with the
