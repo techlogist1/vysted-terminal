@@ -347,6 +347,18 @@ def test_apply_criteria_sort_by_field_with_none_last() -> None:
     assert [r.symbol for r in desc] == ["A", "B", "C"]
 
 
+def test_apply_criteria_sorts_by_a_field_the_result_row_does_not_carry() -> None:
+    """R15-UI-006: ``sort_by`` accepts any screener numeric field; ``beta`` is
+    not a results-table column, and the rows still rank by it."""
+    rows = [
+        (_make_fundamentals("HI", beta=1.8), _make_quote("HI")),
+        (_make_fundamentals("LO", beta=0.4), _make_quote("LO")),
+        (_make_fundamentals("MID", beta=1.1), _make_quote("MID")),
+    ]
+    ranked = screener.apply_criteria(rows, [], sort_by="beta", sort_dir="asc")
+    assert [r.symbol for r in ranked] == ["LO", "MID", "HI"]
+
+
 # ---------------------------------------------------------------------------
 # CriterionGroup — AND/OR boolean tree (003 rebuild OR-grammar)
 # ---------------------------------------------------------------------------

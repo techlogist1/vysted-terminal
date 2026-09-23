@@ -376,7 +376,9 @@ def apply_criteria(
     currency first — ranking RELIANCE.NS's INR market cap against AAPL's USD
     one as a single number is a fabricated comparison, not a ranking.
     """
-    matched: list[ScreenerResultRow] = []
+    # The sort value is read off the pair, not the row: a row carries only the
+    # table's columns, and ``sort_by`` may be any screener numeric field.
+    matched: list[tuple[float | None, ScreenerResultRow]] = []
     for fundamentals, quote in rows:
         passed_indices: list[int] = []
         if group is not None:
@@ -393,35 +395,38 @@ def apply_criteria(
             if not all_passed:
                 continue
         matched.append(
-            ScreenerResultRow(
-                symbol=fundamentals.symbol,
-                name=fundamentals.name,
-                sector=fundamentals.sector,
-                industry=fundamentals.industry,
-                market_cap=fundamentals.market_cap,
-                pe_ratio=fundamentals.pe_ratio,
-                forward_pe=fundamentals.forward_pe,
-                peg_ratio=fundamentals.peg_ratio,
-                price_to_book=fundamentals.price_to_book,
-                dividend_yield=fundamentals.dividend_yield,
-                roe=fundamentals.roe,
-                debt_to_equity=fundamentals.debt_to_equity,
-                price=quote.price if quote is not None else None,
-                change_percent_1d=quote.change_percent if quote is not None else None,
-                volume=quote.volume if quote is not None else None,
-                matched_criteria=passed_indices,
-                currency=fundamentals.currency,
+            (
+                _numeric_field_value(fundamentals, quote, sort_by),
+                ScreenerResultRow(
+                    symbol=fundamentals.symbol,
+                    name=fundamentals.name,
+                    sector=fundamentals.sector,
+                    industry=fundamentals.industry,
+                    market_cap=fundamentals.market_cap,
+                    pe_ratio=fundamentals.pe_ratio,
+                    forward_pe=fundamentals.forward_pe,
+                    peg_ratio=fundamentals.peg_ratio,
+                    price_to_book=fundamentals.price_to_book,
+                    dividend_yield=fundamentals.dividend_yield,
+                    roe=fundamentals.roe,
+                    debt_to_equity=fundamentals.debt_to_equity,
+                    price=quote.price if quote is not None else None,
+                    change_percent_1d=quote.change_percent if quote is not None else None,
+                    volume=quote.volume if quote is not None else None,
+                    matched_criteria=passed_indices,
+                    currency=fundamentals.currency,
+                ),
             )
         )
     sign = -1.0 if sort_dir == "desc" else 1.0
     matched.sort(
-        key=lambda row: (
-            _currency_sort_key(row.currency),
-            getattr(row, sort_by, None) is None,
-            sign * (getattr(row, sort_by, None) or 0.0),
+        key=lambda pair: (
+            _currency_sort_key(pair[1].currency),
+            pair[0] is None,
+            sign * (pair[0] or 0.0),
         ),
     )
-    return matched
+    return [row for _value, row in matched]
 
 
 # ---------------------------------------------------------------------------
