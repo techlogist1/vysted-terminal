@@ -118,6 +118,111 @@ def _extract_status_from_str(text: str) -> int | None:
     return None
 
 
+#: Body-aware rules, checked in order BEFORE the status-only fallbacks: the same
+#: status means different things (a no-credit 429 is not a wait-a-minute 429, a
+#: 400 can be a bad key, a bad model id or an overflowing prompt). Each row is
+#: (provider or None for any, statuses or None for any/no status, lower-case
+#: body markers (any one; empty = always), code, message, action). ``{label}``
+#: is the provider name; ``{model}`` is the model named in an Ollama body.
+_BODY_RULES: tuple[
+    tuple[str | None, frozenset[int] | None, tuple[str, ...], str, str, str], ...
+] = (
+    (
+        "openrouter",
+        frozenset({429}),
+        ("upstream_provider_shared_pool", ":free"),
+        "free_pool_busy",
+        "{label}'s free-model pool is busy right now.",
+        "Try again shortly, or pick a paid model in Settings.",
+    ),
+    (
+        None,
+        frozenset({400}),
+        _INVALID_KEY_MARKERS,
+        "auth",
+        "The {label} API key was rejected — check it in Settings.",
+        "Re-enter the API key in Settings.",
+    ),
+    (
+        None,
+        frozenset({400, 429}),
+        ("credit", "quota", "billing"),
+        "insufficient_credit",
+        "Your {label} account is out of credit or quota.",
+        "Add credit or check your plan, or switch provider in Settings.",
+    ),
+    (
+        None,
+        frozenset({400}),
+        ("not a valid model", "invalid model", "model not found", "model_not_found"),
+        "model_not_found",
+        "The requested model is not available on {label} — pick another model.",
+        "Choose a different model in Settings.",
+    ),
+    (
+        None,
+        frozenset({413}),
+        (),
+        "context_overflow",
+        "The conversation is too long for this {label} model.",
+        "Start a new chat or pick a model with a larger context window.",
+    ),
+    (
+        None,
+        frozenset({400}),
+        ("context length", "context_length", "maximum context", "context window", "too long"),
+        "context_overflow",
+        "The conversation is too long for this {label} model.",
+        "Start a new chat or pick a model with a larger context window.",
+    ),
+    (
+        "ollama",
+        None,
+        ("all connection attempts failed", "connection refused", "failed to connect"),
+        "ollama_not_running",
+        "Ollama is not running.",
+        "Start Ollama (open the app or run `ollama serve`), then try again.",
+    ),
+    (
+        "ollama",
+        frozenset({404}),
+        ("pull", "not found"),
+        "model_not_pulled",
+        "The model {model} is not downloaded in Ollama.",
+        "Run `ollama pull {model}`, or pick an installed model in Settings.",
+    ),
+)
+
+_OLLAMA_MODEL_RE = re.compile(r"""model ["']([^"']+)["']""")
+
+#: OpenRouter echoes the account's ``user_id`` in error bodies; keep it out of
+#: the detail the UI shows (and users paste into bug reports).
+_USER_ID_RE = re.compile(r"""(["']user_id["']\s*:\s*)(["'])[^"']*\2""")
+
+
+def _match_body_rule(
+    provider_id: str | None, status: int | None, raw: str, label: str
+) -> HumanError | None:
+    """The first :data:`_BODY_RULES` row matching provider, status and body."""
+    low = raw.lower()
+    for provider, statuses, markers, code, message, action in _BODY_RULES:
+        if provider is not None and provider != provider_id:
+            continue
+        if statuses is not None and status not in statuses:
+            continue
+        if markers and not any(marker in low for marker in markers):
+            continue
+        model_match = _OLLAMA_MODEL_RE.search(raw)
+        model = model_match.group(1) if model_match else "<model>"
+        return HumanError(
+            message=message.format(label=label, model=model),
+            action=action.format(label=label, model=model),
+            detail=raw,
+            code=code,
+        )
+    return None
+
+
 def humanize(
     provider_id: str | None,
     exc: Exception | None = None,
@@ -133,11 +238,15 @@ def humanize(
     3. Pattern-match ``str(exc)`` for the OpenAI "Error code: NNN" shape.
     4. Class name heuristics (timeout, connection, SSL, JSON).
 
-    The ``detail`` argument (or ``str(exc)`` when absent) becomes the raw
-    text the UI hides behind a "Show details" toggle.
+    The body-aware :data:`_BODY_RULES` are checked before the status-only
+    classification. The ``detail`` argument (or ``str(exc)`` when absent),
+    with any ``user_id`` scrubbed, becomes the raw text the UI hides behind a
+    "Show details" toggle.
     """
     label = _provider_label(provider_id)
     raw = detail or (str(exc) if exc is not None else None)
+    if raw:
+        raw = _USER_ID_RE.sub(r"\1\2<redacted>\2", raw)
 
     # Resolve the HTTP status if not explicitly provided.
     if status is None and exc is not None:
@@ -157,6 +266,11 @@ def humanize(
                     status = val
         if status is None and raw:
             status = _extract_status_from_str(raw)
+
+    if raw:
+        matched = _match_body_rule(provider_id, status, raw, label)
+        if matched is not None:
+            return matched
 
     # -----------------------------------------------------------------------
     # HTTP status classification
