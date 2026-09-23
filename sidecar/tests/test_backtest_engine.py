@@ -17,6 +17,7 @@ from services.backtest_engine import (
     BacktestStrategy,
     Bar,
     SimPortfolio,
+    _compute_metrics,
 )
 
 
@@ -375,3 +376,46 @@ async def test_multi_symbol_sharpe_does_not_scale_with_symbol_count() -> None:
     assert sharpes[1] != 0.0
     assert sharpes[1] == pytest.approx(sharpes[2], rel=1e-9)
     assert sharpes[1] == pytest.approx(sharpes[4], rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-010: Sortino downside deviation
+# ---------------------------------------------------------------------------
+
+
+def _curve_from_returns(returns: list[float], initial_capital: float = 100_000.0):
+    equity = initial_capital
+    curve = [
+        backtest_engine.EquityCurvePoint(timestamp="2025-01-01", equity=equity, drawdownPct=0.0)
+    ]
+    peak = equity
+    for i, r in enumerate(returns):
+        equity *= 1.0 + r
+        peak = max(peak, equity)
+        drawdown = (equity - peak) / peak if peak > 0 else 0.0
+        curve.append(
+            backtest_engine.EquityCurvePoint(
+                timestamp=f"2025-01-{2 + i:02d}", equity=equity, drawdownPct=drawdown
+            )
+        )
+    return curve
+
+
+def test_sortino_uses_downside_deviation_not_loss_subset_stdev() -> None:
+    """R15-DATA-010: Sortino's denominator is sqrt(mean(min(r,0)**2)), not
+    the stdev of the loss subset — the latter overstated Sortino 41x on
+    this fixture (261.93 vs the textbook 6.35)."""
+    returns = [0.02] * 10 + [-0.05, -0.051]
+    curve = _curve_from_returns(returns)
+    metrics = _compute_metrics(curve, [], 100_000.0)
+    assert metrics.sortino == pytest.approx(6.35, abs=0.01)
+
+
+def test_sortino_nonzero_for_identical_losses() -> None:
+    """R15-DATA-010 (case the fix was not written against): two identical
+    losses must not zero out Sortino — the old ``pstdev`` of a two-element
+    identical-loss subset was 0, so the ``> 0`` guard silently gave 0.00."""
+    returns = [0.01, 0.01, -0.03, -0.03]
+    curve = _curve_from_returns(returns)
+    metrics = _compute_metrics(curve, [], 100_000.0)
+    assert metrics.sortino != 0.0

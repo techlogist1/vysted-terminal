@@ -256,15 +256,19 @@ def _compute_metrics(
 
     mean_return = statistics.fmean(returns) if returns else 0.0
     stdev = statistics.pstdev(returns) if len(returns) > 1 else 0.0
-    downside = [r for r in returns if r < 0]
-    downside_stdev = statistics.pstdev(downside) if len(downside) > 1 else 0.0
+    # Downside deviation (not the stdev of the loss subset): the RMS of
+    # each period's shortfall below zero, over ALL periods — a period with
+    # a positive return contributes 0, not nothing.
+    downside_dev = (
+        math.sqrt(sum(min(r, 0.0) ** 2 for r in returns) / len(returns)) if returns else 0.0
+    )
 
     # Annualised — 252 trading days. Sharpe and Sortino without a
     # risk-free rate (v0.5.0 simplification documented in
     # types/backtest.ts).
     annualised_return = (1 + mean_return) ** 252 - 1 if mean_return else 0.0
     sharpe = (mean_return / stdev) * math.sqrt(252) if stdev > 0 else 0.0
-    sortino = (mean_return / downside_stdev) * math.sqrt(252) if downside_stdev > 0 else 0.0
+    sortino = (mean_return / downside_dev) * math.sqrt(252) if downside_dev > 0 else 0.0
 
     max_drawdown_pct = min((p.drawdown_pct for p in equity_curve), default=0.0)
     calmar = (annualised_return / abs(max_drawdown_pct)) if max_drawdown_pct < 0 else 0.0
