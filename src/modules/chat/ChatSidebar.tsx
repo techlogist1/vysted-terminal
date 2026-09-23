@@ -881,6 +881,9 @@ export function ChatSidebar() {
       // composer's stop square aborts the SAME in-flight run.
       const controller = new AbortController();
       abortRef.current = controller;
+      // Registered with the transcript owner: a tab or research-space switch
+      // stops this run before it swaps the transcript (R15-CODE-FRONTEND-002).
+      useChatHistoryStore.getState().setLiveAbort(() => controller.abort());
       const runId = startRun({
         agentId: agentForCall,
         agentName,

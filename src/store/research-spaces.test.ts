@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { useAgentSpacesStore } from "./agent-spaces";
 import { type ChatMessage, useChatHistoryStore } from "./chat-history";
 import { summarizeTranscript, useResearchSpacesStore } from "./research-spaces";
 
@@ -184,5 +185,30 @@ describe("research-spaces store — per-space agent memory", () => {
     expect(summary).toContain("NVDA");
     expect(summary).toContain("2 questions");
     expect(summary).toContain("first question with whitespace");
+  });
+
+  it("a chat tab's conversation survives a research-space round trip (R15-CODE-FRONTEND-002)", () => {
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "t2", title: "Chat 2" }],
+      activeId: "t2",
+      archived: {},
+    });
+    useChatHistoryStore.getState().loadMessages([msg("user", "tab 2 question", 1)]);
+
+    useResearchSpacesStore.getState().switchSpace(null, { name: "Research: NVDA", symbol: "NVDA" });
+    expect(useChatHistoryStore.getState().messages).toHaveLength(0);
+    useChatHistoryStore.getState().loadMessages([msg("user", "nvda q", 2)]);
+    useResearchSpacesStore.getState().switchSpace({ name: "Research: NVDA", symbol: "NVDA" }, null);
+
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual([
+      "tab 2 question",
+    ]);
+    expect(useAgentSpacesStore.getState().archived).toEqual({});
+    expect(
+      useResearchSpacesStore
+        .getState()
+        .getMemory("Research: NVDA")
+        ?.transcript.map((t) => t.content),
+    ).toEqual(["nvda q"]);
   });
 });
