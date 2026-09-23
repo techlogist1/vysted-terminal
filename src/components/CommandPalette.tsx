@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/EmptyState";
 import { executeCommand } from "@/lib/commands";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { sendToAgent } from "@/store/agent-command";
@@ -59,7 +60,6 @@ import {
   useCommandPalette,
   type PaletteItem,
 } from "@/store/command-palette";
-import { useChartSyncBus } from "@/store/chart-sync";
 import { useWorkspaceStore } from "@/store/workspace";
 
 // ---------------------------------------------------------------------------
@@ -159,7 +159,6 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   // ---------------------------------------------------------------------------
 
   const openPanel = useWorkspaceStore((state) => state.openPanel);
-  const setChartSymbol = useChartSyncBus((state) => state.setSymbol);
 
   const handleSelectAskAi = useCallback(() => {
     const q = query.trim();
@@ -196,14 +195,16 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
           break;
         case "symbol":
           if (item.symbolEntry) {
-            // Load into the primary chart via the chart sync bus.
-            setChartSymbol("palette", item.symbolEntry.symbol);
+            // The always-consumed chart-command channel (opens a chart if none
+            // is on screen) — not the opt-in sync bus, which the chart ignores
+            // by default.
+            loadSymbolIntoChart(item.symbolEntry.symbol);
           }
           break;
       }
       onClose();
     },
-    [recordSelection, openPanel, setChartSymbol, onClose],
+    [recordSelection, openPanel, onClose],
   );
 
   // Handler for suggested static items (resolved against the live corpus).
@@ -381,7 +382,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 keywords={[c.symbol, c.name, c.exchange]}
                 forceMount
                 onSelect={() => {
-                  setChartSymbol("palette", c.symbol);
+                  loadSymbolIntoChart(c.symbol);
                   onClose();
                 }}
                 className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
