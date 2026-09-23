@@ -362,6 +362,14 @@ def _require_nse(symbol: str) -> str:
     return bare
 
 
+def _corporate_index(bare: str) -> str:
+    """The ``index`` the corporates endpoints file ``bare`` under: NSE serves
+    Emerge (SME) filings only under ``index=sme``; ``equities`` returns an
+    empty list for them (live probe 2026-09-24: SUMAX 0 vs 7 announcements,
+    QUALIANCE 0 vs 1 shareholding row; R15-DATA-017)."""
+    return "sme" if symbol_resolver.is_nse_emerge(bare) else "equities"
+
+
 def _bar_timestamp(trading_day: date) -> datetime:
     """Daily bar at UTC midnight of its IST trading date (the project-wide
     by-date convention; ``CH_TIMESTAMP`` is already the IST trading date)."""
@@ -377,7 +385,8 @@ def _fetch_historical_window(symbol: str, start: date, end: date) -> list[dict]:
     """One historicalOR window → the raw row dicts (may be empty)."""
     params = {
         "symbol": symbol,
-        "series": '["EQ"]',
+        # Emerge names trade in the SM series; ["EQ"] returns no rows for them.
+        "series": '["SM"]' if symbol_resolver.is_nse_emerge(symbol) else '["EQ"]',
         "from": start.strftime("%d-%m-%Y"),
         "to": end.strftime("%d-%m-%Y"),
     }
@@ -592,7 +601,9 @@ def _quote_from_history(bare: str) -> Quote:
 def _fetch_corporate_list(path: str, symbol: str) -> list[dict]:
     """Shared fetch for the three corporates endpoints (all bare JSON lists)."""
     bare = _require_nse(symbol)
-    payload = _get_json(path, {"index": "equities", "symbol": bare}, _quote_referer(bare))
+    payload = _get_json(
+        path, {"index": _corporate_index(bare), "symbol": bare}, _quote_referer(bare)
+    )
     if not isinstance(payload, list):
         raise ProviderError(f"nse_direct: malformed payload from {path} for {bare!r}")
     return [item for item in payload if isinstance(item, dict)]
@@ -673,7 +684,7 @@ def get_sast_disclosures(symbol: str) -> list[dict]:
     under ``{"data": [...], "acqNameList": [...]}``.
     """
     bare = _require_nse(symbol)
-    params = {"index": "equities", "symbol": bare}
+    params = {"index": _corporate_index(bare), "symbol": bare}
     return _data_rows(_SAST_PATH, _get_json(_SAST_PATH, params, _quote_referer(bare)))
 
 
