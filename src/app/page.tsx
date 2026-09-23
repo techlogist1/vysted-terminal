@@ -12,7 +12,7 @@ import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
 import { migrateDevKeystore } from "@/lib/keychain";
 import { initMenuBridge } from "@/lib/menu-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
-import { autosaveLayout } from "@/lib/workspace";
+import { wireAutosaveTriggers } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 import { EASE_INSTRUMENT } from "@/lib/motion";
 import { vystedModules } from "@/modules";
@@ -20,20 +20,12 @@ import { DisclaimerFlow } from "@/modules/safety";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAgentDockStore } from "@/store/agent-dock";
-import { useAgentModeStore } from "@/store/agent-mode";
-import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAppStore } from "@/store/app";
-import { useBriefStore } from "@/store/brief";
-import { useNotesStore } from "@/store/notes";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
-import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
-import { useSearchSettingsStore } from "@/store/search-settings";
-import { useSymbolsStore } from "@/store/symbols";
-import { usePortfoliosStore } from "@/store/portfolios";
 import { useWorkspaceStore } from "@/store/workspace";
 import { StatusChrome } from "@/components/StatusChrome";
 
@@ -101,98 +93,24 @@ export default function Page() {
         useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
       }
     });
-    // Persist UI state that does NOT move the dockview layout (so the layout
-    // autosave wouldn't catch it): the watchlist, the agent mode, the agent
-    // dock geometry, and per-provider model overrides all ride the workspace
-    // blob (see `src/lib/workspace.ts`).
-    const unsubscribeSymbols = useSymbolsStore.subscribe((state, previous) => {
-      if (state.entries !== previous.entries) {
-        void autosaveLayout();
-      }
-    });
-    const unsubscribePortfolios = usePortfoliosStore.subscribe((state, previous) => {
-      if (state.portfolios !== previous.portfolios || state.activeId !== previous.activeId) {
-        void autosaveLayout();
-      }
-    });
-    const unsubscribeAgentMode = useAgentModeStore.subscribe((state, previous) => {
-      if (state.mode !== previous.mode) {
-        void autosaveLayout();
-      }
-    });
-    const unsubscribeDock = useAgentDockStore.subscribe((state, previous) => {
-      if (state.collapsed !== previous.collapsed || state.width !== previous.width) {
-        void autosaveLayout();
-      }
-    });
-    const unsubscribeModels = useModelSelectionStore.subscribe((state, previous) => {
-      if (state.overrides !== previous.overrides) {
-        void autosaveLayout();
-      }
-    });
-    // The default provider (FR-038) rides the blob (serializeWorkspace captures it)
-    // but, like the model overrides above, it does not move the dockview layout —
-    // so it needs its own autosave trigger or "set DeepSeek as default" is lost on
-    // relaunch (the default-provider-not-persisting bug).
+    // Every persisted workspace slice autosaves through one registry (the
+    // dockview layout's own trigger is wired by PanelHost after the restore).
+    const unwireAutosave = wireAutosaveTriggers();
+    // Warm the newly-default provider's live catalog (e.g. after a workspace
+    // restore flips the seed `ollama` to the persisted `openrouter`) so the
+    // Settings/HUD model pickers show the full live list without a load-window
+    // gap on the static fallback.
     const unsubscribeDefaultProvider = useLLMProvidersStore.subscribe((state, previous) => {
       if (state.defaultProviderId !== previous.defaultProviderId) {
-        void autosaveLayout();
-        // Warm the newly-default provider's live catalog (e.g. after a workspace
-        // restore flips the seed `ollama` to the persisted `openrouter`) so the
-        // Settings/HUD model pickers show the full live list without a load-window
-        // gap on the static fallback.
         void useModelCatalogStore.getState().fetchCatalog(state.defaultProviderId);
-      }
-    });
-    const unsubscribeAutonomy = useAgentAutonomyStore.subscribe((state, previous) => {
-      if (state.autonomy !== previous.autonomy) {
-        void autosaveLayout();
-      }
-    });
-    // The web-search tier + SearXNG URL (FR-080/083/084) ride the blob but do not
-    // move the dockview layout, so they need their own autosave trigger or a tier
-    // change is lost on relaunch (same pattern as model overrides above).
-    const unsubscribeSearch = useSearchSettingsStore.subscribe((state, previous) => {
-      if (
-        state.researchTier !== previous.researchTier ||
-        state.searxngUrl !== previous.searxngUrl
-      ) {
-        void autosaveLayout();
-      }
-    });
-    // The latest research brief (FR-074) rides the blob but does not move the
-    // dockview layout, so it needs its own autosave trigger — same pattern as the
-    // web-search preference above.
-    const unsubscribeBrief = useBriefStore.subscribe((state, previous) => {
-      if (state.brief !== previous.brief) {
-        void autosaveLayout();
-      }
-    });
-    // Research notes (003) ride the blob too; autosaveLayout is debounced so
-    // per-keystroke edits coalesce into one write.
-    const unsubscribeNotes = useNotesStore.subscribe((state, previous) => {
-      if (
-        state.general !== previous.general ||
-        state.bySymbol !== previous.bySymbol ||
-        state.focusSymbol !== previous.focusSymbol
-      ) {
-        void autosaveLayout();
       }
     });
     return () => {
       alive = false;
       unsubscribeEnabled();
       unsubscribeModules();
-      unsubscribeSymbols();
-      unsubscribePortfolios();
-      unsubscribeAgentMode();
-      unsubscribeDock();
-      unsubscribeModels();
+      unwireAutosave();
       unsubscribeDefaultProvider();
-      unsubscribeAutonomy();
-      unsubscribeSearch();
-      unsubscribeBrief();
-      unsubscribeNotes();
       disposeMenu();
       teardown?.();
     };

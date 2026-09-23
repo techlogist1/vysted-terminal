@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 import {
-  autosaveLayout,
   deleteWorkspace,
   listWorkspaces,
   loadWorkspace,
@@ -486,12 +485,7 @@ function ProvidersSection() {
                       // (regression-95 BUG-3).
                       <button
                         type="button"
-                        onClick={() => {
-                          setDefaultProviderId(provider.id);
-                          // Persist immediately (into the autosave slot) so the
-                          // choice survives relaunch even without a layout change.
-                          void autosaveLayout();
-                        }}
+                        onClick={() => setDefaultProviderId(provider.id)}
                         aria-label={`Set ${provider.label} as default provider`}
                         // R8 §3.5: a button label never wraps to two lines —
                         // the SAME short form as the active state, one column.
@@ -622,10 +616,7 @@ function DefaultsGroup() {
           <Select
             aria-label="Default provider"
             value={defaultProviderId}
-            onChange={(e) => {
-              setDefaultProviderId(e.target.value as LLMProviderId);
-              void autosaveLayout();
-            }}
+            onChange={(e) => setDefaultProviderId(e.target.value as LLMProviderId)}
           >
             {providers.map((p) => (
               <option key={p.id} value={p.id}>

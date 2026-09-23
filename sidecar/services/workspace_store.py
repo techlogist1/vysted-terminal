@@ -6,9 +6,9 @@ serialised by the frontend (the dockview layout plus the modules ``enabled``
 map). The store treats the body as a free-form mapping: it does not validate or
 interpret the layout, it only persists it under :func:`config.get_workspaces_dir`.
 
-Each workspace is one ``<name>.vysted-workspace`` file (JSON). Names are
-sanitised to a single path component so a workspace name can never escape the
-workspaces directory.
+Each workspace is one ``<name>.vysted-workspace`` file (JSON). Any name is
+accepted: it is percent-encoded into a single path component, so a name can
+never escape the workspaces directory, and decoded back when listed.
 """
 
 from __future__ import annotations
@@ -16,9 +16,9 @@ from __future__ import annotations
 import json
 import logging
 import os
-import re
 import shutil
 from typing import Any
+from urllib.parse import quote, unquote
 
 from config import get_workspaces_dir
 
@@ -26,41 +26,46 @@ logger = logging.getLogger(__name__)
 
 WORKSPACE_SUFFIX = ".vysted-workspace"
 
-# A workspace name maps to exactly one file; anything that is not a safe,
-# single-segment filename component is rejected so a name cannot traverse out
-# of the workspaces directory.
-_SAFE_NAME = re.compile(r"^[A-Za-z0-9 _-]+$")
+# Encoded-stem ceiling: the stem plus the suffix and the per-writer temp/backup
+# tails must stay under the 255-byte filename limit of every desktop filesystem.
+_MAX_STEM_LENGTH = 200
 
 
 class WorkspaceNameError(ValueError):
-    """Raised when a workspace name is empty or contains unsafe characters."""
+    """Raised when a workspace name is empty or too long to store."""
 
 
 class WorkspaceNotFoundError(KeyError):
     """Raised when a requested workspace file does not exist."""
 
 
-def _validate_name(name: str) -> str:
-    """Return ``name`` if it is a safe single-segment filename, else raise."""
+def _filename_stem(name: str) -> str:
+    """Map any workspace name to one safe filename component.
+
+    Letters, digits, spaces, ``-`` and ``_`` stay readable (so names saved
+    before the encoding keep their files); everything else, including ``/``,
+    ``\\``, ``.``, ``:`` and NUL, is percent-encoded, so the stem never holds a
+    path separator or a dot segment.
+    """
     cleaned = name.strip()
-    if not cleaned or not _SAFE_NAME.match(cleaned):
-        raise WorkspaceNameError(
-            f"Invalid workspace name {name!r}: use letters, digits, spaces, "
-            "hyphens, or underscores."
-        )
-    return cleaned
+    if not cleaned:
+        raise WorkspaceNameError("A workspace name is required.")
+    stem = quote(cleaned, safe=" ").replace(".", "%2E")
+    if len(stem) > _MAX_STEM_LENGTH:
+        raise WorkspaceNameError(f"Workspace name {cleaned!r} is too long to save.")
+    return stem
 
 
 def _path_for(name: str):
-    """Return the on-disk path for a validated workspace ``name``."""
-    return get_workspaces_dir() / f"{_validate_name(name)}{WORKSPACE_SUFFIX}"
+    """Return the on-disk path for a workspace ``name``."""
+    return get_workspaces_dir() / f"{_filename_stem(name)}{WORKSPACE_SUFFIX}"
 
 
 def list_workspaces() -> list[str]:
     """Return the names of all saved workspaces, sorted alphabetically."""
     workspaces_dir = get_workspaces_dir()
     names = [
-        path.name[: -len(WORKSPACE_SUFFIX)]
+        unquote(path.name[: -len(WORKSPACE_SUFFIX)])
         for path in workspaces_dir.glob(f"*{WORKSPACE_SUFFIX}")
         if path.is_file()
     ]

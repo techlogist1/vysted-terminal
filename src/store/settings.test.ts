@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// The store self-persists via `autosaveLayout`. Mock it so a setter call in a
-// unit test (no dockview) is observable and never touches the network.
-vi.mock("@/lib/workspace", () => ({
-  autosaveLayout: vi.fn(() => Promise.resolve()),
-}));
-
-import { autosaveLayout } from "@/lib/workspace";
 import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
 import {
   DEFAULT_SETTINGS,
@@ -16,13 +9,10 @@ import {
   useSettingsStore,
 } from "@/store/settings";
 
-const autosaveMock = vi.mocked(autosaveLayout);
-
 describe("settings store", () => {
   beforeEach(() => {
     resetSettingsStoreForTests();
     useActiveAgentStore.setState({ activeAgentId: DEFAULT_AGENT_ID });
-    autosaveMock.mockClear();
   });
 
   afterEach(() => {
@@ -51,7 +41,7 @@ describe("settings store", () => {
     }
   });
 
-  it("setters update state and trigger persistence", () => {
+  it("setters update state", () => {
     const store = useSettingsStore.getState();
 
     store.setDefaultAgentId("buffett");
@@ -62,9 +52,6 @@ describe("settings store", () => {
 
     store.setDeepResearchBackend("perplexity");
     expect(useSettingsStore.getState().deepResearchBackend).toBe("perplexity");
-
-    // Each setter self-persists.
-    expect(autosaveMock).toHaveBeenCalledTimes(3);
   });
 
   // ---- defaultAgentId wiring (R9 D4: change → persist → reload → APPLIED) ----

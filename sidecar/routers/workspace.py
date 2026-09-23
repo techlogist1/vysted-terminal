@@ -39,7 +39,7 @@ def list_workspaces() -> list[str]:
     return workspace_store.list_workspaces()
 
 
-@router.get("/{name}")
+@router.get("/{name:path}")
 def get_workspace(name: str) -> dict[str, Any]:
     """Return the stored JSON for one workspace."""
     try:
@@ -60,7 +60,7 @@ def save_workspace(request: SaveWorkspaceRequest) -> dict[str, str]:
     return {"status": "saved", "name": request.name.strip()}
 
 
-@router.delete("/{name}", status_code=204)
+@router.delete("/{name:path}", status_code=204)
 def delete_workspace(name: str) -> None:
     """Delete a saved workspace."""
     try:

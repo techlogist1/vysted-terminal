@@ -16,14 +16,14 @@
  * Persistence is unchanged: the brief is non-secret research output and rides
  * the workspace blob (`SerializedWorkspace.brief`) as a plain
  * `ResearchBriefData` — no persisted `archived` marker is needed because the
- * restore path archives by rule. Self-persists via `autosaveLayout` (no-ops
- * before the dockview layout mounts, so unit-test setters are silent no-ops).
+ * restore path archives by rule. The autosave trigger is the `brief` slice in
+ * `src/lib/workspace.ts` `PERSISTED_SLICES`: it fires when the `brief` mirror
+ * changes, so transient in-flight transitions never churn the autosave.
  */
 
 import { create } from "zustand";
 
 import { isAcceptableBriefMode, normalizeBriefMode } from "@/lib/brief-ingest";
-import { autosaveLayout } from "@/lib/workspace";
 import type { BriefDepth, BriefStep, ResearchBriefData } from "../../types/brief";
 
 /**
@@ -96,14 +96,6 @@ interface BriefState {
 }
 
 /**
- * Self-persist a brief change into the autosave slot. Fire-and-forget —
- * `autosaveLayout` is best-effort and no-ops before the layout mounts.
- */
-function persist(): void {
-  void autosaveLayout();
-}
-
-/**
  * Validate a candidate bundle on the way in from a persisted blob. A hand-edited
  * or older export could carry a partial/garbled shape; we accept it only when it
  * has the load-bearing fields, otherwise treat it as "no brief" rather than
@@ -151,11 +143,8 @@ function archiveOnFailure(panel: BriefPanelState): BriefPanelState {
 }
 
 export const useBriefStore = create<BriefState>((set, get) => {
-  const transition = (panel: BriefPanelState, options?: { persist?: boolean }): void => {
+  const transition = (panel: BriefPanelState): void => {
     set({ panel, brief: mirrorOf(panel) });
-    if (options?.persist !== false) {
-      persist();
-    }
   };
 
   return {
@@ -166,24 +155,21 @@ export const useBriefStore = create<BriefState>((set, get) => {
       // The prior published/archived brief rides INTO the run so a failure can
       // restore it (archived, reason run_failed) instead of a dead panel. A
       // re-begin while in flight keeps the ORIGINAL prior — the abandoned
-      // run never produced anything worth carrying. Transient state: no
-      // autosave churn mid-run (the publish/fail transition persists).
+      // run never produced anything worth carrying. The `brief` mirror stays
+      // the prior, so the run start does not autosave.
       const current = get().panel;
       const prior =
         current.phase === "in_flight" ? current.prior : (mirrorOf(current) ?? undefined);
-      transition(
-        {
-          phase: "in_flight",
-          runId,
-          query,
-          symbol,
-          depth,
-          startedAt: Date.now(),
-          steps: [],
-          prior,
-        },
-        { persist: false },
-      );
+      transition({
+        phase: "in_flight",
+        runId,
+        query,
+        symbol,
+        depth,
+        startedAt: Date.now(),
+        steps: [],
+        prior,
+      });
     },
 
     appendRunStep: (step) => {
@@ -191,7 +177,7 @@ export const useBriefStore = create<BriefState>((set, get) => {
       if (current.phase !== "in_flight") {
         return;
       }
-      // Transient (no autosave) — steps feed the live in-flight surface only.
+      // Transient — steps feed the live in-flight surface only.
       set({ panel: { ...current, steps: [...current.steps, step] } });
     },
 
