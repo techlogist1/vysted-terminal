@@ -324,3 +324,44 @@ def test_consistent_eps_is_untouched() -> None:
         ratio_price=95.0,
     )
     assert correctness_gate.validate_fundamentals(f, "SMR.NS", "IN") is f
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-033: a NaN price never passes the gate (``nan <= 0`` is False)
+# ---------------------------------------------------------------------------
+
+
+def _two_lanes(monkeypatch: pytest.MonkeyPatch, model_key: str, bad: object, good: object) -> None:
+    """Replace the registry's providers with a first lane serving ``bad`` and a
+    second serving ``good``, both for any equity request."""
+    from services import provider_registry
+    from services.provider_registry import ProviderDeclaration
+
+    monkeypatch.setattr(
+        provider_registry,
+        "_PROVIDERS",
+        (
+            ProviderDeclaration(id="first", rank=10, serves={model_key: lambda *a: bad}),
+            ProviderDeclaration(id="second", rank=20, serves={model_key: lambda *a: good}),
+        ),
+    )
+
+
+def test_nan_quote_falls_through_to_the_next_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import provider_registry
+
+    nan_quote = _quote("GOLDBEES", float("nan")).model_copy(update={"provider": "first"})
+    good = _quote("GOLDBEES", 128.5).model_copy(update={"provider": "second"})
+    _two_lanes(monkeypatch, "quote", nan_quote, good)
+    assert provider_registry.get_quote("GOLDBEES", region="IN") is good
+
+
+def test_nan_last_close_falls_through_to_the_next_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import provider_registry
+
+    nan_series = _series("GOLDBEES", float("nan")).model_copy(update={"provider": "first"})
+    good = _series("GOLDBEES", 128.5).model_copy(update={"provider": "second"})
+    _two_lanes(monkeypatch, "ohlcv", nan_series, good)
+    assert provider_registry.get_history("GOLDBEES", "1d", region="IN") is good

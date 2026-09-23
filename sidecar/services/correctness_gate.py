@@ -9,7 +9,8 @@ the next provider — and, if every provider is rejected, surfaces an honest
 
 What the gate rejects (→ advance to next provider):
 
-  * an empty / null series, or a quote/last-bar with a non-positive price;
+  * an empty / null series, or a quote/last-bar with a non-positive or
+    non-finite (NaN/inf) price;
   * a returned symbol that does not match the requested instrument
     (normalised across ``.NS``/``.BO`` and dot/dash quirks);
   * a value dated far enough behind the exchange's most-recent session that the
@@ -26,6 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import re
 from datetime import date
 from typing import Any
@@ -122,7 +124,7 @@ def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
 
     Returns the quote unchanged on success so callers can use it inline.
     """
-    if quote.price is None or quote.price <= 0:
+    if quote.price is None or not math.isfinite(quote.price) or quote.price <= 0:
         raise CorrectnessError(
             f"correctness gate: non-positive price {quote.price!r} for "
             f"{requested_symbol!r} from {quote.provider!r}"
@@ -157,7 +159,7 @@ def validate_series(series: OHLCVSeries, requested_symbol: str, region: str) -> 
             f"correctness gate: empty series for {requested_symbol!r} from {series.provider!r}"
         )
     last = series.bars[-1]
-    if last.close is None or last.close <= 0:
+    if last.close is None or not math.isfinite(last.close) or last.close <= 0:
         raise CorrectnessError(
             f"correctness gate: non-positive last close {last.close!r} for "
             f"{requested_symbol!r} from {series.provider!r}"

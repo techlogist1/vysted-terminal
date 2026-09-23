@@ -365,14 +365,18 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     bars: list[OHLCVBar] = []
     for index, row in frame.iterrows():
         timestamp = index.to_pydatetime() if hasattr(index, "to_pydatetime") else index
+        ohlc = [_num(row[column]) for column in ("Open", "High", "Low", "Close")]
+        if any(value is None for value in ohlc):
+            continue  # a bar with a NaN/missing price cell is dropped, never served
+        open_, high, low, close = ohlc
         bars.append(
             OHLCVBar(
                 timestamp=timestamp,
-                open=float(row["Open"]),
-                high=float(row["High"]),
-                low=float(row["Low"]),
-                close=float(row["Close"]),
-                volume=float(row["Volume"]),
+                open=open_,
+                high=high,
+                low=low,
+                close=close,
+                volume=_num(row["Volume"]) or 0.0,
             )
         )
     return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
