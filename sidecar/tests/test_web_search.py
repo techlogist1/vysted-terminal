@@ -523,6 +523,48 @@ def test_searxng_rate_limit_does_not_silently_degrade(
     assert out["reason"] == "rate_limited"
 
 
+def test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-008: with no SearXNG, a hanging DuckDuckGo no longer burns
+    the whole 25 s tool cap — the rotation reaches Brave and its rows serve."""
+    import time
+
+    from services.agent_tools import catalog
+    from services.search import keyless, registry
+    from services.search.breaker import reset_breakers
+    from services.search.pacing import reset_queue
+
+    class _Hang:
+        async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+            await asyncio.sleep(3600)
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "keyless":
+            return keyless.KeylessSearchBackend(
+                engines={"ddg": _Hang(), "brave": _FakeBackend("brave"), "mojeek": _Hang()}
+            )
+        return None
+
+    reset_breakers()
+    reset_queue()
+    monkeypatch.setattr(keyless, "ENGINE_DEADLINE_SECS", 0.2)
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, False)
+    cap = catalog.timeout_for("web_search")
+    try:
+        with _request(r7="tier_a"):
+            t0 = time.monotonic()
+            out = _run(asyncio.wait_for(_web_search({"query": "Dixon news"}), cap))
+            elapsed = time.monotonic() - t0
+    finally:
+        reset_breakers()
+        reset_queue()
+    assert out["ok"] is True
+    assert out["results"][0]["url"] == "https://x.com/a"
+    assert elapsed < 1.0
+
+
 def test_web_search_in_catalog_and_registered() -> None:
     import services.agent_tools as agent_tools
     from services.agent_tools import catalog, registry_v0_6_0

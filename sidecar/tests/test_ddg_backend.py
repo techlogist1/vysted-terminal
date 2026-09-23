@@ -98,6 +98,27 @@ def test_transport_failure_raises_search_error() -> None:
     assert excinfo.value.reason == SEARCH_REASON_UNREACHABLE
 
 
+def test_ddg_makes_one_request_the_keyless_tier_owns_retry() -> None:
+    """R15-RESEARCH-008: no private retry loop stacked under keyless's own."""
+
+    class _CountingClient(_FakeClient):
+        def __init__(self, resp: _FakeResp) -> None:
+            super().__init__(resp)
+            self.posts = 0
+
+        async def post(self, url, data=None, headers=None):  # noqa: ANN001, ANN201
+            self.posts += 1
+            if "lite." in url:
+                raise AssertionError("a failed HTML fetch must not fall through to Lite")
+            return await super().post(url, data=data, headers=headers)
+
+    for status in (503, 202):
+        client = _CountingClient(_FakeResp("", status=status))
+        with pytest.raises(SearchError):
+            _run(DdgSearchBackend(client=client).search("q"))
+        assert client.posts == 1, status
+
+
 # --- Track 3 keyless hardening ---------------------------------------------
 
 _LITE_FIXTURE = """
