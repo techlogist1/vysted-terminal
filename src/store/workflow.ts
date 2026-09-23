@@ -164,6 +164,13 @@ function _normalizeEvent(raw: RawEvent): WorkflowRunEvent | null {
         message: String(raw.message ?? "node error"),
         durationMs: Number(raw.durationMs ?? raw.duration_ms ?? 0),
       };
+    case "node-skipped":
+      return {
+        kind: "node-skipped",
+        runId,
+        nodeId: String(raw.nodeId ?? raw.node_id ?? ""),
+        nodeType: String(raw.nodeType ?? raw.node_type ?? ""),
+      };
     case "run-complete":
       return {
         kind: "run-complete",

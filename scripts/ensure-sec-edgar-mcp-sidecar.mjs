@@ -14,7 +14,7 @@
 //
 // Run via: ``node scripts/ensure-sec-edgar-mcp-sidecar.mjs [--force]``.
 
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { platform } from "node:os";
@@ -145,9 +145,35 @@ const hidden = [
 const collectAll = ["sec_edgar_mcp"].map((m) => `--collect-all=${m}`).join(" ");
 const collectData = ["edgar"].map((m) => `--collect-data=${m}`).join(" ");
 const collectSub = ["edgar"].map((m) => `--collect-submodules=${m}`).join(" ");
-const copyMeta = ["mcp", "sec-edgar-mcp", "edgartools", "anyio", "httpx", "starlette", "uvicorn"]
-  .map((m) => `--copy-metadata=${m}`)
-  .join(" ");
+const copyMetaDists = [
+  "mcp",
+  "sec-edgar-mcp",
+  "edgartools",
+  "anyio",
+  "httpx",
+  "starlette",
+  "uvicorn",
+];
+// Every copy-metadata target must be installed in the venv, or PyInstaller
+// dies mid-build with a bare PackageNotFoundError (R15-LEAD-001: an unpinned
+// resolve pulled an mcp built on httpx2). Name the missing ones up front.
+const missingMeta = execFileSync(
+  venvPython,
+  [
+    "-c",
+    "import importlib.metadata as m, sys; " +
+      "print(' '.join(d for d in sys.argv[1:] if not any(True for _ in m.distributions(name=d))))",
+    ...copyMetaDists,
+  ],
+  { encoding: "utf8" },
+).trim();
+if (missingMeta) {
+  throw new Error(
+    `[ensure-sec-edgar-mcp-sidecar] --copy-metadata targets not installed in ${VENV_DIR}: ` +
+      `${missingMeta}. Check the pins in sidecar/sec_edgar_mcp_subprocess/requirements.txt.`,
+  );
+}
+const copyMeta = copyMetaDists.map((m) => `--copy-metadata=${m}`).join(" ");
 run(
   `"${pyinstaller}" --onefile --clean --noconfirm --name vysted-sec-edgar-mcp-sidecar ` +
     `${hidden} ${collectAll} ${collectData} ${collectSub} ${copyMeta} ` +

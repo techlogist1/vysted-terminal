@@ -29,7 +29,7 @@ from models.quant import (
     YieldCurveResult,
 )
 
-from ._common import DAY_COUNT, from_ql_date, set_evaluation_date
+from ._common import DAY_COUNT, from_ql_date, holds_ql_lock, set_evaluation_date
 
 
 def _tenor_to_period(tenor: int, unit: str) -> ql.Period:
@@ -48,6 +48,7 @@ def _tenor_to_years(tenor: int, unit: str) -> float:
     return float(tenor)
 
 
+@holds_ql_lock
 def bootstrap_curve(req: YieldCurveRequest) -> YieldCurveResult:
     """Bootstrap a zero-rate curve from depo + swap helpers.
 

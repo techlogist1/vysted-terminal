@@ -16,7 +16,7 @@ from collections.abc import AsyncIterator
 from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 
 from services.hardware_fit import ModelCandidate, detect_device, score
@@ -231,3 +231,27 @@ async def reset_provider_health() -> dict:
 
     provider_health.record_success(provider_health.YAHOO)
     return {"yahoo": provider_health.status(provider_health.YAHOO)}
+
+
+# ---------------------------------------------------------------------------
+# Diagnostics (R15-LIFECYCLE-008) — what a user hands a maintainer.
+# ---------------------------------------------------------------------------
+
+
+@router.get("/diagnostics")
+async def get_diagnostics(request: Request) -> dict[str, Any]:
+    """Version, the status endpoints' JSON and a redacted tail of the persisted
+    log. Settings previews it and the user copies it; nothing is sent anywhere."""
+    from routers.health import health
+    from services import diagnostics, mcp_server, openbb_mcp_provider, provider_health
+
+    status = {
+        "health": health(request),
+        "providerHealth": {"yahoo": provider_health.status(provider_health.YAHOO)},
+        "mcp": {
+            "toolCount": await mcp_server.tool_count(),
+            "protocolVersion": mcp_server.protocol_version(),
+        },
+        "openbbMcp": await openbb_mcp_provider.status(),
+    }
+    return diagnostics.build_bundle(request.app.version, status)

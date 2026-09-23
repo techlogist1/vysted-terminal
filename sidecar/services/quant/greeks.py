@@ -15,9 +15,10 @@ import QuantLib as ql
 
 from models.quant import Greeks, GreeksRequest, GreeksResult
 
-from ._common import build_bsm_process, ql_option_type, to_ql_date
+from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
 
 
+@holds_ql_lock
 def compute_greeks(req: GreeksRequest) -> GreeksResult:
     """Compute analytic Greeks for a European vanilla option.
 

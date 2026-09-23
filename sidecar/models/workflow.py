@@ -63,6 +63,11 @@ class WorkflowEdge(BaseModel):
     target_port: str = Field(alias="targetPort")
 
 
+#: The spec schema major this build reads; a saved spec of another major is
+#: refused on load (``workflow_store.UnsupportedWorkflowVersion``).
+WORKFLOW_SPEC_VERSION = 1
+
+
 class WorkflowSpec(BaseModel):
     """A complete workflow — the unit of save / load / run."""
 
@@ -71,10 +76,25 @@ class WorkflowSpec(BaseModel):
     id: str
     name: str
     description: str | None = None
-    version: int = 1
+    version: int = WORKFLOW_SPEC_VERSION
     nodes: list[WorkflowNode]
     edges: list[WorkflowEdge]
     updated_at: int = Field(alias="updatedAt", default=0)
+
+
+class UnreadableWorkflow(BaseModel):
+    """A saved row this build cannot open (invalid spec or another major)."""
+
+    id: str
+    name: str
+    reason: str
+
+
+class SavedWorkflows(BaseModel):
+    """``GET /workflow/saved`` — the openable specs plus the rows that are not."""
+
+    workflows: list[WorkflowSpec]
+    unreadable: list[UnreadableWorkflow] = Field(default_factory=list)
 
 
 class WorkflowRunRequest(BaseModel):
@@ -107,6 +127,7 @@ class WorkflowRunEvent(BaseModel):
         "node-start",
         "node-output",
         "node-error",
+        "node-skipped",
         "run-complete",
         "run-error",
     ]
@@ -126,7 +147,8 @@ class NodeRunResult(BaseModel):
 
     node_id: str = Field(alias="nodeId")
     node_type: str = Field(alias="nodeType")
-    status: Literal["ok", "error"]
+    #: ``skipped``: every input came from an un-taken branch path; not run.
+    status: Literal["ok", "error", "skipped"]
     outputs: dict[str, Any] = Field(default_factory=dict)
     error: str | None = None
     duration_ms: float = Field(alias="durationMs")

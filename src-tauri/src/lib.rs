@@ -1,3 +1,6 @@
+// First: its `diag_println!` / `diag_eprintln!` macros are used by the modules below.
+#[macro_use]
+mod diag_log;
 mod keychain;
 mod openbb_mcp;
 mod sec_edgar_mcp;
@@ -116,7 +119,7 @@ fn resolve_data_dir(app: &tauri::App) -> String {
     let dir = match app.path().app_data_dir() {
         Ok(dir) => dir,
         Err(err) => {
-            eprintln!(
+            diag_eprintln!(
                 "[vysted] could not resolve the app data directory ({err}); \
                  falling back to a temp directory"
             );
@@ -124,7 +127,7 @@ fn resolve_data_dir(app: &tauri::App) -> String {
         }
     };
     if let Err(err) = std::fs::create_dir_all(&dir) {
-        eprintln!(
+        diag_eprintln!(
             "[vysted] could not create the data directory {dir:?} ({err}); \
              sidecar persistence may be degraded"
         );
@@ -183,8 +186,8 @@ fn mcp_endpoint_path(data_dir: &str) -> PathBuf {
 fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
     let path = mcp_endpoint_path(data_dir);
     match std::fs::write(&path, mcp_endpoint_json(port)) {
-        Ok(()) => println!("[vysted] wrote MCP endpoint discovery file {path:?}"),
-        Err(err) => eprintln!(
+        Ok(()) => diag_println!("[vysted] wrote MCP endpoint discovery file {path:?}"),
+        Err(err) => diag_eprintln!(
             "[vysted] could not write the MCP endpoint discovery file {path:?} ({err}); \
              external MCP clients must discover the port from the console line"
         ),
@@ -198,14 +201,16 @@ fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
 /// port-0 "unavailable" sentinel rather than failing app startup.
 fn start_main_sidecar(app: &tauri::App, port: u16) {
     if port == 0 {
-        eprintln!("[vysted] no free port available for the sidecar; UI will start disconnected");
+        diag_eprintln!(
+            "[vysted] no free port available for the sidecar; UI will start disconnected"
+        );
         return;
     }
     let data_dir = resolve_data_dir(app);
     let command = match app.shell().sidecar("vysted-sidecar") {
         Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
         Err(err) => {
-            eprintln!(
+            diag_eprintln!(
                 "[vysted] could not create the sidecar command ({err}); UI will start disconnected"
             );
             return;
@@ -214,7 +219,7 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
     let (mut rx, child) = match command.spawn() {
         Ok(pair) => pair,
         Err(err) => {
-            eprintln!(
+            diag_eprintln!(
                 "[vysted] failed to spawn the Python sidecar ({err}); UI will start disconnected"
             );
             return;
@@ -227,10 +232,10 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
         while let Some(event) = rx.recv().await {
             match event {
                 CommandEvent::Stdout(line) => {
-                    println!("[sidecar] {}", String::from_utf8_lossy(&line));
+                    diag_println!("[sidecar] {}", String::from_utf8_lossy(&line));
                 }
                 CommandEvent::Stderr(line) => {
-                    eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
+                    diag_eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
                 }
                 _ => {}
             }
@@ -249,7 +254,7 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
             MCP_PORT_WAIT_SECS,
             MCP_PORT_WAIT_ATTEMPTS,
             |attempt, attempts| {
-                eprintln!(
+                diag_eprintln!(
                     "[vysted] Python sidecar not up yet on port {port} after attempt \
                      {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
                      extraction may be slow — retrying."
@@ -257,13 +262,13 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
             },
         );
         if bound {
-            println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+            diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
             // FR-025: publish the loopback MCP endpoint so an external MCP
             // client can discover it without scraping the console. Only on a
             // confirmed-up sidecar — a failed boot leaves no stale file.
             write_mcp_endpoint_file(&endpoint_data_dir, port);
         } else {
-            eprintln!("[vysted] Python sidecar did not come up on port {port}");
+            diag_eprintln!("[vysted] Python sidecar did not come up on port {port}");
         }
     });
 }
@@ -425,13 +430,15 @@ pub fn run() {
             if let Some(template) = event.id().0.strip_prefix("layout:") {
                 match app.emit("vysted://menu-layout", template.to_string()) {
                     Ok(()) => {
-                        eprintln!("[menu] layout '{template}' → emitted vysted://menu-layout")
+                        diag_eprintln!("[menu] layout '{template}' → emitted vysted://menu-layout")
                     }
-                    Err(e) => eprintln!("[menu] layout '{template}' emit FAILED: {e}"),
+                    Err(e) => diag_eprintln!("[menu] layout '{template}' emit FAILED: {e}"),
                 }
             }
         })
         .setup(|app| {
+            // Persist every console line from here on (R15-LIFECYCLE-008).
+            diag_log::init(&resolve_data_dir(app));
             // `0` = no free port (extremely rare); the UI still opens and
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
@@ -463,12 +470,12 @@ pub fn run() {
             let sec_handle = app.handle().clone();
             let openbb_thread = thread::spawn(move || {
                 if let Err(err) = openbb_mcp::spawn(&openbb_handle) {
-                    eprintln!("[openbb-mcp] spawn supervisor errored: {err}");
+                    diag_eprintln!("[openbb-mcp] spawn supervisor errored: {err}");
                 }
             });
             let sec_thread = thread::spawn(move || {
                 if let Err(err) = sec_edgar_mcp::spawn(&sec_handle) {
-                    eprintln!("[sec-edgar-mcp] spawn supervisor errored: {err}");
+                    diag_eprintln!("[sec-edgar-mcp] spawn supervisor errored: {err}");
                 }
             });
             // Join both before the main sidecar spawn — the env vars must be
@@ -488,7 +495,7 @@ pub fn run() {
             // Compare / Reset). Non-fatal; macOS-only.
             #[cfg(target_os = "macos")]
             if let Err(err) = install_layout_menu(app) {
-                eprintln!("[menu] failed to install layout menu: {err}");
+                diag_eprintln!("[menu] failed to install layout menu: {err}");
             }
 
             Ok(())

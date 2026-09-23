@@ -16,6 +16,7 @@ emitted spot/strike/etc. wins over the static config.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from models.quant import (
@@ -48,7 +49,7 @@ async def price_option(inputs: dict[str, Any], config: dict[str, Any]) -> dict[s
         req = OptionPricingRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.price_option: invalid request: {exc}") from exc
-    result = options.price(req)
+    result = await asyncio.to_thread(options.price, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -59,7 +60,7 @@ async def compute_greeks(inputs: dict[str, Any], config: dict[str, Any]) -> dict
         req = GreeksRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.compute_greeks: invalid request: {exc}") from exc
-    result = greeks.compute_greeks(req)
+    result = await asyncio.to_thread(greeks.compute_greeks, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -70,7 +71,7 @@ async def price_bond(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str
         req = BondPricingRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.price_bond: invalid request: {exc}") from exc
-    result = bonds.price_bond(req)
+    result = await asyncio.to_thread(bonds.price_bond, req)
     return {"result": result.model_dump(mode="json")}
 
 
@@ -81,7 +82,7 @@ async def bootstrap_yield_curve(inputs: dict[str, Any], config: dict[str, Any]) 
         req = YieldCurveRequest.model_validate(args)
     except Exception as exc:
         raise ValueError(f"quant.yield_curve: invalid request: {exc}") from exc
-    result = yield_curve.bootstrap_curve(req)
+    result = await asyncio.to_thread(yield_curve.bootstrap_curve, req)
     return {"result": result.model_dump(mode="json")}
 
 

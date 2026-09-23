@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 export interface NodeRunState {
   nodeId: string;
   nodeType: string;
-  status: "pending" | "running" | "ok" | "error";
+  status: "pending" | "running" | "ok" | "error" | "skipped";
   startedAt?: number;
   durationMs?: number;
   outputs?: Record<string, unknown>;
@@ -91,6 +91,14 @@ export function applyEvent(state: RunOverlayState, event: WorkflowRunEvent): Run
       }));
       return { ...state, nodes: next };
     }
+    case "node-skipped": {
+      const next = upsertNode(state.nodes, event.nodeId, (row) => ({
+        ...row,
+        nodeType: event.nodeType,
+        status: "skipped",
+      }));
+      return { ...state, nodes: next };
+    }
     case "run-complete":
       return {
         ...state,
@@ -143,7 +151,9 @@ export function WorkflowRunOverlay({ state, onClose, onRerun }: WorkflowRunOverl
   // "n/N complete" while the run is still in flight.
   const summary = useMemo(() => {
     const total = state.nodes.length;
-    const finished = state.nodes.filter((n) => n.status === "ok" || n.status === "error").length;
+    const finished = state.nodes.filter(
+      (n) => n.status === "ok" || n.status === "error" || n.status === "skipped",
+    ).length;
     return { total, finished };
   }, [state.nodes]);
 
@@ -261,6 +271,7 @@ function NodeStatusBadge({ status }: { status: NodeRunState["status"] }) {
         status === "ok" && "border-positive bg-positive/10 text-positive",
         status === "error" && "border-negative bg-negative/10 text-negative",
         status === "pending" && "border-charcoal-700 text-charcoal-400",
+        status === "skipped" && "border-charcoal-700 text-charcoal-500 line-through",
       )}
     >
       {status}

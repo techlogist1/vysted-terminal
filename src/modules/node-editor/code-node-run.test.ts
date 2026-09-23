@@ -178,6 +178,28 @@ describe("evaluateCodeNodes", () => {
     }
   });
 
+  it("skips a code node fed only by an un-taken branch port, and its code dependant", () => {
+    const s = spec({
+      nodes: [
+        { id: "b1", type: "logic.branch" },
+        { id: "c1", type: "transform.code", config: codeConfig("v * 2", ["v"]) },
+        { id: "c2", type: "transform.code", config: codeConfig("x + 1", ["x"]) },
+      ],
+      edges: [
+        { id: "e1", from: "b1", fromPort: "false_path", to: "c1", toPort: "v" },
+        { id: "e2", from: "c1", fromPort: "value", to: "c2", toPort: "x" },
+      ],
+    });
+    // The engine omits the un-taken port from the streamed outputs.
+    const outputs = new Map<string, Record<string, unknown>>([["b1", { true_path: 3 }]]);
+    const skipped = new Set<string>();
+    const { events, emit } = collect();
+    const result = evaluateCodeNodes(s, ["c1", "c2"], outputs, "run-1", emit, skipped);
+    expect(result.failedNodeIds).toEqual([]);
+    expect([...skipped]).toEqual(["c1", "c2"]);
+    expect(events.map((e) => e.kind)).toEqual(["node-skipped", "node-skipped"]);
+  });
+
   it("chains code -> code through accumulated outputs", () => {
     const s = spec({
       nodes: [

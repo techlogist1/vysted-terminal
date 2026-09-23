@@ -267,26 +267,33 @@ async def test_agent_invoke_requires_agent_id() -> None:
 @pytest.mark.asyncio
 async def test_logic_branch_truthy_routes_value() -> None:
     result = await builtin.logic_branch({"value": "non-empty"}, {})
-    assert result == {"true_path": "non-empty", "false_path": None}
+    assert result == {"true_path": "non-empty", "false_path": workflow_engine.SKIP}
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_falsy_routes_false_path() -> None:
     result = await builtin.logic_branch({"value": ""}, {})
-    assert result == {"true_path": None, "false_path": ""}
+    assert result == {"true_path": workflow_engine.SKIP, "false_path": ""}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("value", ["false", "no", "0", "off", " FALSE ", "Off"])
+async def test_logic_branch_falsy_strings_route_false_path(value: str) -> None:
+    result = await builtin.logic_branch({"value": value}, {})
+    assert result == {"true_path": workflow_engine.SKIP, "false_path": value}
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_gt_mode() -> None:
     result = await builtin.logic_branch({"value": 5.5, "threshold": 3.0}, {"mode": "gt"})
     assert result["true_path"] == 5.5
-    assert result["false_path"] is None
+    assert result["false_path"] is workflow_engine.SKIP
 
 
 @pytest.mark.asyncio
 async def test_logic_branch_gt_mode_below() -> None:
     result = await builtin.logic_branch({"value": 1.0, "threshold": 3.0}, {"mode": "gt"})
-    assert result["true_path"] is None
+    assert result["true_path"] is workflow_engine.SKIP
     assert result["false_path"] == 1.0
 
 
