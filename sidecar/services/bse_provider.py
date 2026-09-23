@@ -209,6 +209,32 @@ def _bar_timestamp(trading_day: date) -> datetime:
 # ---------------------------------------------------------------------------
 
 
+def _normalise_row(raw: dict) -> dict[str, object] | None:
+    """One raw bhavcopy row → the normalised per-scrip dict, or ``None`` for a
+    blank row."""
+    # Tolerate stray whitespace in header names.
+    row = {(k or "").strip(): (v.strip() if isinstance(v, str) else v) for k, v in raw.items()}
+    ticker = row.get("TckrSymb") or row.get("SC_NAME") or ""
+    code = row.get("FinInstrmId") or row.get("SC_CODE") or ""
+    # Only the equity segment carries OHLC we chart; skip a blank row.
+    close = _num(row.get("ClsPric") or row.get("CLOSE"))
+    if close is None or not ticker:
+        return None
+    return {
+        "code": str(code).strip(),
+        "ticker": str(ticker).strip().upper(),
+        # Security series (e.g. "EQ"). A scrip can list under several series;
+        # we chart the equity line, so the assembler prefers EQ when present.
+        "series": (row.get("SctySrs") or row.get("SERIES") or "").strip().upper(),
+        "open": _num(row.get("OpnPric") or row.get("OPEN")) or close,
+        "high": _num(row.get("HghPric") or row.get("HIGH")) or close,
+        "low": _num(row.get("LwPric") or row.get("LOW")) or close,
+        "close": close,
+        "volume": _num(row.get("TtlTradgVol") or row.get("NO_OF_SHRS")) or 0.0,
+        "date": row.get("TradDt") or row.get("TIMESTAMP") or "",
+    }
+
+
 def parse_bhavcopy(text: str) -> pd.DataFrame:
     """Parse a BSE BhavCopy CSV into a normalised per-scrip EOD frame.
 
@@ -218,46 +244,65 @@ def parse_bhavcopy(text: str) -> pd.DataFrame:
     ``[code, ticker, open, high, low, close, volume, date]``; an unparseable /
     empty body yields an empty frame (the caller treats it as "no data that day").
     """
-    rows: list[dict[str, object]] = []
     reader = csv.DictReader(io.StringIO(text))
-    for raw in reader:
-        # Tolerate stray whitespace in header names.
-        row = {(k or "").strip(): (v.strip() if isinstance(v, str) else v) for k, v in raw.items()}
-        ticker = row.get("TckrSymb") or row.get("SC_NAME") or ""
-        code = row.get("FinInstrmId") or row.get("SC_CODE") or ""
-        # Only the equity segment carries OHLC we chart; skip a blank row.
-        close = _num(row.get("ClsPric") or row.get("CLOSE"))
-        if close is None or not ticker:
+    return pd.DataFrame([row for raw in reader if (row := _normalise_row(raw)) is not None])
+
+
+def _field_lines(text: str, value: str, start: int) -> list[str]:
+    """The lines of ``text`` (from offset ``start``) carrying ``value`` as a whole
+    CSV field — a C-speed substring scan, so only those lines are parsed."""
+    lines: list[str] = []
+    pos = start
+    while (i := text.find(value, pos)) != -1:
+        end = i + len(value)
+        line_start = text.rfind("\n", 0, i) + 1
+        line_end = text.find("\n", end)
+        line_end = len(text) if line_end == -1 else line_end
+        before = text[i - 1] if i > line_start else ","
+        after = text[end] if end < line_end else ","
+        if before in ', "' and after in ', "\r':
+            lines.append(text[line_start:line_end])
+        pos = line_end
+    return lines
+
+
+def _scrip_row(text: str, ticker: str, code: str | None) -> dict[str, object] | None:
+    """This instrument's normalised row in one day's bhavcopy text, or ``None``.
+
+    Reads only the lines that carry the scrip code (ticker as the fallback)
+    instead of parsing the whole market (R15-DATA-036). The numeric
+    ``FinInstrmId`` from the master is the deterministic key (ticker spellings
+    drift across renames; codes never do). The ticker match is the fallback for
+    a master row without a code — and for a code that misses the day's file
+    (e.g. a bhavcopy older than a re-coding).
+    """
+    header_end = text.find("\n")
+    if header_end == -1:
+        return None
+    header = next(csv.reader([text[:header_end]]))
+    for field, value in (("code", code), ("ticker", ticker)):
+        if not value:
             continue
-        trad = row.get("TradDt") or row.get("TIMESTAMP") or ""
-        rows.append(
-            {
-                "code": str(code).strip(),
-                "ticker": str(ticker).strip().upper(),
-                # Security series (e.g. "EQ"). A scrip can list under several series;
-                # we chart the equity line, so the assembler prefers EQ when present.
-                "series": (row.get("SctySrs") or row.get("SERIES") or "").strip().upper(),
-                "open": _num(row.get("OpnPric") or row.get("OPEN")) or close,
-                "high": _num(row.get("HghPric") or row.get("HIGH")) or close,
-                "low": _num(row.get("LwPric") or row.get("LOW")) or close,
-                "close": close,
-                "volume": _num(row.get("TtlTradgVol") or row.get("NO_OF_SHRS")) or 0.0,
-                "date": trad,
-            }
-        )
-    return pd.DataFrame(rows)
+        rows = [
+            row
+            for line in _field_lines(text, value, header_end + 1)
+            if (
+                row := _normalise_row(dict(zip(header, next(csv.reader([line]), []), strict=False)))
+            )
+            is not None
+            and row[field] == value
+        ]
+        if rows:
+            return _pick_equity_row(rows)
+    return None
 
 
-def _pick_equity_row(match: pd.DataFrame) -> pd.Series:
-    """From the rows matching a ticker, prefer the equity (``EQ``) security series
+def _pick_equity_row(rows: list[dict[str, object]]) -> dict[str, object]:
+    """From the rows matching a scrip, prefer the equity (``EQ``) security series
     when present — a scrip can list under several series and we chart the equity
     line — else fall back to the first row (no name is dropped if BSE happens to
     label its equity series differently than ``EQ``)."""
-    if "series" in match.columns:
-        eq = match[match["series"] == "EQ"]
-        if not eq.empty:
-            return eq.iloc[0]
-    return match.iloc[0]
+    return next((row for row in rows if row["series"] == "EQ"), rows[0])
 
 
 def _decode_bhavcopy_body(resp: httpx.Response) -> str:
@@ -272,16 +317,15 @@ def _decode_bhavcopy_body(resp: httpx.Response) -> str:
     return content.decode("utf-8", errors="replace")
 
 
-def _bhavcopy_for(day: date) -> pd.DataFrame | None:
-    """Return the cached bhavcopy frame for ``day``, or ``None`` when not cached.
+def _bhavcopy_for(day: date) -> str | None:
+    """Return the cached bhavcopy text for ``day``, or ``None`` when not cached.
 
-    An empty frame means a known-empty day (a holiday the calendar missed): its
-    cached empty marker is honoured only when it was written AFTER its trading
-    day (the file's IST mtime), because a marker written on or before the day was
-    written before BSE could have published it (R15-DATA-035). Such a marker
-    reads as not cached, so the day is fetched again. Resilient to the
-    cache-dir race (``FileExistsError`` → ensure the dir + retry once),
-    mirroring india_provider.
+    ``""`` means a known-empty day (a holiday the calendar missed): its cached
+    empty marker is honoured only when it was written AFTER its trading day (the
+    file's IST mtime), because a marker written on or before the day was written
+    before BSE could have published it (R15-DATA-035). Such a marker reads as not
+    cached, so the day is fetched again. Resilient to the cache-dir race
+    (``FileExistsError`` → ensure the dir + retry once), mirroring india_provider.
     """
     cache = _cache_dir()
     path = os.path.join(cache, f"{day.isoformat()}.csv")
@@ -292,8 +336,8 @@ def _bhavcopy_for(day: date) -> pd.DataFrame | None:
                 return None  # not cached — caller decides whether to download
             text = _read_cached(path)
             if text:
-                return parse_bhavcopy(text)
-            return pd.DataFrame() if _marker_after_day(path, day) else None
+                return text
+            return "" if _marker_after_day(path, day) else None
         except FileExistsError:
             continue  # cache-dir race — ensure dir + retry once
     return None
@@ -312,8 +356,8 @@ def _read_cached(path: str) -> str:
         return fp.read()
 
 
-def _download_bhavcopy(day: date) -> pd.DataFrame | None:
-    """Download + cache the bhavcopy for ``day``; return its frame or ``None``.
+def _download_bhavcopy(day: date) -> str | None:
+    """Download + cache the bhavcopy for ``day``; return its CSV text or ``None``.
 
     A 404 or a CSV with no rows is cached as an empty marker (see
     :func:`_bhavcopy_for` for when it is honoured). Before publication BSE
@@ -344,12 +388,11 @@ def _download_bhavcopy(day: date) -> pd.DataFrame | None:
     if text.lstrip().startswith("<"):
         logger.debug("bse: bhavcopy %s not published yet (HTML page)", day)
         return None
-    frame = parse_bhavcopy(text)
-    if frame.empty:
+    if parse_bhavcopy(text).empty:
         _write_cache(cache, path, "")
         return None
     _write_cache(cache, path, text)
-    return frame
+    return text
 
 
 def _write_cache(cache: str, path: str, text: str) -> None:
@@ -425,28 +468,14 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     return OHLCVSeries(symbol=bare, timeframe=timeframe, bars=bars, provider=PROVIDER)
 
 
-def _match_scrip(frame: pd.DataFrame, ticker: str, code: str | None) -> pd.DataFrame:
-    """Rows for this instrument in one bhavcopy frame — scrip code first.
-
-    The numeric ``FinInstrmId`` from the master is the deterministic key (ticker
-    spellings drift across renames; codes never do). The ticker match is the
-    fallback for a master row without a code — and for a code that misses the
-    day's file (e.g. a bhavcopy older than a re-coding).
-    """
-    if code:
-        match = frame[frame["code"] == code]
-        if not match.empty:
-            return match
-    return frame[frame["ticker"] == ticker]
-
-
 def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> list[OHLCVBar]:
     """Walk trading days in ``[start, end]``, collecting this scrip's daily bar.
 
     Cached bhavcopies are read for the whole range; missing *recent* trading days
     are downloaded up to the cold-download budget (newest-first) so a cold cache
     still serves recent EOD without a multi-year backfill burst. Rows are located
-    by scrip code (ticker fallback) via :func:`_match_scrip`.
+    by scrip code (ticker fallback) via :func:`_scrip_row`, which reads one row
+    per day file instead of parsing the whole market.
     """
     trading_days = [
         d
@@ -457,16 +486,13 @@ def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> 
     bars: list[OHLCVBar] = []
     # Newest-first so the cold-download budget spends on the most recent days.
     for day in reversed(trading_days):
-        frame = _bhavcopy_for(day)
-        if frame is None and downloads_left > 0:
-            frame = _download_bhavcopy(day)
+        text = _bhavcopy_for(day)
+        if text is None and downloads_left > 0:
+            text = _download_bhavcopy(day)
             downloads_left -= 1
-        if frame is None or frame.empty:
+        row = _scrip_row(text, ticker, code) if text else None
+        if row is None:
             continue
-        match = _match_scrip(frame, ticker, code)
-        if match.empty:
-            continue
-        row = _pick_equity_row(match)
         bars.append(
             OHLCVBar(
                 timestamp=_bar_timestamp(day),
