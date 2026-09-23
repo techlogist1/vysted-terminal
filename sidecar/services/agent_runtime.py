@@ -677,6 +677,20 @@ async def _dispatch_tool(
         return str(payload)
 
 
+def _model_facing_content(tool_name: str, result_str: str) -> str:
+    """The tool message the MODEL reads, split from the raw result (D-B3-5).
+
+    A research result's money scalars become their semantics displays, so a
+    small model cannot mis-scale a raw rupee float (R15-AGENT-001). The panel
+    view (auto-publish) keeps parsing the raw ``result_str``.
+    """
+    if tool_name in _RESEARCH_TOOLS:
+        from services.agent_tools import research
+
+        return research.model_content(result_str)
+    return result_str
+
+
 class _ToolDone:
     """Terminal item from :func:`_dispatch_tool_with_progress` — the JSON result
     string of the completed tool. Distinguished from the live
@@ -1571,7 +1585,9 @@ async def invoke_agent(
                         yield item
             tool_result_msg = LLMMessage(
                 role="tool",
-                content=result_str,
+                # The model reads its own view (money as displays); the raw
+                # result_str still feeds auto-publish and the execution record.
+                content=_model_facing_content(tool_call.name, result_str),
                 tool_call_id=tool_call.tool_call_id,
                 # Carry the tool NAME alongside the id: Gemini pairs a
                 # function_response to its call by name (not id), so a
