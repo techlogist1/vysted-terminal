@@ -379,3 +379,105 @@ async def test_search_companies_empty_query_returns_no_call(
     rows = await sec_filings_provider.search_companies("  ", limit=5)
     assert rows == []
     assert not any(c["name"] == "search_companies" for c in recorder.calls)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-038: the shapes sec-edgar-mcp 1.0.8 actually sends
+# (docs/redesign/verification/r15/surface/panels-layouts/P-sec-parser-check.txt)
+# ---------------------------------------------------------------------------
+
+
+_EDGAR_SECTIONS_PAYLOAD = {
+    "success": True,
+    "form_type": "10-K",
+    "sections": {
+        "business": "Apple designs smartphones. " * 370,
+        "risk_factors": "Macro conditions may harm demand. " * 290,
+        "has_financials": True,
+    },
+    "available_sections": ["business", "risk_factors", "has_financials"],
+}
+
+_EDGAR_INSIDER_PAYLOAD = {
+    "success": True,
+    "cik": 320193,
+    "name": "Apple Inc.",
+    "transactions": [
+        {
+            "filing_date": f"2026-09-{day:02d}",
+            "form_type": "4",
+            "accession_number": f"0001140361-26-03{n:04d}",
+            "company_name": "Apple Inc.",
+            "cik": 320193,
+            "url": f"https://www.sec.gov/Archives/edgar/data/320193/00011403612603{n:04d}/",
+            "sec_url": "https://www.sec.gov/Archives/edgar/data/320193/x.txt",
+            "data_source": "SEC EDGAR Filing, extracted directly from insider filing data",
+        }
+        for n, day in ((7020, 17), (6226, 10), (5636, 3), (5362, 1), (4741, 1))
+    ],
+    "count": 5,
+    "form_types": ["4"],
+    "days_back": 90,
+    "filing_reference": {"data_source": "SEC EDGAR Insider Trading Filings (Forms 3, 4, 5)"},
+}
+
+
+@pytest.mark.asyncio
+async def test_dict_of_sections_parses_to_sections(recorder: _RecordingClient) -> None:
+    """The upstream's dict of section strings becomes titled sections; the
+    non-text ``has_financials`` flag is not a section."""
+    recorder.respond("get_filing_sections", _EDGAR_SECTIONS_PAYLOAD)
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+
+    detail = await sec_filings_provider.get_filing("0000320193-24-000123", cik_or_symbol="AAPL")
+
+    assert [(s.id, s.title) for s in detail.sections] == [
+        ("business", "Business"),
+        ("risk_factors", "Risk Factors"),
+    ]
+    assert detail.total_chars > 19000
+
+
+@pytest.mark.asyncio
+async def test_filing_level_form4_rows_are_listed(recorder: _RecordingClient) -> None:
+    """Filing-level Form-4 rows (no trade date/code/shares) are kept with their
+    filing date, the issuer from the top-level ``name`` and no guessed direction."""
+    recorder.respond("get_insider_transactions", _EDGAR_INSIDER_PAYLOAD)
+
+    response = await sec_filings_provider.list_insider_transactions("AAPL", form_type="4")
+
+    assert response.issuer_name == "Apple Inc."
+    assert response.cik == "0000320193"
+    assert len(response.transactions) == 5
+    first = response.transactions[0]
+    assert first.accession == "0001140361-26-037020"
+    assert first.issuer_cik == "0000320193"
+    assert first.transaction_date == date(2026, 9, 17)
+    assert first.direction is None and first.shares is None
+
+
+@pytest.mark.asyncio
+async def test_unparseable_success_payload_raises_and_is_not_cached(
+    recorder: _RecordingClient,
+) -> None:
+    """A success payload in a shape the parser does not know is a logged parse
+    error, never a cached empty (case the fix was not written against)."""
+    recorder.respond("get_insider_transactions", {"success": True, "filings": [{"x": 1}]})
+    with pytest.raises(ProviderError, match="could not parse"):
+        await sec_filings_provider.list_insider_transactions("AAPL", form_type="4")
+    assert await data_cache.get("sec:insider:AAPL:4:50", 3600.0) is None
+
+    recorder.respond("get_filing_sections", {"success": True, "items": {"business": "text"}})
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+    with pytest.raises(ProviderError, match="could not parse"):
+        await sec_filings_provider.get_filing("0000320193-24-000123", cik_or_symbol="AAPL")
+    assert await data_cache.get("sec:filing:0000320193-24-000123", 86400.0) is None
+
+
+@pytest.mark.asyncio
+async def test_in_band_upstream_failure_raises(recorder: _RecordingClient) -> None:
+    """sec-edgar-mcp's own ``{"success": false}`` is an error, not an empty list."""
+    recorder.respond("get_insider_transactions", {"success": False, "error": "no CIK for XYZ"})
+    with pytest.raises(ProviderError, match="no CIK for XYZ"):
+        await sec_filings_provider.list_insider_transactions("XYZ")
+    assert await data_cache.get("sec:insider:XYZ:all:50", 3600.0) is None

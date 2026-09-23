@@ -117,8 +117,10 @@ class InsiderTransaction(BaseModel):
     issuer_symbol: str | None = None
     form_type: InsiderFormType
     transaction_date: date
-    direction: InsiderTransactionDirection
-    shares: str
+    # Null on a filing-level row (sec-edgar-mcp reports the Form 3/4/5 filing,
+    # not its trades), never a guessed "acquired" / "0" (R15-DATA-038).
+    direction: InsiderTransactionDirection | None = None
+    shares: str | None = None
     price_per_share: str | None = None
     transaction_value: str | None = None
     transaction_code: str

@@ -127,12 +127,14 @@ export interface InsiderTransaction {
   issuer_symbol: string | null;
   /** Filing form type — one of ``"3" | "4" | "5"``. */
   form_type: "3" | "4" | "5";
-  /** ISO-8601 transaction date (NOT the filing date — the trade date). */
+  /** ISO-8601 trade date; a filing-level row (no per-trade detail upstream)
+   * carries its filing date. */
   transaction_date: string;
-  /** ``"acquired" | "disposed"``. */
-  direction: InsiderTransactionDirection;
-  /** Number of shares as a string — exact XBRL value (may exceed safe int). */
-  shares: string;
+  /** ``"acquired" | "disposed"``; ``null`` on a filing-level row. */
+  direction: InsiderTransactionDirection | null;
+  /** Number of shares as a string — exact XBRL value (may exceed safe int);
+   * ``null`` on a filing-level row. */
+  shares: string | null;
   /** Per-share price as a string; ``null`` for gift / inheritance transactions. */
   price_per_share: string | null;
   /** Total transaction value (``shares × price_per_share``) as a string;
