@@ -1562,12 +1562,24 @@ TIMEOUT_HINTS: dict[str, str] = {
     "workflows": "narrow the date range or symbol list and retry",
 }
 
+#: Per-tool hints that override the domain line (R15-RESEARCH-008, C6):
+#: ``web_search`` shares the ``research`` domain, but "retry at a lighter
+#: depth" is the research tool's copy — search has no depth.
+TOOL_TIMEOUT_HINTS: dict[str, str] = {
+    "web_search": (
+        "the configured search tier did not answer in time — retry once with a "
+        "narrower query, or answer from what you already have and say search was slow"
+    ),
+}
+
 #: Fallback hint for a domain not listed above.
 DEFAULT_TIMEOUT_HINT = "try again — if it keeps timing out, narrow the request"
 
 
 def timeout_hint_for(tool_id: str) -> str:
-    """The per-domain next-step hint for a tool's timeout message."""
+    """The next-step hint for a tool's timeout message (per tool, else per domain)."""
+    if tool_id in TOOL_TIMEOUT_HINTS:
+        return TOOL_TIMEOUT_HINTS[tool_id]
     return TIMEOUT_HINTS.get(domain_of(tool_id) or "", DEFAULT_TIMEOUT_HINT)
 
 
@@ -1578,6 +1590,7 @@ __all__ = [
     "Domain",
     "FORBIDDEN_TOOL_SUBSTRINGS",
     "TIMEOUT_HINTS",
+    "TOOL_TIMEOUT_HINTS",
     "ToolKind",
     "agent_selectable_tool_ids",
     "default_grant_tool_ids",

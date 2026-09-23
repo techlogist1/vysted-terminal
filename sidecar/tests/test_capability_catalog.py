@@ -199,3 +199,15 @@ def test_third_party_text_tools_are_flagged_untrusted() -> None:
         "sec_filing_content",
         "research",
     }
+
+
+# --- R15-RESEARCH-008 (C6): web_search times out with its own next step ---
+
+
+def test_web_search_timeout_hint_is_not_the_research_depth_copy() -> None:
+    from services.agent_tools.catalog import timeout_hint_for
+
+    hint = timeout_hint_for("web_search")
+    assert hint != timeout_hint_for("research")
+    assert "depth" not in hint
+    assert "narrower query" in hint
