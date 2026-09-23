@@ -28,6 +28,7 @@ from typing import Any
 
 from services import locale, nse_provider, provider_health, symbol_resolver
 from services.ownership_check import EXCHANGE
+from services.witness import is_block_error, is_india_listing
 
 logger = logging.getLogger(__name__)
 
@@ -63,19 +64,14 @@ class DeclaredDividend:
 def is_applicable(symbol: str) -> bool:
     """True when ``symbol`` is an NSE listing (the corporate-actions lane is NSE).
 
-    A non-NSE ticker is skipped without a network call — the corporate-actions
-    endpoint is NSE-only, so there is nothing to fetch.
+    Decided on the resolved listing (``.NS``/``.BO``, via
+    :func:`services.witness.is_india_listing`) whose bare ticker is an NSE symbol
+    — never on bare-ticker membership alone, so a US-bound listing is skipped
+    without a network call.
     """
-    if not isinstance(symbol, str) or not symbol:
+    if not is_india_listing(symbol):
         return False
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
-    return symbol_resolver.is_nse_symbol(bare)
-
-
-def _is_blocked(exc: BaseException) -> bool:
-    """True when ``exc`` looks like an exchange block/throttle (vs a plain miss)."""
-    text = str(exc).lower()
-    return "blocked" in text or any(code in text for code in ("http 401", "http 403", "http 429"))
+    return symbol_resolver.is_nse_symbol(locale.strip_exchange_suffix(symbol))
 
 
 def _parse_amount(subject: str) -> float | None:
@@ -150,7 +146,7 @@ async def get_declared_unpaid_dividend(symbol: str) -> DeclaredDividend | None:
     try:
         result = await asyncio.to_thread(_fetch, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_blocked(exc):
+        if is_block_error(exc):
             provider_health.record_rate_limited(EXCHANGE)
         else:
             logger.debug("declared-dividend lane unavailable for %s: %s", symbol, exc)
