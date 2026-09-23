@@ -181,6 +181,39 @@ def _value(
     return out
 
 
+#: Derived values stated in the currency of the financial STATEMENTS (Yahoo
+#: ``financialCurrency``), which can differ from the trading currency (an ADR).
+_STATEMENT_KEYS = frozenset({"reported_net_income", "normalized_net_income"})
+
+
+def display_value(value: float, unit: str | None, currency: str | None) -> str:
+    """The ONE human rendering of a derived value — what the model quotes.
+
+    ``fraction`` → percent points (0.01417 → ``"1.42%"``). ``currency`` →
+    INR in the Indian convention (≥ ₹1 crore scaled to crore:
+    144,021,815,296 → ``"₹14,402 cr"``; smaller amounts in rupees), any other
+    code scaled to T/B/M with the code named (``"USD 3.21T"``). Anything else
+    renders as a plain number. A raw fraction or raw rupee float never reaches
+    the model as the figure to state.
+    """
+    if unit == "fraction":
+        return f"{value * 100:.2f}%"
+    if unit != "currency":
+        return f"{value:,.2f}"
+    code = (currency or "").strip().upper()
+    if code == "INR":
+        crore = value / 1e7
+        if abs(crore) >= 1000:
+            return f"₹{crore:,.0f} cr"
+        if abs(crore) >= 1:
+            return f"₹{crore:,.2f} cr"
+        return f"₹{value:,.2f}"
+    for scale, suffix in ((1e12, "T"), (1e9, "B"), (1e6, "M")):
+        if abs(value) >= scale:
+            return f"{code} {value / scale:,.2f}{suffix}".strip()
+    return f"{code} {value:,.2f}".strip()
+
+
 def _field_reason(fund: dict[str, Any], field: str) -> str | None:
     """The ``field_meta`` reason for one fundamentals field (R13 JARVIS 2a).
 
@@ -389,7 +422,7 @@ def _growth_leg(fund: dict[str, Any], provider: str) -> tuple[dict[str, Any], li
             label,
             basis=_GROWTH_BASIS_MRQ_YOY,
             formula="(MRQ - same quarter prior year) / |same quarter prior year|",
-            unit="percent",
+            unit="fraction",
         )
         quarter_note = (
             f" ({quarters.get('mrq')} vs {quarters.get('prior')})"
@@ -566,7 +599,7 @@ def _ownership_leg(
             round(promoter_pct / 100.0, 6),
             "Promoter group (exchange filing)",
             basis=basis,
-            unit="percent",
+            unit="fraction",
         )
         yf_insiders = _num(fund, "held_percent_insiders")  # a fraction (0-1)
         if yf_insiders is not None:
@@ -581,7 +614,7 @@ def _ownership_leg(
             round(institutions_pct / 100.0, 6),
             "Institutional holding (exchange filing)",
             basis=basis,
-            unit="percent",
+            unit="fraction",
         )
         yf_inst = _num(fund, "held_percent_institutions")  # a fraction (0-1)
         if yf_inst is not None:
@@ -692,7 +725,10 @@ def _earnings_quality_leg(
         return {}, []
     normalized = _num(eq, "normalized_income")
     adjusted = normalized if normalized is not None else reported - one_off
-    currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
+    # Income-statement amounts are in the statements' currency (C2).
+    currency = fund.get("financial_currency") or (
+        fund.get("currency") if isinstance(fund.get("currency"), str) else None
+    )
     period = eq.get("period") if isinstance(eq.get("period"), str) else None
     basis = f"annual income statement{f', FY {period}' if period else ''}"
 
@@ -886,7 +922,7 @@ def _dividend_leg(
 
     yield_kwargs: dict[str, Any] = {
         "basis": "fraction of price",
-        "unit": "percent",
+        "unit": "fraction",
     }
     dps_kwargs: dict[str, Any] = {"basis": dps_basis, "unit": "currency"}
     # field_meta reasons (R13 JARVIS 2a) so a null dividend value states WHY — a
@@ -1029,14 +1065,14 @@ def derive_semantics(
             "Below 52-week high",
             basis="vs 52w high",
             formula="(52w high - price) / 52w high",
-            unit="percent",
+            unit="fraction",
             reason=(None if drawdown is not None else _field_reason(fund, "fifty_two_week_high")),
         ),
         "fifty_two_week_change": _value(
             fifty_two_change,
             "52-week price change (Yahoo)",
             basis="trailing 52 weeks",
-            unit="percent",
+            unit="fraction",
             reason=(
                 None
                 if fifty_two_change is not None
@@ -1065,7 +1101,7 @@ def derive_semantics(
         revenue_growth_value,
         "Revenue growth",
         basis=_GROWTH_BASIS_MRQ_YOY,
-        unit="percent",
+        unit="fraction",
         reason=(
             None if revenue_growth_value is not None else _field_reason(fund, "revenue_growth")
         ),
@@ -1074,7 +1110,7 @@ def derive_semantics(
         earnings_growth_value,
         "Earnings growth",
         basis=_GROWTH_BASIS_MRQ_YOY,
-        unit="percent",
+        unit="fraction",
         reason=(
             None if earnings_growth_value is not None else _field_reason(fund, "earnings_growth")
         ),
@@ -1112,6 +1148,15 @@ def derive_semantics(
     conflicts.extend(range_conflicts)
 
     market_cap = _num(fund, "market_cap")
+    # The provider market cap as a labeled value so it reaches the model with a
+    # scaled display (a raw rupee float was mis-scaled 10x in narration).
+    data["market_cap"] = _value(
+        market_cap,
+        "Market cap",
+        basis="provider market cap",
+        unit="currency",
+        reason=None if market_cap is not None else _field_reason(fund, "market_cap"),
+    )
     shares = _num(fund, "shares_outstanding")
     if market_cap is not None and shares is not None and price is not None:
         implied_cap = price * shares
@@ -1160,12 +1205,24 @@ def derive_semantics(
     for conflict in conflicts:
         conflict.setdefault("conflict_kind", _CONFLICT_DATA)
 
+    # Every real value carries its human ``display`` (the string the model
+    # quotes). Statement sizes render in the statements' own currency (C2).
+    currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
+    statement_currency = fund.get("financial_currency") or currency
+    for key, item in data.items():
+        value = item.get("value")
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            item["display"] = display_value(
+                value, item.get("unit"), statement_currency if key in _STATEMENT_KEYS else currency
+            )
+
     data["conflicts"] = conflicts
     return {"ok": True, "provider": "derived", "data": data}
 
 
 #: The keys rendered into the synthesis prompt block, in display order.
 _PROMPT_KEYS = (
+    "market_cap",
     "drawdown_from_high",
     "fifty_two_week_change",
     "fifty_two_week_high_exchange",
@@ -1220,11 +1277,7 @@ def _render(item: dict[str, Any], *, growth: bool = False) -> str | None:
         if isinstance(reason, str) and reason:
             return f"- {item.get('label')}: not available — {reason}"
         return None
-    unit = item.get("unit")
-    if unit == "percent":
-        rendered = f"{value * 100:+.1f}%" if growth else f"{value * 100:.2f}%"
-    else:
-        rendered = f"{value:,.2f}"
+    rendered = f"{value * 100:+.1f}%" if growth else item["display"]
     line = f"- {item.get('label')}: {rendered}"
     if item.get("basis"):
         line += f" (basis: {item['basis']})"

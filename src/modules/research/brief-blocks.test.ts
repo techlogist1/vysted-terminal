@@ -575,3 +575,65 @@ describe("52w range zero-guard (R12)", () => {
     expect(labels(zeroed)).not.toContain("52w range");
   });
 });
+
+// R15-AGENT-001: the sidecar labels a share of 1 `fraction`; the panel renders
+// it in percent points, and the derived market cap (the model's scaled display)
+// never doubles the raw grid's card.
+describe("deriveMetrics — fraction unit, derived market cap, statement currency (R15)", () => {
+  it("renders a fraction ×100, signed for growth and unsigned for a level", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        derived: derivedLeg({
+          dividend_yield: {
+            value: 0.01417,
+            label: "Dividend yield",
+            unit: "fraction",
+            display: "1.42%",
+          },
+          revenue_growth: {
+            value: 0.024,
+            label: "Revenue growth",
+            unit: "fraction",
+            display: "2.40%",
+          },
+        }),
+      }),
+    );
+    const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
+    expect(byLabel["Dividend yield"]).toBe("1.42%");
+    expect(byLabel["Revenue growth"]).toBe("+2.40%");
+  });
+
+  it("the derived market cap never adds a second Market cap card", () => {
+    const model = deriveMetrics(
+      structured("equity", {
+        price: { ok: true, provider: "yfinance", data: quote({ currency: "INR" }) },
+        derived: derivedLeg({
+          market_cap: {
+            value: 144_021_815_296,
+            label: "Market cap",
+            unit: "currency",
+            display: "₹14,402 cr",
+          },
+        }),
+      }),
+    );
+    const caps = (model?.items ?? []).filter((i) => i.label === "Market cap");
+    expect(caps.map((i) => i.value)).toEqual(["INR 2.00B"]);
+  });
+
+  it("Revenue wears the statements' currency when it differs from trading (C2)", () => {
+    const adr = structured("equity", {
+      fundamentals: {
+        ok: true,
+        provider: "yfinance",
+        data: fundamentals({ revenue_ttm: 1.2e10, financial_currency: "INR" }),
+      },
+    });
+    const byLabel = Object.fromEntries(
+      (deriveMetrics(adr)?.items ?? []).map((i) => [i.label, i.value]),
+    );
+    expect(byLabel["Revenue"]).toBe("INR 12.00B");
+    expect(byLabel["Market cap"]).toBe("2.00B"); // the trading currency (USD) stays bare
+  });
+});

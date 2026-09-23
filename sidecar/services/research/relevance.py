@@ -371,8 +371,11 @@ def _bounded(token: str, text: str) -> bool:
     return bool(re.search(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", text))
 
 
-def is_india_target(target: ResearchTarget) -> bool:
-    """Does the bound instrument trade on an Indian exchange?"""
+def is_india_target(target: ResearchTarget | None) -> bool:
+    """Does the bound instrument trade on an Indian exchange? (``None`` — no
+    bound instrument — never does.) The one copy; the disclosures lane imports it."""
+    if target is None:
+        return False
     if (target.region or "").strip().upper() == "IN":
         return True
     return (target.exchange or "").strip().upper() in ("NSE", "BSE")
