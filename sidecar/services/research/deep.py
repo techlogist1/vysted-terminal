@@ -101,7 +101,8 @@ ROUND_SLICE_LATENCY_MULT = 2.5
 #: ``brief.note`` renders to the USER and must read like a sentence — never
 #: "per-round wall-clock guard: round exceeded 20s".
 BUDGET_STOP_NOTE = (
-    "Stopped early to stay within the run's time budget — coverage may be lighter than usual."
+    "Stopped early to stay within the run's time, token or spend budget — coverage may be "
+    "lighter than usual."
 )
 
 #: The run's ``degraded_reason`` when the brief shipped without a written

@@ -21,6 +21,7 @@ from services import agent_tools
 from services.agent_tools import deep_research
 from services.llm import oneshot
 from services.research import iter as iter_research
+from services.research.deep import BUDGET_STOP_NOTE
 from services.research.depth import PROFILES
 from services.search import extract
 
@@ -139,6 +140,8 @@ def test_tiny_spend_ceiling_breaches_and_forces_synthesis(native_run) -> None:
     assert any("spend ceiling" in s["detail"] for s in out["steps"]), [
         s["detail"] for s in out["steps"]
     ]
+    # The user-facing note names a budget stop that covers spend, not "time" only.
+    assert out["note"] == BUDGET_STOP_NOTE and "spend" in BUDGET_STOP_NOTE
 
 
 def test_unmeasured_usage_reports_unknown_cost_not_zero(native_run) -> None:
