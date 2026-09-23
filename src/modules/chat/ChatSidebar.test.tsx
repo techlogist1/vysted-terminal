@@ -369,6 +369,18 @@ describe("ChatSidebar", () => {
     expect(screen.getByText("stopped")).toBeInTheDocument();
   });
 
+  it("a stream call that rejects still settles the message and frees the composer", async () => {
+    streamAgentInvocationMock.mockRejectedValueOnce(new Error("handler blew up"));
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "question" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(useChatHistoryStore.getState().streamingMessageId).toBeNull());
+    const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
+    expect(assistant?.pending).toBe(false);
+    expect(assistant?.error).toBe("handler blew up");
+  });
+
   it("collapses a finished run's step trace into one disclosure line, expandable on demand", () => {
     useChatHistoryStore.setState({
       messages: [

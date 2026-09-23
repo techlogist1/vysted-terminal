@@ -998,44 +998,54 @@ export function ChatSidebar() {
         onPlan: (plan) => setPlan(assistantId, plan),
       });
 
-      if (agentForCall) {
-        const terminalState = captureTerminalState();
-        const snapshot: AgentContextSnapshot = {
-          focusedSource: terminalState.focusedPanel,
-          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-          capturedAt: terminalState.capturedAt,
-        };
-        await streamAgentInvocation(
-          agentForCall,
-          {
-            prompt,
-            contextSnapshot: snapshot,
-            provider,
-            model,
-            mode,
-            // Autonomy rides the request so the sidecar narrates host-actions
-            // truthfully (auto = applied/past-tense, ask = staged for review).
-            autonomy: useAgentAutonomyStore.getState().autonomy,
-            apiKey: apiKey ?? undefined,
-            options: { history, ...deepResearchOptions },
-          },
-          { ...handlers, signal: controller.signal },
-        );
-      } else {
-        // FR-116 / coherence: the raw-chat path must preserve conversation context
-        // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
-        // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
-        // excludes the current prompt) is prepended; previously this path sent only
-        // the single current turn and silently dropped everything before it.
-        await streamChat(
-          {
-            provider,
-            model,
-            messages: [...history, { role: "user", content: prompt }],
-            apiKey: apiKey ?? undefined,
-          },
-          { ...handlers, signal: controller.signal },
-        );
+      // The stream client settles every call through exactly one terminal
+      // callback; anything thrown around it (snapshot capture, a throwing
+      // handler) still settles the message instead of leaving it streaming
+      // forever with later prompts queued behind it (R15-AGENT-029).
+      try {
+        if (agentForCall) {
+          const terminalState = captureTerminalState();
+          const snapshot: AgentContextSnapshot = {
+            focusedSource: terminalState.focusedPanel,
+            bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
+            capturedAt: terminalState.capturedAt,
+          };
+          await streamAgentInvocation(
+            agentForCall,
+            {
+              prompt,
+              contextSnapshot: snapshot,
+              provider,
+              model,
+              mode,
+              // Autonomy rides the request so the sidecar narrates host-actions
+              // truthfully (auto = applied/past-tense, ask = staged for review).
+              autonomy: useAgentAutonomyStore.getState().autonomy,
+              apiKey: apiKey ?? undefined,
+              options: { history, ...deepResearchOptions },
+            },
+            { ...handlers, signal: controller.signal },
+          );
+        } else {
+          // FR-116 / coherence: the raw-chat path must preserve conversation context
+          // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
+          // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
+          // excludes the current prompt) is prepended; previously this path sent only
+          // the single current turn and silently dropped everything before it.
+          await streamChat(
+            {
+              provider,
+              model,
+              messages: [...history, { role: "user", content: prompt }],
+              apiKey: apiKey ?? undefined,
+            },
+            { ...handlers, signal: controller.signal },
+          );
+        }
+      } catch (err) {
+        if (useChatHistoryStore.getState().streamingMessageId === assistantId) {
+          handlers.onError(err instanceof Error ? err : new Error(String(err)));
+        }
       }
     },
     [
