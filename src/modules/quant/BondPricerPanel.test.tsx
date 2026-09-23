@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { resetQuantStoreForTests } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 import { BondPricerPanel } from "./BondPricerPanel";
 
 vi.mock("@/lib/sidecar-client", () => ({
@@ -10,6 +11,10 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  // R15-DATA-100: the display currency defaults to the SESSION region's —
+  // pin the region explicitly so the assertions below don't ride whatever
+  // the store's own default happens to be.
+  useSettingsStore.setState({ region: "US" });
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -46,8 +51,29 @@ describe("BondPricerPanel", () => {
     render(<BondPricerPanel />);
     fireEvent.click(screen.getByTestId("price-bond"));
     await screen.findByTestId("bond-pricing-result");
-    expect(screen.getByTestId("bond-clean").textContent).toContain("$1060.58");
+    expect(screen.getByTestId("bond-clean").textContent).toContain("$1,060.58");
     expect(screen.getByTestId("bond-duration").textContent).toContain("8.0500");
+  });
+
+  it("R15-DATA-100: in region IN, prices render with ₹, not a hard-coded $", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    render(<BondPricerPanel />);
+    fireEvent.click(screen.getByTestId("price-bond"));
+    await screen.findByTestId("bond-pricing-result");
+    expect(screen.getByTestId("bond-clean").textContent).toContain("₹1,060.58");
+    expect(screen.getByTestId("bond-clean").textContent).not.toContain("$");
+  });
+
+  it("R15-DATA-100: the display-currency select overrides the region default", async () => {
+    render(<BondPricerPanel />);
+    fireEvent.click(screen.getByTestId("price-bond"));
+    await screen.findByTestId("bond-pricing-result");
+    expect(screen.getByTestId("bond-clean").textContent).toContain("$1,060.58");
+
+    fireEvent.change(screen.getByTestId("field-display-currency"), {
+      target: { value: "INR" },
+    });
+    expect(screen.getByTestId("bond-clean").textContent).toContain("₹1,060.58");
   });
 
   it("supports semi-annual / annual / quarterly via the dropdown", () => {

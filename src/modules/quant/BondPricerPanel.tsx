@@ -27,9 +27,20 @@ import { Landmark } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { formatMoney } from "@/lib/format";
+import { regionConfig } from "@/lib/region";
 import { useQuantStore } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 
 import type { BondPricingRequest } from "../../../types/quant";
+
+/**
+ * Display-currency options (R15-DATA-100). Purely a DISPLAY label — the
+ * pricing arithmetic doesn't depend on currency (there's no day-count or
+ * calendar difference across these), so nothing changes in the request,
+ * `models/quant.py`, or the wire types (§6 D-B2-5).
+ */
+const DISPLAY_CURRENCIES = ["USD", "INR", "EUR", "GBP", "JPY"] as const;
 
 interface FieldProps {
   label: string;
@@ -108,6 +119,12 @@ export function BondPricerPanel() {
   const [maturityDate, setMaturityDate] = useState("2036-05-16");
   const [settlementDate, setSettlementDate] = useState("2026-05-16");
   const [ytm, setYtm] = useState("0.0425");
+
+  // R15-DATA-100: display currency, defaulting to the session region's — an
+  // India-first terminal must not hard-prefix "$" on every price. Frontend
+  // display only; the pricing request stays currency-free.
+  const region = useSettingsStore((s) => s.region);
+  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
 
   const isRunning = status === "loading";
 
@@ -246,6 +263,22 @@ export function BondPricerPanel() {
           testId="field-ytm"
         />
 
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Display currency</span>
+          <select
+            value={displayCurrency}
+            onChange={(e) => setDisplayCurrency(e.target.value)}
+            data-testid="field-display-currency"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
+          >
+            {DISPLAY_CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </label>
+
         {validationError !== null && (
           <p className="text-negative text-caption" role="alert" data-testid="bond-validation">
             {validationError}
@@ -298,7 +331,7 @@ export function BondPricerPanel() {
                   className="text-overview text-charcoal-100 tabular-nums"
                   data-testid="bond-clean"
                 >
-                  ${lastResult.clean_price.toFixed(2)}
+                  {formatMoney(lastResult.clean_price, displayCurrency)}
                 </span>
               </div>
               {computedReq && (
@@ -320,10 +353,13 @@ export function BondPricerPanel() {
 
             {/* Price + risk metric grid — fills the panel width. */}
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5">
-              <MetricCard label="Dirty price" value={`$${lastResult.dirty_price.toFixed(2)}`} />
+              <MetricCard
+                label="Dirty price"
+                value={formatMoney(lastResult.dirty_price, displayCurrency)}
+              />
               <MetricCard
                 label="Accrued interest"
-                value={`$${lastResult.accrued_interest.toFixed(2)}`}
+                value={formatMoney(lastResult.accrued_interest, displayCurrency)}
               />
               <MetricCard
                 label="Macaulay duration"
