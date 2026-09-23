@@ -30,7 +30,8 @@ Wiring contract (mirrors D66)
 The snapshot builder attaches this module's result onto the fundamentals leg's
 ``data`` dict under the key ``ownership_exchange`` — a plain dict
 ``{promoter_percent, institutions_percent, public_percent, as_of_quarter,
-source}`` (percentages 0-100, ``as_of_quarter`` an ISO date). ``derive_semantics``
+source, institutions_source, institutions_as_of}`` (percentages 0-100, the
+as-of fields ISO dates). ``derive_semantics``
 reads it alongside the provider's ``held_percent_insiders`` /
 ``held_percent_institutions`` fractions.
 """
@@ -65,6 +66,9 @@ class ExchangeOwnership:
     filing did not carry that category — never fabricated. ``as_of_quarter`` is
     the ISO quarter-end date, and ``source`` is the serving lane ("NSE"/"BSE"),
     both carried into the conflict payload so a disagreement names its evidence.
+    ``institutions_source``/``institutions_as_of`` name where the institutions
+    figure came from when it differs: a dual-listed NSE pattern carries the BSE
+    SEBI-XBRL split, possibly from another quarter (R15-RESEARCH-011).
     """
 
     promoter_percent: float | None
@@ -72,6 +76,8 @@ class ExchangeOwnership:
     public_percent: float | None
     as_of_quarter: str
     source: str
+    institutions_source: str | None = None
+    institutions_as_of: str | None = None
 
     def as_wire(self) -> dict[str, Any]:
         """The plain dict attached under :data:`OWNERSHIP_KEY`."""
@@ -106,12 +112,16 @@ def _fetch_latest(symbol: str) -> ExchangeOwnership | None:
     if not response.patterns:
         return None
     latest = response.patterns[0]  # newest quarter first
+    source = latest.source or "exchange"
     return ExchangeOwnership(
         promoter_percent=latest.promoter_percent,
         institutions_percent=latest.institutions_percent,
         public_percent=latest.public_percent,
         as_of_quarter=latest.quarter_end.isoformat(),
-        source=latest.source or "exchange",
+        source=source,
+        # A merged split names its own lane and quarter, not the NSE master's.
+        institutions_source=latest.split_source or source,
+        institutions_as_of=(latest.split_as_of or latest.quarter_end).isoformat(),
     )
 
 

@@ -590,6 +590,13 @@ def _ownership_leg(
     promoter_pct = _num(exchange, "promoter_percent")
     institutions_pct = _num(exchange, "institutions_percent")
     basis = f"{source} shareholding filing" + (f", {as_of}" if as_of else "")
+    # The institutions figure can be a split merged from another lane and
+    # quarter (the BSE SEBI XBRL on an NSE pattern): it names its own.
+    raw_inst_source = exchange.get("institutions_source")
+    inst_source = raw_inst_source if isinstance(raw_inst_source, str) else source
+    raw_inst_as_of = exchange.get("institutions_as_of")
+    inst_as_of = raw_inst_as_of if isinstance(raw_inst_as_of, str) and raw_inst_as_of else as_of
+    inst_basis = f"{inst_source} shareholding filing" + (f", {inst_as_of}" if inst_as_of else "")
 
     facts: dict[str, Any] = {}
     conflicts: list[dict[str, Any]] = []
@@ -613,7 +620,7 @@ def _ownership_leg(
         facts["institutions_percent_exchange"] = _value(
             round(institutions_pct / 100.0, 6),
             "Institutional holding (exchange filing)",
-            basis=basis,
+            basis=inst_basis,
             unit="fraction",
         )
         yf_inst = _num(fund, "held_percent_institutions")  # a fraction (0-1)
@@ -622,7 +629,7 @@ def _ownership_leg(
             if _diverges_by_factor(yf_pct, institutions_pct, _OWNERSHIP_INSTITUTIONS_RATIO):
                 conflicts.append(
                     _ownership_institutions_conflict(
-                        provider, yf_pct, institutions_pct, source, as_of
+                        provider, yf_pct, institutions_pct, inst_source, inst_as_of
                     )
                 )
 

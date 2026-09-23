@@ -312,6 +312,14 @@ export interface Announcement {
   ts: string | null;
 }
 
+/** The date range one exchange lane's items in a response are complete for. */
+export interface AnnouncementWindow {
+  /** Oldest IST day covered (ISO date); null when nothing older was cut (full history). */
+  window_start: string | null;
+  /** Newest IST day covered (ISO date, the day of the fetch). */
+  window_end: string;
+}
+
 /** `GET /disclosures/announcements` — the merged, deduped feed. */
 export interface AnnouncementsResponse {
   symbol: string;
@@ -323,6 +331,8 @@ export interface AnnouncementsResponse {
   sources: string[];
   /** Exchanges attempted but failed, with the honest reason (partial merge). */
   errors: Record<string, string>;
+  /** Per serving exchange, the date range its items are complete for. */
+  windows: Record<string, AnnouncementWindow>;
 }
 
 /** One results-calendar / board-meeting event (NSE event-calendar feed). */
@@ -352,8 +362,16 @@ export interface ResultsCalendarResponse {
  */
 export interface ShareholdingPattern {
   symbol: string;
-  /** The quarter-end date this pattern reports (ISO date, e.g. "2026-03-31"). */
+  /**
+   * The quarter-end date this pattern reports (ISO date, e.g. "2026-03-31").
+   * BSE dates a listing-time (IPO) pattern to the day ("2026-06-04").
+   */
   quarter_end: string;
+  /**
+   * What `quarter_end` is when it is NOT the filed period (the filing date of a
+   * pattern whose exchange period label could not be parsed); null otherwise.
+   */
+  quarter_basis: string | null;
   /** Promoter + promoter-group holding, percent of equity. */
   promoter_percent: number | null;
   fii_percent: number | null;

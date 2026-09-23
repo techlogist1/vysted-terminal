@@ -17,6 +17,7 @@ NSE + BSE masters + a best-effort live fallback). Registered via :func:`register
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from services.agent_tools import register_tool
@@ -67,7 +68,22 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
     region = (
         config.normalize_region(args.get("region")) if args.get("region") else config.get_region()
     )
-    resolution = symbol_resolver.resolve(query, region=region)
+    # On a worker thread, like the /resolve router: a master miss falls through
+    # to a blocking yfinance Search (up to 30 s) that must not stall the loop.
+    try:
+        resolution = await asyncio.to_thread(symbol_resolver.resolve, query, region)
+    except Exception as exc:  # noqa: BLE001 — a resolver failure is an honest miss
+        return {
+            "ok": False,
+            "query": query,
+            "region": region,
+            "status": "unresolved",
+            "reason": f"resolver error: {exc}",
+            "resolved": None,
+            "needs_disambiguation": False,
+            "message": f"Could not resolve {query!r}: the symbol resolver failed ({exc}).",
+            "candidates": [],
+        }
     decision = resolution_policy.decide(resolution)
     candidates = [_instrument_dict(c) for c in decision.candidates]
 

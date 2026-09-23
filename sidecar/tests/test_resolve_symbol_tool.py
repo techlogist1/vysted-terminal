@@ -38,3 +38,29 @@ def test_resolve_symbol_tool_missing_query() -> None:
     out = asyncio.run(_resolve_symbol({}))
     assert out["ok"] is False
     assert "error" in out
+
+
+def test_resolve_symbol_tool_never_blocks_the_event_loop(monkeypatch) -> None:  # noqa: ANN001
+    """R15-AGENT-010: a slow resolver (a master miss falls through to a blocking
+    live Search) runs on a worker thread, so a concurrent coroutine still ticks."""
+    import time
+
+    from services import symbol_resolver
+
+    def slow_resolve(query: str, region: str) -> symbol_resolver.Resolution:
+        time.sleep(0.5)
+        return symbol_resolver.Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(symbol_resolver, "resolve", slow_resolve)
+
+    async def main() -> float:
+        start = time.monotonic()
+
+        async def tick() -> float:
+            await asyncio.sleep(0.05)
+            return time.monotonic() - start
+
+        _, ticked = await asyncio.gather(_resolve_symbol({"query": "infosys"}), tick())
+        return ticked
+
+    assert asyncio.run(main()) < 0.3

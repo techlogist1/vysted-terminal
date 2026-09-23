@@ -365,3 +365,107 @@ def test_nan_last_close_falls_through_to_the_next_provider(
     good = _series("GOLDBEES", 128.5).model_copy(update={"provider": "second"})
     _two_lanes(monkeypatch, "ohlcv", nan_series, good)
     assert provider_registry.get_history("GOLDBEES", "1d", region="IN") is good
+
+
+def test_institutions_flag_names_the_merged_split_lane_and_quarter() -> None:
+    """R15-RESEARCH-011, the gate's copy of the provenance: an institutions
+    figure merged from the BSE XBRL of March is not the NSE June filing's."""
+    from services.ownership_check import ExchangeOwnership
+
+    exchange = ExchangeOwnership(
+        promoter_percent=20.31,
+        institutions_percent=42.9,
+        public_percent=79.69,
+        as_of_quarter="2026-06-30",
+        source="NSE",
+        institutions_source="BSE",
+        institutions_as_of="2026-03-31",
+    )
+    f = _fund(symbol="SIL.NS", held_percent_insiders=0.2031, held_percent_institutions=0.05)
+    out = correctness_gate.reconcile_ownership(f, exchange)
+    reason = out.field_meta["held_percent_institutions"].reason
+    assert "the BSE shareholding filing for the quarter ended 2026-03-31" in reason
+    assert out.field_meta.get("held_percent_insiders") is None  # 20.31 vs 20.31
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-002: witness inputs are cached per listing, flags recomputed
+# ---------------------------------------------------------------------------
+
+
+def _count_witness_fetches(
+    monkeypatch: pytest.MonkeyPatch, *, fail: bool = False
+) -> dict[str, int]:
+    """Stub the four witness fetches with counters (``fail`` → each one fails)."""
+    from datetime import date
+
+    from models.fundamentals import IncomeStatement
+    from services import ownership_check, yfinance_provider
+    from services.errors import ProviderError
+
+    calls = {"ownership": 0, "income": 0, "quarters": 0, "equity": 0}
+
+    def counted(name: str, value: object) -> object:
+        def fetch(symbol: str) -> object:  # noqa: ARG001
+            calls[name] += 1
+            if fail:
+                raise ProviderError(f"yfinance {name} failed: upstream 500")
+            return value
+
+        return fetch
+
+    async def ownership(symbol: str) -> object:  # noqa: ARG001
+        calls["ownership"] += 1
+        return (
+            None
+            if fail
+            else ownership_check.ExchangeOwnership(55.0, 10.0, 45.0, "2026-06-30", "NSE")
+        )
+
+    annual = IncomeStatement(symbol="TCS.NS", periods=["2026"], lines=[], provider="yfinance")
+    quarters = [date(2026, 6, 30), date(2026, 3, 31), date(2025, 12, 31), date(2025, 9, 30)]
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", ownership)
+    monkeypatch.setattr(yfinance_provider, "get_income_statement", counted("income", annual))
+    monkeypatch.setattr(
+        yfinance_provider, "get_quarterly_period_ends", counted("quarters", quarters)
+    )
+    monkeypatch.setattr(
+        yfinance_provider, "get_newest_equity", counted("equity", (date(2026, 6, 30), 9.0e11))
+    )
+    return calls
+
+
+def _witnessed_twice() -> Fundamentals:
+    import asyncio
+
+    f = _fund(
+        symbol="TCS.NS",
+        held_percent_insiders=0.72,
+        revenue_ttm=2.5e12,
+        book_value=250.0,
+        shares_outstanding=3.6e9,
+    )
+    asyncio.run(correctness_gate.apply_witnesses(f))
+    return asyncio.run(correctness_gate.apply_witnesses(f))
+
+
+def test_witness_inputs_are_fetched_once_within_the_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _count_witness_fetches(monkeypatch)
+    second = _witnessed_twice()
+    assert calls == {"ownership": 1, "income": 1, "quarters": 1, "equity": 1}
+    # The flags are still recomputed from the cached inputs on the second call.
+    assert second.field_meta["held_percent_insiders"].status == "flagged"
+
+
+def test_witness_inputs_are_fetched_again_after_the_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: an expired entry is re-fetched."""
+    calls = _count_witness_fetches(monkeypatch)
+    monkeypatch.setattr(correctness_gate, "_WITNESS_TTL_SECONDS", 0.0)
+    _witnessed_twice()
+    assert calls == {"ownership": 2, "income": 2, "quarters": 2, "equity": 2}
+
+
+def test_a_failed_witness_fetch_is_not_cached(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _count_witness_fetches(monkeypatch, fail=True)
+    _witnessed_twice()
+    assert calls == {"ownership": 2, "income": 2, "quarters": 2, "equity": 2}

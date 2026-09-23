@@ -272,3 +272,27 @@ def test_garbage_symbol_gets_honest_not_found_no_candidates(
     assert out["ok"] is False
     assert "candidates" not in out
     assert "provider error" in out["error"]
+
+
+def test_a_raising_resolver_leaves_the_provider_error_standing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-010, a case the fix was not written against: the resolver
+    raising inside the canonicalize fallback is its documented "nothing to add"
+    (the closed-vocabulary provider error), never an escaped exception."""
+    _patch_backoff(monkeypatch)
+
+    async def dead(symbol: str):  # noqa: ANN202
+        raise ProviderError("upstream 500")
+
+    def broken_resolve(query: str, region: str):  # noqa: ANN202
+        raise RuntimeError("yf.Search timed out")
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", dead)
+    monkeypatch.setattr(symbol_resolver, "resolve", broken_resolve)
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "TATASTEEL.NS"}))
+    assert out == {
+        "ok": False,
+        "error": "provider error: upstream 500",
+        "reason": "provider_error",
+    }

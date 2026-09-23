@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime as _dt
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 
 class Announcement(BaseModel):
@@ -39,6 +39,20 @@ class Announcement(BaseModel):
     #: Dissemination timestamp (IST-aware); None when the feed row had no
     #: parseable timestamp (kept rather than dropped — the text still informs).
     ts: datetime | None = None
+    #: The disclosure body text the cross-exchange dedup compares (BSE
+    #: ``HEADLINE``; NSE's ``attchmntText`` is already the headline) — the BSE
+    #: display headline is a short subject that never matches NSE's. Not served.
+    _body: str | None = PrivateAttr(default=None)
+
+
+class AnnouncementWindow(BaseModel):
+    """The date range one exchange lane's items in a response are complete for."""
+
+    #: The oldest IST day covered; ``None`` when nothing older was cut (the
+    #: lane's full history).
+    window_start: date | None = None
+    #: The newest IST day covered (the day of the fetch).
+    window_end: date
 
 
 class AnnouncementsResponse(BaseModel):
@@ -54,6 +68,10 @@ class AnnouncementsResponse(BaseModel):
     #: Exchanges that were attempted but failed, with the honest reason — a
     #: partial merge is served rather than failing the whole feed.
     errors: dict[str, str] = {}
+    #: Per serving exchange, the date range its items are complete for (the BSE
+    #: feed is requested over a bounded window; an older filing outside it is
+    #: not "absent").
+    windows: dict[str, AnnouncementWindow] = {}
 
 
 class ResultsEvent(BaseModel):
@@ -89,8 +107,13 @@ class ShareholdingPattern(BaseModel):
     """
 
     symbol: str
-    #: The quarter-end date this pattern reports (e.g. 2026-03-31).
+    #: The quarter-end date this pattern reports (e.g. 2026-03-31). BSE dates a
+    #: listing-time (IPO) pattern to the day (2026-06-04).
     quarter_end: date
+    #: What ``quarter_end`` is when it is NOT the filed period — the filing date
+    #: of a pattern whose exchange period label could not be parsed (kept, not
+    #: dropped). ``None`` when ``quarter_end`` is the filed period.
+    quarter_basis: str | None = None
     #: Promoter + promoter-group holding, percent of equity.
     promoter_percent: float | None = None
     fii_percent: float | None = None
