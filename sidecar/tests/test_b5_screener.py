@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
 import pytest
 
+import config
 from models.fundamentals import Fundamentals
+from models.market import Quote
 from models.screener import NumericThresholdCriterion, ScreenerRequest, ScreenerUniverse
 from services import data_cache, fundamentals_store, provider_health, screener
 from services import yahoo_batch_provider as yb
@@ -125,3 +129,57 @@ async def test_all_rate_limited_run_is_partial_with_nothing_evaluated(
     assert {d.reason for d in result.skip_details} == {"rate_limited"}
     assert result.partial is True
     assert result.throttled is True
+
+
+@pytest.mark.asyncio
+async def test_warm_loop_is_lazy_and_follows_the_request_region(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020: arming the warm loop at boot warms nothing; the first
+    screener run under IN starts it on nifty50, not sp500."""
+    warmed: list[list[str]] = []
+
+    async def record_batch(symbols: list[str]):
+        warmed.append(list(symbols))
+        return {}, {}
+
+    async def fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, market_cap=1e9, provider="test")
+
+    def quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return Quote(
+            symbol=symbol,
+            price=1.0,
+            change=0.0,
+            change_percent=0.0,
+            volume=1.0,
+            currency="INR",
+            timestamp=datetime.now(tz=UTC),
+            provider="test",
+        )
+
+    monkeypatch.setattr(yb, "fetch_quotes_batch", record_batch)
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fund)
+    monkeypatch.setattr("services.provider_registry.get_quote", quote)
+
+    screener.start_warm_precompute(interval=0.01)
+    try:
+        await asyncio.sleep(0.05)
+        assert warmed == [] and screener._warm_task is None
+
+        token = config.set_request_region("IN")
+        try:
+            await screener.run_screener(
+                ScreenerRequest(universe="custom", custom_symbols=["RELIANCE"], criteria=[])
+            )
+        finally:
+            config.reset_request_region(token)
+        for _ in range(100):
+            if warmed:
+                break
+            await asyncio.sleep(0.01)
+
+        nifty = (await screener.resolve_universe("nifty50")).symbols
+        assert warmed and warmed[0] == list(nifty)
+    finally:
+        await screener.stop_warm_precompute()

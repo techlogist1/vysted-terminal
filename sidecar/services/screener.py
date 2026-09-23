@@ -49,10 +49,13 @@ same wall budget.
 Warm precompute
 ~~~~~~~~~~~~~~~
 
-:func:`start_warm_precompute` re-warms the S&P 500 batch into the store on an
-interval with exponential 429 backoff (state observable in
-``_warm_consecutive_throttles``); :mod:`services.fundamentals_warm` runs the
-region-aware India warming on the same backoff discipline.
+:func:`start_warm_precompute` only ARMS the warm loop (R15-LIFECYCLE-020): no
+boot-time sweep. The first screener run starts it on that run's region default
+universe (:func:`default_universe_for_region`), and a later run from another
+region switches the target. It re-warms on an interval with exponential 429
+backoff (state observable in ``_warm_consecutive_throttles``);
+:mod:`services.fundamentals_warm` runs the region-aware India warming on the
+same backoff discipline.
 """
 
 from __future__ import annotations
@@ -146,7 +149,6 @@ _SWEEP_CONCURRENCY = 8
 # --- Warm-universe precompute (R4 / FR-126) ------------------------------------
 
 _WARM_INTERVAL_SECONDS = 40.0
-_WARM_UNIVERSES: tuple[ScreenerUniverseId, ...] = ("sp500",)
 
 # --- Warm-loop exponential backoff (self-throttle fix) -------------------------
 #
@@ -1088,6 +1090,7 @@ async def run_screener(
         return max(0.0, deadline - time.monotonic())
 
     emit = _progress_emitter(on_progress)
+    _warm_follow_region()
 
     universe = await asyncio.wait_for(
         resolve_universe(req.universe, req.custom_symbols),
@@ -1258,32 +1261,43 @@ async def _run_per_symbol(
 # ---------------------------------------------------------------------------
 
 _warm_task: asyncio.Task[None] | None = None
+#: The armed loop's interval — ``None`` until :func:`start_warm_precompute`.
+_warm_interval: float | None = None
+#: The universe the loop warms: the last screener run's region default.
+_warm_universe: ScreenerUniverseId = "sp500"
+
+
+def _warm_follow_region() -> None:
+    """Point the armed warm loop at the current request region's default
+    universe, starting the loop on the first run (R15-LIFECYCLE-020)."""
+    global _warm_task, _warm_universe
+    if _warm_interval is None:
+        return
+    _warm_universe = default_universe_for_region()
+    if _warm_task is None or _warm_task.done():
+        _warm_task = asyncio.get_running_loop().create_task(_warm_loop(_warm_interval))
 
 
 async def _warm_once() -> bool:
-    """Pre-warm one batch cycle over the warm universes into the store.
+    """Pre-warm one batch cycle over the warm universe into the store.
 
     Returns ``True`` when the cycle was RATE-LIMITED (≥ ``_WARM_THROTTLE_RATIO``
     of warmed symbols came back ``rate_limited``) — the loop's backoff signal."""
-    requested = 0
-    rate_limited = 0
-    for universe_id in _WARM_UNIVERSES:
-        try:
-            universe = await resolve_universe(universe_id)
-        except ProviderError as exc:
-            logger.debug("screener warm: cannot resolve %s: %s", universe_id, exc)
-            continue
-        symbols = list(universe.symbols)
-        requested += len(symbols)
-        rows, failures = await yahoo_batch_provider.fetch_quotes_batch(symbols)
-        rate_limited += sum(1 for reason in failures.values() if reason == "rate_limited")
-        items = []
-        for _sym, row in rows.items():
-            quote = yahoo_batch_provider.quote_from_v7(row)
-            if quote is not None:
-                items.append((quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote))
-        await fundamentals_store.upsert_v7_batch(items)
-    return requested > 0 and rate_limited >= requested * _WARM_THROTTLE_RATIO
+    try:
+        universe = await resolve_universe(_warm_universe)
+    except ProviderError as exc:
+        logger.debug("screener warm: cannot resolve %s: %s", _warm_universe, exc)
+        return False
+    symbols = list(universe.symbols)
+    rows, failures = await yahoo_batch_provider.fetch_quotes_batch(symbols)
+    rate_limited = sum(1 for reason in failures.values() if reason == "rate_limited")
+    items = []
+    for _sym, row in rows.items():
+        quote = yahoo_batch_provider.quote_from_v7(row)
+        if quote is not None:
+            items.append((quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote))
+    await fundamentals_store.upsert_v7_batch(items)
+    return bool(symbols) and rate_limited >= len(symbols) * _WARM_THROTTLE_RATIO
 
 
 def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:
@@ -1355,21 +1369,16 @@ async def _warm_loop(interval: float) -> None:
 
 
 def start_warm_precompute(interval: float = _WARM_INTERVAL_SECONDS) -> None:
-    """Start the warm-precompute background task (idempotent)."""
-    global _warm_task
-    if _warm_task is not None and not _warm_task.done():
-        return
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        logger.debug("screener warm: no running loop; precompute not started")
-        return
-    _warm_task = loop.create_task(_warm_loop(interval))
+    """Arm the warm precompute (idempotent). Nothing warms until the first
+    screener run names a region (R15-LIFECYCLE-020) — no boot-time sweep."""
+    global _warm_interval
+    _warm_interval = interval
 
 
 async def stop_warm_precompute() -> None:
-    """Cancel + await the warm-precompute task, then close the batch client."""
-    global _warm_task
+    """Disarm, cancel + await the warm-precompute task, then close the batch client."""
+    global _warm_task, _warm_interval
+    _warm_interval = None
     task = _warm_task
     _warm_task = None
     if task is not None:
