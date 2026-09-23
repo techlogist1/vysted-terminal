@@ -102,8 +102,10 @@ export interface ResearchModelOption {
 /**
  * THE one frontend constant for the Tier B model picker — every per-stop
  * select renders this same list (the per-stop slots differ only in which
- * default is pre-selected). Pricing on ALL eight models was verified live
- * on OpenRouter 2026-06-11 (re-pinned by the lead at integration).
+ * default is pre-selected). Pricing was verified live on OpenRouter
+ * 2026-06-11. `openai/o4-mini-deep-research` and `openai/o3-deep-research`
+ * left OpenRouter's catalog (checked 2026-09-23) and were dropped; Settings
+ * badges any option or persisted choice absent from the live catalog.
  */
 export const RESEARCH_MODEL_OPTIONS: readonly ResearchModelOption[] = [
   {
@@ -134,18 +136,6 @@ export const RESEARCH_MODEL_OPTIONS: readonly ResearchModelOption[] = [
     id: "perplexity/sonar-pro-search",
     label: "Perplexity Sonar Pro Search",
     priceHint: "$3/M in · $15/M out · $18/1k searches (agentic)",
-    priceVerified: true,
-  },
-  {
-    id: "openai/o4-mini-deep-research",
-    label: "OpenAI o4-mini Deep Research",
-    priceHint: "$2/M in · $8/M out · $10/1k searches",
-    priceVerified: true,
-  },
-  {
-    id: "openai/o3-deep-research",
-    label: "OpenAI o3 Deep Research",
-    priceHint: "$10/M in · $40/M out · $10/1k searches",
     priceVerified: true,
   },
   {

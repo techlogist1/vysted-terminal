@@ -68,7 +68,7 @@ describe("search-settings store (R9 two-tier)", () => {
   });
 
   it("the picker constant carries a pricing hint for every model (Team D renders it)", () => {
-    expect(RESEARCH_MODEL_OPTIONS.length).toBeGreaterThanOrEqual(8);
+    expect(RESEARCH_MODEL_OPTIONS.length).toBeGreaterThanOrEqual(6);
     for (const option of RESEARCH_MODEL_OPTIONS) {
       expect(option.id).toBeTruthy();
       expect(option.label).toBeTruthy();
@@ -80,6 +80,13 @@ describe("search-settings store (R9 two-tier)", () => {
       const option = RESEARCH_MODEL_OPTIONS.find((o) => o.id === slug);
       expect(option, slug).toBeTruthy();
       expect(option?.priceVerified).toBe(true);
+    }
+  });
+
+  it("offers no slug OpenRouter retired (R15-LIFECYCLE-006, catalog check 2026-09-23)", () => {
+    const ids = RESEARCH_MODEL_OPTIONS.map((o) => o.id);
+    for (const retired of ["openai/o4-mini-deep-research", "openai/o3-deep-research"]) {
+      expect(ids).not.toContain(retired);
     }
   });
 

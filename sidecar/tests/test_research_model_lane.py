@@ -263,6 +263,39 @@ def test_http_error_becomes_human_message(stub_openrouter) -> None:
     assert "sk-or-1" not in out["message"]
 
 
+def _sunk_run(depth: str = "deep", **request: Any) -> tuple[dict[str, Any], list[Any]]:
+    sunk: list[Any] = []
+    token = config.set_step_sink(sunk.append)
+    try:
+        with _request(**request):
+            out = _run(deep_research.run_research_model_brief("q", depth=depth))
+    finally:
+        config.reset_step_sink(token)
+    return out, sunk
+
+
+def test_retired_model_404_is_an_error_step_naming_the_model(stub_openrouter) -> None:
+    """R15-LIFECYCLE-006: a retired slug no longer yields a blank turn — the
+    stream carries an error step and the message names the model + the fix."""
+    stub_openrouter.last["status"] = 404
+    out, sunk = _sunk_run(openrouter_key="sk-or-1", models="deep=openai/o3-deep-research")
+    assert out["ok"] is False
+    assert "openai/o3-deep-research is no longer available on OpenRouter" in out["message"]
+    assert "Settings > Research" in out["message"]
+    errors = [s for s in sunk if s.status == "error"]
+    assert len(errors) == 1 and errors[0].detail == out["message"]
+
+
+def test_rejected_key_401_is_also_an_error_step(stub_openrouter) -> None:
+    """R15-RESEARCH-010 (error-step half): a 401 reaches the stream too."""
+    stub_openrouter.last["status"] = 401
+    out, sunk = _sunk_run(openrouter_key="sk-or-bogus")
+    assert out["ok"] is False
+    assert [s.detail for s in sunk if s.status == "error"] == [out["message"]]
+    assert "API key" in out["message"]
+    assert all("sk-or-bogus" not in s.detail for s in sunk)
+
+
 def test_empty_brief_is_an_honest_failure(stub_openrouter) -> None:
     stub_openrouter.last["body"] = _openrouter_body(markdown="")
     with _request(openrouter_key="sk-or-1"):

@@ -558,8 +558,13 @@ def estimate_research_model_cost_usd(query: str, stop: str) -> float:
     return round(min(base + length * per_char, ceiling), 4)
 
 
-def _research_model_http_error(status: int) -> str:
+def _research_model_http_error(status: int, model: str) -> str:
     """Translate an OpenRouter HTTP status into a clean, key-free human message."""
+    if status == 404:
+        return (
+            f"The research model {model} is no longer available on OpenRouter; pick "
+            "another in Settings > Research."
+        )
     if status in (401, 403):
         return (
             "OpenRouter rejected the request — check that your OpenRouter API "
@@ -646,11 +651,11 @@ def _research_model_sources(body: dict[str, Any]) -> list[Any]:
     return sources
 
 
-def _make_step(kind: str, detail: str) -> Any:
+def _make_step(kind: str, detail: str, status: str = "ok") -> Any:
     """A :class:`ResearchStep` for the Tier B trace (collected + sunk live)."""
     from services.research.models import ResearchStep
 
-    return ResearchStep(kind=kind, detail=detail)
+    return ResearchStep(kind=kind, detail=detail, status=status)
 
 
 async def run_research_model_brief(
@@ -675,7 +680,11 @@ async def run_research_model_brief(
     ``research-model:<model-id>`` up front, then heartbeat steps while the
     (potentially minutes-long on ULTRA) call runs. The brief AND every step
     carry the ``research-model:<model-id>`` backend id — evidence that research
-    routed to the research model regardless of the chat model.
+    routed to the research model regardless of the chat model. EVERY
+    ``ok: False`` return (a missing key, an HTTP error — 401 and 404 included —
+    an unreachable or unparseable reply, an empty brief) also emits an
+    ``engine`` step with ``status="error"`` carrying the same human message, so
+    the failure reaches the stream and the trace, not only the model.
     """
     import asyncio
     import time
@@ -685,6 +694,23 @@ async def run_research_model_brief(
     import config
     from services.search.base import SearchError
 
+    sink = config.get_step_sink()
+    steps: list[Any] = []
+
+    def _step(kind: str, detail: str, status: str = "ok") -> None:
+        step = _make_step(kind, detail, status)
+        steps.append(step)
+        if sink is not None:
+            try:
+                sink(step)
+            except Exception:  # pragma: no cover — cosmetic; never breaks a run
+                pass
+
+    def _fail(message: str) -> dict[str, Any]:
+        # The failure rides the stream as an error step, never only the model.
+        _step("engine", message, status="error")
+        return {"ok": False, "message": message}
+
     key = (api_key or "").strip() or config.get_openrouter_search_key()
     if not key:
         creds = config.get_llm_creds()
@@ -692,11 +718,11 @@ async def run_research_model_brief(
         if creds is not None and creds[0] == "openrouter":
             key = creds[2]
     if not key:
-        return {"ok": False, "message": _RESEARCH_MODEL_NEEDS_KEY}
+        return _fail(_RESEARCH_MODEL_NEEDS_KEY)
 
     text = (query or "").strip()
     if not text:
-        return {"ok": False, "message": "Research needs a query — tell me what to look into."}
+        return _fail("Research needs a query — tell me what to look into.")
 
     stop = _research_model_stop(depth)
     resolved_model = (model or "").strip() or config.get_research_model_for(stop)
@@ -722,18 +748,6 @@ async def run_research_model_brief(
         out = target.payload(query=text)
         out["execution_loop"] = "research-model"
         return out
-
-    sink = config.get_step_sink()
-    steps: list[Any] = []
-
-    def _step(kind: str, detail: str) -> None:
-        step = _make_step(kind, detail)
-        steps.append(step)
-        if sink is not None:
-            try:
-                sink(step)
-            except Exception:  # pragma: no cover — cosmetic; never breaks a run
-                pass
 
     _step("engine", f"{backend_id} — hosted research model ({stop} stop, via OpenRouter)")
 
@@ -777,20 +791,20 @@ async def run_research_model_brief(
         response.raise_for_status()
         body: dict[str, Any] = response.json()
     except httpx.HTTPStatusError as exc:
-        return {"ok": False, "message": _research_model_http_error(exc.response.status_code)}
+        return _fail(_research_model_http_error(exc.response.status_code, resolved_model))
     except httpx.HTTPError:
-        return {"ok": False, "message": "Could not reach OpenRouter — check your network."}
+        return _fail("Could not reach OpenRouter — check your network.")
     except ValueError:
-        return {"ok": False, "message": "OpenRouter returned a response that could not be parsed."}
+        return _fail("OpenRouter returned a response that could not be parsed.")
     except SearchError as exc:  # defensive — keep the human message
-        return {"ok": False, "message": str(exc)}
+        return _fail(str(exc))
     finally:
         heartbeat.cancel()
 
     content = _research_model_message(body).get("content")
     markdown = content.strip() if isinstance(content, str) else ""
     if not markdown:
-        return {"ok": False, "message": "The hosted research model returned an empty brief."}
+        return _fail("The hosted research model returned an empty brief.")
 
     sources = _research_model_sources(body)
     elapsed_total = int(time.monotonic() - started)
