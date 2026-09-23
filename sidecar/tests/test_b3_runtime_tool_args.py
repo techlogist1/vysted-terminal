@@ -110,3 +110,17 @@ async def test_unknown_indicator_key_fails_validation_naming_it(
     assert _yielded(events, "set_chart_indicators") == []
     assert result["ok"] is False
     assert "bollinger_bands" in result["error"]
+
+
+@pytest.mark.asyncio
+async def test_groq_shaped_invalid_args_never_reach_the_handler(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-047: the Groq adapter passes args through unvalidated (no
+    # sentinel), so only the runtime check stands between them and the handler.
+    args = {"symbol": "INFY.NS", "quantity": "ten", "cost_basis": 1500}
+    events, result = await _invoke(monkeypatch, "portfolio_add_position", args, "groq")
+    assert _yielded(events, "portfolio_add_position") == []
+    assert result["ok"] is False
+    assert "host_action" not in result
+    assert "'ten' is not of type 'number'" in result["error"]
