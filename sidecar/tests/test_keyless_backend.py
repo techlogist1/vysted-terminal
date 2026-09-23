@@ -287,3 +287,39 @@ def test_tier_status_unavailable_only_when_every_engine_open() -> None:
         breaker_for(eid).record_failure()
         breaker_for(eid).record_failure()
     assert tier_status()["available"] is False
+
+
+# --- R15-RESEARCH-008: per-engine deadline --------------------------------------
+
+
+class _HangingEngine:
+    """An engine whose request never answers (the live DDG ~20 s failure)."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def search(self, query, *, options=None):  # noqa: ANN001, ANN201
+        self.calls += 1
+        await asyncio.sleep(3600)
+
+
+def test_hanging_engine_gets_no_second_attempt_and_the_chain_rotates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services.search import keyless
+
+    monkeypatch.setattr(keyless, "ENGINE_DEADLINE_SECS", 0.1)
+    ddg = _HangingEngine()
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    resp = _run(_backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])}).search("q"))
+    assert resp.backend == "keyless:brave"
+    assert ddg.calls == 1  # abandoned at the deadline, never re-attempted
+
+
+def test_three_engine_deadlines_fit_inside_the_web_search_tool_cap() -> None:
+    from services.agent_tools import catalog
+    from services.search.keyless import ENGINE_DEADLINE_SECS
+
+    cap = catalog.timeout_for("web_search")
+    assert cap is not None
+    assert len(ENGINE_CHAIN) * ENGINE_DEADLINE_SECS < cap

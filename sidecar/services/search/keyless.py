@@ -10,9 +10,14 @@ Brave HTML, Mojeek HTML — with the hardening the single-engine floor lacked:
     consecutive failures bench an engine for the cooldown; a half-open probe
     re-admits it.
   * **Pacing + bounded retry** (:mod:`services.search.pacing`): every hit
-    waits for the engine's process-global min-interval slot; a retryable
-    failure gets exponential backoff + jitter for at most
-    ``ATTEMPTS_PER_ENGINE`` tries, then the chain rotates.
+    waits for the engine's process-global min-interval slot; a fast failure
+    gets exponential backoff + jitter for at most ``ATTEMPTS_PER_ENGINE``
+    tries, then the chain rotates.
+  * **Per-engine deadline**: everything one engine costs a search (pacing
+    wait, attempts, backoff, its own fallbacks) runs under
+    :data:`ENGINE_DEADLINE_SECS`; an engine that does not answer in time is
+    abandoned with no second attempt and the chain rotates, so rotation
+    reaches all three engines inside the 25 s ``web_search`` tool cap.
   * **URL dedup per run**: a result URL already returned by an earlier engine
     in THIS search is dropped.
   * **Quality filter**: results whose visible text is consent/cookie/block
@@ -51,6 +56,12 @@ BACKEND_ID = "keyless"
 #: (big index behind the impersonation lane), Mojeek last (independent index —
 #: the engine most likely UP when the other two throttle in lockstep).
 ENGINE_CHAIN: tuple[str, ...] = ("ddg", "brave", "mojeek")
+
+#: Wall budget for ONE engine inside one search. Three engines x 6 s = 18 s,
+#: inside the 25 s ``web_search`` tool cap, so a hanging engine (DuckDuckGo
+#: measured ~20 s per failing attempt, R15-RESEARCH-008) can never keep a
+#: healthy later engine (Brave answered in 0.9 s) from being tried.
+ENGINE_DEADLINE_SECS = 6.0
 
 #: Human labels for the status surface.
 ENGINE_LABELS: dict[str, str] = {
@@ -206,7 +217,7 @@ class KeylessSearchBackend(SearchBackend):
         query: str,
         options: dict | None,
     ) -> SearchResponse | SearchError:
-        """Run one engine with pacing + bounded backoff retry.
+        """Run one engine with pacing + bounded backoff retry, under a deadline.
 
         Returns the response on success, or the LAST :class:`SearchError` after
         the retry budget — never raises (the caller folds the error into the
@@ -214,21 +225,32 @@ class KeylessSearchBackend(SearchBackend):
         breaker, so two consecutive misses inside one search bench the engine
         (fail_threshold=2); a benched-mid-retry engine stops being hammered
         immediately (and a failed HALF_OPEN probe never gets a second attempt).
+        The whole engine turn runs under :data:`ENGINE_DEADLINE_SECS`: an
+        engine still silent at the deadline is abandoned (one failure, no
+        second attempt) and the chain rotates.
         """
         last_error = SearchError(f"{engine_id} produced no attempt")
-        for attempt in range(ATTEMPTS_PER_ENGINE):
-            await get_queue().acquire(engine_id)
-            try:
-                return await engine.search(query, options=options)
-            except SearchError as exc:
-                last_error = exc
-            except Exception as exc:  # noqa: BLE001 — any engine crash is a soft miss
-                last_error = SearchError(f"{engine_id} engine failed: {exc}")
+        try:
+            async with asyncio.timeout(ENGINE_DEADLINE_SECS):
+                for attempt in range(ATTEMPTS_PER_ENGINE):
+                    await get_queue().acquire(engine_id)
+                    try:
+                        return await engine.search(query, options=options)
+                    except SearchError as exc:
+                        last_error = exc
+                    except Exception as exc:  # noqa: BLE001 — any engine crash is a soft miss
+                        last_error = SearchError(f"{engine_id} engine failed: {exc}")
+                    breaker.record_failure()
+                    if attempt + 1 < ATTEMPTS_PER_ENGINE:
+                        if breaker.state == "open":
+                            break  # benched mid-retry — rotate instead of hammering
+                        await self._sleep(backoff_delay(attempt))
+        except TimeoutError:
             breaker.record_failure()
-            if attempt + 1 < ATTEMPTS_PER_ENGINE:
-                if breaker.state == "open":
-                    break  # benched mid-retry — rotate instead of hammering
-                await self._sleep(backoff_delay(attempt))
+            return SearchError(
+                f"{engine_id} did not answer within {ENGINE_DEADLINE_SECS:g}s",
+                reason=SEARCH_REASON_UNREACHABLE,
+            )
         return last_error
 
 
@@ -271,6 +293,7 @@ def tier_status() -> dict[str, object]:
 __all__ = [
     "BACKEND_ID",
     "ENGINE_CHAIN",
+    "ENGINE_DEADLINE_SECS",
     "ENGINE_LABELS",
     "LOW_QUALITY_MARKERS",
     "KeylessSearchBackend",

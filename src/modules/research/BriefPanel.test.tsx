@@ -201,3 +201,34 @@ describe("BriefPanel lifecycle surfaces (R10)", () => {
     expect(command?.depth).toBe("deep");
   });
 });
+
+describe("BriefPanel research cost (R15-RESEARCH-009)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("an iter run whose provider reported no usage says 'cost unknown', never free", () => {
+    const brief = fixtureBrief({
+      cost: { tokens: undefined, spendUsd: undefined },
+      execution: { runId: "run-c", requestedDepth: "deep", loop: "iter" },
+    });
+    useBriefStore.setState({ panel: { phase: "published", brief }, brief });
+    render(<BriefPanel />);
+    expect(screen.getByText(/cost unknown/)).toBeInTheDocument();
+  });
+
+  it("a metered run shows its spend and no unknown marker", () => {
+    const brief = fixtureBrief({
+      cost: { tokens: 42_000, spendUsd: 0.21 },
+      execution: { runId: "run-m", requestedDepth: "ultra", loop: "heavy" },
+    });
+    useBriefStore.setState({ panel: { phase: "published", brief }, brief });
+    render(<BriefPanel />);
+    expect(screen.getByText(/\$0\.21/)).toBeInTheDocument();
+    expect(screen.queryByText(/cost unknown/)).toBeNull();
+  });
+});

@@ -522,7 +522,10 @@ def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
 
     brief = _run(
         deep_research_tool._run_loop(
-            profile=profile_for("deep"), query="q", llm_call=llm, rounds=1, wall=120
+            profile=profile_for("deep"),
+            query="q",
+            llm_call=llm,
+            budget=deep_research_tool._research_budget(profile_for("deep"), 1, 120),
         )
     )
     assert isinstance(brief, ResearchBrief)

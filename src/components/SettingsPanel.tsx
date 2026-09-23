@@ -43,7 +43,7 @@ import {
 } from "@/store/keybindings";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { useLLMProvidersStore } from "@/store/llm-providers";
-import { useModelCatalog } from "@/store/model-catalog";
+import { type CatalogEntry, useModelCatalog } from "@/store/model-catalog";
 import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
@@ -990,11 +990,27 @@ const RESEARCH_STOP_ROWS: { stop: ResearchStop; label: string; hint: string }[] 
 ];
 
 /** Option list for one stop: the shared picker + the persisted value if it is
- *  a custom slug that dropped out of the list (never silently deselected). */
-function stopOptions(current: string): { id: string; label: string }[] {
+ *  a custom slug that dropped out of the list (never silently deselected).
+ *  With a live catalog in hand, any option absent from it is labelled
+ *  unavailable — shown, never removed or silently swapped. */
+function stopOptions(
+  current: string,
+  liveIds: ReadonlySet<string> | null,
+): { id: string; label: string }[] {
   const known = RESEARCH_MODEL_OPTIONS.some((o) => o.id === current);
   const base = RESEARCH_MODEL_OPTIONS.map((o) => ({ id: o.id, label: o.label }));
-  return known ? base : [{ id: current, label: formatModelLabel(current) }, ...base];
+  const all = known ? base : [{ id: current, label: formatModelLabel(current) }, ...base];
+  return all.map((o) =>
+    liveIds && !liveIds.has(o.id) ? { ...o, label: `${o.label} (unavailable)` } : o,
+  );
+}
+
+/** The ids OpenRouter's LIVE catalog serves, or `null` when no live catalog is
+ *  in hand (loading, fetch failed, or the static fallback) — absence from a
+ *  fallback list proves nothing, so nothing is badged then. */
+function liveOpenRouterIds(entry: CatalogEntry | undefined): ReadonlySet<string> | null {
+  if (!entry || entry.source !== "live" || entry.models.length === 0) return null;
+  return new Set(entry.models.map((m) => m.id));
 }
 
 /** One Tier B per-stop model row: stop label + live pricing micro-text left,
@@ -1011,6 +1027,9 @@ function ResearchModelRow({
   const model = useSearchSettingsStore((s) => s.researchModels[stop]);
   const setResearchModel = useSearchSettingsStore((s) => s.setResearchModel);
   const active = RESEARCH_MODEL_OPTIONS.find((o) => o.id === model);
+  const { entry: catalog } = useModelCatalog("openrouter");
+  const liveIds = liveOpenRouterIds(catalog);
+  const unavailable = liveIds !== null && !liveIds.has(model);
 
   return (
     <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
@@ -1022,6 +1041,12 @@ function ResearchModelRow({
             ? `${active.priceHint}${active.priceVerified ? "" : " · estimate"}`
             : "Custom model — pricing on its OpenRouter page"}
         </span>
+        {unavailable ? (
+          <span className="text-warning text-micro mt-1">
+            Not in OpenRouter&rsquo;s live catalog — {label.toLowerCase()} research will fail until
+            you pick another model.
+          </span>
+        ) : null}
       </div>
       <div className="ml-auto shrink-0">
         <Select
@@ -1029,7 +1054,7 @@ function ResearchModelRow({
           value={model}
           onChange={(e) => setResearchModel(stop, e.target.value)}
         >
-          {stopOptions(model).map((option) => (
+          {stopOptions(model, liveIds).map((option) => (
             <option key={option.id} value={option.id}>
               {option.label}
             </option>

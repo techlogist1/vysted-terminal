@@ -191,7 +191,7 @@ def test_results_pdf_extracts_seeded_numbers() -> None:
 
     pages = ["Quarterly results: revenue Rs 1,234 crore, PAT Rs 210 crore, dividend Rs 5."]
 
-    async def fetch_bytes(url: str) -> tuple[int, bytes]:
+    async def fetch_bytes(url: str, **_: Any) -> tuple[int, bytes]:
         return 200, _pdf_bytes(pages)
 
     out = _run(

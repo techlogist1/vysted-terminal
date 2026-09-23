@@ -104,13 +104,15 @@ class _FakeSession:
         self._exc = exc
         self.calls: list[dict] = []
 
-    async def get(self, url, params=None, headers=None, timeout=None):  # noqa: ANN001, ANN201
+    async def get(self, url, params=None, headers=None, timeout=None, allow_redirects=True):  # noqa: ANN001, ANN201
         self.calls.append({"method": "GET", "url": url, "params": params, "headers": headers})
         if self._exc:
             raise self._exc
         return self._resp
 
-    async def post(self, url, params=None, data=None, headers=None, timeout=None):  # noqa: ANN001, ANN201
+    async def post(
+        self, url, params=None, data=None, headers=None, timeout=None, allow_redirects=True
+    ):  # noqa: ANN001, ANN201
         self.calls.append({"method": "POST", "url": url, "data": data})
         if self._exc:
             raise self._exc

@@ -5,6 +5,7 @@ import { searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
+import { resetModelCatalogStoreForTests, useModelCatalogStore } from "@/store/model-catalog";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import {
@@ -530,11 +531,13 @@ describe("SettingsPanel", () => {
     );
     render(<SettingsPanel />);
     const normal = await screen.findByLabelText("Normal research model");
-    fireEvent.change(normal, { target: { value: "openai/o3-deep-research" } });
-    expect(useSearchSettingsStore.getState().researchModels.normal).toBe("openai/o3-deep-research");
-    // All eight picker prices were re-verified live at R9 integration
-    // (priceVerified: true), so the hint renders WITHOUT the estimate flag.
-    expect(screen.getByText("$10/M in · $40/M out · $10/1k searches")).toBeInTheDocument();
+    // (R15-LIFECYCLE-006: the swap target was a now-retired o3 slug; the
+    // behaviour under test is unchanged on a live option.)
+    fireEvent.change(normal, { target: { value: "perplexity/sonar-pro" } });
+    expect(useSearchSettingsStore.getState().researchModels.normal).toBe("perplexity/sonar-pro");
+    // The picker prices were verified live (priceVerified: true), so the hint
+    // renders WITHOUT the estimate flag.
+    expect(screen.getByText("$3/M in · $15/M out · $5/1k searches")).toBeInTheDocument();
     // The other stops are untouched.
     expect(useSearchSettingsStore.getState().researchModels.deep).toBe(
       DEFAULT_RESEARCH_MODELS.deep,
@@ -553,5 +556,58 @@ describe("SettingsPanel", () => {
     const deep = (await screen.findByLabelText("Deep research model")) as HTMLSelectElement;
     expect(deep.value).toBe("acme/research-x1");
     expect(screen.getByText("Custom model — pricing on its OpenRouter page")).toBeInTheDocument();
+  });
+
+  // ---- R15-LIFECYCLE-006: options absent from the live catalog are badged ----
+
+  /** Seed a FRESH live OpenRouter catalog (the TTL cache skips the fetch). */
+  function liveCatalog(ids: string[]) {
+    useModelCatalogStore.setState({
+      byProvider: {
+        openrouter: {
+          models: ids.map((id) => ({ id, label: id })),
+          source: "live",
+          fetchedAt: Date.now(),
+          loading: false,
+        },
+      },
+    });
+  }
+
+  it("a static option absent from the live catalog is badged unavailable", async () => {
+    resetModelCatalogStoreForTests();
+    getSecretMock.mockImplementation((account: string) =>
+      account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
+    );
+    // The ULTRA default (sonar-deep-research) is missing from this catalog.
+    liveCatalog(["perplexity/sonar", "perplexity/sonar-reasoning-pro", "perplexity/sonar-pro"]);
+    render(<SettingsPanel />);
+    expect(
+      await screen.findByText(/ultra research will fail until you pick another model/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/normal research will fail/)).toBeNull();
+    const ultra = screen.getByLabelText("Ultra research model") as HTMLSelectElement;
+    expect(ultra.value).toBe(DEFAULT_RESEARCH_MODELS.ultra); // never silently rewritten
+    expect(
+      within(ultra).getByRole("option", { name: /Sonar Deep Research \(unavailable\)/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("a persisted selection absent from the live catalog is badged, not rewritten", async () => {
+    resetModelCatalogStoreForTests();
+    getSecretMock.mockImplementation((account: string) =>
+      account === "llm-provider:openrouter" ? Promise.resolve("sk-or-key") : Promise.resolve(null),
+    );
+    useSearchSettingsStore.getState().setResearchModel("deep", "openai/o3-deep-research");
+    liveCatalog([
+      "perplexity/sonar",
+      "perplexity/sonar-reasoning-pro",
+      "perplexity/sonar-deep-research",
+    ]);
+    render(<SettingsPanel />);
+    expect(
+      await screen.findByText(/deep research will fail until you pick another model/),
+    ).toBeInTheDocument();
+    expect(useSearchSettingsStore.getState().researchModels.deep).toBe("openai/o3-deep-research");
   });
 });
