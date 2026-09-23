@@ -38,7 +38,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services.errors import humanize
+from services.errors import humanize, says_invalid_key
 
 #: The sentinel lives in ``base`` (every adapter stamps it); re-exported here
 #: for the runtime's existing ``from services.llm.openai import`` path.
@@ -728,17 +728,30 @@ class OpenAIProvider(LLMProvider):
             )
 
     async def validate_key(self, api_key: str | None = None) -> bool:
-        """Probe ``/v1/models`` — works for OpenAI, DeepSeek, and xAI alike."""
+        """Probe an authenticated endpoint with ``api_key``.
+
+        ``/v1/models`` for OpenAI, DeepSeek and xAI. OpenRouter serves
+        ``/models`` without auth (any string passes), so it probes ``/key``,
+        which answers 401 on a bad key. xAI answers a bad key with 400
+        "Incorrect API key", which is a bad key too, not a transport error.
+        """
         if not api_key:
             return False
         try:
             client = self._client(api_key)
-            await client.models.list()
+            if self._provider_id == "openrouter":
+                await client.get("/key", cast_to=dict[str, Any])
+            else:
+                await client.models.list()
             return True
         except openai.AuthenticationError:
             return False
         except openai.PermissionDeniedError:
             return False
+        except openai.BadRequestError as exc:
+            if says_invalid_key(str(exc)):
+                return False
+            raise
         except openai.OpenAIError:
             raise
 

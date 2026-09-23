@@ -93,6 +93,23 @@ class HumanError:
 _ERROR_CODE_RE = re.compile(r"Error code:\s*(\d{3})", re.IGNORECASE)
 
 
+#: Lower-case body substrings that mean "this API key is bad" on providers that
+#: answer a bad key with 400 instead of 401 (Gemini ``API_KEY_INVALID`` / "API
+#: key not valid", xAI "Incorrect API key provided").
+_INVALID_KEY_MARKERS = (
+    "api_key_invalid",
+    "api key not valid",
+    "incorrect api key",
+    "invalid api key",
+)
+
+
+def says_invalid_key(text: str) -> bool:
+    """True when a provider error body says the API key itself is bad."""
+    low = text.lower()
+    return any(marker in low for marker in _INVALID_KEY_MARKERS)
+
+
 def _extract_status_from_str(text: str) -> int | None:
     """Try to read an HTTP status from an OpenAI-SDK-style error string."""
     m = _ERROR_CODE_RE.search(text)

@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
+import httpx
 import openai
 import pytest
 
@@ -262,6 +263,85 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch_client(monkeypatch, models=_FakeModels(raise_error=err))
     provider = OpenAIProvider()
     assert await provider.validate_key("sk-bad") is False
+
+
+def _serve(monkeypatch: pytest.MonkeyPatch, routes: dict[str, httpx.Response]) -> list[str]:
+    """Run the real SDK against canned responses keyed by URL path."""
+    real_client = openai.AsyncOpenAI
+    seen: list[str] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request.url.path)
+        return routes[request.url.path]
+
+    monkeypatch.setattr(
+        openai,
+        "AsyncOpenAI",
+        lambda **kw: real_client(
+            **kw, http_client=httpx.AsyncClient(transport=httpx.MockTransport(_handler))
+        ),
+    )
+    return seen
+
+
+#: OpenRouter's public catalog answers 200 with or without a key (live probe).
+_PUBLIC_MODELS = httpx.Response(200, json={"data": [{"id": "minimax/minimax-m3"}]})
+
+
+@pytest.mark.asyncio
+async def test_openrouter_validate_key_false_when_key_endpoint_401(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-UI-008 / CODE-AGENT-003 / RESEARCH-010: /models is public, so it
+    # passed any string; the authenticated /key probe answers 401.
+    seen = _serve(
+        monkeypatch,
+        {
+            "/api/v1/models": _PUBLIC_MODELS,
+            "/api/v1/key": httpx.Response(401, json={"error": {"message": "User not found."}}),
+        },
+    )
+    provider = get_provider("openrouter")
+    assert await provider.validate_key("sk-or-v1-R15CANARY-this-is-not-a-real-key") is False
+    assert seen == ["/api/v1/key"]
+
+
+@pytest.mark.asyncio
+async def test_openrouter_validate_key_true_when_key_endpoint_200(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _serve(
+        monkeypatch,
+        {
+            "/api/v1/models": _PUBLIC_MODELS,
+            "/api/v1/key": httpx.Response(200, json={"data": {"label": "sk-or-v1-abc...xyz"}}),
+        },
+    )
+    assert await get_provider("openrouter").validate_key("sk-or-v1-good") is True
+
+
+@pytest.mark.asyncio
+async def test_xai_validate_key_false_on_400_incorrect_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # xAI answers a bogus key with 400 (live probe), not 401.
+    body = {
+        "code": "invalid-argument",
+        "error": "Incorrect API key provided: xa***ey. You can obtain an API key from "
+        "https://console.x.ai.",
+    }
+    _serve(monkeypatch, {"/v1/models": httpx.Response(400, json=body)})
+    assert await get_provider("xai").validate_key("xai-not-a-key") is False
+
+
+@pytest.mark.asyncio
+async def test_validate_key_raises_on_a_400_that_is_not_about_the_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = {"code": "invalid-argument", "error": "Malformed request."}
+    _serve(monkeypatch, {"/v1/models": httpx.Response(400, json=body)})
+    with pytest.raises(openai.BadRequestError):
+        await get_provider("xai").validate_key("xai-real")
 
 
 # ---------------------------------------------------------------------------

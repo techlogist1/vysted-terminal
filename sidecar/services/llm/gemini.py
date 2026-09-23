@@ -28,7 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services.errors import humanize
+from services.errors import humanize, says_invalid_key
 
 from .base import LLMProvider, LLMStreamEvent
 from .native_search import gemini_google_search_tool
@@ -199,6 +199,9 @@ class GeminiProvider(LLMProvider):
         except genai_errors.ClientError as exc:
             status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
             if status in {401, 403}:
+                return False
+            # Gemini answers a bad key with 400 INVALID_ARGUMENT / API_KEY_INVALID.
+            if status == 400 and says_invalid_key(str(exc)):
                 return False
             raise
         except genai_errors.APIError:
