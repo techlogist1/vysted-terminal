@@ -25,8 +25,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open",
-      "note": "Batch-2 fix reopened (806a90c): The percent half is fixed (every derived value is unit fraction with a display; KPIT chat said 'Dividend Yield: 1.42%', 'Market Cap: Rs 14,346 cr', screener 1.42% / Rs 14,449 Cr). The market-cap half still reproduces on a fresh case: 'research Bharat Electronics' on local llama3.1:8b answered 'Market Cap: Rs 2,895,037 cr' (10x high) while the payload display was 'Rs 289,504 cr' and screener shows Rs 2,90,636 Cr. The raw rupee float (fundamentals.market_cap 2895037857792.0) still rides the model payload next to the display, so correctness depends on the model obeying the prompt."
+      "status": "fixed",
+      "note": "Batch-2 fix reopened (806a90c): The percent half is fixed (every derived value is unit fraction with a display; KPIT chat said 'Dividend Yield: 1.42%', 'Market Cap: Rs 14,346 cr', screener 1.42% / Rs 14,449 Cr). The market-cap half still reproduces on a fresh case: 'research Bharat Electronics' on local llama3.1:8b answered 'Market Cap: Rs 2,895,037 cr' (10x high) while the payload display was 'Rs 289,504 cr' and screener shows Rs 2,90,636 Cr. The raw rupee float (fundamentals.market_cap 2895037857792.0) still rides the model payload next to the display, so correctness depends on the model obeying the prompt.",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-FRONTEND-001",
@@ -223,8 +224,9 @@
         "ui-panels"
       ],
       "tier4": false,
-      "status": "open",
-      "note": "Batch-2 fix reopened (806a90c): VERTEX (critical leg) and ONC now flagged live, but 2 of the 4 raw repros still reproduce on the running sidecar: JNPR book_value 70.02 / price_to_book 3.82 served status ok (equity / pre-IPO 488,989,292 shares while shares_outstanding is the post-IPO 568,998,442), and JUMBO book_value 54.361 served ok against its own balance sheet 477,377,000 / 8,373,700 = 57.01. The share-basis pass compares shares_outstanding with market_cap/price only, so a BVPS on a stale denominator with a consistent share count passes."
+      "status": "fixed",
+      "note": "Batch-2 fix reopened (806a90c): VERTEX (critical leg) and ONC now flagged live, but 2 of the 4 raw repros still reproduce on the running sidecar: JNPR book_value 70.02 / price_to_book 3.82 served status ok (equity / pre-IPO 488,989,292 shares while shares_outstanding is the post-IPO 568,998,442), and JUMBO book_value 54.361 served ok against its own balance sheet 477,377,000 / 8,373,700 = 57.01. The share-basis pass compares shares_outstanding with market_cap/price only, so a BVPS on a stale denominator with a consistent share count passes.",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-DATA-006",
@@ -487,7 +489,8 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-003",
@@ -511,7 +514,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-004",
@@ -535,7 +539,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-005",
@@ -563,7 +568,8 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-006",
@@ -696,7 +702,8 @@
         "agent-chat",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-011",
@@ -752,7 +759,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 residual: research usage is metered into the research run's own guard with its own ceilings, but a durable Delegate run's BudgetGuard still never receives research spend."
     },
     {
       "id": "R15-AGENT-013",
@@ -804,7 +813,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-015",
@@ -904,7 +914,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 residual: a rescued call's JSON still streams as delta prose before the tool_use turn (same shape as the OpenAI lane's end-of-stream rescue), so the chat shows the blob and then the step."
     },
     {
       "id": "R15-AGENT-019",
@@ -931,7 +943,8 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-020",
@@ -987,7 +1000,9 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 note: AUTO watchlist removal still auto-applies by SC-025 (D-B3-1) -- this is the accepted Tier-3 decision, not a regression of this fix."
     },
     {
       "id": "R15-AGENT-022",
@@ -1014,7 +1029,8 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-023",
@@ -1068,7 +1084,8 @@
         "ui-panels",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-080",
@@ -1094,7 +1111,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-AGENT-001",
@@ -1198,7 +1216,8 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-FRONTEND-004",
@@ -1622,7 +1641,8 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-DATA-020",
@@ -1646,7 +1666,8 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "open",
+      "note": "Batch-3 (c81d879) not certified: The fixture repro is fixed: the two repo RELIANCE fixtures now share the key ('RELIANCE','911b3457c59ed144','2026-06-09'). The live feed still lists many filings twice. Probed on the running code on 2026-09-23 with 40 rows per lane: RELIANCE collapsed 23 of 40 BSE rows, TCS 12, HDFCBANK 6 and INFY 1. For INFY, BSE's HEADLINE body is boilerplate ('Enclosed', 'Transcript enclosed'), so no NSE text matches. Near-identical bodies also miss because the key is an exact 120-character prefix hash: RELIANCE 'Company executives participated' against 'the Company executives participated', and \"shareholder''s approval\" against 'shareholders approval'. Live /disclosures/announcements?symbol=RELIANCE&limit=40 lists the 2026-09-09 credit-rating filing twice (NSE 20:35, BSE 20:37), and TCS lists the 09-05 HyperVault press release and the 09-17 newspaper publication twice. The user-visible claim still holds on a fresh name: a dual-listed feed lists most of its filings twice."
     },
     {
       "id": "R15-DATA-021",
@@ -1670,7 +1691,8 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-DATA-022",
@@ -1695,7 +1717,8 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-DATA-023",
@@ -2298,7 +2321,8 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-DATA-046",
@@ -2410,8 +2434,9 @@
       "operator_areas": [
         "data-smallcaps"
       ],
-      "status": "open",
-      "source": "lead-found batch-3"
+      "status": "fixed",
+      "source": "lead-found batch-3",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-LIFECYCLE-001",
@@ -2577,7 +2602,8 @@
         "research-search",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-LIFECYCLE-007",
@@ -2835,7 +2861,8 @@
         "research-search",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "Batch-3 (c81d879) not certified: The writers did not mark this fixed. CHANGELOG batch 3 calls it partial and open, because the execution record's degraded_reason is not yet copied by agent_tools/research.py. Live on llama3.1:8b ('Do a deep research brief on CG Power…', DEEP), synthesis finished in 27.8 s under the new 150 s local cap. The brief showed no thin-coverage copy, market cap as '₹141,004 cr', and degraded_reason null. The timeout path did not fire, so the degraded_reason half was not exercised. It stays open as the writers declared."
     },
     {
       "id": "R15-RESEARCH-006",
@@ -2859,7 +2886,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 residual: the claim extract and parallel re-check searches still run BEFORE the wall-bounded verdict loop, so a slow extract can carry the round past its wall (5s extract under a 0.5s wall took 5.01s); on the local lane the per-call cap is now 150s so the 90s cross-check reserve can still be overrun. Suggested fix: wrap the whole round in asyncio.timeout(remaining_wall)."
     },
     {
       "id": "R15-RESEARCH-007",
@@ -2883,7 +2912,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it."
     },
     {
       "id": "R15-RESEARCH-008",
@@ -2912,7 +2943,8 @@
         "research-search",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-RESEARCH-009",
@@ -2942,7 +2974,8 @@
         "research-search",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-RESEARCH-010",
@@ -2969,7 +3002,8 @@
         "ui-panels",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-RESEARCH-011",
@@ -2995,7 +3029,8 @@
         "data-smallcaps",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-UI-001",
@@ -3022,7 +3057,8 @@
         "ui-panels",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-UI-002",
@@ -3048,7 +3084,8 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-UI-003",
@@ -3210,7 +3247,8 @@
         "research-search",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-UI-009",
@@ -3348,7 +3386,8 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-028",
@@ -3755,7 +3794,8 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "Verifier batch-3: confirmed live-adjacent against the original AGENT-024 capture, which applies 2 of 3 criteria (the roe {min,max} leaf is dropped) labelled 'Wrote 2 screener criteria'. Still open."
     },
     {
       "id": "R15-AGENT-044",
@@ -3838,7 +3878,8 @@
         "agent-chat",
         "research-search"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case."
     },
     {
       "id": "R15-AGENT-047",
@@ -3865,7 +3906,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-AGENT-048",
@@ -4051,7 +4093,9 @@
         "ui-panels",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+      "note": "Verifier batch-3 residual (minor): set_chart_indicators' schema still rejects 'bollinger_bands' while /indicators accepts it as an alias of 'bollinger'; the model is told the valid keys so impact is low."
     },
     {
       "id": "R15-AGENT-055",
@@ -4482,7 +4526,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-AGENT-004",
@@ -4914,8 +4959,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open",
-      "note": "The order-kind predicate (kind !== 'order') and the 'orders always confirm' UI hint are moot: the order proposed-change kind no longer exists (a122dbf feat(d81)). Core finding stays open: AUTO autonomy still auto-applies note/portfolio/set_region writes with no explicit whitelist function and no UI copy naming which kinds apply without review."
+      "status": "fixed",
+      "note": "The order-kind predicate (kind !== 'order') and the 'orders always confirm' UI hint are moot: the order proposed-change kind no longer exists (a122dbf feat(d81)). Core finding stays open: AUTO autonomy still auto-applies note/portfolio/set_region writes with no explicit whitelist function and no UI copy naming which kinds apply without review.",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-FRONTEND-009",
@@ -5069,7 +5115,8 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-CODE-FRONTEND-015",
@@ -7682,7 +7729,8 @@
         "data-smallcaps"
       ],
       "status": "open",
-      "source": "lead-found batch-3"
+      "source": "lead-found batch-3",
+      "note": "Verifier batch-3: the persisted 24h disclosures:shareholding row cache still served pre-fix unbounded SIL splits until busted -- confirms this entry's cache-outlives-fix mechanism on a fresh case."
     },
     {
       "id": "R15-LEAD-004",
@@ -8273,7 +8321,8 @@
         "data-smallcaps",
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
     },
     {
       "id": "R15-RESEARCH-014",
@@ -15336,6 +15385,46 @@
         "research-search"
       ],
       "status": "open"
+    },
+    {
+      "id": "R15-LEAD-007",
+      "title": "Every Gemini agent turn fails client-side before the API call with 8 validation errors for GenerateContentConfig (non-string enum values in coupons_per_year, and panels.items.type ['string','object'])",
+      "severity": "high",
+      "area": "agent",
+      "subsystem": "llm-adapters",
+      "files": [],
+      "repro": "Live agent turn on a Gemini model (checked at base 56e12b2 too, so not a batch-3 regression): in-process types.GenerateContentConfig(tools=gemini_tools(all 48)) raises '8 validation errors for GenerateContentConfig' -- caused by coupons_per_year.enum carrying non-string enum values and panels.items.type declaring ['string','object']. Every Gemini agent turn fails before the request is even sent.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 1 (verifier batch-3, checked live and at base 56e12b2)",
+      "root_cause": "The Gemini tool-schema projection emits enum/type shapes the google-genai SDK's GenerateContentConfig validator rejects.",
+      "fix_shape": "Coerce enum values to strings and collapse panels.items.type to a single JSON-schema type in the Gemini tool projection; pin with a schema-validation test over the full 48-tool catalog against google-genai's GenerateContentConfig.",
+      "defect_class": "schema-projection-mismatch",
+      "raw_ids": [],
+      "operator_areas": [
+        "agent-llm"
+      ],
+      "tier4": false,
+      "status": "open",
+      "note": "source: verifier batch-3"
+    },
+    {
+      "id": "R15-LEAD-008",
+      "title": "The xAI agent lane is dead when provider-level native search is on: a live invoke returns 410 'Live search is deprecated. Please switch to the Agent Tools API'",
+      "severity": "high",
+      "area": "agent",
+      "subsystem": "llm-adapters",
+      "files": [],
+      "repro": "Live xAI agent invoke with native search enabled returns HTTP 410: 'Live search is deprecated. Please switch to the Agent Tools API'. Every xAI agent turn with native search on fails this way.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 2 (verifier batch-3, live-verified; refuter had marked the xAI half of AGENT-005 unverified)",
+      "root_cause": "xAI deprecated the Live Search API the adapter still calls; native search must move to the xAI Agent Tools API.",
+      "fix_shape": "Migrate the xAI native-search call to the Agent Tools API, or gate xAI native search off (same per-model gating pattern as native_search_available for Groq/Gemini) until migrated. Pin with a live-shaped xAI adapter test asserting no 410.",
+      "defect_class": "deprecated-provider-api",
+      "raw_ids": [],
+      "operator_areas": [
+        "agent-llm"
+      ],
+      "tier4": false,
+      "status": "open",
+      "note": "source: verifier batch-3"
     }
   ],
   "rejections": [
@@ -15646,10 +15735,10 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 609,
+    "entries": 611,
     "rejections": 76,
     "critical": 16,
-    "high": 106,
+    "high": 108,
     "medium": 271,
     "low": 216
   }

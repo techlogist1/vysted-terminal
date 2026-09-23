@@ -1,0 +1,70 @@
+{
+  "certified": [
+    "R15-AGENT-008",
+    "R15-AGENT-009",
+    "R15-AGENT-006",
+    "R15-LEAD-007",
+    "R15-LEAD-008",
+    "R15-RESEARCH-005",
+    "R15-DATA-041",
+    "R15-DATA-046",
+    "R15-AGENT-011",
+    "R15-AGENT-015",
+    "R15-CODE-PLATFORM-002",
+    "R15-AGENT-016",
+    "R15-CODE-PLATFORM-003",
+    "R15-CODE-FRONTEND-006",
+    "R15-CODE-PLATFORM-016",
+    "R15-DATA-040",
+    "R15-DATA-029",
+    "R15-DATA-030",
+    "R15-CODE-FRONTEND-002",
+    "R15-AGENT-013",
+    "R15-AGENT-029",
+    "R15-CODE-PLATFORM-037",
+    "R15-LIFECYCLE-005",
+    "R15-CODE-AGENT-002",
+    "R15-DATA-083",
+    "R15-DATA-038",
+    "R15-DATA-039",
+    "R15-DATA-016",
+    "R15-DATA-047",
+    "R15-DATA-049",
+    "R15-DATA-034",
+    "R15-DATA-082",
+    "R15-LIFECYCLE-004",
+    "R15-DATA-035",
+    "R15-DATA-036",
+    "R15-UI-090",
+    "R15-UI-004",
+    "R15-UI-005",
+    "R15-UI-006",
+    "R15-UI-007",
+    "R15-DATA-044",
+    "R15-DATA-093",
+    "R15-UI-003",
+    "R15-CODE-FRONTEND-020",
+    "R15-LIFECYCLE-007"
+  ],
+  "needs_gui": [
+    "R15-UI-009",
+    "R15-UI-025"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-DATA-015",
+      "reason": "Half fixed. The 52w low is now flagged against the NSE+BSE range (ELCIDIN 102,210 vs 87,003-144,500), but the 52w high 137,000 is still served status ok while the exchange (and screener.in) say 144,500. The 5.2% gap sits inside the reused 10% per-bound tolerance, so the DAT-P13-20 half persists."
+    },
+    {
+      "id": "R15-DATA-020",
+      "reason": "Improved, but the residual is live. BSE rows collapsed out of 40: RELIANCE 36, INFY 36, TCS 27, HDFCBANK 19 (batch 3: 23/1/12/6). HDFCBANK, the plan's case not written against, still has about 15 same-filing NSE/BSE pairs within 10 minutes, and TCS about 10. NSE's templated 'has informed the Exchange about Schedule of meet / General Updates' text shares under 60% of words with BSE's subject. HDFCBANK's merged top 5 still has 3 duplicate pairs."
+    },
+    {
+      "id": "R15-DATA-032",
+      "reason": "Not delivered (per the integrator's CHANGELOG). It still reproduces live: /earnings/INFY/estimates has eps_estimate_median == eps_estimate_mean == 19.58006, and eps_estimate_stddev 0.2825 == (20.33-19.20)/4."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-4-int@0d16e8fd50011a1f47df36d578eda15e543c85b4"
+}
