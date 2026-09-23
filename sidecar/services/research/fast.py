@@ -434,9 +434,10 @@ async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str,
         value = _structured_value(result, "filings")
         # corporate_announcements carries no top-level provider/source/mode key
         # (unlike sec_filings_list's per-item "sec-edgar" tag) — stamp the
-        # exchange feed's own provenance so the FR-041 badge still renders.
+        # exchanges that actually served it (a BSE-only listing or a lane
+        # outage serves one) so the FR-041 badge never claims both.
         if value.get("ok") and not value.get("provider"):
-            value["provider"] = "nse+bse"
+            value["provider"] = "+".join(str(s).lower() for s in result.get("sources") or [])
         return value
     result = await _safe_call(tool_call, "sec_filings_list", {"symbol": target.symbol})
     return _structured_value(result, "filings")
