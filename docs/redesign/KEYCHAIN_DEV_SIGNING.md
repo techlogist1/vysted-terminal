@@ -49,7 +49,7 @@ set, so the keychain is never retried.
 **Verified on screen (2026-06-11):**
 
 - One migration boot: the four existing items (`llm-provider:deepseek`,
-  `llm-provider:openrouter`, `broker:_meta:first-launch-tos`,
+  `llm-provider:openrouter`, `app-meta:first-launch-terms` (renamed from `broker:_meta:first-launch-tos`, D81),
   `app-meta:onboarding-complete`) copied into the file; this is the ONE final dialog.
 - **THREE consecutive from-scratch rebuilds** (app + all sidecars force-rebuilt, each a
   genuinely new cdhash: `932790c9…`, `3c0bec1d…`, `0aca12ec…`), each booted and exercised
@@ -180,7 +180,7 @@ nothing.** Evidence from the verification run:
 
 1. **Item census:** the app reads exactly FOUR keychain items at boot (service
    `vysted-terminal`, accounts `llm-provider:deepseek`, `llm-provider:openrouter`,
-   `broker:_meta:first-launch-tos`, `app-meta:onboarding-complete`). Your "~4 prompts per
+   `app-meta:first-launch-terms` (then named `broker:_meta:first-launch-tos`; renamed D81), `app-meta:onboarding-complete`). Your "~4 prompts per
    launch" was one per item; "× 3 rebuilds ≈ 12" matched one grant round per fresh binary
    before the grants stuck.
 2. **ACL state after your grants:** every item carried ONE valid `(OK)` trusted-application
@@ -218,7 +218,7 @@ security set-generic-password-partition-list \
   -S "apple:,apple-tool:,codesign:,cdhash:" \
   -s vysted-terminal -a "llm-provider:deepseek" \
   -k "YOUR_LOGIN_PASSWORD" ~/Library/Keychains/login.keychain-db
-# repeat for: llm-provider:openrouter, broker:_meta:first-launch-tos,
+# repeat for: llm-provider:openrouter, app-meta:first-launch-terms,
 #             app-meta:onboarding-complete
 ```
 

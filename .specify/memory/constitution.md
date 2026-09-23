@@ -26,33 +26,29 @@ user inside a chat transcript for work that wants direct manipulation.
 ### II. One Capability Catalog, Many Consumers (MCP-as-Framework)
 
 Every terminal capability (quotes, charts, screener, fundamentals, portfolio, news,
-quant, brokers, …) is defined **once** in a single capability catalog and projected to
+quant, …) is defined **once** in a single capability catalog and projected to
 **all** consumers: the built-in copilot/personas AND external MCP clients (Claude Code,
 other agents). The internal agent adapter and the external MCP adapter are two
 **renderers of the same source of truth**, not two hand-maintained surfaces. A
 capability MUST NOT exist for only one consumer. One `read_only` declaration drives
 both the internal mutation gate and the external `readOnlyHint`. Vysted is a
-**framework people build finance agents and trade-bots on**, not a closed app.
+**framework people build finance agents and research tools on**, not a closed app.
 
 ### III. Safety Is Layered and Non-Negotiable (Defense-in-Depth)
 
-Read-only by default; every mutation is explicit, gated, and audited. The BLUEPRINT
-§6.5 invariants are permanent and may only be **strengthened**, never weakened without
+Read-only by default; every mutation is explicit and gated. The BLUEPRINT §6.5
+invariants are permanent and may only be **strengthened**, never weakened without
 operator sign-off:
 
-- **Append-only audit log** enforced at the database level (SQLite triggers + a
-  read-only reader connection), not by convention.
-- **Type-gated execution** (mutations only reachable through an explicit confirm path)
-  plus a grep-time audit over all call sites.
-- **Kill-switch** that halts the mutating path.
 - **Read-only-by-default wrappers** (no mutating methods on a provider's public
   surface; GET-only routers; `supportsControlPlane = false`).
 
-Every agent-proposed change — panel config, portfolio, workspace build, and especially
-orders — renders as a **reviewable preview→applied diff** (accept-all / reject-all /
-per-item, keyboard-driven). **Orders never auto-apply; there is no "YOLO" path.**
-Autonomous agent runs are bounded by a hard ceiling on tokens / spend / wall-clock /
-steps (a BudgetGuard) — autonomous spend is a safety surface the same way execution is.
+Every agent-proposed change — panel config, portfolio, workspace build — renders as a
+**reviewable preview→applied diff** (accept-all / reject-all / per-item, keyboard-
+driven). Autonomous agent runs are bounded by a hard ceiling on tokens / spend /
+wall-clock / steps (a BudgetGuard) — autonomous spend is a safety surface. **No trading
+path exists (D81, 23 Sep 2026): no broker connectivity, order placement, or simulated
+account anywhere in the product, permanently.**
 
 ### IV. Local-First, Bring-Your-Own-Keys, Private by Default
 
@@ -78,10 +74,12 @@ or the license — is the durable moat.
 
 Finance has no compiler; **evidence is the substitute**. Every data response carries
 **provenance** (which provider served it). Every agent claim that asserts a fact
-carries **citations**. Every mutation lands in the append-only audit trail. The
-provider/model/cost in use is always legible on the agent surface. Trust is earned with
-verifiable artifacts, not asserted — and never simulated (no fabricated data behind a
-"populated" surface; unverified is labeled unverified).
+carries **citations**. Every mutation is acked to the action ledger before the agent's
+next turn; a durable, disk-backed record of every agent write is an accepted gap
+(the ledger is process memory with a TTL), tracked openly rather than silently
+promised. The provider/model/cost in use is always legible on the agent surface. Trust
+is earned with verifiable artifacts, not asserted — and never simulated (no fabricated
+data behind a "populated" surface; unverified is labeled unverified).
 
 ### VII. Minimal-Dark, Density with Progressive Disclosure
 
@@ -110,7 +108,7 @@ gate** rejects empty/invalid/stale/mismatched provider responses; resolution + r
 a **preference-ordered, multi-source provider chain** and serve the first valid,
 **provenance-tagged** result — surfacing an honest, human "unavailable" (naming what would
 unlock it) **only when every configured source has failed**. Stale/cache-served and
-synthetic/paper values are always labeled, never shown as live (this sharpens Principle VI).
+synthetic values are always labeled, never shown as live (this sharpens Principle VI).
 
 **Resourcefulness — never dead-end.** When a path fails, the agent MUST try another
 source/route and succeed, or fail cleanly with a **human message**. It MUST NOT give up and
@@ -127,14 +125,14 @@ commercial license** (relicensed 23 Sep 2026 — operator decision, see LICENSIN
 No hosted backend.
 
 **Foundation to keep (reframe, don't rebuild):** the FastAPI sidecar + data layer,
-dockview panels + persistent workspace layouts, the §6.5 safety architecture, Kite
-read-only + BYOK keychain, and the copilot's existing tool loop. The redesign rebuilds
-the **experience** on this foundation, not the foundation.
+dockview panels + persistent workspace layouts, the §6.5 agent-write safety model,
+BYOK keychain, and the copilot's existing tool loop. The redesign rebuilds the
+**experience** on this foundation, not the foundation.
 
-**Out of scope for the redesign (note, do not design):** broker **order execution** is
-deferred behind the safety layer; the Tradesa plugin is a separate track. _(This
-deferral reverses a prior BLUEPRINT §2 Locked decision — a Tier-4 change requiring
-explicit operator ratification; see the spec's open-decisions.)_
+**Out of scope for the redesign (note, do not design):** broker order execution is out
+of the product permanently (D81, 23 Sep 2026, operator Tier-4 sign-off) — not deferred,
+removed. _(This reverses a prior BLUEPRINT §2 Locked decision, ratified by the operator;
+see `docs/redesign/DECISIONS_FOR_OPERATOR.md`.)_
 
 **Decision Authority (blast-radius tiers):** (1) **Locked** — BLUEPRINT §2; never
 reopen unilaterally. (2) **Spec-derivable** — decide and proceed. (3) **Spec-ambiguous,
@@ -174,7 +172,7 @@ current-state baseline lives in `docs/CURRENT_STATE.md`.
 MINOR = principle/section added or materially expanded; PATCH = clarifications and
 wording.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-30 | **Last Amended**: 2026-06-01
+**Version**: 2.0.0 | **Ratified**: 2026-05-30 | **Last Amended**: 2026-09-23
 
 <!--
   v1.1.0 (2026-06-01, operator-ratified): MINOR — added Principle VIII "Locale-Native &
@@ -182,4 +180,22 @@ wording.
   resourcefulness/never-dead-end) to govern the Pass-B agent-native research layer. Sharpens
   Principle VI (Verification). Propagated to specs/001-agent-native-redesign/spec.md
   (Clarifications → Session 2026-06-01; FR-060–FR-065, FR-093). No Locked decision reversed.
+
+  v2.0.0 (2026-09-23, D81, operator Tier-4 sign-off): MAJOR — trading (broker connectivity,
+  order placement, simulated accounts) removed from the product permanently. Reverses the
+  BLUEPRINT §2 Locked "broker execution" decision (a second, final reversal following the
+  2026-05-30 "defer execution" ratification). Principle II drops "brokers" from the capability
+  list and retitles the framework claim "finance agents and research tools." Principle III
+  loses the append-only-audit-log, type-gated-execution, and kill-switch bullets and the
+  "orders never auto-apply" clause — nothing left to audit, type-gate, or halt; keeps the
+  read-only-wrapper rule, the diff/accept gate, and BudgetGuard; states the no-trading
+  invariant explicitly. Principle VI's "every mutation lands in the append-only audit trail"
+  is replaced with the true statement (acked to the action ledger; durable record is an
+  accepted gap) — the audit log's only writers were trading paths and it went with them.
+  Principle VIII drops "paper" from the synthetic-values sentence. The "Foundation to keep"
+  and "Out of scope" notes are rewritten: no Kite/broker foundation, order execution is
+  removed (not deferred). Full evidence and inventory:
+  `docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`. Propagated to
+  `specs/001-agent-native-redesign/spec.md` (FR-010/011/012/042/050-055, SC-012/013/014,
+  Clarifications, US10) and `docs/SAFETY_ARCHITECTURE.md`.
 -->

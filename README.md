@@ -31,27 +31,26 @@ SEC EDGAR filings).
 What's in the box today:
 
 - **A multi-panel cockpit** (dockview) — Chart (50 server-computed indicators + drawing
-  tools), Watchlist, News (RSS + optional NewsAPI, sentiment), Portfolio, Equity
-  Overview, plus Macro, SEC Filings, Earnings, Analyst Ratings, Screener, Quant
-  (QuantLib), Backtest, and a Node Editor / workflow surface.
+  tools), Watchlist, News (RSS + optional NewsAPI, sentiment), Portfolio (manual tracked
+  holdings with P&L and CSV export), Equity Overview, plus Macro, SEC Filings, Earnings,
+  Analyst Ratings, Screener, Quant (QuantLib), Backtest, and a Node Editor / workflow
+  surface.
 - **An agentic AI copilot** — a real tool-use loop in the sidecar: the model calls
   read/host-action tools to pull data and drive the terminal. 13 first-party agents
   (a terminal-aware copilot + 12 investor personas) plus user-authored custom agents.
 - **BYOK across 7 LLM providers** (Anthropic, OpenAI, Gemini, Groq, Ollama, DeepSeek,
   xAI). Keys live in the OS keychain and never persist to disk.
-- **Read-only broker connect** — genuine Kite Connect OAuth + read-only account /
-  positions / P&L (Kite, Dhan, Angel One). A §6.5 execution-safety layer (paper-default,
-  kill-switch, append-only audit log) exists in code; **order execution is not enabled**.
 - **A plugin platform** — one serializable `VystedPlugin` contract (six capabilities:
   data, panels, commands, agents, nodes, control plane) so the terminal is extensible.
 - **MCP on both sides** — Vysted proxies bundled MCP data servers _and_ re-exposes its
   own capabilities as MCP tools for external agents (Claude Desktop / Code).
 
 **Honest status:** green on every machine-checkable gate (`pnpm ci-local`, 619 vitest,
-942 pytest, §6.5 9/9 safety audit) and broadly tested; **live UX, populated visuals, and
-any BYOK/live-broker round-trip are operator-verified, not CI-verified** (the harness
-can't drive the webview with real data). The app currently ships **unsigned with no
-release pipeline**, and version strings sit at `0.8.0` pending a release cut. See
+942 pytest, the Gate-8 no-trading-surface test) and broadly tested; **live UX and
+populated visuals are operator-verified, not CI-verified** (the harness can't drive the
+webview with real data). Vysted has no brokerage connection — it cannot place, stage or
+simulate an order. The app currently ships **unsigned with no release pipeline**, and
+version strings sit at `0.8.0` pending a release cut. See
 [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the full works/buggy/deferred map.
 
 ---
@@ -180,6 +179,6 @@ contract and example plugin are separately licensed under
 ## Status
 
 Phases 0–10 merged to `main` (data layer, charting, AI copilot, node editor + backtest,
-broker read-only + §6.5 safety, macro/research/QuantLib, integrations hub). The
+agent-write safety, macro/research/QuantLib, integrations hub). The
 agent-native redesign is being specified; build follows operator review. See
 [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md).
