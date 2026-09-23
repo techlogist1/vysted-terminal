@@ -129,3 +129,37 @@ def test_get_exchange_ownership_empty_patterns_is_none(monkeypatch: pytest.Monke
         lambda symbol: ShareholdingResponse(symbol="X", count=0, patterns=[]),
     )
     assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO")) is None
+
+
+def test_merged_bse_split_keeps_its_own_provenance_in_the_brief(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-011: the NSE June master row carries an institutions figure
+    merged from the BSE XBRL of the March quarter. The brief's institutions basis
+    names BSE and March, while the promoter basis stays NSE and June."""
+    from services.research.semantics import derive_semantics
+
+    monkeypatch.setattr(
+        corporate_disclosures,
+        "get_shareholding",
+        lambda symbol: _response(
+            promoter_percent=20.31,
+            institutions_percent=42.9,
+            public_percent=79.69,
+            source="NSE",
+            split_source="BSE",
+            split_as_of=date(2026, 3, 31),
+        ),
+    )
+    exchange = asyncio.run(ownership_check.get_exchange_ownership("SIL.NS"))
+    assert exchange is not None
+    structured = {
+        "fundamentals": {
+            "ok": True,
+            "provider": "yfinance",
+            "data": {ownership_check.OWNERSHIP_KEY: exchange.as_wire()},
+        }
+    }
+    data = derive_semantics(structured, "IN")["data"]
+    assert data["institutions_percent_exchange"]["basis"] == "BSE shareholding filing, 2026-03-31"
+    assert data["promoter_percent_exchange"]["basis"] == "NSE shareholding filing, 2026-06-30"

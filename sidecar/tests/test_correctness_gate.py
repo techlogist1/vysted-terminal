@@ -367,6 +367,27 @@ def test_nan_last_close_falls_through_to_the_next_provider(
     assert provider_registry.get_history("GOLDBEES", "1d", region="IN") is good
 
 
+def test_institutions_flag_names_the_merged_split_lane_and_quarter() -> None:
+    """R15-RESEARCH-011, the gate's copy of the provenance: an institutions
+    figure merged from the BSE XBRL of March is not the NSE June filing's."""
+    from services.ownership_check import ExchangeOwnership
+
+    exchange = ExchangeOwnership(
+        promoter_percent=20.31,
+        institutions_percent=42.9,
+        public_percent=79.69,
+        as_of_quarter="2026-06-30",
+        source="NSE",
+        institutions_source="BSE",
+        institutions_as_of="2026-03-31",
+    )
+    f = _fund(symbol="SIL.NS", held_percent_insiders=0.2031, held_percent_institutions=0.05)
+    out = correctness_gate.reconcile_ownership(f, exchange)
+    reason = out.field_meta["held_percent_institutions"].reason
+    assert "the BSE shareholding filing for the quarter ended 2026-03-31" in reason
+    assert out.field_meta.get("held_percent_insiders") is None  # 20.31 vs 20.31
+
+
 # ---------------------------------------------------------------------------
 # R15-LEAD-002: witness inputs are cached per listing, flags recomputed
 # ---------------------------------------------------------------------------

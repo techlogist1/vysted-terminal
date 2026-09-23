@@ -467,11 +467,16 @@ def reconcile_ownership(
         if not filed or exchange is None:
             flagged[field_name] = f"unreconciled: exchange shareholding unavailable ({definition})"
             continue
-        filed_pct = (
-            exchange.promoter_percent
-            if field_name == "held_percent_insiders"
-            else exchange.institutions_percent
-        )
+        if field_name == "held_percent_insiders":
+            filed_pct, source, as_of = (
+                exchange.promoter_percent,
+                exchange.source,
+                exchange.as_of_quarter,
+            )
+        else:  # the institutions split may come from another lane and quarter
+            filed_pct = exchange.institutions_percent
+            source = exchange.institutions_source or exchange.source
+            as_of = exchange.institutions_as_of or exchange.as_of_quarter
         provider_pct = value * 100.0
         exchange_pct = filed_pct if filed_pct is not None else 0.0
         zero_mismatch = (provider_pct == 0.0) != (exchange_pct == 0.0)
@@ -479,8 +484,8 @@ def reconcile_ownership(
             continue
         shown = f"{filed_pct:.2f}%" if filed_pct is not None else f"no {category} reported"
         flagged[field_name] = (
-            f"{f.provider} {label} {provider_pct:.2f}% disagrees with the {exchange.source} "
-            f"shareholding filing for the quarter ended {exchange.as_of_quarter} "
+            f"{f.provider} {label} {provider_pct:.2f}% disagrees with the {source} "
+            f"shareholding filing for the quarter ended {as_of} "
             f"({category}: {shown}) beyond {_OWNERSHIP_BAND_PP:g}pp ({definition}); "
             "kept, flagged"
         )
