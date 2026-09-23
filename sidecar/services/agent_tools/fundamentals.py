@@ -101,7 +101,7 @@ def _instrument_candidate(instrument: Any) -> dict[str, Any]:
     }
 
 
-def _canonicalize(symbol: str) -> _Canonicalization:
+async def _canonicalize(symbol: str) -> _Canonicalization:
     """Run ``symbol`` through the ONE resolution policy (R10 ``decide``).
 
     Never reimplements matching — same seam as ``resolve_symbol``
@@ -111,12 +111,17 @@ def _canonicalize(symbol: str) -> _Canonicalization:
     ``disambiguate`` verdict carries candidates worth surfacing instead of a
     bare 404; an ``unresolved`` verdict means the bundled masters have
     nothing to say — never treated as proof the symbol itself is invalid.
+    Never raises: the resolver runs on a worker thread (a master miss can
+    block on a live Search), and a resolver failure has nothing to add.
     """
     import config
     from services import resolution_policy, symbol_resolver
 
     region = config.get_region()
-    resolution = symbol_resolver.resolve(symbol, region=region)
+    try:
+        resolution = await asyncio.to_thread(symbol_resolver.resolve, symbol, region)
+    except Exception:  # noqa: BLE001 — the original provider error then stands
+        return _Canonicalization()
     decision = resolution_policy.decide(resolution)
 
     if decision.outcome == "bound" and decision.instrument is not None:
@@ -193,7 +198,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
         if attempt == 0:
             await asyncio.sleep(_RETRY_BACKOFF_SECS)
 
-    canonicalization = _canonicalize(symbol)
+    canonicalization = await _canonicalize(symbol)
     if canonicalization.honest_not_found is not None:
         return canonicalization.honest_not_found
 
