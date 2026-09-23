@@ -65,7 +65,10 @@ function makeEmptyPortfolio(name: string = DEFAULT_PORTFOLIO_NAME, id?: string):
   return { id: id ?? genId("pf"), name: name.trim() || DEFAULT_PORTFOLIO_NAME, holdings: [] };
 }
 
-/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop it. */
+/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
+ *  it. The same rules as the panel form hold for every caller (restore, the
+ *  agent, the form): a positive finite quantity and a non-negative finite cost
+ *  basis — garbage is dropped, never coerced to a plausible 0. */
 function normalizeHolding(raw: unknown): Holding | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -77,12 +80,17 @@ function normalizeHolding(raw: unknown): Holding | null {
   }
   const quantity = Number(h.quantity);
   const costBasis = Number(h.costBasis);
+  if (
+    !(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)
+  ) {
+    return null;
+  }
   const note = typeof h.note === "string" && h.note.trim() !== "" ? h.note.trim() : undefined;
   return {
     id: typeof h.id === "string" && h.id !== "" ? h.id : genId("h"),
     symbol,
-    quantity: Number.isFinite(quantity) ? quantity : 0,
-    costBasis: Number.isFinite(costBasis) ? costBasis : 0,
+    quantity,
+    costBasis,
     assetClass: h.assetClass === "crypto" ? "crypto" : "equity",
     note,
   };
@@ -99,10 +107,10 @@ interface PortfoliosState {
   deletePortfolio: (id: string) => void;
   /** Switch the active portfolio. */
   setActive: (id: string) => void;
-  /** Append a holding to a portfolio. */
-  addHolding: (portfolioId: string, input: HoldingInput) => void;
-  /** Patch an existing holding. */
-  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => void;
+  /** Append a holding to a portfolio; its new id, or null when the input is invalid. */
+  addHolding: (portfolioId: string, input: HoldingInput) => string | null;
+  /** Patch an existing holding; false when the input is invalid (nothing changes). */
+  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
   /** Remove a holding. */
   removeHolding: (portfolioId: string, holdingId: string) => void;
   /** Replace the whole set — used to restore a persisted blob (guards corruption). */
@@ -148,33 +156,33 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
   setActive: (id) =>
     set((state) => (state.portfolios.some((p) => p.id === id) ? { activeId: id } : state)),
 
-  addHolding: (portfolioId, input) =>
-    set((state) => {
-      const holding = normalizeHolding({ ...input, id: genId("h") });
-      if (!holding) {
-        return state;
-      }
-      return {
-        portfolios: state.portfolios.map((p) =>
-          p.id === portfolioId ? { ...p, holdings: [...p.holdings, holding] } : p,
-        ),
-      };
-    }),
+  addHolding: (portfolioId, input) => {
+    const holding = normalizeHolding({ ...input, id: genId("h") });
+    if (!holding) {
+      return null;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId ? { ...p, holdings: [...p.holdings, holding] } : p,
+      ),
+    }));
+    return holding.id;
+  },
 
-  updateHolding: (portfolioId, holdingId, input) =>
-    set((state) => {
-      const next = normalizeHolding({ ...input, id: holdingId });
-      if (!next) {
-        return state;
-      }
-      return {
-        portfolios: state.portfolios.map((p) =>
-          p.id === portfolioId
-            ? { ...p, holdings: p.holdings.map((h) => (h.id === holdingId ? next : h)) }
-            : p,
-        ),
-      };
-    }),
+  updateHolding: (portfolioId, holdingId, input) => {
+    const next = normalizeHolding({ ...input, id: holdingId });
+    if (!next) {
+      return false;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId
+          ? { ...p, holdings: p.holdings.map((h) => (h.id === holdingId ? next : h)) }
+          : p,
+      ),
+    }));
+    return true;
+  },
 
   removeHolding: (portfolioId, holdingId) =>
     set((state) => ({

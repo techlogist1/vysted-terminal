@@ -1349,13 +1349,16 @@ export async function applyHostActionAsync(
       if (!portfolio) {
         return null;
       }
-      usePortfoliosStore.getState().addHolding(portfolio.id, {
+      const added = usePortfoliosStore.getState().addHolding(portfolio.id, {
         symbol: body.symbol,
         quantity: body.quantity,
         costBasis: body.costBasis,
         assetClass: body.assetClass,
         note: body.note,
       });
+      if (added === null) {
+        return null; // the store's holding rules refused it (e.g. a negative cost)
+      }
       useWorkspaceStore.getState().openPanel("portfolio");
       return `Added ${body.quantity} ${body.symbol} @ ${formatPrice(body.costBasis)} to the portfolio`;
     }
@@ -1372,13 +1375,16 @@ export async function applyHostActionAsync(
       if (!portfolio) {
         return null;
       }
-      usePortfoliosStore.getState().updateHolding(portfolio.id, target.id, {
+      const updated = usePortfoliosStore.getState().updateHolding(portfolio.id, target.id, {
         symbol: body.symbol,
         quantity: body.quantity,
         costBasis: body.costBasis,
         assetClass: body.assetClass,
         note: body.note,
       });
+      if (!updated) {
+        return null;
+      }
       useWorkspaceStore.getState().openPanel("portfolio");
       return `Updated ${body.symbol}: ×${body.quantity} @ ${formatPrice(body.costBasis)}`;
     }

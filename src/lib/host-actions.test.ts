@@ -1003,6 +1003,17 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(activeHoldings()).toHaveLength(0);
   });
 
+  it("add with a negative cost basis is an honest null, not a stored holding (R15-DATA-088)", async () => {
+    expect(
+      await applyHostActionAsync("portfolio_add_position", {
+        symbol: "TCS",
+        quantity: 5,
+        cost_basis: -2500,
+      }),
+    ).toBeNull();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
   it("add with no symbol / non-positive quantity is an honest null", async () => {
     expect(
       await applyHostActionAsync("portfolio_add_position", { quantity: 5, cost_basis: 1 }),

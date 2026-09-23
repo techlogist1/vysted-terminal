@@ -46,6 +46,33 @@ describe("addHolding", () => {
   });
 });
 
+describe("holding validation (R15-DATA-088)", () => {
+  it("a corrupt restored blob drops a negative cost and a garbage quantity instead of zeroing them", () => {
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "default",
+        name: "Portfolio",
+        holdings: [
+          { id: "h-bad-qty", symbol: "RELIANCE", quantity: "abc", costBasis: 100 },
+          { id: "h-neg-cost", symbol: "TCS", quantity: 5, costBasis: -100 },
+          { id: "h-zero-qty", symbol: "INFY", quantity: 0, costBasis: 1500 },
+          { id: "h-ok", symbol: "HDFC", quantity: 2, costBasis: 0 },
+        ] as never,
+      },
+    ]);
+    expect(holdings().map((h) => h.id)).toEqual(["h-ok"]);
+  });
+
+  it("add and update refuse the same values the form refuses", () => {
+    const store = usePortfoliosStore.getState();
+    expect(store.addHolding("default", { ...RELIANCE, costBasis: -1 })).toBeNull();
+    expect(store.addHolding("default", { ...RELIANCE, quantity: Number.NaN })).toBeNull();
+    const id = store.addHolding("default", RELIANCE)!;
+    expect(store.updateHolding("default", id, { ...RELIANCE, quantity: -3 })).toBe(false);
+    expect(holdings()).toEqual([expect.objectContaining({ id, quantity: 5, costBasis: 1263 })]);
+  });
+});
+
 describe("updateHolding / removeHolding", () => {
   it("updates an existing holding in place", () => {
     usePortfoliosStore.getState().addHolding("default", RELIANCE);
