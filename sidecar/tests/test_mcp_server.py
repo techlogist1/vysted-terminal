@@ -217,3 +217,21 @@ def test_list_workflows_tool_returns_dict_wrap(client: TestClient) -> None:
     assert isinstance(payload, dict)
     workflows = payload.get("workflows")
     assert isinstance(workflows, list)
+
+
+@pytest.mark.parametrize(("tool", "path"), [("list_agents", "/agents"), ("list_runs", "/runs")])
+def test_list_tool_reports_a_failing_route_as_not_ok(tool: str, path: str) -> None:
+    """A 5xx from the in-process route is ``ok: false``, never an empty list."""
+    from fastapi import FastAPI, HTTPException
+
+    broken = FastAPI()
+
+    @broken.get(path)
+    def _fail() -> None:
+        raise HTTPException(status_code=500, detail="store unreadable")
+
+    mcp_server.bind_app(broken)
+    result = asyncio.run(mcp_server.get_mcp_server().call_tool(tool, {}))
+    payload = result.structured_content or {}
+    assert payload.get("ok") is False
+    assert "500" in payload["error"]
