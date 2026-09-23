@@ -271,3 +271,56 @@ def test_consistent_share_basis_is_untouched() -> None:
         price_to_book=4.78,
     )
     assert correctness_gate.validate_fundamentals(f, "VERTEX.BO", "IN") is f
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-013: trailing EPS vs the payload's net income / shares outstanding
+# ---------------------------------------------------------------------------
+
+
+def test_stale_eps_flags_eps_and_pe_with_the_payload_implied_figure() -> None:
+    """DAL (R15 battery): trailingEps 8.9 / P/E 5.6 while the same payload's net
+    income 10.2M over 5.01M shares gives 2.04 (P/E ~24.5 at 49.88)."""
+    f = _fund(
+        symbol="DAL.BO",
+        eps=8.9,
+        pe_ratio=5.6044946,
+        net_income_ttm=10_200_000,
+        shares_outstanding=5_010_000,
+        ratio_price=49.88,
+    )
+    out = correctness_gate.validate_fundamentals(f, "DAL.BO", "IN")
+    assert out.eps == 8.9 and out.pe_ratio == 5.6044946  # kept, never substituted
+    for field_name in ("eps", "pe_ratio"):
+        meta = out.field_meta[field_name]
+        assert meta.status == "flagged"
+        assert "2.04" in meta.reason and "24.5" in meta.reason
+
+
+def test_stale_eps_on_a_second_listing_is_flagged() -> None:
+    """A case the fix was not written against: SMR's 5.58 is a full fiscal year
+    behind the 13.27 its own payload implies."""
+    f = _fund(
+        symbol="SMR.NS",
+        eps=5.58,
+        pe_ratio=17.02509,
+        net_income_ttm=247_484_992,
+        shares_outstanding=18_653_743,
+        ratio_price=95.0,
+    )
+    out = correctness_gate.validate_fundamentals(f, "SMR.NS", "IN")
+    assert out.field_meta["eps"].status == "flagged"
+    assert "13.27" in out.field_meta["eps"].reason
+    assert out.field_meta["pe_ratio"].status == "flagged"
+
+
+def test_consistent_eps_is_untouched() -> None:
+    f = _fund(
+        symbol="SMR.NS",
+        eps=13.1,
+        pe_ratio=7.25,
+        net_income_ttm=247_484_992,
+        shares_outstanding=18_653_743,
+        ratio_price=95.0,
+    )
+    assert correctness_gate.validate_fundamentals(f, "SMR.NS", "IN") is f

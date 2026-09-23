@@ -55,6 +55,11 @@ _MARKET_CAP_DIVERGENCE = 0.25
 # both figures come from ONE snapshot, so anything past rounding and a few
 # percent of intra-day drift means two share counts (VERTEX: 74.0M vs 148.0M).
 _SHARE_BASIS_DIVERGENCE = 0.05
+# Relative gap between trailing EPS and the payload's net income / shares above
+# which EPS and P/E are flagged (R15-DATA-013). A weighted-average EPS differs
+# from net income over period-end shares only by the TTM share-count drift, a
+# few percent; past this it is a different fiscal period (DAL 8.9 vs 2.04).
+_EPS_DIVERGENCE = 0.05
 
 
 class CorrectnessError(ProviderError):
@@ -214,7 +219,9 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
         → market cap is flagged (kept);
       * shares outstanding disagreeing with market cap / price (the ratio price,
         pe x eps only as fallback) → shares outstanding, book value and P/B are
-        flagged (kept) — the per-share fields are on a different share basis.
+        flagged (kept) — the per-share fields are on a different share basis;
+      * trailing EPS disagreeing with net income / shares outstanding → EPS and
+        P/E are flagged (kept), naming the payload-implied EPS and its P/E.
 
     Returns the SAME object when nothing tripped (callers use it inline); else a
     ``model_copy`` with the nulled fields + a merged ``field_meta`` (the provider's
@@ -319,6 +326,40 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
             for field_name in ("shares_outstanding", "book_value", "price_to_book"):
                 if getattr(f, field_name) is not None:
                     flagged[field_name] = reason
+
+    # EPS vs the payload's own net income / shares (R15-DATA-013): Yahoo's
+    # trailingEps can lag a fiscal year behind netIncomeToCommon (DAL 8.9 vs
+    # 2.04). Skipped when the share count is itself disputed (the implied EPS
+    # would sit on the stale count) and for a foreign reporter (net income is in
+    # the reporting currency, EPS in the trading currency).
+    eps, net_income = f.eps, f.net_income_ttm
+    if (
+        eps is not None
+        and net_income is not None
+        and shares is not None
+        and shares > 0
+        and "shares_outstanding" not in flagged
+        and f.financial_currency is None
+    ):
+        implied_eps = net_income / shares
+        gap = _relative_divergence(eps, implied_eps)
+        if gap > _EPS_DIVERGENCE:
+            if ratio_price is not None and implied_eps > 0:
+                implied_pe = f"{ratio_price / implied_eps:,.1f}"
+                pe_note = (
+                    f"the P/E it implies at the ratio price {ratio_price:,.4g} is {implied_pe}"
+                )
+            else:
+                pe_note = "it implies no positive trailing P/E"
+            reason = (
+                f"trailing EPS {eps:,.4g} disagrees by {gap:.0%} with the payload's net "
+                f"income / shares outstanding ({net_income:,.0f} / {shares:,.0f} = "
+                f"{implied_eps:,.2f}); {pe_note} — the EPS may be from a stale fiscal "
+                "period; kept, flagged"
+            )
+            flagged["eps"] = reason
+            if f.pe_ratio is not None:
+                flagged["pe_ratio"] = reason
 
     return _merge_meta(f, withheld, flagged)
 
