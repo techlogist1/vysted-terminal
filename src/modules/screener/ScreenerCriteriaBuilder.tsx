@@ -11,7 +11,12 @@ import type {
   ScreenerNumericField,
   ScreenerStringField,
 } from "../../../types/screener";
-import { CriterionGroupEditor, defaultGroup, universeMoneyUnit } from "./CriterionGroupEditor";
+import {
+  CriterionGroupEditor,
+  defaultGroup,
+  universeMoneyUnit,
+  withNumericOperator,
+} from "./CriterionGroupEditor";
 import { ScreenerFormulaLeaf } from "./ScreenerFormulaLeaf";
 
 /**
@@ -169,18 +174,15 @@ function CriterionRow({ index, criterion }: CriterionRowProps) {
             aria-label="numeric operator"
             className="border-border bg-charcoal-850 rounded-control text-body h-8 min-w-0 truncate border px-2"
             value={criterion.operator}
-            onChange={(e) => {
-              const op = e.target.value as "gt" | "lt" | "gte" | "lte" | "between";
-              if (op === "between") {
-                update(index, {
-                  field: criterion.field,
-                  operator: "between",
-                  value: { min: 0, max: 100 },
-                });
-              } else {
-                update(index, { field: criterion.field, operator: op, value: 20 });
-              }
-            }}
+            onChange={(e) =>
+              update(
+                index,
+                withNumericOperator(
+                  criterion,
+                  e.target.value as "gt" | "lt" | "gte" | "lte" | "between",
+                ),
+              )
+            }
           >
             {NUMERIC_OPERATORS.map((o) => (
               <option key={o.value} value={o.value}>
