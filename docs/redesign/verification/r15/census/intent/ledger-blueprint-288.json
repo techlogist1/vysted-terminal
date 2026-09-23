@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-BP-289",
+    "promise": "Phase 8: a Claude-Code-driven deep audit covering cross-cutting code review, a security pass, a dead-code scan, a BLUEPRINT cross-check, and dependency-freshness check.",
+    "source": "\u00a77 Phase 8 (L661-664)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "docs/archive/PHASE_8_HANDOFF.md (tag v0.8.0 @ 5bed299; 9/9 audit dimensions; code review via T3/T4/T5 teammate audits) + docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md (BLUEPRINT cross-check drift catalog D-1..D-N) + docs/archive/PHASE_8_SIDECAR_AUDIT.md:19 'Angle 1 \u2014 CVE / Yanked / Advisory Scan' (pip-audit-style scan, found CVE-2020-35678 in transitive autobahn dep = security pass + dependency freshness) + docs/archive/PHASE_8_RUST_AUDIT.md:375 'cargo-audit 0.22.1 \u2014 0 CVEs, 18 warnings' (dependency-freshness scan) + docs/archive/PHASE_8_SIDECAR_AUDIT.md title 'CVE / Dead-code / Strict Lint + Type' (dead-code scan)",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-290",
+    "promise": "Phase 9: an operator-led manual visual/UX bug pass on Mac covering Tradesa V2 panels with real Supabase, full cockpit re-capture for Phase 6 modules, and populated Node Editor + Backtest re-captures.",
+    "source": "\u00a77 Phase 9 (L667-671)",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "docs/archive/PHASE_9_TEST_PLAN.md, PHASE_9_BUG_CATALOG.md, PHASE_9.5_MORNING_REPORT.md (an overnight operator-authorized bug pass did run, fixed real defects, cockpit re-captures landed in docs/screenshots/v0.8.0-r4/) \u2014 but the promise's specific named scope never happened: no 'Tradesa V2 panels with real Supabase' capture exists anywhere under docs/screenshots/ (grep of the tree finds zero tradesa-named files), and no Node Editor / Backtest re-captures exist post v0.5.0 (last ones: docs/screenshots/v0.5.0/teammate-n/canvas-*.png, docs/screenshots/v0.5.0/teammate-k/backtest-panel-*.png \u2014 none since)",
+    "gap": "The Tradesa-V2-with-real-Supabase portion is now moot (Tradesa fully removed, R10 commit 183c52f) and covered by the trading-removal decision, not a defect. The Node Editor + Backtest populated re-capture portion is a genuine, still-open gap: neither surface has a current-build screenshot, and the BLUEPRINT's Phase 9 scope was superseded by ad-hoc Phase 9.5/9.6 work that captured different surfaces (screener, cockpit, palette) instead.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-291",
+    "promise": "Phase 10: SignPath.io setup for Windows code signing (free OSS application).",
+    "source": "\u00a77 Phase 10 (L675)",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "BLOCKERS.md:288-289 'Code signing. SignPath.io free-tier Windows OSS application' listed as an open v0.7.0\u2192Phase 10 carry-forward; src-tauri/tauri.conf.json has no windows signing block (bundle.windows = {}); README.md:93 states the app ships 'source-available and unsigned'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-292",
+    "promise": "Phase 10: Apple Developer ID / ad-hoc Mac signing path + bypass docs.",
+    "source": "\u00a77 Phase 10 (L676)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "README.md:86-107 'Download & install (macOS, Apple Silicon)' ships a full, tested bypass runbook (System Settings \u2192 Open Anyway, plus an `xattr -dr com.apple.quarantine` fallback) \u2014 the bypass-docs half of the promise is delivered. The Apple Developer ID half is not: src-tauri/tauri.conf.json has no macOS signing identity (bundle.macOS = {}), and BLOCKERS.md:290 lists 'Apple Developer ID or ad-hoc Mac signing' as still open",
+    "gap": "No paid Apple Developer ID has been purchased/wired; the ad-hoc unsigned path plus bypass docs is the only path shipped today, which the promise's own text treats as one of two alternatives ('Apple Developer ID / ad-hoc Mac signing path'), so the ad-hoc alternative is satisfied but the primary (paid) one is not.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-293",
+    "promise": "Phase 10: Tauri auto-updater wired to GitHub Releases (flip createUpdaterArtifacts to true).",
+    "source": "\u00a77 Phase 10 (L677-678)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src-tauri/tauri.conf.json plugins.updater.endpoints/pubkey are populated (GitHub Releases latest.json endpoint + a minisign pubkey) \u2014 the updater is wired \u2014 but bundle.createUpdaterArtifacts is still `false` (src-tauri/tauri.conf.json:33), so no updater artifact has ever been produced; BLOCKERS.md:291-293 confirms this is still an open Phase-10 carry-forward ('flip to true and wire the GitHub Releases publish path')",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-294",
+    "promise": "Phase 10: Homebrew cask submission + AppImage + .deb distribution.",
+    "source": "\u00a77 Phase 10 (L679)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src-tauri/tauri.conf.json:26-31 bundle.targets = [deb, appimage, nsis, app, dmg] (the underlying Tauri bundle formats for AppImage/.deb distribution exist) but `gh release list` on this repo returns zero releases and no Homebrew formula/cask exists anywhere in the repo (grep for *.rb/Formula/homebrew* is empty); BLOCKERS.md:294-296 lists 'Homebrew cask submission, AppImage build + .deb build, GitHub Releases workflow + signed-bundle upload' as still open",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-295",
+    "promise": "Phase 10: terminal.vysted.com full landing page (download button, screenshots, docs).",
+    "source": "\u00a77 Phase 10 (L680-681)",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "No web/, site/, www/ or landing-page source anywhere in this repository; no vercel.json; README.md sends users straight to the GitHub Releases page instead (which itself has zero releases published \u2014 `gh release list` empty); BLOCKERS.md:297-299 'terminal.vysted.com landing page. Separate private repo (operator-owned)' \u2014 explicitly out of this repo, unverifiable from code, and per the operator's own carry-forward note not yet built",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-296",
+    "promise": "Phase 10: LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot setup.",
+    "source": "\u00a77 Phase 10 (L682)",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "LICENSE (PolyForm Strict 1.0.0) + LICENSE-APACHE (plugin-contract carve-out) + COMMERCIAL_LICENSE.md all present at repo root \u2014 the LICENSE-flip half is delivered. COMMERCIAL_LICENSE.md:3-5 itself is headed '> STATUS: DRAFT. Commercial terms and pricing below are placeholders and are not final. They will be finalized at the v1.0 launch' \u2014 so 'promotion' (finalization) has explicitly not happened. CLA bot: .github/ contains only workflows/{lint,test,build}.yml, no cla.yml or CLA app config; CONTRIBUTING.md:95-97 states 'The formal CLA process is still being finalized... will be in place before contributions reopen'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-297",
+    "promise": "Phase 10: first-launch TOS dialog (\u00a76.5 #8 + customization module #1).",
+    "source": "\u00a77 Phase 10 (L683)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/safety/DisclaimerFlow.tsx:1-16 docblock + :47 `export function FirstLaunchTosDialog()`, keychain-backed via `broker:_meta:first-launch-tos`, blocking modal on first launch; mounted at src/app/page.tsx:19,289 (`<DisclaimerFlow />` renders `<FirstLaunchTosDialog />`)",
+    "gap": "Delivered as a component and live-mounted, but its body text (DisclaimerFlow.tsx:35-41) is entirely about live order routing, broker confirmation dialogs and the Cmd/Ctrl+Shift+K kill switch \u2014 all trading-surface language for a feature now removed from the product (23 Sep decision). The dialog itself is not undelivered, but its copy is stale and belongs in the trading-removal cleanup batch already tracked in docs/redesign/verification/vysted-r15-run-state.md rather than as a fresh finding here.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-298",
+    "promise": "Phase 10: README polish + getting-started docs.",
+    "source": "\u00a77 Phase 10 (L684)",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "README.md (185 lines: Overview, Powering the AI, Download & install, Prerequisites, Local Development, Project Layout, Contributing, License, Status sections) + CONTRIBUTING.md at repo root \u2014 both exist, are current (reference the 004-r4-experience-rebuild redesign, v0.8.0, PolyForm Strict) and are not stubs",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-299",
+    "promise": "Phase 10: tag v1.0.0.",
+    "source": "\u00a77 Phase 10 (L685)",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "`git tag` newest entries: v0.7.0, v0.8.0 (no v0.9.0 or v1.0.0); package.json/tauri.conf.json/sidecar app.py all read version 0.8.0",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-300",
+    "promise": "Phase 10: launch announcement.",
+    "source": "\u00a77 Phase 10 (L686)",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "No v1.0.0 tag exists yet (see INT-BP-299) and `gh release list` returns zero releases, so no launch announcement has been made",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-301",
+    "promise": "Success criterion: user downloads from terminal.vysted.com, installs on their OS, and opens the app in <30 seconds on Linux/Windows, <90 seconds on Mac with the bypass step.",
+    "source": "\u00a78 (L692)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "No cold-launch timing measurement exists in-repo: docs/archive/PHASE_8_PERF_BASELINE.md covers agent-response latency and explicitly defers backtest/workflow timing (see INT-BP-304); no equivalent app cold-start timing doc exists at all",
+    "gap": "This criterion needs a real installed-binary cold launch on each OS (machine-lane, GUI-adjacent), which this headless off-machine pass cannot measure; NOT TESTED \u2014 would need an actual signed/unsigned installer run per OS with a stopwatch, no cost beyond machine time.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-302",
+    "promise": "Success criterion: all 38 modules are functional and accessible.",
+    "source": "\u00a78 (L693)",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/modules/ has 22 top-level module directories (agent-builder, analyst-ratings, backtest, broker-connect, chart, chat, earnings, equity-overview, macro, marketplace, news, node-editor, notes, platform, plugin-manager, portfolio, quant, research, safety, screener, sec, watchlist) \u2014 well short of a literal '38' if counted at directory granularity; docs/archive/PHASE_8_COVERAGE_AND_DOCS_AUDIT.md Drift D-4 (light theme, module 7's 'light option' sub-feature unimplemented \u2014 'module count is effectively 37, not 38') and Drift D-5 (alpha_vantage fallback, module 18, unimplemented) are both open, undisputed gaps in the same '38 modules' claim from the same audit pass",
+    "gap": "No fresh per-module functional smoke test was run in this pass; relying on the Phase 8 audit's own D-4/D-5 findings plus a directory-count sanity check. The BLUEPRINT's '38' figure is panel-granularity, not directory-granularity, so the 22-directory count alone is not proof of a shortfall \u2014 the D-4/D-5 findings are the load-bearing evidence.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-303",
+    "promise": "Success criterion: 12 AI agents work with at least 3 LLM providers tested end-to-end.",
+    "source": "\u00a78 (L694)",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "sidecar/agents/*.json: 13 first-party agent defs (buffett, copilot, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher, soros, strategy_critic) \u2014 exceeds the '12 AI agents' bar. sidecar/tests/test_llm_anthropic.py, test_llm_openai.py, test_llm_gemini.py, test_llm_groq.py, test_llm_ollama.py all exist and exercise each adapter",
+    "gap": "The adapter tests are protocol/contract-level (mocked HTTP), not a live end-to-end round trip against real provider APIs with a real key for 3+ providers \u2014 no such live-fired evidence exists in-repo. NOT TESTED for a genuine live 3-provider round trip; would need real BYOK keys and would cost real API spend per provider, which this off-machine pass is not budgeted for.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-304",
+    "promise": "Success criterion: backtest engine runs a 60-day strategy in <30 seconds on standard hardware.",
+    "source": "\u00a78 (L695)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:144-150 'Backtest workflow execution time \u2014 Not measured this session... Deferred to Phase 9 / re-measure after F1 fix loop' \u2014 and no later doc picks this measurement back up; no perf-timing test exists in sidecar/tests/test_backtest_*.py",
+    "gap": "Never measured, not just undocumented \u2014 the one doc that set out to measure it explicitly deferred and nothing since has closed the loop.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-305",
+    "promise": "Success criterion: Tradesa V2 plugin connects to the user's Supabase via the read-only wrapper and shows decisions via per-panel polling (Realtime SSE proxy + write capability deferred).",
+    "source": "\u00a78 (L696)",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "sidecar/tests/test_no_tradesa.py:5-7,109 (CI-enforced zero-Tradesa-reference check); removal commit 183c52f 'feat(r10/tradesa): complete Tradesa V2 removal \u2014 plugin system intact (E11)'; README.md has no Tradesa mention anywhere",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product"
+  },
+  {
+    "pid": "INT-BP-306",
+    "promise": "Success criterion: workspace export/import round-trips correctly across platforms.",
+    "source": "\u00a78 (L697)",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.test.ts has four explicit round-trip tests: :149 'round-trips keybinding overrides and the settings bundle', :252 'round-trips the agent mode, dock geometry, and model overrides', :344 'round-trips: serialize then deserialize restores the layout and enabled map', :457 'round-trips chart drawings through workspace JSON'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-307",
+    "promise": "Success criterion: MCP server responds to external Claude/GPT queries.",
+    "source": "\u00a78 (L698)",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "sidecar/services/mcp_server.py + sidecar/tests/test_mcp_server.py (219 lines, 10 tests: tool-catalog registration/dispatch, `/mcp` streamable-HTTP mount, protocol-version, run_workflow/list_workflows/list_agents tools all covered); README.md 'MCP on both sides \u2014 Vysted proxies bundled MCP data servers and re-exposes its own capabilities as MCP tools for external agents (Claude Desktop / Code)'",
+    "gap": "Protocol- and unit-level coverage is solid, but there is no recorded evidence anywhere in the repo of an actual external Claude Desktop or ChatGPT client having connected and round-tripped a real tool call against this server \u2014 that is a GUI/live-client verification this headless pass cannot perform. NEEDS-GUI / live-client check.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-308",
+    "promise": "Success criterion: CI is green for all OS builds.",
+    "source": "\u00a78 (L699)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "`gh run list` newest run on `main`: lint workflow, headSha cfcf5be, 2026-05-30T19:08:14Z, conclusion FAILURE; `.github/workflows/{lint,test,build}.yml` all trigger only on `push: branches: [main]` + `pull_request`, so the current active branch `004-r4-experience-rebuild` has zero CI runs recorded at all",
+    "gap": "Same underlying gap already raw-flagged as INT-blueprint-192-4 ('CI has never run on the product branch') \u2014 not re-raised as a new raw finding here to avoid padding; cited for ledger completeness only.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-309",
+    "promise": "Success criterion: LICENSE + COMMERCIAL_LICENSE.md + CLA are in place.",
+    "source": "\u00a78 (L700)",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "Same evidence as INT-BP-296: LICENSE + LICENSE-APACHE + COMMERCIAL_LICENSE.md are all in place; COMMERCIAL_LICENSE.md is explicitly DRAFT/not final and no CLA bot exists (.github/workflows has no cla.yml; CONTRIBUTING.md:95-97 'still being finalized')",
+    "gap": "Same underlying CLA gap already raw-flagged as INT-blueprint-192-5 \u2014 not re-raised here.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-310",
+    "promise": "Success criterion: terminal.vysted.com is live with download links.",
+    "source": "\u00a78 (L701)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "Same evidence as INT-BP-295: no landing-page source in this repo, no releases published (`gh release list` empty)",
+    "gap": "Same underlying gap already raw-flagged as INT-blueprint-192-7 ('No terminal.vysted.com source in the repo') \u2014 not re-raised here.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-311",
+    "promise": "Success criterion: at least one external user successfully installs without help (validated via Discord or beta program).",
+    "source": "\u00a78 (L702)",
+    "kind": "quality-bar",
+    "status": "missing",
+    "evidence": "No public release, beta program, or Discord validation loop has run yet (see INT-BP-299/300: no v1.0.0 tag, no release, no announcement) \u2014 this criterion is causally downstream of Phase 10 not having happened",
+    "gap": "Not independently testable before a release exists; NOT TESTED \u2014 inherently blocked on the launch itself, not a separate defect.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-312",
+    "promise": "Deferred to v1.1: additional indicators, 50 to 100.",
+    "source": "\u00a79 v1.1 (L709)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "src/modules/chart/indicators.ts:61 INDICATOR_CATALOG has 49-50 entries today (matches the v1.0 baseline of ~50 the BLUEPRINT's own '50 \u2192 100' phrasing implies); 100 has not been reached",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.1 (L709) labels it 'Deferred to v1.1' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-313",
+    "promise": "Deferred to v1.1: more AI agents, 12 to 20+.",
+    "source": "\u00a79 v1.1 (L710)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "sidecar/agents/*.json: 13 agent defs today, short of the v1.1 '20+' target (the v1.0 '12 AI agents' bar is already exceeded, see INT-BP-303)",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.1 (L710) labels it 'Deferred to v1.1' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-314",
+    "promise": "Deferred to v1.1: additional broker plugins \u2014 Upstox, Fyers, Samco, Shoonya, Tradier, DEGIRO, MT5 bridge \u2014 community-pluggable on the existing plugin contract.",
+    "source": "\u00a79 v1.1 (L711)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "README.md:34-36 lists only Kite, Dhan, Angel One as read-only broker connections today; no Upstox/Fyers/Samco/Shoonya/Tradier/DEGIRO/MT5 adapter exists under sidecar/services/brokers/",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.1 (L711) labels it 'Deferred to v1.1' \u2014 out of scope for 0.9.0 by the source document itself. (Read-only broker connections remain in-scope generally per the 23 Sep decision \u2014 only order execution was removed \u2014 this item is deferred purely on the v1.1 roadmap timeline, not by the trading-removal decision.)"
+  },
+  {
+    "pid": "INT-BP-315",
+    "promise": "Deferred to v1.1: plugin marketplace UI (locally browse, no online catalog yet).",
+    "source": "\u00a79 v1.1 (L712)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No plugin-marketplace UI (local browse) exists beyond src/modules/marketplace/ which is the in-app bundled-plugin manager, not a locally-browsable catalog of additional plugins",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.1 (L712) labels it 'Deferred to v1.1' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-316",
+    "promise": "Deferred to v1.5: more macro data (more countries, more series).",
+    "source": "\u00a79 v1.5 (L715)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "sidecar/models/macro_extended.py:27 MacroProvider = fred | ecb | imf | world-bank \u2014 four providers today, no additional countries/series beyond what those four already expose",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.5 (L715) labels it 'Deferred to v1.5' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-317",
+    "promise": "Deferred to v1.5: advanced backtest features (Monte Carlo, walk-forward optimization, parameter sweeps).",
+    "source": "\u00a79 v1.5 (L716)",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "sidecar/services/backtest_engine.py:13-16,459-493 already implements walk-forward slicing (`WalkForwardSlice`, `request.walk_forward_slices`) \u2014 ahead of its own v1.5 deferral label. Monte Carlo and parameter-sweep are not implemented anywhere in sidecar/services/backtest_*.py (no `monte`/`sweep` hits)",
+    "gap": "One of the three bundled sub-features (walk-forward) already shipped early; Monte Carlo and parameter sweeps have not. Marked partial rather than dropped because the promise is no longer uniformly true of the source document's own deferral \u2014 part of it is already delivered.",
+    "decision_ref": "BLUEPRINT \u00a79 v1.5 (L716) defers the bundle as a whole; walk-forward specifically has already landed ahead of schedule (see evidence)."
+  },
+  {
+    "pid": "INT-BP-318",
+    "promise": "Deferred to v1.5: mobile companion app (read-only, view watchlists + alerts), a separate React Native codebase.",
+    "source": "\u00a79 v1.5 (L717)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No mobile/, react-native, or companion app directory exists anywhere in the repo",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.5 (L717) labels it 'Deferred to v1.5' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-319",
+    "promise": "Deferred to v1.5: web companion (lightweight browser version for trial).",
+    "source": "\u00a79 v1.5 (L718)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No web-companion source (separate lightweight browser build) exists; the only frontend is the single Tauri-hosted Next.js static export in src/",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.5 (L718) labels it 'Deferred to v1.5' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-320",
+    "promise": "Deferred to v1.5: additional plugin contracts (more types of plugins).",
+    "source": "\u00a79 v1.5 (L719)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "types/plugin.ts defines exactly the six capabilities documented in CLAUDE.md (data, panels, commands, agents, nodes, control plane) \u2014 unchanged since its single commit (see INT-BP-288 chunk 240's evidence); no new plugin-contract types exist",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v1.5 (L719) labels it 'Deferred to v1.5' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-321",
+    "promise": "Deferred to v2.0: online plugin marketplace + community workspace gallery.",
+    "source": "\u00a79 v2.0 (L722)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No online marketplace or community-gallery backend/route exists anywhere in sidecar/ or src/",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L722) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-322",
+    "promise": "Deferred to v2.0: workspace sharing community.",
+    "source": "\u00a79 v2.0 (L723)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No workspace-sharing-community feature (gist import, QR/link share) exists \u2014 same as the earlier chunk's INT-BP-176/177/178 findings for the equivalent \u00a75.3 promises",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L723) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-323",
+    "promise": "Deferred to v2.0: hosted version (subscription SaaS option), requiring a hosted backend, decided when revenue justifies it.",
+    "source": "\u00a79 v2.0 (L724)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No hosted-backend/SaaS billing code exists anywhere; the entire product is local-first with no server component beyond the local Tauri-managed sidecar",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L724) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself; explicitly conditioned on revenue justifying it."
+  },
+  {
+    "pid": "INT-BP-324",
+    "promise": "Deferred to v2.0: multi-bot plugins (Forge Bot, etc.).",
+    "source": "\u00a79 v2.0 (L725)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No Forge-Bot or other multi-bot plugin exists in plugins/ (bundled: Tradesa V2 [removed], openbb-mcp, brokers, example, per CLAUDE.md Layout); per the user's own global memory, Forge Bot is a separate Oracle-VPS product, not integrated here",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L725) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-325",
+    "promise": "Deferred to v2.0: alternative data (maritime tracking, satellite, geopolitical).",
+    "source": "\u00a79 v2.0 (L726)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "No maritime/satellite/geopolitical data provider exists under sidecar/services/",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L726) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-326",
+    "promise": "Deferred to v2.0: Mac App Store / Microsoft Store submissions.",
+    "source": "\u00a79 v2.0 (L727)",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "src-tauri/tauri.conf.json:26-31 bundle.targets = [deb, appimage, nsis, app, dmg] \u2014 no `msix`/Windows-Store or Mac-App-Store target configured",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a79 v2.0 (L727) labels it 'Deferred to v2.0' \u2014 out of scope for 0.9.0 by the source document itself."
+  },
+  {
+    "pid": "INT-BP-327",
+    "promise": "Use Case 1 (Solo Founder's Quant Day): morning open triggers a Tradesa V2 overnight check (read-only, 7 panels) -> AI Risk Analyst review -> backtest new strategy -> (v0.6.6+ target) push config to bot via the Tradesa plugin control plane.",
+    "source": "\u00a710 UC1 (L733)",
+    "kind": "use-case",
+    "status": "dropped",
+    "evidence": "The use case's defining step is 'a Tradesa V2 overnight check (read-only, 7 panels)', and Tradesa V2 is fully removed (sidecar/tests/test_no_tradesa.py, commit 183c52f \u2014 see INT-BP-305). No agent named 'AI Risk Analyst' exists among sidecar/agents/*.json (13 files: buffett/copilot/dalio/druckenmiller/graham/klarman/lynch/marks/munger/portfolio_advisor/researcher/soros/strategy_critic) \u2014 `strategy_critic` and `portfolio_advisor` are the closest functional analogues but neither is named or scoped as a dedicated risk analyst",
+    "gap": "The backtest step of this use case remains independently functional (see INT-BP-304 evidence for the engine itself), but the use case AS WRITTEN cannot be delivered because its opening and defining step no longer exists in the product.",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product"
+  },
+  {
+    "pid": "INT-BP-328",
+    "promise": "Use Case 2 (Research Workflow): Cmd+K 'Research XYZ' -> AI Researcher pulls everything -> chart + news in adjacent panels -> backtest dividend strategy -> save workspace.",
+    "source": "\u00a710 UC2 (L736)",
+    "kind": "use-case",
+    "status": "partial",
+    "evidence": "Cmd+K \u2192 Research command exists (src/modules/research/index.ts:17 title: 'Research', src/modules/research/BriefPanel.tsx), chart + news panels are adjacent dockview panels (src/modules/chart, src/modules/news), backtest engine works (sidecar/services/backtest_engine.py) and workspace save/load round-trips (see INT-BP-306)",
+    "gap": "No purpose-built 'dividend strategy' backtest template exists: sidecar/services/backtest_strategies.py:58-168 STRATEGY_SPECS lists exactly 4 templates \u2014 Mean Reversion (Z-Score), Trend Following (Golden Cross), Regime-Aware Momentum, Custom Strategy (DSL) \u2014 none dividend-themed. A user could build one via the Custom DSL template plus sidecar/services/dividend_history.py data, but that is not what the use case describes ('backtest dividend strategy' as a ready flow).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-329",
+    "promise": "Use Case 3 (Earnings Playbook): build a node-editor workflow -> AI generates thesis per earnings name -> alert on entry trigger -> desktop notification -> review thesis -> trade externally.",
+    "source": "\u00a710 UC3 (L739)",
+    "kind": "use-case",
+    "status": "partial",
+    "evidence": "sidecar/services/workflow_nodes/builtin.py registers `ai.agent_invoke` (AI thesis generation per node), `logic.compare` + `logic.branch` (conditional/trigger logic), and `action.notify_desktop` (:321-343, emits a desktop-notification intent the frontend forwards to the Tauri notification API) \u2014 every named primitive in the use case (build workflow \u2192 AI thesis \u2192 trigger \u2192 desktop notification) exists as a wired node type",
+    "gap": "No scheduler/cron exists anywhere in the codebase (grep for schedule/cron/recurring/periodic across sidecar/services/workflow_engine.py and sidecar/routers/workflow*.py and node*.py returns nothing) \u2014 a workflow only runs when the user manually invokes it (Cmd+K \u2192 Run). 'Alert on entry trigger' as an autonomous, always-watching alert (the point of an 'earnings playbook' the user doesn't have to babysit) is not possible; the user must manually re-run the workflow to re-check the trigger condition.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-330",
+    "promise": "Use Case 4 (Academic Researcher): a custom AI agent fine-tuned to a research domain runs a workflow pulling SEC + sentiment data, outputs to chart, and the workspace becomes a reproducible dissertation methodology.",
+    "source": "\u00a710 UC4 (L742)",
+    "kind": "use-case",
+    "status": "partial",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx (custom agent creation UI), sidecar/services/workflow_nodes/sec_nodes.py:24,54 (`data.fetch_sec_filing`, `data.fetch_insider_transactions` node types), sidecar/routers/news.py + sidecar/services/news_provider.py (sentiment data available to agents via agent tools), chart output via `data.fetch_history`/`compute.indicator` nodes, workspace export/import round-trips (see INT-BP-306, satisfies 'reproducible... methodology')",
+    "gap": "Sentiment is reachable only indirectly (via an agent's own tool access inside `ai.agent_invoke`), not as a first-class workflow-level data node the way SEC filings and price history are \u2014 a workflow that literally 'pulls SEC + sentiment data' as two parallel data-fetch nodes cannot be built purely from node-editor primitives; it needs an agent node in the loop for the sentiment half.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-331",
+    "promise": "Use Case 5 (Macro Thesis Watcher, Dalio-style): a workspace with yield curves + central bank tracker + commodity dashboard has an AI Macro Researcher monitor news and send notifications on thesis-confirming events.",
+    "source": "\u00a710 UC5 (L745)",
+    "kind": "use-case",
+    "status": "partial",
+    "evidence": "sidecar/models/macro_extended.py (generic FRED/ECB/IMF/World-Bank series contract covers yield-curve and central-bank-rate series \u2014 see docs/screenshots/v0.6.0/teammate-m/macro-fred-dgs10-*.png and macro-ecb-mro-*.png for prior captures of exactly this kind of series) + sidecar/services/workflow_nodes/quant_nodes.py:93 `quant.yield_curve` node; an 'AI Macro Researcher' agent persona exists in sidecar/agents (dalio.json matches the Dalio-style framing the use case names)",
+    "gap": "Same scheduler gap as INT-BP-329: 'monitor news and send notifications on thesis-confirming events' requires autonomous background monitoring, which does not exist \u2014 no cron/scheduler anywhere in sidecar/services/workflow_engine.py. There is also no purpose-built 'yield curve / central bank tracker / commodity dashboard' composed panel \u2014 the generic MacroPanel + MacroSeriesPicker (src/modules/macro/MacroPanel.tsx, MacroSeriesPicker.tsx) supports building one manually per-series, but ships no such preset workspace.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-BP-332",
+    "promise": "Use Case 6 (Plugin Ecosystem, year 2+): indie trading-bot developers implement Vysted's plugin contract, their users get Vysted Terminal as a free dashboard, and Vysted becomes the standard UX layer for open-source trading infrastructure.",
+    "source": "\u00a710 UC6 (L748)",
+    "kind": "use-case",
+    "status": "dropped",
+    "evidence": "BLOCKERS.md:283-284 explicitly lists 'UC6 / UC7 stretch goals \u2014 plugin-ecosystem year-2 / multi-broker aggregation. v1.x territory' as a carried-forward non-goal for the current release line; no plugin marketplace or third-party plugin developer program exists",
+    "gap": "",
+    "decision_ref": "BLUEPRINT \u00a710 UC6 (L748) itself scopes this 'year 2+'; BLOCKERS.md:283-284 confirms it is explicitly deferred, not a 0.9.0 gap."
+  },
+  {
+    "pid": "INT-BP-333",
+    "promise": "Use Case 7 (Multi-Broker Portfolio Aggregation): a user holding positions across Zerodha Kite, Dhan, and Alpaca can pull all three broker plugins into one Vysted workspace with aggregate P&L, per-broker drilldown panels, and cross-broker risk metrics (concentration, correlation, total exposure) computed across the combined book; execution stays per-broker and behind every \u00a76.5 safeguard, with aggregation read-side only.",
+    "source": "\u00a710 UC7 (L751-752)",
+    "kind": "use-case",
+    "status": "dropped",
+    "evidence": "BLOCKERS.md:283-284 'UC6 / UC7 stretch goals... multi-broker aggregation. v1.x territory'; only single-broker read-only connections exist today (README.md:34-36: Kite, Dhan, Angel One, no cross-broker aggregate P&L/concentration/correlation view)",
+    "gap": "",
+    "decision_ref": "BLOCKERS.md explicitly scopes UC7 as a v1.x stretch goal, not 0.9.0; the underlying subject (broker execution/aggregation) also sits on the trading-removal surface per COMMON.md's out-of-scope-by-decision list (broker plugin topics)."
+  }
+]

@@ -1,1 +1,156 @@
-[]
+[
+  {
+    "raw_id": "INT-spec-180-181",
+    "pid": "INT-SP-181",
+    "title": "No timed proof exists that a first-time user reaches a populated multi-panel cockpit via conversation alone in under 2 minutes",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "onboarding / agent-OS spine",
+    "repro": "design: SC-001 is a timed acceptance bar; no session report or test records a stopwatch run of a first-time, freshly-configured user driving 'research a company' to a populated cockpit.",
+    "evidence": "Agent-OS spine + \u00a76.5 gate proven live: REBUILD_R4_REPORT.md 'Agent-OS spine works end-to-end' (add-to-watchlist tool-call -> host action -> gate -> applied); src/lib/host-actions.ts (open_panel/arrange_layout cases, :603-689); src/lib/layout-templates.ts:196-218 dispatches a full research-cockpit template from a query with zero manual panel clicks.",
+    "notes": "The capability (agent opens a populated multi-panel cockpit via conversation with no manual panel controls) is architecturally present, but no session report or test measures an actual first-time-user run against the <2min wall-clock target; SC-001 is a timed acceptance bar and no timing evidence exists."
+  },
+  {
+    "raw_id": "INT-spec-180-189",
+    "pid": "INT-SP-189",
+    "title": "No audit confirms >=90% of palette-performed actions carry a visible keyboard shortcut, nor a measured <=3-gesture first-run path",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "command palette / keybindings",
+    "repro": "design: src/components/CommandPalette.tsx renders a <kbd> only for actions that already have a keybindings-store entry; the fraction of total palette actions covered is unmeasured.",
+    "evidence": "Keyboard-shortcut affordance exists: src/components/CommandPalette.tsx:465-467 renders a <kbd> per action from the keybindings store (src/store/keybindings.ts); first-run 'try this' chips exist (src/modules/chat/SuggestionChips.tsx).",
+    "notes": "No coverage audit or count exists confirming '>=90% of palette-performed actions' carry a shortcut, nor a measured '<=3 taught gestures to productivity' first-run study; both are numeric quality bars with no supporting measurement in the repo."
+  },
+  {
+    "raw_id": "INT-spec-180-196",
+    "pid": "INT-SP-196",
+    "title": "No basket-wide measurement confirms the research-cockpit brief always carries >=3 cited sources 100% of the time",
+    "severity": "low",
+    "area": "research",
+    "subsystem": "layout-templates / BriefPanel",
+    "repro": "design: the research-cockpit template (src/lib/layout-templates.ts:196-218) always composes chart+overview+brief+news, but source-count-per-brief across a representative ticker basket is not measured or tested.",
+    "evidence": "src/lib/layout-templates.ts:196-218 'research-cockpit' template composes exactly chart + equity-overview (fundamentals) + brief + news, focused on the brief panel, matching the spec's named-template requirement.",
+    "notes": "No basket-wide, 100%-of-the-time measurement exists confirming the brief always carries >=3 cited sources for a representative ticker set; the layout mechanism is proven, the source-count guarantee is not."
+  },
+  {
+    "raw_id": "INT-spec-180-198",
+    "pid": "INT-SP-198",
+    "title": "Fast research's <=15s latency target has no live-measured evidence, unlike the screener perf numbers which are measured",
+    "severity": "medium",
+    "area": "research",
+    "subsystem": "sidecar/services/research/fast.py",
+    "repro": "design: SC-018 explicitly requires 'measured' latency; sidecar/tests/test_research_fast.py exercises FAST structurally with no elapsed-time assertion, and no build report records a live wall-clock number for a representative ticker's FAST run.",
+    "evidence": "sidecar/services/research/fast.py:38 codes the <=15s target as a design constant/comment ('The FAST path is short (<=15s)'); sidecar/tests/test_research_fast.py exercises the FAST path structurally.",
+    "notes": "Spec text explicitly says 'measured live' for this quality bar; no timing/elapsed assertion exists in test_research_fast.py and no session report records a live-measured FAST-research wall-clock number for a representative ticker (contrast with the screener perf numbers, which ARE measured live)."
+  },
+  {
+    "raw_id": "INT-spec-180-202",
+    "pid": "INT-SP-202",
+    "title": "No completeness audit exists confirming every enumerated 'obvious action' is reachable by both the agent and by hand",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "src/lib/host-actions.ts",
+    "repro": "design: 37 host-action cases exist (write_screener_filters, remove_from_watchlist, save_layout among the ones session 1 had flagged missing), but SC-022 requires 'an audit shows' 0 gaps against an enumerated action list \u2014 no such audit artifact was found, and no drawing-related host action exists.",
+    "evidence": "src/lib/host-actions.ts declares 37 host-action cases (grep count) spanning chart/panel/watchlist/order/data-write/settings kinds, including previously-missing ones (write_screener_filters :742, remove_from_watchlist :816, save_layout :828) that REBUILD_R4_REPORT.md flagged as 'not started' in session 1 and were built in sessions 2-3.",
+    "notes": "No completeness-audit artifact exists enumerating 'every obvious action' against the reachable set and asserting zero gaps, as SC-022 explicitly requires ('an audit shows'); coverage is broad but unaudited (e.g. no drawing-related host action was found)."
+  },
+  {
+    "raw_id": "INT-spec-180-205",
+    "pid": "INT-SP-205",
+    "title": "AUTO autonomy auto-applies portfolio/settings mutations, not only the UI/layout/chart/watchlist set SC-025 restricts it to",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "src/store/proposed-changes.ts",
+    "repro": "AUTO mode + agent calls portfolio_add_position/portfolio_update_position/portfolio_delete_position/write_screener_filters/write_note/set_region -> proposed-changes.ts:118 auto-accepts (kind !== 'order' is the ONLY exclusion) -> the mutation applies with no per-action confirmation, even though it writes the user's tracked-portfolio cost basis or app settings, not just UI/layout/chart/watchlist state.",
+    "evidence": "src/store/proposed-changes.ts:95-122 gates order mutations 100% (kind !== 'order' excluded from AUTO, :118) and comments confirm 'a HARD SAFETY LINE'; \u00a76.5 9/9 confirmed this session (sidecar/tests/test_safety_end_to_end.py) and Tier-1 files confirmed byte-untouched (git diff clean this session). | src/store/proposed-changes.ts:95-122; src/lib/host-actions.ts kind:'data-write' cases at :762,776,790,802,742 and kind:'settings' at :854",
+    "notes": "AUTO auto-applies every non-order kind, not only 'UI/layout/chart/watchlist' as SC-025 specifies: src/lib/host-actions.ts kinds also include 'data-write' (portfolio_add_position :762, portfolio_update_position :776, write_screener_filters :742, write_note :802) and 'settings' (set_region :854) \u2014 these silently auto-apply in AUTO mode, widening the autonomy surface past the written safety boundary onto the user's tracked-portfolio cost basis."
+  },
+  {
+    "raw_id": "INT-spec-180-206",
+    "pid": "INT-SP-206",
+    "title": "No unified pixel-proof artifact demonstrates all three speeds (FAST / ORCHESTRATED / DEEP) together as SC-026 requires",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "fast.py / proposed-changes.ts / deep.py",
+    "repro": "design: each speed is independently evidenced (FAST cockpit dispatch, ORCHESTRATED diff/accept gate, DEEP research loop) but session 1 explicitly listed the combined three-speed wiring/demonstration as NOT STARTED and no later report closes it with a single proof.",
+    "evidence": "Each speed exists separately: FAST = layout-templates.ts dispatch with sidecar/services/research/fast.py (no full agent loop); ORCHESTRATED = src/store/proposed-changes.ts diff/accept gate; DEEP = sidecar/services/research/deep.py + iter.py loop. REBUILD_R4_REPORT.md's 'Agent-OS spine works end-to-end' shot is the closest pixel proof, for ORCHESTRATED only.",
+    "notes": "No single artifact demonstrates all three speeds together with pixel proof as SC-026 requires; session 1 explicitly listed 'FAST/ORCHESTRATED/DEEP three-speed wiring' as NOT STARTED and no later report closes that gap with a unified demonstration."
+  },
+  {
+    "raw_id": "INT-spec-180-207",
+    "pid": "INT-SP-207",
+    "title": "No completeness audit or re-read-after-mutation test backs SC-027's 'host-action completeness' and 'holds' claims",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "ChatSidebar focused-symbol resolution",
+    "repro": "design: focused-symbol resolution for follow-up turns is solidly wired (ChatSidebar.tsx:427-431,2039-2057), but no test drives an agent write then an agent read observing its own effect in the same turn ('re-read-after-mutation holds').",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:427-431,2039-2057 resolves focusedSource/focused symbol from the panel-context bus into every outgoing context snapshot, and src/modules/chat/SuggestionChips.tsx:44-60 (useFocusedSymbol) reuses the identical mechanism \u2014 a 'tell me more' style follow-up reads the same live-focused symbol as any other turn.",
+    "notes": "No dedicated 100%-resolution test or host-action-completeness audit for screener-filter/drawings/save reachability was found, and no test specifically exercises 're-read after mutation' (an agent write followed by an agent read observing its own effect)."
+  },
+  {
+    "raw_id": "INT-spec-180-209",
+    "pid": "INT-SP-209",
+    "title": "Two live mode-classification systems remain unmerged, contradicting SC-029's 'one mode system' bar",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "src/store/agent-mode.ts + sidecar planner.classify_intent",
+    "repro": "Send any message: it is classified once client-side by the FR-003 four-mode spine (src/store/agent-mode.ts) and again server-side by planner.classify_intent \u2014 the R4S3 session's own stale-code assessment (S-15) found both live at different layers and left them unmerged rather than risk a behavioral regression.",
+    "evidence": "Model-swap context preserved: REBUILD_R4_REPORT.md 'raw-chat preserves history on model-swap (FR-116)' fix (commit 84a60c8, /llm/chat prepends last-10 history); Enter sends: src/modules/chat/ChatSidebar.tsx:1793 (Enter && !shiftKey submits).",
+    "notes": "'One mode system' is explicitly NOT achieved: OVERNIGHT_BUILD_REPORT_R4S3.md Session-3.1 addendum states S-15 was assessed and left as-is because 'src/store/agent-mode.ts (the FR-003 four-mode spine) and planner.classify_intent (intent inference) are both live, at different layers \u2014 not a clean removal.'"
+  },
+  {
+    "raw_id": "INT-spec-180-210",
+    "pid": "INT-SP-210",
+    "title": "No visual audit confirms every matrix surface renders its full state set (incl. market-closed + symbol-not-found) with 0 silent dashes/raw-JSON/skips",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "EmptyState rollout / market-session awareness",
+    "repro": "design: market-session awareness and a shared EmptyState were shipped and rolled out to '5' dead-grey surfaces (OVERNIGHT_BUILD_REPORT_R4S3.md), but SC-030 requires an audit across 'every matrix surface' for both US and India locales, which was not performed or was not preserved as an artifact.",
+    "evidence": "Market-session awareness shipped (OVERNIGHT_BUILD_REPORT_R4S3.md Phase4 row, commit e15730f, 'session label + stale-price guard on watchlist/chart'); shared EmptyState rolled out to 5 previously dead-grey surfaces (Phase1 row, commit e15730f) covering symbol-not-found-shaped empty states.",
+    "notes": "No visual audit doc enumerates 'every matrix surface' and confirms 0 silent dashes/raw-JSON/silent-skips across the full US+India symbol set, as SC-030 requires; the EmptyState rollout is scoped to '5 surfaces', not confirmed exhaustive."
+  },
+  {
+    "raw_id": "INT-spec-180-214",
+    "pid": "INT-SP-214",
+    "title": "Screener cold/warm timing misses both SC-034 numeric targets (only the skip-rate target is met)",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "sidecar/services/screener.py",
+    "repro": "Full S&P 500 screen, live: warm run measured 2.84s (target: sub-second) and cold run measured 329.8s / a throttled 32.7s-for-50-symbols scaled up (target: single-digit seconds) \u2014 REBUILD_R4_SESSION2_REPORT.md 's own perf table, filed under the flagged/BUILT bucket, not VERIFIED.",
+    "evidence": "REBUILD_R4_SESSION2_REPORT.md screener perf table: S&P 500 warm 2.84s / 0 skips (itemized), cold 329.8s (batch 429-throttled -> per-symbol fallback, 0 skips); the <5% skip target is met (0%). | docs/redesign/REBUILD_R4_SESSION2_REPORT.md 'Screener perf numbers' table",
+    "notes": "Both numeric timing targets are missed as measured: warm 2.84s is not 'sub-second', and cold 329.8s (or even the un-throttled batch path) is far above 'single-digit seconds'. The session's own report labels this row not VERIFIED but the flagged/BUILT bucket, attributing cold time to an IP-level Yahoo rate limit reproduced even via system curl \u2014 a real, load-bearing quality-bar miss for 0.9.0, not a rounding gap."
+  },
+  {
+    "raw_id": "INT-spec-180-215",
+    "pid": "INT-SP-215",
+    "title": "Brief export was downgraded to clipboard-copy-only, removing the MD/PNG/PDF file export SC-035 and two prior build reports say shipped",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "src/modules/research/BriefPanel.tsx",
+    "repro": "Open a populated brief and look for a PDF/PNG export button: none exists \u2014 src/modules/research/BriefPanel.tsx:568-580 only composeBriefMarkdown()-to-clipboard remains; grep confirms zero imports of src/lib/export-artifact.ts's savePngArtifact/savePdfArtifact from BriefPanel.tsx (only NotesPanel.tsx uses them), per docs/redesign/AGENT_TOOLUSE_PLAN.md:198's 'Decision 7 default' which explicitly removed the file-export buttons after a reproduced PDF-mid-animation bug (BRIEF-2) \u2014 a decision not recorded in docs/redesign/DECISIONS.md.",
+    "evidence": "Sources dedup+type-badged and overview-narrative numeric-verification pass both shipped (OVERNIGHT_BUILD_REPORT_R4S3.md Phase4 rows, commits fdd4089/021be60, 15 tests); src/lib/brief-ingest.ts:546 composeBriefMarkdown backs an MD copy-to-clipboard export in src/modules/research/BriefPanel.tsx:568-580.",
+    "notes": "Brief export is Copy-markdown ONLY, not md/PNG/PDF as SC-035 requires: docs/redesign/AGENT_TOOLUSE_PLAN.md:198 'Decision 7 default' explicitly directs removing the MD+PDF file-export buttons (savePdfArtifact/saveTextArtifact calls) from BriefPanel.tsx and replacing them with a single clipboard-copy button, citing a reproduced PDF-mid-animation bug (BRIEF-2); grep confirms src/modules/research/BriefPanel.tsx has zero imports from src/lib/export-artifact.ts (only src/modules/notes/NotesPanel.tsx uses savePngArtifact/savePdfArtifact). This is a real regression from what REBUILD_R4_SESSION2_REPORT.md/OVERNIGHT_BUILD_REPORT_R4S3.md reported as delivered ('live files: route-ns.md, route-ns.pdf'), and it is not recorded as a formal decision in docs/redesign/DECISIONS.md."
+  },
+  {
+    "raw_id": "INT-spec-180-217",
+    "pid": "INT-SP-217",
+    "title": "Contrast-floor numbers on file were measured against the cold-zinc palette session 3 replaced; no equivalent measurement exists for the shipped warm-graphite palette",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "design tokens / warm-graphite palette",
+    "repro": "design: REBUILD_R4_SESSION2_REPORT.md records body 16.44:1 / secondary 11.99:1 / accent-on-surface 5.65:1 against the cold-zinc/cool-indigo tokens; OVERNIGHT_BUILD_REPORT_R4S3.md re-values every token to warm-graphite/amber but reports only a qualitative reviewer score (4/5), not a re-measured contrast ratio; a confirmed populated screenshot pair at both 1920x1080 and 2560x1440 for the current palette was not located.",
+    "evidence": "OVERNIGHT_BUILD_REPORT_R4S3.md Phase0 'Warm Graphite + amber + de-glow' VERIFIED: live computed style body rgb(17,15,12), --accent-rgb 216 154 78, background-image:none (glow removed), rg-clean of cold-zinc/cool-indigo literals; two blind fresh-design reviews scored contrast 4/5.",
+    "notes": "The explicit numeric contrast-floor measurement (body >=4.5:1, large/non-text >=3:1) that REBUILD_R4_SESSION2_REPORT.md recorded (16.44:1/11.99:1/5.65:1) was taken against the cold-zinc/indigo palette that session 3 REPLACED with warm-graphite/amber; no equivalent numeric re-measurement against the shipped warm-graphite palette was found. A confirmed populated screenshot pair at both 1920x1080 AND 2560x1440 for the current palette (per this file's own Visual-verification protocol) was not located under docs/screenshots/v0.8.0-r4/ or docs/redesign/verification/ (only a single 2560-width shot, live-shell-2560.png, was found)."
+  },
+  {
+    "raw_id": "INT-spec-180-187",
+    "pid": "INT-SP-187",
+    "title": "Adding a new data source still requires host code in three places, contradicting the 'zero lines of per-source UI code' promise",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "src/lib/marketplace.ts + sidecar/services/provider_registry.py",
+    "repro": "design: to add a data source today you must add a sidecar ProviderDeclaration row (sidecar/services/provider_registry.py:80), a hand-written row + static import in src/lib/marketplace.ts:20-45,84-335, and a plugin data-capability declaration (e.g. plugins/yfinance/index.ts:1-12) \u2014 three host-code touch points, not the contract-driven zero-host-code path SC-007 promises.",
+    "evidence": "Generic credential form: src/modules/marketplace/MarketplacePanel.tsx:244-274 renders entry.credentialFields; provenance: sidecar/services/provider_registry.py:16-18 (provider field on every result). BUT catalog is a host-compiled static list: src/lib/marketplace.ts:20-45 (static imports), :84-335 (hand-written rows); sidecar registry is an in-module declaration table: sidecar/services/provider_registry.py:80",
+    "notes": "0 lines of per-source UI holds, but a new data source still needs host code in three places (sidecar provider + ProviderDeclaration row, marketplace.ts row + static import). The TS plugin data capability is a thin declaration (plugins/yfinance/index.ts:1-12), not what the registry resolves."
+  }
+]

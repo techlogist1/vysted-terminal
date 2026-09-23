@@ -1107,6 +1107,38 @@
   }
  },
  {
+  "raw_id": "INT-deferred-42-2",
+  "title": "In-webview drag correctness (dockview reorder, node-editor drag-drop) has zero trusted-event coverage and has not been re-confirmed since R7",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "PanelHost / node-editor",
+  "repro": "design: no playwright.config.*, no e2e spec files, no `playwright` dependency anywhere in the repo (INT-DF-48); the correctness claim itself (INT-DF-77) has recurred as an unresolved NEEDS-MANUAL-CHECK item, verbatim, across R7 through R12 run reports without ever being re-verified.",
+  "evidence": "docs/redesign/verification/R7_RUN_REPORT.md:39; CLAUDE.md Gotchas ('chrome-devtools MCP can't synthesize trusted (isTrusted) events'); tauri.conf.json app.windows[0].dragDropEnabled:false (the special-cased mechanism this all depends on)",
+  "notes": "Covers INT-DF-48/77. A core interaction (tab reorder, palette->canvas drag) that the team already knows is fragile enough to need a dedicated dragDropEnabled:false workaround has never had its actual gesture correctness proven by anything but eyeballing, and the tool needed to automate that (Playwright with real event injection) doesn't exist. Smallest fix shape: stand up a minimal Playwright suite (even 2-3 specs covering tab reorder + one canvas drag) using native event injection, gated to run only where a real browser context is available (not chrome-devtools MCP).",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The coverage gap is real: package.json has no playwright dependency, the repo has no playwright.config.* and no e2e spec outside node_modules, and the in-webview drag check has recurred as NEEDS-MANUAL-CHECK in R7:39, in R12:54 (where it is called 'permanent') and in R15_GATE2 (canvas gesture drag). I corrected the severity from high to medium. Nothing shows the drag is broken. The mechanism it depends on (dragDropEnabled:false at tauri.conf.json:23) is present, and the missing piece is verification, not a failing core flow. That makes it a maintainer or regression-risk gap, which is medium on the COMMON scale ('high' is reserved for a core flow that breaks or silently degrades)."
+  }
+ },
+ {
+  "raw_id": "INT-deferred-42-4",
+  "title": "Accessibility contrast has never been audited; no axe-core or Lighthouse run exists anywhere in the repo",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "styles / CI",
+  "repro": "grep package.json, .github/workflows/, scripts/ for axe-core|lighthouse -> zero matches.",
+  "evidence": "BLOCKERS.md:262 'L11-color-contrast-not-audited — Phase 9 axe-core/Lighthouse' (S3, still open)",
+  "notes": "A dark, dense, minimal-chrome UI (CLAUDE.md's zinc + cool-indigo system) is exactly the kind of palette that quietly fails WCAG contrast on secondary text; nothing has ever checked. Smallest fix: one CI job running axe-core against a built static export of the key panels.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "No axe-core, Lighthouse, jest-axe or vitest-axe exists in package.json, .github/workflows or scripts, and the BLOCKERS entry is still open (it is at BLOCKERS.md:274, not :262 as cited). A cheap contrast computation on the tokens gives positive evidence of a real defect, which strengthens the finding. text-charcoal-600 (#484848, tokens.css:40, commented 'strong border / disabled fg') is used as TEXT in about 38 places, e.g. DataTable null cells (DataTable.tsx:166), the command-palette 'recent' label (CommandPalette.tsx:498) and research step latency (BriefPanel.tsx:297). Its contrast is about 1.98:1 on the #161616 panel surface, which breaks the design's own 'hard requirement' floor of at least 3:1 even for labels (R4_DESIGN_LANGUAGE.md:271-277). --color-sage-500 (#767676) is also below 4.5:1 on panel surfaces (3.98:1)."
+  }
+ },
+ {
   "raw_id": "INT-deferred-84-4",
   "title": "Model selector control has no visual caret/chevron affordance signaling it is a dropdown",
   "severity": "low",
@@ -1251,6 +1283,91 @@
   }
  },
  {
+  "raw_id": "INT-spec-180-181",
+  "pid": "INT-SP-181",
+  "title": "No timed proof exists that a first-time user reaches a populated multi-panel cockpit via conversation alone in under 2 minutes",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "onboarding / agent-OS spine",
+  "repro": "design: SC-001 is a timed acceptance bar; no session report or test records a stopwatch run of a first-time, freshly-configured user driving 'research a company' to a populated cockpit.",
+  "evidence": "Agent-OS spine + §6.5 gate proven live: REBUILD_R4_REPORT.md 'Agent-OS spine works end-to-end' (add-to-watchlist tool-call -> host action -> gate -> applied); src/lib/host-actions.ts (open_panel/arrange_layout cases, :603-689); src/lib/layout-templates.ts:196-218 dispatches a full research-cockpit template from a query with zero manual panel clicks.",
+  "notes": "The capability (agent opens a populated multi-panel cockpit via conversation with no manual panel controls) is architecturally present, but no session report or test measures an actual first-time-user run against the <2min wall-clock target; SC-001 is a timed acceptance bar and no timing evidence exists.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "The capability is present (a /layout slash command or the agent's arrange_layout builds the research-cockpit template with no manual panel clicks), but nothing in the repo records a timed first-time-user run against SC-001's under-2-minute bar. This is an evidence gap, so low severity is right."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-189",
+  "pid": "INT-SP-189",
+  "title": "No audit confirms >=90% of palette-performed actions carry a visible keyboard shortcut, nor a measured <=3-gesture first-run path",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "command palette / keybindings",
+  "repro": "design: src/components/CommandPalette.tsx renders a <kbd> only for actions that already have a keybindings-store entry; the fraction of total palette actions covered is unmeasured.",
+  "evidence": "Keyboard-shortcut affordance exists: src/components/CommandPalette.tsx:465-467 renders a <kbd> per action from the keybindings store (src/store/keybindings.ts); first-run 'try this' chips exist (src/modules/chat/SuggestionChips.tsx).",
+  "notes": "No coverage audit or count exists confirming '>=90% of palette-performed actions' carry a shortcut, nor a measured '<=3 taught gestures to productivity' first-run study; both are numeric quality bars with no supporting measurement in the repo.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The bar is not just unmeasured, it fails. The generic palette row (PaletteItemRow) renders only the label, the description and a 'recent' tag, with no shortcut at all. The only <kbd> in the palette (the lines the raw finding cites) is the literal 'Enter' on the Ask-agent row, not a per-action binding from the keybindings store. So about 0% of Action/Panel rows carry a visible shortcut against SC-009's >=90%. Raised to medium because it is a concrete, fixable miss rather than a missing audit."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-210",
+  "pid": "INT-SP-210",
+  "title": "No visual audit confirms every matrix surface renders its full state set (incl. market-closed + symbol-not-found) with 0 silent dashes/raw-JSON/skips",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "EmptyState rollout / market-session awareness",
+  "repro": "design: market-session awareness and a shared EmptyState were shipped and rolled out to '5' dead-grey surfaces (OVERNIGHT_BUILD_REPORT_R4S3.md), but SC-030 requires an audit across 'every matrix surface' for both US and India locales, which was not performed or was not preserved as an artifact.",
+  "evidence": "Market-session awareness shipped (OVERNIGHT_BUILD_REPORT_R4S3.md Phase4 row, commit e15730f, 'session label + stale-price guard on watchlist/chart'); shared EmptyState rolled out to 5 previously dead-grey surfaces (Phase1 row, commit e15730f) covering symbol-not-found-shaped empty states.",
+  "notes": "No visual audit doc enumerates 'every matrix surface' and confirms 0 silent dashes/raw-JSON/silent-skips across the full US+India symbol set, as SC-030 requires; the EmptyState rollout is scoped to '5 surfaces', not confirmed exhaustive.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "It holds that no SC-030 visual audit across every matrix surface for US and India exists. Correction: EmptyState is not limited to '5 surfaces'; it is used in 27 non-test files. Market-session awareness is wired only into ChartPanel and WatchlistPanel, so the market-closed state is not covered on the other surfaces."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-215",
+  "pid": "INT-SP-215",
+  "title": "Brief export was downgraded to clipboard-copy-only, removing the MD/PNG/PDF file export SC-035 and two prior build reports say shipped",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "src/modules/research/BriefPanel.tsx",
+  "repro": "Open a populated brief and look for a PDF/PNG export button: none exists — src/modules/research/BriefPanel.tsx:568-580 only composeBriefMarkdown()-to-clipboard remains; grep confirms zero imports of src/lib/export-artifact.ts's savePngArtifact/savePdfArtifact from BriefPanel.tsx (only NotesPanel.tsx uses them), per docs/redesign/AGENT_TOOLUSE_PLAN.md:198's 'Decision 7 default' which explicitly removed the file-export buttons after a reproduced PDF-mid-animation bug (BRIEF-2) — a decision not recorded in docs/redesign/DECISIONS.md.",
+  "evidence": "Sources dedup+type-badged and overview-narrative numeric-verification pass both shipped (OVERNIGHT_BUILD_REPORT_R4S3.md Phase4 rows, commits fdd4089/021be60, 15 tests); src/lib/brief-ingest.ts:546 composeBriefMarkdown backs an MD copy-to-clipboard export in src/modules/research/BriefPanel.tsx:568-580.",
+  "notes": "Brief export is Copy-markdown ONLY, not md/PNG/PDF as SC-035 requires: docs/redesign/AGENT_TOOLUSE_PLAN.md:198 'Decision 7 default' explicitly directs removing the MD+PDF file-export buttons (savePdfArtifact/saveTextArtifact calls) from BriefPanel.tsx and replacing them with a single clipboard-copy button, citing a reproduced PDF-mid-animation bug (BRIEF-2); grep confirms src/modules/research/BriefPanel.tsx has zero imports from src/lib/export-artifact.ts (only src/modules/notes/NotesPanel.tsx uses savePngArtifact/savePdfArtifact). This is a real regression from what REBUILD_R4_SESSION2_REPORT.md/OVERNIGHT_BUILD_REPORT_R4S3.md reported as delivered ('live files: route-ns.md, route-ns.pdf'), and it is not recorded as a formal decision in docs/redesign/DECISIONS.md.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed: BriefPanel exports only 'Copy markdown' to the clipboard, per the 'Decision 7 default' step in AGENT_TOOLUSE_PLAN. BriefPanel does not import export-artifact.ts at all (only NotesPanel uses savePng/savePdfArtifact), and no 'Decision 7' or copy-markdown entry exists in DECISIONS.md. SC-035's md/PNG/PDF export is unmet."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-217",
+  "pid": "INT-SP-217",
+  "title": "Contrast-floor numbers on file were measured against the cold-zinc palette session 3 replaced; no equivalent measurement exists for the shipped warm-graphite palette",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "design tokens / warm-graphite palette",
+  "repro": "design: REBUILD_R4_SESSION2_REPORT.md records body 16.44:1 / secondary 11.99:1 / accent-on-surface 5.65:1 against the cold-zinc/cool-indigo tokens; OVERNIGHT_BUILD_REPORT_R4S3.md re-values every token to warm-graphite/amber but reports only a qualitative reviewer score (4/5), not a re-measured contrast ratio; a confirmed populated screenshot pair at both 1920x1080 and 2560x1440 for the current palette was not located.",
+  "evidence": "OVERNIGHT_BUILD_REPORT_R4S3.md Phase0 'Warm Graphite + amber + de-glow' VERIFIED: live computed style body rgb(17,15,12), --accent-rgb 216 154 78, background-image:none (glow removed), rg-clean of cold-zinc/cool-indigo literals; two blind fresh-design reviews scored contrast 4/5.",
+  "notes": "The explicit numeric contrast-floor measurement (body >=4.5:1, large/non-text >=3:1) that REBUILD_R4_SESSION2_REPORT.md recorded (16.44:1/11.99:1/5.65:1) was taken against the cold-zinc/indigo palette that session 3 REPLACED with warm-graphite/amber; no equivalent numeric re-measurement against the shipped warm-graphite palette was found. A confirmed populated screenshot pair at both 1920x1080 AND 2560x1440 for the current palette (per this file's own Visual-verification protocol) was not located under docs/screenshots/v0.8.0-r4/ or docs/redesign/verification/ (only a single 2560-width shot, live-shell-2560.png, was found).",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The palette on file is neither of the two the raw names: tokens are now neutral zinc (#0a0a0a/#161616) with --accent-rgb 120 120 120. I measured the current tokens: primary text 16.9:1 / 15.5:1, secondary 8.3:1 / 7.6:1 and tertiary 5.7:1 / 5.2:1 on the root and panel surfaces, so the body floor passes. Two gaps remain. text-charcoal-600 (#484848, 1.98:1 on the panel) is used as readable text in 19 places, such as the palette's 'recent' tag and brief step latencies. And no populated 1920x1080 + 2560x1440 pair exists for the current palette."
+  }
+ },
+ {
   "raw_id": "INT-spec-90-2",
   "title": "Portfolio market value / P&L carry no freshness badge — stale or after-hours quotes read as live",
   "severity": "medium",
@@ -1264,6 +1381,70 @@
    "verdict": "admitted",
    "severity_final": "medium",
    "reason": "Holds. PortfolioPanel fetches quotes and badges only a rejected fetch (setQuotesError, PortfolioPanel.tsx:141-160). Nothing in src/modules/portfolio references freshness, StalenessBadge or ProvenanceBadge, and there is no 'as of' on the totals. Watchlist renders StalenessBadge from quote.freshness (WatchlistPanel.tsx:72-75), and the sidecar does populate freshness on quotes (live AAPL quote carries freshness='eod'). So after-hours or stale values drive portfolio market value and P&L with no label."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-5",
+  "title": "Agent surface has no full-cockpit mode — width hard-capped at 1200px",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "agent dock / cockpit shell",
+  "repro": "Drag the agent-dock resize handle to the right on any viewport >= ~1600px wide -> the column stops growing at 1200px; there is no toggle/command that lets it occupy the full cockpit.",
+  "evidence": "src/components/AgentDock.tsx:19-133, src/store/agent-dock.ts:12-13 (AGENT_DOCK_MIN_WIDTH=280, AGENT_DOCK_MAX_WIDTH=1200 hard px cap)",
+  "notes": "spec.md FR-001 MUST: the agent surface can occupy 'a dominant column OR the full cockpit'. Only the dominant-column half is built; the full-cockpit mode (agent as the sole/maximized surface) doesn't exist in any form. Smallest fix: a maximize toggle that sets width to the viewport width (or a CSS flex-basis: 100% state) alongside the existing collapse.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds. setWidth clamps every drag to [280, 1200] px (agent-dock.ts:12-13,25-27), and AgentDock applies the same maxWidth to both the aside and its inner track (AgentDock.tsx:97,104). The only other dock control is collapse, via agent.toggle, which hides the agent entirely (AgentDock.tsx:65-78). ChatSidebar is not a dockview panel (chat/index.ts:7), so dockview's maximize path (layout-templates.ts:816-822) cannot maximize it either. FR-001 (spec.md:823-825) requires a 'dominant column or the full cockpit'; only the column half exists. On a 1920px display the agent tops out at about 62% of the width."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-8",
+  "title": "BYOK/credential setup is split across two separate UIs, neither offers a test-connection action",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "Settings / Marketplace credentials",
+  "repro": "Open Settings > AI Providers to add an LLM key (one form) vs Settings > Integrations -> 'Open Marketplace' to add a broker/data-connector credential (a different panel, different form) -> no single place to manage every connector's credentials; after saving either, there is no 'Test connection' button, only a passive background readiness probe for LLM keys.",
+  "evidence": "src/components/SettingsPanel.tsx:410-530 (ProvidersSection, LLM-only) and :1563-1585 (IntegrationsSection just links out: 'Broker connections are managed in the Marketplace'), src/modules/marketplace/MarketplacePanel.tsx:35,118,244 (separate credentialFields form), grep for a user-triggered test action across SettingsPanel.tsx/MarketplacePanel.tsx/KeyEntryDialog.tsx is empty",
+  "notes": "spec.md FR-034 MUST: 'a single BYOK/credentials hub' that renders/masks/tests forms generically for every data provider, broker, and connector. Shipped has two separate, differently-implemented surfaces and no explicit test affordance on either. Smallest fix: fold IntegrationsSection's credential rendering into the same generic component ProvidersSection uses (or vice versa), and add a Test button that fires one cheap read call through the credential.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Partly refuted. LLM keys ARE tested: KeyEntryDialog validates every key against POST /llm/keys/validate (a live provider models-list probe) before writing it to the keychain, and blocks the save on an invalid key (KeyEntryDialog.tsx:21-24,64-81; routers/llm.py:99). The split-hub part holds: LLM keys live in Settings > AI Providers, while plugin credentials go through the Marketplace CredentialForm, which saves without any test (MarketplacePanel.tsx:239-301). But after the 23 Sep trading removal, every Marketplace credential form except one is a broker entry (marketplace.ts:190-322, removed with the feature). The only surviving one is the OPTIONAL NewsAPI key (marketplace.ts:150-160). The residual is one untested optional data key on a second surface, so this is downgraded to low."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-9",
+  "title": "Settings export/import drops every configured connection — only keybindings + 3 preference fields travel",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "Settings export/import",
+  "repro": "Configure an LLM provider default, a broker plugin, and a data-connector, then Settings > Export settings -> open the downloaded vysted-settings.json -> it contains only keybindingOverrides + {defaultAgentId, region, deepResearchBackend}; none of the above survive an export/import round-trip (secrets aside).",
+  "evidence": "src/components/SettingsPanel.tsx:1757-1791 (SettingsExport shape), src/store/settings.ts:51-68 (SettingsBundle = {defaultAgentId, region, deepResearchBackend} only; useLLMProvidersStore.defaultProviderId is not part of it)",
+  "notes": "spec.md FR-037 (SHOULD): 'Configured connections SHOULD be exportable/importable across machines (secrets via the keychain, not the export file).' Today the non-secret SHAPE of a connection (which providers/brokers/connectors are set up, default provider) isn't exported at all, so a machine move means reconfiguring everything from scratch even though no secret needed to travel. Smallest fix: add a connections field to SettingsExport (provider ids, default provider, installed marketplace plugin ids + their non-secret config) alongside the existing keybindings/settings.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The mechanism holds. SettingsExport = {version, keybindingOverrides, settings} (SettingsPanel.tsx:1757-1772), and SettingsBundle is only defaultAgentId/region/deepResearchBackend (settings.ts:51-68). useLLMProvidersStore.defaultProviderId (llm-providers.ts:127-136) and marketplace installed/enabled state (store/marketplace.ts:48) do not travel. The impact is smaller than stated, though. Broker plugins are removed with trading. Secrets must be re-entered on a new machine anyway, since the keychain does not travel, so re-picking a default provider and re-enabling a few data plugins is marginal extra work. FR-037 is a SHOULD. Downgraded to low."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-10",
+  "title": "Settings surface is missing most of the FR-038 preference categories — no provider/model order, palette behavior, panel defaults, or starter-cockpit composition controls",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "SettingsPanel",
+  "repro": "Open Settings and look for a way to set a provider/model FALLBACK ORDER (only a single 'Default' radio-style pick exists, src/store/llm-providers.ts:127-136), or to configure command-palette ranking behavior, or to change which panels open in the default per-launch cockpit -> none exist.",
+  "evidence": "src/components/SettingsPanel.tsx section list (ProvidersSection:410, ResearchSection:1210, RegionSection:1297, KeybindingsSection:1365, AdvancedSection:1532, IntegrationsSection:1563, LayoutsSection:1587, ModulesSection:1710, ExportImportSection:1775, AboutSection:1872) and src/store/settings.ts:51-68 (SettingsBundle covers only defaultAgentId/region/deepResearchBackend)",
+  "notes": "spec.md FR-038 MUST, 'depth target is Cursor-grade': keybindings (delivered), default persona (delivered), default provider/model + PREFERENCE ORDER (only a single default pick, no order list), palette behavior (absent), panel defaults (absent), starter-cockpit composition (absent — src/config/default-layout.ts is a hardcoded constant with no settings-surface editor), theming knobs (N/A, dark-only by FR-030). Several explicitly-named categories in an explicit MUST have zero UI. Smallest fix (biggest win first): a provider preference-order list (drag-to-reorder over the existing provider rows) and a starter-cockpit panel picker feeding src/config/default-layout.ts.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The gap is real: FR-038 (spec.md:909-914) names provider preference order, palette behavior, panel defaults and starter-cockpit composition, and none has a Settings control today (section list at SettingsPanel.tsx:410-1872; bundle at settings.ts:51-68). Two corrections. (1) These are not unbuilt. R9 deliberately KILLED providerPreferenceOrder, paletteRecentsEnabled, paletteScopedToPanel, starterCockpitPanelIds and panelDefaults as theater controls that nothing consumed (settings.ts:10-15; R9_DEFECT_CATALOGUE.md:40-44 'resurrect only WITH a consuming picker'). So the missing piece is the underlying behaviour (no provider fallback chain, no palette options), not just UI. (2) Starter-cockpit composition is partly served by direct manipulation: the last arranged layout is autosaved and restored on launch, and named layouts can be saved (SettingsPanel.tsx:1630-1632,1704). Downgraded from high to medium: a MUST gap, but in preference depth, not a core flow."
   }
  },
  {

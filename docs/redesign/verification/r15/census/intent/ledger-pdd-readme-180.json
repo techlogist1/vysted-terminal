@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-181",
+    "promise": "Two runtime-extension aggregator modules from earlier releases are live no-op stubs kept only for release-stamp parity -- they do nothing at request time.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/app.py:175-214 (_register_v0_5_0/_v0_6_0/_v0_6_5_runtime_extensions); sidecar/services/agent_tools/registry_v0_6_0.py:1-108 (14 live domain registrations: macro, sec, quant, earnings, analyst, screener, news, market_overview, resolve_symbol, compare_symbols, web_search, research, disclosures, backtest-custom); sidecar/services/workflow_nodes/registry_v0_6_0.py:1-48 (5 live node registrations); sidecar/services/agent_tools/registry_v0_6_5.py:1-25 (genuinely empty)",
+    "gap": "Only ONE of the two named aggregators (v0.6.5) is still a true no-op. The v0.6.0 aggregator the promise groups with it is fully wired and does substantial real work at every app boot (registers 14 agent-tool/workflow-node domains) -- 'they do nothing at request time' no longer holds for it. Line numbers in the source doc (app.py:131,145) have also drifted (now 175,189,203).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-182",
+    "promise": "GET /quotes and /crypto endpoints are thread-offloaded so they don't block the event loop, but GET /history/{symbol} runs its provider call synchronously on the request thread -- a real event-loop-blocking asymmetry.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/routers/quotes.py:53,60 and crypto.py:34-47 (async def + explicit asyncio.to_thread); sidecar/routers/history.py:56 (plain sync `def get_history`, no async, no to_thread, calls provider_registry.get_history directly)",
+    "gap": "The code-shape asymmetry is real, but FastAPI/Starlette automatically runs a plain sync `def` path-operation function in its own thread pool (run_in_threadpool) -- so /history does NOT actually run on the asyncio event-loop thread the way the promise's 'blocks the event loop' framing implies. The practical consequence is closer to 'uses FastAPI's implicit thread dispatch instead of asyncio.to_thread' than 'a real event-loop-blocking asymmetry.'",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-183",
+    "promise": "HTTP response caching is implemented per-router rather than centrally.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/fundamentals.py:211-259, earnings.py:68-137, disclosures.py:58-112, sidecar/services/screener.py:238-249, sec_filings_provider.py:488-594 (each call site owns its own data_cache.get/set + TTL constant; no central caching middleware/decorator exists)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-184",
+    "promise": "The documented sidecar endpoint surface spans market data, fundamentals, news, macro, SEC filings, earnings, screener, portfolio CRUD, quant pricing, backtest, workflow, agents, custom agents, LLM chat/key validation, broker read/connect/order routes, Kite OAuth exchange, safety (audit log, kill switch, disclaimers, static-IP status), a read-only Tradesa V2 mirror, plugin config, workspace persistence, and MCP status/JSON-RPC.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "docs/CURRENT_STATE.md:274-306 full route table cross-checked against sidecar/routers/*.py -- every named surface (market data, fundamentals, news, macro, SEC, earnings, screener, portfolio CRUD, quant, backtest, workflow, agents, custom agents, LLM chat/key validation, broker read/connect/order, Kite OAuth, safety, Tradesa-mirror-formerly, plugin config, workspace, MCP status/JSON-RPC) has a live router file",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-185",
+    "promise": "GET /sec/status is the only /sec route that responds when the sec-edgar-mcp subprocess is down; every other /sec/* route returns 501 while the subprocess is unbound.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/sec_filings.py:45-58 (_require_available raises 501), :68-71 (/status is the only route not gated by it)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-186",
+    "promise": "POST /screener/run returns 502 on a universe-resolution failure and 400 for an unknown screener id.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/screener.py:62-88 (ProviderError -> app-level 502 handler on universe-resolution failure), :175-188 (unknown universe / 'custom' -> 400)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-187",
+    "promise": "Manual portfolio positions support full CRUD (create/read/update/delete) backed by SQLite, returning 201/204/404 as appropriate.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/portfolio.py:21-47 (GET/POST 201/PUT/DELETE 204, 404 on unknown id); sidecar/services/portfolio_db.py:16-19 (sqlite3-backed)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-188",
+    "promise": "A broker session that has expired responds with HTTP 419 as the client's reconnect cue.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/brokers.py:184-190 (_read_error_to_http maps 'kite: session expired' -> HTTPException 419)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-189",
+    "promise": "Broker order routes implement a propose-then-confirm-then-place flow backed by an in-memory pending-proposals store.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/routers/brokers.py:255-313 (propose_broker_order / confirm_broker_order backed by in-memory _pending_proposals dict) -- mechanism is real and delivered as written",
+    "gap": "Order placement/review flow -- out of scope for this pass per the launch-brief scope note regardless of delivery status.",
+    "decision_ref": "operator decision 23 Sep -- trading removed from product (PROMPT_offmachine_s2.md sec1 scope note: order placement/review is never missing/partial/delivered-reported, always dropped)"
+  },
+  {
+    "pid": "INT-PD-190",
+    "promise": "The real Kite OAuth exchange (POST /brokers/kite/session) performs the genuine generate_session call (SHA-256 checksum plus a call to Kite's /session/token endpoint).",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 (exchange_request_token: real KiteConnect.generate_session SHA-256 exchange); sidecar/routers/brokers.py:415-420 (POST /brokers/kite/session wired to it)",
+    "gap": "The backend exchange is genuine and correct, but nothing in the frontend calls it: grep for 'kite/session' / 'exchangeSession' across src/ returns zero hits. src/modules/broker-connect/BrokerConnectPanel.tsx:54-58 instead lists a plain 'Access Token' paste field for kite alongside api_key/api_secret/static_ip and posts straight to /brokers/{id}/connect (see F1 in return summary) -- the 'genuine end-to-end OAuth exchange' is backend-only, unreachable through the shipped UI.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-191",
+    "promise": "The audit-log endpoint supports tailing and CSV export, with a result-count limit between 1 and 5000.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/safety.py:47-52 (limit<1 or >5000 -> 400)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-192",
+    "promise": "The kill-switch endpoints support fire/reset/status, and a reset requires an explicit acknowledged=true flag.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/routers/safety.py:119-138 (fire/reset/status; reset 400s unless acknowledged=true)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-193",
+    "promise": "The static-IP-status endpoint is advisory only -- it never blocks any action.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/routers/safety.py:186-192 (get_static_ip_status is a pure read, no gating call site anywhere); sidecar/services/static_ip_detector.py:142 ('path does not pre-block')",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-194",
+    "promise": "The 14 Tradesa V2 mirror routes are GET-only by an audit-enforced invariant, with credentials passed via request headers.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "No sidecar/routers/tradesa_v2.py, sidecar/models/tradesa_v2.py or sidecar/services/tradesa_v2_provider.py source exists any more (only stale __pycache__ .pyc remnants); sidecar/tests/test_no_tradesa.py (whole file) asserts zero 'tradesa' references anywhere in code/config and that 'tradesa-v2' is absent from plugins/*/manifest.json",
+    "gap": "Tradesa V2 has been fully removed from the codebase (E11 removal), not merely kept GET-only -- the promised subject no longer exists at all.",
+    "decision_ref": "docs/redesign/R10_TRACK_ERRORS_BRIEF.md sec3 'Tradesa removal (E11)'; sidecar/tests/test_no_tradesa.py; also COMMON.md out-of-scope list ('Tradesa')"
+  },
+  {
+    "pid": "INT-PD-195",
+    "promise": "Plugin configuration and workspace state are each persisted via dedicated SQLite-backed endpoints, with the workspace blob stored as opaque JSON.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/services/plugins_store.py:27,63-99,133-134 (genuine sqlite3-backed plugin config store); sidecar/services/workspace_store.py:1-9,66-92 (workspace state is ONE '<name>.vysted-workspace' JSON FILE per workspace under get_workspaces_dir(), written via temp-file + os.replace atomic rename -- no sqlite3 import anywhere in the file)",
+    "gap": "Plugin config is genuinely SQLite-backed as promised, but workspace state is not -- it is flat-file JSON, not a 'dedicated SQLite-backed endpoint.' Functionally sound (atomic rename avoids torn-file corruption) but the storage-mechanism claim is wrong for half the promise.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-196",
+    "promise": "Status endpoints report readiness for both the Vysted MCP server and the openbb-mcp subprocess.",
+    "source": "docs/CURRENT_STATE.md \u00a73.2",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/routers/mcp.py:28-53 (GET /mcp/status, GET /openbb-mcp/status)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-197",
+    "promise": "A single dispatch module (provider_registry.py) routes every data request by asset class: crypto to ccxt (hardcoded default exchange 'binance'), equity to yfinance, fundamentals/statements/ratings to openbb-mcp when bundled else yfinance, and macro to openbb-mcp only, else an explicit provider error.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/services/provider_registry.py:1-24 (docstring: 'dispatch is no longer a hardcoded if asset_class switch -- it is a resolver keyed by a STANDARD MODEL KEY ... walks installed providers in a PREFERENCE ORDER'), :113-215 (6 ProviderDeclaration rows: ccxt rank10, openbb-mcp rank10, nse_direct rank15, nse/jugaad rank20, bse rank25, yfinance rank50 -- nse_direct/nse/bse region-scoped to IN and ranked ABOVE yfinance)",
+    "gap": "Crypto->ccxt and macro->openbb-mcp-only still hold, but 'equity -> yfinance' and 'a single dispatch module ... routes every data request by asset class' are stale: IN equities now resolve through a 3-provider (nse_direct -> nse -> bse) preference chain before yfinance is ever tried, and the mechanism itself changed from an asset_class switch to a model-key/preference-order resolver (FR-035/FR-053).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-198",
+    "promise": "The yfinance-backed equity provider rewrites the ticker BRK.B to BRK-B and divides yfinance's dividend-yield figure by 100 to convert a percentage into a fraction -- documented as a silent-corruption risk if the upstream format ever changes -- and reads only the single most-recent recommendation row for its aggregate analyst rating.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/yfinance_provider.py:86-127 (BRK.B->BRK-B rewrite), :350 (raw_yield / 100.0), :467 (recommendations.iloc[0])",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-199",
+    "promise": "The crypto provider backs /crypto/* using ccxt (sync REST) and ccxt.pro (async WebSocket) across the bybit, binance, kraken, and coinbase exchanges.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/ccxt_provider.py:18,23 (ccxt.pro import; SUPPORTED_EXCHANGES = bybit, binance, kraken, coinbase), :109-118 (watch_ticker via ccxt.pro)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-200",
+    "promise": "Richer fundamentals/macro data is available via the openbb-mcp subprocess when it is bundled with a given build; whether that binary actually ships in a given build is documented as unverifiable from the service code alone.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/openbb_mcp_provider.py:139-147 (is_available/status) -- whether the binary ships in a given PyInstaller build is a CI/packaging concern outside the service code, consistent with the promise's own framing",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-201",
+    "promise": "The news provider combines always-on RSS feeds (Yahoo, MarketWatch, per-symbol Yahoo) with an optional BYOK NewsAPI key, performs no caching, and re-fetches live on every request.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/services/news_provider.py:69-91 (US/GLOBAL: Yahoo Finance + MarketWatch RSS), :76-91 (IN region instead uses Economic Times x2, LiveMint, Zerodha Pulse -- a completely different feed set), :94-98 (per-symbol Yahoo template); grep for 'cache'/'data_cache' in news_provider.py and routers/news.py returns nothing",
+    "gap": "'No caching, re-fetches live' is accurate and confirmed. But the feed roster the promise states ('Yahoo, MarketWatch, per-symbol Yahoo') is incomplete -- it omits the IN-region-gated RSS set (Economic Times x2, LiveMint, Zerodha Pulse) that already ships, which matters for a product whose CLAUDE.md brief names Indian markets as the focus.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-202",
+    "promise": "Sentiment scoring uses the VADER lexicon rather than a finance-tuned model (a deliberate choice to avoid bundling torch), and is documented in its own code as coarse and explicitly not finance-grade.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/services/sentiment.py:3-14 (VADER, pure-Python, documented tradeoff vs FinBERT/torch), :22 (vaderSentiment import)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-203",
+    "promise": "The earnings provider infers fiscal period from calendar month as a best-effort, UI-only heuristic, and approximates EPS standard deviation as (high minus low) divided by 4.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/earnings_provider.py:107 (calendar-month fiscal-period inference), :259-261,428-429 (eps_stddev = (high-low)/4.0 approximation)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-204",
+    "promise": "Extended analyst-ratings data has no individual analyst names (the firm name is used as the label) and no real price-target timeline (often a single synthetic 'Consensus' anchor row), because the underlying yfinance data provides neither -- this degeneracy is documented as an honest, deliberate limitation.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/analyst_ratings_extended.py:243,298 (analyst_name=None, firm used as label), :321-322 ('Consensus' synthetic anchor row)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-205",
+    "promise": "SEC filings coverage is limited to a narrow set of form types (10-K, 10-Q, 8-K, DEF 14A, and Forms 3/4/5) served via the sec-edgar-mcp subprocess, with extractors written defensively against upstream shape drift.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/sec_filings_provider.py:224-231 (10-K/10-Q/8-K/DEF 14A form-type map), :378-380 (Form 4 transaction codes)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-206",
+    "promise": "The screener's built-in universes are sp500 (only the top 100 names by market cap, labeled as such), nifty50 (50 names), and crypto-top50 (50 names, whose documented 'refresh from ccxt' worker does not actually exist), plus a custom universe; screener criteria are AND-only, with OR-grouping reserved for later.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "sidecar/services/screener_universes/sp500.json (label 'S&P 500', 506 symbols -- the FULL index, not top 100); sidecar/services/screener_universe_india.py:6-9,33,165-184 (nse-all ~2675, bse-all, india-all universes, undocumented by this promise); sidecar/services/screener.py:237-256 (crypto-top50's 'refresh' only re-seeds the cache from the same static snapshot -- confirms no real ccxt refresh worker exists); sidecar/models/screener.py:171-213 (CriterionGroup: 'Enables OR + nested logic ... beyond the flat AND-only criteria list'); sidecar/services/screener.py:338 ('Recursively evaluate an AND/OR group')",
+    "gap": "Two concrete claims are now false: sp500 ships the full 506-name S&P 500, not a 'top 100 by market cap' subset; and OR-grouping is NOT 'reserved for later' -- CriterionGroup (nested AND/OR) is implemented and wired into ScreenerRequest.group today. The crypto-top50-has-no-real-refresh-worker claim still holds. The universe roster is also incomplete (nse-all/bse-all/india-all exist, undocumented).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-207",
+    "promise": "Macro data draws from four in-process providers (FRED, requiring an API key; ECB, IMF, and World Bank, all keyless), backed by hand-curated 'featured' catalogs -- full catalog browsing is deferred.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "sidecar/services/macro/fred_provider.py:1,18-19 (FRED_API_KEY env var), ecb_provider.py:1,34-37 (keyless, hand-curated featured catalog); imf_provider.py, world_bank_provider.py both present and keyless",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-208",
+    "promise": "Quant pricing runs in-process QuantLib for options (Black-Scholes/binomial/Monte Carlo, though Monte Carlo Greeks are not computed), Greeks, bonds, and a yield curve built on a synthetic index rather than real SOFR/ESTR data; a separate Monte Carlo module for Asian/barrier options exists in code but is not wired to any endpoint.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "sidecar/services/quant/yield_curve.py:12-14,76 (synthetic 'VYSTED-IBOR' IborIndex, documents SOFR/ESTR as a future enhancement); sidecar/services/quant/monte_carlo.py:39,115 (price_asian_mc/price_barrier_mc) -- grep of routers/quant.py and agent_tools/quant_tools.py finds zero call sites for either, confirming 'not wired to any endpoint'",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-209",
+    "promise": "The indicators service computes 49 technical indicators plus a volume-profile indicator (50 total) in pure pandas/numpy on the sidecar -- the frontend never computes an indicator itself.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/indicators.py:1190-1255 (_BUILDERS dict, 49 keys via `grep -oP` count) + 1 volume-profile key (:1255 `_VOLUME_PROFILE_KEY`) = 50 total; pure pandas/numpy, no frontend indicator math found",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-210",
+    "promise": "The generic SQLite TTL data cache does not auto-evict stale rows, and several high-traffic surfaces (news, quotes/history/fundamentals through the registry, all quant pricing) are notably left uncached.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/data_cache.py:106,162,171 (no scheduled/automatic eviction, only explicit DELETE-on-clear); sidecar/routers/quotes.py, history.py, quant.py -- zero data_cache references in any of the three; sidecar/routers/fundamentals.py -- data_cache used only for the /ratings/* extended endpoints, not the base /fundamentals/{symbol} route",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-211",
+    "promise": "A documented list of 'richer later' data hooks remains unimplemented: openbb-mcp earnings/analyst enrichment, a ccxt crypto-top50 refresh worker, individual analyst names/accuracy tracking, real price-target timelines, full SEC form coverage, a full macro catalog, surface-vol/yield-curve data, and HTTP wiring for path-dependent Monte Carlo pricing.",
+    "source": "docs/CURRENT_STATE.md \u00a73.3",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "Rolls up findings already independently confirmed above: crypto-top50 has no live ccxt refresh (screener.py:237-256), analyst names/timelines still synthetic (analyst_ratings_extended.py:243,321), SEC form coverage still narrow (sec_filings_provider.py:224-231), path-dependent MC still unwired (quant/monte_carlo.py) -- the one item this promise gets stale on is 'a full macro catalog' being deferred, since FRED/ECB/IMF/World Bank in-process providers (INT-PD-207) already exist, though each still exposes only a hand-curated 'featured' subset, not full catalog browsing, so the deferred claim survives at the catalog-completeness level",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-212",
+    "promise": "The plugin contract (types/plugin.ts) is a deliberately framework-free, serializable contract of four fixed sections (identity, lifecycle, a six-boolean capabilities object, and optional getters); a panel's component reference is a string id resolved host-side so the contract stays serializable, and capability negotiation checks only the boolean flag, never the method's presence.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:61-68 (PluginCapabilities: 6 booleans incl. supportsControlPlane), :113 (panel `component: string`, not a component reference)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-213",
+    "promise": "The plugin runtime discovers plugins, loads them while honoring a persisted enabled:false flag, collects contributions through a flag-gated dispatcher (a buggy getter puts the plugin into an 'errored' state and returns an empty list rather than crashing), and polls each plugin's health every 30 seconds.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-bootstrap.ts:40,273-276 (HEALTH_POLL_INTERVAL_MS = 30_000, setInterval healthCheckAll); src/lib/plugin-runtime.ts:386-413 (a throwing capability getter emits 'errored' and does not crash the runtime)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-214",
+    "promise": "At this baseline, exactly three bundled plugins actually load (example, openbb-mcp, tradesa-v2); because the contract stays serializable, their React panel components ride a static companion map, and only tradesa-v2 currently ships any panels through it.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "src/lib/marketplace.ts:82-331 (CATALOG_ROWS: 12 rows -- vysted-yfinance, openbb-mcp, vysted-lenses, vysted-news, vysted-example all preinstalled:true, plus 7 broker rows preinstalled:false); plugins/vysted-lenses/index.ts:52-60 (a fully wired agent-contributing plugin, not a panel plugin)",
+    "gap": "'Exactly three bundled plugins actually load (example, openbb-mcp, tradesa-v2)' and 'only tradesa-v2 ships panels' are both stale: tradesa-v2 is gone (see INT-PD-194), and five plugins are now pre-installed by default (yfinance, openbb-mcp, vysted-lenses, vysted-news, example) via a marketplace catalog this promise's doc snapshot predates. See F2 in return summary for the full architecture delta.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-215",
+    "promise": "Per-plugin configuration is persisted sidecar-side in SQLite, never in browser storage.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/plugins_store.py:27,78-79,133-134 (sqlite3.connect, json.dumps into settings_json/granted_secret_ids_json columns) -- no browser-storage write path found for plugin config",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-216",
+    "promise": "Plugin secret resolution via PluginConfig.secrets is effectively a no-op at this baseline (the default resolver returns an empty object); plugins fetch credentials out-of-band instead.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "src/lib/plugin-runtime.ts:109 (default resolveSecrets is `async () => ({})`, still a no-op AS A LIBRARY DEFAULT); src/lib/plugin-bootstrap.ts:236-247 (the runtime is actually constructed with a real resolveSecrets that calls getSecret(id) from the OS keychain per granted secret id, FR-054/SC-015)",
+    "gap": "The library-level default is still a no-op (matches the promise literally), but the promise's conclusion -- 'plugins fetch credentials out-of-band instead' -- is stale: the shipped bootstrap wires a genuine keychain-backed resolver, so PluginConfig.secrets is now populated for real at runtime.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-217",
+    "promise": "The plugin capabilities for contributing agents and contributing nodes are unexercised by any bundled plugin at this baseline -- first-party AI agents load through a separate sidecar JSON path instead.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "plugins/vysted-lenses/index.ts:18-24 (capabilities.contributesAgents: true), :27-42 (a real getAgents()-style AgentSpec array, 'Quant Tutor'), :3-13 (docstring: 'the reference instance of the AGENT slice ... agents are install/enable/configure/remove marketplace plugins, not a hardcoded path'); grep of contributesNodes across plugins/ finds no `true` occurrence, so node-contribution is still unexercised",
+    "gap": "contributesAgents IS now exercised by a bundled, pre-installed plugin (vysted-lenses/quant-tutor) -- the promise is half-stale. contributesNodes remains genuinely unexercised, matching the promise for that half.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-218",
+    "promise": "Seven broker plugins under plugins/brokers/ each export a full plugin contract but are not registered in the bundled-plugins list and are not imported anywhere under the frontend source -- they exist only as contract-conformance test fixtures, and broker execution bypasses the plugin subsystem entirely.",
+    "source": "docs/CURRENT_STATE.md \u00a73.4",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "plugins/brokers/*/manifest.json (7 broker plugin dirs, unchanged); src/lib/marketplace.ts:20-33 (alpacaPlugin, angelOnePlugin, ccxtExecPlugin, dhanPlugin, ibPlugin, kitePlugin, oandaPlugin ARE imported and each has a CATALOG_ROWS entry, contradicting 'not imported anywhere under the frontend source'); sidecar/services/brokers/registry.py:12-20,38-68 ('FR-051 -- no broker registers at boot ... KNOWN_ADAPTER_FACTORIES maps every supported BrokerId to a zero-arg factory')",
+    "gap": "'Not registered ... not imported anywhere under the frontend source' is now false -- all seven are imported into the marketplace catalog and are registered lazily through a real factory registry the moment their marketplace plugin connects. 'Broker execution bypasses the plugin subsystem entirely' still holds in the narrow sense that order placement itself is a REST call, not a plugin-contract method call, but broker DISCOVERY/CONNECTION now runs entirely through the marketplace/plugin path.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-219",
+    "promise": "Only Dhan, Angel One, and Kite broker adapters are registered by default; fully-implemented Alpaca, Interactive Brokers, OANDA, and ccxt-execution adapters are never registered and are therefore dead at runtime.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "deferred-item",
+    "status": "partial",
+    "evidence": "sidecar/services/brokers/registry.py:12-20 ('The sidecar registers no broker adapter at startup ... registered lazily via ensure_registered when its marketplace plugin connects'), :49-68 (KNOWN_ADAPTER_FACTORIES lists all of dhan, angelone, kite, alpaca, ib, oanda, plus 4 ccxt-* variants -- 10 factories, uniform); src/lib/marketplace.ts:188-320 (all 7 broker CATALOG_ROWS entries have preinstalled: false -- kite/dhan/angelone are NOT distinguished from alpaca/ib/oanda/ccxt-exec any more)",
+    "gap": "The promise's 3-registered-by-default vs 4-dead split no longer exists. The redesign (FR-051) made ALL adapters -- including Dhan/AngelOne/Kite -- lazy/on-connect rather than boot-registered, and Alpaca/IB/OANDA/ccxt-exec are reachable through the identical marketplace-connect path, so they are not 'dead at runtime.'",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-220",
+    "promise": "The Kite Connect OAuth flow is genuinely end-to-end: the user pastes an API key/secret, the login page opens in the system browser, the user manually pastes back the redirect URL or bare request token (a deliberate v1 choice, since the registered redirect has no Rust loopback listener), and the sidecar then performs the real session-generation exchange to obtain a daily access token.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 (genuine generate_session exchange, delivered); grep for 'request_token'/'kite.*login'/'kite.*oauth' across src/ (excluding tests) hits only src/lib/marketplace.ts's descriptive copy string, never a call site",
+    "gap": "The backend half is genuinely end-to-end as described. The frontend half is not: no UI path opens the login page or collects/exchanges a request_token -- BrokerConnectPanel.tsx:54-58 instead asks the user to paste a pre-obtained 'Access Token' directly as a stored credential field. A real user cannot exercise the documented flow through the shipped app; see F1 in return summary.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-221",
+    "promise": "The Kite access token expires daily around 6am IST, and that expiry maps to an HTTP 419 response as the client's reconnect cue.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/brokers/kite.py:499-503 (Kite auth-error -> BrokerError('kite: session expired -- reconnect (daily token expiry)')); sidecar/routers/brokers.py:184-190 (-> HTTP 419)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-222",
+    "promise": "Kite's api_secret crosses to the sidecar only for the OAuth exchange itself and is never stored or echoed back.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 -- api_secret is a function-local parameter only, never placed on the returned dict (only access_token is returned); not persisted or echoed anywhere in the function",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-223",
+    "promise": "At this baseline, the granular /positions, /holdings, and /margins broker endpoints all return the same account-summary shape as /account, because no adapter yet defines the granular per-endpoint methods.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/services/brokers/kite.py:241,256,269 (positions_info/holdings_info/margins_info ARE defined -- genuinely granular BrokerPositionsResult/BrokerHoldingsResult/BrokerMarginsResult shapes); sidecar/routers/brokers.py:192-206 (_read_granular falls back to account_info() via getattr when a method is absent); grep confirms none of dhan.py/angelone.py/alpaca.py/ib.py/oanda.py/ccxt_exec.py define positions_info/holdings_info/margins_info",
+    "gap": "Stale for the reference broker: Kite now DOES define the granular per-endpoint methods, so its /positions, /holdings, /margins responses are genuinely distinct shapes, not account-summary copies. The other six adapters still fall back exactly as the promise describes.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-224",
+    "promise": "In paper mode, or when no live broker client is connected, a 'connected' broker returns a synthetic fixed account balance with empty positions -- fabricated data, not real holdings.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/brokers/kite.py:178-182 (paper/no-client -> accountId 'paper-kite', synthetic balance), :231-235 (result dict explicitly carries 'synthetic': synthetic -- the FR-041 provenance label, an extra safeguard beyond what the promise claims)",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-PD-225",
+    "promise": "Paper trading is the hard default with no constructor path to a live mode (only an explicit runtime mode switch can move it), every order-placement call short-circuits to a synthetic paper result while in paper mode, and Kite's live order-placement path -- while implemented, with hardcoded order variety and product type covering only cash equity -- has never been exercised against a real live order.",
+    "source": "docs/CURRENT_STATE.md \u00a73.5",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:89-94 (self._mode: BrokerMode = 'paper' hardcoded in __init__, comment: 'There is no constructor argument that flips this to live'); sidecar/services/brokers/kite.py:286-318 (_place_confirmed genuinely calls the real Kite SDK place_order) -- mechanism is real and delivered as written",
+    "gap": "Live/paper switching + order-placement path -- out of scope for this pass per the launch-brief scope note regardless of delivery status. (Note: src/lib/marketplace.ts:192 now markets the Kite plugin as 'Read-only; no order execution', a product-framing change consistent with the 23 Sep decision even though the underlying place_order code path has not been physically removed.)",
+    "decision_ref": "operator decision 23 Sep -- trading removed from product (PROMPT_offmachine_s2.md sec1 scope note: live/paper switching is never missing/partial/delivered-reported, always dropped)"
+  }
+]

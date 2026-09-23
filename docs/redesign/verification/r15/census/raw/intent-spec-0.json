@@ -1,0 +1,22 @@
+[
+  {
+    "raw_id": "INT-spec-0-1",
+    "title": "Foreground agent runs always show $0.00 spend regardless of actual token cost",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "chat run history / cost HUD",
+    "repro": "design: send any chat/agent message on a paid provider (e.g. Anthropic/OpenAI) from the ChatSidebar composer, let it finish, inspect the run's recorded cost in run history/HUD",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:918-922 (`onDone: (usage) => { ... updateRun(runId, { cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 } }); ... }`)",
+    "notes": "Constitution Principle VI: 'The provider/model/cost in use is always legible on the agent surface.' Provider/model ARE legible (HUD override resolved at :507,:767-782) but spendUsd is a literal 0, not a computed estimate, for every foreground run — the same estimate BudgetGuard already knows how to compute for background/Delegate runs (sidecar/services/budget_guard.py price_per_million/estimate_spend_usd, :82-84) is simply never threaded into the foreground onDone handler. Smallest fix: call the same estimate_spend_usd(provider, model, tokens) helper (already exported from budget_guard.py, or duplicate the price table client-side) when finalizing a foreground run instead of hard-coding 0. Overlaps conceptually with the already-filed INT-spec-90-3 (native-search billing invisibility) but is broader: this is EVERY foreground run's total spend reading zero, not just uncapped native-search cost."
+  },
+  {
+    "raw_id": "INT-spec-0-2",
+    "title": "Citation/verifiable-artifact guarantees are scoped to the research-brief and Equity-Overview narrative surfaces, not every agent claim",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "chat / brief / equity-overview",
+    "repro": "design: ask the agent a plain factual question in chat that it answers inline from a tool result WITHOUT triggering the research/brief pipeline or opening Equity Overview — the response carries no citation object and no unverified-claim check",
+    "evidence": "types/brief.ts:6,224-245,309-312 (citation machinery lives on BriefSource/structured brief contract), src/modules/equity-overview/EquityOverviewPanel.tsx:345-445 (`[unverified]` token + unverified_claims tooltip, narrative-specific)",
+    "notes": "Constitution Principle VI states 'Every agent claim that asserts a fact carries citations' and 'unverified data is labeled unverified' as blanket guarantees. In the actual code these are real, well-built mechanisms but they are wired to two specific surfaces (the research/brief pipeline's sources array, and the Equity Overview narrative's post-hoc numeric-verification pass) rather than every chat turn that states a fact. Low severity because the two surfaces that matter most for money-relevant claims (fundamentals narrative, research briefs) ARE covered; a plain chat answer citing a live quote value already carries the Quote.provider field (INT-SP-33) even without a formal citation object. Smallest fix if ever prioritized: extend the same unverified-claims check used in EquityOverviewPanel to the general chat-message renderer, or scope the constitution language to 'every claim in a brief or narrative' to match what is actually built."
+  }
+]

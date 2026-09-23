@@ -1,0 +1,72 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-270-1",
+    "title": "CURRENT_STATE.md SS4 tool-schema-catalog gap table is fully stale (documents a ~11-tool backlog that no longer exists)",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "copilot / agent_tools catalog",
+    "repro": "Read docs/CURRENT_STATE.md SS4's 'The 14-id TOOL_SCHEMAS catalog -- but only ~10 are reachable' table, then compare against sidecar/services/agent_tools/schemas.py's actual TOOL_SCHEMAS and sidecar/services/agent_tools/catalog.py's read_handler_ids().",
+    "evidence": "sidecar/services/agent_tools/schemas.py:36 TOOL_SCHEMAS now has 50 entries (was 14 when documented); sidecar/services/agent_tools/catalog.py:1511-1528 read_handler_ids()/agent_selectable_tool_ids() show set(read_handler_ids()) - set(TOOL_SCHEMAS) == empty set (0 unreachable handlers, was ~11); sidecar/tests/test_capability_catalog.py:48-59 mechanically enforces this parity going forward.",
+    "notes": "A capability-catalog refactor (this repo's own CLAUDE.md cites it as Constitution Principle II) closed the exact gap CURRENT_STATE.md SS4 still documents as open. A redesign team reading the doc could waste time re-discovering/re-fixing an already-closed gap, or under-trust the tool surface. Fix: regenerate SS4's table from catalog.py at doc-refresh time (or replace the static table with a pointer to test_capability_catalog.py's pass/fail)."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-2",
+    "title": "CURRENT_STATE.md SS3.11 custom-agent tool-allow-list inconsistency is fixed but still documented as an open bug",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "custom agents",
+    "repro": "Read docs/CURRENT_STATE.md SS3.11's 'the custom-agent tool allow-list is stale + out of sync: KNOWN_TOOL_IDS lists only 5 tools ... news/macro pass validation but are not keys in TOOL_SCHEMAS' claim, then open sidecar/models/custom_agent.py.",
+    "evidence": "sidecar/models/custom_agent.py:38 'KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()' -- computed, not a 5-id literal; sidecar/services/agent_tools/catalog.py:1520-1528 agent_selectable_tool_ids() = frozenset(internal_tool_ids()), docstring 'A custom agent may select any tool the first-party copilot can use'.",
+    "notes": "Same root fix as INT-pdd-readme-270-1 (the catalog refactor) also closed this specific documented inconsistency. Low severity because it's purely a stale-doc issue with no current user-facing impact -- a custom agent can now legitimately select any of the 50 catalog tools."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-3",
+    "title": "CURRENT_STATE.md SS4 documents the Gemini multi-round tool-use bug as live; it was fixed",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "copilot / LLM adapters",
+    "repro": "Read docs/CURRENT_STATE.md SS4's 'Gemini multi-round tool use is likely broken -- function_response keyed by empty name' claim, then open sidecar/services/agent_runtime.py's tool-result-append site and sidecar/services/llm/gemini.py's function_response construction.",
+    "evidence": "sidecar/services/agent_runtime.py:1577,1585 the appended role=\"tool\" message now carries metadata={\"name\": tool_call.name}; sidecar/services/llm/gemini.py:56-57 function_response.name reads message.metadata.get(\"name\", \"\") (no longer unconditionally empty); sidecar/tests/test_gemini_multiround.py is a dedicated regression test for this exact path.",
+    "notes": "This repo's own CLAUDE.md gotchas section already documents the fix ('the tool-RESULT turn carries metadata[\"name\"] ... omit it and Gemini multi-round breaks') -- docs/CURRENT_STATE.md simply was not updated to match. Worth a pass to keep the two docs from contradicting each other before 0.9.0."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-4",
+    "title": "CURRENT_STATE.md SS3.10 says the desktop-notification-intent slice has no dispatcher; a dispatcher now exists and is mounted",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "node editor / workflow store",
+    "repro": "Read docs/CURRENT_STATE.md SS3.10's 'A second workflow-state store ... has no found dispatcher -- treat as unwired' claim, then check src/lib/desktop-notification.ts and its mount site.",
+    "evidence": "src/lib/desktop-notification.ts:92-112 subscribes to useWorkflowStore's pendingNotifications and calls drainNotifications() after firing the OS notification; src/app/page.tsx:10 imports and uses useDesktopNotificationBridge; `git log --oneline -- src/lib/desktop-notification.ts` shows commit 328947f 'feat(workflow): bridge action.notify_desktop to OS notifications'.",
+    "notes": "Favorable drift, not a defect -- flagged only because CURRENT_STATE.md SS3.10 undersells shipped functionality to anyone using it to scope redesign work."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-5",
+    "title": "CURRENT_STATE.md SS6 persistence table lists 3 SQLite-backed stores; there are at least 5, none with migrations",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "persistence / local-first model",
+    "repro": "Read docs/CURRENT_STATE.md SS6's persistence table (workspace blob / BYOK keychain / positions.db / audit_log.db / data_cache.db) and its 'no DB migrations anywhere (all THREE SQLite stores...)' honest-gaps note, then grep sidecar/services for additional sqlite3.connect(...) + CREATE TABLE IF NOT EXISTS sites.",
+    "evidence": "sidecar/services/runs_store.py:52,55,97 DB_FILENAME='delegate_runs.db', 'CREATE TABLE IF NOT EXISTS runs', comment at :97 repeating the same no-migration caveat independently; sidecar/services/agents_store.py:39,42 DB_FILENAME='custom_agents.db', 'CREATE TABLE IF NOT EXISTS custom_agents' -- both undocumented in SS6's table.",
+    "notes": "The underlying claim (no migration mechanism anywhere) is true and confirmed to extend to these two additional stores too, so this isn't a new safety gap -- but a redesign that plans a migration strategy 'for the three stores' will miss delegate_runs.db and custom_agents.db entirely unless SS6 is corrected to the real count before 0.9.0."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-6",
+    "title": "copilot.json's system prompt has grown to 8.75KB, more than double the documented per-persona ceiling",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "agent personas",
+    "repro": "python3 -c \"import json; print(len(json.load(open('sidecar/agents/copilot.json'))['systemPrompt'].encode()))\" -> 8751, vs the 12 investor personas which all measure 2581-3900 bytes.",
+    "evidence": "sidecar/agents/copilot.json systemPrompt = 8751 bytes UTF-8; docs/CURRENT_STATE.md SS3.11 'Each persona's prompt is 1.5-4 KB'.",
+    "notes": "copilot is also the agent with by far the broadest tool allow-list (50 ids, see INT-PD-303) and does the heaviest per-call orchestration on the smallest default model (ollama/qwen2.5:7b, INT-PD-306) -- an oversized system prompt compounds both the per-call token/latency cost and the risk of the small local model losing track of instructions. Worth a trim/audit pass before 0.9.0, not just a doc update."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-7",
+    "title": "CURRENT_STATE.md describes non-order host actions as applying as live mutations; by default they now stage in the same review gate as an order proposal",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "copilot / chat sidebar act-path",
+    "repro": "Read docs/CURRENT_STATE.md SS3.10/SS4's 'executeHostAction maps copilot tool calls to live UI mutations (setting the chart symbol, opening a panel, adding a watchlist entry)' claim, then open src/store/agent-autonomy.ts.",
+    "evidence": "src/store/agent-autonomy.ts:7-9,23,38 'ask (default) -- every proposed change waits in the diff/accept gate. auto -- UI/layout/chart/watchlist changes apply WITHOUT a per-action confirmation'; useAgentAutonomyStore defaults autonomy: 'ask'. src/lib/host-actions.ts:6-13 module doc confirms every host action (not just propose_order) is staged as a ProposedChange.",
+    "notes": "Not a regression -- if anything this is a more conservative, more consistent act-path than documented (every mutation, not just orders, now gets a diff/accept step by default). Flagged because the doc's specific claim ('live mutations' for non-order actions) no longer matches the default behaviour, which matters if the redesign is scoping how much friction the agent should add per action."
+  }
+]

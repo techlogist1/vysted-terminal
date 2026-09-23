@@ -698,6 +698,81 @@
       "tier4": false
     },
     {
+      "id": "R15-CODE-PLATFORM-071",
+      "title": "First-party panels bypass the plugin model: every core panel is a static-import VystedModule the user cannot install or remove, skipping manifests and the requiredHostVersion check, contrary to FR-050's one unified extension model",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/modules/index.ts",
+        "src/app/page.tsx",
+        "src/lib/module-registry.ts",
+        "src/lib/plugin-bootstrap.ts",
+        "specs/"
+      ],
+      "repro": "[INT-spec-90-11] Open the Marketplace panel and look for Chart, Watchlist, Portfolio, News, ... as installable/removable entries -> none are listed; they register through the static list in src/modules/index.ts -> page.tsx registerModules, not through the plugin runtime.",
+      "evidence": "[INT-spec-90-11] src/lib/module-registry.ts:1-14 (docblock calls modules the 'in-app analogue' of plugin panel/command capabilities); src/modules/index.ts:3-27,60-70; page.tsx:18,50; plugin-bootstrap.ts:127-160 (moduleForPlugin adapts plugin panels INTO the module registry); SettingsPanel.tsx:1710+ (runtime disable only); spec.md:98-105 clarification requires first-party panels to be pre-installed plugins, 'not a separate hardcoded path' -- refuter admitted_with_correction (high->medium): one host rendering registry with two registration paths, not a wholly parallel extension system; modules can be disabled at runtime but not installed/removed. Architectural conformance gap with limited day-to-day user impact.",
+      "root_cause": "First-party panels were built as VystedModules registered by static import before the plugin model existed; plugin panels were later adapted into the same registry via moduleForPlugin, leaving two registration paths.",
+      "fix_shape": "Operator decision (core architecture / spec reversal): either wrap each first-party module as a pre-installed bundled plugin (manifest + BUNDLED_PLUGINS/PLUGIN_COMPANIONS entry, removable in Marketplace) so there is one registration path, or record a decision re-scoping FR-050 to exclude first-party panels. Pin with a test that every registered panel id traces to a plugin manifest (or to the recorded exemption list).",
+      "defect_class": "parallel-registration-path",
+      "raw_ids": [
+        "INT-spec-90-11"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-072",
+      "title": "Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served; nse_direct/nse/bse/ccxt have no entry); adding a source needs host edits in two languages",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "files": [
+        "src/lib/marketplace.ts",
+        "types/marketplace.ts",
+        "sidecar/services/provider_registry.py",
+        "src/modules/marketplace/MarketplacePanel.tsx"
+      ],
+      "repro": "[INT-spec-90-12] Trace a marketplace entry's credentialFields/standardModelKeys -> literal arrays in src/lib/marketplace.ts, not derived from ProviderDeclaration (no credential field) nor types/plugin.ts. Compare: vysted-yfinance declares ['quote','ohlcv','fundamentals'] (marketplace.ts:96-97) while registry yfinance serves 7 keys incl. statements and analyst_rating (provider_registry.py:200-215). [INT-spec-180-187] design: adding a data source requires a ProviderDeclaration row (provider_registry.py:80) plus a static import + hand-written catalog row in marketplace.ts:20-45,84-335.",
+      "evidence": "[INT-spec-90-12] types/marketplace.ts:58-69; src/lib/marketplace.ts:96-97,150-160 and per-entry credentialFields; sidecar/services/provider_registry.py:79-98,200-215 -- refuter admitted_with_correction (high->medium): drift is already visible; standardModelKeys/preferenceRank have no consumer outside marketplace.ts; after the trading removal the credential side is one optional NewsAPI key, so the residual is a decorative, drifting description rather than a broken credential flow. [INT-spec-180-187] src/lib/marketplace.ts:20-45,84-335; provider_registry.py:16-18,80; MarketplacePanel.tsx:244-274 (generic credential form, so SC-007's '0 lines of per-source UI' holds); plugins/yfinance/index.ts:1-12 -- refuter admitted_with_correction (medium->medium): the real gap is that a source cannot be added via the contract without host edits in Python and TS. Related but distinct: R15-CODE-PLATFORM-015 (the TS plugin data capability itself is inert).",
+      "root_cause": "The marketplace catalog is a host-compiled static list written by hand, with no derivation from the sidecar provider registry (the actual resolver) -- the same single-source-of-truth violation the capability catalog rule forbids for agent tools.",
+      "fix_shape": "Make provider_registry the one source: expose its declarations (serves, region, asset classes, plus a new optional credentials field) over a GET route and derive the data-provider marketplace rows from it, deleting the hand-written standardModelKeys/preferenceRank. Pin with a parity test (every registry provider has exactly one marketplace entry whose declared keys equal its serves set). No types/plugin.ts change required.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "INT-spec-90-12",
+        "INT-spec-180-187"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-073",
+      "title": "The design-token off-scale audit (PDD section 16's 'gate for one system') runs in neither ci-local nor any CI workflow, and covers only part of section 16, so an off-scale or raw-hex regression ships silently (NodeEditorPanel already hardcodes the retired warm palette)",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "package.json",
+        ".github/workflows/lint.yml",
+        "scripts/audit-design-tokens.mjs",
+        "src/modules/node-editor/NodeEditorPanel.tsx"
+      ],
+      "repro": "[INT-pdd-readme-90-2] Add `text-[17px]` or `p-2.5` to a component and run `pnpm ci-local` / push -> nothing fails; grep 'audit-design-tokens' package.json .github/workflows/ -> no match. Separately, `node scripts/audit-design-tokens.mjs --report src plugins` prints 'clean' while src/modules/node-editor/NodeEditorPanel.tsx:572 hardcodes color=\"#39332b\" bgColor=\"#1a1814\" (old warm palette).",
+      "evidence": "[INT-pdd-readme-90-2] package.json:20 (ci-local chain omits the script); .github/workflows/* (no reference); scripts/audit-design-tokens.mjs:4-17 (checks spacing steps, arbitrary rhythm/text values, dead type sizes only); PRODUCT_DESIGN_DECISIONS.md:317-321 (rounded-[...], raw hex, shadow/blur checks are rg one-liners with no script); NodeEditorPanel.tsx:572 -- refuter admitted_with_correction (medium->medium): gap holds; the script does not implement all of section 16. Related: R15-CODE-PLATFORM-027 (Windows false-clean) and -063 (ruff gate scope).",
+      "root_cause": "The audit was written as a manual verification aid for the R9 track and never added to the gate chain; three of section 16's checks were never scripted.",
+      "fix_shape": "Extend audit-design-tokens.mjs with the rounded-[...], raw-hex-in-components and shadow/blur checks; fix NodeEditorPanel.tsx:572 to tokens (canvas palette via chart-theme.ts); add the non --report run to ci-local and lint.yml (lint.yml is Tier-1 CI -> operator). Pin with a fixture test that each rule flags a seeded violation.",
+      "defect_class": "gate-scope-gap",
+      "raw_ids": [
+        "INT-pdd-readme-90-2"
+      ],
+      "tier4": true
+    },
+    {
       "id": "R15-CODE-PLATFORM-031",
       "title": "Kill-switch unsubscribe pops by name, so replacing an adapter under the same name leaves the replacement unsubscribed",
       "severity": "low",
@@ -1560,6 +1635,71 @@
       "raw_ids": [
         "INT-pdd-readme-0-2",
         "INT-pdd-readme-45-8"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-074",
+      "title": "mcp-endpoint.json is never removed, so after every normal quit or failed relaunch it still advertises the previous sidecar port, contradicting MCP_INTEGRATION.md's 'a stale file never points at a dead port'",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "docs/MCP_INTEGRATION.md"
+      ],
+      "repro": "[INT-pdd-readme-315-3] Launch Vysted (healthy boot writes mcp-endpoint.json with port P) -> quit (or relaunch and let the boot time out) -> file still names port P -> an external MCP client reads it and gets connection refused on loopback.",
+      "evidence": "[INT-pdd-readme-315-3] src-tauri/src/lib.rs:184-186 (write_mcp_endpoint_file), :200 (start_main_sidecar), :265 (write only on the bound branch); no remove_file of the endpoint path anywhere in src-tauri or sidecar; docs/MCP_INTEGRATION.md:53-54 -- refuter admitted_with_correction (medium->low): goes stale after EVERY quit, not only a failed relaunch; outcome is the same connection-refused an external client would see with no file, no wrong data.",
+      "root_cause": "The discovery file is written on healthy boot but has no delete on start-of-boot or on app exit.",
+      "fix_shape": "std::fs::remove_file(mcp_endpoint_path(&data_dir)).ok() at the top of start_main_sidecar and in the app exit handler; correct the doc sentence. Pin with a Rust unit test that start-of-boot clears a pre-existing file.",
+      "defect_class": "stale-discovery-state",
+      "raw_ids": [
+        "INT-pdd-readme-315-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-075",
+      "title": "WorkflowRunRequest's mode='resume-from' / resumeFrom are dead fields: the router never reads them, so a resume request silently re-runs the whole graph",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/models/workflow.py",
+        "sidecar/routers/workflow.py",
+        "types/workflow.ts"
+      ],
+      "repro": "[INT-deferred-42-5] POST /workflow/run with mode='resume-from', resumeFrom=<node_id> -> routers/workflow.py:39-56 passes only spec/inputs to workflow_engine.run_workflow -> full run, no error.",
+      "evidence": "[INT-deferred-42-5] sidecar/models/workflow.py:73-74; types/workflow.ts:83-89; sidecar/routers/workflow.py:39-56; NodeEditorPanel.tsx:389 (only caller hard-codes mode:'full'); MCP run_workflow takes only spec_json (MCP_INTEGRATION.md:128) -- refuter admitted_with_correction (medium->low): no in-product flow can send resume-from; only a hand-written REST caller hits it.",
+      "root_cause": "The resume feature was scoped into the request model and its TS mirror but never implemented in the engine or router.",
+      "fix_shape": "Reject mode != 'full' with 400 (or delete mode/resumeFrom from both mirrors). Pin with a router test that resume-from is not silently accepted.",
+      "defect_class": "dead-contract-field",
+      "raw_ids": [
+        "INT-deferred-42-5"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-076",
+      "title": "copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost",
+      "severity": "low",
+      "area": "agent",
+      "subsystem": "agent-runtime",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "sidecar/agents/copilot.json"
+      ],
+      "repro": "[INT-pdd-readme-270-6] python3 -c \"import json; print(len(json.load(open('sidecar/agents/copilot.json'))['systemPrompt'].encode()))\" -> 8751, vs 2581-3900 for the other 12 agents.",
+      "evidence": "[INT-pdd-readme-270-6] sidecar/agents/copilot.json systemPrompt (8751 B), :58-59 (default ollama/qwen2.5:7b); docs/CURRENT_STATE.md:648 ('1.5-4 KB' describes investor personas, not a ceiling for the router); ollama.py:47,137-143 (num_ctx=16384, so no truncation) -- refuter admitted_with_correction (low->low): not a documented-ceiling breach and not truncated; residual is per-call token/latency cost.",
+      "root_cause": "Router prompt accreted instructions across releases with no size budget.",
+      "fix_shape": "Trim/deduplicate the copilot prompt (move tool-usage prose that the tool schemas already carry); add a byte-budget assertion for agent JSON prompts in test_agent_runtime.",
+      "defect_class": "prompt-bloat",
+      "raw_ids": [
+        "INT-pdd-readme-270-6"
       ],
       "tier4": false
     }

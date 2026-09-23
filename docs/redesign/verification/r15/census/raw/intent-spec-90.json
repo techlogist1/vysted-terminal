@@ -11,7 +11,7 @@
   },
   {
     "raw_id": "INT-spec-90-2",
-    "title": "Portfolio market value / P&L carry no freshness badge — stale or after-hours quotes read as live",
+    "title": "Portfolio market value / P&L carry no freshness badge \u2014 stale or after-hours quotes read as live",
     "severity": "medium",
     "area": "ui",
     "subsystem": "portfolio panel",
@@ -37,6 +37,86 @@
     "subsystem": "provider-registry",
     "repro": "design: provider_registry candidates for model_key='fundamentals', region IN = openbb-mcp (all-null shells for IN, D72) -> yfinance; no exchange-direct / filing-derived fundamentals provider exists",
     "evidence": "sidecar/services/provider_registry.py:128-142,161-164,200-215; docs/redesign/DECISIONS.md D72/D73",
-    "notes": "spec Edge-Cases-Pass-B: 'yfinance is never the trusted India primary'. Holds for quote/OHLC only. D73 proved yfinance is 'present-but-subtly-off' below mid-cap (141x institutional holding, promoter drift). Cross-checks flag some fields but the primary number shown is still yfinance's. Likely overlaps the data-battery sweeps — merge there. Fix shape: an exchange/XBRL-derived IN fundamentals provider ranked above yfinance for the fields it can serve."
+    "notes": "spec Edge-Cases-Pass-B: 'yfinance is never the trusted India primary'. Holds for quote/OHLC only. D73 proved yfinance is 'present-but-subtly-off' below mid-cap (141x institutional holding, promoter drift). Cross-checks flag some fields but the primary number shown is still yfinance's. Likely overlaps the data-battery sweeps \u2014 merge there. Fix shape: an exchange/XBRL-derived IN fundamentals provider ranked above yfinance for the fields it can serve."
+  },
+  {
+    "raw_id": "INT-spec-90-5",
+    "title": "Agent surface has no full-cockpit mode \u2014 width hard-capped at 1200px",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "agent dock / cockpit shell",
+    "repro": "Drag the agent-dock resize handle to the right on any viewport >= ~1600px wide -> the column stops growing at 1200px; there is no toggle/command that lets it occupy the full cockpit.",
+    "evidence": "src/components/AgentDock.tsx:19-133, src/store/agent-dock.ts:12-13 (AGENT_DOCK_MIN_WIDTH=280, AGENT_DOCK_MAX_WIDTH=1200 hard px cap)",
+    "notes": "spec.md FR-001 MUST: the agent surface can occupy 'a dominant column OR the full cockpit'. Only the dominant-column half is built; the full-cockpit mode (agent as the sole/maximized surface) doesn't exist in any form. Smallest fix: a maximize toggle that sets width to the viewport width (or a CSS flex-basis: 100% state) alongside the existing collapse."
+  },
+  {
+    "raw_id": "INT-spec-90-6",
+    "title": "Four explicit hotkey-switchable agent intents (Ask/Edit-panel/Build/Delegate) collapsed to two, with no formal decision record",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-mode store",
+    "repro": "Open the app; try alt+3 / alt+4 (the old Build/Edit-panel bindings) -> nothing happens; only alt+1 (inferred 'Agent') and alt+2 (Delegate) exist.",
+    "evidence": "types/agent-modes.ts:1-60 (own docblock: 'The old four explicit modes ... collapses the three hands-on modes into ONE inferred surface'), src/store/keybindings.ts:65-76 (comment: 'the shipped handler no longer has' the alt+1-4 bindings), docs/redesign/R4_STALE_CODE_REGISTER.md:62 (S-15 flags the FR-003-vs-Track-B conflict as an unresolved 'two mode systems coexist' item)",
+    "notes": "spec.md FR-003 is an explicit MUST for four named modes on stable global hotkeys with the active mode always visible. The shipped two-mode inferred surface may be a reasonable product call, but no D-number in docs/redesign/DECISIONS.md or CHANGELOG.md entry formally records the reversal the way COMMON.md's decision_ref format requires \u2014 R4_STALE_CODE_REGISTER.md flagged the conflict as something to 'decide' and it was resolved in code without a paper trail. Smallest fix: either restore the four-mode dispatch, or add a one-line DECISIONS.md/CHANGELOG.md entry ratifying the two-mode collapse so this doesn't keep resurfacing as a spec/code mismatch."
+  },
+  {
+    "raw_id": "INT-spec-90-7",
+    "title": "Delegate runs can never self-pause to ask a question \u2014 only an external/operator-driven pause exists",
+    "severity": "low",
+    "area": "agent",
+    "subsystem": "run_manager / delegate runs",
+    "repro": "Start a Delegate run and let it hit a point where it would benefit from asking the user something mid-run -> it has no ask_user-style tool; it either keeps guessing or runs to completion/budget-breach, it cannot pause itself.",
+    "evidence": "sidecar/services/run_manager.py:23-33 ('the pause is an EXPLICIT signal (operator/host-driven), not an autonomous in-loop ask_user tool call ... which is deferred')",
+    "notes": "spec.md FR-028 (SHOULD): 'pause for a human-in-the-loop question without losing progress.' The pause/answer/resume plumbing is fully built and durable; only the agent's own ability to trigger a pause is missing, and it's self-documented in code as deferred (no ask_user catalog capability yet). Smallest fix: add an ask_user Capability (read-only, internal-only) that calls pause_run()."
+  },
+  {
+    "raw_id": "INT-spec-90-8",
+    "title": "BYOK/credential setup is split across two separate UIs, neither offers a test-connection action",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "Settings / Marketplace credentials",
+    "repro": "Open Settings > AI Providers to add an LLM key (one form) vs Settings > Integrations -> 'Open Marketplace' to add a broker/data-connector credential (a different panel, different form) -> no single place to manage every connector's credentials; after saving either, there is no 'Test connection' button, only a passive background readiness probe for LLM keys.",
+    "evidence": "src/components/SettingsPanel.tsx:410-530 (ProvidersSection, LLM-only) and :1563-1585 (IntegrationsSection just links out: 'Broker connections are managed in the Marketplace'), src/modules/marketplace/MarketplacePanel.tsx:35,118,244 (separate credentialFields form), grep for a user-triggered test action across SettingsPanel.tsx/MarketplacePanel.tsx/KeyEntryDialog.tsx is empty",
+    "notes": "spec.md FR-034 MUST: 'a single BYOK/credentials hub' that renders/masks/tests forms generically for every data provider, broker, and connector. Shipped has two separate, differently-implemented surfaces and no explicit test affordance on either. Smallest fix: fold IntegrationsSection's credential rendering into the same generic component ProvidersSection uses (or vice versa), and add a Test button that fires one cheap read call through the credential."
+  },
+  {
+    "raw_id": "INT-spec-90-9",
+    "title": "Settings export/import drops every configured connection \u2014 only keybindings + 3 preference fields travel",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "Settings export/import",
+    "repro": "Configure an LLM provider default, a broker plugin, and a data-connector, then Settings > Export settings -> open the downloaded vysted-settings.json -> it contains only keybindingOverrides + {defaultAgentId, region, deepResearchBackend}; none of the above survive an export/import round-trip (secrets aside).",
+    "evidence": "src/components/SettingsPanel.tsx:1757-1791 (SettingsExport shape), src/store/settings.ts:51-68 (SettingsBundle = {defaultAgentId, region, deepResearchBackend} only; useLLMProvidersStore.defaultProviderId is not part of it)",
+    "notes": "spec.md FR-037 (SHOULD): 'Configured connections SHOULD be exportable/importable across machines (secrets via the keychain, not the export file).' Today the non-secret SHAPE of a connection (which providers/brokers/connectors are set up, default provider) isn't exported at all, so a machine move means reconfiguring everything from scratch even though no secret needed to travel. Smallest fix: add a connections field to SettingsExport (provider ids, default provider, installed marketplace plugin ids + their non-secret config) alongside the existing keybindings/settings."
+  },
+  {
+    "raw_id": "INT-spec-90-10",
+    "title": "Settings surface is missing most of the FR-038 preference categories \u2014 no provider/model order, palette behavior, panel defaults, or starter-cockpit composition controls",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "SettingsPanel",
+    "repro": "Open Settings and look for a way to set a provider/model FALLBACK ORDER (only a single 'Default' radio-style pick exists, src/store/llm-providers.ts:127-136), or to configure command-palette ranking behavior, or to change which panels open in the default per-launch cockpit -> none exist.",
+    "evidence": "src/components/SettingsPanel.tsx section list (ProvidersSection:410, ResearchSection:1210, RegionSection:1297, KeybindingsSection:1365, AdvancedSection:1532, IntegrationsSection:1563, LayoutsSection:1587, ModulesSection:1710, ExportImportSection:1775, AboutSection:1872) and src/store/settings.ts:51-68 (SettingsBundle covers only defaultAgentId/region/deepResearchBackend)",
+    "notes": "spec.md FR-038 MUST, 'depth target is Cursor-grade': keybindings (delivered), default persona (delivered), default provider/model + PREFERENCE ORDER (only a single default pick, no order list), palette behavior (absent), panel defaults (absent), starter-cockpit composition (absent \u2014 src/config/default-layout.ts is a hardcoded constant with no settings-surface editor), theming knobs (N/A, dark-only by FR-030). Several explicitly-named categories in an explicit MUST have zero UI. Smallest fix (biggest win first): a provider preference-order list (drag-to-reorder over the existing provider rows) and a starter-cockpit panel picker feeding src/config/default-layout.ts."
+  },
+  {
+    "raw_id": "INT-spec-90-11",
+    "title": "Panels are not marketplace-installable \u2014 a second, parallel 'module' extension system exists alongside the plugin contract",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "plugin marketplace vs module-registry",
+    "repro": "Open the Marketplace panel and look for any of the core panels (Chart, Watchlist, Portfolio, News, ...) as an installable/removable entry -> none are listed; they ship as hardcoded 'modules' instead.",
+    "evidence": "src/lib/module-registry.ts:1-14 ('A first-party module bundles panels, commands... Modules are the in-app analogue of the VystedPlugin panel/command capabilities'), plugins/ contains broker + data-provider + one agent-pack plugin but no panel-contributing plugin (grep for `panels:` across plugins/*/index.ts finds none)",
+    "notes": "spec.md FR-050 MUST: 'brokers, data providers/connectors, panels, and agents are all delivered as marketplace plugins ... one unified extension model.' Brokers/data/agents genuinely go through the marketplace; panels are still a separate, build-time-registered VystedModule system the user cannot install, configure, or remove at runtime \u2014 the module-registry's own docblock names itself an 'analogue' of the plugin contract, i.e. a second parallel system, not the same one. Smallest fix (large): give PanelSpec-contributing modules a manifest + marketplace entry point, or explicitly re-scope FR-050 to exclude first-party panels with a recorded decision."
+  },
+  {
+    "raw_id": "INT-spec-90-12",
+    "title": "Data-provider credential/shape declaration lives in a hand-maintained duplicate, disconnected from both the plugin contract and the provider registry",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "marketplace credentials vs provider_registry",
+    "repro": "Trace where a marketplace entry's credentialFields (e.g. an API-key form) comes from -> it's a literal array hand-written in src/lib/marketplace.ts, not derived from sidecar/services/provider_registry.py's ProviderDeclaration (which has no credentials field at all) nor from types/plugin.ts's VystedPlugin contract (which also has no credentialFields).",
+    "evidence": "types/marketplace.ts:59 (CredentialField/credentialFields declared here, NOT in types/plugin.ts \u2014 grep for credentialFields in types/plugin.ts is empty), src/lib/marketplace.ts:150,202,219,245,262,279,296,322 (credentialFields arrays hand-written per entry, several via a keySecretFields() helper), sidecar/services/provider_registry.py:80-99 (ProviderDeclaration = {id, serves, rank, requires, asset_classes, region} \u2014 no credentials/shape field)",
+    "notes": "spec.md FR-053 MUST: the data registry's credential+shape declaration IS the data-source slice of the one unified plugin/marketplace model \u2014 not a second, separately-maintained description. In code there are three disconnected surfaces: the Tier-1 VystedPlugin contract (no credential concept), the provider registry (no credential concept), and a hand-maintained types/marketplace.ts + src/lib/marketplace.ts literal list that the project's own single-source-of-truth catalog convention (CLAUDE.md's capability-catalog rule) would normally forbid. Smallest fix: add a credentials field to ProviderDeclaration and derive src/lib/marketplace.ts's entries from it (or from plugin manifests) instead of hand-writing them."
   }
 ]

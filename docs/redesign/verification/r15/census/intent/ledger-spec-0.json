@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-SP-1",
+    "promise": "The agent is a co-equal primary surface, not a bolted-on sidebar, able to occupy a dominant column or the full cockpit.",
+    "source": "constitution.md#Principle-I",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:356-359 (\"Promoted from a dockview panel to the shell's primary column (FR-001): its actions open + arrange the cockpit\"); src/app/page.tsx shell layout gives the agent a dedicated primary column, not a dockview tab.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-2",
+    "promise": "The agent is terminal-aware: it can open panels, set symbols, drive the watchlist, stage actions, explain, and plan.",
+    "source": "constitution.md#Principle-I",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/host-actions.ts:66 HOST_ACTION_NAMES set + loadSymbolIntoChart:259, openCompanyOverview:274-282 (ws.openPanel), applyHostAction:880 dispatches openPanel/addToWatchlist/stage-portfolio-change actions (e.g. :935,:979,:1169,:1349 openPanel(\"screener-panel\"/\"portfolio\")); sidecar/services/agent_tools/catalog.py host_action ToolKind (line 62) is the agent-callable half of the same names.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-3",
+    "promise": "The agent's natural output is the cockpit itself \u2014 panels are to Vysted what files are to a code editor.",
+    "source": "constitution.md#Principle-I",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/host-actions.ts applyHostAction (:880-1400) resolves every agent action to a workspace-store panel open/arrange call (ws.openPanel/openCompanyOverview/loadSymbolIntoChart) rather than returning chat-only text; ChatSidebar.tsx:357-359 states panels are the agent's output surface.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-4",
+    "promise": "Two users are first-class in one workspace, never two apps: the agent-delegator (novice) and the hands-on driver (finance-literate user).",
+    "source": "constitution.md#Principle-I",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:356 \"four-mode spine (Ask / Edit / Build / Delegate)\" running in the SAME workspace store as manual panel drag/drop (src/components/PanelHost.tsx dockview host); no separate app/window for either path \u2014 both read/write useWorkspaceStore.",
+    "gap": "Terminology drifted from the constitution's literal 'agent-delegator / hands-on driver' framing to the mode-spine framing (Ask/Edit/Build/Delegate) \u2014 same mechanism, different label; not a functional gap.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-5",
+    "promise": "Every capability MUST be reachable both by hand and by agent.",
+    "source": "constitution.md#Principle-I",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py Capability dataclass (:79-90) \u2014 every agent-reachable capability declares a `kind` (read_handler/host_action/mcp_endpoint) that also drives a UI-reachable route/panel; the READ_ONLY host-action set in src/lib/host-actions.ts mirrors the same catalog ids the agent calls, so the same action is reachable by clicking the panel or by the agent invoking the tool.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-6",
+    "promise": "The switch between leaning on the agent and driving by hand MUST be a single, non-destructive gesture.",
+    "source": "constitution.md#Principle-I",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "No lock/disable gate on panels while an agent run streams was found (grepped src/components/PanelHost.tsx and src/modules/*/*.tsx for a streaming-disables-panel pattern \u2014 none exists); dockview panels stay live and directly editable during a streaming agent run, so switching to hands-on is just clicking the panel, and the composer's stop control (ChatSidebar.tsx onDone/fail handlers, :913-921) ends a run without tearing down any panel state.",
+    "gap": "No single NAMED control literally toggles 'mode' \u2014 the non-destructive switch is implicit (panels are simply always interactive), not a documented, discoverable affordance a new user would find.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-7",
+    "promise": "The agent does the ambiguous upfront work, then hands off to the manipulable cockpit \u2014 it never traps a user inside a chat transcript for work that wants direct manipulation.",
+    "source": "constitution.md#Principle-I",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/host-actions.ts applyHostAction opens/arranges panels (openPanel/openCompanyOverview/loadSymbolIntoChart, e.g. :935,:1116,:1169,:1349) rather than rendering data as more chat text \u2014 every substantial output hands off to a panel the user can then directly manipulate.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-8",
+    "promise": "Every terminal capability (quotes, charts, screener, fundamentals, portfolio, news, quant, brokers, \u2026) is defined once in a single capability catalog and projected to all consumers (built-in copilot/personas AND external MCP clients).",
+    "source": "constitution.md#Principle-II",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py \u2014 the Capability dataclass (:79-92) is the single declaration; TOOL_SCHEMAS (schemas.py) and mcp_capabilities() (catalog.py:1496) both project from the SAME `CAPABILITIES` registry (per CLAUDE.md's documented derivation and test_capability_catalog.py / test_mcp_catalog_parity.py which audit registry<->catalog and internal<->MCP parity).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-9",
+    "promise": "The internal agent adapter and the external MCP adapter are two renderers of the same source of truth, not two hand-maintained surfaces.",
+    "source": "constitution.md#Principle-II",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/mcp_server.py:141-153 builds each MCP tool's `readOnlyHint` directly from the SAME `capability.read_only` flag the internal copilot adapter reads off the same Capability object \u2014 one declaration, two renderers, not two hand-maintained lists.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-10",
+    "promise": "A capability MUST NOT exist for only one consumer.",
+    "source": "constitution.md#Principle-II",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py mcp_capabilities() (:1496) filters/derives from the same CAPABILITIES list every internal TOOL_SCHEMAS entry comes from \u2014 there is no separate 'MCP-only' or 'internal-only' capability table (hand-written MCP-only tools like agent/workspace/workflow ops are the documented exception, not a violation of the single-catalog rule for terminal DATA capabilities).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-11",
+    "promise": "One read_only declaration drives both the internal mutation gate and the external readOnlyHint.",
+    "source": "constitution.md#Principle-II",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py Capability.read_only (:88) is read both by the internal tool-schema gate (schemas.py TOOL_SCHEMAS derivation) and by mcp_server.py:153 readOnlyHint=capability.read_only \u2014 same field, both surfaces.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-12",
+    "promise": "Vysted is a framework people build finance agents and trade-bots on, not a closed app.",
+    "source": "constitution.md#Principle-II",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "docs/MCP_INTEGRATION.md:1-16 \u2014 \"Vysted-as-server\": the sidecar mounts a FastMCP app at /mcp; external clients (Claude Desktop, Claude Code) consume Vysted's data + agent surface as MCP tools; plugins/ (openbb-mcp, brokers, vysted-lenses, vysted-news) + types/plugin.ts's `agent-collection`/`trading-bot` PluginType (types/plugin.ts:28) let a third party ship its own agents/bots on top.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-13",
+    "promise": "Read-only is the default; every mutation is explicit, gated, and audited.",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py \u2014 read-only wrapper base class gates every mutating path behind kill-switch + confirm-time re-check (:246-346); Capability.read_only (catalog.py:88) makes the default explicit per-tool; audit_log.py enforces every actual mutation lands in the append-only trail (see INT-SP-14/35).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-14",
+    "promise": "The append-only audit log is enforced at the database level (SQLite triggers + a read-only reader connection), not by convention.",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/audit_log.py AUDIT_LOG_DDL \u2014 BEFORE UPDATE (line 41) and BEFORE DELETE (line 47) triggers RAISE(ABORT) on audit_orders (per CLAUDE.md's documented sqlite3.IntegrityError behaviour); the reader connection is opened PRAGMA query_only=ON per the same file's documented pattern.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-15",
+    "promise": "Type-gated execution: mutations are only reachable through an explicit confirm path, plus a grep-time audit over all call sites.",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/tests/test_safety_end_to_end.py \u2014 a dedicated \u00a76.5 8-point audit suite; test_audit_1_paper_mode_default (:119) and test_audit_2_no_bypass_path_to_place_confirmed (:163-178) literally `subprocess.run([\"grep\", ...])` over the broker call sites and assert no live-mode / no-bypass literal exists, i.e. the grep-time audit runs as an executed test, not a manual review step.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-16",
+    "promise": "A kill-switch halts the mutating path.",
+    "source": "constitution.md#Principle-III",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/broker_base.py:251-252 (`if kill_switch.get_bus().is_fired: raise BrokerError(...halted...)`) at propose time AND :345-346 re-checked at confirm time (\"Kill switch may have fired in\" the gap between propose and confirm); src-tauri/src/kill_switch.rs:34-94 wires the Cmd/Ctrl+Shift+K global shortcut to emit the same event the Python bus subscribes to.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-17",
+    "promise": "Read-only-by-default wrappers: no mutating methods on a provider's public surface; GET-only routers; supportsControlPlane = false.",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "Per CLAUDE.md's documented three-layer wrapper audit (no insert_/update_/.../execute_ methods on a provider's public surface via inspect.getmembers, no non-GET router routes, capabilities.supportsControlPlane=false \u2014 types/plugin.ts:68); sidecar/tests/test_*_router.py (test_brokers_router.py etc.) are the corresponding router-level GET-only audits found under sidecar/tests/.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-18",
+    "promise": "Every agent-proposed change (panel config, portfolio, workspace build, and especially orders) renders as a reviewable preview\u2192applied diff (accept-all/reject-all/per-item, keyboard-driven).",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:358-359 \u2014 \"every agent-proposed mutation is staged as a reviewable diff (FR-010) \u2014 nothing lands before the user accepts\"; useProposedChangesStore referenced at :928-931 gates a pending publish_brief the same way; portfolio/workspace mutations route through the same proposed-changes store per host-actions.ts (:1349,:1373,:1387 openPanel(\"portfolio\") after a staged change, not a direct write).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-19",
+    "promise": "Orders never auto-apply; there is no 'YOLO' path.",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:359-360 \u2014 \"Orders route through the \u00a76.5 dialog (FR-011); the AI never reaches placement.\"; sidecar/services/broker_base.py's propose/confirm split (kill-switch re-checked at BOTH steps, :246-346) structurally prevents a single agent call from both proposing and executing an order.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-20",
+    "promise": "Autonomous agent runs are bounded by a hard ceiling on tokens/spend/wall-clock/steps (a BudgetGuard).",
+    "source": "constitution.md#Principle-III",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/budget_guard.py:1-90 \u2014 BudgetGuard accumulates tokens/spend_usd/wall_seconds/steps and reports the FIRST breached ceiling (SC-008, docstring :1-8); sidecar/services/run_manager.py:53,103-110 wires BudgetGuard into every Delegate/background run via on_round_usage.",
+    "gap": "BudgetGuard only wraps DETACHED Delegate runs (run_manager.py). The foreground interactive chat loop (sidecar/services/agent_runtime.py:539-543 _MAX_TOOL_ROUNDS=6) caps rounds/steps but has no token/spend/wall-clock ceiling of its own \u2014 acceptable since 'autonomous agent runs' in the constitution maps to the background/Delegate surface, not the supervised foreground chat, but worth flagging if the promise is read to cover both.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-21",
+    "promise": "Vysted runs fully on the user's machine with no hosted backend.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:3-5 \u2014 \"No account, no hosted backend, no telemetry: data and secrets stay on your machine.\"; sidecar/main.py:101 binds --host default 127.0.0.1; README.md:22-25 describes the three-process, loopback-only architecture (Rust core + Next.js static export + Python sidecar).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-22",
+    "promise": "All provider and model keys are operator-supplied.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:29 \"BYOK across 7 LLM providers\"; src-tauri/src/keychain.rs SERVICE=\"vysted-terminal\" (:36) is the only place a provider secret is written, always via a renderer-side settings action, never bundled/hard-coded.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-23",
+    "promise": "Secrets live in the OS keychain; the renderer reads them and passes them per request; the sidecar cannot read the keychain.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/keychain.rs:1-30 module doc + keychain_get/keychain_set (:299-332) \u2014 the renderer/Rust core owns the OS keychain (keyring::Entry, :65-85); the Python sidecar has no keychain-reading code path (grepped sidecar/ for `keyring` import \u2014 none), matching \"the sidecar cannot read the keychain.\"",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-24",
+    "promise": "Secrets are least-privilege at point of use, never logged, echoed, or persisted beyond process memory.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/keychain.rs:1-2 module doc \"never on disk in the browser, never in plaintext logs\"; secrets cross to the sidecar only as a per-request header per CLAUDE.md's documented BYOK pattern, never persisted server-side.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-25",
+    "promise": "The sidecar binds loopback only.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/main.py:101 `parser.add_argument(\"--host\", default=\"127.0.0.1\", ...)`; src-tauri/src/openbb_mcp.rs:96 and sec_edgar_mcp.rs:96 both hard-set their subprocess host env var to 127.0.0.1 as well.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-26",
+    "promise": "No user data leaves the machine unless a plugin explicitly routes it outward, and that routing is visible.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts DataSource/PluginCapabilities contract has no implicit network-egress path; any outward routing is a plugin's own declared behaviour (contributesData sources are explicit, named, and shown in the plugin manager per CLAUDE.md's plugin-contract section) rather than a hidden host-level telemetry call.",
+    "gap": "No dedicated 'egress visibility' UI/audit (e.g. a per-plugin network-call log) was found in this sweep beyond the plugin manager's declared-sources list \u2014 this is closer to 'egress is opt-in and declared' than 'every outbound call is visibly logged'; would need a data-egress raw finding if a plugin's contributesData source silently calls out without appearing in that list, which this pass did not test.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-27",
+    "promise": "Credential storage MUST NOT regress to plaintext files or machine-ID-derived encryption.",
+    "source": "constitution.md#Principle-IV",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src-tauri/src/keychain.rs:1-30 \u2014 RELEASE builds (`cfg(not(debug_assertions))`) use ONLY the OS keychain (os_keychain module, :62-86); the plaintext `dev-keystore.json` file backend is compiled ONLY under `cfg(debug_assertions)` and is asserted absent from release by `release_never_uses_dev_keystore` (module doc :19-21). The dev keystore itself is COMMON.md out-of-scope (\"reopening ... the dev keystore\") and not machine-ID-derived (it is a build-time dev convenience, not an at-rest encryption scheme).",
+    "gap": null,
+    "decision_ref": "COMMON.md out-of-scope-by-decision list \u2014 dev keystore reopening excluded"
+  },
+  {
+    "pid": "INT-SP-28",
+    "promise": "The VystedPlugin contract (types/plugin.ts) \u2014 six capabilities: data, panels, commands, agents, nodes, control plane \u2014 is the platform's backbone and a Tier-1 locked file.",
+    "source": "constitution.md#Principle-V",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:9-20 module doc \u2014 \"THIS IS THE HIGHEST-RISK FILE IN THE PROJECT ... changing them is a breaking change for the whole ecosystem\"; PluginCapabilities (:62-69) declares exactly six flags: contributesData/Panels/Commands/Agents/Nodes/supportsControlPlane; CLAUDE.md Tier-1 locked files section names types/plugin.ts explicitly.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-29",
+    "promise": "The plugin contract stays serializable (no framework types cross it).",
+    "source": "constitution.md#Principle-V",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:17-19 \u2014 \"blueprint \u00a73.3 writes `any` for the `subscribe` event and `executeCommand` args. This contract uses `unknown` instead\"; PanelSpec.component (:113-117) is a string id resolved by the host at mount time specifically so \"the contract stays serializable and free of framework types.\"",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-30",
+    "promise": "Changing the plugin contract is a breaking change for every downstream plugin and requires operator sign-off.",
+    "source": "constitution.md#Principle-V",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "CLAUDE.md 'Decision authority (blast-radius tiers)' Tier-4 names types/plugin.ts explicitly as a file that must \"Block and ask the operator\" before changing; this is a repo-enforced process rule, not a runtime mechanism, so evidence is documentary rather than code-level.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-31",
+    "promise": "First-party features are built as if they were plugins, exercising the same contract, so the extension surface is always real and dogfooded.",
+    "source": "constitution.md#Principle-V",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "plugins/vysted-lenses/ and plugins/vysted-news/ (`ls plugins/`) are first-party features shipped through the SAME plugin directory/contract as third-party plugins/openbb-mcp and plugins/brokers, rather than being special-cased in the host.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-32",
+    "promise": "The platform \u2014 not the agent roster or the license \u2014 is the durable moat.",
+    "source": "constitution.md#Principle-V",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:9-15 module doc frames the plugin contract itself (not the agent roster) as the highest-risk, longest-lived asset (\"every plugin and every future phase plugs into these types\"); CLAUDE.md's Tier-1 locked files list centers the platform contract, not any specific model/agent choice, as what requires sign-off to change.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-33",
+    "promise": "Every data response carries provenance (which provider served it).",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/market.py Quote.provider: str (:23) and OHLCVSeries.provider: str (:44-46, non-optional) \u2014 every market-data model carries a mandatory provider field; types/data.ts:151,170 mirror per-field provenance/coverage metadata for fundamentals (R13).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-34",
+    "promise": "Every agent claim that asserts a fact carries citations.",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "types/brief.ts:6,309-312 \u2014 the research-brief contract carries markdown with `[n]` citation markers backed by a `sources: BriefSource[]` array with real URLs (:232); BriefStructuredLeg (:22-36) tags every data leg with `provider`. This machinery covers the DEEP/FAST research and brief-publish path.",
+    "gap": "A plain chat-turn factual claim made OUTSIDE the research/brief pipeline (e.g. the model states a number from a tool result inline in normal chat prose) has no code-enforced citation object \u2014 citation enforcement rides the brief contract, not every assistant turn that asserts a fact, so it is not true for 'every agent claim' as literally stated.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-35",
+    "promise": "Every mutation lands in the append-only audit trail.",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/audit_log.py AUDIT_LOG_DDL append-only triggers (:41,:47) plus sidecar/services/broker_base.py's mutation gate (kill-switch + confirm-time re-check, :246-346) sit directly in front of the only mutating call path, so every mutation that reaches execution necessarily passes through the audited path.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-36",
+    "promise": "The provider/model/cost in use is always legible on the agent surface.",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Provider/model ARE legible: src/modules/chat/ChatSidebar.tsx:398,439,507,767-782 \u2014 an explicit HUD provider/model override resolved every send. But src/modules/chat/ChatSidebar.tsx:921 `updateRun(runId, { cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 } })` hard-codes spendUsd to literal 0 for every foreground run regardless of the model/provider actually used or its real per-token price.",
+    "gap": "Cost is NOT legible on the agent surface for foreground runs \u2014 every run's spend reads $0.00 in the run history/HUD no matter what was actually spent, which directly contradicts 'the provider/model/cost in use is always legible.' (BudgetGuard computes a real spend_usd estimate for Delegate/background runs only \u2014 run_manager.py:103-110 \u2014 so the gap is specific to the foreground chat path.)",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-37",
+    "promise": "Trust is earned with verifiable artifacts, not asserted \u2014 and never simulated (no fabricated data behind a 'populated' surface).",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:345-445 \u2014 a numeric-verification pass flags model-written figures that don't match source data with an `[unverified]` inline token + tooltip listing `unverified_claims`; src/modules/research/BriefPanel.tsx:726 warns when a run's citations weren't captured.",
+    "gap": "The verifiable-artifact mechanism (source-matching + citation tray) exists on the Equity Overview narrative and the research Brief specifically, not as a blanket cross-cutting layer over every surface that could show a model-written number (e.g. a plain chat answer with no brief/narrative wrapper has no equivalent unverified-figure check).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-38",
+    "promise": "Unverified data is labeled unverified.",
+    "source": "constitution.md#Principle-VI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:350-354,438-445 \u2014 `[unverified]` token rendering + a tooltip listing each unverified_claims reason; src/modules/research/BriefPanel.tsx:726 \u2014 explicit 'treat its citations as unverified' copy when sources weren't captured.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-39",
+    "promise": "The UI is dark-only, token-driven, keyboard-first (canvas palette single-sourced separately from CSS tokens).",
+    "source": "constitution.md#Principle-VII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:1-23 \u2014 \"R6 'Pure Black' design language\", a pure-neutral R=G=B ramp with a single scarce accent, explicitly token-driven via a Tailwind 4 @theme block; grepped styles/tokens.css and src/app/globals.css for `prefers-color-scheme`/light-theme rules \u2014 none found, i.e. no light-mode branch exists (dark-only); src/lib/chart-theme.ts keeps the canvas palette single-sourced separately per the tokens.css comment (:19-20).",
+    "gap": "CLAUDE.md's own Gotchas section still describes the OLDER '003 rebuild' amber-cool-indigo palette \u2014 that doc is stale relative to current HEAD's R6 pure-black/peach-accent system; not a product defect, but a doc drift worth a one-line CLAUDE.md fix outside this pass's scope.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-40",
+    "promise": "A new user is productive after learning a few keystrokes (Ask/Edit-panel/Build).",
+    "source": "constitution.md#Principle-VII",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:356-357 \u2014 \"the four-mode spine (Ask / Edit / Build / Delegate)\" is the current name for the constitution's 'Ask/Edit-panel/Build' progression (Delegate added for background runs); src/modules/chat/slash-commands.ts:17,50-54 implements the ask mode as a first-class parsed command.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-41",
+    "promise": "The full power (command grammar, node editor, MCP servers, background agents) reveals itself through a command palette that teaches its own shortcuts.",
+    "source": "constitution.md#Principle-VII",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx:465-467 \u2014 every palette row renders a `<kbd>` element showing its shortcut inline, so using the palette teaches the shortcut for next time; src/store/command-palette.ts backs the same palette that reaches the node editor / MCP servers / background agents per its registered command set.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-42",
+    "promise": "Complexity is layered, not flattened, and never dumped on the front door.",
+    "source": "constitution.md#Principle-VII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/node-editor/NodeEditorPanel.tsx exists as an opt-in panel (opened like any other panel, not part of the default starter cockpit \u2014 see INT-SP-43 evidence) rather than being surfaced on the front door; the command palette (INT-SP-41) is the single progressive-disclosure entry point for it and other deep features.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-43",
+    "promise": "A minimal, populated starter cockpit is the default; plugins open as tabs the user or agent opens, never preloaded en masse.",
+    "source": "constitution.md#Principle-VII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/store/settings.ts:13,165 + src/store/settings.test.ts:46,130,139 \u2014 `starterCockpitPanelIds` (test fixture `[\"chart-panel\"]`) is a distinct, explicitly minimal panel-id list from the full panel catalog; plugin panels are added only via CATALOG_ROWS/marketplace enable flow (src/lib/plugin-bootstrap.ts bridgePluginModule, :181-190), never preloaded.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-44",
+    "promise": "The product is natively local wherever the user is \u2014 a US user gets US tickers/sources/USD/US market hours/US news; an Indian user gets NSE/BSE, INR, IST, Indian sources and news.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/locale.py:130-227 \u2014 region_currency, region_for_suffix, market_timezone, market_session, is_market_open, freshness_for all take a `region` argument that changes currency/exchange-suffix/timezone/market-hours/staleness behaviour per region; src/lib/format.ts:29,35 read `regionConfig(useSettingsStore.getState().region).locale/.currency` at call time.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-45",
+    "promise": "The active region drives ticker/exchange resolution, currency, market-hours-aware freshness, number/date formatting, and default data/news sources.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/format.ts:65-105 formatMoney/formatCompactMoney honour an explicit per-instrument currency OR fall back to the active region's currency (:32-35, R8 \u00a76 'no \u20b9 on AAPL'); sidecar/services/locale.py:227-257 freshness_for is market-hours-aware per region; sidecar/services/symbol_resolver.py:1031-1032 sorts resolution candidates preferring the active region (REGION_IN).",
+    "gap": null,
+    "decision_ref": null
+  }
+]

@@ -34,5 +34,77 @@
     "evidence": "sidecar/services/provider_registry.py:127-215, sidecar/routers/fundamentals.py:88-104, specs/001-agent-native-redesign/spec.md:817, docs/redesign/DECISIONS.md:127 (D72)",
     "evidence_checked": "Opened the registry declarations, the fundamentals router and the spec clause; ran a live GET against :52152.",
     "repro_check": "curl :52152/fundamentals/RELIANCE.NS -> provider='yfinance', market_cap=16785679056896.0, pe_ratio=22.45 (yfinance is the serving primary for an IN large-cap)."
+  },
+  {
+    "raw_id": "INT-spec-90-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. setWidth clamps every drag to [280, 1200] px (agent-dock.ts:12-13,25-27), and AgentDock applies the same maxWidth to both the aside and its inner track (AgentDock.tsx:97,104). The only other dock control is collapse, via agent.toggle, which hides the agent entirely (AgentDock.tsx:65-78). ChatSidebar is not a dockview panel (chat/index.ts:7), so dockview's maximize path (layout-templates.ts:816-822) cannot maximize it either. FR-001 (spec.md:823-825) requires a 'dominant column or the full cockpit'; only the column half exists. On a 1920px display the agent tops out at about 62% of the width.",
+    "evidence": "src/store/agent-dock.ts:12-13,25-35, src/components/AgentDock.tsx:19-133, src/modules/chat/index.ts:7, src/lib/layout-templates.ts:814-831, specs/001-agent-native-redesign/spec.md:823-825",
+    "evidence_checked": "Code-only (the behaviour is a GUI drag, and the GUI lane is unavailable). Opened the dock store and shell and grepped src for maximize/fullscreen/agent-only modes; the only maximize paths are dockview-panel ones.",
+    "repro_check": "grep -rni 'maximi|fullscreen|agent-only' src -> only dockview panel maximize (layout-templates/host-actions) and a Delegate-run foreground button; nothing widens the agent past AGENT_DOCK_MAX_WIDTH=1200."
+  },
+  {
+    "raw_id": "INT-spec-90-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The spec/code mismatch is real: FR-003 (spec.md:829-831) still mandates four hotkeyed modes, while the code ships two, Agent on alt+1 and Delegate on alt+2 (agent-modes.ts:24,42-60; keybindings.ts:65-82). But the claim that there is 'no decision record' is wrong. REBUILD_SPEC.md, which calls itself 'a decision document' (:1-8), states at :179 'The spine is already **two modes** (agent/delegate, types/agent-modes.ts) — good', and REBUILD_R3_SPEC.md:235-242,299 schedules the four-mode to two-mode string cleanup. So the collapse is a ratified product call. What remains is drift: spec.md FR-003/US3 was never amended, and src/store/agent-mode.ts:1-8 still documents 'four-mode ... (⌥1–⌥4)'. Downgraded to low (docs drift, not a missing feature).",
+    "evidence": "types/agent-modes.ts:1-60, src/store/keybindings.ts:65-82, src/store/agent-mode.ts:1-8, docs/redesign/REBUILD_SPEC.md:1-8,179, docs/redesign/REBUILD_R3_SPEC.md:235-242,299, specs/001-agent-native-redesign/spec.md:829-831",
+    "evidence_checked": "Opened the modes type, the keybinding defaults and the agent-mode store; grepped DECISIONS.md, CHANGELOG.md, docs/redesign and specs for the mode-collapse record.",
+    "repro_check": "grep -rn 'alt+3\\|alt+4' src -> no live bindings; grep -rni 'two modes' docs/redesign -> REBUILD_SPEC.md:179 endorses the two-mode spine."
+  },
+  {
+    "raw_id": "INT-spec-90-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Real, and the mechanism is worse than stated. The raw finding says an operator/host-driven pause exists, but pause_run (run_manager.py:301-316) has NO caller anywhere. The runs router exposes launch/list/get/cancel/answer/resume but no /pause route (routers/runs.py:63-127), no agent tool calls it, and nothing in src references it. So a Delegate run cannot be paused for a question by anyone: the answer_run route is reachable only for a run that could never reach status 'paused', and run_manager.py:23-34's 'fully implemented' docstring overstates it. Severity stays low because FR-028 is a SHOULD (spec.md:883-884); the fix is an ask_user capability plus a pause route.",
+    "evidence": "sidecar/services/run_manager.py:23-34,301-316, sidecar/routers/runs.py:63-127, specs/001-agent-native-redesign/spec.md:883-884",
+    "evidence_checked": "Opened run_manager and the runs router; grepped sidecar/routers, sidecar/services and src for pause_run, /pause and ask_user.",
+    "repro_check": "grep -rn 'pause_run\\|/pause' sidecar/routers sidecar/services src -> only the definition and docstring in run_manager.py; no route, tool or frontend caller."
+  },
+  {
+    "raw_id": "INT-spec-90-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Partly refuted. LLM keys ARE tested: KeyEntryDialog validates every key against POST /llm/keys/validate (a live provider models-list probe) before writing it to the keychain, and blocks the save on an invalid key (KeyEntryDialog.tsx:21-24,64-81; routers/llm.py:99). The split-hub part holds: LLM keys live in Settings > AI Providers, while plugin credentials go through the Marketplace CredentialForm, which saves without any test (MarketplacePanel.tsx:239-301). But after the 23 Sep trading removal, every Marketplace credential form except one is a broker entry (marketplace.ts:190-322, removed with the feature). The only surviving one is the OPTIONAL NewsAPI key (marketplace.ts:150-160). The residual is one untested optional data key on a second surface, so this is downgraded to low.",
+    "evidence": "src/components/KeyEntryDialog.tsx:21-24,64-81, sidecar/routers/llm.py:99, src/modules/marketplace/MarketplacePanel.tsx:118,204,239-301, src/lib/marketplace.ts:133-167,190-322, src/components/SettingsPanel.tsx:1563-1585",
+    "evidence_checked": "Opened KeyEntryDialog, the Marketplace CredentialForm, IntegrationsSection and every credentialFields entry in marketplace.ts.",
+    "repro_check": "grep -n 'keys/validate' src/components/KeyEntryDialog.tsx sidecar/routers/llm.py -> validate-before-save exists for LLM keys; grep -n credentialFields src/lib/marketplace.ts -> 1 news entry, all others category 'broker'."
+  },
+  {
+    "raw_id": "INT-spec-90-9",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism holds. SettingsExport = {version, keybindingOverrides, settings} (SettingsPanel.tsx:1757-1772), and SettingsBundle is only defaultAgentId/region/deepResearchBackend (settings.ts:51-68). useLLMProvidersStore.defaultProviderId (llm-providers.ts:127-136) and marketplace installed/enabled state (store/marketplace.ts:48) do not travel. The impact is smaller than stated, though. Broker plugins are removed with trading. Secrets must be re-entered on a new machine anyway, since the keychain does not travel, so re-picking a default provider and re-enabling a few data plugins is marginal extra work. FR-037 is a SHOULD. Downgraded to low.",
+    "evidence": "src/components/SettingsPanel.tsx:1757-1772, src/store/settings.ts:45-68, src/store/llm-providers.ts:127-136, src/store/marketplace.ts:48",
+    "evidence_checked": "Opened the export builder, the settings bundle type, the LLM provider store and the marketplace store state shape.",
+    "repro_check": "Read buildSettingsExport(): it serializes only the keybinding overrides and the 3-field bundle; no provider or plugin state is referenced."
+  },
+  {
+    "raw_id": "INT-spec-90-10",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The gap is real: FR-038 (spec.md:909-914) names provider preference order, palette behavior, panel defaults and starter-cockpit composition, and none has a Settings control today (section list at SettingsPanel.tsx:410-1872; bundle at settings.ts:51-68). Two corrections. (1) These are not unbuilt. R9 deliberately KILLED providerPreferenceOrder, paletteRecentsEnabled, paletteScopedToPanel, starterCockpitPanelIds and panelDefaults as theater controls that nothing consumed (settings.ts:10-15; R9_DEFECT_CATALOGUE.md:40-44 'resurrect only WITH a consuming picker'). So the missing piece is the underlying behaviour (no provider fallback chain, no palette options), not just UI. (2) Starter-cockpit composition is partly served by direct manipulation: the last arranged layout is autosaved and restored on launch, and named layouts can be saved (SettingsPanel.tsx:1630-1632,1704). Downgraded from high to medium: a MUST gap, but in preference depth, not a core flow.",
+    "evidence": "src/store/settings.ts:10-15,51-68,160-166, docs/redesign/verification/R9_DEFECT_CATALOGUE.md:40-44, src/components/SettingsPanel.tsx:410,1532-1548,1587-1710, src/store/llm-providers.ts:125-136, specs/001-agent-native-redesign/spec.md:909-914",
+    "evidence_checked": "Opened the settings store header and the R9 kill list, enumerated the SettingsPanel sections, and read the Layouts subsection hint and provider store.",
+    "repro_check": "grep -n 'providerPreferenceOrder' src/store/settings.ts docs/redesign/verification/R9_DEFECT_CATALOGUE.md -> documented R9 kill; LayoutsSection hint 'Your last layout is restored automatically on launch'."
+  },
+  {
+    "raw_id": "INT-spec-90-11",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The core claim holds: every first-party panel ships through a static import list (src/modules/index.ts:3-27,60-70 -> page.tsx:18,50 registerModules). That path skips the plugin runtime, manifests and the requiredHostVersion check. The spec clarification (spec.md:98-105) explicitly requires first-party panels to be pre-installed plugins that are 'not a separate hardcoded path'. The mechanism is overstated in one respect: the module registry is not a wholly parallel extension system. Plugin-contributed panels ARE adapted into it through moduleForPlugin (plugin-bootstrap.ts:127-160), so there is one host rendering registry and two registration paths. Users can also disable modules at runtime in Settings > Modules (SettingsPanel.tsx:1710+), though not install or remove them. Downgraded to medium: an architectural conformance gap with limited day-to-day user impact.",
+    "evidence": "src/modules/index.ts:3-27,60-70, src/app/page.tsx:18,50, src/lib/module-registry.ts:1-30, src/lib/plugin-bootstrap.ts:127-160, src/components/SettingsPanel.tsx:1710-1720, specs/001-agent-native-redesign/spec.md:98-105,944-948",
+    "evidence_checked": "Opened the module registry, the module index, page.tsx registration, plugin-bootstrap moduleForPlugin and the FR-050 clarification; listed plugins/ (no bundled plugin contributes panels).",
+    "repro_check": "grep -rln panels plugins --include=*.ts -> only a broker adapter comment; src/modules/index.ts statically imports all core panel modules."
+  },
+  {
+    "raw_id": "INT-spec-90-12",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Holds, and the drift is already visible. credentialFields, standardModelKeys and preferenceRank are hand-written in marketplace.ts (types/marketplace.ts:58-69). Neither ProviderDeclaration (provider_registry.py:79-98, which has no credential field) nor types/plugin.ts carries them, and no code outside marketplace.ts consumes standardModelKeys or preferenceRank. They have already diverged: the vysted-yfinance entry declares ['quote','ohlcv','fundamentals'] (marketplace.ts:96-97), but the registry's yfinance serves 7 keys, including the statements and analyst_rating (provider_registry.py:200-215), and the registry's nse_direct/nse/bse/ccxt providers have no marketplace entry at all. Downgraded from high to medium: after the trading removal, the credential side shrinks from 8 broker forms to the one optional NewsAPI key (marketplace.ts:150-160), so the residual is a decorative, drifting data-slice description rather than a broken credential flow.",
+    "evidence": "types/marketplace.ts:50-69, src/lib/marketplace.ts:86-98,113-114,150-165,190-322, sidecar/services/provider_registry.py:79-98,118-215",
+    "evidence_checked": "Opened the marketplace types, every marketplace entry and ProviderDeclaration plus the registry declarations; grepped src for consumers of preferenceRank/standardModelKeys and types/plugin.ts plus manifests for credential fields.",
+    "repro_check": "grep -rn 'preferenceRank|standardModelKeys' src (excluding marketplace.ts/tests) -> no consumers; the yfinance marketplace keys (3) vs registry serves (7) -> drift confirmed."
   }
 ]

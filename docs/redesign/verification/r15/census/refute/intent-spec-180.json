@@ -1,1 +1,128 @@
-[]
+[
+  {
+    "raw_id": "INT-spec-180-181",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "The capability is present (a /layout slash command or the agent's arrange_layout builds the research-cockpit template with no manual panel clicks), but nothing in the repo records a timed first-time-user run against SC-001's under-2-minute bar. This is an evidence gap, so low severity is right.",
+    "evidence": "src/lib/layout-templates.ts:196-218, src/lib/host-actions.ts:603,634, src/modules/chat/ChatSidebar.tsx:667-672",
+    "evidence_checked": "code-only: opened the template and the host-action/slash dispatch; searched docs/redesign for a timed SC-001 run (none found)",
+    "repro_check": "Would need a stopwatch run of a fresh profile driving 'research X' to a populated cockpit (GUI lane, NEEDS-GUI); not run."
+  },
+  {
+    "raw_id": "INT-spec-180-189",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The bar is not just unmeasured, it fails. The generic palette row (PaletteItemRow) renders only the label, the description and a 'recent' tag, with no shortcut at all. The only <kbd> in the palette (the lines the raw finding cites) is the literal 'Enter' on the Ask-agent row, not a per-action binding from the keybindings store. So about 0% of Action/Panel rows carry a visible shortcut against SC-009's >=90%. Raised to medium because it is a concrete, fixable miss rather than a missing audit.",
+    "evidence": "src/components/CommandPalette.tsx:465-467, src/components/CommandPalette.tsx:476-500",
+    "evidence_checked": "code-only: read the palette's Ask-AI row and the generic item row; grep for shortcut/keybinding use in CommandPalette.tsx found only the header comment and the mod+k listener",
+    "repro_check": "grep -n 'kbd\\|shortcut\\|keybinding' src/components/CommandPalette.tsx: the only <kbd> is the 'Enter' at :465-467 and PaletteItemRow renders none."
+  },
+  {
+    "raw_id": "INT-spec-180-196",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "The research-cockpit template does compose chart, equity-overview, brief and news. But no code enforces or measures a floor of >=3 cited sources per brief: the only 'min sources' logic is verify.py's per-claim domain check. When web search is unconfigured, FAST honestly returns structured-only data (fast.py _NO_WEB_NOTE), so SC-016's '100% of the time >=3 sources' cannot currently be guaranteed.",
+    "evidence": "src/lib/layout-templates.ts:196-218, sidecar/services/research/fast.py:11-15,70, sidecar/services/research/verify.py:255",
+    "evidence_checked": "code-only: opened the template and fast.py; grepped research, runtime and brief code for a minimum-source guarantee",
+    "repro_check": "grep -rn 'min.*sources|>= *3' sidecar/services/research src/lib/brief-ingest.ts: no brief-level >=3-source floor exists."
+  },
+  {
+    "raw_id": "INT-spec-180-198",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "fast.py states '<=15s' only in a comment. test_research_fast.py has no elapsed-time assertion, and no build or verification report in docs/redesign records a live wall-clock number for FAST research that includes synthesis and arrangement, which SC-018 requires.",
+    "evidence": "sidecar/services/research/fast.py:37-40, sidecar/tests/test_research_fast.py",
+    "evidence_checked": "code-only: read fast.py and grepped the test for elapsed/time/duration (no match); grepped docs/redesign for a measured FAST latency (none). Did not run a live FAST+synthesis drive (needs an LLM invoke through vy.py)",
+    "repro_check": "Would run: python3 scripts/r15/vy.py invoke --provider ollama --model llama3.1:8b 'research RELIANCE' on :52152 and time it. Not run (a local 8B is not a representative latency lane)."
+  },
+  {
+    "raw_id": "INT-spec-180-202",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The gap holds: no SC-022 completeness audit exists, and neither describeHostAction nor the catalog has any drawing host action. Correction: the '37 host-action cases' count double-counts, because host-actions.ts has one switch for describing an action and one for applying it. There are 19 distinct actions (set_chart_symbol ... set_region). Timeframe and compare are reachable through set_chart_symbol's timeframe argument and arrange_layout(pattern='compare').",
+    "evidence": "src/lib/host-actions.ts:583-858 (describe switch), :883-1390 (apply switch), :585, :669, sidecar/services/agent_tools/catalog.py:154,199,983-988",
+    "evidence_checked": "code-only: listed every case label in host-actions.ts; grepped host-actions.ts and catalog.py for drawing/timeframe/compare",
+    "repro_check": "grep -n 'case \"' src/lib/host-actions.ts gives 37 labels = 19 names x (describe + apply) minus duplicates; grep -i drawing gives no host action."
+  },
+  {
+    "raw_id": "INT-spec-180-205",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Confirmed: in AUTO mode, enqueue() auto-accepts every kind except 'order', so the data-write kinds (portfolio_add/update/delete_position, write_note, save_layout, save_screen) and the settings kind (set_region) apply with no per-action confirmation. The UI tells the user AUTO means 'UI changes apply instantly', and SC-025 limits AUTO to UI/layout/chart/watchlist, so the agent can silently rewrite the user's tracked-portfolio cost basis. Correction to the mechanism: write_screener_filters is kind 'panel', not data-write, while portfolio_delete_position, save_layout and save_screen are data-write and the raw finding left them out. With trading removed, this is the only gate on the tracked-portfolio store.",
+    "evidence": "src/store/proposed-changes.ts:112-120, src/lib/host-actions.ts:754,767,782,794,808,831,848,858, src/store/agent-autonomy.ts:7-17, src/modules/chat/ComposerPlusMenu.tsx:183-186",
+    "evidence_checked": "code-only: read the enqueue() AUTO branch, every describeHostAction kind, the autonomy store's docstring and the AUTO hint copy",
+    "repro_check": "Reasoned path: autonomy='auto' + agent emits portfolio_update_position -> describeHostAction gives kind 'data-write' -> proposed-changes.ts:118 condition is true -> accept() -> applyHostActionAsync with no review. Would confirm with a vitest calling enqueue under auto; not run."
+  },
+  {
+    "raw_id": "INT-spec-180-206",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "It holds that no single artifact shows all three speeds with pixel proof. But each speed is wired: FAST is a model-free cockpit via the /layout slash command going through arrange_layout, ORCHESTRATED is the proposed-changes gate, and DEEP is deep.py. The raw's 'NOT STARTED' quote is from session 1 and is stale. This is a missing proof artifact, not a behaviour defect, so severity drops from medium to low.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:667-672, src/store/proposed-changes.ts:95-122, src/lib/layout-templates.ts:196-218",
+    "evidence_checked": "code-only: confirmed the no-model cockpit dispatch path and the gate; no unified proof artifact found under docs/screenshots/v0.8.0-r4",
+    "repro_check": "ls docs/screenshots/v0.8.0-r4: only agentos-spine-watchlist-host-action.png (ORCHESTRATED) plus bug shots; there is no FAST or DEEP pixel proof."
+  },
+  {
+    "raw_id": "INT-spec-180-207",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The 're-read-after-mutation' part is refuted. test_agent_runtime.py drives a host action and then checks that the model's NEXT round sees the grounded tool result for its own write (applied / failed / dispatched_unconfirmed), fed from the action ledger that proposed-changes acks after applying. The remaining gap stands: there is no SC-027 completeness audit and no agent-reachable drawings action, which overlaps INT-spec-180-202.",
+    "evidence": "sidecar/tests/test_agent_runtime.py:1532-1620, src/store/proposed-changes.ts:147-160, src/modules/chat/ChatSidebar.tsx:425-433",
+    "evidence_checked": "code-only: read the R13 read-back tests and the ack path in proposed-changes.ts",
+    "repro_check": "sidecar/.venv/bin/python -m pytest sidecar/tests/test_agent_runtime.py -k 'ack or readback' -q would exercise it; not run (the code read settles it)."
+  },
+  {
+    "raw_id": "INT-spec-180-209",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The mechanism is misstated. The client no longer has a four-mode spine: the user-visible modes are 'agent' and 'delegate', and the client does not classify each message. The server-side planner.classify_intent runs only inside 'agent' mode, inferring read/edit/build to decide which tools are stripped. That is a layered gate, not a competing mode system. What holds: no SC-029 'one mode system' audit exists, a separate autonomy axis (ask/auto) sits beside the modes, and the R4S3 report left S-15 unresolved. Severity drops to low because the pieces are layered, not conflicting.",
+    "evidence": "types/agent-modes.ts:44,54, sidecar/services/agent_runtime.py:1280-1300, sidecar/services/planner.py:167, docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md:228-230, src/modules/chat/ComposerPlusMenu.tsx:286-304",
+    "evidence_checked": "code-only: read the mode registry, the runtime's intent-inference gate and the S-15 note",
+    "repro_check": "grep -n 'id: \"' types/agent-modes.ts returns only 'agent' and 'delegate'; classify_intent is called only at agent_runtime.py:1282 (mode=='agent') and :1393."
+  },
+  {
+    "raw_id": "INT-spec-180-210",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "It holds that no SC-030 visual audit across every matrix surface for US and India exists. Correction: EmptyState is not limited to '5 surfaces'; it is used in 27 non-test files. Market-session awareness is wired only into ChartPanel and WatchlistPanel, so the market-closed state is not covered on the other surfaces.",
+    "evidence": "src/lib/market-session.ts, src/modules/chart/ChartPanel.tsx, src/modules/watchlist/WatchlistPanel.tsx",
+    "evidence_checked": "code-only: grep counts of <EmptyState and of market-session consumers",
+    "repro_check": "grep -rln '<EmptyState' src | grep -v test | wc -l gives 27; grep -rln 'market-session|isMarketOpen|sessionLabel' src gives chart + watchlist only."
+  },
+  {
+    "raw_id": "INT-spec-180-214",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The SC-034 miss is real, but the numbers are stale. A 120s wall budget now bounds every run, so the 329.8s cold run can no longer happen. Measured live today on :52152, a cold full S&P 500 screen returned in 7.6s with evaluated_count=0 and skipped_count=506, all 'rate_limited', honestly itemized, and a repeat took 0.1s with the same empty result. So the timing bar is 'met' only because the run fails fast, and the skip-rate target the raw called met (<5%) now fails at 100% from this IP. nifty50 answered 49/50 from cache, but its valuation_as_of is about 70 days old.",
+    "evidence": "sidecar/services/screener.py:12,125, sidecar/routers/screener.py:61-93, sidecar/models/screener.py:333-360, docs/redesign/REBUILD_R4_SESSION2_REPORT.md:63-72",
+    "evidence_checked": "live repro against :52152 via vy.py (2x sp500, 1x nifty50) + code read of the wall budget",
+    "repro_check": "python3 scripts/r15/vy.py post --port 52152 /screener/run '{\"universe\":\"sp500\",\"criteria\":[{\"field\":\"market_cap\",\"operator\":\"gt\",\"value\":1}],\"limit\":5}' gave 7.56s wall, evaluated 0, skipped 506 (rate_limited), coverage 'screened 0 of 506 - 506 unavailable'."
+  },
+  {
+    "raw_id": "INT-spec-180-215",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: BriefPanel exports only 'Copy markdown' to the clipboard, per the 'Decision 7 default' step in AGENT_TOOLUSE_PLAN. BriefPanel does not import export-artifact.ts at all (only NotesPanel uses savePng/savePdfArtifact), and no 'Decision 7' or copy-markdown entry exists in DECISIONS.md. SC-035's md/PNG/PDF export is unmet.",
+    "evidence": "src/modules/research/BriefPanel.tsx:568-593,664-675, docs/redesign/AGENT_TOOLUSE_PLAN.md:198, src/lib/export-artifact.ts",
+    "evidence_checked": "code-only: grep of BriefPanel for export/save calls, grep of src for savePdfArtifact/savePngArtifact, grep of DECISIONS.md",
+    "repro_check": "grep -rln 'savePdfArtifact|savePngArtifact' src gives export-artifact.ts + NotesPanel.tsx only; grep -i 'copy-markdown|Decision 7' docs/redesign/DECISIONS.md gives nothing."
+  },
+  {
+    "raw_id": "INT-spec-180-217",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The palette on file is neither of the two the raw names: tokens are now neutral zinc (#0a0a0a/#161616) with --accent-rgb 120 120 120. I measured the current tokens: primary text 16.9:1 / 15.5:1, secondary 8.3:1 / 7.6:1 and tertiary 5.7:1 / 5.2:1 on the root and panel surfaces, so the body floor passes. Two gaps remain. text-charcoal-600 (#484848, 1.98:1 on the panel) is used as readable text in 19 places, such as the palette's 'recent' tag and brief step latencies. And no populated 1920x1080 + 2560x1440 pair exists for the current palette.",
+    "evidence": "styles/tokens.css:33-45, src/app/globals.css:55, src/components/CommandPalette.tsx:498, src/modules/research/BriefPanel.tsx:297",
+    "evidence_checked": "code-only + computed WCAG ratios from tokens.css hex values; listed docs/screenshots/v0.8.0-r4 and v003-rebuild",
+    "repro_check": "python WCAG relative-luminance calc over --color-charcoal-* gives 100:16.91/15.46, 500:5.73/5.24, 600:2.16/1.98; grep -rn text-charcoal-600 src --include=*.tsx gives 19 non-test sites."
+  },
+  {
+    "raw_id": "INT-spec-180-187",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The title's claim is wrong: SC-007's literal '0 lines of per-source UI code' holds, because MarketplacePanel renders credentialFields generically. The real gap is different: the plugin contract's data capability is a thin declaration that the sidecar resolver never reads. A new source needs a hand-written ProviderDeclaration in provider_registry.py plus a static import and catalog row in marketplace.ts, so it cannot be added 'via the contract' without host edits in two languages.",
+    "evidence": "src/lib/marketplace.ts:19-45, sidecar/services/provider_registry.py:78-95,116-184, plugins/yfinance/index.ts:1-12",
+    "evidence_checked": "code-only: read the static imports in the marketplace catalog, the ProviderDeclaration table and the yfinance plugin docstring",
+    "repro_check": "grep -n 'ProviderDeclaration(' sidecar/services/provider_registry.py shows an in-module table; marketplace.ts statically imports each plugin and manifest."
+  }
+]

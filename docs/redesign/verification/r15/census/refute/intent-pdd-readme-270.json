@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-270-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The code side holds: TOOL_SCHEMAS has 50 entries and set(read_handler_ids()) - set(TOOL_SCHEMAS) is empty. But the doc does not simply 'document the gap as open'. Its own §0 Foundation-update banner (CURRENT_STATE.md:17-29) says it supersedes the body and records '§4 ~11 registered handlers unreachable -> CLOSED'. What is still stale: the §4 body table (:745-768) has no inline note, the banner's '27 internal capabilities' count is itself out of date (now 50), and §8 (:950-952) still recommends closing the gap. That is a docs-only problem that a reader of the banner is not misled by, so severity drops from medium to low.",
+    "evidence": "sidecar/services/agent_tools/schemas.py:36; sidecar/services/agent_tools/catalog.py:1511-1528; docs/CURRENT_STATE.md:17-29, :745-768, :950-952",
+    "evidence_checked": "Opened catalog.py:1505-1530 and CURRENT_STATE.md §0/§0.5 banners, §4 and §8. Recomputed the counts in sidecar/.venv.",
+    "repro_check": "cd sidecar && .venv/bin/python3 -c \"from services.agent_tools.schemas import TOOL_SCHEMAS; from services.agent_tools.catalog import read_handler_ids; print(len(TOOL_SCHEMAS), set(read_handler_ids())-set(TOOL_SCHEMAS))\" -> 50 set(). grep -n '~11 registered handlers' docs/CURRENT_STATE.md -> banner line 28 marks CLOSED."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "KNOWN_TOOL_IDS is computed as agent_selectable_tool_ids() (custom_agent.py:38), so the code-side fix is real. Correction: the doc already records the fix in its §0 banner ('custom-agent allow-list stale -> RECONCILED', CURRENT_STATE.md:33-34), which says it supersedes the body. The leftover staleness is the unannotated §3.11 body (:653-659, 'A real, unfixed inconsistency') and the §7 status row (:887 'Stale/out of sync').",
+    "evidence": "sidecar/models/custom_agent.py:30-38; sidecar/services/agent_tools/catalog.py:1520-1528; docs/CURRENT_STATE.md:33-34, :653-659, :887",
+    "evidence_checked": "Opened custom_agent.py:30-42, catalog.py agent_selectable_tool_ids, and the CURRENT_STATE.md banner, §3.11 and §7 table.",
+    "repro_check": "grep -n 'KNOWN_TOOL_IDS' sidecar/models/custom_agent.py -> single computed definition at :38; grep -n 'RECONCILED\\|Stale/out of sync' docs/CURRENT_STATE.md -> :33 banner plus :887 unannotated row."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The fix is real: agent_runtime.py:1576-1585 threads metadata={'name': tool_call.name} onto the tool-result message, gemini.py:56-57 reads it, and test_gemini_multiround.py exists. Correction: the doc is not silent about the fix. Its §0 banner (CURRENT_STATE.md:31-32) records 'Gemini multi-round likely broken -> FIXED'. Three places still carry the unannotated stale claim: the §4 caveat (:773), the §7 status table row (:883 'Likely broken') and the §8 recommendation (:952).",
+    "evidence": "sidecar/services/agent_runtime.py:1576-1585; sidecar/services/llm/gemini.py:50-60; sidecar/tests/test_gemini_multiround.py; docs/CURRENT_STATE.md:31-32, :773, :883, :952",
+    "evidence_checked": "Opened both code sites and confirmed the test file exists. Grepped CURRENT_STATE.md for every Gemini mention.",
+    "repro_check": "grep -n 'Gemini multi-round' docs/CURRENT_STATE.md -> :31 FIXED banner, :773 and :883 still say broken."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The dispatcher is real and mounted: desktop-notification.ts:92-112 flushes pendingNotifications and drains them, and page.tsx:10,43 mounts useDesktopNotificationBridge. No §0/§0.5 banner corrects this. Correction to the mechanism: this is not 'drift'. The bridge commit 328947f (2026-05-17) is an ancestor of the doc's own baseline 3123e7c, and page.tsx at 3123e7c already mounted it (:9,24). So §3.10 was wrong when it was written, not later outdated.",
+    "evidence": "src/lib/desktop-notification.ts:90-112; src/app/page.tsx:10,43; git show 3123e7c:src/app/page.tsx:9,24; docs/CURRENT_STATE.md:625-628",
+    "evidence_checked": "Opened desktop-notification.ts and grepped page.tsx at HEAD and at 3123e7c. Ran git merge-base --is-ancestor 328947f 3123e7c.",
+    "repro_check": "git merge-base --is-ancestor 328947f 3123e7c && echo ANCESTOR -> ANCESTOR; git show 3123e7c:src/app/page.tsx | grep useDesktopNotificationBridge -> import at :9 and call at :24."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Both extra stores are real and have no migrations: runs_store.py:52,55 (delegate_runs.db) and agents_store.py:39,42 (custom_agents.db). The §6 table (CURRENT_STATE.md:824-830) and the 'all three SQLite stores' gap note (:849) undercount them. Correction: they are not 'undocumented' in the doc. runs_store.py is named in the §0.5 banner (:89) and the custom-agent SQLite store in §3.11 (:652). Only §6's count is wrong, and it is a docs-only fix, so severity drops from medium to low.",
+    "evidence": "sidecar/services/runs_store.py:52,55,97; sidecar/services/agents_store.py:39,42; docs/CURRENT_STATE.md:89, :652, :824-830, :849",
+    "evidence_checked": "Grepped DB_FILENAME and CREATE TABLE in both stores. Read the §6 table, the gap note, the §0.5 banner and §3.11.",
+    "repro_check": "grep -n 'DB_FILENAME\\|CREATE TABLE IF NOT EXISTS' sidecar/services/runs_store.py sidecar/services/agents_store.py -> two distinct .db files; grep -n 'runs_store\\|SQLite store' docs/CURRENT_STATE.md -> :89, :652."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The size is correct: copilot.json systemPrompt is 8751 bytes, against 2581-3900 for the other 12 agents. Correction: '1.5-4 KB' (CURRENT_STATE.md:648) describes the investor personas, and copilot is the router, so it is not a ceiling. The feared small-model failure is also mitigated: the Ollama adapter always sets num_ctx=16384 (ollama.py:47,137-143), so the roughly 2.2k-token prompt plus tool schemas is not truncated at Ollama's 4096 default. What remains is per-call token and latency cost on the local default qwen2.5:7b (copilot.json:58-59), which makes this a trim candidate at low severity.",
+    "evidence": "sidecar/agents/copilot.json:58-59 (systemPrompt field); sidecar/services/llm/ollama.py:40-47, :134-143; docs/CURRENT_STATE.md:648",
+    "evidence_checked": "Measured systemPrompt UTF-8 bytes for all 13 agent JSONs in sidecar/.venv. Opened ollama.py to check the num_ctx handling.",
+    "repro_check": "for f in sidecar/agents/*.json: len(json.load(f)['systemPrompt'].encode()) -> copilot 8751, others 2581-3900; grep -n num_ctx sidecar/services/llm/ollama.py -> setdefault 16384 at :142."
+  },
+  {
+    "raw_id": "INT-pdd-readme-270-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The body text at CURRENT_STATE.md:633-635 and :729-733 still says executeHostAction applies live store mutations, while the code stages every host action as a ProposedChange (host-actions.ts:1-14) with autonomy 'ask' as the store default (agent-autonomy.ts:7-9,36-38). Correction 1: the doc's §0.5 banner (:60-65) already says every agent-proposed mutation goes through the diff/accept gate, so only the body is stale. That banner is now itself out of date, because 'auto' mode lets non-order actions skip the gate. Correction 2: 'default' holds only for a fresh workspace, because workspace.ts:297 restores a persisted 'auto'.",
+    "evidence": "src/store/agent-autonomy.ts:7-9,36-38; src/lib/host-actions.ts:1-14; src/lib/workspace.ts:297; docs/CURRENT_STATE.md:60-65, :633-635, :729-733",
+    "evidence_checked": "Opened agent-autonomy.ts:1-40 and the host-actions.ts header. Grepped setAutonomy in workspace.ts. Read the CURRENT_STATE.md §0.5 banner and §3.10/§4 body.",
+    "repro_check": "grep -n 'setAutonomy\\|autonomy:' src/store/agent-autonomy.ts src/lib/workspace.ts -> default 'ask' at :37, restore override at workspace.ts:297; sed -n 60,65p docs/CURRENT_STATE.md -> banner says the diff/accept gate covers every mutation."
+  }
+]

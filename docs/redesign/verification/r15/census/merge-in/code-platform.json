@@ -1091,6 +1091,22 @@
   }
  },
  {
+  "raw_id": "INT-deferred-42-5",
+  "title": "WorkflowRunRequest's resume-from mode is a dead field — declared on the model, never read by the engine or router",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "sidecar/services/workflow_engine.py, sidecar/routers/workflow.py",
+  "repro": "POST a WorkflowRunRequest with mode='resume-from' and resume_from=<node_id> -> sidecar/routers/workflow.py:39 run_workflow never reads payload.mode or payload.resume_from anywhere (grep across routers/workflow.py and services/workflow_engine.py for both terms returns nothing) -> the workflow always executes as a full run.",
+  "evidence": "sidecar/models/workflow.py:73-74; sidecar/routers/workflow.py:39",
+  "notes": "The type exists (implying the feature was scoped) but the execution path silently ignores it instead of rejecting an unsupported mode or implementing it — a caller who sets mode='resume-from' gets a full re-run with no error. Smallest fix: either implement resume-from (skip to the given node using cached upstream outputs) or have the router 400 on an unimplemented mode instead of silently ignoring it.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The dead field is real. WorkflowRunRequest declares mode and resume_from (models/workflow.py:73-74), mirrored in types/workflow.ts:83-89, but run_workflow calls workflow_engine.run_workflow(payload.spec, inputs=payload.inputs, ...) and never reads either field (routers/workflow.py:39-56). A resume-from request therefore silently runs the full graph. I corrected the severity to low. The only in-product caller hard-codes mode:'full' (NodeEditorPanel.tsx:389), and the MCP run_workflow tool takes only spec_json (MCP_INTEGRATION.md:128), so no user flow can send resume-from. Only a hand-written REST caller would hit it. The smallest fix stays the same: 400 on an unimplemented mode, or delete the field from both mirrors."
+  }
+ },
+ {
   "raw_id": "INT-deferred-84-5",
   "title": "Disabling/removing a search-tier plugin leaves its BYOK secret orphaned in the OS keychain",
   "severity": "medium",
@@ -1123,6 +1139,38 @@
   }
  },
  {
+  "raw_id": "INT-pdd-readme-270-6",
+  "title": "copilot.json's system prompt has grown to 8.75KB, more than double the documented per-persona ceiling",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "agent personas",
+  "repro": "python3 -c \"import json; print(len(json.load(open('sidecar/agents/copilot.json'))['systemPrompt'].encode()))\" -> 8751, vs the 12 investor personas which all measure 2581-3900 bytes.",
+  "evidence": "sidecar/agents/copilot.json systemPrompt = 8751 bytes UTF-8; docs/CURRENT_STATE.md SS3.11 'Each persona's prompt is 1.5-4 KB'.",
+  "notes": "copilot is also the agent with by far the broadest tool allow-list (50 ids, see INT-PD-303) and does the heaviest per-call orchestration on the smallest default model (ollama/qwen2.5:7b, INT-PD-306) -- an oversized system prompt compounds both the per-call token/latency cost and the risk of the small local model losing track of instructions. Worth a trim/audit pass before 0.9.0, not just a doc update.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The size is correct: copilot.json systemPrompt is 8751 bytes, against 2581-3900 for the other 12 agents. Correction: '1.5-4 KB' (CURRENT_STATE.md:648) describes the investor personas, and copilot is the router, so it is not a ceiling. The feared small-model failure is also mitigated: the Ollama adapter always sets num_ctx=16384 (ollama.py:47,137-143), so the roughly 2.2k-token prompt plus tool schemas is not truncated at Ollama's 4096 default. What remains is per-call token and latency cost on the local default qwen2.5:7b (copilot.json:58-59), which makes this a trim candidate at low severity."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-315-3",
+  "title": "MCP discovery file (mcp-endpoint.json) is never deleted on a failed relaunch, so a stale file from a prior successful boot can point an external MCP client at a dead port",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "MCP integration / sidecar discovery",
+  "repro": "Launch Vysted once, let the sidecar come up healthy on port P (mcp-endpoint.json is written with sidecarPort:P) -> quit -> relaunch on a machine/state where the next sidecar boot fails or times out before binding (e.g. a transient PyInstaller cold-extraction stall past MCP_PORT_WAIT_SECS) -> the write_mcp_endpoint_file call is skipped for this boot, but the file from the PREVIOUS successful boot is never removed, so an external MCP client (Claude Desktop/Code) that reads mcp-endpoint.json still discovers port P and connects to nothing.",
+  "evidence": "src-tauri/src/lib.rs:198-201 (`if port == 0 { ...; return; }` skips the write on no-free-port), :256-267 (`write_mcp_endpoint_file` called only inside the `if bound {...}` success branch of the health-wait thread; the `else` timeout branch only `eprintln!`s), and `grep -n \"remove_file\" src-tauri/src/lib.rs` returns zero hits anywhere in the file — no code path ever deletes or truncates a previously-written mcp-endpoint.json.",
+  "notes": "docs/MCP_INTEGRATION.md promises 'a stale discovery file can never point at a dead port' but that's only true within a single boot attempt, not across restarts — the guarantee has a real hole for the exact failure mode (cold-boot timeout, which R8's own comment at lib.rs:242-246 says is an observed ~60s scenario) the discovery file exists to protect external clients from. Smallest fix: `std::fs::remove_file(&mcp_endpoint_path(&data_dir)).ok()` at the top of `start_main_sidecar` before attempting the new boot, so a failed/slow boot always clears the previous claim rather than leaving it standing.",
+  "source_file": "intent-pdd-readme-315.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Mechanism is real and broader than stated: mcp-endpoint.json is written only on a healthy boot and nothing in src-tauri or sidecar ever removes it, so it goes stale after EVERY normal quit as well as a failed relaunch, and docs/MCP_INTEGRATION.md:53-54's 'a stale file never points at a dead port' is false. Downgraded medium->low: the outcome is a loopback connection-refused for an external MCP client when the sidecar is not up, the same thing it would see with no file; no wrong data, no safety impact. Fix: remove the file at the start of start_main_sidecar and on app exit."
+  }
+ },
+ {
   "raw_id": "INT-pdd-readme-45-8",
   "title": ".notes-prose literal fallbacks still name the four type sizes R9 abolished",
   "severity": "low",
@@ -1136,6 +1184,71 @@
    "verdict": "admitted",
    "severity_final": "low",
    "reason": "Confirmed: the .notes-prose fallbacks are 1.375rem, 1.125rem, 0.9375rem and 0.75rem, with weight 590. The warm-palette colour fallbacks (#4d463b, #ada294, #2d2820, #17140f, #3e372d) are stale in the same way. tokens.css is imported unconditionally at globals.css:7, so none of these fallbacks ever renders today. It is dead or stale code, low as stated."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-90-2",
+  "title": "The design-token off-scale audit (PDD §16's 'gate for one system') is not wired into CI or ci-local -- it is a manual-only script",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "design system enforcement / scripts/audit-design-tokens.mjs",
+  "repro": "Add an off-scale utility to a changed file (e.g. `text-[17px]`, `p-2.5`, `rounded-[10px]`) and run `pnpm ci-local` or push to a branch that runs the GitHub workflows -> nothing fails, because neither references `audit-design-tokens.mjs`. The violation only surfaces if a human happens to run `node scripts/audit-design-tokens.mjs` by hand, as the R9 track reports did manually for their own verification.",
+  "evidence": "scripts/audit-design-tokens.mjs (implements exactly the checks PRODUCT_DESIGN_DECISIONS.md §16 calls 'the binary off-scale audit... the gate for one system': arbitrary text-[...], off-grid spacing, arbitrary rounded-[...], raw hex in components, shadow-md/lg/xl/2xl/drop-shadow/blur-). `grep -n \"audit-design-tokens\" package.json` -> no match; `grep -rln \"audit-design-tokens\" .github/workflows/` -> no match; package.json:20 `ci-local` chain (install, ensure-sidecars, lint, format:check, typecheck, cargo fmt, clippy, ruff, pnpm test, cargo test, pytest) does not include it either. Running it now (`node scripts/audit-design-tokens.mjs --report src plugins`) returns 'design-token audit clean' -- today's code happens to comply, but nothing stops a future regression from shipping.",
+  "notes": "PDD §16 explicitly frames this script as THE enforcement gate for the entire design system ('the scale is law'), and the same section's undefined-utility-class rule (§16, last bullet: a stale/undefined `@utility` reference like `.group-heading-style` is a defect) has no automated check at all -- both are policy-only today. Smallest fix: add `node scripts/audit-design-tokens.mjs src plugins` (non---report mode, which exits non-zero on violations per the script's own usage comment) as a step in `ci-local` and in the lint/typecheck GitHub workflow, and add a lightweight grep-based check (or a Tailwind build-warning capture) for `@utility` references with no matching definition.",
+  "source_file": "intent-pdd-readme-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The core gap holds: scripts/audit-design-tokens.mjs is referenced by neither package.json (ci-local at :20) nor any .github/workflows file, so the §16 gate is manual-only. Correction on mechanism: the script does NOT implement 'exactly' the §16 checks - it covers spacing steps, arbitrary rhythm/text values and dead type sizes only (header :4-17); §16's rounded-[...], raw-hex-in-components and shadow/blur checks (PRODUCT_DESIGN_DECISIONS.md:317-321) are rg one-liners with no script at all, and one is already violated: src/modules/node-editor/NodeEditorPanel.tsx:572 hardcodes '#39332b'/'#1a1814' (old warm palette) while the script reports 'clean'. Fix shape: extend the script with the three missing checks, fix the node-editor hex, then add it (non --report mode) to ci-local and lint.yml."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-187",
+  "pid": "INT-SP-187",
+  "title": "Adding a new data source still requires host code in three places, contradicting the 'zero lines of per-source UI code' promise",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "src/lib/marketplace.ts + sidecar/services/provider_registry.py",
+  "repro": "design: to add a data source today you must add a sidecar ProviderDeclaration row (sidecar/services/provider_registry.py:80), a hand-written row + static import in src/lib/marketplace.ts:20-45,84-335, and a plugin data-capability declaration (e.g. plugins/yfinance/index.ts:1-12) — three host-code touch points, not the contract-driven zero-host-code path SC-007 promises.",
+  "evidence": "Generic credential form: src/modules/marketplace/MarketplacePanel.tsx:244-274 renders entry.credentialFields; provenance: sidecar/services/provider_registry.py:16-18 (provider field on every result). BUT catalog is a host-compiled static list: src/lib/marketplace.ts:20-45 (static imports), :84-335 (hand-written rows); sidecar registry is an in-module declaration table: sidecar/services/provider_registry.py:80",
+  "notes": "0 lines of per-source UI holds, but a new data source still needs host code in three places (sidecar provider + ProviderDeclaration row, marketplace.ts row + static import). The TS plugin data capability is a thin declaration (plugins/yfinance/index.ts:1-12), not what the registry resolves.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The title's claim is wrong: SC-007's literal '0 lines of per-source UI code' holds, because MarketplacePanel renders credentialFields generically. The real gap is different: the plugin contract's data capability is a thin declaration that the sidecar resolver never reads. A new source needs a hand-written ProviderDeclaration in provider_registry.py plus a static import and catalog row in marketplace.ts, so it cannot be added 'via the contract' without host edits in two languages."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-11",
+  "title": "Panels are not marketplace-installable — a second, parallel 'module' extension system exists alongside the plugin contract",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "plugin marketplace vs module-registry",
+  "repro": "Open the Marketplace panel and look for any of the core panels (Chart, Watchlist, Portfolio, News, ...) as an installable/removable entry -> none are listed; they ship as hardcoded 'modules' instead.",
+  "evidence": "src/lib/module-registry.ts:1-14 ('A first-party module bundles panels, commands... Modules are the in-app analogue of the VystedPlugin panel/command capabilities'), plugins/ contains broker + data-provider + one agent-pack plugin but no panel-contributing plugin (grep for `panels:` across plugins/*/index.ts finds none)",
+  "notes": "spec.md FR-050 MUST: 'brokers, data providers/connectors, panels, and agents are all delivered as marketplace plugins ... one unified extension model.' Brokers/data/agents genuinely go through the marketplace; panels are still a separate, build-time-registered VystedModule system the user cannot install, configure, or remove at runtime — the module-registry's own docblock names itself an 'analogue' of the plugin contract, i.e. a second parallel system, not the same one. Smallest fix (large): give PanelSpec-contributing modules a manifest + marketplace entry point, or explicitly re-scope FR-050 to exclude first-party panels with a recorded decision.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The core claim holds: every first-party panel ships through a static import list (src/modules/index.ts:3-27,60-70 -> page.tsx:18,50 registerModules). That path skips the plugin runtime, manifests and the requiredHostVersion check. The spec clarification (spec.md:98-105) explicitly requires first-party panels to be pre-installed plugins that are 'not a separate hardcoded path'. The mechanism is overstated in one respect: the module registry is not a wholly parallel extension system. Plugin-contributed panels ARE adapted into it through moduleForPlugin (plugin-bootstrap.ts:127-160), so there is one host rendering registry and two registration paths. Users can also disable modules at runtime in Settings > Modules (SettingsPanel.tsx:1710+), though not install or remove them. Downgraded to medium: an architectural conformance gap with limited day-to-day user impact."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-12",
+  "title": "Data-provider credential/shape declaration lives in a hand-maintained duplicate, disconnected from both the plugin contract and the provider registry",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "marketplace credentials vs provider_registry",
+  "repro": "Trace where a marketplace entry's credentialFields (e.g. an API-key form) comes from -> it's a literal array hand-written in src/lib/marketplace.ts, not derived from sidecar/services/provider_registry.py's ProviderDeclaration (which has no credentials field at all) nor from types/plugin.ts's VystedPlugin contract (which also has no credentialFields).",
+  "evidence": "types/marketplace.ts:59 (CredentialField/credentialFields declared here, NOT in types/plugin.ts — grep for credentialFields in types/plugin.ts is empty), src/lib/marketplace.ts:150,202,219,245,262,279,296,322 (credentialFields arrays hand-written per entry, several via a keySecretFields() helper), sidecar/services/provider_registry.py:80-99 (ProviderDeclaration = {id, serves, rank, requires, asset_classes, region} — no credentials/shape field)",
+  "notes": "spec.md FR-053 MUST: the data registry's credential+shape declaration IS the data-source slice of the one unified plugin/marketplace model — not a second, separately-maintained description. In code there are three disconnected surfaces: the Tier-1 VystedPlugin contract (no credential concept), the provider registry (no credential concept), and a hand-maintained types/marketplace.ts + src/lib/marketplace.ts literal list that the project's own single-source-of-truth catalog convention (CLAUDE.md's capability-catalog rule) would normally forbid. Smallest fix: add a credentials field to ProviderDeclaration and derive src/lib/marketplace.ts's entries from it (or from plugin manifests) instead of hand-writing them.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Holds, and the drift is already visible. credentialFields, standardModelKeys and preferenceRank are hand-written in marketplace.ts (types/marketplace.ts:58-69). Neither ProviderDeclaration (provider_registry.py:79-98, which has no credential field) nor types/plugin.ts carries them, and no code outside marketplace.ts consumes standardModelKeys or preferenceRank. They have already diverged: the vysted-yfinance entry declares ['quote','ohlcv','fundamentals'] (marketplace.ts:96-97), but the registry's yfinance serves 7 keys, including the statements and analyst_rating (provider_registry.py:200-215), and the registry's nse_direct/nse/bse/ccxt providers have no marketplace entry at all. Downgraded from high to medium: after the trading removal, the credential side shrinks from 8 broker forms to the one optional NewsAPI key (marketplace.ts:150-160), so the residual is a decorative, drifting data-slice description rather than a broken credential flow."
   }
  }
 ]

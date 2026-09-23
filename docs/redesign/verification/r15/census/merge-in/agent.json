@@ -933,6 +933,22 @@
   }
  },
  {
+  "raw_id": "INT-blueprint-288-1",
+  "title": "Node-editor workflows have no scheduler — 'alert on entry trigger' and 'agent monitors news and notifies' are structurally impossible without a manual re-run",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "node-editor / workflow engine",
+  "repro": "Build any workflow using logic.compare + action.notify_desktop (e.g. 'notify me when AAPL crosses $200') and close the app or switch panels: nothing re-evaluates the condition until the user manually reopens the workflow and clicks Run again (Cmd+K -> Run). grep for schedule|cron|recurring|periodic across sidecar/services/workflow_engine.py, sidecar/routers/workflow*.py and sidecar/routers/node*.py returns zero hits.",
+  "evidence": "sidecar/services/workflow_nodes/__init__.py:15,54 (action.notify_desktop exists) + builtin.py:321-343 (notify_desktop implementation) + sidecar/services/workflow_nodes/builtin.py logic.compare/logic.branch registrations; no scheduler file anywhere under sidecar/ (find sidecar -iname '*schedul*' is empty)",
+  "notes": "This is the mechanism BLUEPRINT UC3 (Earnings Playbook: 'alert on entry trigger') and UC5 (Macro Thesis Watcher: 'AI Macro Researcher monitors news and sends notifications on thesis-confirming events') both depend on, and it's the exact kind of always-on, agent-does-it-for-you behavior the product's own positioning ('agent-native', 'Jarvis, if Tony Stark built a finance app') is staked on. Today every workflow node type needed for these use cases exists and is individually correct (ai.agent_invoke, logic.compare, action.notify_desktop, quant.yield_curve) — the gap is purely the missing background trigger. Smallest fix shape: a lightweight polling scheduler in the sidecar (e.g. an APScheduler-backed table of {workflow_id, cron_or_interval, last_run}) that invokes the existing workflow_engine.run() on a timer and reuses the existing action.notify_desktop intent path — no new node types needed, no touch to the plugin contract or §6.5 safety model.",
+  "source_file": "intent-blueprint-288.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Holds. The workflow node set (logic.compare, action.notify_desktop, ai.agent_invoke) is registered, but nothing re-runs a workflow on a timer or event. The sidecar has no scheduler, cron or recurring-run mechanism, and the only frontend interval is the delegate-runs status poll. So BLUEPRINT UC3 ('alert on entry trigger') and UC5 ('monitors news -> notifications') only work if the user re-runs the workflow by hand, and no separate price-alert feature exists either. One nuance: the repro says 'close the app', but a sidecar scheduler would stop with the app too. The fix only covers the app-open case, which is still the core promise, so severity stays high."
+  }
+ },
+ {
   "raw_id": "INT-blueprint-48-1",
   "title": "Node-editor agent node silently drops the user's prompt (config key `prompt` vs handler's `prompt_template`)",
   "severity": "high",
@@ -1031,6 +1047,22 @@
   }
  },
  {
+  "raw_id": "INT-deferred-42-3",
+  "title": "open_company_overview's highlightMetric argument is fully unconsumed — the agent's promised chart highlight never fires",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "equity-overview / host-actions",
+  "repro": "Agent calls open_company_overview(symbol, highlightMetric='pe_ratio') -> src/lib/host-actions.ts threads it into useEquityCommandStore -> src/modules/equity-overview/EquityOverviewPanel.tsx:628 reads only `equityCommand.symbol`, never `.highlightMetric` -> no visual change to the metric at all.",
+  "evidence": "src/lib/host-actions.ts:274,690,1074; src/store/equity-command.ts:21-33; src/modules/equity-overview/EquityOverviewPanel.tsx:628,822-831",
+  "notes": "docs/redesign/verification/R7_RUN_REPORT.md:37 already flagged this as shipping 'plain focus' instead of a genuine pulse; it has since regressed further to producing no visible effect at all. This is a demoed agent-UX capability ('What is a P/E ratio? Show me on Tata Steel') that silently does less than advertised. Smallest fix: read `equityCommand.highlightMetric` in the panel and apply a brief accent-ring/pulse class to the matching metric row on change.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed end to end. The catalog advertises an optional `highlight` arg to 'spotlight' a metric (catalog.py:997-1013). host-actions.ts:1078-1079 reads it and passes it to openCompanyOverview, which stores it in useEquityCommandStore (host-actions.ts:284, equity-command.ts:31-33). The only consumer, EquityOverviewPanel.tsx:822-833, reads only `equityCommand.symbol`, and nothing under src/modules/ reads `highlightMetric`. It is worse than silent: the host-action result string (host-actions.ts:1080-1081, 'spotlighting <metric>') and the proposal preview (host-actions.ts:690-699, '<metric> spotlighted') both tell the user and the model that a highlight happened when none did."
+  }
+ },
+ {
   "raw_id": "INT-deferred-84-7",
   "title": "The shipped default chat model (DeepSeek V4 Flash via OpenRouter) fails to drive host-action tool calls on ordinary portfolio-write asks",
   "severity": "high",
@@ -1047,6 +1079,139 @@
   }
  },
  {
+  "raw_id": "INT-spec-0-1",
+  "title": "Foreground agent runs always show $0.00 spend regardless of actual token cost",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "chat run history / cost HUD",
+  "repro": "design: send any chat/agent message on a paid provider (e.g. Anthropic/OpenAI) from the ChatSidebar composer, let it finish, inspect the run's recorded cost in run history/HUD",
+  "evidence": "src/modules/chat/ChatSidebar.tsx:918-922 (`onDone: (usage) => { ... updateRun(runId, { cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 } }); ... }`)",
+  "notes": "Constitution Principle VI: 'The provider/model/cost in use is always legible on the agent surface.' Provider/model ARE legible (HUD override resolved at :507,:767-782) but spendUsd is a literal 0, not a computed estimate, for every foreground run — the same estimate BudgetGuard already knows how to compute for background/Delegate runs (sidecar/services/budget_guard.py price_per_million/estimate_spend_usd, :82-84) is simply never threaded into the foreground onDone handler. Smallest fix: call the same estimate_spend_usd(provider, model, tokens) helper (already exported from budget_guard.py, or duplicate the price table client-side) when finalizing a foreground run instead of hard-coding 0. Overlaps conceptually with the already-filed INT-spec-90-3 (native-search billing invisibility) but is broader: this is EVERY foreground run's total spend reading zero, not just uncapped native-search cost.",
+  "source_file": "intent-spec-0.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Core claim holds: the foreground onDone handler hard-codes spendUsd: 0 (ChatSidebar.tsx:919-922) while the sidecar already has estimate_spend_usd (budget_guard.py:60-84), so Constitution VI's 'cost in use is always legible' is unmet for foreground runs. Mechanism corrected: nothing actually renders '$0.00' - AgentsRail hides the $ segment when spendUsd is 0 (AgentsRail.tsx:103-106) and only lists running/paused runs (AgentsRail.tsx:30), while the foreground cost is written only at onDone immediately before endRun (ChatSidebar.tsx:919-923), so a foreground run's tokens AND spend are never shown anywhere; per-message usage is stored (chat-history.ts:213-216) but not rendered. The fix is therefore both computing spend and giving foreground cost a visible surface, not just replacing the literal 0."
+  }
+ },
+ {
+  "raw_id": "INT-spec-0-2",
+  "title": "Citation/verifiable-artifact guarantees are scoped to the research-brief and Equity-Overview narrative surfaces, not every agent claim",
+  "severity": "low",
+  "area": "agent",
+  "subsystem": "chat / brief / equity-overview",
+  "repro": "design: ask the agent a plain factual question in chat that it answers inline from a tool result WITHOUT triggering the research/brief pipeline or opening Equity Overview — the response carries no citation object and no unverified-claim check",
+  "evidence": "types/brief.ts:6,224-245,309-312 (citation machinery lives on BriefSource/structured brief contract), src/modules/equity-overview/EquityOverviewPanel.tsx:345-445 (`[unverified]` token + unverified_claims tooltip, narrative-specific)",
+  "notes": "Constitution Principle VI states 'Every agent claim that asserts a fact carries citations' and 'unverified data is labeled unverified' as blanket guarantees. In the actual code these are real, well-built mechanisms but they are wired to two specific surfaces (the research/brief pipeline's sources array, and the Equity Overview narrative's post-hoc numeric-verification pass) rather than every chat turn that states a fact. Low severity because the two surfaces that matter most for money-relevant claims (fundamentals narrative, research briefs) ARE covered; a plain chat answer citing a live quote value already carries the Quote.provider field (INT-SP-33) even without a formal citation object. Smallest fix if ever prioritized: extend the same unverified-claims check used in EquityOverviewPanel to the general chat-message renderer, or scope the constitution language to 'every claim in a brief or narrative' to match what is actually built.",
+  "source_file": "intent-spec-0.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds as stated: citation machinery ([n] markers + BriefSource) lives on the brief contract (types/brief.ts:1-10,229-245,308-312) and the [unverified] token/unverified_claims check is Equity-Overview-narrative-specific (EquityOverviewPanel.tsx:345-356,438-445); the general chat path has no citation object or unverified-claim pass (ChatSidebar.tsx has no citation handling beyond the /sources command opening the BriefPanel at :662-665), only a prompt-level 'ground every factual claim in a tool' instruction (sidecar/agents/copilot.json:5). Low is right: the money-relevant surfaces (briefs, fundamentals narrative) are covered and the gap is plain chat answers."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-202",
+  "pid": "INT-SP-202",
+  "title": "No completeness audit exists confirming every enumerated 'obvious action' is reachable by both the agent and by hand",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "src/lib/host-actions.ts",
+  "repro": "design: 37 host-action cases exist (write_screener_filters, remove_from_watchlist, save_layout among the ones session 1 had flagged missing), but SC-022 requires 'an audit shows' 0 gaps against an enumerated action list — no such audit artifact was found, and no drawing-related host action exists.",
+  "evidence": "src/lib/host-actions.ts declares 37 host-action cases (grep count) spanning chart/panel/watchlist/order/data-write/settings kinds, including previously-missing ones (write_screener_filters :742, remove_from_watchlist :816, save_layout :828) that REBUILD_R4_REPORT.md flagged as 'not started' in session 1 and were built in sessions 2-3.",
+  "notes": "No completeness-audit artifact exists enumerating 'every obvious action' against the reachable set and asserting zero gaps, as SC-022 explicitly requires ('an audit shows'); coverage is broad but unaudited (e.g. no drawing-related host action was found).",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The gap holds: no SC-022 completeness audit exists, and neither describeHostAction nor the catalog has any drawing host action. Correction: the '37 host-action cases' count double-counts, because host-actions.ts has one switch for describing an action and one for applying it. There are 19 distinct actions (set_chart_symbol ... set_region). Timeframe and compare are reachable through set_chart_symbol's timeframe argument and arrange_layout(pattern='compare')."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-205",
+  "pid": "INT-SP-205",
+  "title": "AUTO autonomy auto-applies portfolio/settings mutations, not only the UI/layout/chart/watchlist set SC-025 restricts it to",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "src/store/proposed-changes.ts",
+  "repro": "AUTO mode + agent calls portfolio_add_position/portfolio_update_position/portfolio_delete_position/write_screener_filters/write_note/set_region -> proposed-changes.ts:118 auto-accepts (kind !== 'order' is the ONLY exclusion) -> the mutation applies with no per-action confirmation, even though it writes the user's tracked-portfolio cost basis or app settings, not just UI/layout/chart/watchlist state.",
+  "evidence": "src/store/proposed-changes.ts:95-122 gates order mutations 100% (kind !== 'order' excluded from AUTO, :118) and comments confirm 'a HARD SAFETY LINE'; §6.5 9/9 confirmed this session (sidecar/tests/test_safety_end_to_end.py) and Tier-1 files confirmed byte-untouched (git diff clean this session). | src/store/proposed-changes.ts:95-122; src/lib/host-actions.ts kind:'data-write' cases at :762,776,790,802,742 and kind:'settings' at :854",
+  "notes": "AUTO auto-applies every non-order kind, not only 'UI/layout/chart/watchlist' as SC-025 specifies: src/lib/host-actions.ts kinds also include 'data-write' (portfolio_add_position :762, portfolio_update_position :776, write_screener_filters :742, write_note :802) and 'settings' (set_region :854) — these silently auto-apply in AUTO mode, widening the autonomy surface past the written safety boundary onto the user's tracked-portfolio cost basis.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "Confirmed: in AUTO mode, enqueue() auto-accepts every kind except 'order', so the data-write kinds (portfolio_add/update/delete_position, write_note, save_layout, save_screen) and the settings kind (set_region) apply with no per-action confirmation. The UI tells the user AUTO means 'UI changes apply instantly', and SC-025 limits AUTO to UI/layout/chart/watchlist, so the agent can silently rewrite the user's tracked-portfolio cost basis. Correction to the mechanism: write_screener_filters is kind 'panel', not data-write, while portfolio_delete_position, save_layout and save_screen are data-write and the raw finding left them out. With trading removed, this is the only gate on the tracked-portfolio store."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-206",
+  "pid": "INT-SP-206",
+  "title": "No unified pixel-proof artifact demonstrates all three speeds (FAST / ORCHESTRATED / DEEP) together as SC-026 requires",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "fast.py / proposed-changes.ts / deep.py",
+  "repro": "design: each speed is independently evidenced (FAST cockpit dispatch, ORCHESTRATED diff/accept gate, DEEP research loop) but session 1 explicitly listed the combined three-speed wiring/demonstration as NOT STARTED and no later report closes it with a single proof.",
+  "evidence": "Each speed exists separately: FAST = layout-templates.ts dispatch with sidecar/services/research/fast.py (no full agent loop); ORCHESTRATED = src/store/proposed-changes.ts diff/accept gate; DEEP = sidecar/services/research/deep.py + iter.py loop. REBUILD_R4_REPORT.md's 'Agent-OS spine works end-to-end' shot is the closest pixel proof, for ORCHESTRATED only.",
+  "notes": "No single artifact demonstrates all three speeds together with pixel proof as SC-026 requires; session 1 explicitly listed 'FAST/ORCHESTRATED/DEEP three-speed wiring' as NOT STARTED and no later report closes that gap with a unified demonstration.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "It holds that no single artifact shows all three speeds with pixel proof. But each speed is wired: FAST is a model-free cockpit via the /layout slash command going through arrange_layout, ORCHESTRATED is the proposed-changes gate, and DEEP is deep.py. The raw's 'NOT STARTED' quote is from session 1 and is stale. This is a missing proof artifact, not a behaviour defect, so severity drops from medium to low."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-207",
+  "pid": "INT-SP-207",
+  "title": "No completeness audit or re-read-after-mutation test backs SC-027's 'host-action completeness' and 'holds' claims",
+  "severity": "low",
+  "area": "agent",
+  "subsystem": "ChatSidebar focused-symbol resolution",
+  "repro": "design: focused-symbol resolution for follow-up turns is solidly wired (ChatSidebar.tsx:427-431,2039-2057), but no test drives an agent write then an agent read observing its own effect in the same turn ('re-read-after-mutation holds').",
+  "evidence": "src/modules/chat/ChatSidebar.tsx:427-431,2039-2057 resolves focusedSource/focused symbol from the panel-context bus into every outgoing context snapshot, and src/modules/chat/SuggestionChips.tsx:44-60 (useFocusedSymbol) reuses the identical mechanism — a 'tell me more' style follow-up reads the same live-focused symbol as any other turn.",
+  "notes": "No dedicated 100%-resolution test or host-action-completeness audit for screener-filter/drawings/save reachability was found, and no test specifically exercises 're-read after mutation' (an agent write followed by an agent read observing its own effect).",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The 're-read-after-mutation' part is refuted. test_agent_runtime.py drives a host action and then checks that the model's NEXT round sees the grounded tool result for its own write (applied / failed / dispatched_unconfirmed), fed from the action ledger that proposed-changes acks after applying. The remaining gap stands: there is no SC-027 completeness audit and no agent-reachable drawings action, which overlaps INT-spec-180-202."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-209",
+  "pid": "INT-SP-209",
+  "title": "Two live mode-classification systems remain unmerged, contradicting SC-029's 'one mode system' bar",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "src/store/agent-mode.ts + sidecar planner.classify_intent",
+  "repro": "Send any message: it is classified once client-side by the FR-003 four-mode spine (src/store/agent-mode.ts) and again server-side by planner.classify_intent — the R4S3 session's own stale-code assessment (S-15) found both live at different layers and left them unmerged rather than risk a behavioral regression.",
+  "evidence": "Model-swap context preserved: REBUILD_R4_REPORT.md 'raw-chat preserves history on model-swap (FR-116)' fix (commit 84a60c8, /llm/chat prepends last-10 history); Enter sends: src/modules/chat/ChatSidebar.tsx:1793 (Enter && !shiftKey submits).",
+  "notes": "'One mode system' is explicitly NOT achieved: OVERNIGHT_BUILD_REPORT_R4S3.md Session-3.1 addendum states S-15 was assessed and left as-is because 'src/store/agent-mode.ts (the FR-003 four-mode spine) and planner.classify_intent (intent inference) are both live, at different layers — not a clean removal.'",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The mechanism is misstated. The client no longer has a four-mode spine: the user-visible modes are 'agent' and 'delegate', and the client does not classify each message. The server-side planner.classify_intent runs only inside 'agent' mode, inferring read/edit/build to decide which tools are stripped. That is a layered gate, not a competing mode system. What holds: no SC-029 'one mode system' audit exists, a separate autonomy axis (ask/auto) sits beside the modes, and the R4S3 report left S-15 unresolved. Severity drops to low because the pieces are layered, not conflicting."
+  }
+ },
+ {
+  "raw_id": "INT-spec-45-2",
+  "title": "External MCP surface exposes zero mutating capabilities — FR-021's 'same confirmation path' has no MCP-side implementation",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "sidecar/services/agent_tools/catalog.py, sidecar/services/mcp_server.py",
+  "repro": "Every read_only=False ('host_action') capability in catalog.py (open_panel, set_chart_symbol, open_company_overview, set_chart_indicators, add_to_watchlist, propose_order, close_panel, focus_panel, portfolio_add_position, portfolio_update_position, portfolio_delete_position, write_note, remove_from_watchlist, save_layout, save_screen, set_region) leaves `mcp` at its dataclass default (False) — none is ever passed mcp=True. Call any of them over the external MCP surface -> mcp_capabilities() (catalog.py:1496-1503, filters on c.mcp) never listed it as a tool in the first place, and even a direct services.agent_tools.invoke_tool('portfolio_add_position', {...}) call raises KeyError (no register_tool call for any host_action id exists anywhere in the codebase) -> mcp_server._make_catalog_tool's except clause returns {'ok': False, 'error': \"tool 'portfolio_add_position' is not available in this build\"}.",
+  "evidence": "sidecar/services/agent_tools/catalog.py:962-1456 (16 host_action capabilities, `mcp` left at the dataclass default False at catalog.py:93,118), sidecar/services/agent_tools/catalog.py:1496-1503 (mcp_capabilities() filters strictly on c.mcp), sidecar/services/mcp_server.py:106-124 (_make_catalog_tool dispatches to agent_tools.invoke_tool; KeyError -> {'ok': False, ...}), sidecar/services/agent_tools/__init__.py:62-67 (invoke_tool's KeyError path for an unregistered id), sidecar/services/agent_runtime.py:1190-1225 (_make_host_action — the ONLY code path that actually stages a reviewable diff for a host_action tool call, registered per-run into the internal SSE chat loop's local tool table; mcp_server.py never touches it).",
+  "notes": "Constitution II ('one capability catalog, many consumers... a capability MUST NOT exist for only one consumer') and US5/FR-020-022 ('an external agent... drives the SAME capabilities the built-in copilot uses', 'the read_only flag MUST drive both the internal mutation gate and the external MCP read-only annotation') describe a mutation surface that is reachable-but-gated for an external MCP client, mirroring the internal diff/accept flow. What ships is a mutation surface that is simply invisible to MCP — safe by omission, but not the promised parity, and it means 'Vysted as an MCP framework' (the stated moat, per README/US5) is read-only-only today for anything beyond quotes/charts/screener/fundamentals/news/portfolio-READ. Smallest fix: either opt the host_action capabilities into mcp=True behind a host-side proposal queue an external client can create-and-poll (mirroring proposed-changes.ts's accept/reject shape), or narrow FR-021/US5's wording to state MCP is read-only-only for v1 so the gap is a documented decision, not a silent one.",
+  "source_file": "intent-spec-45.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "This holds. catalog.py:1461-1472 sets mcp=True only for kind=='read_handler' (except backtest_summary), so every host_action (portfolio_add_position/update/delete, write_note, add/remove_from_watchlist, save_layout, save_screen, etc.) is never projected to the external MCP surface. That contradicts US5 acceptance 3 ('no capability reachable to one consumer but not the other'), the constitution rule that a capability must not exist for only one consumer, and the spec edge case at spec.md:789-790 ('External MCP client requests a mutating tool -> same gate ... same confirmation path'). One nuance: the omission is a deliberate rule written down in a catalog.py comment ('host actions are inherently local ... never projected'), not a silent accident, but the spec was never amended to match. propose_order is in the listed set but closes with the trading removal; the portfolio, notes and watchlist host actions stay in scope."
+  }
+ },
+ {
   "raw_id": "INT-spec-90-3",
   "title": "Native web search has no per-RUN cap off-Anthropic and per-search billing is never metered",
   "severity": "medium",
@@ -1060,6 +1225,38 @@
    "verdict": "admitted",
    "severity_final": "medium",
    "reason": "Holds. On a native-search tier, the runtime sets opts web_search=True with web_search_max_uses=5 and strips the local web_search tool (agent_runtime.py:1335-1340). OpenAI/xAI/OpenRouter, Gemini and Groq adapters pop web_search_max_uses unused (openai.py:665-667, gemini.py:112, groq.py:117), and only Anthropic applies it, per request. The only loop counter (web_search_calls, agent_runtime.py:1416,1553-1556) increments on local 'web_search' tool calls, which are absent on that tier. This contradicts the native_search.py:109-113 docstring that promises a loop-level counter. No native-search usage is metered anywhere (grep for server_tool_use/web_search_requests/search_count finds nothing), and BudgetGuard prices tokens only (budget_guard.py:82-84), so per-search charges are invisible to the spend ceiling."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-6",
+  "title": "Four explicit hotkey-switchable agent intents (Ask/Edit-panel/Build/Delegate) collapsed to two, with no formal decision record",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "agent-mode store",
+  "repro": "Open the app; try alt+3 / alt+4 (the old Build/Edit-panel bindings) -> nothing happens; only alt+1 (inferred 'Agent') and alt+2 (Delegate) exist.",
+  "evidence": "types/agent-modes.ts:1-60 (own docblock: 'The old four explicit modes ... collapses the three hands-on modes into ONE inferred surface'), src/store/keybindings.ts:65-76 (comment: 'the shipped handler no longer has' the alt+1-4 bindings), docs/redesign/R4_STALE_CODE_REGISTER.md:62 (S-15 flags the FR-003-vs-Track-B conflict as an unresolved 'two mode systems coexist' item)",
+  "notes": "spec.md FR-003 is an explicit MUST for four named modes on stable global hotkeys with the active mode always visible. The shipped two-mode inferred surface may be a reasonable product call, but no D-number in docs/redesign/DECISIONS.md or CHANGELOG.md entry formally records the reversal the way COMMON.md's decision_ref format requires — R4_STALE_CODE_REGISTER.md flagged the conflict as something to 'decide' and it was resolved in code without a paper trail. Smallest fix: either restore the four-mode dispatch, or add a one-line DECISIONS.md/CHANGELOG.md entry ratifying the two-mode collapse so this doesn't keep resurfacing as a spec/code mismatch.",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The spec/code mismatch is real: FR-003 (spec.md:829-831) still mandates four hotkeyed modes, while the code ships two, Agent on alt+1 and Delegate on alt+2 (agent-modes.ts:24,42-60; keybindings.ts:65-82). But the claim that there is 'no decision record' is wrong. REBUILD_SPEC.md, which calls itself 'a decision document' (:1-8), states at :179 'The spine is already **two modes** (agent/delegate, types/agent-modes.ts) — good', and REBUILD_R3_SPEC.md:235-242,299 schedules the four-mode to two-mode string cleanup. So the collapse is a ratified product call. What remains is drift: spec.md FR-003/US3 was never amended, and src/store/agent-mode.ts:1-8 still documents 'four-mode ... (⌥1–⌥4)'. Downgraded to low (docs drift, not a missing feature)."
+  }
+ },
+ {
+  "raw_id": "INT-spec-90-7",
+  "title": "Delegate runs can never self-pause to ask a question — only an external/operator-driven pause exists",
+  "severity": "low",
+  "area": "agent",
+  "subsystem": "run_manager / delegate runs",
+  "repro": "Start a Delegate run and let it hit a point where it would benefit from asking the user something mid-run -> it has no ask_user-style tool; it either keeps guessing or runs to completion/budget-breach, it cannot pause itself.",
+  "evidence": "sidecar/services/run_manager.py:23-33 ('the pause is an EXPLICIT signal (operator/host-driven), not an autonomous in-loop ask_user tool call ... which is deferred')",
+  "notes": "spec.md FR-028 (SHOULD): 'pause for a human-in-the-loop question without losing progress.' The pause/answer/resume plumbing is fully built and durable; only the agent's own ability to trigger a pause is missing, and it's self-documented in code as deferred (no ask_user catalog capability yet). Smallest fix: add an ask_user Capability (read-only, internal-only) that calls pause_run().",
+  "source_file": "intent-spec-90.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real, and the mechanism is worse than stated. The raw finding says an operator/host-driven pause exists, but pause_run (run_manager.py:301-316) has NO caller anywhere. The runs router exposes launch/list/get/cancel/answer/resume but no /pause route (routers/runs.py:63-127), no agent tool calls it, and nothing in src references it. So a Delegate run cannot be paused for a question by anyone: the answer_run route is reachable only for a run that could never reach status 'paused', and run_manager.py:23-34's 'fully implemented' docstring overstates it. Severity stays low because FR-028 is a SHOULD (spec.md:883-884); the fix is an ask_user capability plus a pause route."
   }
  },
  {

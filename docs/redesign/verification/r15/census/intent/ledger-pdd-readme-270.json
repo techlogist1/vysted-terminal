@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-271",
+    "promise": "The Equity Overview panel fans out 6 parallel API calls and degrades gracefully if any subset of them fails.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/equity-overview/api.ts:101-109 loadEquityOverview() runs Promise.allSettled over sidecarApi.quote/fundamentals/incomeStatement/balanceSheet/cashFlow/analystRating (exactly 6 calls); :111-124 settled()/rejectionReason() degrade each leg independently, allFailed only when every leg rejected.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-272",
+    "promise": "The Watchlist panel polls quotes every 5 seconds.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/watchlist/WatchlistPanel.tsx:24 POLL_INTERVAL_MS = 5_000; :219-221 setInterval(..., POLL_INTERVAL_MS).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-273",
+    "promise": "The News panel auto-retries with exponential backoff, which self-heals through the sidecar's roughly 30-second cold-boot window.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/news/NewsFeedPanel.tsx:214 comment 'A failed load auto-retries with backoff (1s, 2s, 4s, then ...)'; :235 timer = setTimeout(() => attempt(n + 1), Math.min(1000 * 2 ** n, 5000)) -- exponential, capped 5s, self-heals the sidecar's ~30s cold-boot window per the same comment.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-274",
+    "promise": "The Portfolio panel computes profit-and-loss entirely client-side, with documented handling for zero-cost-basis positions.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/portfolio/metrics.ts:94 costValue = position.cost_basis * position.quantity computed client-side; :97-100 explicit comment + code: pnlPercent is null when costValue===0 ('P&L% is undefined for a zero cost basis (vested shares / RSUs are a valid cost_basis=0 case)') rather than dividing by zero or showing a fabricated 0.00%.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-275",
+    "promise": "The Screener panel sorts results client-side, pinning null values last.",
+    "source": "docs/CURRENT_STATE.md \u00a73.9",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/screener/ScreenerResultsTable.tsx:293-306 compareValue() -- 'Direction-aware comparator that always pins null/unknown values LAST, in both [sort directions]'; av==null returns 1 (last), bv==null returns -1, regardless of `dir`; :323-330 the results useMemo does [...result.rows].sort(...) client-side.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-276",
+    "promise": "The Backtest panel offers a schema-driven parameter form, a streamed run result, and an 'Open in Strategy Critic' action that drops a ready-made command into the chat composer -- documented as an end-to-end-unverified use case.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "src/modules/backtest/BacktestPanel.tsx:93-97 builds the param form from selectedSpec.paramsSchema (schema-driven); :114 isRunning tracks activeRun?.status === 'streaming'; :138-143 'Open in Strategy Critic' drops '/agent strategy_critic Please critique my latest backtest (run id ...)' into the chat composer, asserted by BacktestPanel.test.tsx:240.",
+    "gap": "CURRENT_STATE.md's 'end-to-end-unverified' characterization is a documentation/testing-coverage claim (BLUEPRINT Use Case 2), not a code claim -- not independently re-verified here (would require a live run through Strategy Critic).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-277",
+    "promise": "The Node Editor uses a modern graph-editing library with drag-and-drop from a node palette to the canvas, unions built-in nodes with any plugin-contributed nodes, and keeps node configuration schemas host-side so the contract stays serializable.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/node-editor/NodeEditorPanel.tsx:26-42 imports ReactFlow/ReactFlowProvider from @xyflow/react; :116-117 pluginNodes = usePluginsStore(...); registry = buildRegistry(pluginNodes); :175,178-182 onDragStart/onDrop wire HTML5 dataTransfer DnD from the node palette to the canvas. src/modules/node-editor/node-registry.ts:563 buildRegistry(pluginNodes) unions BUILT_IN_NODE_SPECS with pluginNodes. types/plugin.ts:178 NodeSpec has no React types (serializable).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-278",
+    "promise": "A second, separate workflow-state store exists with a desktop-notification-intent slice that has no code dispatching it -- it is effectively dead and unwired.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour",
+    "status": "missing",
+    "evidence": "CONTRADICTED BY CURRENT CODE (documentation is stale, not a product defect): src/store/workflow.ts:19-22,36-39,68-77 still defines the desktop-notification-intent slice exactly as documented, BUT src/lib/desktop-notification.ts (module doc lines 6-8: 'this bridge subscribes to that [pendingNotifications]') now drains it via useWorkflowStore.subscribe(...) at line 110 and calls drainNotifications() at line 99; src/app/page.tsx:10 imports and presumably mounts useDesktopNotificationBridge. `git log --oneline -- src/lib/desktop-notification.ts` shows commit 328947f 'feat(workflow): bridge action.notify_desktop to OS notifications' -- the dispatcher CURRENT_STATE.md says doesn't exist was added after the doc was written.",
+    "gap": "docs/CURRENT_STATE.md SS3.10 is stale: the desktop-notification-intent slice is no longer dead/unwired, it now drives real OS notifications via a mounted bridge (commit 328947f). Not a defect -- the doc undersells shipped functionality.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-279",
+    "promise": "The Agent Builder panel provides sidecar-backed CRUD for custom agents, with an enforced naming prefix for custom agent ids.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx:8,13-18 module doc: form POSTs /custom-agents, ids always carry 'custom:' prefix rendered as a non-editable label; :69-107 POST/PUT/DELETE helpers hit /custom-agents.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-280",
+    "promise": "The Chat sidebar is the most cross-cutting frontend surface, touching 6 or more stores; its default agent is the terminal-aware copilot, plain text input routes to that agent, a persona-chip roster is clickable, and a raw escape-hatch command bypasses agent routing entirely.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:100 DEFAULT_AGENT_ID = 'copilot'; :370-413 subscribes to 7+ stores (useChatHistoryStore, useAgentsStore, useLLMProvidersStore, useProviderKeysStore, useAgentModeStore, useModelSelectionStore, useProposedChangesStore) plus useSymbolsStore at :207 -- well over the documented 6. :1302-1309 onPersonaChange wires a clickable persona roster (rendered by the composer subcomponent) to setActiveAgentId. src/modules/chat/slash-commands.ts:16-17,44-54 parseSlashCommand: bare text (no leading '/') returns {kind:'raw'} (routes to current agent/copilot); '/ask <prompt>' returns {kind:'ask'} which the module doc (line 16) labels 'Raw chat with the default provider (no agent)' -- the escape hatch that bypasses agent routing.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-281",
+    "promise": "The chat sidebar maps specific copilot tool calls to live UI mutations (setting the chart symbol, opening a panel, adding a watchlist entry), while a propose-order tool call only ever surfaces a review chip that opens the \u00a76.5 confirmation dialog rather than mutating anything directly.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/lib/host-actions.ts:1-13 module doc + :716-741 confirm the mapping and that propose_order 'always returns awaiting_user_review ... routes to the confirm-before-place dialog', never mutating directly -- that half of the promise still holds. BUT src/store/agent-autonomy.ts:1-17,23,38 shows a newer autonomy axis ('ask' default, 'auto' opt-in) added since CURRENT_STATE.md SS3.10/SS4 was written: by DEFAULT ('ask'), open_panel/set_chart_symbol/add_to_watchlist do NOT mutate the live stores directly either -- 'every proposed change waits in the diff/accept gate' (agent-autonomy.ts:7) -- only 'auto' mode lets the non-order host actions apply without a per-action confirmation.",
+    "gap": "docs/CURRENT_STATE.md's framing ('executeHostAction maps copilot tool calls to live store mutations') describes the pre-autonomy-axis behaviour. Under the current default (autonomy='ask'), chart-symbol/watchlist/panel changes also stage in the diff/accept review gate, same as an order proposal -- only the safety guarantee (order never auto-applies in ANY mode) is unchanged and, per agent-autonomy.ts:11-17, actually strengthened (hard-enforced regardless of mode). Doc-currency issue, not a functional regression.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-282",
+    "promise": "The BYOK key used for a given chat call is resolved from the invoked agent's own default provider setting, not the global UI default, and is read from the keychain on demand.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:767-782 comment 'FR-004: HUD override -> the called agent's *deliberate* provider preference ... -> the user's persisted default'; provider = providerOverride ?? usableAgentProviderPreference(agentSpec, ...) ?? defaultProviderId. :789 apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider)) -- read on demand at call time.",
+    "gap": "The precedence chain is a step richer than the promise states: a per-call HUD override can win over the agent's own default provider, and the agent's preference itself falls back to the global default when the agent has none -- the core claim (agent's own setting wins over the persisted global default when the agent expresses one) still holds.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-283",
+    "promise": "A default-model-per-provider lookup hardcodes a single model choice for each LLM provider, which can drift out of date as providers release new models.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/store/model-selection.ts:26 DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId,string> hardcodes one model id per provider (e.g. groq:'llama-3.3-70b-versatile', ollama:'qwen2.5:7b'); :119 modelFor() falls back to overrides[provider] ?? DEFAULT_MODEL_BY_PROVIDER[provider] ?? '--'.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-284",
+    "promise": "The Integrations panel drives every broker/data connection through one shared connection dialog component, and Kite's OAuth flow runs in the sidecar rather than in the Rust core.",
+    "source": "docs/CURRENT_STATE.md \u00a73.10",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "The 'Integrations panel' / ConnectCard / IntegrationSpec described in CURRENT_STATE.md SS3.10 no longer exist anywhere in the tree (`grep -rln \"IntegrationSpec|ConnectCard\" src/ types/` returns nothing). They were replaced by a broker-only module: src/modules/broker-connect/BrokerConnectPanel.tsx, BrokerReadsSection.tsx, BrokerOrderEntry.tsx, broker-reads.ts -- whose entire subject is broker connectivity. Kite's OAuth exchange still runs in the sidecar (sidecar/routers/brokers.py:392 'POST /brokers/kite/session -- exchange a one-time request_token').",
+    "gap": "The promise's subject (a shared connection dialog driving 'every broker/data connection', plus where Kite OAuth runs) is now entirely inside the broker-connect surface -- which exists only to connect a broker.",
+    "decision_ref": "operator decision 23 Sep 2026 -- trading permanently removed from the product (PROMPT_offmachine_s2.md SCOPE FACTS); the propose_order/broker-connect mechanism still exists in the repo at this commit but its entire subject is order execution."
+  },
+  {
+    "pid": "INT-PD-285",
+    "promise": "13 first-party agents ship as JSON definitions, discovered at import time and validated against a versioned JSON schema, with the exact count of 13 hard-asserted by three separate automated tests.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "`ls sidecar/agents/*.json` (excl. _schema.json) lists exactly 13 files. sidecar/tests/test_mcp_server.py:131-132 'assert len(agents) == 13'; sidecar/tests/test_agents_router.py:41 'assert len(body) == 13'; sidecar/tests/test_agent_runtime.py:95 'assert len(specs) == 13' and :212 'assert len(json_files) == 13' -- three separate test files hard-assert the count.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-286",
+    "promise": "The 13 first-party agents are 12 named investor personas (Buffett, Graham, Lynch, Munger, Marks, Klarman, Dalio, Druckenmiller, Soros, Researcher, Portfolio Advisor, Strategy Critic) plus the terminal-aware copilot router.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/agents/*.json ids (excl. copilot) = buffett, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher, soros, strategy_critic -- the exact 12 named personas -- plus copilot.json as the router.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-287",
+    "promise": "Each persona's system prompt is roughly 1.5 to 4 kilobytes, and only the copilot and researcher personas deviate from the default LLM provider used by the rest.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "The 12 investor-persona systemPrompt byte lengths (UTF-8) range 2581-3900 bytes -- within the documented 1.5-4KB band. copilot.json's defaultProvider='ollama' and researcher.json's defaultProvider='openai' are the only two of 13 that are not 'anthropic' (the other 10 all say anthropic) -- matches the promise's second clause exactly.",
+    "gap": "copilot.json's systemPrompt is 8751 bytes -- more than double the documented 4KB ceiling ('roughly 1.5 to 4 kilobytes' does not stretch to 8.75KB). The copilot router prompt has grown substantially past what CURRENT_STATE.md SS3.11 describes, likely from the accumulated FR-00x/R1x feature notes visible elsewhere in agent_runtime.py.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-288",
+    "promise": "Custom agents are created, read, updated, and deleted through a dedicated sidecar-backed store with an enforced id naming prefix.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/models/custom_agent.py:49 CUSTOM_AGENT_ID_PREFIX = 'custom:'; :89,105 the validator 'Reject any id that is not prefixed custom:'. sidecar/routers/custom_agents.py + sidecar/tests/test_custom_agents_router.py implement/exercise the CRUD routes.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-289",
+    "promise": "At this baseline, the custom-agent tool allow-list lists only 5 tool ids, while first-party agents legitimately use additional tools that a custom agent has no way to select; two of those additional tool ids also pass custom-agent validation despite not actually existing in the tool-schema catalog, so allow-listing them never resolves to a working tool -- a documented, unfixed inconsistency at this baseline.",
+    "source": "docs/CURRENT_STATE.md \u00a73.11",
+    "kind": "behaviour",
+    "status": "missing",
+    "evidence": "CONTRADICTED BY CURRENT CODE (fixed, not a defect): sidecar/models/custom_agent.py:38 'KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()' -- no longer a hardcoded 5-id list. sidecar/services/agent_tools/catalog.py:1520-1528 agent_selectable_tool_ids() returns frozenset(internal_tool_ids()) -- dynamically catalog-derived, docstring: 'A custom agent may select any tool the first-party copilot can use'. sidecar/tests/test_capability_catalog.py:48-59 mechanically asserts zero registered handlers are missing a catalog entry AND zero are invisible to the model (missing == []).",
+    "gap": "docs/CURRENT_STATE.md SS3.11's 'stale + out of sync, 5 ids, two pass validation but don't exist in TOOL_SCHEMAS' description has been fully resolved by a later refactor (catalog.py's agent_selectable_tool_ids()), enforced by a dedicated parity test. Doc-currency issue, not a live inconsistency.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-290",
+    "promise": "Three PyInstaller onefile binaries are built fresh from a clean checkout for every release, with no binary committed to the repository, at approximately 89MB, 49MB, and 81MB respectively for the main sidecar and the two MCP subprocess binaries.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "scripts/ensure-all-sidecars.mjs:28-32 SCRIPTS lists exactly 3 ensure-*.mjs entries (main, openbb-mcp, sec-edgar-mcp); `git ls-files` finds no committed binary artifact under src-tauri/binaries or elsewhere.",
+    "gap": "The specific byte sizes (89MB/49MB/81MB) could not be independently reproduced in this session -- COMMON.md forbids a full PyInstaller build, and no built binaries are present in this checkout to stat. Treated as unverified-but-plausible, not contradicted.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-291",
+    "promise": "The build's PyInstaller bundle-inclusion flags are each tied to a real historical shipped-and-crashed regression, and the build-ensure scripts are staleness-aware, automatically rebuilding a binary that is older than its source.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "scripts/sidecar-staleness.mjs:12 'Fix: make the no-op staleness-aware. isStale(binary, sourceDirs) returns...'; :63,81,97,111 compare statSync(...).mtimeMs of source files against the built binary's mtime.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-292",
+    "promise": "The full local CI-parity command mirrors the CI pipeline byte-for-byte (install, ensure sidecars are built, lint, format check, typecheck, Rust format, Rust lint, Python lint, frontend unit tests, Rust tests, Python tests), but it does not run the sidecar smoke test or a full Tauri build.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "package.json:20 'ci-local': pnpm install --frozen-lockfile && ensure-all-sidecars.mjs && lint && format:check && typecheck && cargo fmt --check && cargo clippy -D warnings && ruff check/format --check && pnpm test (vitest) && cargo test && pytest -- exactly the documented step order, with no smoke-test-sidecars.mjs or tauri build invocation anywhere in the string.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-293",
+    "promise": "A separate smoke-test script spawns each built sidecar binary, polls its health endpoint, TCP-probes the MCP bind, and tree-kills the process on exit -- catching a class of startup failure that the unit-test suite cannot see because it never runs the actual binary.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "scripts/smoke-test-sidecars.mjs:42-56 comments + :473 'Single TCP-connect probe to 127.0.0.1:port'; :154,192-206 cross-OS tree-kill (Windows taskkill /F /T /PID at :203, POSIX process.kill(-pid,'SIGKILL') at :206).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-294",
+    "promise": "Distribution is unsigned end-to-end (no code signing or notarization), the auto-updater produces no signed release artifacts, and no release/publish workflow exists -- CI only runs on push/PR and uploads short-lived build artifacts.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "src-tauri/tauri.conf.json:45 \"createUpdaterArtifacts\": false; no signingIdentity/codesign/notariz* string anywhere in tauri.conf.json or .github/workflows/build.yml; `ls .github/workflows/` = build.yml, lint.yml, test.yml only -- no release/publish workflow.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-295",
+    "promise": "Version strings across the app's package manifests and the sidecar's own version constant are stuck at 0.8.0 despite several subsequent phases having merged, and whether that is an intentional pre-release freeze or an oversight is documented as unverified.",
+    "source": "docs/CURRENT_STATE.md \u00a73.12",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "package.json:3 \"version\": \"0.8.0\"; src-tauri/tauri.conf.json:4 \"version\": \"0.8.0\"; src-tauri/Cargo.toml:3 version = \"0.8.0\"; sidecar/app.py:289 FastAPI(..., version=\"0.8.0\"); src/lib/plugin-bootstrap.ts:37 HOST_VERSION = \"0.8.0\" -- all five sources still identical at 0.8.0 despite HEAD being far past the commits this doc describes (38919fd, a Sep-2026 R15 census commit).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-296",
+    "promise": "The copilot's agentic tool-use loop resolves the agent spec and provider/model, coerces conversation history to the last 10 turns, and loops on tool calls up to a hard cap of 6 rounds per invocation.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_runtime.py:482 'return out[-10:]  # cap at ~10 turns to bound tokens'; :543 '_MAX_TOOL_ROUNDS = 6'; :1472 'if pending_tools and rounds < _MAX_TOOL_ROUNDS'; :1627 'if rounds >= _MAX_TOOL_ROUNDS'.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-297",
+    "promise": "Errors inside the tool-use loop never crash the response stream -- a structured 'tool not available' message is surfaced instead, and the model can recover and continue.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_runtime.py:670-671: on an unregistered/failed tool the loop builds payload = {'ok': False, 'error': f\"tool {name!r} is not available in this build\"} inside an except Exception block rather than propagating -- the stream continues.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-298",
+    "promise": "A single provider-neutral tool-schema catalog is projected natively into three different LLM providers' tool-call formats, and every provider adapter must strip the internal tool-routing parameter before forwarding a request to that provider's SDK, or the call breaks.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/schemas.py:36 TOOL_SCHEMAS dict; :54,66,81 def anthropic_tools/openai_tools/gemini_tools(tool_ids) project it per-provider. Every adapter pops the internal-only key before calling its SDK: anthropic.py:111, gemini.py:109, groq.py:108, ollama.py:133, openai.py:663 all do `tool_ids = kwargs.pop(\"tool_ids\", None)`.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-299",
+    "promise": "Adding a new agent tool requires three things to all be done together -- a registered handler, a tool-schema catalog entry, and inclusion in at least one agent's allow-list -- or the tool remains invisible to every model.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "Structural/architectural convention, self-consistent across the codebase this session's other findings touched: a tool is only reachable end-to-end when it has a registered agent_tools handler (INT-PD-305 below), a TOOL_SCHEMAS entry (schemas.py:36), and an id in some agent's tools[] allow-list (sidecar/agents/*.json / custom_agent.py's dynamic allow-list) -- the CLAUDE.md project file's own 'To add an agent tool' gotcha states the same three-step requirement and cites test_capability_catalog.py (SC-006) as the enforcing test.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-300",
+    "promise": "The frontend captures a structured snapshot of terminal state (focused symbol, timeframe, indicators, watchlist, portfolio, open panels) and sends it with every agent call, surfaced to the model both as a system-prompt preamble and via two on-demand pull tools, with an explicit instruction that the model must call a tool rather than invent figures.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/host-actions.ts:6-13 module doc: the agent emits open_panel/set_chart_symbol/add_to_watchlist/propose_order as tool_use events; 'instead of applying immediately, the chat surface stages each as a ProposedChange'. sidecar/services/agent_runtime.py:376-456 renders the __terminal__ preamble from the frontend-sent snapshot; :1186-1187 registers get_terminal_state/get_portfolio as the two on-demand pull tools; line ~172 instructs the model to call get_terminal_state 'before claiming completion' rather than inventing figures.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-301",
+    "promise": "Host-action tool calls (opening a panel, changing the chart symbol, adding a watchlist entry, proposing an order) return a synthetic success from the sidecar, while the actual UI mutation happens frontend-side in response to the streamed tool-call event rather than to that synthetic result.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_runtime.py:63-82 lists open_panel/set_chart_symbol/add_to_watchlist/propose_order as the host-action tool ids; :1156-1215 the dispatcher returns a synthetic {'status':'awaiting_user_review', ...} (propose_order, :1192-1215) / synthetic success (other host actions) rather than mutating anything sidecar-side. src/lib/host-actions.ts's module doc (lines 6-13) confirms the frontend stages a ProposedChange off the streamed tool_use event, independent of that synthetic sidecar result.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-302",
+    "promise": "The propose-order tool never places an order -- it always returns an 'awaiting user review' result to trigger the \u00a76.5 confirmation dialog, and is deliberately not named with a place/submit-style prefix so the safety test suite's grep check does not need to special-case it.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "sidecar/services/agent_runtime.py:1164-1166 '`propose_order` is EXEMPT from the auto path (Sec6.5): it always returns awaiting_user_review'; :174-177 the system-prompt text told to the model states the order is 'never placed by you'. sidecar/tests/test_safety_end_to_end.py:138-153 greps for a live-mode literal and asserts it is absent; test_audit_2_no_bypass_path_to_place_confirmed (:163-172) asserts _place_confirmed has exactly one caller. The mechanism is intact and unweakened at this commit -- the finding is scope, not correctness.",
+    "gap": "The entire promise concerns order proposal/placement gating, which is being removed with the trading feature; the Sec6.5 confirm-before-place dialog mechanism itself (shared with audit-log infrastructure) is not being deleted, but propose_order specifically has no product surface once trading is gone.",
+    "decision_ref": "operator decision 23 Sep 2026 -- trading permanently removed from the product (PROMPT_offmachine_s2.md SCOPE FACTS); the propose_order/broker-connect mechanism still exists in the repo at this commit but its entire subject is order execution."
+  },
+  {
+    "pid": "INT-PD-303",
+    "promise": "The terminal-aware copilot persona has the broadest tool allow-list of any agent, including every host-action tool.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/agents/copilot.json 'tools' array has 50 entries including every host-action id (open_panel, close_panel, focus_panel, set_chart_symbol, add_to_watchlist, remove_from_watchlist, propose_order, ...). The next-broadest agent (researcher.json) has 19 tools; every investor persona has 3-6.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-304",
+    "promise": "Provider/model resolution is a synchronous, stateless factory across the supported provider ids, and API keys are never held by an adapter between calls -- they are passed in on every call and read from the OS keychain on the frontend side.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/__init__.py:72 'def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLMProvider' -- synchronous, stateless, no held state between calls. src/lib/keychain.ts:63-66 getSecret() reads from the OS keychain per call (frontend-side); src/modules/chat/ChatSidebar.tsx:789 calls it fresh on every send.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-305",
+    "promise": "At this baseline, roughly 11 registered tool handlers (a full set of quant-pricing tools plus extended earnings/analyst/SEC tools and a macro-search tool) have no entry in the tool-schema catalog and are therefore unreachable through the LLM tool loop, even though they are callable directly over REST.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "missing",
+    "evidence": "CONTRADICTED BY CURRENT CODE (fixed, not a defect): sidecar/services/agent_tools/schemas.py TOOL_SCHEMAS now has 50 entries (verified via `python3 -c \"from services.agent_tools.schemas import TOOL_SCHEMAS; print(len(TOOL_SCHEMAS))\"` inside sidecar/.venv -> 50), not 14. `set(read_handler_ids()) - set(TOOL_SCHEMAS)` is the empty set -- zero registered handlers are missing a schema entry, not ~11. sidecar/tests/test_capability_catalog.py:48-59 mechanically enforces both directions of this parity ('missing == []').",
+    "gap": "docs/CURRENT_STATE.md SS4's '14-id catalog, ~11 unreachable' table is fully stale: the capability-catalog refactor referenced in this repo's own CLAUDE.md (Constitution Principle II, catalog.py as sole source of truth) closed the gap and now mechanically prevents it from reopening. Doc-currency issue, not a live gap -- worth flagging because a reader could otherwise plan redesign work around a backlog that no longer exists.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-306",
+    "promise": "The shipped default agent routes to a small local Ollama model that may not be installed on the user's machine; without a running Ollama daemon the default agent fails on its very first call unless the user overrides the provider, and this is also the agent doing the heaviest tool orchestration on the smallest model.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/agents/copilot.json 'defaultProvider': 'ollama'; src/store/model-selection.ts:31 DEFAULT_MODEL_BY_PROVIDER.ollama = 'qwen2.5:7b' -- copilot (the agent with the broadest, 50-tool orchestration load per INT-PD-303) still defaults to a local Ollama model with no daemon-presence check visible in the resolution path.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-307",
+    "promise": "At this baseline, Gemini's multi-round tool use is documented as likely broken, because the runtime omits the tool name field the Gemini API needs to pair a tool result back to its call, while single-text Gemini calls and the OpenAI-family/Anthropic adapters are unaffected.",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "missing",
+    "evidence": "CONTRADICTED BY CURRENT CODE (fixed, not a defect): sidecar/services/agent_runtime.py:1577,1585 the tool-result message the loop appends now carries `metadata={\"name\": tool_call.name}`. sidecar/services/llm/gemini.py:56-57 the Gemini adapter's function_response reads `\"name\": message.metadata.get(\"name\", \"\")` -- no longer defaults to empty for every call. A dedicated regression test exists: sidecar/tests/test_gemini_multiround.py.",
+    "gap": "This is the exact fix this repo's own CLAUDE.md gotchas section documents ('the tool-RESULT turn carries metadata[\"name\"] ... omit it and Gemini multi-round breaks'). docs/CURRENT_STATE.md SS4 has not been updated to reflect it.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-308",
+    "promise": "Live copilot answers are proven in automated tests only against a mocked LLM provider; a real answer requires a live BYOK key, and the different providers are documented with different confidence levels for actually working end-to-end (Anthropic/OpenAI/Groq higher, Gemini/Ollama lower).",
+    "source": "docs/CURRENT_STATE.md \u00a74",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/tests/test_tool_loop_e2e.py:89,153,228,245,271 (test_copilot_tool_loop_runs_end_to_end etc.) all take a `monkeypatch` fixture and stub the provider -- no live-provider round trip is exercised in this suite, matching the promise's 'proven only against a mocked provider' claim.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-309",
+    "promise": "None of the three local SQLite stores have a database-migration mechanism -- all three use a create-if-not-exists pattern, so adding a column to an existing installed database would not migrate existing rows.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "behaviour",
+    "status": "partial",
+    "evidence": "sidecar/services/portfolio_db.py:27 'CREATE TABLE IF NOT EXISTS positions'; sidecar/models/audit_log.py:18,21 'CREATE TABLE IF NOT EXISTS' + 'CREATE TRIGGER IF NOT EXISTS' comment 'make [it re-runnable with no migration step]'; sidecar/services/data_cache.py likewise CREATE-TABLE-IF-NOT-EXISTS -- the no-migration pattern is confirmed and holds.",
+    "gap": "CURRENT_STATE.md SS6 says 'none of the THREE local SQLite stores' -- there are now at least five: sidecar/services/runs_store.py:52,55 (DB_FILENAME='delegate_runs.db', 'CREATE TABLE IF NOT EXISTS runs', comment at :97 explicitly repeats the same no-migration caveat) and sidecar/services/agents_store.py:39,42 (DB_FILENAME='custom_agents.db', CREATE TABLE IF NOT EXISTS custom_agents) are additional SQLite-backed stores the doc's SS6 persistence table omits entirely. The underlying claim (no migrations anywhere) is true and now applies more broadly than documented.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-310",
+    "promise": "BYOK secrets never touch disk, localStorage, or cookies; the only frontend code path to a secret goes through the keychain wrapper via a Tauri command, and the app's provider-key store tracks only a presence state (configured/missing/unknown), never the secret value itself.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/keychain.ts:1-16 module doc: 'this module is the ONLY frontend path that reads or writes credentials, and it never touches localStorage/sessionStorage/cookies'; :58-71 setSecret/getSecret/deleteSecret all go through Tauri `invoke(\"keychain_...\")`. src/store/provider-keys.ts:22,40-42 KeyStatus = 'configured'|'missing'|'unknown'; the store only ever holds that tri-state, never the secret value.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-311",
+    "promise": "BYOK is effectively usable only inside the Tauri desktop shell -- outside it, reading a secret always resolves to 'unknown' with no browser-storage fallback, by design.",
+    "source": "docs/CURRENT_STATE.md \u00a76",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/store/provider-keys.ts:13,41-42 'we treat as \"unknown\" rather than a hard error' inside a `catch { return \"unknown\" }` around the keychain read -- outside Tauri, `invoke()` rejects and this path fires; no localStorage fallback exists anywhere in keychain.ts (confirmed by its own module doc, INT-PD-310 evidence).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-312",
+    "promise": "The persisted watchlist and default data-provider selection ride the workspace blob and survive an app relaunch.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:63 defaultProviderId?: LLMProviderId; :65-69 watchlist?: SymbolEntry[] with a comment that it is 'Persisted so a customised watchlist survives'; :203-204 serializeWorkspace() writes both from the live stores; :278-284 deserializeWorkspace() restores both on load (watchlist restore is guarded: 'older workspaces lack it -- keep the [bundled default]').",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-313",
+    "promise": "The visual reskin from an earlier phase builds successfully, but every panel's actual rendered appearance is documented as verified only by an operator's own eyeball, not by any automated check.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "No visual-regression/screenshot-diff tooling found in this repo (`grep -rln \"toMatchSnapshot.*screenshot|percy|chromatic|pixelmatch\" package.json src/` -- no hits); `pnpm build` runs `vite build` (see NOTE) with no visual-check step in package.json's scripts or the CI workflows. Consistent with this project's own CLAUDE.md gotcha: 'chrome-devtools MCP can't synthesize trusted (isTrusted) events -- canvas-interactive features ... need Playwright/native event injection for visual regression'.",
+    "gap": "NOTE (context for the redesign, not this promise's defect): the frontend build tool is Vite (package.json 'build': 'vite build', vite.config.ts present, no next.config anywhere), not Next.js -- CLAUDE.md's own Locked SS2 stack and docs/CURRENT_STATE.md both still say Next.js 16 static export. This is already tracked as `partial` at INT-SP-56 in ledger-spec-45.json; not re-filed here to avoid a duplicate raw finding, but it materially affects how 'the visual reskin builds successfully' should be read going forward.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-314",
+    "promise": "The root cause of a subprocess startup deadlock affecting the two MCP-adjacent binaries is worked around at the process-supervisor level, but is documented as not actually fixed.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "BLOCKERS.md:69,71,74-78 'The openbb-mcp + sec-edgar-mcp startup deadlock root cause. F1 ... underlying deadlock (likely PyInstaller _MEIPASS + Windows handle ...' / 'Phase-9 UC1 update: partially addressed at the Rust supervisor' -- i.e. worked around, not fixed, exactly as the promise states.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-315",
+    "promise": "Static type-checker debt, accessibility gaps, and known Linux dependency advisories are tracked as open, known technical debt in a separate blockers document.",
+    "source": "docs/CURRENT_STATE.md \u00a77",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "BLOCKERS.md:229-231 'T2-mypy-llm-override' + 'T2-mypy-macro-provider-literal' + 'T2-mypy-fred-frequency-literal' (mypy/type-checker debt); :66 'axe-core a11y audit' listed as an open item; :278 'T3-glib-unsound + T3-rand-unsound -- Linux-only transitive [dependency advisories]'.",
+    "gap": "",
+    "decision_ref": ""
+  }
+]

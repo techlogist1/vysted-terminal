@@ -240,6 +240,22 @@
   }
  },
  {
+  "raw_id": "INT-blueprint-288-2",
+  "title": "Auto-updater is wired end-to-end (endpoint + pubkey) but disabled, and zero GitHub Releases have ever been published — there is currently no update or distribution path for any user",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "Tauri bundler / distribution",
+  "repro": "Inspect src-tauri/tauri.conf.json: plugins.updater.endpoints points at https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json and a pubkey is present, but bundle.createUpdaterArtifacts is false, so `tauri build` never emits the latest.json/signature the updater needs. `gh release list` on this repo returns zero rows.",
+  "evidence": "src-tauri/tauri.conf.json:33 (createUpdaterArtifacts: false), src-tauri/tauri.conf.json plugins.updater block (endpoint + pubkey present), BLOCKERS.md:291-296 (Phase 10 carry-forwards #2 'Tauri auto-updater wiring... flip to true' and #3 'Distribution channels... GitHub Releases workflow + signed-bundle upload')",
+  "notes": "Every piece needed for the update mechanism is already in place except flipping one boolean and running a release workflow — this is the cheapest of the launch-ops gaps to close, and closing it is a prerequisite for every other Phase-10 item (SignPath, Homebrew, the landing page) to matter at all, since none of them help a user who installed once and can never get an update. Smallest fix shape: flip createUpdaterArtifacts to true, add a tag-triggered GitHub Actions release workflow that runs `tauri build`, uploads the bundle + latest.json to a GitHub Release, and dry-run it against a pre-release tag before cutting v0.9.0.",
+  "source_file": "intent-blueprint-288.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds. The updater endpoint and pubkey are configured but createUpdaterArtifacts is false, build.yml only uploads CI artifacts (upload-artifact@v4, no release publish step), and the public repo has zero GitHub Releases. BLOCKERS.md already records this as a Phase 10 carry-forward. One correction to the evidence: the flag is at src-tauri/tauri.conf.json:45, not :33. Severity stays medium because this is a known launch-ops step, not a product defect a user can hit today."
+  }
+ },
+ {
   "raw_id": "INT-deferred-0-11",
   "pid": "INT-DF-42",
   "title": "vitest.config.ts has no coverage block -- 'pnpm test -- --coverage' has nothing configured to report against",
@@ -271,6 +287,38 @@
    "verdict": "admitted",
    "severity_final": "medium",
    "reason": "Holds. The tauri.conf.json bundle block (:30-45) has no macOS signingIdentity, entitlements or notarization settings. CI's build step is literally named 'Build Tauri bundle (unsigned)' (build.yml:76-77) and passes no APPLE_* secrets. The Windows NSIS target is likewise unsigned, so SmartScreen will warn too. The only signing tooling is the dev-loop keychain workaround (scripts/macos-dev-setup.sh). DECISIONS.md:33 (D11) asserts 'release builds for end users are signed properly', which the config contradicts; that claim should be corrected in the same fix. The fix needs an operator-owned Apple Developer ID."
+  }
+ },
+ {
+  "raw_id": "INT-deferred-42-1",
+  "title": "0.9.0's launch-ops surface (code signing, auto-updater, distribution channels, landing page) is entirely unbuilt",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "src-tauri/tauri.conf.json, .github/workflows",
+  "repro": "design: inspect src-tauri/tauri.conf.json (no signingIdentity/certificateThumbprint keys, createUpdaterArtifacts:false) and .github/workflows/*.yml (no SignPath step, no actions/cache, no Homebrew/AppImage/.deb build/publish step); grep the repo for terminal.vysted.com finds only doc references, no site source.",
+  "evidence": "src-tauri/tauri.conf.json:45,48; BLOCKERS.md:288-334 (launch ops items 1-4)",
+  "notes": "Covers INT-DF-50/51/52/53. Every one of the four public-release mechanics (signed binaries, a working updater, a real distribution channel, a landing page to send people to) is still a stub. Smallest fix shape: these are sequenced, ops-heavy tasks (SignPath enrollment, GitHub Releases wiring, a Homebrew tap) that need to be scheduled as their own pre-tag checklist rather than discovered at tag time; none can be done incidentally inside an unrelated commit.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "Signing, the updater and publishing really are unbuilt: tauri.conf.json has no signing keys and createUpdaterArtifacts:false (:45), build.yml runs `pnpm tauri build` labelled '(unsigned)' (:76-77) and only uploads CI artifacts (:79-84), with no Releases publish step and no Homebrew cask. Two details are wrong. (a) AppImage and .deb ARE built: tauri.conf.json:32 lists targets deb/appimage/nsis/app/dmg and the ubuntu matrix leg of build.yml builds and uploads them; what is missing is signing and publishing, not the Linux build. (b) Per BLOCKERS.md:305-307 the landing page lives in a separate operator-owned private repo, so its absence from this repo proves nothing; the real evidence is that terminal.vysted.com returns NXDOMAIN, so it is not deployed. Severity stays high for a public 0.9.0: unsigned binaries plus no updater path means users cannot install cleanly and cannot receive fixes."
+  }
+ },
+ {
+  "raw_id": "INT-deferred-42-7",
+  "title": "CI never caches the three PyInstaller sidecar binaries, so every workflow run pays a full ~20-25 min cold build",
+  "severity": "low",
+  "area": "release",
+  "subsystem": ".github/workflows",
+  "repro": "grep .github/workflows/*.yml for actions/cache -> zero matches; BLOCKERS.md:337-339 flags this as open since v0.7.0.",
+  "evidence": ".github/workflows/build.yml, .github/workflows/test.yml (no cache step); BLOCKERS.md:337-339",
+  "notes": "Pure CI-cost/iteration-speed issue, unchanged across at least two release cycles. Smallest fix: an actions/cache step keyed on sidecar/requirements.txt's hash around the ensure-all-sidecars.mjs step.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Confirmed: there is no actions/cache step for the PyInstaller outputs. The only caches are pnpm (setup-node `cache: pnpm`) and Swatinem/rust-cache. It is slightly worse than stated. Cold sidecar builds run in ALL THREE workflows, not just build/test: lint.yml:67-68 also runs ensure-all-sidecars.mjs, so every push pays about 9 cold builds (3 workflows x 3 OSes). Still CI cost only, so low."
   }
  },
  {

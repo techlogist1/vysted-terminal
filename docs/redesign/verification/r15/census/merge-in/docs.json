@@ -226,6 +226,22 @@
   }
  },
  {
+  "raw_id": "INT-deferred-42-6",
+  "title": "Claude Desktop <-> Vysted MCP consumption via mcp-remote has never been proven with a real screenshot despite documented instructions",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "docs/MCP_INTEGRATION.md",
+  "repro": "docs/MCP_INTEGRATION.md:131-155 gives exact claude_desktop_config.json setup steps; the only repo asset with 'claude-desktop' in its name, docs/redesign/references/r9/claude-desktop-full.png, is a screenshot of an unrelated claude.ai web chat ('tradebot / Fable 5 research and discussion'), not Vysted's tools appearing in Claude Desktop.",
+  "evidence": "docs/MCP_INTEGRATION.md:131-155; docs/redesign/references/r9/claude-desktop-full.png (content verified by direct read — unrelated)",
+  "notes": "MCP server is a §2 Locked decision ('MCP server in v1.0') — this is the one external-consumer interop path that proves the server actually speaks correctly to a real MCP client outside Vysted's own agent loop, and it has never been demonstrated. Smallest fix: one real session, screenshotted, showing a Vysted tool invoked from Claude Desktop via the mcp-remote bridge.",
+  "source_file": "intent-deferred-42.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "It is true that no artifact proves Claude Desktop consuming Vysted through mcp-remote; r9/claude-desktop-full.png sits among design-reference captures (claude-composer, cursor-*, linear-web) and is not proof. The 'why it matters' is overstated, though. The protocol interop the finding says was never demonstrated has been proven live: the code/mcp-servers census drove a real `POST /mcp/ initialize` on :52152 and got a full capability handshake, and GET /mcp/status on :52152 returns ready:true with toolCount:36. A stdio transport also exists (MCP_INTEGRATION.md:77-99), so mcp-remote is not the only route for Claude Desktop. What is left is the lack of a client-specific end-to-end demo, which is low. Separately, the doc's claim at MCP_INTEGRATION.md:155-156 that tools appear in Claude Desktop's slash-command picker as `/vysted__price_data` likely describes the UI inaccurately and deserves a check during that demo."
+  }
+ },
+ {
   "raw_id": "INT-pdd-readme-0-1",
   "title": "PRODUCT_DESIGN_DECISIONS.md still self-declares RATIFIED while half of it is retired -- and six shipped source files cite it as the design authority",
   "severity": "medium",
@@ -242,6 +258,230 @@
   }
  },
  {
+  "raw_id": "INT-pdd-readme-135-1",
+  "title": "README Status paragraph still says the agent-native redesign 'is being specified' with build only following operator review",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "README.md#Status",
+  "repro": "Open README.md:180-185 on the current branch (004-r4-experience-rebuild) -> text says 'Phases 0-10 merged to main ... agent-native redesign is being specified; build follows operator review', with no mention that P1-P3 already shipped or that an R15 verification census is in flight.",
+  "evidence": "README.md:180-185; docs/redesign/P1_P3_BUILD_REPORT.md (P1-P3 already shipped); docs/CURRENT_STATE.md §0/§0.5 (foundation + P1-P3 deltas)",
+  "notes": "Anyone reading the README top-to-bottom gets a materially outdated picture of project phase (spec-only vs. active build + verification). Smallest fix: update the Status paragraph to name the current branch/phase, or point to docs/CURRENT_STATE.md as the living status source instead of restating a phase that keeps drifting.",
+  "source_file": "intent-pdd-readme-135.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "README.md:180-185 still reads 'The agent-native redesign is being specified; build follows operator review', while docs/CURRENT_STATE.md:53-57 records P1-P3 as shipped and the repo is on 004-r4-experience-rebuild. Holds as stated. One cited evidence path is dead: docs/redesign/P1_P3_BUILD_REPORT.md does not exist at HEAD (git log shows it was added in 60770cd and removed by d3d9456's public-release cleanup), and CURRENT_STATE.md:56 still links to it, so that doc has a dead link too."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-135-2",
+  "title": "CURRENT_STATE.md undercounts the agent's mutating (write-capable) tool surface by 15 tools — says 4, catalog has 19",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "sidecar/services/agent_tools/catalog.py capability catalog vs docs/CURRENT_STATE.md §0.5",
+  "repro": "docs/CURRENT_STATE.md §0.5 names 'the four host-action tools (open_panel, set_chart_symbol, add_to_watchlist, propose_order) -- the catalog's only write-capable capabilities'; live catalog check (`[c.id for c in CAPABILITY_CATALOG.values() if not c.read_only]`) returns 19: open_panel, close_panel, focus_panel, arrange_layout, set_chart_symbol, set_chart_indicators, add_to_watchlist, remove_from_watchlist, publish_brief, propose_order, write_screener_filters, open_company_overview, portfolio_add_position, portfolio_update_position, portfolio_delete_position, write_note, save_layout, save_screen, set_region.",
+  "evidence": "sidecar/services/agent_tools/catalog.py (19 read_only=False entries, confirmed live); src/lib/host-actions.ts:62-83 HOST_ACTION_NAMES (the R10 D41/E6 comment naming the 15 additions); src/store/proposed-changes.ts:1-9 (the gate mechanism itself, which does still cover all 19 — this is a documentation-accuracy gap, not a safety gap)",
+  "notes": "The diff/accept never-auto-apply mechanism appears to genuinely cover all 19 (same staging store, same toolbelt-integrity test per host-actions.ts's own comment), so this is not a live safety hole. But an operator or auditor reading CURRENT_STATE.md's '4 write-capable capabilities' claim would badly underestimate the surface a §6.5-adjacent trust-gate review needs to cover before a public 0.9.0 release. Smallest fix: regenerate the §0.5 sentence from the catalog (or link to a live-generated list) instead of hand-naming four tools that were only ever a P1-era snapshot.",
+  "source_file": "intent-pdd-readme-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The count is right: catalog.py has 19 read_only=False entries, and HOST_ACTION_NAMES (src/lib/host-actions.ts:67-87) lists the same 19, while CURRENT_STATE.md:62-65 names only 4. The finding's safety note is wrong, though. The gate does NOT hold for all 19 in every mode: proposed-changes.ts:118 auto-accepts any change whose kind is not 'order' when autonomy is 'auto'. That covers the data-write kind (portfolio_add/update/delete_position, write_note, save_screen, save_layout; host-actions.ts:767-848) and the settings kind (set_region; host-actions.ts:858). agent-autonomy.ts:9-16 claims auto skips confirmation only for panel/chart/watchlist actions, so in auto mode the agent can delete a tracked-portfolio position with no confirmation. That is a stale-doc gap whose real consequence is an under-described trust surface for in-scope user data. After the trading removal, propose_order drops out and the surface is 18 tools."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-180-2",
+  "title": "CURRENT_STATE.md's plugin/broker-adapter section is substantially stale -- a full marketplace + lazy broker registry has since shipped",
+  "severity": "high",
+  "area": "docs",
+  "subsystem": "plugin system / broker registry",
+  "repro": "Read docs/CURRENT_STATE.md sec3.4-3.5 ('exactly three bundled plugins load'; 'only Dhan/AngelOne/Kite registered by default, Alpaca/IB/OANDA/ccxt-exec dead at runtime'; 'plugin secret resolution is effectively a no-op'), then read src/lib/marketplace.ts and sidecar/services/brokers/registry.py -- none of those three claims hold any more.",
+  "evidence": "src/lib/marketplace.ts:1-14,82-331 (a full install/enable/configure/remove 'marketplace' with 12 CATALOG_ROWS: 5 preinstalled -- vysted-yfinance, openbb-mcp, vysted-lenses, vysted-news, vysted-example -- plus all 7 broker plugins imported and catalogued, preinstalled:false); plugins/vysted-lenses/index.ts:3-13,18-24,27-42 (a pre-installed plugin already exercising contributesAgents with a real 'Quant Tutor' AgentSpec); src/lib/plugin-bootstrap.ts:236-247 (resolveSecrets wired to the OS keychain via getSecret, not a no-op); sidecar/services/brokers/registry.py:12-20,49-68 ('the sidecar registers no broker adapter at startup ... FR-051' -- ALL SEVEN adapters, including Dhan/AngelOne/Kite, are registered identically and lazily via KNOWN_ADAPTER_FACTORIES on marketplace-connect, not just the previously-claimed three)",
+  "notes": "This isn't one small drift -- it's the whole shape of the extensibility model changing (a bespoke 3-plugin/static-companion-map system -> a marketplace catalog with uniform lazy broker registration and a live agent-contributing plugin) without the 'honest baseline' doc being updated. A maintainer or agent reading CURRENT_STATE.md today would materially misjudge what already exists (risk: someone re-builds the marketplace, or the keychain secret wiring, believing it's missing) and would misjudge the CLAUDE.md gotcha about 'BUNDLED_PLUGINS'/'PLUGIN_COMPANIONS' naming, which itself predates this rename to CATALOG_ROWS. Smallest fix: rewrite CURRENT_STATE.md sec3.4-3.5 (and the CLAUDE.md plugin-contract gotcha) from src/lib/marketplace.ts and services/brokers/registry.py directly.",
+  "source_file": "intent-pdd-readme-180.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The drift is real. CURRENT_STATE.md §3.4 says BUNDLED_PLUGINS is exactly three plugins, contributesAgents is unexercised and resolveSecrets is a no-op, but the code has a 12-row CATALOG_ROWS marketplace, a preinstalled vysted-lenses agent plugin and keychain-backed resolveSecrets. The CLAUDE.md gotcha also names BUNDLED_PLUGINS/PLUGIN_COMPANIONS, which no longer exist in src/lib. Severity drops from high to medium: this is doc drift that trips the next maintainer, and no runtime flow breaks. The broker-registry half (the §3.5 claims about which adapters register) belongs to the trading surface and goes with the 23 Sep removal, which leaves only the plugin/marketplace doc fix."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-180-3",
+  "title": "Screener doc says OR-grouping is 'reserved for later' and sp500 is capped at 'top 100' -- both are already false",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "screener",
+  "repro": "Read docs/CURRENT_STATE.md sec3.3's screener bullet, then open sidecar/models/screener.py and sidecar/services/screener_universes/sp500.json.",
+  "evidence": "sidecar/models/screener.py:171-213 (CriterionGroup: 'Enables OR + nested logic ... beyond the flat AND-only criteria list'; ScreenerRequest.group: CriterionGroup | None); sidecar/services/screener.py:338 (a recursive AND/OR group evaluator, live); sidecar/services/screener_universes/sp500.json (label 'S&P 500', 506 symbols, not a top-100 subset); sidecar/services/screener_universe_india.py:6-9,33 (nse-all ~2675 / bse-all / india-all universes exist, undocumented by this promise)",
+  "notes": "An agent or user told 'OR-grouping is reserved for later' will not discover a capability that already ships and is wired end-to-end into the request model -- that's a real capability-discoverability gap for a research-agent product whose moat is claimed to be data/research quality. Smallest fix: correct the CURRENT_STATE.md screener bullet (drop 'top 100', add OR/nested-group support, add nse-all/bse-all/india-all to the universe list).",
+  "source_file": "intent-pdd-readme-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed. CURRENT_STATE.md:358-361 says sp500 is 'only top 100' and criteria are 'AND-only; OR-grouping reserved'. In code, CriterionGroup (nestable AND/OR) is live on ScreenerRequest.group with a recursive evaluator and a frontend CriterionGroupEditor, and the stack serves a 506-symbol S&P 500. The nse-all/bse-all/india-all universes are undocumented there. Medium is right: the baseline doc tells maintainers that a shipped capability is missing."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-180-4",
+  "title": "provider_registry.py's dispatch model has moved from an asset-class switch to a preference-order multi-source resolver, undocumented",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "provider_registry",
+  "repro": "Request a history bar for an NSE-listed symbol and trace which provider actually serves it, versus what docs/CURRENT_STATE.md sec3.3 says ('equity -> yfinance').",
+  "evidence": "sidecar/services/provider_registry.py:1-24 (docstring: 'dispatch is no longer a hardcoded if asset_class switch -- it is a resolver ... walks installed providers in a PREFERENCE ORDER'); :143-198 (nse_direct rank15, nse/jugaad rank20, bse rank25, all region-scoped to IN and ranked ABOVE yfinance rank50 for the equity quote/ohlcv model-keys)",
+  "notes": "This is a real, deliberate, well-documented-in-code upgrade (FR-035/FR-053, three India-specific EOD fallback providers ranked ahead of yfinance) that the higher-level baseline doc never picked up. Anyone reasoning about IN data quality/coverage from CURRENT_STATE.md alone would underestimate what already exists. Smallest fix: replace the 'routes every data request by asset class' sentence with the model-key/preference-order description already written in provider_registry.py's own docstring.",
+  "source_file": "intent-pdd-readme-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed. CURRENT_STATE.md:326-331 describes provider_registry.py as routing by asset_class with equity going to yfinance. The code is a model-key/preference-rank resolver in which the IN-scoped nse_direct(15), nse(20) and bse(25) providers rank ahead of yfinance(50), and /health on the stack reports that chain live. The baseline doc undercounts India data coverage, which is the product's moat area, so medium holds."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-225-1",
+  "title": "CURRENT_STATE.md's frontend section still documents a Next.js SSR/prerender architecture the app no longer has",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "frontend shell / architecture docs",
+  "repro": "Read docs/CURRENT_STATE.md sec3.8 as a new contributor (it is explicitly billed in the doc's own reference list as 'read first to learn what exists') -> it describes 'Next.js 16 App Router static export' and 'SSR safety... since the dockview layout library is not SSR-safe' -> open package.json and index.html -> the app is a Vite 8 + React 19 client-side SPA with zero Next.js dependency; there is no SSR, no prerender pass, and no App Router at all.",
+  "evidence": "docs/CURRENT_STATE.md:544-546 (still asserts 'Next.js 16 App Router static export (output:\"export\")... SSR-safety rests on one invariant'); package.json:7-9 (scripts.dev='vite', scripts.build='vite build', no 'next' dependency anywhere in the file); index.html:1-11 (plain Vite SPA shell, <script type=\"module\" src=\"/src/main.tsx\">); git log --oneline -- vite.config.ts (commit 8c2f9ab 'feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)', already an ancestor of HEAD 38919fd); docs/redesign/DECISIONS.md D6 ('Vite migration verdict: zero blockers... tauri.conf.json devUrl/beforeDevCommand edits are required by the WS1 mandate'); src/components/PanelHost.tsx:118-119 (docstring still reads 'which keeps the static-export build SSR-safe (the prerender pass sees the loading state)' -- a stale comment for a build mode that no longer exists)",
+  "notes": "The migration itself (commit 8c2f9ab, decision D6) is sound and deliberate -- this is a pure doc-accuracy defect, not a functional regression. grep -i vite docs/CURRENT_STATE.md returns zero hits: the file has never been updated for the stack change, so its own 'honest current-state inventory... read first' billing is false for the entire sec3.8 frontend-shell section (Next.js/App Router/SSR framing, static-export claim). A stale in-code comment (PanelHost.tsx:118-119) compounds this by describing SSR-prerender safety for a component that no longer runs under SSR at all -- a future maintainer reading only the code could reasonably (and wrongly) conclude removing the loading-placeholder gate is SSR-safe to do, when its real remaining purpose is now just async-module-registration timing in a CSR app. Smallest fix: rewrite CURRENT_STATE.md sec3.8's opening paragraph for Vite/CSR reality and correct the PanelHost.tsx docstring to state the CSR-timing reason instead of the retired SSR reason.",
+  "source_file": "intent-pdd-readme-225.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Holds: the app is a Vite + React 19 CSR SPA (package.json scripts dev='vite'/build='vite build', no 'next' dependency; index.html mounts /src/main.tsx; main.tsx renders ./app/page via ReactDOM.createRoot; migration commit 8c2f9ab is an ancestor of HEAD) yet CURRENT_STATE.md sec3.8 still describes a Next.js 16 App Router static export with an SSR-prerender invariant, and PanelHost.tsx:117-118 keeps the stale SSR rationale. Corrected in scope and detail: the stale framing is not confined to sec3.8 (also CURRENT_STATE.md:105, :147, :165-166 architecture diagram, :927) and the project CLAUDE.md itself (:5, :28, :38, :222) repeats it; the '3 vite hits' in CURRENT_STATE.md are all 'vitest', so the zero-Vite claim holds in substance; cited lines are 546-549 not 544-546. Severity stays medium (doc accuracy, no functional regression)."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-1",
+  "title": "CURRENT_STATE.md SS4 tool-schema-catalog gap table is fully stale (documents a ~11-tool backlog that no longer exists)",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "copilot / agent_tools catalog",
+  "repro": "Read docs/CURRENT_STATE.md SS4's 'The 14-id TOOL_SCHEMAS catalog -- but only ~10 are reachable' table, then compare against sidecar/services/agent_tools/schemas.py's actual TOOL_SCHEMAS and sidecar/services/agent_tools/catalog.py's read_handler_ids().",
+  "evidence": "sidecar/services/agent_tools/schemas.py:36 TOOL_SCHEMAS now has 50 entries (was 14 when documented); sidecar/services/agent_tools/catalog.py:1511-1528 read_handler_ids()/agent_selectable_tool_ids() show set(read_handler_ids()) - set(TOOL_SCHEMAS) == empty set (0 unreachable handlers, was ~11); sidecar/tests/test_capability_catalog.py:48-59 mechanically enforces this parity going forward.",
+  "notes": "A capability-catalog refactor (this repo's own CLAUDE.md cites it as Constitution Principle II) closed the exact gap CURRENT_STATE.md SS4 still documents as open. A redesign team reading the doc could waste time re-discovering/re-fixing an already-closed gap, or under-trust the tool surface. Fix: regenerate SS4's table from catalog.py at doc-refresh time (or replace the static table with a pointer to test_capability_catalog.py's pass/fail).",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The code side holds: TOOL_SCHEMAS has 50 entries and set(read_handler_ids()) - set(TOOL_SCHEMAS) is empty. But the doc does not simply 'document the gap as open'. Its own §0 Foundation-update banner (CURRENT_STATE.md:17-29) says it supersedes the body and records '§4 ~11 registered handlers unreachable -> CLOSED'. What is still stale: the §4 body table (:745-768) has no inline note, the banner's '27 internal capabilities' count is itself out of date (now 50), and §8 (:950-952) still recommends closing the gap. That is a docs-only problem that a reader of the banner is not misled by, so severity drops from medium to low."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-2",
+  "title": "CURRENT_STATE.md SS3.11 custom-agent tool-allow-list inconsistency is fixed but still documented as an open bug",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "custom agents",
+  "repro": "Read docs/CURRENT_STATE.md SS3.11's 'the custom-agent tool allow-list is stale + out of sync: KNOWN_TOOL_IDS lists only 5 tools ... news/macro pass validation but are not keys in TOOL_SCHEMAS' claim, then open sidecar/models/custom_agent.py.",
+  "evidence": "sidecar/models/custom_agent.py:38 'KNOWN_TOOL_IDS: frozenset[str] = agent_selectable_tool_ids()' -- computed, not a 5-id literal; sidecar/services/agent_tools/catalog.py:1520-1528 agent_selectable_tool_ids() = frozenset(internal_tool_ids()), docstring 'A custom agent may select any tool the first-party copilot can use'.",
+  "notes": "Same root fix as INT-pdd-readme-270-1 (the catalog refactor) also closed this specific documented inconsistency. Low severity because it's purely a stale-doc issue with no current user-facing impact -- a custom agent can now legitimately select any of the 50 catalog tools.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "KNOWN_TOOL_IDS is computed as agent_selectable_tool_ids() (custom_agent.py:38), so the code-side fix is real. Correction: the doc already records the fix in its §0 banner ('custom-agent allow-list stale -> RECONCILED', CURRENT_STATE.md:33-34), which says it supersedes the body. The leftover staleness is the unannotated §3.11 body (:653-659, 'A real, unfixed inconsistency') and the §7 status row (:887 'Stale/out of sync')."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-3",
+  "title": "CURRENT_STATE.md SS4 documents the Gemini multi-round tool-use bug as live; it was fixed",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "copilot / LLM adapters",
+  "repro": "Read docs/CURRENT_STATE.md SS4's 'Gemini multi-round tool use is likely broken -- function_response keyed by empty name' claim, then open sidecar/services/agent_runtime.py's tool-result-append site and sidecar/services/llm/gemini.py's function_response construction.",
+  "evidence": "sidecar/services/agent_runtime.py:1577,1585 the appended role=\"tool\" message now carries metadata={\"name\": tool_call.name}; sidecar/services/llm/gemini.py:56-57 function_response.name reads message.metadata.get(\"name\", \"\") (no longer unconditionally empty); sidecar/tests/test_gemini_multiround.py is a dedicated regression test for this exact path.",
+  "notes": "This repo's own CLAUDE.md gotchas section already documents the fix ('the tool-RESULT turn carries metadata[\"name\"] ... omit it and Gemini multi-round breaks') -- docs/CURRENT_STATE.md simply was not updated to match. Worth a pass to keep the two docs from contradicting each other before 0.9.0.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The fix is real: agent_runtime.py:1576-1585 threads metadata={'name': tool_call.name} onto the tool-result message, gemini.py:56-57 reads it, and test_gemini_multiround.py exists. Correction: the doc is not silent about the fix. Its §0 banner (CURRENT_STATE.md:31-32) records 'Gemini multi-round likely broken -> FIXED'. Three places still carry the unannotated stale claim: the §4 caveat (:773), the §7 status table row (:883 'Likely broken') and the §8 recommendation (:952)."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-4",
+  "title": "CURRENT_STATE.md SS3.10 says the desktop-notification-intent slice has no dispatcher; a dispatcher now exists and is mounted",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "node editor / workflow store",
+  "repro": "Read docs/CURRENT_STATE.md SS3.10's 'A second workflow-state store ... has no found dispatcher -- treat as unwired' claim, then check src/lib/desktop-notification.ts and its mount site.",
+  "evidence": "src/lib/desktop-notification.ts:92-112 subscribes to useWorkflowStore's pendingNotifications and calls drainNotifications() after firing the OS notification; src/app/page.tsx:10 imports and uses useDesktopNotificationBridge; `git log --oneline -- src/lib/desktop-notification.ts` shows commit 328947f 'feat(workflow): bridge action.notify_desktop to OS notifications'.",
+  "notes": "Favorable drift, not a defect -- flagged only because CURRENT_STATE.md SS3.10 undersells shipped functionality to anyone using it to scope redesign work.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The dispatcher is real and mounted: desktop-notification.ts:92-112 flushes pendingNotifications and drains them, and page.tsx:10,43 mounts useDesktopNotificationBridge. No §0/§0.5 banner corrects this. Correction to the mechanism: this is not 'drift'. The bridge commit 328947f (2026-05-17) is an ancestor of the doc's own baseline 3123e7c, and page.tsx at 3123e7c already mounted it (:9,24). So §3.10 was wrong when it was written, not later outdated."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-5",
+  "title": "CURRENT_STATE.md SS6 persistence table lists 3 SQLite-backed stores; there are at least 5, none with migrations",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "persistence / local-first model",
+  "repro": "Read docs/CURRENT_STATE.md SS6's persistence table (workspace blob / BYOK keychain / positions.db / audit_log.db / data_cache.db) and its 'no DB migrations anywhere (all THREE SQLite stores...)' honest-gaps note, then grep sidecar/services for additional sqlite3.connect(...) + CREATE TABLE IF NOT EXISTS sites.",
+  "evidence": "sidecar/services/runs_store.py:52,55,97 DB_FILENAME='delegate_runs.db', 'CREATE TABLE IF NOT EXISTS runs', comment at :97 repeating the same no-migration caveat independently; sidecar/services/agents_store.py:39,42 DB_FILENAME='custom_agents.db', 'CREATE TABLE IF NOT EXISTS custom_agents' -- both undocumented in SS6's table.",
+  "notes": "The underlying claim (no migration mechanism anywhere) is true and confirmed to extend to these two additional stores too, so this isn't a new safety gap -- but a redesign that plans a migration strategy 'for the three stores' will miss delegate_runs.db and custom_agents.db entirely unless SS6 is corrected to the real count before 0.9.0.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Both extra stores are real and have no migrations: runs_store.py:52,55 (delegate_runs.db) and agents_store.py:39,42 (custom_agents.db). The §6 table (CURRENT_STATE.md:824-830) and the 'all three SQLite stores' gap note (:849) undercount them. Correction: they are not 'undocumented' in the doc. runs_store.py is named in the §0.5 banner (:89) and the custom-agent SQLite store in §3.11 (:652). Only §6's count is wrong, and it is a docs-only fix, so severity drops from medium to low."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-270-7",
+  "title": "CURRENT_STATE.md describes non-order host actions as applying as live mutations; by default they now stage in the same review gate as an order proposal",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "copilot / chat sidebar act-path",
+  "repro": "Read docs/CURRENT_STATE.md SS3.10/SS4's 'executeHostAction maps copilot tool calls to live UI mutations (setting the chart symbol, opening a panel, adding a watchlist entry)' claim, then open src/store/agent-autonomy.ts.",
+  "evidence": "src/store/agent-autonomy.ts:7-9,23,38 'ask (default) -- every proposed change waits in the diff/accept gate. auto -- UI/layout/chart/watchlist changes apply WITHOUT a per-action confirmation'; useAgentAutonomyStore defaults autonomy: 'ask'. src/lib/host-actions.ts:6-13 module doc confirms every host action (not just propose_order) is staged as a ProposedChange.",
+  "notes": "Not a regression -- if anything this is a more conservative, more consistent act-path than documented (every mutation, not just orders, now gets a diff/accept step by default). Flagged because the doc's specific claim ('live mutations' for non-order actions) no longer matches the default behaviour, which matters if the redesign is scoping how much friction the agent should add per action.",
+  "source_file": "intent-pdd-readme-270.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The body text at CURRENT_STATE.md:633-635 and :729-733 still says executeHostAction applies live store mutations, while the code stages every host action as a ProposedChange (host-actions.ts:1-14) with autonomy 'ask' as the store default (agent-autonomy.ts:7-9,36-38). Correction 1: the doc's §0.5 banner (:60-65) already says every agent-proposed mutation goes through the diff/accept gate, so only the body is stale. That banner is now itself out of date, because 'auto' mode lets non-order actions skip the gate. Correction 2: 'default' holds only for a fresh workspace, because workspace.ts:297 restores a persisted 'auto'."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-315-1",
+  "title": "Documented panel-companion wiring (panels.ts + PLUGIN_COMPANIONS + BUNDLED_PLUGINS) doesn't exist — the real mechanism is an undocumented inline arg in marketplace.ts",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "plugin system / panel contribution",
+  "repro": "Follow docs/PLUGIN_DEVELOPMENT.md §'Companion panels.ts glue' literally to add a panel-contributing plugin: create plugins/<id>/panels.ts exporting Record<string, FunctionComponent>, expect src/lib/plugin-bootstrap.ts to pick it up via a PLUGIN_COMPANIONS map -> neither panels.ts convention nor a PLUGIN_COMPANIONS export exists anywhere in the tree, so there is nothing to wire into.",
+  "evidence": "docs/PLUGIN_DEVELOPMENT.md:339-345 (documents the sibling panels.ts + PLUGIN_COMPANIONS pattern) and CLAUDE.md 'Plugin contract' section (repeats the same claim: 'ship via the src/lib/plugin-bootstrap.ts PLUGIN_COMPANIONS static-import map ... Adding a plugin with panels -> add to both BUNDLED_PLUGINS and PLUGIN_COMPANIONS'); versus `find plugins -iname panels.ts` (zero results), `grep -rn PLUGIN_COMPANIONS --include=*.ts --include=*.tsx .` (only a stray mention in src/store/keybindings.ts:8, no export/constant), `grep -rn BUNDLED_PLUGINS .` (zero hits anywhere); the real mechanism is src/lib/marketplace.ts:53-65 (`row()` helper's 4th `panelComponents` positional arg, populated inline per catalog entry) consumed by src/lib/plugin-bootstrap.ts:127-170 (`moduleForPlugin` reads `row.panelComponents` directly, not a named companion map).",
+  "notes": "Two independent docs (PLUGIN_DEVELOPMENT.md and the project's own CLAUDE.md) describe a file/export shape that was superseded when panel-companion wiring moved into marketplace.ts's CATALOG_ROWS, and neither was updated. Currently harmless because zero bundled plugins set contributesPanels:true, so the mismatch has never been exercised — but it will actively mislead and block the first plugin author (internal or third-party) who tries to ship a panel, since the documented import target doesn't exist. Smallest fix: rewrite §'Companion panels.ts glue' (and the CLAUDE.md 'Plugin contract' paragraph) to describe the actual `CatalogRow.panelComponents` arg in marketplace.ts, or restore the documented panels.ts/PLUGIN_COMPANIONS indirection in code if that separation was intentional.",
+  "source_file": "intent-pdd-readme-315.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds as stated: PLUGIN_DEVELOPMENT.md and CLAUDE.md both direct plugin authors to a sibling panels.ts + PLUGIN_COMPANIONS/BUNDLED_PLUGINS registration, none of which exists; the live mechanism is CatalogRow.panelComponents passed through row() in marketplace.ts and read by moduleForPlugin. Latent today (no plugin sets contributesPanels: true) but CLAUDE.md is session DNA every agent follows, so it misdirects the next maintainer; medium stands."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-315-2",
+  "title": "Plugin-contract Roadmap section is stale: two of its five 'future' items already shipped, so it misrepresents what actually remains deferred",
+  "severity": "low",
+  "area": "docs",
+  "subsystem": "plugin system / roadmap",
+  "repro": "Read docs/PLUGIN_DEVELOPMENT.md §Roadmap (framed 'out of scope for v0.3.0') to learn what's still missing from the plugin system at the current v0.8.0 host version -> it lists 'a future Tauri-spawned subprocess pattern to resolve the OpenBB Windows hang' and 'Phase 3 will add agent/node-editor consumers' as still-pending, when both are done for node-editor + the subprocess pattern (only the agent-picker half is actually still missing).",
+  "evidence": "docs/PLUGIN_DEVELOPMENT.md:360-373 (§Roadmap, unchanged since v0.3.0); src/lib/plugin-bootstrap.ts:36 (`HOST_VERSION = \"0.8.0\"` — five phases past what the roadmap describes); src-tauri/src/openbb_mcp.rs:100 and src-tauri/src/sec_edgar_mcp.rs:100 (both already use `app.shell().sidecar(...)`, the exact pattern the roadmap calls 'future'); src/modules/node-editor/node-registry.ts:3-4 ('plugin-contributed node types surfaced through usePluginsStore.nodes' — the node-editor consumer is live); versus `grep -rn \"state.agents\" src/modules/` outside node-editor/plugin-manager (zero hits) — the agent-picker consumer genuinely is still missing, so `usePluginsStore.agents` (populated at src/store/plugins.ts:63,87) is collected but never rendered/selectable anywhere a user could invoke a plugin-contributed agent.",
+  "notes": "A roadmap that claims five items are equally 'future' when two are shipped erodes trust in the doc as a source of truth for what's left before 0.9.0, and specifically hides that the agent-consumer gap (the one item genuinely still open) is real and unaddressed. Smallest fix: split the Roadmap into 'shipped since v0.3.0' (subprocess pattern, node-editor consumer) and 'still open' (agent-picker consumer, filesystem/signed/marketplace plugins), and file the agent-picker gap as its own tracked item.",
+  "source_file": "intent-pdd-readme-315.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: the Roadmap (framed 'out of scope for v0.3.0') still lists the Tauri-spawned subprocess pattern and the node-editor consumer as future, yet openbb/sec-edgar MCP children already spawn via app.shell().sidecar() and NodeEditorPanel/VystedNode consume usePluginsStore.nodes; plugin-contributed agents are only counted in PluginManagerPanel, never selectable, so the one genuinely open item is obscured. Docs-only, low."
+  }
+ },
+ {
   "raw_id": "INT-pdd-readme-45-9",
   "title": "Two shared-component contract comments still specify the pre-R9 amber affordance the code deliberately does not implement",
   "severity": "low",
@@ -255,6 +495,38 @@
    "verdict": "admitted",
    "severity_final": "low",
    "reason": "DataTable.tsx:29-30 promises an amber active-sort caret, but the caret renders text-charcoal-300 (:261-262). NotesToolbar.tsx:10 says 'amber TEXT', but active is text-charcoal-300 (#cccccc) against idle text-charcoal-400 (#a8a8a8) with no fill or weight (:104-106; tokens.css:42-43), so the active cue is one faint luminance step. Stale contract comments plus a weak active indicator: low."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-90-1",
+  "title": "README (and root CLAUDE.md) still describe the frontend as Next.js, but the app migrated to Vite 8 + React 19",
+  "severity": "medium",
+  "area": "docs",
+  "subsystem": "README.md / project docs",
+  "repro": "Read README.md#Overview or the Project Layout table, or CLAUDE.md's Stack section, to orient in the codebase -> both say 'Next.js static-export frontend' / 'Next.js 16 frontend (App Router, static export)'. Open package.json or src-tauri/tauri.conf.json -> there is no `next` dependency, `frontendDist` points at Vite's `out/`, `devUrl` is Vite's 127.0.0.1:5173, entry is src/main.tsx + index.html + vite.config.ts, and git log shows the migration commit itself (`8c2f9ab feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)`).",
+  "evidence": "README.md:27 ('Next.js static-export frontend'), README.md:156 ('Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)'); versus package.json:53,82 (react 19.2.6, vite ^8.0.16, no `next` entry), src-tauri/tauri.conf.json:7-9 (frontendDist=../out, devUrl=http://localhost:5173, beforeDevCommand runs `pnpm dev` = vite), src/main.tsx + index.html + vite.config.ts (Vite entry points), git log `8c2f9ab`. docs/redesign/CLAUDE_MD_PROPOSAL.md:3-7 already queues the correct replacement text for CLAUDE.md's Stack section but it has not been applied.",
+  "notes": "Two separate, load-bearing docs (README's primary architecture claim and its Project Layout table) both assert a framework that no longer exists in the tree, and the project's own CLAUDE.md repeats the same stale claim in its 'Locked' Tier-1 stack description. A contributor or an agent reading either doc to find frontend code (e.g. looking for a Next.js App Router `app/` directory or `next.config.js`) will be misdirected. Smallest fix: two find-and-replace edits in README.md (lines 27 and 156) plus applying the already-drafted CLAUDE_MD_PROPOSAL.md stack-section replacement to CLAUDE.md -- the correct text already exists, it just hasn't been copied over.",
+  "source_file": "intent-pdd-readme-90.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds as stated: README.md:27 and README.md:156 and CLAUDE.md:5,28,38 all describe a Next.js frontend, while the tree has no `next` dependency, no next.config.*, a `vite` dev script, Vite entry points (index.html, src/main.tsx, vite.config.ts) and tauri.conf.json devUrl on Vite's :5173; the migration commit 8c2f9ab is in history. The corrected CLAUDE.md stack text is already drafted in docs/redesign/CLAUDE_MD_PROPOSAL.md:3-7 but unapplied (CLAUDE.md is Tier-1, so that half needs operator sign-off)."
+  }
+ },
+ {
+  "raw_id": "INT-spec-45-1",
+  "title": "constitution.md's Locked Stack section (and CLAUDE.md) still names Next.js 16 static export; the shipped frontend has been Vite since R7 (D6)",
+  "severity": "high",
+  "area": "docs",
+  "subsystem": "constitution.md / CLAUDE.md / components.json",
+  "repro": "Read .specify/memory/constitution.md 'Additional Constraints (Stack, Scope & Decision Authority)' and this project's own CLAUDE.md 'Stack' section (both say 'Next.js 16 (App Router, static export)' / 'Next.js 16 static export'), then read package.json: no \"next\" dependency anywhere; \"scripts\":{\"dev\":\"vite\",\"build\":\"vite build\"}; devDependencies carry vite ^8.0.16 + @vitejs/plugin-react 6.0.1. There is a vite.config.ts and an index.html Vite entry point; components.json still declares \"rsc\": true and \"css\": \"src/app/globals.css\" (React-Server-Components / Next app-router settings that don't apply to a Vite SPA); src/app/page.tsx + src/app/globals.css are leftover Next-era files.",
+  "evidence": ".specify/memory/constitution.md (Additional Constraints, 'Stack is locked: Tauri 2.x (Rust core) + Next.js 16 static export + React 19 + ...', read live this session), CLAUDE.md:16 ('Frontend: Next.js 16 (App Router, static export) + React 19 + TypeScript'), package.json (no next dep; vite scripts; vite ^8.0.16, @vitejs/plugin-react 6.0.1), vite.config.ts:1-30, index.html, components.json (rsc:true, css:'src/app/globals.css'), src/app/page.tsx, docs/redesign/DECISIONS.md:28 D6 ('Vite migration verdict: zero blockers (1 next/font import, 2 app-shell files, no routing/SSR/API routes, vitest already Vite-based) ... change is surgical').",
+  "notes": "Per this project's own Decision Authority tiers (constitution.md 'Additional Constraints' + CLAUDE.md 'Decision authority'), the Locked stack (BLUEPRINT §2) is Tier-1 and reversing it is Tier-4 — block-and-ask, record, never silent. The Next.js->Vite migration DID happen and WAS recorded (D6, R7 decision log) as a deliberate, low-risk, surgical change, but the Locked-stack PROSE in constitution.md and the Stack line in CLAUDE.md were never updated to match it — both currently, actively misdescribe the shipped framework. CLAUDE.md is loaded into every future Claude Code session on this project (including this one) as ground truth, so this isn't cosmetic: it primes every future contributor/agent with a wrong mental model of the rendering layer, App Router routing, RSC, etc. that don't exist in this codebase. Smallest fix: update constitution.md's Locked-stack line and CLAUDE.md's Stack line to 'Vite + React 19 (SPA, no SSR/RSC)', record the Next->Vite migration as the Tier-3/4 stack amendment it already was (cite D6), and clean up components.json (rsc:false, correct css path) + delete the leftover src/app/page.tsx + src/app/globals.css remnants.",
+  "source_file": "intent-spec-45.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The stack drift is real: package.json ships Vite (dev/build scripts, vite ^8.0.16, @vitejs/plugin-react, no next dependency) while constitution.md:122 and CLAUDE.md:5,28,38 still say Next.js 16 static export / App Router, and components.json declares rsc:true. Two corrections. First, src/app/page.tsx and src/app/globals.css are not leftover Next-era files: they are the live Vite app shell, imported by src/main.tsx:13,15 (index.html:11 loads /src/main.tsx). Deleting them would break the app, and components.json's css path is correct; only rsc:true is wrong. Second, severity drops high->medium because no product flow breaks: this is stale documentation that misleads the next maintainer or agent, which COMMON.md places at medium."
   }
  }
 ]

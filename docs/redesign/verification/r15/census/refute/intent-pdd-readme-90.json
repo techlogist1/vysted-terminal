@@ -1,0 +1,20 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-90-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated: README.md:27 and README.md:156 and CLAUDE.md:5,28,38 all describe a Next.js frontend, while the tree has no `next` dependency, no next.config.*, a `vite` dev script, Vite entry points (index.html, src/main.tsx, vite.config.ts) and tauri.conf.json devUrl on Vite's :5173; the migration commit 8c2f9ab is in history. The corrected CLAUDE.md stack text is already drafted in docs/redesign/CLAUDE_MD_PROPOSAL.md:3-7 but unapplied (CLAUDE.md is Tier-1, so that half needs operator sign-off).",
+    "evidence": "README.md:27, README.md:156, CLAUDE.md:5, CLAUDE.md:28, CLAUDE.md:38, package.json:8 (\"dev\": \"vite\"), package.json:53, package.json:82, src-tauri/tauri.conf.json:7-10, docs/redesign/CLAUDE_MD_PROPOSAL.md:3-10",
+    "evidence_checked": "Opened README.md and CLAUDE.md Next.js lines, grepped package.json for next/vite/react, read tauri.conf.json build block, ls'd index.html/src/main.tsx/vite.config.ts/next.config.*, git log for 8c2f9ab (present). Code-only; no stack needed.",
+    "repro_check": "grep -n Next README.md CLAUDE.md -> README 27,156 and CLAUDE 5,28,38; grep -n '\"next' package.json -> no match; ls next.config.* -> No such file."
+  },
+  {
+    "raw_id": "INT-pdd-readme-90-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The core gap holds: scripts/audit-design-tokens.mjs is referenced by neither package.json (ci-local at :20) nor any .github/workflows file, so the §16 gate is manual-only. Correction on mechanism: the script does NOT implement 'exactly' the §16 checks - it covers spacing steps, arbitrary rhythm/text values and dead type sizes only (header :4-17); §16's rounded-[...], raw-hex-in-components and shadow/blur checks (PRODUCT_DESIGN_DECISIONS.md:317-321) are rg one-liners with no script at all, and one is already violated: src/modules/node-editor/NodeEditorPanel.tsx:572 hardcodes '#39332b'/'#1a1814' (old warm palette) while the script reports 'clean'. Fix shape: extend the script with the three missing checks, fix the node-editor hex, then add it (non --report mode) to ci-local and lint.yml.",
+    "evidence": "scripts/audit-design-tokens.mjs:1-27, package.json:20, .github/workflows/{build,lint,test}.yml (grep: no reference), docs/redesign/PRODUCT_DESIGN_DECISIONS.md:303-323, src/modules/node-editor/NodeEditorPanel.tsx:572",
+    "evidence_checked": "Read the script's header/usage, grepped package.json + .github/workflows + scripts for 'audit-design' (only the script itself), read PDD §16 in full, ran the script and the three uncovered §16 greps over src/plugins.",
+    "repro_check": "node scripts/audit-design-tokens.mjs src plugins -> 'design-token audit clean' exit 0; grep -rnE '#[0-9a-fA-F]{6}\\b' src/modules src/components --include=*.tsx -> NodeEditorPanel.tsx:572 (non-test) hit the script never flags; rounded-[ and shadow/blur greps -> 0."
+  }
+]

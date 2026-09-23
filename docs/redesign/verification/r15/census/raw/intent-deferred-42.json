@@ -1,0 +1,92 @@
+[
+  {
+    "raw_id": "INT-deferred-42-1",
+    "title": "0.9.0's launch-ops surface (code signing, auto-updater, distribution channels, landing page) is entirely unbuilt",
+    "severity": "high",
+    "area": "release",
+    "subsystem": "src-tauri/tauri.conf.json, .github/workflows",
+    "repro": "design: inspect src-tauri/tauri.conf.json (no signingIdentity/certificateThumbprint keys, createUpdaterArtifacts:false) and .github/workflows/*.yml (no SignPath step, no actions/cache, no Homebrew/AppImage/.deb build/publish step); grep the repo for terminal.vysted.com finds only doc references, no site source.",
+    "evidence": "src-tauri/tauri.conf.json:45,48; BLOCKERS.md:288-334 (launch ops items 1-4)",
+    "notes": "Covers INT-DF-50/51/52/53. Every one of the four public-release mechanics (signed binaries, a working updater, a real distribution channel, a landing page to send people to) is still a stub. Smallest fix shape: these are sequenced, ops-heavy tasks (SignPath enrollment, GitHub Releases wiring, a Homebrew tap) that need to be scheduled as their own pre-tag checklist rather than discovered at tag time; none can be done incidentally inside an unrelated commit."
+  },
+  {
+    "raw_id": "INT-deferred-42-2",
+    "title": "In-webview drag correctness (dockview reorder, node-editor drag-drop) has zero trusted-event coverage and has not been re-confirmed since R7",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "PanelHost / node-editor",
+    "repro": "design: no playwright.config.*, no e2e spec files, no `playwright` dependency anywhere in the repo (INT-DF-48); the correctness claim itself (INT-DF-77) has recurred as an unresolved NEEDS-MANUAL-CHECK item, verbatim, across R7 through R12 run reports without ever being re-verified.",
+    "evidence": "docs/redesign/verification/R7_RUN_REPORT.md:39; CLAUDE.md Gotchas ('chrome-devtools MCP can't synthesize trusted (isTrusted) events'); tauri.conf.json app.windows[0].dragDropEnabled:false (the special-cased mechanism this all depends on)",
+    "notes": "Covers INT-DF-48/77. A core interaction (tab reorder, palette->canvas drag) that the team already knows is fragile enough to need a dedicated dragDropEnabled:false workaround has never had its actual gesture correctness proven by anything but eyeballing, and the tool needed to automate that (Playwright with real event injection) doesn't exist. Smallest fix shape: stand up a minimal Playwright suite (even 2-3 specs covering tab reorder + one canvas drag) using native event injection, gated to run only where a real browser context is available (not chrome-devtools MCP)."
+  },
+  {
+    "raw_id": "INT-deferred-42-3",
+    "title": "open_company_overview's highlightMetric argument is fully unconsumed \u2014 the agent's promised chart highlight never fires",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "equity-overview / host-actions",
+    "repro": "Agent calls open_company_overview(symbol, highlightMetric='pe_ratio') -> src/lib/host-actions.ts threads it into useEquityCommandStore -> src/modules/equity-overview/EquityOverviewPanel.tsx:628 reads only `equityCommand.symbol`, never `.highlightMetric` -> no visual change to the metric at all.",
+    "evidence": "src/lib/host-actions.ts:274,690,1074; src/store/equity-command.ts:21-33; src/modules/equity-overview/EquityOverviewPanel.tsx:628,822-831",
+    "notes": "docs/redesign/verification/R7_RUN_REPORT.md:37 already flagged this as shipping 'plain focus' instead of a genuine pulse; it has since regressed further to producing no visible effect at all. This is a demoed agent-UX capability ('What is a P/E ratio? Show me on Tata Steel') that silently does less than advertised. Smallest fix: read `equityCommand.highlightMetric` in the panel and apply a brief accent-ring/pulse class to the matching metric row on change."
+  },
+  {
+    "raw_id": "INT-deferred-42-4",
+    "title": "Accessibility contrast has never been audited; no axe-core or Lighthouse run exists anywhere in the repo",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "styles / CI",
+    "repro": "grep package.json, .github/workflows/, scripts/ for axe-core|lighthouse -> zero matches.",
+    "evidence": "BLOCKERS.md:262 'L11-color-contrast-not-audited \u2014 Phase 9 axe-core/Lighthouse' (S3, still open)",
+    "notes": "A dark, dense, minimal-chrome UI (CLAUDE.md's zinc + cool-indigo system) is exactly the kind of palette that quietly fails WCAG contrast on secondary text; nothing has ever checked. Smallest fix: one CI job running axe-core against a built static export of the key panels."
+  },
+  {
+    "raw_id": "INT-deferred-42-5",
+    "title": "WorkflowRunRequest's resume-from mode is a dead field \u2014 declared on the model, never read by the engine or router",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "sidecar/services/workflow_engine.py, sidecar/routers/workflow.py",
+    "repro": "POST a WorkflowRunRequest with mode='resume-from' and resume_from=<node_id> -> sidecar/routers/workflow.py:39 run_workflow never reads payload.mode or payload.resume_from anywhere (grep across routers/workflow.py and services/workflow_engine.py for both terms returns nothing) -> the workflow always executes as a full run.",
+    "evidence": "sidecar/models/workflow.py:73-74; sidecar/routers/workflow.py:39",
+    "notes": "The type exists (implying the feature was scoped) but the execution path silently ignores it instead of rejecting an unsupported mode or implementing it \u2014 a caller who sets mode='resume-from' gets a full re-run with no error. Smallest fix: either implement resume-from (skip to the given node using cached upstream outputs) or have the router 400 on an unimplemented mode instead of silently ignoring it."
+  },
+  {
+    "raw_id": "INT-deferred-42-6",
+    "title": "Claude Desktop <-> Vysted MCP consumption via mcp-remote has never been proven with a real screenshot despite documented instructions",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "docs/MCP_INTEGRATION.md",
+    "repro": "docs/MCP_INTEGRATION.md:131-155 gives exact claude_desktop_config.json setup steps; the only repo asset with 'claude-desktop' in its name, docs/redesign/references/r9/claude-desktop-full.png, is a screenshot of an unrelated claude.ai web chat ('tradebot / Fable 5 research and discussion'), not Vysted's tools appearing in Claude Desktop.",
+    "evidence": "docs/MCP_INTEGRATION.md:131-155; docs/redesign/references/r9/claude-desktop-full.png (content verified by direct read \u2014 unrelated)",
+    "notes": "MCP server is a \u00a72 Locked decision ('MCP server in v1.0') \u2014 this is the one external-consumer interop path that proves the server actually speaks correctly to a real MCP client outside Vysted's own agent loop, and it has never been demonstrated. Smallest fix: one real session, screenshotted, showing a Vysted tool invoked from Claude Desktop via the mcp-remote bridge."
+  },
+  {
+    "raw_id": "INT-deferred-42-7",
+    "title": "CI never caches the three PyInstaller sidecar binaries, so every workflow run pays a full ~20-25 min cold build",
+    "severity": "low",
+    "area": "release",
+    "subsystem": ".github/workflows",
+    "repro": "grep .github/workflows/*.yml for actions/cache -> zero matches; BLOCKERS.md:337-339 flags this as open since v0.7.0.",
+    "evidence": ".github/workflows/build.yml, .github/workflows/test.yml (no cache step); BLOCKERS.md:337-339",
+    "notes": "Pure CI-cost/iteration-speed issue, unchanged across at least two release cycles. Smallest fix: an actions/cache step keyed on sidecar/requirements.txt's hash around the ensure-all-sidecars.mjs step."
+  },
+  {
+    "raw_id": "INT-deferred-42-8",
+    "title": "Default watchlist still orders AAPL last, not first, contradicting the documented visual convention",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "src/store/symbols.ts",
+    "repro": "Fresh install -> watchlist panel shows SPY, QQQ, BTC/USDT, ETH/USDT, NVDA, AAPL \u2014 AAPL at position 6.",
+    "evidence": "src/store/symbols.ts:21-27; BLOCKERS.md:327-329 (open since v0.7.0 -> v0.8 polish carry-forwards item 2)",
+    "notes": "One-line array reorder, still not done after being logged as a fix two release cycles ago."
+  },
+  {
+    "raw_id": "INT-deferred-42-9",
+    "title": "Brave/Mojeek keyless-search parsers are covered only by frozen fixtures \u2014 nothing detects live SERP markup drift",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "sidecar/services/search",
+    "repro": "design: sidecar/tests/test_brave_backend.py and test_mojeek_backend.py assert against saved HTML fixtures only; no scheduled job or smoke check re-fetches a live query and validates the parse.",
+    "evidence": "sidecar/services/search/brave.py, mojeek.py; sidecar/tests/test_brave_backend.py, test_mojeek_backend.py; docs/redesign/verification/R7_RUN_REPORT.md:41",
+    "notes": "A keyless-first product's default search tier can silently start returning zero results the moment Brave or Mojeek changes markup, with no signal until a user notices. Smallest fix: a low-frequency (e.g. daily) CI or cron smoke job that runs one real query through each parser and alerts on an empty/malformed result."
+  }
+]

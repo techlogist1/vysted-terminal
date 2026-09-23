@@ -884,7 +884,8 @@
    "defect_class": "freshness-not-shown",
    "raw_ids": [
     "COD-portfolio-9",
-    "INT-spec-90-2"
+    "INT-spec-90-2",
+    "INT-spec-180-210"
    ],
    "tier4": false,
    "operator_areas": [
@@ -1418,7 +1419,8 @@
    "fix_shape": "SettingsExport v2 including search settings, default provider/model and enabledModules; import sets 'ok' only when a recognised section applied, merges over current state, rejects unknown action ids. Pin with export/import round-trip tests.",
    "defect_class": "silent-partial-success",
    "raw_ids": [
-    "SURF-SETTINGS-PLUGINS-3"
+    "SURF-SETTINGS-PLUGINS-3",
+    "INT-spec-90-9"
    ],
    "tier4": false,
    "operator_areas": [
@@ -1450,6 +1452,133 @@
     "ui-panels",
     "research-search"
    ]
+  },
+  {
+   "id": "R15-UI-083",
+   "title": "A research brief can only be exported as Markdown copied to the clipboard: no MD/PNG/PDF file export, although SC-035 requires it and two build reports say it shipped",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "files": [
+    "src/modules/research/BriefPanel.tsx",
+    "src/lib/export-artifact.ts",
+    "docs/redesign/DECISIONS.md"
+   ],
+   "repro": "Open a populated brief and look for a file export: the toolbar has one 'Copy markdown' button (BriefPanel.tsx:664-675), and there is no MD/PNG/PDF save path.",
+   "evidence": "src/modules/research/BriefPanel.tsx:568-584,664-675 (composeBriefMarkdown -> navigator.clipboard only); BriefPanel.tsx has no import from src/lib/export-artifact.ts (only NotesPanel uses savePngArtifact/savePdfArtifact); docs/redesign/AGENT_TOOLUSE_PLAN.md:198 'Decision 7 default'; no Decision 7 entry in docs/redesign/DECISIONS.md; REBUILD_R4_SESSION2_REPORT.md / OVERNIGHT_BUILD_REPORT_R4S3.md report route-ns.md/.pdf as delivered. Refuter: admitted, medium.",
+   "root_cause": "The file-export buttons were removed after a reproduced PDF-mid-animation bug (BRIEF-2) and replaced with clipboard copy under an unrecorded 'Decision 7 default'. The spec and the build reports were never reconciled.",
+   "fix_shape": "Restore 'Save .md' via the existing saveTextArtifact, and 'Save PDF/PNG' via savePdfArtifact/savePngArtifact after the brief settles (await animation end, or render a static print view) so BRIEF-2 cannot recur. Record the decision in DECISIONS.md. Pin it with a BriefPanel test asserting all three export actions exist and that the PDF path waits for a settled brief.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-180-215"
+   ],
+   "tier4": false
+  },
+  {
+   "id": "R15-UI-084",
+   "title": "The agent surface cannot take the full cockpit: the dock width is hard-capped at 1200 px and there is no maximize mode (FR-001 requires 'dominant column or full cockpit')",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "files": [
+    "src/store/agent-dock.ts",
+    "src/components/AgentDock.tsx"
+   ],
+   "repro": "On a 1920 px or wider display, drag the agent-dock resize handle right: it stops at 1200 px (about 62% of 1920). The only other control, agent.toggle, collapses the dock, and dockview maximize does not apply because ChatSidebar is not a dockview panel.",
+   "evidence": "src/store/agent-dock.ts:12-13,25-27 (AGENT_DOCK_MAX_WIDTH=1200, clampWidth); src/components/AgentDock.tsx:65-78,97,104; src/modules/chat/index.ts:7; src/lib/layout-templates.ts:816-822; spec.md:823-825 (FR-001). Refuter: admitted, medium.",
+   "root_cause": "Only the dominant-column half of FR-001 was built. The dock is a fixed-cap flex column outside dockview, so neither its own clamp nor dockview's maximize can give it the whole cockpit.",
+   "fix_shape": "Add a 'maximized' state to the agent-dock store (a command plus a double-click on the handle) that renders the dock at 100% width and hides PanelHost, and restore the previous width on un-maximize. Persist the state via the workspace blob. Pin it with a store test (maximize -> width unclamped / panel host hidden -> restore returns the prior width).",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-90-5"
+   ],
+   "tier4": false
+  },
+  {
+   "id": "R15-UI-085",
+   "title": "About 19 readable text labels use text-charcoal-600 (#484848), about 1.98:1 on the panel surface and below the design's own 3:1 floor, and no contrast measurement exists for the shipped palette",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "styles/tokens.css",
+    "src/components/DataTable.tsx",
+    "src/components/CommandPalette.tsx",
+    "src/modules/research/BriefPanel.tsx"
+   ],
+   "repro": "grep -rn 'text-charcoal-600' src --include=*.tsx (19 non-test hits: DataTable null cells DataTable.tsx:166, the palette 'recent' tag CommandPalette.tsx:498, brief step latency BriefPanel.tsx:297 ...) -> #484848 on #161616 is about 1.98:1. --color-sage-500 #767676 is 3.98:1 on panels, also under 4.5:1 for body text.",
+   "evidence": "styles/tokens.css:40 ('--color-charcoal-600: #484848; /* strong border / disabled fg */'); R4_DESIGN_LANGUAGE.md:271-277 (>=3:1 hard floor even for labels); BLOCKERS.md:274 L11-color-contrast-not-audited still open; REBUILD_R4_SESSION2_REPORT.md contrast numbers measured on a superseded palette. Refuter re-measured current tokens (primary 16.9:1, secondary 8.3:1, tertiary 5.7:1: pass); the defect is the charcoal-600 text usages. No populated 1920x1080 + 2560x1440 pair for the current palette. Refuters: admitted medium / admitted_with_correction low.",
+   "root_cause": "A border/disabled-foreground token is used as a foreground text colour, and no contrast check (numeric or automated) guards token use, so the misuse was never caught after the palette was re-valued.",
+   "fix_shape": "Move readable-text usages of text-charcoal-600 to the tertiary text token (5.7:1), keeping charcoal-600 for borders and truly disabled states only. Add a vitest that computes WCAG contrast for each text token against the root and panel surfaces from tokens.css, and fails below the floor. The broader axe/a11y gate is R15-UI-071.",
+   "defect_class": "contrast-floor-breach",
+   "raw_ids": [
+    "INT-deferred-42-4",
+    "INT-spec-180-217"
+   ],
+   "tier4": false
+  },
+  {
+   "id": "R15-UI-086",
+   "title": "Command-palette action and panel rows never show their keyboard shortcut: about 0% carry one, against SC-009's >=90% (the only <kbd> is a literal 'Enter' on the Ask-agent row)",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/components/CommandPalette.tsx",
+    "src/store/keybindings.ts"
+   ],
+   "repro": "Press Cmd-K and scan the Action and Panel rows: each shows its label, its description and possibly a 'recent' tag, but no shortcut, even for bound actions such as agent.toggle.",
+   "evidence": "src/components/CommandPalette.tsx:465 (the sole <kbd>, the Ask-agent 'Enter'); CommandPalette.tsx:476-483 PaletteItemRow renders no binding; src/store/keybindings.ts holds the bindings. Refuter: admitted_with_correction, raised low to medium.",
+   "root_cause": "PaletteItemRow was never given the item's keybinding, and palette items carry no action id mapped to the keybindings store.",
+   "fix_shape": "Pass the resolved binding (from useKeybindingsStore by the item's action id) into PaletteItemRow and render it as a <kbd>. The rendered binding is only truthful once remaps are honoured, so land it with R15-UI-016. Pin it with a CommandPalette test asserting that a bound action row shows its current (remapped) chord.",
+   "defect_class": "missing-affordance",
+   "raw_ids": [
+    "INT-spec-180-189"
+   ],
+   "tier4": false
+  },
+  {
+   "id": "R15-UI-087",
+   "title": "FR-038's preference depth does not exist: no provider/model fallback order, no palette-behaviour options and no starter-cockpit composition. The settings were killed in R9 as theatre, and the behaviour behind them was never built",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/components/SettingsPanel.tsx",
+    "src/store/settings.ts",
+    "src/store/llm-providers.ts",
+    "src/config/default-layout.ts"
+   ],
+   "repro": "Open Settings: AI Providers offers a single default pick (llm-providers.ts:127-136) and no ordered fallback list. There is no palette section and no starter-cockpit picker (default-layout.ts is a constant). A failing default provider therefore never falls through to a second configured one.",
+   "evidence": "spec.md:909-914 (FR-038 MUST); SettingsPanel.tsx section list :410-1872; src/store/settings.ts:10-15,51-68,165-166 (providerPreferenceOrder, palette*, starterCockpitPanelIds, panelDefaults deliberately dropped); R9_DEFECT_CATALOGUE.md:40-44 ('resurrect only WITH a consuming picker'); layout autosave/restore partly covers starter composition (SettingsPanel.tsx:1630-1632,1704). Panel defaults are R15-UI-048. Refuter: admitted_with_correction, high to medium.",
+   "root_cause": "R9 removed the settings fields because nothing consumed them, correctly, but the consuming behaviour (a provider fallback chain, palette ranking/scoping options) was never built, so the MUST remains unmet.",
+   "fix_shape": "Build the behaviour first, then the control. An ordered provider list in llm-providers with a fallback in the chat send path on a classified provider failure (auth/quota/unreachable), plus a drag-to-reorder list over the existing provider rows. Also a 'start with' picker (last session vs a named layout) feeding the launch restore. Pin it with a store test where a first-provider failure routes to the second.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-90-10"
+   ],
+   "tier4": false
+  },
+  {
+   "id": "R15-UI-088",
+   "title": "In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "workspace-layout",
+   "files": [
+    "package.json",
+    "src/components/PanelHost.tsx",
+    "src/modules/node-editor"
+   ],
+   "repro": "design: no playwright dependency in package.json, no playwright.config.* and no e2e spec outside node_modules. The drag check recurs unresolved in R7_RUN_REPORT.md:39 and R12:54 ('permanent'), and appears again in the R15 Gate 2 list.",
+   "evidence": "docs/redesign/verification/R7_RUN_REPORT.md:39; src-tauri/tauri.conf.json:23 (dragDropEnabled:false, the special-cased mechanism the gestures depend on); CLAUDE.md Gotchas (chrome-devtools MCP cannot synthesize isTrusted events). Refuter: admitted_with_correction, high to medium (no evidence the drag is broken; this is a regression-risk gap).",
+   "root_cause": "The only available automation (chrome-devtools MCP) cannot produce trusted drag events, and no real-event harness was ever set up, so a known-fragile gesture has only ever been eyeballed.",
+   "fix_shape": "Add a minimal Playwright suite against the static export (a tab-reorder spec and a palette-to-canvas drop spec using real mouse events) runnable as a pnpm script. Wiring it into .github/workflows is a separate Tier-4 step for the operator.",
+   "defect_class": "verification-gap",
+   "raw_ids": [
+    "INT-deferred-42-2"
+   ],
+   "tier4": false
   },
   {
    "id": "R15-UI-060",
@@ -2014,12 +2143,36 @@
    "operator_areas": [
     "ui-panels"
    ]
+  },
+  {
+   "id": "R15-UI-089",
+   "title": "Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "plugins",
+   "files": [
+    "src/modules/marketplace/MarketplacePanel.tsx",
+    "src/components/KeyEntryDialog.tsx"
+   ],
+   "repro": "Marketplace > NewsAPI > configure: enter any string and save. It is stored and marked configured with no test call. The same user adds LLM keys in Settings > AI Providers, where KeyEntryDialog blocks an invalid key via POST /llm/keys/validate.",
+   "evidence": "src/modules/marketplace/MarketplacePanel.tsx:239-301 (CredentialForm, no test); src/components/KeyEntryDialog.tsx:21-24,64-81; sidecar/routers/llm.py:99; marketplace.ts:150-160 (the only non-broker credential entry after the trading removal); spec FR-034 (single BYOK hub). Refuter: admitted_with_correction, medium to low.",
+   "root_cause": "Credential entry grew two implementations: a KeyEntryDialog for LLM keys that validates, and a generic Marketplace CredentialForm that does not.",
+   "fix_shape": "Give the Marketplace CredentialForm an optional per-plugin validate hook (NewsAPI: one cheap read through the key) and block the save on a definite auth failure, mirroring KeyEntryDialog. Pin it with a MarketplacePanel test asserting that an invalid key is not marked configured.",
+   "defect_class": "provider-error-classification",
+   "raw_ids": [
+    "INT-spec-90-8"
+   ],
+   "tier4": false
   }
  ],
  "rejections": [
   {
    "raw_id": "INT-blueprint-96-5",
    "reason": "Out of scope by decision: dark-only is the adopted theme (spec FR-030 spec.md:888, constitution.md:89) and the R9 design system is not reopened (COMMON.md); the only surviving part, BLUEPRINT §4 overclaiming a light/custom theme, is doc drift already registered as R15-DOCS-007 (INT-deferred-0-7)."
+  },
+  {
+   "raw_id": "INT-spec-180-181",
+   "reason": "Not a product defect: the capability SC-001 describes exists (the refuter confirmed /layout and arrange_layout build the research cockpit with no manual panel clicks). The finding is only that no stopwatch run was recorded, which is a verification-stage measurement for the lead's release gate, not a fix a writer can make."
   }
  ]
 }

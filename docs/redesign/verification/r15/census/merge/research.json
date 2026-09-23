@@ -652,7 +652,8 @@
    "fix_shape": "Stamp per-leg latency_ms in the step log, publish the structured cockpit as soon as the gather returns (before web + prose), put a per-leg timeout on slow witnesses, and add a timing assertion on a recorded fixture. Pin with a test where one witness stub sleeps 20 s and the fast path still publishes within budget with that leg marked timed out.",
    "defect_class": "research-latency-budget",
    "raw_ids": [
-    "INT-spec-135-141"
+    "INT-spec-135-141",
+    "INT-spec-180-198"
    ],
    "tier4": false,
    "operator_areas": [
@@ -994,6 +995,30 @@
    "tier4": false,
    "operator_areas": [
     "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-042",
+   "title": "The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "files": [
+    "sidecar/services/research/fast.py",
+    "src/lib/layout-templates.ts",
+    "sidecar/tests/test_research_fast.py"
+   ],
+   "repro": "design: 'research X' on a machine with no web-search backend -> FAST returns web.note 'No web-search backend configured - structured data only' (fast.py:67, :527) and the brief carries only the structured rows; no test or report measures cited-source count across a ticker basket.",
+   "evidence": "specs/001-agent-native-redesign/spec.md:1216-1219 (SC-016 '>=3 cited sources ... 100% of the time'); src/lib/layout-templates.ts:196-218 (research-cockpit template composes chart+overview+brief+news - layout half holds); sidecar/services/research/fast.py:67, :527 (_NO_WEB_NOTE structured-only path); sidecar/services/research/verify.py:287, :374 (the only 'min sources' logic is per-claim min_domains, not per-brief). Refuter INT-spec-180-196: admitted, low.",
+   "root_cause": "SC-016's source-count clause was never turned into a check; the only source-floor logic is verify.py's per-claim domain independence.",
+   "fix_shape": "Count distinct cited sources at brief publish and surface an honest 'N sources (below 3)' marker when under the floor instead of asserting nothing; add a basket fixture test (recorded search responses) asserting >=3 citations per FAST brief when a web backend is present and the marker when it is not.",
+   "defect_class": "unmeasured-quality-bar",
+   "raw_ids": [
+    "INT-spec-180-196"
+   ],
+   "tier4": false,
+   "operator_areas": [
     "research-search"
    ]
   }

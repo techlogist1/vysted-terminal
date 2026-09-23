@@ -23,7 +23,8 @@
         "INT-blueprint-144-3",
         "INT-blueprint-144-4",
         "INT-blueprint-0-5",
-        "INT-deferred-0-15"
+        "INT-deferred-0-15",
+        "INT-deferred-42-1"
       ],
       "tier4": true,
       "operator_areas": []
@@ -70,7 +71,8 @@
       "defect_class": "release-distribution-unbuilt",
       "raw_ids": [
         "COD-rust-core-4",
-        "INT-blueprint-144-5"
+        "INT-blueprint-144-5",
+        "INT-blueprint-288-2"
       ],
       "tier4": true,
       "operator_areas": []
@@ -250,6 +252,28 @@
         "INT-deferred-0-11"
       ],
       "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-012",
+      "title": "CI never caches the three PyInstaller sidecar binaries, so every push pays ~9 cold sidecar builds (3 workflows x 3 OSes, ~20-25 min each workflow)",
+      "severity": "low",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        ".github/workflows/build.yml",
+        ".github/workflows/test.yml",
+        ".github/workflows/lint.yml"
+      ],
+      "repro": "grep -n 'actions/cache' .github/workflows/*.yml -> no hits; ensure-all-sidecars.mjs runs cold in build.yml:71, test.yml:66 and lint.yml:68 on every OS leg.",
+      "evidence": ".github/workflows/build.yml:71, .github/workflows/test.yml:66, .github/workflows/lint.yml:68 (only pnpm setup-node cache + Swatinem/rust-cache exist); BLOCKERS.md:337-339 (open since v0.7.0). Refuter INT-deferred-42-7: admitted, low (worse than raw: lint.yml also builds cold).",
+      "root_cause": "No cache step keyed on sidecar sources/recipes wraps the ensure-all-sidecars step.",
+      "fix_shape": "Add an actions/cache step keyed on hashFiles of sidecar/requirements*.txt, sidecar/**/*.py and scripts/ensure-*.mjs around ensure-all-sidecars in each workflow (or build once and share via artifact); the staleness gate already rebuilds on a stale restore. Pin: a second CI run on an unchanged tree shows the cache hit and skips PyInstaller. Tier 4 because it edits CI workflows.",
+      "defect_class": "ci-cost",
+      "raw_ids": [
+        "INT-deferred-42-7"
+      ],
+      "tier4": true,
       "operator_areas": []
     }
   ],

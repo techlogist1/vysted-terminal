@@ -1,0 +1,22 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-135-1",
+    "title": "README Status paragraph still says the agent-native redesign 'is being specified' with build only following operator review",
+    "severity": "low",
+    "area": "docs",
+    "subsystem": "README.md#Status",
+    "repro": "Open README.md:180-185 on the current branch (004-r4-experience-rebuild) -> text says 'Phases 0-10 merged to main ... agent-native redesign is being specified; build follows operator review', with no mention that P1-P3 already shipped or that an R15 verification census is in flight.",
+    "evidence": "README.md:180-185; docs/redesign/P1_P3_BUILD_REPORT.md (P1-P3 already shipped); docs/CURRENT_STATE.md §0/§0.5 (foundation + P1-P3 deltas)",
+    "notes": "Anyone reading the README top-to-bottom gets a materially outdated picture of project phase (spec-only vs. active build + verification). Smallest fix: update the Status paragraph to name the current branch/phase, or point to docs/CURRENT_STATE.md as the living status source instead of restating a phase that keeps drifting."
+  },
+  {
+    "raw_id": "INT-pdd-readme-135-2",
+    "title": "CURRENT_STATE.md undercounts the agent's mutating (write-capable) tool surface by 15 tools — says 4, catalog has 19",
+    "severity": "medium",
+    "area": "docs",
+    "subsystem": "sidecar/services/agent_tools/catalog.py capability catalog vs docs/CURRENT_STATE.md §0.5",
+    "repro": "docs/CURRENT_STATE.md §0.5 names 'the four host-action tools (open_panel, set_chart_symbol, add_to_watchlist, propose_order) -- the catalog's only write-capable capabilities'; live catalog check (`[c.id for c in CAPABILITY_CATALOG.values() if not c.read_only]`) returns 19: open_panel, close_panel, focus_panel, arrange_layout, set_chart_symbol, set_chart_indicators, add_to_watchlist, remove_from_watchlist, publish_brief, propose_order, write_screener_filters, open_company_overview, portfolio_add_position, portfolio_update_position, portfolio_delete_position, write_note, save_layout, save_screen, set_region.",
+    "evidence": "sidecar/services/agent_tools/catalog.py (19 read_only=False entries, confirmed live); src/lib/host-actions.ts:62-83 HOST_ACTION_NAMES (the R10 D41/E6 comment naming the 15 additions); src/store/proposed-changes.ts:1-9 (the gate mechanism itself, which does still cover all 19 — this is a documentation-accuracy gap, not a safety gap)",
+    "notes": "The diff/accept never-auto-apply mechanism appears to genuinely cover all 19 (same staging store, same toolbelt-integrity test per host-actions.ts's own comment), so this is not a live safety hole. But an operator or auditor reading CURRENT_STATE.md's '4 write-capable capabilities' claim would badly underestimate the surface a §6.5-adjacent trust-gate review needs to cover before a public 0.9.0 release. Smallest fix: regenerate the §0.5 sentence from the catalog (or link to a live-generated list) instead of hand-naming four tools that were only ever a P1-era snapshot."
+  }
+]

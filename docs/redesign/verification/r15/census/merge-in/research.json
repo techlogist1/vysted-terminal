@@ -515,6 +515,40 @@
   }
  },
  {
+  "raw_id": "INT-spec-180-196",
+  "pid": "INT-SP-196",
+  "title": "No basket-wide measurement confirms the research-cockpit brief always carries >=3 cited sources 100% of the time",
+  "severity": "low",
+  "area": "research",
+  "subsystem": "layout-templates / BriefPanel",
+  "repro": "design: the research-cockpit template (src/lib/layout-templates.ts:196-218) always composes chart+overview+brief+news, but source-count-per-brief across a representative ticker basket is not measured or tested.",
+  "evidence": "src/lib/layout-templates.ts:196-218 'research-cockpit' template composes exactly chart + equity-overview (fundamentals) + brief + news, focused on the brief panel, matching the spec's named-template requirement.",
+  "notes": "No basket-wide, 100%-of-the-time measurement exists confirming the brief always carries >=3 cited sources for a representative ticker set; the layout mechanism is proven, the source-count guarantee is not.",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "The research-cockpit template does compose chart, equity-overview, brief and news. But no code enforces or measures a floor of >=3 cited sources per brief: the only 'min sources' logic is verify.py's per-claim domain check. When web search is unconfigured, FAST honestly returns structured-only data (fast.py _NO_WEB_NOTE), so SC-016's '100% of the time >=3 sources' cannot currently be guaranteed."
+  }
+ },
+ {
+  "raw_id": "INT-spec-180-198",
+  "pid": "INT-SP-198",
+  "title": "Fast research's <=15s latency target has no live-measured evidence, unlike the screener perf numbers which are measured",
+  "severity": "medium",
+  "area": "research",
+  "subsystem": "sidecar/services/research/fast.py",
+  "repro": "design: SC-018 explicitly requires 'measured' latency; sidecar/tests/test_research_fast.py exercises FAST structurally with no elapsed-time assertion, and no build report records a live wall-clock number for a representative ticker's FAST run.",
+  "evidence": "sidecar/services/research/fast.py:38 codes the <=15s target as a design constant/comment ('The FAST path is short (<=15s)'); sidecar/tests/test_research_fast.py exercises the FAST path structurally.",
+  "notes": "Spec text explicitly says 'measured live' for this quality bar; no timing/elapsed assertion exists in test_research_fast.py and no session report records a live-measured FAST-research wall-clock number for a representative ticker (contrast with the screener perf numbers, which ARE measured live).",
+  "source_file": "intent-spec-180.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "fast.py states '<=15s' only in a comment. test_research_fast.py has no elapsed-time assertion, and no build or verification report in docs/redesign records a live wall-clock number for FAST research that includes synthesis and arrangement, which SC-018 requires."
+  }
+ },
+ {
   "raw_id": "SURF-FAILURE-INDUCER-2",
   "title": "On the keyless search tier (no Docker/SearXNG) the chat's web_search times out at its 25 s cap because DuckDuckGo, first in the chain, burns ~41 s before Brave (0.9 s) is tried; the model then blames the network and suggests 'a lighter depth'",
   "severity": "high",

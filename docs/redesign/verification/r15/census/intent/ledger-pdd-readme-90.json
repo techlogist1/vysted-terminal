@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-PD-91",
+    "promise": "Generic empty/dead surfaces (palette no-results, sparse tables, disconnected panels) use the shared EmptyState component's standard stack, plus a dense 'secondary' variant for inline/secondary panels.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §13",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/EmptyState.tsx:22-84 (shared component: icon/headline/hint/cta stack per §8) with a `dense` prop (lines 27,40,46,49,56,59,65) that shrinks icon to size-5, headline to text-caption/font-medium, and tightens gaps for inline/secondary panels; src/components/CommandPalette.tsx:269 uses <EmptyState dense .../> for the no-results case.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-92",
+    "promise": "Hero empty states (chat dock, first-run composer) fill the entire column with a centered identity block, then a distributed suggestion set occupying the remaining height, never a small block floating in a tall column.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §13",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1200 mounts a local hero <EmptyState/> (distinct component, same file, lines 1479-1516) inside the dock's flex-1 scroll column; it fills h-full with mt-auto identity block (Sparkles icon + headline + hint, lines 1493-1501) and mb-auto distributed SuggestionChips block (lines 1503-1512) -- explicitly NOT justify-center per the inline comment at 1487-1492 ('No `justify-center` floating a small block'). This IS the first-run composer state (no conversation yet = the hero is showing).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-93",
+    "promise": "The composer input and send button read as one unit: input min-h-[52px]/text-sm(14px)/rounded-lg with p-4/gap-3 form padding, and a size-10 (40px) rounded-full send button with amber fill and a charcoal-950 glyph as the one primary CTA.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §14",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1841 ONE field container (`bg-charcoal-850 border-charcoal-700 ... rounded-control border`) holding the textarea (text-body, not text-sm) with the controls row + send button INSIDE at the bottom (comment at 1835-1839 cites 'ONE field container (Claude-reference, R9)'); SendStopButton at 1923-1990 renders a single size-7 (28px) rounded-control button carrying the active research-depth's accent fill (`style={{backgroundColor: DEPTH_TOKEN[...]}}`) with a charcoal-950 glyph -- functionally the one primary CTA the promise describes.",
+    "gap": "The exact literals are superseded by two later, dated redesigns: R8_PROPORTION_LAW.md:19-25 ('Primary action buttons (composer send/stop/plus): 28×28 with a 16px icon') replaced size-10/rounded-full with size-7 (28px)/rounded-control; R9_DESIGN_SYSTEM.md:99-104 ('containers sharp (0), interactive controls 4px ... Vysted stays sharp') replaced rounded-lg (8px) with rounded-control (4px) project-wide, and the type-scale revalue (R9_DESIGN_SYSTEM.md:44-60) replaced text-sm/14px with text-body/13px. 'Amber' is a historical token name (CLAUDE.md: 'amber-* → cool-indigo accent') -- the fill role survives via DEPTH_TOKEN, not a literal amber-* class.",
+    "decision_ref": "docs/redesign/R8_PROPORTION_LAW.md §2 (lines 19-25); docs/redesign/R9_DESIGN_SYSTEM.md §2,§5 (lines 44-60, 99-104)"
+  },
+  {
+    "pid": "INT-PD-94",
+    "promise": "The composer input reserves a left inset (pl-11) so a persona/agent indicator never overlaps the placeholder text, and the placeholder color is tertiary (charcoal-500).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §14",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1858-1862 textarea className has no pl-11 (`block w-full resize-none bg-transparent px-3 pt-2 pb-1 font-mono outline-none`), but placeholder color IS tertiary: `placeholder:text-charcoal-500` (line 1861) -- confirmed correct.",
+    "gap": "The left-inset mechanism is moot: R9's 'Claude-exact composer' (R9_TRACK_COMPOSER_REPORT.md:16-31) removed the persona indicator from inside the textarea entirely. Persona now lives in ComposerPlusMenu (line 1866-1875, a drill-in roster in the bottom controls row), so there is nothing left inside the input that could overlap the placeholder -- the promise's specific fix (pl-11) is superseded by a structural fix (persona moved out of the field).",
+    "decision_ref": "docs/redesign/R9_TRACK_COMPOSER_REPORT.md lines 16-31 (Plus menu absorbs Persona/Autonomy/Mode; the five-chip strip that used to sit near the input is deleted)"
+  },
+  {
+    "pid": "INT-PD-95",
+    "promise": "The composer's control toolbar (mode/lens/provider/model) sits at h-9 with gap-2; labels are tertiary (charcoal-500) and values are secondary, staying dense but on the defined scale.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §14",
+    "kind": "quality-bar",
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:1866 controls row is `flex items-center gap-2 px-2 pt-1 pb-2` (no explicit h-9) holding ComposerPlusMenu, DepthControl, ModelControl and SendStopButton -- not a 4-field 'mode/lens/provider/model' toolbar.",
+    "gap": "R9_TRACK_COMPOSER_REPORT.md:16-31 documents this as a deliberate redistribution: 'The five-chip strip is dead. ComposerMetaRow.tsx, meta-row-collapse.ts(.test) deleted' -- mode/persona/autonomy absorbed into the Plus menu, provider+model collapsed into ModelControl's quiet-text pattern ('no pill chrome'), leaving only Plus / Depth pill / Model text / Send in the bottom row. The promised h-9 labeled toolbar no longer exists as a surface; its job is done by a different, newer layout.",
+    "decision_ref": "docs/redesign/R9_TRACK_COMPOSER_REPORT.md lines 16-31 (C1 commit a2c33f3)"
+  },
+  {
+    "pid": "INT-PD-96",
+    "promise": "The command palette groups results under defined headers (Recent/Suggested when the query is empty; Agents/Actions/Panels/Symbols when a query is present) using a shared .group-heading-style.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §15",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx: Recent group (282-283), Suggested group (298-299), Agents (331), Actions (346), Panels (361), Symbols (400-404) -- every group uses `className=\"[&_[cmdk-group-heading]]:group-heading-style\"`; the utility itself is DEFINED at src/app/globals.css:70 (`@utility group-heading-style`), not a dangling reference.",
+    "gap": "An extra 'Tickers' group (line 376, live watchlist quotes) exists beyond the four named in the promise -- additive, not a defect.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-97",
+    "promise": "Palette rows follow an icon / truncating title / truncating muted description / right kbd-or-group layout; text always truncates with an ellipsis and never hard-clips past the panel edge at any width.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §15",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx:483-499 `PaletteItemRow`: icon, then `min-w-0 flex-1` wrapper holding `text-body truncate` title (line 493) and `text-caption truncate` description (line 495), then a right-aligned recent/kbd marker; the standalone kbd row helper at line 465 uses the same `border-charcoal-700 ... rounded-control` badge. `min-w-0` on the flex item is what makes `truncate` actually clip instead of overflowing at narrow widths.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-98",
+    "promise": "The command palette is max-w-2xl with rows at py-2.5 and a sans (not mono) text-body input.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §15",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "src/components/CommandPalette.tsx:89 `DialogContent` is `max-w-3xl` (768px), not `max-w-2xl` (672px); row `Command.Item` (line 489) uses `min-h-8 ... px-4 py-1`, not `py-2.5`; the input (line 249) IS `text-body` and NOT `font-mono` -- that part matches.",
+    "gap": "Width and row padding literals drift from the PDD text with no decision doc calling out the change. Functionally harmless (rows still hit the 32px control-height rung and truncate correctly per PD-97), and py-1 is actually MORE compliant with the project's own spacing grid than the promised py-2.5, which PDD §16 itself forbids (10px is off the {2,4,6,8,12,...} scale) -- likely an unrecorded self-correction rather than a regression. Not raised as a raw finding: this is a width/density choice, not a functional break (COMMON.md: UI findings must be functional, not taste).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-99",
+    "promise": "An empty-query command palette shows EmptyState-style recent items plus suggested actions rather than dumping the full agent list, while still keeping the fixed-query symbol filter.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §15",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx:141 `showSymbols = hasQuery` gates Tickers/Symbols groups behind a non-empty query; lines 277-327 render the Recent + Suggested groups (using the shared EmptyState import at line 48) only in the empty-query branch, and the Agents/Actions/Panels groups that follow (329-374) are query-driven cmdk filtering, not a raw full-roster dump.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-100",
+    "promise": "The only allowed type-scale sizes in new/changed code are text-micro 11px, text-caption 12px, text-body 13px, text-panel-title 15px, text-section 18px, text-overview 22px, and text-hero 28px, at weights body 400 / label 510 / heading 590, with a hard minimum interactive text size of 12px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:113-120 defines the live scale (comments verbatim): text-micro 11px, text-caption 13px, text-body 13px, text-prose 16px, text-panel-title 13px (weight 500), text-section 19px, text-overview 23px, text-hero 28px. scripts/audit-design-tokens.mjs ALLOWED_FONT_PX = {11,13,16,19,23,28} enforces exactly this set (and currently passes clean: `node scripts/audit-design-tokens.mjs --report src plugins` -> 'design-token audit clean').",
+    "gap": "The concept (one locked, audited scale, 11px floor) is intact and enforced, but four of the seven literal sizes changed: caption 12→13, panel-title 15→13 (now equal to body), section 18→19, overview 22→23, plus a new text-prose(16) step the promise never mentions. This is a documented R9 type-scale revalue.",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md §2 (lines 44-60)"
+  },
+  {
+    "pid": "INT-PD-101",
+    "promise": "The only allowed spacing steps in new/changed code are 2/4/6/8/12/16/24/32/48/64 (--spacing-*), with component padding drawn only from {6,8,12} and section gaps only from {16,24,32}.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "scripts/audit-design-tokens.mjs:26-40 defines ALLOWED_STEPS (Tailwind units) {0,0.5,1,2,3,4,5,6,7,8,10,12,16,20,24} = 0/2/4/8/12/16/20/24/28/32/40/48/64/80/96px, and the audit currently passes clean over src/ and plugins/ (verified this session).",
+    "gap": "The enforced grid is a superset/variant of the promised one: it drops the standalone 6px step (no rhythm step exists between 4px and 8px) and adds 20/28/40/80/96px rungs the PDD text never lists. Role (a single locked, audited spacing grid) is delivered; the exact step list is a later revision.",
+    "decision_ref": "scripts/audit-design-tokens.mjs (R9 design-token audit, header comment cites R9_DESIGN_SYSTEM.md)"
+  },
+  {
+    "pid": "INT-PD-102",
+    "promise": "Control heights in changed code are constrained to small=32/medium=36-40/large=48 with send=size-10, and no h-7/h-8 chrome buttons are allowed (dense data selectors may stay dense but must remain on-scale).",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "docs/redesign/R8_PROPORTION_LAW.md:19-25 (§2 Control scale): 'chrome chips/buttons h-6 (24px); inputs & toolbar fields h-7 (28px); form controls (Settings, Order Entry) h-8 (32px)... Primary action buttons (composer send/stop/plus): 28×28'. src/modules/chat/ChatSidebar.tsx:1955 SendStopButton is `size-7` (28px), matching this newer law.",
+    "gap": "The promised ladder (32/36-40/48, send=40) is fully superseded by a different, explicitly documented ladder (24/28/32, send=28) -- and h-7/h-8 chrome, which the promise explicitly BANS ('no h-7/h-8 chrome buttons are allowed'), is now the law's own toolbar/form rung. This is the inverse of the original rule, not a drift within it.",
+    "decision_ref": "docs/redesign/R8_PROPORTION_LAW.md §2 (lines 19-25)"
+  },
+  {
+    "pid": "INT-PD-103",
+    "promise": "Radius in changed code is constrained to radius-control 4px / radius-panel 6px, with the composer and palette permitted rounded-lg 8px.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "styles/tokens.css:145-146: `--radius-panel: 0` and `--radius-control: 0.25rem` (4px). Composer field container (ChatSidebar.tsx:1841) and command palette rows/kbd (CommandPalette.tsx:489,465) all use `rounded-control`, not `rounded-lg`.",
+    "gap": "radius-control (4px) still holds, but radius-panel moved from 6px to 0, and the composer/palette rounded-lg (8px) exception was retracted outright -- R9_DESIGN_SYSTEM.md §5 states this as policy: 'Unchanged: containers sharp (0), interactive controls 4px... Vysted stays sharp' (explicitly contrasting with Claude's own rounder composer).",
+    "decision_ref": "docs/redesign/R9_DESIGN_SYSTEM.md §5 (lines 99-104)"
+  },
+  {
+    "pid": "INT-PD-104",
+    "promise": "A binary off-scale audit must return zero matches in every changed file for: arbitrary text-[...] sizes, off-grid spacing utilities (2.5/3.5/7/10/11), arbitrary rounded-[...] radii, raw hex colors in components, and any shadow-md/lg/xl/2xl/drop-shadow/blur- utility.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "scripts/audit-design-tokens.mjs exists and implements exactly this class of check (arbitrary text-[...]/spacing/radius, tokens-ok escape hatch); run this session (`node scripts/audit-design-tokens.mjs --report src plugins`) returns 'design-token audit clean'. But the script is wired into NOTHING: `grep -n \"audit-design-tokens\" package.json` and `grep -rln \"audit-design-tokens\" .github/workflows/` both return empty, and it is absent from the `ci-local` script (package.json:20, the full lint+format+typecheck+clippy+ruff+test chain) -- it is a manual, R9-report-only step.",
+    "gap": "The promise says the audit 'must return zero matches' as an enforcement GATE; today it is a script that happens to currently pass if a human remembers to run it. Nothing in CI or `pnpm ci-local` blocks a PR that reintroduces an off-scale utility. This still matters for a public 0.9.0: §16's own heading calls this audit 'the gate for one system' -- it currently is not a gate.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-105",
+    "promise": "A utility class that is referenced but never defined (e.g. a stale .group-heading-style) is treated as a defect, since Tailwind gives no warning for it.",
+    "source": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md §16",
+    "kind": "quality-bar",
+    "status": "partial",
+    "evidence": "Spot-checked the PDD's own named example: `.group-heading-style` IS defined (src/app/globals.css:70 `@utility group-heading-style`), so there is no live violation of this rule today. But there is no automated check for 'referenced-but-undefined utility class' anywhere in scripts/ or the CI workflows -- `scripts/audit-design-tokens.mjs` checks off-scale VALUES, not undefined class NAMES.",
+    "gap": "Same root cause as INT-PD-104: the enforcement described in §16 is a stated policy, not a running check. A future rename/delete of a `@utility` definition without updating every consumer would ship silently (Tailwind gives no build warning, as the promise itself notes) -- covered by the same raw finding as INT-PD-104 rather than a second one, per COMMON.md's no-padding rule.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-106",
+    "promise": "Vysted Terminal is an open-source, AI-native, local-first, bring-your-own-keys desktop finance terminal with Bloomberg-level data coverage and agent-assisted operation.",
+    "source": "README.md#top",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:3-5 (current): 'Source-available, AI-native desktop finance terminal — Bloomberg-level data coverage, agent-assisted, **local-first**, and **bring-your-own-keys**.' AI-native/local-first/BYOK/Bloomberg-coverage/agent-assisted all verbatim-present.",
+    "gap": "'Open-source' is now 'Source-available' throughout the live README (also lines 93, 172) -- a deliberate, operator-approved relicensing (AGPL-3.0 → PolyForm Strict 1.0.0) that explicitly retired the 'open-source' claim project-wide. Note: this repo's own root CLAUDE.md (Tier-1 locked-decisions section, §2) still says 'AGPL-3.0 + commercial dual license' and its opening line calls the project 'Open-source' -- both stale against D83; the decision record itself flags CLAUDE.md's wording as 'queued in CLAUDE_MD_PROPOSAL.md', i.e. known-not-yet-applied, not a fresh gap this sweep found.",
+    "decision_ref": "docs/redesign/DECISIONS.md D83 (relicensing, operator Tier-4 sign-off 23 Sep); LICENSE (PolyForm Strict 1.0.0, verified present)"
+  },
+  {
+    "pid": "INT-PD-107",
+    "promise": "Vysted Terminal has no account, no hosted backend, and no telemetry -- data and secrets stay on the user's machine.",
+    "source": "README.md#top",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:4-5 verbatim. Grepped src/**/*.ts(x) and sidecar/**/*.py for analytics/telemetry SaaS integrations (posthog, segment, mixpanel, sentry.init, analytics.track) -- zero hits; the only 'telemetry' occurrences in the tree are internal naming (chat step-trace comments in ChatSidebar.tsx, and sidecar/config.py's in-process search-telemetry ContextVar for the deep-research lane), not a phone-home mechanism. Keys via OS keychain per Tauri (src/lib/keychain.ts), never a hosted account.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-108",
+    "promise": "The redesign reframes Vysted into an agent-native finance workspace: a hybrid of a dense pro command-station and an agent-first assistant that drives the terminal for the user.",
+    "source": "README.md#top",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:7-12 states this verbatim ('being reframed into an **agent-native finance workspace** — a hybrid of a dense pro command-station and an agent-first assistant that drives the terminal for you'); project CLAUDE.md's own framing ('Cursor for finance' reframe, agent-centric hybrid UX) and specs/001-agent-native-redesign/spec.md corroborate this is the live, in-flight direction, not aspirational-only.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-109",
+    "promise": "Asking the agent to 'research NVDA' lands a visual, cited brief in the cockpit -- a metric-card grid, a key-metrics table, and a written valuation analysis -- alongside a live research trace.",
+    "source": "README.md#top (hero screenshot caption)",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/research/brief-blocks.tsx `BriefBody` renders a color-coded metric-card grid derived from `brief.structured` (`deriveMetrics`) plus the synthesis markdown parsed into heading/prose/list/table blocks (per root CLAUDE.md's own gotcha entry on this exact surface); `agent_runtime._auto_publish_event` (sidecar) auto-publishes the brief on a research/deep_research ok-result so the cards populate without the model separately calling publish_brief.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-110",
+    "promise": "Vysted Terminal is a Tauri desktop app with three cooperating local processes over loopback only: a Rust core, a Next.js static-export frontend, and a Python FastAPI sidecar, plus two bundled MCP subprocesses (OpenBB fundamentals/macro, SEC EDGAR filings).",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "Rust core / Python FastAPI sidecar / two MCP subprocesses (`sidecar/openbb_mcp_subprocess`, `sidecar/sec_edgar_mcp_subprocess`) all confirmed present. But the frontend is NOT Next.js: `package.json` has no `next` dependency (line 53 `\"react\": \"19.2.6\"`, line 82 `\"vite\": \"^8.0.16\"`), `src-tauri/tauri.conf.json:7-9` points at Vite (`frontendDist: \"../out\"`, `devUrl: \"http://localhost:5173\"`, `beforeDevCommand: \"...&& pnpm dev\"` where `dev` = `vite`), entry is `src/main.tsx` + root `index.html` + `vite.config.ts`, and git history has the migration itself: commit `8c2f9ab feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)`.",
+    "gap": "README.md still asserts 'Next.js static-export frontend' twice -- README.md:27 (Overview prose) and README.md:156 (Project Layout table: 'Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)') -- both now factually wrong about the current stack. Root CLAUDE.md's Stack section makes the identical stale claim ('Next.js 16 (App Router, static export)'); docs/redesign/CLAUDE_MD_PROPOSAL.md already queues the correct replacement text ('Vite 8 + React 19 + TypeScript... static build to out/') but it has not been applied. This bites a new contributor or maintainer reading either doc to orient in the codebase.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-111",
+    "promise": "The cockpit ships a multi-panel dockview layout including Chart (50 server-computed indicators + drawing tools), Watchlist, News (RSS + optional NewsAPI, sentiment), Portfolio, Equity Overview, Macro, SEC Filings, Earnings, Analyst Ratings, Screener, Quant (QuantLib), Backtest, and a Node Editor/workflow surface.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/ directory contains: chart, watchlist, news, portfolio, equity-overview, macro, sec, earnings, analyst-ratings, screener, quant, backtest, node-editor -- every named panel present as its own module, plus src/components/PanelHost.tsx hosts them via dockview per root CLAUDE.md's documented architecture.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-112",
+    "promise": "The AI copilot runs a real agentic tool-use loop in the sidecar: the model calls read/host-action tools to pull data and drive the terminal.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py is the documented single source of truth for the tool catalog (per root CLAUDE.md's Copilot gotcha section); TOOL_SCHEMAS/allow-list/MCP surface all derive from it, and the loop only calls a tool when the adapter sent a tools= schema -- consistent with a genuine tool-use loop, not a scripted/fake one.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-113",
+    "promise": "Vysted ships 13 first-party agents (a terminal-aware copilot plus 12 investor personas) in addition to user-authored custom agents.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/agents/*.json (excluding _schema.json) = 13 files: copilot.json + buffett, dalio, druckenmiller, graham, klarman, lynch, marks, munger, portfolio_advisor, researcher, soros, strategy_critic.json (12 personas). models/custom_agent.py provides the user-authored custom-agent path (KNOWN_TOOL_IDS allow-list, per root CLAUDE.md).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-114",
+    "promise": "Vysted supports BYOK across 7 LLM providers: Anthropic, OpenAI, Gemini, Groq, Ollama, DeepSeek, and xAI.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/__init__.py:84-97 dispatches exactly these 7 provider ids: anthropic, openai, gemini, groq, ollama, deepseek (via OpenAIProvider+DEEPSEEK_BASE_URL), xai (via OpenAIProvider+XAI_BASE_URL).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-115",
+    "promise": "Vysted offers read-only broker connect: genuine Kite Connect OAuth plus read-only account/positions/P&L for Kite, Dhan, and Angel One.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/brokers/{kite,dhan,angelone}.py all present (plus alpaca/ib/oanda/ccxt_exec beyond the promise's named three -- additive). Root CLAUDE.md's Broker gotcha section documents the read-only enforcement: GET-only routes duck-typing to account_info()/positions_info()/holdings_info()/margins_info(), Kite's OAuth exchange_request_token flow living server-side in the sidecar with api_secret never stored/echoed.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-116",
+    "promise": "A §6.5 execution-safety layer (paper-default, kill-switch, append-only audit log) exists in code, but order execution is not enabled.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/audit_log.py (append-only DDL with BEFORE UPDATE/DELETE RAISE(ABORT) triggers per root CLAUDE.md), sidecar/services/kill_switch.py + src-tauri/src/kill_switch.rs both present; COMMON.md's own 'out of scope by decision' list confirms live broker order execution is explicitly deferred/never auto-applied product-wide.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-117",
+    "promise": "Vysted has a plugin platform: one serializable VystedPlugin contract with six capabilities (data, panels, commands, agents, nodes, control plane) making the terminal extensible.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:8 doc comment lists the six capabilities verbatim (data, panels, commands, agents, nodes, control plane); line 61 'six capabilities a plugin may contribute'; line 236 `capabilities: PluginCapabilities` on the contract type.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-118",
+    "promise": "Vysted proxies bundled MCP data servers AND re-exposes its own capabilities as MCP tools for external agents such as Claude Desktop and Claude Code.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/openbb_mcp_subprocess and sidecar/sec_edgar_mcp_subprocess are the bundled/proxied MCP data servers (also declared in src-tauri bundle.externalBin per root CLAUDE.md). Root CLAUDE.md's Copilot gotcha section documents the reverse direction: FastMCP tools projected from the same agent_tools catalog via mcp_capabilities(), i.e. Vysted's own capabilities re-exposed as MCP tools for an external client.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-119",
+    "promise": "Vysted is green on every machine-checkable gate (pnpm ci-local, 619 vitest tests, 942 pytest tests, §6.5 9/9 safety audit) and is broadly tested.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "package.json:20 `ci-local` script exists and chains lint/format/typecheck/clippy/ruff/vitest/cargo-test/pytest as claimed. Current test volume is far above the cited counts: `find src plugins -iname '*.test.ts*'` -> 135 vitest files (README implies far fewer given the 619-test figure); a recent in-repo verification report (docs/redesign/R9_TRACK_COMPOSER_REPORT.md:4-5) independently states 'full vitest suite 142 files / 1384 tests green' -- already 2.2x the README's 619 figure. Per COMMON.md's no-full-suite rule this sweep did not re-run the suites to get an exact current number.",
+    "gap": "The '619 vitest / 942 pytest' figures are stale relative to the codebase's own more recent self-reported counts (grown through the R7/R8/R9 waves); the drift is in the safe direction (undercount, not overclaiming health) so it does not mislead about product quality, but the 'Honest status' section is specifically a trust/accuracy claim and the number is measurably wrong today.",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-120",
+    "promise": "Live UX, populated visuals, and any BYOK/live-broker round-trip are documented as operator-verified only, not CI-verified, because the test harness cannot drive the webview with real data.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:44-45 verbatim: 'live UX, populated visuals, and any BYOK/live-broker round-trip are operator-verified, not CI-verified (the harness can't drive the webview with real data)'.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-121",
+    "promise": "Vysted currently ships unsigned with no release pipeline, and its version strings sit at 0.8.0 pending a release cut.",
+    "source": "README.md#Overview",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "package.json:3, src-tauri/tauri.conf.json:4, src-tauri/Cargo.toml:3, sidecar/app.py:289 all read \"0.8.0\"/version=\"0.8.0\". No codesign/notarize/signingIdentity config anywhere in .github/workflows/*.yml or tauri.conf.json.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-122",
+    "promise": "Vysted works the moment it's opened -- no account, no key, and no setup are required.",
+    "source": "README.md#Powering the AI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:60-63 verbatim ('Vysted works the moment you open it — no account, no key, no setup'); src/components/OnboardingFlow.tsx:16 documents an explicit skip path ('I'll explore first') so the flow never gates the app behind setup.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-123",
+    "promise": "Live quotes, charts, news, screeners, and web research (keyless, via DuckDuckGo) all run out of the box with zero configuration.",
+    "source": "README.md#Powering the AI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/search/ddg.py implements the keyless DuckDuckGo search backend (also referenced by sidecar/tests/test_ddg_backend.py, test_search_transport.py); data panels (quotes/charts/news/screener) do not require a provider key per the plugin/data-provider architecture.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-124",
+    "promise": "A first-run flow offers two ways to turn on the AI agent and deep research, switchable anytime afterward from Settings.",
+    "source": "README.md#Powering the AI",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:8-11 doc comment: 'Path A (most power): paste one OpenRouter key... Path B (private & free): set up a local model... fit-scored to the detected hardware'; the component is durable-once via a keychain marker (line 16) but the underlying provider/model choice remains editable from Settings afterward (ModelControl / provider settings surface consumes the same provider config store).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-125",
+    "promise": "The 'Private & free' onboarding path fit-scores the user's machine and sets up a local model that runs entirely through Ollama -- no key, no cost, fully offline, though slower and less capable than the cloud option.",
+    "source": "README.md#Powering the AI",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx: OllamaStatus type + fetchOllamaStatus/pullOllamaModel (lines 40-44), hardware-fit gating ('Your machine is tight on memory for a capable local model...' line 535), 'Local' step (line 437 onward) titled 'Run a local model' (512) running entirely through Ollama (569-578, links to ollama.com/download).",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-126",
+    "promise": "The 'Most power' onboarding path uses a single OpenRouter key to broker every top model (Claude, GPT, Gemini, DeepSeek, Kimi, etc.); a typical research run is described as costing only cents, and the default model is fast, cheap, and non-thinking so research never stalls.",
+    "source": "README.md#Powering the AI",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:60 comment: 'The fast agentic default activated when an OpenRouter key is added (Track 1)'; Cloud step (336 onward) titled 'Connect OpenRouter' (369) with body text (261): 'Paste one OpenRouter key to unlock every top model (Claude, GPT, Gemini, DeepSeek, Kimi…) for the agent and deep research. Pay-as-you-go — a research run costs cents.' Root CLAUDE.md's gotcha section independently confirms 'the keyless research-model default is now the non-thinking minimax/minimax-m3'.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-127",
+    "promise": "Regardless of which AI path is chosen, keys live only in the OS keychain, never touch disk, and there is no Vysted server for them to reach -- the app only calls the data/LLM providers the user configures.",
+    "source": "README.md#Powering the AI",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:47 imports `setSecret`/`KEYCHAIN_NAMESPACES` from `@/lib/keychain`; line 420 UI copy: 'Stored in your OS keychain — never written to disk by Vysted.' Root CLAUDE.md's BYOK gotcha section independently corroborates: renderer reads/writes the OS keychain, sidecar cannot read it, secret crosses only in a request header for read-only plugins, loopback transport only.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-128",
+    "promise": "macOS builds (Apple Silicon / M-series) are distributed as a .dmg via GitHub Releases; an Intel build is not yet published.",
+    "source": "README.md#Download",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:87-89 verbatim: 'Grab the latest .dmg from the Releases page (Apple Silicon / M-series — an Intel build isn't published yet)'.",
+    "gap": "Not independently verified against the live GitHub Releases page in this sweep (no network fetch performed for this item); taken on the README's own current text, consistent with the also-confirmed 'unsigned, no release pipeline' status (INT-PD-121).",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-129",
+    "promise": "Because the app is open-source and unsigned, macOS Gatekeeper blocks first launch; the README documents a 3-step 'Open Anyway' workaround and notes that right-click-to-Open no longer works on macOS 15+.",
+    "source": "README.md#Download",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:93-108: 3-step workaround (Done → System Settings → Privacy & Security → Open Anyway → confirm Open) plus the macOS 15 (Sequoia) right-click caveat and the `xattr -dr com.apple.quarantine` fallback, all present verbatim.",
+    "gap": "README.md:93 now reads 'Because the app is **source-available and unsigned**' -- the promise's extracted 'open-source' wording is stale for the same D83 relicensing reason as INT-PD-106; the Gatekeeper mechanics and workaround content are otherwise delivered unchanged.",
+    "decision_ref": "docs/redesign/DECISIONS.md D83"
+  },
+  {
+    "pid": "INT-PD-130",
+    "promise": "On first launch the app starts its local data/AI engine with a one-time ~30-90 second warm-up while the bundled engine unpacks, after which the cockpit populates; everything runs on 127.0.0.1 with no pre-installed runtime required.",
+    "source": "README.md#Download",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:110-112 verbatim ('~30–90s warm-up while the bundled engine unpacks... Everything runs on 127.0.0.1 — no Python or other runtime needs to be pre-installed'), consistent with root CLAUDE.md's PyInstaller --onefile gotcha describing the sidecar as a self-contained onefile binary with a documented ~34s MCP cold-bind + _MEI extraction cost at boot.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-131",
+    "promise": "Documented local-development prerequisites are Node.js 24+, pnpm 10+, a stable Rust toolchain, C/C++ build tools, and Python 3.13+.",
+    "source": "README.md#Prerequisites",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:118-126 prerequisites table lists exactly these five rows; root CLAUDE.md's own Stack section independently states 'Python 3.13 FastAPI', 'pnpm' package manager, matching.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-132",
+    "promise": "Windows local development requires Visual Studio Build Tools 2022 with the 'Desktop development with C++' workload and the WebView2 Runtime.",
+    "source": "README.md#Prerequisites",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:128-129 verbatim: 'Install Visual Studio Build Tools 2022 with the \"Desktop development with C++\" workload. WebView2 Runtime must also be present.'",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-133",
+    "promise": "The documented local-dev bootstrap is `pnpm install` then `pnpm tauri dev`; the first `pnpm tauri dev` run builds the Python sidecar binaries via PyInstaller (a one-time ~1-2 minute step, skipped on later runs unless sidecar source changes).",
+    "source": "README.md#Local Development",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:133-144 verbatim bootstrap block and PyInstaller first-run note; root CLAUDE.md's sidecar-staleness gotcha independently confirms `scripts/sidecar-staleness.mjs` rebuilds a binary older than its source (\"editing an ensure recipe forces a rebuild\"), matching the described skip-unless-changed behaviour.",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-134",
+    "promise": "`pnpm ci-local` (lint + format + typecheck + clippy + ruff + tests) and `node scripts/smoke-test-sidecars.mjs` (spawn each sidecar binary, probe /health and MCP bind) are the documented gates to run before any release tag.",
+    "source": "README.md#Local Development",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "README.md:145-148 documents both commands as the pre-tag gate; package.json:20 `ci-local` script matches the described chain; scripts/smoke-test-sidecars.mjs exists on disk. Root CLAUDE.md's own Verification gates section independently states the identical requirement ('if it's skipped or red at tag time, the tag is invalid').",
+    "gap": "",
+    "decision_ref": ""
+  },
+  {
+    "pid": "INT-PD-135",
+    "promise": "The project is free for personal, academic, and open-source use under AGPL-3.0; commercial use requires a paid license per COMMERCIAL_LICENSE.md.",
+    "source": "README.md#License",
+    "kind": "guarantee",
+    "status": "dropped",
+    "evidence": "LICENSE (repo root) is now 'PolyForm Strict License 1.0.0', not AGPL-3.0. README.md:170-176 (current License section): 'Source-available. Free for noncommercial use under PolyForm Strict 1.0.0 ... Commercial use, modification, or redistribution requires a paid license — see COMMERCIAL_LICENSE.md ... Every commit before the relicensing commit remains available under its original AGPL-3.0 terms.'",
+    "gap": "The 'free for personal/academic/open-source use under AGPL-3.0' framing is superseded by an operator-approved, one-commit relicensing to PolyForm Strict 1.0.0, which is materially stricter (noncommercial-only, vs AGPL-3.0's copyleft-but-permits-commercial-use terms) and removes the 'open-source' framing entirely. COMMERCIAL_LICENSE.md remains the commercial path, as promised, and the live-order clause was removed from it along with trading.",
+    "decision_ref": "docs/redesign/DECISIONS.md D83 (commit 0c63d46, operator Tier-4 sign-off 23 Sep)"
+  }
+]

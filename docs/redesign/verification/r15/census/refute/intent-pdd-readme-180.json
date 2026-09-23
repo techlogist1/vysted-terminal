@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "INT-pdd-readme-180-1",
+    "verdict": "removed_with_feature",
+    "severity_final": "high",
+    "reason": "The subject is the Kite Connect OAuth session exchange (POST /brokers/kite/session) and the broker-connect panel's credential form, which exist only to connect a broker account; that surface is being deleted with the 23 Sep trading removal. It closes without a fix.",
+    "evidence": "sidecar/services/brokers/registry.py:1-68 (broker adapters incl. KiteAdapter); docs/CURRENT_STATE.md:421-436 (\u00a73.5 Kite OAuth promise)",
+    "evidence_checked": "Opened the promise text in CURRENT_STATE.md \u00a73.5 and the broker registry; no deep refute, per the removed_with_feature rule",
+    "repro_check": "Not run. A removed_with_feature verdict needs no repro."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The drift is real. CURRENT_STATE.md \u00a73.4 says BUNDLED_PLUGINS is exactly three plugins, contributesAgents is unexercised and resolveSecrets is a no-op, but the code has a 12-row CATALOG_ROWS marketplace, a preinstalled vysted-lenses agent plugin and keychain-backed resolveSecrets. The CLAUDE.md gotcha also names BUNDLED_PLUGINS/PLUGIN_COMPANIONS, which no longer exist in src/lib. Severity drops from high to medium: this is doc drift that trips the next maintainer, and no runtime flow breaks. The broker-registry half (the \u00a73.5 claims about which adapters register) belongs to the trading surface and goes with the 23 Sep removal, which leaves only the plugin/marketplace doc fix.",
+    "evidence": "docs/CURRENT_STATE.md:396-419; src/lib/marketplace.ts:1-14,82,94-319 (5 preinstalled:true, 7 preinstalled:false); src/lib/plugin-bootstrap.ts:4,17,236-248,252 (resolveSecrets -> getSecret; iterates CATALOG_ROWS); plugins/vysted-lenses/index.ts:1-28 (contributesAgents:true, quant-tutor AgentSpec); sidecar/services/brokers/registry.py:9-22,52-68",
+    "evidence_checked": "Opened every cited file at HEAD 38919fd. Ran grep for BUNDLED_PLUGINS|PLUGIN_COMPANIONS under src/lib: zero hits, only CATALOG_ROWS.",
+    "repro_check": "grep -n 'BUNDLED_PLUGINS\\|PLUGIN_COMPANIONS\\|CATALOG_ROWS' -r src/lib returned only CATALOG_ROWS in marketplace.ts/plugin-bootstrap.ts, which contradicts CURRENT_STATE.md:396-398 and the CLAUDE.md plugin-contract gotcha."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. CURRENT_STATE.md:358-361 says sp500 is 'only top 100' and criteria are 'AND-only; OR-grouping reserved'. In code, CriterionGroup (nestable AND/OR) is live on ScreenerRequest.group with a recursive evaluator and a frontend CriterionGroupEditor, and the stack serves a 506-symbol S&P 500. The nse-all/bse-all/india-all universes are undocumented there. Medium is right: the baseline doc tells maintainers that a shipped capability is missing.",
+    "evidence": "docs/CURRENT_STATE.md:358-361; sidecar/models/screener.py:171-209; sidecar/services/screener.py:333-345; sidecar/services/screener_universe_india.py:1-40; sidecar/routers/screener.py:175-185 (docstring still says 'S&P 500 (100 tickers)', a stale comment of its own); src/modules/screener/CriterionGroupEditor.tsx (exists, uses combinator)",
+    "evidence_checked": "Opened the models, service and router, plus the sp500.json keys and symbol count. Ran a live GET against :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/screener/universe?id=sp500' returned label 'S&P 500' with 506 symbols, not 100."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed. CURRENT_STATE.md:326-331 describes provider_registry.py as routing by asset_class with equity going to yfinance. The code is a model-key/preference-rank resolver in which the IN-scoped nse_direct(15), nse(20) and bse(25) providers rank ahead of yfinance(50), and /health on the stack reports that chain live. The baseline doc undercounts India data coverage, which is the product's moat area, so medium holds.",
+    "evidence": "docs/CURRENT_STATE.md:326-331; sidecar/services/provider_registry.py:1-24,84-107,118-202,288-318",
+    "evidence_checked": "Opened the provider_registry.py docstring, the declaration table and the resolver. Ran GET /health on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/health showed providers.quote = 'ccxt (nse_direct, nse, bse, yfinance fallback)', the preference chain rather than a plain equity->yfinance route."
+  },
+  {
+    "raw_id": "INT-pdd-readme-180-5",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The cited doc never says workspace state is SQLite-backed. CURRENT_STATE.md's route table lists /workspace as 'workspace_store; opaque JSON' next to the separate SQLite plugins_store row, and the \u00a76 persistence table says '<name>.vysted-workspace JSON' under get_data_dir()/workspaces/. That matches workspace_store.py exactly. The 'SQLite-backed' wording came from the census worker's own paraphrase in ledger promise INT-PD-195, not from the source doc.",
+    "evidence": "docs/CURRENT_STATE.md:319-320 (plugins_store (SQLite) vs workspace_store; opaque JSON), docs/CURRENT_STATE.md:826 (Workspace blob -> '<name>.vysted-workspace' JSON, get_data_dir()/workspaces/); sidecar/services/workspace_store.py:1-11,26,70-88",
+    "evidence_checked": "Opened both CURRENT_STATE.md tables and workspace_store.py. Grepped README.md, CURRENT_STATE.md, PLUGIN_DEVELOPMENT.md and SIDECAR_API.md for any line that pairs workspace with sqlite: zero hits.",
+    "repro_check": "grep -rn -i workspace README.md docs/CURRENT_STATE.md docs/PLUGIN_DEVELOPMENT.md docs/SIDECAR_API.md | grep -i sqlite returned no matches (exit 1), so the claimed doc statement does not exist."
+  }
+]

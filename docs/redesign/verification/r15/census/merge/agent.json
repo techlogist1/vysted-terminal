@@ -571,13 +571,14 @@
     "src/modules/node-editor/node-registry.ts"
    ],
    "repro": "grep the 51-entry capability catalog and sidecar/routers/ for any alert/notify/schedule/trigger surface -> none. Every run entry point is a POST from the UI: POST /workflow/run, POST /agents/{id}/runs. Close the app (or just stop looking at it) and nothing can reach you. || [INT-blueprint-48-6] Build the blueprint's own Layer-3 example (researcher -> strategy critic -> score > 7 -> alert). The chain and the threshold exist (`ai.agent_invoke`, `logic.branch` mode 'gt', `logic.compare` - node-registry.ts:110-133, builtin.py:222+), but the only output nodes are `action.log` and `action.notify_desktop` (node-registry.ts:135-149). grep for 'telegram' across src/, sidecar/, plugins/, types/ returns nothing, and there is no webhook/email/HTTP-POST node and no journal/notes output node.",
-   "evidence": "sidecar/services/agent_tools/catalog.py (51 _cap entries, ids listed at :146-1444 — no alert/notify/watch/schedule/trigger id); sidecar/routers/ (31 routers, no alerts module); sidecar/routers/workflow.py:38 (POST /run is the only start); sidecar/routers/runs.py:63 (POST /agents/{agent_id}/runs is the only start); grep -riE '\\b(cron|recurring|scheduled_run|schedule_run)\\b' over sidecar/ src/ types/ returns only sidecar/agents/lynch.json prose and a resolver master JSON. The sink already exists and is orphaned: src/lib/desktop-notification.ts:1-25 drains action.notify_desktop intents to the OS notifier (sidecar/services/workflow_nodes/builtin.py:321-336), fed only by an interactively-started workflow run., src/modules/node-editor/node-registry.ts:135-149, sidecar/services/workflow_nodes/__init__.py:11-50, docs/BLUEPRINT.md:209 || refuter corrections: WLD-T-1: Holds: no alert/schedule/trigger surface exists. The catalog's 51 ids contain no alert/notify/schedule/trigger id, the workflow node set is fetch/compute/agent/logic/action/transform/sleep with no trigger node, and the only run starts are POST /workflow/run and POST /agents/{id}/runs. Severity corrected critical -> high: COMMON's critical is wrong money data, data loss or a safety boundary; a missing central capability is the definition of high.",
+   "evidence": "sidecar/services/agent_tools/catalog.py (51 _cap entries, ids listed at :146-1444 — no alert/notify/watch/schedule/trigger id); sidecar/routers/ (31 routers, no alerts module); sidecar/routers/workflow.py:38 (POST /run is the only start); sidecar/routers/runs.py:63 (POST /agents/{agent_id}/runs is the only start); grep -riE '\\b(cron|recurring|scheduled_run|schedule_run)\\b' over sidecar/ src/ types/ returns only sidecar/agents/lynch.json prose and a resolver master JSON. The sink already exists and is orphaned: src/lib/desktop-notification.ts:1-25 drains action.notify_desktop intents to the OS notifier (sidecar/services/workflow_nodes/builtin.py:321-336), fed only by an interactively-started workflow run., src/modules/node-editor/node-registry.ts:135-149, sidecar/services/workflow_nodes/__init__.py:11-50, docs/BLUEPRINT.md:209 || refuter corrections: WLD-T-1: Holds: no alert/schedule/trigger surface exists. The catalog's 51 ids contain no alert/notify/schedule/trigger id, the workflow node set is fetch/compute/agent/logic/action/transform/sleep with no trigger node, and the only run starts are POST /workflow/run and POST /agents/{id}/runs. Severity corrected critical -> high: COMMON's critical is wrong money data, data loss or a safety boundary; a missing central capability is the definition of high. || [INT-blueprint-288-1] duplicate from the BLUEPRINT UC3 ('alert on entry trigger') / UC5 ('monitors news and notifies') angle: logic.compare + action.notify_desktop exist (sidecar/services/workflow_nodes/__init__.py:15,54, builtin.py:321-343) but no scheduler file exists under sidecar/ (find sidecar -iname '*schedul*' empty); refuter admitted high, noting a sidecar scheduler only covers the app-open case.",
    "root_cause": "The workflow engine, notification sink and durable-run machinery exist but the only run starts are POST /workflow/run and POST /agents/{id}/runs; no trigger/scheduler layer and no outbound (webhook) action node exist.",
    "fix_shape": "One scheduler that starts a saved workflow or durable run on a clock or a condition (reuse run_manager's detached tasks + BudgetGuard + SQLite store), first trigger = phrase watch over the announcements feed, plus an outbound webhook action node (user URL, BYOK-compatible). Test: a scheduled workflow fires once in a fake clock and posts to a stub webhook.",
    "defect_class": "monitoring-missing",
    "raw_ids": [
     "WLD-T-1",
-    "INT-blueprint-48-6"
+    "INT-blueprint-48-6",
+    "INT-blueprint-288-1"
    ],
    "tier4": false,
    "operator_areas": [
@@ -607,6 +608,30 @@
     "agent-chat",
     "ui-panels",
     "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-AGENT-080",
+   "title": "AUTO autonomy silently auto-applies portfolio cost-basis edits/deletes, note writes, saved layouts/screens and region settings, not only the UI/layout/chart/watchlist changes AUTO is documented and specified to cover",
+   "severity": "high",
+   "area": "agent",
+   "subsystem": "host-actions-proposed-changes",
+   "files": [
+    "src/store/proposed-changes.ts",
+    "src/lib/host-actions.ts",
+    "src/store/agent-autonomy.ts"
+   ],
+   "repro": "Set autonomy=auto; have the agent call portfolio_add_position / portfolio_update_position / portfolio_delete_position / write_note / save_layout / save_screen / set_region -> enqueue() auto-accepts because kind !== 'order' is the only exclusion (proposed-changes.ts:118) -> the tracked-portfolio cost basis, notes or app settings change with no per-action confirmation, while the UI tells the user AUTO means 'UI changes apply instantly'.",
+   "evidence": "src/store/proposed-changes.ts:113-120 (comment says AUTO covers 'UI/layout/chart/watchlist host-actions'; code excludes only kind 'order'); src/lib/host-actions.ts data-write kinds (portfolio_add/update/delete_position, write_note, save_layout, save_screen) and settings kind (set_region :854); src/store/agent-autonomy.ts:7-11 (documents AUTO as UI/layout/chart/watchlist only); spec SC-025. Refuter correction kept: write_screener_filters is kind 'panel', not data-write. Same auto-accept line is the write half of R15-AGENT-021 (prompt-injection path); this entry is the scope defect on its own, which bites with an honest model too.",
+   "root_cause": "The AUTO gate is a deny-list of one kind ('order') instead of an allow-list of the specified UI kinds, so every new mutating kind (data-write, settings) is auto-applied by default.",
+   "fix_shape": "Turn the AUTO check into an allow-list of kinds (chart, panel, layout, watchlist) so data-write and settings always stage for review; orders unaffected. Vitest: under autonomy=auto, enqueue of a portfolio_delete_position / write_note / set_region stays pending while set_chart_symbol auto-applies.",
+   "defect_class": "autonomy-scope-drift",
+   "raw_ids": [
+    "INT-spec-180-205"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
    ]
   },
   {
@@ -1606,6 +1631,106 @@
    ]
   },
   {
+   "id": "R15-AGENT-081",
+   "title": "open_company_overview's highlight argument is never consumed: the metric is not spotlighted, yet the tool result and proposal preview tell the user and the model it was",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "frontend-panels-data-surfaces",
+   "files": [
+    "src/modules/equity-overview/EquityOverviewPanel.tsx",
+    "src/lib/host-actions.ts",
+    "src/store/equity-command.ts"
+   ],
+   "repro": "Agent calls open_company_overview(symbol='TATASTEEL', highlight='pe_ratio') -> host-actions.ts:1078-1079 passes it to openCompanyOverview -> useEquityCommandStore stores highlightMetric (host-actions.ts:284, equity-command.ts:31-33) -> EquityOverviewPanel.tsx:822-833 reads only equityCommand.symbol -> no visual change, while the result string says 'spotlighting <metric>' and the preview '<metric> spotlighted'.",
+   "evidence": "sidecar/services/agent_tools/catalog.py:997-1013 (advertises highlight to 'spotlight' a metric); src/lib/host-actions.ts:274-284,690-699,1078-1081; src/store/equity-command.ts:21-33; src/modules/equity-overview/EquityOverviewPanel.tsx:628,822-833 (no reader of highlightMetric anywhere under src/modules/); docs/redesign/verification/R7_RUN_REPORT.md:37 (earlier 'plain focus' regression).",
+   "root_cause": "The command store carries highlightMetric but the panel's command consumer was written for symbol only; the host-action result text is composed from the input, not from what the panel did.",
+   "fix_shape": "Consume equityCommand.highlightMetric in EquityOverviewPanel (scroll-to + transient accent ring on the matching metric row; unknown metric -> result says so) and build the host-action result from the panel's ack. Test: vitest renders the panel with a highlight command and asserts the metric row gets the highlight attribute.",
+   "defect_class": "promise-without-surface",
+   "raw_ids": [
+    "INT-deferred-42-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-AGENT-082",
+   "title": "A foreground chat run's token count and spend are never shown anywhere: spend is hard-coded to $0 and the only cost surface hides zero spend and finished runs",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "frontend-panels-agent-shell",
+   "files": [
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/modules/chat/AgentsRail.tsx",
+    "src/lib/chat-history.ts",
+    "sidecar/services/budget_guard.py"
+   ],
+   "repro": "Send any message on a paid lane (Anthropic/OpenAI) and let it finish -> onDone writes cost {tokens, spendUsd: 0, steps: 0} (ChatSidebar.tsx:919-922) immediately before endRun -> AgentsRail lists only running/paused runs (AgentsRail.tsx:30) and hides the $ segment when spendUsd is 0 (AgentsRail.tsx:103-106); per-message usage is stored (chat-history.ts:213-216) but never rendered -> the user never sees what the turn cost.",
+   "evidence": "src/modules/chat/ChatSidebar.tsx:915-923; src/modules/chat/AgentsRail.tsx:30,103-106; src/lib/chat-history.ts:213-216; sidecar/services/budget_guard.py:60-84 (estimate_spend_usd already exists for Delegate runs); Constitution Principle VI ('the provider/model/cost in use is always legible on the agent surface'). Refuter correction adopted: nothing renders '$0.00'; the cost is simply invisible. Related but distinct: R15-AGENT-049 (native-search billing unmetered), R15-AGENT-075 (openrouter/auto priced at the wrong model).",
+   "root_cause": "The foreground path never prices usage (the price table lives only in the sidecar BudgetGuard) and the only cost display was built for live durable runs.",
+   "fix_shape": "Have the sidecar attach estimate_spend_usd(provider, model, usage) to the SSE done/usage event (one price table), store it on the message, and render tokens + estimated spend on the finished assistant message footer. Test: pytest that the done event carries spend_usd for a priced model; vitest that the message footer renders it.",
+   "defect_class": "cost-not-legible",
+   "raw_ids": [
+    "INT-spec-0-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-AGENT-083",
+   "title": "No mutating capability reaches the external MCP surface, contradicting the spec's one-catalog parity and 'same confirmation path' promise, and the spec was never amended to match the in-code rule",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/catalog.py",
+    "sidecar/services/mcp_server.py",
+    "specs/",
+    "docs/MCP_INTEGRATION.md"
+   ],
+   "repro": "Connect an external MCP client and list tools -> mcp_capabilities() projects only kind=='read_handler' (catalog.py:1461-1472, filter at :1496-1503) -> portfolio_add/update/delete_position, write_note, add/remove_from_watchlist, save_layout, save_screen, set_region are absent; invoking one by name returns {'ok': False, 'error': \"tool '...' is not available in this build\"} (mcp_server.py:106-124, agent_tools/__init__.py:62-67).",
+   "evidence": "sidecar/services/agent_tools/catalog.py:1461-1472 (comment: host actions 'are inherently local ... never projected'), :1496-1503; sidecar/services/mcp_server.py:106-124; sidecar/services/agent_runtime.py:1190-1225 (_make_host_action is the only staging path, SSE-loop-local); spec.md:789-790 (external MCP mutating request -> same gate, same confirmation path), US5 acceptance 3 ('no capability reachable to one consumer but not the other'), Constitution II. propose_order is out of scope (trading removal); the portfolio/notes/watchlist host actions remain.",
+   "root_cause": "A deliberate in-code decision (host actions are local-only) was never reflected back into spec/constitution, so the shipped read-only MCP surface silently contradicts the written parity promise.",
+   "fix_shape": "v1: record the decision (Tier 3) - amend FR-020-022/US5 and the MCP docs to state the external MCP surface is read-only in 0.9, and have mcp_capabilities() audit test assert that exclusion explicitly. Exposing host actions to external clients via a host-side proposal queue is a safety-boundary change for the operator, not a writer task.",
+   "defect_class": "consumer-parity-gap",
+   "raw_ids": [
+    "INT-spec-45-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-AGENT-084",
+   "title": "The agent cannot draw on or annotate the chart (no drawing host action), and no completeness audit exists to prove every obvious hand action is agent-reachable as SC-022/SC-027 require",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "host-actions-proposed-changes",
+   "files": [
+    "src/lib/host-actions.ts",
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "Ask the agent 'draw a support line at 1,450 on the RELIANCE chart' -> no host action or catalog entry for drawings exists (describeHostAction/applyHostAction switches in host-actions.ts, catalog.py host_action ids) -> the agent cannot do it. Separately, grep the repo for an SC-022/SC-027 action-parity audit (enumerated hand actions vs agent-reachable set) -> none.",
+   "evidence": "src/lib/host-actions.ts (19 distinct actions across the describe and apply switches: set_chart_symbol ... set_region; no drawing action); sidecar/services/agent_tools/catalog.py host_action entries :962-1456 (no drawing id); spec SC-022 ('an audit shows' 0 gaps), SC-027 ('host-action completeness'). Refuter corrections adopted: the '37 cases' count double-counts the two switches; the 're-read-after-mutation' part of INT-spec-180-207 is refuted (test_agent_runtime.py drives a host action and checks the next round sees the grounded ledger result).",
+   "root_cause": "Host actions were added case by case against observed gaps with no enumerated hand-action inventory to diff against, so whole families (chart drawings) were never covered.",
+   "fix_shape": "Add an enumerated hand-action inventory (a table in code, not prose) and a vitest parity test asserting every entry maps to a host-action id or an explicit exclusion; add a chart drawing host action (add/remove trendline/hline) as the first gap it surfaces.",
+   "defect_class": "action-parity-unaudited",
+   "raw_ids": [
+    "INT-spec-180-202",
+    "INT-spec-180-207"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
    "id": "R15-AGENT-065",
    "title": "Two documented-deferred copilot/customizability builds remain unbuilt: the 3-pane agent roster panel with hard persona hand-off, and the data-source connector hub (Plugin Manager shows only a count)",
    "severity": "low",
@@ -1954,7 +2079,86 @@
     "ui-panels",
     "agent-chat"
    ]
+  },
+  {
+   "id": "R15-AGENT-085",
+   "title": "Plain chat answers carry no citation object and no unverified-claim check: the citation and [unverified] machinery exists only on research briefs and the Equity Overview narrative",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "src/modules/chat/ChatSidebar.tsx",
+    "sidecar/services/agent_runtime.py",
+    "sidecar/agents/copilot.json"
+   ],
+   "repro": "design: ask a factual question the agent answers inline from a tool result without the research/brief pipeline or Equity Overview -> the message has no citation markers/sources and no unverified-claims pass; grounding rests on the prompt line 'ground every factual claim in a tool' (copilot.json:5).",
+   "evidence": "types/brief.ts:1-10,229-245,308-312 (citation contract on BriefSource/structured brief); src/modules/equity-overview/EquityOverviewPanel.tsx:345-356,438-445 ([unverified] token + unverified_claims, narrative-specific); src/modules/chat/ChatSidebar.tsx:662-665 (/sources only opens BriefPanel); Constitution VI ('every agent claim that asserts a fact carries citations').",
+   "root_cause": "Citation and verification were built per surface (brief, narrative) rather than as a property of every tool-grounded chat turn.",
+   "fix_shape": "Attach the turn's tool-call provenance (tool id + provider + as-of) as a sources footer on each chat message, reusing the brief's source chip renderer; or scope Constitution VI to briefs/narratives. Test: vitest that a message with a tool result renders a sources footer.",
+   "defect_class": "citation-scope-gap",
+   "raw_ids": [
+    "INT-spec-0-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-AGENT-086",
+   "title": "A Delegate run can never be paused for a question: pause_run has no caller (no ask_user tool, no pause route), so the answer route serves a state no run can reach",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/routers/runs.py",
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "Start a Delegate run that needs a user decision mid-run -> it has no ask_user tool and nothing calls run_manager.pause_run (run_manager.py:301-316); routers/runs.py:63-127 exposes launch/list/get/cancel/answer/resume but no pause -> the run guesses or runs to completion/budget breach; POST /runs/{id}/answer can never apply because status 'paused' is unreachable.",
+   "evidence": "sidecar/services/run_manager.py:23-34 (docstring calls the pause/answer plumbing fully implemented, defers ask_user), :301-316 (pause_run, zero callers in sidecar/ and src/); sidecar/routers/runs.py:63-127; spec.md:883-884 FR-028 (SHOULD). Refuter correction adopted: not even an operator-driven pause exists.",
+   "root_cause": "The pause/answer/resume state machine was built without any entry edge into 'paused'.",
+   "fix_shape": "Add an internal-only ask_user capability (catalog.py) whose handler calls pause_run with the question and ends the round; fix the docstring. Test: pytest drives a delegate run whose fake model calls ask_user, asserts status 'paused', answers, asserts it resumes.",
+   "defect_class": "dead-plumbing",
+   "raw_ids": [
+    "INT-spec-90-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-AGENT-087",
+   "title": "Spec FR-003/SC-029 and the agent-mode store docblock still describe four hotkeyed modes (Ask/Edit/Build/Delegate, alt+1-4) while the app ships two (Agent/Delegate) plus a layered intent gate and a separate autonomy axis",
+   "severity": "low",
+   "area": "docs",
+   "subsystem": "frontend-stores",
+   "files": [
+    "src/store/agent-mode.ts",
+    "specs/",
+    "docs/redesign/R4_STALE_CODE_REGISTER.md"
+   ],
+   "repro": "Read spec.md:829-831 (FR-003: four modes on stable global hotkeys) and src/store/agent-mode.ts:1-8 ('four-mode intent ... Ask / Edit / Build / Delegate ... (alt+1-alt+4)'), then press alt+3/alt+4 in the app -> nothing; only alt+1 Agent and alt+2 Delegate exist (types/agent-modes.ts:24,42-60; src/store/keybindings.ts:65-82).",
+   "evidence": "spec.md:829-831; src/store/agent-mode.ts:1-8; types/agent-modes.ts:1-60; src/store/keybindings.ts:65-82; docs/redesign/R4_STALE_CODE_REGISTER.md:62 (S-15 left open). Refuter corrections adopted: the two-mode collapse IS ratified (REBUILD_SPEC.md:179, REBUILD_R3_SPEC.md:235-242,299) and planner.classify_intent is a layered read/edit/build tool gate inside 'agent' mode, not a competing mode system - so this is drift, not a missing feature.",
+   "root_cause": "The two-mode decision was recorded in the rebuild specs but never propagated back to spec.md FR-003/SC-029 or the store's docblock; S-15 was left open.",
+   "fix_shape": "Amend FR-003/US3/SC-029 to the two-mode + autonomy-axis model with a pointer to REBUILD_SPEC.md:179, rewrite the agent-mode.ts docblock, close S-15. No code behaviour change.",
+   "defect_class": "spec-code-drift",
+   "raw_ids": [
+    "INT-spec-90-6",
+    "INT-spec-180-209"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
   }
  ],
- "rejections": []
+ "rejections": [
+  {
+   "raw_id": "INT-spec-180-206",
+   "reason": "Not a product defect: all three speeds are wired (FAST /layout -> arrange_layout, ORCHESTRATED proposed-changes gate, DEEP deep.py); the only gap is a combined pixel-proof artifact for SC-026, which is verification paperwork, not user-facing behaviour (refuter: session-1 'NOT STARTED' quote is stale)."
+  }
+ ]
 }

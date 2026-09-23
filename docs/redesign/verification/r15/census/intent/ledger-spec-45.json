@@ -1,0 +1,452 @@
+[
+  {
+    "pid": "INT-SP-46",
+    "promise": "The product is never 'US-first with a bolt-on'; it is local by default in each locale it serves.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/services/provider_registry.py:148-216 (nse_direct/nse/bse ProviderDeclarations are region=frozenset({'IN'}) and RANKED ABOVE yfinance (rank 15/20/25 vs 50) so an IN request is served locale-correct, not a US-first fallback); spec.md#Pass-B-decision-1 ratifies 'US + India, both first-class & deep' (FR-060).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-47",
+    "promise": "Correctness is non-negotiable \u2014 for a research product, wrong data is fatal.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/services/correctness_gate.py:1-20 (module docstring: 'Constitution VIII: wrong data is fatal for a research product'; CorrectnessError raised on rejection, subclasses ProviderError so the registry's fallthrough treats it like a provider failure rather than serving the bad value).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-48",
+    "promise": "The system MUST NOT present wrong, stale, or glitchy data behind a populated surface.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/correctness_gate.py:92-160 (validate_quote/validate_series reject non-positive price, symbol mismatch, and calendar-aware staleness before a result reaches any caller); models/market.py:26-28,50-53 (freshness label so a stale value is never rendered as live).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-49",
+    "promise": "A correctness gate rejects empty/invalid/stale/mismatched provider responses.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/correctness_gate.py: validate_quote (empty/non-positive price), validate_series (empty series -> EmptySeriesError), symbols_match (mismatched instrument); sidecar/services/provider_registry.py:253-285 (_fundamentals_screener_complete / _fundamentals_has_data reject an all-null or screener-incomplete shell).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-50",
+    "promise": "Resolution + retrieval walk a preference-ordered, multi-source provider chain and serve the first valid, provenance-tagged result.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/provider_registry.py:305-318 (_candidates() returns installed providers matching model-key + asset-class + region, sorted by rank) and :337-441 (_resolve_sync/_resolve_async walk candidates in preference order, returning the first correctness-gate-passing result; provenance is the serving provider's own 'provider' field, left untouched).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-51",
+    "promise": "The system surfaces an honest, human 'unavailable' (naming what would unlock it) only when every configured source has failed.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/provider_registry.py:428-440 (all-null fundamentals shell never served; last ProviderError raised), sidecar/routers/fundamentals.py:104-115 (429/404 humanized, else 502 detail=str(exc)), sidecar/app.py:312-315 (global ProviderError handler -> 502 {\"detail\": str(exc)} \u2014 verified at current HEAD), sidecar/services/yfinance_provider.py:65 (raw exception text embedded in the message), src/modules/equity-overview/EquityOverviewPanel.tsx:763 + src/modules/watchlist/WatchlistPanel.tsx:206 + src/modules/chart/ChartPanel.tsx:408 (panels print err.message verbatim, no 'what would unlock it'); contrast the agent leg's closed reason vocabulary at sidecar/services/agent_tools/fundamentals.py:23-51 (rate_limited / not_found / provider_error, verified this session) which the REST/panel leg does not share.",
+    "gap": "The AGENT leg surfaces an honest, reasoned 'unavailable' (closed reason vocabulary, agent_tools/fundamentals.py) but 'the system' as a whole does not: the REST/panel leg's all-providers-failed path is a bare 502 with a raw Python exception string (no 'what would unlock it'), and three panels print it verbatim. Same underlying defect already raised as INT-spec-90-1 in the prior session-2 chunk (docs/redesign/verification/r15/census/raw/intent-spec-90.json) \u2014 this raw finding duplicates it intentionally so the Gate-2 merge can dedupe across chunks.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-52",
+    "promise": "Stale/cache-served and synthetic/paper values are always labeled, never shown as live.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/models/market.py:26-28 (Quote.freshness: 'live'|'eod'|'stale') and :50-53 (OHLCVSeries.freshness); src/components/DataBadges.tsx (StalenessBadge component) consumed in src/modules/chart/ChartPanel.tsx, src/modules/watchlist/WatchlistPanel.tsx, src/modules/research/BriefPanel.tsx + brief-blocks.tsx; src/modules/equity-overview/EquityOverviewPanel.tsx:297-310 (inline freshness chip); sidecar/models/broker_reads.py:13-43 (FR-041 provenance: synthetic:bool + mode:'paper'|'live' + provider:str on every broker-read result).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-53",
+    "promise": "When a path fails, the agent MUST try another source/route and succeed, or fail cleanly with a human message.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "Promise is agent-scoped ('the agent MUST try another source...'). sidecar/services/provider_registry.py:337-441 (preference-ordered fallthrough on every ProviderError/CorrectnessError); sidecar/services/agent_tools/fundamentals.py:23-51 (closed reason vocabulary \u2014 rate_limited/not_found/provider_error \u2014 so the agent leg never surfaces a bare unhandled failure). The separate REST/panel-layer 'human message' gap (raw exception leak) is tracked under INT-SP-51/84, not this agent-scoped promise.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-54",
+    "promise": "The agent MUST NOT give up and print raw JSON, fabricate a value, or load the wrong instrument.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/correctness_gate.py:92-113 (symbols_match rejects a wrong-instrument response before the agent ever sees it); sidecar/services/provider_registry.py:271-285 (_fundamentals_has_data refuses to serve an all-null fabricated-looking shell as success, R13 D3); sidecar/services/agent_tools/fundamentals.py:23-51 (closed reason vocabulary \u2014 the agent narrates a cause, never raw JSON).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-55",
+    "promise": "A near-superintelligent assistant does not dead-end; the illusion of effortless competence rests on it.",
+    "source": "constitution.md#Principle-VIII",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "Aggregate of INT-SP-53/54 evidence (provider fallthrough + closed reason vocabulary) is exactly the mechanism constitution.md Principle VIII states this quality-bar rests on; no counter-evidence of the agent dead-ending found in sidecar/services/agent_tools/*.py.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-56",
+    "promise": "Stack is locked: Tauri 2.x (Rust core) + Next.js 16 static export + React 19 + TypeScript strict + Tailwind 4 + shadcn/ui + Zustand; lightweight-charts + @xyflow/react; a Python 3.13 FastAPI sidecar (loopback, PyInstaller --onefile); OS targets Windows + macOS + Linux; AGPL-3.0 + commercial dual license; no hosted backend.",
+    "source": "constitution.md#Additional-Constraints",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "package.json (no 'next' dependency; \"dev\": \"vite\", \"build\": \"vite build\"; devDependencies vite ^8.0.16 + @vitejs/plugin-react 6.0.1; react 19.2.6, typescript 6.0.3, tailwindcss 4.3.0, zustand 5.0.13, lightweight-charts 5.2.0, @xyflow/react 12.10.2); vite.config.ts:1-30 (Tauri devUrl wiring); index.html (Vite entry point); src-tauri/tauri.conf.json:32 (bundle.targets: deb/appimage/nsis/app/dmg = Linux+Windows+macOS); src-tauri/Cargo.toml:25 (tauri v2); sidecar/.venv is python3.13, sidecar/requirements.txt fastapi==0.136.1 uvicorn[standard]==0.46.0 (PyInstaller --onefile per scripts/ensure-*-sidecar.mjs); LICENSE:1-3 (PolyForm Strict 1.0.0, current text), LICENSING.md + COMMERCIAL_LICENSE.md (dual-license shape intact); docs/redesign/DECISIONS.md:143 D83 (AGPL-3.0 -> PolyForm Strict relicense, operator Tier-4 sign-off 23 Sep); .specify/memory/constitution.md 'Additional Constraints' (CURRENT text, read this session) still reads 'Stack is locked: Tauri 2.x (Rust core) + Next.js 16 static export + React 19 + ...' \u2014 verified live, not a stale quote; CLAUDE.md (this project's own root instructions) line 16 'Frontend: Next.js 16 (App Router, static export)...'; components.json (rsc:true, css:'src/app/globals.css' \u2014 Next-era shadcn config); src/app/page.tsx + src/app/globals.css (leftover Next-era files); docs/redesign/DECISIONS.md:28 D6 ('Vite migration verdict: zero blockers ... change is surgical', dated in the R7 log, i.e. long before this promise's own source document).",
+    "gap": "Two independent staleness issues bundled in one promise: (1) the AGPL-3.0 wording is legitimately superseded \u2014 the core WAS relicensed to PolyForm Strict 1.0.0 via a recorded, ratified Tier-4 decision (D83), and both LICENSE and constitution.md's license clause already reflect it correctly \u2014 this sub-clause is 'dropped', not a defect. (2) The 'Next.js 16 static export' wording is NOT superseded by any decision that updated the governing text: the frontend was migrated to Vite (D6, R7) but the CURRENT, live constitution.md 'Locked' stack prose and this project's own CLAUDE.md Stack line were never corrected to match \u2014 they actively misdescribe the shipped framework today. This is the live doc-drift defect (see raw finding).",
+    "decision_ref": "D83 (license sub-clause only, ratified 23 Sep 2026); the Next.js/Vite sub-clause has no covering decision \u2014 it is an unresolved documentation defect, not a dropped promise."
+  },
+  {
+    "pid": "INT-SP-57",
+    "promise": "The foundation to keep (reframe, don't rebuild) is: the FastAPI sidecar + data layer, dockview panels + persistent workspace layouts, the \u00a76.5 safety architecture, Kite read-only + BYOK keychain, and the copilot's existing tool loop.",
+    "source": "constitution.md#Additional-Constraints",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/app.py (8 top-level route groups) + 30 files under sidecar/routers/ (FastAPI sidecar + data layer kept); src/components/PanelHost.tsx:3 (DockviewReact); src/lib/workspace.ts (persistent workspace layouts); sidecar/services/kill_switch.py + sidecar/tests/test_safety_end_to_end.py (\u00a76.5 safety architecture kept); sidecar/services/brokers/kite.py:196-276 (read-only Kite endpoints, _raise_kite_read_error); src/lib/keychain.ts (BYOK keychain); sidecar/services/agent_runtime.py:1229 invoke_agent (the copilot's tool loop kept).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-58",
+    "promise": "Broker order execution is deferred behind the safety layer, out of scope for the redesign; the Tradesa plugin is a separate track.",
+    "source": "constitution.md#Additional-Constraints",
+    "kind": "deferred-item",
+    "status": "dropped",
+    "evidence": "docs/redesign/DECISIONS.md:141 D81 ('Trading is out of the product, permanently ... no broker connectivity, order placement, order proposal/review bar, simulated paper brokerage, live/paper mode switch, broker plugin, or live-trading roadmap item').",
+    "gap": "Per PROMPT_offmachine_s2.md's session-2 scope facts and COMMON.md's out-of-scope-by-decision list, any promise whose subject is broker order execution / the Tradesa plugin track is dropped, not partial/missing, and does not get a raw finding.",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product (D81)"
+  },
+  {
+    "pid": "INT-SP-59",
+    "promise": "Full-scope, no half-ships: the complete scope of a feature is built the first time; no 'Phase 2' TODOs rotting in production code.",
+    "source": "constitution.md#Development-Workflow",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "grep across src/ and sidecar/ (excluding tests/venvs) for TODO...(phase ?2|later|v2) or FIXME returned zero matches in production code, consistent with the 'no half-ships' bar; docs/CURRENT_STATE.md's per-story accounting shows P1-P3 shipped in full, not stubbed.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-60",
+    "promise": "pnpm ci-local (lint + format + typecheck + clippy -D warnings + ruff + vitest + cargo test + pytest) and the sidecar smoke-test pass before any release tag; a skipped or red gate invalidates the tag.",
+    "source": "constitution.md#Development-Workflow",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "package.json 'ci-local' script (install --frozen-lockfile -> ensure-all-sidecars -> lint -> format:check -> typecheck -> cargo fmt/clippy -D warnings -> ruff -> pnpm test -> cargo test -> pytest); scripts/smoke-test-sidecars.mjs exists; docs/redesign/DECISIONS.md:135 D80 (R15: canonical smoke test run END-TO-END GREEN, 3/3 binaries, 13 agents, MCP ready, zero interference) and :126 D71 (R13 baseline: pytest 2311 passed/1 skipped, vitest 1481/134, byte-matched to prior close) \u2014 the most recent full-suite evidence in the run log; this session did not re-run the full suite itself per COMMON.md's single-heavy-lane rule.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-61",
+    "promise": "Contract tests for the plugin contract, the capability catalog, and the \u00a76.5 safety surface are written and must hold before the behavior they protect is changed.",
+    "source": "constitution.md#Development-Workflow",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/tests/test_capability_catalog.py (registry<->catalog parity, SC-006) and sidecar/tests/test_safety_end_to_end.py (\u00a76.5 audit_1..8b) exist; src/lib/plugin-runtime.test.ts:475-500 'PluginRuntime \u2014 compatibility validation (FR-054 / SC-015)' (rejects manifest id/version mismatch and unmet requiredHostVersion) is the plugin-contract test.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-62",
+    "promise": "Reversing a Locked decision (BLUEPRINT \u00a72) or weakening a \u00a76.5 safeguard is a Tier-4 action \u2014 it MUST be ratified by the operator and recorded, never made silently.",
+    "source": "constitution.md#Governance",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "docs/redesign/DECISIONS.md:141 D81 and :143 D83 are both explicit 'operator Tier-4 sign-off' entries recorded in the append-only decision log, matching the governance promise in practice, not just in prose.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-63",
+    "promise": "Onboarding presents either a cloud BYOK key (Anthropic/OpenAI/\u2026) or a guided local-model (Ollama) setup at first run; the user picks \u2014 no silent default to a possibly-absent local model.",
+    "source": "spec.md#Clarifications-2026-05-30",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx:58 (Step = 'welcome'|'cloud'|'local'|'done'), :113 (chosen: 'cloud'|'local'), :449-600 (guided local Ollama setup: status probe, pull, install-detection), :171 ('connect a cloud model with one key, or run a local model'). No default is pre-selected; the user picks.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-64",
+    "promise": "The redesign ships as one coherent, phased build \u2014 P1 (US1\u2013US4) is the MVP, P2 (US5\u2013US7) follows, P3 (US8\u2013US9) after \u2014 not a parallel 'simple app.'",
+    "source": "spec.md#Open-Product-Decisions-2",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "docs/CURRENT_STATE.md:53-76 ('0.5 Agent-native redesign \u2014 P1-P3 shipped', with P1 US1-US4, P2 US5-US7/US10, P3 US8/US9 each itemised as landed) and docs/redesign/P1_P3_BUILD_REPORT.md (referenced there as the full per-FR/SC accounting).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-65",
+    "promise": "The typed pub/sub bus and symbol-group panel linking (changing the ticker in one linked panel makes all linked panels follow) are deferred to a later track beyond this redesign.",
+    "source": "spec.md#Open-Product-Decisions-6",
+    "kind": "deferred-item",
+    "status": "delivered",
+    "evidence": "grep -rln 'symbol-group|symbolGroup|linked panel|pub.?sub' across src/ (excluding tests) returns zero matches \u2014 the deferral held; no typed pub/sub bus or symbol-group panel linking has been built.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-66",
+    "promise": "First-party panels, data providers, and agents ship pre-installed and enabled by default through the same unified plugin/marketplace model as third-party extensions \u2014 not a privileged separate registration path.",
+    "source": "spec.md#Clarifications-2026-05-31b",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-bootstrap.ts:7-8 ('first-party entries are pre-installed by default (populated first run, FR-032); the seven broker entries are available-but-not-pre-installed (FR-051)') and :217 (bridges first-party + broker entries through the same BUNDLED_PLUGINS/PLUGIN_COMPANIONS registration path).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-67",
+    "promise": "The terminal serves real data on first launch with zero credentials configured (the keyless data default ships pre-installed and enabled) \u2014 a 'works out of the box' guarantee.",
+    "source": "spec.md#Clarifications-2026-05-31b",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-bootstrap.ts:7-8 (keyless data plugin pre-installed+enabled); sidecar/services/provider_registry.py:200-215 (yfinance ProviderDeclaration \u2014 no 'requires' gate, i.e. no key needed \u2014 is the broad equity default).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-68",
+    "promise": "The redesign collapses 5 existing research paths + 3 triggers into ONE coherent research model with a single entry point.",
+    "source": "spec.md#Clarifications-2026-06-05",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "docs/redesign/REBUILD_R4_SESSION2_REPORT.md:23 (item 5: 'Research collapsed to ONE entry \u2014 the /deep + /deep heavy triggers and the Deep research composer toggle are gone; one /research, go deeper escalates in place, one deep loop') and :141 (commit f97a3fe 'refactor(research): collapse to ONE research model with in-place go deeper (FR-115/SC-028)').",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-69",
+    "promise": "Screener performance uses the Yahoo v7 batch quote endpoint (plus async + caching + warm precompute) to achieve single-digit-second cold / sub-second warm S&P 500 scans.",
+    "source": "spec.md#Clarifications-2026-06-05",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "sidecar/services/screener.py:861-875 (yahoo_batch_provider.fetch_quotes_batch / quote_from_v7 / fundamentals_from_v7 chunked batch fetch) and :52 (start_warm_precompute re-warms the S&P 500 batch into the store); sidecar/services/fundamentals_warm.py:174-180 (same v7 batch path feeding the warm cache).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-70",
+    "promise": "'Cursor for finance' stays an internal design metaphor only; external/public positioning leads with 'the AI-native, extensible finance workspace.'",
+    "source": "spec.md#Assumptions",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "README.md:1-11 leads with 'Source-available, AI-native desktop finance terminal ... agent-assisted, local-first, and bring-your-own-keys' and 'Vysted is being reframed into an agent-native finance workspace' \u2014 never uses 'Cursor for finance' externally (that phrase only appears internally in docs/CURRENT_STATE.md's own analysis notes, not in any public-facing copy).",
+    "gap": "The public README doesn't reproduce the exact ratified sentence 'the AI-native, extensible finance workspace' verbatim as its lead line \u2014 it uses closely-related but not identical wording. The substantive commitment (never lead externally with 'Cursor for finance') is honoured. Judged too cosmetic to file as a raw finding (COMMON.md: 'a finding that would not change a decision is not a finding').",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-71",
+    "promise": "The existing foundation being kept and consumed (not rebuilt) includes ~107 data routes + the provider registry.",
+    "source": "spec.md#Assumptions",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "122 route decorators counted across sidecar/routers/*.py (@router.get/post/put/delete/patch), consistent with the '~107 data routes' order of magnitude (the promise's own '~' already allows for organic growth); sidecar/services/provider_registry.py is the provider registry referenced.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-72",
+    "promise": "BYOK is required for live agent answers; a default that depends on an uninstalled local model is treated as a defect to fix in onboarding, not an assumption to preserve.",
+    "source": "spec.md#Assumptions",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/components/OnboardingFlow.tsx (no silent Ollama default \u2014 the user explicitly chooses cloud or local) and src/modules/chat/ChatSidebar.tsx:793-806 (an unconfigured keyless local model routes to 'opening setup', not a silent failed call) together treat the uninstalled-local-model case as a defect-to-fix-in-onboarding per the promise, not an accepted default.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-73",
+    "promise": "A user can drive the entire terminal through natural language alone, never needing to know a function code, a panel name, or a ticker convention.",
+    "source": "spec.md#US1",
+    "kind": "use-case",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py (51 _cap(...) capability declarations spanning panels/charts/watchlist/portfolio/notes/screener/research \u2014 no function-code knowledge needed by the user); sidecar/services/symbol_resolver.py (free-text company-name/ticker resolution, no exchange-convention knowledge required); sidecar/services/agent_runtime.py:1190-1225 (host_action dispatch opens/sets panels on the user's behalf from natural language).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-74",
+    "promise": "Every capability the agent can invoke is reachable by hand, and nothing about the agent-first posture slows the expert down.",
+    "source": "spec.md#US2",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "src/store/command-palette.ts:1-30 (module docstring: corpus sources are Agents + Actions [CommandSpec[] from useModulesStore.enabledCommands()] + Panels [PanelSpec[] from useModulesStore.enabledPanels()] + Symbols) \u2014 the SAME CommandSpec/PanelSpec declarations the plugin-bootstrap/capability-catalog machinery feeds the agent are surfaced by hand in the palette, so nothing agent-reachable is palette-unreachable by construction.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-75",
+    "promise": "When the user relaunches the app, the exact layout, enabled modules, drawings, and watchlist built by hand are restored.",
+    "source": "spec.md#US2-AS2",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:201-284 (serializeWorkspace captures enabledModules/drawings/watchlist/defaultProviderId; deserializeWorkspace restores each field, guarding older blobs that lack watchlist) and 462-524 (restoreLastSessionOrDefault fetches the autosaved layout on launch and reapplies it).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-76",
+    "promise": "Rejecting an agent-proposed mutation leaves state unchanged.",
+    "source": "spec.md#US4-Independent-Test",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/store/proposed-changes.ts:173-182 (reject: flips one change's status to 'rejected', calls settleRejectedPublishes/ackRejectedHostActions \u2014 never touches application state) and :218-224 (rejectAll: same, batched). The only code path that mutates state is accept()/acceptAll()/acceptBatch(), never reject.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-77",
+    "promise": "Agent-centrality (US1\u2013US4) ships in P1 on the existing (pre-redesign) shell so the agent-first experience is usable before any visual reskin; the minimal-dark visual rebuild (US6) lands separately in P2.",
+    "source": "spec.md#US6-Phasing-Note",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "docs/CURRENT_STATE.md:53-76 shows US1-US4 (P1) shipped before US6's minimal-dark visual rebuild (P2), and docs/redesign/REBUILD_R4_SPEC.md / REBUILD_R4_SESSION2_REPORT.md document the later, separate 'Cold Instrument' visual rebuild pass \u2014 matching the phasing note's sequencing exactly.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-78",
+    "promise": "The product beats Perplexity Finance by combining actual structured filings/financials (with provenance) with web context inside a terminal that builds its own workspace.",
+    "source": "spec.md#US12",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "sidecar/services/research/fast.py (fast-research path combines structured provider_registry data with one web-search round and a synthesized cited brief) and README.md's hero screenshot/caption ('Ask the agent to \"research NVDA\" \u2014 a visual, cited brief lands in the cockpit (metric cards, key-metrics table, written analysis) beside a live research trace') demonstrate the combined structured+web mechanism the promise describes; the comparative 'beats Perplexity Finance' framing itself is a qualitative product claim, not independently testable from code.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-79",
+    "promise": "The persistent workspace blob (layout, enabled modules, drawings, watchlist, default provider) round-trips through the sidecar.",
+    "source": "spec.md#Key-Entities-Workspace",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:45-69 (SerializedWorkspace type: enabledModules, drawings, defaultProviderId, watchlist) and :201-284 (serializeWorkspace/deserializeWorkspace round-trip it through the sidecar via workspaceUrl fetch).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-80",
+    "promise": "No provider configured / local model absent: first agent use must route to onboarding, never fail silently against an uninstalled Ollama model.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:793-806 \u2014 the keyless-default-not-set-up branch sets a status line and calls useOnboardingStore.getState().open() rather than attempting (and silently failing) the call.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-81",
+    "promise": "Sidecar not yet bound / MCP cold-bind (~34s): the shell must show a connecting state and degrade gracefully (data panels retry; MCP-backed features fall back), never block boot or panic.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src-tauri/src/lib.rs:486-491 ('This NEVER panics: a data-dir or spawn failure logs and leaves the UI to start in a disconnected state and retry (the boot path previously .expect()-panicked here with no window)'); src/store/app.ts:6-25 (SidecarStatus = 'connecting'|'connected'|'error', default 'connecting').",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-82",
+    "promise": "Agent proposes a mutation while kill-switch active / read-only / paper-mode: the diff gate must block placement and explain, not present an acceptable order.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "behaviour",
+    "status": "dropped",
+    "evidence": "src/store/safety.ts:14-16 ('the read-only app's craft pass removed the kill-switch UI surface, so nothing currently listens for the event or renders the fired banner (the mechanism is dormant, not gone)'); docs/redesign/DECISIONS.md:141 D81 (order proposal/review bar, live/paper mode switch, and simulated paper brokerage are all explicitly named as removed).",
+    "gap": "This edge case is specifically about the ORDER review dialog presenting/blocking an order under kill-switch/read-only/paper-mode \u2014 squarely the broker-order-execution surface COMMON.md/PROMPT_offmachine_s2.md marks out-of-scope-by-decision.",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product (D81)"
+  },
+  {
+    "pid": "INT-SP-83",
+    "promise": "Conflicting hand + agent edits: hand manipulation wins immediately; the agent's next turn sees the new state (one shared context).",
+    "source": "spec.md#Edge-Cases",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:839,999 (captureTerminalState() is called fresh at each send, not cached from an earlier turn), feeding bySource.__terminal__ into the request context \u2014 so a hand edit made between agent turns is what the agent's NEXT turn reads, by construction (one shared Zustand-backed state, no separate agent mirror to reconcile).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-84",
+    "promise": "Provider that returns no key-less data / partial provider failure: surface 'needs a key' or partial results with provenance; never fabricate data behind a populated surface.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/provider_registry.py:428-440 (all-null fundamentals shell never served; last ProviderError raised), sidecar/routers/fundamentals.py:104-115 (429/404 humanized, else 502 detail=str(exc)), sidecar/app.py:312-315 (global ProviderError handler -> 502 {\"detail\": str(exc)} \u2014 verified at current HEAD), sidecar/services/yfinance_provider.py:65 (raw exception text embedded in the message), src/modules/equity-overview/EquityOverviewPanel.tsx:763 + src/modules/watchlist/WatchlistPanel.tsx:206 + src/modules/chart/ChartPanel.tsx:408 (panels print err.message verbatim, no 'what would unlock it'); contrast the agent leg's closed reason vocabulary at sidecar/services/agent_tools/fundamentals.py:23-51 (rate_limited / not_found / provider_error, verified this session) which the REST/panel leg does not share.",
+    "gap": "Same underlying gap as INT-SP-51 (the promise appears twice in spec.md, once in the general Edge-Cases list and once \u2014 worded almost identically as INT-SP-91 \u2014 in the Pass-B edge cases already verified in census/intent/ledger-spec-90.json). The 'partial results with provenance' half is delivered (FR-041 labels, screener-completeness fallthrough); the 'needs a key' / honest-unavailable half is not wired at the REST/panel layer. Raw finding intentionally duplicates INT-spec-90-1 / the INT-SP-51 finding above for Gate-2 dedupe.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-85",
+    "promise": "External MCP client requests a mutating tool: same gate as internal; read-only by default; a mutation requires the same confirmation path.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_tools/catalog.py: all 16 read_only=False ('host_action') capabilities (open_panel, set_chart_symbol, open_company_overview, set_chart_indicators, add_to_watchlist, propose_order, close_panel, focus_panel, portfolio_add_position, portfolio_update_position, portfolio_delete_position, write_note, remove_from_watchlist, save_layout, save_screen, set_region) leave `mcp` at its dataclass default of False (catalog.py:93,118) \u2014 none is ever opted into the MCP surface. sidecar/services/agent_tools/catalog.py:1496-1503 (mcp_capabilities() filters strictly on c.mcp). sidecar/services/mcp_server.py:106-124 (_make_catalog_tool calls agent_tools.invoke_tool(tool_id, kwargs); a host_action id has no services.agent_tools.register_tool(...) call anywhere in the codebase, so invoke_tool raises KeyError -> caught -> {'ok': False, 'error': \"tool ... is not available in this build\"}). sidecar/services/agent_tools/__init__.py:62-67 (invoke_tool's KeyError path). The ONLY host_action dispatch that actually stages a reviewable diff lives in sidecar/services/agent_runtime.py:1190-1225 (_make_host_action, registered per-run into the LOCAL tool table used by the internal SSE chat loop only) \u2014 mcp_server.py never touches this path.",
+    "gap": "The safety GOAL (no MCP-driven mutation bypass) holds, but only because no mutating capability is reachable via MCP at all \u2014 not because the described 'same gate ... same confirmation path' mechanism exists for external clients. FR-021 ('the read_only flag MUST drive both the internal mutation gate and the external MCP read-only annotation') and US5/Constitution II ('an external agent... drives the SAME capabilities the built-in copilot uses') imply a reachable-but-gated mutation surface; what ships is an invisible one. See raw finding.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-86",
+    "promise": "Workspace blob from an older version / unknown component: restore must skip to the bundled default rather than corrupting the grid.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:470-479 (layoutReferencesUnknownComponent: an unreadable/unknown-component layout is treated as 'unknown' -> skip-to-default) and :499-524 (restoreLastSessionOrDefault calls applyDefaultLayout(api, enabledPanelIds) and returns false rather than risking a corrupt fromJSON mutation).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-87",
+    "promise": "Plugin incompatible with the host (manifest\u2194instance id/version mismatch / unmet requiredHostVersion): the runtime must reject it at load and surface why \u2014 never silently load an incompatible plugin.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/lib/plugin-runtime.test.ts:475-500 'PluginRuntime \u2014 compatibility validation (FR-054 / SC-015)': 'rejects a manifest id that does not match the instance pluginId', 'rejects a manifest version that does not match the instance version', 'rejects a plugin whose requiredHostVersion the host does not satisfy'.",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-88",
+    "promise": "A broker (or any) plugin attempts a write/execution path: the host \u00a76.5 gate governs it regardless of plugin code; the plugin cannot opt out.",
+    "source": "spec.md#Edge-Cases",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "types/plugin.ts:68 (capabilities.supportsControlPlane: boolean \u2014 the host-side opt-out-proof flag); CLAUDE.md's own \u00a76.5/Plugin-contract sections (read at session start) describe the three-layer read-only-wrapper audit (inspect.getmembers over the provider's public surface, GET-only router.routes audit, supportsControlPlane=false) as Tier-1; sidecar/tests/test_brokers_readonly_routes.py and sidecar/tests/test_kite_account_readonly.py exist and are collected (compiled .pyc present in sidecar/tests/__pycache__).",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-89",
+    "promise": "Symbol resolves to multiple instruments across exchanges: resolution ranks by user locale; below a confidence threshold the agent surfaces a disambiguation choice rather than silently acting on the wrong instrument.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "sidecar/services/symbol_resolver.py:208-260 (Instrument.confidence / Resolution.needs_disambiguation, band+score model, never bonus-inflated) and :604-766 (locale-ranked candidate sort, forced-disambiguation families); sidecar/services/agent_tools/resolve_symbol.py:82-109 ('needs_disambiguation': True/False on the tool result); sidecar/routers/resolve.py:121 (needs_disambiguation: decision.outcome == 'disambiguate').",
+    "gap": null,
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-90",
+    "promise": "Active model has no native web search: the agent routes to a configured BYOK/local search backend with an honest prompt; it never fabricates web context or fails silently.",
+    "source": "spec.md#Edge-Cases-Pass-B",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/llm/native_search.py:95-107 (openai_native_search_supported / openai_web_search_options \u2014 only *-search-preview models get native search) and :156-230 (provider_supports_native_search / native_search_available / native_search_oneshot gate per-provider-and-model); sidecar/services/research/fast.py:62-70 (_NO_WEB_NOTE = 'No web-search backend configured \u2014 structured data only', an honest short fallback line, distinct from the transient-throttle _RATE_LIMITED_NOTE so a keyless user is never falsely told 'no backend'); docs/redesign/DECISIONS.md:15 D20 ('One search truth ... AUTODETECTS a READY managed SearXNG before flooring to keyless').",
+    "gap": null,
+    "decision_ref": null
+  }
+]
