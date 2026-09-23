@@ -45,6 +45,9 @@ export interface ChatMessage {
   modelId?: string | null;
   /** Token usage if the provider supplied it. */
   usage?: LLMUsage | null;
+  /** The lane's token window on the final `done`, when it has one — the
+   *  composer's context meter reads `usage` against it (R15-AGENT-040). */
+  contextWindow?: number | null;
   /** ``true`` while the message is still being streamed. */
   pending?: boolean;
   /** ``true`` when the USER stopped the stream mid-flight — the partial
@@ -110,7 +113,11 @@ interface ChatHistoryState {
   appendResearchStep: (id: string, step: ResearchStepView) => void;
   setPlan: (id: string, plan: AgentPlanView) => void;
   markBriefPublished: (id: string) => void;
-  finalizeAssistantMessage: (id: string, usage?: LLMUsage | null) => void;
+  finalizeAssistantMessage: (
+    id: string,
+    usage?: LLMUsage | null,
+    contextWindow?: number | null,
+  ) => void;
   /** Finalize a stream the USER aborted (the composer's stop square): the
    *  partial content stands, marked ``stopped`` — distinct from an error. */
   stopAssistantMessage: (id: string) => void;
@@ -237,10 +244,17 @@ export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
         message.id === id ? { ..._markRoundBoundary(message), briefPublished: true } : message,
       ),
     })),
-  finalizeAssistantMessage: (id, usage) =>
+  finalizeAssistantMessage: (id, usage, contextWindow) =>
     set((state) => ({
       messages: state.messages.map((message) =>
-        message.id === id ? { ...message, pending: false, usage: usage ?? null } : message,
+        message.id === id
+          ? {
+              ...message,
+              pending: false,
+              usage: usage ?? null,
+              contextWindow: contextWindow ?? null,
+            }
+          : message,
       ),
       ..._settled(state, id),
     })),
@@ -269,3 +283,49 @@ export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
     set({ messages, streamingMessageId: null, liveAbort: null });
   },
 }));
+
+/** Characters of prior thread a send carries (R15-AGENT-040). The agent
+ *  runtime keeps the newest turns verbatim and folds the rest into a summary;
+ *  this only bounds the request itself. */
+export const HISTORY_CHAR_BUDGET = 60_000;
+
+/** An assistant turn's compact trailer: its tool steps and its failure, one
+ *  line each, so they survive into the runtime's summary of older turns. */
+function withTrailer(message: ChatMessage): string {
+  const lines: string[] = [];
+  if (message.toolSteps && message.toolSteps.length > 0) {
+    lines.push(`[tool steps: ${message.toolSteps.join("; ")}]`);
+  }
+  if (message.error) {
+    lines.push(`[failed: ${message.error.replace(/\s+/g, " ").trim()}]`);
+  }
+  return lines.length > 0
+    ? [message.content.trim(), ...lines].filter(Boolean).join("\n\n")
+    : message.content;
+}
+
+/** The thread a send carries as history: every user and assistant turn,
+ *  newest first into the character budget (the newest always goes), each
+ *  assistant turn with its trailer. Replaces the silent last-10 window. */
+export function historyForSend(
+  messages: ChatMessage[],
+): { role: "user" | "assistant"; content: string }[] {
+  const out: { role: "user" | "assistant"; content: string }[] = [];
+  let used = 0;
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i]!;
+    if (message.role !== "user" && message.role !== "assistant") {
+      continue;
+    }
+    const content = message.role === "assistant" ? withTrailer(message) : message.content;
+    if (!content) {
+      continue;
+    }
+    if (out.length > 0 && used + content.length > HISTORY_CHAR_BUDGET) {
+      break;
+    }
+    used += content.length;
+    out.push({ role: message.role, content });
+  }
+  return out.reverse();
+}

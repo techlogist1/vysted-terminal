@@ -120,8 +120,34 @@ export interface StreamingHandlers {
   signal?: AbortSignal;
 }
 
+/** True when a `done` finish reason says the answer was cut at the output limit
+ *  (`length` on OpenAI/Groq/Ollama, `max_tokens` on Anthropic, Gemini's
+ *  `FinishReason.MAX_TOKENS`) — mirrors the sidecar's `is_length_finish`. */
+export function isLengthFinish(reason: string | undefined): boolean {
+  const tail = reason?.split(".").pop()?.toLowerCase();
+  return tail === "length" || tail === "max_tokens";
+}
+
+/** The truncation notice for an answer cut at the model's output limit. */
+export const LENGTH_NOTICE =
+  "The answer hit the model's output limit and was cut off. Ask me to continue for the rest.";
+
 /** The `onError` message for a stream that closed without a `done`/`error` frame. */
 export const STREAM_ENDED_EARLY = "The stream ended before the answer finished.";
+
+/** The `onError` message when no frame arrived within the idle budget. */
+export const STREAM_STALLED =
+  "The provider went quiet: nothing arrived for too long, so the stream was stopped.";
+
+/**
+ * Stall watchdog budgets (R15-AGENT-025): the longest the stream may go without
+ * a single byte. The agent runtime sends a heartbeat every 10 s while it waits,
+ * so a longer silence means the sidecar or the connection is gone. The raw chat
+ * has no heartbeat; its budget sits above the adapters' own idle timeouts (180 s
+ * hosted, 300 s local), so it only catches a stream that outlived them.
+ */
+export const AGENT_STREAM_IDLE_MS = 45_000;
+export const CHAT_STREAM_IDLE_MS = 330_000;
 
 /**
  * Map the camelCase frontend `options` onto the wire body. `researchDepth` (the
@@ -148,7 +174,7 @@ export async function streamChat(payload: ChatRequest, handlers: StreamingHandle
     base_url: payload.baseUrl,
     options: wireOptions(payload.options),
   });
-  await consumeSseStream("/llm/chat", body, handlers);
+  await consumeSseStream("/llm/chat", body, handlers, CHAT_STREAM_IDLE_MS);
 }
 
 /** Stream an agent invocation. */
@@ -180,13 +206,19 @@ export async function streamAgentInvocation(
     autonomy: payload.autonomy,
     options: wireOptions(payload.options),
   });
-  await consumeSseStream(`/agents/${encodeURIComponent(agentId)}/invoke`, body, handlers);
+  await consumeSseStream(
+    `/agents/${encodeURIComponent(agentId)}/invoke`,
+    body,
+    handlers,
+    AGENT_STREAM_IDLE_MS,
+  );
 }
 
 async function consumeSseStream(
   path: string,
   body: string,
   handlers: StreamingHandlers,
+  idleMs: number,
 ): Promise<void> {
   let settled = false;
   const fail = (err: unknown): void => {
@@ -195,18 +227,36 @@ async function consumeSseStream(
       handlers.onError?.(toError(err));
     }
   };
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  // Stall watchdog (R15-AGENT-025): re-armed on every chunk; on silence it ends
+  // the stream with STREAM_STALLED (the transcript's Retry row) and drops the
+  // connection so the server-side run stops too.
+  let stalled = false;
+  let stallTimer: ReturnType<typeof setTimeout> | undefined;
+  const armWatchdog = (): void => {
+    clearTimeout(stallTimer);
+    stallTimer = setTimeout(() => {
+      stalled = true;
+      fail(new Error(STREAM_STALLED));
+      void reader?.cancel().catch(() => undefined);
+    }, idleMs);
+  };
   const onEvent = (event: LLMStreamEvent): void => {
+    if (stalled) {
+      return;
+    }
     const terminal = event.kind === "done" || event.kind === "error";
     if (terminal && settled) {
       return;
     }
     settled ||= terminal;
-    if (event.kind === "research_step") {
+    // A runtime notice (C9) is transcript copy, never a step of a brief run.
+    if (event.kind === "research_step" && event.stepKind !== "notice") {
       feedBriefLifecycle(event);
     }
     handlers.onEvent(event);
   };
-  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  armWatchdog();
   try {
     // Inside the try: a sidecar that is not ready rejects here, and that must
     // reach onError like any other failure (R15-AGENT-029).
@@ -234,6 +284,10 @@ async function consumeSseStream(
       body,
       signal: handlers.signal,
     });
+    if (stalled) {
+      await response.body?.cancel().catch(() => undefined);
+      return;
+    }
     if (!response.ok || !response.body) {
       const detail = await safeReadDetail(response);
       throw new Error(detail ?? `sidecar returned ${response.status}`);
@@ -243,9 +297,10 @@ async function consumeSseStream(
     let buffer = "";
     for (;;) {
       const { done, value } = await reader.read();
-      if (done) {
+      if (done || stalled) {
         break;
       }
+      armWatchdog();
       buffer += decoder.decode(value, { stream: true });
       // Frames are split by a blank line (``\n\n``); incomplete trailing
       // frame stays in ``buffer`` for the next chunk.
@@ -266,6 +321,7 @@ async function consumeSseStream(
     // Stop the server-side run too: nothing reads a settled message's frames.
     await reader?.cancel().catch(() => undefined);
   } finally {
+    clearTimeout(stallTimer);
     reader?.releaseLock();
   }
   fail(new Error(STREAM_ENDED_EARLY));
@@ -304,6 +360,9 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
   }
   if (kind === "thinking") {
     return { kind: "thinking", text: String(payload.text ?? "") };
+  }
+  if (kind === "heartbeat") {
+    return { kind: "heartbeat" };
   }
   if (kind === "tool_use") {
     return {
@@ -361,6 +420,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       kind: "done",
       usage,
       finishReason: typeof payload.finish_reason === "string" ? payload.finish_reason : undefined,
+      contextWindow:
+        typeof payload.context_window === "number" ? payload.context_window : undefined,
     };
   }
   if (kind === "error") {

@@ -19,12 +19,35 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing import Any
 
 from models.llm import LLMMessage, LLMUsage
 from services.llm import get_provider
 
 logger = logging.getLogger(__name__)
+
+#: Where :func:`complete_with_usage` reports each completion's finish reason
+#: while a :func:`finish_reasons` block is open (task-local).
+_finish_sink: ContextVar[list[str | None] | None] = ContextVar("oneshot_finish_sink", default=None)
+
+
+@contextmanager
+def finish_reasons() -> Iterator[list[str | None]]:
+    """Collect the ``done`` finish reason of every completion run in the block.
+
+    The research loop's ``llm_call`` returns text only, so a synthesis cut at
+    the model's output limit looked complete (R15-RESEARCH-014); a caller wraps
+    its call in this block to learn how the completion ended.
+    """
+    reasons: list[str | None] = []
+    token = _finish_sink.set(reasons)
+    try:
+        yield reasons
+    finally:
+        _finish_sink.reset(token)
 
 
 def _to_messages(messages: list[dict[str, Any]]) -> list[LLMMessage]:
@@ -94,6 +117,9 @@ async def complete_with_usage(
                 reported = getattr(event, "usage", None)
                 if isinstance(reported, LLMUsage):
                     usage.append(reported)
+                sink = _finish_sink.get()
+                if sink is not None:
+                    sink.append(getattr(event, "finish_reason", None))
                 break
             elif kind == "error":
                 # An error terminator ends the stream; return whatever we have.
@@ -132,4 +158,4 @@ async def complete(
     return text
 
 
-__all__ = ["complete", "complete_with_usage"]
+__all__ = ["complete", "complete_with_usage", "finish_reasons"]

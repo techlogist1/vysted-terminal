@@ -30,7 +30,13 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent, invalid_tool_args, is_chat_model
+from .base import (
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    invalid_tool_args,
+    is_chat_model,
+)
 
 
 def _parse_tool_args(raw: str) -> dict[str, Any]:
@@ -98,7 +104,7 @@ class GroqProvider(LLMProvider):
     """Groq chat-completions adapter."""
 
     def _client(self, api_key: str | None) -> groq.AsyncGroq:
-        return groq.AsyncGroq(api_key=api_key)
+        return groq.AsyncGroq(api_key=api_key, timeout=client_timeout())
 
     async def stream_chat(
         self,
@@ -183,6 +189,10 @@ class GroqProvider(LLMProvider):
                     name=slot["name"],
                     input=_parse_tool_args(slot["args"]),
                 )
+            # No finish_reason and no tool call: the stream never finished, so
+            # no clean ``done`` is fabricated for it (R15-AGENT-026).
+            if finish_reason is None and not tool_acc:
+                return
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except groq.GroqError as exc:  # pragma: no cover — network path
             _h = humanize("groq", exc)

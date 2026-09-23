@@ -30,7 +30,13 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent, invalid_tool_args
+from .base import (
+    LOCAL_IDLE_TIMEOUT_S,
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    invalid_tool_args,
+)
 from .tool_call_rescue import rescue_leaked_tool_call
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
@@ -128,10 +134,9 @@ class OllamaProvider(LLMProvider):
         return DEFAULT_NUM_CTX
 
     def _client(self) -> ollama.AsyncClient:
-        # The SDK keyword is ``host``, not ``base_url``.
-        if self._base_url:
-            return ollama.AsyncClient(host=self._base_url)
-        return ollama.AsyncClient()
+        # The SDK keyword is ``host``, not ``base_url``; its default timeout is
+        # none at all, so a wedged local server would hold the chat forever.
+        return ollama.AsyncClient(host=self._base_url, timeout=client_timeout(LOCAL_IDLE_TIMEOUT_S))
 
     async def stream_chat(
         self,

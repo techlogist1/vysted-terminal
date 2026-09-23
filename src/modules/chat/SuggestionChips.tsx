@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { sendToAgent } from "@/store/agent-command";
 import { usePanelContextBus } from "@/store/panel-context";
 import { cn } from "@/lib/utils";
+import { focusedSymbolFromBus } from "./context-provider";
 
 /**
  * Teach-the-agent "try this" chips — the Perplexity-style capsules below the
@@ -42,28 +43,14 @@ const DEFAULT_SUGGESTIONS: readonly Suggestion[] = [
   },
 ];
 
-/** Pull the focused symbol off the panel-context bus, mirroring `describeContext`
- *  in ChatSidebar — a chart/equity panel publishes `{ symbol }` or `{ ticker }`. */
+/** The focused panel's symbol off the panel-context bus (`focusedSymbolFromBus`). */
 function useFocusedSymbol(): string | null {
   const focusedSource = usePanelContextBus((s) => s.focusedSource);
   const lastEventBySource = usePanelContextBus((s) => s.lastEventBySource);
-  return useMemo(() => {
-    if (!focusedSource) {
-      return null;
-    }
-    const event = lastEventBySource[focusedSource];
-    const payload = event?.payload;
-    if (payload && typeof payload === "object") {
-      const obj = payload as Record<string, unknown>;
-      if (typeof obj.symbol === "string" && obj.symbol) {
-        return obj.symbol.toUpperCase();
-      }
-      if (typeof obj.ticker === "string" && obj.ticker) {
-        return obj.ticker.toUpperCase();
-      }
-    }
-    return null;
-  }, [focusedSource, lastEventBySource]);
+  return useMemo(
+    () => focusedSymbolFromBus(lastEventBySource, focusedSource)?.toUpperCase() ?? null,
+    [focusedSource, lastEventBySource],
+  );
 }
 
 /** Symbol-scoped chips, prepended when a panel is focused on an instrument. */

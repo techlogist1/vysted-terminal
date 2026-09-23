@@ -172,7 +172,8 @@ class LLMResearchStepEvent(BaseModel):
     #: The tool emitting the step (e.g. ``"deep_research"`` / ``"research"``).
     tool: str
     #: One of :data:`services.research.models.STEP_KINDS`
-    #: (plan/tool/search/compress/reflect/synthesize).
+    #: (plan/tool/search/compress/reflect/synthesize/engine). ``"notice"`` marks a
+    #: runtime notice the chat renders as a transcript chip (C9), never by copy.
     step_kind: str
     #: A short human line, e.g. ``"researcher: demand outlook?"``.
     detail: str
@@ -212,12 +213,25 @@ class LLMThinkingEvent(BaseModel):
     text: str
 
 
+class LLMHeartbeatEvent(BaseModel):
+    """Liveness frame while the runtime waits on a provider or a tool.
+
+    Carries nothing: it tells the chat's stall watchdog the sidecar is still
+    working through a long silent wait (R15-AGENT-025).
+    """
+
+    kind: Literal["heartbeat"] = "heartbeat"
+
+
 class LLMDoneEvent(BaseModel):
     """Stream complete; final usage + finish reason if available."""
 
     kind: Literal["done"] = "done"
     usage: LLMUsage | None = None
     finish_reason: str | None = None
+    #: The token window the lane runs in, when it has one (Ollama's num_ctx):
+    #: the composer's context meter reads ``usage`` against it (R15-AGENT-040).
+    context_window: int | None = None
 
 
 class LLMErrorEvent(BaseModel):

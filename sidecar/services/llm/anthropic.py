@@ -30,11 +30,36 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, client_timeout
 from .native_search import DEFAULT_WEB_SEARCH_MAX_USES, anthropic_web_search_tool
 
-#: Conservative default — anthropic SDK requires ``max_tokens`` on every call.
-DEFAULT_MAX_TOKENS = 4_096
+#: Output ceiling (max ``max_tokens``) per Claude model family; the longest
+#: matching id prefix wins. The SDK requires ``max_tokens`` on every call, and a
+#: fixed 4,096 cut long answers and research syntheses mid-sentence
+#: (R15-RESEARCH-014); the stream never hits an HTTP timeout, so the default is
+#: the model's own ceiling.
+_OUTPUT_CEILINGS: dict[str, int] = {
+    "claude-fable": 128_000,
+    "claude-mythos": 128_000,
+    "claude-opus-5": 128_000,
+    "claude-opus-4-8": 128_000,
+    "claude-opus-4-7": 128_000,
+    "claude-opus-4-6": 128_000,
+    "claude-opus-4-5": 64_000,
+    "claude-opus-4": 32_000,
+    "claude-sonnet-5": 128_000,
+    "claude-sonnet-4-6": 128_000,
+    "claude-sonnet-4": 64_000,
+    "claude-haiku-4-5": 64_000,
+}
+#: The ceiling for an id no prefix above matches (every Claude 4 model allows it).
+_FALLBACK_OUTPUT_CEILING = 32_000
+
+
+def max_output_tokens(model: str) -> int:
+    """The model's output ceiling, the default ``max_tokens`` for a call."""
+    prefixes = [p for p in _OUTPUT_CEILINGS if model.startswith(p)]
+    return _OUTPUT_CEILINGS[max(prefixes, key=len)] if prefixes else _FALLBACK_OUTPUT_CEILING
 
 
 def _split_system_and_messages(
@@ -98,7 +123,9 @@ class AnthropicProvider(LLMProvider):
         self._base_url = base_url
 
     def _client(self, api_key: str | None) -> anthropic.AsyncAnthropic:
-        return anthropic.AsyncAnthropic(api_key=api_key, base_url=self._base_url)
+        return anthropic.AsyncAnthropic(
+            api_key=api_key, base_url=self._base_url, timeout=client_timeout()
+        )
 
     async def stream_chat(
         self,
@@ -107,7 +134,7 @@ class AnthropicProvider(LLMProvider):
         api_key: str | None = None,
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
-        max_tokens = int(kwargs.pop("max_tokens", DEFAULT_MAX_TOKENS))
+        max_tokens = int(kwargs.pop("max_tokens", None) or max_output_tokens(model))
         tool_ids = kwargs.pop("tool_ids", None)
         web_search = bool(kwargs.pop("web_search", False))
         web_search_max_uses = int(kwargs.pop("web_search_max_uses", DEFAULT_WEB_SEARCH_MAX_USES))

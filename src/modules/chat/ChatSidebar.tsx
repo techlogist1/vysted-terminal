@@ -34,6 +34,7 @@ import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/st
 import {
   type AgentPlanView,
   type ChatMessage,
+  historyForSend,
   type ResearchStepView,
   useChatHistoryStore,
 } from "@/store/chat-history";
@@ -49,7 +50,6 @@ import { useSymbolsStore } from "@/store/symbols";
 import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type {
-  AgentContextSnapshot,
   LLMModelOption,
   LLMProviderId,
   LLMProviderInfo,
@@ -66,7 +66,7 @@ import {
 } from "./composer-collapse";
 import { DEPTH_TOKEN, DepthControl } from "./DepthControl";
 import { ModelControl } from "./ModelControl";
-import { captureTerminalState } from "./context-provider";
+import { captureAgentContext, focusedSymbolFromBus } from "./context-provider";
 import {
   applyMentionPrefixes,
   insertMentionToken,
@@ -76,7 +76,8 @@ import {
 } from "./mentions";
 import { ComposerPlusMenu } from "./ComposerPlusMenu";
 import {
-  isDivergenceNotice,
+  HISTORY_NOTICE_TOOL,
+  isRuntimeNotice,
   useMessageNoticesStore,
   type MessageErrorFrame,
 } from "./message-notices";
@@ -93,7 +94,13 @@ import {
   matchSlash,
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
-import { errorFrameOf, streamAgentInvocation, streamChat } from "./streaming";
+import {
+  errorFrameOf,
+  isLengthFinish,
+  LENGTH_NOTICE,
+  streamAgentInvocation,
+  streamChat,
+} from "./streaming";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { SuggestionChips } from "./SuggestionChips";
 
@@ -749,11 +756,7 @@ export function ChatSidebar() {
             ? activeAgentId
             : null;
 
-      const history = useChatHistoryStore
-        .getState()
-        .messages.filter((m) => m.role === "user" || m.role === "assistant")
-        .slice(-10)
-        .map((m) => ({ role: m.role, content: m.content }));
+      const history = historyForSend(useChatHistoryStore.getState().messages);
 
       // Auto-title the space from its first prompt (Perplexity-style) so the space
       // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
@@ -839,12 +842,7 @@ export function ChatSidebar() {
       // of a foreground stream — it survives this turn and appears in the agents
       // rail with live cost-so-far; its proposed changes still ride the diff gate.
       if (mode === "delegate" && agentForCall) {
-        const terminalState = captureTerminalState();
-        const snapshot: AgentContextSnapshot = {
-          focusedSource: terminalState.focusedPanel,
-          bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-          capturedAt: terminalState.capturedAt,
-        };
+        const snapshot = captureAgentContext();
         const noteId = beginAssistant({ agentId: agentForCall, providerId: provider });
         appendDelta(
           noteId,
@@ -919,11 +917,16 @@ export function ChatSidebar() {
             endRun(runId, "error", message);
           }
         },
-        onDone: (usage) => {
+        onDone: (usage, finishReason, contextWindow) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
           }
-          finalize(assistantId, usage);
+          // A raw chat has no runtime to notice a cut-off answer; the agent
+          // path's runtime emits the same notice itself (R15-AGENT-026).
+          if (!agentForCall && isLengthFinish(finishReason)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
+          }
+          finalize(assistantId, usage, contextWindow);
           if (usage) {
             updateRun(runId, {
               cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 },
@@ -986,12 +989,17 @@ export function ChatSidebar() {
             appendToolStep(assistantId, readToolLabel(name));
           }
         },
-        onResearchStep: (step) => {
-          // The runtime's end-of-stream publish-divergence notices ride the
-          // engine-step channel (D39) — render them as quiet system chips in
-          // the transcript, not telemetry rows in the step trace.
-          if (isDivergenceNotice(step.stepKind, step.detail)) {
-            useMessageNoticesStore.getState().addNotice(assistantId, step.detail);
+        onResearchStep: (step, tool) => {
+          // Runtime notices (C9) render as quiet system chips in the
+          // transcript, not telemetry rows in the step trace; a history
+          // compaction renders as its own marker (R15-AGENT-040).
+          if (isRuntimeNotice(step.stepKind)) {
+            const notices = useMessageNoticesStore.getState();
+            if (tool === HISTORY_NOTICE_TOOL) {
+              notices.setCompaction(assistantId, step.detail);
+            } else {
+              notices.addNotice(assistantId, step.detail);
+            }
             return;
           }
           appendResearchStep(assistantId, step);
@@ -1009,12 +1017,7 @@ export function ChatSidebar() {
       // forever with later prompts queued behind it (R15-AGENT-029).
       try {
         if (agentForCall) {
-          const terminalState = captureTerminalState();
-          const snapshot: AgentContextSnapshot = {
-            focusedSource: terminalState.focusedPanel,
-            bySource: { __terminal__: terminalState as unknown as Record<string, unknown> },
-            capturedAt: terminalState.capturedAt,
-          };
+          const snapshot = captureAgentContext();
           await streamAgentInvocation(
             agentForCall,
             {
@@ -1034,8 +1037,8 @@ export function ChatSidebar() {
         } else {
           // FR-116 / coherence: the raw-chat path must preserve conversation context
           // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
-          // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
-          // excludes the current prompt) is prepended; previously this path sent only
+          // (the thread within its character budget, captured above BEFORE appendUser,
+          // so it excludes the current prompt) is prepended; previously this path sent only
           // the single current turn and silently dropped everything before it.
           await streamChat(
             {
@@ -1235,6 +1238,7 @@ export function ChatSidebar() {
                     : "px-1 py-1",
                 )}
               >
+                <CompactionMarker messageId={message.id} />
                 <div className="text-charcoal-400 text-micro mb-1">
                   {message.role === "user"
                     ? "You"
@@ -1295,6 +1299,7 @@ export function ChatSidebar() {
         {mode === "delegate" && (
           <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
         )}
+        <ContextMeter />
         <QueuedPrompts />
         <Composer
           value={composer}
@@ -1416,8 +1421,54 @@ function ContextBadge({ text }: { text: string }) {
   );
 }
 
-/** The runtime's end-of-stream publish-divergence notices (D39) — quiet
- *  system chips under the message body: caption-13, zinc, no accent. */
+/** The "older turns summarised" marker above a reply whose request folded
+ *  older turns into a summary (R15-AGENT-040). */
+function CompactionMarker({ messageId }: { messageId: string }) {
+  const detail = useMessageNoticesStore((s) => s.compactions[messageId]);
+  if (!detail) {
+    return null;
+  }
+  return (
+    <div
+      role="note"
+      aria-label="Older turns summarised"
+      title={detail}
+      className="text-charcoal-500 text-micro border-charcoal-700 mb-2 border-t border-dashed pt-1 tracking-wide uppercase"
+    >
+      Older turns summarised
+    </div>
+  );
+}
+
+/** The composer's context meter (R15-AGENT-040): the last reply's tokens,
+ *  against the lane's window when it has one. */
+function ContextMeter() {
+  const last = useChatHistoryStore((s) => {
+    for (let i = s.messages.length - 1; i >= 0; i -= 1) {
+      const message = s.messages[i]!;
+      if (message.role === "assistant" && message.usage) {
+        return message;
+      }
+    }
+    return null;
+  });
+  if (!last?.usage) {
+    return null;
+  }
+  const tokens = last.usage.inputTokens + last.usage.outputTokens;
+  const window = last.contextWindow;
+  const text = window
+    ? `Context ${tokens.toLocaleString()} / ${window.toLocaleString()} tokens (${Math.round((tokens / window) * 100)}%)`
+    : `Context ${tokens.toLocaleString()} tokens`;
+  return (
+    <div aria-label="Context meter" className="text-charcoal-500 text-micro px-3 pt-1 font-mono">
+      {text}
+    </div>
+  );
+}
+
+/** The runtime's notices (C9) — quiet system chips under the message body:
+ *  caption-13, zinc, no accent. */
 function MessageNotices({ messageId }: { messageId: string }) {
   const notices = useMessageNoticesStore((s) => s.notices[messageId]);
   if (!notices || notices.length === 0) {
@@ -2007,9 +2058,13 @@ interface InternalHandlers {
   /** `frame` carries the STRUCTURED part of an R10 error frame (D43) — null
    *  for a legacy plain-string error or a transport failure. */
   onError: (message: string, frame?: MessageErrorFrame | null) => void;
-  onDone: (usage: { inputTokens: number; outputTokens: number } | null) => void;
+  onDone: (
+    usage: { inputTokens: number; outputTokens: number } | null,
+    finishReason?: string,
+    contextWindow?: number,
+  ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
-  onResearchStep: (step: ResearchStepView) => void;
+  onResearchStep: (step: ResearchStepView, tool: string) => void;
   onPlan: (plan: AgentPlanView) => void;
 }
 
@@ -2028,13 +2083,16 @@ function makeHandlers(internal: InternalHandlers): {
           event.toolCallId,
         );
       } else if (event.kind === "research_step") {
-        internal.onResearchStep({
-          stepKind: event.stepKind,
-          detail: event.detail,
-          latencyMs: event.latencyMs,
-          status: event.status,
-          index: event.index,
-        });
+        internal.onResearchStep(
+          {
+            stepKind: event.stepKind,
+            detail: event.detail,
+            latencyMs: event.latencyMs,
+            status: event.status,
+            index: event.index,
+          },
+          event.tool,
+        );
       } else if (event.kind === "agent_plan") {
         internal.onPlan({ goal: event.goal, steps: event.steps, note: event.note });
       } else if (event.kind === "error") {
@@ -2044,6 +2102,8 @@ function makeHandlers(internal: InternalHandlers): {
           event.usage
             ? { inputTokens: event.usage.inputTokens, outputTokens: event.usage.outputTokens }
             : null,
+          event.finishReason,
+          event.contextWindow,
         );
       }
     },
@@ -2062,20 +2122,12 @@ function describeContext(snapshot: {
       ? "Context: none"
       : `Context: ${count} panel${count === 1 ? "" : "s"} active`;
   }
-  const focused = snapshot.lastEventBySource[snapshot.focusedSource];
-  if (!focused) {
+  const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
+  if (!symbol) {
     return `Context: ${snapshot.focusedSource}`;
   }
-  const payload = focused.payload;
-  if (payload && typeof payload === "object") {
-    const obj = payload as Record<string, unknown>;
-    if (typeof obj.symbol === "string") {
-      const tf = typeof obj.timeframe === "string" ? `, ${obj.timeframe}` : "";
-      return `Context: ${snapshot.focusedSource} (${obj.symbol}${tf})`;
-    }
-    if (typeof obj.ticker === "string") {
-      return `Context: ${snapshot.focusedSource} (${obj.ticker})`;
-    }
-  }
-  return `Context: ${snapshot.focusedSource}`;
+  const payload = snapshot.lastEventBySource[snapshot.focusedSource]?.payload;
+  const timeframe = (payload as { timeframe?: unknown } | undefined)?.timeframe;
+  const tf = typeof timeframe === "string" ? `, ${timeframe}` : "";
+  return `Context: ${snapshot.focusedSource} (${symbol}${tf})`;
 }
