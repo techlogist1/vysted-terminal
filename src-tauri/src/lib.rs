@@ -1,5 +1,4 @@
 mod keychain;
-mod kill_switch;
 mod openbb_mcp;
 mod sec_edgar_mcp;
 
@@ -391,8 +390,7 @@ pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(kill_switch::build_plugin());
+        .plugin(tauri_plugin_notification::init());
 
     // Dev-only MCP test-automation plugin (DaveDev42/tauri-plugin-mcp). Compiled
     // in ONLY under the `dev-tools` Cargo feature; release builds omit it (and
@@ -413,7 +411,6 @@ pub fn run() {
             keychain::keychain_get,
             keychain::keychain_delete,
             keychain::keychain_migrate,
-            kill_switch::kill_switch_emit,
             openbb_mcp::get_openbb_mcp_port,
             sec_edgar_mcp::get_sec_edgar_mcp_port,
         ])
@@ -439,11 +436,6 @@ pub fn run() {
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarPort(port));
-
-            // Register the OS-wide kill-switch keyboard shortcut. Failure
-            // here is non-fatal — the toolbar button + HTTP path still
-            // fire the kill switch directly via the sidecar route.
-            kill_switch::register_shortcut(app.handle());
 
             // Spawn the openbb-mcp + sec-edgar-mcp subprocesses BEFORE the
             // main sidecar so the ``VYSTED_*_MCP_PORT`` env vars are settled

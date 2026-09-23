@@ -28,7 +28,6 @@ tauri = { version = "2", features = [] }
 tauri-plugin-mcp = { git = "https://github.com/DaveDev42/tauri-plugin-mcp", rev = "bedc4acb3ad995ca42a070149a2dad6ae219389a", optional = true }
 tauri-plugin-shell = "2"
 tauri-plugin-updater = "2"
-tauri-plugin-global-shortcut = "2"
 tauri-plugin-notification = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
