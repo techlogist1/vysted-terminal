@@ -682,7 +682,7 @@ The Tauri + Next.js stack is proven viable for this scope — **Fincept Terminal
 
 ## Appendix D: Working Style Reminders (for Phase prompts)
 
-- **bash_tool for all VPS/server operations** — but Vysted Terminal doesn't have a VPS; this only applies if user has Tradesa V2 plugin enabled
+- **bash_tool for all VPS/server operations** — Vysted Terminal doesn't have a VPS, so this does not apply to it
 - **Goal+constraint level prompts** to Claude Code (not spoon-fed implementation)
 - **Worktree discipline non-negotiable** — teammates push to `worktree-agent-{name}` branches only, lead reviews diff before merging to main
 - **Ship-cycle rule** — before closing Claude Code window after a ship, ask "any hot patches or polish items needed first?"

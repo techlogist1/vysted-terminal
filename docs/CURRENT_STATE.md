@@ -83,11 +83,10 @@
 > - **P2 — framework + visual + marketplace (US5–US7, US10).** Minimal-dark
 >   "cold-instrument" shell (re-valued tokens; `chart-theme.ts` mirrors them),
 >   teaching command palette + status chrome (FR-033). The **plugin marketplace
->   is the primary extensibility model**: brokers, data, panels, agents are all
+>   is the primary extensibility model**: data, panels, agents are all
 >   install/enable/configure/remove entries (`src/lib/marketplace.ts`). First-party
->   pre-installed (yfinance + news keyless); **no broker registered at boot** —
->   `bootstrap_default_adapters()` is no longer called from the lifespan (FR-051/
->   SC-013); Kite is the reference broker plugin. MCP-as-framework for external
+>   pre-installed (yfinance + news keyless); the broker entries that shipped here
+>   were removed with trading (D81). MCP-as-framework for external
 >   tools (FR-025; static-import compiled-in plugins are governed here, genuinely-
 >   external load is the stdio-MCP path).
 > - **P3 — data + durable agents (US8/US9, FR-033–042).** The **provider-shaped
@@ -97,12 +96,8 @@
 >   marketplace config form rendered generically from each entry's
 >   `credentialFields` (SC-007: 0 per-source UI) — news is now a first-party data
 >   plugin (`plugins/vysted-news`) with an OPTIONAL NewsAPI key sent as the
->   `X-Vysted-Newsapi-Key` header from the keychain (FR-036). **Granular broker
->   reads** are real: `GET /brokers/{id}/{positions,holdings,margins}` return
->   DISTINCT shapes (`sidecar/models/broker_reads.py`) via an adapter
->   `positions_info`/`holdings_info`/`margins_info` seam (Kite implements it; others
->   fall back to the summary), each provenance-labeled so paper/synthetic values
->   are badged (FR-041/042/SC-012); routes stay GET-only (§6.5 untouched).
+>   `X-Vysted-Newsapi-Key` header from the keychain (FR-036). The granular
+>   broker reads that shipped here (FR-042/SC-012) were removed with trading (D81).
 >   **Durable Delegate runs** (`run_manager.py` + `runs_store.py` + `budget_guard.py`,
 >   `routers/runs.py`) run detached, survive the launching connection, and are
 >   bounded by a **BudgetGuard** (tokens/spend/wall/steps) whose first breach
@@ -111,9 +106,9 @@
 >   (`src/store/settings.ts` + `keybindings.ts`) persist in the workspace blob
 >   (FR-038/039/SC-011).
 >
-> §6.5 + Tier-1 LOCKED files (`types/plugin.ts`, the safety/broker models, the
-> §6.5 audit) remain **byte-for-byte untouched**; §6.5 audit stays 9/9; the broker
-> read surface adds no write/execution path.
+> `types/plugin.ts` remained **byte-for-byte untouched**. (The safety/broker models
+> and the §6.5 order audit this window also left untouched were removed later with
+> trading, D81.)
 
 ---
 
@@ -313,7 +308,7 @@ asymmetry). Caching is per-router, not centralized.
 | GET                 | `/llm/providers`                                                                           | BYOK provider catalog                            | `services.llm.list_provider_info`                                          |
 | POST                | `/llm/keys/validate`                                                                       | Probe a key                                      | transport error → `{ok:false}` (never raises)                              |
 | POST                | `/llm/chat`                                                                                | SSE `LLMStreamEvent`                             | `adapter.stream_chat`; unknown provider → 400                              |
-| —                   | _(none — `/brokers/_`and`/safety/_` removed, D81, 23 Sep 2026)_                            | No broker, order or kill-switch route exists     | see §0.x                                                                   |
+| —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
 | GET                 | `/tradesa-v2/*` (14 routes)                                                                | Read-only Tradesa bot mirror                     | `TradesaV2Provider`; GET-only by audit invariant; creds in headers         |
 | GET/POST/DELETE     | `/plugins[/{id}/config]`                                                                   | Persisted plugin configs                         | `plugins_store` (SQLite)                                                   |
 | GET/POST/DELETE     | `/workspace[/{name}]`                                                                      | Workspace blob persistence                       | `workspace_store`; opaque JSON                                             |

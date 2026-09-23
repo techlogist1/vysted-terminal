@@ -150,15 +150,15 @@ node scripts/smoke-test-sidecars.mjs # spawn each sidecar binary, probe /health 
 
 ## Project Layout
 
-| Path         | Contents                                                                 |
-| ------------ | ------------------------------------------------------------------------ |
-| `src/`       | Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)        |
-| `src-tauri/` | Rust Tauri 2.x core — windowing, keychain, sidecar lifecycle, IPC        |
-| `sidecar/`   | Python 3.13 FastAPI sidecar (+ MCP subprocesses), bundled by PyInstaller |
-| `types/`     | Shared TypeScript types; `plugin.ts` is the canonical plugin contract    |
-| `plugins/`   | Bundled plugins (example, openbb-mcp, tradesa-v2)                        |
-| `styles/`    | Design tokens (`tokens.css`) — Tailwind 4 `@theme` variables             |
-| `docs/`      | Architecture docs — start at [`docs/README.md`](./docs/README.md)        |
+| Path         | Contents                                                                    |
+| ------------ | --------------------------------------------------------------------------- |
+| `src/`       | Next.js 16 frontend (React 19, TypeScript, Tailwind 4, shadcn/ui)           |
+| `src-tauri/` | Rust Tauri 2.x core — windowing, keychain, sidecar lifecycle, IPC           |
+| `sidecar/`   | Python 3.13 FastAPI sidecar (+ MCP subprocesses), bundled by PyInstaller    |
+| `types/`     | Shared TypeScript types; `plugin.ts` is the canonical plugin contract       |
+| `plugins/`   | Bundled plugins (example, openbb-mcp, yfinance, vysted-news, vysted-lenses) |
+| `styles/`    | Design tokens (`tokens.css`) — Tailwind 4 `@theme` variables                |
+| `docs/`      | Architecture docs — start at [`docs/README.md`](./docs/README.md)           |
 
 ---
 

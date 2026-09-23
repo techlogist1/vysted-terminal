@@ -48,27 +48,40 @@ setting restores with the workspace blob (`src/lib/workspace.ts`).
 
 `sidecar/services/agent_runtime.py` `_build_local_tools` reports each host
 action back to the model as `awaiting_user_review` (staged, ASK) or
-`dispatched` (applied, AUTO) — the agent is never told a change landed when
-it is still pending. `services/action_ledger.py` is the in-process
-read-back store behind `POST /agents/actions/ack`; a divergence between what
-the agent proposed and what the user actually accepted (e.g. a partial
-accept) is surfaced back to the model on its next turn.
+`dispatched` (sent to the panel, AUTO; the model must verify with
+`get_terminal_state` before claiming it landed) — the agent is never told a
+change landed when it is still pending. `services/action_ledger.py` is the
+in-process read-back store behind `POST /agents/actions/ack`: the frontend
+acks how each host action really resolved (`applied` / `kept_previous` /
+`failed`, including a rejected change), and the runtime emits an honest
+divergence notice at end of stream when a dispatched publish was never
+confirmed or the panel kept the previous brief.
 
 ## 4. Read-intent strip
 
-`sidecar/services/planner.py` `classify_intent` and its
-`_READ_SAFE_PANEL_ACTIONS` list route read-only requests (e.g. "show me
-AAPL's chart") straight through without staging a proposed change; whether a
-tool call counts as read-only comes from the capability catalog's
-`read_only` flag, not from a special case in the planner.
+On a read turn the runtime strips every mutating tool SERVER-SIDE before the
+model sees its tool list (`sidecar/services/agent_runtime.py` `invoke_agent`),
+so an external MCP client cannot bypass it. The read intent comes from
+`sidecar/services/planner.py` `classify_intent`; whether a tool is mutating
+comes from the capability catalog's `read_only` flag. On an inferred read
+intent a small read-safe panel allow-list (`_READ_SAFE_PANEL_ACTIONS`:
+`open_panel`, `set_chart_symbol`, `set_chart_indicators`, `arrange_layout`,
+`add_to_watchlist`) survives so a read answer can still pull up the relevant
+chart; those still ride the proposed-changes gate. No `data-write` action
+(tracked portfolio, notes, screens, saved layouts) is in that set
+(`test_toolbelt_integrity.py`).
 
 ## 5. No hands on its own leash
 
-`sidecar/tests/test_toolbelt_integrity.py` enforces
-`FORBIDDEN_TOOL_SUBSTRINGS` — no tool id or MCP-projected name may contain a
-placement-shaped substring (`place_`, `submit_`, `execute_`, `auto_approve`,
-and their trading-adjacent siblings). This guards the capability catalog
-against ever re-introducing an execution tool, agent-authored or otherwise.
+`catalog.FORBIDDEN_TOOL_SUBSTRINGS` (`place_order`, `submit_order`,
+`execute_order`, `auto_approve`) may never appear in a capability id; it is
+asserted by `test_capability_catalog.py`, the per-module tool tests and the
+Gate-8 test (`test_no_trading_surface.py`, which also rejects any
+order/broker/margin/trade/paper/kill-switch/audit-shaped id on the catalog,
+`TOOL_SCHEMAS`, the custom-agent allow-list, the registry and the MCP
+surface). `sidecar/tests/test_toolbelt_integrity.py` additionally forbids any
+capability over the agent's own leash (autonomy, keychain, credentials,
+secrets).
 
 ## 6. Spend ceiling
 
