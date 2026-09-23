@@ -893,6 +893,30 @@ def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
     return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
 
 
+def _auto_open_backtest_event(
+    tool_call: LLMToolUseEvent, result_str: str
+) -> LLMToolUseEvent | None:
+    """Synthetic ``open_panel(backtest, run_id)`` after a successful
+    ``run_custom_backtest`` (C1, R15-AGENT-011).
+
+    The tool tells the model the result renders in the backtest panel; this
+    makes it so, the way :func:`_auto_publish_event` does for research: it rides
+    the same proposed-changes gate and is never dispatched back to the model.
+    ``None`` for a failed run, so no panel opens on nothing.
+    """
+    try:
+        payload = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return None
+    if not isinstance(payload, dict) or not payload.get("ok") or not payload.get("runId"):
+        return None
+    return LLMToolUseEvent(
+        tool_call_id=f"auto-backtest-{tool_call.tool_call_id}",
+        name="open_panel",
+        input={"panel": "backtest", "run_id": payload["runId"]},
+    )
+
+
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
     """Build a synthetic ``publish_brief`` host-action from a research result.
 
@@ -1754,6 +1778,11 @@ async def invoke_agent(
                 if auto_brief is not None:
                     publish_brief_calls.append(auto_brief.tool_call_id)
                     yield auto_brief
+            # Only where this turn may drive panels (a strict read turn may not).
+            if tool_call.name == "run_custom_backtest" and "open_panel" in tool_ids:
+                auto_open = _auto_open_backtest_event(tool_call, result_str)
+                if auto_open is not None:
+                    yield auto_open
         # Grounded host-action read-back (R13 JARVIS 1b): ONE grace-bounded poll
         # of the ack ledger for this round's dispatched host actions, then
         # rewrite each tool-result from the panel's REAL outcome (applied /

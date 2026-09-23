@@ -1986,3 +1986,55 @@ async def test_content_filter_finish_yields_honest_error_frame(
     assert "declined" in error.message
     assert error.action and "switch" in error.action
     assert "content_filter" in (error.detail or "")
+
+
+# ---------------------------------------------------------------------------
+# R15-AGENT-011: an agent-started backtest opens in the backtest panel (C1)
+# ---------------------------------------------------------------------------
+
+
+class _BacktestThenAnswerProvider:
+    def __init__(self) -> None:
+        self._round = 0
+
+    async def stream_chat(self, messages, model, api_key=None, **kwargs):  # noqa: ANN001, ANN003, ANN201
+        self._round += 1
+        if self._round == 1:
+            yield LLMToolUseEvent(
+                tool_call_id="call-bt",
+                name="run_custom_backtest",
+                input={"entry": "sma(20) > sma(50)", "exit": "rsi(14) > 70", "symbols": ["AAPL"]},
+            )
+            yield LLMDoneEvent()
+            return
+        yield LLMDeltaEvent(text="Backtest is up.")
+        yield LLMDoneEvent()
+
+
+async def _backtest_events(monkeypatch: pytest.MonkeyPatch, result: str) -> list[Any]:
+    agent_runtime.reload()
+    _stub_tool_dispatch(monkeypatch, result)
+    monkeypatch.setattr(
+        agent_runtime, "get_provider", lambda *_a, **_k: _BacktestThenAnswerProvider()
+    )
+    return [
+        e
+        async for e in agent_runtime.invoke_agent(
+            agent_id="copilot", prompt="backtest a golden cross", api_key="sk-test", mode="edit"
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_successful_custom_backtest_opens_its_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    events = await _backtest_events(monkeypatch, '{"ok": true, "runId": "bt-1"}')
+    opens = [e for e in events if getattr(e, "name", None) == "open_panel"]
+    assert len(opens) == 1
+    assert opens[0].input == {"panel": "backtest", "run_id": "bt-1"}
+    assert opens[0].tool_call_id == "auto-backtest-call-bt"
+
+
+@pytest.mark.asyncio
+async def test_failed_custom_backtest_opens_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
+    events = await _backtest_events(monkeypatch, '{"ok": false, "error": "no bars"}')
+    assert not [e for e in events if getattr(e, "name", None) == "open_panel"]

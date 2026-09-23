@@ -966,6 +966,13 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                             "SAKSOFT.NS. Ignored by panels with no symbol."
                         ),
                     },
+                    "run_id": {
+                        "type": "string",
+                        "description": (
+                            "For panel=backtest: the run id a run_custom_backtest "
+                            "call returned, to display that run."
+                        ),
+                    },
                 },
                 ["panel"],
             ),
