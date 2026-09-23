@@ -959,6 +959,22 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(activeHoldings()).toHaveLength(0);
   });
 
+  it("add with no cost basis writes nothing, and the review card says no price was given", async () => {
+    const input = { symbol: "SUMAX.NS", quantity: 40 };
+    expect(describeHostAction("portfolio_add_position", input).title).toBe(
+      "Add 40 SUMAX.NS to the portfolio — no price given",
+    );
+    expect(
+      describeHostAction("portfolio_add_position", { ...input, cost_basis: 3400 }).after,
+    ).toMatch(/\+SUMAX\.NS ×40 @ .?3,400/);
+    expect(
+      await applyHostActionAsync("portfolio_add_position", { ...input, cost_basis: null }),
+    ).toBeNull();
+    expect(await applyHostActionAsync("portfolio_add_position", input)).toBeNull();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
   it("add with no symbol / non-positive quantity is an honest null", async () => {
     expect(
       await applyHostActionAsync("portfolio_add_position", { quantity: 5, cost_basis: 1 }),

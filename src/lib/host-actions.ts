@@ -474,6 +474,12 @@ function num(input: Record<string, unknown>, key: string): number {
   return typeof v === "number" ? v : Number(v ?? 0);
 }
 
+/** The per-share cost basis the agent gave, or null when it gave none. */
+function costBasisOf(input: Record<string, unknown>): number | null {
+  const v = input.cost_basis;
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
 /**
  * Find an OPEN dockview panel for a resolved token — by its registered id
  * first, then by component (robust to a legacy generated id like `chart-<id>`
@@ -768,15 +774,19 @@ export function describeHostAction(
     }
     case "portfolio_add_position": {
       const qty = num(input, "quantity");
-      const cost = num(input, "cost_basis");
+      const cost = costBasisOf(input);
+      const price = cost === null ? "no price given" : `@ ${formatPrice(cost)}`;
       const count = activePortfolio()?.holdings.length ?? 0;
       return {
         kind: "data-write",
-        title: `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the portfolio`
+        title: (cost === null
+          ? `Add ${qty || ""} ${symbol} to the portfolio — no price given`
+          : `Add ${qty || ""} ${symbol} ${price} to the portfolio`
+        )
           .replace(/\s+/g, " ")
           .trim(),
         before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
-        after: `Portfolio: +${symbol} ×${qty} (${count + 1} total)`,
+        after: `Portfolio: +${symbol} ×${qty} ${price} (${count + 1} total)`,
       };
     }
     case "portfolio_update_position": {
@@ -1267,12 +1277,13 @@ async function portfolioUrl(id?: number): Promise<string> {
   return new URL(path, base).toString();
 }
 
-/** The wire body the sidecar's PositionInput expects (snake_case). */
+/** The wire body the sidecar's PositionInput expects (snake_case). An absent or
+ *  non-finite cost basis is null (an update keeps the holding's own cost) —
+ *  never a fabricated 0. */
 function positionBody(input: Record<string, unknown>, fallback?: Holding) {
   const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
   const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
-  const costBasis =
-    typeof input.cost_basis === "number" ? input.cost_basis : (fallback?.costBasis ?? 0);
+  const costBasis = costBasisOf(input) ?? fallback?.costBasis ?? null;
   const assetClass: AssetClass =
     (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
   const note = str(input, "note") || fallback?.note;
@@ -1340,7 +1351,8 @@ export async function applyHostActionAsync(
   switch (name) {
     case "portfolio_add_position": {
       const body = positionBody(input);
-      if (!body.symbol || !(body.quantity > 0)) {
+      // No price given → incomplete arguments (re-pends), never a ₹0 holding.
+      if (!body.symbol || !(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
       await syncPositionToSidecar("POST", body);
@@ -1364,7 +1376,7 @@ export async function applyHostActionAsync(
         return null; // never guess which position to mutate
       }
       const body = positionBody(input, target);
-      if (!(body.quantity > 0)) {
+      if (!(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
       await syncPositionToSidecar("PUT", body, sidecarPositionId(input));
