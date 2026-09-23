@@ -40,6 +40,7 @@ from models.agent import (
 )
 from models.llm import (
     LLMAgentPlanEvent,
+    LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
@@ -543,6 +544,17 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
 #: price_data + fundamentals); a runaway agent that loops on the same
 #: tool is bounded by this constant.
 _MAX_TOOL_ROUNDS = 6
+#: The note that opens the capped final round (R15-AGENT-003, D-B3-6).
+_CAPPED_ROUND_NOTE = (
+    "The tool budget for this turn is exhausted: do not call any more tools. "
+    "Answer the user now from the results you already have, and say plainly "
+    "what is still missing."
+)
+#: The honest close when the capped round still produced no text.
+_CAPPED_ROUND_CLOSE = (
+    f"I stopped after {_MAX_TOOL_ROUNDS} tool rounds without reaching a final answer. "
+    "Ask me to continue, or narrow the request."
+)
 #: Per-run web-search cap (FR-081) — bounds per-search billing during a multi-round
 #: research run, for BOTH the native tier (passed as the provider's max_uses) and
 #: the BYOK/local `web_search` tool (counted in the loop; further calls return a
@@ -1446,6 +1458,15 @@ async def invoke_agent(
     # publish the panel never confirmed gets an honest divergence notice.
     publish_brief_calls: list[str] = []
     while True:
+        # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
+        # (Anthropic rejects a tool_use/tool_result history with no `tools`),
+        # but the model is told to answer now, and any tool call it still makes
+        # is dropped — never yielded to the UI (AUTO would apply it), never
+        # dispatched, never recorded — so announced == dispatched.
+        capped = rounds >= _MAX_TOOL_ROUNDS
+        if capped:
+            messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
+        streamed_text = False
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
         # streams its chain-of-thought as thinking events) so it can be echoed on
@@ -1465,6 +1486,8 @@ async def invoke_agent(
                 yield event
                 continue
             if isinstance(event, LLMToolUseEvent):
+                if capped:
+                    continue
                 # R10 (E2): a model-issued publish_brief without an execution
                 # record inherits the run's tracked record before anything
                 # downstream (frontend, dispatch) sees the event.
@@ -1493,6 +1516,8 @@ async def invoke_agent(
                 # needs it.
                 if pending_tools and rounds < _MAX_TOOL_ROUNDS:
                     break
+                if capped and not streamed_text:
+                    yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
                 # E3.3 end-of-stream read-back: under AUTO autonomy a publish
                 # was DISPATCHED optimistically — surface any divergence the
                 # panel acked (or never acked) before the terminator.
@@ -1517,10 +1542,14 @@ async def invoke_agent(
                     )
                 yield event
                 return
+            if isinstance(event, LLMDeltaEvent) and event.text.strip():
+                streamed_text = True
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
             # framing stays well-formed for the consumer.
+            if capped and not streamed_text:
+                yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
             if autonomy == "auto" and publish_brief_calls:
                 for notice in await _publish_divergence_notices(publish_brief_calls):
                     yield notice
@@ -1642,9 +1671,6 @@ async def invoke_agent(
             await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
             for tc, msg in host_action_readbacks:
                 msg.content = _grounded_host_action_result(tc, action_ledger.get(tc.tool_call_id))
+        # At the cap the next iteration is the capped final round (see the
+        # loop head): it streams the answer and exits on its terminator.
         rounds += 1
-        if rounds >= _MAX_TOOL_ROUNDS:
-            # Hit the cap — let the next provider stream finalise. The
-            # subsequent loop iteration sees no pending tools and exits
-            # via the ``not pending_tools`` branch above.
-            continue
