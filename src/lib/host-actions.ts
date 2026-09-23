@@ -1312,79 +1312,27 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
 // Async apply seam + publish ack (R10 §3/§4)
 // ---------------------------------------------------------------------------
 
-/** The portfolio positions endpoint (sidecar SQLite ledger). */
-async function portfolioUrl(id?: number): Promise<string> {
-  const base = await getSidecarBaseUrl();
-  const path = id === undefined ? "/portfolio/positions" : `/portfolio/positions/${id}`;
-  return new URL(path, base).toString();
-}
-
-/** The wire body the sidecar's PositionInput expects (snake_case). An absent or
- *  non-finite cost basis is null (an update keeps the holding's own cost) —
- *  never a fabricated 0. */
-function positionBody(input: Record<string, unknown>, fallback?: Holding) {
+/** The holding fields an agent portfolio write carries, merged over the
+ *  targeted holding for an update. An absent or non-finite cost basis is null
+ *  (an update keeps the holding's own cost) — never a fabricated 0. */
+function holdingFields(input: Record<string, unknown>, fallback?: Holding) {
   const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
   const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
   const costBasis = costBasisOf(input) ?? fallback?.costBasis ?? null;
   const assetClass: AssetClass =
     (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
   const note = str(input, "note") || fallback?.note;
-  // The catalog's `purchased_at` maps onto the ledger's `opened_at` (the
-  // frontend Holding carries no date — ledger-only provenance).
-  const openedAt = str(input, "purchased_at") || undefined;
-  return { symbol, quantity, costBasis, assetClass, note, openedAt };
-}
-
-/** Best-effort sidecar ledger sync — the frontend store is the panel's truth
- *  (it feeds the panel, the workspace blob, and get_portfolio's snapshot); the
- *  sidecar positions table is a secondary ledger kept in sync per the wire
- *  contract. A sidecar miss is tolerated: the user's visible change must not
- *  fail over a ledger no surface reads (the store mutation IS the apply). */
-async function syncPositionToSidecar(
-  method: "POST" | "PUT" | "DELETE",
-  body: ReturnType<typeof positionBody> | null,
-  id?: number,
-): Promise<boolean> {
-  try {
-    const response = await fetch(await portfolioUrl(id), {
-      method,
-      headers: { "Content-Type": "application/json" },
-      ...(body
-        ? {
-            body: JSON.stringify({
-              symbol: body.symbol,
-              quantity: body.quantity,
-              cost_basis: body.costBasis,
-              asset_class: body.assetClass,
-              ...(body.note ? { note: body.note } : {}),
-              ...(body.openedAt ? { opened_at: body.openedAt } : {}),
-            }),
-          }
-        : {}),
-    });
-    // A 404 on update/delete means the sidecar ledger never had this row (it
-    // is written only through this path) — the frontend store remains the
-    // truth, so the miss is tolerated rather than failing the user's change.
-    return response.ok || response.status === 404;
-  } catch {
-    return false;
-  }
-}
-
-/** A numeric sidecar position id from the agent's `position_id`, when it is one. */
-function sidecarPositionId(input: Record<string, unknown>): number | undefined {
-  const raw = input.position_id;
-  const n = typeof raw === "number" ? raw : Number(raw);
-  return Number.isInteger(n) && n >= 0 ? n : undefined;
+  return { symbol, quantity, costBasis, assetClass, note };
 }
 
 /**
- * Apply a host-action mutation, including the network-backed cases (portfolio
- * writes ride POST/PUT/DELETE `/portfolio/positions` and mirror into
- * the portfolios store — the truth every surface reads; `save_layout` awaits
- * the workspace save). Everything else delegates to the synchronous
- * {@link applyHostAction}. Same truth contract: a string label means the work
- * landed; null re-pends with an honest failure.
+ * Apply a host-action mutation, including the cases the synchronous path does
+ * not cover: portfolio writes (the portfolios store — the workspace blob owns
+ * holdings; nothing writes the sidecar positions ledger, which is only read
+ * once as the legacy-import source), `save_layout` (awaits the workspace
+ * save) and a backtest `open_panel` (awaits its run). Everything else
+ * delegates to the synchronous {@link applyHostAction}. Same truth contract:
+ * a string label means the work landed; null re-pends with an honest failure.
  */
 export async function applyHostActionAsync(
   name: string,
@@ -1392,12 +1340,11 @@ export async function applyHostActionAsync(
 ): Promise<string | null> {
   switch (name) {
     case "portfolio_add_position": {
-      const body = positionBody(input);
+      const body = holdingFields(input);
       // No price given → incomplete arguments (re-pends), never a ₹0 holding.
       if (!body.symbol || !(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
-      await syncPositionToSidecar("POST", body);
       const portfolio = activePortfolio();
       if (!portfolio) {
         return null;
@@ -1417,11 +1364,10 @@ export async function applyHostActionAsync(
       if (!target) {
         return null; // never guess which position to mutate
       }
-      const body = positionBody(input, target);
+      const body = holdingFields(input, target);
       if (!(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
-      await syncPositionToSidecar("PUT", body, sidecarPositionId(input));
       const portfolio = activePortfolio();
       if (!portfolio) {
         return null;
@@ -1441,7 +1387,6 @@ export async function applyHostActionAsync(
       if (!target) {
         return null;
       }
-      await syncPositionToSidecar("DELETE", null, sidecarPositionId(input));
       const portfolio = activePortfolio();
       if (!portfolio) {
         return null;

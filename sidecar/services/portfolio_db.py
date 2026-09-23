@@ -1,14 +1,11 @@
-"""SQLite-backed positions store for the portfolio panel.
+"""SQLite legacy positions ledger.
 
-Positions are entered manually (the user's tracked portfolio). The
-database lives at ``config.get_data_dir() / "portfolio.db"`` so the sidecar owns
-persistence and the frontend never touches the filesystem. The schema is created
-lazily and idempotently on every access, which keeps a fresh data directory (or
-a test ``tmp_path``) working with no migration step.
-
-The portfolio panel computes P&L, weight, and risk metrics in the frontend by
-joining these stored positions against live quotes — this layer only persists
-the manually entered facts (symbol, quantity, cost basis).
+Holdings are owned by the workspace blob (the frontend portfolios store); this
+ledger is where they lived before the move, and the app reads it once to import
+them (R15-LIFECYCLE-009). No app surface writes it. The database lives at
+``config.get_data_dir() / "portfolio.db"``; the schema is created lazily and
+idempotently on every access, which keeps a fresh data directory (or a test
+``tmp_path``) working with no migration step.
 """
 
 from __future__ import annotations

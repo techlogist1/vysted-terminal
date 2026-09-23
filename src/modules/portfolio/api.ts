@@ -2,7 +2,7 @@
  * Portfolio live quotes.
  *
  * Holdings are tracked client-side (`src/store/portfolios.ts`, persisted in the
- * workspace blob) — the panel never writes the sidecar positions ledger. Only
+ * workspace blob) — nothing in the app writes the sidecar positions ledger. Only
  * the LIVE QUOTES for P&L come from the sidecar; the panel joins holdings to
  * quotes and computes P&L, weight, and risk metrics client-side. The ledger is
  * read once, to import holdings saved before they moved into the blob.

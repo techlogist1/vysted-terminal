@@ -1,11 +1,9 @@
-"""Portfolio router — manual positions CRUD backed by local SQLite.
+"""Portfolio router — the legacy positions ledger (``services.portfolio_db``).
 
-Owned by Teammate B (Phase 1.B, tabular panels). Positions are entered
-manually (the user's tracked portfolio). Persistence lives in
-``services.portfolio_db`` (a SQLite database under ``config.get_data_dir()``);
-the portfolio panel computes P&L, weight, and risk metrics in the frontend by
-joining these stored positions against live quotes. This file is already
-mounted by ``app.create_app`` — only edit this file, not ``app.py``.
+Holdings are owned by the workspace blob (the frontend portfolios store), for
+the panel and the agent alike. The app reads ``GET /portfolio/positions`` once,
+to import holdings saved before they moved into the blob (R15-LIFECYCLE-009);
+no app surface writes this ledger. This file is mounted by ``app.create_app``.
 """
 
 from __future__ import annotations

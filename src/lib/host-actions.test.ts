@@ -931,7 +931,7 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(diff.after).toContain("+RELIANCE ×5");
   });
 
-  it("add: POSTs the sidecar ledger and lands the holding in the store", async () => {
+  it("add: lands the holding in the store", async () => {
     const label = await applyHostActionAsync("portfolio_add_position", {
       symbol: "reliance",
       quantity: 5,
@@ -940,18 +940,23 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(label).toMatch(/Added 5 RELIANCE/);
     expect(activeHoldings()).toHaveLength(1);
     expect(activeHoldings()[0]).toMatchObject({ symbol: "RELIANCE", quantity: 5, costBasis: 1263 });
-    const fetchMock = globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } };
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain("/portfolio/positions");
-    expect(init.method).toBe("POST");
-    expect(JSON.parse(String(init.body))).toMatchObject({
-      symbol: "RELIANCE",
-      quantity: 5,
-      cost_basis: 1263,
-    });
   });
 
-  it("update: resolves the holding by id-then-symbol and PUTs the ledger", async () => {
+  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "TCS",
+      quantity: 5,
+      cost_basis: 2500,
+    });
+    const id = activeHoldings()[0].id;
+    await applyHostActionAsync("portfolio_update_position", { position_id: id, quantity: 7 });
+    expect(activeHoldings()[0].quantity).toBe(7);
+    await applyHostActionAsync("portfolio_delete_position", { position_id: id });
+    expect(activeHoldings()).toHaveLength(0);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("update: resolves the holding by id-then-symbol", async () => {
     await applyHostActionAsync("portfolio_add_position", {
       symbol: "RELIANCE",
       quantity: 5,
