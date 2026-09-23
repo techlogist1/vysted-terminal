@@ -145,6 +145,23 @@ def region_for_suffix(symbol: str) -> str | None:
     return None
 
 
+#: The provider lanes that serve only Indian exchange listings.
+_IN_PROVIDERS = frozenset({"nse_direct", "nse", "bse"})
+
+
+def instrument_region(symbol: str, provider: str) -> str:
+    """The trading-calendar region of a SERVED instrument (R15-UI-090).
+
+    An Indian listing is known from the lane that served it or its ``.NS``/``.BO``
+    symbol (yfinance echoes the listing it fetched); anything else trades on the
+    US calendar. Never the session region: a US quote read in an IN session is
+    still dated against the US session.
+    """
+    if provider in _IN_PROVIDERS or region_for_suffix(symbol) == REGION_IN:
+        return REGION_IN
+    return REGION_US
+
+
 def strip_exchange_suffix(symbol: str) -> str:
     """Strip a ``.NS`` / ``.BO`` suffix → the bare exchange symbol (``GOLDBEES``)."""
     upper = symbol.strip().upper()

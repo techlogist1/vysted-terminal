@@ -8,7 +8,7 @@ import config
 from models.market import OHLCVSeries
 from services import provider_registry, symbol_resolver
 from services.correctness_gate import EmptySeriesError
-from services.locale import REGION_IN, freshness_for
+from services.locale import REGION_IN, freshness_for, instrument_region
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -32,7 +32,8 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
     """Stamp the calendar-aware staleness of the LAST bar (FR-041 / SC-019).
 
     So the chart never shows a stale series as current. Crypto is 24/7 (``live``);
-    equity/ETF freshness reads the last bar's date against the locale calendar —
+    equity/ETF freshness reads the last bar's date against the calendar of the
+    instrument's own exchange, not the session region (R15-UI-090) —
     intraday timeframes (minute/hour) classify as live while the session is open,
     daily+ bars as the legitimate end-of-day close.
     """
@@ -44,8 +45,9 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
     tf = timeframe.lower()
     intraday = ("m" in tf or "h" in tf) and "mo" not in tf
     try:
+        region = instrument_region(series.symbol, series.provider)
         series.freshness = freshness_for(
-            config.get_region(), series.bars[-1].timestamp.date(), intraday=intraday
+            region, series.bars[-1].timestamp.date(), intraday=intraday
         ).state
     except Exception:  # noqa: BLE001 — a label failure must never drop the series
         series.freshness = None
