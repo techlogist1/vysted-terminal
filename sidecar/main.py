@@ -19,6 +19,7 @@ Two entrypoint modes share this one binary (no extra ``externalBin``):
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sys
 import threading
@@ -127,11 +128,25 @@ def run_http(host: str, port: int) -> None:
     """Serve the FastAPI app (incl. the mounted /mcp transport) under uvicorn."""
     _register_runtime_extensions()
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    # log_config=None: uvicorn's loggers propagate to the root handler below,
+    # so its lines carry the same timestamps as the sidecar's own.
+    uvicorn.run(app, host=host, port=port, log_level="info", log_config=None)
+
+
+def _configure_logging() -> None:
+    """Timestamped records to stderr, once. The Tauri core drains stderr into
+    the persisted ``<data-dir>/logs/vysted.log`` (stdout is JSON-RPC under
+    ``--mcp-stdio``, so stderr is the one channel for both modes)."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        stream=sys.stderr,
+    )
 
 
 def main(argv: list[str] | None = None) -> None:
     args = _build_parser().parse_args(argv)
+    _configure_logging()
 
     if args.data_dir:
         os.environ[DATA_DIR_ENV] = args.data_dir

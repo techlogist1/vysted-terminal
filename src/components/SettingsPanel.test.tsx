@@ -610,4 +610,23 @@ describe("SettingsPanel", () => {
     ).toBeInTheDocument();
     expect(useSearchSettingsStore.getState().researchModels.deep).toBe("openai/o3-deep-research");
   });
+
+  it("Copy diagnostics previews the redacted bundle before anything is copied", async () => {
+    routeFetch({
+      "/system/diagnostics": { version: "0.8.0", logTail: ["[sidecar] GET /quotes/<id>"] },
+    });
+    const writeText = vi.fn(() => Promise.resolve());
+    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText } });
+
+    render(<SettingsPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Copy diagnostics" }));
+
+    const preview = await screen.findByLabelText("Diagnostics preview");
+    expect(preview.textContent).toContain("[sidecar] GET /quotes/<id>");
+    expect(writeText).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy to clipboard" }));
+    expect(await screen.findByText("Copied")).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith(preview.textContent);
+  });
 });

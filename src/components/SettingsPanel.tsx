@@ -1558,6 +1558,7 @@ function AdvancedSection() {
         <LayoutsSection />
         <ModulesSection />
         <ExportImportSection />
+        <DiagnosticsSection />
         <AboutSection />
       </div>
     </section>
@@ -1874,6 +1875,88 @@ function ExportImportSection() {
               {status.message}
             </p>
           )}
+        </div>
+      </Card>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Diagnostics (R15-LIFECYCLE-008)
+// ---------------------------------------------------------------------------
+
+/** Collect the sidecar's redacted diagnostics bundle, show it, and copy it only
+ *  when the user asks — so they see exactly what they would hand a maintainer. */
+function DiagnosticsSection() {
+  const [bundle, setBundle] = useState<string | null>(null);
+  const [collecting, setCollecting] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function collect() {
+    setCollecting(true);
+    setStatus(null);
+    try {
+      const base = await getSidecarBaseUrl();
+      const response = await fetch(new URL("/system/diagnostics", base).toString());
+      if (!response.ok) {
+        throw new Error(`sidecar returned ${response.status}`);
+      }
+      setBundle(JSON.stringify(await response.json(), null, 2));
+    } catch (e) {
+      setStatus(`Could not collect diagnostics: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setCollecting(false);
+    }
+  }
+
+  async function copy() {
+    if (bundle === null) return;
+    const clip = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+    if (!clip?.writeText) {
+      setStatus("Clipboard unavailable in this context");
+      return;
+    }
+    try {
+      await clip.writeText(bundle);
+      setStatus("Copied");
+    } catch (e) {
+      setStatus(`Copy failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  return (
+    <section aria-labelledby="settings-diagnostics">
+      <SubsectionHeader
+        id="settings-diagnostics"
+        title="Diagnostics"
+        hint="Version, service status and the recent app log, with keys, query strings, symbols and IPs removed. Nothing is sent anywhere; you copy it yourself."
+      />
+      <Card>
+        <div className="flex flex-col gap-3 px-4 py-3">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void collect()}
+              disabled={collecting}
+            >
+              {collecting ? "Collecting…" : "Copy diagnostics"}
+            </Button>
+            {bundle !== null && (
+              <Button size="sm" onClick={() => void copy()}>
+                Copy to clipboard
+              </Button>
+            )}
+          </div>
+          {bundle !== null && (
+            <pre
+              aria-label="Diagnostics preview"
+              className="bg-charcoal-850 text-charcoal-300 text-micro max-h-64 overflow-auto p-2 font-mono whitespace-pre-wrap" /* tokens-ok: diagnostics preview scroll cap - layout */
+            >
+              {bundle}
+            </pre>
+          )}
+          {status && <p className="text-charcoal-400 text-caption">{status}</p>}
         </div>
       </Card>
     </section>
