@@ -8,6 +8,8 @@ reload is needed.
 
 from __future__ import annotations
 
+from urllib.parse import quote
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -97,12 +99,41 @@ def test_delete_missing_workspace_is_404(client: TestClient) -> None:
     assert client.delete("/workspace/does-not-exist").status_code == 404
 
 
-def test_unsafe_name_is_rejected(client: TestClient) -> None:
-    response = client.post(
-        "/workspace",
-        json={"name": "../escape", "workspace": _sample_workspace()},
-    )
+@pytest.mark.parametrize(
+    "name",
+    ["Research: M&M", "Research: RELIANCE.NS", "My Layout (2)", "मेरा लेआउट"],
+)
+def test_any_name_round_trips(client: TestClient, name: str) -> None:
+    """R15-CODE-FRONTEND-004: the frontend's research-space names ("Research:
+    TICKER") and any other name save, load, list and delete — the store
+    percent-encodes the filename instead of rejecting the name."""
+    url = f"/workspace/{quote(name, safe='')}"
+    workspace = _sample_workspace(name)
+    assert client.post("/workspace", json={"name": name, "workspace": workspace}).status_code == 200
+    assert client.get(url).json() == workspace
+    assert client.get("/workspace").json() == [name]
+    assert client.delete(url).status_code == 204
+    assert client.get("/workspace").json() == []
+
+
+def test_a_traversal_name_stays_inside_the_workspaces_directory(client: TestClient) -> None:
+    from config import get_workspaces_dir
+
+    name = "../escape"
+    workspace = _sample_workspace(name)
+    assert client.post("/workspace", json={"name": name, "workspace": workspace}).status_code == 200
+    workspaces_dir = get_workspaces_dir()
+    assert [path.parent for path in workspaces_dir.parent.rglob("*.vysted-workspace")] == [
+        workspaces_dir
+    ]
+    assert client.get("/workspace").json() == [name]
+    assert client.get(f"/workspace/{quote(name, safe='')}").json() == workspace
+
+
+def test_an_empty_name_is_rejected_with_the_reason(client: TestClient) -> None:
+    response = client.post("/workspace", json={"name": "   ", "workspace": {}})
     assert response.status_code == 400
+    assert response.json()["detail"] == "A workspace name is required."
 
 
 def test_corrupt_file_degrades_to_404_not_500(client: TestClient) -> None:

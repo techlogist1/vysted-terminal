@@ -200,9 +200,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       await loadWorkspace(name);
       onDone();
     } catch (caught) {
-      setError(
-        `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "load failed."}`,
-      );
+      setError(caught instanceof Error ? caught.message : "Could not load the workspace.");
       setBusy(false);
     }
   }
@@ -214,9 +212,7 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       await deleteWorkspace(name);
       setNames((current) => (current ?? []).filter((entry) => entry !== name));
     } catch (caught) {
-      setError(
-        `Could not reach the sidecar — ${caught instanceof Error ? caught.message : "delete failed."}`,
-      );
+      setError(caught instanceof Error ? caught.message : "Could not delete the workspace.");
     } finally {
       setBusy(false);
     }

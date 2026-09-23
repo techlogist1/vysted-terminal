@@ -436,6 +436,33 @@ describe("workspace serialization", () => {
     await expect(createResearchSpace("   ")).rejects.toThrow(/ticker is required/);
   });
 
+  it("a failed research-space save puts the cockpit back and surfaces the sidecar's reason (R15-CODE-FRONTEND-004)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    resetChartCommandStoreForTests();
+    useNotesStore.getState().fromBundle(null);
+    useChatHistoryStore
+      .getState()
+      .loadMessages([{ id: "m1", role: "user", content: "ambient question", createdAt: 1 }]);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ detail: "No space left on device." }), { status: 500 }),
+    );
+
+    await expect(createResearchSpace("nvda")).rejects.toThrow(
+      'Could not save workspace "Research: NVDA" (HTTP 500: No space left on device.).',
+    );
+
+    expect(fakeApi.fromJSON).toHaveBeenLastCalledWith(LAYOUT_A);
+    expect(useWorkspaceStore.getState().researchSymbol).toBeNull();
+    expect(useWorkspaceStore.getState().name).toBe("default");
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual([
+      "ambient question",
+    ]);
+    expect(useResearchSpacesStore.getState().byName).toEqual({});
+    expect(useNotesStore.getState().focusSymbol).toBe("");
+    expect(useChartCommandStore.getState().command).toBeNull();
+  });
+
   it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });

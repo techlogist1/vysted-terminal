@@ -20,6 +20,7 @@ import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useChartCommandStore } from "@/store/chart-command";
+import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
@@ -585,11 +586,25 @@ async function workspaceUrl(name?: string): Promise<string> {
   return new URL(path, base).toString();
 }
 
+/** A WorkspaceError naming the failed action, the HTTP status and the sidecar's reason. */
+async function sidecarFailure(action: string, response: Response): Promise<WorkspaceError> {
+  let detail = "";
+  try {
+    const body = (await response.json()) as { detail?: unknown };
+    if (typeof body.detail === "string" && body.detail) {
+      detail = `: ${body.detail}`;
+    }
+  } catch {
+    // No JSON body — the status alone.
+  }
+  return new WorkspaceError(`${action} (HTTP ${response.status}${detail}).`);
+}
+
 /** List the names of every workspace saved on the sidecar. */
 export async function listWorkspaces(): Promise<string[]> {
   const response = await fetch(await workspaceUrl());
   if (!response.ok) {
-    throw new WorkspaceError(`Could not list workspaces (HTTP ${response.status}).`);
+    throw await sidecarFailure("Could not list workspaces", response);
   }
   try {
     return (await response.json()) as string[];
@@ -614,7 +629,7 @@ export async function saveWorkspace(name: string): Promise<void> {
     body: JSON.stringify({ name: trimmed, workspace }),
   });
   if (!response.ok) {
-    throw new WorkspaceError(`Could not save workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not save workspace "${trimmed}"`, response);
   }
   // Mark the just-saved layout active so it shows the "active" badge, matching
   // loadWorkspace's behaviour (regression-95 BUG-4).
@@ -636,7 +651,7 @@ export async function loadWorkspace(name: string): Promise<void> {
   }
   const response = await fetch(await workspaceUrl(trimmed));
   if (!response.ok) {
-    throw new WorkspaceError(`Could not load workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not load workspace "${trimmed}"`, response);
   }
   let workspace: SerializedWorkspace;
   try {
@@ -969,9 +984,10 @@ export function isResearchSpace(
  * overview + the synthesised brief, and a Notes scratchpad scoped to the ticker —
  * saved so the user can return to it from Load Workspace.
  *
- * Builds the layout SYNCHRONOUSLY (so the save captures it), pushes the symbol
- * through the always-consumed chart-command channel, scopes the Notes panel, then
- * saves. Throws (WorkspaceError) on a missing symbol or an unmounted layout.
+ * Builds the layout SYNCHRONOUSLY (so the save captures it), scopes the Notes
+ * panel, then saves. A failed save puts the cockpit back exactly as it was and
+ * rethrows the sidecar's reason; only a saved space loads its symbol into the
+ * chart. Throws (WorkspaceError) on a missing symbol or an unmounted layout.
  */
 export async function createResearchSpace(rawSymbol: string): Promise<string> {
   const symbol = rawSymbol.trim().toUpperCase();
@@ -983,25 +999,44 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
   const name = researchSpaceName(symbol);
+  // Everything the build below mutates, so a failed save can undo it.
+  const before = {
+    layout: api.toJSON(),
+    researchSymbol: useWorkspaceStore.getState().researchSymbol,
+    researchSpaces: useResearchSpacesStore.getState().snapshot(),
+    chat: {
+      messages: useChatHistoryStore.getState().messages,
+      streamingMessageId: useChatHistoryStore.getState().streamingMessageId,
+    },
+    notesFocus: useNotesStore.getState().focusSymbol,
+  };
   // Archive the transcript of any space we're leaving, then start this new
   // space with a clean transcript (S-19 per-space memory). Marking the store's
   // typed research symbol BEFORE the save makes `buildWorkspacePayload` emit the
   // `researchSymbol` field + initialise this space's memory entry.
-  const leaving = (() => {
-    const prevSymbol = useWorkspaceStore.getState().researchSymbol;
-    return prevSymbol ? { name: researchSpaceName(prevSymbol), symbol: prevSymbol } : null;
-  })();
+  const leaving = before.researchSymbol
+    ? { name: researchSpaceName(before.researchSymbol), symbol: before.researchSymbol }
+    : null;
   useResearchSpacesStore.getState().switchSpace(leaving, { name, symbol });
   useWorkspaceStore.getState().setResearchSymbol(symbol);
   // Clean, dedicated research layout (chart + overview + brief + notes).
   applyResearchSpaceLayout(api);
-  // Load the symbol into the chart (always-consumed channel — the chart panel,
-  // just added, picks it up on mount) and scope the Notes panel to the ticker.
-  useChartCommandStore.getState().loadSymbol(symbol);
   useNotesStore.getState().setFocusSymbol(symbol);
   // Persist as a named workspace so it shows up in Load Workspace. `saveWorkspace`
   // serialises the live layout we just built and marks it active.
-  await saveWorkspace(name);
+  try {
+    await saveWorkspace(name);
+  } catch (error) {
+    api.fromJSON(before.layout);
+    useResearchSpacesStore.getState().replaceAll(before.researchSpaces);
+    useChatHistoryStore.setState(before.chat);
+    useWorkspaceStore.getState().setResearchSymbol(before.researchSymbol);
+    useNotesStore.getState().setFocusSymbol(before.notesFocus);
+    throw error;
+  }
+  // Load the symbol into the chart (always-consumed channel — the chart panel
+  // the layout just added consumes it).
+  useChartCommandStore.getState().loadSymbol(symbol);
   return name;
 }
 
@@ -1013,6 +1048,6 @@ export async function deleteWorkspace(name: string): Promise<void> {
   }
   const response = await fetch(await workspaceUrl(trimmed), { method: "DELETE" });
   if (!response.ok) {
-    throw new WorkspaceError(`Could not delete workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not delete workspace "${trimmed}"`, response);
   }
 }
