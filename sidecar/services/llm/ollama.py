@@ -30,7 +30,7 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, invalid_tool_args
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
 #: copilot agent's ~50 tool schemas are serialized into it, before the user's
@@ -98,17 +98,22 @@ def _parse_tool_input(arguments: Any) -> dict[str, Any]:
 
     Recent Ollama models return ``arguments`` already parsed as a dict, but
     some emit a JSON string (the OpenAI convention). Tolerate both, and never
-    raise — a malformed payload degrades to ``{}`` so the round still closes.
+    raise. Absent or empty arguments are a no-argument call (``{}``); a
+    malformed or non-object payload is stamped with the invalid-args sentinel
+    so the model is told its arguments were wrong, never run on ``{}``.
     """
     if isinstance(arguments, dict):
         return arguments
-    if isinstance(arguments, str) and arguments:
+    if arguments is None or arguments == "":
+        return {}
+    if isinstance(arguments, str):
         try:
             parsed = json.loads(arguments)
         except (ValueError, TypeError):
-            return {}
-        return parsed if isinstance(parsed, dict) else {}
-    return {}
+            return invalid_tool_args("arguments were not valid JSON", arguments)
+        if isinstance(parsed, dict):
+            return parsed
+    return invalid_tool_args("arguments were not a JSON object", str(arguments))
 
 
 class OllamaProvider(LLMProvider):

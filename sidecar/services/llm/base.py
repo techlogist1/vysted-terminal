@@ -40,6 +40,19 @@ LLMStreamEvent = (
     | LLMErrorEvent
 )
 
+#: Reserved key an adapter stamps into a tool call's ``input`` when the call's
+#: arguments could not be used (malformed JSON, not an object, or failed schema
+#: validation after a repair round). The runtime's ``_dispatch_tool`` recognises
+#: it and returns ``{"ok": False, "error": …}`` keyed on the call id, so the model
+#: self-corrects next round. NEVER a silent coerce to ``{}``.
+INVALID_ARGS_SENTINEL = "__vysted_invalid_args__"
+
+
+def invalid_tool_args(reason: str, raw: str) -> dict[str, str]:
+    """The sentinel ``input`` for a call whose raw arguments were unusable."""
+    return {INVALID_ARGS_SENTINEL: f"{reason}: {raw[:200]}"}
+
+
 #: Substring hints that mark a non-chat model id (embeddings, audio, image,
 #: moderation, …) so the OpenAI-shaped + Groq live catalogs don't pollute a
 #: chat-model picker with whisper/dall-e/embedding ids. Best-effort, lower-cased

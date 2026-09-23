@@ -148,3 +148,48 @@ async def test_stream_chat_humanizes_error(monkeypatch: pytest.MonkeyPatch) -> N
     assert err.message and "ollama exploded" not in err.message
     assert err.detail is not None and "ollama exploded" in err.detail
     assert err.code is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("arguments", "expected"),
+    [
+        ('{"symbol": "RELI', None),  # truncated JSON string -> sentinel
+        ('["RELIANCE.NS"]', None),  # valid JSON, not an object -> sentinel
+        ('{"symbol": "RELIANCE.NS"}', {"symbol": "RELIANCE.NS"}),
+        ({"symbol": "TCS.NS"}, {"symbol": "TCS.NS"}),
+        ("", {}),  # a no-argument call
+    ],
+)
+async def test_native_tool_call_arguments_never_coerce_to_empty(
+    monkeypatch: pytest.MonkeyPatch, arguments: Any, expected: dict[str, Any] | None
+) -> None:
+    # R15-AGENT-047 (adapter half): malformed arguments carry the invalid-args
+    # sentinel so the model learns its call was wrong.
+    from services.llm.base import INVALID_ARGS_SENTINEL
+
+    chunks = [
+        {
+            "message": {
+                "content": "",
+                "tool_calls": [{"function": {"name": "price_data", "arguments": arguments}}],
+            },
+            "done": True,
+            "done_reason": "stop",
+        },
+    ]
+    _patch(monkeypatch, chunks=chunks)
+    out = [
+        e
+        async for e in OllamaProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="quote RELIANCE")],
+            model="llama3.1:8b",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    if expected is None:
+        assert set(tool_use[0].input) == {INVALID_ARGS_SENTINEL}
+    else:
+        assert tool_use[0].input == expected

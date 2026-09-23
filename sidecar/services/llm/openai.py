@@ -40,7 +40,9 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent, is_chat_model
+#: The sentinel lives in ``base`` (every adapter stamps it); re-exported here
+#: for the runtime's existing ``from services.llm.openai import`` path.
+from .base import INVALID_ARGS_SENTINEL, LLMProvider, LLMStreamEvent, is_chat_model
 from .native_search import (
     openai_native_search_supported,
     openai_web_search_options,
@@ -76,14 +78,6 @@ _RETRY_MAX_DELAY = 8.0
 #: (OpenRouter-specific; only openrouter instances reach the branch that uses it).
 #: A slug that no longer exists is a harmless no-op, never a routing break.
 _OPENROUTER_IGNORE_PROVIDERS = ["amazon-bedrock"]
-
-#: Reserved key the adapter stamps into a tool call's ``input`` when its
-#: arguments failed JSON parse + schema validation AND a single repair round
-#: could not fix them. The runtime's ``_dispatch_tool`` recognises it and
-#: returns the graceful ``{"ok": False, "error": …}`` result keyed on the
-#: call id, so the model self-corrects next round — NEVER a silent coerce to
-#: ``{}`` (the core WS8 bug). Mirrors the existing "tool not found" convention.
-INVALID_ARGS_SENTINEL = "__vysted_invalid_args__"
 
 
 def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:

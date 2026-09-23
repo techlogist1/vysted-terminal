@@ -30,23 +30,25 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent, is_chat_model
+from .base import LLMProvider, LLMStreamEvent, invalid_tool_args, is_chat_model
 
 
 def _parse_tool_args(raw: str) -> dict[str, Any]:
     """Parse accumulated tool-call argument JSON into a dict.
 
-    A no-argument call streams an empty string; a malformed fragment (rare,
-    but possible on a truncated stream) degrades to an empty dict rather than
-    aborting the round — the host surfaces the call with whatever it has.
+    A no-argument call streams an empty string (``{}``). A malformed fragment
+    (a truncated stream) or a non-object is stamped with the invalid-args
+    sentinel so the model is told its arguments were wrong, never run on ``{}``.
     """
     if not raw:
         return {}
     try:
         parsed = json.loads(raw)
     except (ValueError, TypeError):
-        return {}
-    return parsed if isinstance(parsed, dict) else {}
+        return invalid_tool_args("arguments were not valid JSON", raw)
+    if not isinstance(parsed, dict):
+        return invalid_tool_args("arguments were not a JSON object", raw)
+    return parsed
 
 
 def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
