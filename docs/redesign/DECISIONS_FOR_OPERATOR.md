@@ -130,6 +130,47 @@ settings surface ever exposed it, and there are no orders left to limit.
   leave (`~/.vysted-rig-away`, with an expiry), required in addition to idle — ~5 lines. Not
   added, because it would make every unattended run refuse until you know about it.
 
+### 2.8 R15-RELEASE-001 — unsigned desktop bundles (Gatekeeper/SmartScreen block every install)
+
+- **Blocked:** every desktop bundle ships unsigned on macOS and Windows; a downloaded `.dmg`
+  is refused by Gatekeeper as "damaged" and the NSIS installer is flagged by SmartScreen
+  before the app ever opens.
+- **Why Tier-4:** the fix edits `src-tauri/tauri.conf.json` (`bundle.macOS.signingIdentity`,
+  `bundle.windows.signCommand`/`certificateThumbprint`) and needs paid credentials (an Apple
+  Developer ID + notarization, a Windows code-signing certificate) — a locked file plus money
+  and identity decisions, not code.
+- **Smallest unblock:** at minimum set `bundle.macOS.signingIdentity: "-"` for an ad-hoc seal
+  (turns "damaged" into the Open-Anyway path) — still a `tauri.conf.json` edit, so still needs
+  your sign-off even for that minimal step.
+
+### 2.9 R15-RELEASE-002 — no GitHub release pipeline (tags v0.6.0..v0.8.0 have zero installable builds)
+
+- **Blocked:** pushing a `v*` tag produces no Release and no downloadable asset.
+- **Why Tier-4:** the fix is a new `.github/workflows/release.yml` — `.github/` is Tier-1.
+- **Smallest unblock:** approve adding `.github/workflows/release.yml` (3-OS matrix build via
+  `tauri-apps/tauri-action`, `createUpdaterArtifacts: true`, `TAURI_SIGNING_PRIVATE_KEY`
+  wired) so `latest.json` + `.sig` are attached; this also unblocks 2.10.
+
+### 2.10 R15-RELEASE-003 — auto-updater is dead end-to-end
+
+- **Blocked:** the updater is registered and configured but never invoked, so no install can
+  ever leave its install-day version, including past a security fix.
+- **Why Tier-4:** the producer half needs `createUpdaterArtifacts: true` in
+  `src-tauri/tauri.conf.json` and the release workflow from 2.9 (`.github/`).
+- **Smallest unblock:** approve 2.9 first (it produces `latest.json`/`.sig`), then the
+  `tauri.conf.json` flag; the consumer-side `app.updater()?.check()` call itself is not
+  Tier-4 and can ship independently once the producer side exists.
+
+### 2.11 R15-RELEASE-004 — CI has never run on `004-r4-experience-rebuild`
+
+- **Blocked:** 654 commits (R4–R15) bypass GitHub Actions entirely on this branch; the newest
+  cross-OS signal on `main` (2026-05-30) is a red lint run.
+- **Why Tier-4:** the fix is either a `.github/` push-trigger edit, or opening a PR against
+  `main` (a repo/process decision, not a code change this batch can make unilaterally).
+- **Smallest unblock:** open a draft PR for `004-r4-experience-rebuild` (no workflow edit
+  needed for this option) so the existing `pull_request` trigger runs the 3-OS matrix; fix
+  the red lint on `main` first so the signal is meaningful.
+
 ## 3. New items from Stage C — trading removal (D81, 23 Sep 2026)
 
 Added by the removal plan (`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`) — none
