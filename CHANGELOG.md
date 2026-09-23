@@ -28,7 +28,9 @@ plan order W2 → W1 → W4 → W5 → W3 on `worktree-agent-batch-5-int` (base 
   report failures; unreadable saved workflows listed, not fatal; MCP subprocess deps pinned; a rotating
   diagnostics log and a redacted Settings bundle; the persisted cache cleared on a version change
   (CODE-PLATFORM-004/019/005/020, CODE-AGENT-001/012, AGENT-059, LEAD-001/003, LIFECYCLE-008).
-  CODE-PLATFORM-018 was not delivered and stays open.
+  CODE-PLATFORM-018 (quant nodes/tools pricing on the event loop) landed inside the CODE-PLATFORM-005
+  commit `a2dbe32` (`asyncio.to_thread` in `quant_tools.py`/`quant_nodes.py`, pinned by
+  `test_quant_node_waits_for_the_quantlib_lock_off_the_event_loop`), untagged.
 - **W5 screener, earnings, SEC** — a US fundamentals seed pack; `evaluated_count` drives the empty state;
   the stream's error frame reaches the panel; the region default comes from the sidecar; a lazy,
   region-following warm loop; enrichment failures logged; an operator change keeps the value; no proxy
