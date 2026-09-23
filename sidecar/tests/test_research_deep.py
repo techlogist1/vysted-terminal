@@ -633,3 +633,15 @@ def test_build_structured_floor_renders_price_and_dated_filings() -> None:
     assert "142.5" in md
     assert "2026-06-17" in md and "Outcome of board meeting" in md
     assert "No findings" not in md
+
+
+def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:
+    """R15-RESEARCH-034: the reflect reply is read by its leading COMPLETE/GAPS
+    word; a gap statement that happens to contain "covered" is not complete."""
+    from services.research.deep import _reflect_says_complete
+
+    assert _reflect_says_complete("Price action is not covered yet") is False
+    assert _reflect_says_complete("GAPS\n- price action") is False
+    assert _reflect_says_complete("COMPLETE") is True
+    assert _reflect_says_complete("**COMPLETE** — all four dimensions sourced") is True
+    assert _reflect_says_complete("No gaps remain.") is True

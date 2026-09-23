@@ -61,6 +61,7 @@ from services.research.deep import (
     _safe_llm,
     _safe_tool,
     _split_subquestions,
+    leading_token,
 )
 from services.research.models import ResearchBrief, ResearchStep
 
@@ -99,16 +100,31 @@ _DISAGREE_MARKERS = (
 _AGREE_MARKERS = ("agree", "confirm", "consistent", "support", "match")
 
 
+#: The verdict words the prompt mandates as the reply's leading token.
+_VERDICT_TOKENS = {
+    "UNVERIFIED": _VERDICT_UNVERIFIED,
+    "DISAGREE": _VERDICT_DISAGREE,
+    "AGREE": _VERDICT_AGREE,
+}
+
+
 def _parse_verdict(text: str) -> tuple[str, str]:
     """Parse an LLM verdict completion to ``(verdict, detail)`` — conservative.
 
-    Anything ambiguous or empty is UNVERIFIED (a verification round must never
-    upgrade a claim it could not actually check).
+    The prompt mandates a leading verdict word, so that word decides
+    (:func:`~services.research.deep.leading_token`): the reason after it
+    routinely says "no source confirms" or "does not support", which must never
+    read as an agreement. Only a reply that does not lead with a verdict word
+    falls back to the marker scan. Anything ambiguous or empty is UNVERIFIED (a
+    verification round must never upgrade a claim it could not actually check).
     """
     first_line = text.strip().splitlines()[0].strip() if text.strip() else ""
     low = first_line.lower()
     if not low:
         return _VERDICT_UNVERIFIED, "no verdict returned"
+    head = _VERDICT_TOKENS.get(leading_token(first_line))
+    if head is not None:
+        return head, first_line
     if any(marker in low for marker in _DISAGREE_MARKERS):
         return _VERDICT_DISAGREE, first_line
     if any(marker in low for marker in _AGREE_MARKERS):

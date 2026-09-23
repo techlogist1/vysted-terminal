@@ -197,6 +197,18 @@ def test_parse_verdict_is_conservative() -> None:
     assert _parse_verdict("cannot tell from the evidence")[0] == "unverified"
 
 
+def test_parse_verdict_reads_the_leading_verdict_word_not_the_reason() -> None:
+    """R15-RESEARCH-002: an UNVERIFIED reason routinely says "confirm", "support"
+    or "match" — the leading verdict word decides, never a marker in the reason."""
+    for reply in (
+        "UNVERIFIED - no source confirms the 23% operating margin.",
+        "UNVERIFIED - evidence does not support the figure",
+        "UNVERIFIED - no matching figure",
+    ):
+        assert _parse_verdict(reply)[0] == "unverified", reply
+    assert _parse_verdict("**AGREE** — reuters.com and bloomberg.com match")[0] == "agree"
+
+
 def test_dead_llm_degrades_to_unverified_never_raises() -> None:
     async def _dead(_messages: list[dict[str, Any]]) -> str:
         return ""

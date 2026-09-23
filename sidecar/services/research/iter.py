@@ -549,8 +549,9 @@ async def run_iter_research(
                 {
                     "role": "system",
                     "content": (
-                        "Reflect on research coverage. State whether coverage is "
-                        "COMPLETE or list remaining GAPS, one per line.\n"
+                        "Reflect on research coverage. Start your reply with "
+                        "exactly one word: COMPLETE if coverage is sufficient, or "
+                        "GAPS followed by the remaining gaps, one per line.\n"
                         + finance.date_directive()
                     ),
                 },

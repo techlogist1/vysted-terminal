@@ -32,6 +32,7 @@ concrete provider.
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -305,22 +306,49 @@ def finalize_markdown(
     return web_only_floor_note(markdown, structured=structured, findings=findings)
 
 
-def _reflect_says_complete(text: str) -> bool:
-    """Heuristic: does a reflect completion declare coverage met?
+def leading_token(text: str) -> str:
+    """The first word of an LLM reply's first non-empty line, upper-cased.
 
-    Looks for an affirmative marker (``complete`` / ``done`` / ``sufficient`` /
-    ``no gaps`` / ``yes``) and the ABSENCE of an explicit gap signal. Conservative
-    — when ambiguous it returns False so the loop keeps going (bounded anyway by
-    the budget), rather than declaring a thin run done.
+    Markdown emphasis and list/label punctuation (``*``, ``:``, ``-``, ``#``)
+    around the word are stripped, so ``**UNVERIFIED** - ...`` and
+    ``COMPLETE: ...`` both read as their verdict word. The ONE reader for every
+    prompt that mandates a leading verdict token (cross-check verdicts, reflect
+    COMPLETE/GAPS) — a whole-reply substring scan reads a reason's wording
+    ("no source confirms", "not covered") as the verdict.
     """
-    low = text.strip().lower()
-    if not low:
+    for line in text.splitlines():
+        words = line.strip().strip("*:-#> ").split()
+        if words:
+            return words[0].strip("*:-#.,;!").upper()
+    return ""
+
+
+#: Negations that turn an affirmative reflect phrase into a gap statement.
+_REFLECT_NEGATION = re.compile(r"\b(?:not|no|never)\b|n't\b")
+
+
+def _reflect_says_complete(text: str) -> bool:
+    """Does a reflect completion declare coverage met?
+
+    The prompt asks for a leading COMPLETE or GAPS word, read by
+    :func:`leading_token`. A reply that does not lead with either falls back to
+    a conservative scan: an explicit "no gaps" counts as complete, any gap
+    marker or negation ("not covered yet") does not, and otherwise only a
+    whole-word complete/sufficient/done does. Ambiguity returns False so the
+    loop keeps going (bounded by the budget) rather than calling a thin run done.
+    """
+    head = leading_token(text)
+    if head == "COMPLETE":
+        return True
+    if head in ("GAPS", "GAP", "INCOMPLETE"):
+        return False
+    low = re.sub(r"\bno (?:remaining |further |more )?gaps?\b", "complete", text.lower())
+    if not low.strip():
         return False
     gap_markers = ("gap", "missing", "incomplete", "not enough", "more research")
-    negative = any(g in low for g in gap_markers)
-    if negative:
+    if any(g in low for g in gap_markers) or _REFLECT_NEGATION.search(low):
         return False
-    return any(p in low for p in ("complete", "done", "sufficient", "no gaps", "covered", "yes"))
+    return re.search(r"\b(?:complete|sufficient|done)\b", low) is not None
 
 
 class _Findings:
@@ -1172,8 +1200,9 @@ async def run_deep_research(
                 {
                     "role": "system",
                     "content": (
-                        "Reflect on research coverage. State whether coverage is "
-                        "COMPLETE or list remaining GAPS, one per line.\n"
+                        "Reflect on research coverage. Start your reply with "
+                        "exactly one word: COMPLETE if coverage is sufficient, or "
+                        "GAPS followed by the remaining gaps, one per line.\n"
                         + finance.date_directive()
                     ),
                 },
