@@ -6,8 +6,12 @@
  * Architecture:
  * - Tiptap v3 editor with StarterKit + Table(+row/cell/header) + Markdown +
  *   custom SlashCommandExtension + WikiLinkExtension.
- * - Markdown is the canonical store format: `editor.getMarkdown()` on debounced
- *   change → notesStore; `editor.commands.setContent(md)` on scope switch.
+ * - The notes store is the ONE owner of the note body; the editor mirrors it.
+ *   A user edit captures `{scope, md}` and a debounced flush writes exactly that
+ *   scope (flushed early on scope switch and unmount, so a pending save never
+ *   lands in another scope or is lost). A store change the editor did not make
+ *   (an agent `write_note`, a workspace load) reloads the editor without
+ *   emitting an update.
  * - Notes persist via two parallel paths:
  *   (a) workspace blob (existing sidecar autosave, always-written),
  *   (b) atomic `.md` file via Rust `write_text_atomic` (SC-032 crash-safe).
@@ -40,15 +44,13 @@ import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExten
 import { WikiLinkExtension, type WikiLinkItem, type WikiLinkMenuDetail } from "./WikiLinkExtension";
 import { persistNoteMd } from "./notes-persistence";
 
-// ── Debounce ──────────────────────────────────────────────────────────────────
+/** How long a burst of typing coalesces before it is written to the store. */
+const SAVE_DEBOUNCE_MS = 600;
 
-function useDebounce<T>(value: T, ms: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), ms);
-    return () => clearTimeout(timer);
-  }, [value, ms]);
-  return debounced;
+/** A note body tied to the scope it belongs to ("" = General). */
+interface ScopedNote {
+  scope: string;
+  md: string;
 }
 
 // ── Scope chip label ──────────────────────────────────────────────────────────
@@ -136,46 +138,70 @@ export function NotesPanel() {
     },
   });
 
-  // --- Sync scope → editor ---
-  const prevScopeRef = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    if (!editor) return;
-    if (prevScopeRef.current === scope) return;
-    prevScopeRef.current = scope;
-    const md = notesStore.noteFor(scope);
-    // setContent with contentType: 'markdown' — Markdown extension handles parsing.
-    editor.commands.setContent(md || "", { contentType: "markdown" });
-  }, [editor, scope, notesStore]);
+  // --- Store ⇄ editor sync (the store is authoritative) ---
+  const storeNote = useNotesStore((s) => (scope ? (s.bySymbol[scope] ?? "") : s.general));
+  // What the editor shows: the note it last loaded from, or last wrote to, the store.
+  const shownRef = useRef<ScopedNote | null>(null);
+  // The user's unsaved edit, captured with the scope it was typed in.
+  const pendingRef = useRef<ScopedNote | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // --- Debounced save: editor → store → disk ---
-  const [editorMarkdown, setEditorMarkdown] = useState("");
+  // Write the pending edit to ITS scope: store first, then the atomic .md file.
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    if (!pending) return;
+    pendingRef.current = null;
+    shownRef.current = pending;
+    const notes = useNotesStore.getState();
+    if (pending.scope === "") {
+      notes.setGeneral(pending.md);
+    } else {
+      notes.setSymbolNote(pending.scope, pending.md);
+    }
+    void persistNoteMd(pending.scope, pending.md);
+  }, []);
 
+  // A user edit (programmatic loads never emit one) → capture + debounce.
   useEffect(() => {
     if (!editor) return;
     const handler = () => {
+      const shown = shownRef.current;
+      if (!shown) return;
       // `getMarkdown()` is added by the Markdown extension.
       const md = (editor as unknown as { getMarkdown: () => string }).getMarkdown();
-      setEditorMarkdown(md);
+      pendingRef.current = { scope: shown.scope, md };
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
     };
     editor.on("update", handler);
     return () => {
       editor.off("update", handler);
     };
-  }, [editor]);
+  }, [editor, flush]);
 
-  const debouncedMd = useDebounce(editorMarkdown, 600);
-
+  // Scope switch, or a store change the editor did not make → reload the editor.
   useEffect(() => {
-    if (!debouncedMd && !editorMarkdown) return;
-    // Write to the notes store. ("" = general scope, matching the store convention.)
-    if (scope === "") {
-      notesStore.setGeneral(debouncedMd);
-    } else {
-      notesStore.setSymbolNote(scope, debouncedMd);
+    if (!editor) return;
+    const shown = shownRef.current;
+    if (shown && shown.scope !== scope) {
+      flush(); // the previous scope's pending edit lands in the previous scope
+    } else if (shown && shown.md === storeNote) {
+      return; // the store already holds what the editor shows (incl. its own write)
     }
-    // Fire-and-forget atomic .md write to disk.
-    void persistNoteMd(scope, debouncedMd);
-  }, [debouncedMd]); // eslint-disable-line react-hooks/exhaustive-deps
+    // An outside write replaces the editor's unsaved edit: the store wins.
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    pendingRef.current = null;
+    shownRef.current = { scope, md: storeNote };
+    editor.commands.setContent(storeNote, { contentType: "markdown", emitUpdate: false });
+  }, [editor, scope, storeNote, flush]);
+
+  // Closing the panel inside the debounce window still saves the last burst.
+  useEffect(() => flush, [flush]);
 
   // --- Listen for slash-menu events ---
   useEffect(() => {

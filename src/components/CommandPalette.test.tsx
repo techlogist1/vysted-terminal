@@ -4,10 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CommandPalette } from "@/components/CommandPalette";
 import type { VystedModule } from "@/lib/module-registry";
 import { useAgentsStore } from "@/store/agents";
+import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useCommandPalette } from "@/store/command-palette";
 import { resetKeybindingsStoreForTests } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 import type { CommandSpec } from "../../types/plugin";
 
 // cmdk-powered palette (FR-120 / SC-031). The corpus/ranking LOGIC is unit-tested
@@ -109,5 +111,19 @@ describe("CommandPalette (cmdk)", () => {
     expect(screen.getByText("Symbols")).toBeInTheDocument();
     const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
     expect(within(symbolsGroup).getByText("NVDA")).toBeInTheDocument();
+  });
+
+  it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    resetChartCommandStoreForTests();
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "nvda" } });
+    const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(symbolsGroup).getByText("NVDA"));
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+    // No chart on screen → one is opened so the command has a consumer.
+    expect(openPanel).toHaveBeenCalledWith("chart");
   });
 });

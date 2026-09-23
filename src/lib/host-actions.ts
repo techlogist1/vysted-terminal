@@ -32,6 +32,7 @@ import {
 import { regionConfig, isRegion, type Region } from "@/lib/region";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
+import { indicatorByKey } from "@/modules/chart/indicators";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -40,7 +41,7 @@ import { usePortfoliosStore, type AssetClass, type Holding } from "@/store/portf
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
-import { useWorkspaceStore } from "@/store/workspace";
+import { isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
 import type {
   BriefDepth,
@@ -474,6 +475,36 @@ function num(input: Record<string, unknown>, key: string): number {
   return typeof v === "number" ? v : Number(v ?? 0);
 }
 
+/** Split set_chart_indicators keys into the ones the chart's indicator catalog
+ *  knows (the keys the sidecar computes) and the unknown ones, which are dropped
+ *  and reported. */
+function splitIndicatorKeys(input: Record<string, unknown>): {
+  known: string[];
+  dropped: string[];
+} {
+  const known: string[] = [];
+  const dropped: string[] = [];
+  for (const raw of strArray(input, "indicators")) {
+    const def = indicatorByKey(raw.trim().toLowerCase());
+    if (def) {
+      known.push(def.key);
+    } else {
+      dropped.push(raw);
+    }
+  }
+  return { known, dropped };
+}
+
+function droppedNote(dropped: readonly string[]): string {
+  return dropped.length ? ` (dropped unknown: ${dropped.join(", ")})` : "";
+}
+
+/** The per-share cost basis the agent gave, or null when it gave none. */
+function costBasisOf(input: Record<string, unknown>): number | null {
+  const v = input.cost_basis;
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
 /**
  * Find an OPEN dockview panel for a resolved token — by its registered id
  * first, then by component (robust to a legacy generated id like `chart-<id>`
@@ -559,10 +590,31 @@ function resolveHolding(input: Record<string, unknown>): Holding | null {
   return portfolio.holdings.find((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? null;
 }
 
-/** The note-scope key: "" = the General bucket, else an uppercased ticker. */
+/** The note-scope key: "" = the General bucket, else an uppercased ticker. The
+ *  catalog tells the model 'global'; 'general' and an empty scope mean it too. */
 function noteScope(input: Record<string, unknown>): string {
   const scope = str(input, "scope").trim();
-  return scope.toLowerCase() === "general" ? "" : scope.toUpperCase();
+  const lower = scope.toLowerCase();
+  return lower === "global" || lower === "general" || lower === "" ? "" : scope.toUpperCase();
+}
+
+/** The write_note mode: the catalog default is 'append', so only an explicit
+ *  'replace' overwrites the note. */
+function noteMode(input: Record<string, unknown>): "append" | "replace" {
+  return str(input, "mode") === "replace" ? "replace" : "append";
+}
+
+/** The layout save_layout writes: the named one, else the active saved layout
+ *  (the catalog: "omit name to update the active saved layout"); a new
+ *  "Agent layout" only when no saved layout is active ("default" is the
+ *  store's name for the unsaved cockpit, "__…" names are internal slots). */
+function saveLayoutName(input: Record<string, unknown>): string {
+  const named = str(input, "name").trim();
+  if (named) {
+    return named;
+  }
+  const active = useWorkspaceStore.getState().name;
+  return active && active !== "default" && !isReservedLayoutName(active) ? active : "Agent layout";
 }
 
 /** A short human label for a note scope. */
@@ -591,13 +643,13 @@ export function describeHostAction(
       };
     }
     case "set_chart_indicators": {
-      const indicators = strArray(input, "indicators");
+      const { known, dropped } = splitIndicatorKeys(input);
       const current = useChartCommandStore.getState().activeIndicators;
       return {
         kind: "chart",
         title: `Set chart indicators${symbol ? ` on ${symbol}` : ""}`,
         before: `Indicators: ${current.length ? current.join(", ") : "none"}`,
-        after: `Indicators: ${indicators.length ? indicators.join(", ") : "none"}`,
+        after: `Indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
       };
     }
     case "open_panel": {
@@ -747,15 +799,19 @@ export function describeHostAction(
     }
     case "portfolio_add_position": {
       const qty = num(input, "quantity");
-      const cost = num(input, "cost_basis");
+      const cost = costBasisOf(input);
+      const price = cost === null ? "no price given" : `@ ${formatPrice(cost)}`;
       const count = activePortfolio()?.holdings.length ?? 0;
       return {
         kind: "data-write",
-        title: `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the portfolio`
+        title: (cost === null
+          ? `Add ${qty || ""} ${symbol} to the portfolio — no price given`
+          : `Add ${qty || ""} ${symbol} ${price} to the portfolio`
+        )
           .replace(/\s+/g, " ")
           .trim(),
         before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
-        after: `Portfolio: +${symbol} ×${qty} (${count + 1} total)`,
+        after: `Portfolio: +${symbol} ×${qty} ${price} (${count + 1} total)`,
       };
     }
     case "portfolio_update_position": {
@@ -787,7 +843,7 @@ export function describeHostAction(
     case "write_note": {
       const scope = noteScope(input);
       const text = str(input, "text");
-      const append = str(input, "mode") === "append";
+      const append = noteMode(input) === "append";
       const current = useNotesStore.getState().noteFor(scope);
       return {
         kind: "data-write",
@@ -811,12 +867,17 @@ export function describeHostAction(
       };
     }
     case "save_layout": {
-      const layoutName = str(input, "name").trim() || "Agent layout";
+      const layoutName = saveLayoutName(input);
+      const updatesActive = layoutName === useWorkspaceStore.getState().name;
       return {
         kind: "data-write",
-        title: `Save the current layout as "${layoutName}"`,
+        title: updatesActive
+          ? `Update the saved layout "${layoutName}"`
+          : `Save the current layout as "${layoutName}"`,
         before: "Saved workspaces: unchanged",
-        after: `Saved workspaces: +"${layoutName}" (current cockpit)`,
+        after: updatesActive
+          ? `Saved workspaces: "${layoutName}" updated (current cockpit)`
+          : `Saved workspaces: +"${layoutName}" (current cockpit)`,
       };
     }
     case "save_screen": {
@@ -873,7 +934,12 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       }
       return null;
     case "set_chart_indicators": {
-      const indicators = strArray(input, "indicators");
+      // Only keys the chart knows reach the fetch: one unknown key made the
+      // sidecar reject the whole request, so every indicator failed.
+      const { known, dropped } = splitIndicatorKeys(input);
+      if (known.length === 0 && dropped.length > 0) {
+        return null; // nothing applicable — never clear the chart over bad keys
+      }
       ensureChartOpen();
       const cc = useChartCommandStore.getState();
       // If a symbol was named, load it first so the indicators apply to the
@@ -881,8 +947,8 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (symbol) {
         cc.loadSymbol(symbol);
       }
-      cc.setIndicators(indicators);
-      return `Set indicators: ${indicators.length ? indicators.join(", ") : "none"}`;
+      cc.setIndicators(known);
+      return `Set indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`;
     }
     case "open_panel": {
       const panel = str(input, "panel");
@@ -1163,7 +1229,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         return null;
       }
       const notes = useNotesStore.getState();
-      const append = str(input, "mode") === "append";
+      const append = noteMode(input) === "append";
       const current = notes.noteFor(scope);
       const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
       if (scope === "") {
@@ -1241,12 +1307,13 @@ async function portfolioUrl(id?: number): Promise<string> {
   return new URL(path, base).toString();
 }
 
-/** The wire body the sidecar's PositionInput expects (snake_case). */
+/** The wire body the sidecar's PositionInput expects (snake_case). An absent or
+ *  non-finite cost basis is null (an update keeps the holding's own cost) —
+ *  never a fabricated 0. */
 function positionBody(input: Record<string, unknown>, fallback?: Holding) {
   const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
   const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
-  const costBasis =
-    typeof input.cost_basis === "number" ? input.cost_basis : (fallback?.costBasis ?? 0);
+  const costBasis = costBasisOf(input) ?? fallback?.costBasis ?? null;
   const assetClass: AssetClass =
     (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
   const note = str(input, "note") || fallback?.note;
@@ -1314,7 +1381,8 @@ export async function applyHostActionAsync(
   switch (name) {
     case "portfolio_add_position": {
       const body = positionBody(input);
-      if (!body.symbol || !(body.quantity > 0)) {
+      // No price given → incomplete arguments (re-pends), never a ₹0 holding.
+      if (!body.symbol || !(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
       await syncPositionToSidecar("POST", body);
@@ -1338,7 +1406,7 @@ export async function applyHostActionAsync(
         return null; // never guess which position to mutate
       }
       const body = positionBody(input, target);
-      if (!(body.quantity > 0)) {
+      if (!(body.quantity > 0) || body.costBasis === null) {
         return null;
       }
       await syncPositionToSidecar("PUT", body, sidecarPositionId(input));
@@ -1371,7 +1439,7 @@ export async function applyHostActionAsync(
       return `Removed ${target.symbol} from the portfolio`;
     }
     case "save_layout": {
-      const layoutName = str(input, "name").trim() || "Agent layout";
+      const layoutName = saveLayoutName(input);
       try {
         await saveWorkspace(layoutName);
       } catch {
@@ -1384,8 +1452,10 @@ export async function applyHostActionAsync(
   }
 }
 
-/** How a host-action apply resolved — the ack vocabulary (D39 §4). */
-export type PublishAckStatus = "applied" | "kept_previous" | "failed";
+/** How a host-action apply resolved — the ack vocabulary (D39 §4). `staged` is
+ *  non-terminal: an AUTO-session change that is not auto-applicable is waiting
+ *  for the user's review; a later applied/failed ack replaces it. */
+export type PublishAckStatus = "applied" | "kept_previous" | "failed" | "staged";
 
 /** Map a host-action apply label onto the ack status: null → failed, a "Kept …"
  *  arbitration (shrink guard / stale run) → kept_previous, else applied. Generic
@@ -1405,6 +1475,8 @@ export interface HostActionAckDetail {
   action: string;
   symbol?: string;
   panel?: string;
+  /** set_chart_indicators keys the chart did not know and did not apply. */
+  dropped?: string[];
 }
 
 /** Build the light ack descriptor from a host action's name + input — the
@@ -1415,10 +1487,12 @@ export function hostActionAckDetail(
 ): HostActionAckDetail {
   const symbol = str(input, "symbol");
   const panel = str(input, "panel");
+  const dropped = name === "set_chart_indicators" ? splitIndicatorKeys(input).dropped : [];
   return {
     action: name,
     ...(symbol ? { symbol } : {}),
     ...(panel ? { panel } : {}),
+    ...(dropped.length ? { dropped } : {}),
   };
 }
 

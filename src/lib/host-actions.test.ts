@@ -9,6 +9,7 @@ import {
   applyHostActionAsync,
   describeHostAction,
   HOST_ACTION_NAMES,
+  hostActionAckDetail,
   isHostActionMutation,
   openCompanyOverview,
   publishAckStatus,
@@ -229,6 +230,24 @@ describe("host-actions", () => {
     const label = applyHostAction("set_chart_indicators", { indicators: ["ma", "rsi"] });
     expect(label).toMatch(/ma, rsi/);
     expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["ma", "rsi"]);
+  });
+
+  it("set_chart_indicators applies only known keys and reports the dropped ones", () => {
+    const input = { indicators: ["rsi", "bollinger_bands"] };
+    expect(describeHostAction("set_chart_indicators", input).after).toBe(
+      "Indicators: rsi (dropped unknown: bollinger_bands)",
+    );
+    expect(applyHostAction("set_chart_indicators", input)).toBe(
+      "Set indicators: rsi (dropped unknown: bollinger_bands)",
+    );
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["rsi"]);
+    expect(hostActionAckDetail("set_chart_indicators", input)).toEqual({
+      action: "set_chart_indicators",
+      dropped: ["bollinger_bands"],
+    });
+    // Nothing applicable: an honest null, the chart's selection is left alone.
+    expect(applyHostAction("set_chart_indicators", { indicators: ["bogus"] })).toBeNull();
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["rsi"]);
   });
 
   it("arrange_layout describes the named templates (B2)", () => {
@@ -959,6 +978,22 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(activeHoldings()).toHaveLength(0);
   });
 
+  it("add with no cost basis writes nothing, and the review card says no price was given", async () => {
+    const input = { symbol: "SUMAX.NS", quantity: 40 };
+    expect(describeHostAction("portfolio_add_position", input).title).toBe(
+      "Add 40 SUMAX.NS to the portfolio — no price given",
+    );
+    expect(
+      describeHostAction("portfolio_add_position", { ...input, cost_basis: 3400 }).after,
+    ).toMatch(/\+SUMAX\.NS ×40 @ .?3,400/);
+    expect(
+      await applyHostActionAsync("portfolio_add_position", { ...input, cost_basis: null }),
+    ).toBeNull();
+    expect(await applyHostActionAsync("portfolio_add_position", input)).toBeNull();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
   it("add with no symbol / non-positive quantity is an honest null", async () => {
     expect(
       await applyHostActionAsync("portfolio_add_position", { quantity: 5, cost_basis: 1 }),
@@ -977,9 +1012,9 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
 
   it("write_note replaces or appends, scoped to General or a ticker", () => {
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
-    expect(applyHostAction("write_note", { scope: "general", text: "First take." })).toMatch(
-      /Wrote the General note/,
-    );
+    expect(
+      applyHostAction("write_note", { scope: "general", text: "First take.", mode: "replace" }),
+    ).toMatch(/Wrote the General note/);
     expect(useNotesStore.getState().general).toBe("First take.");
     applyHostAction("write_note", { scope: "general", text: "Second take.", mode: "append" });
     expect(useNotesStore.getState().general).toBe("First take.\n\nSecond take.");
@@ -989,6 +1024,42 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(applyHostAction("write_note", { scope: "general", text: "  " })).toBeNull();
     const diff = describeHostAction("write_note", { scope: "RELIANCE", text: "x", mode: "append" });
     expect(diff.kind).toBe("data-write");
+  });
+
+  it("write_note honours the catalog-documented args: 'global' is General, mode defaults to append", () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "My thesis.", bySymbol: { NVDA: "old", AAPL: "keep" } });
+    const input = { scope: "global", text: "Agent takeaway." };
+    expect(describeHostAction("write_note", input).title).toBe("Append to the General note");
+    expect(applyHostAction("write_note", input)).toBe("Appended to the General note");
+    expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
+    expect(useNotesStore.getState().bySymbol.GLOBAL).toBeUndefined();
+    // Not the case the fix was written against: an explicit replace on a ticker.
+    const replace = { scope: "NVDA", text: "new", mode: "replace" };
+    expect(describeHostAction("write_note", replace).title).toBe("Write the NVDA note");
+    expect(applyHostAction("write_note", replace)).toBe("Wrote the NVDA note");
+    expect(useNotesStore.getState().bySymbol).toEqual({ NVDA: "new", AAPL: "keep" });
+    expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
+  });
+
+  it("save_layout without a name updates the active saved layout", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+    useWorkspaceStore.setState({ name: "My desk", dockviewApi: { toJSON: () => ({}) } } as never);
+    try {
+      expect(describeHostAction("save_layout", {}).title).toBe('Update the saved layout "My desk"');
+      expect(await applyHostActionAsync("save_layout", {})).toBe('Saved the layout as "My desk"');
+      const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
+      expect(JSON.parse(String(init.body)).name).toBe("My desk");
+      // With no saved layout active, a new "Agent layout" is created.
+      useWorkspaceStore.setState({ name: "default" });
+      expect(describeHostAction("save_layout", {}).title).toBe(
+        'Save the current layout as "Agent layout"',
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      useWorkspaceStore.setState({ name: "default", dockviewApi: null } as never);
+    }
   });
 
   it("remove_from_watchlist removes a tracked symbol and is idempotent-honest", () => {
