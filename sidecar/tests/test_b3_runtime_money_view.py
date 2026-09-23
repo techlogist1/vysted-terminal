@@ -17,6 +17,7 @@ import pytest
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMToolUseEvent, LLMUsage
 from services import agent_runtime
 from services.research.semantics import derive_semantics, display_value
+from services.search.scrub import GUARD_CLOSE, GUARD_OPEN
 
 
 def _research_payload(symbol: str, price: float, fund: dict[str, Any]) -> dict[str, Any]:
@@ -93,7 +94,10 @@ async def _run(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> tupl
     tool_msg = next(
         m for m in provider.round_messages[1] if m.role == "tool" and m.tool_call_id == "r-1"
     )
-    return tool_msg.content, events
+    # Research text is third-party, so the message is fenced (R15-AGENT-021);
+    # the JSON body sits inside the guard after its "Source:" line.
+    body = tool_msg.content.split(GUARD_OPEN, 1)[1].split(GUARD_CLOSE, 1)[0]
+    return body.strip().split("\n", 1)[1], events
 
 
 @pytest.mark.asyncio

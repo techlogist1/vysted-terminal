@@ -55,6 +55,7 @@ from services.llm import get_provider, native_search, oneshot
 from services.llm.base import LLMStreamEvent
 from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
+from services.search.scrub import wrap_untrusted
 
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
 #: vocabulary minus research/answer, which execute inside the loop).
@@ -681,14 +682,20 @@ def _model_facing_content(tool_name: str, result_str: str) -> str:
     """The tool message the MODEL reads, split from the raw result (D-B3-5).
 
     A research result's money scalars become their semantics displays, so a
-    small model cannot mis-scale a raw rupee float (R15-AGENT-001). The panel
-    view (auto-publish) keeps parsing the raw ``result_str``.
+    small model cannot mis-scale a raw rupee float (R15-AGENT-001). A tool whose
+    catalog entry is ``untrusted_text`` (web, news, disclosures, research) is
+    fenced with ``wrap_untrusted``, so injected instructions in a page read as
+    data in a turn that also holds write tools (R15-AGENT-021). The panel view
+    (auto-publish) keeps parsing the raw, unfenced ``result_str``.
     """
+    content = result_str
     if tool_name in _RESEARCH_TOOLS:
         from services.agent_tools import research
 
-        return research.model_content(result_str)
-    return result_str
+        content = research.model_content(content)
+    if catalog.is_untrusted_text(tool_name):
+        content = wrap_untrusted(tool_name, content)
+    return content
 
 
 class _ToolDone:

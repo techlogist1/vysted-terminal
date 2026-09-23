@@ -103,6 +103,11 @@ class Capability:
     #: per-invocation locals are exempt; ``research`` carries its own outer
     #: guard computed from its args).
     timeout_seconds: float | None = None
+    #: The result carries third-party text (web pages, news, exchange
+    #: disclosures, research built from them). The runtime fences it with
+    #: ``scrub.wrap_untrusted`` in the model-facing tool message, so injected
+    #: instructions read as data, never as the user's request (R15-AGENT-021).
+    untrusted_text: bool = False
 
 
 def _cap(
@@ -118,6 +123,7 @@ def _cap(
     aliases: tuple[str, ...] = (),
     default_grant: bool = True,
     timeout_seconds: float | None = None,
+    untrusted_text: bool = False,
 ) -> tuple[str, Capability]:
     return id, Capability(
         id=id,
@@ -131,6 +137,7 @@ def _cap(
         aliases=aliases,
         default_grant=default_grant,
         timeout_seconds=timeout_seconds,
+        untrusted_text=untrusted_text,
     )
 
 
@@ -256,6 +263,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=20.0,
+            untrusted_text=True,
         ),
         _cap(
             "market_overview",
@@ -281,6 +289,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=20.0,
+            untrusted_text=True,
         ),
         # --- web search (Pass B / Pillar C) ----------------------------------
         _cap(
@@ -310,6 +319,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=25.0,
+            untrusted_text=True,
         ),
         _cap(
             "research",
@@ -387,6 +397,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="research",
             read_only=True,
             kind="read_handler",
+            untrusted_text=True,
         ),
         # --- screener --------------------------------------------------------
         _cap(
@@ -619,6 +630,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+            untrusted_text=True,
         ),
         _cap(
             "sec_insider_transactions",
@@ -680,6 +692,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+            untrusted_text=True,
         ),
         _cap(
             "shareholding_pattern",
@@ -1502,6 +1515,12 @@ def is_read_only(tool_id: str) -> bool | None:
     return cap.read_only if cap else None
 
 
+def is_untrusted_text(tool_id: str) -> bool:
+    """True when the tool's result carries third-party text to fence (AGENT-021)."""
+    cap = CAPABILITY_CATALOG.get(tool_id)
+    return bool(cap and cap.untrusted_text)
+
+
 def timeout_for(tool_id: str) -> float | None:
     """Per-dispatch wall budget for a tool (R10, E7); ``None`` = no timeout.
 
@@ -1554,6 +1573,7 @@ __all__ = [
     "internal_capabilities",
     "internal_tool_ids",
     "is_read_only",
+    "is_untrusted_text",
     "mcp_capabilities",
     "mcp_tool_ids",
     "read_handler_ids",

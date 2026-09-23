@@ -184,3 +184,18 @@ def test_write_screener_filters_documents_string_criteria_and_india_universes() 
     assert '"field":"sector"' in desc
     for universe in ("nse-all", "bse-all", "india-all"):
         assert universe in desc, f"stale universe list: {universe} missing"
+
+
+# --- R15-AGENT-021: third-party text tools carry the untrusted_text flag ---
+
+
+def test_third_party_text_tools_are_flagged_untrusted() -> None:
+    flagged = {cid for cid, cap in CAPABILITY_CATALOG.items() if cap.untrusted_text}
+    assert flagged == {
+        "web_search",
+        "news",
+        "market_overview",
+        "corporate_announcements",
+        "sec_filing_content",
+        "research",
+    }
