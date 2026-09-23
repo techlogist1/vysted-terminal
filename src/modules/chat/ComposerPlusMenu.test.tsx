@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 
-import { buildPlusMenuSections, ComposerPlusMenu } from "./ComposerPlusMenu";
+import { autoApplies, PROPOSED_CHANGE_KINDS } from "../../../types/proposed-change";
+import { autoApplyHint, buildPlusMenuSections, ComposerPlusMenu } from "./ComposerPlusMenu";
 import { STATIC_MENTIONS } from "./mentions";
 
 describe("buildPlusMenuSections", () => {
@@ -122,6 +123,28 @@ describe("ComposerPlusMenu", () => {
     expect(screen.getByRole("menuitemradio", { name: /^AUTO/ })).toHaveAttribute(
       "aria-checked",
       "true",
+    );
+  });
+
+  it("the AUTO hint names every change kind on the side autoApplies puts it", () => {
+    const [instant, waits] = autoApplyHint().toLowerCase().split(";");
+    const word = {
+      chart: "chart",
+      panel: "panel",
+      watchlist: "watchlist",
+      "data-write": "data",
+      settings: "settings",
+    } as const;
+    for (const kind of PROPOSED_CHANGE_KINDS) {
+      expect(autoApplies(kind) ? instant : waits).toMatch(new RegExp(`\\b${word[kind]}\\b`));
+      expect(autoApplies(kind) ? waits : instant).not.toMatch(new RegExp(`\\b${word[kind]}\\b`));
+    }
+    expect(instant).toContain("apply instantly");
+    expect(waits).toContain("wait for review");
+    renderMenu();
+    openMenu();
+    expect(screen.getByRole("menuitemradio", { name: /^AUTO/ }).textContent).toContain(
+      autoApplyHint(),
     );
   });
 

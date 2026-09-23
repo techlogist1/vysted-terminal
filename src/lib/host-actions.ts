@@ -1384,8 +1384,10 @@ export async function applyHostActionAsync(
   }
 }
 
-/** How a host-action apply resolved — the ack vocabulary (D39 §4). */
-export type PublishAckStatus = "applied" | "kept_previous" | "failed";
+/** How a host-action apply resolved — the ack vocabulary (D39 §4). `staged` is
+ *  non-terminal: an AUTO-session change that is not auto-applicable is waiting
+ *  for the user's review; a later applied/failed ack replaces it. */
+export type PublishAckStatus = "applied" | "kept_previous" | "failed" | "staged";
 
 /** Map a host-action apply label onto the ack status: null → failed, a "Kept …"
  *  arbitration (shrink guard / stale run) → kept_previous, else applied. Generic
