@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "COD-llm-adapters-2-1",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Real and reproduced: _translate_event emits LLMToolUseEvent on content_block_start with block.input, which the Messages API streams as {}; input_json_delta frames are ignored and content_block_stop (which the SDK fires carrying the accumulated block, _messages.py:406-416) is never handled, so every Anthropic tool call dispatches with input={}. The unit test fixture feeds a pre-filled input on content_block_start, a shape the real API does not send, so it masks the bug. Core agent flow broken on a first-class planner provider = high.",
+    "evidence": "sidecar/services/llm/anthropic.py:213-234, sidecar/.venv/lib/python3.13/site-packages/anthropic/lib/streaming/_messages.py:346-347, sidecar/.venv/lib/python3.13/site-packages/anthropic/lib/streaming/_messages.py:406-416, sidecar/.venv/lib/python3.13/site-packages/anthropic/lib/streaming/_messages.py:456-482, sidecar/tests/test_llm_anthropic.py:165-191, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:642-668",
+    "evidence_checked": "Read the adapter translator, the SDK's build_events/accumulate_event (content_block_start is re-fired as the raw event, accumulation writes into a separate snapshot object), the unit test fixture, and the runtime dispatch (passes event.input straight to invoke_tool, no repair from the final message). Re-ran the prior worker's scratchpad proof with the real anthropic SDK over httpx.MockTransport.",
+    "repro_check": "sidecar/.venv/bin/python3 <scratchpad>/anth_proof.py (SSE: content_block_start input:{} -> 2x input_json_delta building {\"symbol\":\"RELIANCE.NS\"} -> content_block_stop) printed 'tool_use get_quote {}' then 'done tool_use' - arguments lost."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Groq half confirmed: native_search_available('groq',...) is unconditionally True, the runtime then strips 'web_search' from tool_ids on the default tier_a, and GroqProvider pops the web_search flag and injects nothing, so a Groq agent (registry default llama-3.3-70b-versatile, non-Compound) has no web search at all - the adapter's own comment claims a runtime fallback that does not exist. xAI half NOT supported: the finding says xAI docs no longer document search_parameters anywhere, but xAI's current chat-completions API reference still documents search_parameters with mode/return_citations exactly as the adapter sends it; whether the live API still honours it is unverified (no xAI key on the budgeted lane). Severity lowered to medium: Groq is not a _PLANNER_PROVIDERS member and the copilot keeps its research and news tools, so ad-hoc web search is lost but the research flow is not dead.",
+    "evidence": "sidecar/services/llm/native_search.py:62, sidecar/services/llm/native_search.py:186-187, sidecar/services/agent_runtime.py:1335-1340, sidecar/config.py:364-388, sidecar/services/llm/groq.py:108-131, sidecar/services/llm/openai.py:690-695, sidecar/services/llm/native_search.py:132-140, sidecar/config/model_registry.json:26-30, sidecar/agents/copilot.json (tools include research, news, web_search), src/lib/model-options.ts:54-68, https://docs.x.ai/developers/rest-api-reference/inference/chat-completions.md ('search_parameters (object) ... mode (string | null) ... auto: the model choose whether to search data or not ... return_citations (boolean | null)')",
+    "evidence_checked": "Read native_search gating, runtime tool stripping, tier default, Groq and OpenAI-shaped adapters, registry, copilot tool list, model-options pip comment; re-ran the prior worker's scratchpad search_proof.py; fetched xAI's llms.txt index and chat-completions API reference (search_parameters still listed). No xAI/Groq key available, so no live provider call.",
+    "repro_check": "sidecar/.venv/bin/python3 <scratchpad>/search_proof.py -> 'groq native? True', 'groq request keys: [messages, model, stream, tools] tools: [price_data, news]' (no search of any kind); curl docs.x.ai chat-completions.md shows search_parameters still documented."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-3",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Code fact reproduced: on provider gemini (registry default gemini-2.5-pro) with the default tier_a, the runtime sets web_search=True and GeminiProvider puts google_search into the same config.tools list as the agent's function_declarations. Google's tool-combination doc states built-in + custom tool combination is 'supported for Gemini 3 models only', and the replayed model turn carries only {name,args} (no id/signature) which that doc says stateless mode must pass back. Whether 2.5 rejects the round (400) or silently drops a tool family could not be settled without a Gemini key; either outcome breaks or silently degrades the core agent flow on a first-class planner provider, so high stands.",
+    "evidence": "sidecar/services/llm/gemini.py:109-137, sidecar/services/llm/gemini.py:67-83, sidecar/services/llm/native_search.py:62, sidecar/services/llm/native_search.py:186-187, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:1335-1340, sidecar/config/model_registry.json:19-23, https://ai.google.dev/gemini-api/docs/tool-combination.md.txt (line 2: 'Built-in and custom tools combinations are in Preview and supported for Gemini 3 models only.'; line 194: stateless mode 'you must ensure that you pass both the id and the signature fields back')",
+    "evidence_checked": "Read the Gemini adapter request builder and history replay, native-search gate, runtime injection, registry default; re-ran scratchpad search_proof.py (captured config.tools = [['function_declarations'], ['google_search']]); fetched Google's tool-combination doc. No Gemini key exists on the budgeted vy.py lane (OpenRouter/OpenAI only), so the live failure shape is unverified.",
+    "repro_check": "sidecar/.venv/bin/python3 <scratchpad>/search_proof.py -> 'gemini native? True', 'gemini config tools: [[function_declarations], [google_search]]'. Live settle: one vy.py invoke copilot --provider gemini --model gemini-2.5-pro with a real Gemini key, observe 400 vs a round missing one tool family."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-4",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "All three halves reproduced against the real endpoints: OpenRouter's /api/v1/models answers 200 to a bogus bearer (while /api/v1/key answers 401), and OpenRouter shares OpenAIProvider.validate_key which only probes models.list, so a typo'd key is reported valid and written to the keychain. xAI answers a bad key with HTTP 400 'Incorrect API key provided' and Gemini with 400 API_KEY_INVALID; neither adapter maps 400 to False, so the router returns 'transport error: ...' and humanize's auth branch (401/403 only) misses it on the chat stream too. For Gemini/xAI the key is still correctly not saved (ok=false) - the defect there is the misleading message, so medium overall is right.",
+    "evidence": "sidecar/services/llm/openai.py:842-855, sidecar/services/llm/__init__.py:98-99, sidecar/services/llm/gemini.py:186-204, sidecar/routers/llm.py:99-111, sidecar/services/errors.py:165-171, src/components/KeyEntryDialog.tsx:64-82",
+    "evidence_checked": "Read every validate_key implementation, the OpenRouter provider construction, the validate route, humanize's status classification and the key dialog save path; ran live curl probes with fake keys against openrouter.ai, api.x.ai and generativelanguage.googleapis.com (no real key used).",
+    "repro_check": "curl -H 'Authorization: Bearer not-a-real-key' https://openrouter.ai/api/v1/models -> 200; .../api/v1/key -> 401; curl api.x.ai/v1/models with fake bearer -> 400 'Incorrect API key provided'; curl generativelanguage.googleapis.com/v1beta/models?key=<fake> -> 400 reason API_KEY_INVALID."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Both halves hold. Ollama: the installed SDK's Message.ToolCall has no id field and drops one even if the server sends it (verified), so the adapter always emits tool_call_id=''; ackHostAction returns early on an empty id and ActionAckRequest requires min_length=1, so on the store's default provider every host action is rewritten to 'dispatched_unconfirmed' after the 0.8 s grace. Gemini: ids fall back to f'{name}_{index}' with the index reset per stream, and action_ledger is process-global with a 600 s TTL and no per-run scoping, so a repeated host action in a later round/run finds the earlier 'applied' ack and the model is told the new action applied. No normalization exists anywhere in the runtime. Ollama tool turns also omit tool_name although the SDK Message has it.",
+    "evidence": "sidecar/services/llm/ollama.py:206-215, sidecar/services/llm/ollama.py:89-90, sidecar/.venv/lib/python3.13/site-packages/ollama/_types.py:330-352, sidecar/services/llm/gemini.py:140-163, sidecar/services/action_ledger.py:25-31, sidecar/services/action_ledger.py:47-86, sidecar/services/agent_runtime.py:939-940, sidecar/services/agent_runtime.py:1065-1125, sidecar/services/agent_runtime.py:1620-1625, sidecar/routers/agents.py:44-65, src/lib/host-actions.ts:1452-1459, src/store/llm-providers.ts:133-135",
+    "evidence_checked": "Read the Ollama and Gemini id minting, the ollama SDK types, the ledger, the runtime ack wait + grounded rewrite, the ack route model and the frontend ack sender; ran a snippet validating a ChatResponse whose tool_call carries id 'call_abc' through the installed ollama 0.6.2 SDK.",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"from ollama._types import ChatResponse; r=ChatResponse.model_validate({...tool_calls:[{'id':'call_abc','function':{...}}]}); print(getattr(r.message.tool_calls[0],'id','<none>'))\" -> '<none>' (id dropped, adapter falls back to '')."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: the adapter reports output_tokens=candidates_token_count and input_tokens=prompt_token_count only, while the installed google-genai types document total_token_count as the sum of prompt + candidates + tool_use_prompt + thoughts, i.e. thoughts and grounding-prompt tokens are separate and dropped. BudgetGuard.record folds only input+output (+cache fields Gemini never sets), so token and USD ceilings under-meter every thinking Gemini round. Wall and step ceilings still bound a run, so it is an overspend-past-ceiling defect, not unbounded spend - medium holds.",
+    "evidence": "sidecar/services/llm/gemini.py:167-173, sidecar/.venv/lib/python3.13/site-packages/google/genai/types.py:7796-7826, sidecar/services/budget_guard.py:116-135, sidecar/services/agent_runtime.py:1466-1467",
+    "evidence_checked": "Read the Gemini usage extraction, the SDK GenerateContentResponseUsageMetadata field docs, BudgetGuard.record and the runtime's on_round_usage hook. No Gemini key available for a live usage capture.",
+    "repro_check": "Code-only: gemini.py:170-173 builds LLMUsage from prompt_token_count/candidates_token_count; types.py:7826 states total = prompt + candidates + tool_use_prompt + thoughts. Live settle: one gemini-2.5-pro round, compare usage_metadata.thoughts_token_count against the LLMDoneEvent usage."
+  },
+  {
+    "raw_id": "COD-llm-adapters-2-7",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Confirmed: DEFAULT_MAX_TOKENS=4096 is the only value the Anthropic adapter ever sends - no sidecar or frontend caller sets an adapter max_tokens (the frontend max_tokens is the Delegate BudgetGuard ceiling, a different field), and oneshot.complete (the deep-research synthesis path) passes no options. finish_reason rides LLMDoneEvent to the browser, but the runtime only acts on 'content_filter', oneshot breaks on done without inspecting it, and the frontend decodes finishReason with no consumer, so a max_tokens/length cut-off is rendered as a complete answer on any provider.",
+    "evidence": "sidecar/services/llm/anthropic.py:36-37, sidecar/services/llm/anthropic.py:110, sidecar/services/llm/oneshot.py:77-92, sidecar/services/agent_runtime.py:98-107, sidecar/services/agent_runtime.py:1485-1497, sidecar/services/agent_tools/deep_research.py:322-325, src/modules/chat/streaming.ts:327-342, src/lib/delegate-runs.ts:97-102",
+    "evidence_checked": "Grepped sidecar services/routers and src for max_tokens/maxTokens/finishReason consumers; read the adapter, oneshot driver, runtime terminator handling, deep-research llm_call and the frontend SSE decoder.",
+    "repro_check": "grep -rn 'max_tokens' sidecar/services sidecar/routers (only the runtime allowlist + BudgetGuard/run_manager ceilings) and grep -rn 'finishReason' src (only the decoder) - no caller sets output length, no consumer flags truncation."
+  }
+]

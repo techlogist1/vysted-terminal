@@ -1,0 +1,47 @@
+[
+  {
+    "raw_id": "DAT-P10-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Mechanism corrected: former_name is by contract set ONLY when the query is answered as its renamed form (the retired symbol typed), so null on q=VIYASH / name / 512529 is per-contract (symbol_resolver.py:239, :896). The real, worse defect the notes gesture at is confirmed live: q=SEQUENT returns ok:false 'No instrument matched' because the rename lane only rewrites an instrument the masters already resolved (_annotate_renamed_symbols returns early when best is None, :836) and SEQUENT is in neither bundled master, even though NSE's symbolchange.csv (the lane's own source) carries 'Viyash Scientific Limited,SEQUENT,VIYASH,23-JAN-2026'; there is also no reverse (current->former) lookup, so the identity payload never says 'formerly Sequent'. Severity stays high: the assigned hostile trait (a rename) hard-misses on the old symbol and name.",
+    "evidence": "sidecar/services/symbol_resolver.py:239, :667-673, :782-825, :827-848, :896; sidecar/services/nse_symbol_change.py:84, :323-345; sidecar/services/resolver_masters/nse_instruments.json (no SEQUENT row); https://nsearchives.nseindia.com/content/equities/symbolchange.csv (fetched 2026-09-23T01:08:06Z, row 'Viyash Scientific Limited,SEQUENT,VIYASH,23-JAN-2026')",
+    "evidence_checked": "Opened resolver enrichment + rename lane + nse_symbol_change lookup; repro'd against :52152; fetched NSE symbolchange.csv; grepped bundled masters for SEQUENT.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=SEQUENT' -> {ok:false, message:\"No instrument matched 'SEQUENT'.\", candidates:[]} (2026-09-23T01:07:50Z); q=Sequent+Scientific -> only US names (RSCF, SFES, BSX...), no VIYASH."
+  },
+  {
+    "raw_id": "DAT-P10-2",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "Not the same basis: net_income_ttm maps yfinance netIncomeToCommon (attributable to owners), while screener's 'Net Profit' row is INCLUDING minority interest (its FY26 225 = the app's own 'Net Income Including Noncontrolling Interests' 224.65 cr; its FY26 EPS 4.06 matches the owners' 177.29 cr). The app's 211.34 cr reconciles exactly to owners' TTM: FY26 owners 177.285 - Jun25 owners 31.81 + Jun26 owners 65.87 = 211.345 cr; screener's 267 = 225 - 37 + 79 on the incl-NCI basis. A definitional difference (owners vs incl. minority), not a wrong value; the only residue is that the field carries no basis label (field_meta label null), a low-grade labelling note, not this finding.",
+    "evidence": "sidecar/services/yfinance_provider.py:392; sidecar/models/fundamentals.py:92; docs/redesign/verification/r15/battery/collected/P10_VIYASH.json:777-801 (FY26 Net Income 1,772,850,000; incl NCI 2,246,510,000); https://www.screener.in/company/VIYASH/consolidated/ (fetched 2026-09-23T01:09:03Z: annual Net Profit ... 16 225 267, EPS ... 0.93 4.06 5.76; quarterly Net Profit ... 37 73 49 66 79)",
+    "evidence_checked": "Opened provider mapping + model; re-fetched screener consolidated (the one pack-source re-fetch); pulled yfinance quarterly_income_stmt for VIYASH.NS via sidecar venv (Net Income Common Stockholders Jun25 318.1M, Jun26 658.7M; netIncomeToCommon 2,113,449,984); re-ran /fundamentals/VIYASH on :52152 (net_income_ttm unchanged 2,113,449,984).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/VIYASH -> net_income_ttm 2113449984; 1772.85M - 318.1M + 658.7M = 2113.45M, i.e. owners' TTM; screener 267 = incl-NCI TTM."
+  },
+  {
+    "raw_id": "DAT-P10-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "ROE blank holds (yfinance returnOnEquity absent for VIYASH, no computed fallback; still null on a fresh GET), and screener re-fetch confirms ROE 7.39% / ROCE 13.4%. Correction on scope: ROCE is not 'absent for this call' - the Fundamentals model has no roce field at all (models/fundamentals.py:81-95 has roe/roa only; zero 'roce' hits across sidecar services/routers/models), so ROCE is missing for EVERY symbol, a product-wide gap rather than a VIYASH data issue. Severity stays medium.",
+    "evidence": "sidecar/services/yfinance_provider.py:381; sidecar/models/fundamentals.py:64-95; https://www.screener.in/company/VIYASH/consolidated/ (fetched 2026-09-23T01:09:03Z: 'ROCE 13.4 % ROE 7.39 %')",
+    "evidence_checked": "Opened model + provider mapping; grepped sidecar for roce/returnOnEquity fallbacks; re-ran /fundamentals/VIYASH on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/VIYASH -> roe null, 'roce' key absent (2026-09-23T01:09Z); grep -rn roce sidecar/{services,routers,models} -> no hits."
+  },
+  {
+    "raw_id": "DAT-P10-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Partly wrong: dividend_per_share_ttm is a DERIVED field (_DERIVED_FIELDS, yfinance_provider.py:173-180) with no field_meta on /fundamentals (the cited :370-383 are dividend_yield and dividend_per_share, not _ttm), and the app already has the affirmed-zero mechanism the notes propose (dividend_history.py:43, :124-128; wired on the research path at fast.py:207-229) - live it returns DividendTTM(0.0, 'affirmed_zero', 'no dividends paid (trailing 12m)') for VIYASH.NS. What survives: the /fundamentals route and EquityOverviewPanel (dividend_per_share/dividend_yield rows) never run that leg, and the yield leg does not derive 0.00% from an affirmed-zero TTM, so a confirmed non-payer's yield reads 'unavailable - provider did not publish'. Labelled (not silent) and the research brief states the zero, so lowered to low.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-180, :343-347, :374; sidecar/services/dividend_history.py:40-49, :93-128; sidecar/services/research/fast.py:207-229; sidecar/services/research/semantics.py:862-960; src/modules/equity-overview/EquityOverviewPanel.tsx:129-133",
+    "evidence_checked": "Opened provider, dividend_history, fast.py wiring, semantics dividend leg, EquityOverviewPanel; ran _sum_trailing_dividends('VIYASH.NS') in the sidecar venv (history: 2017/2019/2021 payouts -> affirmed_zero); re-ran /fundamentals/VIYASH on :52152 (dividend_yield/per_share null, dividend_per_share_ttm null with no field_meta). Screener re-fetch confirms 'Dividend Yield 0.00 %'.",
+    "repro_check": "sidecar/.venv/bin/python3 -c 'from services.dividend_history import _sum_trailing_dividends; print(_sum_trailing_dividends(\"VIYASH.NS\"))' -> affirmed_zero 0.0; curl /fundamentals/VIYASH -> dividend_yield null 'provider did not publish this field'."
+  },
+  {
+    "raw_id": "DAT-P10-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Absence confirmed and broader than stated: no equity face_value exists anywhere in the product (only the bond pricer's face_value, models/quant.py:152), and the bundled NSE master keeps symbol/name/series only (resolver_masters/__init__.py:4; VIYASH row is [\"VIYASH\",\"Viyash Scientific Limited\",\"EQ\"]), so the fix-shape claim that the sidecar already holds EQUITY_L face value is wrong. But the 5x 'trap' consequence cannot occur - no app computation assumes or uses an equity face value - so this is a missing reference field (useful for %-of-FV dividend announcements), lowered to low.",
+    "evidence": "sidecar/services/resolver_masters/__init__.py:1-6; sidecar/services/resolver_masters/nse_instruments.json (VIYASH row); sidecar/models/quant.py:152; https://www.screener.in/company/VIYASH/consolidated/ (fetched 2026-09-23T01:09:03Z: 'Face Value ₹ 2.00')",
+    "evidence_checked": "grep -rn face_value/EQUITY_L across sidecar services/routers/models, src, types; inspected bundled NSE master row; re-ran /fundamentals/VIYASH on :52152 (no face_value).",
+    "repro_check": "grep -rn 'face_value' sidecar/services sidecar/models src types -> only quant bond hits; curl /fundamentals/VIYASH | grep face_value -> none."
+  }
+]

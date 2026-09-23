@@ -1,0 +1,82 @@
+[
+  {
+    "raw_id": "DAT-P4-1",
+    "title": "Fundamentals income/balance/cashflow statements for SAFE (BSE SME 544257, Sodhani Academy of Fintech Enablers) actually serve Safehold Inc (NYSE:SAFE, a US ground-lease REIT)",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE/income (and /balance, /cashflow) on the isolated stack -> operating_revenue for 2025-12-31 = 369,376,000; total_assets (balance) = 7,249,275,000; long_term_debt = 4,485,887,000; ordinary_shares_number = 71,756,336. The same slot's /fundamentals/SAFE (summary) and /disclosures/shareholding endpoints correctly return the Indian company's real scale: revenue_ttm 36,488,000 (~INR 3.65 crore), shares_outstanding 5,695,000, promoter holding 73.58% via BSE XBRL. The company genuinely has ~13 employees, Rs 17.14 crore total balance sheet (Mar-2026) and Rs 5.70 crore equity capital per screener.in -- it cannot have Rs 724.9 crore/US$7.2bn of assets or 71.76 million shares.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.income.body, calls.balance.body, calls.cashflow.body, provider 'openbb-mcp') vs calls.fundamentals.body and calls.shareholding.body in the same file; docs/redesign/verification/r15/battery/packs/P4_SAFE.json (revenue_ttm=3.65 INR crore, net_profit_ttm=3.47 INR crore, source https://www.screener.in/company/544257/); the pack's own trap T1 predicted exactly this collision (\"NYSE:SAFE = Safehold Inc., which is present in the app's own us_instruments.json\")",
+    "notes": "The openbb-mcp-backed detail endpoints (income/balance/cashflow statement tabs) are not resolving through the same symbol-to-instrument mapping as the summary fundamentals/quote/shareholding endpoints, so a stock detail page for this BSE SME would show a correct overview panel but a completely wrong financials panel for a different multi-billion-dollar US company on the same ticker. Smallest fix shape: the income/balance/cashflow provider call for equity.region=IN symbols must route through the same resolved instrument (ISIN/bse_code/yahoo_symbol=SAFE.BO) used by /fundamentals/SAFE, not a bare 'SAFE' ticker lookup against openbb-mcp's default (US-first) universe; add a regression asserting statement-endpoint currency/scale sanity-checks against the summary endpoint for every symbol in the ambiguous-symbol set (SAFE, AMAL, SMR, etc. per COMMON.md/manifest)."
+  },
+  {
+    "raw_id": "DAT-P4-2",
+    "title": "ROE for SAFE shown as 22.36% vs the verified true value of 20.28%",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE -> roe: 0.22358 (field_meta status 'ok', provider yfinance). True FY26 ROE = net profit 3.47 cr / closing net worth 17.11 cr (equity capital 5.70 + reserves 11.41) = 20.28%, corroborated independently by both Angel One and Groww.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.fundamentals.body.roe, calls.fundamentals.body.field_meta.roe) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (roe.value=20.28, derivation_check: '3.47 cr / (5.70+11.41=17.11 cr) = 20.28%', corroboration: 'groww.in also 20.28%')",
+    "notes": "A ~2.1pp / ~10% relative error on a headline valuation ratio, presented with field_meta.status='ok' and no caveat -- exactly the kind of quietly-wrong number the product's data-trust moat is supposed to prevent. Smallest fix shape: cross-check yfinance-derived ratios against the balance-sheet-derived value the app already computes elsewhere (book_value_per_share matched exactly, so the underlying equity figure is known-good) and flag/replace when they diverge beyond a small tolerance."
+  },
+  {
+    "raw_id": "DAT-P4-3",
+    "title": "Promoter/insider holding self-contradicts within the app: 75.91% (fundamentals, yfinance) vs 73.58% (disclosures/shareholding, BSE XBRL) for the same as-of quarter",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE -> held_percent_insiders: 0.75907. GET http://127.0.0.1:52152/disclosures/shareholding?symbol=SAFE -> patterns[0] (quarter_end 2026-03-31): promoter_percent: 73.58. Both calls run against the same isolated stack in the same collection pass.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.fundamentals.body.held_percent_insiders vs calls.shareholding.body.patterns[0].promoter_percent) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (shareholding.promoter_pct.value=73.58, corroboration: 'groww.in and angelone.in both 73.58%')",
+    "notes": "The BSE-XBRL-sourced 73.58% matches all 3 corroborating outside sources exactly; the yfinance-sourced 75.91% matches none. Per PROMPT_data_s2.md this is explicitly called out as 'the single most gameable number in an Indian small-cap' -- a panel that surfaces the yfinance figure (e.g. an overview/summary card) would show a wrong promoter stake next to a correct one on the shareholding panel. Smallest fix shape: for equity.region=IN symbols, prefer/overwrite the BSE-XBRL shareholding figure over the yfinance held_percent_insiders field, or drop the latter from the IN response entirely."
+  },
+  {
+    "raw_id": "DAT-P4-4",
+    "title": "Latest-results route hard-502s for this BSE-SME-only company instead of degrading gracefully",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=SAFE -> HTTP 502, body {\"detail\": \"nse_direct: 'SAFE' is not a known NSE instrument\"}. The company genuinely has real, findable results: H2 FY2026 (half-year ended 31-Mar-2026), sales Rs 1.58 crore, net profit Rs 1.43 crore, EPS Rs 2.51, filed 2026-05-13 per screener.in, and the app's own /disclosures/shareholding and /disclosures/announcements routes for the same symbol succeed via BSE.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.results_calendar: status 502, body.detail) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (latest_results.quarter, latest_results.filing_date, source https://www.screener.in/company/544257/)",
+    "notes": "The results-calendar path appears to require an NSE instrument mapping and throws instead of falling back to the BSE-only path that shareholding/announcements already use successfully for this same symbol. This is a core-flow break, not a wrong value: for the entire class of BSE-SME/BSE-only listings (which is a large fraction of the 'obscure stock' coverage this product is benchmarked on against screener.in), the latest-results surface fails outright. Smallest fix shape: route /disclosures/results through the resolved instrument's exchange (bse_code present, nse_symbol null) and only attempt nse_direct when an NSE symbol is actually resolved; otherwise use/extend the existing BSE announcements-based results detection."
+  },
+  {
+    "raw_id": "DAT-P4-5",
+    "title": "Sector/industry classification for SAFE matches none of the 4 corroborating outside sources",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE -> sector: 'Industrials', industry: 'Specialty Business Services'. Outside sources (all read the same day) disagree with each other but never land here: screener.in 'Consumer Discretionary / E-Learning', Angel One 'Education', TradingView 'Technology Services / Internet Software/Services', Groww 'Fintech / Financial Services Training and Consultancy'.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.fundamentals.body.sector, .industry) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (identity.sector.readings[0..3])",
+    "notes": "A 5th, unsourced classification for an already-contested field: any sector-based screen or peer comparison built on this value would use a label none of the four screener-grade aggregators independently arrived at. Likely another symptom of the yfinance provider resolving a different or generic instrument record for this ISIN (see DAT-P4-1/DAT-P4-3 for the same provider's other divergences on this symbol). Smallest fix shape: surface screener.in's sector/industry (already scraped elsewhere in the pipeline per COMMON.md source tiering) for IN equities rather than relying on yfinance's classification."
+  },
+  {
+    "raw_id": "DAT-P4-6",
+    "title": "debt_to_equity blank despite being a reliably known, doubly-cross-checked value (0.0x, debt-free company)",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE -> debt_to_equity: null, field_meta.debt_to_equity: {status: 'unavailable', reason: 'provider did not publish this field'}.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.fundamentals.body.debt_to_equity, .field_meta.debt_to_equity) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (debt_to_equity.value=0.0, cross_check: 'screener.in balance sheet shows Borrowings 0.00 for Mar 2025 and Mar 2026 ... interest expense 0.00 in every year FY21-FY26')",
+    "notes": "A demanding owner comparing this small-cap against peers on leverage sees a blank instead of the fact that it is debt-free, which is itself a notable and easily-computable signal (equity 5.70 + reserves 11.41, borrowings 0 across two filed years). Smallest fix shape: compute debt_to_equity from the balance-sheet fields the app already has (total_debt / total_common_equity) rather than depending solely on an unpublished yfinance field."
+  },
+  {
+    "raw_id": "DAT-P4-7",
+    "title": "dividend_per_share_ttm blank despite being cleanly derivable and equal to a value the app already shows",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/SAFE -> dividend_per_share: 0.75 (populated), dividend_per_share_ttm: null.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.fundamentals.body.dividend_per_share, .dividend_per_share_ttm) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (dividend.paid_trailing_12m_per_share.value=0.75, basis: 'only the 2026-08-18 ex-date falls inside 12 months of 2026-09-19')",
+    "notes": "In this specific case the trailing-12m figure equals the last-declared figure (only one ex-date fell in the window), so the app already has every input it needs (it shows dividend_per_share=0.75 correctly) but leaves the ttm variant null. Smallest fix shape: derive dividend_per_share_ttm from the same corporate-actions/dividend-history data the app already ingests rather than depending on an unpopulated yfinance TTM field."
+  },
+  {
+    "raw_id": "DAT-P4-8",
+    "title": "DII shareholding percent renders as null instead of 0.00% for quarters where the true value is exactly zero",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P4_SAFE",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=SAFE -> patterns[0] (2026-03-31): dii_percent null; patterns[2] (2025-03-31): dii_percent null. The same response correctly shows non-null nonzero values for the other two quarters: patterns[1] (2025-09-30): dii_percent 0.01; patterns[3] (2024-09-30): dii_percent 0.79.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P4_SAFE.json (calls.shareholding.body.patterns[0].dii_percent, patterns[2].dii_percent, patterns[1].dii_percent, patterns[3].dii_percent) vs docs/redesign/verification/r15/battery/packs/P4_SAFE.json (shareholding.dii_pct.value=0.0 for Mar-2026, history: '0.79% (Sep 2024) -> 0.00% (Mar 2025) -> 0.01% (Sep 2025) -> 0.00% (Mar 2026)', source https://www.screener.in/company/544257/)",
+    "notes": "The pattern (null exactly on the two quarters where DII holding genuinely is 0.00%, correct nonzero elsewhere) points to a parser treating a zero-valued DII row in the BSE XBRL shareholding filing as absent rather than as a parsed zero -- the opposite of the FII field, where absence (no row at all) is the correct reading and the app's null there is right. A user reading 'null' cannot tell 'institution holds a genuine 0%' from 'we don't know', for a field the world does in fact know. Smallest fix shape: in the BSE shareholding-pattern XBRL parser, distinguish an explicit zero-valued DII/FII element from a genuinely missing element, instead of collapsing both to null."
+  }
+]

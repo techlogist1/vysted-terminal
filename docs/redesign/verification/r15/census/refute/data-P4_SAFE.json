@@ -1,0 +1,74 @@
+[
+  {
+    "raw_id": "DAT-P4-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Real, and the mechanism is confirmed. openbb-mcp ranks first for statements (rank 10) and its statement seam sends the bare ticker through _normalize_symbol ('SAFE') with provider=yfinance, so Yahoo resolves NYSE:SAFE (Safehold). The statement routes also pass no validator, so nothing checks identity or currency. The yfinance fallback would have used _yahoo_symbol -> SAFE.BO correctly, but it is never reached because openbb returns rows. This affects every IN ticker whose bare symbol collides with a US listing, and the resolver itself lists Safehold as a second SAFE candidate.",
+    "evidence": "sidecar/services/provider_registry.py:127-139 (openbb-mcp rank 10 serves income/balance/cash), sidecar/services/provider_registry.py:495-513 (statement resolves pass validator None), sidecar/services/openbb_mcp_provider.py:260-262 (_normalize_symbol = bare upper, no .BO/.NS mapping), sidecar/services/openbb_mcp_provider.py:445-477 (_financial_statement / get_income_statement), sidecar/services/openbb_mcp_provider.py:98-105 (_DEFAULT_PROVIDERS income=yfinance), sidecar/services/yfinance_provider.py:97-133 (_yahoo_symbol maps a BSE-only name to .BO, unused on this path)",
+    "evidence_checked": "Opened the registry, the openbb provider and the yfinance symbol mapping. Re-ran the repro live against :52152 at 2026-09-23T00:54:52Z. Read calls.resolve_bare_symbol in the collected file, which shows 2 candidates (the Indian BSE company plus Safehold Inc.).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SAFE/income -> provider openbb-mcp, periods 2025-12-31.., operating_revenue 369,376,000 and net_income 114,469,000 (Safehold's USD scale, Dec fiscal year), while /fundamentals/SAFE -> symbol SAFE.BO, revenue_ttm 36,488,000 INR"
+  },
+  {
+    "raw_id": "DAT-P4-2",
+    "verdict": "refuted",
+    "severity_final": "high",
+    "reason": "Definitional difference, not a wrong value. The app's 0.22358 is exactly FY26 PAT over AVERAGE equity, a standard ROE basis: 3.47 / ((5.70+8.23 = 13.93 at Mar-2025) + (5.70+11.41 = 17.11 at Mar-2026)) / 2 = 3.47 / 15.52 = 22.36%. The pack's 20.28% is on CLOSING equity (the pack's own stated basis). Per PROMPT_data_s2 a definitional difference is never a finding.",
+    "evidence": "https://www.screener.in/company/544257/ (fetched 2026-09-23T00:55:17Z; balance sheet: 'Equity Capital ... Mar 2025 5.70 Mar 2026 5.70', 'Reserves ... Mar 2025 8.23 Mar 2026 11.41'); docs/redesign/verification/r15/battery/packs/P4_SAFE.json roe.basis 'FY26 net profit / FY26 closing net worth'; docs/redesign/verification/r15/battery/collected/P4_SAFE.json calls.fundamentals.body.roe=0.22358",
+    "evidence_checked": "Re-fetched the pack's screener.in source (the one allowed pack re-fetch) to get the Mar-2025 net worth. Re-ran /fundamentals/SAFE on :52152 (roe still 0.22358). Did the arithmetic on both bases.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SAFE -> roe 0.22358; 3.47/((13.93+17.11)/2) = 0.22358 exactly (average-equity basis), 3.47/17.11 = 0.2028 (closing-equity basis)"
+  },
+  {
+    "raw_id": "DAT-P4-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Not a same-definition contradiction. held_percent_insiders is Yahoo's heldPercentInsiders, which counts insiders, a superset of the promoter group with mixed as-of dates. The Equity Overview labels it 'Insiders', and research semantics deliberately classes a same-direction gap of 3pp or less as definitional. Here the gap is 2.33pp on 19-Sep and 2.79pp on the 23-Sep re-fetch (0.76372). The value drifting between fetches also shows it is not the Mar-2026 SHP quarter. The residual real defect is labelling: the screener criterion pickers call this field 'Insider/promoter holding (frac)', which presents the insiders figure as a promoter stake.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:141 (label 'Insiders'), sidecar/services/research/semantics.py:76-83 (_OWNERSHIP_DEFINITIONAL_PP = 3.0, insiders superset), sidecar/services/research/semantics.py:470-500 (definitional-vs-data conflict note), sidecar/services/ownership_check.py:1-35 (insiders != promoter-group by definition), src/modules/screener/CriterionGroupEditor.tsx:51 and src/modules/screener/ScreenerCriteriaBuilder.tsx:57 (label 'Insider/promoter holding (frac)')",
+    "evidence_checked": "Opened the overview panel, ownership_check, research semantics and the screener label sites. Re-fetched /fundamentals/SAFE on :52152 at 2026-09-23T00:54Z: held_percent_insiders 0.76372 vs 0.75907 on 19-Sep.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SAFE -> held_percent_insiders 0.76372 (was 0.75907 on 19-Sep) vs /disclosures/shareholding promoter_percent 73.58 (Mar-2026); gap 2.79pp is within the code's documented 3pp definitional band"
+  },
+  {
+    "raw_id": "DAT-P4-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 502 is real: get_results_calendar is NSE-only, with no BSE lane (unlike get_shareholding's NSE/BSE lanes), and the router maps the ProviderError to 502. The severity is overstated, though. No frontend panel calls /disclosures/results. The one internal consumer (research/disclosures.fetch_results_calendar) soft-fails to ok:false and only runs for earnings-date questions, and results figures reach research through BSE announcements. So this is not a 'latest-results surface fails outright' core-flow break. The real impact is a board-meeting/results-date calendar gap for every BSE-only name, plus a 502 where a not-listed-on-NSE 404 or empty result would be honest.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358 (get_results_calendar -> nse_provider.get_results_calendar only), sidecar/services/corporate_disclosures.py:383-393 (shareholding has NSE+BSE lanes, for contrast), sidecar/routers/disclosures.py:74-91 (ProviderError -> 502), sidecar/services/research/disclosures.py:185-203 and :318-321 (soft-fail, earnings-date questions only); grep of src/ for 'disclosures' finds no frontend consumer",
+    "evidence_checked": "Opened the router, the service, the NSE fetch and the research consumer. Grepped src/ for consumers. Re-ran the repro on :52152.",
+    "repro_check": "curl -s 127.0.0.1:52152/disclosures/results?symbol=SAFE -> HTTP 502 {\"detail\":\"nse_direct: 'SAFE' is not a known NSE instrument\"} (2026-09-23T00:54Z)"
+  },
+  {
+    "raw_id": "DAT-P4-5",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "There is no outside truth for this field. The pack itself records identity.sector as 'UNRESOLVABLE - four sources give four answers' and notes 'Any single sector label is a judgement call'. Each source uses its own taxonomy, so the yfinance/Morningstar-style 'Industrials / Specialty Business Services' is a fifth taxonomy's reading, not a wrong value. Per PROMPT_data_s2, a field with no settled outside value, or a definitional difference, is never a raw finding. The value is provider-tagged in field_meta (yfinance).",
+    "evidence": "docs/redesign/verification/r15/battery/packs/P4_SAFE.json identity.sector (value 'UNRESOLVABLE - four sources give four answers', note 'Any single sector label is a judgement call'); docs/redesign/verification/r15/battery/collected/P4_SAFE.json calls.fundamentals.body.sector/industry",
+    "evidence_checked": "Read the pack's sector entry and its four conflicting readings. Re-fetched /fundamentals/SAFE on :52152 (sector/industry unchanged).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SAFE -> sector 'Industrials', industry 'Specialty Business Services'; the pack has 4 mutually disagreeing outside readings and no single truth"
+  },
+  {
+    "raw_id": "DAT-P4-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The blank is real. Yahoo omits debtToEquity for this debt-free company, and yfinance_provider maps that to null. It is not a silent blank, though: field_meta stamps status 'unavailable' with reason 'provider did not publish this field', and the Equity Overview renders that as an explicit 'not published' reason chip. That is a labelled gap, so severity drops to low (it is still systematic for debt-free names). The proposed fix shape is also wrong for this symbol: the app's balance-sheet statements for SAFE are Safehold's (DAT-P4-1), so deriving D/E from them today would show Safehold's leverage.",
+    "evidence": "sidecar/services/yfinance_provider.py:353-356 (debtToEquity -> None when absent), sidecar/services/yfinance_provider.py:195-201 (unavailable stamp for provider nulls), src/modules/equity-overview/EquityOverviewPanel.tsx:183-199 ('not published' reason chip), docs/redesign/verification/r15/battery/collected/P4_SAFE.json calls.fundamentals.body.field_meta.debt_to_equity; https://www.screener.in/company/544257/ (fetched 2026-09-23T00:55:17Z, 'Borrowings ... 0.00 0.00' Mar 2025/Mar 2026)",
+    "evidence_checked": "Opened the yfinance mapping and the overview's null-reason rendering. Confirmed borrowings of 0 on the re-fetched screener page. Re-ran /fundamentals/SAFE on :52152 (debt_to_equity still null).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/SAFE -> debt_to_equity null, field_meta.debt_to_equity {status:'unavailable', reason:'provider did not publish this field'}"
+  },
+  {
+    "raw_id": "DAT-P4-7",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "dividend_per_share_ttm is by design a research-derived field. yfinance_provider lists it in _DERIVED_FIELDS and deliberately leaves it null on the raw /fundamentals route. The research snapshot fills it from dividend_history.get_dividend_ttm(listing). The Equity Overview does not display it (it shows dividend_per_share = 0.75, which matches). Yahoo's SAFE.BO dividend series holds 0.50 (2025-09-16) and 0.75 (2026-08-18); with _TRAILING_DAYS=365 on 2026-09-19 the derived leg sums to 0.75, the pack's value. The diff read a derived field off a route that never populates it.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-180 (_DERIVED_FIELDS includes dividend_per_share_ttm, 'computed downstream'), sidecar/services/research/fast.py:207-230 (_apply_dividend_ttm), sidecar/services/research/fast.py:377-378 (get_dividend_ttm(listing) in the snapshot), sidecar/services/dividend_history.py:38 (_TRAILING_DAYS = 365), sidecar/services/dividend_history.py:92-129 (trailing sum), sidecar/models/fundamentals.py:105-111",
+    "evidence_checked": "Opened the derived-field plumbing. Ran yf.Ticker('SAFE.BO').dividends read-only in the sidecar venv at 2026-09-23T00:56:22Z. Did not drive a full research run (LLM path not needed to settle the claim).",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"import yfinance as yf; print(yf.Ticker('SAFE.BO').dividends)\" -> 2025-09-16 0.50, 2026-08-18 0.75; the 365-day window at 2026-09-19 sums to 0.75"
+  },
+  {
+    "raw_id": "DAT-P4-8",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The claimed mechanism (an explicit zero DII element collapsed to null) is disproven. The Mar-2026 SEBI XBRL the app fetches has no InstitutionsDomesticMember context at all, and the app's own parse_shp_xbrl on it returns no dii_percent key but institutions_percent 0.0. The Sep-2025 filing does carry that context (0.0001 -> 0.01%), and the parser keeps it. The parser only skips empty element text, so a literal '0' would parse as 0.0. The null is therefore faithful to the filing, and the same row states institutions_percent 0.0, so the zero is not lost to the reader.",
+    "evidence": "sidecar/services/bse_provider.py:597-604 (_SHP_CATEGORY), sidecar/services/bse_provider.py:740-756 (only empty text skipped; float('0') kept), sidecar/services/bse_provider.py:760-786 (dii set only when the domestic member is present; institutions derived public - non_institutions), https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544257_204202616437_SHP.xml and .../544257_16102025162247_SHP.xml (fetched 2026-09-23T00:57Z via index https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w?scripcode=544257)",
+    "evidence_checked": "Fetched the BSE SHP index and the Mar-2026 and Sep-2025 XBRL files the app's lane uses. Ran the app's own parse_shp_xbrl on both and listed the domestic-member contexts. Did not re-fetch the Mar-2025 filing (same null + institutions 0.0 pattern in the collected response).",
+    "repro_check": "parse_shp_xbrl(Mar-2026 xml) -> {promoter 73.58, public 26.42, public_non_institutional 26.42, institutions 0.0}, domestic-only contexts [] ; parse_shp_xbrl(Sep-2025 xml) -> dii_percent 0.01 from context InstitutionsDomestic_ContextI"
+  }
+]

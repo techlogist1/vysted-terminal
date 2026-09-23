@@ -1,0 +1,81 @@
+import { describe, expect, it, vi } from "vitest";
+vi.mock("@/lib/sidecar-client", () => ({ getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:1") }));
+import { applyHostAction, applyHostActionAsync, describeHostAction } from "@/lib/host-actions";
+import { useNotesStore } from "@/store/notes";
+import { useScreenerStore } from "@/store/screener";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { useWorkspaceStore } from "@/store/workspace";
+import { useProposedChangesStore, resetProposedChangesStoreForTests } from "@/store/proposed-changes";
+import { useAgentAutonomyStore } from "@/store/agent-autonomy";
+
+describe("proofs", () => {
+  it("P1 write_note scope 'global' (catalog's word) lands in a GLOBAL ticker note", () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: {} } as never);
+    applyHostAction("write_note", { scope: "global", text: "hello" });
+    console.log("P1", JSON.stringify({ general: useNotesStore.getState().general, bySymbol: useNotesStore.getState().bySymbol }));
+  });
+  it("P2 write_note with mode omitted (catalog default=append) replaces", () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: { NVDA: "my long thesis" } } as never);
+    const lbl = applyHostAction("write_note", { scope: "NVDA", text: "new line" });
+    console.log("P2", lbl, JSON.stringify(useNotesStore.getState().bySymbol));
+  });
+  it("P3 save_screen with criteria saves CURRENT filters, not the agent's", () => {
+    useScreenerStore.getState().__resetForTests();
+    const lbl = applyHostAction("save_screen", { name: "IT value", criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }] });
+    console.log("P3", lbl, JSON.stringify(useScreenerStore.getState().savedScreens));
+  });
+  it("P4 write_screener_filters run:true never runs", () => {
+    useScreenerStore.getState().__resetForTests();
+    const run = vi.fn();
+    useScreenerStore.setState({ runScreener: run } as never);
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const lbl = applyHostAction("write_screener_filters", { criteria: [{ field: "roe", operator: "gt", value: 0.18 }], run: true });
+    console.log("P4", lbl, "runScreener calls:", run.mock.calls.length);
+  });
+  it("P5 portfolio delete staged on A applies to B after active switch", async () => {
+    globalThis.fetch = vi.fn(async () => new Response(null, { status: 405 })) as never;
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    usePortfoliosStore.setState({
+      portfolios: [
+        { id: "A", name: "Long-term", holdings: [{ id: "h-a", symbol: "TCS", quantity: 10, costBasis: 3000, assetClass: "equity" }] },
+        { id: "B", name: "Trading", holdings: [{ id: "h-b", symbol: "TCS", quantity: 99, costBasis: 4000, assetClass: "equity" }] },
+      ],
+      activeId: "A",
+    } as never);
+    resetProposedChangesStoreForTests();
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
+    const id = useProposedChangesStore.getState().enqueue({ toolCallId: "t1", name: "portfolio_delete_position", input: { position_id: "h-a", symbol: "TCS" }, batchId: "b" });
+    const ch = useProposedChangesStore.getState().changes.find((c) => c.id === id)!;
+    console.log("P5 diff", ch.before);
+    usePortfoliosStore.getState().setActive("B");
+    await useProposedChangesStore.getState().accept(id);
+    const s = usePortfoliosStore.getState();
+    console.log("P5 after", JSON.stringify(s.portfolios.map((p) => [p.id, p.holdings.map((h) => h.id + ":" + h.quantity)])));
+    console.log("P5 fetch", JSON.stringify((globalThis.fetch as any).mock.calls.map((c: any) => [c[0], c[1].method])));
+  });
+  it("P6 describe update without quantity says x0 while apply keeps quantity", async () => {
+    usePortfoliosStore.setState({ portfolios: [{ id: "A", name: "x", holdings: [{ id: "h-a", symbol: "TCS", quantity: 10, costBasis: 3000, assetClass: "equity" }] }], activeId: "A" } as never);
+    const d = describeHostAction("portfolio_update_position", { position_id: "h-a", cost_basis: 3100 });
+    const lbl = await applyHostActionAsync("portfolio_update_position", { position_id: "h-a", cost_basis: 3100 });
+    console.log("P6", d.after, "|", lbl);
+  });
+  it("P7 arrange focus with alias 'screener' fails while focus_panel succeeds", () => {
+    const panel = { api: { component: "screener-panel", setActive: vi.fn(), maximize: vi.fn() }, id: "screener-panel" };
+    const api = { getPanel: (id: string) => (id === "screener-panel" ? panel : undefined), panels: [panel] };
+    useWorkspaceStore.setState({ dockviewApi: api, openPanel: vi.fn() } as never);
+    console.log("P7", applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" }), "|", applyHostAction("focus_panel", { panel: "screener" }));
+    console.log("P7b close describe:", describeHostAction("close_panel", { panel: "screener" }).before);
+  });
+  it("P8 AUTO auto-applies a note REPLACE (data-write)", async () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: { INFY: "two pages of research" } } as never);
+    resetProposedChangesStoreForTests();
+    useAgentAutonomyStore.setState({ autonomy: "auto" });
+    useProposedChangesStore.getState().enqueue({ toolCallId: "t2", name: "write_note", input: { scope: "INFY", text: "x" }, batchId: "b" });
+    await new Promise((r) => setTimeout(r, 0));
+    console.log("P8", JSON.stringify(useNotesStore.getState().bySymbol));
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
+  });
+});

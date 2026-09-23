@@ -1,14 +1,279 @@
 {
- "collected_at": "2026-09-19",
- "slot": "P3",
- "symbol": "CHTR",
- "status": "in-progress (relaunch after usage wall; raw material in session scratch p3/)",
- "identity": {
-  "bse_code": {
-   "value": "544546",
-   "unit": "scrip code",
-   "as_of": "2026-09-18",
-   "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
-  }
- }
+  "collected_at": "2026-09-19",
+  "pack_completed_at": "2026-09-23",
+  "slot": "P3",
+  "symbol": "CHTR",
+  "status": "complete",
+  "note": "Original in-progress attempt died after a usage wall; its scratch raw material (session scratch p3/) no longer exists (ephemeral tmp, prior session). This pack was rebuilt from fresh live fetches on 2026-09-23 rather than recovered.",
+  "identity": {
+    "legal_name": {
+      "value": "Chatterbox Technologies Limited",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "former_names": {
+      "value": "none found",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "isin": {
+      "value": "INE1B4801017",
+      "unit": "ISIN",
+      "as_of": "2026-09-23",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+    },
+    "bse_code": {
+      "value": "544546",
+      "unit": "scrip code",
+      "as_of": "2026-09-18",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+    },
+    "nse_symbol": {
+      "value": "absent (BSE SME only, not NSE listed)",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "board": {
+      "value": "SME (BSE SME IPO platform)",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+    },
+    "sector": {
+      "value": "BSE 'Sector' field = Consumer Discretionary; BSE 'IndustryNew' field = Media, Entertainment & Publication > Media. screener.in groups it under Media, Entertainment & Publication > Media.",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+    },
+    "industry": {
+      "value": "Advertising & Media Agencies",
+      "unit": "text",
+      "as_of": "2026-09-23",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+    },
+    "listing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": null,
+      "source_url": null,
+      "note": "Not confirmed from a reachable primary source within budget (BSE listing-date/IPO endpoints not located; a chittorgarh.com slug guess 404'd to an unrelated IPO page; DuckDuckGo HTML search returned no results, likely bot-blocked). Inferred only: standalone Equity Capital jumps from Rs 0.13 Cr (FY Mar2024) to Rs 10.42 Cr (FY Mar2025) in the screener.in balance sheet, consistent with an SME IPO occurring during FY2024-25. This is an inference, not a sourced fact -- recorded under world_gaps, not as a value."
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 38.00,
+      "unit": "INR",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=544546&seriesid="
+    }
+  },
+  "market_cap": {
+    "value": 53.8,
+    "unit": "INR crore",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Same on standalone and consolidated screener pages."
+  },
+  "pe_ttm": {
+    "value": 5.84,
+    "unit": "ratio (x)",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Standalone Stock P/E = 5.84 (matches BSE header PE=5.84 exactly). Consolidated Stock P/E on screener.in/company/544546/consolidated/ = 5.91 -- a genuine, small, definitional (consol vs standalone) difference, not a data error."
+  },
+  "pb": {
+    "value": 0.768,
+    "unit": "ratio (x)",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Not printed directly by screener's top-ratios card (and BSE header's PB field is blank '-'). Derived here as last_close / book_value_per_share = 38.00 / 49.5 = 0.768. Flag any diff target for this field as derived-value comparison, not a directly-sourced one."
+  },
+  "roe": {
+    "value": 19.2,
+    "unit": "percent",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "screener.in 'Return on Equity: Last Year' = 19%; top-ratios ROE card = 19.2%. BSE header's ROE field is blank ('-')."
+  },
+  "roce": {
+    "value": 26.0,
+    "unit": "percent",
+    "as_of": "2026-09-23",
+    "source_url": "https://www.screener.in/company/544546/"
+  },
+  "debt_to_equity": {
+    "value": 0.00,
+    "unit": "ratio (x)",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Standalone balance sheet 'Borrowings' line = 0.00 Cr at every FY-end shown (Mar2022 through Mar2026) -- the company is debt-free. D/E derived as 0."
+  },
+  "revenue_ttm": {
+    "value": 84.22,
+    "unit": "INR crore",
+    "as_of": "FY ended 2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Standalone annual Sales, FY Mar2026 column of the Profit & Loss table. This is the latest full FY, effectively TTM as of the pack date."
+  },
+  "net_profit_ttm": {
+    "value": 9.20,
+    "unit": "INR crore",
+    "as_of": "FY ended 2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Standalone annual Net Profit, FY Mar2026."
+  },
+  "revenue_growth_yoy": {
+    "value": 42.4,
+    "unit": "percent, standalone FY-over-FY (Mar2026 vs Mar2025 Sales, 84.22 vs 59.13 Cr)",
+    "as_of": "FY ended 2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Matches screener's own 'Compounded Sales Growth: TTM: 42%' figure."
+  },
+  "eps_ttm": {
+    "value": 6.50,
+    "unit": "INR per share",
+    "as_of": "FY ended 2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "Standalone annual EPS, FY Mar2026 (screener). BSE header 'EPS' field = 6.51 (near-identical, likely rounding / trailing-4-quarter recompute vs FY EPS). Do not confuse with the pre-IPO EPS figures: FY Mar2022=51.32, Mar2023=99.53, Mar2024=663.30 -- these use the pre-IPO share count (equity capital was only Rs 0.13 Cr / a tiny number of shares before the FY2024-25 IPO) and are NOT comparable to post-IPO EPS. See traps."
+  },
+  "book_value_per_share": {
+    "value": 49.5,
+    "unit": "INR per share",
+    "as_of": "FY ended 2026-03-31",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "screener.in top-ratios card. Cross-checked: standalone Equity Capital 14.14 Cr + Reserves 55.92 Cr = Rs 70.06 Cr net worth at FY Mar2026 / ~1.4157 Cr shares outstanding (14.14 Cr equity capital / Rs 10 face value) implies ~49.5, consistent."
+  },
+  "face_value": {
+    "value": 10.00,
+    "unit": "INR",
+    "as_of": "2026-09-23",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=544546&seriesid="
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0,
+      "unit": "INR per share",
+      "as_of": "FY ended 2026-03-31",
+      "source_url": "https://www.screener.in/company/544546/",
+      "note": "screener.in shows Dividend Payout % = 0.00% for every FY shown (Mar2022 through Mar2026). No dividend has ever been declared by this company since incorporation (2016) per available filings."
+    },
+    "record_date": null,
+    "ex_date": null,
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR per share",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "yield": {
+      "value": 0.00,
+      "unit": "percent",
+      "as_of": "2026-09-23",
+      "source_url": "https://www.screener.in/company/544546/"
+    }
+  },
+  "week52": {
+    "high": {
+      "value": 157,
+      "unit": "INR",
+      "as_of": "2026-09-23 (screener.in snapshot; screener does not print a separate as-of date per 52w leg)",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "low": {
+      "value": 35.0,
+      "unit": "INR",
+      "as_of": "2026-09-23 (screener.in snapshot)",
+      "source_url": "https://www.screener.in/company/544546/",
+      "note": "The 52w low (35.0) is very close to the current price (38.0, up ~8.6% off the low) -- the stock listed high (near its 52w high of 157) and has since fallen ~76% to near its 52w low. Do not confuse this 52w-low value with 'current price': the manifest.json reference block's price_inr=35.0 (as_of 2026-09-18) looks like it may have actually captured the 52w-low rather than that day's last close -- flag for the diff stage as a possible upstream labeling issue in the manifest reference, not confirmed here as a bug, just noted."
+    }
+  },
+  "shareholding": {
+    "quarter": "Jun 2026 (Q1 FY2026-27; latest quarter shown on screener.in as of this pack)",
+    "promoter_pct": {
+      "value": 60.39,
+      "unit": "percent",
+      "as_of": "quarter ended 2026-06-30",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "fii_pct": {
+      "value": 2.43,
+      "unit": "percent",
+      "as_of": "quarter ended 2026-06-30",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "dii_pct": {
+      "value": 6.66,
+      "unit": "percent",
+      "as_of": "quarter ended 2026-06-30",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "public_pct": {
+      "value": 30.51,
+      "unit": "percent",
+      "as_of": "quarter ended 2026-06-30",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "no_of_shareholders": {
+      "value": 628,
+      "unit": "count",
+      "as_of": "quarter ended 2026-06-30",
+      "source_url": "https://www.screener.in/company/544546/"
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "unit": "percent",
+      "as_of": null,
+      "source_url": null,
+      "note": "no source truth found -- screener.in's free shareholding-pattern card does not surface a pledge figure for this SME name (no pledge sub-row rendered, which on screener usually but not definitively means nil/undisclosed). Would need the BSE shareholding-pattern XBRL filing (Reg 31 SHP-1) for scrip 544546 to confirm; that filing was not located within this pack's fetch budget. Do not treat 'no row shown' as a confirmed 0% -- record as unconfirmed."
+    }
+  },
+  "corporate_actions_2026": [
+    {
+      "type": "Book closure",
+      "detail": "Register of Members and Share Transfer Books closed 18 Sep 2026 to 24 Sep 2026 (both days inclusive) for the 10th AGM",
+      "date": "2026-09-04 (announcement date)",
+      "source_url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/"
+    }
+  ],
+  "corporate_actions_2026_note": "No dividend, bonus, split, or rights action found announced/effective in 2026; dividend payout has been 0.00% every year on record. Coverage limited to BSE announcements category feed (date range 2026-01-01..2026-09-23) plus screener.in; a dedicated BSE corporate-actions API endpoint (tried CorpactCategorywise/w, AnnCorpAction/w, Corpact/w) 302-redirected rather than returning JSON within this pack's fetch budget, so a corporate action that is NOT also announced in the news feed could be missed -- recorded as a world_gap.",
+  "latest_results": {
+    "quarter": "H2 FY2025-26 / half-year ended 2026-03-31 (Sales Rs 48.24 Cr, Net Profit Rs 4.50 Cr, EPS Rs 3.18, standalone)",
+    "filing_date": "2026-08-25 (inferred)",
+    "source_url": "https://www.screener.in/company/544546/",
+    "note": "IMPORTANT: this SME issuer files HALF-YEARLY results (screener.in section is literally titled 'Half Yearly Results', periods Sep2024/Mar2025/Sep2025/Mar2026), not quarterly -- see traps. The BSE announcement dated 2026-08-25T22:18:44 ('Board Meeting Outcome for Outcome Of The Board Meeting Dated 25th August, 2026', category Others/Outcome without intimation) is the most recent board-meeting-outcome filing before the 2 Sep 2026 Annual Report submission and is offered as the likely results-approval date for the Mar2026 half; the BSE headline itself does not explicitly say 'financial results', so this filing_date is inferred/moderate-confidence, not a directly-labeled fact. filing_date_source_url: https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/"
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-09-04T17:25:06",
+      "headline": "Intimation Regarding The Closure Of Register Of Members And Share Transfer Books (Book Closure 18-24 Sep 2026 for 10th AGM)",
+      "url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/"
+    },
+    {
+      "date": "2026-09-02T17:46:05",
+      "headline": "Submission of Notice of 10th Annual General Meeting of the Company for Financial Year 2025-26",
+      "url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/"
+    },
+    {
+      "date": "2026-09-02T17:41:43",
+      "headline": "Reg. 34(1) Annual Report -- Submission of Annual Report of the Company for Financial Year 2025-26",
+      "url": "https://www.bseindia.com/stock-share-price/chatterbox-technologies-ltd/chtr/544546/"
+    }
+  ],
+  "consolidated_vs_standalone": "screener.in serves both a standalone page (/company/544546/) and a consolidated page (/company/544546/consolidated/). Values pulled into this pack are STANDALONE unless noted otherwise. Differences observed: Stock P/E 5.84 (standalone) vs 5.91 (consolidated); Book Value identical at 49.5 on both. This is consistent with the company having only lightly-consolidated or immaterial subsidiary activity (the 'Chtrbox' / 'Chtrsocial' brands read as business lines/divisions in the About section, not obviously separate legal subsidiaries -- not independently verified against the Annual Report's list of subsidiaries within this pack's budget).",
+  "traps": [
+    "Ticker collision: BSE symbol CHTR (Chatterbox Technologies Ltd, an Indian BSE SME influencer-marketing agency, market cap ~Rs 54 Cr) is identical to the US ticker CHTR = Charter Communications, Inc. (a ~$70B US cable company). This is the manifest's headline hostile trait for this slot -- an automated pipeline keying purely off the bare symbol 'CHTR' with no exchange/region qualifier risks silently merging or substituting Charter Communications' US financials for this Indian SME's, or vice versa.",
+    "Pre-IPO EPS is not comparable to post-IPO EPS: standalone annual EPS jumps from Rs 663.30 (FY Mar2024) to Rs 8.51 (FY Mar2025) to Rs 6.50 (FY Mar2026) purely because Equity Capital jumped from Rs 0.13 Cr to Rs 10.42 Cr to Rs 14.14 Cr across those same years (SME IPO + a follow-on raise), i.e. the share count multiplied roughly 100x. Any YoY EPS growth calculation that spans the IPO year will show a nonsensical -98%-type 'decline' that is purely a share-count/dilution artifact, not an earnings collapse -- a naive pipeline computing EPS CAGR across this boundary would badly mislead.",
+    "SME issuers file HALF-YEARLY, not quarterly, financial results (see latest_results) -- a pipeline that expects a quarterly cadence (as it would for a mainboard stock) will either show stale/blank 'quarter' data or wrongly label a half-year figure as a quarter.",
+    "Public brand names (Chtrbox, Chtrsocial) used in marketing/media coverage match neither the legal name (Chatterbox Technologies Limited) nor the ticker's plain-English reading -- a name-based resolver searching only for 'Chtrbox' or 'Chtrsocial' may fail to resolve to this scrip at all.",
+    "BSE 'Sector' (Consumer Discretionary) and BSE 'IndustryNew' (Media, Entertainment & Publication) fields disagree with each other and with screener.in's own sector labelling in ways that could cause inconsistent sector-based screens/comparisons depending which BSE field a pipeline reads."
+  ],
+  "world_gaps": [
+    "Listing/IPO date: not confirmed from a reachable primary source within this pack's fetch budget (see identity.listing_date). Genuinely findable in the IPO prospectus / BSE listing notice, just not reached here.",
+    "Promoter pledge percentage: not surfaced by screener.in's free shareholding card for this SME name; would need the BSE Reg 31 shareholding-pattern XBRL filing to confirm definitively (see shareholding.pledged_pct_of_promoter).",
+    "A dedicated BSE corporate-actions JSON endpoint could not be reached in this session (302 redirects on the endpoint shapes tried); corporate_actions_2026 coverage relies on the general announcements feed plus screener.in's Dividend Payout row, which is a genuine (if secondary) gap in coverage, not a value that doesn't exist -- the underlying corporate-action calendar does exist at BSE and could be fetched with more targeted effort.",
+    "Exact filing date/time of the Mar2026 half-year results: inferred from the nearest preceding 'Board Meeting Outcome' announcement (2026-08-25) rather than confirmed against a headline that explicitly says 'financial results' -- genuinely reachable with one more BSE filing-category-filtered fetch, just not completed here."
+  ]
 }

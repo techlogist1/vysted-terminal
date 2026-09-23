@@ -1,0 +1,336 @@
+{
+  "slot": "P19",
+  "symbol": "AMAL",
+  "diffed_at": "2026-09-23",
+  "pack_source": "docs/redesign/verification/r15/battery/packs/P19_AMAL.json",
+  "collected_source": "docs/redesign/verification/r15/battery/collected/P19_AMAL.json",
+  "subtle_tier_covered": true,
+  "root_cause_note": "P19 (NASDAQ:AMAL, Amalgamated Financial Corp.) is the US half of the in-app AMAL ticker collision; P9 (BSE 506597, Amal Ltd) is the Indian half (see manifest.json). collected.calls.resolve_bare_symbol shows the resolver finds BOTH instruments at identical confidence 1.0 for a bare 'AMAL' query but binds silently to the India candidate (needs_disambiguation:false) because the active request region defaults to IN and sidecar/services/resolution_policy.py documents cross-region exact ties as NOT residual (bind stands, D58b). /quotes/{symbol}, /fundamentals/{symbol}, /fundamentals/{symbol}/ratings, /disclosures/shareholding and /disclosures/announcements expose no region/exchange parameter at all (only /resolve and /fundamentals/{symbol}/narrative do), so every one of those routes re-resolves 'AMAL' from scratch and lands on Amal Ltd (BSE), even though this collection's SLOT is explicitly the US company. Only /fundamentals/AMAL/income, /balance and /cashflow (openbb-mcp, which ignores the sidecar's own resolver/region entirely per DAT-P9-1) happen to return real US-company data for this slot. See raw findings DAT-P19-1..3 for the mechanism.",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Amal Ltd",
+      "app_as_of": "2026-09-19T15:30:19+0530 (resolve_bare_symbol)",
+      "outside_value": "Amalgamated Financial Corp.",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001823608.json",
+      "status": "mismatch",
+      "note": "collected.calls.resolve_bare_symbol.body.resolved.name and calls.fundamentals.body.name both read 'Amal Ltd' — the Indian BSE 506597 chemicals maker, not the slot's intended NASDAQ bank holding company. See DAT-P19-1."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": "no rename field/flag present; resolved.former_name = null on both the bare-symbol and full-name resolves",
+      "app_as_of": "2026-09-19",
+      "outside_value": "No true rename (EDGAR formerNames entry is a metadata refresh with an identical name string, not a real rename)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001823608.json",
+      "status": "match",
+      "note": "One of the few rows where the app's silence is actually correct: it does not fabricate a rename, and neither does the pack after investigation."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE841D01013",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "Pack: identity.isin.value is structurally absent for a US issuer (SEC does not publish ISIN; pack.world_gaps.structurally_absent lists identity.isin explicitly) — the correct app answer for this slot is null/absent. Instead the app confidently returns a real ISIN, INE841D01013, belonging to the wrong (Indian) company. Treated as a mismatch, not 'no source truth', because the app is not silent here — it asserts a concrete, wrong value."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "506597",
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "mismatch",
+      "note": "Pack: not_applicable (US-listed issuer, no BSE code exists). App asserts a real BSE code for the wrong company. Same pattern as identity.isin above."
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Both sides null for the same reason (no NSE symbol exists for a US issuer); not a finding."
+    },
+    {
+      "field": "identity.board / exchange tier",
+      "app_value": "resolve_bare_symbol.exchange = 'BSE'; resolve_company_name.exchange = 'US' (generic bucket, no Nasdaq market-tier concept in the resolver schema)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Nasdaq Global Market (NASDAQ-GM), not Global Select",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/AMAL/info?assetclass=stocks",
+      "status": "mismatch",
+      "note": "Two stacked defects: (1) the bare query resolves to the wrong exchange entirely (BSE, not US); (2) even the correctly name-resolved candidate only carries a bare 'US' exchange string — the resolver/Instrument schema has no market-tier field, so 'Nasdaq Global Market' vs 'Global Select' could never be represented even on a correct resolution."
+    },
+    {
+      "field": "identity.sector / identity.industry",
+      "app_value": "sector: 'Basic Materials', industry: 'Chemicals'",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": "sector: 'Financials', industry: 'Banks - Regional' (SIC 6022, State Commercial Banks)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001823608.json",
+      "status": "mismatch",
+      "note": "collected.calls.fundamentals.body.sector/industry — a chemicals classification for what should be a regional bank."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": "2021-03-01 (issuer-of-record, holding-co reorg) / 2018-08-09 (ticker's actual first trade)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000119312521062425/d132716d8k12b.htm",
+      "status": "app blank",
+      "note": "grep of sidecar/models/fundamentals.py and services/symbol_resolver.py Instrument type finds no listing_date/ipo_date field anywhere — structurally absent from the schema, not stock-specific."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": "720.8 (INR)",
+      "app_as_of": "2026-09-18",
+      "outside_value": 47.4,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/AMAL/info?assetclass=stocks",
+      "status": "mismatch",
+      "note": "collected.calls.quote.body: price 720.8, currency INR, provider 'bse' — the Indian company's last close, wrong currency and wrong company, for a slot whose reference price is a $47.40 US bank stock."
+    },
+    {
+      "field": "market_cap",
+      "app_value": "8,911,006,720 (INR, ≈ INR 891 cr)",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": "1.42 (USD billion)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+      "status": "mismatch",
+      "note": "Not merely a different number — different currency, different order of magnitude, different company (INR 891cr ≈ USD 106M vs the real USD 1.42B)."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 29.98336,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 12.64,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "pb",
+      "app_value": 7.399347,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 1.7,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+      "status": "mismatch"
+    },
+    {
+      "field": "roe (ttm)",
+      "app_value": null,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 14.28,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://stockanalysis.com/stocks/amal/statistics/",
+      "status": "mismatch",
+      "note": "field_meta.roe.status='unavailable' — but this null is for the WRONG company (yfinance simply has no ROE for the India small-cap); the intended entity has a real, filed 14.28% TTM ROE the app never has a chance to show."
+    },
+    {
+      "field": "roce",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack: roce.status = not_applicable (no ROCE concept for a bank); app: no roce field exists in sidecar/models/fundamentals.py at all (grep-confirmed, same absence already raised for P9/DAT-P9-6). Both sides genuinely absent — not filed again here."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 0.095,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "mismatch",
+      "note": "field_meta.debt_to_equity.status='unavailable' for the wrong (India) company; a real, computed 0.095x exists for the intended entity that the app never queries."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "2,888,717,056 (INR)",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 362.609,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "mismatch",
+      "note": "Pack unit: USD million (net revenue basis). App value is in INR for the Indian company — different currency, different company, different order of magnitude."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "297,070,016 (INR)",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 113.419,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/NetIncomeLoss.json",
+      "status": "mismatch"
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "1.041 (fraction, mrq_yoy basis, per growth_basis field)",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": "18.03% (NII quarterly YoY) / 21.53% (net-revenue basis)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/InterestIncomeExpenseNet.json",
+      "status": "mismatch",
+      "note": "104.1% MRQ-YoY growth is the Indian company's figure (matches its own 2x-ish revenue jump), an order of magnitude off any legitimate basis for the US bank's ~18-21% growth."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 24.04,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 3.75,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001823608/us-gaap/EarningsPerShareDiluted.json",
+      "status": "mismatch",
+      "note": "24.04 (INR) is the India entity's EPS; both currency and company wrong."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 97.414,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 27.93,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "mismatch"
+    },
+    {
+      "field": "face_value",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": 0.01,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "app blank",
+      "note": "No face_value / par_value field anywhere in sidecar/models/fundamentals.py (grep-confirmed)."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": 1.5,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 0.17,
+      "outside_as_of": "2026-07-21",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm",
+      "status": "mismatch",
+      "note": "dividend_per_share=1.5 is the wrong (Indian) company's declared dividend."
+    },
+    {
+      "field": "dividend.declared/record/ex/payable dates",
+      "app_value": "(no such fields anywhere in the Fundamentals model)",
+      "app_as_of": null,
+      "outside_value": "declared 2026-07-21, record 2026-08-04, ex 2026-08-04, payable 2026-08-20",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000173/amaljuly2026quarterlydiv.htm",
+      "status": "app blank",
+      "note": "Structural gap independent of the wrong-entity bug — even a correctly resolved instrument has nowhere to carry these four dates (sidecar/models/fundamentals.py grep-confirmed, same gap as DAT-P9-3)."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": 0.65,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=max&interval=1d&events=div%2Csplit",
+      "status": "mismatch",
+      "note": "collected.calls.fundamentals.body.dividend_per_share_ttm = null. The field exists in the schema (unlike the date fields above) and is designed exactly for this — 'trailing-12m dividends ACTUALLY PAID' (fundamentals.py comment) is precisely the declared-vs-paid distinction the pack's #1 critical trap is built around — but it is never populated for this slot."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": "0.0021 (0.21%)",
+      "app_as_of": "2026-09-19T10:00:06Z",
+      "outside_value": "1.371% (trailing) / 1.435% (indicated forward)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=max&interval=1d&events=div%2Csplit",
+      "status": "mismatch"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 1010.0,
+      "app_as_of": "2026-09-19T10:00:06Z (fetch timestamp only, no event date)",
+      "outside_value": 51.59,
+      "outside_as_of": "2026-08-13",
+      "outside_source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+      "status": "mismatch",
+      "note": "Two stacked defects: wrong company/currency, AND field_meta.fifty_two_week_high.as_of carries only the API-call timestamp (2026-09-19T10:00:06Z), never the date the high actually printed — a value can be right and its date wrong, or (here) both wrong. Mandatory subtle-tier field per the DIFF spec."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 408.2,
+      "app_as_of": "2026-09-19T10:00:06Z (fetch timestamp only, no event date)",
+      "outside_value": 25.13,
+      "outside_as_of": "2025-10-16",
+      "outside_source_url": "https://query1.finance.yahoo.com/v8/finance/chart/AMAL?range=1y&interval=1d",
+      "status": "mismatch",
+      "note": "Same as week52.high: wrong entity plus no per-leg as-of date."
+    },
+    {
+      "field": "shareholding.quarter / promoter_pct / fii_pct / dii_pct / public_pct",
+      "app_value": "quarter_end 2026-06-30, promoter_percent 71.35, fii_percent null, dii_percent 0.03, public_percent 28.65 (all real BSE-filed values, for Amal Ltd)",
+      "app_as_of": "2026-07-05 (submission_date)",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack: shareholding.promoter_pct/fii_pct/dii_pct/public_pct are ALL null with pack.world_gaps.structurally_absent — 'promoter' and the FII/DII split are SEBI-only concepts with no US disclosure regime, so per the DIFF spec ('no outside value -> no source truth, never a raw finding') this row is not a mismatch. The app's behaviour is still a genuine defect — see DAT-P19-2 in the raw findings file — but it is filed as a standalone identity/data-trust finding, not as a field mismatch, because the strict per-field rule has nothing to diff against."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Structurally absent on both sides for a US issuer; the BSE shareholding schema itself also has no pledge field (a separate, India-scope gap already out of scope here)."
+    },
+    {
+      "field": "corporate_actions_2026 (splits/bonus/rights/dividends/buyback/annual_meeting)",
+      "app_value": "(no corporate-actions endpoint/field anywhere in the sidecar)",
+      "app_as_of": null,
+      "outside_value": "no splits/bonus/rights in 2026; 4 regular quarterly dividends; $31.4M additional buyback authorized 2026-06-09 ($40M total available); AGM held 2026-05-20",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://data.sec.gov/submissions/CIK0001823608.json",
+      "status": "app blank",
+      "note": "grep of sidecar/routers/ confirms no corporate-action/buyback/AGM route exists for any region — same structural gap already raised for P9 (DAT-P9-3), confirmed independently here."
+    },
+    {
+      "field": "latest_results (quarter, filing_date, next_earnings_date)",
+      "app_value": "HTTP 502: \"nse_direct: 'AMAL' is not a known NSE instrument\"",
+      "app_as_of": null,
+      "outside_value": "Q2 2026 (period ended 2026-06-30), 10-Q filed 2026-08-04, next earnings 2026-10-22",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "app blank",
+      "note": "collected.calls.results_calendar: status 502. See DAT-P19-3: the endpoint hard-errors instead of degrading gracefully, and its message falsely implies the instrument does not exist anywhere."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "1 announcement: 'Speech Of Chairman / Video Recording / Presentation', BSE AGM/EGM, 2026-08-20 — Amal Ltd's filing",
+      "app_as_of": "2026-08-20T16:07:26+05:30",
+      "outside_value": "Q2 2026 earnings release (2026-07-23); dividend declaration (2026-07-21); buyback authorization (2026-06-11) — all Amalgamated Financial Corp. 8-Ks",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "mismatch",
+      "note": "Every one of the 3 real recent company announcements for the intended entity is missing; the 1 announcement shown belongs to the wrong company."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "(no field/concept in app schema)",
+      "app_as_of": null,
+      "outside_value": "GAAP consolidated only; no standalone/consolidated duality for this US issuer (the live axis is GAAP vs non-GAAP 'core')",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1823608/000182360826000177/a202606earningsreleasefi.htm",
+      "status": "app blank",
+      "note": "Minor: the concept barely applies to a US single-entity filer, and its absence has little practical consequence here. Not filed as a raw finding."
+    }
+  ]
+}

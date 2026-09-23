@@ -1,0 +1,83 @@
+[
+  {
+    "raw_id": "DAT-P2-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds and re-reproduced live: the statement accessors pass the bare symbol to openbb-mcp with no exchange suffix and NO correctness validator (validate=None), so openbb's yfinance lane fetches US 'DAL' (Delta Air Lines) and it is served as DAL's income/balance/cashflow. /fundamentals escapes only because it carries _fundamentals_validator + a completeness fallback to the yfinance adapter, which suffixes .BO. The statements panel consumes these routes directly (src/lib/sidecar-client.ts:297-303).",
+    "evidence": "sidecar/services/provider_registry.py:495-513 (income/balance/cashflow resolve with validate=None) vs :473-492 (fundamentals has _fundamentals_validator); sidecar/services/openbb_mcp_provider.py:260-262 (_normalize_symbol: no exchange suffix), :449-474 (_financial_statement/get_income_statement); sidecar/services/symbol_resolver.py:424-445 (region_hint returns None for DAL, present in both BSE and US masters); src/lib/sidecar-client.ts:297-303",
+    "evidence_checked": "code read + live GET against :52152 at 2026-09-23T00:54:38Z",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/DAL/income -> provider=openbb-mcp, total_revenue 2025-12-31 = 63,364,000,000, weighted_average_basic_shares 647,997,408 (Delta Air Lines scale) for a 5.01M-share BSE NBFC"
+  },
+  {
+    "raw_id": "DAT-P2-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The value is wrong as stated: re-fetched screener shows TTM EPS 2.05 (quarters -4.21 + 1.82 - 7.52 + 11.96), and the app's own response is internally inconsistent (net_income_ttm 10.2M / shares_outstanding 5.01M = 2.04, not 8.9), so PE 5.6 vs ~24.5 is a real 4.3x understatement. Correction to mechanism: there is no share-count or TTM-window computation in the adapter to fix — it passes Yahoo's info['trailingEps'] straight through and stamps it status=ok; the fix shape is a cross-field consistency check (eps vs net_income_ttm/shares_outstanding) before serving, not an adapter window audit.",
+    "evidence": "sidecar/services/yfinance_provider.py:375 (eps=_num(info.get('trailingEps'))), :188-215 (_served_field_meta marks any non-null as ok); https://www.screener.in/company/539681/ (fetched 2026-09-23T00:57:17Z: 'EPS in Rs' TTM 2.05; top ratios 'Stock P/E 24.5'); collected/P2_DAL.json calls.fundamentals.body.eps=8.9, net_income_ttm=10200000, shares_outstanding=5010000",
+    "evidence_checked": "code read; one screener.in re-fetch (the pack's cited source); arithmetic on the collected response",
+    "repro_check": "curl screener.in/company/539681/ -> P&L EPS TTM 2.05; app /fundamentals/DAL eps 8.9 while its own net_income_ttm/shares = 2.036"
+  },
+  {
+    "raw_id": "DAT-P2-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real but the outside truth is weaker than stated: the re-fetched screener page contradicts itself on this company's revenue line (FY26 annual 'Revenue' 1.56 cr vs FY26 quarters summing to 7.71 cr; TTM column 9.97 = sum of Sep-25..Jun-26 quarters), which the pack itself records as source_conflict. The app's 2.76 cr (Yahoo totalRevenue passed through at yfinance_provider.py:391) matches neither basis, so it is unsupported and the derived profit_margin 0.37 / P/S 9.05 are distorted — but with the witness self-contradictory on revenue for an NBFC whose fair-value income swings, this is a medium data-trust defect rather than a high one.",
+    "evidence": "sidecar/services/yfinance_provider.py:391 (revenue_ttm=_num(info.get('totalRevenue'))); https://www.screener.in/company/539681/ (fetched 2026-09-23T00:57:17Z: quarterly Revenue Jun25 5.00, Sep25 0.12, Dec25 2.58, Mar26 0.01, Jun26 7.26; annual Mar2026 1.56; TTM 9.97); packs/P2_DAL.json revenue_growth_yoy.note + source_conflicts (annual vs quarterly revenue)",
+    "evidence_checked": "code read; one screener.in re-fetch; pack source_conflicts",
+    "repro_check": "parsed screener #quarters and #profit-loss tables: TTM 9.97, FY26 annual 1.56; app revenue_ttm 2.76 cr matches neither"
+  },
+  {
+    "raw_id": "DAT-P2-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The 46.58 low is unsupported, but the mechanism and the 'truth' differ from the finding: the app's own /history for DAL (yfinance DAL.BO) has 1238 bars of which only 33 carry volume, the last real trade being 2023-12-07 at 46.58, followed by zero-volume forward-filled bars at 46.58 through 2026-09-21 — so the 52w low is a 2023 print carried forward through a window with zero trades (252 bars, 0 with volume). BSE's 49.88 is likewise a carry-forward (dated 12-Mar-2025, outside the trailing 52 weeks), so the honest answer is 'no trades in 52 weeks', not 49.88/49.88; the app additionally shows a flat 46.58 chart beside a 49.88 quote.",
+    "evidence": "sidecar/services/yfinance_provider.py:377-378 (52w high/low from Yahoo info, no volume/untraded check); sidecar/routers/history.py:55-75; packs/P2_DAL.json week52 (BSE HighLow '49.88 (12/03/2025)')",
+    "evidence_checked": "code read + live GET /history against :52152",
+    "repro_check": "curl '127.0.0.1:52152/history/DAL?timeframe=1d&range=5y' -> provider yfinance, 33/1238 bars with volume>0, last 2023-12-07 close 46.58; bars since 2025-09-19: 252, all volume 0, all at 46.58"
+  },
+  {
+    "raw_id": "DAT-P2-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: roe/roa/debt_to_equity are Yahoo info pass-throughs that come back null for DAL.BO, and the Fundamentals model has no roce field at all; the field_meta reason 'provider did not publish this field' labels the gap but the world does publish D/E 0 (12 years zero borrowing) and ROCE -1.45%. Note ROE's outside value is itself contested (screener -2.57% vs BSE ComHeaderNew +2.83%, pack source_conflicts C3), so D/E and ROCE are the clean part of this gap.",
+    "evidence": "sidecar/services/yfinance_provider.py:355-356, :381-382 (roe/debt_to_equity from Yahoo info only), :185 (_NULL_FIELD_REASON); grep 'roce' in sidecar/models/*.py -> no field; https://www.screener.in/company/539681/ (fetched 2026-09-23: 'ROCE -1.45 % ROE -2.57 %')",
+    "evidence_checked": "code read; grep of models; screener re-fetch top ratios",
+    "repro_check": "collected /fundamentals/DAL: roe/roa/debt_to_equity null with field_meta status unavailable; no roce key in schema"
+  },
+  {
+    "raw_id": "DAT-P2-6",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: there is no pledge field anywhere in the sidecar models/services/routers or frontend types (grep for 'pledge' finds only a catalog description string), so confirmed-unpledged and untracked cannot be told apart for any Indian name. The FII/DII sub-claim is minor: when a filing's institution categories are empty, _shp_summary_from_categories leaves fii/dii null while deriving institutions_percent=0.0 (public minus non-institutions), so the zero is present in aggregate.",
+    "evidence": "sidecar/models/announcements.py:81-110 (ShareholdingPattern: no pledge field); sidecar/services/bse_provider.py:763-790 (fii/dii only set when category members present; institutions derived); grep -rni pledge sidecar/models sidecar/services sidecar/routers types src -> only sidecar/services/agent_tools/catalog.py:659 (a description string)",
+    "evidence_checked": "code read + repo-wide grep",
+    "repro_check": "grep -rni pledge over models/services/routers/types/src -> no data field; collected shareholding patterns[0] keys have no pledged_pct"
+  },
+  {
+    "raw_id": "DAT-P2-7",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 502 is real, but it is not a routing bug that ignores a resolved exchange: get_results_calendar is NSE-only by design (docstring 'The NSE results/board-meeting calendar', query described as 'NSE ticker') and has no BSE lane, unlike shareholding which merges a BSE lane. It is a coverage gap for every BSE-only name. Severity lowered: no frontend consumer calls /disclosures/results, and the only in-product consumer (research) catches the error and degrades softly to 'results calendar unavailable'.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358 (nse_provider.get_results_calendar only); sidecar/routers/disclosures.py:74-91 (502 on ProviderError; 'NSE ticker' description); sidecar/services/research/disclosures.py:185-203 (soft-fail wrapper); grep of src/ for 'disclosures/results' -> no consumer",
+    "evidence_checked": "code read + grep for consumers",
+    "repro_check": "collected results_calendar: GET /disclosures/results?symbol=DAL -> 502 'nse_direct: DAL is not a known NSE instrument'; code confirms no BSE fallback path exists"
+  },
+  {
+    "raw_id": "DAT-P2-8",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Holds that /fundamentals serves null rather than an affirmed 0 for a never-paying company, but it is not silent: field_meta labels both fields 'unavailable — provider did not publish this field', and the research path already has an affirmed-zero mechanism (_apply_dividend_ttm sets dividend_per_share_ttm=0.0 labelled 'no dividends paid') that the raw route simply does not apply. For a company that has never paid, null vs 0 changes no decision; low.",
+    "evidence": "sidecar/services/yfinance_provider.py:347-351, :374 (dividend yield/rate from Yahoo info only), :185; sidecar/services/research/fast.py:207-231 (_apply_dividend_ttm affirmed_zero path), :386",
+    "evidence_checked": "code read; screener re-fetch confirms 'Dividend Yield 0.00 %'",
+    "repro_check": "collected /fundamentals/DAL: dividend_yield/dividend_per_share_ttm null with field_meta status unavailable; research path would stamp 0.0 when dividend history affirms zero"
+  },
+  {
+    "raw_id": "DAT-P2-9",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds and re-reproduced live: _quote_from_header ignores the header's own as-of and stamps timestamp=most_recent_session(IN), so a 12-Mar-2025 print is served as today's session with change +2.37 / +4.99%. Because the date is fabricated at the provider, the correctness gate's staleness rejection (locale.is_rejectably_stale via correctness_gate.py:110) never sees the real 556-day age; fundamentals field_meta as_of is the yfinance fetch time (_served_field_meta), not the price's trade date.",
+    "evidence": "sidecar/services/bse_provider.py:506-538 (esp. :527 trading_day = locale.most_recent_session, :536 timestamp=_bar_timestamp(trading_day)); sidecar/services/correctness_gate.py:95-113; sidecar/services/yfinance_provider.py:188-215, :311 (fetched_at as as_of)",
+    "evidence_checked": "code read + live GET /quotes against :52152 at 2026-09-23T00:55:42Z",
+    "repro_check": "curl '127.0.0.1:52152/quotes/DAL?asset_class=equity' -> price 49.88, change_percent 4.988, timestamp 2026-09-23T00:00:00Z (date moved with the run date; BSE Ason is 12 Mar 25)"
+  }
+]

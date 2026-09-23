@@ -1,0 +1,450 @@
+{
+  "slot": "P8",
+  "symbol": "NAPEROL",
+  "collected_at": "2026-09-19",
+  "collected_by": "claude-sonnet-5",
+  "role": "holding company (BSE-only)",
+  "headline": "Naperol Investments Ltd (BSE:500298, group X) is a Wadia Group holding-company shell born from a 2023 demerger of National Peroxide Ltd: the 1954-incorporated chemicals maker split its peroxygen-chemicals business into NPL Chemicals Ltd and kept the investments/leasing business plus the National Peroxide corporate shell, which was renamed Naperol Investments Ltd (scheme effective 11-Sep-2023, appointed date 1-Apr-2022). Debt-free (borrowings Rs 0 Cr FY2026), trading at 0.40x book value with a market value of investments (Rs 888 Cr) more than double its own market cap (Rs 369-371 Cr) - the classic holding-company discount. ROE/ROCE are near-zero (~1%) because most of the balance sheet is a passive investment portfolio, not operating capital. Two of BSE's own live-data endpoints disagree with screener.in on ROE and P/B by roughly 2x (see source_conflicts) - a data-trust trap for any pipeline that trusts a single BSE field.",
+  "identity": {
+    "legal_name": {
+      "value": "Naperol Investments Ltd",
+      "unit": "name",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:20:00Z",
+      "note": "BSE getScripHeaderData Cmpname.FullN = 'Naperol Investments Ltd'. Also confirmed by screener.in page title and by naperolinvestments.com (company's own investor-relations site)."
+    },
+    "former_names": {
+      "value": "National Peroxide Ltd (renamed/reorganised into Naperol Investments Ltd via a Composite Scheme of Arrangement, effective 11-Sep-2023, appointed date 1-Apr-2022)",
+      "unit": "name",
+      "as_of": "2023-09-11",
+      "source_url": "https://www.naperolinvestments.com/CompanyProfile.php",
+      "fetched_at": "2026-09-23T00:31:00Z",
+      "note": "Company's own About Us page, verbatim: 'The Wadia Group ... founded the Company in year 1954 as a specialty chemical production Company. Pursuant to the effectiveness of the Scheme on September 11, 2023, the chemical business of the Company was transferred and vested in NPL Chemicals Limited and Naperol Investments Limited was amalgamated with the Company, respectively, with effect from the Appointed Date i.e. April 1, 2022, resulting in the formation of distinct and separate entities. Currently, the main operations of the Company include Investment and Leasing business.' The scrip 500298 / ISIN INE585A01020 is the SURVIVING original National Peroxide Ltd listing, renamed to Naperol Investments Ltd - this is the entity whose reported financial history (FY2015-FY2022 sales of Rs 200-400 Cr from chemicals manufacturing) belongs to a DIFFERENT business than the current Rs 20-30 Cr/yr holding-company revenue. TRAP: screener.in's own 'About' summary text is stale/wrong - it still reads 'National Peroxide Ltd is engaged in Investment and Leasing business', conflating the pre-scheme legal name with the post-scheme business description."
+    },
+    "isin": {
+      "value": "INE585A01020",
+      "unit": "isin",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:18:00Z"
+    },
+    "bse_code": {
+      "value": "500298",
+      "unit": "scrip code",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:18:00Z"
+    },
+    "nse_symbol": {
+      "value": null,
+      "unit": "symbol",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "Not listed on NSE. Confirmed by manifest.json master_presence.nse = 'absent' and by the absence of any NSE symbol on the BSE quote page or screener."
+    },
+    "board": {
+      "value": "Mainboard (BSE), group X",
+      "unit": "board/group",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:18:00Z",
+      "note": "BSE ComHeader: Grp_Index='X', Group='X'. Not SME - this is a mainboard scrip in BSE's illiquid/infrequently-traded 'X' group, distinct from an SME listing."
+    },
+    "sector": {
+      "value": "Financial Services",
+      "unit": "sector",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:18:00Z",
+      "note": "BSE: Sector='Financial Services', IGroup='Finance', ISubGroup='Investment Company', Industry='Investment Company'. See traps: the company's OWN 'Services Offered' text still lists peroxygen-chemicals manufacturing as business line (a) alongside investments as (b), so a sector-classification pipeline reading company text vs. exchange classification can land on 'Chemicals' or 'Financial Services' depending on source."
+    },
+    "industry": {
+      "value": "Investment Company",
+      "unit": "industry",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:18:00Z"
+    },
+    "business_description": {
+      "value": "a) Manufacturing, distribution and dealing of peroxygen chemicals; b) Making long term investments and corporate lending directly and/or through its wholly owned subsidiary. Company's own 'About' summary (post-scheme, on its IR site): 'the main operations of the Company include Investment and Leasing business.'",
+      "unit": "text",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "Screener's 'Key Points > Services Offered' text (sourced from a BSE corporate filing PDF) still names peroxygen chemicals as line of business (a) even though the actual chemicals manufacturing was demerged into NPL Chemicals Ltd in Sep-2023 and standalone Sales collapsed from Rs 232 Cr (FY2022) to Rs 2 Cr (FY2023) onward - i.e. the filing text was not refreshed to match the post-demerger reality."
+    },
+    "incorporated": {
+      "value": "1954",
+      "unit": "year",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.naperolinvestments.com/CompanyProfile.php",
+      "fetched_at": "2026-09-23T00:31:00Z",
+      "note": "'The Wadia Group ... founded the Company in year 1954 as a specialty chemical production Company' (as National Peroxide Ltd). The current legal-entity name (Naperol Investments Ltd) dates only to the Sep-2023 scheme; the listed CIN/company itself is 72 years old (72nd AGM held 16-Sep-2026)."
+    },
+    "listing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "GENUINE GAP within sources reached this session. Circumstantial only (not recorded as a value): a scrip code in the 500xxx range and a 72nd AGM in 2026 (implying incorporation-era listing, i.e. mid-to-late 1950s as National Peroxide Ltd) are consistent with a listing decades before BSE's own scrip-code numbering became a reliable date proxy. Would need BSE's historical listing-date filing or the annual report's corporate-info page to confirm exactly."
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 642.35,
+      "unit": "INR",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=500298&seriesid=",
+      "fetched_at": "2026-09-23T00:20:00Z",
+      "note": "BSE Header 'Ason':'22 Sep 26 | 16:00'. LTP=642.35, Open=637.55, High=655.00, Low=637.55, PrevClose=645.55, day change -0.50%. screener.in's live tape (same session) shows current price 642 / prev-close 645.55, consistent."
+    },
+    "week52": {
+      "high": {
+        "value": 990,
+        "unit": "INR",
+        "as_of": "2026-09-22",
+        "source_url": "https://www.screener.in/company/500298/",
+        "fetched_at": "2026-09-23T00:10:00Z"
+      },
+      "low": {
+        "value": 490,
+        "unit": "INR",
+        "as_of": "2026-09-22",
+        "source_url": "https://www.screener.in/company/500298/",
+        "fetched_at": "2026-09-23T00:10:00Z",
+        "note": "screener.in top-ratios 'High / Low' = Rs 990 / Rs 490, read as of the same live-quote timestamp as Current Price (22-Sep-2026 close). The stock has more than halved and nearly doubled within the trailing 52 weeks (490 to 990) - a wide, single-name-illiquid-driven range typical of a group-X, thinly-traded scrip; treat both legs as equally 'fresh' (same source, same as-of), not independently dated."
+      }
+    }
+  },
+  "market_cap": {
+    "value": 369,
+    "unit": "INR crore",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "manifest.json's curated reference snapshot (18-Sep-2026) recorded Rs 371 Cr at price Rs 645 - the Rs 2 Cr / Rs 3 drift to this session's Rs 369 Cr at Rs 642 is ordinary day-to-day price movement, not a data problem."
+  },
+  "pe_ttm": {
+    "value": 34.2,
+    "unit": "ratio",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "corroborated_by": [
+      "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=500298&seriesid= (BSE PE=34.20, exact match)"
+    ]
+  },
+  "pb": {
+    "value": 0.4,
+    "unit": "ratio",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "Derived on-page from screener's own stated Book Value (Rs 1,609) and Current Price (Rs 642): 642/1609 = 0.399, and screener's own analysis bullet says verbatim 'Stock is trading at 0.40 times its book value'. See source_conflicts.C1 - BSE's ComHeaderNew field 'PB' independently reports 0.20, roughly half this value."
+  },
+  "roe": {
+    "value": 1.03,
+    "unit": "percent",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "screener top-ratios ROE = 1.03%; matches manifest.json's curated reference_pct (roe_pct: 1.03) exactly. See source_conflicts.C2 - BSE's ComHeaderNew field 'ROE' independently reports 0.59%."
+  },
+  "roce": {
+    "value": 1.07,
+    "unit": "percent",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "No corroborating BSE field found (BSE ComHeader/ComHeaderNew do not expose ROCE)."
+  },
+  "debt_to_equity": {
+    "value": 0.0,
+    "unit": "ratio",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "Derived from screener's standalone balance sheet: Borrowings FY2026 (Mar-2026) = Rs 0 Cr against Equity Capital Rs 6 Cr + Reserves Rs 911 Cr = Rs 917 Cr total equity. Borrowings have been Rs 0 for three consecutive years (FY2024, FY2025, FY2026); screener's own analysis bullet states 'Company is almost debt free.'"
+  },
+  "revenue_ttm": {
+    "value": 33,
+    "unit": "INR crore",
+    "as_of": "TTM ending 2026-06-30",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "screener standalone P&L 'Sales' TTM column = Rs 33 Cr. Cross-checked by summing the four most recent standalone quarters (Sep-25: 2.94, Dec-25: 1.02, Mar-26: 19.53, Jun-26: 9.45 = 32.94 ~ 33)."
+  },
+  "net_profit_ttm": {
+    "value": 11,
+    "unit": "INR crore",
+    "as_of": "TTM ending 2026-06-30",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "screener standalone P&L 'Net Profit' TTM column = Rs 11 Cr (checks: -0.01 + -0.59 + 11.22 + 0.18 = 10.8 ~ 11 over the same four quarters)."
+  },
+  "revenue_growth_yoy": {
+    "value": 35.0,
+    "unit": "percent, standalone annual FY2026 vs FY2025",
+    "as_of": "FY2026 (year ended 2026-03-31) vs FY2025 (year ended 2025-03-31)",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "Basis stated explicitly because it matters here: standalone annual Sales FY2025=Rs 20 Cr -> FY2026=Rs 27 Cr = +35%. This YoY figure is NOT representative of the underlying business, which is a passive-investment holding company whose 'revenue' is largely dividend/interest income on the Rs 888 Cr investment book and swings quarter to quarter (Jun-2026 quarter alone was Rs 9.45 Cr vs Rs 2.94 Cr a year earlier, +221% QoQ-YoY) - a single blended annual growth number hides that volatility."
+  },
+  "eps_ttm": {
+    "value": 18.94,
+    "unit": "INR",
+    "as_of": "TTM ending 2026-06-30",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "See source_conflicts.C3 - BSE ComHeaderNew independently reports EPS=18.78, a Rs 0.16 / 0.8% difference from screener's TTM figure (likely standalone-TTM-window vs BSE's own trailing-window definition, not a real error, but worth diffing exactly since both are labelled TTM)."
+  },
+  "book_value_per_share": {
+    "value": 1609,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "screener top-ratios 'Book Value' = Rs 1,609 (live, i.e. reflects reserves through the most recent filed quarter, not just the FY2026 annual balance sheet). A rough FY2026-annual-only check (Equity Capital Rs 6 Cr + Reserves Rs 911 Cr = Rs 917 Cr / ~60,00,000 shares) gives ~Rs 1,528/share - the Rs 1,609 live figure is higher, consistent with retained profit added in the Jun-2026 quarter (net profit Rs 0.18 Cr) plus screener's own rounding/consolidation conventions; not treated as a conflict since the two numbers are different as-of windows."
+  },
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+    "fetched_at": "2026-09-23T00:18:00Z",
+    "corroborated_by": [
+      "https://www.screener.in/company/500298/ (Face Value = Rs 10.0)"
+    ]
+  },
+  "shares_outstanding": {
+    "value": 6000000,
+    "unit": "shares",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/500298/",
+    "fetched_at": "2026-09-23T00:10:00Z",
+    "note": "Derived: FY2026 standalone Equity Capital Rs 6 Cr / face value Rs 10 = 60,00,000 shares. Not sourced as a directly-labelled 'shares outstanding' field on any page reached."
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 16.48,
+      "unit": "INR per share",
+      "as_of": "2026-09-16 (approved at 72nd AGM)",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf",
+      "fetched_at": "2026-09-23T00:15:00Z",
+      "note": "screener.in Company Announcements feed, two separate BSE filings dated 16-Sep-2026: 'Summary Of Proceedings Of The 72Nd Annual General Meeting' and 'Outcome of AGM', both stating '72nd AGM held on September 16, 2026; shareholders approved Rs.16.48 final dividend'. This is the FY2025-26 FINAL dividend, declared/approved at the AGM, not yet necessarily paid as of collection."
+    },
+    "record_or_ex_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:15:00Z",
+      "note": "GENUINE GAP within sources reached. Screener's announcements list and top-ratios do not carry a record/ex-date field, and the BSE corporate-actions/dividend-history API endpoints probed this session (Corporate_Act, DivHistory, CorpforthcomingAPI) either 302-redirected or returned '-' (no data) rather than a usable payload. The record/ex-date for the Rs 16.48 FY25-26 final dividend, approved 16-Sep-2026, was not confirmed from a reachable source this session - would need the BSE corporate-actions calendar or the AGM outcome PDF's full text (not parsed this session)."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": null,
+      "unit": "INR per share",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:15:00Z",
+      "note": "GENUINE GAP. screener.in exposes only 'Dividend Yield' (%) and 'Dividend Payout %' on this company's page, not a per-share trailing-12-month paid-dividend rupee figure; no per-share dividend-history table was reached this session. Do not back-calculate from yield x price (3.03% x Rs 642 = Rs ~19.45) and present as 'paid' - dividend yield on screener is typically based on the last DECLARED dividend, not a trailing-paid sum, and would conflate with last_declared_per_share above."
+    },
+    "yield": {
+      "value": 3.03,
+      "unit": "percent",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "manifest.json curated reference (18-Sep-2026) recorded 3.02%; this session's screener pull (22-Sep-2026 close) shows 3.03% - explained fully by the ~Rs 3 price move (Rs 645 -> Rs 642), not a data discrepancy."
+    }
+  },
+  "shareholding": {
+    "quarter": {
+      "value": "Jun 2026 (quarter ended 2026-06-30)",
+      "unit": "quarter",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "This is screener's LATEST filed shareholding quarter as of collection - more current than the FY2026 (Mar-2026) annual balance sheet, since shareholding is disclosed quarterly under SEBI (LODR) regs regardless of financial year-end."
+    },
+    "promoter_pct": {
+      "value": 70.77,
+      "unit": "percent",
+      "as_of": "Jun 2026",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "Flat at exactly 70.77% for all 12 quarters shown (Sep-2023 through Jun-2026) - no promoter buying or selling in three years, per screener's quarterly shareholding table."
+    },
+    "fii_pct": {
+      "value": 1.76,
+      "unit": "percent",
+      "as_of": "Jun 2026",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z"
+    },
+    "dii_pct": {
+      "value": 0.01,
+      "unit": "percent",
+      "as_of": "Jun 2026",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z"
+    },
+    "public_pct": {
+      "value": 27.46,
+      "unit": "percent",
+      "as_of": "Jun 2026",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "70.77 + 1.76 + 0.01 + 27.46 = 100.00, sums cleanly."
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "unit": "percent",
+      "as_of": "Jun 2026",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "GENUINE GAP / low-confidence inference. Screener.in shows NO pledge figure anywhere on the shareholding-pattern table or its per-quarter drill-downs, which on screener typically means 'zero reported pledge' (screener surfaces a pledge % explicitly, with a warning icon, only when non-zero) - but this session did not reach the underlying BSE Reg-31 shareholding-pattern XBRL filing to confirm 0% directly, so the field is recorded as a gap rather than asserted as 0. This is deliberately called out per the collection brief: promoter pledge is the single most gameable number in an Indian small-cap and should not be inferred from absence-of-a-red-flag-icon alone."
+    }
+  },
+  "corporate_actions_2026": {
+    "value": [
+      {
+        "type": "final dividend",
+        "amount_per_share_inr": 16.48,
+        "approved_at": "72nd AGM, 2026-09-16",
+        "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf",
+        "fetched_at": "2026-09-23T00:15:00Z"
+      }
+    ],
+    "note": "No bonus issue, stock split, rights issue or buyback found in the 2026 announcements reached this session (only the recent-announcements feed was checked, not the full BSE 'All' corp-announcements archive for the year)."
+  },
+  "latest_results": {
+    "quarter": {
+      "value": "Q1 FY2027 (quarter ended 2026-06-30)",
+      "unit": "quarter",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z"
+    },
+    "reported_numbers": {
+      "revenue_inr_cr": 9.45,
+      "net_profit_inr_cr": 0.18,
+      "eps_inr": 0.32,
+      "opm_pct": 1.9,
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z"
+    },
+    "filing_date": {
+      "value": null,
+      "unit": "date",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/500298/",
+      "fetched_at": "2026-09-23T00:10:00Z",
+      "note": "GENUINE GAP. screener's results table gives the quarter END date (2026-06-30) but not the BSE filing/announcement date for those results; not reached in the recent-announcements feed pulled this session (which only went back to 21-Aug-2026)."
+    }
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-09-16",
+      "headline": "Shareholder Meeting / Postal Ballot - Scrutinizer's Report",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=558a6c28-50b0-45a2-8657-924f522f160b.pdf"
+    },
+    {
+      "date": "2026-09-16",
+      "headline": "Summary Of Proceedings Of The 72nd Annual General Meeting Of The Company - 72nd AGM held 16-Sep-2026; shareholders approved Rs.16.48 final dividend and appointments.",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf"
+    },
+    {
+      "date": "2026-09-16",
+      "headline": "Shareholder Meeting / Postal Ballot - Outcome of AGM - 72nd AGM held 16-Sep-2026; shareholders approved Rs.16.48 dividend and other resolutions.",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=3122159f-58ac-4751-bb4d-05779b0a018f.pdf"
+    }
+  ],
+  "consolidated_vs_standalone": {
+    "note": "Standalone is the current/authoritative view: screener's default company page (used for all figures above) is standalone, current through Q1 FY2027 (Jun-2026). Screener's CONSOLIDATED view (/company/500298/consolidated/) is stale and effectively frozen: its quarterly data stops at quarter ended 2023-06-30 and its annual data stops at FY2023 (year ended 2023-03-31), both pre-dating the Sep-2023 demerger scheme. This is consistent with the company's own text that its formerly-consolidated wholly-owned subsidiary ('the Transferor Company') was itself amalgamated into the surviving entity under the same scheme - i.e. there is no longer a subsidiary to consolidate, so standalone and (stale) consolidated should NOT be diffed against each other for any period after mid-2023.",
+    "standalone_source_url": "https://www.screener.in/company/500298/",
+    "consolidated_source_url": "https://www.screener.in/company/500298/consolidated/",
+    "fetched_at": "2026-09-23T00:33:00Z"
+  },
+  "source_conflicts": [
+    {
+      "id": "C1",
+      "field": "pb",
+      "a": {
+        "source": "screener.in",
+        "value": "0.40 (derived: price 642 / book value 1609; also stated verbatim in screener's own analysis bullet 'Stock is trading at 0.40 times its book value')",
+        "source_url": "https://www.screener.in/company/500298/",
+        "fetched_at": "2026-09-23T00:10:00Z"
+      },
+      "b": {
+        "source": "BSE ComHeaderNew API",
+        "value": "0.20",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=500298&seriesid=",
+        "fetched_at": "2026-09-23T00:19:00Z"
+      },
+      "note": "BSE's own live P/B field is almost exactly half screener's - and half screener's own derived 0.40 from screener's own stated book value/price. Not explained by a standalone/consolidated split (consolidated data is stale, see above) or by a stock-split (face value confirmed Rs 10 on both sources). Left unresolved - flagged as a genuine cross-source discrepancy for the diff stage to weigh, not smoothed over."
+    },
+    {
+      "id": "C2",
+      "field": "roe",
+      "a": {
+        "source": "screener.in",
+        "value": "1.03%",
+        "source_url": "https://www.screener.in/company/500298/",
+        "fetched_at": "2026-09-23T00:10:00Z"
+      },
+      "b": {
+        "source": "BSE ComHeaderNew API",
+        "value": "0.59%",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=500298&seriesid=",
+        "fetched_at": "2026-09-23T00:19:00Z"
+      },
+      "note": "Same ~1.7x pattern as C1 (roughly double), suggesting BSE may be using a different equity-base denominator (e.g. paid-up capital only, or an older reserves figure pre-dating a recent quarter's profit) rather than total shareholders' equity - but this is a hypothesis, not confirmed from a documented BSE methodology page."
+    },
+    {
+      "id": "C3",
+      "field": "eps_ttm",
+      "a": {
+        "source": "screener.in",
+        "value": "18.94 (TTM column)",
+        "source_url": "https://www.screener.in/company/500298/",
+        "fetched_at": "2026-09-23T00:10:00Z"
+      },
+      "b": {
+        "source": "BSE ComHeaderNew API",
+        "value": "18.78",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=500298&seriesid=",
+        "fetched_at": "2026-09-23T00:19:00Z"
+      },
+      "note": "Small (0.8%) difference, most likely a trailing-window definition mismatch (BSE's 'EPS' field is not documented as TTM specifically) rather than an error, but recorded exactly since both are candidate 'current EPS' values."
+    }
+  ],
+  "traps": [
+    "Renamed entity, stale description text: the listed company (BSE 500298 / ISIN INE585A01020) is the SAME legal entity as the former National Peroxide Ltd (a 1954-incorporated chemicals maker), renamed Naperol Investments Ltd via a Sep-2023 demerger scheme. A pipeline that trusts screener.in's cached 'About' text verbatim ('National Peroxide Ltd is engaged in Investment and Leasing business') will show the WRONG company name next to the right business description, or conflate this entity with the actual current National Peroxide Ltd / NPL Chemicals Ltd (the demerged chemicals business, a separate listed entity) if it does any name-based lookup.",
+    "Pre/post-demerger financial discontinuity: standalone annual Sales collapse from Rs 232 Cr (FY2022, chemicals-era) to Rs 2 Cr (FY2023) to Rs 20-33 Cr (FY2025/26/TTM, holding-company-era) is a real structural break, not a data error or a business collapse - any YoY or multi-year trend/CAGR computed across FY2022 and FY2023 for this scrip is meaningless and must be flagged, not silently charted.",
+    "FY2023 Net Profit of Rs 375 Cr (vs Rs 5 Cr the year before and Rs 11 Cr since) is a one-off demerger/scheme accounting entry (e.g. revaluation or transfer gain), not operating profit - a naive 'profit growth' or 'profit CAGR' calculation spanning FY2023 will produce an absurd spike-then-crash that looks like fraud or a data bug but is a real, disclosed one-time event.",
+    "Consolidated financials on screener.in are FROZEN at FY2023 / quarter ended Jun-2023 (the pre-scheme wholly-owned subsidiary no longer exists to consolidate) while standalone is fully current - a pipeline that defaults to 'consolidated when available' for this scrip will silently serve 3-year-old numbers as if current.",
+    "Two BSE API endpoints for the same scrip (ComHeader vs ComHeaderNew) return materially different ROE/PB for the same day - a pipeline single-sourcing 'the BSE value' for these two fields without cross-checking screener would show a number roughly half of what every other aggregator shows, with no error or staleness flag.",
+    "Group-X, thin float: promoter holding has been unchanged at exactly 70.77% for 12 consecutive quarters and free-float is only ~29%; combined with BSE group-X status this makes single-print/thin-volume price moves (the 990/490 52-week range) more likely to be a few large trades than a liquid market consensus - any 'market cap' or valuation multiple built on last-traded-price should be read with that caveat for this name specifically."
+  ],
+  "world_gaps": [
+    "listing_date (exact original listing date on BSE, pre-dating the 2023 rename) - not found in sources reached this session; would need a BSE historical-listing filing or the annual report's corporate-information page.",
+    "dividend.record_or_ex_date for the Rs 16.48 FY25-26 final dividend approved 16-Sep-2026 - BSE's corporate-actions/dividend-history API endpoints probed this session did not return usable data (redirects or empty '-' responses); the AGM outcome PDF itself (not parsed this session) likely states it.",
+    "dividend.paid_trailing_12m_per_share as a directly-sourced rupee figure - screener exposes only yield % and payout %, not a per-share paid-dividend history table, on the free/unauthenticated page reached this session.",
+    "shareholding.pledged_pct_of_promoter as a directly-confirmed value - screener shows no pledge indicator at all for any of the last 12 quarters, which is consistent with (but does not directly confirm) 0% pledge; the authoritative source (BSE Reg-31 XBRL shareholding-pattern filing) was not fetched this session.",
+    "results filing_date (the BSE announcement date for the Q1 FY2027 / Jun-2026 results, as distinct from the quarter-end date) - not in the recent-announcements window (back to 21-Aug-2026) pulled this session."
+  ],
+  "sources": [
+    "https://www.screener.in/company/500298/",
+    "https://www.screener.in/company/500298/consolidated/",
+    "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=500298&seriesid=",
+    "https://api.bseindia.com/BseIndiaAPI/api/ComHeaderNew/w?quotetype=EQ&scripcode=500298&seriesid=",
+    "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=500298&seriesid=",
+    "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=500298&flag=0&fromdate=&todate=&seriesid=",
+    "https://www.naperolinvestments.com/CompanyProfile.php",
+    "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=e76bc0bc-c565-4b79-9afb-ee7fce53f741.pdf"
+  ]
+}

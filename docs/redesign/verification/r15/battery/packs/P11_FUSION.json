@@ -1,0 +1,471 @@
+{
+  "collected_at": "2026-09-19",
+  "slot": "P11",
+  "symbol": "FUSION",
+  "status": "complete-with-recorded-gaps",
+  "collector_notes": "Fetched live (2026-09-22/23) via curl against screener.in (standalone view, consolidated view returns the same P&L/balance-sheet structure - NBFC with no disclosed subsidiaries), BSE's public JSON APIs (api.bseindia.com, browser UA + Referer: https://www.bseindia.com/ per COMMON.md), and stockanalysis.com/quote/bom/543652. bseindia.com's own HTML quote page 403s to curl; the JSON API host does not. Manifest reference snapshot is dated 2026-09-18 (price 185, mcap 2997cr); this pack's live pulls are one trading day later (22 Sep close) so price/mcap differ slightly by normal drift, not a data error - both are recorded. Renamed from 'Fusion Micro Finance Limited' to 'Fusion Finance Limited' in July 2024 (stockanalysis.com), well before this pull, so 'old name' staleness risk is mostly in older cached aggregator pages, not these live-fetched ones. WebSearch is exhausted for this session; DuckDuckGo HTML search via curl returned DuckDuckGo's un-rendered homepage (no results extractable) for the one IPO-listing-date query attempted - recorded as a gap rather than guessed.",
+  "identity": {
+    "legal_name": {
+      "value": "Fusion Finance Limited",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "corroboration": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652 (SecurityId FUSION); stockanalysis.com/quote/bom/543652/ ('Fusion Finance Limited')"
+    },
+    "former_names": {
+      "value": "Fusion Micro Finance Limited",
+      "rename_date": "2024-07",
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/bom/543652/",
+      "quote": "The company was formerly known as Fusion Micro Finance Limited and changed its name to Fusion Finance Limited in July 2024.",
+      "note": "Matches manifest hostile_traits ('renamed from Fusion Micro Finance'). Older cached pages, filings and any pre-Jul-2024 aggregator snapshot will still carry the old name - a live pipeline that only string-matches 'Fusion Micro Finance' will miss this entity post-rename, and one that only matches 'Fusion Finance' will miss pre-2024-07 filings.",
+      "confidence": "high - stated plainly on a current, dated aggregator profile page"
+    },
+    "isin": {
+      "value": "INE139R01012",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "note": "BSE JSON API field 'ISIN'; matches manifest master_presence.bse."
+    },
+    "bse_code": {
+      "value": "543652",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "corroboration": "https://www.screener.in/company/FUSION/ (BSE: 543652 link to bseindia.com/stock-share-price/fusion-finance-ltd/FUSION/543652/)"
+    },
+    "nse_symbol": {
+      "value": "FUSION",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "corroboration": "manifest master_presence.nse: [\"FUSION\",\"Fusion Finance Limited\",\"EQ\"]"
+    },
+    "board": {
+      "value": "mainboard",
+      "exchanges": "BSE Group B (BSE 1000 index member), NSE EQ series",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "note": "BSE JSON field 'Grp_Index': 'B / BSE 1000' - ordinary mainboard listing, not SME."
+    },
+    "sector": {
+      "value": "Financial Services",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "corroboration": "screener.in classifies it under NBFC/Microfinance peer set on the same page"
+    },
+    "industry": {
+      "value": "Microfinance Institutions (BSE 'IndustryNew'/'ISubGroup'); 'Personal Credit Institutions' (stockanalysis.com's NAICS-style bucket)",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "disagreement": "BSE: Industry='Microfinance Institutions'. stockanalysis.com: Industry='Personal Credit Institutions'. Same company, two different industry-classification taxonomies (BSE sectoral vs a US-style GICS/NAICS-ish bucket) - both correct under their own scheme, not a data error."
+    },
+    "business_description": {
+      "value": "Group-lending microfinance (MFI) NBFC: JLG loans of 5-7 women members, 17-25 month tenor, 23.4%-23.98% reducing-balance interest, 14/28-day repayment cycles; also MSME lending, secured loans and life-insurance cross-sell.",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "detail": "Incorporated 1994; primarily microfinance lending; underserved/unserved women borrowers in rural and semi-rural India; HQ Gurugram.",
+      "detail_source_url": "https://stockanalysis.com/quote/bom/543652/"
+    },
+    "incorporated": {
+      "value": "1994",
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/bom/543652/",
+      "corroboration": "https://www.screener.in/company/FUSION/ ('Incorporated in 1994, Fusion Finance Ltd is primarily engaged in microfinance lending activities')"
+    },
+    "listing_date": {
+      "value": null,
+      "gap": "Not confirmed in this pass. Company IPO'd on BSE/NSE mainboard (SME=false, confirmed above) but the exact listing date was not found via curl-reachable sources in the time budget; the one DuckDuckGo HTML query attempted returned an un-rendered homepage with no extractable result, and WebSearch is exhausted this session. Recorded as a genuine gap, not guessed.",
+      "as_of": "2026-09-22"
+    },
+    "employees": {
+      "value": "12,021",
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/bom/543652/employees/"
+    },
+    "headquarters": {
+      "value": "Gurugram, India",
+      "as_of": "2026-09-22",
+      "source_url": "https://stockanalysis.com/quote/bom/543652/"
+    }
+  },
+  "price": {
+    "last_close": {
+      "value": 184,
+      "unit": "INR",
+      "date": "2026-09-22",
+      "exchange": "screener.in aggregate (NSE-anchored)",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "corroboration": "BSE JSON getScripHeaderData LTP=183.10 (Chg -1.45, -0.79%) as of '22 Sep 26 | 16:00'; BSE StockReachGraph PrevClose=184.55, CurrVal=183.35",
+      "note": "Small BSE-vs-screener/NSE spread (~184 vs 183.10-183.35) is normal cross-exchange drift on a ~Rs2 spread, not a data error - both dated the same session."
+    },
+    "previous_close": {
+      "value": 184.55,
+      "unit": "INR",
+      "date": "2026-09-21",
+      "as_of": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=543652&flag=0"
+    },
+    "day_range": {
+      "high": 186.9,
+      "low": 182.0,
+      "unit": "INR",
+      "date": "2026-09-22",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=543652"
+    }
+  },
+  "market_cap": {
+    "value": 2973,
+    "unit": "INR crore",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "stockanalysis.com: 29.87B (=2987 cr), -2.9% [period n/a]",
+    "note": "Manifest reference (as_of 2026-09-18) recorded mcap_inr_cr=2997 at price 185 - the ~1% difference from this pull's 2973cr/184 is one extra trading session's drift (18->22 Sep), not a mismatch."
+  },
+  "pe_ttm": {
+    "value": 17.6,
+    "unit": "x",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "BSE ComHeadernew field PE=17.61 - effectively identical"
+  },
+  "pb": {
+    "value": 1.18,
+    "unit": "x",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+    "note": "Derivable check: price 184 / book value 152 = 1.21x vs BSE's quoted 1.18x - within rounding of using slightly different price/BV snapshot timing, not flagged as a mismatch."
+  },
+  "roe": {
+    "value": "DISAGREEMENT - see below",
+    "unit": "%",
+    "as_of": "2026-09-22",
+    "disagreements": [
+      {
+        "source": "screener.in top-ratios widget",
+        "value": 0.68,
+        "unit": "%",
+        "source_url": "https://www.screener.in/company/FUSION/",
+        "basis": "unlabelled - appears to be screener's own trailing calc"
+      },
+      {
+        "source": "BSE ComHeadernew JSON",
+        "value": 6.68,
+        "unit": "%",
+        "source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+        "basis": "unlabelled"
+      },
+      {
+        "source": "screener.in 'Return on Equity' 5-year table, 'Last Year:'",
+        "value": 1,
+        "unit": "%",
+        "source_url": "https://www.screener.in/company/FUSION/",
+        "basis": "FY (Mar 2026) annual, not trailing-quarterly"
+      },
+      {
+        "source": "screener.in ratios table elsewhere on same page",
+        "value": -15,
+        "unit": "%",
+        "source_url": "https://www.screener.in/company/FUSION/",
+        "basis": "appears to be a different (possibly multi-year average or pre-recovery) window - not reconciled"
+      }
+    ],
+    "note": "Four ROE figures found on/around ONE screener page plus one BSE figure, spanning 0.68% to 6.68% (and a -15% elsewhere), because FY2025 had a massive net loss (-1225cr, MFI-sector stress year) that different windows (TTM vs FY-annual vs multi-year average) weight completely differently. Sanity check: TTM net profit ~169cr / average FY2026 equity ~(2256+2456)/2=2356cr =~ 7.2%, closest to BSE's 6.68%. This is exactly the kind of 'aggregators disagree' trap the manifest calls out generically for microfinance revenue/yield definitions - it turns out to apply to ROE too.",
+    "world_gap": "No single source states its own ROE formula/window on-page, so none of the four figures can be labelled 'the' ROE with confidence; recorded as an open disagreement for the differ, not averaged or picked."
+  },
+  "roce": {
+    "value": 5.92,
+    "unit": "%",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "warning": "Same FY2025-loss-driven distortion risk as ROE above; not cross-checked against a second source in this pass (BSE's ComHeadernew JSON does not expose ROCE)."
+  },
+  "debt_to_equity": {
+    "value": 2.27,
+    "unit": "x",
+    "as_of": "2026-03-31",
+    "basis": "derived: FY Mar-2026 Borrowing (5,571 cr) / (Equity Capital 162 cr + Reserves 2,294 cr = 2,456 cr total equity)",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "gap": "screener.in does not surface a single labelled 'Debt to Equity' ratio field for this NBFC (common for lenders, where the ratio is less standardized); this value is derived from the raw balance-sheet lines above, not quoted directly from any source.",
+    "note": "For context: Borrowing nearly halved from 8,616cr (Mar 2024) to 5,571cr (Mar 2026) while Reserves fell from 2,748cr to 2,294cr, reflecting the FY2025 loss year and portfolio de-risking, not simple deleveraging."
+  },
+  "revenue_ttm": {
+    "value": 1699,
+    "unit": "INR crore",
+    "basis": "standalone, trailing 4 quarters (Sep2025+Dec2025+Mar2026+Jun2026 = 401+416+424+458)",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "Matches screener's own page meta description verbatim: 'Revenue: 1,699 Cr'",
+    "annual_series_screener": {
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "Mar2022": 1151,
+      "Mar2023": 1742,
+      "Mar2024": 2317,
+      "Mar2025": 2344,
+      "Mar2026": 1699
+    }
+  },
+  "net_profit_ttm": {
+    "value": 169,
+    "unit": "INR crore",
+    "basis": "standalone, trailing 4 quarters (Sep2025 -22 + Dec2025 14 + Mar2026 114 + Jun2026 62 = 168, screener rounds to 169)",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "Matches screener page meta description verbatim: 'Profit: 169 Cr'",
+    "annual_series_screener": {
+      "unit": "INR crore",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "Mar2022": 22,
+      "Mar2023": 387,
+      "Mar2024": 505,
+      "Mar2025": -1225,
+      "Mar2026": 14
+    },
+    "note": "FY2025 (Mar2025) standalone net loss of -1,225cr was the MFI-sector stress/write-off year; FY2026 barely broke even (+14cr) with the TTM figure (169cr) reflecting a strong recovery concentrated in the most recent two quarters (Mar2026 +114cr, Jun2026 +62cr)."
+  },
+  "revenue_growth_yoy": {
+    "value": -27.6,
+    "unit": "%",
+    "basis": "FY Mar2026 (1699cr) vs FY Mar2025 (2344cr) standalone annual revenue",
+    "as_of": "2026-03-31",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "disagreement": "screener's own 'Compounded Sales Growth / TTM' widget reports -18% for what should be a similar comparison - likely comparing TTM-to-TTM (rolling 4Q) rather than FY-to-FY, giving a smaller decline than the FY-over-FY figure above. Both are legitimate 'yoy' framings; recorded as two different bases rather than reconciled to one number.",
+    "compounded_sales_growth_screener": {
+      "unit": "%",
+      "5y": 15,
+      "3y": -1,
+      "ttm": -18,
+      "source_url": "https://www.screener.in/company/FUSION/"
+    }
+  },
+  "eps_ttm": {
+    "value": 10.44,
+    "unit": "INR",
+    "basis": "sum of last 4 quarterly EPS: Sep2025 -1.37 + Dec2025 0.87 + Mar2026 7.08 + Jun2026 3.86",
+    "as_of": "2026-06-30",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "BSE ComHeadernew JSON field EPS=10.40, CEPS=10.95 - matches within rounding",
+    "annual_series_screener": {
+      "unit": "INR",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "Mar2022": 1.61,
+      "Mar2023": 23.97,
+      "Mar2024": 31.17,
+      "Mar2025": -75.54,
+      "Mar2026": 0.86
+    }
+  },
+  "book_value_per_share": {
+    "value": 152,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "note": "Cross-check: (Equity Capital 162cr + Reserves 2,294cr) / ~16.2cr shares (implied from face value 10 on 162cr equity capital) = ~151.6, consistent."
+  },
+  "face_value": {
+    "value": 10.0,
+    "unit": "INR",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "corroboration": "BSE ComHeadernew JSON field FaceVal='10.00'"
+  },
+  "dividend": {
+    "last_declared_per_share": {
+      "value": 0,
+      "unit": "INR",
+      "record_date": null,
+      "ex_date": null,
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "note": "Dividend Payout % is listed as 0% for every FY column shown (Mar2018 through Mar2026 + TTM) - the company has never declared a dividend since listing, this is not a missing-data gap."
+    },
+    "paid_trailing_12m_per_share": {
+      "value": 0,
+      "unit": "INR",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "basis": "0% payout ratio every year in the P&L table"
+    },
+    "yield": {
+      "value": 0.0,
+      "unit": "%",
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "corroboration": "top-ratios widget shows 'Dividend Yield 0.00%'"
+    }
+  },
+  "week52": {
+    "high": {
+      "value": 243,
+      "unit": "INR",
+      "date": null,
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "corroboration": "matches manifest reference.range_52w_inr [136,243] exactly"
+    },
+    "low": {
+      "value": 136,
+      "unit": "INR",
+      "date": null,
+      "as_of": "2026-09-22",
+      "source_url": "https://www.screener.in/company/FUSION/"
+    },
+    "note": "screener's 'High / Low' widget does not print the individual dates each leg was set; BSE's dedicated 52-week endpoint (api.bseindia.com/.../HighLow/w) returned all-null fields for this scrip when queried live, so exact as-of dates for the high and low legs are a recorded gap, not fabricated."
+  },
+  "shareholding": {
+    "quarter": {
+      "value": "Jun 2026 (Q1 FY27)",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "note": "Latest column in screener's Shareholding Pattern (Quarterly) table."
+    },
+    "promoter_pct": {
+      "value": 53.97,
+      "unit": "%",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "note": "Trend: 67.92% (Sep2023) steadily down to 53.97% (Jun2026) - a ~14pp decline over ~3 years, consistent with the FY2025 rights issue (equity capital roughly rose from 101cr to 162cr between Mar2025 and Mar2026) diluting promoter stake. screener's own page flags: 'Promoter holding has decreased over last quarter: -0.58%'."
+    },
+    "fii_pct": {
+      "value": 4.77,
+      "unit": "%",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/"
+    },
+    "dii_pct": {
+      "value": 15.25,
+      "unit": "%",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/"
+    },
+    "public_pct": {
+      "value": 25.78,
+      "unit": "%",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/"
+    },
+    "others_pct": {
+      "value": 0.23,
+      "unit": "%",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "note": "Not a requested field but included: promoter+fii+dii+public+others = 53.97+4.77+15.25+25.78+0.23 = 100.00%, internally consistent."
+    },
+    "pledged_pct_of_promoter": {
+      "value": null,
+      "gap": "screener.in's free-tier shareholding widget does not render a 'Pledged' row at all for this scrip (checked - no 'pledge' text anywhere on the fetched page). BSE's dedicated ShareHoldingPattern JSON endpoint 302-redirected to an error page when queried live and Trendlyne's equity page 404'd for this scripcode/slug combination. Not independently confirmed as zero - recorded as a genuine gap, not assumed nil, per manifest's explicit call-out that promoter pledge is 'the single most gameable number in an Indian small-cap'."
+    },
+    "no_of_shareholders": {
+      "value": 68121,
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/"
+    }
+  },
+  "corporate_actions_2026": {
+    "value": "No dividend/bonus/split in 2026. Two identified 2026 corporate-adjacent actions: (1) an equity capital raise completing in FY2026 (rights issue), (2) an ESOP grant in Sep 2026.",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/",
+    "rights_issue": {
+      "note": "Equity Capital jumped from 101cr (Mar2025) to 162cr (Mar2026) - a ~60cr face-value increase (~60% more shares), while a SEBI 'Letter of Offer' for a rights issue was filed in Mar 2025. The capital-raise completion therefore falls within FY2026 (Apr2025-Mar2026), though the exact allotment date was not independently confirmed in this pass.",
+      "source_url": "https://www.sebi.gov.in/filings/rights-issues/mar-2025/fusion-finance-limited-letter-of-offer_93564.html",
+      "gap": "Exact rights-issue ratio, issue price, and allotment date not fetched (SEBI letter-of-offer PDF not opened in this pass) - inferred only from the balance-sheet equity-capital jump plus the filing's existence."
+    },
+    "esop_grant": {
+      "what": "94,600 stock options granted under ESOP 2023 at INR 188.18 each",
+      "date": "2026-09-15",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=2e97b734-883e-42a2-98fc-d03fad83b068.pdf",
+      "announcement_title": "Grant Of ESOP-Disclosure Under Regulation 30 And 51 Of SEBI (LODR) Regulations, 2015"
+    },
+    "stressed_loan_sale_to_arc": {
+      "what": "Sold INR 54.16 crore stressed loan portfolio to an Asset Reconstruction Company for INR 35.20 crore",
+      "date": "2026-09-07",
+      "source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c006083e-6ee0-4cf6-a399-02a21ae4648c.pdf",
+      "note": "Not a classic 'corporate action' (dividend/bonus/split) but a material 2026 balance-sheet event relevant to any NPA/asset-quality read of this name - included for completeness."
+    }
+  },
+  "latest_results": {
+    "quarter": {
+      "value": "Jun 2026 (Q1 FY27)",
+      "as_of": "2026-06-30",
+      "source_url": "https://www.screener.in/company/FUSION/",
+      "basis": "standalone un-audited",
+      "figures_from_screener": "Revenue 458cr, Financing Profit 64cr (Financing Margin 14%), PBT 62cr, Net Profit 62cr (Tax 0%), EPS 3.86, Gross NPA 2.51%, Net NPA 0.47%"
+    },
+    "filing_date": {
+      "value": "2026-08-10",
+      "as_of": "2026-08-10T17:23:08",
+      "source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=543652&strToDate=20260923",
+      "announcement_title": "Standalone Un-Audited Financial Results Of The Company For Quarter Ended June 30, 2026",
+      "note": "Exact filing timestamp pulled live from BSE's own announcements JSON API (NEWSID 5b34ddd7-dcaa-4f2e-8cc7-5447421aede5), not estimated."
+    }
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-09-17",
+      "headline": "Announcement under Regulation 30 (LODR) - Analyst / Investor Meet - Intimation",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=4e92ce5c-421d-49b3-9abd-4a5556efe120.pdf"
+    },
+    {
+      "date": "2026-09-15",
+      "headline": "Grant Of ESOP - Disclosure Under Regulation 30 And 51 Of SEBI (LODR) Regulations, 2015 (94,600 options under ESOP 2023 at INR 188.18)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=2e97b734-883e-42a2-98fc-d03fad83b068.pdf"
+    },
+    {
+      "date": "2026-09-15",
+      "headline": "Announcement under Regulation 30 (LODR) - Change in Management (CHRO Pooja Mehta resigned; Chinmayi Trivedi appointed effective 15 Sep 2026)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=d06eb108-0676-431b-8165-0c1a1a174dcc.pdf"
+    }
+  ],
+  "other_announcements_for_context": [
+    {
+      "date": "2026-09-08",
+      "headline": "Transfer Of Stressed Loan Portfolio To Asset Reconstruction Company (INR 54.16cr sold for INR 35.20cr, dated 7 Sep 2026)",
+      "url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c006083e-6ee0-4cf6-a399-02a21ae4648c.pdf"
+    }
+  ],
+  "credit_ratings": {
+    "source_url": "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/VioletJune2026_July 16_ 2026_RR_400462.html",
+    "gap": "A CRISIL rating-update document is linked from screener's Documents section (dated around Jul 2026) but the CRISIL URL (which contains an unencoded space) timed out/failed to fetch in this pass; the specific rating grade/outlook was not independently confirmed and is not guessed here."
+  },
+  "consolidated_vs_standalone": {
+    "value": "Standalone only in practice",
+    "as_of": "2026-09-22",
+    "source_url": "https://www.screener.in/company/FUSION/consolidated/",
+    "detail": "screener.in serves both /company/FUSION/ and /company/FUSION/consolidated/ URLs and both load a populated financials section, but Fusion Finance is a single-entity NBFC with no subsidiaries disclosed on the profile - the quarterly results filed with BSE (see latest_results above) are explicitly labelled 'Standalone Un-Audited Financial Results'.",
+    "confidence": "medium - the two screener URLs were fetched and both resolve, but a line-by-line diff of every figure between them was not completed in this pass; inferred primarily from the BSE filing's own 'Standalone' label.",
+    "note": "Any diff run against the in-app 'collected' snapshot should treat all P&L/balance-sheet/ratio figures in this pack as standalone."
+  },
+  "traps": [
+    "Common-English-word ticker: symbol 'FUSION' collides heavily with generic web/API results for the word 'fusion' (nuclear fusion, chemistry, unrelated companies named Fusion-anything) - any pipeline that resolves tickers via plain-text search rather than exchange master data (BSE 543652 / ISIN INE139R01012) will misroute.",
+    "Name change mid-history: renamed 'Fusion Micro Finance Limited' -> 'Fusion Finance Limited' in July 2024. A pipeline built before mid-2024, or one scraping an old cached page/PDF, will carry the old name; a pipeline built after will miss pre-2024-07 filings indexed under the old name. Both names resolve to the same ISIN/BSE code.",
+    "Lakh/crore scale: all P&L and balance-sheet figures on screener are already in INR crore (stated in the table header 'Figures in Rs. Crores') - a pipeline that assumes lakhs (common for smaller SME-board names) would be off by 100x.",
+    "FY2025 loss year distorts every trailing/ratio figure: a -1,225cr standalone net loss in FY Mar2025 (MFI-sector asset-quality crisis) makes TTM-vs-FY-annual-vs-multi-year-average framings of ROE/ROCE/growth diverge wildly (ROE alone ranges 0.68%-6.68% across sources/windows on the SAME day - see roe.disagreements above). A pipeline that TTM-averages across this loss quarter without labelling the window will produce numbers indistinguishable from a healthy quarter's ratios purely from window choice.",
+    "Rights issue diluted the share count materially within the trailing 2 years (Equity Capital 101cr -> 162cr, Mar2025 -> Mar2026, ~60% more face-value-10 shares) - any pre-computed EPS/BVPS/ratio cached from before the raise, or a per-share metric computed with a stale share count, will be wrong by a large margin.",
+    "Yield trap specific to this manifest entry: 'lending yield 23.4%-23.98%' (cited in manifest hostile_traits) is the interest rate FUSION CHARGES BORROWERS on microfinance loans, not a dividend/bond yield on the stock itself (dividend yield is 0.00% - see dividend.yield above) - a pipeline that free-text-matches 'yield: 23%' against this ticker without checking definition would badly mis-tag it as an extremely high dividend/bond yield."
+  ],
+  "world_gaps": [
+    "Exact IPO/exchange listing date for FUSION - not confirmed via any curl-reachable source in this pass (see identity.listing_date).",
+    "Promoter pledge percentage - no source consulted (screener free tier, BSE JSON, Trendlyne) surfaced this field live (see shareholding.pledged_pct_of_promoter).",
+    "52-week high and low individual as-of dates - screener shows only the two price levels, not the dates each was set; BSE's dedicated HighLow endpoint returned nulls when queried live (see week52.note).",
+    "Exact rights-issue terms (ratio, issue price, record/allotment date) - inferred only from the balance-sheet equity-capital jump and the existence of a Mar-2025 SEBI letter-of-offer filing; the filing itself was not opened (see corporate_actions_2026.rights_issue.gap).",
+    "CRISIL credit rating grade/outlook - the linked document failed to fetch in this pass (see credit_ratings.gap)."
+  ],
+  "sources_actually_read": [
+    "https://www.screener.in/company/FUSION/ (fetched live, 174KB)",
+    "https://www.screener.in/company/FUSION/consolidated/ (fetched live, spot-checked, not fully diffed against standalone)",
+    "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652 (fetched live)",
+    "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=543652 (fetched live)",
+    "https://api.bseindia.com/BseIndiaAPI/api/StockReachGraph/w?scripcode=543652&flag=0 (fetched live)",
+    "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=543652&strToDate=20260923 (fetched live)",
+    "https://stockanalysis.com/quote/bom/543652/ (fetched live, 107KB)"
+  ],
+  "sources_attempted_and_failed": [
+    "https://api.bseindia.com/BseIndiaAPI/api/PeerSmry/w?scripcode=543652 (302 redirect to error page)",
+    "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?flag=1&scripcode=543652 (200 OK but all fields null)",
+    "https://api.bseindia.com/BseIndiaAPI/api/CorpBackNew/w?Scripcode=543652 (302 redirect to error page)",
+    "https://api.bseindia.com/BseIndiaAPI/api/ShareHoldingPattern/w?scripcode=543652 (302 redirect to error page)",
+    "https://api.bseindia.com/BseIndiaAPI/api/ListingdateNew/w?Scripcode=543652 (302 redirect to error page)",
+    "https://trendlyne.com/equity/543652/FUSION/fusion-finance-ltd/ (404)",
+    "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/VioletJune2026_July 16_ 2026_RR_400462.html (curl timeout/connect failure, unencoded space in URL)",
+    "https://html.duckduckgo.com/html/?q=Fusion+Micro+Finance+IPO+listing+date+BSE+NSE+2022 (returned DuckDuckGo's un-rendered homepage, no extractable results - not retried further to respect the <=1 req/3s courtesy limit and time budget)"
+  ]
+}

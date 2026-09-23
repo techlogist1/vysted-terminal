@@ -1,10 +1,10 @@
 {
   "collected_at": "2026-09-19",
-  "status": "in-progress",
+  "status": "complete-with-recorded-gaps",
   "slot": "P18",
   "symbol": "ONC",
   "exchange": "NASDAQ",
-  "collector_notes": "Outside-truth pack for P18 (US name). Session WebSearch budget was exhausted (200/200) before this task, so nothing below came from a search engine: every value was reached by direct fetch against known URL patterns. PRIMARY source is SEC EDGAR (submissions API, XBRL companyconcept API, and the filed 10-Q/8-K documents themselves) - highest authority available for a US registrant. Aggregator corroboration is stockanalysis.com. Absorbed and replaced the 200-byte legacy stub at packs/ONC.json (status 'in-progress', no data). NOTE ON THE MANIFEST'S OWN reference BLOCK: manifest.json for P18 records revenue_usd_h1_2026 = '1.71bn' - that figure is Q2 2026 REVENUE ALONE ($1,705,071,000), not H1. Filed H1 2026 revenue is $3,218,509,000. Its revenue_growth_yoy_pct = 30 is the Q2-2026 YoY (+29.6%), not the FY2025 YoY (+40.2%) nor the H1 YoY (+32.3%). Recorded here so the differ does not inherit the manifest's error as truth.",
+  "collector_notes": "Outside-truth pack for P18 (US name). Session WebSearch budget was exhausted (200/200) before this task, so nothing below came from a search engine: every value was reached by direct fetch against known URL patterns. PRIMARY source is SEC EDGAR (submissions API, XBRL companyconcept API, and the filed 10-Q/8-K documents themselves) - highest authority available for a US registrant. Aggregator corroboration is stockanalysis.com. Absorbed and replaced the 200-byte legacy stub at packs/ONC.json (status 'in-progress', no data). SESSION-2 CONTINUATION: this file already had the full identity/price/valuation/results block from a prior pass, marked in-progress with empty traps/world_gaps/sources arrays and null isin/listing_date. This pass, per PROMPT_data_s2.md's continue-from-existing rule, kept every existing field verbatim and only filled what was missing: isin (SEC EDGAR has none; found via stockanalysis.com/company/), listing_date (Wikipedia), corporate_actions_2026, last_3_announcements, traps, world_gaps, sources_actually_read/attempted_and_failed, and flipped status to complete-with-recorded-gaps. NOTE ON THE MANIFEST'S OWN reference BLOCK: manifest.json for P18 records revenue_usd_h1_2026 = '1.71bn' - that figure is Q2 2026 REVENUE ALONE ($1,705,071,000), not H1. Filed H1 2026 revenue is $3,218,509,000. Its revenue_growth_yoy_pct = 30 is the Q2-2026 YoY (+29.6%), not the FY2025 YoY (+40.2%) nor the H1 YoY (+32.3%). Recorded here so the differ does not inherit the manifest's error as truth.",
   "identity": {
     "legal_name": {
       "value": "BeOne Medicines Ltd.",
@@ -27,8 +27,11 @@
       "basis": "Two 8-Ks dated 2024-11-14 (accessions 0001651308-24-000154 and 0001651308-24-000157, both Item 8.01) bracket the announcement. Announcement (2024-11-14) and effect (2025-05-27) are SIX MONTHS apart - a differ that treats them as one date will mis-window the rename."
     },
     "isin": {
-      "value": null,
-      "gap": "world_gaps.isin_unreached"
+      "value": "US07725L1026",
+      "as_of": "2026-09-19",
+      "source_url": "https://stockanalysis.com/stocks/onc/company/",
+      "cusip": "07725L102",
+      "note": "This is the ISIN of the Nasdaq-listed ADS only (US-prefix). The same company's HKEX line (06160) and Shanghai STAR Market line (688235) carry separate, non-US ISINs that were not fetched - see traps.isin_is_ads_not_ordinary."
     },
     "cik": {
       "value": "0001651308",
@@ -138,8 +141,10 @@
       "confidence": "medium - aggregator figure, not read off the 10-K Item 1 Human Capital section."
     },
     "listing_date": {
-      "value": null,
-      "gap": "world_gaps.listing_date_unreached"
+      "value": "2016-02-02",
+      "as_of": "2026-09-19",
+      "source_url": "https://en.wikipedia.org/wiki/BeOne_Medicines",
+      "note": "Original Nasdaq IPO date under the BGNE ticker (6.6M ADS priced at USD 24). ONC (Jan 2025) is a ticker change on the SAME listing, not a new listing - a pipeline keying listing_date off the current ticker string would wrongly show Jan 2025."
     }
   },
   "price": {
@@ -517,8 +522,173 @@
     "real_dual_basis_risk": "The genuine two-basis problem for this name is US GAAP vs PRC Chinese Accounting Standards: as the STAR Market (688235) issuer the company files a Chinese-standards interim report, and the 2026-08-26 8-K exists precisely to furnish the US GAAP reconciliation for it (https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm). Any Chinese-source figure for this company may be on CAS, not US GAAP.",
     "as_of": "2026-08-26"
   },
-  "traps": [],
-  "world_gaps": [],
-  "sources_actually_read": [],
-  "sources_attempted_and_failed": []
+  "corporate_actions_2026": {
+    "note": "No Indian-style bonus/split/rights-issue mechanics were found for 2026. The genuine capital-structure and governance actions filed this year, none a dividend/split/bonus:",
+    "actions": [
+      {
+        "date": "2026-06-11",
+        "type": "AGM share mandates",
+        "detail": "General mandate for the board to issue up to 20% of issued share capital and to repurchase up to 10% of issued share capital - a standing authorization, not a declared/executed buyback program.",
+        "form": "8-K (Items 5.02, 5.07, 9.01)",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000017/bgne-20260611.htm"
+      },
+      {
+        "date": "2026-06-11",
+        "type": "equity-plan share-pool increase",
+        "detail": "Shareholders approved a 75.4M-share increase to the Fifth Amended 2016 Share Option Plan and a 3.25M-share increase to the Sixth Amended 2018 Employee Share Purchase Plan.",
+        "form": "8-K (Item 5.07)",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000017/bgne-20260611.htm"
+      },
+      {
+        "date": "2026-06-11",
+        "type": "board reconstitution",
+        "detail": "4 directors did not stand for re-election (Goller, Krishana, Sanders, Yi); 3 new directors elected (Baker, Mooney, Sawyers); 10 directors post-meeting.",
+        "form": "8-K (Item 5.02)",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000017/bgne-20260611.htm"
+      },
+      {
+        "date": "2026-06-11",
+        "type": "S-8 registration",
+        "detail": "Registers the additional equity-plan shares approved the same day at the AGM.",
+        "form": "S-8",
+        "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=S-8",
+        "confidence": "form/date only, from the EDGAR filing index; primary document not opened."
+      },
+      {
+        "date": "2026-05-06",
+        "type": "shelf registration",
+        "detail": "Automatic shelf (S-3ASR) filed same-day as Q1 2026 results - a capital-raise FACILITY, not a completed raise. No securities sale under it was found in the 2026 filings reviewed.",
+        "form": "S-3ASR",
+        "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=S-3ASR",
+        "confidence": "form/date only, from the EDGAR filing index; primary document not opened."
+      },
+      {
+        "date": "2026-06-26",
+        "type": "tax settlement (capital-affecting, not a shareholder action)",
+        "detail": "Settled a China statutory tax audit for ~RMB 446 million (incl. surcharges/interest), no penalties; impact recognized in Q2 2026 results.",
+        "form": "8-K (Item 8.01)",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000020/bgne-20260626.htm"
+      }
+    ],
+    "dividends_bonus_splits_rights_2026": "None. No dividend has ever been declared (see dividend field above); no stock split, bonus issue or rights issue appears in the 2026 filing set."
+  },
+  "last_3_announcements": [
+    {
+      "date": "2026-09-16",
+      "headline": "Schedule 13D/A - Baker Bros. Advisors LP amends its beneficial-ownership filing",
+      "url": "https://www.sec.gov/Archives/edgar/data/1651308/000110465926108269/0001104659-26-108269-index.htm",
+      "note": "Filer identity confirmed from the filing index; the revised ownership percentage was NOT extracted (primary_doc not opened) - recorded as a gap, not invented. See world_gaps."
+    },
+    {
+      "date": "2026-08-26",
+      "headline": "8-K: furnishes the 2026 interim report filed with the Shanghai Stock Exchange STAR Market (688235 line), with a US GAAP reconciliation of the China-Accounting-Standards figures",
+      "url": "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm"
+    },
+    {
+      "date": "2026-08-05",
+      "headline": "8-K + 10-Q: Q2 2026 results - revenue USD 1,705,071,000; net income USD 237,007,000",
+      "url": "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm"
+    }
+  ],
+  "traps": [
+    {
+      "id": "ads_ratio_13_to_1",
+      "description": "Every quoted headline number (price, EPS, book value per share) is per-ADS; 1 ADS = 13 ordinary shares. The company's XBRL reports EPS/shares per ORDINARY share. Dividing the ADS price by the filed per-ordinary-share EPS understates PE by 13x (correct ~63x vs wrongly-computed ~816x)."
+    },
+    {
+      "id": "ltd_vs_ag_is_not_staleness",
+      "description": "The registrant signs its own SEC filings 'BeOne Medicines Ltd.' though it is Swiss-incorporated; aggregators render it 'BeOne Medicines AG'. 'Correcting' Ltd. to AG (or vice versa) overrides a legally correct, currently-filed name - it is not a staleness bug."
+    },
+    {
+      "id": "legacy_tickers_still_live",
+      "description": "EDGAR's ticker list for this CIK still carries BEIGF (OTC) alongside ONC, 8+ months after the BGNE->ONC change. A 'one company = one ticker' pipeline will either drop a live OTC line or wrongly flag BEIGF as delisted."
+    },
+    {
+      "id": "filing_prefix_is_still_bgne",
+      "description": "Every 10-Q/10-K/8-K primary-document filename still starts with 'bgne-' (e.g. bgne-20260630.htm filed 2026-08-05) though the ticker has been ONC since Jan 2025. A URL-pattern scraper keyed on the current ticker string will not find these filings."
+    },
+    {
+      "id": "isin_is_ads_not_ordinary",
+      "description": "The fetched ISIN (US07725L1026) is the Nasdaq ADS ISIN only. The HKEX (06160) and STAR Market (688235) lines carry separate ISINs not fetched here. Storing one ISIN per company (not per listing) silently discards two of the three securities."
+    },
+    {
+      "id": "rename_announced_vs_effective_is_six_months",
+      "description": "The name-change announcement (two 8-Ks, 2024-11-14) and EDGAR's registrant-record flip to 'BeOne Medicines Ltd.' (2025-05-27) are six months apart, and the Switzerland redomicile is also dated May 2025 - three distinct identity events (name announced Nov 2024; ticker changed Jan 2025; name+domicile effective May 2025) a pipeline must not conflate into one date."
+    },
+    {
+      "id": "revenues_xbrl_tag_is_empty",
+      "description": "us-gaap:Revenues is EMPTY for every 2025+ period for this filer; revenue lives under us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax. A fetcher hard-coded to the generic 'Revenues' tag returns nothing for a USD 5.3bn-revenue company, and a null-to-zero renderer shows it as zero-revenue."
+    },
+    {
+      "id": "four_defensible_yoy_growth_numbers",
+      "description": "On 2026-09-18 there are four correct 'revenue growth YoY' figures depending on period (Q2: 29.6%, H1: 32.3%, TTM: 34.3%, FY2025: 40.2%). The manifest's own reference block for this slot records 30% with no period label - the seed data already exhibits the trap it is testing for."
+    }
+  ],
+  "world_gaps": [
+    {
+      "field": "shareholding.promoter_pct / fii_pct / dii_pct / pledged_pct_of_promoter",
+      "kind": "does_not_exist",
+      "reason": "US registrant; no SEBI-style quarterly shareholding-pattern regime, no 'promoter' legal concept, no pledge-disclosure regime. Nearest equivalents (insider ownership 4.1%, institutional ownership 52.86%, implied float 71.2%) are recorded under shareholding.*"
+    },
+    {
+      "field": "bse_code / nse_symbol",
+      "kind": "does_not_exist",
+      "reason": "Not an Indian-listed security. Its two non-US listings are HKEX 06160 and Shanghai STAR Market 688235, not BSE/NSE."
+    },
+    {
+      "field": "dividend.last_declared_per_share / record_date / ex_date / yield",
+      "kind": "does_not_exist",
+      "reason": "Company has never declared or paid a dividend (stockanalysis.com prints 'n/a', not '0' - see dividend field)."
+    },
+    {
+      "field": "week52.high_date / week52.low_date",
+      "kind": "unreached",
+      "reason": "The headline stockanalysis.com page prints the 52-week high/low values but not the dates each was set; a deeper page was not fetched to stay within request budget."
+    },
+    {
+      "field": "ISIN for the HKEX (06160) and STAR Market (688235) listings",
+      "kind": "unreached",
+      "reason": "Only the Nasdaq ADS ISIN (US07725L1026) was fetched; the two non-US listings' own ISINs were not looked up."
+    },
+    {
+      "field": "SC 13D/A (2026-09-16) revised ownership percentage",
+      "kind": "unreached",
+      "reason": "Only the filing index page was fetched, not the primary_doc.xml carrying the actual beneficial-ownership percentage."
+    },
+    {
+      "field": "S-8 (2026-06-11) and S-3ASR (2026-05-06) filing contents",
+      "kind": "unreached",
+      "reason": "Presence, date and form type confirmed from the EDGAR submissions API filing list; the primary documents were not opened."
+    }
+  ],
+  "sources_actually_read": [
+    "https://www.sec.gov/Archives/edgar/data/1651308/000162828026052878/bgne-20260630.htm",
+    "https://data.sec.gov/submissions/CIK0001651308.json",
+    "https://stockanalysis.com/stocks/onc/",
+    "https://stockanalysis.com/stocks/onc/statistics/",
+    "https://stockanalysis.com/stocks/onc/company/",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/CommonStockSharesOutstanding.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/OperatingIncomeLoss.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/LongTermDebtNoncurrent.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/CashAndCashEquivalentsAtCarryingValue.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/Assets.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/Liabilities.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/StockholdersEquity.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/NetIncomeLoss.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/EarningsPerShareDiluted.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/us-gaap/WeightedAverageNumberOfDilutedSharesOutstanding.json",
+    "https://data.sec.gov/api/xbrl/companyconcept/CIK0001651308/dei/EntityCommonStockSharesOutstanding.json",
+    "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=8-K&dateb=&owner=include&count=40",
+    "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000025/bgne-20260826.htm",
+    "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000012/bgne-20260513.htm",
+    "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000020/bgne-20260626.htm",
+    "https://www.sec.gov/Archives/edgar/data/1651308/000165130826000017/bgne-20260611.htm",
+    "https://www.sec.gov/Archives/edgar/data/1651308/000110465926108269/0001104659-26-108269-index.htm",
+    "https://en.wikipedia.org/wiki/BeOne_Medicines"
+  ],
+  "sources_attempted_and_failed": [
+    "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=S-8 - filing list only, primary document not opened (budget), not a fetch failure",
+    "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001651308&type=S-3ASR - filing list only, primary document not opened (budget), not a fetch failure"
+  ]
 }

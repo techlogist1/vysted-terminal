@@ -1,0 +1,355 @@
+{
+  "slot": "P7",
+  "symbol": "JUMBO",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P7_JUMBO.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Jumbo Bag Ltd (resolve endpoint) / \"Jumbo Bag Limited\" (fundamentals endpoint, matches pack exactly)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Jumbo Bag Limited",
+      "outside_as_of": "2026-07-30",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "status": "match",
+      "note": "App's /fundamentals name field matches the AGM-letterhead legal name verbatim; the /resolve endpoint's abbreviated 'Ltd' is the same entity, not a different value."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack itself records this as a WORLD_GAP (no rename found in any source checked) -- not asserted as 'never renamed'."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE699D01015",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE699D01015",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "516078",
+      "app_as_of": "2026-09-19",
+      "outside_value": "516078",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "absent (exchange=BSE, no NSE symbol on resolve/quote payloads)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "absent",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "App correctly does not claim an NSE listing for this BSE-only nano-cap."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "mainboard (inferred)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "no source truth",
+      "note": "Pack's own value is explicitly labelled '(inferred)', not a directly-stated field on any source checked -- no field exists in the app schema to diff it against, and there is no hard outside value to arbitrate with."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Consumer Cyclical (yfinance/GICS-style taxonomy)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Industrials (BSE IndustryNew taxonomy)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "definitional difference",
+      "note": "Two different sector-classification schemes (yfinance GICS-like vs BSE's own taxonomy) legitimately label a packaging manufacturer differently; not a data error."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Packaging & Containers",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Packaging (BSE IndustryNew: Capital Goods > Industrial Products > Packaging)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "match",
+      "note": "Same substance (packaging), different taxonomy wording."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as a WORLD_GAP -- not located in any source checked."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 89.99,
+      "app_as_of": "2026-09-18",
+      "outside_value": 88.58,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=516078&seriesid=",
+      "status": "as-of skew",
+      "note": "App's quote is a 2026-09-18 EOD print; pack's price is a 2026-09-22 print. A ~1.6% price move over those 4 sessions is normal for a thinly traded nano-cap (pack traps: same-day volume of only 1,483 shares) -- not a data-quality issue."
+    },
+    {
+      "field": "market_cap",
+      "app_value": "75.35 INR crore (753,549,248 / 1e7)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 74.17,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?scripcode=516078&flag=1",
+      "status": "as-of skew",
+      "note": "The ~1.6% gap matches the price.last_close as-of skew almost exactly (89.99 vs 88.58 = +1.59%); shares outstanding did not change between the two snapshots. Not a genuine mismatch."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 6.5734115,
+      "app_as_of": "2026-09-19",
+      "outside_value": "7.07 (screener) / 6.37 (BSE, different basis)",
+      "outside_as_of": "2026-09-22/23",
+      "outside_source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "definitional difference",
+      "note": "Pack itself records this as an unresolved SOURCE DISAGREEMENT (basis/period-dependent, not smoothed). App's value (6.57) falls inside the screener/BSE spread rather than matching either -- consistent with a third basis-of-computation, not a wrong value."
+    },
+    {
+      "field": "pb",
+      "app_value": 1.6554147,
+      "app_as_of": "2026-09-19",
+      "outside_value": "1.55 computed (screener) / 2.14 (BSE, different basis)",
+      "outside_as_of": "2026-09-22/23",
+      "outside_source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "definitional difference",
+      "note": "Same SOURCE DISAGREEMENT pattern as pe_ttm per the pack's own note; app value again falls inside the spread."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "14.2% (screener) / 33.58% (BSE, different basis)",
+      "outside_as_of": "2026-09-22/23",
+      "outside_source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "app blank",
+      "note": "field_meta labels this 'unavailable, provider did not publish this field' -- but the app's own SAME payload carries net_income_ttm (116,379,000) and (via the balance-sheet call) stockholders_equity (477,377,000), which divide to a plausible ROE of ~24.4%; the app shows nothing rather than a computed approximation."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 14.6,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "app blank",
+      "note": "No 'roce' field exists anywhere in the /fundamentals response schema for this symbol -- a capability gap, not a per-field blank (screener, the named benchmark in COMMON.md, has a single clean ROCE figure with no source disagreement)."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.86495,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.85,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "Within the pack's own stated rounding tolerance (screener figures are whole-crore-rounded, '+/- a few points')."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "130.02 INR crore (1,300,210,944 / 1e7)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 130.02,
+      "outside_as_of": "TTM to Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "11.64 INR crore (116,379,000 / 1e7)",
+      "app_as_of": "2026-09-19",
+      "outside_value": 11.63,
+      "outside_as_of": "TTM to Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "0.01 Cr gap is float rounding on the last decimal."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "40.6% (app's own growth_basis label: 'mrq_yoy' -- single most-recent-quarter YoY)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "1% (screener 'Compounded Sales Growth', TTM basis)",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "definitional difference",
+      "note": "Different bases (single-quarter YoY vs TTM YoY), but they RECONCILE: pack's own note flags the Jun-2026 quarter spiking +40% YoY (43.08 Cr vs 30.64 Cr) -- almost exactly the app's 40.6%. Confirms the app's underlying data is sound; it is simply reporting a different (and unlabelled-to-the-user) growth basis than the pack's canonical TTM figure."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 13.69,
+      "app_as_of": "2026-09-19",
+      "outside_value": 13.89,
+      "outside_as_of": "TTM to Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "mismatch",
+      "note": "Pack's 13.89 (summed last-4-quarter EPS) is independently confirmed by BSE's own EPS field (13.90) -- two sources agree almost exactly. App's eps=13.69 is ~1.4% low against BOTH. Self-consistency check: the SAME app payload's net_income_ttm/shares_outstanding = 116,379,000 / 8,373,700 = 13.90 -- matching outside truth almost exactly -- so the app's own raw ingredients contradict its own reported eps field."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 54.361,
+      "app_as_of": "2026-09-19",
+      "outside_value": 57.0,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "mismatch",
+      "note": "~4.9% low against outside truth. Self-consistency check: the app's OWN balance-sheet call gives Stockholders Equity FY2026 = 477,377,000 and Ordinary Shares Number = 8,373,700 -> 57.008, matching outside truth almost exactly -- so, as with eps_ttm, the app's reported ratio field contradicts its own fetched raw statement data for the same symbol."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/516078/ ; https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=516078",
+      "status": "app blank",
+      "note": "Both outside sources agree exactly (10.00 INR); no 'face_value' field exists anywhere in the app's identity/fundamentals schema."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-07-30",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as a WORLD_GAP: the 36th AGM (30-Jul-2026) resolution text confirms a dividend WAS declared for FY Mar-2026 but no source checked states the rupee/share figure."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "app blank",
+      "note": "Pack flags its own 0.0 value as a TRAP (screener's Dividend Yield card may not yet reflect the newly declared FY26 dividend) -- but it is a real, sourced figure the app could at least surface as '0' rather than null/blank; app's dividend_per_share_ttm and dividend_yield fields are both null."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "app blank",
+      "note": "Same underlying gap as dividend.paid_trailing_12m_per_share -- filed as one combined raw finding."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 105.0,
+      "app_as_of": "2026-09-19",
+      "outside_value": 105,
+      "outside_as_of": null,
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "Exact match. Pack has no per-leg as-of date (WORLD_GAP); app's fundamentals payload likewise carries a single as-of for the whole record, not a per-leg date -- same gap on both sides."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 49.06,
+      "app_as_of": "2026-09-19",
+      "outside_value": 49.1,
+      "outside_as_of": null,
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "0.04 (0.08%) apart -- screener's free card displays a 1-decimal-rounded figure; app's 49.06 is consistent with that rounding to 49.1, not a genuine different value. Same per-leg as-of gap as week52.high."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "2026-06-30",
+      "app_as_of": "2026-06-30",
+      "outside_value": "Jun 2026",
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "App's shareholding-pattern feed's latest quarter_end (2026-06-30) matches the pack's 'AS-OF QUARTER' exactly -- no as-of skew for shareholding, unlike price/market_cap."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 42.77,
+      "app_as_of": "2026-06-30",
+      "outside_value": 42.77,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match",
+      "note": "Exact match (app's shareholding endpoint carries two Jun-2026 filing rows -- 42.77/57.23 and a later resubmission rounded to 42.8/57.2 -- both consistent with the pack's 42.77%, not a data quality issue)."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as a genuine WORLD_GAP: screener carries no separate FII row for this stock at any cadence, so it cannot determine whether FII holding is truly ~0 or folded into 'Public'. App likewise shows null."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": 0.0,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.0,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 57.23,
+      "app_as_of": "2026-06-30",
+      "outside_value": 57.23,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack explicitly could not reach this figure from any source within budget (screener free tier omits it, BSE shareholding-pattern endpoint shape unresolved) -- genuinely could not reach, not asserted as zero. Note for the record (not filed as a DAT finding per the 'no source truth' rule): the app's own shareholding-pattern payload also carries no 'pledged' field at all for any quarter, so even with outside truth this could not currently be surfaced."
+    },
+    {
+      "field": "corporate_actions_2026 / last_3_announcements",
+      "app_value": "0 announcements (disclosures/announcements returned count:0, announcements:[])",
+      "app_as_of": "2026-09-19",
+      "outside_value": "3 items in the last 2 months, incl. the 36th AGM dividend declaration (30-Jul-2026) and scrutiniser's e-voting report (31-Jul-2026)",
+      "outside_as_of": "2026-07-30 to 2026-07-31",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf",
+      "status": "app blank",
+      "note": "App's disclosures/announcements route returns a fully empty result set for a stock with real, recent, material filings (including a dividend declaration) -- not a stale-but-present list, a total absence."
+    },
+    {
+      "field": "latest_results",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q1 FY2026-27 (Jun 2026), filed 2026-07-30",
+      "outside_as_of": "2026-09-23",
+      "outside_source_url": "https://www.screener.in/company/516078/",
+      "status": "app blank",
+      "note": "App's /disclosures/results route hard-fails (502, \"nse_direct: 'JUMBO' is not a known NSE instrument\") rather than falling back to BSE-sourced results data or degrading gracefully for this BSE-only listing."
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "slot": "P9",
+  "symbol": "AMAL",
+  "diffed_at": "2026-09-23",
+  "pack_source": "docs/redesign/verification/r15/battery/packs/P9_AMAL.json",
+  "collected_source": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Amal Ltd",
+      "app_as_of": "2026-09-19 (collected_at)",
+      "outside_value": "Amal Ltd",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "match",
+      "note": "collected.calls.resolve_bare_symbol.body.resolved.name (line 21)"
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "pack.identity.former_names.status = not_reached; app resolved.former_name is also null. Both sides absent, no ruling possible."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE841D01013",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE841D01013",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "506597",
+      "app_as_of": "2026-09-19",
+      "outside_value": "506597",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "match"
+    },
+    {
+      "field": "identity.exchange_venues (NSE second listing)",
+      "app_value": "\"exchange\": \"BSE\" only — resolve candidates carry no NSE row; /disclosures/results?symbol=AMAL 502s with \"'AMAL' is not a known NSE instrument\"",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Dual-listed: BSE 506597 AND NSE (series EQ, date of listing 2026-08-17), same ISIN INE841D01013",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "status": "mismatch",
+      "note": "app total unaware of a listing that has existed for 33 days pre-collection / 37 days pre-diff. See collected.calls.resolve_bare_symbol (lines 15-32, exchange:'BSE') and collected.calls.results_calendar (lines 3457-3462, 502). Root cause: bundled NSE master (sidecar/services/resolver_masters/nse_instruments.json) generated 2026-06-05, predates the 2026-08-17 listing (manifest trap T4)."
+    },
+    {
+      "field": "identity.sector / identity.industry",
+      "app_value": "sector: 'Basic Materials', industry: 'Chemicals' (yfinance/GICS-style taxonomy)",
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "sector: 'Commodities', industry: 'Specialty Chemicals' (BSE's own hierarchy: Commodities > Chemicals > Chemicals & Petrochemicals > Specialty Chemicals)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "definitional difference",
+      "note": "Two different classification systems (global GICS-like vs BSE's own), neither wrong on its own terms. See collected line 247-248."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 720.8,
+      "app_as_of": "2026-09-18",
+      "outside_value": 720.8,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w?Debtflag=&scripcode=506597&seriesid=",
+      "status": "match",
+      "note": "App correctly serves the BSE-consistent 720.80, not screener.in's outlier 722 (pack's own recorded conflict). collected line 224."
+    },
+    {
+      "field": "price.volume (session)",
+      "app_value": null,
+      "app_as_of": "2026-09-18",
+      "outside_value": 8991,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=0&quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "app blank",
+      "note": "collected.calls.quote.body.volume = null (line 227) though the exchange session record has a real traded volume (8,991 shares / INR 64.53 lakh turnover)."
+    },
+    {
+      "field": "market_cap",
+      "app_value": 891.1006720,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 891.1,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/StockTrading/w?flag=0&quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "match",
+      "note": "market_cap 8911006720.0 / 1e7 = INR 891.10 crore, matches BSE MktCapFull exactly. collected line 249."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 29.98336,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "132 (standalone) / 30.1 (consolidated, screener) / 29.99 (consolidated, stockanalysis) / 20.19 (BSE own, unstated basis)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "definitional difference",
+      "note": "App value matches the CONSOLIDATED basis (29.99-30.1) exactly, not the manifest's standalone reference (132). Correct under one legitimate basis, but the response carries no basis label anywhere (Fundamentals model has no standalone/consolidated field) — not filed as a mismatch per spec, but flagged since pe_ttm is this entity's single biggest trap (pack traps T2/T3)."
+    },
+    {
+      "field": "pb",
+      "app_value": 7.399347,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "8.97 (standalone) / 7.41 (consolidated)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "definitional difference",
+      "note": "Matches consolidated basis (7.41) to 2dp. collected line 253."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "4.64% (standalone, latest yr) / 20.4% (consolidated)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "app blank",
+      "note": "field_meta.roe.status = 'unavailable', reason 'provider did not publish this field' (collected lines 419-425), though screener.in — the product's own stated data-quality benchmark per COMMON.md — publishes it on both bases."
+    },
+    {
+      "field": "roce",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": "7.11% (standalone) / 26.0% (consolidated)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "app blank",
+      "note": "sidecar/models/fundamentals.py has no roce field at all (grep confirmed) — not stock-specific, but genuinely absent while the world has a value for this stock."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "0.0 (standalone) / 0.0 (consolidated) — debt-free",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "app blank",
+      "note": "field_meta.debt_to_equity.status = 'unavailable' (collected lines 454-459), though the true value (debt-free) is a real, uncomplicated fact both bases agree on."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 2888717056.0,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 289,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "match",
+      "note": "2,888,717,056 / 1e7 = INR 288.87 cr, within screener's whole-crore rounding of 289 cr (consolidated). Matches stockanalysis.com's 2.89B exactly. collected line 272."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": 297070016.0,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 30,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "match",
+      "note": "297,070,016 / 1e7 = INR 29.71 cr, matches stockanalysis.com's Net Income 297.07M exactly and screener's rounded 30 cr (consolidated). collected line 273."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "revenue_growth: 1.041 (104.1%), growth_basis: 'mrq_yoy'",
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "73.7%/77.8% (FY26 std/consol YoY), 73%/78% (TTM std/consol), 87.1% (Q1 FY27 standalone quarterly YoY)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "no source truth",
+      "note": "App's 104.1% quarterly YoY figure does not match any of the four outside bases (closest is standalone quarterly 87.1%, still 17pp off) and no consolidated-quarterly figure exists in the pack to confirm/deny against the same definition+period, so this cannot be ruled a same-definition mismatch. Flagged for a follow-up sweep with a consolidated Q1 FY27 vs Q1 FY26 figure in hand; collected line 276."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 24.04,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "5.48 (standalone) / 24.03 (consolidated)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "match",
+      "note": "Matches consolidated basis to 1 paisa. collected line 259."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 97.414,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "80.5 (standalone) / 97.4 (consolidated)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "match",
+      "note": "Matches consolidated basis. collected line 256."
+    },
+    {
+      "field": "face_value",
+      "app_value": "(no field in app schema)",
+      "app_as_of": null,
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeader/w?quotetype=EQ&scripcode=506597&seriesid=",
+      "status": "app blank"
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": 1.5,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 1.5,
+      "outside_as_of": "2026-07-31 (record/ex date)",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597",
+      "status": "match",
+      "note": "Value matches; collected line 258."
+    },
+    {
+      "field": "dividend.record_date / ex_date / payment_date",
+      "app_value": "(no field/endpoint in app)",
+      "app_as_of": null,
+      "outside_value": "record/ex 2026-07-31, paid 2026-08-19",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597",
+      "status": "app blank",
+      "note": "No dividend/corporate-action router exists (checked sidecar/routers/disclosures.py — only /announcements, /results, /shareholding); Fundamentals model carries only a flat dividend_per_share + dividend_yield."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 1.5,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w?scripcode=506597",
+      "status": "app blank",
+      "note": "field_meta absent for dividend_per_share_ttm; value is null (collected line 281) though dividend_per_share (1.5) is populated in the same payload and the trailing-12m fact is computable from data the app already has."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": 0.0021,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 0.21,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "match",
+      "note": "0.0021 fraction = 0.21%, matches. collected line 257."
+    },
+    {
+      "field": "week52.high (value)",
+      "app_value": 1010.0,
+      "app_as_of": "2026-09-19T09:44:37Z (fetch time, not event date)",
+      "outside_value": 1010.0,
+      "outside_as_of": "2025-10-15",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=506597",
+      "status": "match",
+      "note": "collected line 261."
+    },
+    {
+      "field": "week52.low (value)",
+      "app_value": 408.2,
+      "app_as_of": "2026-09-19T09:44:37Z (fetch time, not event date)",
+      "outside_value": 408.2,
+      "outside_as_of": "2026-03-30",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=506597",
+      "status": "match",
+      "note": "collected line 262."
+    },
+    {
+      "field": "week52.high_date / week52.low_date",
+      "app_value": "(no field — field_meta.as_of is the API fetch timestamp, not the day the high/low occurred)",
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": "high 2025-10-15 / low 2026-03-30",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/HighLow/w?Type=EQ&flag=C&scripcode=506597",
+      "status": "app blank",
+      "note": "Mandatory subtle-tier field per DIFF spec (52w high/low 'each with its own as-of date'). App has no per-leg date at all; the stock swung -28.6% off this high in under a year, so the date the extremes occurred is materially informative and absent."
+    },
+    {
+      "field": "shareholding.promoter_pct (disclosures/shareholding, BSE-sourced)",
+      "app_value": 71.35,
+      "app_as_of": "2026-06-30 (quarter_end)",
+      "outside_value": 71.35,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "match",
+      "note": "collected line 1980."
+    },
+    {
+      "field": "shareholding.promoter_pct (fundamentals held_percent_insiders, yfinance-sourced)",
+      "app_value": 0.71419,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 71.35,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "mismatch",
+      "note": "71.419% vs the exchange-filed 71.35% (Jun 2026 XBRL) — a 0.07pp disagreement that ALSO disagrees with the app's own /disclosures/shareholding endpoint (71.35, exact match to outside truth) for the same stock on the same collection day. Two endpoints in the same app, same day, disagree on the single most gameable number for this entity. collected line 279."
+    },
+    {
+      "field": "shareholding.dii_pct (disclosures/shareholding, BSE-sourced)",
+      "app_value": 0.03,
+      "app_as_of": "2026-06-30",
+      "outside_value": 0.03,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "match",
+      "note": "collected line 1982."
+    },
+    {
+      "field": "shareholding.dii_pct (fundamentals held_percent_institutions, yfinance-sourced)",
+      "app_value": 0.0,
+      "app_as_of": "2026-09-19T09:44:37Z",
+      "outside_value": 0.03,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "mismatch",
+      "note": "Shows flat 0% where the exchange-filed figure (and the app's OWN shareholding endpoint) is 0.03%. Same internal-inconsistency pattern as promoter_pct above. collected line 280."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": "28.65 (incl. institutions) / 28.62 (public_non_institutional_percent)",
+      "app_as_of": "2026-06-30",
+      "outside_value": 28.63,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": "https://www.screener.in/company/506597/",
+      "status": "definitional difference",
+      "note": "App splits public into incl./excl.-institutions variants; screener's single 'Public' figure (28.63) sits between them (28.62 non-institutional, 28.65 incl.). Not a clean same-definition mismatch."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": null,
+      "outside_as_of": "Jun 2026",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Both sides null; screener renders no FII row for this company either (pack note)."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": "(no field)",
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "pack.status = not_reached (BSE pledge endpoint 302s to non-browser clients); app exposes no pledge field either. Neither side has a value to compare."
+    },
+    {
+      "field": "latest_results (Q1 FY27 content)",
+      "app_value": "502 error: \"'AMAL' is not a known NSE instrument\"",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q1 FY27 (Jun 2026), filed 2026-07-17, sales 26.75 cr, net profit 2.43 cr, EPS 1.97 (standalone)",
+      "outside_as_of": "2026-07-17",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=Result&strPrevDate=20260401&strScrip=506597&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "app blank",
+      "note": "Same NSE-master-staleness root cause as identity.exchange_venues above. collected.calls.results_calendar, lines 3457-3462, status 502."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "count: 1 (only the 2026-08-20 AGM-materials filing)",
+      "app_as_of": "2026-09-19",
+      "outside_value": "3 filings: 2026-08-20 (AGM speech/video), 2026-08-14 (scrutinizer's report), 2026-08-14 (AGM outcome)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260601&strScrip=506597&strSearch=P&strToDate=20260919&strType=C&subcategory=-1",
+      "status": "app blank",
+      "note": "App's own real BSE feed is missing 2 of 3 real, dated announcements for the same stock and window. collected.calls.announcements, line 3436, count:1."
+    },
+    {
+      "field": "income statement (all line items)",
+      "app_value": "US bank-holding-company line items (weighted_average_basic_shares_outstanding ~30.3M, basic_earnings_per_share 3.44 for 2025-12-31, retained_earnings $567.3M, etc.), provider 'openbb-mcp'",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Indian Amal Ltd financials (standalone sales 84.91 cr FY26 / consolidated sales 240 cr FY26; ~1.236 cr shares outstanding)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "mismatch",
+      "note": "CRITICAL — see raw finding DAT-P9-1. collected/P9_AMAL.json lines 547-968 are byte-identical to collected/P19_AMAL.json lines 505-926 (the US Amalgamated Financial Corp pack) — confirmed by diffing both files' income blocks."
+    },
+    {
+      "field": "balance sheet (all line items)",
+      "app_value": "US bank-holding-company balance sheet (total_assets $8.87B for 2025-12-31, share_issued ~31.0M), provider 'openbb-mcp'",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Indian Amal Ltd standalone total_assets_fy26 INR 116.97 cr / consolidated INR 154 cr",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "mismatch",
+      "note": "Same root cause as income statement — see DAT-P9-1. collected lines 969-1394, byte-identical to P19_AMAL.json lines 927-1352."
+    },
+    {
+      "field": "cash flow statement (all line items)",
+      "app_value": "US bank-holding-company cash flow (free_cash_flow $134.4M for 2025-12-31), provider 'openbb-mcp'",
+      "app_as_of": "2026-09-19",
+      "outside_value": "no directly comparable outside cash-flow figure collected in the pack (not a pack-mandated field), but the scale (hundreds of millions USD) is facially incompatible with a company whose consolidated FY26 net profit is INR 22 crore (~USD 2.6M)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/506597/consolidated/",
+      "status": "mismatch",
+      "note": "Same root cause as income statement — see DAT-P9-1. collected lines 1395-1946, byte-identical to P19_AMAL.json lines 1353-1904 (spot-checked)."
+    }
+  ]
+}

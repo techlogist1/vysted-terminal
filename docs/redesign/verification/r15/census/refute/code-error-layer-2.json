@@ -1,0 +1,38 @@
+[
+  {
+    "raw_id": "COD-error-layer-2-1",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds as stated. streamChat/streamAgentInvocation await getSidecarBaseUrl() before consumeSseStream, and the only try in consumeSseStream wraps fetch alone. The re-armed probe throws SidecarError(503) after 120 s. handleSend has no try around the stream call and runs as `void handleSend(text)`, so nothing calls fail/finalize/endRun: streamingMessageId stays set (only clear/loadMessages null it), later prompts queue behind it, and Stop aborts a controller nothing listens to. ChatSidebar has no sidecarStatus gate, and the keyed-provider path reads the key from the keychain without the sidecar, so a real user can reach this. Medium is right: it only fires once the engine has already failed, but it turns that failure into a wedged composer.",
+    "evidence": "src/modules/chat/streaming.ts:134, src/modules/chat/streaming.ts:153, src/modules/chat/streaming.ts:200-214, src/lib/sidecar-client.ts:114-144, src/lib/sidecar-client.ts:89-98, src/modules/chat/ChatSidebar.tsx:788-807, src/modules/chat/ChatSidebar.tsx:868-880, src/modules/chat/ChatSidebar.tsx:1005-1038, src/modules/chat/ChatSidebar.tsx:1100-1127, src/modules/chat/ChatSidebar.tsx:1285-1297, src/store/chat-history.ts:141-157, src/store/chat-history.ts:236-237",
+    "evidence_checked": "Code-only: opened the stream functions, readiness probe, port resolution, handleSend, queue drain, composer onSend/onStop and the chat-history store. Found no sidecarStatus gate in ChatSidebar and no unhandledrejection handler in src. Read the critic's vitest proof and its output.",
+    "repro_check": "Critic's vitest proof (getSidecarBaseUrl mocked to reject) shows onError calls = 0 and a rejected promise for both stream functions. The code trace agrees; I did not re-run it (a scratch test file sits outside the vitest include roots)."
+  },
+  {
+    "raw_id": "COD-error-layer-2-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The mechanism is real: OllamaAdapter.validate_key only calls client.list(), so a running daemon with nothing pulled validates ok. humanize maps every 404 to 'pick another model / Choose a different model in Settings'. No frontend code routes on code=model_not_found. Scope correction: 'the onboarding pull flow is never offered' is overstated. The first-run overlay auto-opens while `seen === false` and offers 'Download & use <model>' when the daemon is running and the model is missing. The dead end hits users who skipped or finished setup without pulling, or who later chose an unpulled Ollama model in the picker. Medium kept: that is still normal local-first use.",
+    "evidence": "sidecar/services/errors.py:173-180, sidecar/services/llm/ollama.py:180-185, sidecar/services/llm/ollama.py:237-246, sidecar/routers/llm.py:99-111, src/lib/sidecar-client.ts:218-243, src/modules/chat/ChatSidebar.tsx:796-806, src/components/OnboardingFlow.tsx:105-124, src/components/OnboardingFlow.tsx:490-502, src/components/OnboardingFlow.tsx:600-603, src/store/onboarding.ts:21-56, src/store/model-selection.ts:31",
+    "evidence_checked": "Opened the humanize 404 branch, the Ollama stream and validate_key paths, the /llm/keys/validate route, the validateProvider gate, the onboarding store and overlay open condition, and grepped src for any consumer of model_not_found (none). Re-ran the humanize probe in sidecar/.venv at HEAD d6dc63c.",
+    "repro_check": "sidecar/.venv/bin/python3 -c humanize('ollama', ollama.ResponseError('model \"qwen2.5:7b\" not found, try pulling it first', 404)) returned code='model_not_found' with 'The requested model is not available on Ollama — pick another model.' and 'Choose a different model in Settings.'"
+  },
+  {
+    "raw_id": "COD-error-layer-2-3",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The Anthropic adapter defaults max_tokens to 4096 (anthropic.py:37,110) and forwards stop_reason as finish_reason (:145). The only way to raise it is the options key max_tokens (agent_runtime _ADAPTER_OPTION_KEYS), and the frontend never sends it: the only max_tokens in src is the delegate BudgetGuard, which is a different thing. agent_runtime special-cases only content_filter. streaming.ts parses finishReason, but makeHandlers' done branch passes only usage to onDone, and nothing in src reads finishReason. A cut-off answer therefore settles as complete with no notice.",
+    "evidence": "sidecar/services/llm/anthropic.py:36-37, sidecar/services/llm/anthropic.py:110-118, sidecar/services/llm/anthropic.py:145, sidecar/services/agent_runtime.py:98-107, sidecar/services/agent_runtime.py:1484-1497, sidecar/services/llm/ollama.py:216-228, src/modules/chat/streaming.ts:338-342, src/modules/chat/ChatSidebar.tsx:2026-2031, src/lib/delegate-runs.ts:98",
+    "evidence_checked": "Code-only: opened the Anthropic adapter's max_tokens and stop_reason handling, the runtime option passthrough gate and its content_filter branch, the Ollama done_reason path, streaming.ts normalizeEvent, and ChatSidebar makeHandlers. Grepped src and sidecar for max_tokens/maxTokens/finishReason consumers.",
+    "repro_check": "`grep -rn \"finishReason\" src` finds only its producer (streaming.ts:341), and `grep -rn max_tokens src` finds only the delegate budget. A live check would be an Anthropic agent invoke asking for a >4096-token answer, which should end with finish_reason=max_tokens and no notice. I did not run it (paid key)."
+  },
+  {
+    "raw_id": "COD-error-layer-2-4",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds. humanize has no 400 branch. The class-name auth heuristic does not match ClientError or BadRequestError, and neither error text trips the connection keywords, so both fall through to code='unknown' with 'Try again or switch provider'. Gemini validate_key treats only 401/403 as a bad key and re-raises the 400. The route turns that into ok=false with a misleading 'transport error' detail, so entry-time validation still rejects the key. Low is right.",
+    "evidence": "sidecar/services/errors.py:125-141, sidecar/services/errors.py:147-196, sidecar/services/errors.py:252-259, sidecar/services/errors.py:294-300, sidecar/services/llm/gemini.py:185-203, sidecar/routers/llm.py:99-111",
+    "evidence_checked": "Opened humanize's status extraction, its status table, the class-name heuristics and the fallback, plus Gemini validate_key and the validate route. Re-ran both humanize probes in sidecar/.venv. Took the provider 400 bodies from the critic's recorded live probe (evidence file), not a fresh network call.",
+    "repro_check": "humanize('gemini', genai ClientError(400, API key not valid body)) returned code='unknown' 'Something went wrong with Google Gemini.' humanize('xai', openai.BadRequestError(400, 'Incorrect API key provided' body)) returned code='unknown' 'Something went wrong with xAI.'"
+  }
+]

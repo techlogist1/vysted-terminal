@@ -1,0 +1,74 @@
+[
+  {
+    "raw_id": "DAT-P9-1",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds exactly as stated. The three statement routes take no region/exchange input (routers/fundamentals.py:177-192), the registry passes validator=None for all three (provider_registry.py:495-514, unlike get_fundamentals :473-492), and openbb-mcp sends the bare upper-cased ticker (_normalize_symbol, openbb_mcp_provider.py:260-262) to OpenBB with provider 'yfinance' (_DEFAULT_PROVIDERS :98-105), which Yahoo resolves as the US ticker AMAL. A live re-run on 2026-09-23 still returns provider 'openbb-mcp' with US-bank line items (e.g. 'cash_cash_equivalents_and_federal_funds_sold' 339,879,000) for a symbol /resolve and /fundamentals both bind to Amal Ltd, INR, 12.36M shares, with identity_note null.",
+    "evidence": "sidecar/routers/fundamentals.py:177-192, sidecar/services/provider_registry.py:473-514, sidecar/services/openbb_mcp_provider.py:98-105, sidecar/services/openbb_mcp_provider.py:260-262, sidecar/services/openbb_mcp_provider.py:463-481, sidecar/services/yfinance_provider.py:97-135, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:547-600 vs docs/redesign/verification/r15/battery/collected/P19_AMAL.json:505-560",
+    "evidence_checked": "Opened the router, registry accessors, openbb-mcp normalizer/statement functions, and yfinance _yahoo_symbol. Diffed the P9 and P19 collected income blocks (same values, same URL). Re-ran all three statement routes plus /fundamentals/AMAL against :52152.",
+    "repro_check": "curl -s http://127.0.0.1:52152/fundamentals/AMAL/{income,balance,cashflow} returned provider=openbb-mcp, periods 2021-12-31..2025-12-31, and US-bank line items (operating_revenue 330,457,000; federal-funds-sold cash; net_income 104,447,000). curl /fundamentals/AMAL returned name 'Amal Ltd', currency INR, shares 12,362,662, identity_note null."
+  },
+  {
+    "raw_id": "DAT-P9-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "The world claim holds: my own re-fetch of NSE EQUITY_L.csv shows 'AMAL,Amal Limited,EQ,17-AUG-2026,10,1,INE841D01013,10'. The bundled NSE master (resolver_masters/nse_instruments.json) has no AMAL, and /resolve still lists only BSE plus the US namesake. Correction to the mechanism: the 502 does not come only from staleness. /disclosures/results is NSE-only by construction: corporate_disclosures.get_results_calendar (:335-358) calls nse_provider.get_results_calendar with no BSE lane, and _require_nse (nse_provider.py:352-360) raises for any symbol missing from the NSE master, which the router maps to 502 (disclosures.py:86-90). Every BSE-only scrip therefore gets a hard 502 on the results route (confirmed with KSE, a BSE-only name), and the stale master is simply what puts AMAL into that bucket. Severity stays high because the results route breaks for a whole class of Indian names, and the fix has to add a BSE results lane and/or turn the 502 into an honest 'not covered on this venue' state, not only refresh the master.",
+    "evidence": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv (re-fetched 2026-09-23T01:10:45Z, row 131), sidecar/routers/disclosures.py:74-92, sidecar/services/corporate_disclosures.py:335-358, sidecar/services/nse_provider.py:352-360, sidecar/services/resolver_masters/nse_instruments.json (no 'AMAL' entry)",
+    "evidence_checked": "Re-fetched NSE EQUITY_L.csv myself (the pack's one allowed source re-fetch). Opened the results router, the calendar service and the NSE gate, and grepped the bundled NSE master. Ran live GETs for /disclosures/results (AMAL and KSE) and /resolve?q=AMAL against :52152.",
+    "repro_check": "curl 'http://127.0.0.1:52152/disclosures/results?symbol=AMAL' -> HTTP 502 {\"detail\":\"nse_direct: 'AMAL' is not a known NSE instrument\"}; same for symbol=KSE (BSE-only) -> HTTP 502; /resolve?q=AMAL candidates = [BSE Amal Ltd, US Amalgamated Financial Corp.], no NSE row."
+  },
+  {
+    "raw_id": "DAT-P9-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, but 'no field anywhere in the app' overstates it. The research FAST path does compute dividend_per_share_ttm (fast.py:206-230, a labelled paid/affirmed-zero/unavailable result) and does carry a record_date, but only for a FUTURE declared-but-unpaid dividend (dividend_actions.py:12-15, 110-135). That record_date comes from the NSE-only corporate-actions feed, so a name missing from the NSE master (AMAL) gets nothing. The corrected gap: the plain REST /fundamentals leaves dividend_per_share_ttm null by design (_DERIVED_FIELDS, yfinance_provider.py:167-180) with no field_meta reason at all, and there is no REST route anywhere for historical ex, record or payment dates. The last declared INR 1.50 (record/ex 2026-07-31, paid 2026-08-19) is therefore never shown with its dates.",
+    "evidence": "sidecar/services/yfinance_provider.py:167-180, sidecar/models/fundamentals.py:106-111, sidecar/services/research/fast.py:206-230, sidecar/services/research/fast.py:381-396, sidecar/services/dividend_actions.py:1-18, sidecar/services/dividend_actions.py:110-135, sidecar/routers/disclosures.py (routes: announcements/results/shareholding only), docs/redesign/verification/r15/battery/collected/P9_AMAL.json:257-258,281",
+    "evidence_checked": "Grepped sidecar/routers for dividend/corporate-action/ex/record routes (none). Opened the Fundamentals model TTM field, the yfinance _DERIVED_FIELDS exclusion, the research-leg TTM and declared-dividend wiring, and dividend_actions. Checked collected field_meta: dividend_per_share_ttm has no entry (None).",
+    "repro_check": "python3 read of the collected /fundamentals/AMAL body: dividend_per_share=1.5, dividend_yield=0.0021, dividend_per_share_ttm=null, field_meta['dividend_per_share_ttm'] absent. grep -rn -i 'dividend|ex_date|record_date' sidecar/routers -> no dividend route."
+  },
+  {
+    "raw_id": "DAT-P9-4",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "This is a definitional difference, not a same-definition mismatch, so PROMPT_data_s2's diff rule excludes it as a finding. held_percent_insiders is Yahoo's heldPercentInsiders (yfinance_provider.py:398), and the codebase explicitly records that insiders ≠ promoter-group and that a gap of ≤3pp in the expected direction (insiders ≥ promoter) is definitional (ownership_check.py:6-14, semantics.py:74-85). Here the gap is +0.069pp in the expected direction (71.419 vs 71.35). The institutions 0.0 vs 0.03 is below the 0.5pp zero-vs-nonzero floor (semantics.py _OWNERSHIP_ZERO_FLOOR_PP), so it is a rounding wisp. The equity panel labels the field 'Insiders', not 'Promoter' (EquityOverviewPanel.tsx:139-142), and the exchange-sourced promoter figure the finding calls correct is the one /disclosures/shareholding serves.",
+    "evidence": "sidecar/services/yfinance_provider.py:398, sidecar/services/ownership_check.py:6-25, sidecar/services/research/semantics.py:74-95, src/modules/equity-overview/EquityOverviewPanel.tsx:139-142, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:279-280",
+    "evidence_checked": "Opened the yfinance mapping, the ownership cross-check module docstring, the semantics tolerances, and the panel's Ownership section labels. Compared the collected values against the pack's screener figures.",
+    "repro_check": "Collected /fundamentals/AMAL held_percent_insiders=0.71419, held_percent_institutions=0.0 vs /disclosures/shareholding promoter 71.35, dii 0.03: gap +0.069pp (insiders ≥ promoter, well inside the 3pp definitional band) and 0.03pp (below the 0.5pp floor)."
+  },
+  {
+    "raw_id": "DAT-P9-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real, but the mechanism is wrong: filings are not being dropped. The BSE lane requests only a hard 30-day window (_BSE_ANN_WINDOW_DAYS = 30, corporate_disclosures.py:85-88, :136-146). On the 2026-09-19 collection that window started 2026-08-20, so both 2026-08-14 filings fell outside it by construction. By 2026-09-23 the window starts 2026-08-24 and the live route returns count 0. The response carries no window or as-of-range field, so a user sees 1 (now 0) announcements and cannot tell the result is window-bounded. That is still a silent-completeness defect for a thin filer, and it is compounded by the stale NSE master: AMAL's NSE lane, which returns full history, is skipped (corporate_disclosures.py:283-287; see DAT-P9-2).",
+    "evidence": "sidecar/services/corporate_disclosures.py:85-88, sidecar/services/corporate_disclosures.py:131-158, sidecar/services/corporate_disclosures.py:265-325, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:3429-3455",
+    "evidence_checked": "Opened get_announcements and _fetch_bse_announcements, plus the window constant. Re-ran the repro live against :52152 on 2026-09-23.",
+    "repro_check": "curl 'http://127.0.0.1:52152/disclosures/announcements?symbol=AMAL&limit=25' -> count 0, [] (2026-09-23; the 30-day window now excludes even the 2026-08-20 filing). The 19-Sep snapshot showed count 1, consistent with a 2026-08-20..2026-09-19 window."
+  },
+  {
+    "raw_id": "DAT-P9-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The coverage gap is real: ROE and D/E are null for this debt-free small-cap, there is no computed fallback from statements, and ROCE has no field at all in the Fundamentals model, a structural gap against the screener.in benchmark. Correction: the ROE and D/E blanks are not silent. field_meta stamps 'provider did not publish this field' (collected :419-425, :454-459), and the equity panel renders a 'not published' reason chip for such fields (EquityOverviewPanel.tsx:183-213). So the defect is density (single-provider ratios with no statement-derived fallback, plus no ROCE), not a silent blank. Any statement-derived fallback also depends on DAT-P9-1 being fixed, because today's statements are the wrong company's.",
+    "evidence": "sidecar/models/fundamentals.py:70-111 (no roce field), sidecar/services/yfinance_provider.py:353-381, src/modules/equity-overview/EquityOverviewPanel.tsx:183-213, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:419-425,454-459",
+    "evidence_checked": "Grepped sidecar models/services, types and src for 'roce' (no field). Opened the yfinance ratio mapping and the panel's null-reason rendering. Read the collected field_meta for roe and debt_to_equity (status unavailable, reason stated).",
+    "repro_check": "Collected /fundamentals/AMAL: roe=null, debt_to_equity=null, both field_meta status 'unavailable' with reason 'provider did not publish this field'; grep -rn -i roce sidecar/models types -> none."
+  },
+  {
+    "raw_id": "DAT-P9-7",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as stated. The Fundamentals model carries only fifty_two_week_high/low/change scalars (models/fundamentals.py:77-79) with no per-leg date, and field_meta.as_of is the fetch time. No sidecar model or service carries a 52w-extreme date. The values are correct (1010.0 / 408.2 match BSE), so low is right.",
+    "evidence": "sidecar/models/fundamentals.py:77-79, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:398-418, docs/redesign/verification/r15/battery/packs/P9_AMAL.json:453-471",
+    "evidence_checked": "Opened the Fundamentals model and grepped sidecar models/services/routers for any 52-week date field (none). Read the collected field_meta.",
+    "repro_check": "grep -rn 'fifty_two_week_high_date|week52' sidecar/{services,models,routers} -> nothing; collected field_meta.fifty_two_week_high.as_of = 2026-09-19T09:44:37Z (fetch time)."
+  },
+  {
+    "raw_id": "DAT-P9-8",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds. The BSE header-quote path reads volume from h.get('Volume') or h.get('TotalTradedQty') on the getScripHeaderData payload (bse_provider.py:506-537). That payload does not yield it, so volume comes back None while price and change are populated. The session volume lives in BSE's StockTrading API, which the provider never calls on this path. Reproduced live.",
+    "evidence": "sidecar/services/bse_provider.py:506-537, docs/redesign/verification/r15/battery/collected/P9_AMAL.json:218-238, docs/redesign/verification/r15/battery/packs/P9_AMAL.json:138-148",
+    "evidence_checked": "Opened _quote_from_header and the bhavcopy fallback in bse_provider. Re-ran the quote live against :52152.",
+    "repro_check": "curl 'http://127.0.0.1:52152/quotes/AMAL?asset_class=equity' (2026-09-23) -> price 718.2, provider 'bse', volume null."
+  }
+]

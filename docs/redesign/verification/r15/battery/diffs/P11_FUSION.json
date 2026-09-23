@@ -1,0 +1,437 @@
+{
+  "slot": "P11",
+  "symbol": "FUSION",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P11_FUSION.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P11_FUSION.json",
+  "diffed_at": "2026-09-23",
+  "subtle_tier_covered": true,
+  "notes": "No field was refreshed live against :52152 for this diff; the 2026-09-19 collected snapshot was used throughout. The collected file mixes two different providers per field: /disclosures/shareholding and /disclosures/results (BSE/NSE XBRL, source='NSE') agree tightly with the pack's exchange-sourced values; /fundamentals, /fundamentals/income, /fundamentals/balance, /fundamentals/cashflow (all provider='yfinance') diverge from screener.in on several ratio/growth fields for reasons traceable to FY2026's rights issue (weighted-average diluted share count vs point-in-time shares outstanding) and to NBFC revenue-recognition template differences -- most of these are labelled 'definitional difference' below, consistent with the pack's own roe.disagreements section which independently found the same ratio-instability pattern before any app data was consulted. Two fields (dividend.*, week52.low) and one identity field (former_names) are genuine app gaps/mismatches against a value the pack found with a citable source, and one (revenue_ttm) is a large, hard-to-explain mismatch that survives even after accounting for the definitional issues above (net_profit_ttm on the SAME endpoint ties out to within 0.3%, so a uniform basis difference cannot explain a 2x revenue gap) -- these four are filed as DAT-P11-1..4.",
+  "diffs": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Fusion Finance Limited",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "Fusion Finance Limited",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "Fusion Micro Finance Limited (renamed Jul 2024)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/543652/",
+      "status": "app blank",
+      "comment": "resolve endpoint has a former_name field but it is null on all 3 candidate rows (bare-symbol, company-name and bse-code resolves) -> DAT-P11-1"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE139R01012",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "INE139R01012",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "543652",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "543652",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "FUSION",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "FUSION",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "mainboard (BSE Group B / BSE 1000, NSE EQ series)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "app blank",
+      "comment": "no mainboard/SME classification is exposed on any collected route (resolve, fundamentals, shareholding, results); not filed separately -- same systemic gap as identity.incorporated/employees/headquarters/face_value below, noted once for the record rather than padding one raw_id per missing metadata field."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Financial Services",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "Financial Services",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "match"
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Credit Services",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "Microfinance Institutions (BSE) / Personal Credit Institutions (stockanalysis.com)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "definitional difference",
+      "comment": "pack itself already records a BSE-vs-stockanalysis industry-taxonomy disagreement for this field; yfinance's 'Credit Services' is a third legitimate taxonomy label, not a new error."
+    },
+    {
+      "field": "identity.incorporated",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "1994",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/543652/",
+      "status": "app blank",
+      "comment": "not filed -- see identity.board comment (systemic metadata gap, low materiality)."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "no source truth",
+      "status": "no source truth",
+      "comment": "pack recorded this as a genuine world_gap (not curl-reachable in the pack collector's time budget); app also has no listing_date field. Neither side can be faulted against the other."
+    },
+    {
+      "field": "identity.employees",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "12,021",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/543652/employees/",
+      "status": "app blank",
+      "comment": "not filed -- see identity.board comment."
+    },
+    {
+      "field": "identity.headquarters",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "Gurugram, India",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/bom/543652/",
+      "status": "app blank",
+      "comment": "not filed -- see identity.board comment."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 185.12,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 184.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "as-of skew",
+      "comment": "app quote timestamp is 2026-09-18 (per body.timestamp; 'collected_at' at file top is the collection run time, not the quote's own as-of), pack price is 4 trading sessions later (22 Sep close, price fell 185.12->184 over that window) -- both are legitimate closes for their own day."
+    },
+    {
+      "field": "market_cap",
+      "app_value": "INR 2,993.69 crore (29,936,926,720)",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "INR 2,973 crore",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "as-of skew",
+      "comment": "app's 19-Sep mcap sits between the manifest's 18-Sep reference (2,997cr) and the pack's 22-Sep pull (2,973cr) -- consistent with ordinary day-to-day price drift on a falling stock, not a mismatch."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 15.0504055,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 17.6,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "definitional difference",
+      "comment": "traced to eps_ttm below: yfinance's trailing EPS (12.3) uses FY2026 net income / weighted-average DILUTED shares during the year (137.68M, blended pre/post rights-issue), screener's EPS TTM (10.44) sums last-4-quarter reported EPS on the POINT-IN-TIME share count (162.08M, post rights-issue) -- both are standard, legitimate EPS conventions, they just diverge unusually hard here because FUSION's share count jumped ~56% mid-year (rights issue). Not filed given the pack's own roe.disagreements section already documents this exact stock's ratio figures as multiply-disagreeing across sources/windows for the same underlying reason."
+    },
+    {
+      "field": "pb",
+      "app_value": 1.2189612,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 1.18,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=543652",
+      "status": "match",
+      "comment": "within the same rounding/price-timing band the pack itself already flagged (184/152=1.21 vs BSE's 1.18)."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "DISAGREEMENT (0.68%-6.68% across sources/windows, no single canonical figure)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "no source truth",
+      "comment": "pack does not commit to one ROE value for this field (explicit multi-source disagreement bundle), so there is no single outside value to diff app's null against."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 5.92,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "app blank",
+      "comment": "not filed -- ROCE is not a field yfinance publishes at all (field_meta would read 'unavailable' if the app's own schema carried it; here the field is absent from the fundamentals schema entirely), a provider-coverage gap rather than a symbol-specific defect."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 2.27507,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 2.27,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": "INR 858.20 crore (8,582,000,128)",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "INR 1,699 crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "mismatch",
+      "comment": "app is ~49% (roughly half) of outside truth on the SAME nominal field name and a comparable trailing-4-quarter window; net_profit_ttm on the identical endpoint ties out almost exactly (see next row), which rules out a simple standalone-vs-yfinance-template basis shift as the sole explanation -> DAT-P11-3"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": "INR 168.51 crore (1,685,100,032)",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "INR 169 crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match",
+      "comment": "within 0.3% -- included specifically to show the revenue_ttm gap above is not attributable to a blanket basis difference between the two providers."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": "128.1% (growth_basis='mrq_yoy', single most-recent-quarter YoY)",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "-27.6% (FY Mar2026 vs FY Mar2025) or -18% (screener's own TTM-vs-TTM widget)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "definitional difference",
+      "comment": "three different growth windows (single-quarter YoY off a FY2025 crisis-trough base vs FY-over-FY vs TTM-over-TTM) on a company recovering from a sector-wide MFI stress year -- all three are individually coherent, the pack's own disagreement note already covers 2 of the 3. App's growth_basis label is at least honest about which window it used."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 12.3,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 10.44,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "definitional difference",
+      "comment": "see pe_ttm row -- same weighted-average-diluted-shares-during-the-year vs point-in-time-shares-outstanding cause."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 151.867,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 152.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "app blank",
+      "comment": "not filed -- see identity.board comment."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "app blank",
+      "comment": "pack's value IS a confirmed zero (Dividend Payout % = 0 for every FY column Mar2018-Mar2026), not an unknown -> DAT-P11-2"
+    },
+    {
+      "field": "dividend.last_declared_record_or_ex_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "no source truth",
+      "status": "no source truth",
+      "comment": "no dividend has ever been declared, so no record/ex-date exists on either side -- consistent, not a gap."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "app blank",
+      "comment": "same underlying fact as dividend.last_declared_per_share -- rolled into DAT-P11-2, not filed as a second raw_id."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "app blank",
+      "comment": "same underlying fact as dividend.last_declared_per_share -- rolled into DAT-P11-2, not filed as a third raw_id."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 243.0,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 243.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "week52.high.as_of_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "no source truth",
+      "status": "no source truth",
+      "comment": "neither side records the actual date the 52w-high level was set; both only carry their own collection timestamp. BSE's dedicated HighLow endpoint returned all-null when the pack queried it live."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 136.5,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": 136.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "mismatch",
+      "comment": "0.5 INR / 0.37% gap between providers, 3 days apart; ruled out as as-of skew because the pack's own price.day_range.low for 22-Sep (182.0) is well above both figures, so no new 52w low was set in the intervening days -> DAT-P11-4"
+    },
+    {
+      "field": "week52.low.as_of_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "no source truth",
+      "status": "no source truth",
+      "comment": "same as week52.high.as_of_date."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": "2026-06-30 (top row of /disclosures/shareholding)",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "Jun 2026 (Q1 FY27), as_of 2026-06-30",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 53.96,
+      "app_as_of": "2026-06-30",
+      "outside_value": 53.97,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match",
+      "comment": "0.01pp apart on the same as-of quarter -- within normal cross-provider (NSE XBRL vs screener's own reading of the same XBRL) rounding, not filed. This IS the promoter-holding sub-check the spec calls out by name; verified deliberately, not skipped."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 4.77,
+      "app_as_of": "2026-06-30",
+      "outside_value": 4.77,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": 15.25,
+      "app_as_of": "2026-06-30",
+      "outside_value": 15.25,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": "25.79 (public_non_institutional_percent)",
+      "app_as_of": "2026-06-30",
+      "outside_value": 25.78,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match",
+      "comment": "0.01pp apart, same rounding-noise pattern as promoter_pct above."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-06-30",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "no source truth",
+      "status": "no source truth",
+      "comment": "pack recorded this as a genuine gap (screener free tier, BSE ShareHoldingPattern JSON and Trendlyne all failed to surface it live); app's /disclosures/shareholding response also carries no pledge field. Neither side can be faulted -- both are honestly missing it rather than assuming zero."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "same 3 events (ESOP grant 15-Sep, stressed-loan ARC sale 7/8-Sep, rights issue reflected in balance-sheet equity jump) present via /disclosures/announcements",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "ESOP grant, ARC stressed-loan sale, FY2026 rights issue",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=2e97b734-883e-42a2-98fc-d03fad83b068.pdf",
+      "status": "match",
+      "comment": "app has no dedicated 'corporate actions' field, but every fact in the pack's corporate_actions_2026 block is independently present and dated correctly in the app's own /disclosures/announcements feed."
+    },
+    {
+      "field": "latest_results.quarter",
+      "app_value": "period ended Jun 30, 2026",
+      "app_as_of": "2026-08-10",
+      "outside_value": "Jun 2026 (Q1 FY27)",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/FUSION/",
+      "status": "match"
+    },
+    {
+      "field": "latest_results.filing_date",
+      "app_value": "2026-08-10",
+      "app_as_of": "2026-08-10",
+      "outside_value": "2026-08-10",
+      "outside_as_of": "2026-08-10T17:23:08",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=543652&strToDate=20260923",
+      "status": "match"
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "17-Sep Investor Meet Intimation; 15-Sep ESOP grant; 15-Sep CHRO change -- all present, both NSE and BSE copies",
+      "app_as_of": "2026-09-19T15:15:56+0530",
+      "outside_value": "same 3 headlines/dates",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=4e92ce5c-421d-49b3-9abd-4a5556efe120.pdf",
+      "status": "match"
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "no explicit label; underlying figures are 'yfinance-normalized' rather than either screener basis (see revenue_ttm/eps_ttm/pe_ttm rows)",
+      "app_as_of": "2026-09-19T09:45:39Z",
+      "outside_value": "Standalone only in practice (no disclosed subsidiaries)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/FUSION/consolidated/",
+      "status": "definitional difference",
+      "comment": "covered inline in the revenue_ttm/eps_ttm/pe_ttm rows above rather than as its own separate raw finding."
+    }
+  ]
+}

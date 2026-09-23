@@ -1,0 +1,396 @@
+{
+  "slot": "P16",
+  "symbol": "CREST",
+  "diffed_at": "2026-09-23",
+  "subtle_tier_covered": true,
+  "diffs": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Crest Ventures Limited",
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": "Crest Ventures Limited",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match"
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as a world_gap (no rename found in any source read)."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE559D01011",
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "INE559D01011",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "511413",
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "511413",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "CREST",
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "CREST",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "status": "match"
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "mainboard (BSE Grp B, not SME)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "status": "app blank",
+      "note": "No board/SME-vs-mainboard field anywhere in the collected app surface."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Financial Services",
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": "Financials",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "definitional difference",
+      "note": "Pack itself notes all three outside sources agree in substance but differ on the exact taxonomy string (Financials vs Financial Services vs Financial Conglomerates); not a factual error."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Financial Conglomerates",
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": "Non Banking Financial Company (NBFC) / Investment and Credit Company",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "status": "definitional difference",
+      "note": "Provider-taxonomy difference (yfinance GICS-like label vs BSE/screener NBFC classification); pack notes NONE of the outside sources surface 'real estate' either, so this is not an app-specific gap vs a correct world value."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack world_gap: not found in any source tried (bseindia.com HTML, which would carry it, 403s automated fetchers)."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 365.75,
+      "app_as_of": "2026-09-18",
+      "outside_value": 364.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "as-of skew",
+      "note": "App quote is EOD for 2026-09-18 (collector ran 2026-09-19); pack close is 2026-09-22. Different trading sessions, both plausibly correct for their date."
+    },
+    {
+      "field": "market_cap_inr_crore",
+      "app_value": 1033.93,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 1035,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "as-of skew",
+      "note": "App market cap = fundamentals.market_cap/1e7, computed from the app's own Sep-18/19 price (10339304448/28268775=365.77, matching app's own quote); pack's 1035cr is priced off the Sep-22 close. Values are consistent once the pricing date is accounted for."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 31.503016,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_consolidated": 31.4,
+        "stockanalysis_consolidated": 31.06,
+        "bse_consolidated": 29.42,
+        "screener_standalone": 49.4,
+        "bse_standalone": 46.03
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "match",
+      "note": "App value sits inside the outside sources' own CONSOLIDATED-basis disagreement band (29.42-31.4) and closest to screener's 31.4; clearly not the standalone basis (46-49). Outside truth itself is multi-source-disagreeing for this field (recorded, not resolved)."
+    },
+    {
+      "field": "pb",
+      "app_value": 0.79099554,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 0.79,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "match",
+      "note": "Pack's consolidated PB (364/459=0.79) is itself an implied derivation, not screener-printed; app's own price_to_book (365.75/462.392=0.791) matches it closely on the consolidated basis."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_standalone": 3.51,
+        "bse_standalone": 2.11,
+        "screener_consolidated": 3.75
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "app blank",
+      "note": "fundamentals.roe is null with field_meta reason 'provider did not publish this field'."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_standalone": 5.54,
+        "screener_consolidated": 5.67
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "app blank",
+      "note": "No roce key exists anywhere in the fundamentals response schema at all (not merely nulled)."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.15374,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_standalone_derived": 0.17,
+        "screener_consolidated_derived": 0.22
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "definitional difference",
+      "note": "Pack's D/E values are itself derived from raw balance-sheet lines (screener prints no D/E card for this name) and don't state whether total, net, or long-term debt is used. App's 0.15374 (yfinance) does not reconcile exactly to Total Debt/Equity (0.216), Net Debt/Equity (0.115), or Long-Term Debt/Equity (0.208) from the app's own balance-sheet call either, consistent with differing debt-definition conventions rather than one side being wrong."
+    },
+    {
+      "field": "revenue_ttm_inr_crore",
+      "app_value": 126.4,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 126,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "match",
+      "note": "Matches the consolidated figure almost exactly (app 1264018048 INR / stated consolidated ~126cr)."
+    },
+    {
+      "field": "net_profit_ttm_inr_crore",
+      "app_value": 32.985,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 32.985,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "match",
+      "note": "Exact match to stockanalysis's corroborating consolidated figure (329.85M)."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": -0.52,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_standalone_ttm": -0.41,
+        "stockanalysis_consolidated_annual": -0.2213
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "definitional difference",
+      "note": "App's growth_basis is 'mrq_yoy' (latest single quarter vs year-ago quarter) which matches neither the pack's standalone TTM-over-TTM window nor its consolidated FY-over-FY window; three different, individually legitimate growth-window conventions for the 'same' metric, per the pack's own note that these percentages are not directly comparable."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 11.61,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener_derived_consolidated": 11.6,
+        "stockanalysis_consolidated": 11.6,
+        "bse_consolidated": 12.32
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "match",
+      "note": "Matches the consolidated screener/stockanalysis figure to within rounding (11.61 vs 11.60)."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 462.392,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 459,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "definitional difference",
+      "note": "Reconciles exactly on a share-count basis: app = Stockholders Equity(13,070,325,000)/Ordinary(basic) Shares(28,266,775)=462.39; using diluted/issued shares(28,449,775) instead gives 459.42, matching the pack's 459. Different share-count convention, not a wrong value."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": 10.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/ComHeadernew/w?quotetype=EQ&scripcode=511413",
+      "status": "app blank",
+      "note": "No face_value/par-value field found anywhere in the collected app surface."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": 1.0,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 1.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+      "status": "match"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 2.0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+      "status": "app blank",
+      "note": "fundamentals.dividend_per_share_ttm is explicitly null. Outside value is itself a derived, boundary-sensitive proxy (could read 1.00 instead of 2.00 depending on an inclusive/exclusive 12-month cutoff on the 2025-09-23 ex-date) per the pack's own caveat, but a stated value exists and the app surfaces none."
+    },
+    {
+      "field": "dividend.yield_pct",
+      "app_value": 0.27,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 0.27,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 418.0,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener": 430,
+        "stockanalysis": 418.0
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "status": "match",
+      "note": "App matches the stockanalysis leg exactly; screener's outside value (430) disagrees with stockanalysis's own outside value by ~2.9% - a world-side disagreement the pack records, not an app error (app agrees with one legitimate live source)."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 298.15,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": {
+        "screener": 298,
+        "stockanalysis": 298.15
+      },
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/CREST/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct (disclosures endpoint)",
+      "app_value": 69.84,
+      "app_as_of": "2026-06-30 qtr (submitted 2026-07-20)",
+      "outside_value": 69.84,
+      "outside_as_of": "Jun 2026 qtr (as_of 2026-09-22)",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct (fundamentals held_percent_insiders)",
+      "app_value": 0.77203,
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": 69.84,
+      "outside_as_of": "Jun 2026 qtr (as_of 2026-09-22)",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "mismatch",
+      "note": "fundamentals.held_percent_insiders reports 77.2% promoter/insider holding, a 7.4-point discrepancy against BOTH the outside truth (screener 69.84%) AND the app's OWN /disclosures/shareholding endpoint for the same quarter (69.84%) - an internal inconsistency between two in-app data surfaces for the single most gameable number in an Indian small-cap."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 1.71,
+      "app_as_of": "2026-06-30 qtr",
+      "outside_value": 1.71,
+      "outside_as_of": "Jun 2026 qtr",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-06-30 qtr",
+      "outside_value": 0.0,
+      "outside_as_of": "Jun 2026 qtr",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "app blank",
+      "note": "disclosures/shareholding returns dii_percent=null (and fundamentals.held_percent_institutions=0.0, inconsistently populated) rather than the world's inferred 0% (screener's yearly table states DII=0.00% explicitly for every year Mar2023-Jun2026)."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 27.82,
+      "app_as_of": "2026-06-30 qtr",
+      "outside_value": 27.81,
+      "outside_as_of": "Jun 2026 qtr",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match",
+      "note": "App's public_non_institutional_percent (27.82) is the correctly-matched sub-field for the pack's public_pct convention (excl. institutions); app's own headline public_percent (29.53) uses an incl.-institutions basis instead - a real but internally-documented definitional split within the app's own response, not a factual error once reconciled."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-06-30 qtr",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack records this as a world_gap: no dedicated BSE pledge feed answered in this session; nil pledge is an inference from a screener table omission, not a confirmed zero."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "dividend fields only (INR1.00, ex-date not separately exposed as a corp-action row)",
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": "Final Dividend INR1.00, ex/record date 2026-08-14",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/DefaultData/w?scripcode=511413",
+      "status": "match",
+      "note": "No dedicated corporate-actions endpoint was collected; the underlying declared-dividend amount matches via the dividend field checks above. No bonus/split/buyback/rights found on either side for 2026."
+    },
+    {
+      "field": "latest_results",
+      "app_value": "Q1 FY2026-27 filed 2026-08-13 (results_calendar + announcements)",
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "Q1 FY2026-27 (qtr ended 2026-06-30), filed 2026-08-13",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?strCat=Result&strScrip=511413",
+      "status": "match"
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "2026-09-03 AGM minutes; 2026-08-25 scrutinizer report; 2026-08-22 AGM outcome",
+      "app_as_of": "2026-09-19T15:28:18+0530",
+      "outside_value": "2026-09-03 AGM minutes; 2026-08-25 scrutinizer report; 2026-08-22 AGM outcome",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/",
+      "status": "match"
+    },
+    {
+      "field": "consolidated_vs_standalone (basis disclosure)",
+      "app_value": "no basis/consolidation field present anywhere in fundamentals response",
+      "app_as_of": "2026-09-19T09:57:13Z",
+      "outside_value": "standalone vs consolidated diverge ~1.5x on P/E, revenue, net profit, book value - basis MUST be labelled or diffs are meaningless",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.screener.in/company/511413/consolidated/",
+      "status": "mismatch",
+      "note": "Every P&L-derived fundamentals field (pe_ttm, revenue_ttm, net_profit_ttm, eps_ttm, pb) tracks the CONSOLIDATED figures closely (confirmed field-by-field above), but the fundamentals schema exposes no basis/consolidation indicator at all. For an issuer the manifest explicitly flags as a hostile trait (SPV/JV real-estate consolidation swings P/E from ~47x standalone to ~31x consolidated), silently serving one basis with zero label is a data-trust problem, not a cosmetic one."
+    }
+  ]
+}

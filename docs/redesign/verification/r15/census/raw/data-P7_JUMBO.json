@@ -1,0 +1,62 @@
+[
+  {
+    "raw_id": "DAT-P7-1",
+    "title": "Announcements feed returns zero results for JUMBO despite real, recent, material BSE filings",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/disclosures/announcements?symbol=JUMBO&limit=25 -> {\"count\": 0, \"announcements\": [], \"sources\": [\"BSE\"], \"errors\": {}} -- no error surfaced, just an empty list.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:3958-3971 (empty announcements body); cross-checked against docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:'last_3_announcements' (3 real BSE filings between 2026-07-30 and 2026-07-31, incl. https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=64e3126e-2c55-47d5-8201-dd24c2391b80.pdf, the 36th AGM outcome PDF that was opened and read directly, confirming a dividend-declaration resolution)",
+    "notes": "Mechanism: the route reports success (status 200, errors:{}) with a genuinely empty result set for a BSE-only nano-cap that has filed a dividend-declaring AGM outcome, a director appointment and a scrutiniser's e-voting report within the prior two months. Consequence: a user or agent checking 'what's new' for this stock sees a clean empty state that reads as 'no recent activity' when in fact a dividend was just declared -- silently misleading, worse than an explicit error because there is no signal anything failed. Smallest fix shape: since 'sources': ['BSE'] is reported but produced nothing, audit the BSE announcements fetch path for a BSE-only scrip code (516078) -- likely the same NSE-first assumption implicated in DAT-P7-2's 502 (results calendar), applied here to the announcements source selection/parsing."
+  },
+  {
+    "raw_id": "DAT-P7-2",
+    "title": "Results/filing-calendar route hard-fails (502) for a BSE-only stock instead of degrading gracefully",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/disclosures/results?symbol=JUMBO -> HTTP 502 {\"detail\": \"nse_direct: 'JUMBO' is not a known NSE instrument\"}",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:3974-3985; docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:'latest_results' (Q1 FY2026-27, filed 2026-07-30, sourced from screener.in's scraped BSE announcement list) and 'traps'[1] (\"BSE-ONLY listing, no NSE symbol at all. A pipeline that defaults to an NSE-first data source... will find nothing for this name\")",
+    "notes": "Mechanism: the results-calendar route is hardwired to an NSE-only provider ('nse_direct') with no BSE fallback, so it throws a raw upstream error string straight through as a 502 for any BSE-only listing -- exactly the trap the pack's own traps section flags as a class-level pipeline hazard, now confirmed as a live bug rather than a hypothetical risk. Consequence: any panel/agent surfacing 'latest results' or a results calendar for a BSE-only name (a large share of Indian small/nano-caps) gets a hard error instead of the BSE-sourced results date the outside world has. Smallest fix shape: gate the nse_direct call on exchange presence (skip/fall back to a BSE results-date source when resolve.exchange == 'BSE' and no NSE symbol exists) instead of letting the NSE provider's own not-found error propagate as a 502."
+  },
+  {
+    "raw_id": "DAT-P7-3",
+    "title": "Derived per-share ratios (EPS, book value per share) contradict the app's own freshly-fetched income/balance-sheet data for the same symbol",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/JUMBO -> eps=13.69, book_value=54.361. In the SAME collection run, GET .../fundamentals/JUMBO/balance -> Stockholders Equity FY2026=477,377,000; and .../fundamentals/JUMBO net_income_ttm=116,379,000, shares_outstanding=8,373,700 -> 116379000/8373700=13.90 and 477377000/8373700=57.01, neither of which matches the reported eps/book_value fields.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:243 (book_value=54.361), :246 (eps=13.69), :259-262 (revenue_ttm/net_income_ttm/shares_outstanding), :1211-1219 (Stockholders Equity, balance sheet); outside cross-check docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:eps_ttm (13.89, sum of last 4 quarterly EPS, confirmed independently by BSE ComHeadernew EPS=13.90) and book_value_per_share (57.0, screener.in)",
+    "notes": "Mechanism: the app's own raw ingredients for both ratios (net_income_ttm/shares_outstanding for EPS; stockholders_equity/shares_outstanding for book value) compute to values that match outside truth almost exactly (13.90 and 57.01), yet the 'eps' and 'book_value' fields in the SAME payload report 13.69 (-1.4%) and 54.361 (-4.9%) respectively. This is not a provider-basis disagreement like pe_ttm/pb/roe (where two outside sources also disagree with each other) -- here the app contradicts ITSELF, strongly suggesting these two ratio fields are sourced from a stale/differently-scoped yfinance 'info' snapshot rather than computed from the same financial-statement data the app already fetches and serves elsewhere in the response. Consequence: a user trusting the headline eps/book_value fields sees numbers ~1-5% off from both outside truth and the app's own underlying statements -- money-relevant valuation inputs shown as true when wrong. Smallest fix shape: recompute eps and book_value from the already-fetched net_income_ttm/stockholders_equity/shares_outstanding instead of (or reconciled against) the raw yfinance info-dict fields, or surface a field_meta warning when they diverge beyond a tolerance."
+  },
+  {
+    "raw_id": "DAT-P7-4",
+    "title": "ROE is blank and ROCE has no field at all, despite the app already holding the ingredients for a computed ROE",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/JUMBO -> roe:null (field_meta: status='unavailable', reason='provider did not publish this field'); no 'roce' key exists anywhere in the response schema.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:251 (roe:null), :406-412 (field_meta.roe), :259-262 (net_income_ttm, shares_outstanding present in the same payload), :1211-1219 (Stockholders Equity present via the balance route); outside cross-check docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:roe (screener 14.2% / BSE 33.58%, flagged as a basis-dependent SOURCE DISAGREEMENT) and roce (screener 14.6%, single clean source, no disagreement)",
+    "notes": "Mechanism: net_income_ttm (116,379,000) and stockholders_equity (477,377,000, from the app's own balance-sheet call) divide to a plausible ROE (~24.4%) that the app could surface as a computed approximation with a basis caveat, but instead returns null with no computed fallback; ROCE is not modelled as a concept anywhere in the fundamentals schema, so it is unavailable even in principle. Consequence: two of the most commonly screener-checked profitability ratios for an Indian small-cap are entirely absent from the terminal, against a stated benchmark (screener.in) that has both. Smallest fix shape: add a computed ROE (net_income_ttm / latest stockholders_equity, labelled with its basis) as a fallback when the provider field is unavailable, and add an ROCE capability sourced the same way the other computed ratios (debt_to_equity, margins) already are."
+  },
+  {
+    "raw_id": "DAT-P7-5",
+    "title": "Dividend TTM paid-per-share and yield are blank where outside truth has a sourced (if caveated) value",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/JUMBO -> dividend_per_share_ttm:null, dividend_yield:null.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:244 (dividend_yield:null), :268 (dividend_per_share_ttm:null); outside cross-check docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:dividend.paid_trailing_12m_per_share and dividend.yield (both 0.0, sourced from screener.in, 2026-09-23)",
+    "notes": "Mechanism: pack's own note flags that the sourced 0.0 may itself be a stale screener card that hasn't caught up to the 30-Jul-2026 AGM's dividend declaration -- so the true trailing-paid figure is uncertain, but a real, sourced outside value exists and the app shows nothing rather than 0 or an honestly-labelled 'pending payment' state. Consequence: a user cannot tell the difference between 'this app has no dividend data' and 'this stock genuinely paid nothing yet' -- both render as blank. Smallest fix shape: when the provider (yfinance) omits dividend_per_share_ttm/dividend_yield outright (as opposed to reporting a real 0), surface that distinction (e.g. status='unavailable' vs a real computed 0) rather than collapsing both to null."
+  },
+  {
+    "raw_id": "DAT-P7-6",
+    "title": "face_value (par value) is absent from the app's identity/fundamentals schema",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P7_JUMBO",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/JUMBO and /resolve?q=JUMBO -> neither response contains a face_value/par-value field anywhere.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P7_JUMBO.json:11-51 (resolve body), :230-528 (fundamentals body, full field list, no face_value key); outside cross-check docs/redesign/verification/r15/battery/packs/P7_JUMBO.json:face_value (10.0 INR, screener.in AND BSE ComHeadernew agree exactly)",
+    "notes": "Mechanism: face value has no representation anywhere in the app's Indian-equity schema (this looks systemic across BSE/NSE names, not specific to JUMBO, since it is a yfinance-unsourced field for Indian scrips). Consequence: low on its own, but face value matters for correctly interpreting split/bonus-adjusted historical prices and EPS -- a demanding owner comparing this app to screener.in would notice the gap. Smallest fix shape: source face_value from the BSE ComHeadernew feed (already used for identity fields) rather than relying on yfinance, which does not carry it for Indian scrips."
+  }
+]

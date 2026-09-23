@@ -1,0 +1,345 @@
+{
+  "slot": "P10",
+  "symbol": "VIYASH",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P10_VIYASH.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P10_VIYASH.json",
+  "subtle_tier_covered": true,
+  "notes": "Collected file has no dedicated dividend or corporate-actions/rename-history endpoint call; identity rename status is read from the resolve() response's former_name field (present in schema, null in all 3 resolve calls). No fresh sidecar re-fetch was needed - all fields were resolvable from the 2026-09-19 collected snapshot against the pack.",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Viyash Scientific Limited",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Viyash Scientific Limited",
+      "outside_as_of": "2026-01-23",
+      "outside_source_url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf",
+      "status": "match"
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": [{"name": "Sequent Scientific Limited", "symbol": "SEQUENT", "used_until": "2026-01-22", "rename_effective": "2026-01-23"}],
+      "outside_as_of": "2026-01-23",
+      "outside_source_url": "https://nsearchives.nseindia.com/content/circulars/CML72374.pdf",
+      "status": "app blank",
+      "detail": "resolve?q=VIYASH, resolve?q=Viyash+Scientific+Ltd and resolve?q=512529 (collected lines 19-31, 75-87, 183-195) all return former_name: null for a company that renamed from Sequent Scientific -> Viyash Scientific 8 months before collection, per a primary NSE circular. The schema has a dedicated former_name field, meaning rename-tracking is a stated product capability, not an absent feature."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE807F01027",
+      "app_as_of": "2026-09-19",
+      "outside_value": "INE807F01027",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "status": "match"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "512529",
+      "app_as_of": "2026-09-19",
+      "outside_value": "512529",
+      "outside_as_of": "2026-09-08",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "status": "match"
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Healthcare",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Healthcare > Pharmaceuticals & Biotechnology > Pharmaceuticals",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "top-level sector agrees; industry sub-classification is explicitly documented in the pack as unresolvable across every aggregator (post-merger classification trap), so no finding filed for the industry sub-field."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 249.65,
+      "app_as_of": "2026-09-18",
+      "outside_value": 249.65,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.stockscans.in/company/NSE:VIYASH",
+      "status": "match"
+    },
+    {
+      "field": "price.change_pct",
+      "app_value": 2.1063,
+      "app_as_of": "2026-09-18",
+      "outside_value": 2.11,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.stockscans.in/company/NSE:VIYASH",
+      "status": "match"
+    },
+    {
+      "field": "market_cap",
+      "app_value": 11014.94,
+      "app_value_unit": "INR crore (derived: 441,215,420 shares x 249.65, fundamentals endpoint raw 110149427200 INR)",
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 10998,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "App value (11,014.94 cr) falls within the cross-source spread the pack itself already documents (10,759-11,008.6 cr across screener/Upstox/TradingView), differing by <0.2% from the nearest disagreement (Upstox 11,008.6). Not filed as a fresh mismatch -- it is the same already-acknowledged share-count/rounding noise, not a new defect."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 51.58,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 49.6,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "definitional difference",
+      "detail": "Pack itself documents 4 outside sources giving 4 different P/E values (41.24-129) with no internally-consistent basis (screener's own printed P/E does not reproduce price/its-own-EPS). App's value (51.58, closest to stockscans' 51.16) sits inside that already-disputed band. No single canonical outside truth exists to diff against, per the pack's own analysis."
+    },
+    {
+      "field": "pb",
+      "app_value": 3.7429,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 3.75,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 7.39,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "app blank",
+      "detail": "fundamentals field_meta marks roe status 'unavailable', reason 'provider did not publish this field' (collected lines 419-425). Screener (7.39%, last-year consolidated) is corroborated in range by Upstox (7.07%) and stockscans (8.0%) -- three independent consolidated-basis sources cluster 7-8%, so this is not a case of genuinely absent world data."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 13.4,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "app blank",
+      "detail": "roce is not a key anywhere in the /fundamentals/VIYASH response body or its field_meta block (collected lines 244-541) -- not even an 'unavailable' entry, the field is entirely absent from the schema returned for this call. World value (13.4%) is corroborated by Upstox (13.01%) and stockscans (12.6%)."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 0.1572,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 0.17,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "Pack's own value is derived, not directly published, and flags Upstox's conflicting 0.01 as irreconcilable; app's 0.157 is close to the pack's derived 0.17 and nowhere near the Upstox outlier."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 3575.03,
+      "app_value_unit": "INR crore (raw 35750260736 INR)",
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 3575,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": 211.34,
+      "app_value_unit": "INR crore (raw net_income_ttm 2113449984 INR)",
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 267,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "mismatch",
+      "detail": "Both are on the consolidated TTM-to-Jun-2026 basis (not the standalone 79 cr figure). Screener's 267 cr is internally corroborated by summing its own consolidated quarterly net_profit series for the same trailing 4 quarters (Sep25 73 + Dec25 49 + Mar26 66 + Jun26 79 = 267, pack lines 254-263). App's 211.34 cr does not reconcile with either the consolidated (267) or standalone (79) screener figures, and sits between FY2026 annual 'Net Income' (177.29 cr) and 'Net Income Including Noncontrolling Interests' (224.65 cr) from the app's own /income statement (collected lines 777-801) -- an unexplained ~21% understatement of TTM bottom-line profit against the best-corroborated outside value, with no basis label shown."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": 1.144,
+      "app_value_unit": "unlabeled (growth_basis: mrq_yoy)",
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 13.7,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "definitional difference",
+      "detail": "App reports quarter-over-quarter-year (mrq_yoy) growth; pack's primary value is FY26-vs-FY25 annual growth (13.7%), with the pack itself separately recording a TTM-window value of 53.04% as an equally valid, differently-windowed number. Three different windows (annual, mrq, TTM) are all legitimate and none is 'wrong' -- this is the exact trap the pack calls out, not a new defect."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 4.84,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 5.76,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "definitional difference",
+      "detail": "Pack documents 5 reachable sources giving 5 different TTM EPS values (1.75-5.76) with no internally consistent basis across any of them. App's 4.84 is a 6th value inside that already-disputed spread (closest to stockscans' 4.90). No single canonical outside truth to diff against."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 66.7,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 66.6,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 2,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv",
+      "status": "app blank",
+      "detail": "face_value does not appear as a key anywhere in the collected resolve() or fundamentals bodies. This is the pack's own flagged trap field (face value is 2 INR, not the common 10 INR default), and it is entirely unsurfaced by the calls made."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "Both sides record an absence (pack: recorded gap, no dividend found in 2026; app: null). No record/ex date on either side either -- match."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "app blank",
+      "detail": "Unlike last_declared_per_share (a genuine gap on both sides), this field has a sourced, positive value on the outside (0, confirmed by a 0% payout ratio across FY22-FY26 in the pack). App's dividend_per_share_ttm field_meta marks it 'unavailable / provider did not publish this field' (collected lines 377-383) rather than 0 -- the app cannot distinguish 'confirmed zero dividend' from 'no data'."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "app blank",
+      "detail": "Same root cause as paid_trailing_12m_per_share: dividend_yield field_meta is 'unavailable' (collected lines 370-376) where the sourced outside value is a confirmed 0.0%, corroborated by Upstox. Filed as one raw finding together with paid_trailing_12m_per_share (same mechanism)."
+    },
+    {
+      "field": "week52.high",
+      "app_value": 298.0,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 298,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 178.13,
+      "app_as_of": "2026-09-19T09:45:09Z",
+      "outside_value": 178,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "App's 178.13 matches the pack's own recorded Upstox disagreement figure exactly; screener's 178 is a rounded display of the same value."
+    },
+    {
+      "field": "week52.high_date / week52.low_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "detail": "Pack explicitly records the 52w high/low occurrence dates as an unreached world_gap (no source gave the dates). Not a finding."
+    },
+    {
+      "field": "shareholding.quarter (as-of)",
+      "app_value": "2026-06-30",
+      "app_as_of": "2026-07-20 (submission_date)",
+      "outside_value": "2026-06-30",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 61.31,
+      "app_as_of": "2026-06-30",
+      "outside_value": 61.31,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "The single most gameable number for this name checks out exactly against the same as-of quarter."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": 4.5,
+      "app_as_of": "2026-06-30",
+      "outside_value": 4.5,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": 3.75,
+      "app_as_of": "2026-06-30",
+      "outside_value": 3.76,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "0.01pp difference is source-side rounding (XBRL exact 3.75 vs screener's displayed 3.76); below any decision-relevant threshold. Not the Upstox MF+DII-other split trap the pack warns about -- app's single dii_percent field agrees with screener's single DII field almost exactly."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 30.34,
+      "app_value_field": "public_non_institutional_percent",
+      "app_as_of": "2026-06-30",
+      "outside_value": 30.34,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "match",
+      "detail": "App correctly exposes both public_percent (incl. institutions, 38.6) and public_non_institutional_percent (30.34); the pack's public_pct definition matches the latter exactly."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "detail": "Pack records this as a genuine world_gap (no reachable source publishes a pledge figure for this name); app also has no pledge field in the shareholding response. Both absent for the same reason -- not a finding."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "ESOP allotments 2026-09-18/2026-09-04, BioForLife Italia update 2026-09-08, SAST disclosure 2026-08-27, rename circular referenced via SEQUENT-prefixed NSE filenames",
+      "app_as_of": "2026-09-18",
+      "outside_value": "same 4 events",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "https://www.bseindia.com/stockinfo/AnnPdfOpen.aspx?Pname=c33c6752-e581-4dc7-91b9-13a44fe2675b.pdf",
+      "status": "match",
+      "detail": "App's /disclosures/announcements feed (collected lines 2860-3060) reproduces all 4 pack-listed 2026 corporate actions with matching dates."
+    },
+    {
+      "field": "latest_results.filing_date",
+      "app_value": "2026-08-11 (Outcome of Board Meeting filing timestamp, collected lines 2976-2979)",
+      "app_as_of": "2026-08-11",
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "detail": "Pack explicitly could not source this field (bracketed only, source_url null). App's own announcement feed actually resolves it precisely (2026-08-11, consistent with the pack's bracket of 'on or before 2026-08-12') but per the diff rule this is not filed as a finding since the pack recorded no outside source_url for this field."
+    },
+    {
+      "field": "latest_results.reported_consolidated (sales/op profit/net profit/eps)",
+      "app_value": "not collected -- no quarterly P&L endpoint was called",
+      "app_as_of": null,
+      "outside_value": "sales 946, op profit 178, net profit 79, eps 1.51 (Jun-2026 quarter)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/VIYASH/consolidated/",
+      "status": "no source truth",
+      "detail": "Not diffable: the collected battery has no quarterly income-statement call for VIYASH (only annual /income and TTM /fundamentals). Not filed as an app-blank finding since absence of a *collected data point* is not evidence of an absent *app capability*."
+    }
+  ]
+}

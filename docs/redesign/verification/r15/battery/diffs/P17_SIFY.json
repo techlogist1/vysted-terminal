@@ -1,0 +1,456 @@
+{
+  "slot": "P17",
+  "symbol": "SIFY",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P17_SIFY.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json",
+  "diffed_at": "2026-09-23",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Sify Technologies Limited",
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "Sify Technologies Limited",
+      "outside_as_of": "2026-06-26",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "match"
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:42.390696Z",
+      "outside_value": "SATYAM INFOWAY LTD (until 2003-01-13) -> SIFY LTD (2003-01-13 to 2007-10-15) -> SIFY TECHNOLOGIES LTD (from 2007-10-15)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=sify&type=20-F&output=atom",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-4"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:42.390696Z",
+      "outside_value": "US82655M2061 (ADR ISIN; CUSIP 82655M206)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/company/",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-5"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:42.390696Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "manifest.json master_presence (bse: absent) -- no BSE code exists for this ADR",
+      "status": "match",
+      "notes": "Both correctly show absence; app does not invent a BSE code for an Indian-name hostile-trait instrument (the primary pass condition this slot exists to test)."
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:42.390696Z",
+      "outside_value": null,
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "manifest.json master_presence (nse: absent)",
+      "status": "match",
+      "notes": "Both correctly show absence."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": "n/a - no field in /resolve or /fundamentals response",
+      "outside_value": "NASDAQ Capital Market (NASDAQ-CM), not Global Select; no BSE/NSE mainboard/SME classification applies",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-4",
+      "notes": "No board/listing-tier field exists anywhere in the collected responses; folded into DAT-P17-4 alongside former_names and listing_date as the same class of identity-resolve gap."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Communication Services",
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "Communication Services (stockanalysis.com) vs Technology (Nasdaq.com) -- sources disagree",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/company/",
+      "status": "match",
+      "notes": "Matches the stockanalysis.com leg of the pack's own two-source spread exactly; the Nasdaq.com/stockanalysis disagreement is a world-level taxonomy trap, not an app defect."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Telecom Services",
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "Telecom Services (stockanalysis.com) vs Computer Software: Programming, Data Processing (Nasdaq.com)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/company/",
+      "status": "match",
+      "notes": "Matches the stockanalysis.com leg exactly; same taxonomy-trap caveat as sector."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": "n/a - no field in collected responses",
+      "outside_value": "1999-10-19 (NASDAQ ADS IPO)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/company/",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-4"
+    },
+    {
+      "field": "identity.resolve_by_company_name",
+      "app_value": "6 candidates returned (ASMTEC 0.80, ODYSSEY 0.7755, IKOMA/EMIAC/RELICTEC/7TEC ~0.766) -- all NSE/BSE Indian small-caps, SIFY absent from the list",
+      "app_as_of": "2026-09-19T15:29:07+0530 (elapsed_ms 1426)",
+      "outside_value": "SIFY resolves correctly and uniquely by its own bare ticker in the same run (confidence 1.0)",
+      "outside_as_of": "2026-09-19",
+      "outside_source_url": "docs/redesign/verification/r15/battery/collected/P17_SIFY.json (internal cross-check, resolve_bare_symbol call)",
+      "status": "mismatch",
+      "raw_finding": "DAT-P17-3"
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 13.66,
+      "app_as_of": "2026-09-19T09:58:42.390696Z",
+      "outside_value": 13.97,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks",
+      "status": "as-of skew"
+    },
+    {
+      "field": "market_cap",
+      "app_value": 989456832.0,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 1011911572,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks",
+      "status": "as-of skew",
+      "notes": "2.27% delta matches the 3-trading-day price move (13.66 -> 13.97) almost exactly; not a mismatch."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "loss-making (trailing net loss, PE n/a)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "match",
+      "notes": "Both correctly show no trailing PE for a net-loss TTM company."
+    },
+    {
+      "field": "forward_pe (supplementary)",
+      "app_value": 273.19998,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 104.32,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "definitional difference",
+      "notes": "Both are legitimate 'forward PE' figures but derive from different consensus forward-EPS estimates (yfinance vs stockanalysis.com); for a near-breakeven company a small EPS-estimate difference produces a large PE swing. Not filed as a mismatch."
+    },
+    {
+      "field": "pb",
+      "app_value": 4.959653,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 5.05,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "as-of skew",
+      "notes": "Consistent with the price move plus a small book-value-per-share drift over the same 3 days."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "n/a",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "match"
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "n/a - no field in collected responses",
+      "outside_value": "n/a (not published; adjacent ROIC 5.01% vs WACC 9.79% available but is a different metric)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "no source truth",
+      "notes": "ROCE itself is a genuine world_gap per the pack; not filed."
+    },
+    {
+      "field": "debt_to_equity (vs aggregator source)",
+      "app_value": 2.56388,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 2.56,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "match"
+    },
+    {
+      "field": "debt_to_equity (vs company primary-source IFRS figure)",
+      "app_value": 2.56388,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 2.42,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm",
+      "status": "as-of skew",
+      "notes": "App/aggregator figure reflects the FY26 year-end (2026-03-31) balance sheet; the company's own 2.42x is from the more current Q1 FY27 (2026-06-30) balance sheet -- different as-of period, not a wrong value."
+    },
+    {
+      "field": "revenue_ttm (raw value vs INR-native source)",
+      "app_value": 46506049536.0,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 46506000000,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm ; https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm",
+      "status": "match",
+      "notes": "The raw number matches Sify's own INR-million TTM computation (44,877M FY26 - 10,723M Q1FY26 + 12,352M Q1FY27 = 46,506M) almost exactly. See the next row for the currency-label problem this creates."
+    },
+    {
+      "field": "revenue_ttm (as labeled: currency=USD)",
+      "app_value": 46506049536.0,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 491860000,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/",
+      "status": "mismatch",
+      "raw_finding": "DAT-P17-1",
+      "notes": "The fundamentals payload's top-level currency is USD, but the raw figure is ~94.5x the real USD TTM revenue -- it is the unconverted INR figure served under a USD label."
+    },
+    {
+      "field": "net_profit_ttm (raw value vs INR-native source)",
+      "app_value": -912369984.0,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": -912000000,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm ; https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm",
+      "status": "match",
+      "notes": "Matches Sify's own INR-million TTM computation (-1,366M FY26 - (-389M) Q1FY26 + 65M Q1FY27 = -912M) almost exactly."
+    },
+    {
+      "field": "net_profit_ttm (as labeled: currency=USD)",
+      "app_value": -912369984.0,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": -9650000,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/",
+      "status": "mismatch",
+      "raw_finding": "DAT-P17-1",
+      "notes": "Same root cause as revenue_ttm: unconverted INR net loss served under the USD label, ~94.5x too large."
+    },
+    {
+      "field": "revenue_growth_yoy (quarterly basis)",
+      "app_value": 0.152,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "15%",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm",
+      "status": "match"
+    },
+    {
+      "field": "revenue_growth_yoy (annual basis)",
+      "app_value": null,
+      "app_as_of": "n/a - app only exposes growth_basis=mrq_yoy",
+      "outside_value": "12.5% (FY2025-26 vs FY2024-25)",
+      "outside_as_of": "2026-06-26",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm",
+      "status": "definitional difference",
+      "notes": "App computes a single quarterly (mrq_yoy) growth basis; pack additionally computed an annual basis. Different comparison basis, not a blank on the same fact -- not filed."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": -0.13,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": -0.13,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/",
+      "status": "match"
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 2.754225,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 2.77,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "as-of skew"
+    },
+    {
+      "field": "face_value / adr_ratio",
+      "app_value": null,
+      "app_as_of": "n/a - no field anywhere in collected responses",
+      "outside_value": "INR 10 face value per ordinary share; 1 ADS = 6 ordinary shares",
+      "outside_as_of": "2026-06-26",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-1",
+      "notes": "No ADR-ratio field exists anywhere in the collected app responses; folded into DAT-P17-1 as a compounding per-share-math risk rather than a separate finding."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 0.08423,
+      "outside_as_of": "2026-09-22 (event dated 2019-05-24/2019-05-28/2019-07-16)",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/dividend/",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-6"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/dividend/",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-6",
+      "notes": "World value is a confident, sourced zero, not an unknown; app shows 'provider did not publish this field'."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "n/a (0%)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-6"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 17.85,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 17.85,
+      "outside_as_of": "2026-09-22 (snapshot date; source does not disclose the date the high was set)",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 10.09,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 10.09,
+      "outside_as_of": "2026-09-22 (snapshot date; source does not disclose the date the low was set)",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks",
+      "status": "match"
+    },
+    {
+      "field": "week52.as_of (date the extremum was actually set)",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00 (fetch timestamp only, not the date of the extremum)",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22 (fetch timestamp only, not the date of the extremum)",
+      "outside_source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks",
+      "status": "no source truth",
+      "notes": "Neither side discloses the exact date the 52w high/low was set; a genuine world_gap on both sides, not an app defect."
+    },
+    {
+      "field": "shareholding.promoter_pct (vs SEC 20-F beneficial-ownership analog)",
+      "app_value": "route fails: HTTP 502 'not a known NSE/BSE instrument'; no beneficial-ownership fallback of any kind",
+      "app_as_of": "2026-09-19",
+      "outside_value": 83.78,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-2",
+      "notes": "held_percent_insiders (7.9%, fundamentals endpoint) is NOT a substitute for this -- see the separate row below; it is a narrower SEC-insider-filing metric, not the 20-F Item 6.E beneficial-ownership-of-affiliates figure."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "n/a - genuine world_gap, no FII/DII split exists for a NASDAQ-only ADR",
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "n/a - genuine world_gap, see fii_pct",
+      "status": "no source truth"
+    },
+    {
+      "field": "shareholding.institutional_pct_aggregate (adjacent metric)",
+      "app_value": 4.818,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 4.92,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://stockanalysis.com/stocks/sify/statistics/",
+      "status": "as-of skew",
+      "notes": "Close (0.1pp) and consistent with normal day-to-day institutional-holdings reporting drift; not the promoter/FII/DII construct."
+    },
+    {
+      "field": "shareholding.held_percent_insiders (adjacent metric, NOT the promoter analog)",
+      "app_value": 7.899,
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": 83.78,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "definitional difference",
+      "notes": "yfinance's 'held_percent_insiders' is a narrow direct-officer/director SEC-insider-filing metric; the 20-F's 83.78% is broad beneficial ownership across affiliated trusts/holding companies (e.g. Ramanand Core Investment Company Pvt Ltd 67.98%). Different definitions of 'insider/promoter' -- not filed as a mismatch, but the app's total absence of the BROAD figure is exactly what DAT-P17-2 files."
+    },
+    {
+      "field": "shareholding.public_pct_analog",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": 16.22,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-2",
+      "notes": "Derivative of the same promoter/insider-definition gap; folded into DAT-P17-2, not double-filed."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-09-19",
+      "outside_value": null,
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "n/a - genuine world_gap, Indian pledge-disclosure rules attach to BSE/NSE listing agreements only",
+      "status": "no source truth"
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": "route fails: HTTP 502",
+      "app_as_of": "2026-09-19",
+      "outside_value": "None identified (no split/bonus/rights/QIP in FY26); ASOP 2024 approved 2024-07-03 for up to 25,000,000 shares, not yet issued as of the FY26 20-F",
+      "outside_as_of": "2026-06-26",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-2"
+    },
+    {
+      "field": "latest_results",
+      "app_value": "no structured 'latest results' summary; income-statement endpoint's most recent period label is 2026-03-31 (annual), though fundamentals.revenue_ttm/net_income_ttm DO already roll in the newer Q1 FY27 quarter",
+      "app_as_of": "2026-09-19",
+      "outside_value": "Q1 FY2026-27 (quarter ended 2026-06-30), filed 2026-07-16: revenue INR 12,352M (+15% YoY), adj. EBITDA INR 3,005M (+42% YoY), profit INR 65M (vs a loss of INR 389M a year earlier)",
+      "outside_as_of": "2026-07-16",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-2",
+      "notes": "Folded into DAT-P17-2 (same disclosures-pipeline gap). Not confirmed whether a quarterly-period income-statement call exists and was simply not collected vs is genuinely unsupported -- flagged here, not asserted as a separate defect."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "route fails: HTTP 502",
+      "app_as_of": "2026-09-19",
+      "outside_value": "3 SEC 6-K/20-F filings (2026-07-16 Q1 results, 2026-07-01 Companies Act annual report, 2026-06-26 Form 20-F)",
+      "outside_as_of": "2026-09-22",
+      "outside_source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001094324&type=6-K",
+      "status": "app blank",
+      "raw_finding": "DAT-P17-2"
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "income-statement FY26 operating_revenue = INR 44,877,000,000, matching the IFRS 20-F figure exactly",
+      "app_as_of": "2026-09-19T09:58:54.397791+00:00",
+      "outside_value": "IFRS 20-F (SEC) and Ind AS Companies Act 6-K are two distinct, both-consolidated bases that can diverge; app's income-statement figures reconcile to the IFRS basis",
+      "outside_as_of": "2026-07-01",
+      "outside_source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001473/MainDocument.htm",
+      "status": "match",
+      "notes": "Values reconcile to IFRS; the app never labels which GAAP basis it is presenting anywhere in field_meta, a transparency gap, but not a value mismatch -- not filed."
+    }
+  ]
+}

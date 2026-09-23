@@ -1,0 +1,386 @@
+{
+  "slot": "P5",
+  "symbol": "CSL",
+  "diffed_at": "2026-09-23",
+  "pack_path": "docs/redesign/verification/r15/battery/packs/P5_CSL.json",
+  "collected_path": "docs/redesign/verification/r15/battery/collected/P5_CSL.json",
+  "subtle_tier_covered": true,
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Continental Securities Limited",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": "Continental Securities Limited",
+      "outside_as_of": "2026-08-20",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "match",
+      "note": "app: fundamentals.name (collected.calls.fundamentals.body.name)"
+    },
+    {
+      "field": "identity.isin",
+      "app_value": "INE183Q01020",
+      "app_as_of": "n/a (resolver master, no timestamp)",
+      "outside_value": "INE183Q01020",
+      "outside_as_of": "2026-08-20",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "match",
+      "note": "app: resolve_bare_symbol.body.resolved.isin"
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": "538868",
+      "app_as_of": "n/a (resolver master)",
+      "outside_value": "538868",
+      "outside_as_of": "2026-08-20",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "match"
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": null,
+      "app_as_of": "2026-09-19 (results_calendar probe)",
+      "outside_value": null,
+      "outside_as_of": "2026-08-20",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "match",
+      "note": "GET /disclosures/results?symbol=CSL -> 502 'nse_direct: CSL is not a known NSE instrument' correctly confirms CSL has no NSE listing; not a mismatch, and not filed as a finding (honest 502, not a wrong value)."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Financial Services",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": "Financials",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "Synonymous labels; app also avoids Tickertape's wrong 'Investment Banking & Brokerage' classification (pack traps.name_lies_about_the_business) by returning 'Credit Services' as industry."
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Credit Services",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": "Non-Banking Financial Company (NBFC) - retail lending: MSME business loans, loans against property, gold loans, plus mutual fund distribution",
+      "outside_as_of": "2026-08-20",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "definitional difference",
+      "note": "Coarser taxonomy label vs. the filing's narrative description; both correctly identify an NBFC lender, not a broker. Not a mismatch."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "Pack itself records this as world_gaps.listing_date_unreached (bseindia.com 403'd the collector too). No field exists anywhere in the collected calls for this either. Not filed."
+    },
+    {
+      "field": "identity.board / registered_office / statutory_auditor / RTA / board_of_directors",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "see pack identity.*",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "app blank",
+      "note": "None of these corporate-registry fields exist anywhere in the /fundamentals, /resolve or /disclosures responses collected for CSL. Low materiality for a price/data terminal (IR-page trivia, not sector-wide DIFF-worthy) — not promoted to a raw finding to avoid padding; flagged here only for completeness of the subtle-tier sweep."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 24.23,
+      "app_as_of": "2026-09-18T00:00:00Z",
+      "outside_value": 24.2,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "App value falls inside the pack's own recorded 4-source spread (24.00-24.23); app matches INDmoney/Groww exactly."
+    },
+    {
+      "field": "market_cap",
+      "app_value": 76.9375,
+      "app_value_unit": "INR crore (769,375,168 / 1e7)",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 76.9,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "Within the pack's 76.0-76.94cr spread; correctly on the post-warrant-conversion diluted share count per pack traps.share_count_moved_after_last_balance_sheet."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 31.064102,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 32.1,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "Pack itself records 4 mutually-inconsistent published PEs for the same day (29.69-35.29, pack traps.five_sources_five_ratio_sets); app's 31.06 sits inside that band, close to Groww's 31.64. Not a clean single-truth mismatch."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 0.78,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 0.81,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "Exactly matches Tickertape's published 0.78 (pack's own disagreement note: screener 0.81 / Tickertape 0.78 / Groww 0.76)."
+    },
+    {
+      "field": "pb",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 2.84,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.price_to_book = null while field_meta marks it 'unavailable / provider did not publish this field'. See DAT-P5-2."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 8.52,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.book_value = null. See DAT-P5-2."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 10.12,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.roe = null despite yfinance's 'returnOnEquity' being the direct source field (services/yfinance_provider.py:386). See DAT-P5-2."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "n/a",
+      "outside_value": 13.6,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "No 'roce' key exists anywhere in the Fundamentals model (checked full field list) - a product-wide capability gap, not a per-symbol data defect. Not filed here (would duplicate across every battery name); belongs to an intent/feature-gap sweep instead."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 0.007,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "Low materiality (near-zero either way - 'almost debt free') but real and sourced. Folded into DAT-P5-2."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 4.22,
+      "outside_value_unit": "INR crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.revenue_ttm = null. The SEPARATE /fundamentals/CSL/income endpoint is not blank but returns a different company's figures entirely - see DAT-P5-1, a distinct and far more severe defect from this scalar-field blank."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 2.4,
+      "outside_value_unit": "INR crore",
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.net_income_ttm = null. Folded into DAT-P5-2."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 38.7,
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.revenue_growth AND revenue_growth_computed both null, despite the pack recording three concordant-direction (30-39%) outside figures. Folded into DAT-P5-2."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 2.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+      "status": "app blank",
+      "note": "No face_value field in the Fundamentals model or elsewhere in the collected calls. Not promoted (product-wide gap, not CSL-specific)."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": 0.05,
+      "app_as_of": "2026-09-19T09:42:40Z (fetch time)",
+      "outside_value": 0.05,
+      "outside_as_of": "2026-08-20 (board recommendation; record date 2026-09-21 still future at pack collection)",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "definitional difference",
+      "note": "Values coincidentally agree (both 0.05) so there is no numeric mismatch to file, but dividend_per_share is a single undifferentiated field - the app cannot represent 'declared, not yet approved/paid' vs 'paid trailing 12m' as two facts (pack explicitly requires diffing both). No app_as_of tied to the filing/record date at all, only a generic data-fetch timestamp."
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 0.05,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.tickertape.in/stocks/continental-securities-CSL",
+      "status": "app blank",
+      "note": "collected.calls.fundamentals.body.dividend_per_share_ttm = null. The single dividend_per_share=0.05 field cannot stand in for this distinct fact."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": 0.21,
+      "app_value_unit": "percent (0.0021 * 100)",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 0.21,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 24.8,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 24.8,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match"
+    },
+    {
+      "field": "week52.low",
+      "app_value": 10.86,
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 10.86,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.indmoney.com/stocks/continental-securities-ltd-share-price",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.quarter / as-of date",
+      "app_value": "quarter_end 2026-06-30, submission_date 2026-07-21",
+      "app_as_of": "2026-07-21",
+      "outside_value": "as on 30 June 2026, filed 2026-07-21",
+      "outside_as_of": "2026-07-21",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "match",
+      "note": "Exact match on both quarter-end and filing date - GET /disclosures/shareholding?symbol=CSL, first array element."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": 37.65,
+      "app_as_of": "2026-07-21",
+      "outside_value": 37.6537,
+      "outside_as_of": "2026-06-30 (Q1 FY2026-27, LATEST FILED)",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "match",
+      "note": "Correctly the BASIC (column VIII) figure, not the diluted 40.21% that most aggregators publish as current (pack traps.basic_vs_diluted_faked_as_promoter_buying) - app avoids that trap."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": "2026-07-21",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "app blank",
+      "note": "MANDATORY subtle-tier field. Real, filed, confirmed-zero value; app serves null. See DAT-P5-2 (pack traps.zero_institutional_holding_is_real predicts exactly this failure mode)."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": "2026-07-21",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "app blank",
+      "note": "MANDATORY subtle-tier field. Same defect as fii_pct. See DAT-P5-2."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": 62.35,
+      "app_as_of": "2026-07-21",
+      "outside_value": 62.3463,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "match"
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": "2026-07-21",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "app blank",
+      "note": "MANDATORY subtle-tier field, called out by COMMON.md as the single most gameable Indian small-cap number. No pledge field exists anywhere in /disclosures/shareholding at all (not just null-valued - structurally absent from the schema). Confirmed twice in the primary filing as a genuine zero. See DAT-P5-2."
+    },
+    {
+      "field": "shareholding.promoter_and_promoter_group_detail (held_percent_insiders cross-check)",
+      "app_value": 60.960996,
+      "app_value_unit": "percent (fundamentals.held_percent_insiders * 100)",
+      "app_as_of": "2026-09-19T09:42:40Z",
+      "outside_value": 40.2062,
+      "outside_as_of": "2026-06-30 (fully diluted)",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/shareholding-pdf/498400-Shareholding-Pattern-as-on-30th-June-2026.pdf",
+      "status": "no source truth",
+      "note": "held_percent_insiders (yfinance) is a distinct concept from SEBI 'promoter' classification and is not one of the PACK's named shareholding fields, so this is recorded for completeness rather than filed: the pack has no source_url that defines what yfinance's insider-holder set is FOR THIS SYMBOL, so a same-definition mismatch cannot be established. Flagged only as a suspicious ~21-23pp gap from the diluted promoter figure worth a follow-up wave if the UI surfaces held_percent_insiders as 'promoter holding'."
+    },
+    {
+      "field": "corporate_actions_2026 (dividend record date / AGM / warrant conversion)",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "see pack.corporate_actions_2026",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "app blank",
+      "note": "No structured corporate-actions field in the collected calls; the announcements feed (below) does surface the AGM-adjacent Reg-30 disclosures by headline only, not as structured actions. Not filed (feature-shape gap, not a value mismatch)."
+    },
+    {
+      "field": "latest_results.quarter / filing_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "Q1 FY2026-27, filed 2026-07-29",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+      "status": "app blank",
+      "note": "GET /disclosures/results?symbol=CSL returned 502 'CSL is not a known NSE instrument' (the results-calendar route appears NSE-only) rather than serving the BSE quarterly filing date. Correctly non-fabricated (a 502, not a wrong date), so not filed as a data mismatch; it is a coverage gap (BSE-only issuers get no results-calendar entry) better suited to a code/intent finding."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": "2026-09-12 (x2, Reg 7(2) + Reg 29 SAST), 2026-09-08 (Reg 30), 2026-09-04 (Reg 30 newspaper) - 18 total in feed",
+      "app_as_of": "2026-09-12T16:44:08+05:30 (latest)",
+      "outside_value": "2026-09-12 (Reg 7(2)), 2026-09-12 (Reg 29), 2026-09-08 (Reg 30), 2026-09-04 (Reg 30 newspaper)",
+      "outside_as_of": "2026-09-12",
+      "outside_source_url": "https://www.screener.in/company/538868/",
+      "status": "match",
+      "note": "Dates and headlines line up. App correctly does NOT surface screener's disputed '70.23%' AI-summary figure (pack traps.seventy_percent_phantom) since it serves only headline + attachment_url, not a parsed percentage - avoids that specific trap by not attempting the extraction at all."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "STANDALONE ONLY - no consolidated financials exist",
+      "outside_as_of": "2026-07-29",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/financial_quarterly-pdf/712777-Quaterly-Results-30-6-2026.pdf",
+      "status": "no source truth",
+      "note": "No basis field in the collected calls to diff against; not a per-symbol failure since no field ever attempts to carry this. Not filed."
+    },
+    {
+      "field": "revenue_ttm / net_profit_ttm via /fundamentals/{symbol}/income and /cashflow (statement lines, not the scalar fields above)",
+      "app_value": "operating_revenue 2025-12-31 = 5,019,900,000; net_income_from_continuing_operations 2025-12-31 = 740,700,000 (unlabelled currency, statement symbol echoed back as bare 'CSL', no .BO suffix)",
+      "app_as_of": "period 2025-12-31 (annual, most recent column)",
+      "outside_value": "FY2025-26 total income INR 394.40 lakh (INR 3.94 crore); FY2025-26 PAT INR 219.02 lakh (INR 2.19 crore)",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.continentalsecuritiesltd.com/public/uploads/annual_report-pdf/601038-Annual-Report-FY-2025-26.pdf",
+      "status": "mismatch",
+      "note": "Not a scale/unit disagreement - the magnitude and account structure (segmented revenue lines, R&D expense, multi-billion scale) match Carlisle Companies Inc (NYSE:CSL), the collision case the pack explicitly names in traps.ticker_collision_three_continents. See DAT-P5-1, the highest-severity finding in this diff."
+    }
+  ]
+}

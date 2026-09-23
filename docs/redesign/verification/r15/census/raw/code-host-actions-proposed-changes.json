@@ -1,0 +1,152 @@
+[
+  {
+    "raw_id": "COD-host-actions-proposed-changes-1",
+    "title": "Accepting a staged portfolio update/delete re-resolves its target against whichever portfolio is active NOW, so it can delete or rewrite a lot in a different portfolio than the one the diff showed",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "Two portfolios A (TCS x10 @3000, id h-a) and B (TCS x99 @4000, id h-b), active=A, autonomy ASK. Agent emits portfolio_delete_position {position_id:'h-a', symbol:'TCS'} -> diff reads 'TCS: x10 @ Rs3,000'. User switches the active portfolio to B, then clicks Accept -> B's TCS x99 lot is deleted, A is untouched, label 'Removed TCS from the paper portfolio'. Proven: docs/redesign/verification/r15/census/code/evidence/host-actions-proposed-changes-proof.test.ts.txt P5 -> output [[\"A\",[\"h-a:10\"]],[\"B\",[]]].",
+    "evidence": "src/lib/host-actions.ts:532-536, src/lib/host-actions.ts:545-560, src/lib/host-actions.ts:1352-1389, src/store/proposed-changes.ts:95-111, src/store/proposed-changes.ts:149",
+    "notes": "Temporal decomposition / information leakage: the proposal stores only the raw tool input ({name,input}); describeHostAction resolves the target at enqueue time, applyHostActionAsync resolves it AGAIN at accept time via activePortfolio() + resolveHolding(), whose id-miss falls back to 'first same-symbol holding' (the comment at 540-543 says 'never a guessed mutation' but the symbol fallback IS a guess across portfolios and across multiple lots of one symbol). The user approves one mutation and gets another; the user's own tracked portfolio (kept after the trading removal) loses a lot with a success label. Same class for portfolio_add_position (lands in the portfolio active at accept time). Smallest fix: resolve once at enqueue into a bound target {portfolioId, holdingId} stored on the ProposedChange; apply against exactly that pair and return null if it no longer exists."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-2",
+    "title": "write_note treats an omitted mode as REPLACE while the catalog tells the model the default is append — a mode-less note write wipes the user's existing note",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "Notes: NVDA='my long thesis'. Agent follows the schema default and calls write_note {scope:'NVDA', text:'new line'} (no mode) -> NVDA note becomes 'new line'; label 'Wrote the NVDA note'. Under AUTO autonomy this lands with no review (proof P2 and P8: {\"INFY\":\"x\"} after a two-page note).",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1388, src/lib/host-actions.ts:805, src/lib/host-actions.ts:1183-1185, src/store/proposed-changes.ts:118-120",
+    "notes": "Information leakage between the catalog (the ONE source of truth per CLAUDE.md) and the frontend apply: the default lives in two places and they disagree (catalog 'default': 'append'; host-actions `str(input,'mode') === 'append'`). A JSON-schema default is advisory, models routinely omit defaulted args, so the destructive branch is the one taken. The ASK diff does say 'replaced (N chars)', which is the only guard; AUTO removes it. Data loss of user research notes, no undo. Fix: define the default out of existence — treat anything but an explicit 'replace' as append (`mode === 'replace' ? text : join(...)`), and derive it from the catalog default in one place."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-3",
+    "title": "AUTO autonomy auto-applies every non-order kind, including destructive data-writes and settings, while the store doc and the UI promise only 'UI changes' apply instantly",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "Autonomy=AUTO (ComposerPlusMenu hint: 'UI changes apply instantly; orders always confirm'). Agent emits write_note replace / portfolio_delete_position / set_region -> each applies immediately with no review (proof P8). The only exemption is kind==='order'.",
+    "evidence": "src/store/proposed-changes.ts:113-120, src/store/agent-autonomy.ts:7-17, src/modules/chat/ComposerPlusMenu.tsx:185, types/proposed-change.ts:16-21, sidecar/services/agent_tools/catalog.py:1305",
+    "notes": "Comments that contradict code + special-general mixture: the policy is written as `described.kind !== 'order'` — a blacklist of the one kind being deleted with trading — while three doc sites describe a whitelist of read-only UI kinds (panel/chart/watchlist). Once the order kind is removed, the predicate becomes 'auto-apply everything', making AUTO a blanket bypass of the gate for portfolio deletes and note overwrites the user was told would not skip review. Consequence: silent loss of user data under a mode the user chose believing it only moved panels. Fix: make the auto-apply set an explicit whitelist ({panel, chart, watchlist}) owned in one place (e.g. an `autoApplicable(kind)` in types/proposed-change.ts) and have agent-autonomy/UI copy read the same list; data-write/settings always stage (or get their own opt-in)."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-4",
+    "title": "save_screen passes the agent's criteria as a second argument the real saveScreen(name) ignores — it saves whatever filters are currently on screen under the agent's name and reports success",
+    "severity": "high",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "Screener at defaults (pe<20, mcap>1e11, sector=Technology). Agent: save_screen {name:'IT value', criteria:[pe_ratio lt 15]} -> saved screen 'IT value' holds pe<20 + mcap + sector (the current draft), not pe<15; label 'Saved the screen as \"IT value\"'; diff promised '(1 criterion)'. Proof P3. Also silently REPLACES an existing screen of the same name (screener.ts:623-627) while the diff says '+\"IT value\"'.",
+    "evidence": "src/lib/host-actions.ts:1212-1235, src/store/screener.ts:218, src/store/screener.ts:612-627, src/lib/host-actions.test.ts:1079-1093",
+    "notes": "The duck-typed seam (`as unknown as { saveScreen?: (name, payload) => unknown }`) was written 'until the API lands'; the API landed with a different signature and the cast hid the mismatch from tsc. The unit test mocks saveScreen with vi.fn() and asserts the payload was PASSED — it tests the cast, not the behaviour (special-casing to satisfy a test). Grounded-narration contract (host-actions.ts:869-879) broken: success label for a save of the wrong recipe. Fix: delete the cast, call the typed store API, and give saveScreen an explicit recipe parameter (or applyFilters(recipe) then saveScreen(name)); say 'replaced' in the diff when the name exists; replace the mock test with one against the real store."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-5",
+    "title": "write_screener_filters with run:true never runs the screen but narrates 'running' — the store requires the caller to chain runScreener() and host-actions doesn't",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "applyHostAction('write_screener_filters', {criteria:[roe gt 0.18], run:true}) -> label 'Wrote 1 screener criterion — running'; runScreener call count 0 (proof P4). The diff also promises 'runs on apply'.",
+    "evidence": "src/lib/host-actions.ts:1156-1174, src/lib/host-actions.ts:752-759, src/store/screener.ts:200-210, src/store/screener.ts:302",
+    "notes": "Same root cause as -4: a cast (`as Parameters<typeof screener.applyFilters>[0]`, 1159-1165) and a comment about a cross-team wave; the store's doc explicitly says 'When run is true, the caller MUST follow up with runScreener() (the host-action path is responsible for chaining)' and applyFilters' implementation destructures without `run`. The test (host-actions.test.ts:1107-1124) mocks applyFilters and asserts `run: true` was passed, so CI is green on a no-op. Conjoined methods: correctness requires reading two files that each assume the other does the work. Fix: `if (input.run === true) void screener.runScreener()` in the apply (or make applyFilters own run), drop the cast, test against the real store."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-6",
+    "title": "describeHostAction and applyHostAction are two independent 300-line switches that resolve arguments differently, so the reviewed diff routinely promises something other than what apply does",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "(a) portfolio_update_position {position_id:'h-a', cost_basis:3100} on a x10 lot -> diff 'TCS: x0 @ Rs3,100', apply 'Updated TCS: x10 @ Rs3,100' (proof P6). (b) close_panel {panel:'screener'} with the screener open -> diff 'Screener panel: not open' (raw getPanel('screener') vs registered id 'screener-panel'; proof P7b) while apply resolves the alias and closes it. (c) open_panel diff always says 'not open'. (d) set_region diff shows the raw invalid value.",
+    "evidence": "src/lib/host-actions.ts:577-867, src/lib/host-actions.ts:880-1248, src/lib/host-actions.ts:776-789, src/lib/host-actions.ts:1262-1273, src/lib/host-actions.ts:615-624, src/lib/host-actions.ts:950-960, src/lib/host-actions.ts:603-614",
+    "notes": "Information leakage / repetition: each of 19 actions parses its input twice with different helpers (describe uses num() -> 0 for a missing quantity; apply uses positionBody() fallback to the target; describe uses raw dockview ids; apply uses resolvePanelToken). The comment at 605-606 ('the diff must promise exactly what the apply will do') is an invariant held by discipline, not structure; the diff is the trust spine of the gate, so a lying diff defeats the review. Adding an action = edit HOST_ACTION_NAMES + describe + apply (+ applyAsync) + catalog; an unhandled name in describe silently becomes kind 'panel' (865). Design-it-twice alternatives: (1) a per-action record {parse(input)->Intent, describe(Intent), apply(Intent)} in a table keyed by name, so both sides read one parsed Intent; (2) keep the switches but make describe call the same resolve helpers. (1) also fixes -1 by binding the target at parse time. Recommend (1)."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-7",
+    "title": "enqueue() fire-and-forgets the AUTO accept and returns only an id, so callers narrate 'Applied:' before the async apply resolves — failed applies are recorded as applied in the transcript",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "AUTO, sidecar down: agent emits save_layout -> ChatSidebar appends 'Applied: Save the current layout as ...' synchronously; applyHostActionAsync then returns null (saveWorkspace throws) and the change is re-pended with a failure detail, but the transcript line stays 'Applied'. Same for set_region with an invalid region, open_panel on a disabled module, publish_brief kept_previous.",
+    "evidence": "src/store/proposed-changes.ts:118-121, src/modules/chat/ChatSidebar.tsx:959-968, src/modules/chat/ChatSidebar.tsx:582-590, src/lib/host-actions.ts:869-879",
+    "notes": "Shallow interface pushes complexity upward: the gate knows the outcome (label|null) but exposes none of it from enqueue; both callers reconstruct 'was it applied?' from the autonomy flag and the kind, duplicating the auto-apply predicate (ChatSidebar.tsx:965 re-implements proposed-changes.ts:118). The ChatSidebar comment at 584 ('it's already gone from `changes`') is false — changes are never removed, only re-statused. This contradicts the module's own grounded-narration rule (host-actions.ts:869-879). Fix: enqueue returns `{id, outcome: Promise<'pending'|'applied'|'failed'>}` (or an onResolved callback) and callers narrate from the resolved outcome; delete the duplicated predicate."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-8",
+    "title": "Pending proposals are never cleared — they survive a new/cleared conversation and Accept-all later applies stale mutations whose 'before' was snapshotted in another context",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "ASK mode: agent proposes write_note replace + portfolio_delete_position; user starts a new chat (clearHistory) without resolving -> the review bar still shows the old batch; Cmd+Enter (acceptAll) applies them. `changes` also grows for the whole session (accepted/rejected entries are never pruned).",
+    "evidence": "src/store/proposed-changes.ts:229, src/store/proposed-changes.ts:209-216, src/modules/chat/ChatSidebar.tsx:381, src/modules/chat/ProposedChangesReview.tsx:21-27",
+    "notes": "`clear()` exists but has no production caller (grep: only tests); nothing ties a batch to a conversation lifetime. Consequence: a user can bulk-accept a destructive write from a conversation they no longer see, reviewed against a stale 'before' string (describe runs once at enqueue, 97). Unbounded array is minor but every subscriber re-filters it. Fix: clear (or reject + ack failed) pending changes when the conversation is cleared/switched, and prune resolved entries after N or on batch completion."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-9",
+    "title": "The sidecar /portfolio/positions ledger that every agent portfolio write syncs to is write-only: nothing reads it, PUT/DELETE never address a row, and the awaited fetch has no timeout",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "portfolio_delete_position {position_id:'h-a'} -> sidecarPositionId('h-a') is undefined (frontend ids are 'h-<uuid>') -> DELETE http://.../portfolio/positions (no id) -> 405, swallowed (proof P5 fetch log). POSTs accumulate rows forever; no frontend or agent tool reads GET /portfolio/positions (get_portfolio reads the frontend snapshot, agent_runtime.py:1154). If the sidecar hangs, `await syncPositionToSidecar` blocks the accept with the change stuck in 'accepted'.",
+    "evidence": "src/lib/host-actions.ts:1276-1310, src/lib/host-actions.ts:1313-1317, src/lib/host-actions.ts:1337, src/lib/host-actions.ts:1361, src/lib/host-actions.ts:1381, sidecar/routers/portfolio.py:21-47, sidecar/services/agent_runtime.py:1154, src/store/portfolios.ts:53-57",
+    "notes": "The comment at 1276-1280 admits 'a ledger no surface reads' — it is dead complexity with a real cost: a network round trip with no AbortSignal/timeout inside the gate's critical path, a return value every caller ignores, a second id space that can never join the frontend's, and `purchased_at` (catalog field) persisted ONLY into this unread ledger, so the agent is told it recorded a date that no surface shows (positionBody 1270-1272). Fix: delete syncPositionToSidecar + sidecarPositionId + the PUT/DELETE router pair (or make the sidecar the real store and the frontend read it — not both); if the date matters, add it to Holding."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-10",
+    "title": "Kill switch and audit log gate only broker adapters — the surviving non-order gate (portfolio, notes, screens, layouts, region) has no kill switch and no durable audit trail of agent writes",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "design: fire the kill switch (POST /safety/kill-switch) while an AUTO agent run is writing notes/portfolio -> nothing in the agent runtime or proposed-changes consults it; afterwards, GET /safety/audit-log shows no row for any agent data-write (only the in-memory 10-minute action_ledger saw them).",
+    "evidence": "types/safety.ts:41-54, types/safety.ts:81-93, sidecar/services/kill_switch.py:63-77, sidecar/services/broker_base.py:142, sidecar/services/action_ledger.py:1-25, src/store/proposed-changes.ts:95-121",
+    "notes": "What the mechanisms gate beyond orders: NOTHING. KillSwitchBus subscribers are broker adapters only ('broker id for adapters', kill_switch.py:66; no subscriber in agent_runtime/run_manager/frontend gate); every audit_log.append call site is in broker_base.py, the table is `audit_orders`, and AuditLogAction (types/safety.ts:81-93) is all order/broker/disclaimer vocabulary. So with trading deleted, both mechanisms become dead as built, while the gate that remains — and that AUTO lets bypass review — mutates user data with no durable record and no stop button. Consequence: 'what did the agent change in my portfolio yesterday?' is unanswerable. Fix shape (removal batch decides): either retarget the append-only log to host-action outcomes (the ack path at host-actions.ts:1452-1486 already has {tool_call_id, action, status}) and let the kill switch flip autonomy to ASK + cancel in-flight runs, or delete both with trading and accept the gap explicitly."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-11",
+    "title": "Host-action arguments diverge from the catalog contract the model is shown: write_note scope 'global' lands in a phantom GLOBAL ticker note; save_layout without a name writes 'Agent layout' instead of updating the active layout",
+    "severity": "medium",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "write_note {scope:'global', text:'hello'} -> notes.bySymbol = {GLOBAL:'hello'}, General untouched (proof P1). save_layout {} -> saveWorkspace('Agent layout') creating/overwriting a layout literally named 'Agent layout', though the catalog says 'Omit name to update the active saved layout'.",
+    "evidence": "sidecar/services/agent_tools/catalog.py:1377, sidecar/services/agent_tools/catalog.py:1385, sidecar/services/agent_tools/catalog.py:1408, src/lib/host-actions.ts:563-566, src/lib/host-actions.ts:829, src/lib/host-actions.ts:1391, src/lib/host-actions.test.ts:1045",
+    "notes": "Information leakage across the sidecar/frontend boundary: the catalog is declared the single source of truth, but argument SEMANTICS (bucket names, defaults) are re-encoded by hand in host-actions with no parity test (the tests use 'general', the word the model is never told). Consequence: the agent's 'saved to your global notes' lands in a note the user will never find under General; save_layout silently forks layouts. Fix: accept 'global' and 'general' (and '') as the General bucket; for save_layout default to useWorkspaceStore.getState().name; add a vitest that feeds the catalog's documented example args through apply."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-12",
+    "title": "arrange_layout pattern=focus looks the panel up by raw id, bypassing the alias resolver every sibling branch uses — 'focus the screener' fails while focus_panel succeeds",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "Screener open (id 'screener-panel'): applyHostAction('arrange_layout',{pattern:'focus',panel:'screener'}) -> null ('could not apply'); applyHostAction('focus_panel',{panel:'screener'}) -> 'Focused Screener' (proof P7).",
+    "evidence": "src/lib/host-actions.ts:1010-1019, src/lib/host-actions.ts:962-975, src/lib/layout-templates.ts:39-42",
+    "notes": "Consistency: open/close/focus_panel were fixed to route through resolvePanelToken (the 'id-drift class' the comments at 909-913 and 1167-1168 document); the focus branch of arrange_layout was missed. Fix: `const resolved = resolvePanelToken(panel); const target = resolved && findOpenPanel(resolved)`."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-13",
+    "title": "Every apply failure is reported to the user as 'its arguments were incomplete', and the ack status is derived by parsing the human label for the prefix 'Kept'",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "save_layout with the sidecar down, open_panel on a disabled module, portfolio update whose holding vanished -> all re-pend with 'Could not apply this change — its arguments were incomplete.' Separately, rewording 'Kept the richer research brief…' flips its ack from kept_previous to applied.",
+    "evidence": "src/store/proposed-changes.ts:149-153, src/lib/host-actions.ts:1404-1416, src/lib/host-actions.ts:1117, src/lib/host-actions.ts:1125",
+    "notes": "The apply contract is `string | null`: one channel carries display copy, success, and outcome class, so failure reasons are erased (null) and the kept_previous status is recovered by string-matching prose (publishAckStatus). Consequence: misleading error copy sends the user to retry an action that cannot succeed; the runtime's divergence check silently breaks on a copy edit. Fix: return a small result type `{status:'applied'|'kept_previous'|'failed', label, reason?}` from apply and read status/reason directly."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-14",
+    "title": "host-actions.ts bypasses the store seams built for it (portfolios.addPosition/updatePosition/deletePosition, notes.appendSymbolNote/appendGeneral) and re-implements them with different rules",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "design: grep shows zero production callers of addPosition/updatePosition/deletePosition (portfolios.ts:223-270, documented 'the host-action apply path MUST check for null') or appendSymbolNote/appendGeneral (notes.ts:26-31, documented 'R10 write_note apply path'). host-actions calls addHolding without the null check and inlines its own append (`current.replace(/\\s+$/, '')` + untrimmed text) where joinNote trims the addendum and never mutates the existing body.",
+    "evidence": "src/lib/host-actions.ts:1182-1190, src/lib/host-actions.ts:1342-1348, src/store/portfolios.ts:215-270, src/store/notes.ts:39-75",
+    "notes": "Duplicated truth that will drift: two append semantics and two add-holding paths, one with the honest-failure check and one without. Also host-actions.ts is a 1,572-line grab bag (brief ingestion + depth carry 88-250, screener parsing 340-453, portfolio HTTP 1254-1317, ack protocol 1404-1486) — different layers in one module, so every family's change touches the gate file. Fix: call the store seams (delete the inline copies), and move briefFromInput/carryBriefDepth into brief-ingest where their helpers already live."
+  },
+  {
+    "raw_id": "COD-host-actions-proposed-changes-15",
+    "title": "Order-proposal path inside the gate (propose_order describe, routeOrderProposal, resolveTargetBroker, kind 'order' branches, order-only types in types/safety.ts)",
+    "severity": "low",
+    "area": "code",
+    "subsystem": "host-actions-proposed-changes",
+    "repro": "design",
+    "evidence": "src/lib/host-actions.ts:728-741, src/lib/host-actions.ts:1501-1572, src/lib/host-actions.ts:39, src/lib/host-actions.ts:42, src/lib/host-actions.ts:49, src/store/proposed-changes.ts:139-147, src/store/proposed-changes.ts:55-62, types/proposed-change.ts:26, types/safety.ts:114-219",
+    "notes": "removed_with_feature — serves AI order proposal / broker routing / §6.5 confirm dialog, being deleted with trading (23 Sep). Not analysed. Removal note for the batch: once `order` leaves ProposedChangeKind, the AUTO predicate `kind !== 'order'` (proposed-changes.ts:118) degenerates to 'auto-apply everything' — see COD-host-actions-proposed-changes-3; the ack loop's `if (c.kind === 'order') continue` and the 'Paper portfolio' wording (host-actions.ts:769,783,794,1350,1388 + catalog) should go in the same batch, since the user's tracked portfolio is not paper trading."
+  }
+]

@@ -1,0 +1,448 @@
+{
+  "slot": "P1",
+  "symbol": "JNPR",
+  "diffed_at": "2026-09-23",
+  "pack_file": "docs/redesign/verification/r15/battery/packs/P1_JNPR.json",
+  "collected_file": "docs/redesign/verification/r15/battery/collected/P1_JNPR.json",
+  "fields": [
+    {
+      "field": "identity.legal_name",
+      "app_value": "Juniper Green Energy Limited",
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": "Juniper Green Energy Limited",
+      "outside_as_of": "2026-09-02",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "status": "match",
+      "note": "app as_of is the API fetch timestamp, not the fact date; value matches exactly."
+    },
+    {
+      "field": "identity.former_names",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": ["Juniper Green Energy Private Limited"],
+      "outside_as_of": "2026-09-02",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "status": "app blank",
+      "note": "no former_names field anywhere in the /fundamentals payload; no app surface observed for this in the collected calls, so not filed as a standalone raw finding (may belong to a code/intent census instead of a data-value diff)."
+    },
+    {
+      "field": "identity.former_names.rename_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "pack itself records this as a world_gap (could-not-reach); nothing to diff."
+    },
+    {
+      "field": "identity.isin",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:08:40+0530",
+      "outside_value": "INE05C901015",
+      "outside_as_of": "2026-07-23",
+      "outside_source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/",
+      "status": "app blank",
+      "note": "both /resolve candidates (NSE and BSE) for JNPR carry isin:null. See DAT-P1-1 (stale bundled instrument masters)."
+    },
+    {
+      "field": "identity.bse_code",
+      "app_value": null,
+      "app_as_of": "2026-09-19T15:08:40+0530",
+      "outside_value": "544853",
+      "outside_as_of": "2026-09-16",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "app blank",
+      "note": "both /resolve candidates carry bse_code:null. See DAT-P1-1."
+    },
+    {
+      "field": "identity.nse_symbol",
+      "app_value": "JNPR",
+      "app_as_of": "2026-09-19T15:08:40+0530",
+      "outside_value": "JNPR",
+      "outside_as_of": "2026-09-16",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "match",
+      "note": "value string is correct, but /resolve returns it only as one of two ambiguous candidates (needs_disambiguation:true, confidence 0.6) rather than a confirmed resolution -- a resolution-confidence issue, not a data-value mismatch, so not filed here."
+    },
+    {
+      "field": "identity.board",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "mainboard",
+      "outside_as_of": "2026-08-06",
+      "outside_source_url": "https://www.chittorgarh.com/ipo/juniper-green-energy-ipo/2492/",
+      "status": "app blank",
+      "note": "no board/listing-tier field in the collected surface; not filed (no evidence this is a promised app field vs simply out of this collector's scope)."
+    },
+    {
+      "field": "identity.sector",
+      "app_value": "Utilities",
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": "Utilities (all 3 outside sources agree on the top-level word)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/JNPR/",
+      "status": "match"
+    },
+    {
+      "field": "identity.industry",
+      "app_value": "Utilities - Renewable",
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": "value_conflicting: 'Utilities / Utilities - Renewable' (stockanalysis) / 'Utilities / Alternative Power Generation' (tradingview) / 'Power - Solar and Wind' (ICRA)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/JNPR/",
+      "status": "definitional difference",
+      "note": "app's value matches stockanalysis exactly; the three outside sources disagree with each other (pack's own note), not a mismatch to file."
+    },
+    {
+      "field": "identity.listing_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "2026-08-06",
+      "outside_as_of": "2026-09-02",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/intimation-for-change-of-CIN-02.09.2026.pdf",
+      "status": "app blank",
+      "note": "no listing_date field in the collected surface; the consequence of not knowing this (52w/quarter-shareholding traps) is captured in DAT-P1-1/DAT-P1-5 rather than filed again here."
+    },
+    {
+      "field": "price.last_close",
+      "app_value": 265.1499938964844,
+      "app_as_of": "2026-09-19T09:36:46.218656Z",
+      "outside_value": 265.15,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://stockanalysis.com/quote/nse/JNPR/",
+      "status": "match",
+      "note": "value exact. app's timestamp field is the fetch time (freshness:'eod'), not an explicit trading date -- ambiguous but not wrong here since it resolves to the correct 18-Sep close."
+    },
+    {
+      "field": "market_cap",
+      "app_value": 150869934080.0,
+      "app_value_crore": 15086.99,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 15086.99,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.businesstoday.in/stocks/juniper-green-energy-ltd-jnpr-share-price-547999",
+      "status": "match",
+      "note": "exact to the crore (568,998,442 shares x 265.15). App avoided the pack's T4 stale-price trap."
+    },
+    {
+      "field": "pe_ttm",
+      "app_value": 358.3108,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 290.1,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "definitional difference",
+      "note": "pack itself anticipates 'any P/E is defensible and wrong' (5 bases, 248x-572x spread; T2). app's 358.31 = price/eps and doesn't match any of the 5 outside constructions, but the root cause is the eps mismatch -- see DAT-P1-2, filed there rather than here to avoid double-filing the same defect."
+    },
+    {
+      "field": "pb",
+      "app_value": 3.7867754,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 2.9,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "mismatch",
+      "note": "downstream of book_value_per_share -- see DAT-P1-3."
+    },
+    {
+      "field": "roe",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": "value_conflicting: +0.43% (consolidated) / -0.58% (standalone) / +1.18% (derived, ICRA basis)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "app blank",
+      "note": "see DAT-P1-4."
+    },
+    {
+      "field": "roce",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 3.3,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/JNPR/consolidated/",
+      "status": "app blank",
+      "note": "see DAT-P1-4."
+    },
+    {
+      "field": "debt_to_equity",
+      "app_value": 4.01898,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 3.24,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "definitional difference",
+      "note": "app value reconstructs exactly as GROSS total debt / equity (137,605,250,000 / 34,238,830,000 = 4.019); outside value is company-stated NET debt / equity (11,217 / 3,463 = 3.24). Different, internally-consistent definitions, not a data error -- not filed."
+    },
+    {
+      "field": "revenue_ttm",
+      "app_value": 8494620160.0,
+      "app_value_crore": 849.46,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 849.3,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "match",
+      "note": "0.16 crore (0.02%) apart -- within rounding of the pack's own stitched-quarters derivation."
+    },
+    {
+      "field": "net_profit_ttm",
+      "app_value": 522289984.0,
+      "app_value_crore": 52.23,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 52.0,
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "match",
+      "note": "0.23 crore (0.44%) apart -- within rounding."
+    },
+    {
+      "field": "revenue_growth_yoy",
+      "app_value": 0.812,
+      "app_value_basis": "growth_basis: 'mrq_yoy'",
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 0.81,
+      "outside_value_basis": "Q1 FY2027 vs Q1 FY2026, Operating Income, +81%",
+      "outside_as_of": "2026-03-31",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "match",
+      "note": "app correctly states its basis (mrq_yoy = quarterly) and the value matches the outside quarterly figure, not the FY26/FY25 annual +41.3%. Good: basis stated per the pack's requirement."
+    },
+    {
+      "field": "eps_ttm",
+      "app_value": 0.74,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 0.91,
+      "outside_value_conflicting": [1.07, 0.83, 0.71],
+      "outside_as_of": "2026-06-30",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "mismatch",
+      "note": "see DAT-P1-2 -- also doesn't reconcile with the app's own net_income_ttm/shares_outstanding (0.918)."
+    },
+    {
+      "field": "book_value_per_share",
+      "app_value": 70.02,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 91.4,
+      "outside_value_alt": 60.9,
+      "outside_as_of": "2026-08-27",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "mismatch",
+      "note": "see DAT-P1-3 -- also doesn't reconcile with the app's own balance-sheet Common Stock Equity / shares_outstanding (60.17)."
+    },
+    {
+      "field": "face_value",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 10,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/JNPR/consolidated/",
+      "status": "app blank",
+      "note": "not exposed as a field; not filed (minor, no app surface observed)."
+    },
+    {
+      "field": "dividend.last_declared_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": null,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/JNPR/consolidated/",
+      "status": "match",
+      "note": "genuine absence (no dividend ever declared) correctly rendered as null, not an error -- exactly what the pack calls out as the right behaviour."
+    },
+    {
+      "field": "dividend.record_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "no dividend ever declared; nothing to diff."
+    },
+    {
+      "field": "dividend.ex_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth"
+    },
+    {
+      "field": "dividend.paid_trailing_12m_per_share",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/JNPR/consolidated/",
+      "status": "match",
+      "note": "null == 0 paid; genuine absence, correctly reflected."
+    },
+    {
+      "field": "dividend.yield",
+      "app_value": null,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 0.0,
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.screener.in/company/JNPR/consolidated/",
+      "status": "match"
+    },
+    {
+      "field": "week52.high",
+      "app_value": 282.0,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 282.0,
+      "outside_as_of": "2026-08-27",
+      "outside_source_url": "https://in.tradingview.com/symbols/NSE-JNPR/",
+      "status": "match",
+      "note": "value exact; app's as_of is the fetch timestamp, not the 27-Aug date the high actually occurred -- see DAT-P1-5. App correctly avoided the pack's T5/stockanalysis-outlier (204.00) trap."
+    },
+    {
+      "field": "week52.low",
+      "app_value": 232.11,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 232.1,
+      "outside_as_of": "2026-08-06",
+      "outside_source_url": "https://in.tradingview.com/symbols/NSE-JNPR/",
+      "status": "match",
+      "note": "0.01 apart (rounding); as_of gap -- see DAT-P1-5."
+    },
+    {
+      "field": "shareholding.quarter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "Aug 2026 (post-allotment disclosure, NOT a quarter-end filing)",
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "GET /disclosures/shareholding?symbol=JNPR -> 502. See DAT-P1-1."
+    },
+    {
+      "field": "shareholding.promoter_pct",
+      "app_value": null,
+      "app_value_proxy": 85.939,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 85.94,
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "the dedicated shareholding endpoint 502s, but /fundamentals's held_percent_insiders (85.939%) is a working proxy that happens to match almost exactly. Filed under DAT-P1-1 as the endpoint failure, with this proxy noted as partial mitigation."
+    },
+    {
+      "field": "shareholding.fii_pct",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 1.77,
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "no FII/DII split exposed anywhere in the app for this symbol. See DAT-P1-1."
+    },
+    {
+      "field": "shareholding.dii_pct",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 5.07,
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "see DAT-P1-1."
+    },
+    {
+      "field": "shareholding.public_pct",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": 7.22,
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "see DAT-P1-1."
+    },
+    {
+      "field": "shareholding.institutions_combined (fii_pct+dii_pct, cross-checked against the app's fundamentals proxy)",
+      "app_value": 3.834,
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": 6.84,
+      "outside_value_basis": "fii_pct 1.77 + dii_pct 5.07",
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "mismatch",
+      "note": "app's held_percent_institutions (3.834%) understates the true combined FII+DII (6.84%) by ~44%, with no split available. This is a genuine wrong-value mismatch, not just a blank -- filed under DAT-P1-1."
+    },
+    {
+      "field": "shareholding.pledged_pct_of_promoter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": null,
+      "outside_as_of": null,
+      "outside_source_url": null,
+      "status": "no source truth",
+      "note": "pack records this as a world_gap (could-not-reach); app is also blank (502) but there is no outside truth to diff against, so not filed on its own."
+    },
+    {
+      "field": "shareholding.as_of",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "2026-08-31",
+      "outside_as_of": "2026-08-31",
+      "outside_source_url": "https://www.screener.in/company/JNPR/",
+      "status": "app blank",
+      "note": "see DAT-P1-1."
+    },
+    {
+      "field": "corporate_actions_2026",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "19 dated entries (IPO, listing, commissioning, credit rating, PPA, etc.)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/stock-exchange-filings",
+      "status": "app blank",
+      "note": "no corporate-actions-calendar surface observed in the collected calls; not filed here (no evidence this is a promised, attempted app feature vs. out of this collector's scope -- belongs to intent/code census if it is)."
+    },
+    {
+      "field": "latest_results.quarter",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "Q1 FY2027 (quarter ended 2026-06-30)",
+      "outside_as_of": "2026-08-27",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "app blank",
+      "note": "GET /disclosures/results?symbol=JNPR -> 502 'nse_direct: JNPR is not a known NSE instrument'. See DAT-P1-1."
+    },
+    {
+      "field": "latest_results.filing_date",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "2026-08-27",
+      "outside_as_of": "2026-08-27",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/27_08_2026_Press_Release_on_Q1_FY_2027_Results.pdf",
+      "status": "app blank",
+      "note": "see DAT-P1-1."
+    },
+    {
+      "field": "last_3_announcements",
+      "app_value": null,
+      "app_as_of": null,
+      "outside_value": "3 dated entries (investor meet, capacity commissioning, credit rating)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/investor-meet-on-24-09-2026.pdf",
+      "status": "app blank",
+      "note": "GET /disclosures/announcements?symbol=JNPR&limit=25 -> 502. See DAT-P1-1."
+    },
+    {
+      "field": "consolidated_vs_standalone",
+      "app_value": "no explicit label, but revenue_ttm/net_income_ttm/held_percent_insiders all track the CONSOLIDATED basis",
+      "app_as_of": "2026-09-19T09:37:07.524496+00:00",
+      "outside_value": "CONSOLIDATED is the only defensible basis (standalone PAT is actually higher, ROE sign flips between bases)",
+      "outside_as_of": "2026-09-18",
+      "outside_source_url": "https://www.junipergreenenergy.com/pdf/investor-pdf/credit-rating-16.09.2026.pdf",
+      "status": "match",
+      "note": "the app silently uses the correct (consolidated) basis throughout, it just never labels which basis a number is on -- a labelling gap, not a wrong value, so not filed as a data finding."
+    }
+  ],
+  "subtle_tier_covered": true,
+  "raw_findings_file": "docs/redesign/verification/r15/census/raw/data-P1_JNPR.json",
+  "raw_findings_summary": "5 findings (DAT-P1-1..5): 2 high (shareholding/announcements/results endpoint failure + institutional-holding mismatch; eps_ttm/pe_ttm internal inconsistency), 2 medium (book_value_per_share/pb internal inconsistency; roe/roce null despite derivable inputs), 1 low (52-week high/low as-of dates not surfaced)."
+}

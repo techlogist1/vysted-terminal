@@ -1,0 +1,120 @@
+{
+  "slot": "P17",
+  "symbol": "SIFY",
+  "entity_name": "Sify Technologies Limited (ADR, NASDAQ: SIFY)",
+  "collected_at": "2026-09-19",
+  "pack_completed_at": "2026-09-23",
+  "identity": {
+    "legal_name": { "value": "Sify Technologies Limited", "as_of": "2026-06-26", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm" },
+    "former_names": [
+      { "name": "SATYAM INFOWAY LTD", "used_until": "2003-01-13", "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=sify&type=20-F&output=atom" },
+      { "name": "SIFY LTD", "used_from": "2003-01-13", "used_until": "2007-10-15", "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=sify&type=20-F&output=atom" },
+      { "name": "SIFY TECHNOLOGIES LTD", "used_from": "2007-10-15", "note": "current name per SEC EDGAR company-info; EDGAR gives no later rename after 2007-10-15", "source_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=sify&type=20-F&output=atom" }
+    ],
+    "isin": { "value": "US82655M2061", "unit": "ADR ISIN (US82655M2061), CUSIP 82655M206 — NOT an Indian ISIN; the underlying INR-denominated equity shares carry a separate Indian ISIN not disclosed on this US page", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/company/" },
+    "bse_code": { "value": null, "unit": "n/a", "as_of": "2026-09-19", "source_url": "manifest.json master_presence (bse: absent)" },
+    "nse_symbol": { "value": null, "unit": "n/a", "as_of": "2026-09-19", "source_url": "manifest.json master_presence (nse: absent)" },
+    "board": { "value": "NASDAQ Capital Market (NASDAQ-CM) — NOT Global Select; no BSE/NSE mainboard/SME classification applies, equity shares are unlisted in India", "as_of": "2026-09-22", "source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks" },
+    "sector": { "value": "Communication Services (stockanalysis.com) vs Technology (Nasdaq.com) — sources disagree, recorded as a spread, see traps", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/company/ ; https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks" },
+    "industry": { "value": "Telecom Services (stockanalysis.com) vs Computer Software: Programming, Data Processing (Nasdaq.com)", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/company/ ; https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks" },
+    "listing_date": { "value": "1999-10-19", "unit": "NASDAQ ADS IPO date; company founded 1995 in India; equity shares never separately listed on BSE/NSE", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/company/" }
+  },
+  "price": {
+    "last_close": { "value": 13.97, "unit": "USD per ADS", "change": "-0.11 (-0.78%)", "date": "2026-09-22", "source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks" },
+    "after_hours": { "value": 14.01, "change": "+0.04 (+0.29%)", "as_of": "2026-09-22T16:25:00-04:00", "source_url": "https://stockanalysis.com/stocks/sify/" }
+  },
+  "market_cap": {
+    "value_usd": 1011911572,
+    "unit": "USD, computed as last_close x shares outstanding (ADS basis)",
+    "as_of": "2026-09-22",
+    "source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks",
+    "cross_check": "stockanalysis.com independently rounds to $1.01B as of the same date — agrees",
+    "note_vs_manifest_reference": "manifest.json reference.mcap_usd_conflicting lists three OLDER/stale figures (Morningstar 989.09M, Hargreaves Lansdown 897.87M, an unsourced 789M as of 2026-02-13) — none of those match today's live 1.012B; price ran up materially since Feb 2026 and aggregators disagree on shares-outstanding basis, so market cap is never a single authoritative number for this name, only a spread across source + as-of date. See traps."
+  },
+  "pe_ttm": { "value": "loss-making (trailing net loss)", "unit": "n/a", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/", "note": "aggregator reports PE Ratio: n/a because TTM net income is negative (-$9.65M); Forward PE 104.32 (estimate-based) is a DIFFERENT figure and must not be substituted for trailing PE" },
+  "pb": { "value": 5.05, "unit": "x (Price / Book, ADS basis)", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/", "derivation_check": "last_close 13.97 / book_value_per_share 2.77 = 5.04, matches source's stated 5.05 within rounding" },
+  "roe": { "value": "n/a", "unit": "n/a", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/", "note": "reported n/a by aggregator (company is net-loss-making on a TTM basis, making a standard ROE% not meaningful/reported); not a gap in app data if the app also reports n/a" },
+  "roce": { "value": "n/a", "unit": "n/a", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/", "note": "ROCE not reported by this aggregator; related figures ARE available: Return on Invested Capital (ROIC) 5.01% vs Weighted Average Cost of Capital (WACC) 9.79% — i.e. ROIC < WACC, a value-destruction signal worth carrying even though ROCE itself is a world_gap" },
+  "debt_to_equity": [
+    { "value": 2.42, "unit": "x, gross borrowings (long-term 28,499M + short-term 17,591M INR) / equity (19,059M INR), consolidated IFRS balance sheet", "as_of": "2026-06-30", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm", "basis": "company's own Q1 FY27 press release 'Equity and Debt' table, INR-native" },
+    { "value": 2.56, "unit": "x, aggregator-computed, USD-converted, methodology/snapshot not disclosed", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/" }
+  ],
+  "revenue_ttm": [
+    { "value": 46506, "unit": "INR million, computed as FY26 full year (44,877) - Q1 FY26 (10,723) + Q1 FY27 (12,352), IFRS consolidated", "as_of": "2026-06-30", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm ; https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm" },
+    { "value": 491.86, "unit": "USD million, aggregator TTM, FX/period-alignment methodology not disclosed", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/" }
+  ],
+  "net_profit_ttm": [
+    { "value": -912, "unit": "INR million, computed as FY26 (-1,366) - Q1 FY26 (-389) + Q1 FY27 (65), IFRS consolidated, before non-controlling-interest split", "as_of": "2026-06-30", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm ; https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm" },
+    { "value": -9.65, "unit": "USD million, aggregator TTM", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/" }
+  ],
+  "revenue_growth_yoy": [
+    { "value": "15%", "basis": "quarterly, Q1 FY2026-27 (Jun 2026) vs Q1 FY2025-26 (Jun 2025), IFRS consolidated INR revenue: 12,352M vs 10,723M", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm" },
+    { "value": "12.5%", "basis": "annual, FY2025-26 (Mar 2026) vs FY2024-25 (Mar 2025), IFRS consolidated INR revenue: 44,877M vs 39,886M — computed, not stated verbatim in the press release", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526000600/ex991_1.htm" }
+  ],
+  "eps_ttm": { "value": -0.13, "unit": "USD per ADS (loss per ADS), TTM", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/", "trap_note": "this is PER-ADS. The IFRS press releases report Profit/(Loss) in INR millions with NO per-share/per-ADS figure disclosed in the EX-99.1 exhibits reviewed; dividing an INR net-loss figure by ordinary-share count (434.7M) without applying the 1-ADS=6-ordinary-shares ratio would be off by 6x from this ADS-basis EPS." },
+  "book_value_per_share": { "value": 2.77, "unit": "USD per ADS", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/", "cross_check": "equity (book value) 200.36M USD / shares out 72.43M = 2.77 — internally consistent", "trap_note": "per-ADS, not per ordinary (INR face-value ₹10) share; per-ordinary-share book value would be ~1/6th of this figure" },
+  "face_value": { "value": 10, "unit": "INR per equity share (par value ₹10); 1 ADS = 6 equity shares per the depositary agreement", "as_of": "2026-06-26", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm" },
+  "dividend": {
+    "last_declared_per_share": { "value": 0.08423, "unit": "USD per ADS", "ex_date": "2019-05-24", "record_date": "2019-05-28", "pay_date": "2019-07-16", "source_url": "https://stockanalysis.com/stocks/sify/dividend/" },
+    "paid_trailing_12m_per_share": { "value": 0, "unit": "USD per ADS", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/dividend/", "note": "no dividend paid in the past 12 months (or the past ~7 years); last actual payment was 2019-07-16" },
+    "yield": { "value": "n/a (0%)", "as_of": "2026-09-22", "source_url": "https://api.nasdaq.com/api/quote/SIFY/summary?assetclass=stocks" }
+  },
+  "week52": {
+    "high": { "value": 17.85, "unit": "USD", "as_of": "2026-09-22 (snapshot date; source does not disclose the date the 52w high was SET)", "source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks" },
+    "low": { "value": 10.09, "unit": "USD", "as_of": "2026-09-22 (snapshot date; source does not disclose the date the 52w low was SET)", "source_url": "https://api.nasdaq.com/api/quote/SIFY/info?assetclass=stocks" }
+  },
+  "shareholding": {
+    "world_gap": true,
+    "note": "Sify has NO Indian-format quarterly shareholding pattern (that BSE/NSE construct requires an equity-share listing in India, which Sify does not have — see manifest.json hostile_traits). The nearest real disclosure is SEC Form 20-F Item 6.E 'Major Shareholders', filed ANNUALLY (not quarterly) as of the fiscal year-end.",
+    "quarter": "N/A — annual disclosure only, as of fiscal year-end 2026-03-31 (FY2025-26)",
+    "promoter_pct_analog": {
+      "value": 83.78,
+      "unit": "% of outstanding equity shares beneficially owned by entities affiliated with CEO/Chairman/MD Raju Vegesna (Infinity Capital Ventures LP 7.56%, Vegesna Family Trust LP 0.34%, Raju Vegesna Infotech & Industries Pvt Ltd 7.90%, Ramanand Core Investment Company Pvt Ltd 67.98%)",
+      "as_of": "2026-03-31",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm",
+      "note": "this is a beneficial-ownership disclosure under SEC rules, not an Indian 'promoter' filing — labeled analog, not a like-for-like field"
+    },
+    "fii_pct": { "value": null, "note": "no source truth — the FII/DII split is an India-specific NSE/BSE construct; Sify's institutional holders are disclosed only in aggregate (see dii_pct/public_pct below), never split FII vs DII, because none of them are filing under Indian FPI/DII categories" },
+    "dii_pct": { "value": null, "note": "no source truth — see fii_pct" },
+    "institutional_pct_aggregate": { "value": 4.92, "unit": "% owned by institutions (13F-style aggregate, not FII/DII-split)", "as_of": "2026-09-22", "source_url": "https://stockanalysis.com/stocks/sify/statistics/" },
+    "public_pct_analog": { "value": 16.22, "unit": "% = 100 - 83.78 (promoter_pct_analog)", "as_of": "2026-03-31", "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm", "cross_check": "independently, stockanalysis.com reports Float 11.75M / Shares Outstanding 72.43M = 16.22% as of 2026-09-22 — matches the 20-F-derived figure almost exactly despite different source, method and as-of date" },
+    "pledged_pct_of_promoter": { "value": null, "note": "no source truth — promoter share-pledge disclosure is an Indian BSE/NSE listing-agreement requirement; it does not apply to a NASDAQ-only ADR and was not found in the SEC 20-F or any 6-K reviewed" }
+  },
+  "corporate_actions_2026": {
+    "value": "None identified (no stock split, bonus issue, rights issue or QIP found in the FY26 20-F or the 6-Ks reviewed). No dividend declared since 2019. Associate Stock Option Plan 2024 (ASOP 2024) was approved by shareholders 2024-07-03 for up to 25,000,000 new equity shares/ADSs; as of the FY26 20-F, options under ASOP 2024 had NOT yet been issued.",
+    "as_of": "2026-06-26",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm"
+  },
+  "latest_results": {
+    "quarter": "Q1 FY2026-27 (quarter ended 2026-06-30)",
+    "filing_date": "2026-07-16",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm",
+    "headline_numbers": "Revenue INR 12,352M (+15% YoY), Adjusted EBITDA INR 3,005M (+42% YoY), Profit for the period INR 65M (vs a loss of INR 389M in Q1 FY26)"
+  },
+  "last_3_announcements": [
+    { "date": "2026-07-16", "headline": "6-K: Q1 FY2026-27 unaudited consolidated financial results (IFRS) — earnings call details, revenue/EBITDA/profit highlights", "url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/0001554855-26-001544-index.htm" },
+    { "date": "2026-07-01", "headline": "6-K: FY2025-26 Annual Report furnished under India's Companies Act, 2013 (Ind AS financial statements) — distinct from the IFRS 20-F", "url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001473/0001554855-26-001473-index.htm" },
+    { "date": "2026-06-26", "headline": "Form 20-F: Annual and transition report of foreign private issuer for FY ended 2026-03-31 (IFRS financial statements, Major Shareholders table, risk factors) filed with SEC", "url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/0001554855-26-001437-index.htm" }
+  ],
+  "consolidated_vs_standalone": {
+    "note": "Sify reports on TWO DIFFERENT accounting bases via two different filings that can show different numbers for the 'same' period: (1) Form 20-F to the SEC uses IFRS as issued by the IASB — this is the basis used for all P&L figures in this pack (revenue_ttm, net_profit_ttm, etc.); (2) a separate 6-K furnishes the statutory Companies Act, 2013 annual report using Indian Accounting Standards (Ind AS) — filed 2026-07-01, five days after the IFRS 20-F. Both are CONSOLIDATED (Sify has subsidiaries: Sify Data Centers, Sify Digital Services, etc.) — no standalone-only figures were surfaced in the documents reviewed. A pipeline that reads only one of these and represents it as 'the' financial statement is dropping a real dual-GAAP distinction.",
+    "source_url": "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001473/MainDocument.htm"
+  },
+  "traps": [
+    "1 ADS = 6 ordinary equity shares (₹10 face value each). Every per-share figure sourced from this pack (EPS, BVPS, dividend/share) is ADS-basis; dividing an INR-native net income/equity figure by ordinary-share count without applying the 6x ratio understates true per-ordinary-share value by 6x, and conversely any Indian-sourced per-share figure would be wrong if displayed as-is for the ADS.",
+    "Sify has NO BSE or NSE listing at all — equity shares are unlisted in India, only the ADS trades, on NASDAQ. A resolver that returns any BSE/NSE code, or invents an Indian promoter/FII/DII shareholding-pattern row, for this symbol is fabricating data (see shareholding.world_gap above); this is the manifest's designated hostile trait for this entity.",
+    "Market cap has no single authoritative value: manifest.json's own reference lists three conflicting 2026-02-13-era figures (Morningstar $989.09M, Hargreaves Lansdown $897.87M, an unsourced $789M) none of which match the live $1.012B computed here on 2026-09-22 — the spread is a mix of stale snapshots AND differing diluted-share assumptions, not a single 'wrong' source.",
+    "Sector/Industry classification disagrees between stockanalysis.com (Communication Services / Telecom Services) and Nasdaq.com itself (Technology / Computer Software: Programming, Data Processing) for the identical ticker on the identical day — a taxonomy trap, not a data-freshness trap.",
+    "Dual accounting basis: IFRS (20-F, SEC) vs Ind AS (6-K, Indian Companies Act) can legitimately show different consolidated P&L figures for the same fiscal year; collapsing them into one 'the financials' number is a definitional error, not a mismatch.",
+    "NASDAQ-CM (Capital Market) tier, not NASDAQ Global Select — a terminal that shows a blanket 'NASDAQ' badge without tier may overstate the listing standard this security actually meets.",
+    "Revenue/net-income TTM computed INR-natively from the company's own press releases (46,506M / -912M) implies a ~94.5 INR/USD conversion when checked against the aggregator's USD TTM figures (491.86M / -9.65M) — plausible for Sep 2026 but UNVERIFIED against a spot rate in this pack; do not treat the aggregator's USD TTM as a simple spot-rate translation of the INR figures without checking the FX assumption."
+  ],
+  "world_gaps": [
+    "Indian-format quarterly shareholding pattern (promoter/FII/DII/public split with pledge %) does not exist for this security — see shareholding.world_gap. This is a genuine absence in the world, not a research failure.",
+    "ROCE (Return on Capital Employed) is not published by the aggregator checked (stockanalysis.com reports 'n/a'); ROIC (5.01%) and WACC (9.79%) are available as adjacent metrics but are not the same figure.",
+    "ROE is not published (net-loss TTM makes a standard positive-denominator ROE% non-standard to report); aggregator reports 'n/a' rather than a negative number.",
+    "No per-share/per-ADS EPS figure is disclosed inside the IFRS EX-99.1 press-release exhibits reviewed (Q1 FY27, Q4/FY26) — only aggregate INR profit/(loss) in millions; EPS had to be sourced from a third-party aggregator (stockanalysis.com) rather than the company's own primary filing text reviewed.",
+    "Exact calendar dates on which the 52-week high ($17.85) and low ($10.09) were SET are not disclosed by either Nasdaq.com or stockanalysis.com's summary views — only the trailing range value, not the date of the extremum.",
+    "Promoter share-pledge percentage: genuinely does not exist as a disclosure requirement for a NASDAQ-only ADR (Indian pledge-disclosure rules attach to BSE/NSE listing agreements)."
+  ]
+}

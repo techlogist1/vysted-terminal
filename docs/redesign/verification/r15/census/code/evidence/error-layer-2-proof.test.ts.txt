@@ -1,0 +1,28 @@
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/sidecar-client", () => ({
+  getSidecarBaseUrl: vi.fn().mockRejectedValue(new Error("The data engine did not become ready in time.")),
+}));
+vi.mock("@/lib/search-headers", () => ({ buildSearchHeaders: vi.fn().mockResolvedValue({}) }));
+
+import { streamAgentInvocation, streamChat } from "@/modules/chat/streaming";
+
+describe("R15 error-layer-2 proofs", () => {
+  it("P1 base-URL rejection bypasses handlers.onError and rejects the caller", async () => {
+    const onError = vi.fn();
+    const onEvent = vi.fn();
+    const ctrl = new AbortController();
+    let rejected: unknown = null;
+    try {
+      await streamAgentInvocation("buffett", { prompt: "hi", provider: "anthropic", model: "m" } as never, { onEvent, onError, signal: ctrl.signal });
+    } catch (e) { rejected = e; }
+    let rejected2: unknown = null;
+    try {
+      await streamChat({ provider: "anthropic" as never, model: "m", messages: [] }, { onEvent, onError });
+    } catch (e) { rejected2 = e; }
+    console.log("P1 agent: onError calls =", onError.mock.calls.length, "| rejected with:", (rejected as Error)?.message);
+    console.log("P1 chat : rejected with:", (rejected2 as Error)?.message);
+    expect(onError).not.toHaveBeenCalled();
+    expect(rejected).toBeInstanceOf(Error);
+  });
+});

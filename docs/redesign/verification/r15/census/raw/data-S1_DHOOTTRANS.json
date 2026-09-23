@@ -1,0 +1,82 @@
+[
+  {
+    "raw_id": "DAT-S1-1",
+    "title": "Disclosures endpoints (shareholding, announcements, results) hard-fail on DHOOTTRANS despite quotes/fundamentals resolving the same symbol fine",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=DHOOTTRANS -> HTTP 502 {\"detail\": \"disclosures: 'DHOOTTRANS' is not a known NSE/BSE instrument\"}; same for /disclosures/announcements?symbol=DHOOTTRANS&limit=25 and /disclosures/results?symbol=DHOOTTRANS. In the same battery run, GET /quotes/DHOOTTRANS?asset_class=equity and /fundamentals/DHOOTTRANS both return HTTP 200 with correct data for the identical symbol.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.shareholding, calls.announcements, calls.results_calendar, all status 502) vs calls.quote/calls.fundamentals (status 200) in the same file",
+    "notes": "This is exactly the mandatory subtle-tier data (promoter/FII/DII/pledge shareholding, corporate announcements, results calendar) for a legitimate mainboard, INR 32,500cr-market-cap stock listed 33 days before curation - the failure mode is a large-cap 'not found' on the disclosures resolver, not an obscure-microcap miss. Outside truth exists for all of it, sourced (screener.in, BSE SAST/AttachHis filings) in the pack. Smallest fix shape: the disclosures instrument resolver needs to recognize a symbol the yfinance-backed quote/fundamentals resolver already recognizes (likely a stale or narrower symbol master used only by the disclosures/NSE-direct path)."
+  },
+  {
+    "raw_id": "DAT-S1-2",
+    "title": "The only ownership split the app exposes (Yahoo insider/institution taxonomy) silently understates the true SEBI promoter group by ~43 points",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> held_percent_insiders=0.39935002, held_percent_institutions=0.53816. Compare against the pack's SAST-filing-sourced shareholding: total promoter group 82.78% (Dhoot family ~39.94% derived by subtraction + BC Asia Investments XV/XVI PE entities 42.842%, filed under SEBI SAST Reg 29(1)/31(1) as promoter/promoter-group shares).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.held_percent_insiders/held_percent_institutions) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (shareholding.promoter_pct, shareholding.promoter_composition)",
+    "notes": "held_percent_insiders (39.935%) matches the pack's derived Dhoot-family-only remainder (39.94%) to within 0.005 points, which is strong evidence the app's Yahoo-style 'insider' bucket classifies the PE-owned BC Asia stake (42.842% of total capital, legally part of the promoter group and the subject of the encumbrance/pledge dispute) as institutional rather than promoter. With the correct disclosures route down (DAT-S1-1), this mismatched fallback taxonomy is the only ownership signal available for this stock; if surfaced anywhere as 'promoter holding' or 'insider ownership' it understates real controlling/promoter-group ownership by 42.8 percentage points on a stock where that group's shares carry a disputed 51.75%-of-promoter pledge. Money/governance-relevant number silently wrong in the direction that hides risk."
+  },
+  {
+    "raw_id": "DAT-S1-3",
+    "title": "eps_ttm is stale/understated and internally contradicts the app's own net_income_ttm and shares_outstanding fields, inflating the displayed P/E",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> eps=19.41, pe_ratio=81.9526, net_income_ttm=4330310144.0, shares_outstanding=204548057.0. 4330310144.0/204548057.0 = 21.17 (verified by direct computation), not 19.41. Pack's filing-derived eps_ttm (current post-IPO share count) = 21.17, sourced from the same filed Q1 FY27 results the pack derived net_profit_ttm/revenue_ttm from (both of which DO match the app's figures exactly).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.eps, .net_income_ttm, .shares_outstanding, .pe_ratio) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (eps_ttm.value=21.17, traps.groww_stale_quarter)",
+    "notes": "App's eps (19.41) almost exactly reproduces Groww's own confirmed-wrong stale-quarter EPS (pack: Groww shows 19.40, computed off the year-ago quarter's profit mislabeled as current). The app has all the ingredients to compute the correct 21.17 (its own net_income_ttm and shares_outstanding, which both independently match the pack's authoritative filed-derived figures exactly) but the eps field itself is off by 8.3% low, and pe_ratio (81.95) is consequently inflated ~9% above the correct 75.1, misrepresenting the stock as more expensive than the filed numbers support. No caveat or flag is present in field_meta for either field."
+  },
+  {
+    "raw_id": "DAT-S1-4",
+    "title": "earnings_growth diverges from filed PAT growth by more than half under the app's own stated same-basis methodology, while revenue_growth on that basis is exact",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> growth_basis='mrq_yoy', revenue_growth=0.497, earnings_growth=0.179. Pack: Q1 FY27 (2026-06-30) consolidated revenue grew 49.7% YoY (company's own press-release quote, matches app exactly) and consolidated PAT grew 37.8% YoY (same press release) - app's earnings_growth of 17.9% is less than half that.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.revenue_growth, .earnings_growth, .growth_basis) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (revenue_growth_yoy.quote, traps.groww_stale_quarter detail)",
+    "notes": "Ruled out as a definitional variant by computation: 17.9% doesn't reconcile with filed PAT YoY growth (37.8%), PBT YoY growth (40.3%), EBITDA YoY growth (28.9%), or total-income YoY growth (49.9%) computed from the app's own collected Q1 FY27 vs Q1 FY26 figures in the pack. Since revenue_growth under the identical 'mrq_yoy' basis is exact, a user has no signal that the adjacent earnings_growth figure on the same panel is unreliable."
+  },
+  {
+    "raw_id": "DAT-S1-5",
+    "title": "field_meta.as_of stamps every fundamentals field with one uniform fetch timestamp, hiding that the underlying values span a 2.5-month reporting range - most misleadingly for the 52-week low, which is the listing date itself",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> every key in field_meta (name, eps, fifty_two_week_low, revenue_ttm, etc.) carries the identical as_of='2026-09-19T10:01:01.780949+00:00'; no per-field date is exposed for fifty_two_week_high/fifty_two_week_low at all.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.field_meta, every entry) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (week52.low.date=2026-08-17=listing date, week52.critical_caveat, eps_ttm.as_of=2026-06-30)",
+    "notes": "Pack's own critical_caveat: 'THE 52-WEEK RANGE COVERS 33 CALENDAR DAYS... any UI that prints 52-week high/low for this scrip is making a false claim about the window.' The app's fifty_two_week_low value itself matches Groww's NSE-scoped figure (not a value error - see diff row, status definitional difference), but nothing in the response lets a consumer of this API tell that the 'low' is the listing-day price rather than a genuine year of trading, because both it and a same-day live price share one identical as_of stamp."
+  },
+  {
+    "raw_id": "DAT-S1-6",
+    "title": "book_value/price_to_book diverge from every outside estimate by 31-45% and don't reconcile with the app's own collected balance-sheet equity",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> book_value=129.173, price_to_book=12.314492. Compute app's own FY2026 Common Stock Equity (24,343,420,000) / shares_outstanding (204,548,057) = 119.01, still not 129.17. Pack (Groww): book_value_per_share=187.48, pb=8.4, independently sanity-checked near INR 191/share post-money.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.book_value, .price_to_book, calls.balance.body.lines[Common Stock Equity]) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (book_value_per_share, pb)",
+    "notes": "Both app and pack values here are non-filed estimates (pack explicitly caveats no post-IPO balance sheet has been filed yet), so this is not a 'wrong value shown as fact' case at critical severity - but the app's number is further from every outside reference than the outside sources are from each other, and doesn't even reconstruct from the app's own collected balance-sheet line, suggesting a second field (alongside eps) built on a stale or mismatched basis."
+  },
+  {
+    "raw_id": "DAT-S1-7",
+    "title": "roe and roce are blank/absent in the app despite screener-sourced outside values existing",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> roe=null (field_meta: 'unavailable - provider did not publish this field'); roce key is absent from the response entirely.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.roe, field_meta.roe; roce absent from body) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (roe.value=24.0, roce.value=24.4)",
+    "notes": "Silent blank where the world has a value (screener consolidated: ROE 24.0%, ROCE 24.4%, both sourced with as-of dates). Pack itself flags both as having multiple disagreeing published values and, for ROCE, a headline number with blank historical cells behind it at source - so the missing app value is not the worst outcome here, but it is a gap on a mandatory-tier ratio field the app could plausibly derive from data it already has (net_income_ttm and collected balance-sheet equity, per DAT-S1-6)."
+  },
+  {
+    "raw_id": "DAT-S1-8",
+    "title": "dividend fields show 'unavailable' rather than the confirmed zero the world already established",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "S1_DHOOTTRANS",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/DHOOTTRANS -> dividend_yield=null, dividend_per_share=null, dividend_per_share_ttm=null, all field_meta status 'unavailable - provider did not publish this field'.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/S1_DHOOTTRANS.json (calls.fundamentals.body.dividend_yield/.dividend_per_share/.dividend_per_share_ttm) vs docs/redesign/verification/r15/battery/packs/S1_DHOOTTRANS.json (dividend.yield.value=0.0, corroborated by BSE's empty corporate-action tables and both screener and Groww)",
+    "notes": "Pack positively confirmed zero (BSE's own corporate-action API returns three empty tables, not merely 'not found'), so 'no data' and 'confirmed zero' are two different, distinguishable pieces of information the app collapses into the same blank. Low severity because a 0% yield reading either way misleads no investment decision, but it is a genuine, sourced gap on a mandatory pack field."
+  }
+]

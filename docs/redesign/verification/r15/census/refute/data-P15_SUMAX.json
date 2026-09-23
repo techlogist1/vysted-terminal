@@ -1,0 +1,47 @@
+[
+ {
+  "raw_id": "DAT-P15-1",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "The user-facing failure holds: a user typing the real NSE ticker SUMAX into the equity overview gets a quote 502 whose detail is a raw yfinance internal string. The mechanism is wrong, and so is the fix shape. It is not a dividend-less new listing tripping a dividends accessor: GET /quotes/SUMAX-SM (the same dividend-less listing, resolver's own candidate) returns 200 price 108.0. SUMAX is in none of the bundled masters (NSE master = EQUITY_L main board, 2675 rows, no SME), so _yahoo_symbol takes branch (c) and maps it to SUMAX.NS. Yahoo carries NSE Emerge names as SUMAX-SM.NS, so SUMAX.NS has no data and fast_info throws. The exception is caught and wrapped as a ProviderError 502, so this is a designed unknown-symbol path, not a crash. It gives the wrong answer because the masters lack NSE-SME and post-June listings (same root as DAT-P15-3). The fix is SME and new-listing master coverage or a -SM retry, plus a clean 'no data' message, not catching AttributeError around dividends.",
+  "evidence": "sidecar/services/yfinance_provider.py:97-137, sidecar/services/yfinance_provider.py:233-250, sidecar/services/yfinance_provider.py:53-65, sidecar/services/symbol_resolver.py:267-278, sidecar/services/symbol_resolver.py:403-415, sidecar/services/resolver_masters/nse_instruments.json (2675 rows, no SUMAX), src/modules/equity-overview/EquityOverviewPanel.tsx:777-787, src/modules/equity-overview/api.ts:101-109",
+  "evidence_checked": "Opened the quote router, yfinance provider quote path and symbol mapper, resolver master loaders, and the equity-overview submit path. Checked the bundled masters for SUMAX (absent from NSE, BSE and US). Re-ran against :52152 with the bare and resolved symbols.",
+  "repro_check": "2026-09-23T01:18Z curl :52152/quotes/SUMAX?asset_class=equity -> 502 \"'PriceHistory' object has no attribute '_dividends'\"; curl :52152/quotes/SUMAX-SM?asset_class=equity -> 200 {symbol SUMAX-SM.NS, price 108.0, volume 49200}"
+ },
+ {
+  "raw_id": "DAT-P15-2",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "Real: typing SUMAX into the equity overview sends the bare symbol straight to /fundamentals, which returns 200 with name 'SEI Short Duration Municipal F (STET)', a US fund, and the panel renders that name (EquityOverviewPanel.tsx:993-995). The mechanism is corrected. /fundamentals never consults /resolve. openbb-mcp's _normalize_symbol is US-only and hands bare SUMAX to the OpenBB yfinance profile, which answers with the US fund. The correctness gate compares symbols only (SUMAX==SUMAX), so it passes. The R13 all-null-shell guard is then defeated because `name` is not in _FUNDAMENTALS_IDENTITY_FIELDS, so a foreign name alone counts as 'data'. Severity drops to high: every numeric field is null, so no wrong figure is shown as true; the harm is a wrong identity label over blanks. Separate observation for the lead, outside this finding: the correct path, /fundamentals/SUMAX-SM, returns the right name but a 52-week range of 112.7/107.3, while screener.in shows 133/101. That is a wrong value shown as true.",
+  "evidence": "sidecar/services/openbb_mcp_provider.py:260-262, sidecar/services/openbb_mcp_provider.py:359-385, sidecar/services/provider_registry.py:262-285, sidecar/services/provider_registry.py:473-492, sidecar/services/correctness_gate.py:146-168, src/modules/equity-overview/EquityOverviewPanel.tsx:777-787, src/modules/equity-overview/EquityOverviewPanel.tsx:993-995, https://www.screener.in/company/SUMAX/ (fetched 2026-09-23T01:21Z: 'High / Low ₹ 133 / 101')",
+  "evidence_checked": "Opened the fundamentals registry chain (accept/fallback_ok guards), openbb-mcp symbol normaliser and fundamentals fetch, the correctness gate identity check, and the equity-overview submit and render path. Re-ran bare and resolved fundamentals against :52152. Re-fetched screener.in once.",
+  "repro_check": "2026-09-23T01:18Z curl :52152/fundamentals/SUMAX -> 200 name 'SEI Short Duration Municipal F (STET)', provider openbb-mcp, all numerics null; curl :52152/fundamentals/SUMAX-SM -> 200 name 'SUMAX ENGINEERING LIMITED', fifty_two_week_high 112.7 / low 107.3 (screener: 133/101)"
+ },
+ {
+  "raw_id": "DAT-P15-3",
+  "verdict": "admitted_with_correction",
+  "severity_final": "high",
+  "reason": "All three disclosures routes do 502 for SUMAX, and the whole shareholding tier is absent for a live listing. Screener re-fetch confirms promoter 69.67 / FII 2.10 / DII 9.59 / public 18.63 as of Sep 2026. The mechanism is corrected: this is not a bare-string-vs-resolved-symbol handoff, because the resolved SUMAX-SM also 502s on every disclosures route. Each lane is gated on membership in the bundled NSE/BSE masters, and those carry no NSE Emerge (SME) or post-June-2026 listings. The routes therefore state 'not a known NSE/BSE instrument', which is false for a live listing, and never reach the network. The fix is SME and new-listing master coverage, or a live membership fallback, rather than threading the resolver's candidate.",
+  "evidence": "sidecar/services/corporate_disclosures.py:366-393, sidecar/services/corporate_disclosures.py:284-290, sidecar/services/nse_provider.py:354-360, sidecar/services/symbol_resolver.py:267-278, sidecar/services/symbol_resolver.py:403-415, sidecar/services/resolver_masters/nse_instruments.json (2675 main-board rows, dated Jun 5, no SUMAX), https://www.screener.in/company/SUMAX/ (fetched 2026-09-23T01:21Z)",
+  "evidence_checked": "Opened the shareholding, announcements and results lane gating and the resolver master loaders. Scanned all three bundled masters for SUMAX (absent). Re-ran all disclosures routes against :52152 with both SUMAX and SUMAX-SM.",
+  "repro_check": "2026-09-23T01:19Z curl :52152/disclosures/shareholding?symbol=SUMAX -> 502; ...?symbol=SUMAX-SM -> 502 \"'SUMAX-SM' is not a known NSE/BSE instrument\"; /disclosures/results?symbol=SUMAX-SM -> 502 nse_direct not known; /disclosures/announcements?symbol=SUMAX-SM -> 502"
+ },
+ {
+  "raw_id": "DAT-P15-4",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds as stated. No equity face value or par value exists anywhere in the fundamentals, resolve or identity schema: the only face_value fields are the bond pricer's. NSE's corporate-actions rows carry faceVal, but it is only mentioned in a docstring and never mapped. Screener re-fetch confirms a face value of Rs 10.0.",
+  "evidence": "sidecar/models/fundamentals.py:46, sidecar/models/quant.py:152, sidecar/services/nse_provider.py:617-627, https://www.screener.in/company/SUMAX/ (fetched 2026-09-23T01:21Z: 'Face Value ₹ 10.0')",
+  "evidence_checked": "Grepped sidecar models, services, routers, types/ and src/ for face_value/faceVal/par_value; opened the NSE corporate-actions docstring and the Fundamentals model.",
+  "repro_check": "grep -rn 'face_value|faceVal|par_value' sidecar/models sidecar/services sidecar/routers types src -> bond-pricer hits plus one nse_provider docstring only"
+ },
+ {
+  "raw_id": "DAT-P15-5",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. The resolver's live yfinance.Search fallback, which is what finds SUMAX-SM for the bare ticker, runs only when the banded master name scan returns zero hits. 'Sumax Engineering Ltd' fuzzy-matches generic '... Engineering Ltd' rows in the masters (SMTEL 0.9 and so on), so the fallback never fires and the real company can never appear in the candidates. The masters have no SUMAX row. Every NSE-Emerge-only or post-June-2026 listing searched by legal name hits the same result. Mitigation noted: the result is flagged needs_disambiguation, so nothing wrong is auto-bound. The core find-by-name flow still fails with plausible wrong candidates.",
+  "evidence": "sidecar/services/symbol_resolver.py:727-772, sidecar/services/symbol_resolver.py:267-278, sidecar/services/resolver_masters/nse_instruments.json, sidecar/services/resolver_masters/bse_instruments.json (no SUMAX in either), docs/redesign/verification/r15/battery/collected/P15_SUMAX.json:42-131",
+  "evidence_checked": "Opened _resolve_masters (exact, then marquee, then banded, then live-fallback ordering) and the master loaders; scanned the bundled masters for SUMAX. Did not re-run the name query live (collected 19-Sep body is consistent with the code path).",
+  "repro_check": "code path: symbol_resolver.py:757-772 returns on any non-empty `scored` before _live_lookup; would confirm with curl ':52152/resolve?q=Sumax+Engineering+Ltd' expecting 6 non-Sumax candidates"
+ }
+]

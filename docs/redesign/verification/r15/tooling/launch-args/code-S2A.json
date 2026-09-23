@@ -1,0 +1,26 @@
+{
+ "tag": "code-S2A",
+ "common": "Read docs/redesign/verification/r15/tooling/COMMON.md, PROMPT_code.md and PROMPT_code_s2.md fully before doing anything else (PROMPT_refute.md too, before the refute stage). Continue from any existing output file for your id - never restart a partial file. This is R15 Stage B item 2 (code critiques), session 2.",
+ "stages": [
+  {
+   "label": "critique",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "CRITIQUE subsystem \"{{id}}\". Follow PROMPT_code.md's CRITIQUE section exactly (aposd-critique skill, 18 principles, file:line evidence, 5-15 findings). Its entry (responsibility, owning files, LOC, tests) is in docs/redesign/verification/r15/census/CODE_PARTITION.json. If id == \"host-actions-proposed-changes\", apply PROMPT_code_s2.md's TRADING OVERLAY: critique only the non-order proposed-changes gate (paper-portfolio writes, notes, screens, layouts, workflow nodes); tag any order-only finding removed_with_feature in notes instead of analysing it; critique kill-switch/audit-log normally but state what they gate beyond orders. If id == \"hygiene-cross-platform\", instead follow PROMPT_code_s2.md's HYGIENE SWEEP section (static cross-platform sweep over src-tauri/src, sidecar/, scripts/, src/; severity honest, mostly medium/low; mark cheap_fix:true on cheap findings). OUTPUT: docs/redesign/verification/r15/census/code/{{id}}.md (or hygiene-cross-platform.md) + docs/redesign/verification/r15/census/raw/code-{{id}}.json (or hygiene-cross-platform.json for that item), raw_id prefix COD-{{id}} (HYG for hygiene)."
+  },
+  {
+   "label": "refute",
+   "model": "opus",
+   "effort": "high",
+   "prompt": "REFUTE docs/redesign/verification/r15/census/raw/code-{{id}}.json (hygiene-cross-platform.json for the hygiene item). Follow PROMPT_refute.md exactly (fresh sceptical engineer, refuted|admitted|admitted_with_correction|removed_with_feature, trading-removal overlay for host-actions-proposed-changes per PROMPT_code_s2.md). Read the raw file first and get your finding count from it - cover EVERY raw_id. If the raw file has zero findings, write an empty verdict array and return count 0. OUTPUT: docs/redesign/verification/r15/census/refute/code-{{id}}.json (hygiene-cross-platform.json for hygiene). Return counts by verdict."
+  }
+ ],
+ "items": [
+  {"id": "frontend-stores"},
+  {"id": "frontend-panels-data-surfaces"},
+  {"id": "frontend-panels-shell-chrome"},
+  {"id": "host-actions-proposed-changes"},
+  {"id": "workflow-engine"},
+  {"id": "hygiene-cross-platform"}
+ ]
+}

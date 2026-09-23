@@ -1,0 +1,82 @@
+[
+  {
+    "raw_id": "DAT-P9-1",
+    "title": "Income statement / balance sheet / cash flow for Amal Ltd (BSE 506597) silently show the US bank Amalgamated Financial Corp's real financials",
+    "severity": "critical",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/AMAL/income (or /balance, /cashflow) while the app's own /resolve and /fundamentals/AMAL correctly identify AMAL as BSE 506597 'Amal Ltd' (ISIN INE841D01013). The three statement endpoints instead return line items for a completely different company — periods 2021-12-31..2025-12-31, ~30M weighted-average shares, basic EPS ~3.4, retained earnings in the hundreds of millions, tens of millions in net interest income — none of which is plausible for the Indian Amal Ltd (1.236M shares, INR 12,360,000 face value capital, consolidated FY26 net profit INR 22 crore ≈ USD 2.6M). These numbers are byte-identical to the US NASDAQ-listed Amalgamated Financial Corp (battery slot P19, same 'AMAL' ticker).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:547-1946 (income/balance/cashflow blocks, provider 'openbb-mcp') vs docs/redesign/verification/r15/battery/collected/P19_AMAL.json:505-1904 — identical values line for line; sidecar/services/openbb_mcp_provider.py:260-262 (_normalize_symbol only upper-cases/dot-replaces, no BSE/NSE region suffix) and :463-481 (get_income_statement/get_balance_sheet/get_cash_flow send that bare symbol straight to the OpenBB MCP tool); contrast sidecar/services/yfinance_provider.py:97-135 (_yahoo_symbol DOES resolve a bare Indian ticker to '<symbol>.BO' via the bundled BSE master before querying) and :417-451 (yfinance's own get_income_statement/get_balance_sheet/get_cash_flow route through that same resolver, so a correct implementation already exists in the codebase for the fallback provider); sidecar/services/provider_registry.py:495-515 (get_income_statement/get_balance_sheet/get_cash_flow call _resolve_async with validator=None, unlike get_fundamentals at :473-483 which passes _fundamentals_screener_complete/_fundamentals_has_data — so nothing catches a wrong-entity-but-well-formed openbb-mcp result before it is served).",
+    "notes": "Root cause: openbb-mcp is ranked ahead of yfinance for the income_statement/balance_sheet/cash_flow model-keys (docstring in sidecar/routers/fundamentals.py:1-11: 'Phase 3 prefers openbb-mcp'), it is queried with the bare, un-suffixed ticker, and OpenBB's own default provider resolves a bare 'AMAL' to the US company. Because provider_registry never validates the statement result's identity against the resolved instrument (unlike the fundamentals model-key), the wrong company's real numbers are served as a 200 with no error, no warning, and no identity_note. Money-relevant data shown as true — this is exactly the class of bug the product's moat claim ('data trust') exists to prevent, and it hits the exact collision the battery slot was built to probe (manifest trap T1). Smallest fix shape: either (a) route _normalize_symbol in openbb_mcp_provider.py through the same BSE/NSE region-aware suffixing as yfinance_provider._yahoo_symbol before calling the three statement tools, or (b) give get_income_statement/get_balance_sheet/get_cash_flow in provider_registry.py an identity validator (company name / currency / share-count sanity check against the resolved instrument) the way get_fundamentals already has, so a wrong-entity openbb-mcp result triggers the yfinance fallback instead of being served."
+  },
+  {
+    "raw_id": "DAT-P9-2",
+    "title": "App is entirely unaware Amal Ltd has traded on NSE since 2026-08-17; results/filing-calendar route 502s",
+    "severity": "high",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/resolve?q=AMAL — resolved.exchange and every candidate report 'BSE' only, no NSE row, though NSE's own published equity master (nsearchives EQUITY_L.csv) has carried 'AMAL,Amal Limited,EQ,17-AUG-2026,...,INE841D01013,10' for over a month. GET http://127.0.0.1:52152/disclosures/results?symbol=AMAL returns HTTP 502 'nse_direct: 'AMAL' is not a known NSE instrument' — a real, currently-filing instrument's latest-results route is a hard error, not an honest empty/degraded state.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:15-32 (resolve candidates, exchange 'BSE' only) and :3457-3462 (results_calendar, 502); outside truth https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv (fetched 2026-09-19, per docs/redesign/verification/r15/battery/packs/P9_AMAL.json:41-49); sidecar/services/resolver_masters/nse_instruments.json generated 2026-06-05 per docs/redesign/verification/r15/battery/manifest.json's masters_consulted.nse block.",
+    "notes": "Master staleness (manifest trap T4) causing a live functional break, not just a stale label: the same ISIN now has two venues and two closing prices, and the app's NSE-keyed results route can't find the instrument at all. Smallest fix shape: either refresh the bundled NSE master on a shorter cadence, or make /disclosures/results fall back to BSE's own results/announcement feed (already reachable and correctly used elsewhere for this same stock) when the NSE-direct lookup 404s/502s on an instrument the BSE master resolves fine."
+  },
+  {
+    "raw_id": "DAT-P9-3",
+    "title": "Dividend record/ex/payment dates have no field or endpoint anywhere in the app; the trailing-12m dividend field is left null despite the raw data existing",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/AMAL returns dividend_per_share=1.5 and dividend_yield=0.0021 but dividend_per_share_ttm=null; sidecar/routers/disclosures.py defines only /announcements, /results, /shareholding — no dividend or corporate-action route exists anywhere in the sidecar.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:257-258,281 (dividend_per_share, dividend_yield populated; dividend_per_share_ttm null); sidecar/routers/disclosures.py (grep confirms no dividend/corporate-action route); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:412-450 (record_date/ex_date/payment_date all filled from BSE's own CorporateAction API).",
+    "notes": "Mandatory field per the DIFF spec ('declared vs paid dividends... record/ex date'). A user cannot tell from the app when a declared dividend goes ex or gets paid, and the one derived field meant to answer 'what have I actually been paid in the last year' is silently null even though the raw dividend_per_share needed to compute it is already in the same payload. Smallest fix shape: surface the exchange's CorporateAction history (already fetched correctly by the pack's own outside-truth pass) as a dividend/corporate-actions sub-resource, and populate dividend_per_share_ttm from it."
+  },
+  {
+    "raw_id": "DAT-P9-4",
+    "title": "The app's own two shareholding sources disagree on promoter and institutional holding for the same stock, same day",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/disclosures/shareholding?symbol=AMAL reports promoter_percent=71.35, institutions_percent(dii)=0.03 for quarter_end 2026-06-30 (matches BSE's own XBRL filing exactly). GET http://127.0.0.1:52152/fundamentals/AMAL (same collection run, same day) reports held_percent_insiders=0.71419 (71.419%) and held_percent_institutions=0.0 for the same stock.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:1979-1990 (disclosures/shareholding: promoter 71.35, dii 0.03) vs :279-280 (fundamentals: held_percent_insiders 0.71419, held_percent_institutions 0.0); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:476,482 (screener.in: promoter_pct 71.35, dii_pct 0.03, Jun 2026) confirms the shareholding endpoint is right and the fundamentals (yfinance-sourced) figure is off.",
+    "notes": "Promoter holding is explicitly the single most gameable number for an Indian small-cap (pack framing). Two endpoints of the same product disagreeing by 0.07pp on promoter and showing a flat 0% where the true DII stake is 0.03% is a real internal-consistency defect a demanding owner would hit immediately when cross-checking one panel against another. Smallest fix shape: have the fundamentals ratio panel read held_percent_insiders/held_percent_institutions from the same BSE-sourced shareholding-pattern data disclosures.py already serves correctly, instead of yfinance's own (stale/approximate) insider-holding estimate, for Indian instruments."
+  },
+  {
+    "raw_id": "DAT-P9-5",
+    "title": "Announcements feed returns only 1 of 3 real recent BSE filings for this stock",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/disclosures/announcements?symbol=AMAL&limit=25 returns count=1 (only the 2026-08-20 AGM speech/video/presentation filing). BSE's own announcement feed for the same window (2026-06-01 to 2026-09-19) also carries the 2026-08-14 scrutinizer's report and the 2026-08-14 AGM-outcome filing.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:3429-3455 (announcements, count:1); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:593-617 (last_3_announcements: 2026-08-20, 2026-08-14 x2, all from the same BSE AnnSubCategoryGetData endpoint family).",
+    "notes": "Not a labelled gap — the app presents this as a complete answer (count:1, no partial/truncated flag) while 2 of the 3 most recent real filings for this exact stock are missing. A user relying on the announcements panel to know what a company has recently disclosed gets an incomplete picture with no indication anything is missing."
+  },
+  {
+    "raw_id": "DAT-P9-6",
+    "title": "ROE, ROCE and debt-to-equity are blank for a stock where screener.in — the product's own stated benchmark — publishes all three on both bases",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/AMAL returns roe=null (field_meta reason 'provider did not publish this field'), debt_to_equity=null (same reason), and has no roce field in the response schema at all.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:419-425 (roe unavailable), :454-459 (debt_to_equity unavailable); sidecar/models/fundamentals.py (grep confirms no roce field anywhere in the Fundamentals model); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:234-287 (screener.in: ROE 4.64%/20.4%, ROCE 7.11%/26.0%, D/E 0.0/0.0 standalone/consolidated).",
+    "notes": "COMMON.md frames screener.in as the data-density benchmark this product is measured against; for this real stock, three of the ratios screener.in shows plainly are either null (yfinance simply didn't publish them for this small-cap) or structurally absent (roce has no field to populate). debt_to_equity is the most avoidable of the three — the true value (debt-free) is a simple, uncomplicated fact both a standalone and consolidated read agree on, yet the app shows 'unavailable' rather than 0. Smallest fix shape: compute ROE/ROCE/D-E from the balance-sheet + income-statement data the app already fetches (once DAT-P9-1's provider-identity bug is fixed) rather than depending solely on yfinance's sparse small-cap ratio coverage."
+  },
+  {
+    "raw_id": "DAT-P9-7",
+    "title": "52-week high and low have no per-leg as-of date; only a fetch timestamp is recorded",
+    "severity": "low",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/fundamentals/AMAL returns fifty_two_week_high=1010.0 and fifty_two_week_low=408.2 (both correct), but field_meta for both only carries as_of='2026-09-19T09:44:37Z' — the moment the API call ran, not the day either extreme actually occurred.",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:398-418 (fifty_two_week_high/low + field_meta, as_of = fetch time only); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:453-471 (BSE HighLow API: high 2025-10-15, low 2026-03-30, distinct dates).",
+    "notes": "Mandatory subtle-tier field per the DIFF spec ('52-week range — high AND low, each with its own as-of date'). The values themselves are correct, so this is a presentation/completeness gap rather than a wrong number — the stock swung from INR 1010 to 408 to 720.80 inside a year (drawdown -28.6% from high per the pack), and knowing WHEN the high/low happened is materially informative for exactly this kind of volatile small-cap."
+  },
+  {
+    "raw_id": "DAT-P9-8",
+    "title": "Quote volume is null despite a real traded volume existing for the session",
+    "severity": "medium",
+    "area": "data",
+    "subsystem": "P9_AMAL",
+    "repro": "GET http://127.0.0.1:52152/quotes/AMAL?asset_class=equity returns volume=null for the 2026-09-18 EOD BSE quote, though BSE's own StockTrading API for the same session reports 8,991 shares traded (INR 64.53 lakh turnover).",
+    "evidence": "docs/redesign/verification/r15/battery/collected/P9_AMAL.json:218-238 (quote body, volume: null, provider 'bse'); outside truth docs/redesign/verification/r15/battery/packs/P9_AMAL.json:138-148 (BSE StockTrading: volume_shares 8991, turnover INR 64.53 lakh).",
+    "notes": "Price and change match the exchange exactly on this same call, so the BSE provider clearly has session data available — volume specifically is dropped. For a stock this thin (pack trap T9: any few-thousand-share move looks like a 'spike'), volume is exactly the field a liquidity-aware feature would need and it is silently absent rather than surfaced with an honest gap marker."
+  }
+]

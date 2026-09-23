@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "DAT-P8-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The mismatch is real. Both authoritative Indian classifiers put the scrip in Financial Services / Investment Company: BSE ComHeader per the pack, and screener.in, whose breadcrumb I re-fetched. The app instead serves yfinance's 'Basic Materials / Chemicals' as status ok, because NAPEROL is absent from the bundled india_sector_map, which the app's own pipeline builds BSE-first. Two corrections. First, the mechanism is not pure pre-demerger residue: yfinance's own summary says the company runs Investment and Trading segments including chemicals trading, and screener's Jun-2026 quarter (Rs 9.45 cr sales at about 2% margin) looks like trading revenue. So 'Chemicals' is a stale, minority-segment label that contradicts the exchange, not a fabricated one. Second, a sector label is not money-relevant data. Its consumers are the Equity Overview header, the company-narrative LLM prompt, screener sector filters and the semantics financial-sector branch, so this is a real misclassification a demanding user hits (medium), not a core flow break (high).",
+    "evidence": "sidecar/services/yfinance_provider.py:361-362 (sector/industry straight from info), sidecar/services/resolver_masters/regenerate_india_sectors.py:400-411 (app's own sector map prefers BSE, yfinance last), sidecar/services/company_narrative.py:316-318 (sector/industry fed into narrative prompt), sidecar/services/screener.py:381,451 (sector as screen field), sidecar/services/research/semantics.py:448-454 (_is_financial_sector), src/modules/equity-overview/EquityOverviewPanel.tsx:1018-1021 (header shows sector/industry); https://www.screener.in/company/500298/ (fetched 2026-09-23T01:09:39Z: breadcrumb 'Broad Sector Financial Services > Sector Financial Services > Broad Industry Finance > Industry Investment Company')",
+    "evidence_checked": "Opened the cited code. Re-ran GET /fundamentals/NAPEROL on :52152. Re-fetched screener.in (the pack source). Ran yfinance info for NAPEROL.BO locally. Checked the india_sector_map records for NAPEROL (absent).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/NAPEROL returned sector 'Basic Materials', industry 'Chemicals', field_meta ok/yfinance (2026-09-23T01:08Z). yf.Ticker('NAPEROL.BO').info has sector Basic Materials / industry Chemicals, but its longBusinessSummary reads 'engages in investment and leasing businesses ... two segments, Investment and Trading ... also involved in trading of chemicals'."
+  },
+  {
+    "raw_id": "DAT-P8-2",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The 502 is real and structural. get_results_calendar is NSE-only with no BSE lane (unlike shareholding), and the router maps the ProviderError to a 502 carrying the misleading 'not a known NSE instrument' text for every BSE-only name. The severity is overstated for the same reasons as DAT-P4-4/DAT-P6-3. First, the route serves board-meeting/results DATES, not results figures, so the Q1 FY27 revenue/profit the finding cites as outside truth is a different field; the pack itself records the results filing date as a world gap. Second, no frontend panel calls /disclosures/results. Third, its only other consumer (research fetch_results_calendar) soft-fails to ok:false.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358 (NSE-only nse_provider.get_results_calendar), sidecar/routers/disclosures.py:74-92 (ProviderError -> 502), sidecar/services/research/disclosures.py:183-201 (soft-fail consumer); grep of src/ for 'disclosures/results' finds no caller; docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json latest_results.filing_date (value null, 'GENUINE GAP')",
+    "evidence_checked": "Opened the service, router and research consumer. Grepped the frontend. Re-ran the repro on :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/disclosures/results?symbol=NAPEROL' returned HTTP 502 {\"detail\":\"nse_direct: 'NAPEROL' is not a known NSE instrument\"} (2026-09-23T01:08Z)."
+  },
+  {
+    "raw_id": "DAT-P8-3",
+    "verdict": "refuted",
+    "severity_final": "high",
+    "reason": "Not a wrong value but a definitional difference (annual/trailing dividend rate vs last single declared dividend), and the claimed mechanism is backwards. dividend_per_share maps Yahoo's dividendRate. For NAPEROL.BO that is 19.48 = Rs 3.00 interim (ex 2026-03-04) + Rs 16.48 final (ex 2026-09-09), both inside the trailing 12 months of the 19-Sep snapshot. The yield is derived from that rate (19.48 / 645.55 = 3.02%), not the rate from the yield. Screener corroborates both legs: FY26 payout 16% x EPS 18.75 = Rs 3.0 (the interim), and screener's own 3.03% yield x Rs 642 = Rs 19.46, i.e. screener's yield is also on the 19.48 total, contrary to the pack's note. The Rs 16.48 declared final is correct and is lastDividendValue on Yahoo. It is a different fact, which PROMPT_data_s2 says never to collapse into the annual figure.",
+    "evidence": "sidecar/services/yfinance_provider.py:374 (dividend_per_share = info dividendRate), sidecar/services/yfinance_provider.py:343-350 (yield from dividendYield), src/modules/equity-overview/EquityOverviewPanel.tsx:132 (label 'Dividend / share'); https://www.screener.in/company/500298/ (fetched 2026-09-23T01:09:39Z: P&L 'EPS in Rs ... Mar 2026 18.75', 'Dividend Payout % ... Mar 2026 16%', Dividend Yield 3.03%)",
+    "evidence_checked": "Opened the yfinance mapping and the panel label. Re-ran /fundamentals/NAPEROL on :52152 (dividend_per_share 19.48, yield 0.0302). Ran yfinance info and dividends for NAPEROL.BO. Re-fetched screener.in.",
+    "repro_check": "sidecar/.venv/bin/python3 -c \"import yfinance as yf; t=yf.Ticker('NAPEROL.BO'); print(t.info['dividendRate'], t.info['lastDividendValue'], t.dividends.tail(3))\" printed 19.48, 16.48, then 2025-03-27 9.00 / 2026-03-04 3.00 / 2026-09-09 16.48. 3.00 + 16.48 = 19.48."
+  },
+  {
+    "raw_id": "DAT-P8-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Half holds. The insiders leg is definitional: Yahoo heldPercentInsiders (73.04%) is a superset roster with no quarter date, labelled 'Insiders' on the panel. Its 2.28pp gap over the 70.76% exchange promoter group is in the expected direction and inside the code's own 3pp definitional band. The research path already flags it as a definitional conflict, so 'same Jun-2026 quarter' is wrong. The institutions leg is a genuine contradiction: 0.0% vs the BSE XBRL's 1.77% (FII 1.76%) is a zero-vs-nonzero divergence that semantics._diverges_by_factor itself classes as a data conflict. The research snapshot discloses both, but the Equity Overview 'Ownership' block shows the yfinance 'Institutions 0.00%' as status ok with no exchange figure or flag beside it, so a wrong value is shown as true on that surface. It is small (1.77pp) and not money-scale, hence medium, not high.",
+    "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:141-142 (Insiders/Institutions from yfinance fields, no cross-check), sidecar/services/yfinance_provider.py:398-399, sidecar/services/research/semantics.py:76-91 (2pp promoter band, 3pp definitional band, 2x institutions ratio, 0.5pp zero floor), sidecar/services/research/semantics.py:456-467 (_diverges_by_factor zero-vs-nonzero), sidecar/services/research/semantics.py:537-599 (_ownership_leg discloses, never replaces), sidecar/services/ownership_check.py:1-35 (insiders != promoter-group; yfinance institutions unreliable on BSE micro-caps)",
+    "evidence_checked": "Opened the panel, the yfinance mapping, the semantics ownership leg and the ownership_check docstring. Re-ran /fundamentals/NAPEROL on :52152 (0.7304 / 0.0). Collected shareholding patterns[0] shows 70.76 / 1.77 for 2026-06-30.",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/NAPEROL returned held_percent_insiders 0.7304, held_percent_institutions 0.0 (meta ok). With 1.77 vs 0.0 the research leg fires the institutions conflict (hi 1.77 > 0.5 floor), and 73.04 vs 70.76 (2.28pp > 2.0) fires a promoter conflict inside the 3pp definitional band. The overview panel renders neither conflict."
+  },
+  {
+    "raw_id": "DAT-P8-5",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The blank is real: Yahoo publishes no returnOnEquity for NAPEROL.BO, and the app computes no ROE from its own statements. The statements are correct-entity here (yfinance NAPEROL.BO), so the proposed derivation is viable. But it is not a silent blank: field_meta stamps 'unavailable' with a reason, and the Equity Overview renders a reason chip. That makes it an honestly labelled provider gap, low as with DAT-P4-6. Side note: the chip reads 'unavailable', not 'not published', because the panel tests reason.includes('not published') against the string 'provider did not publish this field'.",
+    "evidence": "sidecar/services/yfinance_provider.py:381 (roe = info returnOnEquity), sidecar/services/yfinance_provider.py:185,188-213 (unavailable stamp with _NULL_FIELD_REASON), src/modules/equity-overview/EquityOverviewPanel.tsx:190-200 (reason chip; includes('not published') misses 'did not publish'), docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json calls.income/balance (provider yfinance, symbol NAPEROL.BO)",
+    "evidence_checked": "Opened the mapping, the field_meta stamping and the panel chip. Re-ran /fundamentals/NAPEROL on :52152. Ran yfinance info (returnOnEquity None).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/NAPEROL returned roe null, field_meta.roe {status:'unavailable', reason:'provider did not publish this field'}. yf.Ticker('NAPEROL.BO').info.get('returnOnEquity') returned None."
+  },
+  {
+    "raw_id": "DAT-P8-6",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "Same shape as DAT-P8-5 and DAT-P4-6. Yahoo omits debtToEquity for this debt-free company, and the app maps the absence to null with an explicit 'unavailable' field_meta reason and a panel chip. The world value (0.0x, borrowings Rs 0 for three years) and the app's own correct-entity balance sheet (Total Debt 0) show the gap is real and cheaply derivable, but it is honestly labelled, so low, not medium.",
+    "evidence": "sidecar/services/yfinance_provider.py:353-356 (debtToEquity -> None when absent), sidecar/services/yfinance_provider.py:188-213 (unavailable stamp), src/modules/equity-overview/EquityOverviewPanel.tsx:190-200 (reason chip), docs/redesign/verification/r15/battery/collected/P8_NAPEROL.json calls.balance (yfinance NAPEROL.BO)",
+    "evidence_checked": "Opened the mapping and field_meta code. Re-ran /fundamentals/NAPEROL on :52152. Ran yfinance info (debtToEquity None).",
+    "repro_check": "curl -s 127.0.0.1:52152/fundamentals/NAPEROL returned debt_to_equity null, field_meta.debt_to_equity {status:'unavailable', reason:'provider did not publish this field'}. yf info debtToEquity returned None."
+  },
+  {
+    "raw_id": "DAT-P8-7",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "Definitional difference: the app field is not a legal-name history. Instrument.former_name is documented as 'the retired symbol, when answered as its renamed form'. It is filled only from the NSE symbol-change lane's RenameAnnotation.renamed_from, when a user queries an OLD NSE ticker and gets its current one. NAPEROL was queried by its current symbol and is not NSE-listed, so null is correct by design. The pack's former_names (a former LEGAL name) is a different field. The proposed backfill would also be harmful: 'National Peroxide Ltd' is today a separate live listing (BSE 544205, the demerged chemicals business, as the pack's trap[0] warns), and the resolver correctly answers 'National Peroxide' with that company. Stamping it onto 500298 would create the identity collision the finding wants to prevent. At most, a separate low item: the app has no legal-name-history field. That is not a mismatch under the diff rules.",
+    "evidence": "sidecar/services/symbol_resolver.py:239 (former_name = retired symbol), sidecar/services/symbol_resolver.py:192-203 (RenameAnnotation, NSE lane), sidecar/services/symbol_resolver.py:782-825 (_rename_instrument, NSE symbolchange only), sidecar/services/symbol_resolver.py:896 (former_name = inst.rename.renamed_from), sidecar/routers/resolve.py:43; docs/redesign/verification/r15/battery/packs/P8_NAPEROL.json traps[0]",
+    "evidence_checked": "Opened the resolver dataclass, enrichment and rename lane. Re-ran /resolve?q=NAPEROL, q=National+Peroxide, q=National+Peroxide+Ltd and q=NATPEROX on :52152.",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=National+Peroxide' resolved NPL 'National Peroxide Ltd' BSE 544205 (a different live company), and /resolve?q=NAPEROL returned former_name null (no rename event: current symbol, BSE-only)."
+  }
+]

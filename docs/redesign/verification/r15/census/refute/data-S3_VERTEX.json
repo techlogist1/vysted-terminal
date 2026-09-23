@@ -1,0 +1,65 @@
+[
+  {
+    "raw_id": "DAT-S3-1",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "Real: /fundamentals passes yfinance heldPercentInsiders straight through (0.77676, status ok, no cross-check) while the app's own BSE SHP for the same quarter says promoter 36.43% and Screener (re-fetched) says 36.44%; 77.68% is stale under any definition (insiders cannot exceed post-rights promoter group by 41pp). Corrected on mechanism and severity: the value is labelled 'Insiders', not 'promoter', in the Equity Overview (EquityOverviewPanel.tsx:141), and the research path already cross-checks it against the exchange SHP and emits a DATA-kind ownership conflict (semantics.py:571-576, ownership_check.py) - so the defect is confined to the REST/overview row and the screener filter (labelled 'Insider/promoter holding'), not the primary research surface; high, not critical.",
+    "evidence": "sidecar/services/yfinance_provider.py:398, sidecar/routers/fundamentals.py:90-118, sidecar/services/ownership_check.py:1-35, sidecar/services/research/semantics.py:469-500,571-576, src/modules/equity-overview/EquityOverviewPanel.tsx:141, src/modules/screener/CriterionGroupEditor.tsx:51, src/modules/screener/ScreenerPresets.tsx:112, https://www.screener.in/company/531950/ (re-fetched 2026-09-23T01:34:59Z)",
+    "evidence_checked": "Opened provider mapping, fundamentals router, ownership cross-check + semantics conflict derivation, overview panel labels and screener labels; re-ran GET /fundamentals/VERTEX on :52152; re-fetched Screener (Jun 2026 promoters 36.44%).",
+    "repro_check": "curl -s http://127.0.0.1:52152/fundamentals/VERTEX -> held_percent_insiders=0.77676004, field_meta status ok (2026-09-23); Screener shareholding row 'Promoters ... 36.44% 36.44%' for Mar/Jun 2026."
+  },
+  {
+    "raw_id": "DAT-S3-2",
+    "verdict": "admitted",
+    "severity_final": "critical",
+    "reason": "Holds: book_value, price_to_book, shares_outstanding and market_cap are each passed through raw from yfinance info (no reconciliation), and the same payload mixes bases - market_cap 461,836,064 at price 3.12 implies ~148.0M shares while shares_outstanding=74,012,189 and book_value=1.369 (=10.13cr/74.01M), a share count refuted by the FY26 balance sheet (92.5M at 2026-03-31). Under any consistent basis BVPS is 0.68-1.10 and P/B ~2.8-4.6x, not 1.369/2.28x. The correctness gate's market-cap-vs-shares cross-check that should catch this is structurally blind for loss-makers: it needs a price from pe x eps, which is None when PE is null.",
+    "evidence": "sidecar/services/yfinance_provider.py:365,369,372,394, sidecar/services/correctness_gate.py:179-191,265-279, docs/redesign/verification/r15/battery/packs/S3_VERTEX.json (shares_outstanding, book_value_per_share.mechanism, market_cap.best_supported), https://www.screener.in/company/531950/ (re-fetched 2026-09-23T01:34:59Z)",
+    "evidence_checked": "Opened provider mapping and correctness gate; re-ran GET /fundamentals/VERTEX on :52152 (values persist, price moved to 3.12); re-fetched Screener (Book Value 0.74 standalone, Market Cap 46.2 Cr at 3.12 = 148M shares).",
+    "repro_check": "curl -s http://127.0.0.1:52152/fundamentals/VERTEX -> market_cap=461836064, shares_outstanding=74012189, book_value=1.369, price_to_book=2.279 (all status ok); 461836064/3.12 = 148.0M != 74.0M."
+  },
+  {
+    "raw_id": "DAT-S3-3",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The null is real but not silent: dividend_yield carries field_meta status 'unavailable' / 'provider did not publish this field' and the overview renders an em-dash + 'not published' chip (EquityOverviewPanel.tsx:183-200), so it is a labelled gap, not a blank shown as a value. dividend_per_share_ttm is null on the REST route because only the research path threads the affirmed-zero DividendTTM onto it (fast.py:207-232), and the overview does not render that field. The gap - the app's own affirmed-zero machinery never reaches the plain /fundamentals surface, so a known 0.00% reads as 'not published' - is polish, low.",
+    "evidence": "sidecar/services/yfinance_provider.py:346-351,373, sidecar/services/research/fast.py:207-232, src/modules/equity-overview/EquityOverviewPanel.tsx:131-133,183-200, https://www.screener.in/company/531950/ (re-fetched 2026-09-23T01:34:59Z)",
+    "evidence_checked": "Opened yfinance dividend-yield mapping, research affirmed-zero threading, overview null-reason rendering; re-ran GET /fundamentals/VERTEX (dividend_yield null/unavailable, dividend_per_share_ttm null, no field_meta); Screener 'Dividend Yield 0.00 %'.",
+    "repro_check": "curl -s http://127.0.0.1:52152/fundamentals/VERTEX | jq '.dividend_yield, .field_meta.dividend_yield, .dividend_per_share_ttm' -> null, {status: unavailable, reason: 'provider did not publish this field'}, null."
+  },
+  {
+    "raw_id": "DAT-S3-4",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Real: get_results_calendar is NSE-only (corporate_disclosures.py:335-340 calls nse_provider.get_results_calendar with no BSE lane, unlike get_shareholding's NSE/BSE lanes at :366-393) and the router maps the ProviderError to 502 (disclosures.py:87-90), so every BSE-only scrip 502s. Corrected severity: no frontend module consumes /disclosures/results (grep of src finds none), and the only in-app consumer, research's earnings-date branch, soft-degrades to 'results calendar unavailable' (research/disclosures.py:185-203); this route serves board-meeting dates, not the latest-results financials the notes cite. A real gap for BSE-only names, not a broken core flow - medium.",
+    "evidence": "sidecar/services/corporate_disclosures.py:335-358,366-393, sidecar/routers/disclosures.py:74-92, sidecar/services/research/disclosures.py:185-203,319-321",
+    "evidence_checked": "Opened the service, router and research consumer; grepped src/ for consumers (none); re-ran GET on :52152.",
+    "repro_check": "curl -s -w '%{http_code}' 'http://127.0.0.1:52152/disclosures/results?symbol=VERTEX' -> 502 {\"detail\":\"nse_direct: 'VERTEX' is not a known NSE instrument\"} (2026-09-23)."
+  },
+  {
+    "raw_id": "DAT-S3-5",
+    "verdict": "admitted",
+    "severity_final": "medium",
+    "reason": "Holds: there is no ROCE / return-on-capital-employed field anywhere in the sidecar models, providers, types or UI (word-bounded grep of sidecar/, src/, types/ returns nothing), and the live /fundamentals payload has roe/roa but no roce key. Screener (re-fetched) shows ROCE -13.4% as a headline ratio; a schema gap across every symbol, medium as filed.",
+    "evidence": "sidecar/models/fundamentals.py (field list, no roce), sidecar/services/yfinance_provider.py:381-383, https://www.screener.in/company/531950/ (re-fetched 2026-09-23T01:34:59Z)",
+    "evidence_checked": "grep -rnw -i roce and 'capital employed|return_on_capital' over sidecar/ src/ types/ (no hits); re-ran GET /fundamentals/VERTEX ('roce' in body -> False).",
+    "repro_check": "curl -s http://127.0.0.1:52152/fundamentals/VERTEX | jq 'has(\"roce\")' -> false; Screener top ratios 'ROCE -13.4 %'."
+  },
+  {
+    "raw_id": "DAT-S3-6",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Holds as a narrow inconsistency: _shp_summary_from_categories sets dii/fii only when the XBRL carries the domestic/foreign members but still derives institutions_percent (explicit member, or public - non_institutions = 63.57 - 63.57 = 0), so a zero institutions total coexists with null FII/DII even though non-negative components summing to 0 are both necessarily 0. Low as filed.",
+    "evidence": "sidecar/services/bse_provider.py:763-791, sidecar/services/corporate_disclosures.py:469-471, docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.shareholding.body.patterns[0]",
+    "evidence_checked": "Opened the BSE SHP XBRL summary derivation and the corporate_disclosures mapping; read the 19-Sep collected shareholding record (institutions_percent 0.0, fii/dii null, public 63.57 = public_non_institutional 63.57).",
+    "repro_check": "GET /disclosures/shareholding?symbol=VERTEX patterns[0] -> dii_percent null, fii_percent null, institutions_percent 0.0 (19-Sep snapshot; not re-fetched, 30s route)."
+  },
+  {
+    "raw_id": "DAT-S3-7",
+    "verdict": "refuted",
+    "severity_final": "low",
+    "reason": "The finding's load-bearing claim is false: -0.25 lies INSIDE the outside range it cites (-0.0676 to -0.32), and the pack records eps_ttm as an UNRESOLVED SOURCE CONFLICT with value null, so by the diff rule there is no single outside truth to mismatch. -0.25 is also consistent with net_income_ttm -2.3657cr over a weighted-average TTM share count of ~94.6M (the Ind AS 33 basic-EPS basis, between the 74.0M pre-rights and 148.0M post-rights counts that straddle this TTM window) - a defensible basis, not a wrong value.",
+    "evidence": "sidecar/services/yfinance_provider.py:375, docs/redesign/verification/r15/battery/packs/S3_VERTEX.json eps_ttm (value null, candidates -0.0676..-0.32), docs/redesign/verification/r15/battery/collected/S3_VERTEX.json calls.fundamentals.body.net_income_ttm (-23657000), https://www.screener.in/company/531950/ (re-fetched 2026-09-23T01:34:59Z)",
+    "evidence_checked": "Opened the eps mapping (trailingEps pass-through); read pack eps_ttm and collected net_income_ttm; re-fetched Screener quarterly EPS (-0.02/-0.03/-0.09/-0.03 on the 148M post-rights count) to confirm the spread is a share-count-basis spread.",
+    "repro_check": "-23,657,000 / -0.25 = 94.6M shares, within [74.0M, 148.0M]; -0.25 in [-0.32, -0.0676] -> not outside the observed outside range."
+  }
+]
