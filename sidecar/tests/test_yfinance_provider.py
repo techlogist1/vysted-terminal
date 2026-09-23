@@ -540,3 +540,15 @@ def test_history_keeps_zero_volume_bars_whose_prices_move(
     )
     _history_ticker(monkeypatch, frame)
     assert len(yfinance_provider.get_history("^NSEI", "1d", "1mo").bars) == 3
+
+
+@pytest.mark.parametrize("index", ["^NSEI", "^BSESN"])
+def test_yahoo_symbol_passes_caret_index_through_in_an_in_session(index: str) -> None:
+    """R15-LEAD-011: Yahoo serves a caret index unsuffixed; ``^NSEI.NS`` is empty."""
+    import config
+
+    token = config.set_request_region("IN")
+    try:
+        assert yfinance_provider._yahoo_symbol(index) == index
+    finally:
+        config.reset_request_region(token)

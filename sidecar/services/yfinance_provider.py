@@ -98,7 +98,7 @@ def _yahoo_symbol(symbol: str) -> str:
     """Resolve the symbol to the form Yahoo actually serves data for.
 
     Three cases, in order:
-      * a ``.NS``/``.BO`` suffix is already a Yahoo India symbol — pass it through
+      * a ``.NS``/``.BO`` suffix or a ``^`` index symbol is already Yahoo's form — pass it through
         UNCHANGED (the old ``_normalize_symbol`` wrongly turned ``ROUTE.NS`` into
         ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on — the root cause of
         the all-dashes Indian Equity Overview);
@@ -108,8 +108,8 @@ def _yahoo_symbol(symbol: str) -> str:
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
-    if s.endswith((".NS", ".BO")):
-        return s
+    if s.endswith((".NS", ".BO")) or s.startswith("^"):
+        return s  # a caret index (^NSEI, ^BSESN) is served unsuffixed (R15-LEAD-011)
     # Region-aware India resolution. The symbol's intrinsic hint wins; else the
     # active session region. In an IN context a bare (dot-free) ticker picks the
     # exchange the instrument actually lists on — NSE by default, BUT a BSE-ONLY
