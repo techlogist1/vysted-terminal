@@ -27,6 +27,7 @@ import json
 import logging
 import re
 import time
+import uuid
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -52,7 +53,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services import agent_tools, model_registry
+from services import action_ledger, agent_tools, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot
@@ -1423,14 +1424,12 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
     ``research_step`` with ``step_kind="notice"`` (C9): the frontend renders it
     as a transcript chip by KIND, never by matching this copy (R15-AGENT-031).
     """
-    from services import action_ledger
-
     deadline = time.monotonic() + _ACK_GRACE_SECONDS
     pending = {cid for cid in publish_calls if action_ledger.get(cid) is None}
     while pending and time.monotonic() < deadline:
         await asyncio.sleep(_ACK_POLL_SECONDS)
         pending = {cid for cid in pending if action_ledger.get(cid) is None}
-    entries = [(cid, action_ledger.get(cid)) for cid in publish_calls]
+    entries = [(cid, action_ledger.take(cid)) for cid in publish_calls]
     notices: list[LLMResearchStepEvent] = []
     for index, (call_id, entry) in enumerate(entries, start=1):
         status = entry.get("status") if entry else None
@@ -1549,8 +1548,6 @@ async def _await_host_action_acks(call_ids: list[str]) -> None:
     real outcome instead of the optimistic "dispatched". One window covers the
     whole round's host actions (not one wait per call) so the loop never stalls.
     """
-    from services import action_ledger
-
     deadline = time.monotonic() + _ACK_GRACE_SECONDS
     pending = {cid for cid in call_ids if action_ledger.get(cid) is None}
     while pending and time.monotonic() < deadline:
@@ -1951,6 +1948,7 @@ async def invoke_agent(
     # Any prose streamed this turn (every round): a turn that ends with none
     # is an empty answer, never a silent success (R15-AGENT-026).
     turn_text = False
+    seen_call_ids: set[str] = set()
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -1988,6 +1986,13 @@ async def invoke_agent(
             if isinstance(event, LLMToolUseEvent):
                 if capped:
                     continue
+                # The runtime owns tool-call identity (R15-AGENT-046): Ollama sends
+                # '' and Gemini `name_index` per stream, so an empty id or one seen
+                # this turn is replaced before the tool-use turn, the tool result
+                # or any derived id uses it; acks are consumed once when read.
+                if not event.tool_call_id or event.tool_call_id in seen_call_ids:
+                    event.tool_call_id = f"call_{uuid.uuid4().hex}"
+                seen_call_ids.add(event.tool_call_id)
                 _normalise_tool_args(event)
                 if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
                     # Never hand the UI a host action with invalid args (it would
@@ -2208,11 +2213,16 @@ async def invoke_agent(
         # kept_previous / failed / not-yet-confirmed) so the model's NEXT stream
         # narrates the ground truth instead of the optimistic "dispatched".
         if host_action_readbacks:
-            from services import action_ledger
-
             await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
             for tc, msg in host_action_readbacks:
-                msg.content = _grounded_host_action_result(tc, action_ledger.get(tc.tool_call_id))
+                # Each ack is consumed by its last reader: a publish's is read
+                # again by the end-of-turn divergence check (R15-AGENT-046).
+                read = (
+                    action_ledger.get
+                    if tc.tool_call_id in publish_brief_calls
+                    else action_ledger.take
+                )
+                msg.content = _grounded_host_action_result(tc, read(tc.tool_call_id))
         # At the cap the next iteration is the capped final round (see the
         # loop head): it streams the answer and exits on its terminator.
         rounds += 1

@@ -1633,6 +1633,68 @@ async def test_host_action_readback_skipped_outside_auto(
     action_ledger.reset_for_tests()
 
 
+class _EmptyIdHostActionProvider:
+    """Ollama-shaped: two rounds each issue a host action with ``tool_call_id=''``,
+    then a final answer."""
+
+    def __init__(self) -> None:
+        self.round_messages: list[list[LLMMessage]] = []
+
+    async def stream_chat(self, messages: list[LLMMessage], model: str, **_: Any) -> Any:
+        self.round_messages.append(list(messages))
+        if len(self.round_messages) <= 2:
+            yield LLMToolUseEvent(tool_call_id="", name="set_chart_symbol", input={"symbol": "SPY"})
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=1))
+            return
+        yield LLMDeltaEvent(text="Done.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
+
+
+@pytest.mark.asyncio
+async def test_runtime_mints_distinct_ids_for_empty_provider_ids_and_acks_resolve(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-046: two Ollama rounds whose host actions carry '' get distinct,
+    non-empty runtime ids, and the panel's ack for each grounds it as applied."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    agent_runtime.reload()
+    provider = _EmptyIdHostActionProvider()
+    _patch_provider(monkeypatch, provider)
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    ids: list[str] = []
+    async for event in agent_runtime.invoke_agent(
+        agent_id="copilot", prompt="load SPY", mode="edit", autonomy="auto"
+    ):
+        if isinstance(event, LLMToolUseEvent):
+            ids.append(event.tool_call_id)
+            action_ledger.record(event.tool_call_id, "applied")  # the panel's ack
+    assert len(ids) == 2 and all(ids) and ids[0] != ids[1]
+    for round_index, call_id in ((1, ids[0]), (2, ids[1])):
+        msg = _tool_result_for(provider.round_messages[round_index], call_id)
+        assert msg is not None
+        assert json.loads(msg.content)["status"] == "applied"
+    action_ledger.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_a_prior_autobrief_ack_does_not_confirm_a_later_brief(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-046: an ack grounds one read. A later publish reusing the id
+    (a provider id reset per stream) is not confirmed by the earlier ack."""
+    from services import action_ledger
+
+    action_ledger.reset_for_tests()
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+    action_ledger.record("research_0__autobrief", "applied")
+    assert await agent_runtime._publish_divergence_notices(["research_0__autobrief"]) == []
+    later = await agent_runtime._publish_divergence_notices(["research_0__autobrief"])
+    assert len(later) == 1 and "did not confirm" in later[0].detail
+    action_ledger.reset_for_tests()
+
+
 # ---------------------------------------------------------------------------
 # WS8 — DeepSeek/OpenRouter tool-loop resilience (runtime side)
 # ---------------------------------------------------------------------------
