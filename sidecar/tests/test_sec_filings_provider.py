@@ -108,6 +108,28 @@ async def test_status_returns_endpoint_when_available(
     assert status["provider"] == "sec-edgar-mcp"
 
 
+@pytest.mark.asyncio
+async def test_is_error_payload_marks_the_provider_down(
+    recorder: _RecordingClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An ``isError`` tool result is a failed call: the health flags record it and
+    status reports unavailable until the next success (R15-DATA-083)."""
+    recorder.respond("search_companies", {"results": []})
+    await sec_filings_provider.search_companies("apple")
+    assert (await sec_filings_provider.status())["lastToolCallOk"] is True
+
+    async def _is_error(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        return {"isError": True, "content": [{"type": "text", "text": "upstream 500"}]}
+
+    monkeypatch.setattr(recorder, "call_tool", _is_error)
+    with pytest.raises(ProviderError, match="upstream 500"):
+        await sec_filings_provider.search_companies("nvidia")
+    status = await sec_filings_provider.status()
+    assert status["lastToolCallOk"] is False
+    assert "upstream 500" in status["lastError"]
+    assert status["available"] is False
+
+
 # ---------------------------------------------------------------------------
 # list_filings
 # ---------------------------------------------------------------------------

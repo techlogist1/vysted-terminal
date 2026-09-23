@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import socket
 from datetime import UTC, datetime
 from typing import Any
 
@@ -470,3 +471,32 @@ def test_registry_uses_openbb_mcp_when_available(
     result = asyncio.run(provider_registry.get_fundamentals("AAPL"))
     assert result.provider == "openbb-mcp"
     assert result.pe_ratio == 31.2
+
+
+def test_dead_child_falls_through_and_reports_unavailable(
+    monkeypatch: pytest.MonkeyPatch, mock_yfinance: object
+) -> None:
+    """With nothing listening on the openbb-mcp port, the REAL client's failure is a
+    ProviderError, so the registry falls through to yfinance, and status stops
+    reporting the provider available (R15-LIFECYCLE-005)."""
+    from services import provider_registry
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    monkeypatch.setenv("VYSTED_OPENBB_MCP_PORT", str(port))
+    openbb_mcp_provider._reset_for_tests()
+
+    async def _go() -> tuple[Any, dict[str, Any]]:
+        await mcp_client.reset_clients()
+        try:
+            result = await provider_registry.get_fundamentals("AAPL")
+            return result, await openbb_mcp_provider.status()
+        finally:
+            await mcp_client.reset_clients()
+
+    result, status = asyncio.run(_go())
+    assert result.provider == "yfinance"
+    assert status["available"] is False
+    assert status["lastToolCallOk"] is False
+    assert "ConnectError" in status["lastError"]
