@@ -427,11 +427,6 @@ def _merge_meta(f: Fundamentals, withheld: dict[str, str], flagged: dict[str, st
 _OWNERSHIP_BAND_PP = 3.0
 
 
-def _is_india_listing(symbol: str) -> bool:
-    """True for a resolved Yahoo India listing (``.NS``/``.BO``), per C4."""
-    return symbol.strip().upper().endswith((".NS", ".BO"))
-
-
 def reconcile_ownership(
     f: Fundamentals, exchange: ownership_check.ExchangeOwnership | None
 ) -> Fundamentals:
@@ -609,7 +604,7 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         statement and quarterly period ends → :func:`reconcile_revenue`.
     """
     has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
-    check_ownership = has_ownership and _is_india_listing(f.symbol)
+    check_ownership = has_ownership and ownership_check.is_applicable(f.symbol)
     check_revenue = f.revenue_ttm is not None and f.provider == yfinance_provider.PROVIDER
 
     async def ownership() -> ownership_check.ExchangeOwnership | None:

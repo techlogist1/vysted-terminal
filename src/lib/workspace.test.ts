@@ -1312,6 +1312,21 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     }
   });
 
+  it("a setter that rejects its input schedules no autosave", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts = stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    unwire = wireAutosaveTriggers();
+    await vi.advanceTimersByTimeAsync(1_000);
+    const before = posts.length;
+
+    useSearchSettingsStore.getState().setResearchModel("deep", "has spaces!!");
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(posts).toHaveLength(before);
+  });
+
   it("saved screens survive serialize, a fresh store and deserialize", () => {
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never });
