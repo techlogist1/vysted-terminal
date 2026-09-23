@@ -374,3 +374,80 @@ def test_get_fundamentals_populates_field_meta_provenance(
     # is NOT pre-stamped 'unavailable' — the derived leg owns its provenance.
     assert "dividend_per_share_ttm" not in meta
     assert "revenue_growth_computed" not in meta
+
+
+# --- R15-DATA-008: statement sizes carry their own reporting currency ----------
+
+
+def _adr_info(**overrides: object) -> dict:
+    """SIFY's Yahoo ``info`` shape (collected 2026-09-19): trades in USD, reports in
+    INR, so ``totalRevenue``/``netIncomeToCommon`` are INR amounts."""
+    info: dict = {
+        "longName": "Sify Technologies Limited",
+        "currency": "USD",
+        "financialCurrency": "INR",
+        "marketCap": 989_456_832,
+        "currentPrice": 13.66,
+        "totalRevenue": 46_506_049_536,
+        "netIncomeToCommon": -912_369_984,
+        "priceToSalesTrailing12Months": 0.021275874,
+        "enterpriseToEbitda": 4.813,
+        "priceToBook": 4.959653,
+        "bookValue": 2.754225,
+        "sharesOutstanding": 72_434_615,
+    }
+    info.update(overrides)
+    return info
+
+
+def test_adr_statement_sizes_carry_financial_currency_and_mixed_ratios_withheld(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """SIFY: revenue is kept (never FX-converted) but labelled INR, while the Yahoo
+    ratios dividing a USD figure by an INR statement figure are withheld with a
+    reason. P/B stays: Yahoo's book value is per share in the trading currency."""
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(_adr_info()))
+    f = yfinance_provider.get_fundamentals("SIFY")
+    assert f.currency == "USD"
+    assert f.financial_currency == "INR"
+    assert f.revenue_ttm == 46_506_049_536
+    assert f.price_to_sales is None
+    assert f.ev_to_ebitda is None
+    assert f.field_meta is not None
+    for field_name in ("price_to_sales", "ev_to_ebitda"):
+        meta = f.field_meta[field_name]
+        assert meta.status == "withheld"
+        assert "USD" in meta.reason and "INR" in meta.reason
+    assert f.price_to_book == 4.959653
+    assert f.field_meta["price_to_book"].status == "ok"
+
+
+def test_twd_reporting_adr_behaves_the_same(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: a TWD-reporting ADR (TSM shape)
+    labels its statement sizes TWD and withholds the mixed P/S the same way."""
+    info = _adr_info(
+        longName="Taiwan Semiconductor Manufacturing Company Limited",
+        financialCurrency="TWD",
+        marketCap=1_200_000_000_000,
+        totalRevenue=3_600_000_000_000,
+        priceToSalesTrailing12Months=0.333,
+    )
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    f = yfinance_provider.get_fundamentals("TSM")
+    assert f.financial_currency == "TWD"
+    assert f.revenue_ttm == 3_600_000_000_000
+    assert f.price_to_sales is None
+    assert f.field_meta["price_to_sales"].status == "withheld"
+
+
+def test_same_currency_reporter_has_no_financial_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A domestic reporter (financialCurrency == currency) is untouched: no
+    financial_currency, P/S served as-is."""
+    info = _adr_info(financialCurrency="USD")
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    f = yfinance_provider.get_fundamentals("SIFY")
+    assert f.financial_currency is None
+    assert f.price_to_sales == 0.021275874
+    assert f.field_meta["price_to_sales"].status == "ok"
