@@ -456,6 +456,25 @@ def test_indicators_endpoint_requires_indicators(
     assert response.status_code == 400
 
 
+def test_indicators_endpoint_downgrades_an_empty_series_to_200(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-063: the symbol /history serves as a 200 empty series is not a
+    502 here."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _empty(symbol: str, timeframe: str, range_, asset_class: str):  # noqa: ANN001
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r}")
+
+    monkeypatch.setattr(provider_registry, "get_history", _empty)
+    response = client.get("/indicators/DAL.BO", params={"indicators": "rsi,sma"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["indicators"] == []
+    assert body["provider"] == "none"
+
+
 def test_indicators_list_endpoint(client: TestClient) -> None:
     """GET /indicators lists all 50 supported keys (Phase 1's 20 + Phase 2's 30)."""
     response = client.get("/indicators")

@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Query
 from models.indicators import IndicatorResponse
 from services import indicators as indicator_service
 from services import provider_registry
+from services.correctness_gate import EmptySeriesError
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
@@ -61,5 +62,10 @@ def get_indicators(
             ),
         )
 
-    series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    try:
+        series = provider_registry.get_history(symbol, timeframe, range_, asset_class)
+    except EmptySeriesError:
+        # The /history downgrade (R15-DATA-063): no bars is an honest empty
+        # chart, not a 502 overlay error beside it.
+        return IndicatorResponse(symbol=symbol, timeframe=timeframe, provider="none", indicators=[])
     return indicator_service.compute(series, requested)
