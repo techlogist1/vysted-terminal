@@ -470,12 +470,17 @@ export function PortfolioPanel() {
     if (summary.rows.length === 0) {
       return;
     }
+    // R15-DATA-042: a mixed-currency export must disambiguate a Rs row from
+    // a $ row (the table already drops Wt entirely when currencies mix; the
+    // export gets a Currency column plus a blank Weight % from the
+    // contract's own null, no separate `mixedCurrencies` check needed here).
     const csv = buildCsv(
       [
         "Symbol",
         "Quantity",
         "Cost basis",
         "Asset class",
+        "Currency",
         "Price",
         "Market value",
         "P&L",
@@ -488,6 +493,7 @@ export function PortfolioPanel() {
         position.quantity,
         position.cost_basis,
         position.asset_class,
+        quote?.currency ?? "",
         quote?.price ?? "",
         marketValue ?? "",
         pnl ?? "",
@@ -773,7 +779,7 @@ export function PortfolioPanel() {
               <span className="whitespace-nowrap">
                 Concentration:{" "}
                 <span className="text-charcoal-100">
-                  {(summary.concentration * 100).toFixed(1)}%
+                  {summary.concentration !== null ? (summary.concentration * 100).toFixed(1) : "—"}%
                 </span>
               </span>
             </>
