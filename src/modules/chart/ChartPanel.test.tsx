@@ -758,7 +758,7 @@ describe("ChartPanel", () => {
     });
     render(<ChartPanel api={{ id: "chart-pub-1" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    const event = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-1"];
+    const event = usePanelContextBus.getState().lastEventBySource["chart-pub-1"];
     expect(event).toBeDefined();
     expect(event!.kind).toBe("snapshot");
     expect((event!.payload as { symbol: string }).symbol).toBe("SPY");
@@ -777,7 +777,7 @@ describe("ChartPanel", () => {
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
     await waitFor(() => {
-      const e = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-2"];
+      const e = usePanelContextBus.getState().lastEventBySource["chart-pub-2"];
       expect((e!.payload as { timeframe: string }).timeframe).toBe("1h");
     });
   });
@@ -791,9 +791,32 @@ describe("ChartPanel", () => {
     });
     const { unmount } = render(<ChartPanel api={{ id: "chart-pub-3" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeDefined();
+    expect(usePanelContextBus.getState().lastEventBySource["chart-pub-3"]).toBeDefined();
     unmount();
-    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeUndefined();
+    expect(usePanelContextBus.getState().lastEventBySource["chart-pub-3"]).toBeUndefined();
+  });
+
+  it("with two charts, the focused second chart is the snapshot's focus (R15-AGENT-052)", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    const { captureTerminalState } = await import("@/modules/chat/context-provider");
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+    render(
+      <>
+        <ChartPanel api={{ id: "chart" }} />
+        <ChartPanel api={{ id: "chart-2" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(2));
+    fireEvent.change(screen.getAllByLabelText("Symbol")[1]!, { target: { value: "INFY" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Load" })[1]!);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("INFY", "1d"));
+    // PanelHost focuses the dockview id.
+    usePanelContextBus.getState().setFocusedSource("chart-2");
+
+    const state = captureTerminalState();
+    expect(state.focusedSymbol).toBe("INFY");
+    // The chart the runtime's preamble picks: the one whose panelId is focused.
+    expect(state.charts.find((c) => c.panelId === state.focusedPanel)?.symbol).toBe("INFY");
   });
 
   it("publish does not trigger an infinite re-render loop", async () => {
@@ -810,7 +833,7 @@ describe("ChartPanel", () => {
       render(<ChartPanel api={{ id: "chart-pub-4" }} />);
       await waitFor(() => expect(historyMock).toHaveBeenCalled());
       const calls = publishSpy.mock.calls.filter(
-        (c) => (c[0] as { source: string }).source === "chart-chart-pub-4",
+        (c) => (c[0] as { source: string }).source === "chart-pub-4",
       );
       expect(calls.length).toBeGreaterThan(0);
       expect(calls.length).toBeLessThan(10);

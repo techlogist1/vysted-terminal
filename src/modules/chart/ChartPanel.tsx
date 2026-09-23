@@ -881,10 +881,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const publishPanelContext = usePanelContextBus((state) => state.publish);
   const unregisterPanelContext = usePanelContextBus((state) => state.unregisterSource);
 
+  // The bus key IS the dockview panel id: PanelHost focuses that id, so any
+  // other key makes the focused chart unfindable (R15-AGENT-052).
   useEffect(() => {
-    const source = `chart-${panelId}`;
     publishPanelContext({
-      source,
+      source: panelId,
       kind: "snapshot",
       payload: {
         symbol,
@@ -909,9 +910,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
     // Drop the panel's most-recent context event on unmount so a closed chart
     // does not leak into the chat sidebar's snapshot. The source identifier
     // mirrors the publish payload's `source` field.
-    const source = `chart-${panelId}`;
     return () => {
-      unregisterPanelContext(source);
+      unregisterPanelContext(panelId);
     };
   }, [panelId, unregisterPanelContext]);
 
