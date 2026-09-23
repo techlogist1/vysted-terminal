@@ -25,17 +25,16 @@ import { Button } from "@/components/ui/button";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { isCustomAgent, useAgentsStore } from "@/store/agents";
+import { useLLMProvidersStore } from "@/store/llm-providers";
 
 import type { AgentSpec } from "../../../types/plugin";
 import {
   CUSTOM_AGENT_ID_PREFIX,
   emptyFormState,
-  KNOWN_PROVIDER_IDS,
   KNOWN_TOOL_IDS,
   useAgentBuilderForm,
   validate,
   type AgentBuilderFormState,
-  type KnownToolId,
   type SubmitPayload,
 } from "./form";
 
@@ -57,10 +56,11 @@ function formStateFromAgent(agent: AgentSpec, defaultModel?: string | null): Age
     name: agent.name,
     philosophy: agent.philosophy,
     systemPrompt: agent.systemPrompt,
+    // R15-UI-003: the agent's FULL tool set and its own provider, verbatim —
+    // gating either against a static fallback list is what silently stripped
+    // tools / reset the provider to "anthropic" on edit.
     tools: new Set(agent.tools),
-    defaultProvider: (KNOWN_PROVIDER_IDS as readonly string[]).includes(agent.defaultProvider)
-      ? (agent.defaultProvider as (typeof KNOWN_PROVIDER_IDS)[number])
-      : "anthropic",
+    defaultProvider: agent.defaultProvider,
     defaultModel: defaultModel ?? "",
     icon: agent.icon ?? "",
   };
@@ -127,10 +127,47 @@ export function AgentBuilderPanel() {
   const setCustomAgents = useAgentsStore((s) => s.setCustomAgents);
   const customStatus = useAgentsStore((s) => s.customStatus);
   const customError = useAgentsStore((s) => s.customError);
+  // R15-UI-003: providers come from the live catalog (already fetched
+  // app-wide, `DEFAULT_PROVIDERS` fallback baked into the store itself).
+  const providers = useLLMProvidersStore((s) => s.providers);
+  // Tool ids come from the sidecar's OWN vocabulary (`GET
+  // /custom-agents/tool-ids` == `agent_selectable_tool_ids()`) — the static
+  // `KNOWN_TOOL_IDS` array is only the pre-fetch fallback.
+  const [toolIds, setToolIds] = useState<string[]>([...KNOWN_TOOL_IDS]);
 
   useEffect(() => {
     void refreshCustom();
   }, [refreshCustom]);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Built with getSidecarBaseUrl() + fetch() directly (mirrors
+    // writeCustomAgent/deleteCustomAgent below), not the sidecarGet()
+    // helper — sidecarGet resolves the base URL through its OWN
+    // module-internal binding, which does not pick up a per-test
+    // getSidecarBaseUrl override.
+    void (async () => {
+      try {
+        const base = await getSidecarBaseUrl();
+        const response = await fetch(new URL("/custom-agents/tool-ids", base).toString());
+        if (!response.ok) {
+          return;
+        }
+        const ids: unknown = await response.json();
+        // A malformed response (older sidecar build, transient network
+        // error surfaced as an HTML body, etc.) keeps the static fallback
+        // rather than rendering a broken tool list.
+        if (!cancelled && Array.isArray(ids) && ids.every((id) => typeof id === "string")) {
+          setToolIds(ids);
+        }
+      } catch {
+        // Fetch rejected — keep the fallback.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const isEditing = editingId !== null;
 
@@ -153,20 +190,16 @@ export function AgentBuilderPanel() {
       setField("defaultProvider", next.defaultProvider);
       setField("defaultModel", next.defaultModel);
       setField("icon", next.icon);
-      // Replace the tool set wholesale.
-      for (const tool of KNOWN_TOOL_IDS) {
-        const want = next.tools.has(tool);
-        const has = state.tools.has(tool);
-        if (want !== has) {
-          toggleTool(tool);
-        }
-      }
+      // R15-UI-003: replace the tool set WHOLESALE, not by toggling each
+      // known id — a loop over a (possibly stale) known-id list silently
+      // drops any tool id the list doesn't happen to carry.
+      setField("tools", next.tools);
       setEditingId(agent.id);
       setSaveStatus("idle");
       setSaveMessage(null);
       setErrors({});
     },
-    [customSummaries, setField, state.tools, toggleTool],
+    [customSummaries, setField],
   );
 
   const handleDelete = useCallback(
@@ -316,13 +349,13 @@ export function AgentBuilderPanel() {
         <div className="flex flex-col gap-1">
           <span className="text-charcoal-400 text-micro font-mono uppercase">Tools</span>
           <div className="flex flex-wrap gap-1">
-            {KNOWN_TOOL_IDS.map((tool) => {
+            {toolIds.map((tool) => {
               const active = state.tools.has(tool);
               return (
                 <button
                   type="button"
                   key={tool}
-                  onClick={() => toggleTool(tool as KnownToolId)}
+                  onClick={() => toggleTool(tool)}
                   aria-pressed={active}
                   className={cn(
                     "rounded-control text-micro border px-2 py-1 font-mono transition-colors",
@@ -335,6 +368,22 @@ export function AgentBuilderPanel() {
                 </button>
               );
             })}
+            {/* R15-UI-003: a selected tool the live vocabulary doesn't (yet)
+                list — e.g. the fetch hasn't resolved, or the id is stale —
+                renders read-only so it's still visibly part of the agent and
+                still SUBMITTED (validate() no longer filters), never
+                silently dropped the way toggling only known ids did. */}
+            {[...state.tools]
+              .filter((tool) => !toolIds.includes(tool))
+              .map((tool) => (
+                <span
+                  key={tool}
+                  title="Not in the current tool catalog — kept as-is, not editable here."
+                  className="rounded-control text-micro border-charcoal-700 text-charcoal-500 border border-dashed px-2 py-1 font-mono"
+                >
+                  {tool}
+                </span>
+              ))}
           </div>
         </div>
 
@@ -347,14 +396,22 @@ export function AgentBuilderPanel() {
             <select
               aria-label="Default provider"
               value={state.defaultProvider}
-              onChange={(e) =>
-                setField("defaultProvider", e.target.value as (typeof KNOWN_PROVIDER_IDS)[number])
-              }
+              onChange={(e) => setField("defaultProvider", e.target.value)}
               className="bg-charcoal-800 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus:ring-charcoal-500 h-8 border px-2 font-mono outline-none focus:ring-1"
             >
-              {KNOWN_PROVIDER_IDS.map((id) => (
-                <option key={id} value={id}>
-                  {id}
+              {/* R15-UI-003: an agent's own provider that the live catalog
+                  doesn't list (e.g. "openrouter" against the old static
+                  7-provider array) still renders as its own option, rather
+                  than the select silently showing nothing selected. */}
+              {!providers.some((p) => p.id === state.defaultProvider) &&
+                state.defaultProvider !== "" && (
+                  <option value={state.defaultProvider}>
+                    {state.defaultProvider} (unrecognized)
+                  </option>
+                )}
+              {providers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
                 </option>
               ))}
             </select>

@@ -120,17 +120,22 @@ const PRESETS: ScreenerPreset[] = [
 ];
 
 export function ScreenerPresets() {
-  const setUniverse = useScreenerStore((s) => s.setUniverse);
-  const setCriteria = useScreenerStore((s) => s.setCriteria);
-  const setCombinator = useScreenerStore((s) => s.setCombinator);
+  const applyFilters = useScreenerStore((s) => s.applyFilters);
   const runScreener = useScreenerStore((s) => s.runScreener);
 
   const apply = (preset: ScreenerPreset) => {
-    setUniverse(preset.universe);
-    setCriteria(preset.criteria);
-    // Every preset is AND-semantics — reset the combinator so a prior "Match
-    // ANY" selection doesn't silently turn the preset into an OR sweep.
-    setCombinator("and");
+    // R15-UI-007: `applyFilters` resets the nested group + advanced flag +
+    // formula (like `resetCriteria`) as well as the criteria/universe/
+    // combinator — a preset applied on top of a prior nested-group-plus-
+    // formula draft previously left BOTH riding along (the group takes
+    // precedence over criteria, and the formula still ANDs in), so the run
+    // silently wasn't the preset's own filters.
+    applyFilters({
+      criteria: preset.criteria,
+      group: null,
+      universe: preset.universe,
+      formula: "",
+    });
     void runScreener();
   };
 

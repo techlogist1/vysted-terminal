@@ -20,12 +20,21 @@ import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import type {
   CriterionGroup,
   ScreenerCriterion,
+  ScreenerNumericField,
   ScreenerProgressFrame,
   ScreenerRequest,
   ScreenerResult,
   ScreenerUniverse,
   ScreenerUniverseId,
 } from "../../types/screener";
+
+/** R15-UI-006 default — byte-identical to the pre-``sort_by`` ranking. */
+const DEFAULT_SORT_BY: ScreenerNumericField = "market_cap";
+const DEFAULT_SORT_DIR: "asc" | "desc" = "desc";
+const DEFAULT_LIMIT = 200;
+/** "Show more" step, capped at the server's own ``_MAX_LIMIT``. */
+const SHOW_MORE_STEP = 200;
+const MAX_LIMIT = 1000;
 
 // AbortController for the active streaming run. Module-level (singleton store)
 // so cancelRun() can abort without threading it through state.
@@ -165,6 +174,15 @@ interface ScreenerState {
    * evaluated SERVER-SIDE per universe member, AND-combined with the criteria.
    * Empty = no-op. Rows missing a referenced field land in the skip ledger. */
   formula: string;
+  /** R15-UI-006: applied server-side BEFORE the `limit` cut. A header click
+   *  sets these and re-runs — sorting only the already-served page silently
+   *  hid rows that would rank in the true top-K (e.g. the lowest P/E stock
+   *  wasn't among the top-200-by-market-cap page). */
+  sortBy: ScreenerNumericField;
+  sortDir: "asc" | "desc";
+  /** The `limit` the last (or in-flight) run used — "Show more" reads this to
+   *  compute its next request rather than resetting to the 200 default. */
+  lastLimit: number;
 
   // --- last-run cache -------------------------------------------------
   lastResult: ScreenerResult | null;
@@ -209,6 +227,11 @@ interface ScreenerState {
     run?: boolean;
   }) => void;
   runScreener: (limit?: number) => Promise<ScreenerResult | null>;
+  /** Set the server-side sort and re-run at the current limit (R15-UI-006). */
+  setSort: (sortBy: ScreenerNumericField, sortDir: "asc" | "desc") => void;
+  /** Re-run at `lastLimit + 200` (capped at 1000) — raises how many of the
+   *  TRUE top-K-by-sort rows are served, not just how many render. */
+  showMore: () => void;
   /** Cancel the in-flight streaming run (if any). Disconnecting aborts the
    * server-side engine per the R10 SSE contract. */
   cancelRun: () => void;
@@ -271,6 +294,9 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   group: null,
   advanced: false,
   formula: "",
+  sortBy: DEFAULT_SORT_BY,
+  sortDir: DEFAULT_SORT_DIR,
+  lastLimit: DEFAULT_LIMIT,
   lastResult: null,
   status: "idle",
   error: null,
@@ -312,7 +338,17 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       ...(formula !== undefined ? { formula } : {}),
     })),
 
-  runScreener: async (limit = 200) => {
+  setSort: (sortBy, sortDir) => {
+    set({ sortBy, sortDir });
+    void get().runScreener();
+  },
+
+  showMore: () => {
+    const next = Math.min(MAX_LIMIT, get().lastLimit + SHOW_MORE_STEP);
+    void get().runScreener(next);
+  },
+
+  runScreener: async (limit = get().lastLimit) => {
     const {
       universe,
       customSymbols,
@@ -321,6 +357,8 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       group: editTree,
       advanced,
       formula,
+      sortBy,
+      sortDir,
     } = get();
     // Pre-flight the formula against the SAME grammar the server enforces —
     // an unparseable formula is an honest inline failure (with the caret
@@ -340,7 +378,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     _runAbortController?.abort();
     const controller = new AbortController();
     _runAbortController = controller;
-    set({ status: "loading", error: null, progress: null });
+    set({ status: "loading", error: null, progress: null, lastLimit: limit });
 
     /** Guard: only the CURRENT run may touch status/progress or null the slot.
      *  Run B aborting run A must not let A's cleanup clobber B's state. */
@@ -366,6 +404,8 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       universe,
       criteria,
       limit,
+      sort_by: sortBy,
+      sort_dir: sortDir,
       ...(group ? { group } : {}),
       // The formula rides the request and is evaluated SERVER-SIDE per
       // universe member (R7 Pillar 3) — rows missing a referenced field come
@@ -658,6 +698,9 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       group: null,
       advanced: false,
       formula: "",
+      sortBy: DEFAULT_SORT_BY,
+      sortDir: DEFAULT_SORT_DIR,
+      lastLimit: DEFAULT_LIMIT,
       lastResult: null,
       status: "idle",
       error: null,

@@ -161,9 +161,14 @@ export function buildPortfolioSummary(
         : null,
   }));
 
-  const concentration = mixedCurrencies
-    ? null
-    : rows.reduce((max, row) => Math.max(max, row.weight ?? 0), 0);
+  // R15-UI-005: reduce only over positions with a RESOLVED weight — starting
+  // the max from 0 fabricated a real "0.0%" concentration when nothing
+  // resolved (no signal is not the same as no concentration).
+  const resolvedWeights = rows
+    .map((row) => row.weight)
+    .filter((weight): weight is number => weight !== null);
+  const concentration =
+    mixedCurrencies || resolvedWeights.length === 0 ? null : Math.max(...resolvedWeights);
   const unresolvedCount = rows.filter((row) => row.quote === null).length;
 
   return {

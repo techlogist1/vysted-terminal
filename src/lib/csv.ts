@@ -3,10 +3,9 @@
  * else a panel offers "Export CSV"). Quoting follows RFC-4180: a cell containing
  * a comma, double-quote, or newline is wrapped in double-quotes and any embedded
  * double-quote is doubled. `null`/`undefined` become an empty cell.
- *
- * Browser-only (`downloadCsv` touches the DOM) — call it from a click handler in
- * the Tauri webview, never during SSR/static export.
  */
+
+import { saveTextArtifact, type ExportResult } from "@/lib/export-artifact";
 
 /** Escape a single CSV cell value per RFC-4180. */
 export function escapeCsvCell(value: unknown): string {
@@ -23,15 +22,12 @@ export function buildCsv(headers: string[], rows: readonly unknown[][]): string 
   return lines.join("\n");
 }
 
-/** Trigger a client-side download of `content` as `filename` (text/csv). */
-export function downloadCsv(filename: string, content: string): void {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+/**
+ * Save `content` as `filename` (text/csv) — via the Rust atomic-write path
+ * (`saveTextArtifact`), never the Blob + `<a download>` primitive: WKWebView
+ * does not implement it, so it silently no-ops in the desktop app
+ * (R15-UI-009). Falls back to a browser Blob download outside Tauri.
+ */
+export async function downloadCsv(filename: string, content: string): Promise<ExportResult> {
+  return saveTextArtifact("csv", filename, content);
 }

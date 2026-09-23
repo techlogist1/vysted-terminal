@@ -67,7 +67,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from importlib import resources
-from typing import Any
+from typing import Any, Literal
 
 import config
 from config import get_region
@@ -95,6 +95,7 @@ from services import (
     screener_formula,
     screener_universe_india,
     yahoo_batch_provider,
+    yfinance_provider,
 )
 from services.errors import ProviderError
 from services.research.models import ResearchStep
@@ -202,7 +203,12 @@ async def resolve_universe(
     the shipped JSON snapshots; crypto additionally checks the data cache for
     a refreshed list.
     """
-    cleaned = [s.strip().upper() for s in (custom_symbols or []) if s and s.strip()]
+    # R15-DATA-093: canonicalise through the same region-aware mapping the
+    # rest of the app uses (C3) — a bare IN name (``RELIANCE``) otherwise
+    # misses the warm ``.NS``-keyed store row entirely, not just serves stale.
+    cleaned = [
+        yfinance_provider._yahoo_symbol(s) for s in (custom_symbols or []) if s and s.strip()
+    ]
     if cleaned:
         return ScreenerUniverse(
             id="custom",
@@ -356,16 +362,19 @@ def apply_criteria(
     rows: list[tuple[Fundamentals, Quote | None]],
     criteria: list[ScreenerCriterion],
     group: CriterionGroup | None = None,
+    sort_by: str = "market_cap",
+    sort_dir: Literal["asc", "desc"] = "desc",
 ) -> list[ScreenerResultRow]:
     """Filter fundamentals+quote pairs by the criteria, ordered by
-    ``(currency, market_cap desc)``.
+    ``(currency, sort_by sort_dir)``.
 
     When ``group`` is given it supersedes the flat ``criteria``; otherwise the
-    flat ``criteria`` are AND-combined. Symbols whose ``market_cap`` is unknown
-    sort to the end of their currency group. R15-DATA-043: no FX layer exists
-    (§6 D-B2-4), so a universe spanning currencies is grouped by currency
-    first — ranking RELIANCE.NS's INR market cap against AAPL's USD one as a
-    single number is a fabricated comparison, not a ranking.
+    flat ``criteria`` are AND-combined. A row whose ``sort_by`` field is
+    unknown sorts to the end of its currency group REGARDLESS of ``sort_dir``
+    (R15-UI-006 — a missing value is not "lowest"). R15-DATA-043: no FX layer
+    exists (§6 D-B2-4), so a universe spanning currencies is grouped by
+    currency first — ranking RELIANCE.NS's INR market cap against AAPL's USD
+    one as a single number is a fabricated comparison, not a ranking.
     """
     matched: list[ScreenerResultRow] = []
     for fundamentals, quote in rows:
@@ -404,11 +413,12 @@ def apply_criteria(
                 currency=fundamentals.currency,
             )
         )
+    sign = -1.0 if sort_dir == "desc" else 1.0
     matched.sort(
         key=lambda row: (
             _currency_sort_key(row.currency),
-            row.market_cap is None,
-            -(row.market_cap or 0.0),
+            getattr(row, sort_by, None) is None,
+            sign * (getattr(row, sort_by, None) or 0.0),
         ),
     )
     return matched
@@ -686,7 +696,6 @@ async def _finalize(
     req: ScreenerRequest,
     state: _RunState,
     compiled_formula: Any,
-    needed_fields: set[str],
     started_at: float,
 ) -> ScreenerResult:
     """Materialize the result from the store — works mid-run for partials.
@@ -705,14 +714,16 @@ async def _finalize(
         else fundamentals_store.TTL_QUOTE_CURATED_SECONDS
     )
     formula_fields = compiled_formula.fields if compiled_formula is not None else frozenset()
+    # R15-DATA-044: itemize on EVERY field the criteria/group/formula
+    # reference, not just the subset that needs v7 enrichment (``needed_fields``)
+    # — pe_ratio/dividend_yield/price_to_book etc. already ride the v7 batch row,
+    # so a NULL among THEM previously fell through to `_evaluate_criterion`
+    # returning False silently instead of an itemized ``missing_field:<f>``.
+    referenced_fields = _criteria_fields(list(req.criteria), req.group) | set(formula_fields)
     # Basis is judged over the fields the screen USED plus the two every row
     # displays regardless (the sort key and the price column) — a row whose
     # only price is a stale one must not read as "live".
-    basis_fields = (
-        _criteria_fields(list(req.criteria), req.group)
-        | set(formula_fields)
-        | {"market_cap", "price"}
-    )
+    basis_fields = referenced_fields | {"market_cap", "price"}
 
     pairs_by_symbol: dict[str, tuple[Fundamentals, Quote | None]] = {}
     #: Per-symbol honesty labels for rows that reach evaluation.
@@ -730,7 +741,11 @@ async def _finalize(
             state.skip_reasons.setdefault(key, "budget_exhausted" if state.partial else "no_data")
             continue
         absent = next(
-            (f for f in sorted(needed_fields) if row.get(f) is None),
+            (
+                f
+                for f in sorted(referenced_fields)
+                if row.get(fundamentals_store._field_column(f)) is None
+            ),
             None,
         )
         if absent is not None:
@@ -780,8 +795,11 @@ async def _finalize(
         [pair for key, pair in pairs_by_symbol.items() if key not in formula_rejected],
         list(req.criteria),
         group=req.group,
+        sort_by=req.sort_by,
+        sort_dir=req.sort_dir,
     )
     limit = max(1, min(int(req.limit), _MAX_LIMIT))
+    matched_count = len(matched)
     rows = matched[:limit]
 
     # R11 (D52/D57): stamp every served row with its honesty labels — the
@@ -839,6 +857,7 @@ async def _finalize(
         skipped_count=len(skip_details),
         skip_details=skip_details,
         result_count=len(rows),
+        matched_count=matched_count,
         rows=rows,
         duration_ms=duration_ms,
         partial=partial,
@@ -1033,7 +1052,8 @@ async def run_screener(
 ) -> ScreenerResult:
     """Run the phased screener under a wall budget (see module docstring).
 
-    Returns up to ``req.limit`` rows sorted by market cap desc. Every dropped
+    Returns up to ``req.limit`` rows sorted by ``req.sort_by``/``req.sort_dir``
+    (default market cap desc). Every dropped
     symbol is itemized in ``skip_details``; ``skipped_count ==
     len(skip_details)`` always. On wall expiry or task cancellation the run
     finalizes an honest PARTIAL (``partial=True`` + ``coverage`` +
@@ -1091,7 +1111,7 @@ async def run_screener(
         fundamentals_warm.screen_finished()
 
     emit("evaluate", 1, 1, f"evaluating {len(state.candidates):,} candidates")
-    return await _finalize(req, state, compiled_formula, needed_fields, started_at)
+    return await _finalize(req, state, compiled_formula, started_at)
 
 
 async def _run_batch_phases(

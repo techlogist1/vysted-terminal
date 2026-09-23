@@ -146,6 +146,10 @@ export function WatchlistPanel() {
   // changes refresh in place rather than flashing the loading view.
   const [rows, setRows] = useState<WatchlistRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // R15-UI-009: the CSV export now writes a real file via the Rust atomic-write
+  // path — this surfaces the saved path (or a write failure) since there is no
+  // browser download UI to confirm it landed.
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [inFlight, setInFlight] = useState(false);
   const inFlightRef = useRef(false);
@@ -246,7 +250,7 @@ export function WatchlistPanel() {
 
   // Export the watchlist to CSV — uses the live quotes when they've loaded, else
   // falls back to the tracked symbols alone. No-op on an empty watchlist.
-  const handleExport = () => {
+  const handleExport = useCallback(async () => {
     const source: { entry: (typeof entries)[number]; quote: WatchlistRow["quote"] }[] =
       rows ?? entries.map((entry) => ({ entry, quote: null }));
     if (source.length === 0) {
@@ -262,8 +266,13 @@ export function WatchlistPanel() {
         quote?.provider ?? "",
       ]),
     );
-    downloadCsv("vysted-watchlist.csv", csv);
-  };
+    try {
+      const r = await downloadCsv("vysted-watchlist.csv", csv);
+      setExportStatus(r.path ? `Saved ${r.path}` : "Downloaded .csv");
+    } catch (e) {
+      setExportStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [entries, rows]);
 
   // Measured panel width drives the §3.2 drop-priority ladder. `null` (first
   // paint) renders the full layout; the observer corrects on the next frame.
@@ -407,7 +416,7 @@ export function WatchlistPanel() {
           variant="ghost"
           aria-label="Export watchlist to CSV"
           title="Export watchlist to CSV"
-          onClick={handleExport}
+          onClick={() => void handleExport()}
           disabled={entries.length === 0}
         >
           <Download />
@@ -425,6 +434,21 @@ export function WatchlistPanel() {
             disabled={inFlight}
           >
             Retry
+          </Button>
+        </div>
+      )}
+
+      {exportStatus !== null && (
+        <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">
+          <span className="text-charcoal-200 text-caption">{exportStatus}</span>
+          <Button
+            type="button"
+            size="icon-xs"
+            variant="ghost"
+            aria-label="Dismiss export status"
+            onClick={() => setExportStatus(null)}
+          >
+            <X />
           </Button>
         </div>
       )}

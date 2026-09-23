@@ -16,7 +16,7 @@ import {
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { useScreenerStore } from "@/store/screener";
 
-import type { ScreenerResultRow } from "../../../types/screener";
+import type { ScreenerNumericField, ScreenerResultRow } from "../../../types/screener";
 
 type SortKey =
   | "symbol"
@@ -295,6 +295,45 @@ function downloadScreenerCsv(rows: ScreenerResultRow[], universe: string): void 
 // by raw magnitude (R15-DATA-043).
 const MONEY_SORT_KEYS: ReadonlySet<SortKey> = new Set(["market_cap", "price"]);
 
+// R15-UI-006: these keys ride the server's `sort_by` (applied BEFORE the
+// `limit` cut, so the true top-K survives it) — symbol/name/sector have no
+// `ScreenerNumericField` counterpart and stay a client-side sort of the
+// already-served page (there is no meaningful "top-K by name").
+const SERVER_SORT_KEYS: ReadonlySet<SortKey> = new Set([
+  "market_cap",
+  "pe_ratio",
+  "forward_pe",
+  "roe",
+  "debt_to_equity",
+  "dividend_yield",
+  "price",
+  "change_percent_1d",
+  "volume",
+]);
+
+/** Narrow the store's broader `ScreenerNumericField` to the table's own
+ * `SortKey` union — the store accepts any numeric criterion field, but only
+ * the columns actually rendered here (`SERVER_SORT_KEYS`) can ever be the
+ * active sort from THIS component's own `onHeaderClick`. */
+function isServerSortKey(
+  field: ScreenerNumericField,
+): field is Extract<ScreenerNumericField, SortKey> {
+  return (SERVER_SORT_KEYS as ReadonlySet<string>).has(field);
+}
+
+/** Human label for the header's "showing top K by <field>" line. */
+const SORT_FIELD_LABEL: Partial<Record<SortKey, string>> = {
+  market_cap: "market cap",
+  pe_ratio: "P/E",
+  forward_pe: "forward P/E",
+  roe: "ROE",
+  debt_to_equity: "D/E",
+  dividend_yield: "dividend yield",
+  price: "price",
+  change_percent_1d: "1d change",
+  volume: "volume",
+};
+
 // Direction-aware comparator that always pins null/unknown values LAST, in both
 // directions. Applying the direction factor only to the value comparison keeps
 // nulls sinking regardless of direction (crypto with unknown market cap, etc.).
@@ -331,23 +370,41 @@ export function ScreenerResultsTable() {
   const status = useScreenerStore((s) => s.status);
   const runScreener = useScreenerStore((s) => s.runScreener);
   const resetCriteria = useScreenerStore((s) => s.resetCriteria);
-  const [sortKey, setSortKey] = useState<SortKey>("market_cap");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const serverSortBy = useScreenerStore((s) => s.sortBy);
+  const serverSortDir = useScreenerStore((s) => s.sortDir);
+  const setSort = useScreenerStore((s) => s.setSort);
+  const showMore = useScreenerStore((s) => s.showMore);
+  // A client-only sort of the already-served page, for the columns with no
+  // server `sort_by` counterpart (symbol/name/sector). `null` defers to the
+  // server's own order — rows already arrive sorted by `serverSortBy`.
+  const [localSort, setLocalSort] = useState<{ key: SortKey; direction: SortDirection } | null>(
+    null,
+  );
 
   const rows = useMemo(() => {
     if (!result) return [];
-    const dir = sortDirection === "asc" ? 1 : -1;
-    return [...result.rows].sort((a, b) => compareValue(a, b, sortKey, dir));
-  }, [result, sortKey, sortDirection]);
+    if (!localSort) return result.rows;
+    const dir = localSort.direction === "asc" ? 1 : -1;
+    return [...result.rows].sort((a, b) => compareValue(a, b, localSort.key, dir));
+  }, [result, localSort]);
 
-  const sort: DataTableSort<SortKey> = { key: sortKey, direction: sortDirection };
+  const sort: DataTableSort<SortKey> = localSort ?? {
+    key: isServerSortKey(serverSortBy) ? serverSortBy : "market_cap",
+    direction: serverSortDir,
+  };
 
   function onHeaderClick(key: SortKey) {
-    if (sortKey === key) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    if (SERVER_SORT_KEYS.has(key)) {
+      setLocalSort(null);
+      const nextDir: SortDirection =
+        serverSortBy === key ? (serverSortDir === "asc" ? "desc" : "asc") : "desc";
+      setSort(key as ScreenerNumericField, nextDir);
+      return;
+    }
+    if (localSort?.key === key) {
+      setLocalSort({ key, direction: localSort.direction === "asc" ? "desc" : "asc" });
     } else {
-      setSortKey(key);
-      setSortDirection("desc");
+      setLocalSort({ key, direction: "desc" });
     }
   }
 
@@ -434,8 +491,23 @@ export function ScreenerResultsTable() {
     <div className="flex h-full flex-col gap-2">
       <div className="text-charcoal-400 text-caption flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span>
-          <span className="text-charcoal-100 font-medium">{result.result_count}</span> rows (
-          <span className="tabular-nums">{result.evaluated_count}</span> evaluated
+          {/* R15-UI-006: the "N matched" figure is the pre-limit count — the
+              server sorted by `serverSortBy` BEFORE cutting to `result_count`,
+              so this line states which top-K the served rows actually are. */}
+          {result.matched_count !== undefined ? (
+            <>
+              <span className="text-charcoal-100 font-medium">{result.matched_count}</span> matched
+              · showing top{" "}
+              <span className="text-charcoal-100 font-medium">{result.result_count}</span> by{" "}
+              {(isServerSortKey(serverSortBy) ? SORT_FIELD_LABEL[serverSortBy] : undefined) ??
+                serverSortBy}
+            </>
+          ) : (
+            <>
+              <span className="text-charcoal-100 font-medium">{result.result_count}</span> rows
+            </>
+          )}{" "}
+          (<span className="tabular-nums">{result.evaluated_count}</span> evaluated
           {result.skipped_count > 0 && (
             <>
               , <span className="text-warning tabular-nums">{result.skipped_count} skipped</span>
@@ -444,6 +516,15 @@ export function ScreenerResultsTable() {
           ,<span className="tabular-nums"> {result.duration_ms.toFixed(0)} ms</span>)
         </span>
         <div className="flex items-center gap-3">
+          {result.matched_count !== undefined && result.matched_count > result.result_count && (
+            <button
+              type="button"
+              onClick={() => showMore()}
+              className="text-charcoal-300 text-caption hover:text-charcoal-100 transition-colors"
+            >
+              Show more
+            </button>
+          )}
           <button
             type="button"
             onClick={() => downloadScreenerCsv(rows, result.universe)}
