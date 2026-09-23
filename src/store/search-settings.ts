@@ -26,20 +26,16 @@
  * No secrets here: the OpenRouter BYOK key lives ONLY in the OS keychain (read
  * at request time and sent as a header), never in this bundle (FR-036/SC-010).
  *
- * Persistence mirrors the region/model-selection pattern: the bundle rides the
- * workspace blob (`SerializedWorkspace.searchSettings`), and because a tier
- * change does not move the dockview layout, the store self-persists by calling
- * `void autosaveLayout()` from each setter — exactly like `store/settings`.
+ * Persistence: the bundle rides the workspace blob
+ * (`SerializedWorkspace.searchSettings`); its autosave trigger is the
+ * `searchSettings` slice in `src/lib/workspace.ts` `PERSISTED_SLICES`.
  *
- * SSR-safe: no `window`/`navigator` at module load; `autosaveLayout` no-ops
- * before the dockview layout mounts (so a setter in a unit test is a silent
- * no-op).
+ * SSR-safe: no `window`/`navigator` at module load.
  */
 
 import { create } from "zustand";
 
 import { getSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
-import { autosaveLayout } from "@/lib/workspace";
 
 /**
  * The R9 research tiers. Mirrors `sidecar/config.py
@@ -340,25 +336,15 @@ function seed(): SearchSettingsBundle {
   };
 }
 
-/**
- * Self-persist a preference change into the autosave slot. Fire-and-forget —
- * `autosaveLayout` is best-effort and no-ops before the layout mounts.
- */
-function persist(): void {
-  void autosaveLayout();
-}
-
 export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => ({
   ...seed(),
 
   setSearxngUrl: (url) => {
     set({ searxngUrl: url });
-    persist();
   },
 
   setResearchTier: (researchTier) => {
     set({ researchTier });
-    persist();
   },
 
   setResearchModel: (stop, modelId) => {
@@ -366,7 +352,6 @@ export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => 
       return;
     }
     set({ researchModels: { ...get().researchModels, [stop]: modelId.trim() } });
-    persist();
   },
 
   setAll: (bundle) => {
@@ -375,7 +360,6 @@ export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => 
     // strip a field and a garbled value falls back to the default.
     const { bundle: migrated, tierBNeedsKeyConfirmation } = migrateSearchSettings(bundle ?? {});
     set(migrated);
-    persist();
     if (tierBNeedsKeyConfirmation) {
       // A legacy hosted/Exa selection landed on tier_b provisionally — confirm
       // the OpenRouter key exists (async keychain read) and demote to tier_a

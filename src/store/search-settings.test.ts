@@ -1,11 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// The store self-persists via `autosaveLayout`. Mock it so a setter call in a
-// unit test (no dockview) is observable and never touches the network.
-vi.mock("@/lib/workspace", () => ({
-  autosaveLayout: vi.fn(() => Promise.resolve()),
-}));
-
 // Keychain: the tier_b migration confirmation reads the OpenRouter slot; stub
 // the Tauri-backed reads (default: no key stored).
 vi.mock("@/lib/keychain", async (importActual) => {
@@ -19,7 +13,6 @@ vi.mock("@/lib/keychain", async (importActual) => {
 });
 
 import { getSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
-import { autosaveLayout } from "@/lib/workspace";
 import {
   DEFAULT_RESEARCH_MODELS,
   DEFAULT_SEARCH_SETTINGS,
@@ -32,7 +25,6 @@ import {
   useSearchSettingsStore,
 } from "@/store/search-settings";
 
-const autosaveMock = vi.mocked(autosaveLayout);
 const getSecretMock = vi.mocked(getSecret);
 const OPENROUTER_ACCOUNT = KEYCHAIN_NAMESPACES.llmProvider("openrouter");
 
@@ -46,7 +38,6 @@ async function flush(): Promise<void> {
 describe("search-settings store (R9 two-tier)", () => {
   beforeEach(() => {
     resetSearchSettingsStoreForTests();
-    autosaveMock.mockClear();
     getSecretMock.mockReset();
     getSecretMock.mockResolvedValue(null);
   });
@@ -92,16 +83,14 @@ describe("search-settings store (R9 two-tier)", () => {
     }
   });
 
-  it("setResearchTier updates state and triggers persistence", () => {
+  it("setResearchTier updates state", () => {
     useSearchSettingsStore.getState().setResearchTier("tier_b");
     expect(useSearchSettingsStore.getState().researchTier).toBe("tier_b");
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
-  it("setSearxngUrl updates state and triggers persistence", () => {
+  it("setSearxngUrl updates state", () => {
     useSearchSettingsStore.getState().setSearxngUrl("http://127.0.0.1:8080");
     expect(useSearchSettingsStore.getState().searxngUrl).toBe("http://127.0.0.1:8080");
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
   it("setResearchModel swaps one stop and ignores garbage", () => {
@@ -110,13 +99,11 @@ describe("search-settings store (R9 two-tier)", () => {
       "openai/o4-mini-deep-research",
     );
     expect(useSearchSettingsStore.getState().researchModels.normal).toBe("perplexity/sonar");
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
 
     useSearchSettingsStore.getState().setResearchModel("deep", "has spaces!!");
     expect(useSearchSettingsStore.getState().researchModels.deep).toBe(
       "openai/o4-mini-deep-research",
     );
-    expect(autosaveMock).toHaveBeenCalledTimes(1); // garbage never persists
   });
 
   it("does not mutate the frozen defaults when a setter runs", () => {

@@ -9,9 +9,6 @@ import { useModulesStore } from "@/store/modules";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useWorkspaceStore } from "@/store/workspace";
 
-/** Debounce window for persisting the cockpit to the autosave slot. */
-const AUTOSAVE_DEBOUNCE_MS = 1500;
-
 /**
  * Host-side minimum panel sizes (px), keyed by `PanelSpec.component`. Enforced
  * via dockview's per-panel `setConstraints` so a squeezed cockpit can never
@@ -110,7 +107,8 @@ function enforceConstraintsAfterRestore(panel: IDockviewPanel): void {
  * id to its React component, hands the layout API to the workspace store, and
  * on launch restores the auto-saved "last session" cockpit (Track C) — falling
  * back to the bundled default layout (BLUEPRINT §5.1) when none exists. Layout
- * changes are debounce-autosaved so a customised cockpit survives a relaunch.
+ * changes autosave (debounced inside `autosaveLayout`) so a customised cockpit
+ * survives a relaunch.
  *
  * `DockviewReact` is only mounted once modules have registered, which keeps the
  * static-export build SSR-safe (the prerender pass sees the loading state).
@@ -158,8 +156,8 @@ export function PanelHost() {
         .enabledPanels()
         .map((panel) => panel.id),
     );
-    // Restore the last session (or default), THEN begin autosaving — so the
-    // first autosave reflects a genuine user change, not the restore itself.
+    // Restore the last session (or default), THEN wire the layout autosave.
+    // `autosaveLayout` itself is gated on the restore settling.
     void restoreLastSessionOrDefault(api, enabledPanelIds).finally(() => {
       // If StrictMode/HMR unmounted us or replaced the dockview api while the
       // restore awaited, this api is disposed — do not wire autosave to it (also
@@ -181,13 +179,7 @@ export function PanelHost() {
         }
         api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
       }, 80);
-      let timer: ReturnType<typeof setTimeout> | null = null;
-      const subscription = api.onDidLayoutChange(() => {
-        if (timer) {
-          clearTimeout(timer);
-        }
-        timer = setTimeout(() => void autosaveLayout(), AUTOSAVE_DEBOUNCE_MS);
-      });
+      const subscription = api.onDidLayoutChange(() => autosaveLayout());
       // Track the focused panel into the shared context bus so the agent knows
       // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
       // resolves to the focused panel; hand focus updates the agent's next turn).
@@ -195,9 +187,6 @@ export function PanelHost() {
         usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
       });
       cleanupRef.current = () => {
-        if (timer) {
-          clearTimeout(timer);
-        }
         if (constraintTimer !== null) {
           clearTimeout(constraintTimer);
         }

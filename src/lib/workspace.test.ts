@@ -15,6 +15,7 @@ import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model
 import { useModulesStore } from "@/store/modules";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useResearchSpacesStore } from "@/store/research-spaces";
+import { useScreenerStore } from "@/store/screener";
 import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -45,12 +46,15 @@ import {
   deserializeWorkspace,
   isResearchSpace,
   loadWorkspace,
+  PERSISTED_SLICES,
   researchSpaceName,
   researchSymbolOf,
+  resetWorkspacePersistenceForTests,
   restoreLastSessionOrDefault,
   saveWorkspace,
   serializeWorkspace,
   type SerializedWorkspace,
+  wireAutosaveTriggers,
 } from "@/lib/workspace";
 
 /** A minimal fake dockview layout — `toJSON`/`fromJSON` round-trip its state;
@@ -144,6 +148,7 @@ describe("workspace serialization", () => {
       // A non-research workspace omits `researchSymbol` but always carries the
       // (empty) per-space memory archive (S-19).
       researchSpaces: { byName: {} },
+      savedScreens: [],
     });
   });
 
@@ -904,5 +909,255 @@ describe("workspace restore archives the brief (R10 D39)", () => {
     expect(useBriefStore.getState().panel.phase).toBe("archived");
     expect(useBriefStore.getState().brief?.query).toBe("legacy brief");
     resetBriefStoreForTests();
+  });
+});
+
+// ── one persisted-slice registry drives payload, restore and autosave ───────
+
+/** The keys `SerializedWorkspace` declares (its index signature excluded). */
+type DeclaredWorkspaceKey = keyof {
+  [K in keyof SerializedWorkspace as string extends K ? never : number extends K ? never : K]: true;
+};
+
+/** Every declared key; the compiler rejects this map when the interface gains one. */
+const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
+  name: true,
+  layout: true,
+  enabledModules: true,
+  chartDrawings: true,
+  defaultProviderId: true,
+  watchlist: true,
+  portfolios: true,
+  agentMode: true,
+  autonomyMode: true,
+  agentDock: true,
+  modelOverrides: true,
+  modelOverridesV: true,
+  keybindingOverrides: true,
+  settings: true,
+  searchSettings: true,
+  brief: true,
+  notes: true,
+  researchSymbol: true,
+  researchSpaces: true,
+  savedScreens: true,
+};
+
+/** Route a stubbed sidecar: GET `/workspace/__autosave__` answers `autosave`
+ *  (404 when null), every POST body is captured, any other GET is a 404. */
+function stubSidecar(autosave: SerializedWorkspace | null): SerializedWorkspace[] {
+  const posts: SerializedWorkspace[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        posts.push((JSON.parse(String(init.body)) as { workspace: SerializedWorkspace }).workspace);
+        return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+      }
+      if (autosave && String(url).endsWith("/workspace/__autosave__")) {
+        return { ok: true, status: 200, json: async () => autosave } as unknown as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as unknown as Response;
+    }),
+  );
+  return posts;
+}
+
+describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)", () => {
+  let unwire: (() => void) | null = null;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    useChartDrawingsStore.setState({ byPanel: {} });
+    useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
+    useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useAgentModeStore.setState({ mode: "agent" });
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
+    useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
+    useModelSelectionStore.setState({ overrides: {} });
+    useResearchSpacesStore.setState({ byName: {} });
+    useChatHistoryStore.getState().clear();
+    useNotesStore.getState().fromBundle(null);
+    useScreenerStore.getState().__resetForTests();
+    resetBriefStoreForTests();
+    resetKeybindingsStoreForTests();
+    resetSettingsStoreForTests();
+    resetSearchSettingsStoreForTests();
+  });
+
+  afterEach(() => {
+    unwire?.();
+    unwire = null;
+    resetWorkspacePersistenceForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts = stubSidecar({
+      name: "__autosave__",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      watchlist: [{ symbol: "RELIANCE", assetClass: "equity" }],
+      portfolios: {
+        list: [
+          {
+            id: "pf-1",
+            name: "Core",
+            holdings: [
+              { id: "h1", symbol: "TCS", quantity: 10, costBasis: 3500, assetClass: "equity" },
+            ],
+          },
+        ],
+        activeId: "pf-1",
+      },
+      notes: { general: "thesis", bySymbol: { TCS: "buy < 3400" }, focusSymbol: "TCS" },
+      researchSymbol: "TCS",
+      researchSpaces: {
+        byName: {
+          "Research: TCS": {
+            symbol: "TCS",
+            transcript: [{ role: "user", content: "what is TCS margin", createdAt: 1 }],
+            updatedAt: 1,
+          },
+        },
+      },
+    });
+    // Wired at mount, BEFORE the restore resolves — exactly as page.tsx does.
+    unwire = wireAutosaveTriggers();
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(posts).toHaveLength(0);
+
+    useSymbolsStore.getState().addSymbol("INFY", "equity");
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(posts).toHaveLength(1);
+    const [first] = posts;
+    expect(first.researchSymbol).toBe("TCS");
+    expect(first.researchSpaces?.byName["Research: TCS"]?.transcript).toHaveLength(1);
+    expect(first.portfolios?.list[0]?.holdings.map((h) => h.symbol)).toEqual(["TCS"]);
+    expect(first.notes?.general).toBe("thesis");
+    expect(first.watchlist?.map((e) => e.symbol)).toEqual(["RELIANCE", "INFY"]);
+  });
+
+  it("every declared blob key is written by a registered slice, and each slice's change autosaves", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never, researchSymbol: "NVDA" });
+    const written = new Set(PERSISTED_SLICES.flatMap((slice) => Object.keys(slice.read())));
+    const declared = Object.keys(DECLARED_KEYS).filter((key) => key !== "name" && key !== "layout");
+    expect([...written].sort()).toEqual(declared.sort());
+    useWorkspaceStore.setState({ researchSymbol: null });
+
+    const posts = stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    unwire = wireAutosaveTriggers();
+    const mutations: Record<string, (() => void)[]> = {
+      enabledModules: [() => useModulesStore.getState().setEnabledMap({ chart: false })],
+      chartDrawings: [
+        () =>
+          useChartDrawingsStore.getState().addDrawing("chart", {
+            id: "d1",
+            panelId: "chart",
+            kind: "trendline",
+            points: [
+              { time: 1, price: 1 },
+              { time: 2, price: 2 },
+            ],
+            style: { color: "#fff", lineWidth: 1 },
+            createdAt: 0,
+          }),
+      ],
+      defaultProviderId: [() => useLLMProvidersStore.getState().setDefaultProviderId("openrouter")],
+      watchlist: [() => useSymbolsStore.getState().addSymbol("INFY", "equity")],
+      portfolios: [
+        () => usePortfoliosStore.getState().createPortfolio("Swing"),
+        () => usePortfoliosStore.getState().setActive("default"),
+      ],
+      agentMode: [() => useAgentModeStore.getState().setMode("delegate")],
+      autonomyMode: [() => useAgentAutonomyStore.getState().setAutonomy("auto")],
+      agentDock: [
+        () => useAgentDockStore.getState().setCollapsed(true),
+        () => useAgentDockStore.getState().setWidth(AGENT_DOCK_DEFAULT_WIDTH + 40),
+      ],
+      modelOverrides: [
+        () => useModelSelectionStore.getState().setModel("anthropic", "claude-sonnet-4-6"),
+      ],
+      keybindingOverrides: [
+        () => useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+p"),
+      ],
+      settings: [
+        () => useSettingsStore.getState().setDefaultAgentId("buffett"),
+        () => useSettingsStore.getState().setRegion("US"),
+        () => useSettingsStore.getState().setDeepResearchBackend("perplexity"),
+      ],
+      searchSettings: [
+        () => useSearchSettingsStore.getState().setResearchTier("tier_b"),
+        () => useSearchSettingsStore.getState().setSearxngUrl("http://127.0.0.1:8080"),
+        () =>
+          useSearchSettingsStore
+            .getState()
+            .setResearchModel("deep", "openai/o4-mini-deep-research"),
+      ],
+      brief: [
+        () =>
+          useBriefStore.getState().setBrief({
+            query: "q",
+            mode: "FAST",
+            markdown: "m",
+            sources: [],
+            sourceCount: 0,
+            webAvailable: false,
+            createdAt: 1,
+          }),
+        () => useBriefStore.getState().clearBrief(),
+      ],
+      notes: [
+        () => useNotesStore.getState().setGeneral("thesis"),
+        () => useNotesStore.getState().setSymbolNote("NVDA", "watch margins"),
+        () => useNotesStore.getState().setFocusSymbol("NVDA"),
+      ],
+      savedScreens: [() => useScreenerStore.getState().saveScreen("Cheap tech")],
+      researchSpaces: [
+        () =>
+          useResearchSpacesStore.getState().replaceAll({
+            byName: { "Research: AMD": { symbol: "AMD", transcript: [], updatedAt: 1 } },
+          }),
+      ],
+      researchSymbol: [() => useWorkspaceStore.getState().setResearchSymbol("NVDA")],
+    };
+
+    for (const slice of PERSISTED_SLICES) {
+      expect(mutations[slice.key], `no mutation covers slice ${slice.key}`).toBeDefined();
+      for (const mutate of mutations[slice.key]) {
+        const before = posts.length;
+        mutate();
+        await vi.advanceTimersByTimeAsync(1_000);
+        expect(posts.length, `slice ${slice.key} did not autosave`).toBeGreaterThan(before);
+      }
+    }
+  });
+
+  it("saved screens survive serialize, a fresh store and deserialize", () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    useScreenerStore.getState().saveScreen("Cheap tech");
+
+    const saved = serializeWorkspace("screens");
+    useScreenerStore.getState().__resetForTests();
+    expect(useScreenerStore.getState().savedScreens).toEqual([]);
+    deserializeWorkspace(saved);
+
+    const screens = useScreenerStore.getState().savedScreens;
+    expect(screens.map((screen) => screen.name)).toEqual(["Cheap tech"]);
+    expect(screens[0]?.universe).toBe("sp500");
   });
 });
