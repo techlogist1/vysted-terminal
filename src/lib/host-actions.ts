@@ -32,6 +32,7 @@ import {
 import { regionConfig, isRegion, type Region } from "@/lib/region";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
+import { indicatorByKey } from "@/modules/chart/indicators";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -474,6 +475,30 @@ function num(input: Record<string, unknown>, key: string): number {
   return typeof v === "number" ? v : Number(v ?? 0);
 }
 
+/** Split set_chart_indicators keys into the ones the chart's indicator catalog
+ *  knows (the keys the sidecar computes) and the unknown ones, which are dropped
+ *  and reported. */
+function splitIndicatorKeys(input: Record<string, unknown>): {
+  known: string[];
+  dropped: string[];
+} {
+  const known: string[] = [];
+  const dropped: string[] = [];
+  for (const raw of strArray(input, "indicators")) {
+    const def = indicatorByKey(raw.trim().toLowerCase());
+    if (def) {
+      known.push(def.key);
+    } else {
+      dropped.push(raw);
+    }
+  }
+  return { known, dropped };
+}
+
+function droppedNote(dropped: readonly string[]): string {
+  return dropped.length ? ` (dropped unknown: ${dropped.join(", ")})` : "";
+}
+
 /** The per-share cost basis the agent gave, or null when it gave none. */
 function costBasisOf(input: Record<string, unknown>): number | null {
   const v = input.cost_basis;
@@ -618,13 +643,13 @@ export function describeHostAction(
       };
     }
     case "set_chart_indicators": {
-      const indicators = strArray(input, "indicators");
+      const { known, dropped } = splitIndicatorKeys(input);
       const current = useChartCommandStore.getState().activeIndicators;
       return {
         kind: "chart",
         title: `Set chart indicators${symbol ? ` on ${symbol}` : ""}`,
         before: `Indicators: ${current.length ? current.join(", ") : "none"}`,
-        after: `Indicators: ${indicators.length ? indicators.join(", ") : "none"}`,
+        after: `Indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
       };
     }
     case "open_panel": {
@@ -909,7 +934,12 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       }
       return null;
     case "set_chart_indicators": {
-      const indicators = strArray(input, "indicators");
+      // Only keys the chart knows reach the fetch: one unknown key made the
+      // sidecar reject the whole request, so every indicator failed.
+      const { known, dropped } = splitIndicatorKeys(input);
+      if (known.length === 0 && dropped.length > 0) {
+        return null; // nothing applicable — never clear the chart over bad keys
+      }
       ensureChartOpen();
       const cc = useChartCommandStore.getState();
       // If a symbol was named, load it first so the indicators apply to the
@@ -917,8 +947,8 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (symbol) {
         cc.loadSymbol(symbol);
       }
-      cc.setIndicators(indicators);
-      return `Set indicators: ${indicators.length ? indicators.join(", ") : "none"}`;
+      cc.setIndicators(known);
+      return `Set indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`;
     }
     case "open_panel": {
       const panel = str(input, "panel");
@@ -1445,6 +1475,8 @@ export interface HostActionAckDetail {
   action: string;
   symbol?: string;
   panel?: string;
+  /** set_chart_indicators keys the chart did not know and did not apply. */
+  dropped?: string[];
 }
 
 /** Build the light ack descriptor from a host action's name + input — the
@@ -1455,10 +1487,12 @@ export function hostActionAckDetail(
 ): HostActionAckDetail {
   const symbol = str(input, "symbol");
   const panel = str(input, "panel");
+  const dropped = name === "set_chart_indicators" ? splitIndicatorKeys(input).dropped : [];
   return {
     action: name,
     ...(symbol ? { symbol } : {}),
     ...(panel ? { panel } : {}),
+    ...(dropped.length ? { dropped } : {}),
   };
 }
 

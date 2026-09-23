@@ -9,6 +9,7 @@ import {
   applyHostActionAsync,
   describeHostAction,
   HOST_ACTION_NAMES,
+  hostActionAckDetail,
   isHostActionMutation,
   openCompanyOverview,
   publishAckStatus,
@@ -229,6 +230,24 @@ describe("host-actions", () => {
     const label = applyHostAction("set_chart_indicators", { indicators: ["ma", "rsi"] });
     expect(label).toMatch(/ma, rsi/);
     expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["ma", "rsi"]);
+  });
+
+  it("set_chart_indicators applies only known keys and reports the dropped ones", () => {
+    const input = { indicators: ["rsi", "bollinger_bands"] };
+    expect(describeHostAction("set_chart_indicators", input).after).toBe(
+      "Indicators: rsi (dropped unknown: bollinger_bands)",
+    );
+    expect(applyHostAction("set_chart_indicators", input)).toBe(
+      "Set indicators: rsi (dropped unknown: bollinger_bands)",
+    );
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["rsi"]);
+    expect(hostActionAckDetail("set_chart_indicators", input)).toEqual({
+      action: "set_chart_indicators",
+      dropped: ["bollinger_bands"],
+    });
+    // Nothing applicable: an honest null, the chart's selection is left alone.
+    expect(applyHostAction("set_chart_indicators", { indicators: ["bogus"] })).toBeNull();
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["rsi"]);
   });
 
   it("arrange_layout describes the named templates (B2)", () => {
