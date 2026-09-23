@@ -20,7 +20,10 @@ QuarterLabel = Literal["Q1", "Q2", "Q3", "Q4", "FY"]
 
 
 class FiscalPeriod(BaseModel):
-    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``."""
+    """Fiscal-period label — e.g. ``"Q1 2026"``, ``"FY 2025"``.
+
+    Every ``fiscal_period`` field is ``None`` unless the provider supplies the
+    period — it is never inferred from a report date (R15-DATA-067)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -37,7 +40,7 @@ class EarningsEvent(BaseModel):
     company_name: str | None = None
     scheduled_date: date
     time_of_day: EarningsTimeOfDay
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_estimate_mean: float | None = None
     #: Measured dispersion only — None unless the provider supplies it.
     eps_estimate_stddev: float | None = None
@@ -59,7 +62,7 @@ class EarningsSurprise(BaseModel):
 
     symbol: str
     reported_date: date
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_actual: float
     eps_estimate_mean: float
     eps_surprise: float
@@ -82,7 +85,7 @@ class EarningsEstimateDetail(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     symbol: str
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     eps_estimate_mean: float
     eps_estimate_median: float | None = None
     eps_estimate_high: float
@@ -129,7 +132,7 @@ class EarningsHistoryEntry(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    fiscal_period: FiscalPeriod
+    fiscal_period: FiscalPeriod | None = None
     reported_date: date
     eps_actual: float
     eps_estimate_mean: float | None = None

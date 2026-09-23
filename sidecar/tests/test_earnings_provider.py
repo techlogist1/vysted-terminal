@@ -111,7 +111,9 @@ async def test_get_upcoming_default_window(mock_yf_earnings: type[_FakeEarningsT
     assert event.symbol == "AAPL"
     assert event.scheduled_date == date(2026, 5, 20)
     assert event.eps_estimate_mean == 1.50
-    assert event.fiscal_period.year == 2026
+    # R15-DATA-067: yfinance names no fiscal period — none is inferred from the
+    # report month (this assertion used to pin the inferred label).
+    assert event.fiscal_period is None
 
 
 @pytest.mark.asyncio
@@ -258,3 +260,42 @@ async def test_calendar_event_without_a_count_reports_none(monkeypatch: pytest.M
     event = response.events[0]
     assert event.eps_estimate_stddev is None
     assert event.estimate_analyst_count is None  # never a 0 standing in for unknown
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-067 — no fiscal quarter inferred from the report month
+# ---------------------------------------------------------------------------
+
+
+class _JpmOctoberTicker(_FakeEarningsTicker):
+    """JPM reports its fiscal Q3 in mid-October (the report month says Q4)."""
+
+    @property
+    def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+        return {
+            "Earnings Date": [date(2026, 10, 13)],
+            "Earnings Average": 5.0,
+            "Earnings High": 5.2,
+            "Earnings Low": 4.8,
+        }
+
+
+@pytest.mark.asyncio
+async def test_events_and_estimates_carry_no_inferred_fiscal_period(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _JpmOctoberTicker)
+    upcoming = await earnings_provider.get_upcoming(date(2026, 10, 10), date(2026, 10, 25), ["JPM"])
+    assert upcoming.events[0].fiscal_period is None  # was {Q4, 2026}
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _InfyShapedTicker)
+    assert (await earnings_provider.get_estimate_detail("INFY.NS")).fiscal_period is None
+
+
+@pytest.mark.asyncio
+async def test_history_rows_carry_no_inferred_fiscal_period(
+    mock_yf_earnings: type[_FakeEarningsTicker],
+) -> None:
+    history = await earnings_provider.get_history("AAPL")
+    assert history.history and all(row.fiscal_period is None for row in history.history)
+    surprises = await earnings_provider.get_surprises("AAPL")
+    assert all(row.fiscal_period is None for row in surprises.surprises)

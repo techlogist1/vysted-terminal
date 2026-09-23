@@ -53,7 +53,6 @@ from models.earnings import (
     EarningsSurprise,
     EarningsSurprisesResponse,
     EarningsUpcomingResponse,
-    FiscalPeriod,
 )
 from services.errors import ProviderError
 from services.yfinance_provider import _yahoo_symbol
@@ -94,32 +93,6 @@ def _num(value: Any) -> float | None:
     if math.isnan(out) or math.isinf(out):
         return None
     return out
-
-
-def _fiscal_period_for(ts: date | datetime) -> FiscalPeriod:
-    """Best-effort quarter inference from a reporting date.
-
-    Most companies report fiscal Q1 in Q2-calendar, but the precise
-    fiscal-year alignment varies. yfinance does not always surface a
-    fiscal-period field, so we infer ``Q1..Q4`` from the calendar month
-    and stamp the year as the calendar year of the report. The label is
-    used only for UI display; downstream consumers that need the exact
-    fiscal alignment can override via openbb-mcp once enrichment is wired.
-    """
-    if isinstance(ts, datetime):
-        d = ts.date()
-    else:
-        d = ts
-    month = d.month
-    if month <= 3:
-        quarter: str = "Q1"
-    elif month <= 6:
-        quarter = "Q2"
-    elif month <= 9:
-        quarter = "Q3"
-    else:
-        quarter = "Q4"
-    return FiscalPeriod(quarter=quarter, year=d.year)  # type: ignore[arg-type]
 
 
 def _analyst_count(frame: Any) -> int | None:
@@ -257,7 +230,8 @@ def _event_from_calendar(
         company_name=payload.get("name"),
         scheduled_date=scheduled,
         time_of_day="unknown",
-        fiscal_period=_fiscal_period_for(scheduled),
+        # R15-DATA-067: yfinance names no fiscal period; the report month does
+        # not determine one (JPM's October report is its Q3), so none is stamped.
         eps_estimate_mean=_num(cal.get("Earnings Average")),
         estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
         currency=str(payload.get("currency") or "USD"),
@@ -337,7 +311,6 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
             eps_estimate = _num(row.get("epsEstimate"))
             entries.append(
                 EarningsHistoryEntry(
-                    fiscal_period=_fiscal_period_for(reported),
                     reported_date=reported,
                     eps_actual=eps_actual,
                     eps_estimate_mean=eps_estimate,
@@ -394,13 +367,9 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     if not earnings_dates:
         raise ProviderError(f"no upcoming earnings event found for {symbol!r}")
     raw = earnings_dates[0]
-    if isinstance(raw, datetime):
-        scheduled = raw.date()
-    elif isinstance(raw, date):
-        scheduled = raw
-    else:
+    if not isinstance(raw, date):
         try:
-            scheduled = datetime.fromisoformat(str(raw)).date()
+            datetime.fromisoformat(str(raw))
         except (TypeError, ValueError) as exc:
             raise ProviderError(f"could not parse earnings date {raw!r} for {symbol!r}") from exc
 
@@ -416,7 +385,6 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
 
     return EarningsEstimateDetail(
         symbol=normalized,
-        fiscal_period=_fiscal_period_for(scheduled),
         # R15-DATA-032: yfinance surfaces no median or stddev — they stay None
         # rather than the mean / a (high-low)/4 proxy on a measured-value field.
         eps_estimate_mean=eps_mean,
