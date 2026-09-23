@@ -11,8 +11,16 @@ vi.mock("./api", () => ({
   fetchPositionQuotes: vi.fn(),
 }));
 
+// Keep the real CSV builder; capture the download instead of touching the DOM.
+vi.mock("@/lib/csv", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/csv")>()),
+  downloadCsv: vi.fn(),
+}));
+
 const api = await import("./api");
 const mockFetchQuotes = vi.mocked(api.fetchPositionQuotes);
+const csvModule = await import("@/lib/csv");
+const mockDownloadCsv = vi.mocked(csvModule.downloadCsv);
 
 function quote(symbol: string, price: number, currency = "USD"): Quote {
   return {
@@ -227,5 +235,34 @@ describe("PortfolioPanel", () => {
       fireEvent.click(screen.getByLabelText("Delete portfolio"));
     });
     expect(usePortfoliosStore.getState().portfolios).toHaveLength(1);
+  });
+
+  it("exports the active portfolio to CSV with live-quote P&L", async () => {
+    mockFetchQuotes.mockResolvedValue(new Map([["AAPL", quote("AAPL", 200)]]));
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+    await screen.findAllByText("+$500.00 (+33.33%)");
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Export portfolio to CSV"));
+    });
+
+    expect(mockDownloadCsv).toHaveBeenCalledTimes(1);
+    const [filename, csv] = mockDownloadCsv.mock.calls[0];
+    expect(filename).toBe("vysted-portfolio-portfolio.csv");
+    const [header, row] = csv.split("\n");
+    expect(header).toBe(
+      "Symbol,Quantity,Cost basis,Asset class,Price,Market value,P&L,P&L %,Weight %,Note",
+    );
+    expect(row.split(",").slice(0, 7)).toEqual([
+      "AAPL",
+      "10",
+      "150",
+      "equity",
+      "200",
+      "2000",
+      "500",
+    ]);
+    expect(row.split(",")[8]).toBe("100.00");
   });
 });

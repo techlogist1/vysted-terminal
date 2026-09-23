@@ -64,7 +64,7 @@ export const PluginManagerPanel: FunctionComponent = () => {
         <EmptyState
           icon={Blocks}
           headline="No plugins loaded"
-          hint="No plugins are loaded. Open the Marketplace to install brokers, data providers, panels, and agent packs."
+          hint="No plugins are loaded. Open the Marketplace to install data providers, panels, and agent packs."
           cta={{
             label: "Open Marketplace",
             primary: true,

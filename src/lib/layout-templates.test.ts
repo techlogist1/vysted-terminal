@@ -423,7 +423,7 @@ describe("planContentAware (R9 — content-aware arrange)", () => {
 
   it("extra mains tab into the wide column; extra rails stack then tab", () => {
     const plan = planContentAware(
-      ["news", "watchlist", "chart", "equity-overview", "portfolio", "audit-log"],
+      ["news", "watchlist", "chart", "equity-overview", "portfolio", "earnings-calendar"],
       SIGNALS,
       WIDE,
     );
@@ -438,7 +438,7 @@ describe("planContentAware (R9 — content-aware arrange)", () => {
     // rails: head right of the wide column, second below it, rest tab in
     expect(byId["news"].position).toEqual({ referencePanel: "portfolio", direction: "right" });
     expect(byId["watchlist"].position).toEqual({ referencePanel: "news", direction: "below" });
-    expect(byId["audit-log"].position).toEqual({
+    expect(byId["earnings-calendar"].position).toEqual({
       referencePanel: "watchlist",
       direction: "within",
     });

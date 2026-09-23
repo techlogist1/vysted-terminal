@@ -69,7 +69,7 @@ export interface SerializedWorkspace {
   watchlist?: SymbolEntry[];
   /**
    * The user's named portfolios + the active one. Persisted so manually tracked
-   * holdings survive a relaunch (frontend-managed, no broker sync). Optional for
+   * holdings survive a relaunch (frontend-managed, hand-entered). Optional for
    * blobs saved before multi-portfolio shipped (absent → one empty default).
    */
   portfolios?: { list: Portfolio[]; activeId: string };
@@ -236,17 +236,35 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
 }
 
 /**
- * Apply a loaded workspace back onto the live stores: restore the modules
- * `enabled` map, then the dockview layout, then the active workspace name.
- * Throws if the dockview layout has not mounted yet. Drawings (Phase 2) are
- * restored last and only when the loaded workspace carries them so older
- * workspaces still apply cleanly.
+ * Apply a loaded workspace back onto the live stores. The non-layout slices
+ * (enabled modules, name, drawings, watchlist, portfolios, notes, settings, …)
+ * are restored FIRST and never depend on the dockview layout applying, so a
+ * layout that cannot be restored never costs the user their data
+ * (R15-LIFECYCLE-002). Then the dockview layout is applied — unless it
+ * references a panel component that is not registered (a removed panel, or a
+ * plugin panel that registers async), in which case the layout is skipped and
+ * this returns false so the caller can apply the default layout. Throws if the
+ * dockview layout has not mounted yet, or if `fromJSON` itself throws (the
+ * non-layout slices are already restored by then).
  */
-export function deserializeWorkspace(workspace: SerializedWorkspace): void {
+export function deserializeWorkspace(workspace: SerializedWorkspace): boolean {
   const api = useWorkspaceStore.getState().dockviewApi;
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
+  restoreNonLayoutSlices(workspace);
+  // An unknown component would throw mid-`fromJSON` (dockview instantiates panel
+  // content eagerly) and half-mutate the grid — skip the layout instead.
+  if (layoutReferencesUnknownComponent(workspace.layout)) {
+    return false;
+  }
+  api.fromJSON(workspace.layout);
+  migrateLegacyLayout(api);
+  return true;
+}
+
+/** Restore every workspace slice except the dockview layout. */
+function restoreNonLayoutSlices(workspace: SerializedWorkspace): void {
   // Capture the research space we're LEAVING before any store mutation below
   // overwrites the active name/symbol (used to archive its transcript in the
   // research-space swap at the end — S-19). Keyed by the CANONICAL space name so
@@ -255,19 +273,10 @@ export function deserializeWorkspace(workspace: SerializedWorkspace): void {
     const symbol = useWorkspaceStore.getState().researchSymbol;
     return symbol ? { name: researchSpaceName(symbol), symbol } : null;
   })();
-  // Restore the enabled map first so the panel components a layout references
-  // resolve against the same module set that was active when it was saved.
-  // Snapshot it so a throwing `fromJSON` (corrupt/truncated blob) rolls the
-  // module set back instead of leaving it half-applied (regression-95 BUG-5).
-  const prevEnabled = useModulesStore.getState().enabled;
+  // Restore the enabled map before the layout so the panel components a layout
+  // references resolve against the same module set that was active when it was
+  // saved.
   useModulesStore.getState().setEnabledMap(workspace.enabledModules);
-  try {
-    api.fromJSON(workspace.layout);
-  } catch (error) {
-    useModulesStore.getState().setEnabledMap(prevEnabled);
-    throw error;
-  }
-  migrateLegacyLayout(api);
   useWorkspaceStore.getState().setName(workspace.name);
   if (workspace.chartDrawings) {
     useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings);
@@ -413,7 +422,11 @@ export async function saveWorkspace(name: string): Promise<void> {
   useWorkspaceStore.getState().setName(trimmed);
 }
 
-/** Load a saved workspace from the sidecar and apply it to the live stores. */
+/**
+ * Load a saved workspace from the sidecar and apply it to the live stores. A
+ * layout that references an unregistered panel falls back to the default layout;
+ * the workspace's data slices are restored either way.
+ */
 export async function loadWorkspace(name: string): Promise<void> {
   const trimmed = name.trim();
   if (!trimmed) {
@@ -429,7 +442,21 @@ export async function loadWorkspace(name: string): Promise<void> {
   } catch {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
-  deserializeWorkspace(workspace);
+  if (!deserializeWorkspace(workspace)) {
+    const api = useWorkspaceStore.getState().dockviewApi;
+    if (api) {
+      api.clear();
+      applyDefaultLayout(
+        api,
+        new Set(
+          useModulesStore
+            .getState()
+            .enabledPanels()
+            .map((panel) => panel.id),
+        ),
+      );
+    }
+  }
 }
 
 /**
@@ -463,8 +490,9 @@ function migrateLegacyLayout(api: DockviewApi): void {
  * True when the serialized layout references a panel component id that is not
  * currently registered. dockview instantiates panel content eagerly during
  * `fromJSON`, so an unknown component (e.g. a plugin panel whose module
- * registers asynchronously after `handleReady`) throws synchronously and
- * half-mutates the grid. We detect that up-front and skip cleanly to default.
+ * registers asynchronously after `handleReady`, or a panel that was removed from
+ * the product) throws synchronously and half-mutates the grid. We detect that
+ * up-front and skip the layout cleanly.
  * An unreadable layout shape is treated as "unknown" so we conservatively
  * skip-to-default rather than risk the throw.
  */
@@ -484,7 +512,9 @@ function layoutReferencesUnknownComponent(layout: SerializedDockview): boolean {
  * bundled default layout. Called once on launch from PanelHost; this is what
  * makes a customised cockpit survive a relaunch (Track C). Never throws — a
  * failed restore falls back to the default so the app always boots usable.
- * Returns true when a saved session was restored.
+ * The saved data slices (holdings, watchlist, notes, …) are restored even when
+ * the saved layout is not, so the next autosave never overwrites them with
+ * defaults. Returns true when the saved layout was restored.
  *
  * The fetch below awaits a Tauri IPC + localhost round-trip. Under
  * StrictMode/HMR the dockview api can be disposed and replaced while we wait,
@@ -506,18 +536,15 @@ export async function restoreLastSessionOrDefault(
       if (!isLive()) {
         return false;
       }
-      // Skip to default if the saved layout references a component not yet
-      // registered (plugin panels register async) — that would throw mid-
-      // `fromJSON` and corrupt the grid for the fallback below.
-      if (layoutReferencesUnknownComponent(workspace.layout)) {
-        applyDefaultLayout(api, enabledPanelIds);
-        return false;
-      }
-      deserializeWorkspace(workspace);
+      const layoutRestored = deserializeWorkspace(workspace);
       // The reserved slot's name is internal — present the restored cockpit
       // under the neutral "default" name, not "__autosave__".
       useWorkspaceStore.getState().setName("default");
-      return true;
+      if (layoutRestored) {
+        return true;
+      }
+      // The saved layout references a component that is not registered — the
+      // data slices are already restored; fall through to the default layout.
     }
   } catch (error) {
     // Restore failed — log (Track A discipline) then fall through to default.

@@ -4,9 +4,8 @@
  * Every compiled-in plugin lives in `CATALOG_ROWS` (`src/lib/marketplace.ts`).
  * On boot the runtime DISCOVERS all of them (so they're loadable + visible in
  * the marketplace) but LOADS only those that are installed + enabled — first-
- * party entries are pre-installed by default (populated first run, FR-032); the
- * seven broker entries are available-but-not-pre-installed (FR-051: no broker
- * registered at boot). Install/enable/disable/remove afterwards is driven by
+ * party entries are pre-installed by default (populated first run, FR-032).
+ * Install/enable/disable/remove afterwards is driven by
  * `useMarketplaceStore` over the same runtime.
  *
  * The runtime's persistence adapter is wired here to the sidecar `/plugins`
@@ -214,7 +213,7 @@ export function unbridgePluginModule(pluginId: string): void {
 /**
  * Bootstrap the plugin runtime: build the runtime, attach it to
  * `usePluginsStore`, DISCOVER every catalog plugin, LOAD the installed+enabled
- * ones (first-party pre-installed by default; brokers none), bridge their
+ * ones (first-party pre-installed by default), bridge their
  * contributions, and start the health-check loop. Returns a teardown function.
  */
 export async function bootstrapPlugins(): Promise<() => void> {

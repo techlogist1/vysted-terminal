@@ -4,9 +4,9 @@
  * Agent-proposed host-action mutations are staged here as `ProposedChange`s
  * instead of being applied immediately. The user reviews each as an old→new
  * diff and accepts/rejects per-item or in bulk (keyboard-driven, in the agent
- * surface). NOTHING lands before acceptance — accepting applies the mutation
- * (or, for an order, routes it to the §6.5 confirm dialog); rejecting leaves
- * state unchanged. There is no auto-apply path (Constitution / spec US4).
+ * surface). NOTHING lands before acceptance — accepting applies the mutation;
+ * rejecting leaves state unchanged. The only auto-apply path is the user's own
+ * AUTO autonomy choice (Constitution / spec US4).
  */
 
 import { create } from "zustand";
@@ -17,7 +17,6 @@ import {
   describeHostAction,
   hostActionAckDetail,
   publishAckStatus,
-  routeOrderProposal,
 } from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useBriefStore } from "@/store/brief";
@@ -47,16 +46,12 @@ function settleRejectedPublishes(rejected: readonly ProposedChange[]): void {
 }
 
 /**
- * Ack every REJECTED non-order host action as `failed` (R13 JARVIS 1a): the
- * user declined it, so the sidecar's action ledger reflects the change did NOT
- * land and any read-back reads the honest outcome. Orders never ack here — they
- * route through the §6.5 confirm dialog. Fire-and-forget.
+ * Ack every REJECTED host action as `failed` (R13 JARVIS 1a): the user
+ * declined it, so the sidecar's action ledger reflects the change did NOT land
+ * and any read-back reads the honest outcome. Fire-and-forget.
  */
 function ackRejectedHostActions(rejected: readonly ProposedChange[]): void {
   for (const c of rejected) {
-    if (c.kind === "order") {
-      continue;
-    }
     ackHostAction(c.toolCallId, "failed", hostActionAckDetail(c.action.name, c.action.input));
   }
 }
@@ -75,7 +70,7 @@ interface ProposedChangesState {
   changes: ProposedChange[];
   /** Stage a host-action mutation as a reviewable diff. Returns its id. */
   enqueue: (input: EnqueueInput) => string;
-  /** Accept one change — apply it (or route an order to the §6.5 dialog). */
+  /** Accept one change — apply it. */
   accept: (id: string) => Promise<void>;
   /** Reject one change — leaves cockpit state unchanged. */
   reject: (id: string) => void;
@@ -110,12 +105,9 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       createdAt: Date.now(),
     };
     set((state) => ({ changes: [...state.changes, change] }));
-    // Autonomy: in AUTO mode, the UI/layout/chart/watchlist host-actions apply
-    // without a per-action confirmation (still recorded in the transcript).
-    // HARD SAFETY LINE — an ORDER is NEVER auto-applied in any mode: it is
-    // excluded here AND `accept()` would route it through the §6.5 confirm dialog
-    // anyway. `auto` changes confirmation friction, never the safety enforcement.
-    if (described.kind !== "order" && useAgentAutonomyStore.getState().autonomy === "auto") {
+    // Autonomy: in AUTO mode, every host action applies without a per-action
+    // confirmation (still recorded in the transcript).
+    if (useAgentAutonomyStore.getState().autonomy === "auto") {
       void get().accept(id);
     }
     return id;
@@ -128,40 +120,25 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }
     // Claim the change SYNCHRONOUSLY before any await so a concurrent accept(id)
     // (or acceptAll racing a manual click) sees status !== "pending" and bails —
-    // no double-apply, no double-route of an order.
+    // no double-apply.
     set((state) => ({
       changes: state.changes.map((c) =>
         c.id === id ? { ...c, status: "accepted", detail: undefined } : c,
       ),
     }));
-    let ok = true;
-    let detail: string | undefined;
-    if (change.kind === "order") {
-      // The §6.5 dialog (mandatory review checkbox + Confirm) now governs
-      // placement; the AI never reaches confirm_and_place.
-      const result = await routeOrderProposal(change.action.input, {
-        agentId: change.agentId,
-        agentName: change.agentName,
-      });
-      ok = result.ok;
-      detail = result.error;
-    } else {
-      const label = await applyHostActionAsync(change.action.name, change.action.input);
-      ok = label !== null;
-      if (!ok) {
-        detail = "Could not apply this change — its arguments were incomplete.";
-      }
-      // Read-back (R10 D39 §4, generalized in R13 JARVIS 1a): the sidecar's
-      // action ledger learns how the panel REALLY resolved EVERY host action
-      // (applied | kept_previous | failed) so the runtime's grounded
-      // tool-result + divergence check compare against ground truth, not the
-      // optimistic "dispatched". Fire-and-forget — never blocks the gate.
-      ackHostAction(
-        change.toolCallId,
-        publishAckStatus(label),
-        hostActionAckDetail(change.action.name, change.action.input),
-      );
-    }
+    const label = await applyHostActionAsync(change.action.name, change.action.input);
+    const ok = label !== null;
+    const detail = ok ? undefined : "Could not apply this change — its arguments were incomplete.";
+    // Read-back (R10 D39 §4, generalized in R13 JARVIS 1a): the sidecar's
+    // action ledger learns how the panel REALLY resolved EVERY host action
+    // (applied | kept_previous | failed) so the runtime's grounded
+    // tool-result + divergence check compare against ground truth, not the
+    // optimistic "dispatched". Fire-and-forget — never blocks the gate.
+    ackHostAction(
+      change.toolCallId,
+      publishAckStatus(label),
+      hostActionAckDetail(change.action.name, change.action.input),
+    );
     if (!ok) {
       // Re-pend so the user sees the failure and can retry; the change did NOT land.
       set((state) => ({

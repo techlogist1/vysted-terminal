@@ -1535,7 +1535,7 @@ function AdvancedSection() {
       <SectionHeader
         id="settings-advanced"
         title="Advanced"
-        hint="Broker integrations, saved layouts, module toggles, and settings portability."
+        hint="Integrations, saved layouts, module toggles, and settings portability."
       />
       <div className="flex flex-col gap-8">
         <IntegrationsSection />
@@ -1568,12 +1568,12 @@ function IntegrationsSection() {
       <SubsectionHeader
         id="settings-integrations"
         title="Integrations"
-        hint="Connect a broker for read-only positions, holdings & P&L the copilot can analyse over your real account."
+        hint="Plugins that extend the terminal with data, agents and panels."
       />
       <Card>
         <div className="flex min-h-8 items-center justify-between gap-4 px-4 py-3">
           <span className="text-charcoal-400 text-caption">
-            Broker connections are managed in the Marketplace.
+            Data providers, agent packs and panels are managed in the Marketplace.
           </span>
           <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
             Open Marketplace
@@ -1846,8 +1846,7 @@ function ExportImportSection() {
           </div>
           <p className="text-charcoal-500 text-caption">
             The export bundles your keybinding remaps and preferences (default agent, region,
-            research engine). API keys and broker credentials stay in your OS keychain and are never
-            written to the file.
+            research engine). API keys stay in your OS keychain and are never written to the file.
           </p>
           {status && (
             <p

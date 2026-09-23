@@ -6,8 +6,7 @@ import { create } from "zustand";
  * Multi-portfolio store.
  *
  * The user can keep several NAMED portfolios and switch between them, manually
- * tracking holdings (symbol / quantity / cost basis / asset class) — useful when
- * a broker (e.g. HDFC) has no API. There is NO broker auto-sync: every holding
+ * tracking holdings (symbol / quantity / cost basis / asset class). Every holding
  * is hand-entered. The default is a SINGLE EMPTY portfolio (never fabricated
  * demo data) so a fresh install reads as a clean empty state.
  *

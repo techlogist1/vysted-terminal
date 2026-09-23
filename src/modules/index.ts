@@ -2,7 +2,6 @@ import type { VystedModule } from "@/lib/module-registry";
 
 import { agentBuilderModule } from "./agent-builder";
 import { backtestModule } from "./backtest";
-import { brokerConnectModule } from "./broker-connect";
 import { chartModule } from "./chart";
 import { chatModule } from "./chat";
 import { equityOverviewModule } from "./equity-overview";
@@ -13,7 +12,6 @@ import { platformModule } from "./platform";
 import { pluginManagerModule } from "./plugin-manager";
 import { portfolioModule } from "./portfolio";
 import { researchModule } from "./research";
-import { safetyModule } from "./safety";
 import { watchlistModule } from "./watchlist";
 // Phase 6 — uncomment per teammate at integration time. Each teammate owns
 // exactly one (or two) of the six entries below; the commented stubs land in
@@ -46,16 +44,6 @@ import { notesModule } from "./notes"; // 003 rebuild — OS-for-finance researc
  *
  * Phase 4 / v0.5.0 adds `backtestModule` (Teammate K) — the strategy backtest
  * + Strategy Critic surface (BLUEPRINT Use Case 2).
- *
- * v0.5.0 adds `safetyModule` (Teammate S) — the audit-log viewer panel +
- * the always-mounted OrderConfirmationDialog / DisclaimerFlow surfaces
- * (exported from `src/modules/safety/index.ts`). The kill switch is read-only-
- * app presentation that the agent-native craft pass removed from the UI; the
- * §6.5 mechanism (`kill_switch.rs`, store slice, audit) stays intact and dormant.
- *
- * v0.5.0 adds `brokerConnectModule` (Teammate S, depends on Teammates I/G/X
- * for the underlying broker adapters) — the connection-manager panel +
- * manual order-entry surface.
  */
 export const vystedModules: VystedModule[] = [
   chartModule,
@@ -71,8 +59,6 @@ export const vystedModules: VystedModule[] = [
   agentBuilderModule,
   nodeEditorModule,
   backtestModule,
-  brokerConnectModule,
-  safetyModule,
   // Phase 6 (v0.6.0) — each teammate uncomments their entry at integration.
   // The line order matches the v0.6.0 plan's merge order (M → F → Q → E → Sc)
   // so audit drift is easy to spot.

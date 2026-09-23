@@ -1,29 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// The diff gate's apply/route side effects live in `@/lib/host-actions`; mock
-// them so this suite tests the gate's state machine (stage → accept/reject →
+// The diff gate's apply side effects live in `@/lib/host-actions`; mock them so
+// this suite tests the gate's state machine (stage → accept/reject →
 // apply-once) in isolation. `host-actions.test.ts` covers the real apply.
-const { applyHostActionMock, routeOrderProposalMock, describeHostActionMock, ackHostActionMock } =
-  vi.hoisted(() => ({
-    applyHostActionMock: vi.fn<
-      (name: string, input: Record<string, unknown>) => Promise<string | null>
-    >(async () => "applied"),
-    routeOrderProposalMock: vi.fn<() => Promise<{ ok: boolean; error?: string }>>(async () => ({
-      ok: true,
-    })),
-    describeHostActionMock: vi.fn((name: string) => ({
-      kind: name === "propose_order" ? "order" : name === "set_chart_symbol" ? "chart" : "panel",
-      title: `do ${name}`,
-      before: "before",
-      after: "after",
-    })),
-    ackHostActionMock: vi.fn(),
-  }));
+const { applyHostActionMock, describeHostActionMock, ackHostActionMock } = vi.hoisted(() => ({
+  applyHostActionMock: vi.fn<
+    (name: string, input: Record<string, unknown>) => Promise<string | null>
+  >(async () => "applied"),
+  describeHostActionMock: vi.fn((name: string) => ({
+    kind: name.startsWith("portfolio_")
+      ? "data-write"
+      : name === "set_chart_symbol"
+        ? "chart"
+        : "panel",
+    title: `do ${name}`,
+    before: "before",
+    after: "after",
+  })),
+  ackHostActionMock: vi.fn(),
+}));
 
 vi.mock("@/lib/host-actions", () => ({
   // The gate applies through the ASYNC seam (network-backed cases await).
   applyHostActionAsync: applyHostActionMock,
-  routeOrderProposal: routeOrderProposalMock,
   describeHostAction: describeHostActionMock,
   ackHostAction: ackHostActionMock,
   hostActionAckDetail: (name: string, input: Record<string, unknown>) => ({
@@ -56,7 +55,6 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     resetProposedChangesStoreForTests();
     resetAgentAutonomyStoreForTests();
     applyHostActionMock.mockClear();
-    routeOrderProposalMock.mockClear();
     ackHostActionMock.mockClear();
   });
 
@@ -75,7 +73,7 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     expect(applyHostActionMock).not.toHaveBeenCalled();
   });
 
-  it("accept applies a non-order mutation exactly once and marks it accepted", async () => {
+  it("accept applies a mutation exactly once and marks it accepted", async () => {
     const id = enqueue("set_chart_symbol", { symbol: "NVDA" });
     await useProposedChangesStore.getState().accept(id);
     expect(applyHostActionMock).toHaveBeenCalledTimes(1);
@@ -86,28 +84,10 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     expect(applyHostActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it("accept routes an ORDER through the §6.5 path, never a direct apply (FR-011)", async () => {
-    const id = enqueue("propose_order", { symbol: "AAPL", side: "buy", quantity: 1 });
-    await useProposedChangesStore.getState().accept(id);
-    expect(routeOrderProposalMock).toHaveBeenCalledTimes(1);
-    expect(applyHostActionMock).not.toHaveBeenCalled();
-    expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
-  });
-
-  it("re-pends an order whose §6.5 route fails, surfacing the error (no silent accept)", async () => {
-    routeOrderProposalMock.mockResolvedValueOnce({ ok: false, error: "kill switch fired" });
-    const id = enqueue("propose_order", { symbol: "AAPL", side: "buy", quantity: 1 });
-    await useProposedChangesStore.getState().accept(id);
-    const change = useProposedChangesStore.getState().changes[0];
-    expect(change.status).toBe("pending");
-    expect(change.detail).toBe("kill switch fired");
-  });
-
   it("reject leaves cockpit state unchanged — nothing is applied", () => {
     const id = enqueue("add_to_watchlist", { symbol: "TSLA" });
     useProposedChangesStore.getState().reject(id);
     expect(applyHostActionMock).not.toHaveBeenCalled();
-    expect(routeOrderProposalMock).not.toHaveBeenCalled();
     expect(useProposedChangesStore.getState().changes[0].status).toBe("rejected");
   });
 
@@ -129,9 +109,9 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     expect(applyHostActionMock).not.toHaveBeenCalled();
   });
 
-  // --- autonomy (item 7) — AUTO auto-applies non-order; ASK gates everything ---
+  // --- autonomy (item 7) — AUTO auto-applies every kind; ASK gates everything ---
 
-  it("ASK mode (default) leaves a non-order change pending — no auto-apply", () => {
+  it("ASK mode (default) leaves a change pending — no auto-apply", () => {
     useAgentAutonomyStore.getState().setAutonomy("ask");
     enqueue("set_chart_symbol", { symbol: "NVDA" });
     expect(applyHostActionMock).not.toHaveBeenCalled();
@@ -147,15 +127,16 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
   });
 
-  it("AUTO mode NEVER auto-applies an ORDER — it stays gated (hard safety line)", async () => {
+  it("AUTO mode applies a tracked-portfolio data-write on enqueue too (no exempt kind)", async () => {
     useAgentAutonomyStore.getState().setAutonomy("auto");
-    enqueue("propose_order", { symbol: "AAPL", side: "buy", quantity: 1 });
-    await Promise.resolve();
-    // The order is NOT auto-accepted: no route, no apply, still pending for the
-    // explicit §6.5 confirm path. `auto` changes friction, not safety.
-    expect(routeOrderProposalMock).not.toHaveBeenCalled();
-    expect(applyHostActionMock).not.toHaveBeenCalled();
-    expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
+    enqueue("portfolio_add_position", { symbol: "AAPL", quantity: 1 });
+    await Promise.resolve(); // flush the void accept() microtask
+    expect(applyHostActionMock).toHaveBeenCalledWith("portfolio_add_position", {
+      symbol: "AAPL",
+      quantity: 1,
+    });
+    expect(useProposedChangesStore.getState().changes[0].kind).toBe("data-write");
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
   });
 
   // --- publish read-back + lifecycle settlement (R10 D39) --------------------
@@ -201,7 +182,7 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     });
   });
 
-  it("acks a rejected non-order host action as failed (R13 JARVIS 1a)", () => {
+  it("acks a rejected host action as failed (R13 JARVIS 1a)", () => {
     ackHostActionMock.mockClear();
     const id = enqueue("open_panel", { panel: "news" });
     useProposedChangesStore.getState().reject(id);

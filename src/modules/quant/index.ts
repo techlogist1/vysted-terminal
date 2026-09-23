@@ -11,8 +11,7 @@ import { YieldCurvePanel } from "./YieldCurvePanel";
  * Surfaces four pricing panels — option pricer (BS / Binomial / MC),
  * bond pricer, yield curve bootstrap, Greeks dashboard. All four hit
  * the in-process QuantLib pipeline rooted at ``sidecar/services/quant``
- * via the ``/quant/...`` router. None of the panels touch the BLUEPRINT
- * §6.5 broker-execution surface — they are pure pricing math.
+ * via the ``/quant/...`` router. They are pure pricing math.
  */
 export const quantModule: VystedModule = {
   id: "quant",

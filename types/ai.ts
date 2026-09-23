@@ -27,7 +27,7 @@ import type { AgentMode } from "./agent-modes";
  * Autonomy axis — how much the agent's cockpit-driving act-path asks before it
  * applies. ORTHOGONAL to {@link AgentMode}. `"auto"` skips the per-change accept
  * for read-safe host-actions (panel / chart / watchlist); `"ask"` stages them in
- * the review gate. NEVER a path around §6.5 — orders always need confirmation.
+ * the review gate.
  * Mirrors the `AgentAutonomy` union in `src/store/agent-autonomy.ts`.
  */
 export type AgentAutonomy = "ask" | "auto";
@@ -179,7 +179,7 @@ export type LLMStreamEvent =
        * A visible "plan-then-execute" surface for a compound request (Track 6 #2),
        * emitted BEFORE the tool loop on a capable model. Advisory — the loop still
        * drives execution; `staged` host-action steps are pre-queued into the
-       * diff/accept gate. No order verb exists in the planner vocabulary.
+       * diff/accept gate.
        */
       kind: "agent_plan";
       /** The restated goal the plan addresses. */
@@ -259,11 +259,10 @@ export interface AgentInvocationRequest {
   mode?: AgentMode;
   /**
    * Autonomy axis (Claude-Code-style), ORTHOGONAL to `mode`: `"auto"` means
-   * non-order host-actions apply immediately (the agent narrates them in past
-   * tense); `"ask"` (or omitted) stages them in the review queue. NEVER a path
-   * around §6.5 — `propose_order` always stages, in every autonomy mode. The
-   * sidecar threads this into the host-action narration so the copilot tells the
-   * truth about what actually landed.
+   * host-actions apply immediately (the agent narrates them in past tense);
+   * `"ask"` (or omitted) stages them in the review queue. The sidecar threads
+   * this into the host-action narration so the copilot tells the truth about
+   * what actually landed.
    */
   autonomy?: AgentAutonomy;
   /**

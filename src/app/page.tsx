@@ -16,7 +16,7 @@ import { autosaveLayout } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
 import { EASE_INSTRUMENT } from "@/lib/motion";
 import { vystedModules } from "@/modules";
-import { DisclaimerFlow, OrderConfirmationDialog } from "@/modules/safety";
+import { DisclaimerFlow } from "@/modules/safety";
 import { WorkspaceDialog } from "@/modules/platform/WorkspaceDialog";
 import { useWorkspaceDialog } from "@/modules/platform/workspace-dialog-store";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -282,12 +282,10 @@ export default function Page() {
             <PanelHost />
           </AgentDock>
         </div>
-        {/* §6.5 surfaces mounted at the shell so they are reachable regardless of
-          layout: the agent-proposed order confirm dialog (FR-011) and the
-          layered first-launch disclaimer (§6.5 #8). */}
-        <OrderConfirmationDialog />
+        {/* The first-launch research terms, mounted at the shell so they are
+          reachable regardless of layout. */}
         <DisclaimerFlow />
-        {/* First-run onboarding (Track 2). Renders AFTER the §6.5 TOS (it
+        {/* First-run onboarding (Track 2). Renders AFTER the first-launch terms (it
           sequences on `firstLaunchTosAcked`), is dismissible, and shows once —
           the terminal works keyless, so this is an upgrade, not a gate. */}
         <OnboardingFlow />
