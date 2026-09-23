@@ -69,6 +69,16 @@ if TYPE_CHECKING:  # import-light: these types only ride annotations
 #: partial text and degrades gracefully.
 _LLM_CALL_TIMEOUT_SECS = 60.0
 
+#: The local (Ollama) lane's per-call cap. A local 8B model on a laptop
+#: measured ~70 s per researcher turn (r2-deep-cgpower) and every
+#: distill/synthesis call hit the 60 s hosted cap, shipping the no-synthesis
+#: floor. 150 s gives a long local synthesis ~2x that measured turn while the
+#: research dispatch guard (deep 390 s / ultra 570 s) still bounds the run.
+_LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
+
+#: Providers that run on the user's own machine (the per-call cap scales up).
+_LOCAL_PROVIDERS = frozenset({"ollama"})
+
 #: The panel threshold: a profile with ``angles >= 2`` runs Heavy mode. Kept in
 #: lockstep with ``iter._MIN_ANGLES``; the actual per-depth angle counts live in
 #: ``services.research.depth.PROFILES`` (the ONE knob table).
@@ -343,13 +353,18 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
 
     _emit_backend_step(_engine_label(provider, model, profile))
     budget = _research_budget(profile, rounds, wall)
+    from services.research import deep
+
+    per_call = (
+        _LOCAL_LLM_CALL_TIMEOUT_SECS if provider in _LOCAL_PROVIDERS else _LLM_CALL_TIMEOUT_SECS
+    )
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
         # THE one metering seam: every research LLM call (plan, distill,
         # reflect, synthesis, citecheck, cross-check) folds its usage into the
         # run guard here, so the token/spend ceilings see real cost.
         text, usage = await oneshot.complete_with_usage(
-            provider, model, key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
+            provider, model, key, messages, timeout=per_call
         )
         budget.add_usage(usage, model, provider)
         return text
@@ -376,13 +391,19 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     # retrieval anywhere in the run surfaces on the published brief.
     telemetry = config.begin_search_telemetry()
 
-    brief = await _run_loop(
-        profile=profile,
-        query=query,
-        llm_call=llm_call,
-        budget=budget,
-        native_search=native_search,
-    )
+    # The loop's universal per-call cap follows this run's lane (child tasks
+    # copy the context, so every researcher/angle inherits it).
+    cap_token = deep.LLM_CALL_TIMEOUT.set(per_call)
+    try:
+        brief = await _run_loop(
+            profile=profile,
+            query=query,
+            llm_call=llm_call,
+            budget=budget,
+            native_search=native_search,
+        )
+    finally:
+        deep.LLM_CALL_TIMEOUT.reset(cap_token)
     # The execution-loop hint (R10, D38): which loop ACTUALLY ran — Team
     # RUNTIME builds the full ResearchExecution from it at the tool boundary.
     loop_label = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "iter"
@@ -396,6 +417,9 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     # Re-read AFTER the loop: the ULTRA cross-check round runs after the panel
     # stamped its cost, and its calls are metered into the same guard.
     out["cost"] = _brief_cost(budget)
+    if deep.SYNTHESIS_TIMEOUT_NOTE in (out.get("note") or ""):
+        # For the execution record's degraded_reason (stamped at the tool boundary).
+        out["degraded_reason"] = deep.SYNTHESIS_TIMEOUT_REASON
     # The honest backend id: "native" names the chat-model engine; when ANY
     # retrieval in the run was served by the keyless floor the brief carries
     # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.

@@ -147,6 +147,13 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     fast_mod.gather_fast = _gather_fast  # type: ignore[attr-defined]
     deep_mod.run_deep_research = _run_deep_research  # type: ignore[attr-defined]
     deep_mod.ResearchBrief = _FakeBrief  # type: ignore[attr-defined]
+    # The engine reads the loop's per-call cap and the synthesis-timeout note
+    # from the real deep module (R15-RESEARCH-005); carry them onto the fake.
+    from services.research import deep as real_deep
+
+    deep_mod.LLM_CALL_TIMEOUT = real_deep.LLM_CALL_TIMEOUT  # type: ignore[attr-defined]
+    deep_mod.SYNTHESIS_TIMEOUT_NOTE = real_deep.SYNTHESIS_TIMEOUT_NOTE  # type: ignore[attr-defined]
+    deep_mod.SYNTHESIS_TIMEOUT_REASON = real_deep.SYNTHESIS_TIMEOUT_REASON  # type: ignore[attr-defined]
     iter_mod.run_iter_research = _run_iter_research  # type: ignore[attr-defined]
     iter_mod.run_heavy_research = _run_heavy_research  # type: ignore[attr-defined]
     verify_mod = types.ModuleType("services.research.verify")

@@ -20,6 +20,7 @@ from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMUsage
 from services import agent_tools
 from services.agent_tools import deep_research
 from services.llm import oneshot
+from services.research import iter as iter_research
 from services.research.depth import PROFILES
 from services.search import extract
 
@@ -73,7 +74,11 @@ def native_run(monkeypatch: pytest.MonkeyPatch):
     async def _no_visit(url: str, **_: Any) -> str | None:
         return None
 
+    async def _snapshot(tool_call: Any, symbol: str, **_: Any) -> dict[str, Any]:
+        return {"price": {"ok": True, "provider": "test", "data": {"price": 181.2}}}
+
     monkeypatch.setattr(agent_tools, "invoke_tool", _fake_tool)
+    monkeypatch.setattr(iter_research, "snapshot_structured", _snapshot)
     monkeypatch.setattr(extract, "visit_for_research", _no_visit)
     monkeypatch.setattr(config, "get_step_sink", lambda: None)
 

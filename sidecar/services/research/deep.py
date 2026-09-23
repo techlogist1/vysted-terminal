@@ -35,6 +35,7 @@ import asyncio
 import re
 import time
 from collections.abc import Awaitable, Callable
+from contextvars import ContextVar
 from typing import Any
 
 from services.budget_guard import BudgetGuard
@@ -103,6 +104,17 @@ BUDGET_STOP_NOTE = (
     "Stopped early to stay within the run's time budget — coverage may be lighter than usual."
 )
 
+#: The run's ``degraded_reason`` when the brief shipped without a written
+#: synthesis because the synthesis call came back empty (on the local lane: the
+#: per-call cap expired first).
+SYNTHESIS_TIMEOUT_REASON = "synthesis_timeout"
+
+#: The user-facing sentence for :data:`SYNTHESIS_TIMEOUT_REASON`.
+SYNTHESIS_TIMEOUT_NOTE = (
+    "The model did not finish writing the synthesis within its per-call time limit, "
+    "so this brief is assembled from the gathered report, data and filings."
+)
+
 
 def remaining_wall(budget: BudgetGuard) -> float | None:
     """Seconds of wall budget left, or ``None`` when the run has no wall cap."""
@@ -165,13 +177,21 @@ async def _safe_tool(tool_call: ToolCall, name: str, args: dict[str, Any]) -> di
 #: would have allowed, while bounding the otherwise-unguarded paths.
 _LLM_CALL_TIMEOUT_SECS = 60.0
 
+#: The per-call cap for THIS run. The native engine raises it on the local
+#: (Ollama) lane, whose adapter cap is longer (``deep_research``), so this
+#: universal cap never cuts a local call the adapter would have allowed.
+#: Unset → :data:`_LLM_CALL_TIMEOUT_SECS`.
+LLM_CALL_TIMEOUT: ContextVar[float] = ContextVar("research_llm_call_timeout")
+
 
 async def _safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
     """One-shot LLM completion, converting a failure OR a per-call overrun
-    (>:data:`_LLM_CALL_TIMEOUT_SECS`) to an empty string so the loop degrades to
+    (>:data:`LLM_CALL_TIMEOUT`) to an empty string so the loop degrades to
     abort→synthesize rather than raising or HANGING mid-round."""
     try:
-        out = await asyncio.wait_for(llm_call(messages), timeout=_LLM_CALL_TIMEOUT_SECS)
+        out = await asyncio.wait_for(
+            llm_call(messages), timeout=LLM_CALL_TIMEOUT.get(_LLM_CALL_TIMEOUT_SECS)
+        )
     except Exception:  # noqa: BLE001 — an LLM failure or per-call overrun ends the round, not the run
         return ""
     return out if isinstance(out, str) else ""
@@ -517,9 +537,12 @@ def snapshot_context(structured: dict[str, Any]) -> str:
     )
 
 
-def _floor_price_line(leg: dict[str, Any]) -> str:
+def _floor_price_line(leg: dict[str, Any], currency: str | None) -> str:
     """A compact, HONEST one-liner from the price leg (R13 floor) — names the
-    provider and any obvious last price/change actually present, never invented."""
+    provider and any obvious last price/change actually present, never invented.
+    Figures render through :func:`semantics.display_value` (never a raw float)."""
+    from services.research.semantics import display_value
+
     provider = leg.get("provider") if isinstance(leg.get("provider"), str) else None
     data = leg.get("data")
     quote = (
@@ -534,37 +557,55 @@ def _floor_price_line(leg: dict[str, Any]) -> str:
             ("price", "last"),
             ("last", "last"),
             ("close", "close"),
-            ("change_percent", "change %"),
-            ("changePercent", "change %"),
+            ("change_percent", "change"),
+            ("changePercent", "change"),
         ):
             val = quote.get(key)
-            if val is not None and label not in seen_labels:
-                seen_labels.add(label)
-                bits.append(f"{label} {val}")
+            if not isinstance(val, (int, float)) or isinstance(val, bool) or label in seen_labels:
+                continue
+            seen_labels.add(label)
+            if label == "change":
+                # Quote change is already in percent points (-1.53 = -1.53%).
+                bits.append(f"change {display_value(val, None, None)}%")
+            else:
+                bits.append(f"{label} {display_value(val, 'currency', currency)}")
     prefix = "Price / price-history data was gathered this run"
     if provider:
         prefix += f" (via {provider})"
     return prefix + (": " + ", ".join(bits) + "." if bits else ".")
 
 
-def _floor_fundamentals_line(leg: dict[str, Any]) -> str:
-    """A compact one-liner from the fundamentals leg (R13 floor)."""
+def _floor_fundamentals_line(leg: dict[str, Any], currency: str | None) -> str:
+    """A compact one-liner from the fundamentals leg (R13 floor), formatted
+    through :func:`semantics.display_value` (₹ crore for INR, never raw floats)."""
+    from services.research.semantics import display_value
+
     provider = leg.get("provider") if isinstance(leg.get("provider"), str) else None
     data = leg.get("data")
     bits: list[str] = []
     if isinstance(data, dict):
-        for key, label in (
-            ("market_cap", "market cap"),
-            ("pe_ratio", "P/E"),
-            ("dividend_per_share_ttm", "dividend/share (ttm)"),
+        for key, label, unit in (
+            ("market_cap", "market cap", "currency"),
+            ("pe_ratio", "P/E", None),
+            ("dividend_per_share_ttm", "dividend/share (ttm)", "currency"),
         ):
             val = data.get(key)
-            if val is not None:
-                bits.append(f"{label} {val}")
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
+                bits.append(f"{label} {display_value(val, unit, currency)}")
     prefix = "Fundamentals snapshot gathered this run"
     if provider:
         prefix += f" (via {provider})"
     return prefix + (": " + ", ".join(bits) + "." if bits else ".")
+
+
+def _leg_currency(*legs: Any) -> str | None:
+    """The first currency code any snapshot leg (or its quote) carries."""
+    for leg in legs:
+        data = leg.get("data") if isinstance(leg, dict) else None
+        for holder in (data, data.get("quote") if isinstance(data, dict) else None):
+            if isinstance(holder, dict) and isinstance(holder.get("currency"), str):
+                return holder["currency"]
+    return None
 
 
 def _floor_announcement_lines(announcements: list[Any], *, limit: int = 12) -> list[str]:
@@ -582,9 +623,15 @@ def _floor_announcement_lines(announcements: list[Any], *, limit: int = 12) -> l
     return lines
 
 
-def build_structured_floor(*, query: str, symbol: str, structured: dict[str, Any]) -> str | None:
+def build_structured_floor(
+    *, query: str, symbol: str, structured: dict[str, Any], web_sources: int
+) -> str | None:
     """A deterministic brief assembled from the STRUCTURED legs + exchange
-    filings when web findings are empty/thin and no distilled report exists (R13).
+    filings when synthesis produced nothing and no distilled report exists (R13).
+
+    The framing line names WHY: "web coverage is thin" only when the run
+    gathered zero web sources (``web_sources``); otherwise the synthesis simply
+    did not come back, and the line says so instead of blaming the web.
 
     Returns ``None`` ONLY when no structured leg carried data — so the literal
     "No findings were gathered before the run ended" line is UNREACHABLE whenever
@@ -604,19 +651,20 @@ def build_structured_floor(*, query: str, symbol: str, structured: dict[str, Any
     if not (price_ok or fund_ok or ann):
         return None
 
-    lines = [
-        f"# Research brief: {query}",
-        "",
-        f"Symbol: {symbol}",
-        "",
-        (
-            "_Web coverage for this name is thin; this brief is built from "
-            "exchange data and filings gathered this run._"
-        ),
-        "",
-    ]
+    framing = (
+        "_Web coverage for this name is thin; this brief is built from "
+        "exchange data and filings gathered this run._"
+        if web_sources <= 0
+        else (
+            f"_The model did not return a written synthesis this run; this brief "
+            f"is built from exchange data and filings gathered this run, and the "
+            f"{web_sources} web source(s) consulted are listed with it._"
+        )
+    )
+    currency = _leg_currency(fundamentals, price)
+    lines = [f"# Research brief: {query}", "", f"Symbol: {symbol}", "", framing, ""]
     if price_ok:
-        lines += ["## Price & action", _floor_price_line(price), ""]
+        lines += ["## Price & action", _floor_price_line(price, currency), ""]
     if ann:
         lines += ["## Exchange filings & announcements", *_floor_announcement_lines(ann), ""]
     elif isinstance(disclosures, dict):
@@ -627,7 +675,7 @@ def build_structured_floor(*, query: str, symbol: str, structured: dict[str, Any
         ]
     lines += ["## Fundamentals snapshot"]
     lines += [
-        _floor_fundamentals_line(fundamentals)
+        _floor_fundamentals_line(fundamentals, currency)
         if fund_ok
         else "_No fundamentals feed covered this instrument this run._"
     ]
@@ -1050,7 +1098,12 @@ async def _final_synthesis(
         return "\n".join(lines)
     # R13 filings floor: never "No findings" when structured legs carried data —
     # build the brief from the price/announcements/fundamentals snapshot instead.
-    floor = build_structured_floor(query=query, symbol=symbol, structured=structured or {})
+    floor = build_structured_floor(
+        query=query,
+        symbol=symbol,
+        structured=structured or {},
+        web_sources=len(findings.web_sources),
+    )
     if floor is not None:
         return floor
     lines.append("_No findings were gathered before the run ended._")
@@ -1372,7 +1425,10 @@ async def run_deep_research(
 
 __all__ = [
     "BUDGET_STOP_NOTE",
+    "LLM_CALL_TIMEOUT",
     "LLMCall",
+    "SYNTHESIS_TIMEOUT_NOTE",
+    "SYNTHESIS_TIMEOUT_REASON",
     "MIN_ROUND_WALL_SECS",
     "OnStep",
     "ROUND_SLICE_LATENCY_MULT",
