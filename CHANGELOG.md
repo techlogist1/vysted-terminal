@@ -4,6 +4,50 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 4: context admission, Gemini/xAI lanes, workflows, Delegate output, market-data gate, panels (2026-09-23)
+
+**Scope:** 50 register entries (40 highs plus 10 root-cause mates), planned in
+`docs/redesign/verification/r15/stage-c/batch-4/PLAN.md`, built by five isolated writers and merged in
+plan order W4 → W1 → W2 → W3 → W5 on `worktree-agent-batch-4-int` (base `1999844`). No file conflicts.
+
+- **W4 market-data gate** — 52-week witness on `/fundamentals` from both Indian venues, forward-filled
+  non-trade bars dropped; one paid-TTM dividend leg for `/fundamentals` and research; the v7 batch and
+  crypto paths gated, one yield bound, ccxt never serves 0.0; a missing O/H/L/V is a parse failure; BSE
+  empty markers honoured only after their day, one scrip row read per day file; fuzzy NSE/BSE
+  announcement pairing; freshness calendar from the instrument (DATA-015/016/047/049/034/082/035/036/020,
+  LIFECYCLE-004, UI-090 sidecar half).
+- **W1 agent runtime** — context admission (result cap, oldest-result elision, domain subsetting on
+  window-bound lanes) and a per-reason screener skip summary; Gemini tools as `parameters_json_schema`
+  and thought signatures round-tripped; xAI native search dropped; the engine's `degraded_reason`
+  reaches the execution record; comparable-window ranking in `compare_symbols`; World Bank bare ids take
+  the session country; the synthetic `open_panel(backtest, run_id)` (AGENT-008/009/006, LEAD-007/008,
+  RESEARCH-005, DATA-041/046, AGENT-011 sidecar half).
+- **W2 workflows, backtest, feeds** — palette node specs use the handlers' names, pinned by a shared
+  fixture; run creds threaded to agent nodes, failures recorded as `error`; one store-owned SSE consumer;
+  empty backtest symbols named in warnings; `_yahoo_symbol` in the earnings, analyst and news lanes;
+  alias-set news tagging; the panel loads an agent's backtest run (CODE-PLATFORM-002/003/016,
+  AGENT-015/016, CODE-FRONTEND-006, DATA-040/029/030, AGENT-011 frontend half). DATA-032 was not
+  delivered and stays open.
+- **W3 chat, runs, MCP** — MCP transport failures become `ProviderError` and mark the provider down;
+  SEC sections/Form-4 shapes parsed and form types open; one terminal callback per stream; a mid-stream
+  space switch stops the run first; Delegate answers, briefs and host actions reach the launching chat
+  (LIFECYCLE-005, CODE-AGENT-002, DATA-083/038/039, AGENT-029/013, CODE-PLATFORM-037,
+  CODE-FRONTEND-002).
+- **W5 panels and screener** — Portfolio quote failures surface with a staleness cue and a no-data total
+  is null; CSV saves through the Rust writer and `window.prompt/alert/confirm` are lint-banned; server-side
+  screener sort before the limit with `matched_count`, every null criterion field itemized, custom
+  symbols canonicalised; presets reset group and formula; Agent Builder vocabularies from the sidecar;
+  docker resolved by absolute path (UI-003/004/005/006/007/009/025, UI-090 Portfolio half,
+  DATA-044/093, CODE-FRONTEND-020, LIFECYCLE-007).
+
+**Integration:** W5's UI-005 published a null total for an empty portfolio too; an empty portfolio's 0
+is a real total (`panel-context-publishers.test.tsx`), so null is now kept for holdings with no resolved
+quote only. W5's DATA-093 canonicalisation turned seven screener tests' fictional bare tickers into
+`.NS` symbols in the default IN session; those tests now pin the US region, assertions unchanged. The
+MCP build venvs again use the last known-good freeze (R15-LEAD-001; environment only). Tier-3 decisions
+D-B4-1…22 are in `docs/redesign/DECISIONS.md`; D-B4-1 is also logged in
+`docs/redesign/DECISIONS_FOR_OPERATOR.md` §3.6.
+
 ## R15 Stage C — batch 3: agent runtime, AUTO gate, LLM adapters, research depth, India witnesses (2026-09-23)
 
 **Scope:** 40 register entries (both open criticals, AGENT-001 and DATA-005, plus root-cause mates and
