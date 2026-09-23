@@ -402,10 +402,33 @@ class _Findings:
 
 
 def _record_structured(findings: _Findings, name: str, dim: str, result: dict[str, Any]) -> None:
-    """Fold a structured tool result into findings + coverage + provenance."""
+    """Fold a structured tool result into findings + coverage + provenance.
+
+    A ``news`` tool result (already relevance-gated by the researcher) cites
+    each kept item as its OWN source — its url, title and outlet — never one
+    generic "News for <SYM>" source standing in for a feed blend.
+    """
     if not result.get("ok"):
         return
     findings.coverage[dim] = True
+    items = result.get("news")
+    if dim == "news" and isinstance(items, list):
+        from services.search.scrub import sanitize_inline
+
+        for item in items:
+            if not isinstance(item, dict) or not item.get("url"):
+                continue
+            url = str(item["url"])
+            findings.structured_sources.append(
+                ResearchSource(
+                    url=url,
+                    title=sanitize_inline(str(item.get("title") or url)),
+                    excerpt=sanitize_inline(str(item.get("summary") or "")),
+                    domain=str(item.get("source") or "news"),
+                    source_type="news",
+                )
+            )
+        return
     provider = None
     for key in ("provider", "source", "mode"):
         val = result.get(key)
@@ -775,6 +798,19 @@ async def _run_researcher(
         # free-text query must never be passed where a symbol is expected.
         structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
         web_res = await _safe_tool(tool_call, "web_search", web_args)
+
+    # The news tool blends region-wide feeds with the per-symbol feed; the
+    # shared relevance gate drops off-entity items BEFORE the extraction reads
+    # them or they become sources (the FAST news leg's gate, R13 ledger #9).
+    if target is not None and tool == "news" and structured_res.get("ok"):
+        from services.research.relevance import gate_news
+
+        items = structured_res.get("news")
+        if isinstance(items, list):
+            kept, news_note = gate_news(items, target=target)
+            structured_res = {**structured_res, "news": kept, "count": len(kept)}
+            if news_note:
+                structured_res["note"] = news_note
 
     # Announcement attachments become first-class citation rows (exchange tier
     # in the finance ladder, verified_symbol provenance) riding the SAME web

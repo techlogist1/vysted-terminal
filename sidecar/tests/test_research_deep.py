@@ -635,6 +635,104 @@ def test_build_structured_floor_renders_price_and_dated_filings() -> None:
     assert "No findings" not in md
 
 
+_BDL_ON_ENTITY = {
+    "id": "a1",
+    "title": "Bharat Dynamics bags Rs 2,000 crore missile order from the defence ministry",
+    "summary": "Bharat Dynamics Ltd said it won a new order.",
+    "url": "https://www.moneycontrol.com/news/bharat-dynamics-order.html",
+    "source": "Moneycontrol",
+    "symbols": ["BDL"],
+}
+_BDL_OFF_ENTITY = {
+    "id": "1e4af0a955903e90",
+    "title": "Sterling and Wilson Renewable Energy shares rally 8% after Rs 985 crore orders",
+    "summary": "The company secured a 534.3 MWp solar project and 616 MWh storage.",
+    "url": "https://economictimes.indiatimes.com/markets/sterling-wilson-orders.html",
+    "source": "Markets-Economic Times",
+    "symbols": [],
+}
+
+
+class _BDLToolCall(_FakeToolCall):
+    """An IN-listed BSE/NSE target whose news pull is the region-wide blend."""
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "resolve_symbol":
+            self.calls.append(name)
+            return {
+                "ok": True,
+                "resolved": {
+                    "symbol": "BDL",
+                    "name": "Bharat Dynamics Ltd",
+                    "exchange": "NSE",
+                    "region": "IN",
+                    "asset_class": "equity",
+                    "yahoo_symbol": "BDL.NS",
+                    "confidence": 1.0,
+                },
+            }
+        if name == "news":
+            self.calls.append(name)
+            return {"ok": True, "count": 2, "news": [_BDL_ON_ENTITY, _BDL_OFF_ENTITY]}
+        return await super().__call__(name, args)
+
+
+class _NewsOnlyLLM(_RecordingLLM):
+    """Plans one news-shaped sub-question and records every prompt it sees."""
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = str(messages[0].get("content", "")).lower()
+        if "planning a research run" in system:
+            self.seen.append(messages)
+            return "- What is the latest news?"
+        return await super().__call__(messages)
+
+
+def _assert_off_entity_news_never_reaches_the_run(llm: _NewsOnlyLLM, brief: Any) -> None:
+    assert isinstance(brief, ResearchBrief)
+    prompts = " ".join(str(m.get("content", "")) for msgs in llm.seen for m in msgs)
+    assert "Bharat Dynamics bags" in prompts
+    assert "Sterling and Wilson" not in prompts
+    urls = [s.url for s in brief.sources]
+    assert _BDL_ON_ENTITY["url"] in urls
+    assert _BDL_OFF_ENTITY["url"] not in urls
+    assert not any(u.startswith("vysted://news/") for u in urls)
+
+
+def test_deep_news_leg_drops_off_entity_items_and_cites_each_kept_item() -> None:
+    """R15-RESEARCH-001: the DEEP researcher's structured news pull runs the
+    shared relevance gate — another company's story never reaches the
+    extraction prompt or the rail, and the kept story is its own source."""
+    llm = _NewsOnlyLLM()
+    brief = asyncio.run(
+        run_deep_research(
+            "Bharat Dynamics order book",
+            region="IN",
+            tool_call=_BDLToolCall(web_ok=True),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=3),
+        )
+    )
+    _assert_off_entity_news_never_reaches_the_run(llm, brief)
+
+
+def test_ultra_iter_news_leg_drops_off_entity_items() -> None:
+    """The same gate holds on the ULTRA/iter loop, which shares the researcher."""
+    from services.research.iter import run_iter_research
+
+    llm = _NewsOnlyLLM()
+    brief = asyncio.run(
+        run_iter_research(
+            "Bharat Dynamics order book",
+            region="IN",
+            tool_call=_BDLToolCall(web_ok=True),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=3),
+        )
+    )
+    _assert_off_entity_news_never_reaches_the_run(llm, brief)
+
+
 def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:
     """R15-RESEARCH-034: the reflect reply is read by its leading COMPLETE/GAPS
     word; a gap statement that happens to contain "covered" is not complete."""
