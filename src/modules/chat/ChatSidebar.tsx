@@ -849,7 +849,8 @@ export function ChatSidebar() {
         appendDelta(
           noteId,
           "Delegated to a background run — track its cost + status in the agents rail above. " +
-            "It works autonomously under your budget; any changes it proposes still need your review.",
+            "It works autonomously under your budget. When it finishes, its answer lands in this " +
+            "chat and any changes it proposes go through the same review gate as a live reply.",
         );
         finalize(noteId, null);
         void launchDelegateRun({
@@ -861,6 +862,7 @@ export function ChatSidebar() {
           model,
           apiKey: apiKey ?? undefined,
           budget: delegateBudget,
+          threadId: useAgentSpacesStore.getState().activeId,
           // Carry only the non-secret backend choice + per-model search capability
           // into a DURABLE run (its state is persisted; secrets stay off disk).
           options: { history, ...deepResearchOptions },

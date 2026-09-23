@@ -27,6 +27,10 @@ interface AgentSpacesState {
   parkActive: () => void;
   /** Leaving a research space: bring the parked transcript back live (empty if none). */
   unparkActive: () => void;
+  /** Append a finished message to a space's transcript, live or archived (a
+   *  Delegate run's answer, R15-AGENT-013). An unknown or closed space's message
+   *  lands in the live transcript, never dropped. */
+  deliverTo: (spaceId: string | undefined, message: ChatMessage) => void;
   /** Rename the active space (e.g. auto-titled from the first prompt). */
   renameActive: (title: string) => void;
 }
@@ -98,6 +102,15 @@ export const useAgentSpacesStore = create<AgentSpacesState>((set, get) => ({
     const { [activeId]: parked = [], ...rest } = archived;
     set({ archived: rest });
     useChatHistoryStore.getState().loadMessages(parked);
+  },
+
+  deliverTo: (spaceId, message) => {
+    const { archived } = get();
+    if (spaceId !== undefined && spaceId in archived) {
+      set({ archived: { ...archived, [spaceId]: [...archived[spaceId], message] } });
+    } else {
+      useChatHistoryStore.setState((state) => ({ messages: [...state.messages, message] }));
+    }
   },
 
   renameActive: (title) =>

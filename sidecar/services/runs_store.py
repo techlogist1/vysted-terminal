@@ -31,6 +31,11 @@ Columns mirror the run lifecycle:
   the spawned driver so the depth ContextVar floor / region are re-threaded
   instead of silently resetting to defaults mid-conversation. Allow-listed
   keys only — NEVER an api key.
+- ``output_json`` — the run's collectable output, written when it ends
+  (R15-AGENT-013): ``answer`` (the full final text, untruncated), ``brief``
+  (the last ``publish_brief`` input) and ``host_actions`` (the host-action
+  ``tool_use`` events it proposed). The frontend delivers it once to the
+  originating chat thread through the normal proposed-changes gate.
 - ``created_at`` / ``updated_at`` — epoch seconds.
 
 The BYOK ``api_key`` is NEVER persisted here — it lives only on the in-memory
@@ -64,6 +69,7 @@ CREATE TABLE IF NOT EXISTS runs (
     question TEXT,
     checkpoint_json TEXT,
     options_json TEXT,
+    output_json TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 )
@@ -91,15 +97,17 @@ def _db_path() -> str:
     return str(get_data_dir() / DB_FILENAME)
 
 
-def _ensure_options_column(conn: sqlite3.Connection) -> None:
-    """Additive migration: older databases predate ``options_json`` (R10).
+def _ensure_added_columns(conn: sqlite3.Connection) -> None:
+    """Additive migration: older databases predate ``options_json`` (R10) and
+    ``output_json`` (R15-AGENT-013).
 
     ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
     the ALTER guard. PRAGMA is cheap enough to run per-connection.
     """
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    if "options_json" not in columns:
-        conn.execute("ALTER TABLE runs ADD COLUMN options_json TEXT")
+    for column in ("options_json", "output_json"):
+        if column not in columns:
+            conn.execute(f"ALTER TABLE runs ADD COLUMN {column} TEXT")
 
 
 @contextmanager
@@ -109,7 +117,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn.row_factory = sqlite3.Row
     try:
         conn.execute(_SCHEMA)
-        _ensure_options_column(conn)
+        _ensure_added_columns(conn)
         yield conn
         conn.commit()
     finally:
@@ -158,10 +166,14 @@ def _row_to_detail(row: sqlite3.Row) -> RunDetail:
     summary = _row_to_summary(row)
     checkpoint_raw: Any = json.loads(row["checkpoint_json"] or "[]")
     messages = checkpoint_raw if isinstance(checkpoint_raw, list) else []
+    output: Any = json.loads(row["output_json"] or "{}")
     return RunDetail(
         **summary.model_dump(),
         transcript=_digest_transcript(messages),
         checkpoint_messages=len(messages),
+        answer=output.get("answer"),
+        brief=output.get("brief"),
+        host_actions=output.get("host_actions") or [],
     )
 
 
@@ -258,6 +270,7 @@ def update_run(
     detail: str | None = None,
     question: str | None = None,
     checkpoint: list[Any] | None = None,
+    output: dict[str, Any] | None = None,
     clear_question: bool = False,
     now: int | None = None,
 ) -> RunSummary | None:
@@ -289,6 +302,9 @@ def update_run(
     if checkpoint is not None:
         sets.append("checkpoint_json = ?")
         params.append(json.dumps(checkpoint, default=str))
+    if output is not None:
+        sets.append("output_json = ?")
+        params.append(json.dumps(output, default=str))
     sets.append("updated_at = ?")
     params.append(now if now is not None else int(time.time()))
     params.append(run_id)

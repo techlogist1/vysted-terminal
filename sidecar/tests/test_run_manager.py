@@ -358,3 +358,79 @@ async def test_resume_rethreads_persisted_depth_and_region(
     # region rides the ContextVar, never an adapter kwarg (popped in the task).
     assert "region" not in captured["options"]
     assert captured["region_at_invoke"] == "IN"
+
+
+# ---------------------------------------------------------------------------
+# R15-AGENT-013 — a run's answer, brief and host actions are collectable
+# ---------------------------------------------------------------------------
+
+
+class _ScriptedRoundsProvider:
+    """Three rounds of prose; round 1 publishes a brief, round 2 writes a note."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        self.calls += 1
+        yield LLMDeltaEvent(text=f"Round {self.calls}: " + "valuation detail " * 20)
+        if self.calls == 1:
+            brief = {"symbol": "NVDA", "title": "NVDA", "markdown": "## Thesis"}
+            yield LLMToolUseEvent(tool_call_id="c-brief", name="publish_brief", input=brief)
+        elif self.calls == 2:
+            note = {"scope": "NVDA", "text": "Watch the margin"}
+            yield LLMToolUseEvent(tool_call_id="c-note", name="write_note", input=note)
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=10, output_tokens=10))
+
+
+@pytest.mark.asyncio
+async def test_run_output_is_returned_untruncated_by_get_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from routers import runs as runs_router
+
+    _patch(monkeypatch, _ScriptedRoundsProvider())
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="research NVDA", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+
+    wire = runs_router.get_run(run_id)
+    answer = wire["answer"]
+    assert len(answer) > 500
+    assert "Round 1:" in answer and "Round 3:" in answer
+    assert "\n\nRound 2:" in answer  # each round is its own paragraph
+    assert wire["brief"] == {"symbol": "NVDA", "title": "NVDA", "markdown": "## Thesis"}
+    assert wire["hostActions"] == [
+        {
+            "tool_call_id": "c-note",
+            "name": "write_note",
+            "input": {"scope": "NVDA", "text": "Watch the margin"},
+        }
+    ]
+
+
+class _TextThenOverBudgetProvider:
+    """Writes prose, then a round whose usage breaches the token ceiling."""
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        yield LLMDeltaEvent(text="Partial analysis before the ceiling.")
+        yield LLMToolUseEvent(tool_call_id="c-1", name="price_data", input={})
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=100_000, output_tokens=0))
+
+
+@pytest.mark.asyncio
+async def test_errored_run_still_carries_its_partial_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case the fix was not written against: an error exit keeps the text."""
+    _patch(monkeypatch, _TextThenOverBudgetProvider())
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_tokens=1000)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "error"
+    assert row.answer == "Partial analysis before the ceiling."
