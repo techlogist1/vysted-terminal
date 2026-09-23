@@ -468,13 +468,24 @@ async def run_backtest(
         strategy, bars_sorted, request.initial_capital, fees
     )
     metrics = _compute_metrics(equity_curve, trades, request.initial_capital)
-    warnings: list[str] | None = None
+    warnings: list[str] = []
+    # The loader turns a per-symbol provider failure (or an empty history)
+    # into no bars, so a partly failed universe would otherwise read as clean.
+    loaded = {b.symbol for b in bars}
+    missing = [s for s in dict.fromkeys(request.symbols) if s not in loaded]
+    if missing:
+        requested = len(dict.fromkeys(request.symbols))
+        warnings.append(
+            f"No price history loaded for {', '.join(missing)} in "
+            f"{request.start_date}..{request.end_date} (provider error or empty "
+            f"series); metrics cover {requested - len(missing)} of {requested} symbols."
+        )
     if skipped_buys:
-        warnings = [
+        warnings.append(
             f"{skipped_buys} buy signal(s) skipped — the position size cost more "
             f"than available cash (largest shortfall {worst_shortfall:,.0f}). "
             "Reduce position_size or raise initial_capital."
-        ]
+        )
 
     # Walk-forward slices, if requested.
     walk_forward_slices: list[WalkForwardSlice] | None = None
@@ -513,7 +524,7 @@ async def run_backtest(
         walkForwardSlices=walk_forward_slices,
         startedAt=started_at,
         durationMs=duration_ms,
-        warnings=warnings,
+        warnings=warnings or None,
     )
 
     await _emit(on_event, BacktestRunEvent(kind="run-complete", runId=run_id, result=result))
