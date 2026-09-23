@@ -16,7 +16,8 @@ sharper on a strong one.
 ``run_heavy_research`` — "Heavy mode" / the expert panel. N independent explorers
 each run the full iter loop on a DISTINCT angle with their OWN evolving report
 (concurrently), then a synthesis agent integrates their distilled reports into one
-citation-backed brief, de-duping sources and renumbering ``[n]`` markers. This is
+citation-backed brief, de-duping sources and remapping each angle's ``[n]``
+markers onto the merged list by url (deterministically, before the prompt). This is
 test-time scaling: more parallel reasoning, one merged answer.
 
 Both reuse :mod:`deep`'s tested helpers verbatim (researchers, source de-dup,
@@ -549,8 +550,9 @@ async def run_iter_research(
                 {
                     "role": "system",
                     "content": (
-                        "Reflect on research coverage. State whether coverage is "
-                        "COMPLETE or list remaining GAPS, one per line.\n"
+                        "Reflect on research coverage. Start your reply with "
+                        "exactly one word: COMPLETE if coverage is sufficient, or "
+                        "GAPS followed by the remaining gaps, one per line.\n"
                         + finance.date_directive()
                     ),
                 },
@@ -829,10 +831,11 @@ async def _webweaver_synthesis(
 def _merge_sources(briefs: list[ResearchBrief]) -> list[ResearchSource]:
     """De-dup the panel's sources by url, ranked by finance domain tier.
 
-    The panel synthesis RENUMBERS its ``[n]`` markers against this merged list,
-    so ranking here (exchange/regulator/filings → Tier-1 press → general; stable
-    within a tier across the angles' gathering order) gives the primary record
-    the low markers in the final ULTRA brief.
+    The merged list is numbered ONCE, here, so ranking it (exchange/regulator/
+    filings → Tier-1 press → general; stable within a tier across the angles'
+    gathering order) gives the primary record the low markers in the final
+    ULTRA brief; every angle's markers are then rewritten onto it by url
+    (:func:`_remap_markers`) — the model never renumbers.
     """
     seen: set[str] = set()
     out: list[ResearchSource] = []
@@ -843,6 +846,24 @@ def _merge_sources(briefs: list[ResearchBrief]) -> list[ResearchSource]:
             seen.add(src.url)
             out.append(src)
     return finance.rank_sources(out)
+
+
+def _remap_markers(markdown: str, local: list[ResearchSource], merged: list[ResearchSource]) -> str:
+    """Rewrite an angle brief's ``[n]`` markers from its OWN numbered list to
+    the merged list's numbers, by url — deterministic, so the panel synthesis
+    never renumbers citations itself. A marker outside the angle's list points
+    at nothing and is dropped."""
+    from services.research.citecheck import MARKER_RE
+
+    merged_number = {src.url: i + 1 for i, src in enumerate(merged)}
+
+    def _sub(match: re.Match[str]) -> str:
+        n = int(match.group(1))
+        if 1 <= n <= len(local):
+            return f"[{merged_number[local[n - 1].url]}]"
+        return ""
+
+    return MARKER_RE.sub(_sub, markdown)
 
 
 def _angle_sink(on_step: OnStep | None, index: int, label: str) -> OnStep:
@@ -1015,7 +1036,10 @@ async def run_heavy_research(
     # --- synthesis agent: integrate the panel into one brief -----------------
     merged_sources = _merge_sources(good)
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(merged_sources))
-    panel = "\n\n".join(f"## Angle {i + 1}\n{b.markdown}" for i, b in enumerate(good))
+    panel = "\n\n".join(
+        f"## Angle {i + 1}\n{_remap_markers(b.markdown, b.sources, merged_sources)}"
+        for i, b in enumerate(good)
+    )
     priority = finance.priority_note(merged_sources)
     # R10 (E8): the derived metric facts ride every synthesis prompt so the
     # merged prose states figures under the cards' exact labels and bases.
@@ -1056,8 +1080,10 @@ async def run_heavy_research(
                         "You are the lead synthesist integrating an expert research panel "
                         "into ONE cohesive brief. Merge the angle reports, dedupe "
                         "overlapping claims, surface and resolve any disagreement "
-                        "explicitly, and RENUMBER inline [n] citation markers against the "
-                        "merged source list below. Output a tight, well-structured "
+                        "explicitly, and keep the inline [n] citation markers exactly "
+                        "as written — they already number the merged source list "
+                        "below. Do not add a sources or references list of your own. "
+                        "Output a tight, well-structured "
                         "markdown brief. PROVENANCE GUARANTEE: every numeric or dated "
                         "claim must carry a [n] citation to a real merged source — never "
                         "a live figure from memory; flag a missing figure as 'not "

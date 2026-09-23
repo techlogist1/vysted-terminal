@@ -52,7 +52,8 @@ def test_drawdown_from_high_is_computed_with_label_and_formula() -> None:
     assert dd["value"] == 0.2  # (100 - 80) / 100
     assert dd["label"] == "Below 52-week high"
     assert dd["formula"] == "(52w high - price) / 52w high"
-    assert dd["unit"] == "percent"
+    assert dd["unit"] == "fraction"
+    assert dd["display"] == "20.00%"
 
 
 def test_fifty_two_week_change_keeps_its_own_label_never_drawdown() -> None:
@@ -190,7 +191,8 @@ def test_growth_metrics_carry_quarterly_mrq_yoy_basis() -> None:
         "value": 0.18,
         "label": "Revenue growth",
         "basis": "quarterly YoY (MRQ)",
-        "unit": "percent",
+        "unit": "fraction",
+        "display": "18.00%",
     }
     assert data["earnings_growth"]["value"] == -0.05
     assert data["earnings_growth"]["basis"] == "quarterly YoY (MRQ)"
@@ -1025,3 +1027,77 @@ def test_market_cap_witness_needs_price_and_witness() -> None:
     assert all(c.get("kind") != "market_cap_witness_conflict" for c in no_price["conflicts"])
     no_witness = _derived(_structured(price=72.7, fund={"market_cap": 5.233e10}))
     assert all(c.get("kind") != "market_cap_witness_conflict" for c in no_witness["conflicts"])
+
+
+# --- R15-AGENT-001: honest units + a display string the model quotes ----------
+
+
+def test_no_derived_value_is_labelled_percent() -> None:
+    """A fraction labelled "percent" was narrated 100x low ("0.0142%")."""
+    data = _derived(
+        _structured(
+            fund={
+                "fifty_two_week_change": 0.12,
+                "dividend_yield": 0.01417,
+                "revenue_growth": 0.3,
+                "earnings_growth": 0.01,
+                "revenue_growth_computed": 0.02,
+                "ownership_exchange": {
+                    "promoter_percent": 73.29,
+                    "institutions_percent": 0.06,
+                    "source": "NSE",
+                },
+            }
+        )
+    )
+    values = {k: v for k, v in data.items() if k != "conflicts"}
+    assert values, "fixture produced no derived values"
+    assert all(v.get("unit") != "percent" for v in values.values())
+    assert values["promoter_percent_exchange"]["unit"] == "fraction"
+    assert values["promoter_percent_exchange"]["display"] == "73.29%"
+
+
+def test_kpit_display_strings_are_what_the_model_reads() -> None:
+    import json
+
+    leg = derive_semantics(
+        _structured(
+            price=None,
+            fund={"currency": "INR", "dividend_yield": 0.01417, "market_cap": 144021815296.0},
+        ),
+        "IN",
+    )
+    data = leg["data"]
+    assert data["dividend_yield"]["display"] == "1.42%"
+    assert data["market_cap"]["unit"] == "currency"
+    assert data["market_cap"]["display"] == "₹14,402 cr"
+    payload = json.dumps(leg, ensure_ascii=False)
+    assert "1.42%" in payload and "₹14,402 cr" in payload
+    block = prompt_block(leg)
+    assert "Dividend yield: 1.42%" in block
+    assert "Market cap: ₹14,402 cr" in block
+    assert "144021815296" not in block
+
+
+def test_cochinship_growth_display_is_percent_points() -> None:
+    data = _derived(
+        _structured(fund={"currency": "INR", "revenue_growth": 0.024, "earnings_growth": -0.193})
+    )
+    assert data["revenue_growth"]["display"] == "2.40%"
+    assert data["earnings_growth"]["display"] == "-19.30%"
+
+
+def test_statement_sizes_display_in_the_financial_currency() -> None:
+    """C2: an ADR trading in USD reports its statements in INR."""
+    data = _derived(
+        _structured(
+            fund={
+                "currency": "USD",
+                "financial_currency": "INR",
+                "market_cap": 3.2e8,
+                "earnings_quality": dict(_TI_EARNINGS),
+            }
+        )
+    )
+    assert data["market_cap"]["display"] == "USD 320.00M"
+    assert data["reported_net_income"]["display"].startswith("₹")

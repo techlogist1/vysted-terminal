@@ -320,3 +320,11 @@ def test_results_filing_outranks_newer_procedural_intimations() -> None:
         feed, symbol="ROUTE", sub_question="Any recent announcements?"
     )
     assert rows_plain[0]["url"].endswith("AUDIO.pdf")
+
+
+def test_india_target_predicate_is_the_single_relevance_copy() -> None:
+    """R15 C5: the disclosures lane uses relevance's predicate, not a twin."""
+    from services.research import relevance
+
+    assert disclosures.is_india_target is relevance.is_india_target
+    assert relevance.is_india_target(None) is False

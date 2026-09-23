@@ -78,8 +78,18 @@ export interface BriefDerivedValue {
   basis?: string;
   /** The computation, when derived (e.g. "(52w high − price) / 52w high"). */
   formula?: string;
-  /** How to render the value. */
-  unit?: "percent" | "currency" | "ratio";
+  /**
+   * How to render the value. `fraction` is a share of 1 (0.0142 renders as
+   * 1.42%). `percent` is the pre-R15 wire name for the same fraction, kept
+   * only so briefs persisted before the rename still render; the sidecar no
+   * longer emits it.
+   */
+  unit?: "fraction" | "currency" | "ratio" | "percent";
+  /**
+   * The sidecar's human rendering of {@link value} ("1.42%", "₹14,402 cr") —
+   * the string the model quotes. Present on every non-null value.
+   */
+  display?: string;
   /**
    * Why a null {@link value} is null (R13 JARVIS 2a) — a withheld/unavailable
    * `field_meta` note ("provider value withheld as implausible") or a leg-level
@@ -172,6 +182,11 @@ export interface BriefDerivedMetrics {
    * market cap is never replaced.
    */
   market_cap_witness?: BriefDerivedValue;
+  /**
+   * The provider market cap with a scaled `display` (R15-AGENT-001) — it rides
+   * the derived leg for the model; the panel's raw grid renders its own card.
+   */
+  market_cap?: BriefDerivedValue;
   /** Cross-source disagreements — flagged, never silently resolved. */
   conflicts?: BriefMetricConflict[];
 }

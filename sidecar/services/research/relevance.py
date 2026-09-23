@@ -371,8 +371,11 @@ def _bounded(token: str, text: str) -> bool:
     return bool(re.search(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", text))
 
 
-def is_india_target(target: ResearchTarget) -> bool:
-    """Does the bound instrument trade on an Indian exchange?"""
+def is_india_target(target: ResearchTarget | None) -> bool:
+    """Does the bound instrument trade on an Indian exchange? (``None`` — no
+    bound instrument — never does.) The one copy; the disclosures lane imports it."""
+    if target is None:
+        return False
     if (target.region or "").strip().upper() == "IN":
         return True
     return (target.exchange or "").strip().upper() in ("NSE", "BSE")
@@ -592,6 +595,49 @@ def row_relevant(
     """Keep/drop decision for one row — the floor scales with binding state."""
     floor = MATCH_FLOOR if target is not None else RELAXED_FLOOR
     return entity_match(row, target=target, query=query) >= floor
+
+
+def _news_row(item: dict[str, Any]) -> dict[str, Any]:
+    """Map a ``NewsItem`` wire dict to the relevance gate's row shape."""
+    return {
+        "title": item.get("title"),
+        "excerpt": item.get("summary"),
+        "url": item.get("url"),
+        "source": item.get("source"),
+    }
+
+
+def _no_on_entity_news_note(symbol: str, dropped: int) -> str:
+    """Honest note when the gate drops EVERY item off an ok news pull (R13 #9)
+    — never generic filler dressed up as coverage."""
+    return (
+        f"No on-entity news found for {symbol} — {dropped} item(s) returned by "
+        "the news feed were off-entity/off-topic and dropped."
+    )
+
+
+def gate_news(items: list[Any], *, target: ResearchTarget) -> tuple[list[Any], str | None]:
+    """The news relevance gate (R13 ledger #9) — ``(kept items, note)``.
+
+    The ``news`` tool blends region-wide market feeds with a per-symbol Yahoo
+    feed keyed by the BARE ticker. For a short/common Indian symbol (META,
+    BMW, ...) that per-symbol feed can serve the FOREIGN namesake's own
+    stories, and the region feeds serve headlines about other companies — all
+    stamped ``ok: True`` with nothing distinguishing on-entity from off-entity.
+    For a resolved IN equity every item is scored by :func:`row_relevant` (the
+    web-evidence gate — no new scoring) and off-entity items are dropped; when
+    none survives, the note says so. Other targets pass through unchanged.
+    The ONE gate for every news leg: FAST's snapshot and the DEEP/ULTRA
+    researchers' structured news pull.
+    """
+    if not items or not (is_india_target(target) and target.is_equity_like()):
+        return items, None
+    kept = [
+        item
+        for item in items
+        if isinstance(item, dict) and row_relevant(_news_row(item), target=target)
+    ]
+    return kept, None if kept else _no_on_entity_news_note(target.symbol, len(items))
 
 
 __all__ = [

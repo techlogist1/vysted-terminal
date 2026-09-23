@@ -29,6 +29,7 @@ import asyncio
 import re
 from typing import Any
 
+from services.research.relevance import is_india_target
 from services.research.target import ResearchTarget
 
 #: How many announcements one researcher FETCHES. Deep enough that a quarter-old
@@ -94,17 +95,6 @@ _DISCLOSURE_KEYWORDS = (
 
 #: Earnings-DATE shapes — these additionally consult the results calendar.
 _DATE_KEYWORDS = ("when", "date", "next", "upcoming", "schedule", "calendar", "announced")
-
-_INDIA_EXCHANGES = ("NSE", "BSE")
-
-
-def is_india_target(target: ResearchTarget | None) -> bool:
-    """Does the bound instrument trade on an Indian exchange?"""
-    if target is None:
-        return False
-    if (target.region or "").strip().upper() == "IN":
-        return True
-    return (target.exchange or "").strip().upper() in _INDIA_EXCHANGES
 
 
 def is_disclosure_question(text: str) -> bool:

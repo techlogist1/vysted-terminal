@@ -6,10 +6,11 @@ into them (R7 Component 4):
   - **Source prioritization.** A domain-rank table puts exchange / regulator /
     filings domains first (NSE, BSE, SEBI, RBI, SEC, company investor-relations
     pages), Tier-1 financial press second (ET, Bloomberg, Reuters, FT, WSJ,
-    Moneycontrol, Livemint), everything else third. :func:`rank_sources` orders
-    gathered citations by that tier (stable within a tier) so primary sources
-    own the low ``[n]`` markers and synthesis cites them preferentially;
-    :func:`priority_note` renders the same preference as a prompt line.
+    Moneycontrol, Livemint), everything else third. Source numbering is
+    append-only (a ``[n]`` never moves once minted); :func:`rank_sources`
+    orders only sources numbered TOGETHER, so a primary source gathered
+    alongside a blog takes the lower new number, and :func:`priority_note`
+    names the tier of every number in the list the synthesis prompt carries.
 
   - **Query bias.** On DEEP/ULTRA rounds, researcher web queries for the
     filings/fundamentals dimensions carry ``site:`` hints toward the regulator/
@@ -155,10 +156,10 @@ def source_tier(source: ResearchSource) -> int:
 def rank_sources(sources: list[ResearchSource]) -> list[ResearchSource]:
     """Order sources by domain tier, STABLE within a tier (gathering order).
 
-    Used for synthesis ordering and citation preference: primary-record sources
-    take the low ``[n]`` markers, then Tier-1 press, then the general web.
-    Structured ``vysted://`` provenance sources rank as general (tier 3) so web
-    evidence keeps citation priority.
+    Primary-record sources first, then Tier-1 press, then the general web.
+    Structured ``vysted://`` provenance sources rank as general (tier 3).
+    Orders sources that are about to be numbered together — never a list whose
+    ``[n]`` numbers are already minted (numbering is append-only).
     """
     return sorted(sources, key=source_tier)
 
@@ -166,9 +167,10 @@ def rank_sources(sources: list[ResearchSource]) -> list[ResearchSource]:
 def priority_note(sources: list[ResearchSource]) -> str:
     """A one-line prompt hint naming which ``[n]`` markers are primary/press.
 
-    Rendered against the ALREADY-RANKED numbered list the synthesis prompt
-    carries, so the model prefers citing the authoritative sources when several
-    support a claim. Empty when no ranked source beats the general tier.
+    Takes the SAME numbered list the synthesis prompt carries (in any order —
+    it is never re-ranked) and names the tier of each actual number, so the
+    model prefers citing the authoritative sources when several support a
+    claim. Empty when no source beats the general tier.
     """
     primary = [str(i + 1) for i, s in enumerate(sources) if source_tier(s) == TIER_PRIMARY]
     press = [str(i + 1) for i, s in enumerate(sources) if source_tier(s) == TIER_PRESS]
