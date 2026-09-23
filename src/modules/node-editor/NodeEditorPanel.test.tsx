@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
 
 import { NodeEditorPanel } from "./NodeEditorPanel";
@@ -269,6 +271,21 @@ describe("NodeEditorPanel", () => {
     ]);
     expect(await screen.findByTestId("run-status-error")).toBeInTheDocument();
     expect(screen.getByText("engine-level failure")).toBeInTheDocument();
+  });
+
+  it("sends the chat's provider and model selection with the run for agent nodes", async () => {
+    await loadWorkflowAndRun([
+      { kind: "run-start", runId: "run-1", startedAt: 1 },
+      { kind: "run-complete", runId: "run-1", durationMs: 3 },
+    ]);
+    await screen.findByTestId("run-status-ok");
+    const runCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/workflow/run"));
+    const body = JSON.parse(String(runCall?.[1]?.body)) as Record<string, unknown>;
+    const provider = useLLMProvidersStore.getState().defaultProviderId;
+    expect(body).toMatchObject({
+      provider,
+      model: useModelSelectionStore.getState().modelFor(provider),
+    });
   });
 
   it("plugin-contributed nodes from usePluginsStore.nodes appear in the palette", async () => {

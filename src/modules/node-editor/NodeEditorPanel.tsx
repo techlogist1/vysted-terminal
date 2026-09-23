@@ -51,11 +51,14 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
 
-import type { WorkflowRunEvent, WorkflowSpec } from "../../../types/workflow";
+import type { WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec } from "../../../types/workflow";
 import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
 import { CodeNodeInspector } from "./code-node-inspector";
 import { evaluateCodeNodes, partitionWorkflow } from "./code-node-run";
@@ -97,6 +100,26 @@ interface SavedSummary {
   name: string;
   description?: string;
   updatedAt: number;
+}
+
+// ---------------------------------------------------------------------------
+// Run creds
+// ---------------------------------------------------------------------------
+
+/**
+ * The chat's current provider/model selection and its keychain key, for the
+ * run's `ai.agent_invoke` nodes (the sidecar cannot read the keychain). A
+ * missing key is sent as absent: the agent node then fails with the
+ * provider's own error instead of the run faking an answer.
+ */
+async function resolveRunCreds(): Promise<
+  Pick<WorkflowRunRequest, "provider" | "model" | "apiKey">
+> {
+  const { providers, defaultProviderId: provider } = useLLMProvidersStore.getState();
+  const model = useModelSelectionStore.getState().modelFor(provider);
+  const requiresKey = providers.find((p) => p.id === provider)?.requiresKey ?? true;
+  const apiKey = requiresKey ? await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider)) : null;
+  return { provider, model, ...(apiKey ? { apiKey } : {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -386,7 +409,11 @@ function NodeEditorPanelInner() {
         const response = await fetch(new URL("/workflow/run", base).toString(), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ spec: partition.server, mode: "full" }),
+          body: JSON.stringify({
+            spec: partition.server,
+            mode: "full",
+            ...(await resolveRunCreds()),
+          }),
           signal: controller.signal,
         });
         if (!response.ok || response.body === null) {

@@ -62,7 +62,7 @@ BUILTIN_NODE_SPECS: dict[str, dict[str, Any]] = {
     },
     "ai.agent_invoke": {
         "inputs": ["context", "context_snapshot"],
-        "outputs": ["content", "agent_id", "error"],
+        "outputs": ["content", "agent_id"],
         "config": {"agent_id": None, "prompt_template": None, "provider": None, "model": None},
     },
     "logic.branch": {

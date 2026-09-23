@@ -22,6 +22,7 @@ from collections.abc import AsyncIterator
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
+import config
 from models.workflow import WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec
 from services import workflow_engine, workflow_store
 
@@ -48,6 +49,13 @@ async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
             await queue.put(event)
 
         async def _run() -> None:
+            # Publish the request's creds for this run's agent nodes (task-local;
+            # the key stays in process memory and is reset when the run ends).
+            creds_token = (
+                config.set_request_llm_creds(payload.provider, payload.model or "", payload.api_key)
+                if payload.provider
+                else None
+            )
             try:
                 await workflow_engine.run_workflow(
                     payload.spec, inputs=payload.inputs, on_event=_on_event
@@ -57,6 +65,8 @@ async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
                 # The engine emits run-error on validation failures already;
                 # this catches engine-implementation bugs only.
             finally:
+                if creds_token is not None:
+                    config.reset_request_llm_creds(creds_token)
                 await queue.put(None)  # sentinel — end of stream
 
         task = asyncio.create_task(_run())

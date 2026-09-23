@@ -237,13 +237,11 @@ async def test_agent_invoke_aggregates_stream(monkeypatch: pytest.MonkeyPatch) -
         {"context": "AAPL is up"},
         {"agent_id": "buffett", "prompt_template": "Analyze: {context}"},
     )
-    assert result["content"] == "Hello world."
-    assert result["agent_id"] == "buffett"
-    assert result["error"] is None
+    assert result == {"content": "Hello world.", "agent_id": "buffett"}
 
 
 @pytest.mark.asyncio
-async def test_agent_invoke_degrades_on_provider_error(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_agent_invoke_raises_on_provider_error(monkeypatch: pytest.MonkeyPatch) -> None:
     from models.llm import LLMDoneEvent, LLMErrorEvent
 
     async def _fake_invoke(agent_id: str, prompt: str, **_: Any):
@@ -251,9 +249,8 @@ async def test_agent_invoke_degrades_on_provider_error(monkeypatch: pytest.Monke
         yield LLMDoneEvent()
 
     monkeypatch.setattr("services.agent_runtime.invoke_agent", _fake_invoke)
-    result = await builtin.agent_invoke({}, {"agent_id": "buffett"})
-    assert result["content"] == "(no provider key configured)"
-    assert result["error"] == "no API key"
+    with pytest.raises(RuntimeError, match="no API key"):
+        await builtin.agent_invoke({}, {"agent_id": "buffett"})
 
 
 @pytest.mark.asyncio

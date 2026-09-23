@@ -45,8 +45,7 @@
     ],
     "outputs": [
       "content",
-      "agent_id",
-      "error"
+      "agent_id"
     ],
     "config": {
       "agent_id": null,
