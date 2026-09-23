@@ -349,3 +349,22 @@ async def test_validate_key_false_on_auth_error(monkeypatch: pytest.MonkeyPatch)
     _patch_client(monkeypatch, models=_FakeModels(raise_error=err))
     provider = AnthropicProvider()
     assert await provider.validate_key("sk-bad") is False
+
+
+@pytest.mark.parametrize(
+    ("model", "ceiling"),
+    [("claude-opus-4-8", 128_000), ("claude-haiku-4-5-20251001", 64_000)],
+)
+@pytest.mark.asyncio
+async def test_stream_chat_defaults_max_tokens_to_the_model_ceiling(
+    monkeypatch: pytest.MonkeyPatch, model: str, ceiling: int
+) -> None:
+    """R15-RESEARCH-014: a fixed 4,096 cut long answers and syntheses mid-sentence;
+    with no caller max_tokens the call asks for the model's own output ceiling."""
+    fake = _patch_client(monkeypatch, stream=_FakeStream([], _FakeFinalMessage()))
+    async for _ in AnthropicProvider().stream_chat(
+        messages=[LLMMessage(role="user", content="hi")], model=model, api_key="sk-test"
+    ):
+        pass
+    assert fake.messages is not None and fake.messages.last_kwargs is not None
+    assert fake.messages.last_kwargs["max_tokens"] == ceiling
