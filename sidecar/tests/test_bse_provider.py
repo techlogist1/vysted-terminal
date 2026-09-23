@@ -443,6 +443,35 @@ def test_bhavcopy_quote_path_reads_the_same_bars_as_a_full_parse(
     assert quote.change == pytest.approx(expected[-1] - expected[-2])
 
 
+# --- file shape drift (R15-LIFECYCLE-004) -----------------------------------
+
+
+@pytest.mark.parametrize(
+    ("column", "field"),
+    [("OpnPric", "open"), ("HghPric", "high"), ("LwPric", "low"), ("TtlTradgVol", "volume")],
+)
+def test_renamed_ohlv_column_is_a_parse_failure(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, column: str, field: str
+) -> None:
+    # A renamed column fails the lane (the registry falls through), never
+    # serves close-filled flat bars with zero volume.
+    drifted = _BHAVCOPY_CSV.replace(f",{column},", f",{column}X,", 1)
+    with pytest.raises(ProviderError, match=field):
+        bse_provider.parse_bhavcopy(drifted)
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(drifted))
+    with pytest.raises(ProviderError, match=field):
+        bse_provider.get_history("ICONIKSPEV", "1d", "1mo")
+
+
+def test_cached_day_with_renamed_column_is_a_parse_failure(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    day = date(2026, 6, 9)
+    (tmp_path / f"{day.isoformat()}.csv").write_text(_BHAVCOPY_CSV.replace(",LwPric,", ",Low,"))
+    with pytest.raises(ProviderError, match="low"):
+        bse_provider._assemble_history("ICONIKSPEV", "511260", day, day)
+
+
 # --- ZIP-wrapped bhavcopy decode --------------------------------------------
 
 

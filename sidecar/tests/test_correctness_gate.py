@@ -94,6 +94,20 @@ def test_validate_series_accepts_old_but_valid() -> None:
     assert correctness_gate.validate_series(old, "GOLDBEES", "IN") is old
 
 
+def test_validate_series_rejects_an_all_flat_zero_volume_series() -> None:
+    # R15-LIFECYCLE-004: open = high = low = close with zero volume on every bar
+    # is a parser filling missing fields (or no trade at all), never a price
+    # history. One real bar in the series keeps it.
+    flat = _series("GOLDBEES", 100.0, n=5)
+    flat.bars = [b.model_copy(update={"volume": 0.0}) for b in flat.bars]
+    with pytest.raises(CorrectnessError, match="flat with zero volume"):
+        correctness_gate.validate_series(flat, "GOLDBEES", "IN")
+
+    traded = flat.model_copy(deep=True)
+    traded.bars[2] = traded.bars[2].model_copy(update={"high": 101.0, "volume": 10.0})
+    assert correctness_gate.validate_series(traded, "GOLDBEES", "IN") is traded
+
+
 # ---------------------------------------------------------------------------
 # validate_fundamentals — identity + numeric plausibility bounds (R13, D4)
 # ---------------------------------------------------------------------------

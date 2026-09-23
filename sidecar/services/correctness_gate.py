@@ -147,7 +147,10 @@ def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
 
 
 def validate_series(series: OHLCVSeries, requested_symbol: str, region: str) -> OHLCVSeries:
-    """Reject an empty series, a non-positive last close, or a mis-symboled one.
+    """Reject an empty series, a non-positive last close, a mis-symboled one, or
+    one in which every bar is flat (open = high = low = close) with zero volume —
+    that shape is a parser filling missing fields, or no trade at all, never a
+    traded price history (R15-LIFECYCLE-004).
 
     Staleness is NOT a rejection here (unlike :func:`validate_quote`): a history
     series legitimately ends at an old date (a delisted name, a market that has
@@ -170,6 +173,11 @@ def validate_series(series: OHLCVSeries, requested_symbol: str, region: str) -> 
         raise CorrectnessError(
             f"correctness gate: provider {series.provider!r} returned series for "
             f"{series.symbol!r}, requested {requested_symbol!r} (symbol mismatch)"
+        )
+    if all(b.volume == 0 and b.open == b.high == b.low == b.close for b in series.bars):
+        raise CorrectnessError(
+            f"correctness gate: every bar for {requested_symbol!r} from "
+            f"{series.provider!r} is flat with zero volume — not a traded series"
         )
     return series
 

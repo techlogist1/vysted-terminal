@@ -386,9 +386,17 @@ def _fetch_historical_window(symbol: str, start: date, end: date) -> list[dict]:
     return [r for r in rows if isinstance(r, dict)]
 
 
+#: The historicalOR open/high/low/volume keys. A row without one is a changed
+#: payload shape, never a flat zero-volume candle (R15-LIFECYCLE-004).
+_OHLV_KEYS = ("CH_OPENING_PRICE", "CH_TRADE_HIGH_PRICE", "CH_TRADE_LOW_PRICE", "CH_TOT_TRADED_QTY")
+
+
 def _rows_to_bars(rows: list[dict]) -> list[OHLCVBar]:
     """Observed row → bar. ``CH_TIMESTAMP`` is the IST trading date as
-    ``YYYY-MM-DD``; rows arrive newest-first (the caller sorts + dedupes)."""
+    ``YYYY-MM-DD``; rows arrive newest-first (the caller sorts + dedupes).
+
+    A priced row missing an open/high/low/volume value raises
+    :class:`ProviderError` so the registry falls through to the next lane."""
     bars: list[OHLCVBar] = []
     for row in rows:
         close = _num(row.get("CH_CLOSING_PRICE"))
@@ -399,14 +407,21 @@ def _rows_to_bars(rows: list[dict]) -> list[OHLCVBar]:
             trading_day = date.fromisoformat(str(raw_day))
         except ValueError:
             continue
+        open_, high, low, volume = (_num(row.get(key)) for key in _OHLV_KEYS)
+        if open_ is None or high is None or low is None or volume is None:
+            missing = [key for key in _OHLV_KEYS if _num(row.get(key)) is None]
+            raise ProviderError(
+                f"nse_direct: historical row for {raw_day} lacks {', '.join(missing)} "
+                "(payload shape changed)"
+            )
         bars.append(
             OHLCVBar(
                 timestamp=_bar_timestamp(trading_day),
-                open=_num(row.get("CH_OPENING_PRICE")) or close,
-                high=_num(row.get("CH_TRADE_HIGH_PRICE")) or close,
-                low=_num(row.get("CH_TRADE_LOW_PRICE")) or close,
+                open=open_,
+                high=high,
+                low=low,
                 close=close,
-                volume=_num(row.get("CH_TOT_TRADED_QTY")) or 0.0,
+                volume=volume,
             )
         )
     return bars

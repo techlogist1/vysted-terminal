@@ -209,9 +209,31 @@ def _bar_timestamp(trading_day: date) -> datetime:
 # ---------------------------------------------------------------------------
 
 
+#: The open/high/low/volume columns, modern name first then the legacy one. A
+#: bhavcopy header without one is a changed file shape: a parse failure, never a
+#: flat zero-volume candle (R15-LIFECYCLE-004).
+_OHLV_COLUMNS = {
+    "open": ("OpnPric", "OPEN"),
+    "high": ("HghPric", "HIGH"),
+    "low": ("LwPric", "LOW"),
+    "volume": ("TtlTradgVol", "NO_OF_SHRS"),
+}
+
+
+def _check_columns(header: list[str]) -> None:
+    """Raise :class:`ProviderError` when the header lacks an O/H/L/V column."""
+    names = {name.strip() for name in header}
+    missing = [f for f, aliases in _OHLV_COLUMNS.items() if not names.intersection(aliases)]
+    if missing:
+        raise ProviderError(
+            f"bse: bhavcopy header lacks the {', '.join(missing)} column(s) (file shape changed)"
+        )
+
+
 def _normalise_row(raw: dict) -> dict[str, object] | None:
     """One raw bhavcopy row → the normalised per-scrip dict, or ``None`` for a
-    blank row."""
+    blank row or one whose open/high/low/volume cell is unparseable (never
+    filled with the close or a zero)."""
     # Tolerate stray whitespace in header names.
     row = {(k or "").strip(): (v.strip() if isinstance(v, str) else v) for k, v in raw.items()}
     ticker = row.get("TckrSymb") or row.get("SC_NAME") or ""
@@ -220,17 +242,19 @@ def _normalise_row(raw: dict) -> dict[str, object] | None:
     close = _num(row.get("ClsPric") or row.get("CLOSE"))
     if close is None or not ticker:
         return None
+    ohlv = {
+        f: _num(row.get(modern) or row.get(legacy)) for f, (modern, legacy) in _OHLV_COLUMNS.items()
+    }
+    if any(value is None for value in ohlv.values()):
+        return None
     return {
         "code": str(code).strip(),
         "ticker": str(ticker).strip().upper(),
         # Security series (e.g. "EQ"). A scrip can list under several series;
         # we chart the equity line, so the assembler prefers EQ when present.
         "series": (row.get("SctySrs") or row.get("SERIES") or "").strip().upper(),
-        "open": _num(row.get("OpnPric") or row.get("OPEN")) or close,
-        "high": _num(row.get("HghPric") or row.get("HIGH")) or close,
-        "low": _num(row.get("LwPric") or row.get("LOW")) or close,
+        **ohlv,
         "close": close,
-        "volume": _num(row.get("TtlTradgVol") or row.get("NO_OF_SHRS")) or 0.0,
         "date": row.get("TradDt") or row.get("TIMESTAMP") or "",
     }
 
@@ -241,10 +265,14 @@ def parse_bhavcopy(text: str) -> pd.DataFrame:
     The modern BSE ``BhavCopy_BSE_CM_…_F_0000.CSV`` carries ISO-style headers
     (``TckrSymb``, ``FinInstrmId`` = scrip code, ``OpnPric``/``HghPric``/
     ``LwPric``/``ClsPric``/``TtlTradgVol``, ``TradDt``). Returns columns
-    ``[code, ticker, open, high, low, close, volume, date]``; an unparseable /
-    empty body yields an empty frame (the caller treats it as "no data that day").
+    ``[code, ticker, open, high, low, close, volume, date]``; an empty body
+    yields an empty frame (the caller treats it as "no data that day"). A header
+    without an open/high/low/volume column raises :class:`ProviderError`.
     """
     reader = csv.DictReader(io.StringIO(text))
+    if reader.fieldnames is None:
+        return pd.DataFrame()
+    _check_columns(list(reader.fieldnames))
     return pd.DataFrame([row for raw in reader if (row := _normalise_row(raw)) is not None])
 
 
@@ -280,6 +308,7 @@ def _scrip_row(text: str, ticker: str, code: str | None) -> dict[str, object] | 
     if header_end == -1:
         return None
     header = next(csv.reader([text[:header_end]]))
+    _check_columns(header)
     for field, value in (("code", code), ("ticker", ticker)):
         if not value:
             continue
@@ -500,7 +529,7 @@ def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> 
                 high=float(row["high"]),
                 low=float(row["low"]),
                 close=float(row["close"]),
-                volume=float(row["volume"] or 0.0),
+                volume=float(row["volume"]),
             )
         )
     bars.sort(key=lambda b: b.timestamp)
