@@ -316,7 +316,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "moved'). Resolves the user's benchmark indices (US: S&P 500 / "
                 "Nasdaq / Dow + SPY/QQQ; IN: Nifty 50 / Sensex), fetches a live "
                 "quote for each, and pulls recent market headlines. Returns "
-                "{region, indices:[...], headlines:[...]}. Synthesize from it — "
+                "{region, indices:[...], headlines:[...]}; headlines_error is set "
+                "when the news feed is down (then say headlines are unavailable, "
+                "not that there is no news). Synthesize from it — "
                 "never answer market state from memory."
             ),
             input_schema=_obj(

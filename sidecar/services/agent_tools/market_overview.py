@@ -77,19 +77,23 @@ async def _quote_one(symbol: str, region: str) -> dict[str, Any]:
     }
 
 
-async def _headlines(limit: int) -> list[dict[str, Any]]:
-    """Pull broad (symbol-less) market headlines; degrade to [] on failure."""
+async def _headlines(limit: int) -> tuple[list[dict[str, Any]], str | None]:
+    """Pull broad (symbol-less) market headlines as ``(items, error)``.
+
+    ``fetch_news`` raises rather than return an empty list, so a failure is a
+    feed outage: it comes back as ``([], error)`` so the model never reads the
+    outage as "no notable headlines".
+    """
     import httpx
 
     from services import news_provider
-    from services.errors import ProviderError
 
     try:
         async with httpx.AsyncClient() as client:
             items = await news_provider.fetch_news(client, [], limit)
-    except (ProviderError, Exception):  # noqa: BLE001 — headlines are a best-effort add-on
-        return []
-    return [item.model_dump(mode="json") for item in items]
+    except Exception as exc:  # noqa: BLE001 — headlines are a best-effort add-on
+        return [], f"news feed unavailable: {exc}"
+    return [item.model_dump(mode="json") for item in items], None
 
 
 async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
@@ -99,7 +103,9 @@ async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
         region: optional locale override (``US`` / ``IN`` / ``GLOBAL``); defaults
             to the active request region.
 
-    Returns ``{"ok": True, "region", "indices": [...], "headlines": [...]}``.
+    Returns ``{"ok": True, "region", "indices": [...], "headlines": [...]}``,
+    plus ``headlines_error`` when the news feed failed (``headlines`` is then
+    ``[]`` because of the outage, not because there was no news).
     Index quotes that fail carry a per-symbol ``error`` field (a coverage gap for
     THAT index, not a feed outage). ``ok`` is False only when every index failed.
     """
@@ -108,28 +114,26 @@ async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
     )
     symbols = _indices_for_region(region)
 
-    indices, headlines = await asyncio.gather(
+    indices, (headlines, headlines_error) = await asyncio.gather(
         asyncio.gather(*(_quote_one(symbol, region) for symbol in symbols)),
         _headlines(_HEADLINE_LIMIT),
     )
     indices = list(indices)
 
     resolved = [idx for idx in indices if "error" not in idx]
-    if not resolved:
-        return {
-            "ok": False,
-            "region": region,
-            "indices": indices,
-            "headlines": headlines,
-            "message": "no index data resolved for this region — the quote feed returned nothing",
-        }
-
-    return {
-        "ok": True,
+    payload: dict[str, Any] = {
+        "ok": bool(resolved),
         "region": region,
         "indices": indices,
         "headlines": headlines,
     }
+    if headlines_error:
+        payload["headlines_error"] = headlines_error
+    if not resolved:
+        payload["message"] = (
+            "no index data resolved for this region — the quote feed returned nothing"
+        )
+    return payload
 
 
 def register() -> None:
