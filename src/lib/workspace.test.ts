@@ -436,6 +436,39 @@ describe("workspace serialization", () => {
     await expect(createResearchSpace("   ")).rejects.toThrow(/ticker is required/);
   });
 
+  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useNotesStore.getState().fromBundle({ general: "week 1", bySymbol: {} });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    await saveWorkspace("Swing");
+    const saved = JSON.parse(String(fetchMock.mock.calls[0]![1]?.body)) as {
+      workspace: SerializedWorkspace;
+    };
+
+    // Week 2: new holdings, new notes, a different layout.
+    usePortfoliosStore.getState().addHolding("default", {
+      symbol: "TCS",
+      quantity: 5,
+      costBasis: 3600,
+      assetClass: "equity",
+    });
+    useNotesStore.getState().setGeneral("week 2");
+    fakeApi.fromJSON(LAYOUT_B);
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(saved.workspace), { status: 200 }));
+
+    await loadWorkspace("Swing");
+
+    expect(fakeApi.current).toEqual(LAYOUT_A);
+    expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
+      "TCS",
+    ]);
+    expect(useNotesStore.getState().general).toBe("week 2");
+  });
+
   it("loadWorkspace fetches from the sidecar and applies the workspace", async () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_B);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
@@ -819,23 +852,129 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
     expect(methods).toEqual(["GET"]);
   });
 
-  it("loadWorkspace keeps the data and falls back to the default layout on an unregistered panel", async () => {
+  it("loadWorkspace falls back to the default layout when no saved panel is registered, leaving the notes alone", async () => {
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never });
-    useNotesStore.getState().fromBundle(null);
+    useNotesStore.getState().fromBundle({ general: "live notes", bySymbol: {} });
     stubFetchResolving({
       name: "old",
       layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "audit-log-viewer" } } },
       enabledModules: {},
-      notes: { general: "kept", bySymbol: {} },
+      notes: { general: "stale notes", bySymbol: {} },
     });
 
     await loadWorkspace("old");
 
     expect(api.fromJSON).not.toHaveBeenCalled();
     expect(api.clear).toHaveBeenCalled();
-    expect(useNotesStore.getState().general).toBe("kept");
+    expect(useNotesStore.getState().general).toBe("live notes");
     expect(useWorkspaceStore.getState().name).toBe("old");
+  });
+
+  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    const unwire = wireAutosaveTriggers();
+    try {
+      const api = createFakeDockviewApi(LAYOUT_A);
+      useWorkspaceStore.setState({ dockviewApi: api as never });
+      useModulesStore.setState({
+        modules: [{ id: "chart", panelComponents: { "chart-panel": () => null } } as never],
+      });
+      usePortfoliosStore.getState().setAll([], undefined);
+      useNotesStore.getState().fromBundle(null);
+      useSymbolsStore.setState({ entries: [{ symbol: "SPY", assetClass: "equity" }] });
+      const posts: unknown[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          if (init?.method === "POST") {
+            posts.push(init.body);
+          }
+          return {
+            ok: true,
+            json: async () => ({
+              name: "__autosave__",
+              layout: {
+                grid: {
+                  root: {
+                    type: "branch",
+                    size: 600,
+                    data: [
+                      {
+                        type: "leaf",
+                        size: 600,
+                        data: { id: "g1", views: ["chart", "broker"], activeView: "broker" },
+                      },
+                      {
+                        type: "leaf",
+                        size: 300,
+                        data: { id: "g2", views: ["orders"], activeView: "orders" },
+                      },
+                    ],
+                  },
+                  width: 900,
+                  height: 600,
+                  orientation: "HORIZONTAL",
+                },
+                panels: {
+                  chart: { id: "chart", contentComponent: "chart-panel" },
+                  broker: { id: "broker", contentComponent: "broker-connect-panel" },
+                  orders: { id: "orders", contentComponent: "broker-order-entry-panel" },
+                },
+              },
+              enabledModules: {},
+              watchlist: [{ symbol: "INFY", assetClass: "equity" }],
+              portfolios: {
+                list: [
+                  {
+                    id: "p1",
+                    name: "Long-term",
+                    holdings: [
+                      {
+                        id: "h1",
+                        symbol: "INFY",
+                        quantity: 10,
+                        costBasis: 1500,
+                        assetClass: "equity",
+                      },
+                    ],
+                  },
+                ],
+                activeId: "p1",
+              },
+              notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+            }),
+          } as unknown as Response;
+        }),
+      );
+
+      const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(restored).toBe(true);
+      expect(api.fromJSON).toHaveBeenCalledOnce();
+      const applied = api.fromJSON.mock.calls[0]![0] as unknown as {
+        panels: Record<string, unknown>;
+        grid: { root: { data: { data: { views: string[]; activeView?: string } }[] } };
+      };
+      expect(Object.keys(applied.panels)).toEqual(["chart"]);
+      expect(applied.grid.root.data.map((leaf) => leaf.data)).toEqual([
+        { id: "g1", views: ["chart"], activeView: "chart" },
+      ]);
+      expect(
+        usePortfoliosStore
+          .getState()
+          .portfolios[0].holdings.map((h) => [h.symbol, h.quantity, h.costBasis]),
+      ).toEqual([["INFY", 10, 1500]]);
+      expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+      expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["INFY"]);
+      expect(posts).toEqual([]);
+    } finally {
+      unwire();
+      resetWorkspacePersistenceForTests();
+      vi.useRealTimers();
+    }
   });
 
   it("re-bases on a clean grid when the restore fetch fails", async () => {

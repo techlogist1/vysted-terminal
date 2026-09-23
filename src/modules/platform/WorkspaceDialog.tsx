@@ -80,7 +80,8 @@ function SaveWorkspaceForm({ onDone }: ModeProps) {
       <DialogHeader>
         <DialogTitle className="text-charcoal-100">Save Workspace</DialogTitle>
         <DialogDescription className="text-charcoal-400 text-caption font-mono">
-          Saves the current panel layout and the enabled modules.
+          Saves the panel layout, the enabled modules and the chart drawings. Portfolios, watchlist,
+          notes and settings are shared by every workspace.
         </DialogDescription>
       </DialogHeader>
       <input
@@ -226,7 +227,8 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
       <DialogHeader>
         <DialogTitle className="text-charcoal-100">Load Workspace</DialogTitle>
         <DialogDescription className="text-charcoal-400 text-caption font-mono">
-          Restores a saved panel layout and its enabled modules.
+          Restores a saved panel layout, its enabled modules and chart drawings. Your portfolios,
+          watchlist, notes and settings stay as they are.
         </DialogDescription>
       </DialogHeader>
       {error ? (

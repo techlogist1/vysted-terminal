@@ -1,19 +1,19 @@
 /**
  * Workspace serialization — `.vysted-workspace` save/load.
  *
- * A workspace captures two things: the dockview panel layout and the modules
- * `enabled` map. Serialising both means reloading a workspace restores not just
- * which panels are open and where, but which modules are active. The sidecar
- * owns the files (`/workspace` endpoints); this module is the frontend half —
- * it builds the payload from the live stores and applies a loaded payload back
- * onto them.
+ * A workspace blob carries the dockview layout plus every `PERSISTED_SLICES`
+ * slice. Loading a named workspace applies only its cockpit (the `layout`
+ * slices); the user's global data rides the autosave slot and is restored only
+ * at launch. The sidecar owns the files (`/workspace` endpoints); this module
+ * is the frontend half — it builds the payload from the live stores and
+ * applies a loaded payload back onto them.
  *
  * The shape is deliberately open: `SerializedWorkspace` carries the two fields
  * the platform needs plus an index signature so a future phase can add keys
  * without a sidecar change (the sidecar stores the body opaquely).
  */
 
-import type { DockviewApi, SerializedDockview } from "dockview";
+import type { DockviewApi, SerializedDockview, SerializedGridObject } from "dockview";
 
 import { applyDefaultLayout } from "@/config/default-layout";
 import { applyResearchSpaceLayout } from "@/lib/layout-templates";
@@ -133,8 +133,8 @@ export interface SerializedWorkspace {
    * brief has been produced yet.
    */
   brief?: BriefBundle;
-  /** In-app research notes (per-stock + general) — ride the blob like the brief
-   * so they persist with a named workspace / per-stock research space (003). */
+  /** In-app research notes (per-stock + general) — global user data that rides
+   * the autosave slot like the brief (003). */
   notes?: NotesBundle;
   /**
    * TYPED research-space marker (S-19): the symbol this workspace researches,
@@ -185,6 +185,13 @@ const MODEL_OVERRIDES_VERSION = 3;
 export interface PersistedSlice {
   /** The blob key this slice owns (`read` may also write a companion key). */
   key: string;
+  /**
+   * `layout` — per-workspace state a named workspace restores (the cockpit
+   * itself). `global` — the user's own data, shared by every workspace:
+   * restored only by the launch restore of the autosave slot, never by loading
+   * a named workspace (R15-CODE-FRONTEND-001).
+   */
+  scope: "layout" | "global";
   read: () => Partial<SerializedWorkspace>;
   restore: (workspace: SerializedWorkspace) => void;
   /** Subscribe `onChange` to the change that must be persisted; returns the unsubscribe. */
@@ -205,20 +212,23 @@ function onChange<S>(
 }
 
 /**
- * Every persisted slice, in restore order: the per-space memory archive
- * restores before the research marker so entering a space finds its transcript.
+ * Every persisted slice. The launch restore applies the global slices before
+ * the layout slices, so the per-space memory archive is in place before the
+ * research marker enters a space.
  */
 export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // Restored before the layout so the panel components a layout references
     // resolve against the module set that was active when it was saved.
     key: "enabledModules",
+    scope: "layout",
     read: () => ({ enabledModules: useModulesStore.getState().enabled }),
     restore: (workspace) => useModulesStore.getState().setEnabledMap(workspace.enabledModules),
     subscribe: onChange(useModulesStore, (s) => s.enabled),
   },
   {
     key: "chartDrawings",
+    scope: "layout",
     read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
     restore: (workspace) =>
       useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings ?? { byPanel: {} }),
@@ -226,6 +236,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   },
   {
     key: "defaultProviderId",
+    scope: "global",
     read: () => ({ defaultProviderId: useLLMProvidersStore.getState().defaultProviderId }),
     restore: (workspace) => {
       if (workspace.defaultProviderId) {
@@ -237,6 +248,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // Older blobs lack it (or carry an empty list) — keep the default set.
     key: "watchlist",
+    scope: "global",
     read: () => ({ watchlist: useSymbolsStore.getState().entries }),
     restore: (workspace) => {
       if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
@@ -248,6 +260,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // Older blobs lack it — keep the empty default portfolio.
     key: "portfolios",
+    scope: "global",
     read: () => ({
       portfolios: {
         list: usePortfoliosStore.getState().portfolios,
@@ -271,6 +284,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     // A legacy mode ("ask"/"edit"/"build") folds into the single inferred
     // "agent" surface (Track B); only restore when a value is set.
     key: "agentMode",
+    scope: "global",
     read: () => ({ agentMode: useAgentModeStore.getState().mode }),
     restore: (workspace) => {
       if (workspace.agentMode !== undefined) {
@@ -281,6 +295,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   },
   {
     key: "autonomyMode",
+    scope: "global",
     read: () => ({ autonomyMode: useAgentAutonomyStore.getState().autonomy }),
     restore: (workspace) => {
       if (isAgentAutonomy(workspace.autonomyMode)) {
@@ -291,6 +306,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   },
   {
     key: "agentDock",
+    scope: "global",
     read: () => ({
       agentDock: {
         collapsed: useAgentDockStore.getState().collapsed,
@@ -320,6 +336,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     // static known-model prune that would otherwise silently drop a model the
     // user picked from the LIVE catalog.
     key: "modelOverrides",
+    scope: "global",
     read: () => ({
       modelOverrides: useModelSelectionStore.getState().overrides,
       modelOverridesV: MODEL_OVERRIDES_VERSION,
@@ -338,6 +355,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // `setOverrides` normalises on the way in; older blobs keep the defaults.
     key: "keybindingOverrides",
+    scope: "global",
     read: () => ({ keybindingOverrides: useKeybindingsStore.getState().overrides }),
     restore: (workspace) => {
       if (workspace.keybindingOverrides && typeof workspace.keybindingOverrides === "object") {
@@ -349,6 +367,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // `setAll` merges over the seed so a partial blob can't strip a field.
     key: "settings",
+    scope: "global",
     read: () => ({ settings: useSettingsStore.getState().toBundle() }),
     restore: (workspace) => {
       if (workspace.settings && typeof workspace.settings === "object") {
@@ -368,6 +387,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     // legacy hosted/Exa selection confirms the OpenRouter key asynchronously
     // and demotes to tier_a when none is configured.
     key: "searchSettings",
+    scope: "global",
     read: () => ({ searchSettings: useSearchSettingsStore.getState().toBundle() }),
     restore: (workspace) => {
       if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
@@ -385,6 +405,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     // `fromBundle` validates the shape and always restores archived. `null` is
     // a valid "no brief" bundle, so guard on the key's presence, not truthiness.
     key: "brief",
+    scope: "global",
     read: () => ({ brief: useBriefStore.getState().toBundle() }),
     restore: (workspace) => {
       if ("brief" in workspace) {
@@ -395,6 +416,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   },
   {
     key: "notes",
+    scope: "global",
     read: () => ({ notes: useNotesStore.getState().toBundle() }),
     restore: (workspace) => {
       if ("notes" in workspace) {
@@ -411,6 +433,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // `deserializeSavedScreens` drops malformed entries from a garbled blob.
     key: "savedScreens",
+    scope: "global",
     read: () => ({ savedScreens: useScreenerStore.getState().savedScreens }),
     restore: (workspace) => {
       if (Array.isArray(workspace.savedScreens)) {
@@ -424,6 +447,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // The durable per-space agent-memory archive (S-19).
     key: "researchSpaces",
+    scope: "global",
     read: () => ({ researchSpaces: useResearchSpacesStore.getState().snapshot() }),
     restore: (workspace) => {
       if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
@@ -440,6 +464,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     // the one being entered — keyed by the CANONICAL space name so a renamed
     // workspace file (or the `__autosave__` slot) still resolves its memory.
     key: "researchSymbol",
+    scope: "layout",
     read: () => {
       const researchSymbol = useWorkspaceStore.getState().researchSymbol;
       return researchSymbol ? { researchSymbol } : {};
@@ -496,33 +521,61 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
 }
 
 /**
- * Apply a loaded workspace back onto the live stores. The non-layout slices
- * are restored FIRST and never depend on the dockview layout applying, so a
- * layout that cannot be restored never costs the user their data
- * (R15-LIFECYCLE-002). Then the dockview layout is applied — unless it
- * references a panel component that is not registered (a removed panel, or a
- * plugin panel that registers async), in which case the layout is skipped and
- * this returns false so the caller can apply the default layout. Throws if the
- * dockview layout has not mounted yet, or if `fromJSON` itself throws (the
- * non-layout slices are already restored by then).
+ * Apply the launch restore of the autosave slot: the user's global data first,
+ * then the per-workspace cockpit ({@link applyLayoutSlice}). Each slice
+ * restores independently and before the dockview layout, so neither a garbled
+ * slice nor a layout that cannot be restored costs the user the rest of their
+ * data (R15-LIFECYCLE-002). Returns false when no saved layout could be
+ * applied, so the caller can apply the default layout. Throws if the dockview
+ * layout has not mounted yet, or if `fromJSON` itself throws (every slice is
+ * already restored by then).
  */
 export function deserializeWorkspace(workspace: SerializedWorkspace): boolean {
+  if (!useWorkspaceStore.getState().dockviewApi) {
+    throw new WorkspaceError("The panel layout is not ready yet.");
+  }
+  restoreSlices(workspace, "global");
+  return applyLayoutSlice(workspace);
+}
+
+/**
+ * Apply the per-workspace slices (enabled modules, chart drawings, the
+ * research-space marker) and the dockview layout — what loading a named
+ * workspace restores. Panels whose component is not registered are stripped
+ * from the layout and the rest restores. Returns false when no restorable
+ * layout remains.
+ */
+function applyLayoutSlice(workspace: SerializedWorkspace): boolean {
   const api = useWorkspaceStore.getState().dockviewApi;
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
   useWorkspaceStore.getState().setName(workspace.name);
-  for (const slice of PERSISTED_SLICES) {
-    slice.restore(workspace);
-  }
-  // An unknown component would throw mid-`fromJSON` (dockview instantiates panel
-  // content eagerly) and half-mutate the grid — skip the layout instead.
-  if (layoutReferencesUnknownComponent(workspace.layout)) {
+  restoreSlices(workspace, "layout");
+  const layout = stripUnknownPanels(workspace.layout);
+  if (!layout) {
     return false;
   }
-  api.fromJSON(workspace.layout);
+  api.fromJSON(layout);
   migrateLegacyLayout(api);
   return true;
+}
+
+/** Restore every slice of `scope`, each independently of the others. */
+function restoreSlices(workspace: SerializedWorkspace, scope: PersistedSlice["scope"]): void {
+  for (const slice of PERSISTED_SLICES) {
+    if (slice.scope !== scope) {
+      continue;
+    }
+    try {
+      slice.restore(workspace);
+    } catch (error) {
+      console.warn(
+        `[workspace] could not restore the ${slice.key} slice; kept the live one.`,
+        error,
+      );
+    }
+  }
 }
 
 /** Build the sidecar `/workspace` URL, optionally for a single named workspace. */
@@ -569,9 +622,12 @@ export async function saveWorkspace(name: string): Promise<void> {
 }
 
 /**
- * Load a saved workspace from the sidecar and apply it to the live stores. A
- * layout that references an unregistered panel falls back to the default layout;
- * the workspace's data slices are restored either way.
+ * Load a saved workspace from the sidecar and apply its cockpit: the layout,
+ * enabled modules, chart drawings and research-space marker. The user's global
+ * data (portfolios, watchlist, notes, brief, settings, keybindings, research
+ * memory) is left as it is — a named workspace never rolls it back
+ * (R15-CODE-FRONTEND-001). A layout with no restorable panel falls back to the
+ * default layout.
  */
 export async function loadWorkspace(name: string): Promise<void> {
   const trimmed = name.trim();
@@ -588,7 +644,14 @@ export async function loadWorkspace(name: string): Promise<void> {
   } catch {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
-  if (!deserializeWorkspace(workspace)) {
+  const layoutRestored = applyLayoutSlice(workspace);
+  // Entering a research space scopes the Notes panel to its ticker, as creating
+  // one does (the notes themselves are global and stay as they are).
+  const symbol = researchSymbolOf(workspace);
+  if (symbol) {
+    useNotesStore.getState().setFocusSymbol(symbol);
+  }
+  if (!layoutRestored) {
     const api = useWorkspaceStore.getState().dockviewApi;
     if (api) {
       api.clear();
@@ -632,25 +695,81 @@ function migrateLegacyLayout(api: DockviewApi): void {
   }
 }
 
+/** The part of a serialized dockview group the strip rewrites. */
+interface SerializedGroup {
+  views: string[];
+  activeView?: string;
+}
+
 /**
- * True when the serialized layout references a panel component id that is not
- * currently registered. dockview instantiates panel content eagerly during
- * `fromJSON`, so an unknown component (e.g. a plugin panel whose module
- * registers asynchronously after `handleReady`, or a panel that was removed from
- * the product) throws synchronously and half-mutates the grid. We detect that
- * up-front and skip the layout cleanly.
- * An unreadable layout shape is treated as "unknown" so we conservatively
- * skip-to-default rather than risk the throw.
+ * The layout with every panel whose component is not registered removed — a
+ * panel dropped from the product, or a plugin panel that registers after
+ * `handleReady`. dockview instantiates panel content eagerly during `fromJSON`,
+ * so one unknown component would throw and half-mutate the grid; stripping it
+ * restores the rest of the cockpit instead of abandoning it. Groups the strip
+ * empties are pruned. Returns `null` when the shape is unreadable or no panel
+ * survives, so the caller falls back to the default layout.
  */
-function layoutReferencesUnknownComponent(layout: SerializedDockview): boolean {
-  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+function stripUnknownPanels(layout: SerializedDockview): SerializedDockview | null {
   const panels = (layout as { panels?: Record<string, { contentComponent?: string }> }).panels;
-  if (!panels || typeof panels !== "object") {
-    return true;
+  const root = (layout as { grid?: SerializedDockview["grid"] }).grid?.root;
+  if (!panels || typeof panels !== "object" || !root) {
+    return null;
   }
-  return Object.values(panels).some(
-    (panel) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+  const unknown = new Set(
+    Object.entries(panels)
+      .filter(
+        ([, panel]) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+      )
+      .map(([id]) => id),
   );
+  if (unknown.size === 0) {
+    return layout;
+  }
+  if (unknown.size === Object.keys(panels).length) {
+    return null;
+  }
+  const keep = (id: string) => !unknown.has(id);
+  // A group the strip empties is dropped; a group that was already empty stays.
+  const strip = <G extends SerializedGroup>(group: G): G | null => {
+    const views = group.views.filter(keep);
+    if (views.length === 0 && group.views.length > 0) {
+      return null;
+    }
+    const activeView =
+      group.activeView !== undefined && keep(group.activeView) ? group.activeView : views[0];
+    return { ...group, views, activeView };
+  };
+  type GridNode = SerializedGridObject<SerializedGroup>;
+  const prune = (node: GridNode): GridNode | null => {
+    if (node.type === "leaf") {
+      const data = strip(node.data as SerializedGroup);
+      return data ? { ...node, data } : null;
+    }
+    const children = (node.data as GridNode[])
+      .map(prune)
+      .filter((child): child is GridNode => child !== null);
+    return children.length > 0 ? { ...node, data: children } : null;
+  };
+  // The maximized node is addressed by its tree location, which pruning moves.
+  const { maximizedNode: _maximized, ...grid } = layout.grid as SerializedDockview["grid"] & {
+    maximizedNode?: unknown;
+  };
+  const prunedRoot = prune(root as GridNode) ?? { ...root, data: [] };
+  return {
+    ...layout,
+    grid: { ...grid, root: prunedRoot as SerializedDockview["grid"]["root"] },
+    panels: Object.fromEntries(Object.entries(layout.panels).filter(([id]) => keep(id))),
+    ...(layout.floatingGroups
+      ? {
+          floatingGroups: layout.floatingGroups.flatMap((floating) => {
+            const data = strip(floating.data);
+            return data ? [{ ...floating, data }] : [];
+          }),
+        }
+      : {}),
+  };
 }
 
 /**
