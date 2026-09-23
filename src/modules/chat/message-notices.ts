@@ -25,14 +25,22 @@ export interface MessageErrorFrame {
 interface MessageNoticesState {
   errorFrames: Record<string, MessageErrorFrame>;
   notices: Record<string, string[]>;
+  /** Per message: the runtime's history-compaction notice (R15-AGENT-040),
+   *  rendered as an "older turns summarised" marker in the transcript. */
+  compactions: Record<string, string>;
   setErrorFrame: (messageId: string, frame: MessageErrorFrame) => void;
   addNotice: (messageId: string, notice: string) => void;
+  setCompaction: (messageId: string, detail: string) => void;
   clear: () => void;
 }
+
+/** The notice `tool` the runtime tags a history compaction with. */
+export const HISTORY_NOTICE_TOOL = "history";
 
 export const useMessageNoticesStore = create<MessageNoticesState>((set) => ({
   errorFrames: {},
   notices: {},
+  compactions: {},
 
   setErrorFrame: (messageId, frame) =>
     set((state) => ({ errorFrames: { ...state.errorFrames, [messageId]: frame } })),
@@ -45,7 +53,10 @@ export const useMessageNoticesStore = create<MessageNoticesState>((set) => ({
       },
     })),
 
-  clear: () => set({ errorFrames: {}, notices: {} }),
+  setCompaction: (messageId, detail) =>
+    set((state) => ({ compactions: { ...state.compactions, [messageId]: detail } })),
+
+  clear: () => set({ errorFrames: {}, notices: {}, compactions: {} }),
 }));
 
 /**
@@ -60,5 +71,5 @@ export function isRuntimeNotice(stepKind: string): boolean {
 
 /** Test helper: reset the per-message annotations. */
 export function resetMessageNoticesForTests(): void {
-  useMessageNoticesStore.setState({ errorFrames: {}, notices: {} });
+  useMessageNoticesStore.setState({ errorFrames: {}, notices: {}, compactions: {} });
 }

@@ -537,20 +537,68 @@ def _build_context_preamble(snapshot: AgentContextSnapshot | None) -> str | None
     return "\n".join(sections)
 
 
-def _coerce_history(raw: Any) -> list[LLMMessage]:
+#: The newest history the model sees verbatim (R15-AGENT-040); older turns
+#: fold into one summary message instead of silently falling off a window.
+_HISTORY_VERBATIM_MESSAGES = 8
+_HISTORY_VERBATIM_CHARS = 24_000
+#: How much of each older user ask the summary keeps.
+_FOLDED_ASK_CHARS = 300
+_HISTORY_SUMMARY_HEAD = "Earlier in this conversation (older turns, summarised):"
+#: The client's compact trailer lines on an assistant turn (its tool steps and
+#: its failure), carried verbatim into the summary.
+_HISTORY_TRAILER_PREFIXES = ("[tool steps:", "[failed:")
+#: The notice tool that marks a compaction, so the transcript renders its marker.
+HISTORY_NOTICE_TOOL = "history"
+
+
+def _coerce_history(raw: Any) -> tuple[list[LLMMessage], int]:
     """Coerce ``options["history"]`` (a list of {role, content} dicts) into
-    LLMMessages, dropping anything malformed. Bounded by the caller."""
+    LLMMessages, dropping anything malformed.
+
+    The newest turns stay verbatim within a message and character budget,
+    starting on a user turn. Anything older folds into ONE separate, stable
+    "Earlier in this conversation" message placed before them: each older user
+    ask (truncated) and each assistant turn's tool-step and failure trailer
+    verbatim. Deterministic, no extra LLM call. Returns the messages and how
+    many were folded (R15-AGENT-040: the old ``[-10:]`` dropped the rest).
+    """
     if not isinstance(raw, list):
-        return []
-    out: list[LLMMessage] = []
+        return [], 0
+    turns: list[LLMMessage] = []
     for item in raw:
         if not isinstance(item, dict):
             continue
         role = item.get("role")
         content = item.get("content")
         if role in ("user", "assistant") and isinstance(content, str) and content:
-            out.append(LLMMessage(role=role, content=content))
-    return out[-10:]  # cap at ~10 turns to bound tokens
+            turns.append(LLMMessage(role=role, content=content))
+    keep = used = 0
+    for message in reversed(turns):
+        if keep >= _HISTORY_VERBATIM_MESSAGES or (
+            keep and used + len(message.content) > _HISTORY_VERBATIM_CHARS
+        ):
+            break
+        keep += 1
+        used += len(message.content)
+    while keep and turns[len(turns) - keep].role != "user":
+        keep -= 1
+    older, recent = turns[: len(turns) - keep], turns[len(turns) - keep :]
+    if not older:
+        return recent, 0
+    lines = [_HISTORY_SUMMARY_HEAD]
+    for message in older:
+        if message.role == "user":
+            ask = " ".join(message.content.split())
+            if len(ask) > _FOLDED_ASK_CHARS:
+                ask = ask[:_FOLDED_ASK_CHARS] + "..."
+            lines.append(f"- The user asked: {ask}")
+        else:
+            lines += [
+                f"- {line.strip()}"
+                for line in message.content.splitlines()
+                if line.strip().startswith(_HISTORY_TRAILER_PREFIXES)
+            ]
+    return [LLMMessage(role="user", content="\n".join(lines)), *recent], len(older)
 
 
 def _render_session_preamble() -> str:
@@ -1716,7 +1764,7 @@ async def invoke_agent(
     provider_id = _resolve_provider_id(spec, provider)
     resolved_model = _resolve_model(spec, model)
     opts = dict(options or {})
-    history = _coerce_history(opts.pop("history", None))
+    history, folded = _coerce_history(opts.pop("history", None))
     tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
@@ -1794,6 +1842,15 @@ async def invoke_agent(
 
     local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
+    if folded:
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool=HISTORY_NOTICE_TOOL,
+            step_kind=NOTICE_STEP_KIND,
+            detail=f"Older turns summarised: the {folded} earliest messages of this "
+            "thread were folded into a summary of your asks, tool steps and failures.",
+            status="ok",
+        )
     adapter = get_provider(provider_id)
     # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
     # and elides old results; hosted lanes (no window) send the full set. The
@@ -1999,6 +2056,7 @@ async def invoke_agent(
                     )
                 elif not turn_text:
                     yield _empty_response_error(resolved_model)
+                event.context_window = window
                 yield event
                 return
             if isinstance(event, LLMDeltaEvent) and event.text.strip():

@@ -796,6 +796,39 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
   });
 
+  it("a history compaction notice renders the older-turns marker and the context meter (R15-AGENT-040)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "research_step",
+          toolCallId: "",
+          tool: "history",
+          stepKind: "notice",
+          detail: "Older turns summarised: the 4 earliest messages of this thread were folded.",
+          status: "ok",
+          index: 1,
+        });
+        handlers.onEvent({ kind: "delta", text: "BDL delivered 92% of FY26 guidance." });
+        handlers.onEvent({
+          kind: "done",
+          usage: { inputTokens: 6_000, outputTokens: 192 },
+          contextWindow: 32_768,
+        });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "and the latest quarter?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByRole("note", { name: "Older turns summarised" })).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/the 4 earliest messages/)).toBeNull();
+    expect(screen.getByLabelText("Context meter")).toHaveTextContent(
+      "Context 6,192 / 32,768 tokens (19%)",
+    );
+  });
+
   // R15-AGENT-031 / R15-UI-054: this used to feed the regex's own stale copy on
   // the engine kind; the chip now keys on the notice kind, so the runtime's
   // current wording (which the old regex never matched) renders as a chip.

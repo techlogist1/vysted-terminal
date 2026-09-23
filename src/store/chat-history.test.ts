@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { useChatHistoryStore } from "./chat-history";
+import { type ChatMessage, historyForSend, useChatHistoryStore } from "./chat-history";
 
 describe("chat-history — agent plan (Track 6 #2)", () => {
   beforeEach(() => {
@@ -188,5 +188,41 @@ describe("chat-history — research steps (Track A)", () => {
     const msg = useChatHistoryStore.getState().messages.find((m) => m.id === id);
     expect(msg?.toolSteps).toEqual(["Using fundamentals"]);
     expect(msg?.researchSteps).toHaveLength(1);
+  });
+});
+
+describe("historyForSend — the whole thread, not the last ten (R15-AGENT-040)", () => {
+  it("keeps turn one of a long thread and carries tool steps and failures as a trailer", () => {
+    const thread: ChatMessage[] = [
+      {
+        id: "u1",
+        createdAt: 1,
+        role: "user",
+        content: "I only care about FY26 guidance vs delivery for BDL",
+      },
+      {
+        id: "a1",
+        createdAt: 2,
+        role: "assistant",
+        content: "Pulling announcements.",
+        toolSteps: ["Reading BSE filings"],
+        error: "corporate_announcements:\n BSE lane failed",
+      },
+    ];
+    for (let n = 2; n <= 8; n += 1) {
+      thread.push({ id: `u${n}`, createdAt: n, role: "user", content: `Follow-up ${n}` });
+      thread.push({ id: `a${n}`, createdAt: n, role: "assistant", content: `Answer ${n}` });
+    }
+    thread.push({ id: "s1", createdAt: 99, role: "system", content: "not history" });
+    const history = historyForSend(thread);
+    expect(history).toHaveLength(16);
+    expect(history[0]).toEqual({
+      role: "user",
+      content: "I only care about FY26 guidance vs delivery for BDL",
+    });
+    expect(history[1]!.content).toBe(
+      "Pulling announcements.\n\n[tool steps: Reading BSE filings]\n\n" +
+        "[failed: corporate_announcements: BSE lane failed]",
+    );
   });
 });

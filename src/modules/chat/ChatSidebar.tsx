@@ -34,6 +34,7 @@ import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/st
 import {
   type AgentPlanView,
   type ChatMessage,
+  historyForSend,
   type ResearchStepView,
   useChatHistoryStore,
 } from "@/store/chat-history";
@@ -74,7 +75,12 @@ import {
   resolveMention,
 } from "./mentions";
 import { ComposerPlusMenu } from "./ComposerPlusMenu";
-import { isRuntimeNotice, useMessageNoticesStore, type MessageErrorFrame } from "./message-notices";
+import {
+  HISTORY_NOTICE_TOOL,
+  isRuntimeNotice,
+  useMessageNoticesStore,
+  type MessageErrorFrame,
+} from "./message-notices";
 import { MentionPicker } from "./MentionPicker";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
@@ -750,11 +756,7 @@ export function ChatSidebar() {
             ? activeAgentId
             : null;
 
-      const history = useChatHistoryStore
-        .getState()
-        .messages.filter((m) => m.role === "user" || m.role === "assistant")
-        .slice(-10)
-        .map((m) => ({ role: m.role, content: m.content }));
+      const history = historyForSend(useChatHistoryStore.getState().messages);
 
       // Auto-title the space from its first prompt (Perplexity-style) so the space
       // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
@@ -915,7 +917,7 @@ export function ChatSidebar() {
             endRun(runId, "error", message);
           }
         },
-        onDone: (usage, finishReason) => {
+        onDone: (usage, finishReason, contextWindow) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
           }
@@ -924,7 +926,7 @@ export function ChatSidebar() {
           if (!agentForCall && isLengthFinish(finishReason)) {
             useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
           }
-          finalize(assistantId, usage);
+          finalize(assistantId, usage, contextWindow);
           if (usage) {
             updateRun(runId, {
               cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 },
@@ -987,11 +989,17 @@ export function ChatSidebar() {
             appendToolStep(assistantId, readToolLabel(name));
           }
         },
-        onResearchStep: (step) => {
+        onResearchStep: (step, tool) => {
           // Runtime notices (C9) render as quiet system chips in the
-          // transcript, not telemetry rows in the step trace.
+          // transcript, not telemetry rows in the step trace; a history
+          // compaction renders as its own marker (R15-AGENT-040).
           if (isRuntimeNotice(step.stepKind)) {
-            useMessageNoticesStore.getState().addNotice(assistantId, step.detail);
+            const notices = useMessageNoticesStore.getState();
+            if (tool === HISTORY_NOTICE_TOOL) {
+              notices.setCompaction(assistantId, step.detail);
+            } else {
+              notices.addNotice(assistantId, step.detail);
+            }
             return;
           }
           appendResearchStep(assistantId, step);
@@ -1029,8 +1037,8 @@ export function ChatSidebar() {
         } else {
           // FR-116 / coherence: the raw-chat path must preserve conversation context
           // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
-          // (the last-10 user/assistant turns, captured above BEFORE appendUser, so it
-          // excludes the current prompt) is prepended; previously this path sent only
+          // (the thread within its character budget, captured above BEFORE appendUser,
+          // so it excludes the current prompt) is prepended; previously this path sent only
           // the single current turn and silently dropped everything before it.
           await streamChat(
             {
@@ -1230,6 +1238,7 @@ export function ChatSidebar() {
                     : "px-1 py-1",
                 )}
               >
+                <CompactionMarker messageId={message.id} />
                 <div className="text-charcoal-400 text-micro mb-1">
                   {message.role === "user"
                     ? "You"
@@ -1290,6 +1299,7 @@ export function ChatSidebar() {
         {mode === "delegate" && (
           <BudgetConfig budget={delegateBudget} onChange={setDelegateBudget} />
         )}
+        <ContextMeter />
         <QueuedPrompts />
         <Composer
           value={composer}
@@ -1406,6 +1416,52 @@ function ContextBadge({ text }: { text: string }) {
       aria-label="Panel context"
       className="border-charcoal-700 text-charcoal-300 text-caption border-b px-4 py-1 font-mono tracking-wide uppercase"
     >
+      {text}
+    </div>
+  );
+}
+
+/** The "older turns summarised" marker above a reply whose request folded
+ *  older turns into a summary (R15-AGENT-040). */
+function CompactionMarker({ messageId }: { messageId: string }) {
+  const detail = useMessageNoticesStore((s) => s.compactions[messageId]);
+  if (!detail) {
+    return null;
+  }
+  return (
+    <div
+      role="note"
+      aria-label="Older turns summarised"
+      title={detail}
+      className="text-charcoal-500 text-micro border-charcoal-700 mb-2 border-t border-dashed pt-1 tracking-wide uppercase"
+    >
+      Older turns summarised
+    </div>
+  );
+}
+
+/** The composer's context meter (R15-AGENT-040): the last reply's tokens,
+ *  against the lane's window when it has one. */
+function ContextMeter() {
+  const last = useChatHistoryStore((s) => {
+    for (let i = s.messages.length - 1; i >= 0; i -= 1) {
+      const message = s.messages[i]!;
+      if (message.role === "assistant" && message.usage) {
+        return message;
+      }
+    }
+    return null;
+  });
+  if (!last?.usage) {
+    return null;
+  }
+  const tokens = last.usage.inputTokens + last.usage.outputTokens;
+  const window = last.contextWindow;
+  const text = window
+    ? `Context ${tokens.toLocaleString()} / ${window.toLocaleString()} tokens (${Math.round((tokens / window) * 100)}%)`
+    : `Context ${tokens.toLocaleString()} tokens`;
+  return (
+    <div aria-label="Context meter" className="text-charcoal-500 text-micro px-3 pt-1 font-mono">
       {text}
     </div>
   );
@@ -2005,9 +2061,10 @@ interface InternalHandlers {
   onDone: (
     usage: { inputTokens: number; outputTokens: number } | null,
     finishReason?: string,
+    contextWindow?: number,
   ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
-  onResearchStep: (step: ResearchStepView) => void;
+  onResearchStep: (step: ResearchStepView, tool: string) => void;
   onPlan: (plan: AgentPlanView) => void;
 }
 
@@ -2026,13 +2083,16 @@ function makeHandlers(internal: InternalHandlers): {
           event.toolCallId,
         );
       } else if (event.kind === "research_step") {
-        internal.onResearchStep({
-          stepKind: event.stepKind,
-          detail: event.detail,
-          latencyMs: event.latencyMs,
-          status: event.status,
-          index: event.index,
-        });
+        internal.onResearchStep(
+          {
+            stepKind: event.stepKind,
+            detail: event.detail,
+            latencyMs: event.latencyMs,
+            status: event.status,
+            index: event.index,
+          },
+          event.tool,
+        );
       } else if (event.kind === "agent_plan") {
         internal.onPlan({ goal: event.goal, steps: event.steps, note: event.note });
       } else if (event.kind === "error") {
@@ -2043,6 +2103,7 @@ function makeHandlers(internal: InternalHandlers): {
             ? { inputTokens: event.usage.inputTokens, outputTokens: event.usage.outputTokens }
             : null,
           event.finishReason,
+          event.contextWindow,
         );
       }
     },

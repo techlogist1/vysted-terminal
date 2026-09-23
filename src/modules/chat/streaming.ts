@@ -420,6 +420,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       kind: "done",
       usage,
       finishReason: typeof payload.finish_reason === "string" ? payload.finish_reason : undefined,
+      contextWindow:
+        typeof payload.context_window === "number" ? payload.context_window : undefined,
     };
   }
   if (kind === "error") {

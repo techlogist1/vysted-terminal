@@ -229,6 +229,9 @@ class LLMDoneEvent(BaseModel):
     kind: Literal["done"] = "done"
     usage: LLMUsage | None = None
     finish_reason: str | None = None
+    #: The token window the lane runs in, when it has one (Ollama's num_ctx):
+    #: the composer's context meter reads ``usage`` against it (R15-AGENT-040).
+    context_window: int | None = None
 
 
 class LLMErrorEvent(BaseModel):
