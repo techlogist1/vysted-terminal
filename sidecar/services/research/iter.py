@@ -363,20 +363,23 @@ async def run_iter_research(
         # R13 filings floor: pull exchange announcements up front for ANY Indian
         # listing (wants_disclosures_floor) so a thin-web name still has dated
         # filings even if planning eats the wall before a researcher fires. Shared
-        # by the heavy panel via the snapshot dict, so guard on absence to pull once.
+        # by the heavy panel via the snapshot dict, so guard on absence to pull
+        # once — but ALWAYS cite the floor rows, pre-seeded or pulled here.
         from services.research import disclosures as _disclosures
 
-        if _disclosures.wants_disclosures_floor(target) and structured.get("disclosures") is None:
-            floor = await _disclosures.gather_floor(tool_call, target=target)
-            structured["disclosures"] = {
-                "ok": floor["ok"],
-                "announcements": floor["announcements"],
-                "rows": floor["rows"],
-            }
-            if floor["rows"]:
+        if _disclosures.wants_disclosures_floor(target):
+            if structured.get("disclosures") is None:
+                floor = await _disclosures.gather_floor(tool_call, target=target)
+                structured["disclosures"] = {
+                    "ok": floor["ok"],
+                    "announcements": floor["announcements"],
+                    "rows": floor["rows"],
+                }
+            floor_rows = structured["disclosures"].get("rows")
+            if floor_rows:
                 _record_web(
                     findings,
-                    {"ok": True, "citations": floor["rows"], "results": []},
+                    {"ok": True, "citations": floor_rows, "results": []},
                     target=target,
                     query=query,
                 )

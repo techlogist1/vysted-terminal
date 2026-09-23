@@ -664,6 +664,23 @@ def test_filings_floor_wants_disclosures_floor_fires_for_any_indian_target() -> 
     assert disclosures.wants_disclosures_floor(None) is False
 
 
+def test_ultra_cites_the_preseeded_filings_floor() -> None:
+    """R15-RESEARCH-016: the heavy panel pre-seeds snapshot['disclosures'];
+    its explorers must still record the floor rows as [n] sources."""
+    brief = _run(
+        run_heavy_research(
+            "KSE outlook",
+            angles=2,
+            region="IN",
+            tool_call=_kse_floor_tool_factory(),
+            llm_call=FakeLLM(reflect="complete"),
+            budget=BudgetGuard(max_steps=20),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    assert "https://www.bseindia.com/xml/kse_bm.pdf" in [s.url for s in brief.sources]
+
+
 # --- R13 depth integrity: round-1 planning skip -------------------------------
 
 
