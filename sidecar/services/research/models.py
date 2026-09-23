@@ -29,6 +29,8 @@ from typing import Any
 #: honest backend / fallback line. (Informational only — ``ResearchStep`` does
 #: NOT validate ``kind`` against this, so a new explorer-tagged detail renders
 #: fine with no schema change.) Mirrored by ``BriefStepKind`` in ``types/brief.ts``.
+#: ``notice`` is the runtime's transcript notice (C9): the chat renders it as a
+#: chip and never feeds it to a brief's run trace, so ``BriefStepKind`` omits it.
 STEP_KINDS = (
     "plan",
     "tool",
@@ -38,6 +40,7 @@ STEP_KINDS = (
     "reflect",
     "synthesize",
     "engine",
+    "notice",
 )
 
 #: ``ResearchSource.source_type`` values — the category badge the sources rail

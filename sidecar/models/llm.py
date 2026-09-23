@@ -172,7 +172,8 @@ class LLMResearchStepEvent(BaseModel):
     #: The tool emitting the step (e.g. ``"deep_research"`` / ``"research"``).
     tool: str
     #: One of :data:`services.research.models.STEP_KINDS`
-    #: (plan/tool/search/compress/reflect/synthesize).
+    #: (plan/tool/search/compress/reflect/synthesize/engine). ``"notice"`` marks a
+    #: runtime notice the chat renders as a transcript chip (C9), never by copy.
     step_kind: str
     #: A short human line, e.g. ``"researcher: demand outlook?"``.
     detail: str

@@ -730,16 +730,19 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
   });
 
-  it("renders the runtime's publish-divergence notice as a quiet chip, not a step row (D39)", async () => {
+  // R15-AGENT-031 / R15-UI-054: this used to feed the regex's own stale copy on
+  // the engine kind; the chip now keys on the notice kind, so the runtime's
+  // current wording (which the old regex never matched) renders as a chip.
+  it("renders a runtime notice as a quiet chip by kind, not a step row (C9)", async () => {
     streamAgentInvocationMock.mockImplementationOnce(
       async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
         handlers.onEvent({
           kind: "research_step",
-          toolCallId: "",
-          tool: "research",
-          stepKind: "engine",
-          detail: "The panel kept the previous, richer brief.",
-          status: "ok",
+          toolCallId: "pub-1",
+          tool: "publish_brief",
+          stepKind: "notice",
+          detail: "The brief panel reported the publish failed (AAPL).",
+          status: "error",
           index: 1,
         });
         handlers.onEvent({ kind: "delta", text: "Here is the report." });
@@ -751,7 +754,9 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     fireEvent.change(input, { target: { value: "research reliance" } });
     fireEvent.submit(input.closest("form")!);
     await waitFor(() =>
-      expect(screen.getByText("The panel kept the previous, richer brief.")).toBeInTheDocument(),
+      expect(
+        screen.getByText("The brief panel reported the publish failed (AAPL)."),
+      ).toBeInTheDocument(),
     );
     // It is a transcript chip — NOT a collapsed step-trace entry.
     expect(screen.queryByRole("button", { name: /step trace/i })).toBeNull();

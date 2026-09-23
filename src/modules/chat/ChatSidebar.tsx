@@ -75,11 +75,7 @@ import {
   resolveMention,
 } from "./mentions";
 import { ComposerPlusMenu } from "./ComposerPlusMenu";
-import {
-  isDivergenceNotice,
-  useMessageNoticesStore,
-  type MessageErrorFrame,
-} from "./message-notices";
+import { isRuntimeNotice, useMessageNoticesStore, type MessageErrorFrame } from "./message-notices";
 import { MentionPicker } from "./MentionPicker";
 import { PlanView } from "./PlanView";
 import { ProposedChangesReview } from "./ProposedChangesReview";
@@ -987,10 +983,9 @@ export function ChatSidebar() {
           }
         },
         onResearchStep: (step) => {
-          // The runtime's end-of-stream publish-divergence notices ride the
-          // engine-step channel (D39) — render them as quiet system chips in
-          // the transcript, not telemetry rows in the step trace.
-          if (isDivergenceNotice(step.stepKind, step.detail)) {
+          // Runtime notices (C9) render as quiet system chips in the
+          // transcript, not telemetry rows in the step trace.
+          if (isRuntimeNotice(step.stepKind)) {
             useMessageNoticesStore.getState().addNotice(assistantId, step.detail);
             return;
           }
@@ -1416,8 +1411,8 @@ function ContextBadge({ text }: { text: string }) {
   );
 }
 
-/** The runtime's end-of-stream publish-divergence notices (D39) — quiet
- *  system chips under the message body: caption-13, zinc, no accent. */
+/** The runtime's notices (C9) — quiet system chips under the message body:
+ *  caption-13, zinc, no accent. */
 function MessageNotices({ messageId }: { messageId: string }) {
   const notices = useMessageNoticesStore((s) => s.notices[messageId]);
   if (!notices || notices.length === 0) {

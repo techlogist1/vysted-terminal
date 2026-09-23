@@ -3,9 +3,9 @@
  *   - the STRUCTURED part of an error frame (D43 — `action`/`detail`/`code`
  *     behind the transcript's "Details" disclosure; the plain `message` rides
  *     `ChatMessage.error` as before, so legacy errors render unchanged);
- *   - end-of-stream DIVERGENCE notices from the runtime's publish ledger
- *     check (D39 — "the panel kept the previous, richer brief"), rendered as
- *     quiet system chips under the message.
+ *   - the runtime's notices (`step_kind: "notice"` — publish divergence,
+ *     staged actions, truncation, compaction), rendered as quiet system chips
+ *     under the message.
  *
  * Lives beside the chat surface (not in the shared history store) because it
  * is presentation truth for THIS surface only — keyed by message id, session
@@ -49,15 +49,13 @@ export const useMessageNoticesStore = create<MessageNoticesState>((set) => ({
 }));
 
 /**
- * The runtime reuses the engine-step channel for its end-of-stream publish
- * divergence notices (Team RUNTIME §3) — these two stated lines are the
- * contract copy. Matched verbatim-insensitively so a divergence renders as a
- * quiet transcript chip instead of a telemetry row in the step trace.
+ * A runtime notice (C9): the sidecar marks every notice it emits — publish
+ * divergence, staged actions, truncation, history compaction — with the
+ * `notice` step kind, so the chat renders it as a transcript chip by KIND.
+ * Matching the copy drifted twice (R15-AGENT-031 / R15-UI-054).
  */
-const DIVERGENCE_RE = /did not confirm the publish|kept the previous, richer brief/i;
-
-export function isDivergenceNotice(stepKind: string, detail: string): boolean {
-  return stepKind === "engine" && DIVERGENCE_RE.test(detail);
+export function isRuntimeNotice(stepKind: string): boolean {
+  return stepKind === "notice";
 }
 
 /** Test helper: reset the per-message annotations. */

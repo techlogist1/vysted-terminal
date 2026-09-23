@@ -201,7 +201,8 @@ async function consumeSseStream(
       return;
     }
     settled ||= terminal;
-    if (event.kind === "research_step") {
+    // A runtime notice (C9) is transcript copy, never a step of a brief run.
+    if (event.kind === "research_step" && event.stepKind !== "notice") {
       feedBriefLifecycle(event);
     }
     handlers.onEvent(event);

@@ -1146,6 +1146,10 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
     )
 
 
+#: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
+#: chat branches on it, so notice copy can change without breaking the chip.
+NOTICE_STEP_KIND = "notice"
+
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
 #: check polls the ledger briefly before declaring a publish unconfirmed.
@@ -1212,9 +1216,9 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
     "richer brief" claim); ``failed`` → the apply failed. A call SUPERSEDED by a
     later successful publish of the same panel/symbol in the SAME turn emits
     NOTHING (:func:`_superseded_by_later_apply`) — the panel shows the applied
-    one, so a per-call contradiction would lie (R13 JARVIS 1c). Rides the
-    existing ``research_step`` event vocabulary (the step/notice channel) — the
-    frontend renders these as quiet system chips (Team FRONTEND-BRIEF).
+    one, so a per-call contradiction would lie (R13 JARVIS 1c). Each rides a
+    ``research_step`` with ``step_kind="notice"`` (C9): the frontend renders it
+    as a transcript chip by KIND, never by matching this copy (R15-AGENT-031).
     """
     from services import action_ledger
 
@@ -1253,7 +1257,7 @@ async def _publish_divergence_notices(publish_calls: list[str]) -> list[LLMResea
             LLMResearchStepEvent(
                 tool_call_id=call_id,
                 tool="publish_brief",
-                step_kind="engine",
+                step_kind=NOTICE_STEP_KIND,
                 detail=detail,
                 status=step_status,
                 index=index,
