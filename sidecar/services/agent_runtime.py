@@ -1666,7 +1666,14 @@ async def invoke_agent(
                 content=reconstructed_content,
                 metadata={
                     "tool_calls": [
-                        {"id": tc.tool_call_id, "name": tc.name, "input": tc.input}
+                        {
+                            "id": tc.tool_call_id,
+                            "name": tc.name,
+                            "input": tc.input,
+                            # Echoed back by the adapter that set it (Gemini's
+                            # thought signature, R15-AGENT-006).
+                            **({"provider_meta": tc.provider_meta} if tc.provider_meta else {}),
+                        }
                         for tc in pending_tools
                     ]
                 },

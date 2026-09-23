@@ -13,6 +13,7 @@ than into the messages list.
 
 from __future__ import annotations
 
+import base64
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -72,14 +73,18 @@ def _split_system_and_contents(
             if message.content:
                 parts.append({"text": message.content})
             for tc in message.metadata["tool_calls"]:
-                parts.append(
-                    {
-                        "function_call": {
-                            "name": tc.get("name", ""),
-                            "args": tc.get("input", {}) or {},
-                        }
+                part: dict[str, Any] = {
+                    "function_call": {
+                        "name": tc.get("name", ""),
+                        "args": tc.get("input", {}) or {},
                     }
-                )
+                }
+                # Gemini 3 requires each call's thought signature back on the
+                # same part (R15-AGENT-006); one part per call, never merged.
+                signature = (tc.get("provider_meta") or {}).get("thought_signature")
+                if signature:
+                    part["thought_signature"] = base64.b64decode(signature)
+                parts.append(part)
             contents.append({"role": "model", "parts": parts})
             continue
         # Gemini uses "model" for assistant turns and "user" for everything
@@ -156,10 +161,17 @@ class GeminiProvider(LLMProvider):
                         fc = getattr(part, "function_call", None)
                         if fc is not None:
                             name = getattr(fc, "name", "") or ""
+                            # Base64 so it survives a Delegate checkpoint's JSON dump.
+                            signature = getattr(part, "thought_signature", None)
                             yield LLMToolUseEvent(
                                 tool_call_id=getattr(fc, "id", None) or f"{name}_{tool_call_index}",
                                 name=name,
                                 input=dict(getattr(fc, "args", None) or {}),
+                                provider_meta=(
+                                    {"thought_signature": base64.b64encode(signature).decode()}
+                                    if signature
+                                    else None
+                                ),
                             )
                             tool_call_index += 1
                     reason = getattr(candidate, "finish_reason", None)
