@@ -93,6 +93,87 @@ def test_dual_listed_old_ticker_collapses_the_stale_bse_candidate() -> None:
     assert not r.needs_disambiguation
 
 
+def _inject(old: str, new: str, effective: date, new_name: str) -> None:
+    nse_symbol_change.set_active_map_for_tests(
+        {old: nse_symbol_change.SymbolChange(old, new, effective, new_name)}
+    )
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "effective", "new_name"),
+    [
+        # BSE-only companies whose ticker string equals a retired NSE symbol.
+        ("NSDL", "GUJENERGY", date(2026, 7, 1), "GUJARAT ENERGY LIMITED"),
+        ("SHREE", "AJMERA", date(2009, 6, 23), "Ajmera Realty & Infra India Limited"),
+        ("HSIL", "AGI", date(2019, 8, 12), "AGI Greenpac Limited"),
+        ("WORTH", "WORTHPERI", date(2014, 5, 2), "Worth Peripherals Limited"),
+        # A retired NSE ticker reused by a different, currently listed company.
+        ("DTIL", "DVL", date(2010, 2, 1), "Dhunseri Ventures Limited"),
+    ],
+)
+def test_rename_never_rewrites_a_different_company(
+    old: str, new: str, effective: date, new_name: str
+) -> None:
+    """R15-DATA-012: the rename row is keyed by the ticker STRING. A BSE-only
+    company sharing that string, or a current NSE listing that reused a retired
+    ticker, is a different company (a different ISIN) and keeps its own identity:
+    no rewrite, no rename note, no borrowed .NS listing."""
+    _inject(old, new, effective, new_name)
+    r = symbol_resolver.resolve(old, "IN")
+    assert r.best is not None
+    assert r.best.symbol == old and r.best.rename is None
+    assert all(c.symbol != new and c.rename is None for c in r.candidates)
+
+
+def test_genuine_dual_listed_rename_still_collapses_to_the_current_symbol() -> None:
+    """The case the gate was not written against: ITC (NSE + BSE, one ISIN)
+    renamed on NSE. Both exchange rows are the same instrument, so both rewrite
+    to the one current NSE row, which carries the company's ISIN and binds."""
+    _inject("ITC", "ITCNEW", date(2026, 7, 1), "ITC NEW LIMITED")
+    r = symbol_resolver.resolve("ITC", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "ITCNEW" and r.best.exchange == "NSE"
+    assert r.best.isin == "INE154A01025"
+    assert r.best.rename is not None and r.best.rename.renamed_from == "ITC"
+    assert [c.symbol for c in r.candidates] == ["ITCNEW"]
+    assert not r.needs_disambiguation
+
+
+@pytest.mark.parametrize("query", ["zomato", "ZOMATO"])
+def test_retired_ticker_missing_from_the_master_resolves_to_current(query: str) -> None:
+    """R15-DATA-018: the refreshed master carries ETERNAL but no longer ZOMATO,
+    so the old ticker used to answer "No instrument matched". The symbol-change
+    master still knows ZOMATO -> ETERNAL: the current instrument binds, with its
+    rename provenance and former symbol, before any guess or network lookup."""
+    _inject("ZOMATO", "ETERNAL", date(2025, 4, 9), "ETERNAL LIMITED")
+    r = symbol_resolver.resolve(query, "IN")
+    assert r.best is not None
+    assert r.best.symbol == "ETERNAL" and r.best.yahoo_symbol == "ETERNAL.NS"
+    assert r.best.rename is not None and r.best.rename.renamed_from == "ZOMATO"
+    assert r.best.former_name == "ZOMATO"
+    assert not r.needs_disambiguation
+
+
+def test_autocomplete_lists_the_current_symbol_for_a_retired_ticker() -> None:
+    _inject("ZOMATO", "ETERNAL", date(2025, 4, 9), "ETERNAL LIMITED")
+    first = symbol_resolver.autocomplete("ZOMATO", "IN")[0]
+    assert first.symbol == "ETERNAL"
+    assert first.rename is not None and first.rename.renamed_from == "ZOMATO"
+
+
+def test_current_symbol_exposes_its_former_symbol() -> None:
+    """The case the lane was not written against: SEQUENT -> VIYASH (NSE,
+    effective 2026-01-23). The old ticker finds VIYASH, and resolving VIYASH
+    itself says it was formerly SEQUENT."""
+    _inject("SEQUENT", "VIYASH", date(2026, 1, 23), "Viyash Scientific Limited")
+    old = symbol_resolver.resolve("SEQUENT", "IN").best
+    assert old is not None and old.symbol == "VIYASH"
+    current = symbol_resolver.resolve("VIYASH", "IN").best
+    assert current is not None and current.symbol == "VIYASH"
+    assert current.rename is None
+    assert current.former_name == "SEQUENT"
+
+
 def test_no_rename_when_map_empty() -> None:
     """A cold app with no symbol-change data answers exactly as before (stale but
     honest — never a fabricated rename)."""

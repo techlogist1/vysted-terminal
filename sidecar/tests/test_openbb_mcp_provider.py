@@ -105,10 +105,65 @@ def test_status_returns_unavailable_without_env(monkeypatch: pytest.MonkeyPatch)
         ("BF.B", "BF-B"),
         ("aapl", "AAPL"),
         ("AAPL", "AAPL"),
+        ("RELIANCE.NS", "RELIANCE.NS"),  # an India listing passes through, never RELIANCE-NS
     ],
 )
 def test_normalize_symbol(raw: str, expected: str) -> None:
     assert openbb_mcp_provider._normalize_symbol(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("bare", "listing"),
+    [
+        ("DAL", "DAL.BO"),
+        ("CHTR", "CHTR.BO"),
+        ("SAFE", "SAFE.BO"),
+        ("CSL", "CSL.BO"),
+        ("ICON", "ICON.BO"),
+        ("AMAL", "AMAL.BO"),
+        ("SMR", "SMR.BO"),
+        ("TTC", "TTC.BO"),
+        ("SUMAX", "SUMAX.NS"),
+    ],
+)
+def test_in_session_statement_asks_for_the_indian_listing(
+    recorder: _RecordingClient, bare: str, listing: str
+) -> None:
+    """R15-DATA-001: each ticker is an Indian listing that collides with a US
+    ticker. OpenBB's yfinance backend answers a bare ticker with the US company,
+    so in an IN session the tool must be asked for the Indian listing and the
+    statement must echo it."""
+    import config
+
+    recorder.respond(
+        "equity_fundamental_income",
+        [{"symbol": listing, "period_ending": "2025-03-31", "revenue": 1.0}],
+    )
+    token = config.set_request_region("IN")
+    try:
+        statement = asyncio.run(openbb_mcp_provider.get_income_statement(bare))
+    finally:
+        config.reset_request_region(token)
+    assert recorder.calls[0]["arguments"]["symbol"] == listing
+    assert statement.symbol == listing
+
+
+def test_us_session_keeps_the_bare_us_ticker(recorder: _RecordingClient) -> None:
+    """The case the mapping was not written against: the same bare AMAL in a US
+    session is Amalgamated Financial and reaches the tool as AMAL."""
+    import config
+
+    recorder.respond(
+        "equity_fundamental_income",
+        [{"symbol": "AMAL", "period_ending": "2025-12-31", "revenue": 1.0}],
+    )
+    token = config.set_request_region("US")
+    try:
+        statement = asyncio.run(openbb_mcp_provider.get_income_statement("AMAL"))
+    finally:
+        config.reset_request_region(token)
+    assert recorder.calls[0]["arguments"]["symbol"] == "AMAL"
+    assert statement.symbol == "AMAL"
 
 
 # ---------------------------------------------------------------------------

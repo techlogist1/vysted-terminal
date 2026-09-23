@@ -10,6 +10,7 @@ import {
   describeHostAction,
   HOST_ACTION_NAMES,
   isHostActionMutation,
+  openCompanyOverview,
   publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
@@ -298,6 +299,18 @@ describe("host-actions", () => {
     // …and the symbol rides the always-consumed equity-command channel. The
     // store RETAINS the command, so a panel that mounts after this still sees it.
     expect(useEquityCommandStore.getState().command).toMatchObject({ symbol: "SAKSOFT.NS" });
+  });
+
+  it("openCompanyOverview carries the picked listing's region to the equity command (R15-DATA-002)", () => {
+    // AMAL is Amal Ltd on BSE and Amalgamated Financial on NASDAQ: a caller that
+    // picked the NASDAQ listing opens THAT company, whatever the session region.
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    openCompanyOverview("AMAL", undefined, "US");
+    expect(useEquityCommandStore.getState().command).toMatchObject({
+      symbol: "AMAL",
+      region: "US",
+    });
   });
 
   it("open_panel resolves aliases — 'overview' routes the symbol like 'equity-overview'", () => {

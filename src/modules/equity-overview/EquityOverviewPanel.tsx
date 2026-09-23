@@ -71,6 +71,10 @@ interface FieldDef {
   kind: FieldKind;
   /** Headline metrics read at the primary tier; supporting ratios at secondary. */
   headline?: boolean;
+  /** A statement-denominated size (revenue, net income, FCF): formatted in the
+   *  statement currency (`financial_currency ?? currency`, C2), which differs
+   *  from the trading currency for a foreign reporter (SIFY: USD ADR, INR books). */
+  statementSize?: boolean;
 }
 
 interface FieldGroup {
@@ -112,14 +116,32 @@ const FIELD_GROUPS: FieldGroup[] = [
       { label: "Debt / equity", key: "debt_to_equity", kind: "ratio", headline: true },
       { label: "Current ratio", key: "current_ratio", kind: "ratio" },
       { label: "Quick ratio", key: "quick_ratio", kind: "ratio" },
-      { label: "Free cash flow", key: "free_cash_flow", kind: "money", headline: true },
+      {
+        label: "Free cash flow",
+        key: "free_cash_flow",
+        kind: "money",
+        headline: true,
+        statementSize: true,
+      },
     ],
   },
   {
     title: "Growth & size",
     fields: [
-      { label: "Revenue (TTM)", key: "revenue_ttm", kind: "money", headline: true },
-      { label: "Net income (TTM)", key: "net_income_ttm", kind: "money", headline: true },
+      {
+        label: "Revenue (TTM)",
+        key: "revenue_ttm",
+        kind: "money",
+        headline: true,
+        statementSize: true,
+      },
+      {
+        label: "Net income (TTM)",
+        key: "net_income_ttm",
+        kind: "money",
+        headline: true,
+        statementSize: true,
+      },
       { label: "Revenue growth", key: "revenue_growth", kind: "fraction" },
       { label: "Earnings growth", key: "earnings_growth", kind: "fraction" },
       { label: "Shares outstanding", key: "shares_outstanding", kind: "count" },
@@ -138,8 +160,8 @@ const FIELD_GROUPS: FieldGroup[] = [
   {
     title: "Ownership",
     fields: [
-      { label: "Insiders", key: "held_percent_insiders", kind: "fraction" },
-      { label: "Institutions", key: "held_percent_institutions", kind: "fraction" },
+      { label: "Insiders (Yahoo)", key: "held_percent_insiders", kind: "fraction" },
+      { label: "Institutions (Yahoo)", key: "held_percent_institutions", kind: "fraction" },
     ],
   },
 ];
@@ -150,7 +172,7 @@ function fieldValue(fundamentals: Fundamentals, key: keyof Fundamentals): number
 }
 
 /** Format a fundamentals field by its kind — every path goes through format.ts.
- *  `currency` is the instrument's quoted currency (money fields only). */
+ *  `currency` is the currency the field is denominated in (money fields only). */
 function formatField(
   value: number | null,
   kind: FieldKind,
@@ -203,8 +225,8 @@ function fieldReasonChip(meta: FieldMeta | undefined): string | null {
 
 /** The field-level hover tooltip (R13): a served ("ok") field states its
  *  provider + as-of date; a withheld/flagged field states its recorded reason
- *  instead (a flagged-but-kept field is `status: "ok"` WITH a reason — the
- *  reason wins). No `field_meta` → no tooltip (the table's default applies). */
+ *  instead (the reason wins). No `field_meta` → no tooltip (the table's default
+ *  applies). */
 function fieldTitle(meta: FieldMeta | undefined): string | undefined {
   if (!meta) {
     return undefined;
@@ -224,7 +246,22 @@ function fieldTitle(meta: FieldMeta | undefined): string | undefined {
  *  plus its reason chip, never a bare hidden row (R13). */
 function FundamentalValueCell({ row }: { row: FundamentalRow }) {
   if (row.value !== null) {
-    return <span className={row.headline ? undefined : "text-charcoal-400"}>{row.value}</span>;
+    const value = (
+      <span className={row.headline ? undefined : "text-charcoal-400"}>{row.value}</span>
+    );
+    if (row.meta?.status !== "flagged") {
+      return value;
+    }
+    // C1: the value is kept but a cross-check disagrees — a visible chip beside
+    // it (the disagreement and the witness figure ride the cell's tooltip).
+    return (
+      <span className="inline-flex items-center justify-end gap-1">
+        {value}
+        <span className="text-micro text-warning border-warning/40 rounded-control border px-1 py-px tracking-wide uppercase">
+          flagged
+        </span>
+      </span>
+    );
   }
   const chip = fieldReasonChip(row.meta);
   return (
@@ -592,7 +629,12 @@ export function EquityOverviewPanel() {
   const [data, setData] = useState<EquityOverview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const submittedSymbolRef = useRef<string | null>(null);
+  // The last load, with the region of the listing it was for — so Retry
+  // reloads the SAME company, not whatever the bare ticker means in the session.
+  const submittedRef = useRef<{ symbol: string; region?: string } | null>(null);
+  // Exact-ticker listings in more than one region for a typed ticker (SMR:
+  // NuScale on NYSE, SMR Jewels on BSE): the user picks, nothing loads until then.
+  const [chooser, setChooser] = useState<SymbolCandidate[] | null>(null);
 
   // --- AI narrative ---------------------------------------------------------
   // Fetched independently of the data fan-out: it depends on the BYOK LLM and is
@@ -704,11 +746,11 @@ export function EquityOverviewPanel() {
   // referentially stable, so this is a permanently-stable function — which lets
   // `doLoad` below (and, through it, the external-command effect) depend on it
   // without an eslint-disable or a re-subscribing effect.
-  const fetchNarrative = useCallback(async (symbol: string) => {
+  const fetchNarrative = useCallback(async (symbol: string, region?: string) => {
     const seq = ++narrativeSeqRef.current;
     setNarrativeLoading(true);
     try {
-      const result = await loadCompanyNarrative(symbol);
+      const result = await loadCompanyNarrative(symbol, region);
       if (seq === narrativeSeqRef.current) {
         setNarrative(result);
       }
@@ -737,12 +779,15 @@ export function EquityOverviewPanel() {
   // itself stable) so the external-command effect below can list it as a real
   // dependency instead of carrying the R10-era `react-hooks/exhaustive-deps`
   // warning — the honest fix, not a suppressed one.
+  // `region` is the picked listing's region (a candidate or a host command);
+  // every leg, the narrative included, sends it so the whole panel is ONE company.
   const doLoad = useCallback(
-    async (symbol: string) => {
+    async (symbol: string, region?: string) => {
       // Any caller that loads a symbol has (or will) put it in the draft —
       // suppress the autocomplete pass for that exact value.
       programmaticDraftRef.current = symbol;
-      submittedSymbolRef.current = symbol;
+      submittedRef.current = { symbol, region };
+      setChooser(null);
       setLoading(true);
       setError(null);
       setData(null);
@@ -750,13 +795,13 @@ export function EquityOverviewPanel() {
       setNarrativeLoading(false);
       setAcOpen(false);
       try {
-        const overview = await loadEquityOverview(symbol);
+        const overview = await loadEquityOverview(symbol, region);
         if (overview.allFailed) {
           setData(null);
           setError(`No data available for ${symbol}`);
         } else {
           setData(overview);
-          void fetchNarrative(symbol);
+          void fetchNarrative(symbol, region);
         }
       } catch (err) {
         setData(null);
@@ -771,9 +816,13 @@ export function EquityOverviewPanel() {
   const selectCandidate = async (candidate: SymbolCandidate) => {
     setDraft(candidate.symbol);
     setAcOpen(false);
-    await doLoad(candidate.symbol);
+    await doLoad(candidate.symbol, candidate.region);
   };
 
+  // A typed ticker is checked against the exact-ticker listings first: one that
+  // names companies in more than one region (SMR, AMAL) opens a chooser instead
+  // of silently binding the session region's company; otherwise the load
+  // carries the one region its exact listings share.
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (acOpen && acIndex >= 0 && candidates[acIndex]) {
@@ -784,7 +833,16 @@ export function EquityOverviewPanel() {
     if (symbol === "") {
       return;
     }
-    await doLoad(symbol);
+    const exact = (await autocompleteSymbols(symbol)).filter(
+      (c) => c.symbol.toUpperCase() === symbol,
+    );
+    const regions = [...new Set(exact.map((c) => c.region))];
+    if (regions.length > 1) {
+      setAcOpen(false);
+      setChooser(exact);
+      return;
+    }
+    await doLoad(symbol, regions[0]);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -803,8 +861,8 @@ export function EquityOverviewPanel() {
   };
 
   const handleRetry = async () => {
-    if (submittedSymbolRef.current) {
-      await doLoad(submittedSymbolRef.current);
+    if (submittedRef.current) {
+      await doLoad(submittedRef.current.symbol, submittedRef.current.region);
     }
   };
 
@@ -822,10 +880,10 @@ export function EquityOverviewPanel() {
     if (!equityCommand) {
       return;
     }
-    const symbol = equityCommand.symbol;
+    const { symbol, region } = equityCommand;
     const handle = setTimeout(() => {
       setDraft(symbol);
-      void doLoad(symbol);
+      void doLoad(symbol, region);
     }, 0);
     return () => clearTimeout(handle);
   }, [equityCommand, doLoad]);
@@ -834,9 +892,10 @@ export function EquityOverviewPanel() {
   const fundamentals = data?.fundamentals ?? null;
   const ratings = data?.ratings ?? null;
   // The INSTRUMENT's currency (R8 §6) — money fields format in it, never the
-  // region/locale default. Fundamentals state the statement currency; the
-  // quote currency is the fallback.
+  // region/locale default. Fundamentals state the trading currency; the quote
+  // currency is the fallback. Statement sizes use the statement currency (C2).
   const instrumentCurrency = fundamentals?.currency ?? quote?.currency ?? null;
+  const statementCurrency = fundamentals?.financial_currency ?? instrumentCurrency;
 
   // EVERY group, EVERY field, ALWAYS (R13) — a null field is never a hidden row;
   // it carries its `field_meta` so the cell can render an honest absence instead
@@ -849,13 +908,17 @@ export function EquityOverviewPanel() {
     return FIELD_GROUPS.map((group) => {
       const rows: FundamentalRow[] = group.fields.map((f) => ({
         label: f.label,
-        value: formatField(fieldValue(fundamentals, f.key), f.kind, instrumentCurrency),
+        value: formatField(
+          fieldValue(fundamentals, f.key),
+          f.kind,
+          f.statementSize ? statementCurrency : instrumentCurrency,
+        ),
         headline: f.headline ?? false,
         meta: fundamentals.field_meta?.[f.key],
       }));
       return { label: group.title, rows };
     });
-  }, [fundamentals, instrumentCurrency]);
+  }, [fundamentals, instrumentCurrency, statementCurrency]);
 
   return (
     <div className="bg-charcoal-900 @container flex h-full w-full flex-col">
@@ -871,8 +934,9 @@ export function EquityOverviewPanel() {
             value={draft}
             onChange={(event) => {
               // A keystroke is a USER edit — lift the programmatic suppression
-              // so the autocomplete works normally again.
+              // so the autocomplete works normally again, and drop a stale chooser.
               programmaticDraftRef.current = null;
+              setChooser(null);
               setDraft(event.target.value);
             }}
             onKeyDown={handleKeyDown}
@@ -924,6 +988,27 @@ export function EquityOverviewPanel() {
           {loading ? "Loading" : "Load"}
         </Button>
       </form>
+
+      {chooser !== null && (
+        <div className="border-charcoal-700 border-b px-3 py-2" data-testid="listing-chooser">
+          <p className="text-charcoal-400 text-caption">
+            {chooser[0].symbol} is listed in more than one market. Choose the company:
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {chooser.map((candidate) => (
+              <button
+                key={`${candidate.symbol}:${candidate.exchange}`}
+                type="button"
+                onClick={() => void selectCandidate(candidate)}
+                className="border-charcoal-700 text-charcoal-300 text-caption rounded-control hover:border-charcoal-500 hover:text-charcoal-100 flex h-6 items-center gap-2 border px-3 transition-colors"
+              >
+                <span>{candidate.name}</span>
+                <span className="text-charcoal-500 text-micro">{candidate.exchange}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {error !== null && (
         <div className="border-charcoal-700 flex items-center justify-between border-b px-3 py-2">

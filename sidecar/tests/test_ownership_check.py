@@ -36,7 +36,7 @@ def test_should_cross_check_requires_a_provider_scalar() -> None:
 
 
 def test_is_applicable_only_india() -> None:
-    assert ownership_check.is_applicable("BOMOXY-B1")  # BSE-only micro-cap
+    assert ownership_check.is_applicable("BOMOXY-B1.BO")  # BSE-only micro-cap listing
     assert not ownership_check.is_applicable("AAPL")
     assert not ownership_check.is_applicable("")
 
@@ -52,7 +52,7 @@ def test_get_exchange_ownership_returns_latest_pattern(monkeypatch: pytest.Monke
             source="BSE",
         ),
     )
-    result = asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1"))
+    result = asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO"))
     assert result is not None
     assert result.promoter_percent == 73.29
     assert result.institutions_percent == 0.06
@@ -69,6 +69,21 @@ def test_get_exchange_ownership_non_india_never_fetches(monkeypatch: pytest.Monk
     assert asyncio.run(ownership_check.get_exchange_ownership("AAPL")) is None
 
 
+def test_us_bound_colliding_ticker_gets_no_exchange_ownership(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-003: research bound to NASDAQ:AMAL (Amalgamated Financial) passes
+    the fundamentals leg's listing, the bare ``AMAL``. Amal Ltd (BSE 506597)
+    shares the ticker string; its BSE shareholding must never be fetched and
+    presented as the US company's promoter holding."""
+
+    def must_not_run(symbol: str) -> ShareholdingResponse:
+        raise AssertionError("a US-bound listing must not reach the exchange lane")
+
+    monkeypatch.setattr(corporate_disclosures, "get_shareholding", must_not_run)
+    assert asyncio.run(ownership_check.get_exchange_ownership("AMAL")) is None
+
+
 def test_get_exchange_ownership_failure_is_none_never_raises(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -77,7 +92,7 @@ def test_get_exchange_ownership_failure_is_none_never_raises(
         "get_shareholding",
         lambda symbol: (_ for _ in ()).throw(ProviderError("bse shareholding: index HTTP 503")),
     )
-    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1")) is None
+    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO")) is None
     # a plain miss does NOT open the circuit
     assert not provider_health.is_open(ownership_check.EXCHANGE)
 
@@ -89,7 +104,7 @@ def test_get_exchange_ownership_block_opens_the_circuit(monkeypatch: pytest.Monk
         lambda symbol: (_ for _ in ()).throw(ProviderError("nse_direct: blocked (HTTP 401)")),
     )
     for _ in range(3):
-        assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1")) is None
+        assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO")) is None
     assert provider_health.is_open(ownership_check.EXCHANGE)
 
 
@@ -103,7 +118,7 @@ def test_open_circuit_skips_the_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
         return _response(promoter_percent=1.0)
 
     monkeypatch.setattr(corporate_disclosures, "get_shareholding", counting)
-    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1")) is None
+    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO")) is None
     assert calls["n"] == 0
 
 
@@ -113,4 +128,4 @@ def test_get_exchange_ownership_empty_patterns_is_none(monkeypatch: pytest.Monke
         "get_shareholding",
         lambda symbol: ShareholdingResponse(symbol="X", count=0, patterns=[]),
     )
-    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1")) is None
+    assert asyncio.run(ownership_check.get_exchange_ownership("BOMOXY-B1.BO")) is None

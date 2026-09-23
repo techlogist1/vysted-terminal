@@ -264,8 +264,14 @@ export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
  * behind a screener row, a watchlist entry, a brief ticker chip, and a ⌘K symbol
  * pick. Opens the (singleton) panel first so the command has a consumer, then
  * commands it. Reuses the keyless yfinance overview endpoints — no key required.
+ * `region` (optional) is the region of the listing the caller picked, so a
+ * ticker shared across markets (AMAL: BSE and NASDAQ) opens the picked company.
  */
-export function openCompanyOverview(symbol: string, highlightMetric?: string): void {
+export function openCompanyOverview(
+  symbol: string,
+  highlightMetric?: string,
+  region?: string,
+): void {
   if (!symbol) {
     return;
   }
@@ -275,7 +281,7 @@ export function openCompanyOverview(symbol: string, highlightMetric?: string): v
   if (!hasPanel) {
     ws.openPanel("equity-overview");
   }
-  useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric);
+  useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric, region);
 }
 
 /** The named arrange_layout templates (beyond the legacy default/focus patterns). */

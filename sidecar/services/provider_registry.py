@@ -262,9 +262,10 @@ def _fundamentals_screener_complete(result: Any) -> bool:
 
 # The identity / metadata fields that are NOT real data. A Fundamentals whose
 # every OTHER field is None is an all-null SHELL (openbb-mcp's every-field-None
-# case for an uncovered symbol) — never a real result.
+# case for an uncovered symbol) — never a real result. A bare ``name`` is
+# identity, not data: a name-only shell for SUMAX carried a US fund's name.
 _FUNDAMENTALS_IDENTITY_FIELDS: frozenset[str] = frozenset(
-    {"symbol", "provider", "growth_basis", "field_meta"}
+    {"symbol", "name", "provider", "growth_basis", "field_meta"}
 )
 
 
@@ -495,21 +496,33 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
 async def get_income_statement(symbol: str, region: str | None = None) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol``."""
     return await _resolve_async(
-        "income_statement", "equity", _effective_region(symbol, region), None, symbol
+        "income_statement",
+        "equity",
+        _effective_region(symbol, region),
+        _statement_validator(symbol),
+        symbol,
     )
 
 
 async def get_balance_sheet(symbol: str, region: str | None = None) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``."""
     return await _resolve_async(
-        "balance_sheet", "equity", _effective_region(symbol, region), None, symbol
+        "balance_sheet",
+        "equity",
+        _effective_region(symbol, region),
+        _statement_validator(symbol),
+        symbol,
     )
 
 
 async def get_cash_flow(symbol: str, region: str | None = None) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``."""
     return await _resolve_async(
-        "cash_flow", "equity", _effective_region(symbol, region), None, symbol
+        "cash_flow",
+        "equity",
+        _effective_region(symbol, region),
+        _statement_validator(symbol),
+        symbol,
     )
 
 
@@ -542,6 +555,29 @@ def _series_validator(symbol: str, region: str) -> Validator:
 
 def _fundamentals_validator(symbol: str, region: str) -> Validator:
     return lambda result: correctness_gate.validate_fundamentals(result, symbol, region)
+
+
+def _statement_validator(symbol: str) -> Validator:
+    """Reject a statement for any listing other than the one requested.
+
+    Both statement providers fetch the Yahoo listing form of ``symbol`` and echo
+    it, so the returned ``symbol`` must equal that form exactly, suffix included.
+    A bare ``DAL`` answered for an IN request (``DAL.BO``) is another company's
+    statement (Delta's, not Dynamic Archistructures'), not a match.
+    """
+    listing = yfinance_provider._yahoo_symbol(symbol)
+
+    def _validate(result: Any) -> Any:
+        returned = str(getattr(result, "symbol", "") or "").strip().upper()
+        if returned != listing:
+            provider = getattr(result, "provider", None)
+            raise correctness_gate.CorrectnessError(
+                f"correctness gate: provider {provider!r} returned a statement for "
+                f"{returned!r}, requested listing {listing!r} (identity mismatch)"
+            )
+        return result
+
+    return _validate
 
 
 # ---------------------------------------------------------------------------
