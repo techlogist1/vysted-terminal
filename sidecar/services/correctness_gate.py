@@ -30,7 +30,7 @@ from typing import Any
 
 from models.fundamentals import FieldMeta, Fundamentals
 from models.market import OHLCVSeries, Quote
-from services import locale
+from services import locale, ownership_check
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -280,6 +280,16 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
                 "different sessions or share classes; kept, flagged"
             )
 
+    return _merge_meta(f, withheld, flagged)
+
+
+def _merge_meta(f: Fundamentals, withheld: dict[str, str], flagged: dict[str, str]) -> Fundamentals:
+    """Apply withheld (nulled) and flagged (kept) fields onto ``f``'s ``field_meta``.
+
+    Returns the SAME object when there is nothing to record, else a ``model_copy``.
+    A field already flagged by an earlier pass keeps that reason and gains the new
+    one, so two disagreements on one value are both disclosed.
+    """
     if not withheld and not flagged:
         return f
 
@@ -298,16 +308,107 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
         if field_name in withheld:
             continue  # a withheld field is never also flagged
         prev = meta.get(field_name)
-        if prev is not None:
-            meta[field_name] = prev.model_copy(update={"status": "flagged", "reason": reason})
-        else:
+        if prev is None:
             meta[field_name] = FieldMeta(status="flagged", provider=f.provider, reason=reason)
+            continue
+        if prev.status == "flagged" and prev.reason:
+            reason = f"{prev.reason}; {reason}"
+        meta[field_name] = prev.model_copy(update={"status": "flagged", "reason": reason})
     updates["field_meta"] = meta
     return f.model_copy(update=updates)
 
 
+# --- exchange + statement witnesses (R15, D-B2-2: disclose, never substitute) --
+
+#: The ownership band (pp): Yahoo's ``heldPercentInsiders`` vs the exchange
+#: promoter group (and ``heldPercentInstitutions`` vs the exchange institutional
+#: holding) beyond this gap is flagged. The same 3pp band as the research leg's
+#: definitional insiders-vs-promoter tolerance (``semantics``, D68).
+_OWNERSHIP_BAND_PP = 3.0
+
+
+def _is_india_listing(symbol: str) -> bool:
+    """True for a resolved Yahoo India listing (``.NS``/``.BO``), per C4."""
+    return symbol.strip().upper().endswith((".NS", ".BO"))
+
+
+def reconcile_ownership(
+    f: Fundamentals, exchange: ownership_check.ExchangeOwnership | None
+) -> Fundamentals:
+    """Flag Yahoo's ownership fractions that the exchange shareholding filing
+    does not bear out (R15-DATA-004).
+
+    Each served ``held_percent_*`` is compared with its exchange counterpart
+    (percent, 0-100): a gap over :data:`_OWNERSHIP_BAND_PP`, or one side zero
+    while the other is not, flags the provider value with the filing's figure
+    and quarter. A filing category the exchange does not report (a promoter-less
+    bank) counts as zero. When no filing figure is available at all, a served
+    value is flagged as unreconciled. Never substituted.
+    """
+    pairs = (
+        ("held_percent_insiders", "insiders", "promoter group", "insiders ≠ promoter group"),
+        (
+            "held_percent_institutions",
+            "institutions",
+            "institutional holding",
+            "provider institutions ≠ exchange institutional holding",
+        ),
+    )
+    filed = exchange is not None and any(
+        v is not None
+        for v in (
+            exchange.promoter_percent,
+            exchange.institutions_percent,
+            exchange.public_percent,
+        )
+    )
+    flagged: dict[str, str] = {}
+    for field_name, label, category, definition in pairs:
+        value = getattr(f, field_name)
+        if value is None:
+            continue
+        if not filed or exchange is None:
+            flagged[field_name] = f"unreconciled: exchange shareholding unavailable ({definition})"
+            continue
+        filed_pct = (
+            exchange.promoter_percent
+            if field_name == "held_percent_insiders"
+            else exchange.institutions_percent
+        )
+        provider_pct = value * 100.0
+        exchange_pct = filed_pct if filed_pct is not None else 0.0
+        zero_mismatch = (provider_pct == 0.0) != (exchange_pct == 0.0)
+        if not zero_mismatch and abs(provider_pct - exchange_pct) <= _OWNERSHIP_BAND_PP:
+            continue
+        shown = f"{filed_pct:.2f}%" if filed_pct is not None else f"no {category} reported"
+        flagged[field_name] = (
+            f"{f.provider} {label} {provider_pct:.2f}% disagrees with the {exchange.source} "
+            f"shareholding filing for the quarter ended {exchange.as_of_quarter} "
+            f"({category}: {shown}) beyond {_OWNERSHIP_BAND_PP:g}pp ({definition}); "
+            "kept, flagged"
+        )
+    return _merge_meta(f, {}, flagged)
+
+
+async def apply_witnesses(f: Fundamentals) -> Fundamentals:
+    """Run the witnesses that need a network fetch over served fundamentals.
+
+    Shared by ``GET /fundamentals`` and the company narrative so both surfaces
+    carry the same flags. For an Indian listing with a served ownership fraction,
+    the exchange shareholding pattern is fetched (``get_exchange_ownership`` never
+    raises and respects its circuit) and :func:`reconcile_ownership` applied.
+    """
+    has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
+    if has_ownership and _is_india_listing(f.symbol):
+        exchange = await ownership_check.get_exchange_ownership(f.symbol)
+        f = reconcile_ownership(f, exchange)
+    return f
+
+
 __all__ = [
     "CorrectnessError",
+    "apply_witnesses",
+    "reconcile_ownership",
     "symbols_match",
     "validate_fundamentals",
     "validate_quote",

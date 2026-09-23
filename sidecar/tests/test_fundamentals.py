@@ -293,3 +293,95 @@ def test_get_fundamentals_identity_note_absent_when_resolver_cannot_bind(
     resp = client.get("/fundamentals/XXXX")
     assert resp.status_code == 200
     assert resp.json()["identity_note"] is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-004: Yahoo ownership reconciled against the exchange filing
+# ---------------------------------------------------------------------------
+
+
+def _ownership_route(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    exchange: object,
+    **held: float,
+) -> dict:
+    """GET /fundamentals for a stubbed Indian listing with a stubbed exchange
+    shareholding pattern (``exchange`` is an ExchangeOwnership or None)."""
+    from models.fundamentals import FieldMeta, Fundamentals
+    from services import ownership_check, provider_registry, symbol_resolver
+    from services.symbol_resolver import Resolution
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        meta = {k: FieldMeta(status="ok", provider="yfinance") for k in held}
+        return Fundamentals(
+            symbol=symbol,
+            name="X Ltd",
+            provider="yfinance",
+            field_meta=meta,
+            **held,  # type: ignore[arg-type]
+        )
+
+    async def fake_exchange(listing: str) -> object:
+        assert listing == symbol  # the resolved Yahoo listing form (C4)
+        return exchange
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", fake_exchange)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get(f"/fundamentals/{symbol}").json()
+
+
+def _filing(promoter: float | None, institutions: float | None, public: float | None) -> object:
+    from services.ownership_check import ExchangeOwnership
+
+    return ExchangeOwnership(
+        promoter_percent=promoter,
+        institutions_percent=institutions,
+        public_percent=public,
+        as_of_quarter="2026-06-30",
+        source="BSE",
+    )
+
+
+@pytest.mark.parametrize(
+    ("symbol", "field", "value", "filing", "status"),
+    [
+        # DHANBANK: a promoter-less bank; the filing carries no promoter group.
+        ("DHANBANK.NS", "held_percent_insiders", 0.51176, (None, 14.26, 85.74), "flagged"),
+        # JONJUA: 46.6% insiders against a filed 29.67% promoter group.
+        ("JONJUA.BO", "held_percent_insiders", 0.46623, (29.67, 0.0, 70.33), "flagged"),
+        # SAFE: 73.84% against a filed 73.58% sits inside the 3pp band.
+        ("SAFE.BO", "held_percent_insiders", 0.7384, (73.58, 0.1, 26.32), "ok"),
+        # NAPEROL institutions leg: 0 against a filed 1.77% (zero vs non-zero).
+        ("NAPEROL.BO", "held_percent_institutions", 0.0, (60.0, 1.77, 38.23), "flagged"),
+    ],
+)
+def test_ownership_is_flagged_when_the_exchange_filing_disagrees(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    field: str,
+    value: float,
+    filing: tuple,
+    status: str,
+) -> None:
+    body = _ownership_route(client, monkeypatch, symbol, _filing(*filing), **{field: value})
+    assert body[field] == value  # kept, never substituted
+    meta = body["field_meta"][field]
+    assert meta["status"] == status
+    if status == "flagged":
+        assert "BSE" in meta["reason"] and "2026-06-30" in meta["reason"]
+
+
+def test_ownership_is_unreconciled_when_the_exchange_filing_is_unavailable(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    body = _ownership_route(client, monkeypatch, "JONJUA.BO", None, held_percent_insiders=0.46623)
+    meta = body["field_meta"]["held_percent_insiders"]
+    assert meta["status"] == "flagged"
+    assert meta["reason"].startswith("unreconciled: exchange shareholding unavailable")

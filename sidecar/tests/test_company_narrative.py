@@ -132,6 +132,30 @@ def test_source_values_includes_scaled_and_percent_forms() -> None:
     assert any(_close(v, 31.5) for v in values)
 
 
+def test_flagged_insider_figure_is_not_a_verifiable_number() -> None:
+    """R15-DATA-004: an ownership fraction the exchange filing disputes is kept on
+    the payload but flagged, so the narrative verifier must not accept it — a
+    model writing "insiders hold 51.18%" is redacted, not verified."""
+    from models.fundamentals import FieldMeta
+
+    dhanbank = Fundamentals(
+        symbol="DHANBANK.NS",
+        provider="yfinance",
+        held_percent_insiders=0.51176,
+        field_meta={
+            "held_percent_insiders": FieldMeta(
+                status="flagged", provider="yfinance", reason="no promoter group reported"
+            )
+        },
+    )
+    source = _source_values(dhanbank, None)
+    assert not any(_close(v, 51.176) for v in source)
+    assert not any(_close(v, 0.51176) for v in source)
+    cleaned, unverified = _verify_text("Insiders hold 51.18% of the bank.", source)
+    assert "[unverified]" in cleaned
+    assert [c.text for c in unverified] == ["51.18%"]
+
+
 # --------------------------------------------------------------------------
 # Unit: the verification pass — the core safety property.
 # --------------------------------------------------------------------------
