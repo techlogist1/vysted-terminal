@@ -430,13 +430,10 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         )
     # yfinance 1.3.0 returns ``dividendYield`` as a percentage number (e.g.
     # ``0.36`` for AAPL, ``6.01`` for VZ) — not a fraction. The contract is a
-    # fraction (the panel ×100s it). Guard against negative / absurd (>200%)
-    # values reaching the UI as a glitchy readout (the "-88.58" class of bug).
+    # fraction (the panel ×100s it). A negative or implausible value is withheld
+    # by the correctness gate, the only yield bound (R15-DATA-034).
     raw_yield = _num(info.get("dividendYield"))
-    div_yield: float | None = None
-    if raw_yield is not None:
-        frac = raw_yield / 100.0
-        div_yield = frac if 0.0 <= frac <= 2.0 else None
+    div_yield = raw_yield / 100.0 if raw_yield is not None else None
 
     # yfinance reports debtToEquity in percent form (150.0 = 1.5x); normalise to a
     # ratio so the screener/overview read the conventional D/E.

@@ -50,9 +50,10 @@ from typing import Any
 
 import httpx
 
+import config
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import provider_health
+from services import correctness_gate, provider_health
 
 logger = logging.getLogger(__name__)
 
@@ -419,15 +420,13 @@ def _normalize_dividend_yield(row: dict[str, Any]) -> float | None:
 
     v7 exposes ``trailingAnnualDividendYield`` already as a FRACTION (0.0044 for
     AAPL) — preferred. ``dividendYield`` on v7 is a PERCENT number (0.44), so it
-    is divided by 100 as a fallback. Mirrors the guard in
-    ``yfinance_provider.get_fundamentals`` (reject absurd > 200%)."""
+    is divided by 100 as a fallback. Plausibility is the correctness gate's call
+    (:func:`fundamentals_from_v7` runs it)."""
     frac = _num(row.get("trailingAnnualDividendYield"))
     if frac is None:
         pct = _num(row.get("dividendYield"))
         frac = (pct / 100.0) if pct is not None else None
-    if frac is None:
-        return None
-    return frac if 0.0 <= frac <= 2.0 else None
+    return frac
 
 
 def _normalize_fifty_two_week_change(row: dict[str, Any]) -> float | None:
@@ -486,9 +485,14 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
     (``sector``/``industry``/``peg_ratio``/``beta``/``price_to_sales``/
     ``ev_to_ebitda``/profitability/health/growth/ownership) is left ``None`` —
     a screen that filters on one of those triggers per-symbol ``.info``
-    enrichment (or itemizes the symbol ``missing_field:<field>``)."""
+    enrichment (or itemizes the symbol ``missing_field:<field>``).
+
+    The row passes the correctness gate's plausibility bounds here, the one
+    site every v7 caller (screener, warm store) goes through (R15-DATA-034): an
+    implausible value arrives ``None`` with a ``withheld`` ``field_meta`` entry.
+    """
     symbol = str(row.get("symbol", "")).upper()
-    return Fundamentals(
+    fundamentals = Fundamentals(
         symbol=symbol,
         name=row.get("longName") or row.get("shortName"),
         currency=str(row["currency"]) if row.get("currency") else None,
@@ -506,6 +510,7 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
         shares_outstanding=_num(row.get("sharesOutstanding")),
         provider=PROVIDER,
     )
+    return correctness_gate.validate_fundamentals(fundamentals, symbol, config.get_region())
 
 
 #: Screener criteria fields the v7 batch row CANNOT supply — a screen filtering

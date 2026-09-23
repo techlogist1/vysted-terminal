@@ -46,7 +46,9 @@ _SUFFIX_RE = re.compile(r"[.\-](NS|BO|BSE)$", re.IGNORECASE)
 # --- numeric plausibility bounds for fundamentals (R13, deliverable 4) ---------
 # Aligned with services.research.semantics._PLAUSIBLE_YIELD_FRACTION (0.25): a
 # dividend yield expressed as a FRACTION above this is an ambiguous-unit figure
-# (0.55 read as 55%?) — withheld rather than served as fact.
+# (0.55 read as 55%?) — withheld rather than served as fact. The only yield bound
+# on a served path (R15-DATA-034): the providers map the raw value and the gate
+# judges it, together with a negative yield.
 _PLAUSIBLE_YIELD_FRACTION = 0.25
 # A current-price proxy (pe_ratio x eps) outside this band around the 52-week
 # range is implausible — the low is scaled down / the high scaled up to tolerate
@@ -115,8 +117,13 @@ def symbols_match(requested: str, returned: str) -> bool:
     return _match_key(requested) == _match_key(returned)
 
 
-def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
+def validate_quote(
+    quote: Quote, requested_symbol: str, region: str, *, check_staleness: bool = True
+) -> Quote:
     """Reject a quote that is empty-priced, mis-symboled, or broken-feed stale.
+
+    ``check_staleness=False`` skips the session-calendar staleness leg only (a
+    crypto quote trades off any exchange calendar).
 
     An exchange lane's quote (:data:`_EXCHANGE_DATED_PROVIDERS`) is dated by the
     exchange's own last-trade record, so an old date there is the truth about an
@@ -138,7 +145,7 @@ def validate_quote(quote: Quote, requested_symbol: str, region: str) -> Quote:
         )
     as_of = quote.timestamp.date() if quote.timestamp else None
     exchange_dated = quote.provider in _EXCHANGE_DATED_PROVIDERS
-    if not exchange_dated and locale.is_rejectably_stale(region, as_of):
+    if check_staleness and not exchange_dated and locale.is_rejectably_stale(region, as_of):
         raise CorrectnessError(
             f"correctness gate: quote for {requested_symbol!r} from "
             f"{quote.provider!r} is dated {as_of} — too stale for the {region} calendar"
@@ -236,7 +243,8 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
     WITHHELD (value nulled) — a value that cannot be right under any reading:
       * ``held_percent_insiders`` / ``held_percent_institutions`` outside [0, 1]
         (a fraction contract; 8455% is a percent served as a fraction or garbage);
-      * ``dividend_yield`` as a fraction above the plausible bound (ambiguous unit);
+      * ``dividend_yield`` as a fraction above the plausible bound (ambiguous unit)
+        or below zero;
       * ``fifty_two_week_high`` below ``fifty_two_week_low`` (the pair is internally
         inconsistent — both withheld).
 
@@ -271,12 +279,17 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
                 "bad source value); withheld"
             )
 
-    # Dividend yield (a fraction) above the plausible bound is ambiguous-unit.
+    # Dividend yield (a fraction) above the plausible bound is ambiguous-unit;
+    # a negative one is not a yield at all.
     dy = f.dividend_yield
     if dy is not None and dy > _PLAUSIBLE_YIELD_FRACTION:
         withheld["dividend_yield"] = (
             f"a dividend yield of {dy:.2%} exceeds the plausible fraction bound of "
             f"{_PLAUSIBLE_YIELD_FRACTION:.0%} — an ambiguous-unit value; withheld"
+        )
+    elif dy is not None and dy < 0:
+        withheld["dividend_yield"] = (
+            f"a negative dividend yield ({dy:.2%}) is not a yield; withheld"
         )
 
     # 52-week high below low is internally inconsistent — withhold both.

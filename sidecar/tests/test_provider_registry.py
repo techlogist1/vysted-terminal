@@ -42,7 +42,7 @@ def test_quote_resolves_to_ccxt_for_crypto(monkeypatch: pytest.MonkeyPatch) -> N
     from services import ccxt_provider
 
     def fake_ticker(exchange: str, symbol: str):  # noqa: ANN202
-        return _quote("ccxt")
+        return _quote("ccxt", symbol)  # crypto is gated too: echo the requested pair
 
     monkeypatch.setattr(ccxt_provider, "get_ticker", fake_ticker)
     quote = provider_registry.get_quote("BTC/USDT", "crypto")
