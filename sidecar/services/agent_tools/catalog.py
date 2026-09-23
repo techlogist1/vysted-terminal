@@ -1275,7 +1275,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "symbol, quantity, and per-share cost basis. Edits the user's local "
                 "tracked portfolio (manual holdings). Vysted has no brokerage "
                 "connection. Use when the user says they bought/hold something and "
-                "want it tracked."
+                "want it tracked. If the user did not give the price they paid, ASK "
+                "for it before calling — never invent, estimate or zero a cost basis."
             ),
             input_schema=_obj(
                 {
@@ -1283,7 +1284,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "quantity": {"type": "number"},
                     "cost_basis": {
                         "type": "number",
-                        "description": "Per-share cost in the listing currency.",
+                        "description": (
+                            "Per-share cost in the listing currency, as the user stated "
+                            "it. Ask the user if they did not say; never guess."
+                        ),
                     },
                     "asset_class": {"type": "string", "enum": _ASSET_ENUM, "default": "equity"},
                     "note": {"type": "string", "description": "Optional free-form note."},
@@ -1302,7 +1306,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "cost basis, note, …). Read the current positions first with "
                 "get_portfolio to learn the position_id. Edits the user's local "
                 "tracked portfolio (manual holdings). Vysted has no brokerage "
-                "connection."
+                "connection. Send only the fields the user changed; for a new cost "
+                "basis use the price the user gave — ask for it, never invent one."
             ),
             input_schema=_obj(
                 {

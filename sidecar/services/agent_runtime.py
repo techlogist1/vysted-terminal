@@ -690,6 +690,45 @@ async def _dispatch_tool(
         return str(payload)
 
 
+def _normalise_tool_args(event: LLMToolUseEvent) -> None:
+    """The ONE runtime argument check, for every adapter (D-B3-4).
+
+    Validation used to live only in the OpenAI adapter, so a host action with a
+    missing required field (``portfolio_add_position`` with no ``cost_basis``)
+    reached the UI, which coerced it to 0 (R15-AGENT-022). Runs on every
+    ``tool_use`` before it is yielded, and mutates ``event.input`` in place:
+
+    - an explicit ``null`` means "not given" and is dropped, so it reads as a
+      missing field rather than a type error;
+    - the args are validated against the catalog ``input_schema``; on failure
+      the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
+      model-readable reason, which ``_dispatch_tool`` returns as
+      ``{ok: false, error}`` without running the handler.
+
+    No schema default is filled (C2): an omitted optional arg stays omitted.
+    An unknown tool is left to ``_dispatch_tool``'s "not available" result.
+    """
+    args = event.input
+    cap = catalog.CAPABILITY_CATALOG.get(event.name)
+    if cap is None or INVALID_ARGS_SENTINEL in args:
+        return
+    for key in [k for k, v in args.items() if v is None]:
+        del args[key]
+    validator_cls = jsonschema.validators.validator_for(cap.input_schema)
+    error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))
+    if error is None:
+        return
+    if error.validator == "required" and not error.path and cap.kind == "host_action":
+        missing = next(f for f in error.validator_value if f not in error.instance)
+        reason = (
+            f"invalid arguments for {event.name}: missing {missing} — ask the user "
+            "for it; do not guess"
+        )
+    else:
+        reason = f"invalid arguments for {event.name}: {error.message}; call again with valid args"
+    event.input = {INVALID_ARGS_SENTINEL: reason}
+
+
 def _model_facing_content(tool_name: str, result_str: str) -> str:
     """The tool message the MODEL reads, split from the raw result (D-B3-5).
 
@@ -1488,6 +1527,13 @@ async def invoke_agent(
             if isinstance(event, LLMToolUseEvent):
                 if capped:
                     continue
+                _normalise_tool_args(event)
+                if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
+                    # Never hand the UI a host action with invalid args (it would
+                    # stage or AUTO-apply a coerced change). It still dispatches,
+                    # so the model gets the {ok: false, error} result to act on.
+                    pending_tools.append(event)
+                    continue
                 # R10 (E2): a model-issued publish_brief without an execution
                 # record inherits the run's tracked record before anything
                 # downstream (frontend, dispatch) sees the event.
@@ -1639,8 +1685,13 @@ async def invoke_agent(
             )
             messages.append(tool_result_msg)
             # Queue a host action dispatched under AUTO for the grounded
-            # read-back below.
-            if autonomy == "auto" and tool_call.name in _host_ids:
+            # read-back below. An invalid-args call was never dispatched to the
+            # panel, so its {ok: false, error} result stands as is.
+            if (
+                autonomy == "auto"
+                and tool_call.name in _host_ids
+                and INVALID_ARGS_SENTINEL not in tool_call.input
+            ):
                 host_action_readbacks.append((tool_call, tool_result_msg))
             # Auto-publish the brief deterministically (Track 3): the full brief
             # is in result_str but only the model sees it. Emit a synthetic
