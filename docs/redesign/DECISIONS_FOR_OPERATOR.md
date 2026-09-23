@@ -17,7 +17,13 @@ recommendation, and how to undo it in one step.
   brief. A rule held by memory fails the first time a brief forgets it; a commit cannot.
 - **Undo:** `git revert 7a1cd8f`
 
-### 1.2 `kill-switch-benchmark.json` no longer dirties the tree on every pytest
+### 1.2 — SUPERSEDED (D81)
+
+`test_safety_end_to_end.py` and the tracked `kill-switch-benchmark.json` baseline are
+both deleted with the feature, and `VYSTED_REFRESH_SAFETY_CAPTURES` no longer exists.
+There is nothing to revert.
+
+<details><summary>Original entry (2.5 — kill-switch-benchmark.json no longer dirties the tree on every pytest), kept for history</summary>
 
 - **What:** `test_safety_end_to_end.py::test_audit_5_kill_switch_under_2s` rewrote the
   tracked v0.5.0 baseline with fresh timings on every full run. The capture now goes to the
@@ -25,6 +31,8 @@ recommendation, and how to undo it in one step.
   (the `< 2000 ms` budget gate and the 12-subscriber check are byte-identical); the tracked
   baseline file is restored to its committed bytes.
 - **Undo:** `git revert 0112a0c`
+
+</details>
 
 ### 1.3 Five local, never-pushed commits were rewritten once (the brief said "no history rewrite")
 
@@ -80,21 +88,32 @@ Recorded at the 19 Sep pause so they are not lost. 2.1, 2.2, 2.6 and 2.7 are mea
   census item. This is the leading boring cause of "web search bugging out". R15 did not start
   Docker (system state is yours). **Recommendation:** start OrbStack before judging research.
 
-### 2.3 Kill switch: first-launch terms promise Cmd/Ctrl+Shift+K, but no UI listener exists (§6.5 — Tier-4)
+### 2.3 — CLOSED: removed with the feature (D81, 23 Sep 2026)
 
-- `src/store/safety.ts` has the state, `DisclaimerFlow.tsx:45` makes the promise, nothing binds
-  the key. **Recommendation:** bind it (frontend-only, no safety-model change) — needs your
-  sign-off because it sits on the safety surface.
+The census held at HEAD `99e2ae3`: the kill switch's only subscriber was
+`BrokerAdapter.__init__` (`broker_base.py:103`), and its only readers were the order
+gates (`:251,:345`). No UI component fired it. Nothing listened for the Rust
+`kill-switch:requested` event. With no orders left, there was nothing to halt, so the
+mechanism was deleted rather than bound: `kill_switch.rs`, the
+`tauri-plugin-global-shortcut` dependency and its capability, `services/kill_switch.py`,
+the `/safety/kill-switch*` routes, the store slice, and the types. The first-launch
+terms no longer promise Cmd/Ctrl+Shift+K. They are now research-only terms
+(R15-UI-041). This also closes R15-CODE-PLATFORM-001/006/007/008/009/031/032/033,
+R15-CROSS-PLATFORM-005 and R15-LIFECYCLE-016. **Undo:** revert the removal commits
+(this restores the whole trading layer).
 
-### 2.4 Paper → live broker mode is one click with no disclaimer (`BrokerConnectPanel.tsx:246-249`) (§6.5-adjacent)
+### 2.4 — CLOSED: removed with the feature (D81)
 
-- Order placement still never auto-applies; this is about the mode switch itself.
-  **Recommendation:** a confirm step naming what "live" means. Your call.
+The paper→live switch (`BrokerConnectPanel.tsx:246-249`), `POST /brokers/{id}/mode`,
+the Connections panel and paper mode itself (synthetic fills, the placeholder account)
+are deleted. There is no mode left to confirm.
 
-### 2.5 `maxPercentOfAccount` / `dailyLossCircuitBreaker` are declared but never enforced
+### 2.5 — CLOSED: removed with the feature (D81)
 
-- Settings that look like protection and do nothing. **Recommendation:** remove them from the
-  0.9.0 UI (no live orders in this release) rather than enforce them. Safety-model change → yours.
+`PositionLimits` (`maxOrderValueAccountCurrency`, `maxPercentOfAccount`,
+`maxPositionSizePerSymbol`, `dailyLossCircuitBreaker`) is deleted from
+`sidecar/models/safety.py`, `types/safety.ts` and `BrokerAdapter.DEFAULT_LIMITS`. No
+settings surface ever exposed it, and there are no orders left to limit.
 
 ### 2.6 CI has never run on `004`, and the last `main` run failed
 
@@ -110,3 +129,61 @@ Recorded at the 19 Sep pause so they are not lost. 2.1, 2.2, 2.6 and 2.7 are mea
   past 900 s while you sat reading. **Recommendation:** an away-sentinel file you create when you
   leave (`~/.vysted-rig-away`, with an expiry), required in addition to idle — ~5 lines. Not
   added, because it would make every unattended run refuse until you know about it.
+
+## 3. New items from Stage C — trading removal (D81, 23 Sep 2026)
+
+Added by the removal plan (`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`) — none
+are done-and-revertable like §1; these are yours to review or act on.
+
+### 3.1 UNSURE-1 — user-side leftovers after upgrade (no code reads any of it; nothing purged)
+
+- `~/.vysted-terminal/audit_log.db` — a user's own historical order and paper-trade audit
+  rows. No code reads it post-removal.
+- OS-keychain `broker:<id>:api_key|api_secret|access_token|client_id` and
+  `broker:<id>:_meta:first-connect-ack` — live BYOK broker secrets, now orphaned.
+- `broker:_meta:first-launch-tos` — the old first-launch-terms ack, superseded by
+  `app-meta:first-launch-terms`.
+- Sidecar plugin-store rows for the 7 broker plugin ids — `plugin-bootstrap` iterates
+  `CATALOG_ROWS` only, so these are already ignored, just not deleted.
+
+  Deleting a user's secrets and audit history automatically is destructive and irreversible,
+  so this batch adds no purge code. **Recommendation:** approve a one-time "remove leftover
+  broker credentials" step, plus a CHANGELOG note telling users how to delete `audit_log.db`
+  and the keychain entries by hand.
+
+### 3.2 First-launch terms rewrite (was on the §6.5 surface, includes licence wording)
+
+- The dialog's body text changes from "before connecting a broker" framing to research-only
+  terms: data and analysis tool, not investment advice; no brokerage connection, cannot place,
+  route or simulate orders; data may be delayed or wrong; AI output can be wrong; a licence
+  line (PolyForm Strict 1.0.0 noncommercial or a commercial licence, see LICENSING.md). No
+  kill-switch line. This is a rewrite of user-facing terms and licence-adjacent wording on a
+  formerly §6.5 surface — flagged Tier-4 by R15-UI-041, review the exact copy in
+  `src/modules/safety/DisclaimerFlow.tsx` before it ships.
+
+### 3.3 Accepted agent-write safety gaps (stated in `docs/SAFETY_ARCHITECTURE.md`, not silently dropped)
+
+- **No durable record of agent writes.** The former append-only `audit_orders` log existed
+  only to record order placement and went with the feature. The surviving read-back
+  (`action_ledger.py`) is process memory with a 10-minute TTL — a host action applied under
+  AUTO autonomy has no durable trail after that window. Tracked as R15-CODE-FRONTEND-013.
+- **No stop control for AUTO beyond reject or run-cancel.** There is no kill switch and no
+  per-action pause; the available control is rejecting a staged change under ASK, or
+  cancelling a running Delegate run. Tracked as R15-CODE-FRONTEND-008.
+
+### 3.4 BLOCKED-FOR-OPERATOR (Tier-1): no edit made, your call
+
+- **`types/plugin.ts`** — Tier-1 locked plugin contract. `PluginType = "trading-bot" | …`
+  and the JSDoc examples (`tradesa.kill-switch`, "Tradesa V2 (Bybit testnet)") were **not**
+  touched by this removal. **Your call:** keep the `"trading-bot"` literal and the examples
+  as historical/precedent shape, or remove them — the latter is a contract change that
+  breaks any plugin declaring that type. The Gate-8 no-trading-identifiers scan exempts
+  exactly this one file for this reason.
+- **`CLAUDE.md`** — Tier-1; held an uncommitted operator edit at plan time. The exact queued
+  edits are in `docs/redesign/CLAUDE_MD_PROPOSAL.md` — apply when convenient.
+- **`COMMERCIAL_LICENSE.md:36-48`** — licensing. Optional: drop "responsible for their own
+  broker relationship." The clause is still true (it covers decisions users make elsewhere)
+  and makes no claim that Vysted places orders, so **no change is required**; left to you.
+- **`src-tauri/tauri.conf.json`, `.github/**`, `LICENSE\*`, `r15-fanout.js`** — Tier-1 or
+  instructed not to edit. **No edit was needed:\*\* verified no shortcut, broker, or safety
+  content in any of them.
