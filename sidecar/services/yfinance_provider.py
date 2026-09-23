@@ -367,6 +367,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
         frame = yf.Ticker(normalized).history(period=period, interval=interval)
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("history", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
 
     bars: list[OHLCVBar] = []
     prior_close: float | None = None
@@ -528,6 +529,7 @@ def get_income_statement(symbol: str) -> IncomeStatement:
         frame = yf.Ticker(normalized).income_stmt
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("income statement", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
     periods, lines = _statement_lines(frame)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -543,9 +545,11 @@ def get_quarterly_period_ends(symbol: str) -> list[date]:
     normalized = _yahoo_symbol(symbol)
     try:
         frame = yf.Ticker(normalized).quarterly_income_stmt
-        return [pd.Timestamp(column).date() for column in frame.columns]
+        ends = [pd.Timestamp(column).date() for column in frame.columns]
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("quarterly income statement", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
+    return ends
 
 
 def get_balance_sheet(symbol: str) -> BalanceSheet:
@@ -555,6 +559,7 @@ def get_balance_sheet(symbol: str) -> BalanceSheet:
         frame = yf.Ticker(normalized).balance_sheet
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
     periods, lines = _statement_lines(frame)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
@@ -577,6 +582,7 @@ def get_newest_equity(symbol: str) -> tuple[date, float] | None:
         frames = (ticker.quarterly_balance_sheet, ticker.balance_sheet)
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
     newest: tuple[date, float] | None = None
     for frame in frames:
         label = next((name for name in _EQUITY_LABELS if name in frame.index), None)
@@ -597,6 +603,7 @@ def get_cash_flow(symbol: str) -> CashFlowStatement:
         frame = yf.Ticker(normalized).cashflow
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("cash flow", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
     periods, lines = _statement_lines(frame)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -612,6 +619,7 @@ def get_analyst_rating(symbol: str) -> AnalystRating:
         targets = ticker.analyst_price_targets
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("analyst rating", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
 
     counts = {"strongBuy": 0, "buy": 0, "hold": 0, "sell": 0, "strongSell": 0}
     if recommendations is not None and not recommendations.empty:

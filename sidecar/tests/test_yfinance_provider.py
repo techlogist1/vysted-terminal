@@ -573,3 +573,27 @@ def test_30m_history_asks_within_yahoos_60_day_intraday_window(
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
     yfinance_provider.get_history("SPY", "30m")
     assert asked == [("1mo", "30m")]
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: yfinance_provider.get_history("AAPL", "1d"),
+        lambda: yfinance_provider.get_income_statement("AAPL"),
+    ],
+    ids=["history", "income_statement"],
+)
+def test_a_successful_yahoo_call_closes_the_breaker(
+    recording_ticker: type[_RecordingTicker], call
+) -> None:  # noqa: ANN001
+    """R15-DATA-072: three throttles open the Yahoo breaker; the next healthy
+    round-trip on any data path closes it."""
+    from services import provider_health
+
+    provider_health.reset_for_tests()
+    for _ in range(3):
+        provider_health.record_rate_limited(provider_health.YAHOO)
+    assert provider_health.is_open(provider_health.YAHOO)
+    call()
+    assert not provider_health.is_open(provider_health.YAHOO)
+    provider_health.reset_for_tests()
