@@ -22,6 +22,7 @@ passed straight through to the provider adapter. Sidecar never persists.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -760,6 +761,12 @@ async def _dispatch_tool_with_progress(
             yield _step_event(tool_call, item, index)
         yield _ToolDone(await task)
     finally:
+        # The consumer closed us mid-tool (Stop / SSE disconnect -> aclose()):
+        # cancel the tool so its research / LLM / web calls stop spending now.
+        if not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
         config.reset_step_sink(token)
 
 
