@@ -92,6 +92,9 @@ async def test_screener_run_accepts_formula_and_filters_server_side(
     """The agent can pass ``formula`` TODAY (the tool revalidates through
     ScreenerRequest, which carries the field) — R7 Pillar 3. The catalog
     schema advertisement is the lead's wiring (INTEGRATION_NOTES_R7_HACK)."""
+    # Fictional bare tickers: pin US so the region-aware custom-symbol
+    # canonicalisation (R15-DATA-093) keeps them literal.
+    monkeypatch.setenv("VYSTED_REGION", "US")
 
     async def fake_get_fundamentals(symbol: str) -> Fundamentals:
         return _make_fundamentals(symbol, pe_ratio=10.0 if symbol == "AAA" else 40.0, roe=0.3)

@@ -110,6 +110,9 @@ def test_screener_run_end_to_end(client: TestClient, monkeypatch: pytest.MonkeyP
             ],
             "limit": 10,
         },
+        # Fictional bare tickers: pin US so the region-aware custom-symbol
+        # canonicalisation (R15-DATA-093) keeps them literal.
+        headers={"X-Vysted-Region": "US"},
     )
     assert response.status_code == 200
     body = response.json()
