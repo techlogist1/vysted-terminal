@@ -4,6 +4,37 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 2: critical + high data/research/workspace fixes (2026-09-23)
+
+**Scope:** 40 register entries (all 16 criticals plus root-cause mates and highs in the same seams),
+planned in `docs/redesign/verification/r15/stage-c/batch-2/PLAN.md`, built by five isolated writers
+and merged in plan order W1 → W2 → W3 → W5 → W4 on `worktree-agent-batch-2-int` (base `369faa7`).
+
+- **W1 fundamentals seam** — `FieldMeta.status` `flagged`, `financial_currency`, `ratio_price` and a
+  nullable news date (one contract commit, cherry-picked by W2/W3); Yahoo ownership, share basis,
+  EPS/P/E and revenue flagged against their witnesses; BSE header quote dated by its `Ason`; undated
+  news sorts last; non-finite prices rejected (DATA-008/004/005/013/014/006/070/033).
+- **W2 instrument identity** — one `same_instrument` rule for the resolver, the NSE rename lane gated
+  on it, renamed stocks reachable by their old ticker, India-only witnesses decided by the resolved
+  `.NS`/`.BO` listing in `services/witness.py`, openbb-mcp asked for the requested listing, the EO
+  carrying the picked listing's region (CODE-DATA-001/005, DATA-012/018/003/001/002).
+- **W3 research integrity** — leading verdict token for cross-check/reflect, claim figures kept
+  intact, independence counted once, off-entity DEEP/ULTRA news gated, append-only source numbering
+  with model bibliographies stripped, honest fraction labels (RESEARCH-001/002/003/004/015/029/034/037,
+  AGENT-001).
+- **W5 surfaces and math** — backtest marks once per timestamp, Sortino on downside deviation,
+  lattice Greeks, currency threaded through earnings/analyst/portfolio/screener/bond surfaces, SEC
+  filings never fabricated (DATA-009/010/011/031/042/043/100/007, CODE-PLATFORM-053).
+- **W4 workspace persistence** — one `PERSISTED_SLICES` registry drives payload, restore and a gated,
+  debounced, single-flight autosave; named loads restore only the cockpit; research spaces save under
+  any name; the pre-blob positions ledger imports once (CODE-FRONTEND-001/004/005/018,
+  LIFECYCLE-002/003/009).
+
+**Integration:** the cherry-picked contract hunk conflicted with W1's later reason-chaining in
+`correctness_gate._merge_meta` (kept W1's); `panel-context-publishers.test.tsx` gained the
+`autocompleteSymbols` mock the new EO submit path needs. Tier-3 decisions D-B2-1…9 are in
+`docs/redesign/DECISIONS.md`.
+
 ## R15 Stage C — trading removed (D81, 2026-09-23)
 
 **Decision:** D81, operator Tier-4 sign-off, 23 Sep 2026 (`docs/redesign/DECISIONS_FOR_OPERATOR.md`
