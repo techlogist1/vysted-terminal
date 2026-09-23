@@ -690,6 +690,11 @@ async def _dispatch_tool(
         return str(payload)
 
 
+#: Schema container types a small model often sends as a JSON *string*
+#: (R15-AGENT-024: ``criteria: "[{...}]"``), mapped to the parsed Python type.
+_JSON_CONTAINER_TYPES: dict[str, type] = {"array": list, "object": dict}
+
+
 def _normalise_tool_args(event: LLMToolUseEvent) -> None:
     """The ONE runtime argument check, for every adapter (D-B3-4).
 
@@ -700,6 +705,9 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
 
     - an explicit ``null`` means "not given" and is dropped, so it reads as a
       missing field rather than a type error;
+    - an ``array``/``object`` param sent as a JSON string is parsed, kept only
+      when the parsed type matches (R15-AGENT-024: local 8B models send
+      ``write_screener_filters.criteria`` as a string and the host drops it);
     - the args are validated against the catalog ``input_schema``; on failure
       the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
       model-readable reason, which ``_dispatch_tool`` returns as
@@ -714,6 +722,19 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
         return
     for key in [k for k, v in args.items() if v is None]:
         del args[key]
+    properties = cap.input_schema.get("properties") or {}
+    for key, value in args.items():
+        expected = (properties.get(key) or {}).get("type")
+        if expected not in _JSON_CONTAINER_TYPES or not isinstance(value, str):
+            continue
+        if value.lstrip()[:1] not in ("[", "{"):
+            continue
+        try:
+            parsed = json.loads(value)
+        except ValueError:
+            continue
+        if isinstance(parsed, _JSON_CONTAINER_TYPES[expected]):
+            args[key] = parsed
     validator_cls = jsonschema.validators.validator_for(cap.input_schema)
     error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))
     if error is None:

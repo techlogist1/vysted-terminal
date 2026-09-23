@@ -77,3 +77,24 @@ async def test_add_position_without_cost_basis_is_never_yielded_and_asks_the_use
     assert "host_action" not in result  # the host-action handler never ran
     assert "missing cost_basis" in result["error"]
     assert "ask the user" in result["error"]
+
+
+#: Captured verbatim from llama3.1:8b (surface/screener/20-agent-screen-llama.jsonl).
+_STRINGIFIED_CRITERIA = (
+    '[{"field":"pe_ratio","operator":"lt","value":20},'
+    '{"field":"roe","operator":"gt","value":{"min":15,"max":15}}, '
+    '{"field":"debt_to_equity","operator":"lt","value":0.5}]'
+)
+
+
+@pytest.mark.asyncio
+async def test_stringified_screener_criteria_is_yielded_as_a_list(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    args = {"criteria": _STRINGIFIED_CRITERIA, "universe": "nse-all"}
+    events, _ = await _invoke(monkeypatch, "write_screener_filters", args)
+    [call] = _yielded(events, "write_screener_filters")
+    criteria = call.input["criteria"]
+    assert isinstance(criteria, list) and len(criteria) == 3
+    assert criteria[0] == {"field": "pe_ratio", "operator": "lt", "value": 20}
+    assert call.input["universe"] == "nse-all"
