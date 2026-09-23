@@ -25,7 +25,8 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-2 fix reopened (806a90c): The percent half is fixed (every derived value is unit fraction with a display; KPIT chat said 'Dividend Yield: 1.42%', 'Market Cap: Rs 14,346 cr', screener 1.42% / Rs 14,449 Cr). The market-cap half still reproduces on a fresh case: 'research Bharat Electronics' on local llama3.1:8b answered 'Market Cap: Rs 2,895,037 cr' (10x high) while the payload display was 'Rs 289,504 cr' and screener shows Rs 2,90,636 Cr. The raw rupee float (fundamentals.market_cap 2895037857792.0) still rides the model payload next to the display, so correctness depends on the model obeying the prompt."
   },
   {
    "id": "R15-CODE-FRONTEND-001",
@@ -52,7 +53,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-001",
@@ -89,7 +91,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-002",
@@ -120,7 +123,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-003",
@@ -148,7 +152,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-004",
@@ -188,7 +193,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-005",
@@ -217,7 +223,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-2 fix reopened (806a90c): VERTEX (critical leg) and ONC now flagged live, but 2 of the 4 raw repros still reproduce on the running sidecar: JNPR book_value 70.02 / price_to_book 3.82 served status ok (equity / pre-IPO 488,989,292 shares while shares_outstanding is the post-IPO 568,998,442), and JUMBO book_value 54.361 served ok against its own balance sheet 477,377,000 / 8,373,700 = 57.01. The share-basis pass compares shares_outstanding with market_cap/price only, so a BVPS on a stale denominator with a consistent share count passes."
   },
   {
    "id": "R15-DATA-006",
@@ -243,7 +250,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-007",
@@ -269,7 +277,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-008",
@@ -296,7 +305,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-009",
@@ -320,7 +330,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-010",
@@ -343,7 +354,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-011",
@@ -369,7 +381,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-012",
@@ -394,7 +407,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-001",
@@ -421,7 +435,8 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-002",
@@ -445,7 +460,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-AGENT-002",
@@ -1129,7 +1145,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-FRONTEND-002",
@@ -1209,7 +1226,8 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-FRONTEND-005",
@@ -1241,7 +1259,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-FRONTEND-006",
@@ -1426,7 +1445,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-014",
@@ -1454,7 +1474,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-2 fix reopened (806a90c): FUSION flagged and JONJUA labelled live, but the DAL leg still reproduces: GET /fundamentals/DAL serves revenue_ttm 27,600,000 status ok while screener.in (fetched 2026-09-23) shows TTM revenue 9.97 Cr. The witness is the provider's own statement, and Yahoo's DAL.BO FY2026 Total Revenue is 20,668,000 (within the 30% band) with a matching profit margin, so it cannot see this. The committed 'case the fix was not written against' test (test_fundamentals.py:455-457) stubs an annual of 99,700,000 that the provider does not have."
   },
   {
    "id": "R15-DATA-015",
@@ -1570,7 +1591,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-019",
@@ -1924,7 +1946,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-032",
@@ -1976,7 +1999,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-034",
@@ -2196,7 +2220,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-043",
@@ -2223,7 +2248,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-044",
@@ -2351,6 +2377,42 @@
    "status": "open"
   },
   {
+   "id": "R15-LEAD-001",
+   "title": "openbb-mcp and sec-edgar-mcp build requirements do not pin mcp/httpx; a clean venv resolves an mcp that depends on httpx2 and PyInstaller copy_metadata('httpx') fails (PackageNotFoundError)",
+   "severity": "high",
+   "area": "release",
+   "subsystem": "release/build",
+   "files": [],
+   "repro": "Fresh worktree, fresh venv, `node scripts/ensure-all-sidecars.mjs --force` (or pnpm ci-local on a clean machine / CI): ensure-openbb-mcp-sidecar fails at copy_metadata('httpx').",
+   "evidence": "batch-2 integrator built the two MCP venvs only by freezing constraints from the main worktree's working venv (mcp==1.27.1, httpx==0.28.1); see r15/stage-c/batch-2 integ.failures",
+   "fix_shape": "Pin mcp and httpx (and their direct transitive pins that the recipes copy metadata for) in sidecar/openbb_mcp_subprocess/requirements.txt and sidecar/sec_edgar_mcp_subprocess/requirements.txt; make the ensure recipe fail with a named message when a copy_metadata target is missing; prove with a clean-venv build in the batch verifier.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "release"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
+   "id": "R15-LEAD-002",
+   "title": "/fundamentals for Indian symbols is ~2x slower after batch 2 (median 2-3 s rising to 4-8.5 s, max 18 s) because the ownership witness is uncached and runs on every request",
+   "severity": "high",
+   "area": "data",
+   "subsystem": "data/fundamentals",
+   "files": [],
+   "repro": "Two rounds of GET /fundamentals/{TCS,INFY,ITC,HDFCBANK,SBIN} with X-Vysted-Region: IN against a base (369faa7) sidecar and the batch-2 sidecar; compare time_total (r15/stage-c/batch-2/VERDICTS.md, b2v-logs/ab-fundamentals.txt).",
+   "evidence": "batch-2 verifier A/B on :52310 vs :52311",
+   "fix_shape": "Cache the witness result per (symbol, statement as-of) with the same TTL as the fundamentals row; never re-fetch the witness when the underlying row is served from cache; pin with a test that a second call within TTL makes no witness fetch.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
    "id": "R15-LIFECYCLE-001",
    "title": "Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return",
    "severity": "high",
@@ -2403,8 +2465,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open",
-   "note": "The broker-connect-panel trigger condition is moot post-removal (a122dbf6 feat(d81)), but any unregistered panel in an old layout reproduces the same failure. Core defect stays open: a layout-restore failure silently discards the surviving portfolio holdings, watchlist, notes, settings and research memory, then autosaves the loss, pending verification of the workspace.ts restore-order fix."
+   "status": "fixed",
+   "note": "The broker-connect-panel trigger condition is moot post-removal (a122dbf6 feat(d81)), but any unregistered panel in an old layout reproduces the same failure. Core defect stays open: a layout-restore failure silently discards the surviving portfolio holdings, watchlist, notes, settings and research memory, then autosaves the loss, pending verification of the workspace.ts restore-order fix.",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-LIFECYCLE-003",
@@ -2430,7 +2493,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-LIFECYCLE-004",
@@ -2588,7 +2652,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RELEASE-001",
@@ -2716,7 +2781,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-004",
@@ -2741,7 +2807,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-005",
@@ -4771,7 +4838,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-DATA-006",
@@ -4845,7 +4913,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The order-kind predicate (kind !== 'order') and the 'orders always confirm' UI hint are moot: the order proposed-change kind no longer exists (a122dbf feat(d81)). Core finding stays open: AUTO autonomy still auto-applies note/portfolio/set_region writes with no explicit whitelist function and no UI copy naming which kinds apply without review."
   },
   {
    "id": "R15-CODE-FRONTEND-009",
@@ -5103,7 +5172,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-FRONTEND-019",
@@ -6709,7 +6779,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-071",
@@ -7595,6 +7666,60 @@
    "status": "open"
   },
   {
+   "id": "R15-LEAD-003",
+   "title": "Rows cached before a correctness fix keep being served for up to 24 h after the fix (fabricated SEC 10-K rows, the FOCUS merged split)",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "data/cache",
+   "files": [],
+   "repro": "Warm the cache on the pre-fix build, upgrade, request the same symbol: the pre-fix row is served as ok until its TTL expires.",
+   "evidence": "batch-2 verifier VERDICTS.md issues list",
+   "fix_shape": "Key provider caches on a provider-logic version (or schema version) so a fix invalidates its own stale rows; pin with a test that bumping the version misses the cache.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
+   "id": "R15-LEAD-004",
+   "title": "The 'half-yearly filer' TTM label also fires on quarterly filers",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "data/fundamentals",
+   "files": [],
+   "repro": "GET /fundamentals for a quarterly Indian filer; the TTM field meta carries the half-yearly-filer label.",
+   "evidence": "batch-2 verifier VERDICTS.md issues list",
+   "fix_shape": "Derive the label from the observed filing cadence (statement period lengths), not from the region; pin with one quarterly and one half-yearly case.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
+   "id": "R15-LEAD-005",
+   "title": "yfinance get_quote still stamps as_of with now() instead of the provider's quote time",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "data/quotes",
+   "files": [],
+   "repro": "GET /quotes/{symbol} outside market hours: as_of equals the request time, not the last trade time.",
+   "evidence": "batch-2 verifier VERDICTS.md issues list (remaining after R15-DATA-006)",
+   "fix_shape": "Use the provider's regularMarketTime (or the bar timestamp) as as_of; fall back to null with a reason, never now(); pin with a test on a closed-market fixture.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
    "id": "R15-LIFECYCLE-010",
    "title": "A sidecar spawn failure is indistinguishable from a slow boot: the documented SidecarPort==0 'disconnected' sentinel is honoured nowhere, so a missing or denied binary ends in a 120 s blind spinner and a message that names nothing",
    "severity": "medium",
@@ -8198,7 +8323,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-016",
@@ -8553,7 +8679,8 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-030",
@@ -9478,7 +9605,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The sibling-handler half is moot: OrderConfirmationDialog.tsx and AuditLogViewer.tsx were deleted whole (a122dbf feat(d81)). Core finding stays open: the surviving DisclaimerFlow (first-launch TOS) hydrate effect still has no catch, so a keychain read failure silently suppresses first-run onboarding with no message."
   },
   {
    "id": "R15-UI-045",
@@ -12295,7 +12423,8 @@
     "COD-portfolio-15"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-CODE-PLATFORM-054",
@@ -13209,7 +13338,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-DATA-101",
@@ -13793,6 +13923,24 @@
    "status": "open"
   },
   {
+   "id": "R15-LEAD-006",
+   "title": "The _row_value helper still exists as a twin in two modules after batch 2",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "sidecar/fundamentals",
+   "files": [],
+   "repro": "grep -n '_row_value' sidecar/services — two definitions.",
+   "evidence": "batch-2 verifier VERDICTS.md issues list",
+   "fix_shape": "Keep one definition in the shared module and import it.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "lead-found batch-3"
+  },
+  {
    "id": "R15-LIFECYCLE-027",
    "title": "No timeout or AbortSignal anywhere in the shared sidecar client: one hung /health probe holds the shared readyPromise past its 120 s budget, a hung route is an eternal spinner, and the boot-time plugin path fetches every plugin's config twice, serially, with no ceiling",
    "severity": "low",
@@ -14322,7 +14470,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-035",
@@ -14392,7 +14541,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
   },
   {
    "id": "R15-RESEARCH-038",
@@ -15495,11 +15645,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 603,
+  "entries": 609,
   "rejections": 76,
   "critical": 16,
-  "high": 104,
-  "medium": 268,
-  "low": 215
+  "high": 106,
+  "medium": 271,
+  "low": 216
  }
 }
