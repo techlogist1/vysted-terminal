@@ -275,14 +275,17 @@ def _newsapi_key(request_key: str | None = None) -> str | None:
     return key or None
 
 
-def _feed_urls_for(symbols: list[str], region: str) -> list[tuple[str, str]]:
-    """Build the (source-label, feed-url) list for a request in ``region``.
+def _feed_urls_for(symbols: list[str], region: str) -> list[tuple[str, str, str | None]]:
+    """Build the (source-label, feed-url, feed-symbol) list for a request in ``region``.
 
-    The region-appropriate general market feeds are always included; a per-symbol
-    Yahoo Finance feed (with locale-shaped ``region``/``lang`` params) is added for
-    each requested symbol.
+    The region-appropriate general market feeds are always included (feed-symbol
+    ``None``); a per-symbol Yahoo Finance feed (with locale-shaped
+    ``region``/``lang`` params) is added for each requested symbol, carrying
+    that symbol so its items are tagged to it by provenance.
     """
-    feeds = list(_market_rss_feeds(region))
+    feeds: list[tuple[str, str, str | None]] = [
+        (label, url, None) for label, url in _market_rss_feeds(region)
+    ]
     feed_region, feed_lang = _symbol_feed_locale(region)
     for symbol in symbols:
         feeds.append(
@@ -291,9 +294,20 @@ def _feed_urls_for(symbols: list[str], region: str) -> list[tuple[str, str]]:
                 _SYMBOL_RSS_TEMPLATE.format(
                     symbol=_yahoo_symbol(symbol), region=feed_region, lang=feed_lang
                 ),
+                symbol,
             )
         )
     return feeds
+
+
+async def _fetch_feed(
+    client: httpx.AsyncClient, feed_url: str, *, fallback_source: str, symbol: str | None
+) -> list[NewsItem]:
+    """Fetch one RSS feed; a symbol's own feed tags its items to that symbol."""
+    items = await _fetch_rss_resilient(client, feed_url, fallback_source=fallback_source)
+    if symbol is None:
+        return items
+    return [item.model_copy(update={"symbols": [symbol]}) for item in items]
 
 
 async def _fetch_rss_resilient(
@@ -361,8 +375,10 @@ async def fetch_news(
     """
     region = get_region()
     tasks: list[asyncio.Future[list[NewsItem]]] = [
-        asyncio.ensure_future(_fetch_rss_resilient(client, feed_url, fallback_source=source_label))
-        for source_label, feed_url in _feed_urls_for(symbols, region)
+        asyncio.ensure_future(
+            _fetch_feed(client, feed_url, fallback_source=source_label, symbol=feed_symbol)
+        )
+        for source_label, feed_url, feed_symbol in _feed_urls_for(symbols, region)
     ]
 
     api_key = _newsapi_key(newsapi_key)
@@ -388,14 +404,17 @@ async def fetch_news(
     if not collected:
         raise ProviderError("all news sources failed")
 
-    # De-duplicate on the stable id (the same story shows up across feeds).
-    seen: set[str] = set()
-    unique: list[NewsItem] = []
+    # De-duplicate on the stable id (the same story shows up across feeds),
+    # keeping every feed's provenance symbol on the surviving copy.
+    by_id: dict[str, NewsItem] = {}
     for item in collected:
-        if item.id in seen:
-            continue
-        seen.add(item.id)
-        unique.append(item)
+        kept = by_id.get(item.id)
+        if kept is None:
+            by_id[item.id] = item
+        elif item.symbols:
+            merged = kept.symbols + [s for s in item.symbols if s not in kept.symbols]
+            by_id[item.id] = kept.model_copy(update={"symbols": merged})
+    unique = list(by_id.values())
 
     # Newest first; an undated item sorts last (its recency is unknown).
     dated = [item for item in unique if item.published_at is not None]

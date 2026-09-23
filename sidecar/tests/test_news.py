@@ -168,6 +168,57 @@ def test_get_news_provider_error_is_502(
 
 
 # --------------------------------------------------------------------------
+# Symbol tagging by alias set and provenance (R15-DATA-030)
+# --------------------------------------------------------------------------
+
+
+def _news_for(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, item: NewsItem, symbols: str
+) -> list[dict]:
+    async def fake_fetch_news(client, symbols, limit, *, newsapi_key=None):  # noqa: ANN001, ANN202, ARG001
+        return [item]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    return client.get("/news", params={"symbols": symbols}).json()
+
+
+def test_company_name_tags_a_suffixed_india_symbol(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("r1", "Reliance Industries Q2 profit rises 10%", "RIL beats estimates")
+    body = _news_for(client, monkeypatch, item, "RELIANCE.NS")
+    assert [i["symbols"] for i in body] == [["RELIANCE.NS"]]
+
+
+def test_one_letter_ticker_never_matches_the_article_a(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("n1", "Nvidia unveils a new chip", "A report from a bank")
+    assert _news_for(client, monkeypatch, item, "A") == []
+
+
+def test_company_name_tags_a_bare_nse_ticker(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    item = _news_item("s1", "State Bank of India raises rates")
+    body = _news_for(client, monkeypatch, item, "SBIN")
+    assert [i["symbols"] for i in body] == [["SBIN"]]
+
+
+def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        # The same story on a market feed and on HDFCBANK's own feed.
+        return [_news_item("h1", "Lender posts record quarter")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+    items = asyncio.run(news_provider.fetch_news(_CLIENT, ["HDFCBANK"], limit=10))
+    assert [i.symbols for i in items] == [["HDFCBANK"]]
+
+
+# --------------------------------------------------------------------------
 # news_provider.fetch_news — RSS/NewsAPI fetchers mocked at the function level
 # --------------------------------------------------------------------------
 
