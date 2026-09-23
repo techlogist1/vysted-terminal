@@ -8,6 +8,7 @@ raising; transport errors propagate.
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -584,6 +585,39 @@ async def test_repair_still_fails_surfaces_error_sentinel_not_empty(
     assert tool_use[0].input != {}
     assert INVALID_ARGS_SENTINEL in tool_use[0].input
     assert "invalid arguments for price_data" in tool_use[0].input[INVALID_ARGS_SENTINEL]
+
+
+@pytest.mark.asyncio
+async def test_repair_rejects_a_schema_echo_on_a_tool_with_no_required_keys(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-014: ``news`` requires nothing, so its own schema echoed back
+    validates as args. The repair must refuse it and fall to the sentinel."""
+    from services.agent_tools.schemas import TOOL_SCHEMAS
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    echo = json.dumps(TOOL_SCHEMAS["news"]["input_schema"])
+    _patch_client(monkeypatch, chunks=_tool_call_chunks("news", '{"symbols": ["AA'))
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return echo, None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="news on AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["news"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    assert INVALID_ARGS_SENTINEL in tool_use[0].input
 
 
 @pytest.mark.asyncio
