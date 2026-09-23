@@ -296,6 +296,33 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             kind="read_handler",
             timeout_seconds=15.0,
         ),
+        _cap(
+            "financial_statements",
+            description=(
+                "One financial statement for a company — income, balance sheet or "
+                "cash flow — annual (fiscal years) or quarterly (ISO period-end "
+                "dates), newest first, capped at the newest 8 periods "
+                "(periods_available says how many exist). Use for revenue, margin, "
+                "debt or cash-flow series over years or quarters; fundamentals "
+                "gives only point-in-time ratios."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string", "description": "Ticker, e.g. AAPL or TCS.NS"},
+                    "statement": {"type": "string", "enum": ["income", "balance", "cashflow"]},
+                    "period": {
+                        "type": "string",
+                        "enum": ["annual", "quarterly"],
+                        "default": "annual",
+                    },
+                },
+                ["symbol", "statement"],
+            ),
+            domain="fundamentals",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=30.0,
+        ),
         # --- news ------------------------------------------------------------
         _cap(
             "news",
