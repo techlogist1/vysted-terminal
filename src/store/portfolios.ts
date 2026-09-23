@@ -205,6 +205,23 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
     }),
 }));
 
+/**
+ * Replace every portfolio with the default one holding `holdings` — the
+ * one-time import of the legacy sidecar positions ledger (R15-LIFECYCLE-009).
+ */
+export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
+  usePortfoliosStore.getState().setAll(
+    [
+      {
+        id: DEFAULT_PORTFOLIO_ID,
+        name: DEFAULT_PORTFOLIO_NAME,
+        holdings: holdings.map((holding) => ({ ...holding, id: genId("h") })),
+      },
+    ],
+    DEFAULT_PORTFOLIO_ID,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Typed client for the host-action apply path (R10 §4 / E6).
 // Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import

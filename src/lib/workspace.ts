@@ -19,6 +19,7 @@ import { applyDefaultLayout } from "@/config/default-layout";
 import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { fetchLegacyPositions } from "@/modules/portfolio/api";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -36,7 +37,7 @@ import { type SearchSettingsBundle, useSearchSettingsStore } from "@/store/searc
 import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/store/screener";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
-import { type Portfolio, usePortfoliosStore } from "@/store/portfolios";
+import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
@@ -810,13 +811,21 @@ export async function restoreLastSessionOrDefault(
   enabledPanelIds: Set<string>,
 ): Promise<boolean> {
   const isLive = () => useWorkspaceStore.getState().dockviewApi === api;
+  let imported = false;
   try {
-    return await restoreSession(api, enabledPanelIds, isLive);
+    const session = await restoreSession(api, enabledPanelIds, isLive);
+    imported = session.imported;
+    return session.layoutRestored;
   } finally {
     // A replaced api's restore is superseded by the live api's own restore,
     // which settles the gate when it finishes.
     if (isLive()) {
       restoreSettled = true;
+      // The legacy import landed under the gate: save it now, so the blob
+      // carries `portfolios` and the next launch does not import again.
+      if (imported) {
+        autosaveLayout();
+      }
     }
   }
 }
@@ -825,39 +834,58 @@ async function restoreSession(
   api: DockviewApi,
   enabledPanelIds: Set<string>,
   isLive: () => boolean,
-): Promise<boolean> {
+): Promise<{ layoutRestored: boolean; imported: boolean }> {
+  const superseded = { layoutRestored: false, imported: false };
+  let saved: SerializedWorkspace | null = null;
+  let layoutRestored = false;
   try {
     const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
     if (!isLive()) {
-      return false; // api was disposed/replaced during the fetch
+      return superseded; // api was disposed/replaced during the fetch
     }
     if (response.ok) {
-      const workspace = (await response.json()) as SerializedWorkspace;
+      saved = (await response.json()) as SerializedWorkspace;
       if (!isLive()) {
-        return false;
+        return superseded;
       }
-      const layoutRestored = deserializeWorkspace(workspace);
+      layoutRestored = deserializeWorkspace(saved);
       // The reserved slot's name is internal — present the restored cockpit
       // under the neutral "default" name, not "__autosave__".
       useWorkspaceStore.getState().setName("default");
-      if (layoutRestored) {
-        return true;
-      }
-      // The saved layout references a component that is not registered — the
-      // data slices are already restored; fall through to the default layout.
     }
   } catch (error) {
     // Restore failed — log (Track A discipline) then fall through to default.
     console.warn("[workspace] session restore failed; using default layout.", error);
   }
+  // Holdings lived in the sidecar's SQLite ledger until they moved into the
+  // blob (12862d3); a session that has never saved `portfolios` imports that
+  // ledger once (R15-LIFECYCLE-009).
+  const imported = saved && "portfolios" in saved ? false : await importLegacyPositions();
   if (!isLive()) {
+    return superseded;
+  }
+  if (!layoutRestored) {
+    // No saved layout applied — re-base the fallback on a clean grid so a
+    // partial `fromJSON` can't leave a corrupt grid under `addPanel`.
+    api.clear();
+    applyDefaultLayout(api, enabledPanelIds);
+  }
+  return { layoutRestored, imported };
+}
+
+/** Seed the default portfolio from the legacy sidecar ledger; true when it held rows. */
+async function importLegacyPositions(): Promise<boolean> {
+  try {
+    const holdings = await fetchLegacyPositions();
+    if (holdings.length === 0) {
+      return false;
+    }
+    seedDefaultPortfolio(holdings);
+    return true;
+  } catch (error) {
+    console.warn("[workspace] could not read the legacy portfolio ledger.", error);
     return false;
   }
-  // Re-base the fallback on a clean grid so a partial `fromJSON` can't leave a
-  // corrupt grid under `addPanel`.
-  api.clear();
-  applyDefaultLayout(api, enabledPanelIds);
-  return false;
 }
 
 /** Trailing-edge window that coalesces a burst of changes into one autosave. */

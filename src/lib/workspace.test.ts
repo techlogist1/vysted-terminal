@@ -1327,3 +1327,145 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     expect(screens[0]?.universe).toBe("sp500");
   });
 });
+
+// ── one-time import of the pre-blob positions ledger (R15-LIFECYCLE-009) ───
+
+describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+  /** v0.8.0 rows, as `GET /portfolio/positions` returns them. */
+  const LEDGER = [
+    {
+      id: 1,
+      symbol: "RELIANCE.NS",
+      quantity: 10,
+      cost_basis: 2890.55,
+      asset_class: "equity",
+      opened_at: null,
+      note: "core",
+    },
+    {
+      id: 2,
+      symbol: "TCS.NS",
+      quantity: 5,
+      cost_basis: 3400,
+      asset_class: "equity",
+      opened_at: null,
+      note: null,
+    },
+    {
+      id: 3,
+      symbol: "BTC/USDT",
+      quantity: 0.05,
+      cost_basis: 60000,
+      asset_class: "crypto",
+      opened_at: null,
+      note: null,
+    },
+  ];
+
+  /** Stub the sidecar: the autosave slot answers `autosave` (404 when null),
+   *  the ledger answers LEDGER; returns every request as "METHOD path". */
+  function stubLedger(autosave: unknown, posts: SerializedWorkspace[]): string[] {
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url).pathname;
+        requests.push(`${init?.method ?? "GET"} ${path}`);
+        if (init?.method === "POST") {
+          posts.push(
+            (JSON.parse(String(init.body)) as { workspace: SerializedWorkspace }).workspace,
+          );
+          return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+        }
+        if (path === "/portfolio/positions") {
+          return { ok: true, status: 200, json: async () => LEDGER } as unknown as Response;
+        }
+        if (path === "/workspace/__autosave__" && autosave) {
+          return { ok: true, status: 200, json: async () => autosave } as unknown as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as unknown as Response;
+      }),
+    );
+    return requests;
+  }
+
+  const holdings = () =>
+    usePortfoliosStore
+      .getState()
+      .portfolios.flatMap((p) => p.holdings)
+      .map((h) => [h.symbol, h.quantity, h.costBasis, h.assetClass, h.note ?? null]);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    usePortfoliosStore.getState().setAll([], undefined);
+  });
+
+  afterEach(() => {
+    resetWorkspacePersistenceForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("imports the ledger once into a blob that never carried portfolios, and saves the import", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts: SerializedWorkspace[] = [];
+    const legacyBlob = { name: "__autosave__", layout: LAYOUT_A, enabledModules: {} };
+    stubLedger(legacyBlob, posts);
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const expected = [
+      ["RELIANCE.NS", 10, 2890.55, "equity", "core"],
+      ["TCS.NS", 5, 3400, "equity", null],
+      ["BTC/USDT", 0.05, 60000, "crypto", null],
+    ];
+    expect(holdings()).toEqual(expected);
+    expect(posts).toHaveLength(1);
+    expect(posts[0].portfolios?.list.flatMap((p) => p.holdings).map((h) => h.symbol)).toEqual([
+      "RELIANCE.NS",
+      "TCS.NS",
+      "BTC/USDT",
+    ]);
+
+    // Relaunch on the same portfolios-less blob (quit before the save landed):
+    // the import runs again but never duplicates.
+    resetWorkspacePersistenceForTests();
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(holdings()).toEqual(expected);
+
+    // Relaunch on the saved blob: it carries portfolios, so the ledger is not read.
+    resetWorkspacePersistenceForTests();
+    usePortfoliosStore.getState().setAll([], undefined);
+    const requests = stubLedger(posts[0], []);
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(requests).toEqual(["GET /workspace/__autosave__"]);
+    expect(holdings()).toEqual(expected);
+  });
+
+  it("never reads the ledger for a blob whose portfolios the user emptied", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const requests = stubLedger(
+      {
+        name: "__autosave__",
+        layout: LAYOUT_A,
+        enabledModules: {},
+        portfolios: {
+          list: [{ id: "default", name: "Portfolio", holdings: [] }],
+          activeId: "default",
+        },
+      },
+      [],
+    );
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(requests).toEqual(["GET /workspace/__autosave__"]);
+    expect(holdings()).toEqual([]);
+  });
+});
