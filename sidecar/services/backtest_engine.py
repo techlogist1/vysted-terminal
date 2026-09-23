@@ -309,8 +309,31 @@ async def _run_single_slice(
 
     last_close_per_symbol: dict[str, float] = {}
     peak_equity = initial_capital
+    pending_timestamp: str | None = None
+
+    def _mark_to_market(timestamp: str) -> None:
+        nonlocal peak_equity
+        equity_now = portfolio.equity(last_close_per_symbol)
+        peak_equity = max(peak_equity, equity_now)
+        drawdown_pct = (equity_now - peak_equity) / peak_equity if peak_equity > 0 else 0.0
+        equity_curve.append(
+            EquityCurvePoint(
+                timestamp=timestamp,
+                equity=equity_now,
+                drawdownPct=drawdown_pct,
+            )
+        )
 
     for bar in bars:
+        # Multiple symbols share a timestamp (bars_sorted is (timestamp,
+        # symbol) order): mark to market once per timestamp, after the last
+        # bar of that timestamp, not once per bar — otherwise N symbols
+        # produce N equity-curve points per date and the annualisation
+        # (sqrt(252), **252) treats them as N separate trading days.
+        if pending_timestamp is not None and bar.timestamp != pending_timestamp:
+            _mark_to_market(pending_timestamp)
+        pending_timestamp = bar.timestamp
+
         last_close_per_symbol[bar.symbol] = bar.close
         intents = await strategy.on_bar(bar, portfolio)
 
@@ -384,17 +407,10 @@ async def _run_single_slice(
                         break
                 portfolio.positions.pop(intent.symbol, None)
 
-        # Mark-to-market equity at this bar's close.
-        equity_now = portfolio.equity(last_close_per_symbol)
-        peak_equity = max(peak_equity, equity_now)
-        drawdown_pct = (equity_now - peak_equity) / peak_equity if peak_equity > 0 else 0.0
-        equity_curve.append(
-            EquityCurvePoint(
-                timestamp=bar.timestamp,
-                equity=equity_now,
-                drawdownPct=drawdown_pct,
-            )
-        )
+    # Mark to market the final timestamp's bars (the loop above only marks
+    # on a timestamp *boundary*, so the last timestamp needs its own point).
+    if pending_timestamp is not None:
+        _mark_to_market(pending_timestamp)
 
     # Replace closed-trade records with their updated versions.
     trades = [closed_lookup.get(t.id, t) for t in trades]
