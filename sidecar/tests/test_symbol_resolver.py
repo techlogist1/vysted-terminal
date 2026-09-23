@@ -489,6 +489,33 @@ def test_live_lookup_caches_successful_empty_results(monkeypatch) -> None:  # no
     assert _EmptySearch.calls == 1, "a successful empty search is a cacheable negative"
 
 
+def test_live_lookup_empty_result_expires_and_a_hit_does_not(monkeypatch) -> None:  # noqa: ANN001
+    """R15-DATA-097: a stock listed after the first miss is found once the empty
+    result expires; a non-empty result stays in the LRU."""
+    import yfinance as yf
+
+    class _Search(_CountingSearch):
+        quotes: list[dict] = []
+
+    def age(key: tuple[str, str]) -> None:
+        stamp, rows = symbol_resolver._live_cache[key]
+        ttl = symbol_resolver._LIVE_EMPTY_TTL_SECONDS
+        symbol_resolver._live_cache[key] = (stamp - ttl - 1, rows)
+
+    _Search.calls = 0
+    monkeypatch.setattr(yf, "Search", _Search)
+    assert symbol_resolver._live_lookup("new listing ltd", "IN") == []
+    _Search.quotes = [{"symbol": "NEWLIST.NS", "shortname": "New Listing Ltd"}]
+    age(("new listing ltd", "IN"))
+    rows = symbol_resolver._live_lookup("new listing ltd", "IN")
+    assert [i.yahoo_symbol for i in rows] == ["NEWLIST.NS"]
+    assert _Search.calls == 2
+
+    age(("new listing ltd", "IN"))
+    assert symbol_resolver._live_lookup("new listing ltd", "IN") == rows
+    assert _Search.calls == 2
+
+
 def test_live_lookup_failure_opens_cooldown_and_skips_network(monkeypatch) -> None:  # noqa: ANN001
     import yfinance as yf
 

@@ -124,7 +124,10 @@ _MAX_CANDIDATES = 6
 # a throttled/blocked upstream once per unresolved query.
 _LIVE_CACHE_MAX_ENTRIES = 128
 _LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
-_live_cache: OrderedDict[tuple[str, str], list[Instrument]] = OrderedDict()
+# A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
+# a post-snapshot listing, so a stale negative would hide it until restart.
+_LIVE_EMPTY_TTL_SECONDS = 300.0
+_live_cache: OrderedDict[tuple[str, str], tuple[float, list[Instrument]]] = OrderedDict()
 _live_cache_lock = threading.Lock()
 _live_cooldown_until = 0.0  # monotonic deadline; 0 = no cooldown
 
@@ -1137,9 +1140,10 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     rows rank first. Network/parse failures degrade to ``[]`` (the caller
     surfaces an honest "unresolved" — never raw JSON, never a guess).
 
-    Budgeted (R11, D58d): results — including a successful empty search — are
-    LRU-cached per ``(query, region)`` so repeated unresolved queries never
-    re-hit the network; ANY failure opens a short module-level cooldown during
+    Budgeted (R11, D58d): results are LRU-cached per ``(query, region)`` so
+    repeated unresolved queries never re-hit the network; a successful EMPTY
+    search expires after :data:`_LIVE_EMPTY_TTL_SECONDS` (a stock listed after
+    the first miss becomes findable); ANY failure opens a short module-level cooldown during
     which the live rung returns ``[]`` immediately. Rate-limit-shaped failures
     (``YFRateLimitError``) are reported to :mod:`services.provider_health`
     (the Yahoo family shares one IP reputation across every yfinance path);
@@ -1149,9 +1153,11 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     key = (query, region)
     with _live_cache_lock:
         cached = _live_cache.get(key)
-        if cached is not None:
+        if cached is not None and (
+            cached[1] or time.monotonic() - cached[0] < _LIVE_EMPTY_TTL_SECONDS
+        ):
             _live_cache.move_to_end(key)
-            return list(cached)
+            return list(cached[1])
         if time.monotonic() < _live_cooldown_until:
             return []
 
@@ -1191,7 +1197,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     if region == REGION_IN:
         out.sort(key=lambda i: i.region == REGION_IN, reverse=True)
     with _live_cache_lock:
-        _live_cache[key] = list(out)
+        _live_cache[key] = (time.monotonic(), list(out))
         _live_cache.move_to_end(key)
         while len(_live_cache) > _LIVE_CACHE_MAX_ENTRIES:
             _live_cache.popitem(last=False)
