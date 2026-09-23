@@ -35,6 +35,9 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 * **Results calendar** — the NSE ``event-calendar`` feed (board meetings,
   results, dividends), parsed dates, newest first.
 
+* **Deals** — bulk and block deals (NSE, or BSE for a BSE-only scrip) and SAST
+  Reg 29 disclosures (NSE), newest first (:func:`get_deals`).
+
 * **Corporate actions** — dividends, bonuses, splits, rights and buybacks from
   the NSE and BSE corporate-action feeds, a dual-listed action collapsed to one
   row (:func:`get_corporate_actions`).
@@ -69,6 +72,8 @@ from models.announcements import (
     AnnouncementWindow,
     CorporateAction,
     CorporateActionsResponse,
+    ExchangeDeal,
+    ExchangeDealsResponse,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
@@ -789,6 +794,160 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
 
 
 # ---------------------------------------------------------------------------
+# Bulk / block deals and SAST disclosures (R15-DATA-024).
+# ---------------------------------------------------------------------------
+
+DEAL_KINDS = ("bulk", "block", "sast")
+#: How far back the NSE bulk/block lanes are asked for (the feed is dated).
+_DEALS_LOOKBACK_DAYS = 365
+#: BSE's per-scrip bulk/block feed (the stock page's "Bulk / Block Deals" tab;
+#: ``type`` 1 = bulk, 2 = block). Observed live 2026-09-24 (scrip 539091 CCDL):
+#: ``{"Table": [{DEAL_DATE "23 Sep 2026", SCRIP_CODE, scripname, CLIENT_NAME,
+#: TRANSACTION_TYPE "B"|"S", QUANTITY, PRICE}], "Table1": [scrip meta]}``.
+_BSE_DEALS_URL = "https://api.bseindia.com/BseIndiaAPI/api/BulkblockDeal/w"
+_BSE_DEAL_TYPE = {"bulk": "1", "block": "2"}
+_SIDES = {"BUY": "buy", "B": "buy", "SELL": "sell", "S": "sell"}
+
+
+def _nse_deals(bare: str, kind: str) -> list[ExchangeDeal]:
+    """One NSE lane: bulk or block deals over the lookback, or SAST disclosures."""
+    if kind == "sast":
+        return [_nse_sast_deal(bare, row) for row in nse_provider.get_sast_disclosures(bare)]
+    today = _today_ist()
+    rows = nse_provider.get_bulk_block_deals(
+        bare, f"{kind}_deals", today - timedelta(days=_DEALS_LOOKBACK_DAYS), today
+    )
+    return [
+        _trade_deal(
+            bare,
+            kind,
+            EXCHANGE_NSE,
+            _parse_day(row.get("BD_DT_DATE")),
+            row.get("BD_CLIENT_NAME"),
+            row.get("BD_BUY_SELL"),
+            row.get("BD_QTY_TRD"),
+            row.get("BD_TP_WATP"),
+        )
+        for row in rows
+    ]
+
+
+def _bse_deals(bare: str, code: str, kind: str) -> list[ExchangeDeal]:
+    """One BSE lane (bulk or block) for a BSE-only scrip."""
+    payload = _bse_get_json(
+        _BSE_DEALS_URL, {"fromdt": "", "todt": "", "type": _BSE_DEAL_TYPE[kind], "scripcode": code}
+    )
+    table = payload.get("Table") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse {kind} deals: malformed payload for {bare!r}")
+    return [
+        _trade_deal(
+            bare,
+            kind,
+            EXCHANGE_BSE,
+            _parse_bse_day(row.get("DEAL_DATE")),
+            row.get("CLIENT_NAME"),
+            row.get("TRANSACTION_TYPE"),
+            row.get("QUANTITY"),
+            row.get("PRICE"),
+        )
+        for row in table
+        if isinstance(row, dict)
+    ]
+
+
+def _trade_deal(
+    bare: str,
+    kind: str,
+    exchange: str,
+    day: date | None,
+    party: object,
+    side: object,
+    quantity: object,
+    price: object,
+) -> ExchangeDeal:
+    qty, px = _pct(quantity), _pct(price)
+    return ExchangeDeal(
+        symbol=bare,
+        kind=kind,
+        date=day,
+        party=_clean(party),
+        side=_SIDES.get((_clean(side) or "").upper()),
+        quantity=qty,
+        price=px,
+        value=round(qty * px, 2) if qty is not None and px is not None else None,
+        exchange=exchange,
+    )
+
+
+def _nse_sast_deal(bare: str, row: dict) -> ExchangeDeal:
+    """A Reg 29 row: dated by the transaction's last day ("... to 07-SEP-2026")."""
+    sale = (_clean(row.get("acqSaleType")) or "").lower() == "sale"
+    period = _clean(row.get("acquirerDate")) or ""
+    return ExchangeDeal(
+        symbol=bare,
+        kind="sast",
+        date=_parse_day(period.rsplit(" to ", 1)[-1]),
+        party=_clean(row.get("acquirerName")),
+        side="sell" if sale else "buy",
+        quantity=_pct(row.get("noOfShareSale" if sale else "noOfShareAcq")),
+        percent_after=_pct(row.get("totAftShare")),
+        exchange=EXCHANGE_NSE,
+        source_url=_clean(row.get("attachement")),
+    )
+
+
+def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
+    """Bulk deals, block deals and SAST (Reg 29) disclosures for ``symbol``,
+    newest first (R15-DATA-024).
+
+    An NSE listing is served from NSE's bulk, block and SAST feeds; a BSE-only
+    scrip from BSE's bulk and block feeds (BSE carries no SAST lane here).
+    ``kind`` filters to one of :data:`DEAL_KINDS`. A failing lane is recorded in
+    ``errors`` and the rest is served; every applicable lane failing (or none
+    applying) raises :class:`ProviderError`.
+    """
+    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    if not bare:
+        raise ProviderError("disclosures: empty symbol")
+    if kind is not None and kind not in DEAL_KINDS:
+        raise ProviderError(f"disclosures: unknown deal kind {kind!r} (use bulk, block or sast)")
+    kinds = [kind] if kind else list(DEAL_KINDS)
+    if symbol_resolver.is_nse_symbol(bare):
+        lanes = [(f"{EXCHANGE_NSE} {k}", lambda k=k: _nse_deals(bare, k)) for k in kinds]
+    elif code := symbol_resolver.bse_scrip_code(bare):
+        lanes = [
+            (f"{EXCHANGE_BSE} {k}", lambda k=k: _bse_deals(bare, code, k))
+            for k in kinds
+            if k in _BSE_DEAL_TYPE
+        ]
+        if not lanes:
+            raise ProviderError(
+                f"disclosures: SAST disclosures come from NSE; {bare!r} is BSE-only"
+            )
+    else:
+        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+
+    deals: list[ExchangeDeal] = []
+    sources: list[str] = []
+    errors: dict[str, str] = {}
+    for name, fetch in lanes:
+        try:
+            deals.extend(fetch())
+            sources.append(name)
+        except ProviderError as exc:
+            logger.debug("disclosures: %s deals failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+    if not sources:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(f"disclosures: every deal source failed for {bare!r} ({detail})")
+    deals.sort(key=lambda d: d.date or date.min, reverse=True)
+    return ExchangeDealsResponse(
+        symbol=bare, kind=kind, count=len(deals), deals=deals, sources=sources, errors=errors
+    )
+
+
+# ---------------------------------------------------------------------------
 # Shareholding pattern (NSE quarterly master).
 # ---------------------------------------------------------------------------
 
@@ -1056,6 +1215,7 @@ def _as_float(value: object) -> float | None:
 
 
 __all__ = [
+    "DEAL_KINDS",
     "DEFAULT_LIMIT",
     "EXCHANGES",
     "EXCHANGE_BSE",
@@ -1064,6 +1224,7 @@ __all__ = [
     "get_announcements",
     "get_announcements_cached",
     "get_corporate_actions",
+    "get_deals",
     "get_results_calendar",
     "get_shareholding",
 ]

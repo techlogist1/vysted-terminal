@@ -89,6 +89,13 @@ DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
         "disclosure",
         "shareholding",
         "promoter",
+        "bulk deal",
+        "block deal",
+        "sast",
+        "corporate action",
+        "dividend",
+        "bonus",
+        "stock split",
     ),
     "quant": ("option", "greeks", "black-scholes", "bond", "yield curve", "implied vol"),
     "agents": ("agent", "delegate"),
@@ -821,6 +828,34 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+        ),
+        _cap(
+            "exchange_deals",
+            description=(
+                "Bulk deals, block deals and SAST (SEBI Reg 29 substantial-"
+                "acquisition) disclosures for an Indian (NSE/BSE) listed company, "
+                "newest first — who bought or sold a large block, at what price, and "
+                "(SAST) their holding after. Each row: kind, date, party, side, "
+                "quantity, price, value, percent_after, exchange, source_url. NSE "
+                "listings get all three (bulk/block over the last year); a BSE-only "
+                "scrip gets BSE bulk/block. The India counterpart of "
+                "sec_insider_transactions."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string", "description": "NSE/BSE ticker, e.g. KOPRAN."},
+                    "kind": {
+                        "type": "string",
+                        "enum": ["bulk", "block", "sast"],
+                        "description": "Optional filter; omit for every kind.",
+                    },
+                },
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=45.0,
         ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(

@@ -7,6 +7,7 @@ Typed shapes for the India corporate-disclosure feeds served by
   feed / BSE ``AnnSubCategoryGetData`` feed), merged + deduped by the service.
 * :class:`ResultsEvent` — one results-calendar / board-meeting event (the NSE
   ``event-calendar`` feed).
+* :class:`ExchangeDeal` — one bulk deal, block deal or SAST disclosure.
 * :class:`CorporateAction` — one dividend / bonus / split / rights / buyback
   (NSE + BSE corporate-action feeds, merged).
 * :class:`ShareholdingPattern` — one quarterly shareholding-pattern row. The
@@ -220,4 +221,42 @@ class CorporateActionsResponse(BaseModel):
     #: Exchanges that served this response.
     sources: list[str] = []
     #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}
+
+
+class ExchangeDeal(BaseModel):
+    """One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+    listing (R15-DATA-024). Fields a feed does not carry stay ``None``: bulk and
+    block deals carry no holding after; a SAST disclosure carries no price."""
+
+    symbol: str
+    kind: Literal["bulk", "block", "sast"]
+    #: Deal date (bulk/block) or the acquisition/sale date (SAST).
+    date: _dt.date | None = None
+    #: The client (bulk/block) or the acquirer/seller (SAST), verbatim.
+    party: str | None = None
+    side: Literal["buy", "sell"] | None = None
+    quantity: float | None = None
+    #: Weighted average trade price (bulk/block).
+    price: float | None = None
+    #: ``quantity`` x ``price`` (bulk/block).
+    value: float | None = None
+    #: The party's holding after the transaction, percent of shares (SAST).
+    percent_after: float | None = None
+    exchange: str
+    #: The filed disclosure (SAST attachment).
+    source_url: str | None = None
+
+
+class ExchangeDealsResponse(BaseModel):
+    """``GET /disclosures/deals`` — bulk/block deals and SAST, newest first."""
+
+    symbol: str
+    #: The kind filter applied, or ``None`` for every kind.
+    kind: str | None = None
+    count: int
+    deals: list[ExchangeDeal] = []
+    #: The lanes that served ("NSE bulk", "NSE sast", "BSE block", ...).
+    sources: list[str] = []
+    #: Lanes attempted but failed, with the reason (partial result served).
     errors: dict[str, str] = {}

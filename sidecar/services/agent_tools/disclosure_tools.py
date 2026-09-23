@@ -12,6 +12,8 @@ research run on an Indian name can pull real filings:
   ``split_basis`` carry the provenance — never fabricated).
 * ``corporate_actions(symbol)`` — dividends, bonuses, splits, rights and
   buybacks from both exchanges with ex/record/payment dates.
+* ``exchange_deals(symbol, kind=None)`` — bulk/block deals and SAST (Reg 29)
+  disclosures, newest first.
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. Both are
@@ -107,16 +109,43 @@ async def _corporate_actions(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+async def _exchange_deals(args: dict[str, Any]) -> dict[str, Any]:
+    """Bulk/block deals and SAST disclosures for ``symbol``, newest first."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    kind = args.get("kind")
+    if kind is not None and kind not in corporate_disclosures.DEAL_KINDS:
+        return {"ok": False, "error": f"unknown kind {kind!r} (use bulk, block or sast)"}
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_deals, symbol, kind)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+    return {
+        "ok": True,
+        "symbol": response.symbol,
+        "kind": response.kind,
+        "sources": response.sources,
+        "errors": response.errors,
+        "count": response.count,
+        "deals": [deal.model_dump(mode="json") for deal in response.deals],
+    }
+
+
 def register() -> None:
     """Register the disclosure family with the agent-tool registry."""
     register_tool("corporate_announcements", _corporate_announcements)
     register_tool("shareholding_pattern", _shareholding_pattern)
     register_tool("corporate_actions", _corporate_actions)
+    register_tool("exchange_deals", _exchange_deals)
 
 
 __all__ = [
     "_corporate_actions",
     "_corporate_announcements",
+    "_exchange_deals",
     "_shareholding_pattern",
     "register",
 ]

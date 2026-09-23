@@ -430,6 +430,43 @@ export interface ShareholdingPattern {
 }
 
 /**
+ * One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+ * listing. Fields a feed does not carry are null (bulk/block carry no holding
+ * after; SAST carries no price).
+ */
+export interface ExchangeDeal {
+  symbol: string;
+  kind: "bulk" | "block" | "sast";
+  /** ISO date: the deal date, or the SAST acquisition/sale date. */
+  date: string | null;
+  party: string | null;
+  side: "buy" | "sell" | null;
+  quantity: number | null;
+  /** Weighted average trade price (bulk/block). */
+  price: number | null;
+  /** quantity x price (bulk/block). */
+  value: number | null;
+  /** The party's holding after the transaction, percent of shares (SAST). */
+  percent_after: number | null;
+  exchange: string;
+  /** The filed disclosure (SAST attachment). */
+  source_url: string | null;
+}
+
+/** `GET /disclosures/deals` — bulk/block deals and SAST, newest first. */
+export interface ExchangeDealsResponse {
+  symbol: string;
+  /** The kind filter applied, or null for every kind. */
+  kind: string | null;
+  count: number;
+  deals: ExchangeDeal[];
+  /** Lanes that served ("NSE bulk", "NSE sast", "BSE block", ...). */
+  sources: string[];
+  /** Lanes attempted but failed, with the reason (partial result served). */
+  errors: Record<string, string>;
+}
+
+/**
  * One corporate action of an Indian listing: a dividend, bonus, split, rights
  * issue or buyback. `purpose` is the exchange's verbatim line; `ratio` and
  * `amount_per_share` are parsed from it (null when absent). `exchange` is
