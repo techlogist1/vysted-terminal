@@ -70,6 +70,30 @@ def test_list_custom_agents_after_create(client: TestClient, temp_data_dir: obje
 
 
 # --------------------------------------------------------------------------
+# Tool ids (R15-UI-003 / R15-CODE-FRONTEND-020)
+# --------------------------------------------------------------------------
+
+
+def test_tool_ids_equals_agent_selectable_tool_ids(client: TestClient) -> None:
+    """The route is the ONE source the builder reads — it must equal the
+    same function `models.custom_agent.KNOWN_TOOL_IDS` derives from, so the
+    builder can never drift from the host's actual capability catalog."""
+    from services.agent_tools.catalog import agent_selectable_tool_ids
+
+    response = client.get("/custom-agents/tool-ids")
+    assert response.status_code == 200
+    assert response.json() == sorted(agent_selectable_tool_ids())
+
+
+def test_tool_ids_route_not_swallowed_by_agent_id_path(client: TestClient) -> None:
+    """`/tool-ids` must resolve to the dedicated route, not `/{agent_id:path}`
+    (which would 400 on a non-`custom:`-prefixed id)."""
+    response = client.get("/custom-agents/tool-ids")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+# --------------------------------------------------------------------------
 # Create
 # --------------------------------------------------------------------------
 
