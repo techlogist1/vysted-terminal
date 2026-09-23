@@ -5,16 +5,12 @@
  * friction, not the intent.
  *
  *   - **ask**  (default) — every proposed change waits in the diff/accept gate.
- *   - **auto** — UI/layout/chart/watchlist changes apply WITHOUT a per-action
- *                confirmation (still shown in the transcript as a record).
+ *   - **auto** — every host action (panel / chart / watchlist / data-write /
+ *                settings) applies WITHOUT a per-action confirmation (still
+ *                shown in the transcript as a record).
  *
- * HARD SAFETY LINE (never crossed in any mode): `auto` only skips the per-change
- * accept for the read-only-app host-actions (panel / chart / watchlist). It is
- * NEVER a path around §6.5 for an order — `propose_order` ALWAYS routes through
- * the confirm-before-place dialog, in every autonomy mode (enforced in
- * `proposed-changes` by excluding `kind === "order"` from the auto-apply path,
- * and again by `accept()` routing orders to the §6.5 dialog regardless). Brokers
- * stay read-only; autonomy changes friction, not safety enforcement.
+ * Vysted has no brokerage connection, so no host action can place, stage or
+ * simulate a trade in any mode; autonomy changes confirmation friction only.
  */
 
 import { create } from "zustand";

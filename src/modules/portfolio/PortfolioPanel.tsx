@@ -815,7 +815,7 @@ export function PortfolioPanel() {
           <EmptyState
             icon={Briefcase}
             headline="This portfolio is empty"
-            hint="Manually add a stock or crypto holding to track P&L, weight, and concentration — no broker connection required."
+            hint="Manually add a stock or crypto holding to track P&L, weight, and concentration."
             cta={{
               label: "Add your first holding",
               primary: true,

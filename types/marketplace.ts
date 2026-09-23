@@ -1,7 +1,7 @@
 /**
  * Marketplace / unified-extension types (FR-050–054, US10).
  *
- * The marketplace is the app's PRIMARY extensibility model: brokers, data
+ * The marketplace is the app's PRIMARY extensibility model: data
  * providers/connectors, panels, and agents are all install/enable/configure/
  * remove marketplace plugins — one model, not hardcoded first-class citizens.
  * These types are the host-side companion metadata for the locked, serializable
@@ -11,10 +11,8 @@
  * the declarative BYOK credential shape the credentials hub renders generically.
  */
 
-import type { BrokerId } from "./broker";
-
 /** The extension categories the marketplace governs — all under one lifecycle. */
-export type MarketplaceCategory = "broker" | "data" | "panel" | "agent" | "analytics";
+export type MarketplaceCategory = "data" | "panel" | "agent" | "analytics";
 
 export type CredentialFieldType = "text" | "password";
 
@@ -50,17 +48,12 @@ export interface MarketplaceEntry {
   author?: string;
   /** Lucide icon name. */
   icon?: string;
-  /**
-   * Pre-installed + enabled by default (first-party). Brokers are ALWAYS false
-   * (FR-051 — no broker registered at boot; the user installs the one they want).
-   */
+  /** Pre-installed + enabled by default (first-party). */
   preinstalled: boolean;
   /** Declarative BYOK credentials the configure form renders (FR-034). */
   credentialFields?: CredentialField[];
-  /** Keychain namespace for this plugin's secrets ("broker" | "plugin"). */
-  secretNamespace?: "plugin" | "broker";
-  /** For broker entries: the sidecar broker id (e.g. "kite") for keychain + routes. */
-  brokerId?: BrokerId;
+  /** Keychain namespace for this plugin's secrets. */
+  secretNamespace?: "plugin";
   /** Where-to-get-credentials link + instructions (FR-034 "needs no key" surface). */
   website?: string;
   instructions?: string;

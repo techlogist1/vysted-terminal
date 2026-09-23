@@ -18,7 +18,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
 /**
- * Canonical namespace builders for the four secret categories Vysted
+ * Canonical namespace builders for the secret categories Vysted
  * persists in the OS keychain. Frontend, sidecar, and plugin authors all
  * read these strings — keep them stable across releases unless coordinating
  * a migration.
@@ -34,22 +34,10 @@ export const KEYCHAIN_NAMESPACES = {
   pluginSecret: (pluginId: string, key: string): string => `plugin-secret:${pluginId}:${key}`,
 
   /**
-   * Broker credential (Phase 5). One entry per broker × field — e.g.
-   * `broker:alpaca:api_key`, `broker:kite:access_token`,
-   * `broker:dhan:client_id`. Brokers with multiple OAuth-style fields
-   * store each under its own `field` so revoking one does not require
-   * re-entering the others. The disclaimer-ack persisted state
-   * (`first-launch-tos`, per-broker `first-connect-ack`) lives under
-   * `broker:_meta:first-launch-tos` and
-   * `broker:<broker-id>:_meta:first-connect-ack` respectively.
-   */
-  broker: (brokerId: string, field: string): string => `broker:${brokerId}:${field}`,
-
-  /**
    * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
    * Used for durable first-run state that must survive a workspace-layout reset
-   * or an imported older blob (the same durability reason the disclaimer acks use
-   * the keychain). Carries no secret; the stored value is a timestamp/choice tag.
+   * or an imported older blob (the same durability reason the first-launch terms
+   * ack uses the keychain). Carries no secret; the stored value is a timestamp/choice tag.
    */
   appMeta: (key: string): string => `app-meta:${key}`,
 } as const;
@@ -83,8 +71,8 @@ export interface KeychainMigrateReport {
 /**
  * Every account the dev keystore migration should sweep from the OS keychain on
  * first dev boot. Generous by design — reading a non-existent account is a
- * harmless `None`. Covers the four named items plus every provider, the known
- * brokers, and the plugin/news secrets, so the operator's configured
+ * harmless `None`. Covers every provider, the app-meta flags, and the
+ * plugin/news secrets, so the operator's configured
  * keys carry over without a single extra dialog after the migration read.
  */
 export function devKeystoreMigrationAccounts(): string[] {
@@ -100,20 +88,9 @@ export function devKeystoreMigrationAccounts(): string[] {
     "perplexity",
     "mistral",
   ];
-  const brokers = ["kite", "alpaca", "dhan"];
-  const brokerFields = [
-    "api_key",
-    "api_secret",
-    "access_token",
-    "client_id",
-    "_meta:first-connect-ack",
-  ];
   const accounts = new Set<string>();
   for (const id of providers) accounts.add(KEYCHAIN_NAMESPACES.llmProvider(id));
-  accounts.add("broker:_meta:first-launch-tos");
-  for (const b of brokers) {
-    for (const f of brokerFields) accounts.add(`broker:${b}:${f}`);
-  }
+  accounts.add(KEYCHAIN_NAMESPACES.appMeta("first-launch-terms"));
   accounts.add(KEYCHAIN_NAMESPACES.appMeta("onboarding-complete"));
   // Plugin / external-service secrets that have shipped.
   accounts.add(KEYCHAIN_NAMESPACES.pluginSecret("vysted-news", "newsapi_key"));

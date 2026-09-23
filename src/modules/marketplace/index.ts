@@ -4,8 +4,8 @@ import { MarketplacePanel } from "./MarketplacePanel";
 
 /**
  * Marketplace module (FR-050, US10) — the app's primary extensibility front
- * door: install/enable/configure/remove brokers, data providers, panels, and
- * agents under one lifecycle. Distinct from the plugin-manager (which shows
+ * door: install/enable/configure/remove data providers, panels, and agents
+ * under one lifecycle. Distinct from the plugin-manager (which shows
  * runtime health of loaded plugins); the marketplace is where capability is
  * gained. The configure form doubles as the BYOK credentials hub (FR-034).
  */
@@ -27,8 +27,7 @@ export const marketplaceModule: VystedModule = {
       id: "marketplace.open",
       trigger: "marketplace",
       title: "Open Marketplace",
-      description:
-        "Install, enable, configure, and remove extensions (brokers, data, panels, agents)",
+      description: "Install, enable, configure, and remove extensions (data, panels, agents)",
       icon: "store",
       opensPanel: "marketplace",
     },

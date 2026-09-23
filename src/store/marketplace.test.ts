@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Keychain is the only credential path; mock it so configure() doesn't touch a
-// real OS keychain. getSecret returns null by default (broker unconfigured).
+// real OS keychain. getSecret returns null by default (plugin unconfigured).
 const setSecretMock = vi.hoisted(() =>
   vi.fn<(account: string, value: string) => Promise<void>>(async () => undefined),
 );
@@ -54,14 +54,15 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
     detach = null;
   });
 
-  it("defaults: brokers are NOT installed at boot; first-party data IS (FR-051)", () => {
-    expect(useMarketplaceStore.getState().stateFor("vysted-kite").installed).toBe(false);
+  it("defaults: first-party data is installed at boot", () => {
     expect(useMarketplaceStore.getState().stateFor("vysted-yfinance").installed).toBe(true);
   });
 
-  it("installs a broker through the marketplace — zero host code change (SC-013)", async () => {
-    await useMarketplaceStore.getState().install("vysted-kite");
-    const state = useMarketplaceStore.getState().stateFor("vysted-kite");
+  it("installs a plugin through the marketplace — zero host code change (SC-013)", async () => {
+    await useMarketplaceStore.getState().remove("vysted-example");
+    expect(useMarketplaceStore.getState().stateFor("vysted-example").installed).toBe(false);
+    await useMarketplaceStore.getState().install("vysted-example");
+    const state = useMarketplaceStore.getState().stateFor("vysted-example");
     expect(state.installed).toBe(true);
     expect(state.enabled).toBe(true);
     expect(state.runtimeState).toBe("active");
@@ -78,25 +79,26 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
     expect(useMarketplaceStore.getState().stateFor("vysted-yfinance").runtimeState).toBe("active");
   });
 
-  it("removing a broker marks it not-installed (its capabilities disappear)", async () => {
-    await useMarketplaceStore.getState().install("vysted-kite");
-    await useMarketplaceStore.getState().remove("vysted-kite");
-    expect(useMarketplaceStore.getState().stateFor("vysted-kite").installed).toBe(false);
+  it("removing a plugin marks it not-installed (its capabilities disappear)", async () => {
+    await useMarketplaceStore.getState().install("vysted-example");
+    await useMarketplaceStore.getState().remove("vysted-example");
+    expect(useMarketplaceStore.getState().stateFor("vysted-example").installed).toBe(false);
     // Its plugin module is disabled in the registry projection.
-    expect(useModulesStore.getState().enabled["plugin:vysted-kite"]).toBe(false);
+    expect(useModulesStore.getState().enabled["plugin:vysted-example"]).toBe(false);
   });
 
-  it("configure writes BYOK creds to the keychain under the broker namespace (FR-034/FR-036)", async () => {
-    await useMarketplaceStore.getState().install("vysted-kite");
+  it("configure writes BYOK creds to the keychain under the plugin-secret namespace (FR-034/FR-036)", async () => {
+    await useMarketplaceStore.getState().install("vysted-news");
     setSecretMock.mockClear();
-    await useMarketplaceStore.getState().configure("vysted-kite", {
-      api_key: "my-key",
-      api_secret: "my-secret",
+    await useMarketplaceStore.getState().configure("vysted-news", {
+      newsapi_key: "my-secret",
     });
     const accounts = setSecretMock.mock.calls.map((c) => c[0]);
-    expect(accounts).toContain("broker:kite:api_key");
-    expect(accounts).toContain("broker:kite:api_secret");
+    expect(accounts).toContain("plugin-secret:vysted-news:newsapi_key");
     // The secret values are passed to the keychain only — never elsewhere.
-    expect(setSecretMock).toHaveBeenCalledWith("broker:kite:api_secret", "my-secret");
+    expect(setSecretMock).toHaveBeenCalledWith(
+      "plugin-secret:vysted-news:newsapi_key",
+      "my-secret",
+    );
   });
 });

@@ -1,21 +1,14 @@
 "use client";
 
 /**
- * DisclaimerFlow — BLUEPRINT §6.5 #8, three layered surfaces.
+ * DisclaimerFlow — the first-launch research terms (onboarding gate).
  *
- *   1. **First-launch TOS** — keychain-backed
- *      (`broker:_meta:first-launch-tos`). Renders a blocking modal on the
- *      very first launch.
- *   2. **Per-broker first-connect** — keychain-backed
- *      (`broker:<id>:_meta:first-connect-ack`). The BrokerConnectPanel
- *      surfaces this dialog when the user clicks Connect on a broker that
- *      has never been acked.
- *   3. **First-live-order-per-session** — sidecar in-memory; resets on
- *      sidecar restart. Fired by the `OrderConfirmationDialog` when the
- *      user confirms a live order AND `hasSessionAck(broker) === false`.
+ * Keychain-backed (`KEYCHAIN_NAMESPACES.appMeta("first-launch-terms")`).
+ * Renders a blocking modal on the very first launch; `OnboardingFlow`
+ * sequences after the ack. It is the product's only in-app
+ * "not investment advice" notice.
  *
- * No `localStorage` / `sessionStorage`. Persistent acks live in the OS
- * keychain via `KEYCHAIN_NAMESPACES.broker(id, field)`.
+ * No `localStorage` / `sessionStorage`. The ack lives in the OS keychain.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -32,17 +25,14 @@ import {
 } from "@/components/ui/dialog";
 import { useSafetyStore } from "@/store/safety";
 
-import type { BrokerId } from "../../../types/broker";
-
-const TOS_BODY = `Vysted Terminal connects to live trading venues using credentials you supply. Vysted does not custody funds, does not provide investment advice, and is not a registered broker-dealer.
+const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
 
 By continuing you acknowledge:
 
-- All orders sent to your broker are your own. The terminal will surface a confirmation dialog before any order is placed.
-- AI-generated proposals are AI-generated; you remain solely responsible for any order you confirm.
-- Live trading mode requires per-broker disclaimer acknowledgment.
-- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) plus a commercial license — see LICENSING.md.
-- A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally; use it in any emergency.`;
+- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+- Market data may be delayed, incomplete or wrong. Check anything you rely on against the source.
+- AI-generated analysis can be wrong. You remain solely responsible for your own decisions.
+- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md.`;
 
 export function FirstLaunchTosDialog() {
   const firstLaunchTosAcked = useSafetyStore((s) => s.firstLaunchTosAcked);
@@ -90,9 +80,7 @@ export function FirstLaunchTosDialog() {
       >
         <DialogHeader>
           <DialogTitle>Welcome to Vysted</DialogTitle>
-          <DialogDescription>
-            Please review the operating terms before connecting a broker.
-          </DialogDescription>
+          <DialogDescription>Please review the terms before you start.</DialogDescription>
         </DialogHeader>
         <pre
           className={
@@ -122,108 +110,8 @@ export function FirstLaunchTosDialog() {
   );
 }
 
-interface BrokerFirstConnectDialogProps {
-  broker: BrokerId;
-  open: boolean;
-  onAccept: () => void;
-  onCancel: () => void;
-}
-
-export function BrokerFirstConnectDialog({
-  broker,
-  open,
-  onAccept,
-  onCancel,
-}: BrokerFirstConnectDialogProps) {
-  const refreshBrokerFirstConnectAck = useSafetyStore((s) => s.refreshBrokerFirstConnectAck);
-  const ackBrokerFirstConnect = useSafetyStore((s) => s.ackBrokerFirstConnect);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      void refreshBrokerFirstConnectAck(broker);
-    }
-  }, [open, broker, refreshBrokerFirstConnectAck]);
-
-  const handleAccept = useCallback(async () => {
-    setBusy(true);
-    try {
-      await ackBrokerFirstConnect(broker);
-      onAccept();
-    } finally {
-      setBusy(false);
-    }
-  }, [ackBrokerFirstConnect, broker, onAccept]);
-
-  if (!open) {
-    return null;
-  }
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(value) => {
-        if (!value) {
-          onCancel();
-        }
-      }}
-    >
-      <DialogContent
-        data-testid={`broker-first-connect-dialog-${broker}`}
-        className="bg-charcoal-900 border-charcoal-700"
-      >
-        <DialogHeader>
-          <DialogTitle>Connect to {broker}</DialogTitle>
-          <DialogDescription>
-            Broker-specific terms reminder for {broker}. Acknowledge once per broker.
-          </DialogDescription>
-        </DialogHeader>
-        <p className="text-charcoal-400 text-caption leading-relaxed">
-          You are about to connect Vysted Terminal to your <strong>{broker}</strong> account. Vysted
-          will store your credentials in the OS keychain (never in plain files); your credentials
-          never leave the local machine. By accepting you confirm you have read{" "}
-          {brokerHandle(broker)} terms of service.
-        </p>
-        <DialogFooter>
-          <Button variant="ghost" onClick={onCancel} disabled={busy}>
-            Cancel
-          </Button>
-          <Button
-            data-testid="broker-first-connect-accept"
-            variant="default"
-            onClick={handleAccept}
-            disabled={busy}
-          >
-            I have read {brokerHandle(broker)} terms — continue
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function brokerHandle(broker: BrokerId): string {
-  switch (broker) {
-    case "dhan":
-      return "Dhan's";
-    case "angelone":
-      return "Angel One's";
-    case "kite":
-      return "Kite's";
-    case "alpaca":
-      return "Alpaca's";
-    case "ib":
-      return "Interactive Brokers'";
-    case "oanda":
-      return "OANDA's";
-    default:
-      return "the exchange's";
-  }
-}
-
 /**
- * Host component — renders the TOS modal at the app shell level. The other
- * two surfaces are rendered inline where they belong.
+ * Host component — renders the terms modal at the app shell level.
  */
 export function DisclaimerFlow() {
   return <FirstLaunchTosDialog />;

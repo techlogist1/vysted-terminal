@@ -170,9 +170,8 @@ export async function streamAgentInvocation(
     // mode vocabulary is gone (the spine collapsed to agent|delegate, S-15).
     mode: payload.mode ?? "agent",
     // Autonomy axis (ORTHOGONAL to mode): the sidecar threads this into the
-    // host-action narration so the copilot tells the truth — in "auto" a non-order
+    // host-action narration so the copilot tells the truth — in "auto" a
     // change is ALREADY applied (past tense); in "ask" it is staged for review.
-    // Orders always require confirmation regardless (§6.5).
     autonomy: payload.autonomy,
     options: wireOptions(payload.options),
   });

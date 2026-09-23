@@ -14,8 +14,7 @@ import type { ProposedChange } from "../../../types/proposed-change";
  * The diff/accept trust gate UI (FR-010, US4). Agent-proposed cockpit mutations
  * are staged here as old→new diffs; nothing applies until the user accepts.
  * Per-item Accept/Reject plus bulk Accept all / Reject all. Bulk is also keyboard
- * driven from the agent surface (⌘↵ accept all, ⌘⌫ reject all). For orders the
- * Accept opens the §6.5 confirm-before-place dialog — never a direct placement.
+ * driven from the agent surface (⌘↵ accept all, ⌘⌫ reject all).
  */
 export function ProposedChangesReview() {
   const changes = useProposedChangesStore((state) => state.changes);
@@ -113,11 +112,6 @@ function ProposedChangeCard({
             <span className="text-negative/80 block break-all">− {change.before}</span>
             <span className="text-positive/90 block break-all">+ {change.after}</span>
           </div>
-          {change.kind === "order" && (
-            <div className="text-warning text-micro mt-0.5">
-              Accept opens the confirm-before-place dialog — nothing is placed automatically.
-            </div>
-          )}
           {change.detail && (
             <div className="text-negative text-micro mt-0.5">
               Couldn&rsquo;t apply: {change.detail} — try again.

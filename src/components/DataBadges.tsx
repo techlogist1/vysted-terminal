@@ -3,9 +3,8 @@
  *
  * Two token-driven, reduced-motion-safe chips that label a value's origin and
  * freshness so a user (or the copilot reading the surface) never mistakes a
- * cached / structured-only / synthetic read for a live one. They mirror the
- * established FR-041 broker provenance badge (`modules/broker-connect/
- * BrokerReadsSection`) but are generic so any Pass-B surface can reuse them:
+ * cached / structured-only / synthetic read for a live one. They are generic
+ * so any Pass-B surface can reuse them:
  *
  *  - {@link ProvenanceBadge} — WHERE the data came from (the provider label),
  *    with an optional `synthetic` flag that re-colours it as a caution.
@@ -30,8 +29,8 @@ const CHIP =
 /**
  * Provider-origin badge. Reads `<provider>` normally; a `synthetic` value is
  * re-coloured to the caution token and labelled so a placeholder is never
- * mistaken for a real read. `prefix` (e.g. a mode like `PAPER`/`EOD`) is shown
- * ahead of the provider when supplied, matching the broker badge's `MODE · src`.
+ * mistaken for a real read. `prefix` (e.g. a mode like `EOD`) is shown ahead of
+ * the provider when supplied (`MODE · src`).
  */
 export function ProvenanceBadge({
   provider,
