@@ -162,7 +162,9 @@ def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
 
 # Fundamentals fields that are identity / metadata, not served data VALUES —
 # excluded from the per-field provenance map (R13, deliverable 5).
-_PROVENANCE_EXCLUDED_FIELDS = frozenset({"symbol", "provider", "growth_basis", "field_meta"})
+_PROVENANCE_EXCLUDED_FIELDS = frozenset(
+    {"symbol", "provider", "growth_basis", "field_meta", "financial_currency"}
+)
 
 # Fields ``get_fundamentals`` does NOT source from yfinance's ``info`` snapshot —
 # they are computed downstream (the research derived leg: trailing-12m dividends,
