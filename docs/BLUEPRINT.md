@@ -11,13 +11,13 @@
 
 ## TL;DR
 
-Vysted Terminal is a **source-available AI-native finance terminal** — Bloomberg-level coverage, TradingView-killer charting, JARVIS-style AI sandboxability, all in a desktop app that runs locally with bring-your-own-keys. Tradesa V2 is the first plugin proving the platform architecture.
+Vysted Terminal is a **source-available AI-native finance terminal** — Bloomberg-level coverage, TradingView-killer charting, JARVIS-style AI sandboxability, all in a desktop app that runs locally with bring-your-own-keys.
 
 **Product identity:** *Finance sandbox* — modular, plug-and-play, infinitely extensible by users and plugins.
 
 **Positioning:** An open, extensible alternative to closed financial terminals — Bloomberg-level coverage and AI-native research, with a plugin architecture as the core differentiator.
 
-**v1.0 scope:** ~38 modules, 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine, Tradesa V2 plugin shipped.
+**v1.0 scope:** ~37 modules, 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
 
 **Launch budget: $0.** Upgrade path defined for when revenue/business interest justifies it.
 
@@ -54,7 +54,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 | Backend | Local Python sidecar (FastAPI on localhost) |
 | Data layer | OpenBB ODP wrapped as runtime sidecar (~100 providers) |
 | AI | BYOK for all major LLM providers + local Ollama + 12 pre-built agents + Custom Agent Builder |
-| Plugin architecture | Full VystedPlugin contract; Tradesa V2 = plugin #1 |
+| Plugin architecture | Full VystedPlugin contract (Tradesa V2, the original plugin #1, was removed — E11/D81) |
 | License | PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md) |
 | OS targets | Windows + macOS + Linux at v1.0 |
 | Distribution | GitHub Releases + Tauri auto-updater + SignPath.io (Win, free OSS) + ad-hoc + bypass docs (Mac at $0 launch) + AppImage (Linux) + Homebrew cask |
@@ -62,7 +62,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 | MCP server | In v1.0 |
 | Backtest engine | In v1.0 (Python sidecar) |
 | Node editor | In v1.0 (react-flow) |
-| Broker execution | Global broker support + execution in v1.0 — six brokers + ccxt crypto wrap, paper-mode default, shared safety layer (§6.5) |
+| Trading | None — no broker connectivity, order placement or simulated account (D81, operator, 23 Sep 2026) |
 | Web companion | Deferred to v2.0+ |
 | Hosted backend | None — fully local, BYOK |
 
@@ -125,7 +125,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
                 │ Plugin SDK contracts
 ┌───────────────▼─────────────────────────────────┐
 │  Plugins                                         │
-│  - Tradesa V2 plugin (plugin #1)                │
+│  - Data plugins (yfinance, news, lenses)        │
 │  - OpenBB ODP wrap plugin (data-only)           │
 │  - Future plugins                               │
 └─────────────────────────────────────────────────┘
@@ -181,7 +181,13 @@ export interface VystedPlugin {
 }
 ```
 
-**Tradesa V2 plugin** implements all six capabilities. **OpenBB ODP wrap plugin** implements only `contributesData`. Future plugins pick whichever capabilities fit.
+**OpenBB ODP wrap plugin** implements only `contributesData`. Future plugins pick whichever capabilities fit.
+
+> `PluginType` (and the JSDoc examples in `types/plugin.ts`) still include
+> `"trading-bot"` and Tradesa-shaped examples. `types/plugin.ts` is Tier-1
+> locked, so this line was **not** changed by D81's trading removal
+> (23 Sep 2026) — see `docs/redesign/DECISIONS_FOR_OPERATOR.md` for the
+> BLOCKED-FOR-OPERATOR item.
 
 ### 3.4 AI Sandboxability Architecture
 
@@ -225,7 +231,7 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 
 ---
 
-## 4. Module Catalog (~38 modules in v1.0)
+## 4. Module Catalog (~37 modules in v1.0)
 
 ### Foundation (8)
 1. Tauri 2.x desktop shell (Win/Mac/Linux)
@@ -261,51 +267,27 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 25. Comparison overlays (peer comparison on same chart)
 26. Volume profile + market profile
 
-### Portfolio & Risk (3)
-27. Position tracking + P&L attribution (local SQLite)
+### Portfolio & Risk (2)
+27. Position tracking + P&L attribution (local SQLite, manually tracked holdings — no broker connection)
 28. Risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix)
-29. Paper trading sandbox engine (event-driven simulation)
 
 ### Research (4)
-30. Equity overview panel (price + ratios + statements + analyst ratings in one view)
-31. SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider)
-32. Earnings calendar
-33. Analyst ratings aggregator
+29. Equity overview panel (price + ratios + statements + analyst ratings in one view)
+30. SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider)
+31. Earnings calendar
+32. Analyst ratings aggregator
 
 ### AI / Automation (5)
-34. Multi-LLM chat sidebar (OpenAI / Anthropic / DeepSeek / Groq / Gemini / xAI / Ollama)
-35. 12 pre-built agents (config-driven, listed in §3.4)
-36. Custom Agent Builder UI (define agent without code)
-37. Node editor for workflow automation (react-flow based)
-38. Backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration)
+33. Multi-LLM chat sidebar (OpenAI / Anthropic / DeepSeek / Groq / Gemini / xAI / Ollama)
+34. 12 pre-built agents (config-driven, listed in §3.4)
+35. Custom Agent Builder UI (define agent without code)
+36. Node editor for workflow automation (react-flow based)
+37. Backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration)
 
 ### Customization Layer (3, baked into core)
 - License gate UI (PolyForm Strict/commercial choice on first launch)
 - Module toggle UI in settings (every module enable/disable)
 - Workspace save/load/export/import (`.vysted-workspace` JSON files)
-
-### Broker & Trading Plugins
-
-Execution is a v1.0 capability, not a deferral. Each broker is a **separate plugin** implementing the existing `VystedPlugin` contract — no contract changes (data via `getDataSources`, panels via `getPanels`, order actions via `executeCommand`). Every broker plugin routes execution through the shared safety layer in §6.5.
-
-**Tradesa V2 plugin** (one plugin, multi-panel) — still the proof-of-platform exercise, implementing all six plugin capabilities:
-- 9-12 panels (decisions feed, open positions, P&L chart, trade history, watcher activity, sentinel/health, alerts, LLM cost, settings drift, reflection stream)
-- Real-time WebSocket connection to the Tradesa bot
-- Crypto execution via Bybit testnet, wrapped in the §6.5 safety layer
-- Optional control plane (kill switch trigger, manual position close)
-- Tradesa-specific agents (Decision Reviewer, Reflection Analyst) and node-editor nodes (e.g., "Wait for Tradesa decision")
-
-**Broker execution plugins** (v1.0) — six brokers plus a ccxt crypto execution wrap, seven broker integrations in total, each free or near-free for retail:
-
-| Plugin | Region | API cost | Python SDK | Notes |
-|--------|--------|----------|------------|-------|
-| Dhan | India | Free | `dhanhq` (MIT, v2.1.0+) | Orders, holdings, 200-level market depth, WebSocket; built-in static-IP management |
-| Angel One SmartAPI | India | Free, incl. historical data | `smartapi-python` | REST + WebSocket; no static-IP requirement |
-| Zerodha Kite Connect | India | Personal API free for execution + account data; Connect API ₹500/mo (~$6 USD) adds real-time + historical data | `kiteconnect` | **Static IP required for order placement since 1 April 2025** — SEBI/NSE algo-trading rule, not a Zerodha policy; up to 2 static IPs per account; data/holdings/positions endpoints unaffected |
-| Alpaca | US / global | Free Basic trading (commission-free US equities/options/crypto); paid Algo Trader Plus for full market data; paper trading free | `alpaca-py` | Use `alpaca-py` — not the deprecated `alpaca-trade-api` |
-| Interactive Brokers | Global, multi-asset | Free, account-based | `ib_async` (v2.1.0) | Use `ib_async` (github.com/ib-api-reloaded/ib_async) — not the discontinued `ib_insync`; requires TWS or IB Gateway running locally |
-| OANDA v20 | Forex | Free with an fxTrade account (demo or live) | `oandapyV20` (community) | No API cost beyond holding the brokerage account |
-| Crypto (ccxt) | Global | Per-exchange | `ccxt` | Execution wrap over the Phase 1 ccxt data layer — same §6.5 safety layer as every other broker plugin |
 
 ### Infrastructure (5, not user-facing)
 - MCP server for external AI tool access
@@ -326,7 +308,6 @@ Execution is a v1.0 capability, not a deferral. Each broker is a **separate plug
 - News feed (filtered to watchlist tickers)
 - AI chat sidebar (with welcome message + suggested first commands)
 - Portfolio panel (empty until user adds positions)
-- Optional: Tradesa V2 plugin panel if connected
 
 ### 5.2 Customization primitives
 - Drag-drop panel layout (resize, hide, pop-out to second window)
@@ -395,41 +376,30 @@ Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
 - OR: "System Settings → Privacy & Security → Click 'Open Anyway' next to Vysted Terminal"
 - ~30 second one-time bypass per Mac
 
-### 6.4 Execution liability
+### 6.4 Liability
 
-From v1.0, Vysted Terminal places live orders against real brokerage accounts. Order placement carries real financial risk — market, execution, and operational risk all sit with the user, not the software.
+Vysted Terminal has no brokerage connection and does not place orders. It is
+a research and analysis tool; nothing it displays, computes, or generates —
+including AI-agent output — is a recommendation to buy, sell, or hold any
+instrument.
 
-- **Vysted Terminal is a tool, not financial advice.** Nothing the terminal displays, computes, or generates — including AI-agent output — is a recommendation to buy, sell, or hold any instrument. Trading decisions and their consequences are the user's alone.
-- **No warranty for trading losses.** PolyForm Strict 1.0.0's "No Liability" clause already disclaims all warranties and all liability for the software. For the avoidance of doubt, that disclaimer extends explicitly to trading and financial losses — including losses arising from defects, data errors, or latency. The software is provided "as is."
-- **The user owns the broker relationship.** Each broker's own terms, margin rules, and regulatory obligations continue to apply. Vysted Terminal is not a broker, an introducing broker, or an investment adviser.
+- **Vysted Terminal is a tool, not financial advice.** Trading decisions
+  users make elsewhere, and their consequences, are the user's alone.
+- **No warranty.** PolyForm Strict 1.0.0's "No Liability" clause disclaims
+  all warranties and all liability for the software, including for
+  decisions users make using it. The software is provided "as is."
+- **Vysted Terminal is not a broker.** It has no order-placement path, no
+  simulated account, and no broker relationship of any kind.
 
-`COMMERCIAL_LICENSE.md` mirrors this with an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer in their own contract. The operational safety design that backs these commitments is §6.5.
+`COMMERCIAL_LICENSE.md` mirrors this disclaimer, so commercial licensees
+carry the same terms in their own contract.
 
-### 6.5 Safety Architecture for Execution
+### 6.5 Agent-write safety
 
-Live order placement is gated behind a fixed set of safeguards. These are non-negotiable design constraints for every broker plugin — Phase 5 implements them, and no broker plugin ships without them.
-
-**1. Paper mode is the default.** Every broker plugin starts in paper-trading mode. Live trading is opt-in per broker, toggled by the user, and the first time a plugin is switched to live it shows a dedicated disclaimer dialog that must be explicitly acknowledged. There is no global "enable everything" shortcut — the decision is made one broker at a time.
-
-**2. Every order is confirmed.** No order — paper or live — is placed without a confirmation dialog showing the full order: symbol, quantity, side, order type, limit price, estimated value, broker, and account ID. There are no one-click trades anywhere in the app, in any panel, for any broker.
-
-**3. Position-size limits are configurable per plugin.** Each broker plugin carries soft default caps — maximum order value, maximum percentage of account, and maximum position size per symbol. The user can raise a limit, but only through an explicit confirmation step; the defaults are conservative on purpose.
-
-**4. Every order is audit-logged.** Each order — whether placed manually or initiated by an AI agent — is written to a local SQLite audit log: timestamp, broker, full request payload, broker response, and outcome. The log is exportable and survives app restarts. It is the user's own record of what the terminal did on their behalf.
-
-**5. There is a global kill switch.** A prominent, always-visible "Halt All Trading" control in the main UI immediately disables order placement across every broker plugin at once. It is designed to be found and used under stress, without hunting through settings.
-
-**6. AI-initiated orders carry an extra gate.** When a node-editor workflow or an AI agent attempts to place an order, the confirmation dialog opens **defaulted to declined** and names the agent: "AI agent `<name>` is requesting this order." An optional auto-approve mode exists but is off by default and must be enabled explicitly, per agent. The terminal never lets an AI place an order the user did not see.
-
-**7. Plugins can be marked read-only.** Even with live trading globally enabled, any individual broker plugin can be set to view-only — useful, for example, for an Interactive Brokers institutional account the user wants to research from but never execute against. Read-only is enforced at the plugin boundary, not just in the UI.
-
-**8. Liability is disclosed at every entry point.** The disclaimers in §6.4 are surfaced to the user at four touchpoints, not buried in a file:
-- **PolyForm Strict 1.0.0 `LICENSE`** — "No Liability" disclaims all warranty and liability; §6.4 records that this extends explicitly to trading losses. (The license text itself is verbatim and unmodified.)
-- **`COMMERCIAL_LICENSE.md`** — an explicit no-warranty-for-trading-losses clause, so commercial licensees carry the same disclaimer.
-- **First-launch app TOS dialog** — a one-time acknowledgment the user must accept before *any* broker plugin can be enabled at all.
-- **Per-broker first-connect dialog** — a broker-specific terms-and-conditions reminder shown the first time the user connects each broker.
-
-Together these make the execution path conservative by construction: paper by default, confirmed every time, capped, logged, haltable, extra-gated for AI, and disclosed up front.
+The terminal's only mutations are staged host actions the agent proposes
+against the user's own workspace (panels, chart, watchlist, tracked
+portfolio, notes, screens, layouts, settings) — never a broker order, since
+no order path exists. Full model: `docs/SAFETY_ARCHITECTURE.md`.
 
 ---
 
@@ -531,31 +501,8 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 
 ### Phase 5 — Broker & Trading Plugins
 
-**Shipped in v0.5.0 (2026-05-16) as part of the Phase 4 + Phase 5 mega-sprint.**
-
-- **Shared execution safety layer** ✓ (BLUEPRINT §6.5 8-point dedicated
-  audit suite passes 9/9; max kill-switch ack 20.08 ms vs 2000 ms budget;
-  SQLite triggers raise on UPDATE/DELETE of `audit_orders`; AI-order
-  gate strictly enforced — Tier-3 tightening removes BLUEPRINT's
-  "auto-approve mode" mention; live execution capability ENABLED).
-- **Tradesa V2 full plugin** — DEFERRED to v0.5.1 or v0.6.0 per Tier-3
-  operator-brief de-scoping. Foundation contracts (kill switch + audit
-  log + `executeCommand` control plane) are in place; Tradesa V2 becomes
-  plug-in work, not contract work.
-- **Global broker execution plugins** ✓ — Dhan (`dhanhq 2.1.0`), Angel One
-  SmartAPI (`smartapi-python 1.5.5`), Zerodha Kite Connect (`kiteconnect
-  5.2.0` with SEBI/NSE static-IP UX path live), Alpaca (`alpaca-py
-  0.42.0`), Interactive Brokers (`ib_async 2.1.0`, requires TWS/IB
-  Gateway on `127.0.0.1:7497`), OANDA v20 (`oandapyV20 0.7.2`), ccxt
-  unified crypto execution (Bybit, Binance, Kraken, Coinbase) — each a
-  separate plugin on the locked `VystedPlugin` contract, routed through
-  the shared safety layer. All 7 broker SDKs ship in main sidecar
-  (F9-measured 67.4 MB main bundle; no subprocess split needed).
-
-Original Phase 5 was the Tradesa V2 plugin alone (~3-5 days); v0.5.0
-absorbed broker integration + safety layer + node editor + workflow +
-backtest under one tag. The architectural rationale is in `CHANGELOG.md`
-v0.5.0 and `docs/superpowers/plans/2026-05-16-phase-4-5-mega-sprint.md`.
+Shipped v0.5.0; removed permanently by D81 (23 Sep 2026) — history in
+CHANGELOG.md.
 
 ### Phase 6 — Macro + Research + QuantLib
 
@@ -590,43 +537,7 @@ handoff at `docs/PHASE_6_HANDOFF.md`.
 
 ### Phase 6.5 — Tradesa V2 Wrapper Plugin
 
-**In progress (v0.6.5, 2026-05-17).** Plan at
-`docs/superpowers/plans/2026-05-16-tradesa-v2-wrapper-plugin.md`;
-handoff lands at `docs/PHASE_6.5_HANDOFF.md` with the release commit.
-
-First-party wrapper plugin for Lokavya's existing Tradesa V2 multi-
-agent LLM crypto perp trading bot (techlogist1/tradesa). Operator
-brief slotted v0.6.5 between Phase 6 and Phase 7 launch ops so the
-v1.0 narrative includes "first real third-party-shaped trading-system
-plugin proving the platform."
-
-- **READ-ONLY by operator decision.** No commands flow from Vysted to
-  the bot in v0.6.5 (the bot itself is in an unstable state right now);
-  write capability is v0.6.6+ scope. Three defense-in-depth layers
-  enforce this: provider has no write methods (audit-tested), router
-  has no non-GET routes (audit-tested), plugin's
-  `supportsControlPlane=false` (contract-level gate).
-- **Supabase passthrough.** Tradesa V2's operator interface is Telegram-
-  only — no REST API. The wrapper reads the bot's existing Supabase
-  remote-sync project via `sidecar/services/tradesa_v2_provider.py`
-  using a service-role key in the OS keychain. RLS is deferred Tradesa-
-  side to its v0.1.7.0 milestone; the wrapper API surface is unchanged
-  when RLS lands.
-- **7 panels** surfacing the bot's key state: Live Positions, Trade
-  History & P&L, Brain Decisions, Sentinel, Health, Settings & Drift,
-  Self-Tuning / Discovery / Reflection — all with shared
-  `<TradesaBotStatusStrip />` showing mode + kill-switch + heartbeat
-  age.
-- **Generic wrapper pattern.** `docs/PLUGIN_DEVELOPMENT.md` documents
-  the layout (`connection.ts` implements `TradingBotReadAdapter`;
-  companion `panels.ts` exports the component map; bootstrap glue in
-  `src/lib/plugin-bootstrap.ts::PLUGIN_COMPANIONS` wires it up).
-  TauricResearch and future trading-system plugins mirror the same
-  shape — zero contract change required.
-- **Polling, not Realtime** (Tier-3 scope decision). Supabase Realtime
-  proxy deferred to v0.6.6 to avoid the asyncio-task lifecycle
-  complexity. Per-panel polling cadences (10s positions / 30s decisions
-  / 60s settings) deliver equivalent "is the bot alive" UX.
+Removed (E11/D81).
 
 ### Phase 7 — Completion + Polish + Parity
 
@@ -691,10 +602,9 @@ populated re-captures). Plan + handoff TBD.
 ## 8. Success Criteria (v1.0 launch)
 
 - [ ] User downloads from terminal.vysted.com, installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
-- [ ] All 38 modules functional and accessible
+- [ ] All 37 modules functional and accessible
 - [ ] 12 AI agents work with at least 3 LLM providers tested end-to-end
 - [ ] Backtest engine runs a 60-day strategy in <30 seconds on standard hardware
-- [ ] Tradesa V2 plugin connects to user's Supabase via the read-only wrapper, shows decisions via per-panel polling (v0.6.5 shipped scope; Realtime SSE proxy + write capability deferred to v0.6.6+)
 - [ ] Workspace export/import round-trips correctly across platforms
 - [ ] MCP server responds to external Claude/GPT queries
 - [ ] CI green for all OS builds
@@ -709,7 +619,6 @@ populated re-captures). Plan + handoff TBD.
 **v1.1 (post-launch patches, weeks 1-4 after launch):**
 - Additional indicators (50 → 100)
 - More AI agents (12 → 20+)
-- Additional broker plugins — Upstox, Fyers, Samco, Shoonya, Tradier, DEGIRO, MT5 bridge — community-pluggable on the existing plugin contract
 - Plugin marketplace UI (locally browse, no online catalog yet)
 
 **v1.5 (months 2-6 after launch):**
@@ -723,7 +632,6 @@ populated re-captures). Plan + handoff TBD.
 - Online plugin marketplace + community workspace gallery
 - Workspace sharing community
 - Hosted version (subscription SaaS option) — requires hosted backend, decided when revenue justifies it
-- Multi-bot plugins (Forge Bot, etc.)
 - Alternative data (maritime tracking, satellite, geopolitical)
 - Mac App Store / Microsoft Store submissions
 
@@ -732,7 +640,7 @@ populated re-captures). Plan + handoff TBD.
 ## 10. Reference: Goated Use Cases
 
 ### Use Case 1: Solo Founder's Quant Day (Lokavya)
-Morning open → Tradesa V2 overnight check (READ-ONLY observation surface as of v0.6.5 — 7 panels surfacing positions, trade history, decisions, sentinel, health, settings drift, meta-agents) → AI Risk Analyst review → backtest new strategy → _(v0.6.6+ target)_ push config to bot via Tradesa plugin control plane.
+Morning open → review tracked portfolio + watchlist → AI Risk Analyst review → backtest new strategy → save workspace.
 
 ### Use Case 2: Research Workflow (the equity researcher's story)
 Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace.
@@ -747,10 +655,7 @@ Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment
 Workspace with yield curves + central bank tracker + commodity dashboard → AI Macro Researcher monitors news → notifications on thesis-confirming events.
 
 ### Use Case 6: Plugin Ecosystem (year 2+)
-Indie trading bot devs implement Vysted's plugin contract → their users get Vysted Terminal as free dashboard → Vysted becomes standard UX layer for open-source trading infrastructure.
-
-### Use Case 7: Multi-Broker Portfolio Aggregation
-A user holds positions across Zerodha Kite, Dhan, and Alpaca. One Vysted workspace pulls all three broker plugins into a unified view: aggregate P&L up top, per-broker drilldown panels below, and cross-broker risk metrics — concentration, correlation, total exposure — computed across the combined book. Execution stays per-broker and behind every §6.5 safeguard; the aggregation is read-side only.
+Indie data and analytics plugin authors implement Vysted's plugin contract → their users get Vysted Terminal as free dashboard → Vysted becomes standard UX layer for open-source research infrastructure.
 
 ---
 
@@ -777,7 +682,7 @@ The Tauri + Next.js stack is proven viable for this scope — **Fincept Terminal
 
 ## Appendix D: Working Style Reminders (for Phase prompts)
 
-- **bash_tool for all VPS/server operations** — but Vysted Terminal doesn't have a VPS; this only applies if user has Tradesa V2 plugin enabled
+- **bash_tool for all VPS/server operations** — Vysted Terminal doesn't have a VPS, so this does not apply to it
 - **Goal+constraint level prompts** to Claude Code (not spoon-fed implementation)
 - **Worktree discipline non-negotiable** — teammates push to `worktree-agent-{name}` branches only, lead reviews diff before merging to main
 - **Ship-cycle rule** — before closing Claude Code window after a ship, ask "any hot patches or polish items needed first?"

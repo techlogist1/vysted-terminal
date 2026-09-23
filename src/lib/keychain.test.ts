@@ -30,14 +30,6 @@ describe("KEYCHAIN_NAMESPACES", () => {
       "plugin-secret:openbb-mcp:fmp-api-key",
     );
   });
-
-  it("builds broker:<id>:<field> ids for Phase 5 broker credentials", () => {
-    expect(KEYCHAIN_NAMESPACES.broker("alpaca", "api_key")).toBe("broker:alpaca:api_key");
-    expect(KEYCHAIN_NAMESPACES.broker("kite", "access_token")).toBe("broker:kite:access_token");
-    expect(KEYCHAIN_NAMESPACES.broker("_meta", "first-launch-tos")).toBe(
-      "broker:_meta:first-launch-tos",
-    );
-  });
 });
 
 describe("keychain wrappers", () => {
@@ -93,7 +85,7 @@ describe("migrateDevKeystore (R9 dev keystore)", () => {
     // The four named items the operator listed are always swept.
     expect(accounts).toContain("llm-provider:deepseek");
     expect(accounts).toContain("llm-provider:openrouter");
-    expect(accounts).toContain("broker:_meta:first-launch-tos");
+    expect(accounts).toContain("app-meta:first-launch-terms");
     expect(accounts).toContain("app-meta:onboarding-complete");
     // No duplicates (the assembler dedupes via a Set).
     expect(new Set(accounts).size).toBe(accounts.length);

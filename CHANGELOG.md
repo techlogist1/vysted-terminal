@@ -4,6 +4,69 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — trading removed (D81, 2026-09-23)
+
+**Decision:** D81, operator Tier-4 sign-off, 23 Sep 2026 (`docs/redesign/DECISIONS_FOR_OPERATOR.md`
+2.3–2.5) — trading is out of the product permanently, not deferred. A census
+(`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md` §0) proved the kill switch's only
+subscriber and the append-only order audit log's only writers were trading paths, so both go with
+the feature rather than surviving as dead weight.
+
+**Went:** broker connectivity (all 7 adapters + registry, `broker_base.py`), the `/brokers/*` and
+`/safety/*` routers (23 routes), the broker-connect panel, order entry, the order-review dialog,
+the paper/live mode switch and the simulated paper brokerage account, the kill switch
+(`kill_switch.py`, `kill_switch.rs`, the OS-wide shortcut, the store slice), the append-only
+`audit_orders` log and its viewer, every agent tool exposing any of it (`broker_portfolio`,
+`propose_order`), the broker plugins and their marketplace entries, the never-enforced
+`PositionLimits` settings (`maxPercentOfAccount`, `dailyLossCircuitBreaker`), the first-launch
+terms' kill-switch promise, and every trading-only test and benchmark capture.
+
+**Stayed:** the user's own tracked portfolio — manual holdings, cost bases, P&L on real prices, CSV
+export, notes, watchlists — and everything the agent does with it (portfolio/note/screen/layout
+writes), still riding the proposed-changes gate. The read-only-wrapper plugin rule stays as the
+plugin contract's rule for future data plugins.
+
+**Numbers (catalog/route/test deltas at HEAD `99e2ae3`, per the removal plan's verified census):**
+capability catalog 50 → 48 capabilities; MCP tool surface 36 → 35 tools; sidecar routes 117 → 94;
+host actions 19 → 18 (`propose_order` dropped); Python tests: 17 files deleted (244 tests), 9 files
+updated, 1 new (`test_no_trading_surface.py`, Gate 8); TS tests: 14 files deleted (100 vitest
+cases), ~12 updated, 2 new; cargo tests unchanged at 13; agent roster unchanged at 13 (no agent JSON
+deleted).
+
+**Tier-3 decisions made in the removal plan** (`docs/redesign/DECISIONS.md` records each):
+
+1. The first-launch terms dialog stays as the onboarding gate, rewritten as research-only terms (no
+   kill-switch promise); new keychain account `app-meta:first-launch-terms` — every user re-acks once.
+2. The planner keeps the `buy`/`sell` edit signals (they serve tracked-portfolio edits); the
+   order-phrase signals (`market/limit/stop order`, `place an order`) are deleted.
+3. "Paper portfolio" becomes "portfolio" in every user-visible label and agent-facing description —
+   after D81 "paper" would misleadingly imply a simulated brokerage account.
+4. BLUEPRINT keeps the §6.5 section number for the agent-write safety model (60+ code comments say
+   "§6.5 gate" for the proposed-changes gate).
+5. `sidecar/services/agent_tools/registry_v0_6_5.py` is deleted — it was an empty slot reserved for
+   trading-bot writes that will never land.
+6. The R15-LIFECYCLE-002 workspace-restore fix (non-layout slices restore independently of the
+   dockview layout, so an unknown panel reference never costs user data) ships in the same batch as
+   the removal, since the batch is what creates unknown-panel workspace blobs.
+7. India EOD-only copy no longer tells users to "add a BYOK broker" — there is no broker lane.
+8. No automatic purge of user-side leftovers (`audit_log.db`, orphaned broker keychain secrets) — an
+   operator decision, listed as UNSURE-1 in `docs/redesign/DECISIONS_FOR_OPERATOR.md`.
+
+**Register entries closed by this batch:** R15-CODE-PLATFORM-001/006/007/008/009/031/032/033,
+R15-CROSS-PLATFORM-005, R15-LIFECYCLE-016, R15-DATA-091, R15-UI-042/043, R15-DOCS-001 (SAFETY_ARCHITECTURE
+rewritten), R15-CODE-FRONTEND-013 (resolved by deletion, gap accepted in writing), the
+`broker_portfolio` half of R15-AGENT-067, the broker half of R15-DOCS-015. **Fixed:** R15-UI-041
+(terms rewrite), R15-LIFECYCLE-002 (restore order), the copy half of R15-DATA-077. **Still open:**
+R15-UI-044, R15-CODE-FRONTEND-008, R15-DOCS-016 (partially addressed by this batch's doc edits), the
+vendor half of R15-DATA-077.
+
+**Gate 8 (new):** no order, broker or simulated-account path exists anywhere — surfaces, agent
+tools, routes, docs — and the tracked portfolio is intact. Pinned by
+`sidecar/tests/test_no_trading_surface.py`.
+
+Full inventory, file-by-file disposition and evidence:
+`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`.
+
 ## Pass A.2.0 — cleanup, deep bug-hunt, animation polish (branch `001-agent-native-redesign`, 2026-06-01)
 
 Polish pass on the agent-native redesign branch (not versioned, not merged). Full

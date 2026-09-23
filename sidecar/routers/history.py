@@ -18,7 +18,7 @@ def _empty_series_reason(symbol: str) -> str | None:
 
     When an IN symbol (a `.NS`/`.BO` suffix, a BSE/NSE master member, or an IN
     active locale) has no EOD data from any provider, the honest cause is that
-    keyless BSE/NSE serve **EOD only** — intraday/realtime needs a BYOK broker.
+    keyless BSE/NSE serve **EOD only** — no intraday/realtime lane exists for this listing.
     The chart surfaces that instead of the generic "No price data" (WS6 Step 4).
     Returns ``None`` for a non-IN symbol (the generic message stays correct).
     """

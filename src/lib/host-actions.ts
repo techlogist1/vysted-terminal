@@ -1,16 +1,14 @@
 /**
  * Host actions — the agent's cockpit-driving mutations, and how the diff/accept
- * gate stages, describes, and applies them (FR-002 act-path, FR-010, FR-011).
+ * gate stages, describes, and applies them (FR-002 act-path, FR-010).
  *
- * The catalog tags four capabilities `kind="host_action", read_only=false`:
- * `open_panel`, `set_chart_symbol`, `add_to_watchlist`, `propose_order`. The
- * agent emits them as `tool_use` events; instead of applying immediately, the
- * chat surface stages each as a `ProposedChange` (see `store/proposed-changes`),
- * and these helpers do the work:
+ * The catalog tags these capabilities `kind="host_action", read_only=false`
+ * (e.g. `open_panel`, `set_chart_symbol`, `add_to_watchlist`,
+ * `portfolio_add_position`). The agent emits them as `tool_use` events; instead
+ * of applying immediately, the chat surface stages each as a `ProposedChange`
+ * (see `store/proposed-changes`), and these helpers do the work:
  *   - `describeHostAction` — read the live stores to build the old→new diff.
- *   - `applyHostAction`     — apply a non-order mutation on accept.
- *   - `routeOrderProposal`  — route an accepted order through the §6.5
- *                              propose→confirm path (the AI never places).
+ *   - `applyHostAction`     — apply the mutation on accept.
  */
 
 import {
@@ -36,17 +34,14 @@ import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
-import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useEquityCommandStore } from "@/store/equity-command";
-import { useOrdersStore } from "@/store/orders";
 import { usePortfoliosStore, type AssetClass, type Holding } from "@/store/portfolios";
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
-import type { BrokerId, BrokerOrderProposal } from "../../types/broker";
 import type {
   BriefDepth,
   BriefSource,
@@ -59,7 +54,7 @@ import type { ProposedChangeKind } from "../../types/proposed-change";
 import type { CriterionGroup, ScreenerCriterion, ScreenerUniverseId } from "../../types/screener";
 
 /** The catalog host-action tool ids (`kind="host_action"`, `read_only=false`).
- *  R10 (D41/E6) adds the data-write family (paper-portfolio positions, notes,
+ *  R10 (D41/E6) adds the data-write family (portfolio positions, notes,
  *  saved screens, layout save), the watchlist remove, and the ONE settings
  *  action the agent may drive (`set_region` — D45). Names are EXACT catalog
  *  ids; Team RUNTIME's toolbelt-integrity test asserts set-equality. */
@@ -73,7 +68,6 @@ export const HOST_ACTION_NAMES = new Set([
   "add_to_watchlist",
   "remove_from_watchlist",
   "publish_brief",
-  "propose_order",
   "write_screener_filters",
   "open_company_overview",
   "portfolio_add_position",
@@ -529,7 +523,7 @@ function formatPrice(value: number): string {
   return `${currencySign()}${value.toLocaleString(locale, { maximumFractionDigits: 2 })}`;
 }
 
-/** The ACTIVE paper portfolio (the panel's truth — frontend store). */
+/** The ACTIVE portfolio (the panel's truth — frontend store). */
 function activePortfolio() {
   const s = usePortfoliosStore.getState();
   return s.portfolios.find((p) => p.id === s.activeId) ?? s.portfolios[0];
@@ -725,20 +719,6 @@ export function describeHostAction(
           : `Watchlist: +${symbol} (${entries.length + 1} total)`,
       };
     }
-    case "propose_order": {
-      const side = str(input, "side");
-      const qty = num(input, "quantity");
-      const type = str(input, "order_type") || "market";
-      const limit = input.limit_price;
-      return {
-        kind: "order",
-        title: `${side ? side.toUpperCase() : "ORDER"} ${qty || ""} ${symbol}`
-          .replace(/\s+/g, " ")
-          .trim(),
-        before: "No order placed",
-        after: `${side} ${qty} ${symbol} (${type}${typeof limit === "number" ? ` @ ${limit}` : ""}) — routes to the confirm-before-place dialog`,
-      };
-    }
     case "write_screener_filters": {
       const s = useScreenerStore.getState();
       const currentCount = s.advanced && s.group ? countLeaves(s.group) : s.criteria.length;
@@ -765,10 +745,9 @@ export function describeHostAction(
       const count = activePortfolio()?.holdings.length ?? 0;
       return {
         kind: "data-write",
-        title:
-          `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the paper portfolio`
-            .replace(/\s+/g, " ")
-            .trim(),
+        title: `Add ${qty || ""} ${symbol}${cost ? ` @ ${formatPrice(cost)}` : ""} to the portfolio`
+          .replace(/\s+/g, " ")
+          .trim(),
         before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
         after: `Portfolio: +${symbol} ×${qty} (${count + 1} total)`,
       };
@@ -780,7 +759,7 @@ export function describeHostAction(
       const label = target?.symbol || symbol || "position";
       return {
         kind: "data-write",
-        title: `Update ${label} in the paper portfolio`,
+        title: `Update ${label} in the portfolio`,
         before: target
           ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
           : `${label}: not found in the active portfolio`,
@@ -792,7 +771,7 @@ export function describeHostAction(
       const label = target?.symbol || symbol || "position";
       return {
         kind: "data-write",
-        title: `Remove ${label} from the paper portfolio`,
+        title: `Remove ${label} from the portfolio`,
         before: target
           ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
           : `${label}: not found in the active portfolio`,
@@ -867,15 +846,13 @@ export function describeHostAction(
 }
 
 /**
- * Apply a non-order host-action mutation to the live stores. Returns a short
+ * Apply a host-action mutation to the live stores. Returns a short
  * TRUTHFUL label describing what actually happened, or `null` if it could not
  * apply — the proposed-changes gate re-pends a null and surfaces the failure,
  * so chat/proposal narration never claims an action that did not land
  * (grounded narration, R8 seams deliverable 5). No branch may return a
  * success label without having done (or verified) the work: an unknown panel
  * id, a panel that failed to open, or incomplete arguments all return null.
- * Orders are NOT applied here — they route through `routeOrderProposal` →
- * the §6.5 dialog.
  */
 export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
   const symbol = str(input, "symbol");
@@ -1251,7 +1228,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
 // Async apply seam + publish ack (R10 §3/§4)
 // ---------------------------------------------------------------------------
 
-/** The paper-portfolio positions endpoint (sidecar SQLite ledger). */
+/** The portfolio positions endpoint (sidecar SQLite ledger). */
 async function portfolioUrl(id?: number): Promise<string> {
   const base = await getSidecarBaseUrl();
   const path = id === undefined ? "/portfolio/positions" : `/portfolio/positions/${id}`;
@@ -1317,8 +1294,8 @@ function sidecarPositionId(input: Record<string, unknown>): number | undefined {
 }
 
 /**
- * Apply a host-action mutation, including the network-backed cases (paper
- * portfolio writes ride POST/PUT/DELETE `/portfolio/positions` and mirror into
+ * Apply a host-action mutation, including the network-backed cases (portfolio
+ * writes ride POST/PUT/DELETE `/portfolio/positions` and mirror into
  * the portfolios store — the truth every surface reads; `save_layout` awaits
  * the workspace save). Everything else delegates to the synchronous
  * {@link applyHostAction}. Same truth contract: a string label means the work
@@ -1347,7 +1324,7 @@ export async function applyHostActionAsync(
         note: body.note,
       });
       useWorkspaceStore.getState().openPanel("portfolio");
-      return `Added ${body.quantity} ${body.symbol} @ ${formatPrice(body.costBasis)} to the paper portfolio`;
+      return `Added ${body.quantity} ${body.symbol} @ ${formatPrice(body.costBasis)} to the portfolio`;
     }
     case "portfolio_update_position": {
       const target = resolveHolding(input);
@@ -1385,7 +1362,7 @@ export async function applyHostActionAsync(
       }
       usePortfoliosStore.getState().removeHolding(portfolio.id, target.id);
       useWorkspaceStore.getState().openPanel("portfolio");
-      return `Removed ${target.symbol} from the paper portfolio`;
+      return `Removed ${target.symbol} from the portfolio`;
     }
     case "save_layout": {
       const layoutName = str(input, "name").trim() || "Agent layout";
@@ -1496,77 +1473,4 @@ function flattenLeaves(group: CriterionGroup): ScreenerCriterion[] {
     }
   }
   return out;
-}
-
-/**
- * Resolve which broker an AI-proposed order targets: an explicit `broker` arg if
- * the model gave one, else the user's currently-connected broker, else `kite`
- * (the reference broker). This avoids blindly routing every order to kite when
- * the user has a different broker connected (the §6.5 dialog still shows the
- * broker and gates placement regardless).
- */
-function resolveTargetBroker(input: Record<string, unknown>): BrokerId {
-  if (typeof input.broker === "string" && input.broker) {
-    return input.broker as BrokerId;
-  }
-  const connected = useBrokersStore
-    .getState()
-    .brokers()
-    .find((b) => b.status === "connected");
-  return (connected?.broker ?? "kite") as BrokerId;
-}
-
-/**
- * Route an agent-proposed order through the existing §6.5 propose→confirm path
- * (FR-011). POSTs `/brokers/{broker}/orders` with `source="ai-agent"`, then opens
- * the `OrderConfirmationDialog`. The AI NEVER reaches `confirm_and_place` — the
- * dialog's explicit "I reviewed" + Confirm is the only path to placement.
- */
-export async function routeOrderProposal(
-  input: Record<string, unknown>,
-  meta: { agentId?: string; agentName?: string },
-): Promise<{ ok: boolean; error?: string }> {
-  const broker = resolveTargetBroker(input);
-  const symbol = str(input, "symbol");
-  const side = str(input, "side");
-  const type = str(input, "order_type") || "market";
-  const quantity = num(input, "quantity");
-  const limitPrice = typeof input.limit_price === "number" ? input.limit_price : undefined;
-  try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/brokers/${encodeURIComponent(broker)}/orders`, base).toString(),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          symbol,
-          side,
-          type,
-          quantity,
-          limitPrice,
-          source: "ai-agent",
-          sourceDetails: { agentId: meta.agentId, agentName: meta.agentName },
-        }),
-      },
-    );
-    if (!response.ok) {
-      let detail = response.statusText;
-      try {
-        const body = (await response.json()) as { detail?: string };
-        if (body.detail !== undefined) {
-          detail = body.detail;
-        }
-      } catch {
-        // ignore non-JSON body
-      }
-      return { ok: false, error: detail };
-    }
-    const proposal = (await response.json()) as BrokerOrderProposal;
-    useOrdersStore.getState().addProposal(proposal);
-    useOrdersStore.getState().openProposal(proposal.proposalId);
-    return { ok: true };
-  } catch (err: unknown) {
-    return { ok: false, error: err instanceof Error ? err.message : "Order proposal failed" };
-  }
 }

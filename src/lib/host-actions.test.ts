@@ -11,15 +11,12 @@ import {
   HOST_ACTION_NAMES,
   isHostActionMutation,
   publishAckStatus,
-  routeOrderProposal,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
-import { useBrokersStore } from "@/store/brokers";
 import { useChartCommandStore } from "@/store/chart-command";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
 import { useNotesStore } from "@/store/notes";
-import { useOrdersStore } from "@/store/orders";
 import { usePortfoliosStore } from "@/store/portfolios";
 import { useScreenerStore } from "@/store/screener";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
@@ -31,8 +28,6 @@ describe("host-actions", () => {
     useChartCommandStore.setState({ command: null, activeSymbol: null });
     resetEquityCommandStoreForTests();
     useSymbolsStore.setState({ entries: [] });
-    useOrdersStore.setState({ proposals: [], activeProposalId: null });
-    useBrokersStore.setState({ byId: {} });
   });
 
   afterEach(() => {
@@ -51,7 +46,6 @@ describe("host-actions", () => {
         "portfolio_add_position",
         "portfolio_delete_position",
         "portfolio_update_position",
-        "propose_order",
         "publish_brief",
         "remove_from_watchlist",
         "save_layout",
@@ -66,7 +60,7 @@ describe("host-actions", () => {
     expect(isHostActionMutation("set_chart_symbol")).toBe(true);
     expect(isHostActionMutation("close_panel")).toBe(true);
     expect(isHostActionMutation("arrange_layout")).toBe(true);
-    expect(isHostActionMutation("propose_order")).toBe(true);
+    expect(isHostActionMutation("propose_order")).toBe(false);
     expect(isHostActionMutation("portfolio_add_position")).toBe(true);
     expect(isHostActionMutation("write_note")).toBe(true);
     expect(isHostActionMutation("set_region")).toBe(true);
@@ -546,10 +540,9 @@ describe("host-actions", () => {
     expect(md).toContain("[1] 10-K — https://sec.gov/aapl");
   });
 
-  it("applyHostAction does NOT place an order (orders never apply directly)", () => {
+  it("applyHostAction has no order path (propose_order is not a host action)", () => {
     const label = applyHostAction("propose_order", { symbol: "AAPL", side: "buy", quantity: 1 });
     expect(label).toBeNull();
-    expect(useOrdersStore.getState().proposals).toHaveLength(0);
   });
 
   it("describeHostAction renders a reviewable old→new diff per kind", () => {
@@ -558,77 +551,6 @@ describe("host-actions", () => {
     expect(chart.kind).toBe("chart");
     expect(chart.before).toContain("SPY");
     expect(chart.after).toContain("NVDA");
-
-    const order = describeHostAction("propose_order", { symbol: "AAPL", side: "buy", quantity: 2 });
-    expect(order.kind).toBe("order");
-    expect(order.after).toMatch(/confirm-before-place/);
-  });
-
-  it("routeOrderProposal posts source=ai-agent and opens the §6.5 dialog (FR-011)", async () => {
-    const proposal = {
-      proposalId: "p-1",
-      broker: "kite",
-      symbol: "AAPL",
-      side: "buy",
-      type: "market",
-      quantity: 1,
-      source: "ai-agent",
-    };
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      json: async () => proposal,
-    })) as unknown as typeof fetch;
-    vi.stubGlobal("fetch", fetchMock);
-
-    const result = await routeOrderProposal(
-      { symbol: "AAPL", side: "buy", quantity: 1, order_type: "market" },
-      { agentId: "copilot", agentName: "Copilot" },
-    );
-    expect(result.ok).toBe(true);
-
-    const [, init] = (fetchMock as unknown as { mock: { calls: [string, RequestInit][] } }).mock
-      .calls[0];
-    const body = JSON.parse(String(init.body));
-    expect(body.source).toBe("ai-agent");
-    expect(body.sourceDetails).toEqual({ agentId: "copilot", agentName: "Copilot" });
-    // The proposal lands in the inbox and the dialog is opened — but placement
-    // still requires the human confirm in the §6.5 dialog.
-    expect(useOrdersStore.getState().proposals.map((p) => p.proposal.proposalId)).toContain("p-1");
-    expect(useOrdersStore.getState().activeProposalId).toBe("p-1");
-  });
-
-  it("routeOrderProposal targets the connected broker, not a hardcoded kite", async () => {
-    useBrokersStore.setState({
-      byId: {
-        alpaca: {
-          broker: "alpaca",
-          status: "connected",
-          mode: "paper",
-          readOnly: true,
-        },
-      },
-    } as never);
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ proposalId: "p-2", broker: "alpaca" }),
-    })) as unknown as typeof fetch;
-    vi.stubGlobal("fetch", fetchMock);
-    await routeOrderProposal({ symbol: "MSFT", side: "buy", quantity: 1 }, {});
-    const [url] = (fetchMock as unknown as { mock: { calls: [string][] } }).mock.calls[0];
-    expect(url).toContain("/brokers/alpaca/orders");
-  });
-
-  it("routeOrderProposal surfaces a broker error without throwing", async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: false,
-      statusText: "blocked",
-      json: async () => ({ detail: "kill switch fired" }),
-    })) as unknown as typeof fetch;
-    vi.stubGlobal("fetch", fetchMock);
-    const result = await routeOrderProposal({ symbol: "AAPL", side: "buy", quantity: 1 }, {});
-    expect(result.ok).toBe(false);
-    expect(result.error).toBe("kill switch fired");
-    expect(useOrdersStore.getState().proposals).toHaveLength(0);
   });
 });
 
@@ -943,7 +865,7 @@ describe("briefFromInput execution truth (R10 D38/E2)", () => {
 
 // ── R10: data-write / settings host actions (E6, D41/D45) ───────────────────
 
-describe("portfolio host actions (E6 — paper portfolio writes)", () => {
+describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
   beforeEach(() => {
     usePortfoliosStore.getState().setAll([], undefined);
     vi.stubGlobal(
@@ -969,7 +891,7 @@ describe("portfolio host actions (E6 — paper portfolio writes)", () => {
       cost_basis: 1263,
     });
     expect(diff.kind).toBe("data-write");
-    expect(diff.title).toMatch(/Add 5 RELIANCE @ .?1,263 to the paper portfolio/);
+    expect(diff.title).toMatch(/Add 5 RELIANCE @ .?1,263 to the portfolio/);
     expect(diff.after).toContain("+RELIANCE ×5");
   });
 

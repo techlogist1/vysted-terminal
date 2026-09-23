@@ -7,9 +7,9 @@ tool-call steps — accumulates cost across the run as each round completes, and
 reports the FIRST breached ceiling so the run executor can abort. SC-008: a
 breach aborts the run 100% of the time, with a stated reason.
 
-The guard governs SPEND only. It has NO order/placement authority — a Delegate
-run uses the same agent loop whose ``propose_order`` only ever proposes (§6.5).
-There is no path here to place, submit, or auto-approve anything.
+The guard governs SPEND only. A Delegate run uses the same agent loop, in which
+no trading path exists. There is no path here to place, submit, or auto-approve
+anything.
 
 Cost model
 ----------

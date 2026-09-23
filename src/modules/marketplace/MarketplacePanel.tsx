@@ -13,11 +13,6 @@ import type { MarketplaceCategory, MarketplaceEntry } from "../../../types/marke
 
 const CATEGORY_ORDER: { id: MarketplaceCategory; label: string; blurb: string }[] = [
   {
-    id: "broker",
-    label: "Brokers",
-    blurb: "Read-only broker connections. None pre-installed — install the one you use.",
-  },
-  {
     id: "data",
     label: "Data providers",
     blurb: "Market + fundamentals + macro sources. yfinance is the keyless default.",
@@ -29,11 +24,11 @@ const CATEGORY_ORDER: { id: MarketplaceCategory; label: string; blurb: string }[
 
 /**
  * The plugin marketplace (FR-050, US10) — the app's front door for capability.
- * Browse brokers / data / panels / agents and install, enable, configure (BYOK),
+ * Browse data / panels / agents and install, enable, configure (BYOK),
  * or remove each through one lifecycle. The Configure form is the generic
  * credentials hub (FR-034): it renders each plugin's declared credential fields,
  * masks secrets, and writes them to the OS keychain. Safety stays host-enforced
- * (FR-055) — installing a broker adds no execution path.
+ * (FR-055).
  */
 export function MarketplacePanel() {
   const refresh = useMarketplaceStore((s) => s.refresh);
@@ -62,7 +57,7 @@ export function MarketplacePanel() {
       <header className="border-charcoal-700 bg-charcoal-925 sticky top-0 z-10 border-b px-4 py-3">
         <h2 className="text-charcoal-100 text-panel-title">Marketplace</h2>
         <p className="text-charcoal-400 text-caption mt-1">
-          Install, enable, configure, and remove extensions — brokers, data, panels, and agents.
+          Install, enable, configure, and remove extensions — data, panels, and agents.
         </p>
       </header>
       {showSkeleton ? (
@@ -302,8 +297,7 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
         </Button>
       </div>
       <p className="text-charcoal-500 text-caption">
-        Stored in your OS keychain — never written to disk or logs. Broker access is read-only;
-        order execution stays deferred (paper-default, host §6.5-gated).
+        Stored in your OS keychain — never written to disk or logs.
       </p>
     </form>
   );

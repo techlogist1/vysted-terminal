@@ -51,7 +51,6 @@ const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: numb
   "earnings-calendar-panel": { minimumWidth: 560, minimumHeight: 240 },
   "analyst-ratings-panel": { minimumWidth: 420, minimumHeight: 260 },
   "macro-panel": { minimumWidth: 400, minimumHeight: 300 },
-  "audit-log-viewer": { minimumWidth: 440, minimumHeight: 200 },
 
   // --- Primary-content / config panels (opened from the palette) ---
   "settings-panel": { minimumWidth: 480, minimumHeight: 300 },
@@ -65,8 +64,6 @@ const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: numb
   // 280px matches the new AGENT_DOCK_MIN_WIDTH so the composer never gets squeezed
   // when the dock is dragged to its minimum.
   "chat-sidebar": { minimumWidth: 280, minimumHeight: 160 },
-  "broker-connect-panel": { minimumWidth: 320, minimumHeight: 200 },
-  "broker-order-entry": { minimumWidth: 280, minimumHeight: 200 },
 };
 const DEFAULT_PANEL_MIN_SIZE = { minimumWidth: 300, minimumHeight: 180 };
 

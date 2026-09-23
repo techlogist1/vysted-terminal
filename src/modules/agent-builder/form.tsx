@@ -34,7 +34,6 @@ export const KNOWN_TOOL_IDS = [
   "sec_filings_list",
   "sec_filing_content",
   "sec_insider_transactions",
-  "broker_portfolio",
   "price_option",
   "compute_greeks",
   "price_bond",

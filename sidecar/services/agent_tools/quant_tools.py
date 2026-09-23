@@ -5,10 +5,9 @@ module. The wrappers parse the agent's JSON-shaped args into the
 Pydantic request, dispatch, and return ``model_dump(mode="json")`` so
 the LLM sees plain-JSON.
 
-These are read-only / math-only tools — no broker or order-placement
-side effects. The §6.5 audit suite's tool-id grep
-(``test_safety_end_to_end.py::test_audit_6``) confirms none of the ids
-below collide with ``place_order`` / ``submit_order`` / ``execute_order``.
+These are read-only / math-only tools with no side effects. The Gate-8
+test (``test_no_trading_surface.py``) confirms none of the ids below collide
+with ``place_order`` / ``submit_order`` / ``execute_order``.
 
 Registered tool ids:
 

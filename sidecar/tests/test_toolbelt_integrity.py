@@ -49,7 +49,6 @@ FINAL_HOST_ACTION_IDS = frozenset(
         "set_chart_indicators",
         "add_to_watchlist",
         "publish_brief",
-        "propose_order",
         "write_screener_filters",
         "open_company_overview",
     }

@@ -300,7 +300,7 @@ export class PluginRuntime {
    * Load (or update) the per-plugin persisted config, merging `patch`. The
    * default for a never-seen plugin is installed+enabled — but the marketplace
    * always passes an explicit `installed`/`enabled`, and the boot path only
-   * loads catalog entries it decided are installed, so a not-installed broker
+   * loads catalog entries it decided are installed, so a not-installed plugin
    * never auto-installs.
    */
   private async patchConfig(

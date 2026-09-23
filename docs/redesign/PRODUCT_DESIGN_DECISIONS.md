@@ -90,7 +90,7 @@ tab tick). NEVER a background wash, NEVER a gradient, NEVER a glow.
 
 **Signals (unchanged — the only other saturated colors, P&L only):** positive `#3fbf6f`,
 negative `#e5544b`, warning `#e0a13a`. Warning stays _yellower_ than the brand amber and
-only ever appears as a labelled badge ("STALE"/"PAPER"), so it does not read as the accent.
+only ever appears as a labelled badge ("STALE"), so it does not read as the accent.
 
 ---
 
@@ -192,7 +192,7 @@ composed placeholder, centered in its panel:
 
 No spinners-as-empty-state; no bare `<p class="text-charcoal-400">No data.</p>`. Pattern
 ships as one shared `<EmptyState icon headline hint cta?/>` component and replaces every
-dead-text surface (analyst tables, broker connect, screener universe, etc.).
+dead-text surface (analyst tables, screener universe, etc.).
 
 The composer empty state additionally shows **teach-the-agent suggestion chips** (§ feature
 spec) — Perplexity-style "try this" capsules below the input.

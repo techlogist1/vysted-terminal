@@ -4,23 +4,7 @@ import { CATALOG_BY_ID, CATALOG_ROWS, MARKETPLACE_CATALOG } from "@/lib/marketpl
 import { hostSatisfies } from "@/lib/plugin-runtime";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
 
-describe("marketplace catalog (FR-050/FR-051/FR-052/SC-013)", () => {
-  it("registers NO broker as pre-installed — no broker at boot (FR-051/SC-013)", () => {
-    const brokers = MARKETPLACE_CATALOG.filter((e) => e.category === "broker");
-    expect(brokers.length).toBeGreaterThanOrEqual(7);
-    for (const broker of brokers) {
-      expect(broker.preinstalled).toBe(false);
-    }
-  });
-
-  it("Kite is the reference broker with BYOK credential fields (FR-052)", () => {
-    const kite = CATALOG_BY_ID["vysted-kite"];
-    expect(kite).toBeDefined();
-    expect(kite.entry.category).toBe("broker");
-    expect(kite.entry.brokerId).toBe("kite");
-    expect(kite.entry.credentialFields?.length ?? 0).toBeGreaterThan(0);
-  });
-
+describe("marketplace catalog (FR-050/SC-013)", () => {
   it("ships pre-installed plugins across multiple categories — one lifecycle (SC-013)", () => {
     const preinstalled = MARKETPLACE_CATALOG.filter((e) => e.preinstalled);
     // Data + agent first-party plugins prove the ONE install/enable/configure
@@ -46,10 +30,12 @@ describe("marketplace catalog (FR-050/FR-051/FR-052/SC-013)", () => {
     }
   });
 
-  it("broker credential fields are all marked secret — keychain-only, never plaintext (FR-036)", () => {
-    for (const broker of MARKETPLACE_CATALOG.filter((e) => e.category === "broker")) {
-      expect(broker.secretNamespace).toBe("broker");
-      for (const field of broker.credentialFields ?? []) {
+  it("credential fields are all marked secret — keychain-only, never plaintext (FR-036)", () => {
+    const withCreds = MARKETPLACE_CATALOG.filter((e) => (e.credentialFields ?? []).length > 0);
+    expect(withCreds.length).toBeGreaterThan(0);
+    for (const entry of withCreds) {
+      expect(entry.secretNamespace).toBe("plugin");
+      for (const field of entry.credentialFields ?? []) {
         expect(field.secret).toBe(true);
       }
     }

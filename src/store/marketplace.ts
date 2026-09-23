@@ -17,31 +17,12 @@ import { CATALOG_BY_ID } from "@/lib/marketplace";
 import { bridgePluginModule, unbridgePluginModule } from "@/lib/plugin-bootstrap";
 import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { syncPluginAgents } from "@/lib/plugin-agents";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { usePluginsStore } from "@/store/plugins";
 
 import type { MarketplaceEntry, MarketplacePluginState } from "../../types/marketplace";
 
 function secretAccount(entry: MarketplaceEntry, fieldKey: string): string {
-  if (entry.secretNamespace === "broker" && entry.brokerId) {
-    return KEYCHAIN_NAMESPACES.broker(entry.brokerId, fieldKey);
-  }
   return KEYCHAIN_NAMESPACES.pluginSecret(entry.pluginId, fieldKey);
-}
-
-/** Disconnect a broker plugin's sidecar adapter (best-effort) on disable/remove
- *  so the adapter doesn't linger "connected" after the plugin is gone. */
-async function disconnectBroker(entry: MarketplaceEntry): Promise<void> {
-  if (entry.category !== "broker" || !entry.brokerId) return;
-  try {
-    const base = await getSidecarBaseUrl();
-    await fetch(
-      new URL(`/brokers/${encodeURIComponent(entry.brokerId)}/disconnect`, base).toString(),
-      { method: "POST" },
-    );
-  } catch {
-    // Best-effort — a transient failure or already-disconnected is non-fatal.
-  }
 }
 
 interface PersistedFlags {
@@ -174,7 +155,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
 
   disable: async (pluginId) => {
-    const row = CATALOG_BY_ID[pluginId];
     const runtime = usePluginsStore.getState().runtime;
     if (!runtime) return;
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
@@ -182,7 +162,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       await runtime.disablePlugin(pluginId);
       unbridgePluginModule(pluginId);
       await syncPluginAgents(pluginId, false);
-      if (row) await disconnectBroker(row.entry);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
@@ -191,7 +170,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
 
   remove: async (pluginId) => {
-    const row = CATALOG_BY_ID[pluginId];
     const runtime = usePluginsStore.getState().runtime;
     if (!runtime) return;
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
@@ -199,7 +177,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       await runtime.removePlugin(pluginId);
       unbridgePluginModule(pluginId);
       await syncPluginAgents(pluginId, false);
-      if (row) await disconnectBroker(row.entry);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {

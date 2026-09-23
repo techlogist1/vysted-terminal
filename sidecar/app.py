@@ -24,7 +24,6 @@ import config
 from routers import (
     agents,
     backtest,
-    brokers,
     crypto,
     custom_agents,
     disclosures,
@@ -43,7 +42,6 @@ from routers import (
     quotes,
     resolve,
     runs,
-    safety,
     screener,
     search_status,
     search_tiers,
@@ -84,11 +82,9 @@ _ROUTERS = (
     custom_agents,
     runs,
     mcp,
-    safety,
     sec_filings,
     workflow,
     backtest,
-    brokers,
     quant,
     earnings,
     screener,
@@ -200,20 +196,6 @@ def _register_v0_6_0_runtime_extensions() -> None:
     _wf_v0_6_0.register_v0_6_0_nodes()
 
 
-def _register_v0_6_5_runtime_extensions() -> None:
-    """Wire v0.6.5 phase extensions.
-
-    v0.6.5 ships READ-ONLY by operator decision — no agent tools are
-    registered for the wrapper. The aggregator helper is invoked anyway
-    to maintain per-release-stamp parity with v0.5.0 / v0.6.0; when
-    write capability lands in v0.6.6+ the registration list inside
-    ``services/agent_tools/registry_v0_6_5.py`` becomes non-empty.
-    """
-    from services.agent_tools import registry_v0_6_5 as _at_v0_6_5
-
-    _at_v0_6_5.register_v0_6_5_tools()
-
-
 class _RegionMiddleware:
     """Pure-ASGI middleware threading per-request locale + search config into ContextVars.
 
@@ -317,11 +299,6 @@ def create_app() -> FastAPI:
     for module in _ROUTERS:
         app.include_router(module.router)
 
-    # FR-051: no broker is registered at app-build / boot time. Adapters
-    # register lazily via ``brokers_registry.ensure_registered(...)`` when a
-    # marketplace plugin connects (``POST /brokers/{id}/connect``), so a fresh
-    # boot has an empty broker registry.
-
     # v0.5.0 runtime extensions — backtest strategies + agent tools.
     # Registered at app-build time so TestClient + uvicorn paths converge.
     _register_v0_5_0_runtime_extensions()
@@ -331,11 +308,6 @@ def create_app() -> FastAPI:
     # aggregators currently no-op until each Phase 6 teammate's
     # submodule uncomments its registration entry.
     _register_v0_6_0_runtime_extensions()
-
-    # v0.6.5 phase runtime extensions — empty aggregator,
-    # no agent tools registered. Aggregator slot reserved for v0.6.6+
-    # when write capability is added per the operator-brief progression.
-    _register_v0_6_5_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP
     # clients reach it via http://127.0.0.1:<port>/mcp/. The plain-JSON

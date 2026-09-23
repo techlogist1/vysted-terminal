@@ -18,5 +18,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "types/**/*.ts"],
-  "exclude": ["node_modules", "src-tauri", "sidecar", "out", ".next"]
+  "exclude": ["node_modules", "src-tauri", "sidecar", "out", ".next", "docs/redesign/verification"]
 }

@@ -10,15 +10,13 @@ serialisers below and every adapter that imports them pick the change up for fre
 Read-tool ids (``price_data``, ``fundamentals``, …) map to the registered
 handlers in this package. The per-invocation ids (``get_terminal_state``,
 ``get_portfolio``) and the host-action ids (``open_panel``, ``set_chart_symbol``,
-``add_to_watchlist``, ``propose_order``) are resolved inside ``invoke_agent``
-(they need request scope / drive the frontend) — they appear here only so the
-model is told they exist.
+``add_to_watchlist``, …) are resolved inside ``invoke_agent`` (they need request
+scope / drive the frontend) — they appear here only so the model is told they
+exist.
 
-SAFETY (§6.5): the broker action tool is named ``propose_order`` — never
-``place_order``/``submit_order``/``execute_order`` (which
-``tests/test_safety_end_to_end.py`` greps the registry for). It only ever
-returns a proposal directive the user must review; the AI has no path to
-``confirm_and_place``.
+SAFETY (§6.5): host actions drive the cockpit and the user's local data writes
+(tracked portfolio, notes, screens, layouts) through the proposed-changes gate.
+No trading tool exists (D81).
 """
 
 from __future__ import annotations

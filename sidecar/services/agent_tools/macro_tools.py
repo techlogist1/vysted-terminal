@@ -7,8 +7,8 @@ Registers two tools agents can call once :func:`register` runs from
   - ``macro_search`` — search a provider's catalog by free-text query.
 
 Both tools surface the same provider literal the REST contract uses:
-``"fred" | "ecb" | "imf" | "world-bank"``. Tools are read-only — no
-broker / order / safety-surface side effects.
+``"fred" | "ecb" | "imf" | "world-bank"``. These are read-only data tools
+(Vysted has no trading path, D81).
 """
 
 from __future__ import annotations

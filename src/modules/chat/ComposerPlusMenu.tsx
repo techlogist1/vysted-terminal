@@ -17,7 +17,7 @@ import { type MentionDef, type MentionKind, STATIC_MENTIONS } from "./mentions";
  *   - **Persona** — the active lens (Buffett / researcher / …) as a drill-in
  *     roster; the row always shows the DISPLAY NAME, never a raw id.
  *   - **Autonomy** — ASK/AUTO as checked rows (a mode, not a per-message
- *     control; orders always confirm regardless — §6.5).
+ *     control).
  *   - **Mode** — Agent / Delegate as checked rows.
  *   - **Context / Scope / Route to** — insertable mention tokens SEEDED FROM
  *     the `@`-mention catalog (one source of truth: `STATIC_MENTIONS`).
@@ -182,7 +182,7 @@ export function ComposerPlusMenu({
 
   const autonomyHint: Record<AgentAutonomy, string> = {
     ask: "Every change waits for your review",
-    auto: "UI changes apply instantly; orders always confirm",
+    auto: "Changes apply instantly",
   };
 
   return (

@@ -358,8 +358,7 @@ function ActivityTrace({ message }: { message: ChatMessage }) {
  * transcript, and the diff/accept trust gate. Promoted from a dockview panel to
  * the shell's primary column (FR-001): its actions open + arrange the cockpit,
  * and every agent-proposed mutation is staged as a reviewable diff (FR-010) —
- * nothing lands before the user accepts. Orders route through the §6.5 dialog
- * (FR-011); the AI never reaches placement.
+ * nothing lands before the user accepts (or has chosen AUTO autonomy).
  *
  * Slash commands are parsed in `slash-commands.ts`; the composer dispatches to
  * `streamChat` (raw chat) or `streamAgentInvocation` (agent) and pipes events
@@ -566,8 +565,7 @@ export function ChatSidebar() {
   }, [setMode, pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
   // Stage a curated-slash action through the SAME diff/accept gate the agent uses
-  // (FR-100): in AUTO it auto-applies (orders excluded — but no slash action is an
-  // order), in ASK it queues for review. Returns nothing; surfaces the proposal in
+  // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in
   // the status line so an ASK-mode user knows to confirm it below.
   const enqueueSlashChange = useCallback(
     (name: string, input: Record<string, unknown>) => {
@@ -957,12 +955,8 @@ export function ChatSidebar() {
               markBriefPublished(assistantId);
             } else {
               // Reflect the ACTUAL autonomy: AUTO auto-applied (no "review below"
-              // phantom), ASK queued it for the diff gate below. ORDERS are EXEMPT
-              // from auto-apply (§6.5; proposed-changes excludes kind === "order"),
-              // so an order always stages — never narrate it as "Applied", in any
-              // mode, or the transcript would lie about an unconfirmed order.
-              const auto =
-                useAgentAutonomyStore.getState().autonomy === "auto" && change?.kind !== "order";
+              // phantom), ASK queued it for the diff gate below.
+              const auto = useAgentAutonomyStore.getState().autonomy === "auto";
               const title = change?.title ?? name;
               appendToolStep(
                 assistantId,
@@ -1012,7 +1006,6 @@ export function ChatSidebar() {
             mode,
             // Autonomy rides the request so the sidecar narrates host-actions
             // truthfully (auto = applied/past-tense, ask = staged for review).
-            // Orders always need confirmation regardless (§6.5).
             autonomy: useAgentAutonomyStore.getState().autonomy,
             apiKey: apiKey ?? undefined,
             options: { history, ...deepResearchOptions },

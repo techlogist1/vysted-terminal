@@ -53,7 +53,7 @@ def test_get_history_empty_series_returns_clean_200(client: TestClient, monkeypa
 def test_empty_series_in_symbol_carries_eod_only_reason(client: TestClient, monkeypatch) -> None:
     """WS6 Step 4: an IN symbol producing an all-empty series carries a typed
     `reason=="in_eod_only"` through the /history route so ChartPanel can show the
-    region-aware "EOD only — add a BYOK broker" message instead of the generic
+    region-aware "EOD only" message instead of the generic
     "No price data". Guards the chain region_hint → _empty_series_reason → the
     serialized model field against silent regression."""
     from services import provider_registry

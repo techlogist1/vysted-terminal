@@ -436,7 +436,7 @@ async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A compound request on a capable model surfaces a visible plan whose
-    host-action steps are flagged ``staged`` and never include an order verb."""
+    host-action steps are flagged ``staged``."""
     agent_runtime.reload()
     provider = _FakeProvider()
     _patch_provider(monkeypatch, provider)
@@ -465,7 +465,6 @@ async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     plan = plans[0]
     assert len(plan.steps) == 2
     assert all(s["staged"] for s in plan.steps)  # both host-actions pre-stage
-    assert all(s["action"] != "propose_order" for s in plan.steps)  # §6.5: no order verb
     # The plan precedes the loop's own stream.
     kinds = [e.kind for e in events]
     assert kinds.index("agent_plan") < kinds.index("done")
@@ -861,7 +860,7 @@ async def test_invoke_agent_model_override_wins(monkeypatch: pytest.MonkeyPatch)
 
 #: The four mutating capabilities on the copilot's tool list — all read_only=False.
 #: Ask MUST strip every one; edit/build/delegate MUST keep them.
-_COPILOT_MUTATORS = {"open_panel", "set_chart_symbol", "add_to_watchlist", "propose_order"}
+_COPILOT_MUTATORS = {"open_panel", "set_chart_symbol", "add_to_watchlist", "portfolio_add_position"}
 
 
 async def _capture_tool_ids(monkeypatch: pytest.MonkeyPatch, **invoke_kwargs: Any) -> list[str]:
@@ -887,7 +886,7 @@ async def _capture_tool_ids(monkeypatch: pytest.MonkeyPatch, **invoke_kwargs: An
 @pytest.mark.asyncio
 async def test_ask_mode_strips_all_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ask mode filters the adapter's tool_ids to read-only capabilities — none
-    of the host-action mutators or propose_order survive, but read tools and the
+    of the host-action mutators or portfolio writes survive, but read tools and the
     per-invocation reads do."""
     tool_ids = await _capture_tool_ids(monkeypatch, mode="ask")
     selected = set(tool_ids)
@@ -917,7 +916,7 @@ async def test_default_mode_is_ask_and_read_only(monkeypatch: pytest.MonkeyPatch
 @pytest.mark.parametrize("mode", ["edit", "build", "delegate"])
 async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
     """edit/build/delegate pass the agent's tool set UNCHANGED — host actions and
-    propose_order are present (the staging distinction is a frontend concern)."""
+    portfolio writes are present (the staging distinction is a frontend concern)."""
     tool_ids = await _capture_tool_ids(monkeypatch, mode=mode)
     spec = agent_runtime.get_agent("copilot")
     assert spec is not None
@@ -926,12 +925,12 @@ async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, 
 
 
 @pytest.mark.asyncio
-async def test_read_intent_retains_panel_allowlist_but_not_propose_order(
+async def test_read_intent_retains_panel_allowlist_but_not_data_writes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A READ intent (inferred under mode='agent') keeps the read-safe panel
-    host-actions so it can still ground the index chart — but propose_order STAYS
-    stripped (Decision 4 loosening; §6.5 read-gate intact)."""
+    host-actions so it can still ground the index chart — but the tracked-portfolio
+    writes STAY stripped (Decision 4 loosening; §6.5 read-gate intact)."""
     tool_ids = await _capture_tool_ids(monkeypatch, prompt="how is the market today?", mode="agent")
     selected = set(tool_ids)
     # The 5 read-safe panel actions survive a read intent.
@@ -943,8 +942,13 @@ async def test_read_intent_retains_panel_allowlist_but_not_propose_order(
         "add_to_watchlist",
     ):
         assert action in selected, f"read-safe panel action {action} stripped on a read intent"
-    # The §6.5 broker mutation is STILL stripped on a read intent.
-    assert "propose_order" not in selected
+    # Tracked-portfolio writes are STILL stripped on a read intent.
+    for write in (
+        "portfolio_add_position",
+        "portfolio_update_position",
+        "portfolio_delete_position",
+    ):
+        assert write not in selected, f"data-write {write} survived a read intent"
     # Data/search read tools were never stripped.
     assert "price_data" in selected
     assert "market_overview" in selected
@@ -978,7 +982,7 @@ def test_invocation_request_round_trips_autonomy() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Truthful host-action narration (WS1 — autonomy-aware, orders exempt)
+# Truthful host-action narration (WS1 — autonomy-aware)
 # ---------------------------------------------------------------------------
 
 
@@ -1007,20 +1011,6 @@ async def test_ask_autonomy_stages_non_order_host_action() -> None:
         result = await local["open_panel"]({"panel": "news"})
         assert result["status"] == "awaiting_user_review"
         assert result["staged_for_review"] is True
-
-
-@pytest.mark.asyncio
-async def test_propose_order_always_awaits_review_even_in_auto() -> None:
-    """SAFETY (§6.5): propose_order returns awaiting_user_review in EVERY autonomy
-    mode — the AI has NO path to auto-apply an order."""
-    for autonomy in ("auto", "ask", None):
-        local = agent_runtime._build_local_tools(None, autonomy=autonomy)
-        result = await local["propose_order"]({"symbol": "AAPL", "side": "buy", "quantity": 1})
-        assert result["status"] == "awaiting_user_review", (
-            f"propose_order auto-applied under autonomy={autonomy!r} — §6.5 VIOLATION"
-        )
-        assert result.get("applied") is not True
-        assert result.get("status") != "applied"
 
 
 def test_session_preamble_anchors_the_server_clock() -> None:

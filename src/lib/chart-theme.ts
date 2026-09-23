@@ -35,7 +35,7 @@ export const POSITIVE = "#3fbf6f"; // gains -- muted green, luminance-matched
 export const POSITIVE_BRIGHT = "#4ade80";
 export const NEGATIVE = "#e5544b"; // losses -- muted red, luminance-matched
 export const NEGATIVE_BRIGHT = "#f87171";
-export const WARNING = "#e0a13a"; // caution -- stale/paper/warning
+export const WARNING = "#e0a13a"; // caution -- stale/warning
 
 // --- Neutral data series (distinct grays for overlaid indicators) ------------
 export const NEUTRAL = "#a8a8a8"; // charcoal-400 -- comparison / secondary series

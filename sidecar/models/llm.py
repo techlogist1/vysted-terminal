@@ -189,7 +189,7 @@ class LLMAgentPlanEvent(BaseModel):
     the tool loop, so the user sees the intended steps up front. It is ADVISORY —
     the loop still drives execution; ``staged`` host-action steps are pre-queued
     into the diff/accept gate (never auto-applied beyond the existing AUTO rules,
-    and there is no order verb in the planner vocabulary, so §6.5 is untouched).
+    so §6.5 is untouched).
     """
 
     kind: Literal["agent_plan"] = "agent_plan"

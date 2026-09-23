@@ -1,9 +1,9 @@
 """Safety + behaviour tests for the copilot's per-invocation action tools.
 
 The copilot can DRIVE the terminal (open panels, set the chart symbol, add to
-the watchlist) and can PREPARE — never place — broker orders. These tests pin
-the §6.5 invariant: no tool the AI can call places/submits/executes an order;
-``propose_order`` only ever returns an ``awaiting_user_review`` directive.
+the watchlist). Vysted has no trading path (D81); these tests pin that no tool
+the AI can call places/submits/executes an order and that host actions stage
+for review.
 """
 
 from __future__ import annotations
@@ -25,19 +25,6 @@ def test_no_order_placement_tool_anywhere() -> None:
         assert not _FORBIDDEN.search(tid), f"forbidden placement tool id in schemas: {tid}"
     for tid in agent_tools.registered_tools():
         assert not _FORBIDDEN.search(tid), f"forbidden placement tool id registered: {tid}"
-
-
-def test_propose_order_only_prepares_never_places() -> None:
-    local = agent_runtime._build_local_tools(None)
-    assert "propose_order" in local
-    result = asyncio.run(local["propose_order"]({"symbol": "AAPL", "side": "buy", "quantity": 10}))
-    assert result["ok"] is True
-    assert result["proposal_created"] is True
-    assert result["status"] == "awaiting_user_review"
-    assert result["host_action"]["type"] == "propose_order"
-    # It must NOT report the order as applied/placed.
-    assert "applied" not in result
-    assert "placed" not in result
 
 
 def test_ui_action_tools_return_host_directives() -> None:

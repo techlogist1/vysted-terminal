@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import re
+import shutil
 from typing import Any
 
 from config import get_workspaces_dir
@@ -76,6 +77,10 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
     same file into invalid JSON (a real observed corruption — ``load_workspace``
     then 500s and the session silently reverts to the default layout). A temp +
     atomic rename makes it last-writer-wins, never a torn file.
+
+    The previous body is kept as ``<name>.vysted-workspace.bak`` (one generation,
+    also written atomically) so a bad overwrite never costs the user's holdings,
+    watchlist or notes (R15-LIFECYCLE-002).
     """
     path = _path_for(name)
     payload = json.dumps(workspace, indent=2)
@@ -83,15 +88,20 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
     # each other's temp; same directory so ``os.replace`` is a same-filesystem
     # atomic rename.
     tmp = path.with_name(f"{path.name}.{os.getpid()}.{id(workspace)}.tmp")
+    bak_tmp = path.with_name(f"{path.name}.{os.getpid()}.{id(workspace)}.bak.tmp")
     try:
         tmp.write_text(payload, encoding="utf-8")
+        if path.is_file():
+            shutil.copyfile(path, bak_tmp)
+            os.replace(bak_tmp, path.with_name(f"{path.name}.bak"))
         os.replace(tmp, path)
     finally:
-        # If the rename failed (e.g. mid-shutdown), don't leak the temp file.
-        try:
-            tmp.unlink(missing_ok=True)
-        except OSError:
-            pass
+        # If a rename failed (e.g. mid-shutdown), don't leak the temp files.
+        for leftover in (tmp, bak_tmp):
+            try:
+                leftover.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def load_workspace(name: str) -> dict[str, Any]:

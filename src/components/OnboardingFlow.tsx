@@ -14,7 +14,7 @@
  * The terminal WORKS KEYLESS IMMEDIATELY (keyless data + DuckDuckGo search +
  * local research), so this flow is an UPGRADE, not a gate — it is dismissible
  * ("I'll explore first") and shows exactly once (durable keychain marker via
- * {@link useOnboardingStore}). It renders AFTER the §6.5 first-launch TOS
+ * {@link useOnboardingStore}). It renders AFTER the first-launch terms
  * (sequenced on `firstLaunchTosAcked`) so two blocking surfaces never stack.
  */
 
@@ -160,7 +160,7 @@ export function OnboardingFlow() {
         // Don't let an incidental outside-pointer (e.g. the workspace-restore
         // opening a panel during boot) or a stray Escape dismiss the headline
         // before the user reads it — it only closes via its explicit buttons
-        // (Skip / Add key / Set up local / Start exploring). Mirrors the §6.5 TOS.
+        // (Skip / Add key / Set up local / Start exploring). Mirrors the first-launch terms.
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}

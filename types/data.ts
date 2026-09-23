@@ -39,8 +39,8 @@ export interface OHLCVBar {
 /**
  * Typed reason for an EMPTY series (no bars). Set by the history router when
  * every provider returned no data so the chart can show a region-aware message
- * (WS6 Step 4). `in_eod_only` = an IN symbol where BSE/NSE serve EOD only and
- * intraday/realtime needs a BYOK broker; absent for a populated series.
+ * (WS6 Step 4); absent for a populated series.
+ * in_eod_only = BSE/NSE serve end-of-day data only; no intraday/realtime lane exists for this listing
  */
 export type SeriesReason = "in_eod_only";
 
