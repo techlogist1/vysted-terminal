@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePluginsStore } from "@/store/plugins";
+import { useWorkflowStore } from "@/store/workflow";
 
 import { NodeEditorPanel } from "./NodeEditorPanel";
 
@@ -271,6 +272,72 @@ describe("NodeEditorPanel", () => {
     ]);
     expect(await screen.findByTestId("run-status-error")).toBeInTheDocument();
     expect(screen.getByText("engine-level failure")).toBeInTheDocument();
+  });
+
+  it("a notify_desktop intent in the run stream reaches the desktop-notification queue", async () => {
+    useWorkflowStore.getState().clearAll();
+    await loadWorkflowAndRun([
+      { kind: "run-start", runId: "run-n", startedAt: 1 },
+      {
+        kind: "node-output",
+        runId: "run-n",
+        nodeId: "n1",
+        outputs: {
+          notified: true,
+          title: "Workflow",
+          message: "AAPL crossed 200",
+          intent: "desktop-notification",
+        },
+        durationMs: 1,
+      },
+      { kind: "run-complete", runId: "run-n", durationMs: 2 },
+    ]);
+    await screen.findByTestId("run-status-ok");
+    expect(useWorkflowStore.getState().pendingNotifications).toMatchObject([
+      { runId: "run-n", nodeId: "n1", message: "AAPL crossed 200" },
+    ]);
+  });
+
+  it("a stream that breaks mid-run renders run-error and ends the run log in run-error", async () => {
+    const encoder = new TextEncoder();
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input.toString();
+      if (url.endsWith("/workflow/saved")) {
+        return new Response(JSON.stringify({ workflows: [serverNodeSpec] }), { status: 200 });
+      }
+      if (url.endsWith("/workflow/saved/wf-run")) {
+        return new Response(JSON.stringify(serverNodeSpec), { status: 200 });
+      }
+      if (url.endsWith("/workflow/run") && init?.method === "POST") {
+        // First read yields run-start; the next read fails (connection reset).
+        let pulls = 0;
+        const body = new ReadableStream<Uint8Array>({
+          pull(c) {
+            pulls += 1;
+            if (pulls === 1) {
+              const frame = { kind: "run-start", runId: "run-x", startedAt: 1 };
+              c.enqueue(encoder.encode(`data: ${JSON.stringify(frame)}\n\n`));
+            } else {
+              c.error(new Error("connection reset"));
+            }
+          },
+        });
+        return new Response(body, { status: 200 });
+      }
+      return new Response("{}", { status: 200 });
+    });
+    render(<NodeEditorPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    fireEvent.click(await screen.findByText("Run target"));
+    const runButton = screen.getByRole("button", { name: "Run" });
+    await waitFor(() => expect(runButton).toBeEnabled());
+    fireEvent.click(runButton);
+    expect(await screen.findByTestId("run-status-error")).toBeInTheDocument();
+    expect(screen.queryByTestId("run-status-ok")).not.toBeInTheDocument();
+    expect(useWorkflowStore.getState().runs["run-x"]?.at(-1)).toMatchObject({
+      kind: "run-error",
+      message: expect.stringContaining("connection reset"),
+    });
   });
 
   it("sends the chat's provider and model selection with the run for agent nodes", async () => {
