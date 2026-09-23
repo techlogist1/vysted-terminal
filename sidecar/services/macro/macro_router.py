@@ -107,6 +107,12 @@ async def get_series(
         provider = default_provider_for_region(region)
     mod = _provider(provider)
     key = f"macro:{mod.PROVIDER}:{series_id}"
+    extra: dict[str, Any] = {}
+    if mod is world_bank_provider:
+        # A bare World Bank id reads as the session region's country
+        # (R15-DATA-046), so the region is part of the fetch and the cache key.
+        extra["region"] = region if region is not None else get_region()
+        key = f"{key}@{extra['region']}"
 
     cached = await data_cache.get(key, ttl_seconds)
     if cached is not None:
@@ -115,7 +121,7 @@ async def get_series(
         except Exception as exc:  # noqa: BLE001 — discard a corrupt cached row
             _log.warning("macro: discarding malformed cached row for %s: %s", key, exc)
 
-    result: MacroSeriesExtended = await asyncio.to_thread(mod.get_series, series_id)
+    result: MacroSeriesExtended = await asyncio.to_thread(mod.get_series, series_id, **extra)
     await data_cache.set(key, result.model_dump(mode="json"))
     return result
 

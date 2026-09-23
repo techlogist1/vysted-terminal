@@ -12,7 +12,7 @@ falling below the two-resolved floor.
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -207,3 +207,68 @@ def test_crypto_skips_fundamentals(monkeypatch: pytest.MonkeyPatch) -> None:
     # Crypto never calls get_fundamentals → fundamentals stays None.
     assert by_symbol["BTC/USDT"]["fundamentals"] is None
     assert result["relative"] == {"best": "BTC/USDT", "worst": "ETH/USDT"}
+
+
+def _daily_series(symbol: str, days_back: int, first: float, last: float) -> OHLCVSeries:
+    """Daily bars from ``days_back`` days ago to today, first/last closes as given."""
+    today = datetime(2026, 9, 18, tzinfo=UTC)
+    stamps = [today - timedelta(days=d) for d in range(days_back, -1, -1)]
+    closes = [first] * (len(stamps) - 1) + [last]
+    return OHLCVSeries(
+        symbol=symbol,
+        timeframe="1d",
+        bars=[
+            OHLCVBar(timestamp=t, open=c, high=c, low=c, close=c, volume=1_000.0)
+            for t, c in zip(stamps, closes, strict=True)
+        ],
+        provider="yfinance",
+    )
+
+
+def test_new_listing_is_not_ranked_against_a_six_month_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-DATA-041: a 2-bar listing's +30% outranked a 6-month +5% series.
+    _patch_registry(
+        monkeypatch,
+        quotes={"ESTABLISHED": _quote("ESTABLISHED"), "NEWLY_LISTED": _quote("NEWLY_LISTED")},
+        series={
+            "ESTABLISHED": _daily_series("ESTABLISHED", 182, first=100.0, last=105.0),
+            "NEWLY_LISTED": _daily_series("NEWLY_LISTED", 1, first=100.0, last=130.0),
+        },
+        fundamentals={
+            "ESTABLISHED": _fundamentals("ESTABLISHED"),
+            "NEWLY_LISTED": _fundamentals("NEWLY_LISTED"),
+        },
+    )
+
+    result = asyncio.run(_compare_symbols({"symbols": ["ESTABLISHED", "NEWLY_LISTED"]}))
+
+    assert result["relative"]["best"] is None
+    assert result["relative"]["worst"] is None
+    assert "NEWLY_LISTED has 2 bars since 2026-09-17" in result["relative"]["note"]
+    new = next(s for s in result["symbols"] if s["symbol"] == "NEWLY_LISTED")
+    assert (new["bars"], new["window_start"], new["window_end"]) == (2, "2026-09-17", "2026-09-18")
+
+
+def test_history_gap_mid_window_is_excluded_from_the_ranking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A long-listed name whose provider history starts mid-window measured a
+    # shorter period too; the full-window names still rank against each other.
+    _patch_registry(
+        monkeypatch,
+        quotes={s: _quote(s) for s in ("AAA", "BBB", "GAPPY")},
+        series={
+            "AAA": _daily_series("AAA", 182, first=100.0, last=110.0),
+            "BBB": _daily_series("BBB", 180, first=100.0, last=104.0),
+            "GAPPY": _daily_series("GAPPY", 90, first=100.0, last=150.0),
+        },
+        fundamentals={s: _fundamentals(s) for s in ("AAA", "BBB", "GAPPY")},
+    )
+
+    result = asyncio.run(_compare_symbols({"symbols": ["AAA", "BBB", "GAPPY"]}))
+
+    assert result["relative"]["best"] == "AAA"
+    assert result["relative"]["worst"] == "BBB"
+    assert "GAPPY has 91 bars since" in result["relative"]["note"]

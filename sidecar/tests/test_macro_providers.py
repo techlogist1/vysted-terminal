@@ -346,6 +346,14 @@ def test_wb_get_series_explicit_country(fake_wb: _FakeWbModule) -> None:
     assert "DEU" in series.title
 
 
+def test_wb_bare_id_takes_the_region_country(fake_wb: _FakeWbModule) -> None:
+    # R15-DATA-046: IN routes macro to World Bank for India series, but a bare
+    # featured id used to read as USA. An explicit country still wins.
+    assert world_bank_provider.get_series("NY.GDP.MKTP.KD.ZG", region="IN").title.endswith("IND")
+    series = world_bank_provider.get_series("NY.GDP.MKTP.KD.ZG:DEU", region="IN")
+    assert series.title.endswith("DEU")
+
+
 def test_wb_get_series_with_wb_prefix(fake_wb: _FakeWbModule) -> None:
     series = world_bank_provider.get_series("WB:NY.GDP.PCAP.CD:GBR")
     assert "GBR" in series.title

@@ -47,7 +47,6 @@ from .native_search import (
     openai_native_search_supported,
     openai_web_search_options,
     openrouter_web_search_tool,
-    xai_search_parameters,
 )
 from .tool_call_rescue import rescue_leaked_tool_call
 
@@ -568,20 +567,13 @@ class OpenAIProvider(LLMProvider):
             tools.extend(openai_tools(tool_ids))
         # Native server-side web search (FR-081), opt-in via ``web_search``.
         # OpenAI takes a ``web_search_options`` param (search-preview models only);
-        # OpenRouter (WS5)
-        # takes its own ``{"type": "openrouter:web_search"}`` tools entry to ride
-        # the upstream model's native search; xAI (dispatched through this adapter
-        # via the x.ai base_url) speaks Live Search through a top-level
-        # ``search_parameters`` block instead of a tool — gate on the provider id.
-        # DeepSeek has no native search, so it is left untouched (graceful no-op;
-        # the runtime falls back to a BYOK search plugin).
+        # OpenRouter (WS5) takes its own ``{"type": "openrouter:web_search"}``
+        # tools entry to ride the upstream model's native search. xAI and
+        # DeepSeek have no native search here (xAI retired Live Search's
+        # ``search_parameters``, R15-LEAD-008), so they are left untouched
+        # (graceful no-op; the runtime keeps the local search tool).
         if web_search:
-            if self._provider_id == "xai":
-                request_kwargs["extra_body"] = {
-                    **request_kwargs.get("extra_body", {}),
-                    "search_parameters": xai_search_parameters(),
-                }
-            elif self._provider_id == "openrouter":
+            if self._provider_id == "openrouter":
                 tools.append(openrouter_web_search_tool())
             elif self._provider_id == "openai":
                 # Chat-completions takes ``web_search_options`` — NOT a tools

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -77,7 +78,9 @@ def patch_all_providers(monkeypatch: pytest.MonkeyPatch) -> None:
         ("imf", imf_provider),
         ("world-bank", world_bank_provider),
     ):
-        monkeypatch.setattr(mod, "get_series", lambda sid, _p=provider_name: _series_stub(_p, sid))
+        monkeypatch.setattr(
+            mod, "get_series", lambda sid, region=None, _p=provider_name: _series_stub(_p, sid)
+        )
         monkeypatch.setattr(
             mod, "search", lambda q, limit=25, _p=provider_name: _search_stub(_p, q)
         )
@@ -117,6 +120,36 @@ def test_get_series_dispatches_to_world_bank(client: TestClient, patch_all_provi
     res = client.get("/macro/NY.GDP.PCAP.CD", params={"provider": "world-bank"})
     assert res.status_code == 200
     assert res.json()["provider"] == "world-bank"
+
+
+def test_world_bank_bare_id_follows_the_session_region(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # R15-DATA-046: a featured (bare) World Bank id served US data to an IN
+    # session. It now reads as the region's country, and the cache keeps the
+    # regions apart.
+    from services.macro import world_bank_provider
+
+    class _Wb:
+        class data:  # noqa: N801 - mirrors wbgapi's module attribute
+            @staticmethod
+            def fetch(indicator: str, country: str) -> Any:
+                return iter([{"time": "YR2023", "value": 5.4}])
+
+        class series:  # noqa: N801
+            @staticmethod
+            def info(indicator: str) -> Any:
+                raise RuntimeError("no title")
+
+    monkeypatch.setattr(world_bank_provider, "_make_client", lambda: _Wb)
+    for region, iso in (("IN", "IND"), ("US", "USA")):
+        res = client.get(
+            "/macro/FP.CPI.TOTL.ZG",
+            params={"provider": "world-bank"},
+            headers={"X-Vysted-Region": region},
+        )
+        assert res.status_code == 200
+        assert res.json()["title"].endswith(iso), region
 
 
 def test_get_series_returns_502_on_provider_error(

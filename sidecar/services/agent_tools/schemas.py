@@ -87,7 +87,10 @@ def gemini_tools(tool_ids: list[str]) -> list[dict[str, Any]]:
                 {
                     "name": tid,
                     "description": TOOL_SCHEMAS[tid]["description"],
-                    "parameters": TOOL_SCHEMAS[tid]["input_schema"],
+                    # ``parameters`` is google-genai's OpenAPI-subset Schema, which
+                    # rejects plain JSON Schema (int enums, list-valued ``type``);
+                    # ``parameters_json_schema`` takes the catalog schema as-is.
+                    "parameters_json_schema": TOOL_SCHEMAS[tid]["input_schema"],
                 }
                 for tid in known
             ]

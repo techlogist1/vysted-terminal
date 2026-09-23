@@ -25,6 +25,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import re
 import time
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
@@ -52,6 +53,7 @@ from models.llm import (
 )
 from services import agent_tools, model_registry
 from services.agent_tools import catalog
+from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot
 from services.llm.base import LLMStreamEvent
 from services.llm.openai import INVALID_ARGS_SENTINEL
@@ -570,7 +572,7 @@ def _native_search_enabled(
     Delegates to :func:`services.llm.native_search.native_search_available` —
     THE one detection truth (R9 Track A interface; Team B's tier_a cross-verify
     reads the same function, so the two surfaces can never disagree). WS5
-    semantics: the provider-level providers (anthropic/xai) always qualify;
+    semantics: the provider-level provider (anthropic) always qualifies;
     OpenAI, Groq and Gemini are per-MODEL (R15-AGENT-005); OpenRouter is gated
     per-MODEL on the resolved model's :attr:`LLMModelOption.web_search` flag
     (``"native"`` → ride it; ``"plugin"`` is OpenRouter's billed plugin, never
@@ -751,7 +753,85 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
     event.input = {INVALID_ARGS_SENTINEL: reason}
 
 
-def _model_facing_content(tool_name: str, result_str: str) -> str:
+#: Context admission (D-B4-1, R15-AGENT-008). Estimates are chars/4: no
+#: tokenizer ships in the sidecar, and Ollama's usage only counts uncached tokens.
+_CHARS_PER_TOKEN = 4
+#: A tool result the model reads is cut past this on a lane with no window: above
+#: the largest captured hosted research result (~42 KB, r15 surface/research-briefs),
+#: so a normal research result is never cut there.
+_RESULT_CHAR_CEILING = 64_000
+#: On a window-bound lane one tool result may fill 1/N of the window.
+_RESULT_WINDOW_SHARE = 8
+#: On a window-bound lane 1/N of the window stays free for the answer.
+_ANSWER_RESERVE_SHARE = 8
+#: What an older tool result becomes when the round would not fit the window.
+_ELIDED_RESULT = (
+    "[earlier tool result elided to fit the model's context window — call the tool "
+    "again if you still need it]"
+)
+
+
+def _message_chars(message: LLMMessage) -> int:
+    meta = len(json.dumps(message.metadata, default=str)) if message.metadata else 0
+    return len(message.content) + meta
+
+
+def _estimate_tokens(messages: list[LLMMessage], tool_ids: list[str]) -> int:
+    """The round's prompt size in tokens: the tool schemas sent plus every message."""
+    chars = len(json.dumps(openai_tools(tool_ids))) + sum(_message_chars(m) for m in messages)
+    return chars // _CHARS_PER_TOKEN
+
+
+def _window_tool_subset(tool_ids: list[str], messages: list[LLMMessage], window: int) -> list[str]:
+    """Send only the always-on domains plus the cued specialists when the full
+    schema set and system prompt would take over half the window.
+
+    This replaces the lane's silent head truncation with a deliberate subset;
+    the agent's allow-list itself is unchanged (D21).
+    """
+    system_chars = sum(len(m.content) for m in messages if m.role == "system")
+    if len(json.dumps(openai_tools(tool_ids))) + system_chars <= window * _CHARS_PER_TOKEN // 2:
+        return tool_ids
+    recent = " ".join(m.content for m in [m for m in messages if m.role == "user"][-3:]).lower()
+    keep = set(catalog.ALWAYS_ON_DOMAINS) | {
+        domain
+        for domain, cues in catalog.DOMAIN_CUES.items()
+        if any(re.search(r"\b" + re.escape(cue), recent) for cue in cues)
+    }
+    subset = [t for t in tool_ids if catalog.domain_of(t) in keep]
+    logger.debug(
+        "context admission: window=%d, sending %d of %d tools (domains %s)",
+        window,
+        len(subset),
+        len(tool_ids),
+        sorted(keep),
+    )
+    return subset
+
+
+def _fit_to_window(messages: list[LLMMessage], tool_ids: list[str], window: int) -> None:
+    """Elide the oldest tool results until the round fits the window minus the
+    answer reserve. The latest round's results and every non-tool message (the
+    user prompt included) are never touched."""
+    budget = (window - window // _ANSWER_RESERVE_SHARE) * _CHARS_PER_TOKEN
+    total = _estimate_tokens(messages, tool_ids) * _CHARS_PER_TOKEN
+    last_call = max(
+        (
+            i
+            for i, m in enumerate(messages)
+            if m.role == "assistant" and m.metadata and m.metadata.get("tool_calls")
+        ),
+        default=0,
+    )
+    for message in messages[:last_call]:
+        if total <= budget:
+            return
+        if message.role == "tool" and message.content != _ELIDED_RESULT:
+            total -= len(message.content) - len(_ELIDED_RESULT)
+            message.content = _ELIDED_RESULT
+
+
+def _model_facing_content(tool_name: str, result_str: str, window: int | None = None) -> str:
     """The tool message the MODEL reads, split from the raw result (D-B3-5).
 
     A research result's money scalars become their semantics displays, so a
@@ -766,6 +846,15 @@ def _model_facing_content(tool_name: str, result_str: str) -> str:
         from services.agent_tools import research
 
         content = research.model_content(content)
+    # Size cap (R15-AGENT-008): a share of the window when the lane has one,
+    # else a ceiling no normal result reaches. Cut before the untrusted fence
+    # so the fence stays whole.
+    limit = window * _CHARS_PER_TOKEN // _RESULT_WINDOW_SHARE if window else _RESULT_CHAR_CEILING
+    if len(content) > limit:
+        content = (
+            f"{content[:limit]}…[{len(content) - limit} chars elided — call again with a "
+            "narrower query or a smaller limit]"
+        )
     if catalog.is_untrusted_text(tool_name):
         content = wrap_untrusted(tool_name, content)
     return content
@@ -891,6 +980,30 @@ def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
         requested = str(execution.get("requested_depth") or "normal")
         return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
     return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
+
+
+def _auto_open_backtest_event(
+    tool_call: LLMToolUseEvent, result_str: str
+) -> LLMToolUseEvent | None:
+    """Synthetic ``open_panel(backtest, run_id)`` after a successful
+    ``run_custom_backtest`` (C1, R15-AGENT-011).
+
+    The tool tells the model the result renders in the backtest panel; this
+    makes it so, the way :func:`_auto_publish_event` does for research: it rides
+    the same proposed-changes gate and is never dispatched back to the model.
+    ``None`` for a failed run, so no panel opens on nothing.
+    """
+    try:
+        payload = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return None
+    if not isinstance(payload, dict) or not payload.get("ok") or not payload.get("runId"):
+        return None
+    return LLMToolUseEvent(
+        tool_call_id=f"auto-backtest-{tool_call.tool_call_id}",
+        name="open_panel",
+        input={"panel": "backtest", "run_id": payload["runId"]},
+    )
 
 
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
@@ -1416,7 +1529,7 @@ async def invoke_agent(
     # model's own server-side search when THIS model supports it (the adapter
     # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
     # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The provider-level native providers (anthropic/xai) always qualify; Groq
+    # The provider-level native provider (anthropic) always qualifies; Groq
     # (Compound only) and Gemini (Gemini 3 alongside function tools) are
     # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
     # native search only on its *-search-preview models — a `web_search` tools
@@ -1451,6 +1564,13 @@ async def invoke_agent(
     local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
     adapter = get_provider(provider_id)
+    # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
+    # and elides old results; hosted lanes (no window) send the full set. The
+    # window is an optional capability: an adapter that declares none has none.
+    context_window = getattr(adapter, "context_window", None)
+    window = context_window(resolved_model) if context_window else None
+    if window:
+        tool_ids = _window_tool_subset(tool_ids, messages, window)
 
     # Publish the active LLM creds for the run so the in-loop research tool's deep
     # path can call the SAME model the user is talking to. Task-local (each request
@@ -1541,6 +1661,8 @@ async def invoke_agent(
         capped = rounds >= _MAX_TOOL_ROUNDS
         if capped:
             messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
+        if window:
+            _fit_to_window(messages, tool_ids, window)
         streamed_text = False
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -1666,7 +1788,14 @@ async def invoke_agent(
                 content=reconstructed_content,
                 metadata={
                     "tool_calls": [
-                        {"id": tc.tool_call_id, "name": tc.name, "input": tc.input}
+                        {
+                            "id": tc.tool_call_id,
+                            "name": tc.name,
+                            "input": tc.input,
+                            # Echoed back by the adapter that set it (Gemini's
+                            # thought signature, R15-AGENT-006).
+                            **({"provider_meta": tc.provider_meta} if tc.provider_meta else {}),
+                        }
                         for tc in pending_tools
                     ]
                 },
@@ -1710,7 +1839,7 @@ async def invoke_agent(
                 role="tool",
                 # The model reads its own view (money as displays); the raw
                 # result_str still feeds auto-publish and the execution record.
-                content=_model_facing_content(tool_call.name, result_str),
+                content=_model_facing_content(tool_call.name, result_str, window),
                 tool_call_id=tool_call.tool_call_id,
                 # Carry the tool NAME alongside the id: Gemini pairs a
                 # function_response to its call by name (not id), so a
@@ -1747,6 +1876,11 @@ async def invoke_agent(
                 if auto_brief is not None:
                     publish_brief_calls.append(auto_brief.tool_call_id)
                     yield auto_brief
+            # Only where this turn may drive panels (a strict read turn may not).
+            if tool_call.name == "run_custom_backtest" and "open_panel" in tool_ids:
+                auto_open = _auto_open_backtest_event(tool_call, result_str)
+                if auto_open is not None:
+                    yield auto_open
         # Grounded host-action read-back (R13 JARVIS 1b): ONE grace-bounded poll
         # of the ack ledger for this round's dispatched host actions, then
         # rewrite each tool-result from the panel's REAL outcome (applied /

@@ -149,3 +149,48 @@ async def test_screener_run_tool_id_safe_for_safety_audit() -> None:
     tool_id = "screener_run"
     for forbidden in ("place_order", "submit_order", "execute_order", "auto_approve"):
         assert forbidden not in tool_id
+
+
+@pytest.mark.asyncio
+async def test_screener_run_counts_skips_instead_of_listing_them(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-009: a partial india-all run skipped ~5,000 symbols and every
+    {symbol, reason} row went into the model's context."""
+    import json
+
+    from models.screener import ScreenerResult, SkipDetail
+    from services import screener
+
+    reasons = ["timeout", "not_found", "missing_field:pe_ratio"]
+    skips = [SkipDetail(symbol=f"SYM{i}.NS", reason=reasons[i % 3]) for i in range(5000)]
+
+    async def fake_run(_request: Any) -> ScreenerResult:
+        return ScreenerResult(
+            universe="india-all",
+            evaluated_count=100,
+            skipped_count=5000,
+            skip_details=skips,
+            result_count=0,
+            rows=[],
+            duration_ms=1.0,
+            partial=True,
+        )
+
+    monkeypatch.setattr(screener, "run_screener", fake_run)
+    response = await screener_tools._screener_run(
+        {
+            "universe": "india-all",
+            "criteria": [{"field": "pe_ratio", "operator": "lt", "value": 15}],
+        }
+    )
+    result = response["result"]
+    assert len(json.dumps(response)) < 2_000
+    assert "skip_details" not in result
+    assert result["skipped_count"] == 5000
+    assert result["skip_summary"] == {
+        "timeout": 1667,
+        "not_found": 1667,
+        "missing_field:pe_ratio": 1666,
+    }
+    assert len(result["skip_examples"]) == 5

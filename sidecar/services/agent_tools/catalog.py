@@ -55,6 +55,45 @@ Domain = Literal[
     "terminal",
 ]
 
+#: Context admission on a window-bound lane (D-B4-1, R15-AGENT-008): when the
+#: full tool set would crowd the model's window, these domains ride every turn
+#: and a specialist domain joins only when one of its cue words (matched at a
+#: word start, lower-cased) appears in the prompt or the recent user turns.
+ALWAYS_ON_DOMAINS: frozenset[Domain] = frozenset(
+    {
+        "quotes",
+        "charts",
+        "indicators",
+        "research",
+        "fundamentals",
+        "news",
+        "terminal",
+        "workspace",
+        "portfolio",
+    }
+)
+DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
+    "screener": ("screen", "filter", "stocks with", "stocks under", "p/e under", "scan"),
+    "macro": ("macro", "gdp", "inflation", "cpi", "unemployment", "interest rate", "economy"),
+    "earnings": ("earnings", "eps", "quarterly result", "guidance"),
+    "analyst": ("analyst", "rating", "price target", "upgrade", "downgrade", "consensus"),
+    "filings": (
+        "filing",
+        "10-k",
+        "10-q",
+        "8-k",
+        "edgar",
+        "insider",
+        "announcement",
+        "disclosure",
+        "shareholding",
+        "promoter",
+    ),
+    "quant": ("option", "greeks", "black-scholes", "bond", "yield curve", "implied vol"),
+    "agents": ("agent", "delegate"),
+    "workflows": ("backtest", "strategy", "workflow"),
+}
+
 # How the host resolves an invocation of this capability:
 #   read_handler  — a handler registered in the agent_tools registry.
 #   per_invocation — resolved inside ``invoke_agent`` from request scope.
@@ -964,6 +1003,13 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                             "Optional ticker to load into a symbol-aware panel "
                             "(equity-overview, chart) as it opens, e.g. "
                             "SAKSOFT.NS. Ignored by panels with no symbol."
+                        ),
+                    },
+                    "run_id": {
+                        "type": "string",
+                        "description": (
+                            "For panel=backtest: the run id a run_custom_backtest "
+                            "call returned, to display that run."
                         ),
                     },
                 },

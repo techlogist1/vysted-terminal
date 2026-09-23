@@ -130,6 +130,17 @@ class LLMProvider(ABC):
         """
         raise NotImplementedError
 
+    def context_window(self, model: str) -> int | None:  # noqa: ARG002
+        """The token window a request to ``model`` must fit, when the lane has
+        one the runtime has to respect (R15-AGENT-008).
+
+        ``None`` (the default, every hosted lane) means no admission limit: the
+        runtime sends the full tool set and caps results at a fixed ceiling.
+        A window-bound lane (Ollama's ``num_ctx``) returns its size, and the
+        runtime then subsets tools and caps and elides results to fit it.
+        """
+        return None
+
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Return the provider's LIVE model catalog (``GET /llm/models``).
 

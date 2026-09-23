@@ -120,6 +120,21 @@ def test_synthesis_timeout_with_web_sources_is_stated_not_called_thin(local_run)
     assert "1411777036288" not in md and "1.527472527472525" not in md
 
 
+def test_synthesis_timeout_reaches_the_execution_record(local_run) -> None:
+    """The engine's stated reason survives the research tool boundary, so the
+    brief's execution record says why instead of null."""
+    from services.agent_tools.research import _research
+
+    token = config.set_request_llm_creds("ollama", "llama3.1:8b", None)
+    try:
+        out = asyncio.run(_research({"query": "CG Power outlook", "depth": "deep", "rounds": 1}))
+    finally:
+        config.reset_request_llm_creds(token)
+    assert out["execution"]["loop"] == "iter"
+    assert out["execution"]["degraded_reason"] == deep.SYNTHESIS_TIMEOUT_REASON
+    assert _THIN not in out["markdown"]
+
+
 def test_local_lane_raises_the_per_call_cap_for_adapter_and_loop(local_run) -> None:
     """The adapter cap and the loop's universal cap move together on the local lane."""
     out = local_run()
