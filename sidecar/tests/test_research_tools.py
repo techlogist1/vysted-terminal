@@ -432,7 +432,10 @@ def test_research_unknown_depth_floors_to_normal_never_paid_up(
 def test_research_deep_llm_call_proxies_oneshot(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """The injected llm_call must drive oneshot.complete with the active creds."""
+    """The injected llm_call must drive oneshot.complete_with_usage with the active creds.
+
+    (The seam moved from ``complete`` to ``complete_with_usage`` so the run can
+    meter usage — R15-RESEARCH-009; the proxied text is unchanged.)"""
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("openai", "gpt-x", "sk-key"))
     monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
     captured: dict[str, Any] = {}
@@ -447,9 +450,9 @@ def test_research_deep_llm_call_proxies_oneshot(
                 "timeout": timeout,
             }
         )
-        return "joined-completion"
+        return "joined-completion", None
 
-    monkeypatch.setattr(oneshot, "complete", _fake_complete)
+    monkeypatch.setattr(oneshot, "complete_with_usage", _fake_complete)
 
     _run(_research({"query": "q", "depth": "deep"}))
 

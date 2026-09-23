@@ -25,6 +25,7 @@ import type {
 import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import {
   bodyCitesWeb,
+  briefCostUnknown,
   briefDepthTier,
   composeBriefMarkdown,
   dedupeSources,
@@ -113,6 +114,7 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
   // "$0.0000" never renders (zero spend omitted; below $0.005 → "<$0.01").
   const tokenLabel = formatBriefTokens(brief.cost?.tokens);
   const spendLabel = formatBriefSpend(brief.cost?.spendUsd);
+  const costUnknown = briefCostUnknown(brief);
   return (
     <header className="border-charcoal-700 flex flex-col gap-2 border-b px-4 py-3">
       {/* R8 Proportion Law §3.4: the meta row declares its collapse — chips
@@ -144,6 +146,14 @@ function MetaHeader({ brief }: { brief: ResearchBriefData }) {
         {spendLabel ? (
           <span className="text-charcoal-500 text-micro font-mono whitespace-nowrap">
             · {spendLabel}
+          </span>
+        ) : null}
+        {costUnknown ? (
+          <span
+            className="text-charcoal-500 text-micro font-mono whitespace-nowrap"
+            title="The model provider reported no token usage for this run, so its cost was not measured."
+          >
+            · cost unknown
           </span>
         ) : null}
         {/* Read-only depth mirror — the actionable "Go deeper" escalation lives

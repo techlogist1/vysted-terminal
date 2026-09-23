@@ -465,6 +465,20 @@ export function formatBriefSpend(spendUsd: number | undefined): string | null {
   return `$${spendUsd.toFixed(2)}`;
 }
 
+/**
+ * Whether the brief's cost is UNKNOWN: an LLM-driven loop (iter/heavy) ran but
+ * the provider reported no usage, so the sidecar sent null tokens/spend. The
+ * panel says "cost unknown" — never an omitted segment that reads as free.
+ */
+export function briefCostUnknown(brief: Pick<ResearchBriefData, "cost" | "execution">): boolean {
+  const loop = brief.execution?.loop;
+  if (loop !== "iter" && loop !== "heavy") return false;
+  return (
+    formatBriefTokens(brief.cost?.tokens) === null &&
+    formatBriefSpend(brief.cost?.spendUsd) === null
+  );
+}
+
 // ── asset-class metric branching ────────────────────────────────────────────
 
 /** The three metric families the brief's metric grid branches on. */
