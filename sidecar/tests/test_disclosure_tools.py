@@ -12,10 +12,11 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from config import DATA_DIR_ENV
-from models.announcements import AnnouncementWindow
+from models.announcements import AnnouncementWindow, ShareholdingPattern, ShareholdingResponse
 from routers import disclosures
 from services import corporate_disclosures, data_cache, symbol_resolver
 from services.agent_tools import disclosure_tools
+from services.agent_tools.catalog import CAPABILITY_CATALOG
 
 
 @pytest.fixture(autouse=True)
@@ -65,3 +66,34 @@ def test_router_then_tool_fetch_the_lanes_once(lane_calls: list[str]) -> None:
     )
     assert result["ok"] is True
     assert lane_calls == ["NSE", "BSE"]
+
+
+def test_shareholding_payload_with_a_bse_split_carries_no_contradicting_note(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-060: the split rides the typed fields; no prose note denies it."""
+    pattern = ShareholdingPattern(
+        symbol="RELIANCE",
+        quarter_end=date(2026, 6, 30),
+        promoter_percent=50.0,
+        fii_percent=19.1,
+        dii_percent=19.4,
+        institutions_percent=38.5,
+        source="NSE",
+        split_source="BSE",
+        split_as_of=date(2026, 6, 30),
+        split_basis="filed",
+    )
+    monkeypatch.setattr(
+        corporate_disclosures,
+        "get_shareholding",
+        lambda symbol: ShareholdingResponse(symbol="RELIANCE", count=1, patterns=[pattern]),
+    )
+    result = asyncio.run(disclosure_tools._shareholding_pattern({"symbol": "RELIANCE"}))
+
+    assert result["ok"] is True
+    assert "note" not in result
+    assert result["patterns"][0]["split_source"] == "BSE"
+    description = CAPABILITY_CATALOG["shareholding_pattern"].description
+    assert "FII/DII" in description and "pledge" in description
+    assert "xbrl" not in description.lower()

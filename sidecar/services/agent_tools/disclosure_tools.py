@@ -7,8 +7,9 @@ research run on an Indian name can pull real filings:
   BSE+NSE announcement feed (deduped, newest first) from
   :mod:`services.corporate_disclosures`.
 * ``shareholding_pattern(symbol)`` — the quarterly shareholding patterns
-  (promoter/public/employee-trust percentages; the FII/DII split rides the
-  linked XBRL filing and is honest ``None`` here — never fabricated).
+  (promoter/public/employee-trust percentages, the FII/DII split and the
+  promoter pledge; each pattern's ``source``/``split_source``/``split_as_of``/
+  ``split_basis`` carry the provenance — never fabricated).
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. Both are
@@ -80,10 +81,6 @@ async def _shareholding_pattern(args: dict[str, Any]) -> dict[str, Any]:
         "symbol": response.symbol,
         "count": len(patterns),
         "patterns": [pattern.model_dump(mode="json") for pattern in patterns],
-        "note": (
-            "promoter/public/employee-trust percentages come from the NSE master; "
-            "the FII/DII split lives in each quarter's linked xbrl_url filing."
-        ),
     }
 
 

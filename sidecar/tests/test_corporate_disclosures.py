@@ -874,7 +874,9 @@ def test_shareholding_pattern_tool_round_trip(
     assert result["patterns"][0]["promoter_percent"] == 50.0
     assert result["patterns"][0]["fii_percent"] is None
     assert result["patterns"][0]["public_basis"] == "incl. institutions"
-    assert "xbrl_url" in result["note"]
+    # No prose note: the typed provenance fields say where the split came from
+    # (R15-AGENT-060; the old note claimed the split lived only in the XBRL).
+    assert "note" not in result
 
 
 def test_shareholding_pattern_tool_surfaces_provider_error(_registered_tools: Any) -> None:

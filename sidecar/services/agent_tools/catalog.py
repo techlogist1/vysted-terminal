@@ -752,17 +752,20 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
         _cap(
             "shareholding_pattern",
             description=(
-                "Quarterly shareholding pattern for an NSE-listed Indian company — "
-                "promoter(+group), public, and employee-trust percentages per quarter, "
-                "newest first, with each quarter's XBRL filing link (which carries the "
-                "full FII/DII split). Use to check promoter-stake trends and ownership "
-                "shifts on Indian names."
+                "Quarterly shareholding pattern for an NSE- or BSE-listed Indian "
+                "company, newest quarter first: promoter(+group), public (incl. "
+                "institutions) and the non-institutional float, the FII/DII/"
+                "institutions split, and the promoter pledge (pledged or encumbered, "
+                "percent of the promoter holding; 0 when the filing declares none, "
+                "null when it declares nothing). source/split_source/split_as_of/"
+                "split_basis state where each figure came from. Use to check "
+                "promoter-stake and pledge trends and ownership shifts on Indian names."
             ),
             input_schema=_obj(
                 {
                     "symbol": {
                         "type": "string",
-                        "description": "NSE ticker, e.g. RELIANCE.",
+                        "description": "NSE/BSE ticker, e.g. RELIANCE.",
                     }
                 },
                 ["symbol"],
