@@ -413,11 +413,20 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
         prior_values = _render_prior_stated_values(rs.get("claims"))
         if prior_values:
             lines.append(prior_values)
-    charts = ts.get("charts") or []
-    if charts:
-        c = charts[0]
-        ind = ", ".join(c.get("indicators") or []) or "no indicators"
-        lines.append(f"Focused chart: {c.get('symbol')} ({c.get('timeframe')}, {ind}).")
+    # "Focused" is the panel the user last touched (its dockview id), not the
+    # first chart in the list (R15-AGENT-051).
+    focused_panel = ts.get("focusedPanel")
+    charts = [c for c in ts.get("charts") or [] if isinstance(c, dict)]
+    focused_chart = next((c for c in charts if c.get("panelId") == focused_panel), None)
+    shown = focused_chart or (charts[0] if charts else None)
+    if shown is not None:
+        ind = ", ".join(shown.get("indicators") or []) or "no indicators"
+        label = "Focused chart" if focused_chart is not None else "Chart"
+        lines.append(f"{label}: {shown.get('symbol')} ({shown.get('timeframe')}, {ind}).")
+    if focused_panel and focused_chart is None:
+        # Its symbol, when it has one, is the snapshot's focusedSymbol (the
+        # "this" line below).
+        lines.append(f"Focused panel: {focused_panel}.")
     wl = ts.get("watchlist") or {}
     if wl.get("symbols"):
         lines.append("Watchlist: " + ", ".join(wl["symbols"][:12]) + ".")
