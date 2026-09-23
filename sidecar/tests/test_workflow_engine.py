@@ -203,6 +203,101 @@ async def test_node_error_marks_downstream_failed() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Control flow: branch skip, per-node scheduling, per-node timeout
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_branch_skips_the_untaken_path_and_its_descendants() -> None:
+    from services import workflow_nodes
+
+    workflow_nodes.register_all()
+    events: list[WorkflowRunEvent] = []
+
+    async def _on(event: WorkflowRunEvent) -> None:
+        events.append(event)
+
+    spec = _spec(
+        [
+            _node("branch", "logic.branch"),
+            _node("notify", "action.notify_desktop"),
+            _node("log", "action.log"),
+            _node("taken", "action.log"),
+        ],
+        [
+            _edge("e1", "branch", "notify", "false_path", "value"),
+            _edge("e2", "notify", "log", "message", "value"),
+            _edge("e3", "branch", "taken", "true_path", "value"),
+        ],
+    )
+    result = await workflow_engine.run_workflow(spec, inputs={"value": "yes"}, on_event=_on)
+
+    by_id = {n.node_id: n for n in result.nodes}
+    assert result.status == "ok"
+    assert by_id["notify"].status == "skipped"
+    # Two hops below the un-taken port: the skip propagates.
+    assert by_id["log"].status == "skipped"
+    assert by_id["taken"].status == "ok"
+    assert by_id["branch"].outputs == {"true_path": "yes"}
+    started = {e.node_id for e in events if e.kind == "node-start"}
+    assert started == {"branch", "taken"}
+    skipped = {e.node_id for e in events if e.kind == "node-skipped"}
+    assert skipped == {"notify", "log"}
+
+
+@pytest.mark.asyncio
+async def test_a_completion_releases_its_dependants_without_waiting_for_slow_siblings() -> None:
+    release_a = asyncio.Event()
+    c_started = asyncio.Event()
+
+    async def _slow(_inputs: dict[str, Any], _config: dict[str, Any]) -> dict[str, Any]:
+        await release_a.wait()
+        return {"out": "a"}
+
+    async def _fast(_inputs: dict[str, Any], _config: dict[str, Any]) -> dict[str, Any]:
+        return {"out": "b"}
+
+    async def _dependant(inputs: dict[str, Any], _config: dict[str, Any]) -> dict[str, Any]:
+        c_started.set()
+        return {"out": inputs["in"]}
+
+    workflow_engine.register_node_type("slow", _slow)
+    workflow_engine.register_node_type("fast", _fast)
+    workflow_engine.register_node_type("dep", _dependant)
+    spec = _spec(
+        [_node("a", "slow"), _node("b", "fast"), _node("c", "dep")],
+        [_edge("e1", "b", "c")],
+    )
+    run = asyncio.create_task(workflow_engine.run_workflow(spec))
+    # C starts while A is still blocked (it would deadlock under a wave barrier).
+    await asyncio.wait_for(c_started.wait(), timeout=2)
+    assert not run.done()
+    release_a.set()
+    result = await run
+    assert result.status == "ok"
+
+
+@pytest.mark.asyncio
+async def test_hung_handler_ends_the_node_in_error_at_its_timeout() -> None:
+    async def _hang(_inputs: dict[str, Any], _config: dict[str, Any]) -> dict[str, Any]:
+        await asyncio.Event().wait()
+        return {}
+
+    workflow_engine.register_node_type("hang", _hang)
+    workflow_engine.register_node_type("t", _passthrough())
+    spec = _spec(
+        [_node("a", "hang", {"timeout_seconds": 0.05}), _node("b", "t")],
+        [_edge("e1", "a", "b")],
+    )
+    result = await asyncio.wait_for(workflow_engine.run_workflow(spec), timeout=2)
+    by_id = {n.node_id: n for n in result.nodes}
+    assert result.status == "error"
+    assert by_id["a"].status == "error"
+    assert by_id["a"].error == "node timed out after 0.05s"
+    assert by_id["b"].error == "upstream node failed"
+
+
+# ---------------------------------------------------------------------------
 # Store
 # ---------------------------------------------------------------------------
 

@@ -111,10 +111,13 @@ export type WorkflowRunEvent =
       kind: "node-output";
       runId: string;
       nodeId: string;
+      /** A port on an un-taken branch path is omitted (not `null`). */
       outputs: Record<string, unknown>;
       durationMs: number;
     }
   | { kind: "node-error"; runId: string; nodeId: string; message: string; durationMs: number }
+  /** Every input came from an un-taken branch path, so the node did not run. */
+  | { kind: "node-skipped"; runId: string; nodeId: string; nodeType: string }
   | { kind: "run-complete"; runId: string; durationMs: number }
   | { kind: "run-error"; runId: string; message: string; durationMs: number };
 
@@ -122,7 +125,7 @@ export type WorkflowRunEvent =
 export interface NodeRunResult {
   nodeId: string;
   nodeType: string;
-  status: "ok" | "error";
+  status: "ok" | "error" | "skipped";
   outputs: Record<string, unknown>;
   error?: string;
   durationMs: number;

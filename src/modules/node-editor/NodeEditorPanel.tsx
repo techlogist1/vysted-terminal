@@ -395,6 +395,7 @@ function NodeEditorPanelInner() {
     const startedMark = performance.now();
     const outputsByNode = new Map<string, Record<string, unknown>>();
     const failedServerIds: string[] = [];
+    const skippedServerIds = new Set<string>();
     // The store is the one client for this wire: every server event lands in
     // `useWorkflowStore` (so a notify_desktop intent reaches the desktop
     // bridge) and is handed back here for the overlay. It rejects when the
@@ -427,6 +428,9 @@ function NodeEditorPanelInner() {
               case "node-error":
                 failedServerIds.push(event.nodeId);
                 break;
+              case "node-skipped":
+                skippedServerIds.add(event.nodeId);
+                break;
               case "run-complete":
                 // Held — the run isn't over until the code nodes evaluated;
                 // server-side failures are folded into the final event below.
@@ -456,6 +460,7 @@ function NodeEditorPanelInner() {
         outputsByNode,
         runId,
         (event) => setRunState((prev) => applyEvent(prev, event)),
+        skippedServerIds,
       );
       const durationMs = performance.now() - startedMark;
       const allFailed = [...failedServerIds, ...failedNodeIds];

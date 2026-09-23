@@ -1,9 +1,10 @@
 """Custom asyncio workflow engine — Phase 4 foundation.
 
-Topologically sorts a :class:`WorkflowSpec` DAG, runs nodes with no
-upstream deps concurrently via ``asyncio.gather``, runs downstream nodes
-when their inputs are available, and emits :class:`WorkflowRunEvent`
-events through an optional ``on_event`` callback for SSE streaming.
+Validates a :class:`WorkflowSpec` DAG, starts each node as soon as its own
+inputs are available (independent branches run concurrently), bounds every
+handler with a per-node timeout, skips the un-taken side of a branch, and
+emits :class:`WorkflowRunEvent` events through an optional ``on_event``
+callback for SSE streaming.
 
 The engine is intentionally minimal — concrete node-type handlers are
 the v0.5.0 Teammate W deliverable, registered via :func:`register_node_type`
@@ -47,6 +48,20 @@ logger = logging.getLogger(__name__)
 NodeHandler = Callable[[dict[str, Any], dict[str, Any]], Awaitable[dict[str, Any]]]
 
 EventCallback = Callable[[WorkflowRunEvent], Awaitable[None]]
+
+#: Handler bound when a node's config sets no ``timeout_seconds``. Above
+#: ``flow.sleep``'s 300 s cap and a deep-research agent's wall budget.
+DEFAULT_NODE_TIMEOUT_SECONDS = 600.0
+
+
+class _Skip:
+    def __repr__(self) -> str:
+        return "SKIP"
+
+
+#: Output value marking a port whose path was not taken (``logic.branch``).
+#: A node whose every input edge carries it is skipped, not run.
+SKIP: Any = _Skip()
 
 
 class WorkflowEngineError(RuntimeError):
@@ -174,6 +189,11 @@ def _input_edges_for(node_id: str, edges: list[WorkflowEdge]) -> list[WorkflowEd
     return [edge for edge in edges if edge.target_node == node_id]
 
 
+def _wire_outputs(outputs: dict[str, Any]) -> dict[str, Any]:
+    """The outputs as recorded and streamed: a ``SKIP`` port is omitted."""
+    return {port: value for port, value in outputs.items() if value is not SKIP}
+
+
 async def run_workflow(
     spec: WorkflowSpec,
     *,
@@ -182,11 +202,13 @@ async def run_workflow(
 ) -> WorkflowRunResult:
     """Run a workflow end-to-end. Returns the aggregated result.
 
-    Concurrency model: at every iteration, runs every node whose upstream
-    inputs are all available, concurrently via ``asyncio.gather``. Errors
-    in one node mark its downstream as unreachable but do NOT cancel
-    siblings already running. This matches the operator-brief
-    "Sequential AND parallel execution semantics, error handling".
+    Concurrency model: a node starts as soon as its own upstream nodes have
+    settled (``asyncio.wait(FIRST_COMPLETED)``), so a slow node never stalls
+    an unrelated branch, and each handler is bounded by its node timeout. A
+    failed upstream fails its dependants without running them; a node whose
+    every input edge carries :data:`SKIP` (the un-taken ``logic.branch``
+    port, or a skipped upstream) is recorded ``skipped`` and propagates the
+    skip. Errors do NOT cancel siblings already running.
     """
     nodes_by_id = _validate_spec(spec)
     run_id = str(uuid.uuid4())
@@ -198,88 +220,104 @@ async def run_workflow(
         WorkflowRunEvent(kind="run-start", runId=run_id, startedAt=started_at),
     )
 
-    # Per-node output cache; populated as nodes complete.
+    # Raw per-node outputs (SKIP markers kept) for wiring dependants.
     node_outputs: dict[str, dict[str, Any]] = {}
     node_results: list[NodeRunResult] = []
     failed_ids: set[str] = set()
+    skipped_ids: set[str] = set()
     workflow_inputs = dict(inputs or {})
-
-    # Mark a node as "pending" until it has run (or been skipped).
     pending = set(nodes_by_id.keys())
+    running: dict[asyncio.Task[tuple[NodeRunResult, dict[str, Any]]], str] = {}
 
-    while pending:
-        # Find every node whose dependencies have completed (success OR
-        # failure — failed upstream propagates as failure downstream).
-        ready: list[str] = []
-        for node_id in list(pending):
-            deps = {edge.source_node for edge in _input_edges_for(node_id, spec.edges)}
-            if deps.issubset(node_outputs.keys() | failed_ids):
-                ready.append(node_id)
-        if not ready:
-            # Shouldn't happen — _validate_spec rejects cycles — but guard
-            # against logic bugs.
-            raise WorkflowEngineError(
-                f"workflow stalled with pending={pending} (no node has all dependencies satisfied)"
-            )
+    def edge_value(edge: WorkflowEdge) -> Any:
+        if edge.source_node in skipped_ids:
+            return SKIP
+        return node_outputs[edge.source_node].get(edge.source_port)
 
-        # If any of the upstream of a ready node failed, mark the ready
-        # node as failed without running its handler.
-        runnable: list[str] = []
-        for node_id in ready:
-            upstream_failed = any(
-                edge.source_node in failed_ids for edge in _input_edges_for(node_id, spec.edges)
-            )
-            if upstream_failed:
-                node = nodes_by_id[node_id]
-                node_results.append(
-                    NodeRunResult(
-                        nodeId=node_id,
-                        nodeType=node.type,
-                        status="error",
-                        outputs={},
-                        error="upstream node failed",
-                        durationMs=0.0,
-                        startedAt=int(time.time() * 1000),
-                    )
-                )
-                failed_ids.add(node_id)
-                await _emit(
-                    on_event,
-                    WorkflowRunEvent(
-                        kind="node-error",
-                        runId=run_id,
-                        nodeId=node_id,
-                        message="upstream node failed",
-                        durationMs=0.0,
-                    ),
-                )
+    while pending or running:
+        # Settle every pending node whose upstream has settled: fail it on a
+        # failed upstream, skip it when every input carries SKIP, else start
+        # it. Failing or skipping can unblock more nodes, so repeat.
+        progressed = True
+        while progressed:
+            progressed = False
+            for node_id in sorted(pending):
+                in_edges = _input_edges_for(node_id, spec.edges)
+                settled = node_outputs.keys() | failed_ids | skipped_ids
+                if not {edge.source_node for edge in in_edges} <= settled:
+                    continue
                 pending.discard(node_id)
-            else:
-                runnable.append(node_id)
-
-        # Run the runnable nodes concurrently.
-        if runnable:
-            tasks = [
-                asyncio.create_task(
-                    _run_one_node(
-                        nodes_by_id[node_id],
-                        spec.edges,
-                        node_outputs,
-                        workflow_inputs,
-                        run_id,
-                        on_event,
+                progressed = True
+                node = nodes_by_id[node_id]
+                if any(edge.source_node in failed_ids for edge in in_edges):
+                    failed_ids.add(node_id)
+                    node_results.append(
+                        NodeRunResult(
+                            nodeId=node_id,
+                            nodeType=node.type,
+                            status="error",
+                            error="upstream node failed",
+                            durationMs=0.0,
+                            startedAt=int(time.time() * 1000),
+                        )
                     )
+                    await _emit(
+                        on_event,
+                        WorkflowRunEvent(
+                            kind="node-error",
+                            runId=run_id,
+                            nodeId=node_id,
+                            message="upstream node failed",
+                            durationMs=0.0,
+                        ),
+                    )
+                    continue
+                values = {edge.target_port: edge_value(edge) for edge in in_edges}
+                if in_edges and all(edge_value(edge) is SKIP for edge in in_edges):
+                    skipped_ids.add(node_id)
+                    node_results.append(
+                        NodeRunResult(
+                            nodeId=node_id,
+                            nodeType=node.type,
+                            status="skipped",
+                            durationMs=0.0,
+                            startedAt=int(time.time() * 1000),
+                        )
+                    )
+                    await _emit(
+                        on_event,
+                        WorkflowRunEvent(
+                            kind="node-skipped", runId=run_id, nodeId=node_id, nodeType=node.type
+                        ),
+                    )
+                    continue
+                # A merge fed partly by a skipped path sees that input as None.
+                node_inputs = (
+                    {port: None if value is SKIP else value for port, value in values.items()}
+                    if in_edges
+                    else dict(workflow_inputs)
                 )
-                for node_id in runnable
-            ]
-            results = await asyncio.gather(*tasks)
-            for result in results:
-                node_results.append(result)
-                pending.discard(result.node_id)
-                if result.status == "ok":
-                    node_outputs[result.node_id] = result.outputs
-                else:
-                    failed_ids.add(result.node_id)
+                task = asyncio.create_task(_run_one_node(node, node_inputs, run_id, on_event))
+                running[task] = node_id
+
+        if not running:
+            if pending:
+                # Shouldn't happen — _validate_spec rejects cycles.
+                raise WorkflowEngineError(
+                    f"workflow stalled with pending={pending} "
+                    "(no node has all dependencies satisfied)"
+                )
+            break
+
+        done, _ = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)
+        for task in done:
+            node_id = running.pop(task)
+            result, raw_outputs = task.result()
+            node_results.append(result)
+            if result.status == "ok":
+                node_outputs[node_id] = raw_outputs
+            else:
+                failed_ids.add(node_id)
 
     overall_status: str = "error" if failed_ids else "ok"
     overall_error: str | None = None
@@ -315,15 +353,29 @@ async def run_workflow(
     )
 
 
+def _node_timeout(node: WorkflowNode) -> float:
+    """The node's handler bound: ``config["timeout_seconds"]`` or the default."""
+    raw = node.config.get("timeout_seconds", DEFAULT_NODE_TIMEOUT_SECONDS)
+    try:
+        timeout = float(raw)
+    except (TypeError, ValueError):
+        timeout = 0.0
+    if not timeout > 0:
+        raise ValueError(f"'timeout_seconds' must be a positive number; got {raw!r}")
+    return timeout
+
+
 async def _run_one_node(
     node: WorkflowNode,
-    edges: list[WorkflowEdge],
-    node_outputs: dict[str, dict[str, Any]],
-    workflow_inputs: dict[str, Any],
+    inputs: dict[str, Any],
     run_id: str,
     on_event: EventCallback | None,
-) -> NodeRunResult:
-    """Run one node's handler; capture outputs / errors / timing."""
+) -> tuple[NodeRunResult, dict[str, Any]]:
+    """Run one node's handler under its timeout.
+
+    Returns the result (wire outputs: SKIP ports omitted) and the raw outputs
+    (SKIP kept) the scheduler wires into dependants.
+    """
     started_at = int(time.time() * 1000)
     started_ns = time.perf_counter_ns()
 
@@ -338,33 +390,14 @@ async def _run_one_node(
         ),
     )
 
-    # Wire inputs: for each input edge, pull the upstream node's
-    # ``output[source_port]`` value into ``inputs[target_port]``. If the
-    # node has no input edges, fall back to the global workflow inputs
-    # (only the source nodes of the DAG see these).
-    inputs: dict[str, Any] = {}
-    input_edges = _input_edges_for(node.id, edges)
-    if input_edges:
-        for edge in input_edges:
-            upstream = node_outputs.get(edge.source_node, {})
-            inputs[edge.target_port] = upstream.get(edge.source_port)
-    else:
-        inputs = dict(workflow_inputs)
-
-    handler = _HANDLERS.get(node.type)
-    if handler is None:  # pragma: no cover - _validate_spec already checks this
-        return NodeRunResult(
-            nodeId=node.id,
-            nodeType=node.type,
-            status="error",
-            outputs={},
-            error=f"no handler registered for type {node.type!r}",
-            durationMs=0.0,
-            startedAt=started_at,
-        )
-
+    handler = _HANDLERS[node.type]  # _validate_spec checked registration
     try:
-        outputs = await handler(inputs, node.config)
+        timeout = _node_timeout(node)
+        try:
+            raw_outputs = await asyncio.wait_for(handler(inputs, node.config), timeout)
+        except TimeoutError as exc:
+            raise TimeoutError(f"node timed out after {timeout:g}s") from exc
+        outputs = _wire_outputs(raw_outputs)
         duration_ms = (time.perf_counter_ns() - started_ns) / 1_000_000
         await _emit(
             on_event,
@@ -376,7 +409,7 @@ async def _run_one_node(
                 durationMs=duration_ms,
             ),
         )
-        return NodeRunResult(
+        result = NodeRunResult(
             nodeId=node.id,
             nodeType=node.type,
             status="ok",
@@ -384,6 +417,7 @@ async def _run_one_node(
             durationMs=duration_ms,
             startedAt=started_at,
         )
+        return result, raw_outputs
     except Exception as exc:  # noqa: BLE001 — handler errors must not abort the run
         duration_ms = (time.perf_counter_ns() - started_ns) / 1_000_000
         await _emit(
@@ -396,7 +430,7 @@ async def _run_one_node(
                 durationMs=duration_ms,
             ),
         )
-        return NodeRunResult(
+        result = NodeRunResult(
             nodeId=node.id,
             nodeType=node.type,
             status="error",
@@ -405,3 +439,4 @@ async def _run_one_node(
             durationMs=duration_ms,
             startedAt=started_at,
         )
+        return result, {}

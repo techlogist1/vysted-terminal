@@ -153,6 +153,11 @@ export interface CodeEvaluationResult {
  * failure or earlier code failure) errors with "upstream node failed",
  * mirroring the engine. An unwired binding evaluates with the symbol
  * missing from scope — mathjs surfaces "Undefined symbol …" honestly.
+ *
+ * Skips mirror the engine too: an edge from a node in `skippedNodeIds`, or
+ * from a port its source omitted (the un-taken `logic.branch` port), carries
+ * the skip. A code node whose every input carries it is skipped (added to
+ * `skippedNodeIds`, `node-skipped` emitted), never run.
  */
 export function evaluateCodeNodes(
   spec: WorkflowSpec,
@@ -160,21 +165,36 @@ export function evaluateCodeNodes(
   outputsByNode: Map<string, Record<string, unknown>>,
   runId: string,
   emit: (event: WorkflowRunEvent) => void,
+  skippedNodeIds: Set<string> = new Set(),
 ): CodeEvaluationResult {
   const nodesById = new Map(spec.nodes.map((n) => [n.id, n]));
   const failedNodeIds: string[] = [];
+  const carriesSkip = (edge: WorkflowSpec["edges"][number]): boolean => {
+    const upstream = outputsByNode.get(edge.sourceNode);
+    return (
+      skippedNodeIds.has(edge.sourceNode) ||
+      (upstream !== undefined && !(edge.sourcePort in upstream))
+    );
+  };
 
   for (const nodeId of codeOrder) {
     const node = nodesById.get(nodeId);
     if (node === undefined) {
       continue;
     }
+    const inputEdges = spec.edges.filter((e) => e.targetNode === nodeId);
+    const upstreamFailed = inputEdges.some(
+      (e) => !outputsByNode.has(e.sourceNode) && !skippedNodeIds.has(e.sourceNode),
+    );
+    if (!upstreamFailed && inputEdges.length > 0 && inputEdges.every(carriesSkip)) {
+      skippedNodeIds.add(nodeId);
+      emit({ kind: "node-skipped", runId, nodeId, nodeType: CODE_NODE_ID });
+      continue;
+    }
+
     const startedAt = Date.now();
     const startedMark = performance.now();
     emit({ kind: "node-start", runId, nodeId, nodeType: CODE_NODE_ID, startedAt });
-
-    const inputEdges = spec.edges.filter((e) => e.targetNode === nodeId);
-    const upstreamFailed = inputEdges.some((e) => !outputsByNode.has(e.sourceNode));
     if (upstreamFailed) {
       failedNodeIds.push(nodeId);
       emit({ kind: "node-error", runId, nodeId, message: "upstream node failed", durationMs: 0 });

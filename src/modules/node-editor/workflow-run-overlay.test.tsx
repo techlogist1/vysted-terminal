@@ -69,6 +69,18 @@ describe("workflow-run-overlay: applyEvent", () => {
     expect(state.nodes[0]).toMatchObject({ status: "error", error: "boom", durationMs: 8 });
   });
 
+  it("renders a skipped node as 'skipped' and counts it as finished", () => {
+    const events: WorkflowRunEvent[] = [
+      { kind: "run-start", runId: "r1", startedAt: 0 },
+      { kind: "node-skipped", runId: "r1", nodeId: "n2", nodeType: "action.notify_desktop" },
+    ];
+    const state = events.reduce(applyEvent, emptyOverlayState());
+    expect(state.nodes[0]).toMatchObject({ status: "skipped", nodeType: "action.notify_desktop" });
+    render(<WorkflowRunOverlay state={state} onClose={() => {}} />);
+    expect(screen.getByTestId("node-status-skipped")).toBeTruthy();
+    expect(screen.getByText("1/1")).toBeTruthy();
+  });
+
   it("creates a pending row if node-output arrives before its node-start", () => {
     const next = applyEvent(emptyOverlayState(), {
       kind: "node-output",

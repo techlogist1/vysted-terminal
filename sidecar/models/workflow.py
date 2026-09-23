@@ -107,6 +107,7 @@ class WorkflowRunEvent(BaseModel):
         "node-start",
         "node-output",
         "node-error",
+        "node-skipped",
         "run-complete",
         "run-error",
     ]
@@ -126,7 +127,8 @@ class NodeRunResult(BaseModel):
 
     node_id: str = Field(alias="nodeId")
     node_type: str = Field(alias="nodeType")
-    status: Literal["ok", "error"]
+    #: ``skipped``: every input came from an un-taken branch path; not run.
+    status: Literal["ok", "error", "skipped"]
     outputs: dict[str, Any] = Field(default_factory=dict)
     error: str | None = None
     duration_ms: float = Field(alias="durationMs")
