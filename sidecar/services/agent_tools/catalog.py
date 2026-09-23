@@ -1025,6 +1025,26 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="per_invocation",
         ),
+        _cap(
+            "read_notes",
+            description=(
+                "Read the user's own notes (their thesis) for a scope. Call it "
+                "before write_note with mode 'replace', and whenever the user refers "
+                "to their notes, thesis or plan for a stock."
+            ),
+            input_schema=_obj(
+                {
+                    "scope": {
+                        "type": "string",
+                        "description": "'global' or a symbol, e.g. 'BDL'",
+                    }
+                },
+                ["scope"],
+            ),
+            domain="workspace",
+            read_only=True,
+            kind="per_invocation",
+        ),
         # --- host actions that DRIVE the terminal (mutations -> diff gate) ----
         _cap(
             "open_panel",
