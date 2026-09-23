@@ -213,3 +213,61 @@ def test_validate_fundamentals_merges_onto_provider_provenance() -> None:
     assert withheld.status == "withheld"
     assert withheld.provider == "yfinance"
     assert withheld.as_of == "2026-07-10T00:00:00+00:00"
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-005: the share basis — market cap / price vs shares outstanding
+# ---------------------------------------------------------------------------
+
+_PER_SHARE_FIELDS = ("shares_outstanding", "book_value", "price_to_book")
+
+
+def test_share_basis_divergence_flags_the_per_share_fields() -> None:
+    """VERTEX (R15 battery): 74.0M shares (pre-rights) vs the 148.0M implied by
+    its own market cap at the ratio price 3.27 — BVPS 1.369 and P/B 2.3886 sit on
+    the stale count, so all three are flagged, kept, with both counts named."""
+    f = _fund(
+        symbol="VERTEX.BO",
+        shares_outstanding=74_012_189,
+        market_cap=484_039_744,
+        ratio_price=3.27,
+        book_value=1.369,
+        price_to_book=2.3886,
+    )
+    out = correctness_gate.validate_fundamentals(f, "VERTEX.BO", "IN")
+    for field_name in _PER_SHARE_FIELDS:
+        meta = out.field_meta[field_name]
+        assert meta.status == "flagged"
+        assert "74,012,189" in meta.reason and "148,0" in meta.reason
+    assert out.book_value == 1.369  # never substituted
+
+
+def test_share_basis_covers_a_loss_maker_without_trailing_pe() -> None:
+    """A case the fix was not written against: a loss-maker (no P/E, negative
+    EPS) with a stale share count 14% off. The old pe x eps price proxy was blind
+    to it; the ratio price is not."""
+    f = _fund(
+        symbol="LOSSCO.NS",
+        pe_ratio=None,
+        eps=-2.5,
+        ratio_price=40.0,
+        market_cap=4_000_000_000,  # implies 100M shares
+        shares_outstanding=86_000_000,
+        book_value=55.0,
+        price_to_book=0.727,
+    )
+    out = correctness_gate.validate_fundamentals(f, "LOSSCO.NS", "IN")
+    for field_name in _PER_SHARE_FIELDS:
+        assert out.field_meta[field_name].status == "flagged"
+
+
+def test_consistent_share_basis_is_untouched() -> None:
+    f = _fund(
+        symbol="VERTEX.BO",
+        shares_outstanding=148_024_378,
+        market_cap=484_039_744,
+        ratio_price=3.27,
+        book_value=0.684,
+        price_to_book=4.78,
+    )
+    assert correctness_gate.validate_fundamentals(f, "VERTEX.BO", "IN") is f

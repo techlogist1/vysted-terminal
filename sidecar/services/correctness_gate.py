@@ -50,6 +50,11 @@ _PRICE_BAND_HIGH_FACTOR = 1.3
 # Relative divergence of market cap from price x shares above which market cap is
 # flagged (kept, not withheld).
 _MARKET_CAP_DIVERGENCE = 0.25
+# Relative gap between shares outstanding and the shares implied by market cap /
+# price above which the share basis is flagged (R15-DATA-005). Tight on purpose:
+# both figures come from ONE snapshot, so anything past rounding and a few
+# percent of intra-day drift means two share counts (VERTEX: 74.0M vs 148.0M).
+_SHARE_BASIS_DIVERGENCE = 0.05
 
 
 class CorrectnessError(ProviderError):
@@ -206,7 +211,10 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
       * the implied current price (pe x eps) sitting far outside the 52-week band
         → the 52-week pair is flagged (kept);
       * ``market_cap`` diverging from price x shares outstanding beyond tolerance
-        → market cap is flagged (kept).
+        → market cap is flagged (kept);
+      * shares outstanding disagreeing with market cap / price (the ratio price,
+        pe x eps only as fallback) → shares outstanding, book value and P/B are
+        flagged (kept) — the per-share fields are on a different share basis.
 
     Returns the SAME object when nothing tripped (callers use it inline); else a
     ``model_copy`` with the nulled fields + a merged ``field_meta`` (the provider's
@@ -264,11 +272,18 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
             flagged["fifty_two_week_high"] = reason
             flagged["fifty_two_week_low"] = reason
 
-    # Market cap vs implied price x shares outstanding → flag the (kept) market cap.
+    # The cross-field passes below price through the provider's own ratio price
+    # (the price its market cap and ratios were computed at), so a loss-maker with
+    # no trailing P/E is still covered; pe x eps is only the fallback.
+    ratio_price = f.ratio_price if f.ratio_price is not None and f.ratio_price > 0 else None
+    cap_price = ratio_price if ratio_price is not None else price
+    price_source = "the ratio price" if ratio_price is not None else "pe x eps"
+
+    # Market cap vs price x shares outstanding → flag the (kept) market cap.
     market_cap = f.market_cap
     shares = f.shares_outstanding
-    if market_cap is not None and shares is not None and price is not None and shares > 0:
-        implied_cap = price * shares
+    if market_cap is not None and shares is not None and cap_price is not None and shares > 0:
+        implied_cap = cap_price * shares
         if (
             implied_cap > 0
             and _relative_divergence(market_cap, implied_cap) > _MARKET_CAP_DIVERGENCE
@@ -276,9 +291,34 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
             flagged["market_cap"] = (
                 f"market cap {market_cap:,.0f} diverges more than "
                 f"{_MARKET_CAP_DIVERGENCE:.0%} from price x shares outstanding "
-                f"({implied_cap:,.0f}, price from pe x eps) — the figures may be from "
-                "different sessions or share classes; kept, flagged"
+                f"({implied_cap:,.0f}, price from {price_source}) — the figures may be "
+                "from different sessions or share classes; kept, flagged"
             )
+
+    # Share basis (R15-DATA-005): the shares implied by market cap / price must
+    # match shares outstanding. A gap means the per-share fields sit on a
+    # different (typically stale, pre-rights/pre-IPO) share count than the market
+    # cap, so shares outstanding, book value per share and P/B are flagged.
+    if (
+        market_cap is not None
+        and market_cap > 0
+        and shares is not None
+        and shares > 0
+        and cap_price is not None
+    ):
+        implied_shares = market_cap / cap_price
+        gap = _relative_divergence(shares, implied_shares)
+        if gap > _SHARE_BASIS_DIVERGENCE:
+            reason = (
+                f"shares outstanding {shares:,.0f} disagrees by {gap:.0%} with the "
+                f"{implied_shares:,.0f} shares implied by market cap / price "
+                f"({market_cap:,.0f} / {cap_price:,.4g}, price from {price_source}) — "
+                "the per-share figures may sit on a stale share count (e.g. before a "
+                "rights issue or IPO); kept, flagged"
+            )
+            for field_name in ("shares_outstanding", "book_value", "price_to_book"):
+                if getattr(f, field_name) is not None:
+                    flagged[field_name] = reason
 
     return _merge_meta(f, withheld, flagged)
 

@@ -415,6 +415,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         industry=info.get("industry"),
         currency=info.get("currency") or info.get("financialCurrency"),
         financial_currency=_financial_currency(info),
+        ratio_price=_num(info.get("currentPrice") or info.get("regularMarketPrice")),
         # Valuation
         market_cap=_num(info.get("marketCap")),
         pe_ratio=_num(info.get("trailingPE")),
