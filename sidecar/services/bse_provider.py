@@ -695,6 +695,19 @@ _SHP_CATEGORY = {
     "InstitutionsForeignMember": "institutions_foreign",
     "NonInstitutionsMember": "non_institutions",
 }
+#: The promoter category's shares "pledged or otherwise encumbered" as a
+#: fraction of its own holding (SEBI SHP Table II, column XIII): the current
+#: schema's total and the older schema's name for the same column (R15-DATA-023).
+_SHP_ENCUMBERED_CONCEPTS = frozenset(
+    {
+        "EncumberedSharesHeldAsPercentageOfTotalNumberOfShares",
+        "PledgedOrEncumberedSharesHeldAsPercentageOfTotalNumberOfShares",
+    }
+)
+#: The filing's yes/no declarations that promoter shares are pledged or
+#: encumbered ("...UnderPledged", "...UnderNonDisposalUndertaking",
+#: "...OtherThanByWayOfPledgeOrNDU"; older filings: "...ArePledgeOrOtherwiseEncumbered").
+_SHP_PLEDGE_DECLARATION_PREFIX = "WhetherAnySharesHeldByPromotersAre"
 _MONTHS = {
     name.lower(): index
     for names in (calendar.month_name, calendar.month_abbr)
@@ -828,8 +841,10 @@ def parse_shp_xbrl(xml_text: str) -> dict:
 
     Returns any of ``promoter_percent`` / ``public_percent`` /
     ``institutions_percent`` / ``dii_percent`` / ``fii_percent`` the filing
-    carried; a missing category is simply absent (never fabricated). A
-    non-XBRL / unparseable body yields ``{}``. Pure + synchronous so tests pin
+    carried; a missing category is simply absent (never fabricated). A parsed
+    filing also carries ``promoter_pledged_percent`` / ``promoter_pledge_basis``
+    (:func:`_promoter_pledge`). A non-XBRL / unparseable body yields ``{}``.
+    Pure + synchronous so tests pin
     it against a recorded fixture.
 
     Schema note (R13 hardening — the historical-split-corruption fix): the
@@ -867,19 +882,31 @@ def parse_shp_xbrl(xml_text: str) -> dict:
             if _xml_local(member.tag) == "explicitMember"
         ]
     raw: dict[str, float] = {}
+    pledge_raw: float | None = None
+    declarations: list[str] = []
     for element in root.iter():
-        if _xml_local(element.tag) != _SHP_PCT_CONCEPT or not (
-            element.text and element.text.strip()
-        ):
+        name = _xml_local(element.tag)
+        value = (element.text or "").strip()
+        if name.startswith(_SHP_PLEDGE_DECLARATION_PREFIX) and value:
+            declarations.append(value.lower())
+            continue
+        if not value or (name != _SHP_PCT_CONCEPT and name not in _SHP_ENCUMBERED_CONCEPTS):
             continue
         members = contexts.get(element.get("contextRef", ""), [])
         if len(members) != 1:  # a summary category has exactly one member
+            continue
+        if name in _SHP_ENCUMBERED_CONCEPTS:
+            if members[0] == "ShareholdingOfPromoterAndPromoterGroupMember" and pledge_raw is None:
+                try:
+                    pledge_raw = float(value)
+                except ValueError:
+                    pass
             continue
         field = _SHP_CATEGORY.get(members[0])
         if field is None or field in raw:
             continue
         try:
-            raw[field] = float(element.text.strip())
+            raw[field] = float(value)
         except ValueError:
             continue
     if not raw:
@@ -888,7 +915,29 @@ def parse_shp_xbrl(xml_text: str) -> dict:
     # value above that is decisive proof of the older already-percent schema.
     scale = 1.0 if any(abs(value) > 1.0 for value in raw.values()) else 100.0
     found = {field: round(value * scale, 4) for field, value in raw.items()}
-    return _validate_shp_summary(_shp_summary_from_categories(found))
+    summary = _shp_summary_from_categories(found)
+    summary.update(_promoter_pledge(pledge_raw, scale, declarations))
+    return _validate_shp_summary(summary)
+
+
+def _promoter_pledge(pledge_raw: float | None, scale: float, declarations: list[str]) -> dict:
+    """The promoter pledge fields of one filing (R15-DATA-023).
+
+    ``promoter_pledged_percent`` is the promoter holding pledged or otherwise
+    encumbered, as a percent of that holding, with ``promoter_pledge_basis
+    "filed"``. A filing whose every pledge/encumbrance declaration is "false"
+    files an explicit 0. A filing that states neither keeps both ``None``: an
+    undeclared pledge is never read as 0. Both keys are always present, so a
+    summary cached before this parse is recognisable (and re-parsed).
+    """
+    if pledge_raw is not None:
+        return {
+            "promoter_pledged_percent": round(pledge_raw * scale, 4),
+            "promoter_pledge_basis": "filed",
+        }
+    if declarations and all(value == "false" for value in declarations):
+        return {"promoter_pledged_percent": 0.0, "promoter_pledge_basis": "filed"}
+    return {"promoter_pledged_percent": None, "promoter_pledge_basis": None}
 
 
 def _shp_summary_from_categories(found: dict[str, float]) -> dict:
@@ -933,6 +982,7 @@ _SHP_PCT_FIELDS = (
     "dii_percent",
     "fii_percent",
     "public_non_institutional_percent",
+    "promoter_pledged_percent",
 )
 
 
@@ -967,7 +1017,8 @@ def _shp_cached_summary(xbrl_file: str) -> dict | None:
         if os.path.exists(path):
             with open(path, encoding="utf-8") as fp:
                 data = json.load(fp)
-            if not isinstance(data, dict):
+            if not isinstance(data, dict) or "promoter_pledge_basis" not in data:
+                # Cached before the pledge parse (R15-DATA-023): re-parse the filing.
                 return None
             validated = _validate_shp_summary(data)
             return validated or None

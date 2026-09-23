@@ -419,6 +419,14 @@ export interface ShareholdingPattern {
    * other leg, or 0 from a 0 total). Null when no leg is known.
    */
   split_basis: "filed" | "derived" | null;
+  /**
+   * Promoter + promoter-group shares pledged or otherwise encumbered, percent of
+   * the promoter holding (SEBI SHP XBRL). 0 when the filing declares none; null
+   * when the filing declares nothing (never inferred as 0).
+   */
+  promoter_pledged_percent: number | null;
+  /** "filed" when the filing states the pledge (including an explicit 0); else null. */
+  promoter_pledge_basis: "filed" | null;
 }
 
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */

@@ -670,6 +670,8 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
                 ),
                 employee_trusts_percent=None,
                 split_basis=row.get("split_basis"),
+                promoter_pledged_percent=_as_float(row.get("promoter_pledged_percent")),
+                promoter_pledge_basis=row.get("promoter_pledge_basis"),
                 submission_date=submission if isinstance(submission, date) else None,
                 xbrl_url=xbrl_url,
                 source=EXCHANGE_BSE,
@@ -743,6 +745,9 @@ def _merge_bse_split(
                     "split_source": EXCHANGE_BSE,
                     "split_as_of": match.quarter_end,
                     "split_basis": match.split_basis,
+                    # The pledge rides the same filing as the split (R15-DATA-023).
+                    "promoter_pledged_percent": match.promoter_pledged_percent,
+                    "promoter_pledge_basis": match.promoter_pledge_basis,
                 }
             )
         )

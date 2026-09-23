@@ -533,6 +533,8 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
                 "fii_percent": 38.86,
                 "dii_percent": 4.04,
                 "split_basis": "filed",
+                "promoter_pledged_percent": 0.0,
+                "promoter_pledge_basis": "filed",
             }
         ],
     )
@@ -551,6 +553,8 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
     assert latest.split_source == "BSE"
     assert latest.split_as_of == date(2026, 3, 31)
     assert latest.split_basis == "filed"  # the BSE row's basis rides the merge
+    # ...and so does the filed promoter pledge (R15-DATA-023): a filed 0, not None.
+    assert (latest.promoter_pledged_percent, latest.promoter_pledge_basis) == (0.0, "filed")
 
 
 def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.MonkeyPatch) -> None:

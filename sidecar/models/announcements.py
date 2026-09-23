@@ -165,6 +165,14 @@ class ShareholdingPattern(BaseModel):
     #: institutions total minus the other leg, or 0 from a 0 total). ``None``
     #: when no leg is known.
     split_basis: Literal["filed", "derived"] | None = None
+    #: Promoter + promoter-group shares pledged or otherwise encumbered, as a
+    #: percent of the promoter holding (SEBI SHP Table II, from the XBRL; merged
+    #: onto a dual-listed NSE pattern with the split). ``0.0`` when the filing
+    #: declares no pledge/encumbrance; ``None`` when it declares nothing.
+    promoter_pledged_percent: float | None = None
+    #: ``"filed"`` when the filing states the pledge (including an explicit 0);
+    #: ``None`` when the filing carries no declaration. Never inferred.
+    promoter_pledge_basis: Literal["filed"] | None = None
 
 
 class ShareholdingResponse(BaseModel):
