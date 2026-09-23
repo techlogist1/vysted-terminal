@@ -42,7 +42,7 @@ def test_gate_requires_a_provider_market_cap() -> None:
 
 
 def test_is_applicable_only_india() -> None:
-    assert market_cap_witness.is_applicable("RBA")  # NSE+BSE
+    assert market_cap_witness.is_applicable("RBA.NS")  # the resolved NSE listing
     assert not market_cap_witness.is_applicable("AAPL")
     assert not market_cap_witness.is_applicable("")
 
@@ -60,7 +60,7 @@ def test_rba_shape_returns_bse_derived_share_count(monkeypatch: pytest.MonkeyPat
             "shares_outstanding": 582876028,
         },
     )
-    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS"))
     assert isinstance(witness, MarketCapWitness)
     assert witness.shares_outstanding == 582876028.0
     assert witness.scrip_code == "543248"
@@ -76,7 +76,7 @@ def test_source_and_as_of_carry_the_bundled_masters_generated_date(
 ) -> None:
     _patch_seed(monkeypatch, {"scrip_code": "543248", "shares_outstanding": 582876028})
     monkeypatch.setattr(screener_universe_india, "sector_map_generated", lambda: "2026-06-11")
-    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS"))
     assert isinstance(witness, MarketCapWitness)
     assert witness.as_of == "2026-06-11"
     assert witness.source == "BSE ListOfScripData (bundled India master) (as of 2026-06-11)"
@@ -88,7 +88,7 @@ def test_missing_generated_header_omits_the_as_of_suffix(
 ) -> None:
     _patch_seed(monkeypatch, {"scrip_code": "543248", "shares_outstanding": 582876028})
     monkeypatch.setattr(screener_universe_india, "sector_map_generated", lambda: None)
-    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    witness = asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS"))
     assert isinstance(witness, MarketCapWitness)
     assert witness.as_of is None
     assert witness.source == "BSE ListOfScripData (bundled India master)"
@@ -107,7 +107,7 @@ def test_nse_only_enrichment_row_is_excluded(monkeypatch: pytest.MonkeyPatch) ->
             "sector_source": "yfinance",
         },
     )
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("AAKASH")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("AAKASH.NS")) is None
 
 
 def test_null_share_count_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -115,17 +115,17 @@ def test_null_share_count_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_seed(
         monkeypatch, {"isin": "INE0N4701016", "scrip_code": "544245", "shares_outstanding": None}
     )
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("NHL")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("NHL.BO")) is None
 
 
 def test_missing_record_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_seed(monkeypatch, None)
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS")) is None
 
 
 def test_zero_or_negative_shares_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_seed(monkeypatch, {"scrip_code": "543248", "shares_outstanding": 0})
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS")) is None
 
 
 def test_non_india_never_looks_up(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -141,15 +141,15 @@ def test_lookup_failure_is_none_never_raises(monkeypatch: pytest.MonkeyPatch) ->
         raise RuntimeError("master parse failed")
 
     monkeypatch.setattr(screener_universe_india, "sector_seed_for", explode)
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS")) is None
 
 
 def test_bundled_master_has_rba_bse_derived_count() -> None:
     # An INTEGRATION check against the real bundled master (no patch): RBA carries
     # a BSE-derived share count; NHL does not. Guards the applicability gate
     # against the actual data the witness ships with.
-    rba = asyncio.run(market_cap_witness.get_market_cap_witness("RBA"))
+    rba = asyncio.run(market_cap_witness.get_market_cap_witness("RBA.NS"))
     assert rba is not None
     assert rba.shares_outstanding > 0
     assert rba.scrip_code == "543248"
-    assert asyncio.run(market_cap_witness.get_market_cap_witness("NHL")) is None
+    assert asyncio.run(market_cap_witness.get_market_cap_witness("NHL.BO")) is None

@@ -69,7 +69,7 @@ from models.market import (
     OHLCVSeries,
     Quote,
 )
-from services import mcp_client
+from services import mcp_client, yfinance_provider
 from services.errors import ProviderError
 
 PROVIDER = "openbb-mcp"
@@ -258,8 +258,18 @@ async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
 
 
 def _normalize_symbol(symbol: str) -> str:
-    """Mirror yfinance's dot-ticker fix at the openbb-mcp seam."""
-    return symbol.replace(".", "-").upper()
+    """The Yahoo listing form of ``symbol``: the SAME mapping the yfinance
+    adapter uses (:func:`services.yfinance_provider._yahoo_symbol`).
+
+    Every openbb-mcp route here is backed by OpenBB's yfinance provider, which
+    answers a bare ticker with the US listing: a bare ``DAL`` came back as Delta
+    Air Lines' statements under Dynamic Archistructures' (BSE) name, and the old
+    dot-to-dash rule mangled ``RELIANCE.NS`` into ``RELIANCE-NS``. The listing
+    form is region-aware (``DAL.BO`` in an IN session, ``AMAL`` in a US one),
+    keeps an explicit ``.NS``/``.BO``, and still dashes a US class share
+    (``BRK.B`` -> ``BRK-B``). Results echo this listing form as their ``symbol``.
+    """
+    return yfinance_provider._yahoo_symbol(symbol)
 
 
 def _coerce_float(value: Any) -> float | None:

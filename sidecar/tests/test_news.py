@@ -197,6 +197,29 @@ def test_fetch_news_dedupes_and_sorts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert ids == ["fresh", "dup"]
 
 
+def test_undated_rss_item_has_no_date_and_sorts_last(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-070: an RSS entry with no pubDate is served with published_at None
+    and sorted after every dated story — never stamped now() and put on top."""
+    rss = (
+        '<?xml version="1.0"?><rss version="2.0"><channel><title>Feed</title>'
+        "<item><title>Undated story</title><link>https://example.com/u</link></item>"
+        "<item><title>Dated story</title><link>https://example.com/d</link>"
+        "<pubDate>Thu, 14 May 2026 12:00:00 GMT</pubDate></item>"
+        "</channel></rss>"
+    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=rss))
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    async def run() -> list[NewsItem]:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await news_provider.fetch_news(client, [], limit=50)
+
+    items = asyncio.run(run())
+    assert [item.title for item in items] == ["Dated story", "Undated story"]
+    assert items[0].published_at == datetime(2026, 5, 14, 12, 0, tzinfo=UTC)
+    assert items[1].published_at is None
+
+
 def test_fetch_news_survives_partial_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """One source fails its retries; the other succeeds → partial success (no raise)."""
     good = _news_item("ok", "Working feed item")

@@ -32,6 +32,7 @@ concrete provider.
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -305,22 +306,49 @@ def finalize_markdown(
     return web_only_floor_note(markdown, structured=structured, findings=findings)
 
 
-def _reflect_says_complete(text: str) -> bool:
-    """Heuristic: does a reflect completion declare coverage met?
+def leading_token(text: str) -> str:
+    """The first word of an LLM reply's first non-empty line, upper-cased.
 
-    Looks for an affirmative marker (``complete`` / ``done`` / ``sufficient`` /
-    ``no gaps`` / ``yes``) and the ABSENCE of an explicit gap signal. Conservative
-    — when ambiguous it returns False so the loop keeps going (bounded anyway by
-    the budget), rather than declaring a thin run done.
+    Markdown emphasis and list/label punctuation (``*``, ``:``, ``-``, ``#``)
+    around the word are stripped, so ``**UNVERIFIED** - ...`` and
+    ``COMPLETE: ...`` both read as their verdict word. The ONE reader for every
+    prompt that mandates a leading verdict token (cross-check verdicts, reflect
+    COMPLETE/GAPS) — a whole-reply substring scan reads a reason's wording
+    ("no source confirms", "not covered") as the verdict.
     """
-    low = text.strip().lower()
-    if not low:
+    for line in text.splitlines():
+        words = line.strip().strip("*:-#> ").split()
+        if words:
+            return words[0].strip("*:-#.,;!").upper()
+    return ""
+
+
+#: Negations that turn an affirmative reflect phrase into a gap statement.
+_REFLECT_NEGATION = re.compile(r"\b(?:not|no|never)\b|n't\b")
+
+
+def _reflect_says_complete(text: str) -> bool:
+    """Does a reflect completion declare coverage met?
+
+    The prompt asks for a leading COMPLETE or GAPS word, read by
+    :func:`leading_token`. A reply that does not lead with either falls back to
+    a conservative scan: an explicit "no gaps" counts as complete, any gap
+    marker or negation ("not covered yet") does not, and otherwise only a
+    whole-word complete/sufficient/done does. Ambiguity returns False so the
+    loop keeps going (bounded by the budget) rather than calling a thin run done.
+    """
+    head = leading_token(text)
+    if head == "COMPLETE":
+        return True
+    if head in ("GAPS", "GAP", "INCOMPLETE"):
+        return False
+    low = re.sub(r"\bno (?:remaining |further |more )?gaps?\b", "complete", text.lower())
+    if not low.strip():
         return False
     gap_markers = ("gap", "missing", "incomplete", "not enough", "more research")
-    negative = any(g in low for g in gap_markers)
-    if negative:
+    if any(g in low for g in gap_markers) or _REFLECT_NEGATION.search(low):
         return False
-    return any(p in low for p in ("complete", "done", "sufficient", "no gaps", "covered", "yes"))
+    return re.search(r"\b(?:complete|sufficient|done)\b", low) is not None
 
 
 class _Findings:
@@ -338,7 +366,14 @@ class _Findings:
     store so the merged citecheck sees all angles' page text).
     """
 
-    __slots__ = ("findings", "web_sources", "structured_sources", "coverage", "evidence")
+    __slots__ = (
+        "findings",
+        "web_sources",
+        "structured_sources",
+        "coverage",
+        "evidence",
+        "_numbered",
+    )
 
     def __init__(self, *, evidence: dict[str, str] | None = None) -> None:
         self.findings: list[str] = []
@@ -346,6 +381,7 @@ class _Findings:
         self.structured_sources: list[ResearchSource] = []
         self.coverage: dict[str, bool] = dict.fromkeys(_COVERAGE_DIMS, False)
         self.evidence: dict[str, str] = evidence if evidence is not None else {}
+        self._numbered: list[ResearchSource] = []
 
     def record_evidence(self, visited_pages: list[tuple[str, str]]) -> None:
         """Fold a researcher's visited pages into the raw-evidence store."""
@@ -354,30 +390,55 @@ class _Findings:
                 self.evidence.setdefault(url, text)
 
     def all_sources(self) -> list[ResearchSource]:
-        """Web citations first (they own the low ``[n]`` markers), then
-        structured-provenance sources — de-duplicated by url.
+        """The numbered ``[n]`` source list — APPEND-ONLY, de-duplicated by url.
 
-        R7 finance tuning: the web citations are RANKED by domain tier
-        (exchange/regulator/filings → Tier-1 press → general; stable within a
-        tier) so the primary record takes the low ``[n]`` markers and synthesis
-        cites it preferentially. The numbered prompt lists and ``brief.sources``
-        both come through here, so markers and the rail always agree.
+        A source takes its number the first time the list is read after it was
+        gathered and keeps it for the rest of the run: a marker minted in round
+        1 still resolves to the same source when round 2 gathers more. Sources
+        first seen together are numbered web first, RANKED by domain tier
+        (R7: exchange/regulator/filings → Tier-1 press → general), then
+        structured provenance — ranking orders only the new numbers, never an
+        existing one; the tier of every number rides the prompt as
+        :func:`services.research.finance.priority_note` over this same list.
+        The numbered prompt lists and ``brief.sources`` both come through here,
+        so markers and the rail always agree.
         """
-        seen: set[str] = set()
-        out: list[ResearchSource] = []
+        seen = {src.url for src in self._numbered}
         for src in [*finance.rank_sources(self.web_sources), *self.structured_sources]:
-            if src.url in seen:
-                continue
-            seen.add(src.url)
-            out.append(src)
-        return out
+            if src.url not in seen:
+                seen.add(src.url)
+                self._numbered.append(src)
+        return list(self._numbered)
 
 
 def _record_structured(findings: _Findings, name: str, dim: str, result: dict[str, Any]) -> None:
-    """Fold a structured tool result into findings + coverage + provenance."""
+    """Fold a structured tool result into findings + coverage + provenance.
+
+    A ``news`` tool result (already relevance-gated by the researcher) cites
+    each kept item as its OWN source — its url, title and outlet — never one
+    generic "News for <SYM>" source standing in for a feed blend.
+    """
     if not result.get("ok"):
         return
     findings.coverage[dim] = True
+    items = result.get("news")
+    if dim == "news" and isinstance(items, list):
+        from services.search.scrub import sanitize_inline
+
+        for item in items:
+            if not isinstance(item, dict) or not item.get("url"):
+                continue
+            url = str(item["url"])
+            findings.structured_sources.append(
+                ResearchSource(
+                    url=url,
+                    title=sanitize_inline(str(item.get("title") or url)),
+                    excerpt=sanitize_inline(str(item.get("summary") or "")),
+                    domain=str(item.get("source") or "news"),
+                    source_type="news",
+                )
+            )
+        return
     provider = None
     for key in ("provider", "source", "mode"):
         val = result.get(key)
@@ -747,6 +808,19 @@ async def _run_researcher(
         # free-text query must never be passed where a symbol is expected.
         structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
         web_res = await _safe_tool(tool_call, "web_search", web_args)
+
+    # The news tool blends region-wide feeds with the per-symbol feed; the
+    # shared relevance gate drops off-entity items BEFORE the extraction reads
+    # them or they become sources (the FAST news leg's gate, R13 ledger #9).
+    if target is not None and tool == "news" and structured_res.get("ok"):
+        from services.research.relevance import gate_news
+
+        items = structured_res.get("news")
+        if isinstance(items, list):
+            kept, news_note = gate_news(items, target=target)
+            structured_res = {**structured_res, "news": kept, "count": len(kept)}
+            if news_note:
+                structured_res["note"] = news_note
 
     # Announcement attachments become first-class citation rows (exchange tier
     # in the finance ladder, verified_symbol provenance) riding the SAME web
@@ -1172,8 +1246,9 @@ async def run_deep_research(
                 {
                     "role": "system",
                     "content": (
-                        "Reflect on research coverage. State whether coverage is "
-                        "COMPLETE or list remaining GAPS, one per line.\n"
+                        "Reflect on research coverage. Start your reply with "
+                        "exactly one word: COMPLETE if coverage is sufficient, or "
+                        "GAPS followed by the remaining gaps, one per line.\n"
                         + finance.date_directive()
                     ),
                 },

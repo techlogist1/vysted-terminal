@@ -12,13 +12,14 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import company_narrative
+from services import company_narrative, yfinance_provider
 from services.company_narrative import (
     _close,
     _normalise_token,
     _source_values,
     _verify_text,
 )
+from services.errors import ProviderError
 
 # --------------------------------------------------------------------------
 # Source fixtures — a realistic, fully-populated company (Apple-shaped).
@@ -132,6 +133,48 @@ def test_source_values_includes_scaled_and_percent_forms() -> None:
     assert any(_close(v, 31.5) for v in values)
 
 
+def test_flagged_insider_figure_is_not_a_verifiable_number() -> None:
+    """R15-DATA-004: an ownership fraction the exchange filing disputes is kept on
+    the payload but flagged, so the narrative verifier must not accept it — a
+    model writing "insiders hold 51.18%" is redacted, not verified."""
+    from models.fundamentals import FieldMeta
+
+    dhanbank = Fundamentals(
+        symbol="DHANBANK.NS",
+        provider="yfinance",
+        held_percent_insiders=0.51176,
+        field_meta={
+            "held_percent_insiders": FieldMeta(
+                status="flagged", provider="yfinance", reason="no promoter group reported"
+            )
+        },
+    )
+    source = _source_values(dhanbank, None)
+    assert not any(_close(v, 51.176) for v in source)
+    assert not any(_close(v, 0.51176) for v in source)
+    cleaned, unverified = _verify_text("Insiders hold 51.18% of the bank.", source)
+    assert "[unverified]" in cleaned
+    assert [c.text for c in unverified] == ["51.18%"]
+
+
+def test_facts_state_statement_sizes_in_their_reporting_currency() -> None:
+    """R15-DATA-008: SIFY trades in USD but reports in INR — the model is told the
+    revenue is INR and the market cap USD, so it cannot narrate "$46.5B revenue"."""
+    from services.company_narrative import _build_facts
+
+    sify = Fundamentals(
+        symbol="SIFY",
+        provider="yfinance",
+        currency="USD",
+        financial_currency="INR",
+        market_cap=989_456_832,
+        revenue_ttm=46_506_049_536,
+    )
+    facts = _build_facts(sify, None)
+    assert "Revenue (TTM): 46.51B INR" in facts
+    assert "Market cap: 989.46M USD" in facts
+
+
 # --------------------------------------------------------------------------
 # Unit: the verification pass — the core safety property.
 # --------------------------------------------------------------------------
@@ -191,8 +234,15 @@ def _patch_data(monkeypatch: pytest.MonkeyPatch) -> None:
     def _fake_quote(symbol: str, region: str | None = None) -> Quote:
         return _apple_quote()
 
+    def _no_statement(symbol: str) -> None:
+        raise ProviderError(f"statement witness offline in tests for {symbol!r}")
+
     monkeypatch.setattr(company_narrative.provider_registry, "get_fundamentals", _fake_fundamentals)
     monkeypatch.setattr(company_narrative.provider_registry, "get_quote", _fake_quote)
+    # The revenue witness (R15-DATA-014) fetches the provider's own statements;
+    # keep it off the network — the narrative, not the witness, is under test.
+    monkeypatch.setattr(yfinance_provider, "get_income_statement", _no_statement)
+    monkeypatch.setattr(yfinance_provider, "get_quarterly_period_ends", _no_statement)
 
 
 def _patch_llm(monkeypatch: pytest.MonkeyPatch, output: str) -> None:

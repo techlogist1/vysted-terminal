@@ -201,6 +201,61 @@ def test_audit_caps_evidence_and_shows_each_source_once() -> None:
     assert len(user) - start < EVIDENCE_AUDIT_CHARS + 2500
 
 
+_KAYNES_MD = """# Research brief: Kaynes Technology
+
+**Key Metrics**
+---------------
+
+* Revenue growth: +40.5% (quarterly YoY, [2])
+* Earnings growth: -0.4% (quarterly YoY, computed from quarterly statements, [n] 1)
+
+**Merged Sources**
+------------------
+
+[n] numbers refer to the merged sources listed below:
+
+1. Fundamentals data for KAYNES - vysted://fundamentals/KAYNES
+2. Quarterly income statements for Kaynes Technology (2026-06-30 vs 2025-06-30)
+6. Press release dated August 22, 2026 ([n] 8)
+
+Note: This brief is built from exchange data and filings gathered on 2026-09-23.
+
+---
+
+References:
+
+[n] 1. Quarterly income statements for Kaynes Technology (2026-06-30 vs 2025-06-30)
+[n] 2. Provider's earnings growth scalar value
+[n] 7. Exchange filings regarding AGM proceedings and voting results ([n] 9)
+"""
+
+
+def test_model_written_bibliography_and_n_literals_never_ship() -> None:
+    """R15-RESEARCH-029: the numbered rail is the only bibliography — the
+    model's "Merged Sources"/"References" lists and its "[n] k" literals are
+    removed; the real [n] marker and the prose around them survive."""
+    llm = _AuditLLM("1: SUPPORTED")
+    steps: list[ResearchStep] = []
+    out = _run(ensure_citation_integrity(_KAYNES_MD, _sources(3), llm_call=llm, steps=steps))
+    assert "References" not in out and "Merged Sources" not in out
+    assert "[n]" not in out
+    assert "Provider's earnings growth scalar value" not in out
+    assert "Revenue growth: +40.5% (quarterly YoY, [2])" in out
+    assert "(quarterly YoY, computed from quarterly statements)" in out
+    assert "Note: This brief is built from exchange data" in out
+    assert "**Key Metrics**" in out
+    # Two lists plus the one body literal are named on the dev step.
+    assert "3 model-written source list(s)/[n] literal(s)" in steps[-1].detail
+
+
+def test_trailing_sources_heading_list_is_stripped() -> None:
+    """The HAL shape: a closing "### Sources" list the model appended itself."""
+    md = "Revenue grew 23% [1].\n\n### Sources\n- [1] HAL annual report\n- [2] Reuters story\n"
+    llm = _AuditLLM("1: SUPPORTED")
+    out = _run(ensure_citation_integrity(md, _sources(2), llm_call=llm))
+    assert out == "Revenue grew 23% [1]."
+
+
 def test_audit_without_evidence_keeps_excerpt_behavior() -> None:
     md = "Revenue grew 23% [1]."
     llm = _AuditLLM("1: SUPPORTED")

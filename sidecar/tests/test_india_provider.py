@@ -128,3 +128,19 @@ def test_empty_frame_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(jnse, "stock_df", lambda **kwargs: pd.DataFrame())
     with pytest.raises(ProviderError):
         india_provider.get_quote("GOLDBEES")
+
+
+def test_nan_open_cell_yields_no_nan_bar(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-033 (a case the gate fix was not written against): a jugaad row
+    with a NaN OPEN cell is dropped, so no served bar carries a NaN price."""
+    import math
+
+    import jugaad_data.nse as jnse
+
+    frame = _fake_jugaad_frame()
+    frame.loc[1, "OPEN"] = float("nan")
+    monkeypatch.setattr(jnse, "stock_df", lambda **kwargs: frame)
+    series = india_provider.get_history("GOLDBEES", "1d", "1mo")
+    assert len(series.bars) == 2
+    for bar in series.bars:
+        assert all(math.isfinite(v) for v in (bar.open, bar.high, bar.low, bar.close))

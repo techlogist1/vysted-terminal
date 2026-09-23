@@ -133,7 +133,7 @@ def test_gate_requires_a_provider_52w_bound() -> None:
 
 
 def test_is_applicable_only_india() -> None:
-    assert range_check.is_applicable("BI")  # NSE+BSE micro-cap
+    assert range_check.is_applicable("BI.NS")  # the resolved NSE listing
     assert not range_check.is_applicable("AAPL")
     assert not range_check.is_applicable("")
 
@@ -160,7 +160,7 @@ def test_fetch_recomputes_from_the_exchange_series(monkeypatch: pytest.MonkeyPat
         provider="nse_direct",
     )
     _patch_history(monkeypatch, series)
-    rng = asyncio.run(range_check.get_52w_range("BI"))
+    rng = asyncio.run(range_check.get_52w_range("BI.NS"))
     assert rng == Range52w(high=116.0, low=50.0, coverage_days=359, bars=360, source="nse_direct")
 
 
@@ -178,7 +178,7 @@ def test_provider_error_is_none_never_raises(monkeypatch: pytest.MonkeyPatch) ->
     from services.errors import ProviderError
 
     _patch_history(monkeypatch, ProviderError("bse: empty series"))
-    assert asyncio.run(range_check.get_52w_range("BI")) is None
+    assert asyncio.run(range_check.get_52w_range("BI.NS")) is None
     assert not provider_health.is_open(range_check.EXCHANGE_HISTORY)
 
 
@@ -187,7 +187,7 @@ def test_block_opens_the_exchange_history_circuit(monkeypatch: pytest.MonkeyPatc
 
     _patch_history(monkeypatch, ProviderError("nse_direct: blocked (HTTP 401)"))
     for _ in range(3):
-        assert asyncio.run(range_check.get_52w_range("BI")) is None
+        assert asyncio.run(range_check.get_52w_range("BI.NS")) is None
     assert provider_health.is_open(range_check.EXCHANGE_HISTORY)
 
 
@@ -200,7 +200,7 @@ def test_open_circuit_skips_the_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
         raise AssertionError("open circuit must skip the history fetch")
 
     monkeypatch.setattr(provider_registry, "get_history", explode)
-    assert asyncio.run(range_check.get_52w_range("BI")) is None
+    assert asyncio.run(range_check.get_52w_range("BI.NS")) is None
 
 
 def test_thin_returned_series_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -211,7 +211,7 @@ def test_thin_returned_series_is_none(monkeypatch: pytest.MonkeyPatch) -> None:
         provider="bse",
     )
     _patch_history(monkeypatch, series)
-    assert asyncio.run(range_check.get_52w_range("BI")) is None
+    assert asyncio.run(range_check.get_52w_range("BI.NS")) is None
 
 
 # --- get_52w_range: the circularity guard (R13 D-1) ------------------------------
@@ -229,7 +229,7 @@ def test_yfinance_served_series_declines_to_witness(monkeypatch: pytest.MonkeyPa
         provider="yfinance",
     )
     _patch_history(monkeypatch, series)
-    assert asyncio.run(range_check.get_52w_range("BI")) is None
+    assert asyncio.run(range_check.get_52w_range("BI.NS")) is None
 
 
 def test_bse_served_series_with_coverage_computes(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -241,5 +241,5 @@ def test_bse_served_series_with_coverage_computes(monkeypatch: pytest.MonkeyPatc
         provider="bse",
     )
     _patch_history(monkeypatch, series)
-    rng = asyncio.run(range_check.get_52w_range("BI"))
+    rng = asyncio.run(range_check.get_52w_range("BI.NS"))
     assert rng == Range52w(high=116.0, low=50.0, coverage_days=359, bars=360, source="bse")

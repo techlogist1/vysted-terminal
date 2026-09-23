@@ -20,6 +20,7 @@ import {
   CHART_SURFACE,
   CHART_TEXT,
 } from "@/lib/chart-theme";
+import { currencyAffix } from "@/lib/format";
 
 import type { PriceTargetEntry } from "../../../types/analyst";
 
@@ -61,6 +62,9 @@ export function PriceTargetTimeline({ history }: Props) {
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   const hasData = history.length > 0;
+  // R15-DATA-031: "Price Target" carried no unit at all — label it with the
+  // data's own currency instead of leaving the line unlabelled.
+  const currency = history[0]?.currency ?? null;
 
   useEffect(() => {
     if (!hasData) return;
@@ -68,12 +72,13 @@ export function PriceTargetTimeline({ history }: Props) {
     if (!container) return;
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
     chartRef.current = chart;
+    const { prefix, suffix } = currencyAffix(currency);
     const series = chart.addSeries(LineSeries, {
       color: AMBER,
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: true,
-      title: "Price Target",
+      title: `Price Target (${prefix}${suffix})`,
     });
     seriesRef.current = series;
     return () => {
@@ -81,7 +86,7 @@ export function PriceTargetTimeline({ history }: Props) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [hasData]);
+  }, [hasData, currency]);
 
   useEffect(() => {
     const series = seriesRef.current;

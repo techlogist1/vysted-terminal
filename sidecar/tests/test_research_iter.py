@@ -685,3 +685,101 @@ def test_round_one_skips_the_planning_llm_turn() -> None:
     assert plan_steps and "seeded" in plan_steps[0].detail
     # Researchers still ran on the seed (findings/sources gathered).
     assert any(s.kind == "tool" and "researcher" in s.detail for s in brief.steps)
+
+
+# --- R15-RESEARCH-003/037: append-only source numbering ---------------------------
+
+_ROUND1_URL = "https://ex.com/a"
+_PRIMARY_URL = "https://www.sec.gov/Archives/nvda-10q.htm"
+
+
+async def _two_round_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
+    """Round 2's planned sub-question pulls a PRIMARY-tier filing — a source
+    that tier ranking would have put ahead of round 1's general-tier page."""
+    if name == "web_search" and "PRIMARY" in args["query"]:
+        return {
+            "ok": True,
+            "citations": [
+                {
+                    "url": _PRIMARY_URL,
+                    "title": "NVIDIA Corporation quarterly report (10-Q)",
+                    "excerpt": "NVIDIA revenue",
+                    "source": "sec.gov",
+                }
+            ],
+        }
+    return await fake_tool(name, args)
+
+
+def _number_of(url: str, numbered: str) -> int:
+    for line in numbered.splitlines():
+        if line.endswith(f"— {url}"):
+            return int(line[1 : line.index("]")])
+    raise AssertionError(f"{url} not in the numbered list:\n{numbered}")
+
+
+class _MarkerLLM(FakeLLM):
+    """Mints a marker for round 1's page in the round-1 report, carries that
+    report verbatim through round 2, and synthesizes from it."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.report = ""
+        self.reflects = 0
+        self.synthesis_system = ""
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = messages[0]["content"].lower()
+        user = messages[-1]["content"]
+        if "planning the next round" in system:
+            return "Sub-question PRIMARY: the NVIDIA filing"
+        if "evolving research report" in system:
+            if not self.report:
+                known = user.split("Known sources (for [n] markers):\n", 1)[1]
+                self.report = (
+                    f"## Facts established\n- Revenue grew 12% [{_number_of(_ROUND1_URL, known)}]."
+                )
+            return self.report
+        if "reflect on research coverage" in system:
+            self.reflects += 1
+            return "GAPS\n- filings" if self.reflects == 1 else "COMPLETE"
+        if "concise research brief" in system:
+            self.synthesis_system = messages[0]["content"]
+            return "# Brief\n" + self.report.splitlines()[-1].removeprefix("- ")
+        return await super().__call__(messages)
+
+
+def test_iter_round_one_marker_still_resolves_after_round_two_adds_a_primary_source() -> None:
+    llm = _MarkerLLM()
+    brief = _run(
+        run_iter_research(
+            "research NVDA",
+            tool_call=_two_round_tool,
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert isinstance(brief, ResearchBrief)
+    urls = [s.url for s in brief.sources]
+    assert _PRIMARY_URL in urls, "round 2 never gathered the primary source"
+    marker = int(brief.markdown.split("[")[1].split("]")[0])
+    assert brief.sources[marker - 1].url == _ROUND1_URL
+    # priority_note names the primary source's REAL number on the unranked list.
+    primary_number = urls.index(_PRIMARY_URL) + 1
+    assert f"primary record (exchange/regulator/filings/IR): [{primary_number}]" in (
+        llm.synthesis_system
+    )
+
+
+def test_heavy_panel_markers_are_remapped_to_the_merged_list_by_url() -> None:
+    """The ULTRA panel: each angle numbers its own sources; the merged list is
+    ranked once and the angle markers are rewritten onto it by url before synthesis."""
+    from services.research.models import ResearchSource
+
+    a, b, c = (ResearchSource(url=f"https://ex.com/{k}", title=k, excerpt="") for k in "abc")
+    angle_1 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[a, b])
+    angle_2 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[c, a])
+    merged = iter_research._merge_sources([angle_1, angle_2])
+    assert [s.url for s in merged] == [a.url, b.url, c.url]
+    remapped = iter_research._remap_markers("x [1] y [2] z [5].", angle_2.sources, merged)
+    assert remapped == "x [3] y [1] z ."

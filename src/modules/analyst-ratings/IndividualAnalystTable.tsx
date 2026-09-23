@@ -4,7 +4,7 @@ import { Star, Users } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
-import { formatPercent, formatPrice } from "@/lib/format";
+import { currencyAffix, formatPercent, formatPrice } from "@/lib/format";
 
 import type { IndividualAnalystForecast } from "../../../types/analyst";
 
@@ -66,7 +66,13 @@ const COLUMNS: DataColumn<IndividualAnalystForecast>[] = [
     header: "Target",
     numeric: true,
     width: "14%",
-    format: (e) => (e.current_price_target === null ? null : formatPrice(e.current_price_target)),
+    // R15-DATA-031: the Target column rendered a bare number with no
+    // currency, so a USD and an INR target read as the same magnitude.
+    format: (e) => {
+      if (e.current_price_target === null) return null;
+      const { prefix, suffix } = currencyAffix(e.currency);
+      return `${prefix}${formatPrice(e.current_price_target)}${suffix}`;
+    },
   },
   {
     key: "rating_issued_date",

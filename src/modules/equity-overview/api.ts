@@ -17,6 +17,7 @@ import {
 } from "@/lib/sidecar-client";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { modelForProvider } from "@/store/model-selection";
+import { useSettingsStore } from "@/store/settings";
 import type {
   AnalystRating,
   BalanceSheet,
@@ -97,15 +98,21 @@ function rejectionReason(result: PromiseSettledResult<unknown>): string | null {
   return "Failed to load fundamentals.";
 }
 
-/** Fetch every section for one symbol; partial failures degrade gracefully. */
-export async function loadEquityOverview(symbol: string): Promise<EquityOverview> {
+/**
+ * Fetch every section for one symbol; partial failures degrade gracefully.
+ * `region` is the region of the listing the user picked (a `/resolve` candidate
+ * or a host command): every leg sends it as the per-call `X-Vysted-Region`, so
+ * NASDAQ:AMAL picked in an IN session loads Amalgamated Financial on every leg,
+ * never Amal Ltd. Absent, the session region applies.
+ */
+export async function loadEquityOverview(symbol: string, region?: string): Promise<EquityOverview> {
   const [quote, fundamentals, income, balance, cashFlow, ratings] = await Promise.allSettled([
-    sidecarApi.quote(symbol),
-    sidecarApi.fundamentals(symbol),
-    sidecarApi.incomeStatement(symbol),
-    sidecarApi.balanceSheet(symbol),
-    sidecarApi.cashFlow(symbol),
-    sidecarApi.analystRating(symbol),
+    sidecarApi.quote(symbol, "equity", region),
+    sidecarApi.fundamentals(symbol, region),
+    sidecarApi.incomeStatement(symbol, region),
+    sidecarApi.balanceSheet(symbol, region),
+    sidecarApi.cashFlow(symbol, region),
+    sidecarApi.analystRating(symbol, region),
   ]);
 
   const sections = [quote, fundamentals, income, balance, cashFlow, ratings];
@@ -132,12 +139,17 @@ export async function loadEquityOverview(symbol: string): Promise<EquityOverview
  * Resolves the active BYOK provider + model + key the SAME way the chat sidebar
  * does — the default provider from the LLM-providers store, its default model,
  * and the OS-keychain key for that provider — and passes them in HEADERS (the
- * established read-path BYOK convention; never the body, never logged). The
- * sidecar always answers 200: a missing key or empty model output comes back as
- * `summary === null` + a `reason`, so the panel shows a quiet unavailable state
- * rather than throwing. A transport/5xx failure throws `SidecarError`.
+ * established read-path BYOK convention; never the body, never logged), and
+ * `region` rides as `X-Vysted-Region` exactly as on the data legs
+ * ({@link loadEquityOverview}). The sidecar always answers 200: a missing key or
+ * empty model output comes back as `summary === null` + a `reason`, so the panel
+ * shows a quiet unavailable state rather than throwing. A transport/5xx failure
+ * throws `SidecarError`.
  */
-export async function loadCompanyNarrative(symbol: string): Promise<CompanyNarrative> {
+export async function loadCompanyNarrative(
+  symbol: string,
+  region?: string,
+): Promise<CompanyNarrative> {
   // The default provider lives in the store (same source the chat sidebar uses).
   const provider = useLLMProvidersStore.getState().defaultProviderId;
 
@@ -155,6 +167,9 @@ export async function loadCompanyNarrative(symbol: string): Promise<CompanyNarra
   const headers: Record<string, string> = {
     "X-LLM-Provider": provider,
     "X-LLM-Model": modelForProvider(provider),
+    // The same instrument as the data legs: the picked listing's region, else
+    // the session region every other sidecar request carries.
+    "X-Vysted-Region": region ?? useSettingsStore.getState().region,
   };
   // Only attach the key header when we actually have one — never an empty secret.
   // No key for a key-requiring provider → no header → the sidecar returns a

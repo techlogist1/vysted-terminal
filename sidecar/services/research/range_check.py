@@ -41,7 +41,8 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from services import locale, provider_health, symbol_resolver
+from services import provider_health
+from services.witness import is_block_error, is_india_listing
 
 logger = logging.getLogger(__name__)
 
@@ -118,17 +119,11 @@ def should_cross_check(fund: dict[str, Any]) -> bool:
     )
 
 
-def is_applicable(symbol: str) -> bool:
-    """True when ``symbol`` is an Indian exchange listing (NSE or BSE).
-
-    The exchange-direct history lane exists only for NSE/BSE names; a US/other
-    listing routes to the same provider the 52-week scalar came from, so
-    recomputing from it would not be an independent witness.
-    """
-    if not isinstance(symbol, str) or not symbol:
-        return False
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
-    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
+#: The exchange-direct history lane exists only for an NSE/BSE listing; a
+#: US/other listing routes to the same provider the 52-week scalar came from, so
+#: recomputing from it would not be an independent witness. Decided on the
+#: resolved listing (``.NS``/``.BO``), never bare-ticker membership.
+is_applicable = is_india_listing
 
 
 def _bar_timestamp(bar: Any) -> datetime | None:
@@ -176,12 +171,6 @@ def compute_range(bars: list[Any] | None, source: str) -> Range52w | None:
     )
 
 
-def _is_blocked(exc: BaseException) -> bool:
-    """True when ``exc`` looks like an exchange block/throttle (vs a plain miss)."""
-    text = str(exc).lower()
-    return "blocked" in text or any(code in text for code in ("http 401", "http 403", "http 429"))
-
-
 def _fetch_history(symbol: str) -> Any:
     """A year of daily exchange-direct history (BLOCKING; runs under
     ``to_thread``). The SAME lane the chart panel uses —
@@ -208,7 +197,7 @@ async def get_52w_range(symbol: str) -> Range52w | None:
     try:
         series = await asyncio.to_thread(_fetch_history, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_blocked(exc):
+        if is_block_error(exc):
             provider_health.record_rate_limited(EXCHANGE_HISTORY)
         else:
             logger.debug("exchange history unavailable for %s: %s", symbol, exc)

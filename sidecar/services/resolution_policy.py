@@ -30,13 +30,15 @@ Outcomes:
                        the master, an arbitrary guess.
   - ``unresolved``   — nothing matched, or confidence < :data:`REJECT`.
 
-Residual-tie semantics (D58b): two rows of the SAME bare symbol (an NSE/BSE
-dual listing, an India+US ADR) are one instrument, never a tie. Distinct
-instruments in DIFFERENT regions tied in ``(band, score)`` were separated by
-the resolver's locale rank (region is real ranking evidence there), so that
-bind stands. Only distinct SAME-REGION instruments tied exactly in
-``(band, score)`` are residual — the ranking has genuinely nothing left, and a
-bind would be dict-iteration luck.
+Residual-tie semantics (D58b): two rows of the SAME instrument (an NSE/BSE
+dual listing — see :func:`same_instrument`) are one instrument, never a tie.
+Distinct instruments in DIFFERENT regions tied in ``(band, score)`` were
+separated by the resolver's locale rank (region is real ranking evidence
+there), so that bind stands. Only distinct SAME-REGION instruments tied exactly
+in ``(band, score)`` are residual — the ranking has genuinely nothing left, and
+a bind would be dict-iteration luck. Two different companies that share a bare
+ticker across NSE and BSE (NSE FOCUS = Focus Lighting, BSE FOCUS = Focus
+Business Solution) are exactly that residual case.
 
 The band vocabulary lives here (the resolver imports it) so the policy can
 read a candidate's match band without a circular import: this module imports
@@ -78,19 +80,37 @@ class ResolutionDecision:
     reason: str
 
 
+def same_instrument(a: Instrument, b: Instrument) -> bool:
+    """The ONE rule for "these two rows are the same instrument".
+
+    The ISIN decides whenever both rows carry one. When only one side carries an
+    ISIN the rows are two instruments: the resolver's identity enrichment copies
+    an ISIN onto an NSE row only from the SAME company's BSE row, so a same-ticker
+    pair with a one-sided ISIN is a pair the join refused (two companies). With
+    no ISIN on either side the listing identity is all there is: the same bare
+    symbol in the same region (the NSE/BSE dual-listing convention) — never
+    across regions, where an equal ticker string is a different company.
+    """
+    if a.isin and b.isin:
+        return a.isin == b.isin
+    if a.isin or b.isin:
+        return False
+    return a.symbol == b.symbol and a.region == b.region
+
+
 def _residual_tie(best: Instrument, candidates: list[Instrument]) -> bool:
     """True when the nearest DISTINCT instrument ties ``best`` exactly (D58b).
 
-    Walks the ranked candidates past every row of ``best``'s own bare symbol
-    (a dual listing / ADR is the same instrument) to the first genuinely
-    different instrument. An exact ``(band, score)`` tie there, in the SAME
-    region, means the resolver's ranking had nothing left to separate the two
-    and the winner is master-iteration order — a residual tie. A cross-region
-    tie is NOT residual: region is the separating evidence (the locale rank),
-    so the bind stands.
+    Walks the ranked candidates past every row of ``best``'s own instrument
+    (:func:`same_instrument` — a dual listing is the same instrument) to the
+    first genuinely different instrument. An exact ``(band, score)`` tie there,
+    in the SAME region, means the resolver's ranking had nothing left to separate
+    the two and the winner is master-iteration order — a residual tie. A
+    cross-region tie is NOT residual: region is the separating evidence (the
+    locale rank), so the bind stands.
     """
     for cand in candidates:
-        if cand.symbol == best.symbol:
+        if same_instrument(cand, best):
             continue
         return cand.band == best.band and cand.score == best.score and cand.region == best.region
     return False
@@ -157,4 +177,5 @@ __all__ = [
     "REJECT",
     "ResolutionDecision",
     "decide",
+    "same_instrument",
 ]

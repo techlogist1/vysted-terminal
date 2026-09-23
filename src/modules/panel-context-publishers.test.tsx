@@ -60,6 +60,7 @@ vi.mock("@/modules/news/api", () => ({
 }));
 
 vi.mock("@/modules/equity-overview/api", () => ({
+  autocompleteSymbols: vi.fn(async () => []),
   loadEquityOverview: vi.fn(async (symbol: string) => ({
     symbol,
     quote: {

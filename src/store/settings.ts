@@ -21,18 +21,15 @@
  *  - `deepResearchBackend` — the deep-research engine selection threaded into
  *    agent-invoke requests (`native` is the only user-facing engine).
  *
- * Persistence: every setter rides the workspace autosave slot. A preference
- * change isn't a layout change, so the store self-persists by calling
- * `void autosaveLayout()` directly (no `page.tsx` subscription needed).
+ * Persistence: the bundle rides the workspace blob; its autosave trigger is
+ * the `settings` slice in `src/lib/workspace.ts` `PERSISTED_SLICES`.
  *
- * SSR-safe: no `window`/`navigator` at module load; `autosaveLayout` already
- * no-ops before the dockview layout mounts.
+ * SSR-safe: no `window`/`navigator` at module load.
  */
 
 import { create } from "zustand";
 
 import { type Region, DEFAULT_REGION, isRegion } from "@/lib/region";
-import { autosaveLayout } from "@/lib/workspace";
 import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
 
 /**
@@ -105,15 +102,6 @@ function seed(): SettingsBundle {
 }
 
 /**
- * Self-persist a preference change into the autosave slot. Fire-and-forget —
- * `autosaveLayout` is best-effort and no-ops before the layout mounts, so a
- * preference set in a unit test (no dockview) is a silent no-op.
- */
-function persist(): void {
-  void autosaveLayout();
-}
-
-/**
  * Parse a persisted/imported `defaultAgentId` into the in-state shape:
  * sentinel → explicit raw chat (`null`); a non-empty agent id → itself;
  * anything else (legacy dead `null`, absent, garbled) → the Copilot seed.
@@ -146,17 +134,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     // the active lens — applied now, and re-applied at every boot restore.
     useActiveAgentStore.getState().setActiveAgent(agentId);
     defaultAgentApplied = true;
-    persist();
   },
 
   setRegion: (region) => {
     set({ region });
-    persist();
   },
 
   setDeepResearchBackend: (backend) => {
     set({ deepResearchBackend: backend });
-    persist();
   },
 
   setAll: (bundle) => {
@@ -179,7 +164,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       useActiveAgentStore.getState().setActiveAgent(defaultAgentId);
       defaultAgentApplied = true;
     }
-    persist();
   },
 
   toBundle: () => {

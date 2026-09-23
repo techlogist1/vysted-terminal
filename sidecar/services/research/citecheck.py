@@ -6,7 +6,9 @@ them (a TMB Bank PDF cited as Route's earnings transcript). Two passes:
 
   1. **Structural** (always, deterministic, free): every inline ``[n]`` marker
      must fall in ``1..len(sources)``; out-of-range markers are STRIPPED and
-     the prose tidied — a dead chip never renders.
+     the prose tidied — a dead chip never renders. Model-authored source lists
+     ("Merged Sources", "References:") and literal ``[n] k`` markers are
+     removed first: the numbered rail is the only bibliography.
   2. **Bounded LLM spot-audit** (one ``llm_call``, only when ≥15s of wall
      budget remains): up to :data:`MAX_AUDIT_CLAIMS` numeric/dated claims are
      checked against the sources they cite. R9 B3: when the run's RAW-EVIDENCE
@@ -61,9 +63,74 @@ _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
 def _tidy(text: str) -> str:
     """Clean the residue a marker removal leaves behind."""
     out = re.sub(r"[ \t]+([.,;:!?)\]])", r"\1", text)
+    out = re.sub(r"[,;]\s*\)", ")", out)
     out = re.sub(r"\(\s*\)", "", out)
     out = re.sub(r"[ \t]{2,}", " ", out)
     return out
+
+
+#: A heading/label line opening a model-authored bibliography ("### Sources",
+#: "**Merged Sources**", "References:"), compared after stripping markdown.
+_BIBLIOGRAPHY_HEADING_RE = re.compile(
+    r"^(?:merged |cited )?(?:sources|references|bibliography|works cited)(?: used)?$"
+)
+
+#: A setext heading underline directly below the bibliography label.
+_SETEXT_RULE_RE = re.compile(r"^\s*[-=]{3,}\s*$")
+
+#: One bibliography entry: a bullet, "1.", "[3] …" or the model's "[n] 1. …".
+_ENTRY_RE = re.compile(r"^\s*(?:[-*•+]\s+|\d{1,3}[.)]\s+|\[(?:n|\d{1,3})\](?:\s*\d{1,3}[.)]?)?\s+)")
+
+#: A literal "[n]" marker (with the model's own number after it) — it resolves
+#: to nothing on the source rail.
+_N_LITERAL_RE = re.compile(r"\[n\]\s*\d{0,3}", re.I)
+
+
+def _is_bibliography_heading(line: str) -> bool:
+    label = line.strip().lstrip("#").strip(" *_:").lower()
+    return _BIBLIOGRAPHY_HEADING_RE.match(label) is not None
+
+
+def strip_model_bibliography(markdown: str) -> tuple[str, int]:
+    """Remove model-authored source lists and ``[n]``-literal markers.
+
+    The brief's numbered source rail is the ONLY bibliography: a list the
+    model wrote itself ("Merged Sources", "References:") numbers items its own
+    way and never resolves to the rail. A section runs from its label through
+    an optional one-line intro and its list entries, and ends at the next
+    heading or the first prose line after the entries. Returns
+    ``(cleaned_markdown, removed_count)`` — sections plus literal markers.
+    """
+    lines = markdown.splitlines()
+    out: list[str] = []
+    removed = 0
+    i = 0
+    while i < len(lines):
+        if not _is_bibliography_heading(lines[i]):
+            out.append(lines[i])
+            i += 1
+            continue
+        removed += 1
+        i += 1
+        if i < len(lines) and _SETEXT_RULE_RE.match(lines[i]):
+            i += 1
+        listed = intro = False
+        while i < len(lines):
+            line = lines[i]
+            if line.lstrip().startswith("#"):
+                break
+            if line.strip() and _ENTRY_RE.match(line):
+                listed = True
+            elif line.strip():
+                if listed or intro:
+                    break
+                intro = True
+            i += 1
+    cleaned = "\n".join(out).rstrip() if removed else markdown
+    cleaned, literals = _N_LITERAL_RE.subn("", cleaned)
+    if literals:
+        cleaned = "\n".join(_tidy(line) for line in cleaned.splitlines())
+    return cleaned, removed + literals
 
 
 def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
@@ -244,14 +311,19 @@ async def ensure_citation_integrity(
 
     t0 = time.monotonic()
     source_count = len(sources)
-    cleaned, removed = strip_invalid_markers(markdown, source_count)
+    cleaned, bibliography = strip_model_bibliography(markdown)
+    cleaned, removed = strip_invalid_markers(cleaned, source_count)
+    stripped = (
+        f"stripped {removed} out-of-range marker(s), "
+        f"{bibliography} model-written source list(s)/[n] literal(s)"
+    )
 
     remaining = _remaining_wall(budget)
     if remaining is not None and remaining < MIN_AUDIT_WALL_SECS:
         await _record(
             ResearchStep(
                 "reflect",
-                f"citation check: stripped {removed} out-of-range marker(s); "
+                f"citation check: {stripped}; "
                 f"audit skipped ({remaining:.0f}s wall remaining < {MIN_AUDIT_WALL_SECS:.0f}s)",
                 latency_ms=int((time.monotonic() - t0) * 1000),
                 status="skipped",
@@ -276,8 +348,7 @@ async def ensure_citation_integrity(
     await _record(
         ResearchStep(
             "reflect",
-            f"citation check: stripped {removed} out-of-range marker(s); "
-            f"audited {len(claims)} claim(s), softened {softened}",
+            f"citation check: {stripped}; audited {len(claims)} claim(s), softened {softened}",
             latency_ms=int((time.monotonic() - t0) * 1000),
         )
     )

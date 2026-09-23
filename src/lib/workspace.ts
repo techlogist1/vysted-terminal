@@ -1,25 +1,27 @@
 /**
  * Workspace serialization — `.vysted-workspace` save/load.
  *
- * A workspace captures two things: the dockview panel layout and the modules
- * `enabled` map. Serialising both means reloading a workspace restores not just
- * which panels are open and where, but which modules are active. The sidecar
- * owns the files (`/workspace` endpoints); this module is the frontend half —
- * it builds the payload from the live stores and applies a loaded payload back
- * onto them.
+ * A workspace blob carries the dockview layout plus every `PERSISTED_SLICES`
+ * slice. Loading a named workspace applies only its cockpit (the `layout`
+ * slices); the user's global data rides the autosave slot and is restored only
+ * at launch. The sidecar owns the files (`/workspace` endpoints); this module
+ * is the frontend half — it builds the payload from the live stores and
+ * applies a loaded payload back onto them.
  *
  * The shape is deliberately open: `SerializedWorkspace` carries the two fields
  * the platform needs plus an index signature so a future phase can add keys
  * without a sidecar change (the sidecar stores the body opaquely).
  */
 
-import type { DockviewApi, SerializedDockview } from "dockview";
+import type { DockviewApi, SerializedDockview, SerializedGridObject } from "dockview";
 
 import { applyDefaultLayout } from "@/config/default-layout";
 import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { fetchLegacyPositions } from "@/modules/portfolio/api";
 import { useChartCommandStore } from "@/store/chart-command";
+import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
@@ -32,9 +34,10 @@ import { useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useResearchSpacesStore } from "@/store/research-spaces";
 import { type SearchSettingsBundle, useSearchSettingsStore } from "@/store/search-settings";
+import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/store/screener";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
-import { type Portfolio, usePortfoliosStore } from "@/store/portfolios";
+import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
@@ -132,8 +135,8 @@ export interface SerializedWorkspace {
    * brief has been produced yet.
    */
   brief?: BriefBundle;
-  /** In-app research notes (per-stock + general) — ride the blob like the brief
-   * so they persist with a named workspace / per-stock research space (003). */
+  /** In-app research notes (per-stock + general) — global user data that rides
+   * the autosave slot like the brief (003). */
   notes?: NotesBundle;
   /**
    * TYPED research-space marker (S-19): the symbol this workspace researches,
@@ -150,6 +153,8 @@ export interface SerializedWorkspace {
    * relaunch (`src/store/research-spaces.ts`). Optional for older blobs.
    */
   researchSpaces?: WorkspaceResearchSpaces;
+  /** The screener's saved screens. Optional for older blobs (absent → none). */
+  savedScreens?: SavedScreen[];
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
   [key: string]: unknown;
 }
@@ -174,9 +179,316 @@ export class WorkspaceError extends Error {
 const MODEL_OVERRIDES_VERSION = 3;
 
 /**
+ * One persisted slice of the workspace blob: what it writes, how it restores,
+ * and which store change schedules an autosave. {@link PERSISTED_SLICES} is the
+ * single registry — the payload, the restore and the autosave triggers all
+ * iterate it, so a slice added here persists, restores and autosaves together.
+ */
+export interface PersistedSlice {
+  /** The blob key this slice owns (`read` may also write a companion key). */
+  key: string;
+  /**
+   * `layout` — per-workspace state a named workspace restores (the cockpit
+   * itself). `global` — the user's own data, shared by every workspace:
+   * restored only by the launch restore of the autosave slot, never by loading
+   * a named workspace (R15-CODE-FRONTEND-001).
+   */
+  scope: "layout" | "global";
+  read: () => Partial<SerializedWorkspace>;
+  restore: (workspace: SerializedWorkspace) => void;
+  /** Subscribe `onChange` to the change that must be persisted; returns the unsubscribe. */
+  subscribe: (onChange: () => void) => () => void;
+}
+
+/** A `subscribe` that fires when any of the picked store fields changes identity. */
+function onChange<S>(
+  store: { subscribe: (listener: (state: S, previous: S) => void) => () => void },
+  ...fields: ((state: S) => unknown)[]
+): PersistedSlice["subscribe"] {
+  return (notify) =>
+    store.subscribe((state, previous) => {
+      if (fields.some((field) => field(state) !== field(previous))) {
+        notify();
+      }
+    });
+}
+
+/**
+ * Every persisted slice. The launch restore applies the global slices before
+ * the layout slices, so the per-space memory archive is in place before the
+ * research marker enters a space.
+ */
+export const PERSISTED_SLICES: readonly PersistedSlice[] = [
+  {
+    // Restored before the layout so the panel components a layout references
+    // resolve against the module set that was active when it was saved.
+    key: "enabledModules",
+    scope: "layout",
+    read: () => ({ enabledModules: useModulesStore.getState().enabled }),
+    restore: (workspace) => useModulesStore.getState().setEnabledMap(workspace.enabledModules),
+    subscribe: onChange(useModulesStore, (s) => s.enabled),
+  },
+  {
+    key: "chartDrawings",
+    scope: "layout",
+    read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
+    restore: (workspace) =>
+      useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings ?? { byPanel: {} }),
+    subscribe: onChange(useChartDrawingsStore, (s) => s.byPanel),
+  },
+  {
+    key: "defaultProviderId",
+    scope: "global",
+    read: () => ({ defaultProviderId: useLLMProvidersStore.getState().defaultProviderId }),
+    restore: (workspace) => {
+      if (workspace.defaultProviderId) {
+        useLLMProvidersStore.getState().setDefaultProviderId(workspace.defaultProviderId);
+      }
+    },
+    subscribe: onChange(useLLMProvidersStore, (s) => s.defaultProviderId),
+  },
+  {
+    // Older blobs lack it (or carry an empty list) — keep the default set.
+    key: "watchlist",
+    scope: "global",
+    read: () => ({ watchlist: useSymbolsStore.getState().entries }),
+    restore: (workspace) => {
+      if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
+        useSymbolsStore.getState().setEntries(workspace.watchlist);
+      }
+    },
+    subscribe: onChange(useSymbolsStore, (s) => s.entries),
+  },
+  {
+    // Older blobs lack it — keep the empty default portfolio.
+    key: "portfolios",
+    scope: "global",
+    read: () => ({
+      portfolios: {
+        list: usePortfoliosStore.getState().portfolios,
+        activeId: usePortfoliosStore.getState().activeId,
+      },
+    }),
+    restore: (workspace) => {
+      if (workspace.portfolios && Array.isArray(workspace.portfolios.list)) {
+        usePortfoliosStore
+          .getState()
+          .setAll(workspace.portfolios.list, workspace.portfolios.activeId);
+      }
+    },
+    subscribe: onChange(
+      usePortfoliosStore,
+      (s) => s.portfolios,
+      (s) => s.activeId,
+    ),
+  },
+  {
+    // A legacy mode ("ask"/"edit"/"build") folds into the single inferred
+    // "agent" surface (Track B); only restore when a value is set.
+    key: "agentMode",
+    scope: "global",
+    read: () => ({ agentMode: useAgentModeStore.getState().mode }),
+    restore: (workspace) => {
+      if (workspace.agentMode !== undefined) {
+        useAgentModeStore.getState().setMode(coerceAgentMode(workspace.agentMode));
+      }
+    },
+    subscribe: onChange(useAgentModeStore, (s) => s.mode),
+  },
+  {
+    key: "autonomyMode",
+    scope: "global",
+    read: () => ({ autonomyMode: useAgentAutonomyStore.getState().autonomy }),
+    restore: (workspace) => {
+      if (isAgentAutonomy(workspace.autonomyMode)) {
+        useAgentAutonomyStore.getState().setAutonomy(workspace.autonomyMode);
+      }
+    },
+    subscribe: onChange(useAgentAutonomyStore, (s) => s.autonomy),
+  },
+  {
+    key: "agentDock",
+    scope: "global",
+    read: () => ({
+      agentDock: {
+        collapsed: useAgentDockStore.getState().collapsed,
+        width: useAgentDockStore.getState().width,
+      },
+    }),
+    restore: (workspace) => {
+      if (workspace.agentDock && typeof workspace.agentDock === "object") {
+        useAgentDockStore.getState().setCollapsed(Boolean(workspace.agentDock.collapsed));
+        if (typeof workspace.agentDock.width === "number") {
+          useAgentDockStore.getState().setWidth(workspace.agentDock.width);
+        }
+      }
+    },
+    subscribe: onChange(
+      useAgentDockStore,
+      (s) => s.collapsed,
+      (s) => s.width,
+    ),
+  },
+  {
+    // Restored ONLY from a blob written with the current trust marker; legacy
+    // blobs (no `modelOverridesV`) captured the then-default as a
+    // pseudo-override (the `llama3.1:8b` shadowing bug) and are dropped once,
+    // reverting to live defaults. The version gate already discharges that
+    // legacy risk, so a current blob restores `trusted` — verbatim, WITHOUT the
+    // static known-model prune that would otherwise silently drop a model the
+    // user picked from the LIVE catalog.
+    key: "modelOverrides",
+    scope: "global",
+    read: () => ({
+      modelOverrides: useModelSelectionStore.getState().overrides,
+      modelOverridesV: MODEL_OVERRIDES_VERSION,
+    }),
+    restore: (workspace) => {
+      if (
+        workspace.modelOverridesV === MODEL_OVERRIDES_VERSION &&
+        workspace.modelOverrides &&
+        typeof workspace.modelOverrides === "object"
+      ) {
+        useModelSelectionStore.getState().setOverrides(workspace.modelOverrides, { trusted: true });
+      }
+    },
+    subscribe: onChange(useModelSelectionStore, (s) => s.overrides),
+  },
+  {
+    // `setOverrides` normalises on the way in; older blobs keep the defaults.
+    key: "keybindingOverrides",
+    scope: "global",
+    read: () => ({ keybindingOverrides: useKeybindingsStore.getState().overrides }),
+    restore: (workspace) => {
+      if (workspace.keybindingOverrides && typeof workspace.keybindingOverrides === "object") {
+        useKeybindingsStore.getState().setOverrides(workspace.keybindingOverrides);
+      }
+    },
+    subscribe: onChange(useKeybindingsStore, (s) => s.overrides),
+  },
+  {
+    // `setAll` merges over the seed so a partial blob can't strip a field.
+    key: "settings",
+    scope: "global",
+    read: () => ({ settings: useSettingsStore.getState().toBundle() }),
+    restore: (workspace) => {
+      if (workspace.settings && typeof workspace.settings === "object") {
+        useSettingsStore.getState().setAll(workspace.settings);
+      }
+    },
+    subscribe: onChange(
+      useSettingsStore,
+      (s) => s.defaultAgentId,
+      (s) => s.region,
+      (s) => s.deepResearchBackend,
+    ),
+  },
+  {
+    // `setAll` MIGRATES any pre-R9 blob (legacy `tier`, R7/R8 tier ids,
+    // exaDirect) into the two-tier vocabulary, then merges over the seed; a
+    // legacy hosted/Exa selection confirms the OpenRouter key asynchronously
+    // and demotes to tier_a when none is configured.
+    key: "searchSettings",
+    scope: "global",
+    read: () => ({ searchSettings: useSearchSettingsStore.getState().toBundle() }),
+    restore: (workspace) => {
+      if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
+        useSearchSettingsStore.getState().setAll(workspace.searchSettings);
+      }
+    },
+    subscribe: onChange(
+      useSearchSettingsStore,
+      (s) => s.researchTier,
+      (s) => s.searxngUrl,
+      (s) => s.researchModels,
+    ),
+  },
+  {
+    // `fromBundle` validates the shape and always restores archived. `null` is
+    // a valid "no brief" bundle, so guard on the key's presence, not truthiness.
+    key: "brief",
+    scope: "global",
+    read: () => ({ brief: useBriefStore.getState().toBundle() }),
+    restore: (workspace) => {
+      if ("brief" in workspace) {
+        useBriefStore.getState().fromBundle((workspace.brief ?? null) as BriefBundle);
+      }
+    },
+    subscribe: onChange(useBriefStore, (s) => s.brief),
+  },
+  {
+    key: "notes",
+    scope: "global",
+    read: () => ({ notes: useNotesStore.getState().toBundle() }),
+    restore: (workspace) => {
+      if ("notes" in workspace) {
+        useNotesStore.getState().fromBundle((workspace.notes ?? null) as NotesBundle);
+      }
+    },
+    subscribe: onChange(
+      useNotesStore,
+      (s) => s.general,
+      (s) => s.bySymbol,
+      (s) => s.focusSymbol,
+    ),
+  },
+  {
+    // `deserializeSavedScreens` drops malformed entries from a garbled blob.
+    key: "savedScreens",
+    scope: "global",
+    read: () => ({ savedScreens: useScreenerStore.getState().savedScreens }),
+    restore: (workspace) => {
+      if (Array.isArray(workspace.savedScreens)) {
+        useScreenerStore
+          .getState()
+          .setSavedScreens(deserializeSavedScreens(JSON.stringify(workspace.savedScreens)));
+      }
+    },
+    subscribe: onChange(useScreenerStore, (s) => s.savedScreens),
+  },
+  {
+    // The durable per-space agent-memory archive (S-19).
+    key: "researchSpaces",
+    scope: "global",
+    read: () => ({ researchSpaces: useResearchSpacesStore.getState().snapshot() }),
+    restore: (workspace) => {
+      if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
+        useResearchSpacesStore
+          .getState()
+          .replaceAll(workspace.researchSpaces as WorkspaceResearchSpaces);
+      }
+    },
+    subscribe: onChange(useResearchSpacesStore, (s) => s.byName),
+  },
+  {
+    // TYPED research-space marker (only on a research space). Restoring it
+    // swaps the live chat transcript: archive the space being left, restore
+    // the one being entered — keyed by the CANONICAL space name so a renamed
+    // workspace file (or the `__autosave__` slot) still resolves its memory.
+    key: "researchSymbol",
+    scope: "layout",
+    read: () => {
+      const researchSymbol = useWorkspaceStore.getState().researchSymbol;
+      return researchSymbol ? { researchSymbol } : {};
+    },
+    restore: (workspace) => {
+      const prevSymbol = useWorkspaceStore.getState().researchSymbol;
+      const nextSymbol = researchSymbolOf(workspace);
+      useResearchSpacesStore
+        .getState()
+        .switchSpace(
+          prevSymbol ? { name: researchSpaceName(prevSymbol), symbol: prevSymbol } : null,
+          nextSymbol ? { name: researchSpaceName(nextSymbol), symbol: nextSymbol } : null,
+        );
+      useWorkspaceStore.getState().setResearchSymbol(nextSymbol);
+    },
+    subscribe: onChange(useWorkspaceStore, (s) => s.researchSymbol),
+  },
+];
+
+/**
  * Build the serialised workspace body from the live stores — the SINGLE source
- * for both explicit save ({@link serializeWorkspace}) and {@link autosaveLayout}
- * so a newly-added field can never half-persist (autosave-only or save-only).
+ * for both explicit save ({@link serializeWorkspace}) and {@link autosaveLayout}.
  * Throws if the dockview layout has not mounted yet.
  */
 function buildWorkspacePayload(name: string): SerializedWorkspace {
@@ -186,197 +498,86 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
   }
   // If the active workspace is a research space, fold the LIVE chat transcript
   // into its durable per-space memory BEFORE snapshotting, so the saved blob
-  // captures the conversation the user has had in this space (S-19 / per-space
-  // memory). Keyed by the CANONICAL research-space name (`researchSpaceName`),
-  // not the file `name` — the autosave slot persists under `__autosave__` but a
-  // space's memory must converge on the same key as its explicit save. A non-
-  // research workspace leaves the memory map untouched.
+  // captures the conversation the user has had in this space (S-19). Keyed by
+  // the CANONICAL research-space name, not the file `name` — the autosave slot
+  // persists under `__autosave__` but a space's memory must converge on the
+  // same key as its explicit save.
   const researchSymbol = useWorkspaceStore.getState().researchSymbol;
   if (researchSymbol) {
     useResearchSpacesStore.getState().saveSpace(researchSpaceName(researchSymbol), researchSymbol);
   }
-  return {
-    name,
-    layout: api.toJSON(),
-    enabledModules: useModulesStore.getState().enabled,
-    chartDrawings: useChartDrawingsStore.getState().snapshot(),
-    defaultProviderId: useLLMProvidersStore.getState().defaultProviderId,
-    watchlist: useSymbolsStore.getState().entries,
-    portfolios: {
-      list: usePortfoliosStore.getState().portfolios,
-      activeId: usePortfoliosStore.getState().activeId,
-    },
-    agentMode: useAgentModeStore.getState().mode,
-    autonomyMode: useAgentAutonomyStore.getState().autonomy,
-    agentDock: {
-      collapsed: useAgentDockStore.getState().collapsed,
-      width: useAgentDockStore.getState().width,
-    },
-    modelOverrides: useModelSelectionStore.getState().overrides,
-    modelOverridesV: MODEL_OVERRIDES_VERSION,
-    keybindingOverrides: useKeybindingsStore.getState().overrides,
-    settings: useSettingsStore.getState().toBundle(),
-    searchSettings: useSearchSettingsStore.getState().toBundle(),
-    brief: useBriefStore.getState().toBundle(),
-    notes: useNotesStore.getState().toBundle(),
-    // TYPED research-space marker (only on a research space) + the durable
-    // per-space agent-memory archive (S-19).
-    ...(researchSymbol ? { researchSymbol } : {}),
-    researchSpaces: useResearchSpacesStore.getState().snapshot(),
-  };
+  const workspace: SerializedWorkspace = { name, layout: api.toJSON(), enabledModules: {} };
+  for (const slice of PERSISTED_SLICES) {
+    Object.assign(workspace, slice.read());
+  }
+  return workspace;
 }
 
 /**
  * Capture the current workspace from the live stores: the dockview layout plus
- * the modules `enabled` map plus per-chart-panel drawings. Throws if the
- * dockview layout has not mounted yet.
+ * every {@link PERSISTED_SLICES} slice. Throws if the dockview layout has not
+ * mounted yet.
  */
 export function serializeWorkspace(name: string): SerializedWorkspace {
   return buildWorkspacePayload(name);
 }
 
 /**
- * Apply a loaded workspace back onto the live stores. The non-layout slices
- * (enabled modules, name, drawings, watchlist, portfolios, notes, settings, …)
- * are restored FIRST and never depend on the dockview layout applying, so a
- * layout that cannot be restored never costs the user their data
- * (R15-LIFECYCLE-002). Then the dockview layout is applied — unless it
- * references a panel component that is not registered (a removed panel, or a
- * plugin panel that registers async), in which case the layout is skipped and
- * this returns false so the caller can apply the default layout. Throws if the
- * dockview layout has not mounted yet, or if `fromJSON` itself throws (the
- * non-layout slices are already restored by then).
+ * Apply the launch restore of the autosave slot: the user's global data first,
+ * then the per-workspace cockpit ({@link applyLayoutSlice}). Each slice
+ * restores independently and before the dockview layout, so neither a garbled
+ * slice nor a layout that cannot be restored costs the user the rest of their
+ * data (R15-LIFECYCLE-002). Returns false when no saved layout could be
+ * applied, so the caller can apply the default layout. Throws if the dockview
+ * layout has not mounted yet, or if `fromJSON` itself throws (every slice is
+ * already restored by then).
  */
 export function deserializeWorkspace(workspace: SerializedWorkspace): boolean {
+  if (!useWorkspaceStore.getState().dockviewApi) {
+    throw new WorkspaceError("The panel layout is not ready yet.");
+  }
+  restoreSlices(workspace, "global");
+  return applyLayoutSlice(workspace);
+}
+
+/**
+ * Apply the per-workspace slices (enabled modules, chart drawings, the
+ * research-space marker) and the dockview layout — what loading a named
+ * workspace restores. Panels whose component is not registered are stripped
+ * from the layout and the rest restores. Returns false when no restorable
+ * layout remains.
+ */
+function applyLayoutSlice(workspace: SerializedWorkspace): boolean {
   const api = useWorkspaceStore.getState().dockviewApi;
   if (!api) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
-  restoreNonLayoutSlices(workspace);
-  // An unknown component would throw mid-`fromJSON` (dockview instantiates panel
-  // content eagerly) and half-mutate the grid — skip the layout instead.
-  if (layoutReferencesUnknownComponent(workspace.layout)) {
+  useWorkspaceStore.getState().setName(workspace.name);
+  restoreSlices(workspace, "layout");
+  const layout = stripUnknownPanels(workspace.layout);
+  if (!layout) {
     return false;
   }
-  api.fromJSON(workspace.layout);
+  api.fromJSON(layout);
   migrateLegacyLayout(api);
   return true;
 }
 
-/** Restore every workspace slice except the dockview layout. */
-function restoreNonLayoutSlices(workspace: SerializedWorkspace): void {
-  // Capture the research space we're LEAVING before any store mutation below
-  // overwrites the active name/symbol (used to archive its transcript in the
-  // research-space swap at the end — S-19). Keyed by the CANONICAL space name so
-  // it converges with the autosave-slot save (which persists under `__autosave__`).
-  const prevSpace = (() => {
-    const symbol = useWorkspaceStore.getState().researchSymbol;
-    return symbol ? { name: researchSpaceName(symbol), symbol } : null;
-  })();
-  // Restore the enabled map before the layout so the panel components a layout
-  // references resolve against the same module set that was active when it was
-  // saved.
-  useModulesStore.getState().setEnabledMap(workspace.enabledModules);
-  useWorkspaceStore.getState().setName(workspace.name);
-  if (workspace.chartDrawings) {
-    useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings);
-  } else {
-    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
-  }
-  // Restore the persisted default AI provider (older workspaces lack it).
-  if (workspace.defaultProviderId) {
-    useLLMProvidersStore.getState().setDefaultProviderId(workspace.defaultProviderId);
-  }
-  // Restore the persisted watchlist (older workspaces lack it — keep the
-  // default set in that case).
-  if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
-    useSymbolsStore.getState().setEntries(workspace.watchlist);
-  }
-  // Restore named portfolios (older blobs lack them — keep the empty default).
-  if (workspace.portfolios && Array.isArray(workspace.portfolios.list)) {
-    usePortfoliosStore.getState().setAll(workspace.portfolios.list, workspace.portfolios.activeId);
-  }
-  // Restore the agent mode / dock geometry / model overrides (older blobs lack
-  // them — keep the defaults). A legacy mode ("ask"/"edit"/"build") folds into the
-  // single inferred "agent" surface (Track B); only restore when a value is set.
-  if (workspace.agentMode !== undefined) {
-    useAgentModeStore.getState().setMode(coerceAgentMode(workspace.agentMode));
-  }
-  if (isAgentAutonomy(workspace.autonomyMode)) {
-    useAgentAutonomyStore.getState().setAutonomy(workspace.autonomyMode);
-  }
-  if (workspace.agentDock && typeof workspace.agentDock === "object") {
-    useAgentDockStore.getState().setCollapsed(Boolean(workspace.agentDock.collapsed));
-    if (typeof workspace.agentDock.width === "number") {
-      useAgentDockStore.getState().setWidth(workspace.agentDock.width);
+/** Restore every slice of `scope`, each independently of the others. */
+function restoreSlices(workspace: SerializedWorkspace, scope: PersistedSlice["scope"]): void {
+  for (const slice of PERSISTED_SLICES) {
+    if (slice.scope !== scope) {
+      continue;
+    }
+    try {
+      slice.restore(workspace);
+    } catch (error) {
+      console.warn(
+        `[workspace] could not restore the ${slice.key} slice; kept the live one.`,
+        error,
+      );
     }
   }
-  // Restore model overrides ONLY from a blob written with the current trust
-  // marker; legacy blobs (no `modelOverridesV`) captured the then-default as a
-  // pseudo-override (the `llama3.1:8b` shadowing bug) and are dropped once,
-  // reverting to live defaults. The version gate already discharges that legacy
-  // risk, so a current blob restores `trusted` — verbatim, WITHOUT the static
-  // known-model prune that would otherwise silently drop a model the user picked
-  // from the LIVE catalog (the persistence bug for the default-model picker).
-  if (
-    workspace.modelOverridesV === MODEL_OVERRIDES_VERSION &&
-    workspace.modelOverrides &&
-    typeof workspace.modelOverrides === "object"
-  ) {
-    useModelSelectionStore.getState().setOverrides(workspace.modelOverrides, { trusted: true });
-  }
-  // Restore remappable-keybinding overrides + the preferences bundle (older
-  // blobs lack them — keep the defaults). `setOverrides` normalises on the way
-  // in; `setAll` merges over the seed so a partial blob can't strip a field.
-  if (workspace.keybindingOverrides && typeof workspace.keybindingOverrides === "object") {
-    useKeybindingsStore.getState().setOverrides(workspace.keybindingOverrides);
-  }
-  if (workspace.settings && typeof workspace.settings === "object") {
-    useSettingsStore.getState().setAll(workspace.settings);
-  }
-  // Restore the web-search preference (older blobs lack it — keep the tier_a
-  // default). `setAll` MIGRATES any pre-R9 blob (legacy `tier`, R7/R8 tier
-  // ids, exaDirect) into the two-tier vocabulary first, then merges over the
-  // seed so a partial blob can't strip a field and a garbled value falls back;
-  // a legacy hosted/Exa selection confirms the OpenRouter key asynchronously
-  // and demotes to tier_a when none is configured.
-  if (workspace.searchSettings && typeof workspace.searchSettings === "object") {
-    useSearchSettingsStore.getState().setAll(workspace.searchSettings);
-  }
-  // Restore the most recent research brief (older blobs lack it — keep empty).
-  // `fromBundle` validates the shape so a garbled/partial blob restores to empty
-  // rather than rendering a half-populated brief. `null` is a valid "no brief"
-  // bundle, so guard on the key's presence, not truthiness.
-  if ("brief" in workspace) {
-    useBriefStore.getState().fromBundle((workspace.brief ?? null) as BriefBundle);
-  }
-  // Restore research notes (older blobs lack them — keep empty).
-  if ("notes" in workspace) {
-    useNotesStore.getState().fromBundle((workspace.notes ?? null) as NotesBundle);
-  }
-  // --- Research space: typed marker + durable per-space agent memory (S-19) ---
-  // 1. Rehydrate the per-space memory archive FIRST so a switch into a research
-  //    space below has the target's saved transcript available to restore.
-  if (workspace.researchSpaces && typeof workspace.researchSpaces === "object") {
-    useResearchSpacesStore
-      .getState()
-      .replaceAll(workspace.researchSpaces as WorkspaceResearchSpaces);
-  }
-  // 2. Resolve the new research symbol — TYPED field first, prefix fall-back for
-  //    OLD blobs that pre-date it. `null` when this is not a research space.
-  const nextSymbol = researchSymbolOf(workspace);
-  // 3. Swap the live chat transcript: archive the space we're leaving (captured
-  //    above before the name was overwritten — defends the in-session switch
-  //    path), restore the one we're entering. Keyed by the CANONICAL space name
-  //    so a renamed workspace file still resolves its archived memory.
-  useResearchSpacesStore
-    .getState()
-    .switchSpace(
-      prevSpace,
-      nextSymbol ? { name: researchSpaceName(nextSymbol), symbol: nextSymbol } : null,
-    );
-  // 4. Record the typed marker on the store (drives agent-context anchoring).
-  useWorkspaceStore.getState().setResearchSymbol(nextSymbol);
 }
 
 /** Build the sidecar `/workspace` URL, optionally for a single named workspace. */
@@ -386,11 +587,25 @@ async function workspaceUrl(name?: string): Promise<string> {
   return new URL(path, base).toString();
 }
 
+/** A WorkspaceError naming the failed action, the HTTP status and the sidecar's reason. */
+async function sidecarFailure(action: string, response: Response): Promise<WorkspaceError> {
+  let detail = "";
+  try {
+    const body = (await response.json()) as { detail?: unknown };
+    if (typeof body.detail === "string" && body.detail) {
+      detail = `: ${body.detail}`;
+    }
+  } catch {
+    // No JSON body — the status alone.
+  }
+  return new WorkspaceError(`${action} (HTTP ${response.status}${detail}).`);
+}
+
 /** List the names of every workspace saved on the sidecar. */
 export async function listWorkspaces(): Promise<string[]> {
   const response = await fetch(await workspaceUrl());
   if (!response.ok) {
-    throw new WorkspaceError(`Could not list workspaces (HTTP ${response.status}).`);
+    throw await sidecarFailure("Could not list workspaces", response);
   }
   try {
     return (await response.json()) as string[];
@@ -415,7 +630,7 @@ export async function saveWorkspace(name: string): Promise<void> {
     body: JSON.stringify({ name: trimmed, workspace }),
   });
   if (!response.ok) {
-    throw new WorkspaceError(`Could not save workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not save workspace "${trimmed}"`, response);
   }
   // Mark the just-saved layout active so it shows the "active" badge, matching
   // loadWorkspace's behaviour (regression-95 BUG-4).
@@ -423,9 +638,12 @@ export async function saveWorkspace(name: string): Promise<void> {
 }
 
 /**
- * Load a saved workspace from the sidecar and apply it to the live stores. A
- * layout that references an unregistered panel falls back to the default layout;
- * the workspace's data slices are restored either way.
+ * Load a saved workspace from the sidecar and apply its cockpit: the layout,
+ * enabled modules, chart drawings and research-space marker. The user's global
+ * data (portfolios, watchlist, notes, brief, settings, keybindings, research
+ * memory) is left as it is — a named workspace never rolls it back
+ * (R15-CODE-FRONTEND-001). A layout with no restorable panel falls back to the
+ * default layout.
  */
 export async function loadWorkspace(name: string): Promise<void> {
   const trimmed = name.trim();
@@ -434,7 +652,7 @@ export async function loadWorkspace(name: string): Promise<void> {
   }
   const response = await fetch(await workspaceUrl(trimmed));
   if (!response.ok) {
-    throw new WorkspaceError(`Could not load workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not load workspace "${trimmed}"`, response);
   }
   let workspace: SerializedWorkspace;
   try {
@@ -442,7 +660,14 @@ export async function loadWorkspace(name: string): Promise<void> {
   } catch {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
-  if (!deserializeWorkspace(workspace)) {
+  const layoutRestored = applyLayoutSlice(workspace);
+  // Entering a research space scopes the Notes panel to its ticker, as creating
+  // one does (the notes themselves are global and stay as they are).
+  const symbol = researchSymbolOf(workspace);
+  if (symbol) {
+    useNotesStore.getState().setFocusSymbol(symbol);
+  }
+  if (!layoutRestored) {
     const api = useWorkspaceStore.getState().dockviewApi;
     if (api) {
       api.clear();
@@ -486,25 +711,81 @@ function migrateLegacyLayout(api: DockviewApi): void {
   }
 }
 
+/** The part of a serialized dockview group the strip rewrites. */
+interface SerializedGroup {
+  views: string[];
+  activeView?: string;
+}
+
 /**
- * True when the serialized layout references a panel component id that is not
- * currently registered. dockview instantiates panel content eagerly during
- * `fromJSON`, so an unknown component (e.g. a plugin panel whose module
- * registers asynchronously after `handleReady`, or a panel that was removed from
- * the product) throws synchronously and half-mutates the grid. We detect that
- * up-front and skip the layout cleanly.
- * An unreadable layout shape is treated as "unknown" so we conservatively
- * skip-to-default rather than risk the throw.
+ * The layout with every panel whose component is not registered removed — a
+ * panel dropped from the product, or a plugin panel that registers after
+ * `handleReady`. dockview instantiates panel content eagerly during `fromJSON`,
+ * so one unknown component would throw and half-mutate the grid; stripping it
+ * restores the rest of the cockpit instead of abandoning it. Groups the strip
+ * empties are pruned. Returns `null` when the shape is unreadable or no panel
+ * survives, so the caller falls back to the default layout.
  */
-function layoutReferencesUnknownComponent(layout: SerializedDockview): boolean {
-  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+function stripUnknownPanels(layout: SerializedDockview): SerializedDockview | null {
   const panels = (layout as { panels?: Record<string, { contentComponent?: string }> }).panels;
-  if (!panels || typeof panels !== "object") {
-    return true;
+  const root = (layout as { grid?: SerializedDockview["grid"] }).grid?.root;
+  if (!panels || typeof panels !== "object" || !root) {
+    return null;
   }
-  return Object.values(panels).some(
-    (panel) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+  const known = new Set(Object.keys(collectPanelComponents(useModulesStore.getState().modules)));
+  const unknown = new Set(
+    Object.entries(panels)
+      .filter(
+        ([, panel]) => panel?.contentComponent !== undefined && !known.has(panel.contentComponent),
+      )
+      .map(([id]) => id),
   );
+  if (unknown.size === 0) {
+    return layout;
+  }
+  if (unknown.size === Object.keys(panels).length) {
+    return null;
+  }
+  const keep = (id: string) => !unknown.has(id);
+  // A group the strip empties is dropped; a group that was already empty stays.
+  const strip = <G extends SerializedGroup>(group: G): G | null => {
+    const views = group.views.filter(keep);
+    if (views.length === 0 && group.views.length > 0) {
+      return null;
+    }
+    const activeView =
+      group.activeView !== undefined && keep(group.activeView) ? group.activeView : views[0];
+    return { ...group, views, activeView };
+  };
+  type GridNode = SerializedGridObject<SerializedGroup>;
+  const prune = (node: GridNode): GridNode | null => {
+    if (node.type === "leaf") {
+      const data = strip(node.data as SerializedGroup);
+      return data ? { ...node, data } : null;
+    }
+    const children = (node.data as GridNode[])
+      .map(prune)
+      .filter((child): child is GridNode => child !== null);
+    return children.length > 0 ? { ...node, data: children } : null;
+  };
+  // The maximized node is addressed by its tree location, which pruning moves.
+  const { maximizedNode: _maximized, ...grid } = layout.grid as SerializedDockview["grid"] & {
+    maximizedNode?: unknown;
+  };
+  const prunedRoot = prune(root as GridNode) ?? { ...root, data: [] };
+  return {
+    ...layout,
+    grid: { ...grid, root: prunedRoot as SerializedDockview["grid"]["root"] },
+    panels: Object.fromEntries(Object.entries(layout.panels).filter(([id]) => keep(id))),
+    ...(layout.floatingGroups
+      ? {
+          floatingGroups: layout.floatingGroups.flatMap((floating) => {
+            const data = strip(floating.data);
+            return data ? [{ ...floating, data }] : [];
+          }),
+        }
+      : {}),
+  };
 }
 
 /**
@@ -516,6 +797,10 @@ function layoutReferencesUnknownComponent(layout: SerializedDockview): boolean {
  * the saved layout is not, so the next autosave never overwrites them with
  * defaults. Returns true when the saved layout was restored.
  *
+ * Autosave is a no-op until this settles (R15-LIFECYCLE-003): every slice the
+ * restore writes fires its autosave trigger, and a save mid-restore would
+ * persist a half-restored blob.
+ *
  * The fetch below awaits a Tauri IPC + localhost round-trip. Under
  * StrictMode/HMR the dockview api can be disposed and replaced while we wait,
  * so re-check that THIS api is still the live one before every mutation —
@@ -526,50 +811,122 @@ export async function restoreLastSessionOrDefault(
   enabledPanelIds: Set<string>,
 ): Promise<boolean> {
   const isLive = () => useWorkspaceStore.getState().dockviewApi === api;
+  let imported = false;
+  try {
+    const session = await restoreSession(api, enabledPanelIds, isLive);
+    imported = session.imported;
+    return session.layoutRestored;
+  } finally {
+    // A replaced api's restore is superseded by the live api's own restore,
+    // which settles the gate when it finishes.
+    if (isLive()) {
+      restoreSettled = true;
+      // The legacy import landed under the gate: save it now, so the blob
+      // carries `portfolios` and the next launch does not import again.
+      if (imported) {
+        autosaveLayout();
+      }
+    }
+  }
+}
+
+async function restoreSession(
+  api: DockviewApi,
+  enabledPanelIds: Set<string>,
+  isLive: () => boolean,
+): Promise<{ layoutRestored: boolean; imported: boolean }> {
+  const superseded = { layoutRestored: false, imported: false };
+  let saved: SerializedWorkspace | null = null;
+  let layoutRestored = false;
   try {
     const response = await fetch(await workspaceUrl(AUTOSAVE_LAYOUT_NAME));
     if (!isLive()) {
-      return false; // api was disposed/replaced during the fetch
+      return superseded; // api was disposed/replaced during the fetch
     }
     if (response.ok) {
-      const workspace = (await response.json()) as SerializedWorkspace;
+      saved = (await response.json()) as SerializedWorkspace;
       if (!isLive()) {
-        return false;
+        return superseded;
       }
-      const layoutRestored = deserializeWorkspace(workspace);
+      layoutRestored = deserializeWorkspace(saved);
       // The reserved slot's name is internal — present the restored cockpit
       // under the neutral "default" name, not "__autosave__".
       useWorkspaceStore.getState().setName("default");
-      if (layoutRestored) {
-        return true;
-      }
-      // The saved layout references a component that is not registered — the
-      // data slices are already restored; fall through to the default layout.
     }
   } catch (error) {
     // Restore failed — log (Track A discipline) then fall through to default.
     console.warn("[workspace] session restore failed; using default layout.", error);
   }
+  // Holdings lived in the sidecar's SQLite ledger until they moved into the
+  // blob (12862d3); a session that has never saved `portfolios` imports that
+  // ledger once (R15-LIFECYCLE-009).
+  const imported = saved && "portfolios" in saved ? false : await importLegacyPositions();
   if (!isLive()) {
-    return false;
+    return superseded;
   }
-  // Re-base the fallback on a clean grid so a partial `fromJSON` can't leave a
-  // corrupt grid under `addPanel`.
-  api.clear();
-  applyDefaultLayout(api, enabledPanelIds);
-  return false;
+  if (!layoutRestored) {
+    // No saved layout applied — re-base the fallback on a clean grid so a
+    // partial `fromJSON` can't leave a corrupt grid under `addPanel`.
+    api.clear();
+    applyDefaultLayout(api, enabledPanelIds);
+  }
+  return { layoutRestored, imported };
 }
 
+/** Seed the default portfolio from the legacy sidecar ledger; true when it held rows. */
+async function importLegacyPositions(): Promise<boolean> {
+  try {
+    const holdings = await fetchLegacyPositions();
+    if (holdings.length === 0) {
+      return false;
+    }
+    seedDefaultPortfolio(holdings);
+    return true;
+  } catch (error) {
+    console.warn("[workspace] could not read the legacy portfolio ledger.", error);
+    return false;
+  }
+}
+
+/** Trailing-edge window that coalesces a burst of changes into one autosave. */
+const AUTOSAVE_DEBOUNCE_MS = 500;
+
+/** False until the launch restore settles; autosave is a no-op before then. */
+let restoreSettled = false;
+let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+let autosaveInFlight = false;
+let autosaveQueued = false;
+
 /**
- * Persist the current cockpit to the reserved autosave slot. Best-effort: a
- * transient sidecar failure is swallowed (the next layout change retries) and
- * the active workspace name is left unchanged. No-op before the layout mounts.
+ * Schedule a save of the current cockpit to the reserved autosave slot. A
+ * no-op until the launch restore settles; debounced (trailing edge) so a burst
+ * of changes coalesces into one write, and single-flight so two saves never
+ * race each other to the sidecar — a change during a save queues one more.
+ * Best-effort: a transient sidecar failure is swallowed (the next change
+ * retries) and the active workspace name is left unchanged.
  */
-export async function autosaveLayout(): Promise<void> {
-  const api = useWorkspaceStore.getState().dockviewApi;
-  if (!api) {
+export function autosaveLayout(): void {
+  if (!restoreSettled) {
     return;
   }
+  if (autosaveTimer !== null) {
+    clearTimeout(autosaveTimer);
+  }
+  autosaveTimer = setTimeout(() => {
+    autosaveTimer = null;
+    void flushAutosave();
+  }, AUTOSAVE_DEBOUNCE_MS);
+}
+
+async function flushAutosave(): Promise<void> {
+  if (autosaveInFlight) {
+    autosaveQueued = true;
+    return;
+  }
+  if (!useWorkspaceStore.getState().dockviewApi) {
+    return;
+  }
+  autosaveInFlight = true;
   try {
     const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
     await fetch(await workspaceUrl(), {
@@ -579,7 +936,33 @@ export async function autosaveLayout(): Promise<void> {
     });
   } catch {
     // Best-effort autosave; ignore transient failures.
+  } finally {
+    autosaveInFlight = false;
+    if (autosaveQueued) {
+      autosaveQueued = false;
+      void flushAutosave();
+    }
   }
+}
+
+/**
+ * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
+ * dockview layout's own trigger is wired by PanelHost). Returns the teardown.
+ */
+export function wireAutosaveTriggers(): () => void {
+  const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
+  return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+}
+
+/** Test helper: back to the pre-restore state (autosave gated, nothing pending). */
+export function resetWorkspacePersistenceForTests(): void {
+  if (autosaveTimer !== null) {
+    clearTimeout(autosaveTimer);
+  }
+  autosaveTimer = null;
+  restoreSettled = false;
+  autosaveInFlight = false;
+  autosaveQueued = false;
 }
 
 /** Prefix every per-stock research space's name carries, so they're recognisable
@@ -629,9 +1012,10 @@ export function isResearchSpace(
  * overview + the synthesised brief, and a Notes scratchpad scoped to the ticker —
  * saved so the user can return to it from Load Workspace.
  *
- * Builds the layout SYNCHRONOUSLY (so the save captures it), pushes the symbol
- * through the always-consumed chart-command channel, scopes the Notes panel, then
- * saves. Throws (WorkspaceError) on a missing symbol or an unmounted layout.
+ * Builds the layout SYNCHRONOUSLY (so the save captures it), scopes the Notes
+ * panel, then saves. A failed save puts the cockpit back exactly as it was and
+ * rethrows the sidecar's reason; only a saved space loads its symbol into the
+ * chart. Throws (WorkspaceError) on a missing symbol or an unmounted layout.
  */
 export async function createResearchSpace(rawSymbol: string): Promise<string> {
   const symbol = rawSymbol.trim().toUpperCase();
@@ -643,25 +1027,44 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
   const name = researchSpaceName(symbol);
+  // Everything the build below mutates, so a failed save can undo it.
+  const before = {
+    layout: api.toJSON(),
+    researchSymbol: useWorkspaceStore.getState().researchSymbol,
+    researchSpaces: useResearchSpacesStore.getState().snapshot(),
+    chat: {
+      messages: useChatHistoryStore.getState().messages,
+      streamingMessageId: useChatHistoryStore.getState().streamingMessageId,
+    },
+    notesFocus: useNotesStore.getState().focusSymbol,
+  };
   // Archive the transcript of any space we're leaving, then start this new
   // space with a clean transcript (S-19 per-space memory). Marking the store's
   // typed research symbol BEFORE the save makes `buildWorkspacePayload` emit the
   // `researchSymbol` field + initialise this space's memory entry.
-  const leaving = (() => {
-    const prevSymbol = useWorkspaceStore.getState().researchSymbol;
-    return prevSymbol ? { name: researchSpaceName(prevSymbol), symbol: prevSymbol } : null;
-  })();
+  const leaving = before.researchSymbol
+    ? { name: researchSpaceName(before.researchSymbol), symbol: before.researchSymbol }
+    : null;
   useResearchSpacesStore.getState().switchSpace(leaving, { name, symbol });
   useWorkspaceStore.getState().setResearchSymbol(symbol);
   // Clean, dedicated research layout (chart + overview + brief + notes).
   applyResearchSpaceLayout(api);
-  // Load the symbol into the chart (always-consumed channel — the chart panel,
-  // just added, picks it up on mount) and scope the Notes panel to the ticker.
-  useChartCommandStore.getState().loadSymbol(symbol);
   useNotesStore.getState().setFocusSymbol(symbol);
   // Persist as a named workspace so it shows up in Load Workspace. `saveWorkspace`
   // serialises the live layout we just built and marks it active.
-  await saveWorkspace(name);
+  try {
+    await saveWorkspace(name);
+  } catch (error) {
+    api.fromJSON(before.layout);
+    useResearchSpacesStore.getState().replaceAll(before.researchSpaces);
+    useChatHistoryStore.setState(before.chat);
+    useWorkspaceStore.getState().setResearchSymbol(before.researchSymbol);
+    useNotesStore.getState().setFocusSymbol(before.notesFocus);
+    throw error;
+  }
+  // Load the symbol into the chart (always-consumed channel — the chart panel
+  // the layout just added consumes it).
+  useChartCommandStore.getState().loadSymbol(symbol);
   return name;
 }
 
@@ -673,6 +1076,6 @@ export async function deleteWorkspace(name: string): Promise<void> {
   }
   const response = await fetch(await workspaceUrl(trimmed), { method: "DELETE" });
   if (!response.ok) {
-    throw new WorkspaceError(`Could not delete workspace "${trimmed}" (HTTP ${response.status}).`);
+    throw await sidecarFailure(`Could not delete workspace "${trimmed}"`, response);
   }
 }

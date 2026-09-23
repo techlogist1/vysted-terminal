@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from models.backtest import BacktestRequest
+from models.backtest import BacktestFeeModel, BacktestRequest
 from services import agent_tools, backtest_engine, backtest_store
 from services.backtest_engine import (
     BacktestEngineError,
@@ -17,6 +17,7 @@ from services.backtest_engine import (
     BacktestStrategy,
     Bar,
     SimPortfolio,
+    _compute_metrics,
 )
 
 
@@ -254,3 +255,167 @@ async def test_clean_run_carries_no_warnings() -> None:
     )
     result = await backtest_engine.run_backtest(request, bar_loader=_loader)
     assert result.warnings is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-009: one equity-curve point per timestamp, not per bar
+# ---------------------------------------------------------------------------
+
+
+class BuyAllInOnce(BacktestStrategy):
+    """Buy a fixed quantity of every symbol on the first bar it sees, then hold."""
+
+    NAME = "buy_all_in_once"
+
+    def __init__(self, params: dict) -> None:
+        super().__init__(params)
+        self._bought: set[str] = set()
+        self._quantity = params["quantity"]
+
+    async def on_bar(self, bar: Bar, portfolio: SimPortfolio) -> list[BacktestOrderIntent]:
+        if bar.symbol in self._bought:
+            return []
+        self._bought.add(bar.symbol)
+        return [BacktestOrderIntent(symbol=bar.symbol, quantity=self._quantity, reason="entry")]
+
+
+def _identical_path_bars(symbols: list[str], prices: list[float]) -> list[Bar]:
+    """N symbols, each following the SAME price path across the same dates."""
+    dates = [f"2025-01-{2 + i:02d}" for i in range(len(prices))]
+    bars: list[Bar] = []
+    for bar_date, price in zip(dates, prices, strict=True):
+        for symbol in symbols:
+            bars.append(
+                Bar(
+                    timestamp=bar_date,
+                    symbol=symbol,
+                    open=price,
+                    high=price,
+                    low=price,
+                    close=price,
+                    volume=1,
+                )
+            )
+    return bars
+
+
+_ZERO_FEES = BacktestFeeModel(feeBps=0, slippageBps=0)
+
+
+@pytest.mark.asyncio
+async def test_multi_symbol_equity_curve_has_one_point_per_timestamp() -> None:
+    """R15-DATA-009: N symbols sharing a date must not yield N equity points."""
+    prices = [100.0, 102.0, 101.0, 105.0, 104.0, 108.0, 107.0, 110.0]
+
+    for n in (1, 2, 4):
+        symbols = [f"SYM{i}" for i in range(n)]
+        strategy_name = f"buy_all_in_once_curve_{n}"
+        backtest_engine.register_strategy(strategy_name, BuyAllInOnce)
+
+        async def loader(
+            _symbols: list[str],
+            _start: str,
+            _end: str,
+            _symbols_list: list[str] = symbols,
+            _prices: list[float] = prices,
+        ) -> list[Bar]:
+            return _identical_path_bars(_symbols_list, _prices)
+
+        request = BacktestRequest(
+            strategyId=strategy_name,
+            params={"quantity": 100_000.0 / n / prices[0]},
+            symbols=symbols,
+            startDate="2025-01-01",
+            endDate="2025-12-31",
+            initialCapital=100_000.0,
+            feeModel=_ZERO_FEES,
+        )
+        result = await backtest_engine.run_backtest(request, bar_loader=loader)
+        assert len(result.equity_curve) == len(prices), f"n={n}"
+
+
+@pytest.mark.asyncio
+async def test_multi_symbol_sharpe_does_not_scale_with_symbol_count() -> None:
+    """R15-DATA-009: the Sharpe must not inflate with the number of symbols.
+
+    N symbols following an identical price path, with the initial capital
+    split evenly and fully invested at t0 (no idle cash), produce the SAME
+    per-date percentage returns regardless of N. Before the fix, N symbols
+    emitted N equity-curve points per date, so ``_compute_metrics`` treated
+    them as N separate trading days and inflated Sharpe by roughly sqrt(N).
+    """
+    prices = [100.0, 102.0, 101.0, 105.0, 104.0, 108.0, 107.0, 110.0, 109.0, 113.0]
+    sharpes: dict[int, float] = {}
+
+    for n in (1, 2, 4):
+        symbols = [f"SYM{i}" for i in range(n)]
+        strategy_name = f"buy_all_in_once_sharpe_{n}"
+        backtest_engine.register_strategy(strategy_name, BuyAllInOnce)
+
+        async def loader(
+            _symbols: list[str],
+            _start: str,
+            _end: str,
+            _symbols_list: list[str] = symbols,
+            _prices: list[float] = prices,
+        ) -> list[Bar]:
+            return _identical_path_bars(_symbols_list, _prices)
+
+        request = BacktestRequest(
+            strategyId=strategy_name,
+            params={"quantity": 100_000.0 / n / prices[0]},
+            symbols=symbols,
+            startDate="2025-01-01",
+            endDate="2025-12-31",
+            initialCapital=100_000.0,
+            feeModel=_ZERO_FEES,
+        )
+        result = await backtest_engine.run_backtest(request, bar_loader=loader)
+        sharpes[n] = result.metrics.sharpe
+
+    assert sharpes[1] != 0.0
+    assert sharpes[1] == pytest.approx(sharpes[2], rel=1e-9)
+    assert sharpes[1] == pytest.approx(sharpes[4], rel=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-010: Sortino downside deviation
+# ---------------------------------------------------------------------------
+
+
+def _curve_from_returns(returns: list[float], initial_capital: float = 100_000.0):
+    equity = initial_capital
+    curve = [
+        backtest_engine.EquityCurvePoint(timestamp="2025-01-01", equity=equity, drawdownPct=0.0)
+    ]
+    peak = equity
+    for i, r in enumerate(returns):
+        equity *= 1.0 + r
+        peak = max(peak, equity)
+        drawdown = (equity - peak) / peak if peak > 0 else 0.0
+        curve.append(
+            backtest_engine.EquityCurvePoint(
+                timestamp=f"2025-01-{2 + i:02d}", equity=equity, drawdownPct=drawdown
+            )
+        )
+    return curve
+
+
+def test_sortino_uses_downside_deviation_not_loss_subset_stdev() -> None:
+    """R15-DATA-010: Sortino's denominator is sqrt(mean(min(r,0)**2)), not
+    the stdev of the loss subset — the latter overstated Sortino 41x on
+    this fixture (261.93 vs the textbook 6.35)."""
+    returns = [0.02] * 10 + [-0.05, -0.051]
+    curve = _curve_from_returns(returns)
+    metrics = _compute_metrics(curve, [], 100_000.0)
+    assert metrics.sortino == pytest.approx(6.35, abs=0.01)
+
+
+def test_sortino_nonzero_for_identical_losses() -> None:
+    """R15-DATA-010 (case the fix was not written against): two identical
+    losses must not zero out Sortino — the old ``pstdev`` of a two-element
+    identical-loss subset was 0, so the ``> 0`` guard silently gave 0.00."""
+    returns = [0.01, 0.01, -0.03, -0.03]
+    curve = _curve_from_returns(returns)
+    metrics = _compute_metrics(curve, [], 100_000.0)
+    assert metrics.sortino != 0.0

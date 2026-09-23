@@ -48,7 +48,6 @@ import { KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { tween } from "@/lib/motion";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
-import { autosaveLayout } from "@/lib/workspace";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { useOnboardingStore } from "@/store/onboarding";
@@ -355,7 +354,6 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
       await refreshOne("openrouter");
       useLLMProvidersStore.getState().setDefaultProviderId("openrouter");
       useModelSelectionStore.getState().setModel("openrouter", OPENROUTER_DEFAULT_MODEL);
-      void autosaveLayout();
       onDone();
     } catch {
       setStatus("error");
@@ -483,7 +481,6 @@ function LocalStep({
   function activate(modelName: string) {
     useLLMProvidersStore.getState().setDefaultProviderId("ollama");
     useModelSelectionStore.getState().setModel("ollama", modelName);
-    void autosaveLayout();
     onDone();
   }
 

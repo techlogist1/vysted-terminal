@@ -65,7 +65,7 @@ export type ScreenerStatus = "idle" | "loading" | "ready" | "error";
  * "and" = match ALL, "or" = match ANY. Maps to the `group` boolean tree. */
 export type ScreenerCombinator = "and" | "or";
 
-/** One saved screen — persisted by the store, wired to workspace by the lead. */
+/** One saved screen — rides the workspace blob (`SerializedWorkspace.savedScreens`). */
 export interface SavedScreen {
   name: string;
   universe: ScreenerUniverseId;
@@ -75,7 +75,7 @@ export interface SavedScreen {
   combinator: ScreenerCombinator;
 }
 
-// Serialization helpers — EXPORTED so the lead can wire them into workspace.ts.
+// Serialization helpers — `deserializeSavedScreens` validates a restored blob.
 export function serializeSavedScreens(screens: SavedScreen[]): string {
   return JSON.stringify(screens);
 }
@@ -222,7 +222,7 @@ interface ScreenerState {
    * group, formula, combinator). Does NOT auto-run. */
   loadScreen: (name: string) => void;
   /** Replace the full savedScreens list atomically — used by the workspace
-   * restore path (deserializeWorkspace) to rehydrate persisted screens. */
+   * restore path (the `savedScreens` slice) to rehydrate persisted screens. */
   setSavedScreens: (screens: SavedScreen[]) => void;
   __resetForTests: () => void;
 }

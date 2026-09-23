@@ -169,7 +169,7 @@ def test_validate_fundamentals_flags_price_13x_outside_52_week_range() -> None:
     assert out.fifty_two_week_high == 284.9
     assert out.fifty_two_week_low == 174.0
     meta = out.field_meta["fifty_two_week_high"]
-    assert meta.status == "ok"
+    assert meta.status == "flagged"
     assert meta.reason is not None and "outside" in meta.reason
 
 
@@ -185,7 +185,7 @@ def test_validate_fundamentals_flags_market_cap_divergence() -> None:
     out = correctness_gate.validate_fundamentals(f, "KSE.BO", "IN")
     assert out.market_cap == 5_000_000_000  # kept
     meta = out.field_meta["market_cap"]
-    assert meta.status == "ok"
+    assert meta.status == "flagged"
     assert meta.reason is not None and "diverges" in meta.reason
 
 
@@ -213,3 +213,155 @@ def test_validate_fundamentals_merges_onto_provider_provenance() -> None:
     assert withheld.status == "withheld"
     assert withheld.provider == "yfinance"
     assert withheld.as_of == "2026-07-10T00:00:00+00:00"
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-005: the share basis — market cap / price vs shares outstanding
+# ---------------------------------------------------------------------------
+
+_PER_SHARE_FIELDS = ("shares_outstanding", "book_value", "price_to_book")
+
+
+def test_share_basis_divergence_flags_the_per_share_fields() -> None:
+    """VERTEX (R15 battery): 74.0M shares (pre-rights) vs the 148.0M implied by
+    its own market cap at the ratio price 3.27 — BVPS 1.369 and P/B 2.3886 sit on
+    the stale count, so all three are flagged, kept, with both counts named."""
+    f = _fund(
+        symbol="VERTEX.BO",
+        shares_outstanding=74_012_189,
+        market_cap=484_039_744,
+        ratio_price=3.27,
+        book_value=1.369,
+        price_to_book=2.3886,
+    )
+    out = correctness_gate.validate_fundamentals(f, "VERTEX.BO", "IN")
+    for field_name in _PER_SHARE_FIELDS:
+        meta = out.field_meta[field_name]
+        assert meta.status == "flagged"
+        assert "74,012,189" in meta.reason and "148,0" in meta.reason
+    assert out.book_value == 1.369  # never substituted
+
+
+def test_share_basis_covers_a_loss_maker_without_trailing_pe() -> None:
+    """A case the fix was not written against: a loss-maker (no P/E, negative
+    EPS) with a stale share count 14% off. The old pe x eps price proxy was blind
+    to it; the ratio price is not."""
+    f = _fund(
+        symbol="LOSSCO.NS",
+        pe_ratio=None,
+        eps=-2.5,
+        ratio_price=40.0,
+        market_cap=4_000_000_000,  # implies 100M shares
+        shares_outstanding=86_000_000,
+        book_value=55.0,
+        price_to_book=0.727,
+    )
+    out = correctness_gate.validate_fundamentals(f, "LOSSCO.NS", "IN")
+    for field_name in _PER_SHARE_FIELDS:
+        assert out.field_meta[field_name].status == "flagged"
+
+
+def test_consistent_share_basis_is_untouched() -> None:
+    f = _fund(
+        symbol="VERTEX.BO",
+        shares_outstanding=148_024_378,
+        market_cap=484_039_744,
+        ratio_price=3.27,
+        book_value=0.684,
+        price_to_book=4.78,
+    )
+    assert correctness_gate.validate_fundamentals(f, "VERTEX.BO", "IN") is f
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-013: trailing EPS vs the payload's net income / shares outstanding
+# ---------------------------------------------------------------------------
+
+
+def test_stale_eps_flags_eps_and_pe_with_the_payload_implied_figure() -> None:
+    """DAL (R15 battery): trailingEps 8.9 / P/E 5.6 while the same payload's net
+    income 10.2M over 5.01M shares gives 2.04 (P/E ~24.5 at 49.88)."""
+    f = _fund(
+        symbol="DAL.BO",
+        eps=8.9,
+        pe_ratio=5.6044946,
+        net_income_ttm=10_200_000,
+        shares_outstanding=5_010_000,
+        ratio_price=49.88,
+    )
+    out = correctness_gate.validate_fundamentals(f, "DAL.BO", "IN")
+    assert out.eps == 8.9 and out.pe_ratio == 5.6044946  # kept, never substituted
+    for field_name in ("eps", "pe_ratio"):
+        meta = out.field_meta[field_name]
+        assert meta.status == "flagged"
+        assert "2.04" in meta.reason and "24.5" in meta.reason
+
+
+def test_stale_eps_on_a_second_listing_is_flagged() -> None:
+    """A case the fix was not written against: SMR's 5.58 is a full fiscal year
+    behind the 13.27 its own payload implies."""
+    f = _fund(
+        symbol="SMR.NS",
+        eps=5.58,
+        pe_ratio=17.02509,
+        net_income_ttm=247_484_992,
+        shares_outstanding=18_653_743,
+        ratio_price=95.0,
+    )
+    out = correctness_gate.validate_fundamentals(f, "SMR.NS", "IN")
+    assert out.field_meta["eps"].status == "flagged"
+    assert "13.27" in out.field_meta["eps"].reason
+    assert out.field_meta["pe_ratio"].status == "flagged"
+
+
+def test_consistent_eps_is_untouched() -> None:
+    f = _fund(
+        symbol="SMR.NS",
+        eps=13.1,
+        pe_ratio=7.25,
+        net_income_ttm=247_484_992,
+        shares_outstanding=18_653_743,
+        ratio_price=95.0,
+    )
+    assert correctness_gate.validate_fundamentals(f, "SMR.NS", "IN") is f
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-033: a NaN price never passes the gate (``nan <= 0`` is False)
+# ---------------------------------------------------------------------------
+
+
+def _two_lanes(monkeypatch: pytest.MonkeyPatch, model_key: str, bad: object, good: object) -> None:
+    """Replace the registry's providers with a first lane serving ``bad`` and a
+    second serving ``good``, both for any equity request."""
+    from services import provider_registry
+    from services.provider_registry import ProviderDeclaration
+
+    monkeypatch.setattr(
+        provider_registry,
+        "_PROVIDERS",
+        (
+            ProviderDeclaration(id="first", rank=10, serves={model_key: lambda *a: bad}),
+            ProviderDeclaration(id="second", rank=20, serves={model_key: lambda *a: good}),
+        ),
+    )
+
+
+def test_nan_quote_falls_through_to_the_next_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import provider_registry
+
+    nan_quote = _quote("GOLDBEES", float("nan")).model_copy(update={"provider": "first"})
+    good = _quote("GOLDBEES", 128.5).model_copy(update={"provider": "second"})
+    _two_lanes(monkeypatch, "quote", nan_quote, good)
+    assert provider_registry.get_quote("GOLDBEES", region="IN") is good
+
+
+def test_nan_last_close_falls_through_to_the_next_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import provider_registry
+
+    nan_series = _series("GOLDBEES", float("nan")).model_copy(update={"provider": "first"})
+    good = _series("GOLDBEES", 128.5).model_copy(update={"provider": "second"})
+    _two_lanes(monkeypatch, "ohlcv", nan_series, good)
+    assert provider_registry.get_history("GOLDBEES", "1d", region="IN") is good

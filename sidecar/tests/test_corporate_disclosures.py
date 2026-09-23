@@ -409,6 +409,39 @@ def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.Monk
     assert latest.split_as_of == date(2026, 3, 31)
 
 
+def test_shareholding_never_merges_another_companys_bse_split(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-DATA-001: NSE FOCUS is Focus Lighting and Fixtures; BSE FOCUS
+    (scrip 543312) is Focus Business Solution, a different company. The BSE split
+    under the shared ticker is that other company's, so it is never fetched or
+    merged: the NSE patterns keep an honest None split."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: [
+            {
+                "symbol": "FOCUS",
+                "date": "31-MAR-2026",
+                "pr_and_prgrp": "54.1",
+                "public_val": "45.9",
+                "submissionDate": "05-Apr-2026",
+            }
+        ],
+    )
+
+    def bse_must_not_run(symbol: str) -> list[dict]:
+        raise AssertionError("the other company's BSE split must not be fetched")
+
+    monkeypatch.setattr(bse_provider, "get_shareholding", bse_must_not_run)
+    latest = corporate_disclosures.get_shareholding("FOCUS").patterns[0]
+    assert latest.source == "NSE" and latest.promoter_percent == 54.1
+    assert latest.split_source is None and latest.split_as_of is None
+    assert latest.fii_percent is None and latest.institutions_percent is None
+
+
 def test_shareholding_bse_only_symbol_routes_to_bse_lane(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

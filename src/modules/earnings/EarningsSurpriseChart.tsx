@@ -21,6 +21,7 @@ import {
   NEGATIVE as NEGATIVE_COLOR,
   POSITIVE as POSITIVE_COLOR,
 } from "@/lib/chart-theme";
+import { currencyAffix } from "@/lib/format";
 import type { EarningsSurprise } from "../../../types/earnings";
 
 const CHART_THEME = {
@@ -65,6 +66,10 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
   const seriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 
   const hasData = surprises.length > 0;
+  // R15-DATA-031: the title hard-coded "EPS $" regardless of the reporting
+  // currency — take the unit from the data instead (a rupee-denominated
+  // surprise chart labelled "$" mislabels every bar).
+  const currency = surprises[0]?.currency ?? null;
 
   useEffect(() => {
     if (!hasData) {
@@ -76,11 +81,12 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
     }
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
     chartRef.current = chart;
+    const { prefix, suffix } = currencyAffix(currency);
     const series = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "price", precision: 2, minMove: 0.01 },
       priceLineVisible: false,
       lastValueVisible: false,
-      title: "Surprise (EPS $)",
+      title: `Surprise (EPS ${prefix}${suffix})`,
     });
     seriesRef.current = series;
     return () => {
@@ -88,7 +94,7 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       chartRef.current = null;
       seriesRef.current = null;
     };
-  }, [hasData]);
+  }, [hasData, currency]);
 
   useEffect(() => {
     const series = seriesRef.current;

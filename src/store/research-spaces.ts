@@ -56,6 +56,18 @@ function captureLiveTranscript(): ResearchSpaceTurn[] {
     .map((m) => ({ role: m.role, content: m.content, createdAt: m.createdAt }));
 }
 
+function sameTranscript(a: ResearchSpaceTurn[], b: ResearchSpaceTurn[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (turn, i) =>
+        turn.role === b[i].role &&
+        turn.content === b[i].content &&
+        turn.createdAt === b[i].createdAt,
+    )
+  );
+}
+
 /** Rebuild finalized `ChatMessage`s from a saved transcript (none left pending). */
 function turnsToMessages(transcript: ResearchSpaceTurn[]): ChatMessage[] {
   return transcript.map((t, i) => ({
@@ -140,9 +152,15 @@ export const useResearchSpacesStore = create<ResearchSpacesState>((set, get) => 
       return null;
     }
     const transcript = captureLiveTranscript();
+    // An unchanged transcript leaves the map untouched: every autosave folds
+    // the live transcript in, and a map change is itself an autosave trigger.
+    const prior = get().byName[name];
+    if (prior && prior.symbol === symbol && sameTranscript(prior.transcript, transcript)) {
+      return prior;
+    }
     // Carry the existing claims ledger forward — a save rebuilds the transcript
     // from live chat, never the deterministically-recorded claims (R13 JARVIS 3a).
-    const priorClaims = get().byName[name]?.claims;
+    const priorClaims = prior?.claims;
     const memory: ResearchSpaceMemory = {
       symbol,
       transcript,

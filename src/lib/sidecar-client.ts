@@ -259,12 +259,28 @@ export interface HealthResponse {
   providers: Record<string, string>;
 }
 
-/** Typed accessors for the Phase 1.A sidecar data-layer endpoints. */
+/**
+ * A per-call region override (`X-Vysted-Region`) for one instrument's request.
+ * A ticker string can name different companies in different markets (AMAL is
+ * Amal Ltd on BSE and Amalgamated Financial on NASDAQ), so a caller that knows
+ * which listing the user picked sends that listing's region instead of the
+ * session default. `undefined` sends nothing extra (the session region stands).
+ */
+function regionHeader(region?: string): Record<string, string | undefined> {
+  return { "X-Vysted-Region": region };
+}
+
+/** Typed accessors for the Phase 1.A sidecar data-layer endpoints. The
+ *  per-instrument accessors take an optional `region` (see {@link regionHeader}). */
 export const sidecarApi = {
   health: (): Promise<HealthResponse> => sidecarGet<HealthResponse>("/health"),
 
-  quote: (symbol: string, assetClass = "equity"): Promise<Quote> =>
-    sidecarGet<Quote>(`/quotes/${encodeURIComponent(symbol)}`, { asset_class: assetClass }),
+  quote: (symbol: string, assetClass = "equity", region?: string): Promise<Quote> =>
+    sidecarGet<Quote>(
+      `/quotes/${encodeURIComponent(symbol)}`,
+      { asset_class: assetClass },
+      regionHeader(region),
+    ),
 
   quotes: (symbols: string[], assetClass = "equity"): Promise<Quote[]> =>
     sidecarGet<Quote[]>("/quotes", { symbols: symbols.join(","), asset_class: assetClass }),
@@ -290,18 +306,38 @@ export const sidecarApi = {
   cryptoHistory: (exchange: string, symbol: string, timeframe = "1d"): Promise<OHLCVSeries> =>
     sidecarGet<OHLCVSeries>("/crypto/history", { exchange, symbol, timeframe }),
 
-  fundamentals: (symbol: string): Promise<Fundamentals> =>
-    sidecarGet<Fundamentals>(`/fundamentals/${encodeURIComponent(symbol)}`),
+  fundamentals: (symbol: string, region?: string): Promise<Fundamentals> =>
+    sidecarGet<Fundamentals>(
+      `/fundamentals/${encodeURIComponent(symbol)}`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  incomeStatement: (symbol: string): Promise<IncomeStatement> =>
-    sidecarGet<IncomeStatement>(`/fundamentals/${encodeURIComponent(symbol)}/income`),
+  incomeStatement: (symbol: string, region?: string): Promise<IncomeStatement> =>
+    sidecarGet<IncomeStatement>(
+      `/fundamentals/${encodeURIComponent(symbol)}/income`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  balanceSheet: (symbol: string): Promise<BalanceSheet> =>
-    sidecarGet<BalanceSheet>(`/fundamentals/${encodeURIComponent(symbol)}/balance`),
+  balanceSheet: (symbol: string, region?: string): Promise<BalanceSheet> =>
+    sidecarGet<BalanceSheet>(
+      `/fundamentals/${encodeURIComponent(symbol)}/balance`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  cashFlow: (symbol: string): Promise<CashFlowStatement> =>
-    sidecarGet<CashFlowStatement>(`/fundamentals/${encodeURIComponent(symbol)}/cashflow`),
+  cashFlow: (symbol: string, region?: string): Promise<CashFlowStatement> =>
+    sidecarGet<CashFlowStatement>(
+      `/fundamentals/${encodeURIComponent(symbol)}/cashflow`,
+      undefined,
+      regionHeader(region),
+    ),
 
-  analystRating: (symbol: string): Promise<AnalystRating> =>
-    sidecarGet<AnalystRating>(`/fundamentals/${encodeURIComponent(symbol)}/ratings`),
+  analystRating: (symbol: string, region?: string): Promise<AnalystRating> =>
+    sidecarGet<AnalystRating>(
+      `/fundamentals/${encodeURIComponent(symbol)}/ratings`,
+      undefined,
+      regionHeader(region),
+    ),
 };

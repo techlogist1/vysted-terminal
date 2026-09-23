@@ -197,7 +197,9 @@ function withCode(formatted: string, currency: string | null | undefined): strin
  *  "1.00" dividend is ambiguous against a USD one). */
 function formatDerived(v: BriefDerivedValue, signed: boolean, currency?: string | null): string {
   const value = v.value as number; // callers guard null
-  if (v.unit === "percent") {
+  // A fraction of 1 → percent points ("percent" is the pre-R15 wire name for
+  // the same fraction, still carried by briefs persisted before the rename).
+  if (v.unit === "fraction" || v.unit === "percent") {
     return signed ? formatSignedFractionPct(value) : formatFractionPct(value);
   }
   if (v.unit === "currency") {
@@ -260,7 +262,9 @@ function derivedItems(derived: BriefDerivedMetrics, currency?: string | null): M
   const items: MetricItem[] = [];
   const entries = Object.entries(derived) as [string, unknown][];
   for (const [key, raw] of entries) {
-    if (key === "conflicts" || !isDerivedValueLike(raw)) {
+    // `market_cap` rides the derived leg only to hand the model a scaled
+    // display string; the raw grid already renders the provider figure.
+    if (key === "conflicts" || key === "market_cap" || !isDerivedValueLike(raw)) {
       continue;
     }
     if (typeof raw.value !== "number" || Number.isNaN(raw.value)) {
@@ -365,7 +369,9 @@ function equityItems(
     push("Net margin", formatFractionPct(fund.profit_margin));
     push("Debt/Equity", formatNumber(fund.debt_to_equity));
     push("Rev growth", formatFractionPct(fund.revenue_growth));
-    push("Revenue", withCode(formatLarge(fund.revenue_ttm), currency));
+    // Statement sizes are in the statements' own currency when it differs
+    // from the trading currency (C2: an ADR reporting in INR).
+    push("Revenue", withCode(formatLarge(fund.revenue_ttm), fund.financial_currency ?? currency));
     pushRange(push, fund);
   }
   if (quote && typeof quote.volume === "number") {

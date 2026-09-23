@@ -364,6 +364,29 @@ def lookup_current(symbol: str, as_of: date | None = None) -> AppliedRename | No
     )
 
 
+def lookup_former(symbol: str, as_of: date | None = None) -> str | None:
+    """The retired NSE symbol that was renamed TO ``symbol``, or ``None``.
+
+    The reverse of :func:`lookup_current`, over the same in-process map: the old
+    symbol of the most recent passed hop (``<= as_of``, default IST today) whose
+    new symbol is ``symbol`` — SEQUENT for VIYASH. ``None`` for an empty map or a
+    symbol no passed rename landed on.
+    """
+    if as_of is None:
+        as_of = _ist_today()
+    current = symbol.strip().upper()
+    hops = [
+        change
+        for change in _active_map.values()
+        if change.new_symbol.strip().upper() == current
+        and change.effective_date is not None
+        and change.effective_date <= as_of
+    ]
+    if not hops:
+        return None
+    return max(hops, key=lambda change: change.effective_date).old_symbol
+
+
 # ---------------------------------------------------------------------------
 # Fetch — one download per day, cached; hydrates the in-process map.
 # ---------------------------------------------------------------------------
@@ -461,6 +484,7 @@ __all__ = [
     "aclose",
     "fetch_latest",
     "lookup_current",
+    "lookup_former",
     "parse_symbol_change",
     "reset_for_tests",
     "schedule_refresh",

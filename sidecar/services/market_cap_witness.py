@@ -43,7 +43,7 @@ import logging
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from services import locale, symbol_resolver
+from services.witness import is_india_listing
 
 logger = logging.getLogger(__name__)
 
@@ -95,16 +95,9 @@ def should_cross_check(fund: dict[str, Any]) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def is_applicable(symbol: str) -> bool:
-    """True when ``symbol`` is an Indian exchange listing (NSE or BSE).
-
-    The bundled share-count master covers NSE/BSE names only; a US/other listing
-    has no master share count to witness against.
-    """
-    if not isinstance(symbol, str) or not symbol:
-        return False
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
-    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
+#: The bundled share-count master covers NSE/BSE names only; applicability is
+#: decided on the resolved listing (``.NS``/``.BO``), never bare-ticker membership.
+is_applicable = is_india_listing
 
 
 def _lookup(symbol: str) -> MarketCapWitness | None:
@@ -140,8 +133,8 @@ def _lookup(symbol: str) -> MarketCapWitness | None:
 async def get_market_cap_witness(symbol: str) -> MarketCapWitness | None:
     """A NON-provider share count for ``symbol``, or ``None``.
 
-    ``None`` when the listing is not an Indian exchange name or the bundled
-    master carries no BSE-derived share count for it — never raises into the
+    ``None`` when the listing is not an NSE/BSE listing (``.NS``/``.BO``) or the
+    bundled master carries no BSE-derived share count for it — never raises into the
     research snapshot.
     """
     if not is_applicable(symbol):

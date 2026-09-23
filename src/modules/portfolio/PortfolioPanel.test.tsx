@@ -252,17 +252,51 @@ describe("PortfolioPanel", () => {
     expect(filename).toBe("vysted-portfolio-portfolio.csv");
     const [header, row] = csv.split("\n");
     expect(header).toBe(
-      "Symbol,Quantity,Cost basis,Asset class,Price,Market value,P&L,P&L %,Weight %,Note",
+      "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note",
     );
-    expect(row.split(",").slice(0, 7)).toEqual([
+    expect(row.split(",").slice(0, 8)).toEqual([
       "AAPL",
       "10",
       "150",
       "equity",
+      "USD",
       "200",
       "2000",
       "500",
     ]);
-    expect(row.split(",")[8]).toBe("100.00");
+    expect(row.split(",")[9]).toBe("100.00");
+  });
+
+  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+    mockFetchQuotes.mockResolvedValue(
+      new Map([
+        ["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")],
+        ["AAPL", quote("AAPL", 120, "USD")],
+      ]),
+    );
+    render(<PortfolioPanel />);
+    await addHolding("reliance.ns", "50", "1200");
+    await addHolding("aapl", "10", "100");
+    await screen.findByText(/₹64,650\.00 \+ \$1,200\.00/);
+
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Export portfolio to CSV"));
+    });
+
+    expect(mockDownloadCsv).toHaveBeenCalledTimes(1);
+    const [, csv] = mockDownloadCsv.mock.calls[0];
+    const lines = csv.split("\n");
+    expect(lines[0]).toBe(
+      "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note",
+    );
+    const relianceRow = lines[1].split(",");
+    const aaplRow = lines[2].split(",");
+    expect(relianceRow[0]).toBe("RELIANCE.NS");
+    expect(relianceRow[4]).toBe("INR");
+    expect(aaplRow[0]).toBe("AAPL");
+    expect(aaplRow[4]).toBe("USD");
+    // Weight % (index 9) is blank — never a cross-currency ratio.
+    expect(relianceRow[9]).toBe("");
+    expect(aaplRow[9]).toBe("");
   });
 });

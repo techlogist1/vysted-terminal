@@ -42,7 +42,8 @@ import logging
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from services import locale, provider_health, symbol_resolver
+from services import provider_health
+from services.witness import is_block_error, is_india_listing
 
 logger = logging.getLogger(__name__)
 
@@ -91,28 +92,10 @@ def should_cross_check(fund: dict[str, Any]) -> bool:
     )
 
 
-def is_applicable(symbol: str) -> bool:
-    """True when ``symbol`` is an Indian exchange listing (NSE or BSE).
-
-    The exchange shareholding lane exists only for NSE/BSE names; a US/other
-    listing has no such filing to compare against, so the cross-check is skipped
-    without a network call.
-    """
-    if not isinstance(symbol, str) or not symbol:
-        return False
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
-    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
-
-
-def _is_blocked(exc: BaseException) -> bool:
-    """True when ``exc`` looks like an exchange block/throttle (vs a plain miss).
-
-    Matched on the ProviderError text the NSE/BSE lanes raise ("blocked",
-    "HTTP 401/403/429") — a block should open the circuit; a benign "no scrip
-    code" / "no pattern" miss should not.
-    """
-    text = str(exc).lower()
-    return "blocked" in text or any(code in text for code in ("http 401", "http 403", "http 429"))
+#: The applicability gate: the exchange shareholding lane exists only for an
+#: NSE/BSE listing, decided on the resolved listing (``.NS``/``.BO``), never on
+#: bare-ticker membership (a US-bound AMAL is not Amal Ltd).
+is_applicable = is_india_listing
 
 
 def _fetch_latest(symbol: str) -> ExchangeOwnership | None:
@@ -135,10 +118,10 @@ def _fetch_latest(symbol: str) -> ExchangeOwnership | None:
 async def get_exchange_ownership(symbol: str) -> ExchangeOwnership | None:
     """The latest exchange shareholding pattern for ``symbol``, or ``None``.
 
-    ``None`` when the listing is not an Indian exchange name, the exchange
-    circuit is open, the filing is unreachable, or no pattern is served — never
-    raises into the research snapshot. ``symbol`` should be the listing the
-    fundamentals leg resolved to (its exchange suffix is stripped internally).
+    ``None`` when the listing is not an NSE/BSE listing, the exchange circuit is
+    open, the filing is unreachable, or no pattern is served — never raises into
+    the research snapshot. ``symbol`` must be the listing the fundamentals leg
+    resolved to (``AMAL.BO``): a bare ticker is not an Indian listing.
     """
     if not is_applicable(symbol):
         return None
@@ -147,7 +130,7 @@ async def get_exchange_ownership(symbol: str) -> ExchangeOwnership | None:
     try:
         result = await asyncio.to_thread(_fetch_latest, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_blocked(exc):
+        if is_block_error(exc):
             provider_health.record_rate_limited(EXCHANGE)
         else:
             logger.debug("exchange ownership unavailable for %s: %s", symbol, exc)

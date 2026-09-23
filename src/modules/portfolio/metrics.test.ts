@@ -67,6 +67,10 @@ describe("buildPortfolioSummary", () => {
     // The single bucket IS the aggregate — the legacy totals stay honest.
     expect(s.byCurrency[0].marketValue).toBe(s.totalMarketValue);
     expect(s.byCurrency[0].pnl).toBe(s.totalPnl);
+    // R15-CODE-PLATFORM-053 (case the fix was not written against): a
+    // single-currency portfolio still gets a real numeric concentration.
+    expect(s.concentration).not.toBeNull();
+    expect(s.concentration).toBeCloseTo(1500 / (1500 + 800));
   });
 
   it("mixed-currency portfolio: per-currency subtotals, never a cross-currency sum (D57)", () => {
@@ -85,6 +89,11 @@ describe("buildPortfolioSummary", () => {
     expect(inr?.pnlPercent).toBeCloseTo(((64_650 - 60_000) / 60_000) * 100);
     expect(usd).toMatchObject({ marketValue: 1_200, pnl: 200, resolvedCost: 1_000 });
     expect(usd?.pnlPercent).toBeCloseTo(20);
+    // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+    // share of a cross-currency sum — the contract nulls them, not just the
+    // panel that reads it.
+    expect(s.concentration).toBeNull();
+    expect(s.rows.every((r) => r.weight === null)).toBe(true);
   });
 
   it("unresolved positions join no currency bucket; a blank quote currency buckets as ''", () => {

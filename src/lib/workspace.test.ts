@@ -15,6 +15,7 @@ import { DEFAULT_MODEL_BY_PROVIDER, useModelSelectionStore } from "@/store/model
 import { useModulesStore } from "@/store/modules";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useResearchSpacesStore } from "@/store/research-spaces";
+import { useScreenerStore } from "@/store/screener";
 import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -45,12 +46,15 @@ import {
   deserializeWorkspace,
   isResearchSpace,
   loadWorkspace,
+  PERSISTED_SLICES,
   researchSpaceName,
   researchSymbolOf,
+  resetWorkspacePersistenceForTests,
   restoreLastSessionOrDefault,
   saveWorkspace,
   serializeWorkspace,
   type SerializedWorkspace,
+  wireAutosaveTriggers,
 } from "@/lib/workspace";
 
 /** A minimal fake dockview layout — `toJSON`/`fromJSON` round-trip its state;
@@ -144,6 +148,7 @@ describe("workspace serialization", () => {
       // A non-research workspace omits `researchSymbol` but always carries the
       // (empty) per-space memory archive (S-19).
       researchSpaces: { byName: {} },
+      savedScreens: [],
     });
   });
 
@@ -429,6 +434,66 @@ describe("workspace serialization", () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
     await expect(createResearchSpace("   ")).rejects.toThrow(/ticker is required/);
+  });
+
+  it("a failed research-space save puts the cockpit back and surfaces the sidecar's reason (R15-CODE-FRONTEND-004)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    resetChartCommandStoreForTests();
+    useNotesStore.getState().fromBundle(null);
+    useChatHistoryStore
+      .getState()
+      .loadMessages([{ id: "m1", role: "user", content: "ambient question", createdAt: 1 }]);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ detail: "No space left on device." }), { status: 500 }),
+    );
+
+    await expect(createResearchSpace("nvda")).rejects.toThrow(
+      'Could not save workspace "Research: NVDA" (HTTP 500: No space left on device.).',
+    );
+
+    expect(fakeApi.fromJSON).toHaveBeenLastCalledWith(LAYOUT_A);
+    expect(useWorkspaceStore.getState().researchSymbol).toBeNull();
+    expect(useWorkspaceStore.getState().name).toBe("default");
+    expect(useChatHistoryStore.getState().messages.map((m) => m.content)).toEqual([
+      "ambient question",
+    ]);
+    expect(useResearchSpacesStore.getState().byName).toEqual({});
+    expect(useNotesStore.getState().focusSymbol).toBe("");
+    expect(useChartCommandStore.getState().command).toBeNull();
+  });
+
+  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useNotesStore.getState().fromBundle({ general: "week 1", bySymbol: {} });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    await saveWorkspace("Swing");
+    const saved = JSON.parse(String(fetchMock.mock.calls[0]![1]?.body)) as {
+      workspace: SerializedWorkspace;
+    };
+
+    // Week 2: new holdings, new notes, a different layout.
+    usePortfoliosStore.getState().addHolding("default", {
+      symbol: "TCS",
+      quantity: 5,
+      costBasis: 3600,
+      assetClass: "equity",
+    });
+    useNotesStore.getState().setGeneral("week 2");
+    fakeApi.fromJSON(LAYOUT_B);
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(saved.workspace), { status: 200 }));
+
+    await loadWorkspace("Swing");
+
+    expect(fakeApi.current).toEqual(LAYOUT_A);
+    expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
+      "TCS",
+    ]);
+    expect(useNotesStore.getState().general).toBe("week 2");
   });
 
   it("loadWorkspace fetches from the sidecar and applies the workspace", async () => {
@@ -814,23 +879,129 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
     expect(methods).toEqual(["GET"]);
   });
 
-  it("loadWorkspace keeps the data and falls back to the default layout on an unregistered panel", async () => {
+  it("loadWorkspace falls back to the default layout when no saved panel is registered, leaving the notes alone", async () => {
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never });
-    useNotesStore.getState().fromBundle(null);
+    useNotesStore.getState().fromBundle({ general: "live notes", bySymbol: {} });
     stubFetchResolving({
       name: "old",
       layout: { grid: { root: "a" }, panels: { p1: { contentComponent: "audit-log-viewer" } } },
       enabledModules: {},
-      notes: { general: "kept", bySymbol: {} },
+      notes: { general: "stale notes", bySymbol: {} },
     });
 
     await loadWorkspace("old");
 
     expect(api.fromJSON).not.toHaveBeenCalled();
     expect(api.clear).toHaveBeenCalled();
-    expect(useNotesStore.getState().general).toBe("kept");
+    expect(useNotesStore.getState().general).toBe("live notes");
     expect(useWorkspaceStore.getState().name).toBe("old");
+  });
+
+  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    const unwire = wireAutosaveTriggers();
+    try {
+      const api = createFakeDockviewApi(LAYOUT_A);
+      useWorkspaceStore.setState({ dockviewApi: api as never });
+      useModulesStore.setState({
+        modules: [{ id: "chart", panelComponents: { "chart-panel": () => null } } as never],
+      });
+      usePortfoliosStore.getState().setAll([], undefined);
+      useNotesStore.getState().fromBundle(null);
+      useSymbolsStore.setState({ entries: [{ symbol: "SPY", assetClass: "equity" }] });
+      const posts: unknown[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (_url: string, init?: RequestInit) => {
+          if (init?.method === "POST") {
+            posts.push(init.body);
+          }
+          return {
+            ok: true,
+            json: async () => ({
+              name: "__autosave__",
+              layout: {
+                grid: {
+                  root: {
+                    type: "branch",
+                    size: 600,
+                    data: [
+                      {
+                        type: "leaf",
+                        size: 600,
+                        data: { id: "g1", views: ["chart", "broker"], activeView: "broker" },
+                      },
+                      {
+                        type: "leaf",
+                        size: 300,
+                        data: { id: "g2", views: ["orders"], activeView: "orders" },
+                      },
+                    ],
+                  },
+                  width: 900,
+                  height: 600,
+                  orientation: "HORIZONTAL",
+                },
+                panels: {
+                  chart: { id: "chart", contentComponent: "chart-panel" },
+                  broker: { id: "broker", contentComponent: "broker-connect-panel" },
+                  orders: { id: "orders", contentComponent: "broker-order-entry-panel" },
+                },
+              },
+              enabledModules: {},
+              watchlist: [{ symbol: "INFY", assetClass: "equity" }],
+              portfolios: {
+                list: [
+                  {
+                    id: "p1",
+                    name: "Long-term",
+                    holdings: [
+                      {
+                        id: "h1",
+                        symbol: "INFY",
+                        quantity: 10,
+                        costBasis: 1500,
+                        assetClass: "equity",
+                      },
+                    ],
+                  },
+                ],
+                activeId: "p1",
+              },
+              notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+            }),
+          } as unknown as Response;
+        }),
+      );
+
+      const restored = await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(restored).toBe(true);
+      expect(api.fromJSON).toHaveBeenCalledOnce();
+      const applied = api.fromJSON.mock.calls[0]![0] as unknown as {
+        panels: Record<string, unknown>;
+        grid: { root: { data: { data: { views: string[]; activeView?: string } }[] } };
+      };
+      expect(Object.keys(applied.panels)).toEqual(["chart"]);
+      expect(applied.grid.root.data.map((leaf) => leaf.data)).toEqual([
+        { id: "g1", views: ["chart"], activeView: "chart" },
+      ]);
+      expect(
+        usePortfoliosStore
+          .getState()
+          .portfolios[0].holdings.map((h) => [h.symbol, h.quantity, h.costBasis]),
+      ).toEqual([["INFY", 10, 1500]]);
+      expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+      expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["INFY"]);
+      expect(posts).toEqual([]);
+    } finally {
+      unwire();
+      resetWorkspacePersistenceForTests();
+      vi.useRealTimers();
+    }
   });
 
   it("re-bases on a clean grid when the restore fetch fails", async () => {
@@ -904,5 +1075,412 @@ describe("workspace restore archives the brief (R10 D39)", () => {
     expect(useBriefStore.getState().panel.phase).toBe("archived");
     expect(useBriefStore.getState().brief?.query).toBe("legacy brief");
     resetBriefStoreForTests();
+  });
+});
+
+// ── one persisted-slice registry drives payload, restore and autosave ───────
+
+/** The keys `SerializedWorkspace` declares (its index signature excluded). */
+type DeclaredWorkspaceKey = keyof {
+  [K in keyof SerializedWorkspace as string extends K ? never : number extends K ? never : K]: true;
+};
+
+/** Every declared key; the compiler rejects this map when the interface gains one. */
+const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
+  name: true,
+  layout: true,
+  enabledModules: true,
+  chartDrawings: true,
+  defaultProviderId: true,
+  watchlist: true,
+  portfolios: true,
+  agentMode: true,
+  autonomyMode: true,
+  agentDock: true,
+  modelOverrides: true,
+  modelOverridesV: true,
+  keybindingOverrides: true,
+  settings: true,
+  searchSettings: true,
+  brief: true,
+  notes: true,
+  researchSymbol: true,
+  researchSpaces: true,
+  savedScreens: true,
+};
+
+/** Route a stubbed sidecar: GET `/workspace/__autosave__` answers `autosave`
+ *  (404 when null), every POST body is captured, any other GET is a 404. */
+function stubSidecar(autosave: SerializedWorkspace | null): SerializedWorkspace[] {
+  const posts: SerializedWorkspace[] = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === "POST") {
+        posts.push((JSON.parse(String(init.body)) as { workspace: SerializedWorkspace }).workspace);
+        return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+      }
+      if (autosave && String(url).endsWith("/workspace/__autosave__")) {
+        return { ok: true, status: 200, json: async () => autosave } as unknown as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as unknown as Response;
+    }),
+  );
+  return posts;
+}
+
+describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)", () => {
+  let unwire: (() => void) | null = null;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    useChartDrawingsStore.setState({ byPanel: {} });
+    useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
+    useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useAgentModeStore.setState({ mode: "agent" });
+    useAgentAutonomyStore.setState({ autonomy: "ask" });
+    useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
+    useModelSelectionStore.setState({ overrides: {} });
+    useResearchSpacesStore.setState({ byName: {} });
+    useChatHistoryStore.getState().clear();
+    useNotesStore.getState().fromBundle(null);
+    useScreenerStore.getState().__resetForTests();
+    resetBriefStoreForTests();
+    resetKeybindingsStoreForTests();
+    resetSettingsStoreForTests();
+    resetSearchSettingsStoreForTests();
+  });
+
+  afterEach(() => {
+    unwire?.();
+    unwire = null;
+    resetWorkspacePersistenceForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts = stubSidecar({
+      name: "__autosave__",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      watchlist: [{ symbol: "RELIANCE", assetClass: "equity" }],
+      portfolios: {
+        list: [
+          {
+            id: "pf-1",
+            name: "Core",
+            holdings: [
+              { id: "h1", symbol: "TCS", quantity: 10, costBasis: 3500, assetClass: "equity" },
+            ],
+          },
+        ],
+        activeId: "pf-1",
+      },
+      notes: { general: "thesis", bySymbol: { TCS: "buy < 3400" }, focusSymbol: "TCS" },
+      researchSymbol: "TCS",
+      researchSpaces: {
+        byName: {
+          "Research: TCS": {
+            symbol: "TCS",
+            transcript: [{ role: "user", content: "what is TCS margin", createdAt: 1 }],
+            updatedAt: 1,
+          },
+        },
+      },
+    });
+    // Wired at mount, BEFORE the restore resolves — exactly as page.tsx does.
+    unwire = wireAutosaveTriggers();
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(posts).toHaveLength(0);
+
+    useSymbolsStore.getState().addSymbol("INFY", "equity");
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(posts).toHaveLength(1);
+    const [first] = posts;
+    expect(first.researchSymbol).toBe("TCS");
+    expect(first.researchSpaces?.byName["Research: TCS"]?.transcript).toHaveLength(1);
+    expect(first.portfolios?.list[0]?.holdings.map((h) => h.symbol)).toEqual(["TCS"]);
+    expect(first.notes?.general).toBe("thesis");
+    expect(first.watchlist?.map((e) => e.symbol)).toEqual(["RELIANCE", "INFY"]);
+  });
+
+  it("every declared blob key is written by a registered slice, and each slice's change autosaves", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never, researchSymbol: "NVDA" });
+    const written = new Set(PERSISTED_SLICES.flatMap((slice) => Object.keys(slice.read())));
+    const declared = Object.keys(DECLARED_KEYS).filter((key) => key !== "name" && key !== "layout");
+    expect([...written].sort()).toEqual(declared.sort());
+    useWorkspaceStore.setState({ researchSymbol: null });
+
+    const posts = stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    unwire = wireAutosaveTriggers();
+    const mutations: Record<string, (() => void)[]> = {
+      enabledModules: [() => useModulesStore.getState().setEnabledMap({ chart: false })],
+      chartDrawings: [
+        () =>
+          useChartDrawingsStore.getState().addDrawing("chart", {
+            id: "d1",
+            panelId: "chart",
+            kind: "trendline",
+            points: [
+              { time: 1, price: 1 },
+              { time: 2, price: 2 },
+            ],
+            style: { color: "#fff", lineWidth: 1 },
+            createdAt: 0,
+          }),
+      ],
+      defaultProviderId: [() => useLLMProvidersStore.getState().setDefaultProviderId("openrouter")],
+      watchlist: [() => useSymbolsStore.getState().addSymbol("INFY", "equity")],
+      portfolios: [
+        () => usePortfoliosStore.getState().createPortfolio("Swing"),
+        () => usePortfoliosStore.getState().setActive("default"),
+      ],
+      agentMode: [() => useAgentModeStore.getState().setMode("delegate")],
+      autonomyMode: [() => useAgentAutonomyStore.getState().setAutonomy("auto")],
+      agentDock: [
+        () => useAgentDockStore.getState().setCollapsed(true),
+        () => useAgentDockStore.getState().setWidth(AGENT_DOCK_DEFAULT_WIDTH + 40),
+      ],
+      modelOverrides: [
+        () => useModelSelectionStore.getState().setModel("anthropic", "claude-sonnet-4-6"),
+      ],
+      keybindingOverrides: [
+        () => useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+p"),
+      ],
+      settings: [
+        () => useSettingsStore.getState().setDefaultAgentId("buffett"),
+        () => useSettingsStore.getState().setRegion("US"),
+        () => useSettingsStore.getState().setDeepResearchBackend("perplexity"),
+      ],
+      searchSettings: [
+        () => useSearchSettingsStore.getState().setResearchTier("tier_b"),
+        () => useSearchSettingsStore.getState().setSearxngUrl("http://127.0.0.1:8080"),
+        () =>
+          useSearchSettingsStore
+            .getState()
+            .setResearchModel("deep", "openai/o4-mini-deep-research"),
+      ],
+      brief: [
+        () =>
+          useBriefStore.getState().setBrief({
+            query: "q",
+            mode: "FAST",
+            markdown: "m",
+            sources: [],
+            sourceCount: 0,
+            webAvailable: false,
+            createdAt: 1,
+          }),
+        () => useBriefStore.getState().clearBrief(),
+      ],
+      notes: [
+        () => useNotesStore.getState().setGeneral("thesis"),
+        () => useNotesStore.getState().setSymbolNote("NVDA", "watch margins"),
+        () => useNotesStore.getState().setFocusSymbol("NVDA"),
+      ],
+      savedScreens: [() => useScreenerStore.getState().saveScreen("Cheap tech")],
+      researchSpaces: [
+        () =>
+          useResearchSpacesStore.getState().replaceAll({
+            byName: { "Research: AMD": { symbol: "AMD", transcript: [], updatedAt: 1 } },
+          }),
+      ],
+      researchSymbol: [() => useWorkspaceStore.getState().setResearchSymbol("NVDA")],
+    };
+
+    for (const slice of PERSISTED_SLICES) {
+      expect(mutations[slice.key], `no mutation covers slice ${slice.key}`).toBeDefined();
+      for (const mutate of mutations[slice.key]) {
+        const before = posts.length;
+        mutate();
+        await vi.advanceTimersByTimeAsync(1_000);
+        expect(posts.length, `slice ${slice.key} did not autosave`).toBeGreaterThan(before);
+      }
+    }
+  });
+
+  it("a setter that rejects its input schedules no autosave", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts = stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    unwire = wireAutosaveTriggers();
+    await vi.advanceTimersByTimeAsync(1_000);
+    const before = posts.length;
+
+    useSearchSettingsStore.getState().setResearchModel("deep", "has spaces!!");
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(posts).toHaveLength(before);
+  });
+
+  it("saved screens survive serialize, a fresh store and deserialize", () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    useScreenerStore.getState().saveScreen("Cheap tech");
+
+    const saved = serializeWorkspace("screens");
+    useScreenerStore.getState().__resetForTests();
+    expect(useScreenerStore.getState().savedScreens).toEqual([]);
+    deserializeWorkspace(saved);
+
+    const screens = useScreenerStore.getState().savedScreens;
+    expect(screens.map((screen) => screen.name)).toEqual(["Cheap tech"]);
+    expect(screens[0]?.universe).toBe("sp500");
+  });
+});
+
+// ── one-time import of the pre-blob positions ledger (R15-LIFECYCLE-009) ───
+
+describe("legacy positions import (R15-LIFECYCLE-009)", () => {
+  /** v0.8.0 rows, as `GET /portfolio/positions` returns them. */
+  const LEDGER = [
+    {
+      id: 1,
+      symbol: "RELIANCE.NS",
+      quantity: 10,
+      cost_basis: 2890.55,
+      asset_class: "equity",
+      opened_at: null,
+      note: "core",
+    },
+    {
+      id: 2,
+      symbol: "TCS.NS",
+      quantity: 5,
+      cost_basis: 3400,
+      asset_class: "equity",
+      opened_at: null,
+      note: null,
+    },
+    {
+      id: 3,
+      symbol: "BTC/USDT",
+      quantity: 0.05,
+      cost_basis: 60000,
+      asset_class: "crypto",
+      opened_at: null,
+      note: null,
+    },
+  ];
+
+  /** Stub the sidecar: the autosave slot answers `autosave` (404 when null),
+   *  the ledger answers LEDGER; returns every request as "METHOD path". */
+  function stubLedger(autosave: unknown, posts: SerializedWorkspace[]): string[] {
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url).pathname;
+        requests.push(`${init?.method ?? "GET"} ${path}`);
+        if (init?.method === "POST") {
+          posts.push(
+            (JSON.parse(String(init.body)) as { workspace: SerializedWorkspace }).workspace,
+          );
+          return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+        }
+        if (path === "/portfolio/positions") {
+          return { ok: true, status: 200, json: async () => LEDGER } as unknown as Response;
+        }
+        if (path === "/workspace/__autosave__" && autosave) {
+          return { ok: true, status: 200, json: async () => autosave } as unknown as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as unknown as Response;
+      }),
+    );
+    return requests;
+  }
+
+  const holdings = () =>
+    usePortfoliosStore
+      .getState()
+      .portfolios.flatMap((p) => p.holdings)
+      .map((h) => [h.symbol, h.quantity, h.costBasis, h.assetClass, h.note ?? null]);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    usePortfoliosStore.getState().setAll([], undefined);
+  });
+
+  afterEach(() => {
+    resetWorkspacePersistenceForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("imports the ledger once into a blob that never carried portfolios, and saves the import", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts: SerializedWorkspace[] = [];
+    const legacyBlob = { name: "__autosave__", layout: LAYOUT_A, enabledModules: {} };
+    stubLedger(legacyBlob, posts);
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const expected = [
+      ["RELIANCE.NS", 10, 2890.55, "equity", "core"],
+      ["TCS.NS", 5, 3400, "equity", null],
+      ["BTC/USDT", 0.05, 60000, "crypto", null],
+    ];
+    expect(holdings()).toEqual(expected);
+    expect(posts).toHaveLength(1);
+    expect(posts[0].portfolios?.list.flatMap((p) => p.holdings).map((h) => h.symbol)).toEqual([
+      "RELIANCE.NS",
+      "TCS.NS",
+      "BTC/USDT",
+    ]);
+
+    // Relaunch on the same portfolios-less blob (quit before the save landed):
+    // the import runs again but never duplicates.
+    resetWorkspacePersistenceForTests();
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(holdings()).toEqual(expected);
+
+    // Relaunch on the saved blob: it carries portfolios, so the ledger is not read.
+    resetWorkspacePersistenceForTests();
+    usePortfoliosStore.getState().setAll([], undefined);
+    const requests = stubLedger(posts[0], []);
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(requests).toEqual(["GET /workspace/__autosave__"]);
+    expect(holdings()).toEqual(expected);
+  });
+
+  it("never reads the ledger for a blob whose portfolios the user emptied", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const requests = stubLedger(
+      {
+        name: "__autosave__",
+        layout: LAYOUT_A,
+        enabledModules: {},
+        portfolios: {
+          list: [{ id: "default", name: "Portfolio", holdings: [] }],
+          activeId: "default",
+        },
+      },
+      [],
+    );
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(requests).toEqual(["GET /workspace/__autosave__"]);
+    expect(holdings()).toEqual([]);
   });
 });

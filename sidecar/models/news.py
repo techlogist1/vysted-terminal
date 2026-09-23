@@ -20,7 +20,9 @@ class NewsItem(BaseModel):
     summary: str | None = None
     url: str
     source: str
-    published_at: datetime
+    #: The source's own publication time. ``None`` when the feed carried no
+    #: parseable date — never a fabricated ``now()`` (an undated item sorts last).
+    published_at: datetime | None
     symbols: list[str] = []
     sentiment: float | None = None
     sentiment_label: str | None = None

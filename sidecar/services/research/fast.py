@@ -442,60 +442,20 @@ async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str,
     return _structured_value(result, "filings")
 
 
-def _news_row(item: dict[str, Any]) -> dict[str, Any]:
-    """Map a ``NewsItem`` wire dict to the relevance gate's row shape."""
-    return {
-        "title": item.get("title"),
-        "excerpt": item.get("summary"),
-        "url": item.get("url"),
-        "source": item.get("source"),
-    }
-
-
-#: Honest note when the relevance gate drops EVERY item off an ok:True news
-#: pull (R13 ledger #9) — never generic filler dressed up as coverage.
-def _no_on_entity_news_note(symbol: str, dropped: int) -> str:
-    return (
-        f"No on-entity news found for {symbol} — {dropped} item(s) returned by "
-        "the news feed were off-entity/off-topic and dropped."
-    )
-
-
 def _news_value(result: dict[str, Any], *, target: ResearchTarget) -> dict[str, Any]:
-    """The news leg, relevance-gated for a resolved IN equity (R13 ledger #9).
-
-    The ``news`` tool blends region-wide market feeds with a per-symbol Yahoo
-    feed keyed by the BARE ticker. For a short/common Indian symbol (META,
-    BMW, ...) that per-symbol feed can serve the FOREIGN namesake's own
-    stories (Meta Platforms, not the BSE-listed String Metaverse), and the
-    region feeds serve generic macro headlines unrelated to any one name —
-    both ride back stamped ``ok: True`` with nothing distinguishing on-entity
-    from off-entity. Reuse the SAME entity-relevance gate the web-evidence
-    loop uses (:func:`services.research.relevance.row_relevant`) — no new
-    scoring — to drop off-entity rows; when NOTHING on-entity survives the leg
-    stays ``ok: True`` with an empty list and an honest note (never generic
-    filler dressed up as coverage).
-    """
+    """The news leg through the shared relevance gate
+    (:func:`services.research.relevance.gate_news`, R13 ledger #9): off-entity
+    items dropped; when none survives the leg stays ``ok: True`` with an empty
+    list and an honest note (never generic filler dressed up as coverage)."""
     value = _structured_value(result, "news")
-    if not value.get("ok"):
-        return value
-    from services.research.relevance import is_india_target, row_relevant
-
-    if not (is_india_target(target) and target.is_equity_like()):
-        return value
     items = value.get("data")
-    if not isinstance(items, list) or not items:
+    if not value.get("ok") or not isinstance(items, list):
         return value
-    kept = [
-        item
-        for item in items
-        if isinstance(item, dict) and row_relevant(_news_row(item), target=target)
-    ]
-    if kept:
-        value["data"] = kept
-    else:
-        value["data"] = []
-        value["note"] = _no_on_entity_news_note(target.symbol, len(items))
+    from services.research.relevance import gate_news
+
+    value["data"], note = gate_news(items, target=target)
+    if note:
+        value["note"] = note
     return value
 
 

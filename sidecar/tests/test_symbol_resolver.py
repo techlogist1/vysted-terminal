@@ -655,3 +655,28 @@ def test_mixed_collision_candidates_enrich_only_the_indian_row() -> None:
             assert cand.isin is None
             assert cand.bse_code is None
             assert cand.industry is None
+
+
+@pytest.mark.parametrize(
+    ("ticker", "bse_isin"),
+    [
+        ("FOCUS", "INE0DXR01010"),  # Focus Lighting (NSE) / Focus Business Solution (BSE)
+        ("KALYANI", "INE0N6U01018"),  # Kalyani Commercials (NSE) / Kalyani Cast-Tech (BSE)
+    ],
+)
+def test_same_ticker_different_companies_keep_their_own_identity(
+    ticker: str, bse_isin: str
+) -> None:
+    """R15-CODE-DATA-001: the NSE and BSE rows under one ticker string are two
+    companies. The NSE row must not borrow the BSE company's ISIN / scrip code /
+    industry through the ticker-keyed join, and the two exact-ticker rows are a
+    residual tie between distinct instruments (an explicit choice, never a silent
+    bind of whichever row ranked first). KALYANI is the case the fix was not
+    written against."""
+    res = symbol_resolver.resolve(ticker, "IN")
+    by_exchange = {c.exchange: c for c in res.candidates}
+    nse, bse = by_exchange["NSE"], by_exchange["BSE"]
+    assert bse.isin == bse_isin and bse.bse_code is not None
+    assert nse.isin != bse.isin
+    assert nse.bse_code is None and nse.industry is None
+    assert res.needs_disambiguation

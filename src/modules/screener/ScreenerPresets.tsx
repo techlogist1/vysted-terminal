@@ -105,8 +105,11 @@ const PRESETS: ScreenerPreset[] = [
   },
   {
     id: "promoter",
-    label: "Founder-aligned (NSE)",
-    description: "High insider/promoter holding, sound balance sheet (NIFTY 50)",
+    // R15-DATA-004 / §6 D-B2-8: this is Yahoo's insider/promoter field, not
+    // an exchange promoter-group figure — the id stays (saved screens keep
+    // resolving) but the name and description say what it actually is.
+    label: "High insider holding (Yahoo)",
+    description: "High insider holding (Yahoo), sound balance sheet (NIFTY 50)",
     universe: "nifty50",
     criteria: [
       { field: "held_percent_insiders", operator: "gt", value: 0.4 },

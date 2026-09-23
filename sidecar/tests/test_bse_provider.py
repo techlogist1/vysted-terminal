@@ -20,7 +20,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from services import bse_provider, symbol_resolver
+from services import bse_provider, locale, symbol_resolver
 from services.errors import ProviderError
 
 # The REAL modern bhavcopy header (observed live 2026-06-09) + the observed
@@ -183,6 +183,11 @@ def test_non_bse_symbol_fails_fast_without_network() -> None:
 # --- get_quote: header endpoint shape + bhavcopy fallback -------------------
 
 
+def _ason_now() -> str:
+    """A header ``Ason`` stamp for the most recent IN session (a live scrip)."""
+    return locale.most_recent_session(locale.REGION_IN).strftime("%d %b %y") + " | 16:00"
+
+
 def test_get_quote_from_scrip_header(monkeypatch: pytest.MonkeyPatch) -> None:
     # The REAL getScripHeaderData Header object has NO ticker field — only the
     # numeric scrip code (Scrip_Cd). The provider must stamp the REQUESTED bare
@@ -191,9 +196,8 @@ def test_get_quote_from_scrip_header(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_get(url: str) -> httpx.Response:
         assert "getScripHeaderData" in url
         assert "scripcode=511260" in url  # ICONIKSPEV's code from the regenerated master
-        return httpx.Response(
-            200, json={"Header": [{"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44"}]}
-        )
+        header = {"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44", "Ason": _ason_now()}
+        return httpx.Response(200, json={"Header": [header]})
 
     monkeypatch.setattr(bse_provider, "_http_get", fake_get)
     q = bse_provider.get_quote("ICONIKSPEV")
@@ -211,12 +215,61 @@ def test_quote_from_header_stamps_bare_not_scrip_code() -> None:
     # A realistic payload that lacks any ticker field (only the numeric scrip
     # code) must still produce Quote.symbol == the requested bare ticker so the
     # registry's _match_key symbol-match gate accepts it.
-    payload = {"Header": [{"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44"}]}
-    q = bse_provider._quote_from_header("ICONIKSPEV", payload)
+    header = {"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44", "Ason": _ason_now()}
+    q = bse_provider._quote_from_header("ICONIKSPEV", {"Header": [header]})
     assert q is not None
     assert q.symbol == "ICONIKSPEV"
     assert q.provider == "bse"
     assert q.price == 43.09
+
+
+_DAL_HEADER = {
+    "Header": [
+        {
+            "Scrip_Cd": "539681",
+            "LTP": "49.88",
+            "PrevClose": "47.51",
+            "Ason": "12 Mar 25 | 16:00",
+        }
+    ]
+}
+
+
+def test_header_quote_is_dated_by_its_ason_not_today() -> None:
+    """R15-DATA-006: DAL last traded on 12 Mar 25. The quote carries that date and
+    no move for today (was: today's session and "+4.99% today")."""
+    q = bse_provider._quote_from_header("DAL", _DAL_HEADER)
+    assert q is not None
+    assert q.timestamp.date() == date(2025, 3, 12)
+    assert q.price == 49.88
+    assert q.change == 0 and q.change_percent == 0
+
+
+def test_header_without_ason_is_not_dated_today() -> None:
+    """A header naming no trade date yields no header quote (the caller falls back
+    to the dated bhavcopy) — never a print stamped with today's session."""
+    header = {"Header": [{"Scrip_Cd": "539681", "LTP": "49.88", "PrevClose": "47.51"}]}
+    assert bse_provider._quote_from_header("DAL", header) is None
+
+
+def test_stale_exchange_quote_is_served_labelled_stale(
+    client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Through the route: the 18-month-old BSE print is served with its true date
+    and labelled stale — not rejected into a lane that would present it as fresh."""
+
+    def fake_get(url: str) -> httpx.Response:
+        assert "getScripHeaderData" in url and "scripcode=539681" in url
+        return httpx.Response(200, json=_DAL_HEADER)
+
+    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+    resp = client.get("/quotes/DAL", headers={"X-Vysted-Region": "IN"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["provider"] == "bse"
+    assert body["timestamp"].startswith("2025-03-12")
+    assert body["change"] == 0
+    assert body["freshness"] == "stale"
 
 
 def test_get_quote_falls_back_to_bhavcopy(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:

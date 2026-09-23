@@ -58,14 +58,14 @@ def test_select_declared_takes_the_nearest_upcoming_when_multiple() -> None:
 
 
 def test_is_applicable_only_nse() -> None:
-    assert dividend_actions.is_applicable("PFC")
+    assert dividend_actions.is_applicable("PFC.NS")
     assert not dividend_actions.is_applicable("AAPL")
     assert not dividend_actions.is_applicable("")
 
 
 def test_get_declared_unpaid_dividend_round_trips(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(nse_provider, "get_corporate_actions", lambda symbol: _PFC_ACTIONS)
-    declared = asyncio.run(dividend_actions.get_declared_unpaid_dividend("PFC"))
+    declared = asyncio.run(dividend_actions.get_declared_unpaid_dividend("PFC.NS"))
     assert declared is not None
     assert declared.as_wire() == {
         "amount": 3.95,
@@ -91,5 +91,5 @@ def test_get_declared_block_opens_circuit_and_never_raises(
         lambda symbol: (_ for _ in ()).throw(ProviderError("nse_direct: blocked (HTTP 401)")),
     )
     for _ in range(3):
-        assert asyncio.run(dividend_actions.get_declared_unpaid_dividend("PFC")) is None
+        assert asyncio.run(dividend_actions.get_declared_unpaid_dividend("PFC.NS")) is None
     assert provider_health.is_open(dividend_actions.EXCHANGE)

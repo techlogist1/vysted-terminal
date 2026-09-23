@@ -203,6 +203,48 @@ def test_filing_detail_requires_identifier(client: TestClient, available_provide
     assert response.status_code == 422  # FastAPI's missing-query error
 
 
+def test_filing_detail_not_found_maps_to_404(
+    client: TestClient,
+    available_provider: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-007: a not_found ProviderError (accession outside the
+    issuer's recent-filings window) is a 404, never the generic 502 an
+    upstream tool failure gets."""
+    from services.errors import ProviderError
+
+    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+        raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
+
+    monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
+    response = client.get("/sec/filings/0000000000-99-999999", params={"identifier": "AAPL"})
+    assert response.status_code == 404
+
+    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
+    response = client.get(
+        "/sec/filings/0000000000-99-999999/sections", params={"identifier": "AAPL"}
+    )
+    assert response.status_code == 404
+
+
+def test_filing_detail_other_provider_error_stays_502(
+    client: TestClient,
+    available_provider: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """For a case the fix was not written against: an unclassified
+    ProviderError (e.g. the upstream MCP call itself failing) still 502s,
+    not 404 — only ``kind == "not_found"`` gets the honest 404."""
+    from services.errors import ProviderError
+
+    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+        raise ProviderError("sec-edgar-mcp call failed")
+
+    monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
+    response = client.get("/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"})
+    assert response.status_code == 502
+
+
 def test_filing_sections_route(
     client: TestClient,
     available_provider: None,

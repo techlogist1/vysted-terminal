@@ -12,7 +12,7 @@ upstream API drifts over time, so each function is defensive and tests mock the
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 import pandas as pd
@@ -162,7 +162,9 @@ def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
 
 # Fundamentals fields that are identity / metadata, not served data VALUES —
 # excluded from the per-field provenance map (R13, deliverable 5).
-_PROVENANCE_EXCLUDED_FIELDS = frozenset({"symbol", "provider", "growth_basis", "field_meta"})
+_PROVENANCE_EXCLUDED_FIELDS = frozenset(
+    {"symbol", "provider", "growth_basis", "field_meta", "financial_currency"}
+)
 
 # Fields ``get_fundamentals`` does NOT source from yfinance's ``info`` snapshot —
 # they are computed downstream (the research derived leg: trailing-12m dividends,
@@ -230,6 +232,88 @@ def _num(value: Any) -> float | None:
         return None
 
 
+#: Yahoo ratios whose numerator is in the TRADING currency while the denominator
+#: is a statement figure in ``financialCurrency``. When the two currencies differ
+#: (an ADR reporting in INR/TWD) the ratio is off by the exchange rate: SIFY's
+#: ``priceToSalesTrailing12Months`` is USD market cap / INR revenue (~88x low) and
+#: its ``enterpriseToEbitda`` (4.8) matches neither a USD nor an INR basis.
+#: ``priceToBook`` is NOT here: Yahoo states ``bookValue`` per share in the trading
+#: currency (SIFY 13.66 / 2.754 = 4.96 on a USD book value), so it stays served.
+_MIXED_BASIS_RATIOS: dict[str, str] = {
+    "price_to_sales": "price/sales (market cap over trailing revenue)",
+    "ev_to_ebitda": "EV/EBITDA (enterprise value over EBITDA)",
+}
+
+
+#: Fields computed from the snapshot's price: their ``as_of`` is that price's
+#: trade time, not the fetch time (R15-DATA-006).
+_PRICE_DERIVED_FIELDS = (
+    "ratio_price",
+    "market_cap",
+    "pe_ratio",
+    "forward_pe",
+    "peg_ratio",
+    "price_to_book",
+    "price_to_sales",
+    "ev_to_ebitda",
+    "dividend_yield",
+    "fifty_two_week_change",
+)
+
+
+def _stamp_price_trade_time(meta: dict[str, FieldMeta], market_time: Any) -> None:
+    """Date the price-derived fields by Yahoo's ``regularMarketTime`` (epoch
+    seconds of the last trade). An illiquid scrip's last print can be months old
+    (DAL: 2025-03-12), so the fetch time would present it as today's; when Yahoo
+    names no trade time the as-of is left unknown (``None``), never now()."""
+    trade_time = (
+        datetime.fromtimestamp(market_time, tz=UTC).isoformat()
+        if isinstance(market_time, (int, float))
+        else None
+    )
+    for name in _PRICE_DERIVED_FIELDS:
+        if name in meta:
+            meta[name].as_of = trade_time
+
+
+def _financial_currency(info: dict[str, Any]) -> str | None:
+    """Yahoo's ``financialCurrency`` when it differs from the trading ``currency``.
+
+    Yahoo states the statement sizes (``totalRevenue``, ``netIncomeToCommon``,
+    ``freeCashflow``, ``ebitda``) in the reporting currency, which for a foreign
+    reporter differs from the currency its listing trades in. ``None`` when the two
+    agree or either is missing (nothing to disclose).
+    """
+    trading = info.get("currency")
+    financial = info.get("financialCurrency")
+    if not trading or not financial or str(financial).upper() == str(trading).upper():
+        return None
+    return str(financial)
+
+
+def _withhold_mixed_basis_ratios(fund: Fundamentals) -> None:
+    """Null every Yahoo ratio that divides a trading-currency figure by a
+    statement-currency one and stamp its ``field_meta`` withheld with the reason
+    (D-B2-3: no FX conversion, so a ratio on two bases is never served)."""
+    meta = fund.field_meta if fund.field_meta is not None else {}
+    for field_name, label in _MIXED_BASIS_RATIOS.items():
+        if getattr(fund, field_name) is None:
+            continue
+        setattr(fund, field_name, None)
+        prev = meta.get(field_name)
+        meta[field_name] = FieldMeta(
+            status="withheld",
+            provider=PROVIDER,
+            as_of=prev.as_of if prev else None,
+            reason=(
+                f"Yahoo's {label} mixes bases: the listing trades in {fund.currency} "
+                f"but reports its statements in {fund.financial_currency}, so the "
+                "ratio is off by the exchange rate; withheld"
+            ),
+        )
+    fund.field_meta = meta
+
+
 def get_quote(symbol: str) -> Quote:
     """Return the latest quote for ``symbol``.
 
@@ -281,14 +365,18 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     bars: list[OHLCVBar] = []
     for index, row in frame.iterrows():
         timestamp = index.to_pydatetime() if hasattr(index, "to_pydatetime") else index
+        ohlc = [_num(row[column]) for column in ("Open", "High", "Low", "Close")]
+        if any(value is None for value in ohlc):
+            continue  # a bar with a NaN/missing price cell is dropped, never served
+        open_, high, low, close = ohlc
         bars.append(
             OHLCVBar(
                 timestamp=timestamp,
-                open=float(row["Open"]),
-                high=float(row["High"]),
-                low=float(row["Low"]),
-                close=float(row["Close"]),
-                volume=float(row["Volume"]),
+                open=open_,
+                high=high,
+                low=low,
+                close=close,
+                volume=_num(row["Volume"]) or 0.0,
             )
         )
     return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
@@ -361,6 +449,8 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         sector=info.get("sector"),
         industry=info.get("industry"),
         currency=info.get("currency") or info.get("financialCurrency"),
+        financial_currency=_financial_currency(info),
+        ratio_price=_num(info.get("currentPrice") or info.get("regularMarketPrice")),
         # Valuation
         market_cap=_num(info.get("marketCap")),
         pe_ratio=_num(info.get("trailingPE")),
@@ -402,6 +492,9 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     # R13: stamp per-field provenance for every value actually served (the gate
     # then merges its withheld/flag entries on top).
     fund.field_meta = _served_field_meta(fund, fetched_at)
+    _stamp_price_trade_time(fund.field_meta, info.get("regularMarketTime"))
+    if fund.financial_currency is not None:
+        _withhold_mixed_basis_ratios(fund)
     return fund
 
 
@@ -426,6 +519,20 @@ def get_income_statement(symbol: str) -> IncomeStatement:
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
+
+
+def get_quarterly_period_ends(symbol: str) -> list[date]:
+    """The period-end dates of Yahoo's quarterly income statement for ``symbol``.
+
+    The witness for how many filed periods back Yahoo's trailing-12-month sizes:
+    a half-yearly filer shows two period ends in a year, not four.
+    """
+    normalized = _yahoo_symbol(symbol)
+    try:
+        frame = yf.Ticker(normalized).quarterly_income_stmt
+        return [pd.Timestamp(column).date() for column in frame.columns]
+    except Exception as exc:  # noqa: BLE001
+        raise _provider_error("quarterly income statement", symbol, exc) from exc
 
 
 def get_balance_sheet(symbol: str) -> BalanceSheet:

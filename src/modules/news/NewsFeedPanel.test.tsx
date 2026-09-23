@@ -56,6 +56,17 @@ describe("NewsFeedPanel", () => {
     expect(screen.getByRole("button", { name: /loading/i })).toBeInTheDocument();
   });
 
+  it("renders 'date unknown' for an item the feed did not date (R15-DATA-070)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ published_at: null })]);
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/date unknown/)).toBeInTheDocument();
+    expect(screen.queryByText(/\bnow\b/)).not.toBeInTheDocument();
+  });
+
   it("renders news items with headline, source, and sentiment", async () => {
     mockFetchNews.mockResolvedValue([
       newsItem(),

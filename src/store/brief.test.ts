@@ -1,16 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// The store self-persists via `autosaveLayout`. Mock it so a setter call in a
-// unit test (no dockview) is observable and never touches the network.
-vi.mock("@/lib/workspace", () => ({
-  autosaveLayout: vi.fn(() => Promise.resolve()),
-}));
-
-import { autosaveLayout } from "@/lib/workspace";
 import { briefBundle, resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import type { ResearchBriefData } from "../../types/brief";
-
-const autosaveMock = vi.mocked(autosaveLayout);
 
 function sampleBrief(overrides: Partial<ResearchBriefData> = {}): ResearchBriefData {
   return {
@@ -34,7 +25,6 @@ function sampleBrief(overrides: Partial<ResearchBriefData> = {}): ResearchBriefD
 describe("brief store", () => {
   beforeEach(() => {
     resetBriefStoreForTests();
-    autosaveMock.mockClear();
   });
 
   afterEach(() => {
@@ -46,12 +36,11 @@ describe("brief store", () => {
     expect(briefBundle()).toBeNull();
   });
 
-  it("setBrief stores the brief and triggers persistence", () => {
+  it("setBrief stores the brief", () => {
     const brief = sampleBrief();
     useBriefStore.getState().setBrief(brief);
 
     expect(useBriefStore.getState().brief).toEqual(brief);
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
   it("setBrief replaces a prior brief (latest run wins)", () => {
@@ -59,17 +48,14 @@ describe("brief store", () => {
     useBriefStore.getState().setBrief(sampleBrief({ query: "second" }));
 
     expect(useBriefStore.getState().brief?.query).toBe("second");
-    expect(autosaveMock).toHaveBeenCalledTimes(2);
   });
 
-  it("clearBrief resets to empty and triggers persistence", () => {
+  it("clearBrief resets to empty", () => {
     useBriefStore.getState().setBrief(sampleBrief());
-    autosaveMock.mockClear();
 
     useBriefStore.getState().clearBrief();
 
     expect(useBriefStore.getState().brief).toBeNull();
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
   it("toBundle / briefBundle snapshot the persistence shape", () => {
@@ -80,7 +66,7 @@ describe("brief store", () => {
     expect(useBriefStore.getState().toBundle()).toEqual(brief);
   });
 
-  it("fromBundle round-trips a serialised brief and triggers persistence", () => {
+  it("fromBundle round-trips a serialised brief", () => {
     const brief = sampleBrief();
     const bundle = brief; // what would ride SerializedWorkspace.brief
 
@@ -88,7 +74,6 @@ describe("brief store", () => {
 
     expect(useBriefStore.getState().brief).toEqual(brief);
     expect(briefBundle()).toEqual(bundle);
-    expect(autosaveMock).toHaveBeenCalledTimes(1);
   });
 
   it("fromBundle(null) restores the empty state", () => {
@@ -153,7 +138,6 @@ describe("brief store", () => {
 describe("brief lifecycle state machine (R10 D39)", () => {
   beforeEach(() => {
     resetBriefStoreForTests();
-    autosaveMock.mockClear();
   });
 
   function published(overrides: Partial<ResearchBriefData> = {}): ResearchBriefData {

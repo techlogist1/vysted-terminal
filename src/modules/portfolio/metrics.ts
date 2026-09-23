@@ -19,7 +19,12 @@ export interface PositionRow {
   pnl: number | null;
   /** P&L as a percentage of cost value, or `null` without a quote. */
   pnlPercent: number | null;
-  /** Share of total portfolio market value (0–1), or `null` without a quote. */
+  /**
+   * Share of total portfolio market value (0–1), or `null` without a quote
+   * OR when the resolved positions span more than one quote currency
+   * (R15-DATA-042 / R15-CODE-PLATFORM-053 — a weight computed against a
+   * cross-currency sum is a fabricated ratio, not just a display concern).
+   */
   weight: number | null;
 }
 
@@ -67,8 +72,13 @@ export interface PortfolioSummary {
    * numerator) produced a misleading percentage (Phase 9.5 F-GUI-1).
    */
   totalPnlPercent: number;
-  /** Largest single-position weight (0–1) — a basic concentration metric. */
-  concentration: number;
+  /**
+   * Largest single-position weight (0–1) — a basic concentration metric.
+   * `null` when {@link mixedCurrencies} — it would be computed from
+   * cross-currency weights and carry no marker that it is meaningless
+   * (R15-CODE-PLATFORM-053).
+   */
+  concentration: number | null;
   /** Count of positions whose live quote failed to resolve. */
   unresolvedCount: number;
   /** Per-currency subtotals across the RESOLVED positions, in first-seen
@@ -139,15 +149,21 @@ export function buildPortfolioSummary(
   }));
   const mixedCurrencies = byCurrency.length > 1;
 
+  // R15-DATA-042 / R15-CODE-PLATFORM-053: weight and concentration are a
+  // share of the SUMMED market value, which is fabricated (D57) once the
+  // resolved positions span more than one currency — null them in the
+  // CONTRACT, not just in the panel that happens to read it.
   const rows: PositionRow[] = partials.map((row) => ({
     ...row,
     weight:
-      row.marketValue !== null && totalMarketValue !== 0
+      row.marketValue !== null && totalMarketValue !== 0 && !mixedCurrencies
         ? row.marketValue / totalMarketValue
         : null,
   }));
 
-  const concentration = rows.reduce((max, row) => Math.max(max, row.weight ?? 0), 0);
+  const concentration = mixedCurrencies
+    ? null
+    : rows.reduce((max, row) => Math.max(max, row.weight ?? 0), 0);
   const unresolvedCount = rows.filter((row) => row.quote === null).length;
 
   return {
