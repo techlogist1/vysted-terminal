@@ -532,6 +532,38 @@ describe("ChatSidebar", () => {
     expect(terminal.charts[0].symbol).toBe("SPY");
   });
 
+  it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
+    // The real dockview ids: PanelHost focuses "equity-overview" while the
+    // chart ("chart") still shows SPY.
+    const bus = usePanelContextBus.getState();
+    bus.publish({
+      source: "chart",
+      kind: "snapshot",
+      payload: { symbol: "SPY", timeframe: "1d" },
+      emittedAt: 1,
+    });
+    bus.publish({
+      source: "equity-overview",
+      kind: "symbol",
+      payload: { ticker: "INFY", loadedSections: ["quote"] },
+      emittedAt: 2,
+    });
+    bus.setFocusedSource("equity-overview");
+    render(<ChatSidebar />);
+    expect(screen.getByLabelText("Panel context")).toHaveTextContent(
+      "Context: equity-overview (INFY)",
+    );
+    expect(screen.getByRole("button", { name: /Research \$INFY/ })).toBeInTheDocument();
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/agent buffett is this a moat business?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1));
+    const payload = streamAgentInvocationMock.mock.calls[0]![1] as unknown as {
+      contextSnapshot: { bySource: Record<string, { focusedSymbol: string }> };
+    };
+    expect(payload.contextSnapshot.bySource["__terminal__"].focusedSymbol).toBe("INFY");
+  });
+
   it("/help shows the cheat-sheet without sending a message", () => {
     render(<ChatSidebar />);
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;

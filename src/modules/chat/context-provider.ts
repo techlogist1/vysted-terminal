@@ -213,6 +213,23 @@ function briefStateForSnapshot(): TerminalBrief {
   return { phase: "empty" };
 }
 
+/**
+ * The symbol the focused panel publishes, whatever its kind (`symbol` on a
+ * chart, `ticker` on Equity Overview), or null when the focused panel carries
+ * none. The one derivation behind the context badge, the suggestion chips and
+ * the snapshot's `focusedSymbol` (R15-CODE-FRONTEND-015).
+ */
+export function focusedSymbolFromBus(
+  bus: Record<string, { payload: unknown } | undefined>,
+  focusedSource: string | null,
+): string | null {
+  if (!focusedSource) {
+    return null;
+  }
+  const payload = asRecord(bus[focusedSource]?.payload);
+  return asString(payload.symbol) ?? asString(payload.ticker);
+}
+
 /** Read the live bus + stores once and assemble a structured snapshot. */
 export function captureTerminalState(): TerminalState {
   const bus = usePanelContextBus.getState();
@@ -272,10 +289,18 @@ export function captureTerminalState(): TerminalState {
     portfolio = portfolioFromStore();
   }
 
+  // The focused panel's own symbol wins (a focused Equity Overview on INFY is
+  // "this", not the chart behind it); a panel with none falls back to a chart,
+  // then the watchlist, so "this" still resolves.
   const focusedPanel = bus.focusedSource;
   const focusedChart =
     (focusedPanel && charts.find((c) => c.panelId === focusedPanel)) || charts[0] || null;
-  const focusedSymbol = focusedChart?.symbol ?? watchlist.selected ?? watchlist.symbols[0] ?? null;
+  const focusedSymbol =
+    focusedSymbolFromBus(bySource, focusedPanel) ??
+    focusedChart?.symbol ??
+    watchlist.selected ??
+    watchlist.symbols[0] ??
+    null;
 
   // Open panels + viewport size from the dockview layout, if mounted.
   let openPanels: string[] = [];

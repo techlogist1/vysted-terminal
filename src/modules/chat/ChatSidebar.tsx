@@ -66,7 +66,7 @@ import {
 } from "./composer-collapse";
 import { DEPTH_TOKEN, DepthControl } from "./DepthControl";
 import { ModelControl } from "./ModelControl";
-import { captureTerminalState } from "./context-provider";
+import { captureTerminalState, focusedSymbolFromBus } from "./context-provider";
 import {
   applyMentionPrefixes,
   insertMentionToken,
@@ -2072,20 +2072,12 @@ function describeContext(snapshot: {
       ? "Context: none"
       : `Context: ${count} panel${count === 1 ? "" : "s"} active`;
   }
-  const focused = snapshot.lastEventBySource[snapshot.focusedSource];
-  if (!focused) {
+  const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
+  if (!symbol) {
     return `Context: ${snapshot.focusedSource}`;
   }
-  const payload = focused.payload;
-  if (payload && typeof payload === "object") {
-    const obj = payload as Record<string, unknown>;
-    if (typeof obj.symbol === "string") {
-      const tf = typeof obj.timeframe === "string" ? `, ${obj.timeframe}` : "";
-      return `Context: ${snapshot.focusedSource} (${obj.symbol}${tf})`;
-    }
-    if (typeof obj.ticker === "string") {
-      return `Context: ${snapshot.focusedSource} (${obj.ticker})`;
-    }
-  }
-  return `Context: ${snapshot.focusedSource}`;
+  const payload = snapshot.lastEventBySource[snapshot.focusedSource]?.payload;
+  const timeframe = (payload as { timeframe?: unknown } | undefined)?.timeframe;
+  const tf = typeof timeframe === "string" ? `, ${timeframe}` : "";
+  return `Context: ${snapshot.focusedSource} (${symbol}${tf})`;
 }
