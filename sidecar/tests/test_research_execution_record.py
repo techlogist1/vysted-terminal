@@ -231,6 +231,25 @@ def test_degraded_deep_run_states_why(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "no model configured" in reason
 
 
+def test_ultra_engine_stated_reason_reaches_the_record(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-RESEARCH-005: a heavy-loop payload that states its own degradation
+    carries it into the execution record (it was dropped for null)."""
+
+    async def _timed_out(query: str, **_kwargs: Any):
+        return {
+            "ok": True,
+            "query": query,
+            "markdown": "floor",
+            "execution_loop": "heavy",
+            "degraded_reason": "synthesis_timeout",
+        }
+
+    monkeypatch.setattr("services.agent_tools.deep_research.run_deep_brief", _timed_out)
+    out = _run(_research({"query": "kaynes", "depth": "ultra"}))
+    assert out["execution"]["loop"] == "heavy"
+    assert out["execution"]["degraded_reason"] == "synthesis_timeout"
+
+
 def test_legacy_payload_without_execution_loop_derives_with_reason(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
