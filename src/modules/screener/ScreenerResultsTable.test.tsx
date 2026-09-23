@@ -9,6 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import type { ScreenerResult, ScreenerResultRow } from "../../../types/screener";
 import { useScreenerStore } from "@/store/screener";
+import { saveTextArtifact } from "@/lib/export-artifact";
 import { useSettingsStore } from "@/store/settings";
 
 import { ScreenerResultsTable } from "./ScreenerResultsTable";
@@ -16,6 +17,9 @@ import { ScreenerResultsTable } from "./ScreenerResultsTable";
 vi.mock("@/lib/sidecar-client", () => ({
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
+}));
+vi.mock("@/lib/export-artifact", () => ({
+  saveTextArtifact: vi.fn(async () => ({ path: "/data/exports/csv/out.csv", fellBack: false })),
 }));
 
 /**
@@ -147,6 +151,17 @@ describe("ScreenerResultsTable", () => {
   it("shows an empty placeholder when there is no result", () => {
     render(<ScreenerResultsTable />);
     expect(screen.getByText(/run the screener/i)).toBeInTheDocument();
+  });
+
+  it("R15-UI-009: Export CSV saves through the Rust text writer, not a Blob download", () => {
+    useScreenerStore.setState({ lastResult: RESULT, status: "ready" });
+    render(<ScreenerResultsTable />);
+    fireEvent.click(screen.getByRole("button", { name: /export csv/i }));
+    expect(saveTextArtifact).toHaveBeenCalledWith(
+      "csv",
+      "vysted-screener-sp500.csv",
+      expect.stringContaining("AAPL"),
+    );
   });
 
   it("renders the rows when a result is present", () => {

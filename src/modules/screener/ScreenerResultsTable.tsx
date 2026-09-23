@@ -5,6 +5,7 @@ import { Download, SlidersHorizontal, FilterX, Loader2 } from "lucide-react";
 
 import { cn, DataTable, type DataColumn, type DataTableSort } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
+import { downloadCsv } from "@/lib/csv";
 import {
   currencyAffix,
   formatCompactMoney,
@@ -278,16 +279,9 @@ function rowsToCsv(rows: ScreenerResultRow[]): string {
   return lines.join("\n");
 }
 
+/** Save through the Rust writer: a Blob + `<a download>` no-ops in WKWebView (R15-UI-009). */
 function downloadScreenerCsv(rows: ScreenerResultRow[], universe: string): void {
-  const blob = new Blob([rowsToCsv(rows)], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `vysted-screener-${universe}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  void downloadCsv(`vysted-screener-${universe}.csv`, rowsToCsv(rows));
 }
 
 // Money-valued sort keys — a mixed-currency universe (e.g. a custom
