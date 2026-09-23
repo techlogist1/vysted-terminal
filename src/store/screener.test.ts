@@ -566,6 +566,33 @@ describe("useScreenerStore", () => {
     });
   });
 
+  describe("adoptRegionDefaultUniverse (R15-CODE-DATA-004)", () => {
+    it("adopts the sidecar's IN default (nifty50) on first mount", async () => {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "nifty50" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(vi.mocked(sidecarGet)).toHaveBeenCalledWith("/screener/default-universe");
+      expect(useScreenerStore.getState().universe).toBe("nifty50");
+    });
+
+    it("keeps sp500 for a US session", async () => {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "sp500" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(useScreenerStore.getState().universe).toBe("sp500");
+    });
+
+    it("never overrides a restored saved screen's universe", async () => {
+      useScreenerStore
+        .getState()
+        .setSavedScreens([
+          { name: "crypto", universe: "crypto-top50", criteria: [], combinator: "and" },
+        ]);
+      useScreenerStore.getState().loadScreen("crypto");
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ universe: "nifty50" });
+      await useScreenerStore.getState().adoptRegionDefaultUniverse();
+      expect(useScreenerStore.getState().universe).toBe("crypto-top50");
+    });
+  });
+
   describe("loadUniverse", () => {
     it("loads + caches the universe metadata", async () => {
       vi.mocked(sidecarGet).mockResolvedValueOnce(UNIVERSE_SAMPLE);

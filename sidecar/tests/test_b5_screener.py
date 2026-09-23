@@ -131,6 +131,16 @@ async def test_all_rate_limited_run_is_partial_with_nothing_evaluated(
     assert result.throttled is True
 
 
+def test_default_universe_route_follows_the_request_region(client) -> None:  # noqa: ANN001
+    """R15-CODE-DATA-004: the region default comes from the sidecar's one map."""
+    assert client.get("/screener/default-universe", headers={"X-Vysted-Region": "IN"}).json() == {
+        "universe": "nifty50"
+    }
+    assert client.get("/screener/default-universe", headers={"X-Vysted-Region": "US"}).json() == {
+        "universe": "sp500"
+    }
+
+
 @pytest.mark.asyncio
 async def test_warm_loop_is_lazy_and_follows_the_request_region(
     monkeypatch: pytest.MonkeyPatch,

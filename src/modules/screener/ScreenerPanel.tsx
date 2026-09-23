@@ -121,6 +121,11 @@ export function ScreenerPanel() {
   }, [universe, loadUniverse]);
   useRetryOnSidecarReady(loadDefault, [universe]);
 
+  // R15-CODE-DATA-004: open on the session region's default universe (the
+  // sidecar owns the map) unless the user or a saved screen already chose one.
+  const adoptRegionDefaultUniverse = useScreenerStore((s) => s.adoptRegionDefaultUniverse);
+  useRetryOnSidecarReady(adoptRegionDefaultUniverse, [region]);
+
   const universeInfo = universeMeta[universe];
   const isRunning = status === "loading";
 

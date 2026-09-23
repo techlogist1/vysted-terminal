@@ -156,6 +156,9 @@ const _inFlightUniverses = new Map<string, Promise<ScreenerUniverse | null>>();
 interface ScreenerState {
   // --- editable draft -------------------------------------------------
   universe: ScreenerUniverseId;
+  /** True once the user, a saved screen or the agent picked the universe — the
+   *  region default (R15-CODE-DATA-004) never overrides such a choice. */
+  universeChosen: boolean;
   customSymbols: string;
   criteria: ScreenerCriterion[];
   /** How the flat criteria combine: "and" = match ALL (default), "or" = ANY. */
@@ -197,6 +200,9 @@ interface ScreenerState {
 
   // --- public API -----------------------------------------------------
   setUniverse: (id: ScreenerUniverseId) => void;
+  /** Adopt the sidecar's default universe for the session region unless a
+   *  universe was already chosen. Rejects when the sidecar is unreachable. */
+  adoptRegionDefaultUniverse: () => Promise<void>;
   setCustomSymbols: (raw: string) => void;
   setCombinator: (combinator: ScreenerCombinator) => void;
   setCriteria: (criteria: ScreenerCriterion[]) => void;
@@ -285,6 +291,7 @@ function parseCustomSymbols(raw: string): string[] {
 
 export const useScreenerStore = create<ScreenerState>((set, get) => ({
   universe: "sp500",
+  universeChosen: false,
   customSymbols: "",
   criteria: DEFAULT_CRITERIA,
   combinator: "and",
@@ -302,7 +309,13 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   universeStatus: {},
   savedScreens: [],
 
-  setUniverse: (id) => set({ universe: id }),
+  setUniverse: (id) => set({ universe: id, universeChosen: true }),
+  adoptRegionDefaultUniverse: async () => {
+    const { universe } = await sidecarGet<{ universe: ScreenerUniverseId }>(
+      "/screener/default-universe",
+    );
+    if (!get().universeChosen && typeof universe === "string") set({ universe });
+  },
   setCustomSymbols: (raw) => set({ customSymbols: raw }),
   setCombinator: (combinator) => set({ combinator }),
   setCriteria: (criteria) => set({ criteria }),
@@ -331,6 +344,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       // simple builder reflects it; a nested one drives advanced mode.
       combinator: group && group.combinator === "or" && !hasNestedGroup(group) ? "or" : "and",
       universe: universe ?? state.universe,
+      universeChosen: state.universeChosen || universe !== undefined,
       // `formula` overrides when provided; omitting it leaves the user's own formula.
       ...(formula !== undefined ? { formula } : {}),
     })),
@@ -673,6 +687,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     if (!screen) return;
     set({
       universe: screen.universe,
+      universeChosen: true,
       criteria: screen.criteria,
       group: screen.group ?? null,
       formula: screen.formula ?? "",
@@ -684,6 +699,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   __resetForTests: () =>
     set({
       universe: "sp500",
+      universeChosen: false,
       customSymbols: "",
       criteria: DEFAULT_CRITERIA,
       combinator: "and",

@@ -1,6 +1,6 @@
 """Screener router — Phase 6 (Teammate Sc); R7 Pillar 3 formula layer; R10 SSE.
 
-Four endpoints:
+Five endpoints:
 
   - ``POST /screener/run``              — run the screener (unary, now wall-
     budget-bounded — D40); returns :class:`ScreenerResult`.
@@ -11,6 +11,8 @@ Four endpoints:
     (the store keeps every completed chunk) and stops.
   - ``GET  /screener/universe``          — resolve a universe by id; returns
     :class:`ScreenerUniverse`.
+  - ``GET  /screener/default-universe``  — the request region's default
+    universe id (``{"universe": …}``; US→sp500, IN→nifty50, FR-060).
   - ``POST /screener/formula/validate``  — validate a custom formula against
     the restricted expression grammar; returns :class:`FormulaValidation`
     (``ok`` / ``error`` / caret ``position`` / referenced ``fields``) — never
@@ -72,9 +74,8 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     skips), never a multi-minute hang.
 
     ``ScreenerRequest.universe`` is required (no default), so the universe is
-    always explicit here — region-aware default selection (US→sp500, IN→nifty50,
-    FR-060) lives in ``services.screener.default_universe_for_region`` for the
-    callers that must *choose* a default rather than override an explicit one.
+    always explicit here. A caller that must *choose* a default reads it from
+    ``GET /screener/default-universe`` (the panel adopts it on mount, FR-060).
     """
     try:
         return await screener.run_screener(request)
@@ -170,6 +171,17 @@ async def validate_formula(request: FormulaValidateRequest) -> FormulaValidation
     canonical fields it references.
     """
     return FormulaValidation(**screener_formula.validate_formula(request.formula))
+
+
+@router.get("/default-universe")
+async def get_default_universe() -> dict[str, ScreenerUniverseId]:
+    """The request region's default universe (R15-CODE-DATA-004, FR-060).
+
+    The one source of the region→universe map is
+    :func:`services.screener.default_universe_for_region`; the panel adopts
+    this on mount unless the user or a saved screen already chose one.
+    """
+    return {"universe": screener.default_universe_for_region()}
 
 
 @router.get("/universe", response_model=ScreenerUniverse)
