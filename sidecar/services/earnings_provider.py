@@ -45,6 +45,7 @@ from typing import Any
 
 import pandas as pd
 
+from config import get_region
 from models.earnings import (
     EarningsEstimateDetail,
     EarningsEvent,
@@ -55,14 +56,16 @@ from models.earnings import (
     EarningsUpcomingResponse,
 )
 from services.errors import ProviderError
+from services.nse_provider import _EVENT_CALENDAR_PATH, _get_json
 from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
 PROVIDER = "yfinance"
 
-# Default "interesting" symbol universe used when no watchlist is supplied —
-# small list, deterministic, large-cap so the upstream has data for them.
+# Default US universe used when no watchlist is supplied outside the IN
+# region — small list, deterministic, large-cap so the upstream has data for
+# them. An IN session reads NSE's market-wide event calendar instead.
 _DEFAULT_UNIVERSE: tuple[str, ...] = (
     "AAPL",
     "MSFT",
@@ -240,6 +243,54 @@ def _event_from_calendar(
 
 
 # ---------------------------------------------------------------------------
+# NSE market-wide event calendar (the IN default universe, R15-DATA-028)
+# ---------------------------------------------------------------------------
+
+_NSE_EVENT_CALENDAR_REFERER = (
+    "https://www.nseindia.com/companies-listing/corporate-filings-event-calendar"
+)
+
+
+def _nse_results_events(start_date: date, end_date: date) -> list[EarningsEvent]:
+    """Every NSE board meeting in ``[start, end]`` whose purpose is results.
+
+    The feed is market-wide (no ``symbol`` param), so it answers "which Indian
+    companies report this week" — a board meeting for a dividend, split or
+    fund raise is not a results event and is excluded. The feed carries no
+    consensus, so the estimate fields stay None."""
+    params = {
+        "index": "equities",
+        "from_date": start_date.strftime("%d-%m-%Y"),
+        "to_date": end_date.strftime("%d-%m-%Y"),
+    }
+    payload = _get_json(_EVENT_CALENDAR_PATH, params, _NSE_EVENT_CALENDAR_REFERER)
+    if not isinstance(payload, list):
+        raise ProviderError("nse event calendar: malformed payload")
+    events: list[EarningsEvent] = []
+    for row in payload:
+        if not isinstance(row, dict) or "results" not in str(row.get("purpose") or "").lower():
+            continue
+        symbol = str(row.get("symbol") or "").strip()
+        try:
+            scheduled = datetime.strptime(str(row.get("date")), "%d-%b-%Y").date()
+        except ValueError:
+            continue
+        if not symbol or not start_date <= scheduled <= end_date:
+            continue
+        events.append(
+            EarningsEvent(
+                symbol=f"{symbol}.NS",
+                company_name=row.get("company") or None,
+                scheduled_date=scheduled,
+                time_of_day="unknown",
+                currency="INR",
+                provider="nse",
+            )
+        )
+    return events
+
+
+# ---------------------------------------------------------------------------
 # Public async API
 # ---------------------------------------------------------------------------
 
@@ -251,16 +302,21 @@ async def get_upcoming(
 ) -> EarningsUpcomingResponse:
     """Return scheduled earnings events in ``[start, end]`` for ``watchlist``.
 
-    Defaults: ``start`` = today, ``end`` = today + 7 days, ``watchlist`` = a
-    small built-in universe of large-caps so the panel populates without
-    a configured watchlist.
+    Defaults: ``start`` = today, ``end`` = today + 7 days. With no
+    ``watchlist`` an IN session reads NSE's market-wide event calendar (every
+    results board meeting in the window); any other region uses a small
+    built-in universe of US large-caps so the panel populates.
     """
     today = datetime.now(tz=UTC).date()
     start_date = start or today
     end_date = end or (today + timedelta(days=7))
-    universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
     if start_date > end_date:
         raise ProviderError("start_date must be on or before end_date")
+    if not watchlist and get_region() == "IN":
+        events_in = await asyncio.to_thread(_nse_results_events, start_date, end_date)
+        events_in.sort(key=lambda event: (event.scheduled_date, event.symbol))
+        return EarningsUpcomingResponse(start_date=start_date, end_date=end_date, events=events_in)
+    universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
 
     async def _one(symbol: str) -> EarningsEvent | None:
         try:

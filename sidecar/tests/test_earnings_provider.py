@@ -299,3 +299,102 @@ async def test_history_rows_carry_no_inferred_fiscal_period(
     assert history.history and all(row.fiscal_period is None for row in history.history)
     surprises = await earnings_provider.get_surprises("AAPL")
     assert all(row.fiscal_period is None for row in surprises.surprises)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-028 — the IN default is NSE's market-wide event calendar
+# ---------------------------------------------------------------------------
+
+#: Market-wide ``/api/event-calendar`` rows (the live shape, 24-Sep-2026).
+_NSE_EVENT_CALENDAR_FIXTURE = [
+    {
+        "symbol": "ESDS",
+        "company": "ESDS Software Solution Limited",
+        "purpose": "Financial Results",
+        "bm_desc": "To consider and approve the financial results for the period ended Jun 30",
+        "date": "24-Sep-2026",
+    },
+    {
+        "symbol": "INFY",
+        "company": "Infosys Limited",
+        "purpose": "Financial Results/Dividend",
+        "bm_desc": "To consider and approve the financial results and interim dividend",
+        "date": "26-Sep-2026",
+    },
+    {
+        "symbol": "AIFL",
+        "company": "Ashapura Intimates Fashion Limited",
+        "purpose": "Fund Raising/Other business matters",
+        "bm_desc": "To consider Fund Raising and other business matters",
+        "date": "25-Sep-2026",
+    },
+    {
+        "symbol": "GATECH",
+        "company": "GACM Technologies Limited",
+        "purpose": "Dividend",
+        "bm_desc": "To consider an interim dividend",
+        "date": "28-Sep-2026",
+    },
+]
+
+
+@pytest.mark.asyncio
+async def test_in_default_reads_the_nse_market_wide_event_calendar(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import config
+
+    calls: list[tuple[str, dict[str, str]]] = []
+
+    def fake_get_json(path: str, params: dict[str, str], referer: str) -> object:
+        calls.append((path, params))
+        return _NSE_EVENT_CALENDAR_FIXTURE
+
+    def no_yahoo(symbol: str) -> _FakeEarningsTicker:
+        raise AssertionError(f"the IN default must not walk a per-symbol universe ({symbol})")
+
+    monkeypatch.setattr(earnings_provider, "_get_json", fake_get_json)
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", no_yahoo)
+    token = config.set_request_region("IN")
+    try:
+        response = await earnings_provider.get_upcoming(date(2026, 9, 24), date(2026, 10, 1))
+    finally:
+        config.reset_request_region(token)
+
+    assert calls == [
+        (
+            "/api/event-calendar",
+            {"index": "equities", "from_date": "24-09-2026", "to_date": "01-10-2026"},
+        )
+    ]
+    assert [(e.symbol, e.scheduled_date) for e in response.events] == [
+        ("ESDS.NS", date(2026, 9, 24)),
+        ("INFY.NS", date(2026, 9, 26)),
+    ]
+    infy = response.events[1]
+    assert (infy.company_name, infy.currency, infy.provider) == ("Infosys Limited", "INR", "nse")
+    assert infy.eps_estimate_mean is None and infy.estimate_analyst_count is None
+
+
+@pytest.mark.asyncio
+async def test_non_in_default_keeps_the_us_universe(monkeypatch: pytest.MonkeyPatch) -> None:
+    import config
+
+    asked: list[str] = []
+
+    def recording(symbol: str) -> _FakeEarningsTicker:
+        asked.append(symbol)
+        return _FakeEarningsTicker(symbol)
+
+    def no_nse(*_args: object) -> object:
+        raise AssertionError("the US default must not read the NSE calendar")
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", recording)
+    monkeypatch.setattr(earnings_provider, "_get_json", no_nse)
+    token = config.set_request_region("US")
+    try:
+        response = await earnings_provider.get_upcoming(date(2026, 5, 19), date(2026, 5, 21))
+    finally:
+        config.reset_request_region(token)
+    assert sorted(asked) == sorted(earnings_provider._DEFAULT_UNIVERSE)
+    assert {e.symbol for e in response.events} == set(earnings_provider._DEFAULT_UNIVERSE)
