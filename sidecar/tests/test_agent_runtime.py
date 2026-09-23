@@ -531,8 +531,9 @@ async def test_invoke_agent_omits_context_when_none(monkeypatch: pytest.MonkeyPa
 
 def test_native_search_enabled_provider_level() -> None:
     # The provider-level native providers always qualify (any model rides the
-    # provider's own search), regardless of the per-model hint.
-    for prov in ("anthropic", "gemini", "groq", "xai"):
+    # provider's own search), regardless of the per-model hint. Gemini and Groq
+    # are per-model (R15-AGENT-005; see test_native_search.py).
+    for prov in ("anthropic", "xai"):
         assert agent_runtime._native_search_enabled(prov, None) is True
         assert agent_runtime._native_search_enabled(prov, "none") is True
 

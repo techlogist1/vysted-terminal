@@ -24,6 +24,7 @@ already-fetched response payloads only.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 # The common citation record. Pass B's plugin contract (PASS_B_RESEARCH §C.4)
@@ -45,21 +46,23 @@ except Exception:  # ImportError today; broaden so a half-built module can't cra
 
 
 #: Providers that CAN serve native server-side web search billed to the user's
-#: own key. Five expose it at the PROVIDER level (every routable model supports
-#: it). ``openrouter`` is added in WS5 but is a special case: it is a broker, so
-#: native search is a PER-MODEL property — the agent runtime gates OpenRouter on
-#: the resolved model's :attr:`LLMModelOption.web_search` flag, not on mere
-#: membership here. Membership only means "this provider has a native-search
-#: rung at all"; the runtime gate is ``agent_runtime._native_search_enabled``.
+#: own key on at least some of their models (see
+#: :data:`PROVIDER_LEVEL_NATIVE_SEARCH` for the ones where every model does).
+#: ``openrouter`` is a broker, so native search is a PER-MODEL property — the
+#: agent runtime gates OpenRouter on the resolved model's
+#: :attr:`LLMModelOption.web_search` flag, not on mere membership here.
+#: Membership only means "this provider has a native-search rung at all"; the
+#: runtime gate is ``agent_runtime._native_search_enabled``.
 SUPPORTS_NATIVE_SEARCH: set[str] = {"anthropic", "openai", "gemini", "groq", "xai", "openrouter"}
 
 #: The providers whose native search is a PROVIDER-level guarantee (any model
-#: routes the provider's own search). OpenRouter is excluded — it is per-model —
-#: and so is **openai**: on the chat-completions surface OpenAI serves native
-#: search only on its ``*-search-preview`` models (see
-#: :func:`openai_native_search_supported`); the Responses-API ``web_search``
-#: tools entry is rejected 400 on every other model.
-PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "gemini", "groq", "xai"}
+#: routes the provider's own search). Everything else is per-model: OpenRouter
+#: (a broker), **openai** (chat-completions search is ``*-search-preview`` only,
+#: see :func:`openai_native_search_supported`), **groq** (only its Compound
+#: systems search, see :func:`groq_native_search_supported`) and **gemini**
+#: (``google_search`` combines with function tools on Gemini 3 only, see
+#: :func:`gemini_native_search_supported`).
+PROVIDER_LEVEL_NATIVE_SEARCH: set[str] = {"anthropic", "xai"}
 
 #: Anthropic's server-side web-search tool type (dated tool version).
 ANTHROPIC_WEB_SEARCH_TYPE = "web_search_20250305"
@@ -102,6 +105,32 @@ def openai_native_search_supported(model: str | None) -> bool:
     unsupported model must fall back to the local search tool (FR-082).
     """
     return OPENAI_SEARCH_MODEL_MARKER in (model or "").lower()
+
+
+def groq_native_search_supported(model: str | None) -> bool:
+    """Whether THIS Groq model searches server-side.
+
+    Only the Compound systems (``groq/compound``, ``groq/compound-mini``) run
+    web search; every other Groq model has none, so it keeps the local tool.
+    """
+    return "compound" in (model or "").lower()
+
+
+_GEMINI_MAJOR = re.compile(r"(?:^|/)gemini-(\d+)")
+
+
+def gemini_native_search_supported(model: str | None, *, with_function_tools: bool = True) -> bool:
+    """Whether THIS Gemini model can run ``google_search`` on the request.
+
+    Grounding alone works on every Gemini model, but combining the built-in
+    ``google_search`` tool with function declarations is Gemini 3 only
+    (ai.google.dev tool-combination docs), so an agent round on Gemini 2.5
+    keeps the local ``web_search`` tool instead.
+    """
+    if not with_function_tools:
+        return True
+    match = _GEMINI_MAJOR.search((model or "").lower())
+    return match is not None and int(match.group(1)) >= 3
 
 
 def openai_web_search_options() -> dict[str, Any]:
@@ -164,18 +193,27 @@ def provider_supports_native_search(provider_id: str) -> bool:
 
 
 def native_search_available(
-    provider_id: str, model_web_search: str | None = None, model: str | None = None
+    provider_id: str,
+    model_web_search: str | None = None,
+    model: str | None = None,
+    *,
+    with_function_tools: bool = True,
 ) -> bool:
     """Decide whether THIS (provider, resolved-model) pair serves native search.
 
     THE one detection truth (the agent runtime's injection gate and Team B's
-    tier_a cross-verify both read it, so the two surfaces can never disagree):
+    tier_a cross-verify both read it, so the two surfaces can never disagree).
+    ``with_function_tools`` says whether the request also carries function
+    tools (an agent round does; the one-shot cross-verify call does not):
 
-    * the PROVIDER-level providers (anthropic/gemini/groq/xai) always qualify —
-      every routable model rides the provider's own search;
+    * the PROVIDER-level providers (anthropic/xai) always qualify — every
+      routable model rides the provider's own search;
     * ``openai`` is per-MODEL: only its ``*-search-preview`` models take the
       chat-completions ``web_search_options`` param (anything else 400s on a
       ``web_search`` tool), so the rest keep the local search tool;
+    * ``groq`` is per-MODEL: only the Compound systems search;
+    * ``gemini`` is per-MODEL alongside function tools (Gemini 3 only); with no
+      function tools every Gemini model grounds on ``google_search``;
     * ``openrouter`` is a broker, so native search is a per-MODEL property:
       ``model_web_search`` is the resolved model's ``web_search`` capability
       flag (threaded from the frontend's public catalog) — only ``"native"``
@@ -187,6 +225,10 @@ def native_search_available(
         return True
     if provider_id == "openai":
         return openai_native_search_supported(model)
+    if provider_id == "groq":
+        return groq_native_search_supported(model)
+    if provider_id == "gemini":
+        return gemini_native_search_supported(model, with_function_tools=with_function_tools)
     if provider_id == "openrouter":
         return (model_web_search or "").strip().lower() == "native"
     return False
@@ -225,9 +267,10 @@ async def native_search_oneshot(
     bonus, never a requirement. Never raises; never logs the key.
     ``model_web_search`` is the resolved model's capability flag (OpenRouter is
     per-model); an unavailable pair returns an honest ``ok: False`` rather than
-    a silent ungrounded run.
+    a silent ungrounded run. The call sends no function tools, so Gemini 2.5
+    still grounds here.
     """
-    if not native_search_available(provider_id, model_web_search, model):
+    if not native_search_available(provider_id, model_web_search, model, with_function_tools=False):
         return {"ok": False, "reason": "unavailable", "text": "", "citations": []}
 
     import asyncio
@@ -417,6 +460,8 @@ __all__ = [
     "Citation",
     "anthropic_web_search_tool",
     "gemini_google_search_tool",
+    "gemini_native_search_supported",
+    "groq_native_search_supported",
     "native_search_available",
     "native_search_oneshot",
     "normalize_anthropic",

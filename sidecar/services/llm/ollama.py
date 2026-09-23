@@ -30,7 +30,8 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, invalid_tool_args
+from .tool_call_rescue import rescue_leaked_tool_call
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
 #: copilot agent's ~50 tool schemas are serialized into it, before the user's
@@ -98,17 +99,22 @@ def _parse_tool_input(arguments: Any) -> dict[str, Any]:
 
     Recent Ollama models return ``arguments`` already parsed as a dict, but
     some emit a JSON string (the OpenAI convention). Tolerate both, and never
-    raise — a malformed payload degrades to ``{}`` so the round still closes.
+    raise. Absent or empty arguments are a no-argument call (``{}``); a
+    malformed or non-object payload is stamped with the invalid-args sentinel
+    so the model is told its arguments were wrong, never run on ``{}``.
     """
     if isinstance(arguments, dict):
         return arguments
-    if isinstance(arguments, str) and arguments:
+    if arguments is None or arguments == "":
+        return {}
+    if isinstance(arguments, str):
         try:
             parsed = json.loads(arguments)
         except (ValueError, TypeError):
-            return {}
-        return parsed if isinstance(parsed, dict) else {}
-    return {}
+            return invalid_tool_args("arguments were not valid JSON", arguments)
+        if isinstance(parsed, dict):
+            return parsed
+    return invalid_tool_args("arguments were not a JSON object", str(arguments))
 
 
 class OllamaProvider(LLMProvider):
@@ -158,6 +164,9 @@ class OllamaProvider(LLMProvider):
         # transparently retry without tools rather than surfacing an error —
         # text must always stream.
         stream = None
+        # Tool names actually sent this round: the only names a leaked
+        # text-JSON call may be rescued for.
+        offered: set[str] = set()
         if tools is not None:
             try:
                 stream = await client.chat(
@@ -167,6 +176,7 @@ class OllamaProvider(LLMProvider):
                     tools=tools,
                     **kwargs,
                 )
+                offered = {tool["function"]["name"] for tool in tools}
             except Exception:  # noqa: BLE001 — degrade gracefully, retry below.
                 stream = None
         if stream is None:
@@ -193,11 +203,14 @@ class OllamaProvider(LLMProvider):
         try:
             usage: LLMUsage | None = None
             finish_reason: str | None = None
+            content_parts: list[str] = []
+            emitted_tool_call = False
             async for chunk in stream:
                 message = _attr(chunk, "message")
                 if message is not None:
                     content = _attr(message, "content", "") or ""
                     if content:
+                        content_parts.append(content)
                         yield LLMDeltaEvent(text=content)
                     # Ollama returns tool calls on the (non-streamed) assistant
                     # message rather than as token deltas: emit one tool_use
@@ -208,6 +221,7 @@ class OllamaProvider(LLMProvider):
                         function = _attr(tool_call, "function")
                         if function is None:
                             continue
+                        emitted_tool_call = True
                         yield LLMToolUseEvent(
                             tool_call_id=_attr(tool_call, "id", "") or "",
                             name=_attr(function, "name", "") or "",
@@ -224,6 +238,13 @@ class OllamaProvider(LLMProvider):
                         input_tokens=int(prompt_eval),
                         output_tokens=int(eval_count),
                     )
+            # Local models often write the call as JSON text instead of using
+            # tool_calls (llama3.1:8b: ``{"name": "write_note", "parameters":
+            # {...}}``). Rescue it so the call runs instead of rendering as prose.
+            if not emitted_tool_call:
+                rescued = rescue_leaked_tool_call("".join(content_parts), offered)
+                if rescued is not None:
+                    yield rescued
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except ollama.ResponseError as exc:  # pragma: no cover — network path
             _h = humanize("ollama", exc)

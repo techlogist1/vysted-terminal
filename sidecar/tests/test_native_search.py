@@ -62,8 +62,8 @@ def test_supports_native_search_set() -> None:
 
 def test_provider_level_native_search_excludes_openrouter() -> None:
     # OpenRouter is a broker: native search is per-MODEL, so it is NOT in the
-    # provider-level set the runtime uses to keep the existing five unchanged.
-    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "gemini", "groq", "xai"}
+    # provider-level set. Gemini and Groq are per-model too (R15-AGENT-005).
+    assert PROVIDER_LEVEL_NATIVE_SEARCH == {"anthropic", "xai"}
     # OpenAI is per-MODEL too (chat-completions search is *-search-preview only).
     assert "openai" not in PROVIDER_LEVEL_NATIVE_SEARCH
     assert "openrouter" not in PROVIDER_LEVEL_NATIVE_SEARCH
@@ -544,7 +544,7 @@ def test_native_search_available_is_the_one_detection_truth() -> None:
     from services.llm.native_search import native_search_available
 
     # The provider-level providers always qualify, hint or not.
-    for prov in ("anthropic", "gemini", "groq", "xai"):
+    for prov in ("anthropic", "xai"):
         assert native_search_available(prov) is True
         assert native_search_available(prov, "none") is True
     # OpenAI is per-model: only the *-search-preview models take web_search_options.
@@ -570,6 +570,89 @@ def test_runtime_gate_delegates_to_the_same_truth() -> None:
         assert agent_runtime._native_search_enabled(prov, hint) == native_search_available(
             prov, hint
         )
+
+
+async def _request_carries_native_search(
+    monkeypatch: pytest.MonkeyPatch, provider_id: str, model: str
+) -> bool:
+    """Drive the real adapter as an agent round (function tools + web_search)
+    and report whether the captured request carries a native-search param."""
+    from services.llm import get_provider
+
+    anth = _patch_anthropic(monkeypatch)
+    oai = _patch_openai(monkeypatch)
+    gem = _patch_gemini(monkeypatch)
+    await _drain(
+        get_provider(provider_id).stream_chat(  # type: ignore[arg-type]
+            messages=[LLMMessage(role="user", content="latest news on RELIANCE")],
+            model=model,
+            api_key="sk-test",
+            tool_ids=["price_data"],
+            web_search=True,
+        )
+    )
+    if provider_id == "anthropic":
+        tools = anth.messages.last_kwargs["tools"]  # type: ignore[index]
+        return any(t.get("type") == ANTHROPIC_WEB_SEARCH_TYPE for t in tools)
+    if provider_id == "gemini":
+        return {"google_search": {}} in gem.aio.models.last_call["config"]["tools"]  # type: ignore[index]
+    if provider_id == "groq":
+        # Compound searches server-side on its own; the model id is the switch.
+        return "compound" in model
+    sent = oai["last"].chat.completions.last_kwargs
+    return (
+        "web_search_options" in sent
+        or "search_parameters" in sent.get("extra_body", {})
+        or {"type": "openrouter:web_search"} in sent.get("tools", [])
+    )
+
+
+@pytest.mark.asyncio
+async def test_every_registry_default_model_keeps_a_search_channel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # R15-AGENT-005: when the gate says "native", the runtime drops the local
+    # web_search tool, so the adapter's request must then carry native search;
+    # otherwise web_search stays in tool_ids. Either way the agent can search.
+    from services import agent_runtime, model_registry
+
+    for provider_id in model_registry.provider_ids():
+        model = model_registry.default_model_for(provider_id)
+        if agent_runtime._native_search_enabled(provider_id, None, model):
+            assert await _request_carries_native_search(monkeypatch, provider_id, model), (
+                provider_id,
+                model,
+            )
+    # The registry defaults that have no native search alongside function tools.
+    assert agent_runtime._native_search_enabled("gemini", None, "gemini-2.5-pro") is False
+    assert agent_runtime._native_search_enabled("groq", None, "llama-3.3-70b-versatile") is False
+
+
+@pytest.mark.asyncio
+async def test_gemini_3_and_groq_compound_ride_native_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import agent_runtime
+
+    assert agent_runtime._native_search_enabled("gemini", None, "gemini-3-pro-preview") is True
+    assert await _request_carries_native_search(monkeypatch, "gemini", "gemini-3-pro-preview")
+    assert agent_runtime._native_search_enabled("gemini", None, "gemini-2.5-flash") is False
+    assert agent_runtime._native_search_enabled("groq", None, "groq/compound-mini") is True
+    assert agent_runtime._native_search_enabled("groq", None, "llama-3.1-8b-instant") is False
+
+
+@pytest.mark.asyncio
+async def test_native_search_oneshot_keeps_gemini_25_grounding(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # The cross-verify channel sends no function tools, so Gemini 2.5 still
+    # grounds on google_search there.
+    from services.llm.native_search import native_search_oneshot
+
+    client = _patch_gemini(monkeypatch)
+    out = await native_search_oneshot("gemini", "gemini-2.5-pro", "sk-test", "q")
+    assert out["reason"] == "empty"  # the fake stream returns no text
+    assert {"google_search": {}} in client.aio.models.last_call["config"]["tools"]  # type: ignore[index]
 
 
 class _OneshotProvider:
