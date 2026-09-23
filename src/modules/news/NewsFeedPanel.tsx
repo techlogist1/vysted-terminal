@@ -21,7 +21,10 @@ type LoadState =
   | { status: "ready"; items: NewsItem[] };
 
 /** Format an ISO-8601 timestamp as a compact relative age (e.g. "3h", "2d"). */
-function relativeTime(iso: string): string {
+function relativeTime(iso: string | null): string {
+  if (iso === null) {
+    return "date unknown";
+  }
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) {
     return "";

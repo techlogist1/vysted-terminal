@@ -77,9 +77,10 @@ export interface MacroSeries {
  * Snapshot of valuation, profitability, health, and profile for one symbol.
  * Mirrors `sidecar/models/fundamentals.py` — keep in sync. Fraction fields
  * (`*_margin`, `roe`, `roa`, `*_growth`, `held_percent_*`, `fifty_two_week_change`,
- * `dividend_yield`) are 0.21 = 21%; `debt_to_equity` is a ratio (1.5 = 150%);
- * currency sizes (`revenue_ttm`/`net_income_ttm`/`free_cash_flow`/
- * `dividend_per_share`) are in `currency`.
+ * `dividend_yield`) are 0.21 = 21%; `debt_to_equity` is a ratio (1.5 = 150%).
+ * `currency` is the TRADING currency (prices, `market_cap`, `book_value`, `eps`,
+ * `dividend_per_share`); the statement sizes (`revenue_ttm`/`net_income_ttm`/
+ * `free_cash_flow`) are in `financial_currency ?? currency`.
  */
 export interface Fundamentals {
   symbol: string;
@@ -87,6 +88,18 @@ export interface Fundamentals {
   sector: string | null;
   industry: string | null;
   currency: string | null;
+  /**
+   * Currency of the statement sizes (`revenue_ttm`/`net_income_ttm`/
+   * `free_cash_flow`) when it differs from the trading `currency` (Yahoo
+   * `financialCurrency`, e.g. an INR-reporting USD ADR). `null`/absent when equal.
+   * No FX conversion — format those sizes in `financial_currency ?? currency`.
+   */
+  financial_currency?: string | null;
+  /**
+   * The price the provider's ratios and `market_cap` were computed at (same
+   * snapshot); its `field_meta` `as_of` is that price's trade time.
+   */
+  ratio_price?: number | null;
   // Valuation
   market_cap: number | null;
   pe_ratio: number | null;
@@ -170,13 +183,15 @@ export interface Fundamentals {
  * Per-field provenance / coverage metadata riding a `Fundamentals` payload (R13).
  *
  * - `status: "ok"` — the field carries a real value the named `provider` served
- *   (`as_of` records when). A `reason` may still be present as a soft flag.
+ *   (`as_of` records when).
+ * - `status: "flagged"` — the value is kept but a cross-check disagrees; `reason`
+ *   names the disagreement and the witness figure. Never a substitution.
  * - `status: "withheld"` — a value existed but the correctness gate nulled it as
  *   implausible; `reason` says why and the field on the payload is `null`.
  * - `status: "unavailable"` — the source carried no value.
  */
 export interface FieldMeta {
-  status: "ok" | "withheld" | "unavailable";
+  status: "ok" | "flagged" | "withheld" | "unavailable";
   provider?: string | null;
   as_of?: string | null;
   reason?: string | null;
@@ -272,7 +287,8 @@ export interface NewsItem {
   summary: string | null;
   url: string;
   source: string;
-  published_at: string;
+  /** The source's publication time; `null` when the feed carried no parseable date. */
+  published_at: string | null;
   symbols: string[];
   sentiment: number | null;
   sentiment_label: string | null;

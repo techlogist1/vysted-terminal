@@ -211,7 +211,8 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
     Returns the SAME object when nothing tripped (callers use it inline); else a
     ``model_copy`` with the nulled fields + a merged ``field_meta`` (the provider's
     ``ok`` provenance is preserved for untouched fields, overwritten to
-    ``withheld`` for nulled ones, and reason-annotated for flagged ones).
+    ``withheld`` for nulled ones, and set to ``flagged`` with the reason for
+    kept-but-disputed ones).
     """
     withheld: dict[str, str] = {}
     flagged: dict[str, str] = {}
@@ -298,9 +299,9 @@ def _apply_plausibility_bounds(f: Fundamentals) -> Fundamentals:
             continue  # a withheld field is never also flagged
         prev = meta.get(field_name)
         if prev is not None:
-            meta[field_name] = prev.model_copy(update={"reason": reason})
+            meta[field_name] = prev.model_copy(update={"status": "flagged", "reason": reason})
         else:
-            meta[field_name] = FieldMeta(status="ok", provider=f.provider, reason=reason)
+            meta[field_name] = FieldMeta(status="flagged", provider=f.provider, reason=reason)
     updates["field_meta"] = meta
     return f.model_copy(update=updates)
 
