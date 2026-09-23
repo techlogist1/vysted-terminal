@@ -261,7 +261,9 @@ class _FakeCcxtExchange:
             "timestamp": 1_747_200_000_000,
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str, limit: int) -> list[list[float]]:  # noqa: ARG002
+    def fetch_ohlcv(  # noqa: ARG002
+        self, symbol: str, timeframe: str, since: int | None = None, limit: int | None = None
+    ) -> list[list[float]]:
         return [
             [1_747_000_000_000, 66_000.0, 66_500.0, 65_500.0, 66_200.0, 1_000.0],
             [1_747_086_400_000, 66_200.0, 67_200.0, 66_100.0, 67_000.0, 1_500.0],

@@ -120,7 +120,7 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
         serves={
             "quote": lambda symbol: ccxt_provider.get_ticker(DEFAULT_CRYPTO_EXCHANGE, symbol),
             "ohlcv": lambda symbol, timeframe, range_=None: ccxt_provider.get_ohlcv(
-                DEFAULT_CRYPTO_EXCHANGE, symbol, timeframe
+                DEFAULT_CRYPTO_EXCHANGE, symbol, timeframe, range_
             ),
         },
     ),
