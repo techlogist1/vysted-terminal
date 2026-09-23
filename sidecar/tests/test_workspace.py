@@ -55,6 +55,27 @@ def test_save_overwrites_an_existing_workspace(client: TestClient) -> None:
     assert client.get("/workspace").json() == ["research"]
 
 
+def test_save_keeps_the_previous_body_as_bak(client: TestClient) -> None:
+    """R15-LIFECYCLE-002: an overwrite keeps one ``.bak`` of the previous body,
+    and the backup never shows up as a workspace in the listing."""
+    import json
+
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    first = _sample_workspace()
+    first["portfolios"] = [{"id": "p1", "positions": [{"symbol": "AAPL", "quantity": 10}]}]
+    client.post("/workspace", json={"name": "research", "workspace": first})
+    bak = get_workspaces_dir() / f"research{WORKSPACE_SUFFIX}.bak"
+    assert not bak.exists()
+
+    second = _sample_workspace()
+    client.post("/workspace", json={"name": "research", "workspace": second})
+    assert json.loads(bak.read_text(encoding="utf-8")) == first
+    assert client.get("/workspace/research").json() == second
+    assert client.get("/workspace").json() == ["research"]
+
+
 def test_list_is_sorted(client: TestClient) -> None:
     for name in ("zeta", "alpha", "mu"):
         client.post("/workspace", json={"name": name, "workspace": _sample_workspace(name)})
