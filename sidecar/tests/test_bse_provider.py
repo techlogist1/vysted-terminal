@@ -703,3 +703,47 @@ def test_get_shareholding_index_failure_raises(tmp_path, monkeypatch: pytest.Mon
 def test_get_shareholding_non_bse_symbol_fast_fails() -> None:
     with pytest.raises(ProviderError, match="not a known BSE instrument"):
         bse_provider.get_shareholding("AAPL")
+
+
+# --- R15-DATA-056: a leg the filing omits is derived from the filed total -----
+
+
+def _row_from_cached_summary(tmp_path, monkeypatch: pytest.MonkeyPatch, summary: dict) -> dict:
+    """``get_shareholding`` over one quarter whose parsed summary is already in
+    the disk cache (as a pre-fix build wrote it): the derivation runs on read."""
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    index = {"Table": [{**_SHP_INDEX["Table"][0], "XbrlFile": "cached.xml"}]}
+    bse_provider._shp_write_cache("cached.xml", summary)
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(index=index))
+    return bse_provider.get_shareholding("BOMOXY-B1")[0]
+
+
+def test_shareholding_derives_the_missing_dii_leg_crest(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path,
+        monkeypatch,
+        {"promoter_percent": 69.84, "fii_percent": 1.71, "institutions_percent": 1.71},
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (1.71, 0.0, "derived")
+
+
+def test_shareholding_zero_total_derives_both_legs_vertex(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path, monkeypatch, {"promoter_percent": 36.43, "institutions_percent": 0.0}
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (0.0, 0.0, "derived")
+
+
+def test_shareholding_derives_the_missing_fii_leg_ttc(tmp_path, monkeypatch) -> None:
+    row = _row_from_cached_summary(
+        tmp_path, monkeypatch, {"dii_percent": 5.83, "institutions_percent": 5.83}
+    )
+    assert (row["fii_percent"], row["dii_percent"], row["split_basis"]) == (0.0, 5.83, "derived")
+
+
+def test_shareholding_both_legs_missing_under_a_nonzero_total_stay_none(
+    tmp_path, monkeypatch
+) -> None:
+    row = _row_from_cached_summary(tmp_path, monkeypatch, {"institutions_percent": 4.2})
+    assert row.get("fii_percent") is None and row.get("dii_percent") is None
+    assert row.get("split_basis") is None

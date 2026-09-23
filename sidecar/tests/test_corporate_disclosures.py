@@ -532,6 +532,7 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
                 "institutions_percent": 42.9,
                 "fii_percent": 38.86,
                 "dii_percent": 4.04,
+                "split_basis": "filed",
             }
         ],
     )
@@ -549,6 +550,7 @@ def test_shareholding_dual_listed_recovers_bse_split(monkeypatch: pytest.MonkeyP
     # Provenance of the merged split is honest: from BSE, as-of the same quarter.
     assert latest.split_source == "BSE"
     assert latest.split_as_of == date(2026, 3, 31)
+    assert latest.split_basis == "filed"  # the BSE row's basis rides the merge
 
 
 def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.MonkeyPatch) -> None:

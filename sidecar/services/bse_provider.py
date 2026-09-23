@@ -745,9 +745,41 @@ def get_shareholding(symbol: str) -> list[dict]:
             "source": PROVIDER.upper(),
         }
         if summary:
-            row.update(summary)
+            row.update(_derive_missing_leg(summary))
         rows.append(row)
     return rows
+
+
+#: Rounding slack when a missing FII/DII leg is derived from the filed total.
+_SPLIT_ROUNDING = 0.01
+
+
+def _derive_missing_leg(summary: dict) -> dict:
+    """Fill an FII/DII leg the filing omits from the known institutions total
+    (R15-DATA-056), labelled ``split_basis``.
+
+    SEBI XBRLs omit a nil category, so a missing leg next to a known total is
+    derivable: ``total - present_leg`` when only one leg is missing and the
+    result is >= 0 within rounding, or both legs 0 when the total is 0. The row
+    then says ``split_basis: "derived"``; a split read straight from the filing
+    says ``"filed"``. Both legs missing under a non-zero total stay ``None``.
+    Runs on read, so summaries cached before this rule benefit too.
+    """
+    fii, dii = summary.get("fii_percent"), summary.get("dii_percent")
+    total = summary.get("institutions_percent")
+    if fii is not None and dii is not None:
+        return {**summary, "split_basis": "filed"}
+    if fii is None and dii is None:
+        if total == 0.0:
+            return {**summary, "fii_percent": 0.0, "dii_percent": 0.0, "split_basis": "derived"}
+        return summary
+    present_key, missing_key = (
+        ("fii_percent", "dii_percent") if fii is not None else ("dii_percent", "fii_percent")
+    )
+    rest = None if total is None else round(total - summary[present_key], 4)
+    if rest is None or rest < -_SPLIT_ROUNDING:
+        return {**summary, "split_basis": "filed"}
+    return {**summary, missing_key: max(0.0, rest), "split_basis": "derived"}
 
 
 def _fetch_shp_index(code: str) -> list[dict]:

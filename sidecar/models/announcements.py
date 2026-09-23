@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import datetime as _dt
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr
 
@@ -159,6 +160,11 @@ class ShareholdingPattern(BaseModel):
     #: supplied the split (an honest as-of, never silently aligned). ``None`` when
     #: no split was merged.
     split_as_of: date | None = None
+    #: How the FII/DII legs were obtained: ``"filed"`` (both read from the
+    #: filing), ``"derived"`` (a leg the filing omits, computed as the filed
+    #: institutions total minus the other leg, or 0 from a 0 total). ``None``
+    #: when no leg is known.
+    split_basis: Literal["filed", "derived"] | None = None
 
 
 class ShareholdingResponse(BaseModel):

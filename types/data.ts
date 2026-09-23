@@ -413,6 +413,12 @@ export interface ShareholdingPattern {
    * on an exact-quarter merge; differs when the nearest BSE quarter supplied it.
    */
   split_as_of: string | null;
+  /**
+   * How the FII/DII legs were obtained: "filed" (read from the filing) or
+   * "derived" (a leg the filing omits = the filed institutions total minus the
+   * other leg, or 0 from a 0 total). Null when no leg is known.
+   */
+  split_basis: "filed" | "derived" | null;
 }
 
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */

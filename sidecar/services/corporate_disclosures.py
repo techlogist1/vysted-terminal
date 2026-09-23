@@ -669,6 +669,7 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
                     row.get("public_non_institutional_percent")
                 ),
                 employee_trusts_percent=None,
+                split_basis=row.get("split_basis"),
                 submission_date=submission if isinstance(submission, date) else None,
                 xbrl_url=xbrl_url,
                 source=EXCHANGE_BSE,
@@ -741,6 +742,7 @@ def _merge_bse_split(
                     "public_non_institutional_percent": match.public_non_institutional_percent,
                     "split_source": EXCHANGE_BSE,
                     "split_as_of": match.quarter_end,
+                    "split_basis": match.split_basis,
                 }
             )
         )
