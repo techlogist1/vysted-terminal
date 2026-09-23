@@ -35,6 +35,10 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
 * **Results calendar** — the NSE ``event-calendar`` feed (board meetings,
   results, dividends), parsed dates, newest first.
 
+* **Corporate actions** — dividends, bonuses, splits, rights and buybacks from
+  the NSE and BSE corporate-action feeds, a dual-listed action collapsed to one
+  row (:func:`get_corporate_actions`).
+
 * **Shareholding** — the NSE quarterly shareholding MASTER (promoter+group,
   public, employee-trust percentages + the XBRL filing URL). The FII/DII split
   lives only inside the XBRL, so on the NSE lane those fields are ``None`` — but
@@ -63,6 +67,8 @@ from models.announcements import (
     Announcement,
     AnnouncementsResponse,
     AnnouncementWindow,
+    CorporateAction,
+    CorporateActionsResponse,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
@@ -605,6 +611,184 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
 
 
 # ---------------------------------------------------------------------------
+# Corporate actions (NSE corporates-corporateActions + BSE CorporateAction).
+# ---------------------------------------------------------------------------
+
+#: BSE's per-scrip corporate-action feed. Observed live 2026-09-24 (scrip 542446
+#: JONJUA; fixtures under ``tests/fixtures/bse/``): ``{"Table": [dividend
+#: history], "Table1": [bonus history], "Table2": [{purpose "Bonus issue 7:24",
+#: purpose_code, Ex_date "04 Sep 2026", BCRD "RD 04/09/2026" (or "BC <from>-<to>"
+#: for a book closure), Details "25.00" (a dividend's amount), PAYMENT_DATE
+#: "2026-08-30T00:00:00" | null}, ...]}``; Table2 is the combined recent list.
+_BSE_CA_URL = "https://api.bseindia.com/BseIndiaAPI/api/CorporateAction/w"
+#: The purpose line's kind, checked in order (an AGM line that names a dividend
+#: is a dividend; "Right Issue of Equity Shares" is a rights issue).
+_ACTION_KINDS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("bonus", re.compile(r"\bbonus\b", re.IGNORECASE)),
+    ("split", re.compile(r"split|sub-?division", re.IGNORECASE)),
+    ("rights", re.compile(r"\brights?\b", re.IGNORECASE)),
+    ("buyback", re.compile(r"buy\s*-?\s*back", re.IGNORECASE)),
+    ("dividend", re.compile(r"dividend", re.IGNORECASE)),
+)
+_RATIO_RE = re.compile(r"(\d+)\s*:\s*(\d+)")
+_AMOUNT_RE = re.compile(r"(?:rs\.?|₹|inr)\s*([0-9]+(?:\.[0-9]+)?)", re.IGNORECASE)
+
+
+def _action_kind(purpose: str) -> str:
+    return next((kind for kind, pattern in _ACTION_KINDS if pattern.search(purpose)), "other")
+
+
+def _action_ratio(kind: str, purpose: str) -> str | None:
+    """A bonus/rights/split ratio ("7:24") in the purpose line, else ``None``."""
+    match = _RATIO_RE.search(purpose) if kind in ("bonus", "rights", "split") else None
+    return f"{match.group(1)}:{match.group(2)}" if match else None
+
+
+def _dividend_amount(kind: str, purpose: str) -> float | None:
+    """A dividend's per-share amount in the purpose line ("Rs 25 Per Share")."""
+    match = _AMOUNT_RE.search(purpose) if kind == "dividend" else None
+    return float(match.group(1)) if match else None
+
+
+def _parse_bse_day(value: object) -> date | None:
+    """BSE's action dates: "04 Sep 2026", "RD 04/09/2026", "2026-08-30T00:00:00"."""
+    raw = _clean(value)
+    if not raw:
+        return None
+    for fmt in ("%d %b %Y", "RD %d/%m/%Y", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _nse_corporate_actions(bare: str) -> list[CorporateAction]:
+    """The NSE lane: ``subject`` + ``exDate``/``recDate`` rows (no payment date)."""
+    actions: list[CorporateAction] = []
+    for row in nse_provider.get_corporate_actions(bare):
+        purpose = _clean(row.get("subject"))
+        if not purpose:
+            continue
+        kind = _action_kind(purpose)
+        actions.append(
+            CorporateAction(
+                symbol=bare,
+                kind=kind,
+                purpose=purpose,
+                ratio=_action_ratio(kind, purpose),
+                amount_per_share=_dividend_amount(kind, purpose),
+                ex_date=_parse_day(row.get("exDate")),
+                record_date=_parse_day(row.get("recDate")),
+                exchange=EXCHANGE_NSE,
+            )
+        )
+    return actions
+
+
+def _bse_corporate_actions(bare: str, code: str) -> list[CorporateAction]:
+    """The BSE lane: the ``Table2`` rows of the scrip's CorporateAction feed."""
+    payload = _bse_get_json(_BSE_CA_URL, {"scripcode": code})
+    table = payload.get("Table2") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse corporate actions: malformed payload for {bare!r}")
+    actions: list[CorporateAction] = []
+    for row in table:
+        purpose = _clean(row.get("purpose")) if isinstance(row, dict) else None
+        if not purpose:
+            continue
+        kind = _action_kind(purpose)
+        amount = _pct(row.get("Details")) if kind == "dividend" else None
+        actions.append(
+            CorporateAction(
+                symbol=bare,
+                kind=kind,
+                purpose=purpose,
+                ratio=_action_ratio(kind, purpose),
+                amount_per_share=amount if amount is not None else _dividend_amount(kind, purpose),
+                ex_date=_parse_bse_day(row.get("Ex_date")),
+                record_date=_parse_bse_day(row.get("BCRD")),
+                payment_date=_parse_bse_day(row.get("PAYMENT_DATE")),
+                exchange=EXCHANGE_BSE,
+            )
+        )
+    return actions
+
+
+def _merge_actions(nse: list[CorporateAction], bse: list[CorporateAction]) -> list[CorporateAction]:
+    """NSE rows plus each BSE row that is not the same action: a dual-listed
+    action (same kind and ex-date) collapses onto the NSE row, which takes the
+    fields only BSE carries (the payment date) and is labelled ``NSE+BSE``."""
+    merged = list(nse)
+    open_by_key: dict[tuple[str, date], list[int]] = {}
+    for idx, action in enumerate(nse):
+        if action.ex_date is not None:
+            open_by_key.setdefault((action.kind, action.ex_date), []).append(idx)
+    for action in bse:
+        slots = open_by_key.get((action.kind, action.ex_date)) if action.ex_date else None
+        if not slots:
+            merged.append(action)
+            continue
+        idx = slots.pop(0)
+        filled = {
+            name: getattr(action, name)
+            for name in ("ratio", "amount_per_share", "record_date", "payment_date")
+            if getattr(merged[idx], name) is None
+        }
+        merged[idx] = merged[idx].model_copy(update={**filled, "exchange": "NSE+BSE"})
+    return merged
+
+
+def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
+    """Dividends, bonuses, splits, rights and buybacks for ``symbol`` from BOTH
+    exchanges, newest ex-date first (R15-DATA-025).
+
+    A BSE-only name is served from BSE; a dual-listed name's action on both
+    feeds collapses to one row. Lanes the symbol is not listed on are skipped; a
+    failing applicable lane is recorded in ``errors`` and the rest is served;
+    every applicable lane failing raises :class:`ProviderError`.
+    """
+    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    if not bare:
+        raise ProviderError("disclosures: empty symbol")
+    on_nse = symbol_resolver.is_nse_symbol(bare)
+    # A dual-listed name's own BSE scrip only: a same-ticker BSE scrip of another
+    # company would merge that company's actions into this one.
+    bse_code = (
+        symbol_resolver.dual_listed_bse_code(bare)
+        if on_nse
+        else symbol_resolver.bse_scrip_code(bare)
+    )
+    if not on_nse and not bse_code:
+        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+
+    by_lane: dict[str, list[CorporateAction]] = {}
+    errors: dict[str, str] = {}
+    lanes = [
+        (EXCHANGE_NSE, on_nse, lambda: _nse_corporate_actions(bare)),
+        (EXCHANGE_BSE, bool(bse_code), lambda: _bse_corporate_actions(bare, bse_code)),
+    ]
+    for name, applicable, fetch in lanes:
+        if not applicable:
+            continue
+        try:
+            by_lane[name] = fetch()
+        except ProviderError as exc:
+            logger.debug("disclosures: %s corporate actions failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+    if not by_lane:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(
+            f"disclosures: every corporate-action source failed for {bare!r} ({detail})"
+        )
+    actions = _merge_actions(by_lane.get(EXCHANGE_NSE, []), by_lane.get(EXCHANGE_BSE, []))
+    actions.sort(key=lambda a: a.ex_date or date.min, reverse=True)
+    return CorporateActionsResponse(
+        symbol=bare, count=len(actions), actions=actions, sources=list(by_lane), errors=errors
+    )
+
+
+# ---------------------------------------------------------------------------
 # Shareholding pattern (NSE quarterly master).
 # ---------------------------------------------------------------------------
 
@@ -879,6 +1063,7 @@ __all__ = [
     "MAX_LIMIT",
     "get_announcements",
     "get_announcements_cached",
+    "get_corporate_actions",
     "get_results_calendar",
     "get_shareholding",
 ]

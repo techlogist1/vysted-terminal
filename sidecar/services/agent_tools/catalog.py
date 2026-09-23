@@ -802,6 +802,26 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             kind="read_handler",
             timeout_seconds=30.0,
         ),
+        _cap(
+            "corporate_actions",
+            description=(
+                "Corporate actions of an Indian (NSE/BSE) listed company from BOTH "
+                "exchanges — dividends, bonuses, splits, rights issues and buybacks, "
+                "newest ex-date first. Each row: kind, the exchange's verbatim "
+                "purpose, ratio (e.g. '7:24'), amount_per_share, ex_date, "
+                "record_date, payment_date and exchange ('NSE+BSE' when both carry "
+                "it). Use for 'last dividend and its dates', bonus/split history or "
+                "dilution on Indian names."
+            ),
+            input_schema=_obj(
+                {"symbol": {"type": "string", "description": "NSE/BSE ticker, e.g. JONJUA."}},
+                ["symbol"],
+            ),
+            domain="filings",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=30.0,
+        ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(
             "price_option",

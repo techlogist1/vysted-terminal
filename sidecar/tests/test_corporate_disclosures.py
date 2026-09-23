@@ -865,6 +865,89 @@ def test_shareholding_for_a_non_listed_symbol_raises() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Corporate actions (R15-DATA-025): live NSE + BSE feeds captured 2026-09-24.
+# ---------------------------------------------------------------------------
+
+
+def _fixture(folder: Path, name: str) -> Any:
+    return json.loads((folder / name).read_text())
+
+
+def _serve_actions(monkeypatch: pytest.MonkeyPatch, nse_rows: Any, bse_payload: Any) -> None:
+    def nse(symbol: str) -> list[dict]:
+        if nse_rows is None:
+            raise AssertionError("NSE lane must not run for a BSE-only symbol")
+        return nse_rows
+
+    monkeypatch.setattr(nse_provider, "get_corporate_actions", nse)
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", lambda url, params: bse_payload)
+
+
+def test_bse_only_jonjua_bonuses_are_typed_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    _serve_actions(
+        monkeypatch,
+        None,
+        _fixture(_BSE_FIXTURES, "corporate_action_542446_jonjua_20260924.json"),
+    )
+    response = corporate_disclosures.get_corporate_actions("JONJUA")
+
+    assert response.sources == ["BSE"]
+    bonuses = [(a.ratio, a.record_date) for a in response.actions if a.kind == "bonus"]
+    assert ("7:24", date(2026, 9, 4)) in bonuses
+    assert ("5:40", date(2026, 1, 23)) in bonuses
+    assert response.actions[0].purpose == "Bonus issue 7:24"  # newest ex-date first
+    assert {a.exchange for a in response.actions} == {"BSE"}
+
+
+def test_elcidin_final_dividend_carries_its_dates(monkeypatch: pytest.MonkeyPatch) -> None:
+    _serve_actions(
+        monkeypatch,
+        _fixture(_NSE_FIXTURES, "corporate_actions_elcidin_20260924.json"),
+        _fixture(_BSE_FIXTURES, "corporate_action_503681_elcidin_20260924.json"),
+    )
+    latest = corporate_disclosures.get_corporate_actions("ELCIDIN").actions[0]
+
+    assert (latest.kind, latest.amount_per_share) == ("dividend", 25.0)
+    assert latest.ex_date == latest.record_date == date(2026, 7, 24)
+    assert latest.payment_date == date(2026, 8, 30)  # carried only by the BSE feed
+    assert latest.exchange == "NSE+BSE"
+
+
+def test_dual_listed_actions_collapse_to_one_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The case not written against: RELIANCE's five BSE rows are all actions the
+    NSE feed carries (dividends and the 2024 bonus), so none is listed twice."""
+    nse_rows = _fixture(_NSE_FIXTURES, "corporate_actions_reliance_20260924.json")
+    _serve_actions(
+        monkeypatch,
+        nse_rows,
+        _fixture(_BSE_FIXTURES, "corporate_action_500325_reliance_20260924.json"),
+    )
+    actions = corporate_disclosures.get_corporate_actions("RELIANCE").actions
+
+    assert len(actions) == len(nse_rows)
+    bonus = next(a for a in actions if a.kind == "bonus")
+    assert (bonus.ratio, bonus.ex_date, bonus.exchange) == ("1:1", date(2024, 10, 28), "NSE+BSE")
+    assert sum(a.exchange == "NSE+BSE" for a in actions) == 5
+
+
+def test_corporate_actions_lane_failure_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
+    def blocked(symbol: str) -> list[dict]:
+        raise ProviderError("nse_direct: blocked (HTTP 401)")
+
+    monkeypatch.setattr(nse_provider, "get_corporate_actions", blocked)
+    monkeypatch.setattr(
+        corporate_disclosures,
+        "_bse_get_json",
+        lambda url, params: _fixture(
+            _BSE_FIXTURES, "corporate_action_503681_elcidin_20260924.json"
+        ),
+    )
+    response = corporate_disclosures.get_corporate_actions("ELCIDIN")
+    assert response.sources == ["BSE"] and "NSE" in response.errors
+    assert response.count == 5
+
+
+# ---------------------------------------------------------------------------
 # Agent tools — corporate_announcements / shareholding_pattern handlers.
 # ---------------------------------------------------------------------------
 
@@ -940,6 +1023,21 @@ def test_shareholding_pattern_tool_round_trip(
     # No prose note: the typed provenance fields say where the split came from
     # (R15-AGENT-060; the old note claimed the split lived only in the XBRL).
     assert "note" not in result
+
+
+def test_corporate_actions_tool_round_trip(
+    monkeypatch: pytest.MonkeyPatch, _registered_tools: Any
+) -> None:
+    _serve_actions(
+        monkeypatch,
+        None,
+        _fixture(_BSE_FIXTURES, "corporate_action_542446_jonjua_20260924.json"),
+    )
+    result = asyncio.run(agent_tools.invoke_tool("corporate_actions", {"symbol": "JONJUA"}))
+    assert result["ok"] is True
+    assert result["count"] == len(result["actions"]) == 5
+    assert result["actions"][0]["ratio"] == "7:24"
+    assert result["actions"][0]["record_date"] == "2026-09-04"
 
 
 def test_shareholding_pattern_tool_surfaces_provider_error(_registered_tools: Any) -> None:

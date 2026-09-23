@@ -31,6 +31,7 @@
     "sec_insider_transactions",
     "corporate_announcements",
     "shareholding_pattern",
+    "corporate_actions",
     "backtest_summary",
     "open_panel",
     "close_panel",

@@ -429,6 +429,37 @@ export interface ShareholdingPattern {
   promoter_pledge_basis: "filed" | null;
 }
 
+/**
+ * One corporate action of an Indian listing: a dividend, bonus, split, rights
+ * issue or buyback. `purpose` is the exchange's verbatim line; `ratio` and
+ * `amount_per_share` are parsed from it (null when absent). `exchange` is
+ * "NSE", "BSE" or "NSE+BSE" when both feeds carry the action.
+ */
+export interface CorporateAction {
+  symbol: string;
+  kind: "dividend" | "bonus" | "split" | "rights" | "buyback" | "other";
+  purpose: string;
+  /** e.g. "7:24" for a bonus or rights issue. */
+  ratio: string | null;
+  amount_per_share: number | null;
+  /** ISO dates; null when the feed carried none. */
+  ex_date: string | null;
+  record_date: string | null;
+  payment_date: string | null;
+  exchange: string;
+}
+
+/** `GET /disclosures/corporate-actions` — NSE+BSE actions, newest ex-date first. */
+export interface CorporateActionsResponse {
+  symbol: string;
+  count: number;
+  actions: CorporateAction[];
+  /** Exchanges that served this response. */
+  sources: string[];
+  /** Exchanges attempted but failed, with the reason (partial merge served). */
+  errors: Record<string, string>;
+}
+
 /** `GET /disclosures/shareholding` — quarterly patterns, newest first. */
 export interface ShareholdingResponse {
   symbol: string;

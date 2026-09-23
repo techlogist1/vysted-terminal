@@ -7,6 +7,8 @@ Typed shapes for the India corporate-disclosure feeds served by
   feed / BSE ``AnnSubCategoryGetData`` feed), merged + deduped by the service.
 * :class:`ResultsEvent` — one results-calendar / board-meeting event (the NSE
   ``event-calendar`` feed).
+* :class:`CorporateAction` — one dividend / bonus / split / rights / buyback
+  (NSE + BSE corporate-action feeds, merged).
 * :class:`ShareholdingPattern` — one quarterly shareholding-pattern row. The
   NSE shareholding MASTER carries the promoter(+group), public, and
   employee-trust percentages; the FII/DII split lives only in the linked XBRL
@@ -185,3 +187,37 @@ class ShareholdingResponse(BaseModel):
     symbol: str
     count: int
     patterns: list[ShareholdingPattern] = []
+
+
+class CorporateAction(BaseModel):
+    """One corporate action of an Indian listing (R15-DATA-025): a dividend,
+    bonus, split, rights issue or buyback, with its record/ex/payment dates.
+
+    ``purpose`` is the exchange's verbatim line; ``ratio`` ("7:24") and
+    ``amount_per_share`` are parsed from it (a dividend's amount from BSE's
+    ``Details`` when NSE does not carry the action) and ``None`` when absent.
+    ``exchange`` is ``"NSE"``, ``"BSE"`` or ``"NSE+BSE"`` when both feeds carry
+    one action (collapsed on its kind and ex-date).
+    """
+
+    symbol: str
+    kind: Literal["dividend", "bonus", "split", "rights", "buyback", "other"]
+    purpose: str
+    ratio: str | None = None
+    amount_per_share: float | None = None
+    ex_date: date | None = None
+    record_date: date | None = None
+    payment_date: date | None = None
+    exchange: str
+
+
+class CorporateActionsResponse(BaseModel):
+    """``GET /disclosures/corporate-actions`` — NSE+BSE actions, newest first."""
+
+    symbol: str
+    count: int
+    actions: list[CorporateAction] = []
+    #: Exchanges that served this response.
+    sources: list[str] = []
+    #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}

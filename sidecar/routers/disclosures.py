@@ -11,6 +11,7 @@ TTLs:
   tool and research; also respects the NSE throttle)
 * results calendar — 6 hours
 * shareholding — 24 hours (a quarterly series)
+* corporate actions — 6 hours (NSE+BSE dividends/bonuses/splits/rights/buybacks)
 
 The service functions are synchronous (they drive the sync exchange lanes), so
 each route runs them in ``asyncio.to_thread``. Registration: see
@@ -27,6 +28,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from models.announcements import (
     AnnouncementsResponse,
+    CorporateActionsResponse,
     ResultsCalendarResponse,
     ShareholdingResponse,
 )
@@ -39,6 +41,7 @@ router = APIRouter(prefix="/disclosures", tags=["disclosures"])
 
 _TTL_RESULTS = 6 * 60 * 60  # 6 hours
 _TTL_SHAREHOLDING = 24 * 60 * 60  # 24 hours
+_TTL_CORPORATE_ACTIONS = 6 * 60 * 60  # 6 hours
 
 
 @router.get("/announcements")
@@ -95,6 +98,27 @@ async def get_shareholding(
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
     try:
         response = await asyncio.to_thread(corporate_disclosures.get_shareholding, normalized)
+    except ProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/corporate-actions")
+async def get_corporate_actions(
+    symbol: Annotated[str, Query(min_length=1, description="NSE/BSE ticker, e.g. JONJUA")],
+) -> CorporateActionsResponse:
+    """Dividends, bonuses, splits, rights and buybacks (NSE+BSE), newest first."""
+    normalized = symbol.strip().upper()
+    cache_key = f"disclosures:corporate-actions:{normalized}"
+    cached = await data_cache.get(cache_key, _TTL_CORPORATE_ACTIONS)
+    if isinstance(cached, dict):
+        try:
+            return CorporateActionsResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, normalized)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     await data_cache.set(cache_key, response.model_dump(mode="json"))

@@ -1,6 +1,6 @@
 """Corporate-disclosure agent tools (R7 Component 3).
 
-Registers two read-only tools the copilot + research agents can invoke so a
+Registers read-only tools the copilot + research agents can invoke so a
 research run on an Indian name can pull real filings:
 
 * ``corporate_announcements(symbol, exchange=None, limit=20)`` — the merged
@@ -10,6 +10,8 @@ research run on an Indian name can pull real filings:
   (promoter/public/employee-trust percentages, the FII/DII split and the
   promoter pledge; each pattern's ``source``/``split_source``/``split_as_of``/
   ``split_basis`` carry the provenance — never fabricated).
+* ``corporate_actions(symbol)`` — dividends, bonuses, splits, rights and
+  buybacks from both exchanges with ex/record/payment dates.
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. Both are
@@ -84,13 +86,36 @@ async def _shareholding_pattern(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+async def _corporate_actions(args: dict[str, Any]) -> dict[str, Any]:
+    """NSE+BSE corporate actions for ``symbol``, newest ex-date first."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    try:
+        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, symbol)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+    return {
+        "ok": True,
+        "symbol": response.symbol,
+        "sources": response.sources,
+        "errors": response.errors,
+        "count": response.count,
+        "actions": [action.model_dump(mode="json") for action in response.actions],
+    }
+
+
 def register() -> None:
     """Register the disclosure family with the agent-tool registry."""
     register_tool("corporate_announcements", _corporate_announcements)
     register_tool("shareholding_pattern", _shareholding_pattern)
+    register_tool("corporate_actions", _corporate_actions)
 
 
 __all__ = [
+    "_corporate_actions",
     "_corporate_announcements",
     "_shareholding_pattern",
     "register",
