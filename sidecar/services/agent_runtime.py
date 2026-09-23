@@ -1296,8 +1296,13 @@ async def invoke_agent(
     # (agent-with-edit/build intent, delegate, legacy edit/build) keeps the full set.
     inferred_intent: str | None = None
     if mode == "agent":
-        inferred_intent = classify_intent(prompt).intent
-        read_only = inferred_intent == "read"
+        intent = classify_intent(prompt)
+        inferred_intent = intent.intent
+        # Strip writes only on a POSITIVE read cue (D-B3-3): classify_intent
+        # defaults cue-less text ("I bought 10 INFY at 1500", "Remember that…")
+        # to read, which removed the exact write tool the user asked for. A
+        # cue-less prompt keeps the full set; data writes still stage for review.
+        read_only = inferred_intent == "read" and bool(intent.signals)
     else:
         read_only = mode == "ask"
     if read_only:
