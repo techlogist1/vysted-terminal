@@ -42,9 +42,9 @@ _GATE: passes. Re-check after each phase._
 - **II. One capability catalog, many consumers** — all new tools (resolve_symbol, set_chart_indicators,
   compare, research, deep_research) register **once** in `catalog.py` and auto-project to copilot + MCP
   (FR-090/020). ✅
-- **III. Safety layered & non-negotiable** — every Pass-B mutation rides the diff/accept gate; AUTO only
-  for UI/layout/chart/watchlist; orders never auto-apply; deep-research spend bounded by BudgetGuard
-  (FR-072/094, SC-025). §6.5 untouched. ✅
+- **III. Safety layered & non-negotiable** — every Pass-B mutation rides the diff/accept gate; deep-
+  research spend bounded by BudgetGuard (FR-072/094, SC-025). §6.5 untouched. No trading path exists
+  (D81, 23 Sep 2026). ✅
 - **IV. Local-first, BYOK, private** — search tiers ride the user's own keys; local tier keeps data on
   the machine; secrets in the keychain (FR-080–084). ✅
 - **V. Extensible by contract** — data sources + search backends are marketplace plugins under the one
@@ -62,11 +62,11 @@ provider-registry, confirmed by `PASS_B_RESEARCH.md` §"Codebase seams").
 
 ## Safety invariant (applies to EVERY phase — hard gate)
 
-Before each phase merges, the audit must hold: §6.5 `test_safety_end_to_end.py` **9/9**; `types/plugin.ts`,
-`types/safety.ts`, `types/broker.ts`, the safety/broker/audit/kill-switch models, `broker_base.py`,
-`kill_switch.rs`, `tauri.conf.json`, CI — **byte-for-byte untouched** (git diff empty); no
-`place_/submit_/execute_order` or `auto_approve` introduced (grep); brokers stay read-only; the rig stays
-dev-only. A phase that would breach this **stops and surfaces** to the operator.
+Before each phase merges, the Gate-8 no-trading test must hold:
+`sidecar/tests/test_no_trading_surface.py` green; `types/plugin.ts`, `tauri.conf.json`, CI —
+**byte-for-byte untouched** (git diff empty); no order, broker or simulated-account path
+introduced anywhere (surfaces, tools, routes, docs — D81, 23 Sep 2026); the rig stays dev-only. A
+phase that would breach this **stops and surfaces** to the operator.
 
 ## Phase plan (6 phases — each independently rig-verifiable, with a gate)
 
@@ -107,7 +107,7 @@ for an IN user; US data is unaffected.
 correct quotes/history from a locale source (or an honest "unavailable + why"); with region=US, {AAPL,
 MSFT, SPY} unaffected; every value carries provenance; **0 raw-JSON dead-ends, 0 wrong/stale-as-live**
 (SC-017/019). pytest (registry/resolver/gate) green; `ci-local` green; sidecar smoke-test green;
-**§6.5 audit 9/9, Tier-1 LOCKED diff empty**.
+**Gate-8 no-trading test green, Tier-1 LOCKED diff empty**.
 
 ### Phase B2 — JARVIS capability completeness + smart arrangement (Pillar D) · US15
 
@@ -135,8 +135,8 @@ one tile), and is resourceful (never dead-ends — wired to B1 fallback).
 
 **Gate (rig):** capability-completeness audit (every enumerated action reachable by agent **and** hand,
 SC-022); "set up NVDA" → research-cockpit template with default indicators (not one tile, SC-016);
-GOLDBEES handled by fallthrough/honest message (no raw JSON); every mutation gated, orders never
-auto-apply, §6.5 9/9 (SC-025). vitest (host-actions/chart-command) + pytest (catalog parity) green.
+GOLDBEES handled by fallthrough/honest message (no raw JSON); every mutation gated, Gate-8
+no-trading test green (SC-025). vitest (host-actions/chart-command) + pytest (catalog parity) green.
 
 ### Phase B3 — Web search, three tiers of freedom (Pillar C) · US14
 
@@ -162,7 +162,7 @@ auto-apply, §6.5 9/9 (SC-025). vitest (host-actions/chart-command) + pytest (ca
 **Gate (rig):** with a native-capable model, a grounded query returns normalized citations on the user's
 key (cost-cap honored); with a non-native model, an honest prompt + the configured backend runs; locale
 domain preferences apply; local tier keeps data on-machine — **0 silent failures, 0 fabricated context**
-(SC-020). vitest (citation normalizer / dispatch) green; **§6.5 audit 9/9, Tier-1 LOCKED diff empty**.
+(SC-020). vitest (citation normalizer / dispatch) green; **Gate-8 no-trading test green, Tier-1 LOCKED diff empty**.
 
 ### Phase B4 — Research engine: fast + deep + B+A output (Pillar B) · US12, US13
 
@@ -211,7 +211,7 @@ at budget and **still** synthesizes a brief (SC-021); the Perplexity path is opt
 
 **Gate (rig):** `/` picker fuzzy + keyboard-nav, each command executes; `@TICKER` resolves locale-aware to
 the correct instrument and injects context; `@panel`/`@scope` inject correctly; `/compare @AAPL @MSFT`
-composes (SC-023). vitest (parser/picker) green; **§6.5 audit 9/9, Tier-1 LOCKED diff empty**.
+composes (SC-023). vitest (parser/picker) green; **Gate-8 no-trading test green, Tier-1 LOCKED diff empty**.
 
 ### Phase B6 — Multi-portfolio truth + polish + verification (Pillar F + cross-cutting) · US17
 
@@ -229,7 +229,7 @@ composes (SC-023). vitest (parser/picker) green; **§6.5 audit 9/9, Tier-1 LOCKE
 - **Polish:** empty/loading/error states for every new surface (BriefPanel, search config, resolver
   disambiguation); reduced-motion; locale currency everywhere; staleness/provenance badges.
 - **Verification:** full rig pass of SC-016–SC-025 with **populated** state at 1920×1080 + 2560×1440;
-  `pnpm ci-local` + `smoke-test-sidecars.mjs` green; §6.5 audit 9/9; Tier-1 LOCKED diff empty.
+  `pnpm ci-local` + `smoke-test-sidecars.mjs` green; Gate-8 no-trading test green; Tier-1 LOCKED diff empty.
 
 **Gate (rig):** with ≥2 portfolios, the agent's portfolio read **equals** the active UI portfolio across
 create/switch/edit, **0 divergence** (SC-024); the full Pass-B SC suite passes on the live app; all hard
@@ -246,8 +246,8 @@ B1 (data) ──► B2 (capabilities/arrange) ──► B4 (research) ──► 
 - **B1 is the prerequisite for everything** (correct data). **B3 (search)** can be built in parallel with
   **B2 (capabilities)**; **B4 (research)** needs B1 + B2 + B3. **B5** needs B2 + B4. **B6** is independent
   (the portfolio fix) + the closing verification.
-- Each phase is **full-scope** (no half-ships), **rig-verifiable**, and gated on `ci-local` + the §6.5
-  audit. The lead (Opus) owns the catalog/host-action/safety-adjacent work and reviews every diff; Sonnet
+- Each phase is **full-scope** (no half-ships), **rig-verifiable**, and gated on `ci-local` + the
+  Gate-8 no-trading test. The lead (Opus) owns the catalog/host-action/safety-adjacent work and reviews every diff; Sonnet
   for mechanical JSX/tokens/boilerplate; Haiku for high-volume scanning (per CLAUDE.md model assignment).
 - **`tasks.md`** (the granular `/speckit-tasks` breakdown) is generated **per phase at build time**, not
   in this window.

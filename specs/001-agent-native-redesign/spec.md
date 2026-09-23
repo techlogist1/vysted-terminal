@@ -10,11 +10,13 @@
 docs). Awaiting operator review before the phased build. **No implementation in the spec windows.**
 
 **Last amended**: 2026-05-31 — (a) operator amendment: the plugin marketplace is the **primary
-extensibility model** (brokers, data providers/connectors, panels, and agents are all marketplace
-plugins; no hardcoded default broker); (b) operator clarification: first-party panels, data providers,
-and agents ship **pre-installed as built-in plugins** (bundled + enabled by default so first run is
-populated), brokers ship with **none** pre-installed, and the keyless data default (yfinance) is a
-pre-installed data plugin. See Clarifications → Sessions 2026-05-31 / 2026-05-31b, US10, FR-050–FR-055.
+extensibility model** (data providers/connectors, panels, and agents are all marketplace plugins);
+(b) operator clarification: first-party panels, data providers, and agents ship **pre-installed as
+built-in plugins** (bundled + enabled by default so first run is populated), and the keyless data
+default (yfinance) is a pre-installed data plugin. See Clarifications → Sessions 2026-05-31 /
+2026-05-31b, US10, FR-050–FR-055. **D81 (23 Sep 2026, operator Tier-4 sign-off) supersedes every
+broker/order clarification below** — trading was removed from the product permanently; the broker
+bullets in this section are historical record of a decision D81 reversed.
 
 **Input**: Reframe Vysted Terminal as a source-available, AI-native finance workspace —
 "Cursor for finance" as the internal design metaphor, **not** the external tagline.
@@ -68,26 +70,19 @@ Kite bullet below.
 
 - **Plugin marketplace = the primary extensibility model** → **Everything is a marketplace
   plugin.** Beyond the 2026-05-30 "include marketplace" decision, the marketplace is not merely the
-  MCP-framework distribution channel — it is the app's **primary extension spine**. **Brokers, data
+  MCP-framework distribution channel — it is the app's **primary extension spine**. **Data
   providers/connectors, panels, and agents are all delivered as install/enable/configure/remove
   marketplace plugins** (like Cursor extensions), not hardcoded first-class citizens. This is a
-  whole-app extensibility rebuild, not a tweak. (See US10, FR-050, FR-053.)
-- **No hardcoded default broker** → The host MUST NOT bootstrap any broker at boot;
-  `bootstrap_default_adapters()` (today boot-registers Dhan/Angel/Kite — `CURRENT_STATE.md` §3.5) is
-  **retired as the broker entry path**. A user installs the broker(s) they want from the
-  marketplace and supplies BYOK creds. The seven dead-wired broker plugins (§3.4) become real,
-  installable reference plugins (or are rebuilt as such), not dead fixtures. (See FR-051.)
-- **Kite = the first reference broker plugin** → The working Kite read-only OAuth logic is **kept
-  but repackaged** as the reference broker marketplace plugin — not rebuilt, not a hardcoded
-  default. The kept-foundation assumption is updated accordingly. (See FR-052; Assumptions.)
+  whole-app extensibility rebuild, not a tweak. (See US10, FR-050, FR-053.) _(D81, 23 Sep 2026:
+  the broker slice of this decision no longer applies — trading was removed permanently.)_
 - **Marketplace trust depends on real plugin-runtime guarantees** → the manifest↔instance id/
   version checks, `requiredHostVersion` checks, and `PluginConfig` secret resolution that
   `CURRENT_STATE.md` §3.4 records as documented-but-absent MUST become real. (See FR-054.)
 - **Safety stays host-enforced, never plugin-delegated** (HARD GUARDRAIL) → no plugin may bypass
-  the §6.5 boundary; the host enforces paper-default, read-only, kill switch, position limits, the
-  diff/accept gate, and append-only audit; plugins plug INTO them and cannot opt out. The Tradesa-V2
-  read-only plugin is the working precedent (§5: three enforcement layers). Tier-1 LOCKED files and
-  §6.5 invariants stay byte-for-byte untouched. (See FR-055.)
+  the host agent-write gate: the diff/accept trust gate over the 18 host actions is enforced by the
+  host; plugins plug INTO it and cannot opt out. The read-only-wrapper rule (Tradesa-V2 is the
+  working precedent — §5: three enforcement layers) is the contract for future data-source
+  plugins. Tier-1 LOCKED files stay preserved. (See FR-055.)
 
 ### Session 2026-05-31b (operator clarification — first-party features ship pre-installed as built-in plugins)
 
@@ -108,15 +103,11 @@ first-party features **are** plugins — pre-installed ones.
   (yfinance) is delivered as a bundled, enabled data-provider plugin so the terminal serves real data
   on first launch with zero credentials — the "works out of the box" guarantee. It is the reference
   pre-installed instance of the data slice of the one extension model (FR-053).
-- **Brokers ship with NONE pre-installed.** No broker is bundled-and-enabled at first run; this is the
-  same statement as FR-051's "no broker is hardcoded or registered at boot," now also covering the
-  pre-installed set: the user installs the broker(s) they want from the marketplace and supplies BYOK
-  creds. Kite remains the canonical _reference_ broker plugin (FR-052) — available to install, not
-  pre-installed.
 - **Net effect on acceptance:** FR-032's populated first-run is satisfied by the pre-installed
-  first-party plugin set (panels + the keyless data plugin + the default agent); SC-013's "no broker
-  registered at boot / installable-and-removable through the marketplace" is unaffected because brokers
-  are explicitly excluded from the pre-installed set.
+  first-party plugin set (panels + the keyless data plugin + the default agent); SC-013's "no plugin
+  registered at boot / installable-and-removable through the marketplace" governs every plugin kind
+  equally. _(D81, 23 Sep 2026: the broker bullet this note used to reconcile no longer applies —
+  trading was removed permanently; there is no broker plugin kind to exclude.)_
 
 ### Session 2026-06-01 (Pass B — operator ratification of the agent-native research layer)
 
@@ -486,46 +477,44 @@ visible throughout.
 ### User Story 10 — Everything is a marketplace plugin (the extension spine) (Priority: P2)
 
 A user opens the plugin marketplace and treats it as the app's front door for capability: they
-browse, **install** a broker (say Kite), **enable** it, **configure** it with their BYOK
-credentials, use it, and later **remove** it — with zero host code change and no app rebuild. The
-same install/enable/configure/remove lifecycle governs **data providers/connectors, panels, and
-agents**: brokers are not special, and **no broker (or any extension) is hardcoded or registered at
-boot**. The marketplace, not a bootstrap function, is how the terminal gains a broker, a data
-source, a panel, or an agent.
+browse, **install** a data-source, panel, or agent plugin, **enable** it, **configure** it with
+BYOK credentials where needed, use it, and later **remove** it — with zero host code change and
+no app rebuild. The same install/enable/configure/remove lifecycle governs **data
+providers/connectors, panels, and agents**: nothing is special-cased, and **no extension is
+hardcoded or registered at boot**. The marketplace, not a bootstrap function, is how the terminal
+gains a data source, a panel, or an agent. _(D81, 23 Sep 2026: brokers were this story's original
+flagship example; trading was removed from the product permanently, so no broker plugin kind
+exists — the "everything is a plugin" principle stands on the remaining plugin kinds.)_
 
 **Why this priority**: The 2026-05-30 clarification already pulled the marketplace/loader/signing
 INTO this redesign; this story makes the marketplace the **primary** extensibility model rather than
-a side channel. Today the opposite is true — `bootstrap_default_adapters()` hardcodes three brokers
-at boot and the seven `plugins/brokers/` plugins are dead-wired (`CURRENT_STATE.md` §3.4/§3.5).
-Unifying every extension (brokers, data, panels, agents) behind one marketplace is what makes
+a side channel. Unifying every extension (data, panels, agents) behind one marketplace is what makes
 "Vysted as a framework" real and keeps the surface honest (one extension model, not two parallel
 ones). It sequences with the P2 marketplace workstream; the granular phase order is not load-bearing
 (operator-indifferent — one long sequential build). _(Numbered after US9 to avoid renumbering the
 ratified P1–P3 stories; its P2 priority is independent of doc position.)_
 
-**Independent Test**: A broker absent from the app can be installed, enabled, BYOK-configured,
-exercised (read-only), and removed entirely through the marketplace — with no broker registered at
-boot and no host code change — and the same lifecycle visibly governs a data-source plugin, a panel
-plugin, and an agent plugin.
+**Independent Test**: A data-source plugin absent from the app can be installed, enabled,
+BYOK-configured, exercised, and removed entirely through the marketplace — with no plugin
+registered at boot and no host code change — and the same lifecycle visibly governs a panel plugin
+and an agent plugin.
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh install with no broker present, **When** the user installs and enables a broker
-   plugin from the marketplace and supplies BYOK creds, **Then** the broker connects and serves
-   read-only data plug-and-play — with nothing broker-specific having been compiled in or registered
-   at boot.
-2. **Given** an enabled broker plugin, **When** the user removes it from the marketplace, **Then**
+1. **Given** a fresh install with a data-source plugin absent, **When** the user installs and
+   enables it from the marketplace and supplies BYOK creds, **Then** it connects and serves data
+   plug-and-play — with nothing having been compiled in or registered at boot.
+2. **Given** an enabled plugin, **When** the user removes it from the marketplace, **Then**
    its capabilities, panels, and credential forms disappear cleanly and no boot-time registration
    re-adds it.
 3. **Given** the marketplace, **When** the user inspects data providers/connectors, panels, and
-   agents, **Then** each is an install/enable/configure/remove extension under the **same** model as
-   brokers (not a separate hardcoded path).
+   agents, **Then** each is an install/enable/configure/remove extension under the **same** model.
 4. **Given** a plugin declaring an incompatible `requiredHostVersion` or a manifest↔instance id/
    version mismatch, **When** the host loads it, **Then** it is rejected and surfaced — never
    silently loaded (see FR-054).
-5. **Given** any installed plugin (broker or otherwise), **When** it attempts a write/execution or
-   any state mutation, **Then** the host §6.5 gate governs it (paper-default, read-only, kill switch,
-   position limits, diff/accept, append-only audit); the plugin cannot opt out (see FR-055).
+5. **Given** any installed plugin, **When** it attempts a write beyond its declared surface,
+   **Then** the host agent-write gate governs it (the proposed-changes diff/accept flow); the
+   plugin cannot opt out (see FR-055).
 
 ---
 
@@ -710,8 +699,8 @@ action is gated (orders never auto-applied; §6.5 audit clean).
    source/route and succeeds, or returns a human message naming the cause — never raw JSON, never
    wrong data.
 4. **Given** any agent mutation, **When** proposed, **Then** it routes through the diff/accept gate;
-   AUTO auto-applies only UI/layout/chart/watchlist; an order never auto-applies in any mode and always
-   routes through §6.5 confirm-before-place (FR-010/011/012).
+   AUTO auto-applies every kind under this gate — there is no exempt kind, since no order kind
+   exists (D81, FR-010/012).
 
 ---
 
@@ -841,15 +830,15 @@ portfolio in the UI changes the agent's read with zero divergence.
 
 ### Functional Requirements — Trust gate & safety
 
-- **FR-010**: Every agent-proposed mutation (panel config, portfolio, multi-panel build, order)
+- **FR-010**: Every agent-proposed mutation (panel config, portfolio, multi-panel build)
   MUST be presented as a preview→applied diff with per-item and bulk accept/reject, keyboard-
   driven; **no** mutation lands before acceptance.
-- **FR-011**: Order proposals MUST route through the existing §6.5 `confirm_and_place` boundary
-  (paper-mode default, position limits, read-only/kill-switch checks, append-only audit on
-  accept); there MUST be no auto-apply / "YOLO" order path.
-- **FR-012**: The §6.5 invariants and Tier-1 LOCKED files (`docs/CURRENT_STATE.md` §3.6/§5) MUST
-  be preserved byte-for-byte unless an operator-ratified Tier-4 change is made; the audit suite
-  is a hard gate on any touch.
+- **FR-011**: REMOVED (D81, 23 Sep 2026) — trading was removed from the product permanently;
+  no order path exists to route.
+- **FR-012**: The agent-write safety model and Tier-1 LOCKED files
+  (`docs/SAFETY_ARCHITECTURE.md`, `docs/CURRENT_STATE.md` §3.6/§5) MUST be preserved unless an
+  operator-ratified Tier-4 change is made; `sidecar/tests/test_no_trading_surface.py` (Gate 8) is
+  a hard gate on any touch.
 - **FR-013**: Read-only MUST be the default for every consumer (internal and external); any
   mutation is explicit, gated, and audited.
 
@@ -926,37 +915,22 @@ portfolio in the UI changes the agent's read with zero divergence.
 - **FR-041**: The system MUST NOT present fabricated or placeholder data as real; unverified or
   paper/synthetic values MUST be labeled as such (e.g. paper-mode synthetic balances).
 
-### Functional Requirements — Broker read surface (read-only)
+### Functional Requirements — Broker read surface — removed (D81)
 
-- **FR-042**: The read-only broker surface MUST return **genuine granular data from the live
-  connected account** — distinct, real **positions, holdings, P&L, and margins** — rather than
-  aliasing them all to a single account summary (today `/positions`, `/holdings`, `/margins` all
-  return the same `AccountSummary`, and the granular `*_info` reads do not exist —
-  `docs/CURRENT_STATE.md` §3.5). This is **net-new read implementation**, not relabeling.
-  Synthetic / paper / disconnected values (e.g. the paper-mode ₹1,000,000 placeholder account) MUST
-  be clearly labeled per FR-041. Scope stays **read-only**: no write/execution path is added and the
-  §6.5 execution boundary (FR-011/FR-012) is untouched. The live connected account is reached through
-  an **installed broker plugin** (FR-051/FR-052), not a boot-registered adapter; the phase in which
-  these granular reads land is left **unsequenced** (operator-indifferent — one long sequential build).
+- **FR-042**: REMOVED (D81, 23 Sep 2026) — trading, including the broker read surface, was removed
+  from the product permanently. No broker connection exists to read granular data from.
 
 ### Functional Requirements — Plugin marketplace & unified extension model
 
-- **FR-050**: The plugin marketplace MUST be the app's **primary extensibility model**: brokers, data
+- **FR-050**: The plugin marketplace MUST be the app's **primary extensibility model**: data
   providers/connectors, panels, and agents are all delivered as marketplace plugins the user can
   **install, enable, configure, and remove** — one unified extension model, not hardcoded first-class
   citizens and not two parallel mechanisms. The marketplace is the front door through which the
   terminal gains a capability.
-- **FR-051**: No broker is hardcoded or registered at boot. The host MUST NOT bootstrap any
-  broker adapter at startup — `bootstrap_default_adapters()` (today boot-registers Dhan/Angel/Kite,
-  `CURRENT_STATE.md` §3.5) is **retired as the broker entry path**. A user installs/enables the
-  broker(s) they want (Kite, Dhan, Bybit, …) from the marketplace, supplies BYOK creds, and the
-  broker works plug-and-play. The seven existing `plugins/brokers/` plugins (today dead-wired — §3.4)
-  MUST become real, installable reference plugins, or be rebuilt as such; they are no longer dead
-  fixtures.
-- **FR-052**: The working Kite read-only OAuth logic (the one genuine end-to-end BYOK broker path —
-  §3.5) MUST be **kept and repackaged as the first reference broker plugin** — not rebuilt from
-  scratch and not a hardcoded default. It becomes the canonical example every other broker plugin
-  follows.
+- **FR-051**: REMOVED (D81, 23 Sep 2026) — no broker entry path exists to retire; trading was
+  removed from the product permanently.
+- **FR-052**: REMOVED (D81, 23 Sep 2026) — no broker plugin exists to repackage; trading was
+  removed from the product permanently.
 - **FR-053**: The provider-shaped data registry (FR-034/FR-035) and the plugin contract MUST describe
   **one** unified extension model, not two parallel ones: a data provider/connector's declarative
   credential+shape declaration **is** the data-source slice of the marketplace plugin model, and the
@@ -967,14 +941,13 @@ portfolio in the UI changes the agent's read with zero divergence.
   id/version checks, MUST check `requiredHostVersion` and refuse an incompatible plugin (surfaced, not
   silently loaded), and MUST provide working `PluginConfig` secret resolution (today effectively a
   no-op). The marketplace cannot be trustworthy without these.
-- **FR-055**: **HARD GUARDRAIL — safety stays host-enforced, never plugin-delegated.** A broker (or
-  any) plugin MUST NOT be able to bypass the §6.5 boundary: paper-mode default, read-only enforcement,
-  the kill switch, position limits, the diff/accept gate, and append-only audit are all enforced by
-  the **host**; plugins plug INTO them and cannot opt out. The Tradesa-V2 read-only plugin is the
-  working precedent (`CURRENT_STATE.md` §5: three independent enforcement layers — no write methods on
-  the provider surface, no non-GET routes, `supportsControlPlane: false`). Tier-1 LOCKED files
-  (`types/plugin.ts`, the §6.5 LOCKED set) and every §6.5 invariant stay byte-for-byte untouched
-  (FR-012).
+- **FR-055**: **HARD GUARDRAIL — safety stays host-enforced, never plugin-delegated.** No plugin can
+  bypass the host agent-write gate: the proposed-changes diff/accept trust gate over the 18 host
+  actions is enforced by the **host**; plugins plug INTO it and cannot opt out. The read-only-wrapper
+  rule (Tradesa-V2 is the working precedent — `docs/SAFETY_ARCHITECTURE.md` §7: three independent
+  enforcement layers — no write methods on the provider surface, no non-GET routes,
+  `supportsControlPlane: false`) is the contract for future data-source plugins. Tier-1 LOCKED files
+  (`types/plugin.ts`) and every §6.5 invariant stay preserved (FR-012).
 
 ### Functional Requirements — Locale-native data, resolution & fallback (Pass B / Pillar A)
 
@@ -1194,18 +1167,15 @@ portfolio in the UI changes the agent's read with zero divergence.
   provider/model + preference order, palette behavior, panel defaults, starter-cockpit composition,
   theming knobs) is configurable from the settings surface; a remapped keybinding persists across
   relaunch; and a settings export re-imports on another machine with zero loss.
-- **SC-012**: For a live connected broker, the read surface returns **distinct, real** positions,
-  holdings, P&L, and margins (not aliased to a single summary); synthetic/paper/disconnected values
-  are labeled as such; and no write/execution code path exists on the broker read surface
-  (audit-grep; §6.5 untouched).
-- **SC-013**: A broker can be **installed, enabled, configured (BYOK), and removed entirely through
-  the marketplace with zero host code change**, and **no broker adapter is registered at boot**
-  (audit: the boot path registers no broker; `bootstrap_default_adapters()` is retired as the broker
-  entry path). The same install/enable/configure/remove lifecycle governs a data-source, a panel, and
-  an agent plugin.
-- **SC-014**: A marketplace plugin **cannot place or write anything that bypasses the host safety
-  gate** — no plugin code path reaches order placement or any state mutation outside the §6.5
-  boundary (audit-grep, mirroring SC-003/SC-012; §6.5 untouched).
+- **SC-012**: REMOVED (D81, 23 Sep 2026) — no broker read surface exists; trading was removed from
+  the product permanently.
+- **SC-013**: A plugin (data-source, panel, agent) can be **installed, enabled, configured (BYOK),
+  and removed entirely through the marketplace with zero host code change**, and **no plugin is
+  registered at boot** (audit: the boot path registers no marketplace plugin). The same
+  install/enable/configure/remove lifecycle governs a data-source, a panel, and an agent plugin.
+- **SC-014**: A marketplace plugin **cannot write anything that bypasses the host safety
+  gate** — no plugin code path reaches any state mutation outside the agent-write safety boundary
+  (audit-grep, mirroring SC-003; §6.5 untouched).
 - **SC-015**: The plugin runtime **enforces its guarantees**: a manifest↔instance id/version mismatch
   and a `requiredHostVersion` violation are each **rejected at load** (no silent load of an
   incompatible plugin), and a plugin's declared secrets **resolve through `PluginConfig`** at use (no
