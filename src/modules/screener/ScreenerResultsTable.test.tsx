@@ -188,6 +188,69 @@ describe("ScreenerResultsTable", () => {
     expect(screen.getByText(/running screener/i)).toBeInTheDocument();
   });
 
+  it("R15-DATA-043: money-column sort groups by currency, never interleaved", () => {
+    // TCS's raw INR market cap (2.5T) sits BETWEEN two USD rows' raw
+    // magnitudes (GOOGL 2.1T, AAPL 3.0T) — a naive cross-currency sort would
+    // interleave it between them. The grouped sort keeps every INR row
+    // contiguous, ahead of every USD row. displaySymbol strips ".NS", so the
+    // rendered Symbol cells read "RELIANCE" / "TCS", not the raw ticker.
+    const RELIANCE_NS = {
+      symbol: "RELIANCE.NS",
+      name: "Reliance Industries",
+      sector: "Energy",
+      industry: "Oil & Gas",
+      market_cap: 17_500_000_000_000,
+      pe_ratio: 28.1,
+      price: 1293.0,
+      change_percent_1d: 0.6,
+      volume: 5_400_000,
+      matched_criteria: [0],
+      currency: "INR",
+    };
+    const TCS_NS = {
+      symbol: "TCS.NS",
+      name: "Tata Consultancy Services",
+      sector: "Technology",
+      industry: "IT Services",
+      market_cap: 2_500_000_000_000,
+      pe_ratio: 27.0,
+      price: 3800.0,
+      change_percent_1d: 0.2,
+      volume: 1_200_000,
+      matched_criteria: [0],
+      currency: "INR",
+    };
+    useScreenerStore.setState({
+      lastResult: {
+        ...RESULT,
+        rows: [...RESULT.rows, RELIANCE_NS, TCS_NS],
+        result_count: 5,
+      },
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+
+    // Default sort is market_cap desc.
+    let symbolOrder = screen
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) => within(row).getAllByRole("cell")[0]!.textContent);
+    expect(symbolOrder).toEqual(["RELIANCE", "TCS", "MSFT", "AAPL", "GOOGL"]);
+
+    // Click the Price header — the same currency grouping must hold there.
+    fireEvent.click(screen.getByTestId("column-price"));
+    symbolOrder = screen
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) => within(row).getAllByRole("cell")[0]!.textContent);
+    const inrIndices = symbolOrder
+      .map((s, i) => [s, i] as const)
+      .filter(([s]) => s === "RELIANCE" || s === "TCS")
+      .map(([, i]) => i);
+    // The two INR rows stay adjacent — never split by a USD row.
+    expect(inrIndices[1]).toBe(inrIndices[0]! + 1);
+  });
+
   it("renders a friendly message when the result has zero rows", () => {
     useScreenerStore.setState({
       lastResult: { ...RESULT, rows: [], result_count: 0 },

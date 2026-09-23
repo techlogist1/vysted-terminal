@@ -290,6 +290,11 @@ function downloadScreenerCsv(rows: ScreenerResultRow[], universe: string): void 
   URL.revokeObjectURL(url);
 }
 
+// Money-valued sort keys — a mixed-currency universe (e.g. a custom
+// [AAPL, RELIANCE.NS] screen) must never rank a USD row against an INR row
+// by raw magnitude (R15-DATA-043).
+const MONEY_SORT_KEYS: ReadonlySet<SortKey> = new Set(["market_cap", "price"]);
+
 // Direction-aware comparator that always pins null/unknown values LAST, in both
 // directions. Applying the direction factor only to the value comparison keeps
 // nulls sinking regardless of direction (crypto with unknown market cap, etc.).
@@ -299,6 +304,12 @@ function compareValue(
   key: SortKey,
   dir: number,
 ): number {
+  if (MONEY_SORT_KEYS.has(key) && a.currency !== b.currency) {
+    // Group by currency first — direction only orders WITHIN a currency.
+    const ac = a.currency ?? "";
+    const bc = b.currency ?? "";
+    return ac < bc ? -1 : ac > bc ? 1 : 0;
+  }
   const av = a[key];
   const bv = b[key];
   if (av == null && bv == null) return 0;

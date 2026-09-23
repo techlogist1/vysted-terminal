@@ -347,16 +347,25 @@ def _evaluate_group(
     return any(results) if group.combinator == "or" else all(results)
 
 
+def _currency_sort_key(currency: str | None) -> str:
+    """Normalize a listing currency for the sort grouping below."""
+    return (currency or "").strip().upper()
+
+
 def apply_criteria(
     rows: list[tuple[Fundamentals, Quote | None]],
     criteria: list[ScreenerCriterion],
     group: CriterionGroup | None = None,
 ) -> list[ScreenerResultRow]:
-    """Filter fundamentals+quote pairs by the criteria, ordered by market_cap desc.
+    """Filter fundamentals+quote pairs by the criteria, ordered by
+    ``(currency, market_cap desc)``.
 
     When ``group`` is given it supersedes the flat ``criteria``; otherwise the
     flat ``criteria`` are AND-combined. Symbols whose ``market_cap`` is unknown
-    sort to the end.
+    sort to the end of their currency group. R15-DATA-043: no FX layer exists
+    (§6 D-B2-4), so a universe spanning currencies is grouped by currency
+    first — ranking RELIANCE.NS's INR market cap against AAPL's USD one as a
+    single number is a fabricated comparison, not a ranking.
     """
     matched: list[ScreenerResultRow] = []
     for fundamentals, quote in rows:
@@ -392,10 +401,15 @@ def apply_criteria(
                 change_percent_1d=quote.change_percent if quote is not None else None,
                 volume=quote.volume if quote is not None else None,
                 matched_criteria=passed_indices,
+                currency=fundamentals.currency,
             )
         )
     matched.sort(
-        key=lambda row: (row.market_cap is None, -(row.market_cap or 0.0)),
+        key=lambda row: (
+            _currency_sort_key(row.currency),
+            row.market_cap is None,
+            -(row.market_cap or 0.0),
+        ),
     )
     return matched
 
@@ -795,6 +809,12 @@ async def _finalize(
     evaluated_count = len(pairs_by_symbol) + len(state.pruned_failed)
     total = len(state.universe.symbols)
     coverage = f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
+    # R15-DATA-043: a served result set spanning currencies is ranked within
+    # each currency (no FX layer, §6 D-B2-4) — say so, rather than let the
+    # ordering look like a single cross-currency ranking.
+    served_currencies = sorted({r.currency for r in rows if r.currency})
+    if len(served_currencies) > 1:
+        coverage += f" · spans {', '.join(served_currencies)} — ranked within each currency"
     not_live = basis_counts.get("snapshot", 0) + basis_counts.get("mixed", 0)
     stale_as_of = [stamp for stamp in row_as_of.values() if stamp is not None]
     if not_live and stale_as_of:
