@@ -47,7 +47,8 @@ class ActionAckRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     tool_call_id: str = Field(alias="toolCallId", min_length=1)
-    status: Literal["applied", "kept_previous", "failed"]
+    #: ``staged`` = waiting in the user's review queue (non-terminal, C1).
+    status: Literal["applied", "kept_previous", "failed", "staged"]
     #: Optional applied-brief identity ({run_id, created_at, symbol,
     #: source_count}) so the divergence notice can name what actually rendered.
     brief: dict[str, Any] | None = None

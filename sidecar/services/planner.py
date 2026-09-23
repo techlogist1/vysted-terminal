@@ -79,9 +79,23 @@ _EDIT_SIGNALS = (
     # holding). Vysted has no brokerage connection (D81).
     r"\bbuy(ing)?\b",
     r"\bsell(ing)?\b",
+    r"\bbought\b",
+    r"\bsold\b",
+    r"\btrack\b",
+    r"\bput\b.*\b(on|in|into)\b",
     r"\badd\b",
     r"\bremove\b",
+    r"\bdelete\b",
     r"\bchange\b",
+    r"\bupdate\b",
+    # Writes to the user's own surfaces (R15-AGENT-019): notes, saved
+    # screens/layouts, and the screener (the /screener expansion is "screen for …").
+    r"\bnotes?\b",
+    r"\bjot\b",
+    r"\bwrite\b",
+    r"\bsave\b",
+    r"\bscreen\b",
+    r"\bfilters?\b",
     r"\bswitch (to|the)\b",
     r"\bset (the )?(chart|symbol|timeframe|indicator)\b",
     r"\bopen\b",

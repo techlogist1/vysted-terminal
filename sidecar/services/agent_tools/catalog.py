@@ -21,13 +21,17 @@ capability id here contains ``place_order`` / ``submit_order`` / ``execute_order
 (:data:`FORBIDDEN_TOOL_SUBSTRINGS`), and ``tests/test_no_trading_surface.py``
 pins that no order, broker or simulated-account capability exists.
 This module is pure data: it imports nothing from the ``agent_tools`` package or
-``models`` so it can be a dependency of both without a cycle.
+``models.custom_agent`` so it can be a dependency of both without a cycle. Its
+one import, ``services.indicators.SUPPORTED_INDICATORS``, is the indicator
+registry the ``set_chart_indicators`` enum derives from (C10).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal
+
+from services.indicators import SUPPORTED_INDICATORS
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
 # the domain tag projected to the MCP surface (FR-021).
@@ -103,6 +107,11 @@ class Capability:
     #: per-invocation locals are exempt; ``research`` carries its own outer
     #: guard computed from its args).
     timeout_seconds: float | None = None
+    #: The result carries third-party text (web pages, news, exchange
+    #: disclosures, research built from them). The runtime fences it with
+    #: ``scrub.wrap_untrusted`` in the model-facing tool message, so injected
+    #: instructions read as data, never as the user's request (R15-AGENT-021).
+    untrusted_text: bool = False
 
 
 def _cap(
@@ -118,6 +127,7 @@ def _cap(
     aliases: tuple[str, ...] = (),
     default_grant: bool = True,
     timeout_seconds: float | None = None,
+    untrusted_text: bool = False,
 ) -> tuple[str, Capability]:
     return id, Capability(
         id=id,
@@ -131,6 +141,7 @@ def _cap(
         aliases=aliases,
         default_grant=default_grant,
         timeout_seconds=timeout_seconds,
+        untrusted_text=untrusted_text,
     )
 
 
@@ -256,6 +267,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=20.0,
+            untrusted_text=True,
         ),
         _cap(
             "market_overview",
@@ -281,6 +293,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=20.0,
+            untrusted_text=True,
         ),
         # --- web search (Pass B / Pillar C) ----------------------------------
         _cap(
@@ -310,6 +323,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=25.0,
+            untrusted_text=True,
         ),
         _cap(
             "research",
@@ -387,6 +401,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="research",
             read_only=True,
             kind="read_handler",
+            untrusted_text=True,
         ),
         # --- screener --------------------------------------------------------
         _cap(
@@ -619,6 +634,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+            untrusted_text=True,
         ),
         _cap(
             "sec_insider_transactions",
@@ -680,6 +696,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+            untrusted_text=True,
         ),
         _cap(
             "shareholding_pattern",
@@ -997,7 +1014,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             "set_chart_indicators",
             description=(
                 "Apply (or replace) the chart's technical indicators by key — e.g. "
-                "sma, ema, rsi, macd, bollinger, vwap, volume. Pass the full desired "
+                "sma, ema, rsi, macd, bollinger, vwap, volume. Use only the listed "
+                "keys: one unknown key fails the whole set. Pass the full desired "
                 "set (it replaces the current selection). When the user says 'add a "
                 "200-day average' or 'set me up to study NVDA', pick a sensible set "
                 "for the asset class. Indicators are server-computed and overlay or "
@@ -1007,7 +1025,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 {
                     "indicators": {
                         "type": "array",
-                        "items": {"type": "string"},
+                        # The registry the chart's /indicators fetch validates
+                        # against (C10) — never a hand copy.
+                        "items": {"type": "string", "enum": list(SUPPORTED_INDICATORS)},
                         "description": (
                             "Indicator keys, e.g. ['sma','volume','rsi','macd']. "
                             "Replaces the current selection."
@@ -1262,7 +1282,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "symbol, quantity, and per-share cost basis. Edits the user's local "
                 "tracked portfolio (manual holdings). Vysted has no brokerage "
                 "connection. Use when the user says they bought/hold something and "
-                "want it tracked."
+                "want it tracked. If the user did not give the price they paid, ASK "
+                "for it before calling — never invent, estimate or zero a cost basis."
             ),
             input_schema=_obj(
                 {
@@ -1270,7 +1291,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                     "quantity": {"type": "number"},
                     "cost_basis": {
                         "type": "number",
-                        "description": "Per-share cost in the listing currency.",
+                        "description": (
+                            "Per-share cost in the listing currency, as the user stated "
+                            "it. Ask the user if they did not say; never guess."
+                        ),
                     },
                     "asset_class": {"type": "string", "enum": _ASSET_ENUM, "default": "equity"},
                     "note": {"type": "string", "description": "Optional free-form note."},
@@ -1289,7 +1313,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "cost basis, note, …). Read the current positions first with "
                 "get_portfolio to learn the position_id. Edits the user's local "
                 "tracked portfolio (manual holdings). Vysted has no brokerage "
-                "connection."
+                "connection. Send only the fields the user changed; for a new cost "
+                "basis use the price the user gave — ask for it, never invent one."
             ),
             input_schema=_obj(
                 {
@@ -1502,6 +1527,12 @@ def is_read_only(tool_id: str) -> bool | None:
     return cap.read_only if cap else None
 
 
+def is_untrusted_text(tool_id: str) -> bool:
+    """True when the tool's result carries third-party text to fence (AGENT-021)."""
+    cap = CAPABILITY_CATALOG.get(tool_id)
+    return bool(cap and cap.untrusted_text)
+
+
 def timeout_for(tool_id: str) -> float | None:
     """Per-dispatch wall budget for a tool (R10, E7); ``None`` = no timeout.
 
@@ -1531,12 +1562,24 @@ TIMEOUT_HINTS: dict[str, str] = {
     "workflows": "narrow the date range or symbol list and retry",
 }
 
+#: Per-tool hints that override the domain line (R15-RESEARCH-008, C6):
+#: ``web_search`` shares the ``research`` domain, but "retry at a lighter
+#: depth" is the research tool's copy — search has no depth.
+TOOL_TIMEOUT_HINTS: dict[str, str] = {
+    "web_search": (
+        "the configured search tier did not answer in time — retry once with a "
+        "narrower query, or answer from what you already have and say search was slow"
+    ),
+}
+
 #: Fallback hint for a domain not listed above.
 DEFAULT_TIMEOUT_HINT = "try again — if it keeps timing out, narrow the request"
 
 
 def timeout_hint_for(tool_id: str) -> str:
-    """The per-domain next-step hint for a tool's timeout message."""
+    """The next-step hint for a tool's timeout message (per tool, else per domain)."""
+    if tool_id in TOOL_TIMEOUT_HINTS:
+        return TOOL_TIMEOUT_HINTS[tool_id]
     return TIMEOUT_HINTS.get(domain_of(tool_id) or "", DEFAULT_TIMEOUT_HINT)
 
 
@@ -1547,6 +1590,7 @@ __all__ = [
     "Domain",
     "FORBIDDEN_TOOL_SUBSTRINGS",
     "TIMEOUT_HINTS",
+    "TOOL_TIMEOUT_HINTS",
     "ToolKind",
     "agent_selectable_tool_ids",
     "default_grant_tool_ids",
@@ -1554,6 +1598,7 @@ __all__ = [
     "internal_capabilities",
     "internal_tool_ids",
     "is_read_only",
+    "is_untrusted_text",
     "mcp_capabilities",
     "mcp_tool_ids",
     "read_handler_ids",

@@ -184,3 +184,30 @@ def test_write_screener_filters_documents_string_criteria_and_india_universes() 
     assert '"field":"sector"' in desc
     for universe in ("nse-all", "bse-all", "india-all"):
         assert universe in desc, f"stale universe list: {universe} missing"
+
+
+# --- R15-AGENT-021: third-party text tools carry the untrusted_text flag ---
+
+
+def test_third_party_text_tools_are_flagged_untrusted() -> None:
+    flagged = {cid for cid, cap in CAPABILITY_CATALOG.items() if cap.untrusted_text}
+    assert flagged == {
+        "web_search",
+        "news",
+        "market_overview",
+        "corporate_announcements",
+        "sec_filing_content",
+        "research",
+    }
+
+
+# --- R15-RESEARCH-008 (C6): web_search times out with its own next step ---
+
+
+def test_web_search_timeout_hint_is_not_the_research_depth_copy() -> None:
+    from services.agent_tools.catalog import timeout_hint_for
+
+    hint = timeout_hint_for("web_search")
+    assert hint != timeout_hint_for("research")
+    assert "depth" not in hint
+    assert "narrower query" in hint
