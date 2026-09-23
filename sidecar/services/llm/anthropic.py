@@ -30,7 +30,7 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent
+from .base import LLMProvider, LLMStreamEvent, client_timeout
 from .native_search import DEFAULT_WEB_SEARCH_MAX_USES, anthropic_web_search_tool
 
 #: Output ceiling (max ``max_tokens``) per Claude model family; the longest
@@ -123,7 +123,9 @@ class AnthropicProvider(LLMProvider):
         self._base_url = base_url
 
     def _client(self, api_key: str | None) -> anthropic.AsyncAnthropic:
-        return anthropic.AsyncAnthropic(api_key=api_key, base_url=self._base_url)
+        return anthropic.AsyncAnthropic(
+            api_key=api_key, base_url=self._base_url, timeout=client_timeout()
+        )
 
     async def stream_chat(
         self,

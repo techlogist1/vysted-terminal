@@ -283,3 +283,68 @@ describe("streaming — exactly one terminal callback", () => {
     expect(rec.errors).toEqual([]);
   });
 });
+
+// ── Stall watchdog (R15-AGENT-025) ──
+
+import { AGENT_STREAM_IDLE_MS, STREAM_STALLED } from "./streaming";
+
+describe("streaming — stall watchdog", () => {
+  const encoder = new TextEncoder();
+  let controller: ReadableStreamDefaultController<Uint8Array>;
+
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    fetchMock.mockClear();
+    fetchMock.mockImplementationOnce(
+      async () =>
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start: (c) => {
+              controller = c;
+            },
+          }),
+          { status: 200, headers: { "Content-Type": "text/event-stream" } },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    vi.useFakeTimers();
+    return () => vi.useRealTimers();
+  });
+
+  function frame(payload: Record<string, unknown>): void {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+  }
+
+  it("ends a silent agent stream with the stalled error, once", async () => {
+    const errors: string[] = [];
+    const run = streamAgentInvocation(
+      "copilot",
+      { prompt: "price of RELIANCE?" },
+      { onEvent: () => undefined, onError: (err) => errors.push(err.message) },
+    );
+    await vi.advanceTimersByTimeAsync(AGENT_STREAM_IDLE_MS + 1);
+    await run;
+    expect(errors).toEqual([STREAM_STALLED]);
+  });
+
+  it("does not fire while heartbeats keep arriving past the budget", async () => {
+    const events: unknown[] = [];
+    const errors: string[] = [];
+    const run = streamAgentInvocation(
+      "copilot",
+      { prompt: "deep research BDL" },
+      { onEvent: (e) => events.push(e), onError: (err) => errors.push(err.message) },
+    );
+    for (let elapsed = 0; elapsed < AGENT_STREAM_IDLE_MS * 2; elapsed += 10_000) {
+      await vi.advanceTimersByTimeAsync(10_000);
+      frame({ kind: "heartbeat" });
+    }
+    frame({ kind: "delta", text: "BDL order book is Rs 23,000 cr." });
+    frame({ kind: "done" });
+    controller.close();
+    await run;
+    expect(errors).toEqual([]);
+    expect(events.at(-1)).toMatchObject({ kind: "done" });
+    expect(events.filter((e) => (e as { kind: string }).kind === "heartbeat").length).toBe(9);
+  });
+});

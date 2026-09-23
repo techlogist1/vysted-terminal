@@ -17,11 +17,14 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from typing import Any
 
+import httpx
+
 from models.llm import (
     LLMAgentPlanEvent,
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
+    LLMHeartbeatEvent,
     LLMMessage,
     LLMModelOption,
     LLMResearchStepEvent,
@@ -36,9 +39,26 @@ LLMStreamEvent = (
     | LLMResearchStepEvent
     | LLMAgentPlanEvent
     | LLMThinkingEvent
+    | LLMHeartbeatEvent
     | LLMDoneEvent
     | LLMErrorEvent
 )
+
+#: Transport bounds for the adapter clients and the runtime's provider wait
+#: (R15-AGENT-025). The SDK default read timeout is 600 s, so a provider that
+#: accepted a request and went silent held the chat for ten minutes.
+CONNECT_TIMEOUT_S = 10.0
+#: The longest silence between stream bytes from a hosted provider.
+IDLE_TIMEOUT_S = 180.0
+#: The same for a local Ollama server, which may be loading the model.
+LOCAL_IDLE_TIMEOUT_S = 300.0
+
+
+def client_timeout(idle: float = IDLE_TIMEOUT_S) -> httpx.Timeout:
+    """The httpx timeout an adapter client is built with: a short connect, and
+    ``idle`` for every read (between stream chunks), write and pool wait."""
+    return httpx.Timeout(idle, connect=CONNECT_TIMEOUT_S)
+
 
 #: Reserved key an adapter stamps into a tool call's ``input`` when the call's
 #: arguments could not be used (malformed JSON, not an object, or failed schema

@@ -190,6 +190,9 @@ export type LLMStreamEvent =
       note?: string;
     }
   | { kind: "thinking"; text: string }
+  /** Liveness while the runtime waits on a provider or a tool (R15-AGENT-025):
+   *  carries nothing; the stream's stall watchdog resets on it. */
+  | { kind: "heartbeat" }
   | { kind: "done"; usage?: LLMUsage; finishReason?: string }
   | { kind: "error"; message: string };
 

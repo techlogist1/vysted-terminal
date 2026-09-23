@@ -44,6 +44,7 @@ from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
+    LLMHeartbeatEvent,
     LLMMessage,
     LLMProviderId,
     LLMResearchStepEvent,
@@ -55,7 +56,12 @@ from services import agent_tools, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot
-from services.llm.base import LLMStreamEvent, is_length_finish
+from services.llm.base import (
+    IDLE_TIMEOUT_S,
+    LOCAL_IDLE_TIMEOUT_S,
+    LLMStreamEvent,
+    is_length_finish,
+)
 from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
 from services.search.scrub import wrap_untrusted
@@ -876,6 +882,61 @@ class _ToolDone:
 #: knows no more live steps are coming.
 _STEP_SENTINEL = object()
 
+#: A heartbeat frame goes out after this much silence while the runtime waits on
+#: a provider or a tool, so the chat's stall watchdog can tell a slow turn from
+#: a dead one (R15-AGENT-025).
+_HEARTBEAT_SECONDS = 10.0
+#: The planner pre-pass runs before the turn's first frame; past this it is
+#: skipped and the turn proceeds without a visible plan (R15-AGENT-025).
+_PLANNER_TIMEOUT_SECONDS = 20.0
+
+
+async def _relay_provider(stream: AsyncIterator[Any], idle: float) -> AsyncIterator[Any]:
+    """Relay one provider round from a producer task so the wait is timed.
+
+    A heartbeat goes out every :data:`_HEARTBEAT_SECONDS` of silence; after
+    ``idle`` seconds with no provider event the relay ends the round with an
+    error frame instead of waiting on the socket (R15-AGENT-025). A failure in
+    the stream re-raises here; closing the relay cancels the provider call.
+    """
+    queue: asyncio.Queue[Any] = asyncio.Queue()
+
+    async def _produce() -> None:
+        try:
+            async for event in stream:
+                queue.put_nowait(event)
+        finally:
+            queue.put_nowait(_STEP_SENTINEL)
+
+    task = asyncio.create_task(_produce())
+    quiet = 0.0
+    try:
+        while True:
+            try:
+                item = await asyncio.wait_for(queue.get(), _HEARTBEAT_SECONDS)
+            except TimeoutError:
+                quiet += _HEARTBEAT_SECONDS
+                if quiet >= idle:
+                    yield LLMErrorEvent(
+                        message="The provider went quiet and did not finish the answer.",
+                        action="Retry, or switch the composer to a different model.",
+                        detail=f"no provider event for {int(idle)}s",
+                        code="provider_idle",
+                    )
+                    return
+                yield LLMHeartbeatEvent()
+                continue
+            if item is _STEP_SENTINEL:
+                await task
+                return
+            quiet = 0.0
+            yield item
+    finally:
+        if not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
 
 def _step_event(tool_call: LLMToolUseEvent, step: Any, index: int) -> LLMResearchStepEvent:
     """Build a ``research_step`` SSE event from a tool's emitted step.
@@ -908,7 +969,7 @@ def _step_event(tool_call: LLMToolUseEvent, step: Any, index: int) -> LLMResearc
 async def _dispatch_tool_with_progress(
     tool_call: LLMToolUseEvent,
     local_tools: dict[str, LocalToolHandler] | None = None,
-) -> AsyncIterator[LLMResearchStepEvent | _ToolDone]:
+) -> AsyncIterator[LLMResearchStepEvent | LLMHeartbeatEvent | _ToolDone]:
     """Dispatch a tool, streaming any live research steps it emits, then yield a
     terminal :class:`_ToolDone` carrying the JSON result string (Track A).
 
@@ -937,7 +998,11 @@ async def _dispatch_tool_with_progress(
     index = 0
     try:
         while True:
-            item = await queue.get()
+            try:
+                item = await asyncio.wait_for(queue.get(), _HEARTBEAT_SECONDS)
+            except TimeoutError:
+                yield LLMHeartbeatEvent()  # a quiet tool is still running
+                continue
             if item is _STEP_SENTINEL:
                 break
             index += 1
@@ -1715,7 +1780,11 @@ async def invoke_agent(
 
             async def _plan_llm_call(p: str) -> str:
                 return await oneshot.complete(
-                    provider_id, resolved_model, api_key, [{"role": "user", "content": p}]
+                    provider_id,
+                    resolved_model,
+                    api_key,
+                    [{"role": "user", "content": p}],
+                    timeout=_PLANNER_TIMEOUT_SECONDS,
                 )
 
             plan = await decompose(
@@ -1733,6 +1802,7 @@ async def invoke_agent(
             logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
 
     rounds = 0
+    idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
     # R10 (E2): the latest research execution record of THIS invoke. When the
     # model issues its own publish_brief without an ``execution`` (it almost
@@ -1769,12 +1839,15 @@ async def invoke_agent(
         round_reasoning_parts: list[str] = []
         seen_done = False
         round_error = False
-        async for event in adapter.stream_chat(
-            messages=messages,
-            model=resolved_model,
-            api_key=api_key,
-            tool_ids=tool_ids,
-            **opts,
+        async for event in _relay_provider(
+            adapter.stream_chat(
+                messages=messages,
+                model=resolved_model,
+                api_key=api_key,
+                tool_ids=tool_ids,
+                **opts,
+            ),
+            idle,
         ):
             if isinstance(event, LLMThinkingEvent):
                 round_reasoning_parts.append(event.text)

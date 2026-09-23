@@ -30,7 +30,13 @@ from models.llm import (
 )
 from services.errors import humanize
 
-from .base import LLMProvider, LLMStreamEvent, invalid_tool_args, is_chat_model
+from .base import (
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    invalid_tool_args,
+    is_chat_model,
+)
 
 
 def _parse_tool_args(raw: str) -> dict[str, Any]:
@@ -98,7 +104,7 @@ class GroqProvider(LLMProvider):
     """Groq chat-completions adapter."""
 
     def _client(self, api_key: str | None) -> groq.AsyncGroq:
-        return groq.AsyncGroq(api_key=api_key)
+        return groq.AsyncGroq(api_key=api_key, timeout=client_timeout())
 
     async def stream_chat(
         self,

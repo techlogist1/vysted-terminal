@@ -42,7 +42,13 @@ from services.errors import humanize, says_invalid_key
 
 #: The sentinel lives in ``base`` (every adapter stamps it); re-exported here
 #: for the runtime's existing ``from services.llm.openai import`` path.
-from .base import INVALID_ARGS_SENTINEL, LLMProvider, LLMStreamEvent, is_chat_model
+from .base import (
+    INVALID_ARGS_SENTINEL,
+    LLMProvider,
+    LLMStreamEvent,
+    client_timeout,
+    is_chat_model,
+)
 from .native_search import (
     openai_native_search_supported,
     openai_web_search_options,
@@ -329,6 +335,7 @@ class OpenAIProvider(LLMProvider):
             base_url=self._base_url,
             default_headers=default_headers,
             max_retries=0,
+            timeout=client_timeout(),
         )
 
     async def _create_with_retry(

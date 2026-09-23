@@ -213,6 +213,16 @@ class LLMThinkingEvent(BaseModel):
     text: str
 
 
+class LLMHeartbeatEvent(BaseModel):
+    """Liveness frame while the runtime waits on a provider or a tool.
+
+    Carries nothing: it tells the chat's stall watchdog the sidecar is still
+    working through a long silent wait (R15-AGENT-025).
+    """
+
+    kind: Literal["heartbeat"] = "heartbeat"
+
+
 class LLMDoneEvent(BaseModel):
     """Stream complete; final usage + finish reason if available."""
 
