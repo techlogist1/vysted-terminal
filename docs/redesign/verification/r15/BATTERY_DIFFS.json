@@ -1,0 +1,1178 @@
+{
+ "slots": 24,
+ "total_fields": 943,
+ "overall_status_counts": {
+  "match": 367,
+  "app blank": 249,
+  "definitional difference": 62,
+  "mismatch": 120,
+  "no source truth": 115,
+  "as-of skew": 25,
+  "not collected": 5
+ },
+ "overall_subtle_tier_status_counts": {
+  "app blank": 9,
+  "mismatch": 2
+ },
+ "overall_normal_tier_status_counts": {
+  "match": 367,
+  "app blank": 240,
+  "definitional difference": 62,
+  "mismatch": 118,
+  "no source truth": 115,
+  "as-of skew": 25,
+  "not collected": 5
+ },
+ "total_dat_raw_ids": 169,
+ "per_slot": [
+  {
+   "slot": "P10",
+   "symbol": "VIYASH",
+   "file": "r15/battery/diffs/P10_VIYASH.json",
+   "n_fields": 34,
+   "status_counts": {
+    "match": 20,
+    "app blank": 6,
+    "definitional difference": 3,
+    "mismatch": 1,
+    "no source truth": 4
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 20,
+    "app blank": 6,
+    "definitional difference": 3,
+    "mismatch": 1,
+    "no source truth": 4
+   },
+   "no_source_truth_fields": [
+    "week52.high_date / week52.low_date",
+    "shareholding.pledged_pct_of_promoter",
+    "latest_results.filing_date",
+    "latest_results.reported_consolidated (sales/op profit/net profit/eps)"
+   ],
+   "mismatch_fields": [
+    "net_profit_ttm"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P10-1",
+    "DAT-P10-2",
+    "DAT-P10-3",
+    "DAT-P10-4",
+    "DAT-P10-5"
+   ]
+  },
+  {
+   "slot": "P11",
+   "symbol": "FUSION",
+   "file": "r15/battery/diffs/P11_FUSION.json",
+   "n_fields": 44,
+   "status_counts": {
+    "match": 19,
+    "app blank": 10,
+    "definitional difference": 5,
+    "no source truth": 6,
+    "as-of skew": 2,
+    "mismatch": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 19,
+    "app blank": 10,
+    "definitional difference": 5,
+    "no source truth": 6,
+    "as-of skew": 2,
+    "mismatch": 2
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date",
+    "roe",
+    "dividend.last_declared_record_or_ex_date",
+    "week52.high.as_of_date",
+    "week52.low.as_of_date",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "revenue_ttm",
+    "week52.low"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P11-1",
+    "DAT-P11-2",
+    "DAT-P11-3",
+    "DAT-P11-4"
+   ]
+  },
+  {
+   "slot": "P12",
+   "symbol": "DHANBANK",
+   "file": "r15/battery/diffs/P12_DHANBANK.json",
+   "n_fields": 40,
+   "status_counts": {
+    "match": 22,
+    "app blank": 6,
+    "definitional difference": 4,
+    "no source truth": 7,
+    "mismatch": 1
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 22,
+    "app blank": 6,
+    "definitional difference": 4,
+    "no source truth": 7,
+    "mismatch": 1
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date",
+    "price.day_range (high/low)",
+    "debt_to_equity",
+    "dividend.last_declared_per_share (+ record/ex date)",
+    "week52.dates (high/low made-on dates)",
+    "shareholding.pledged_pct_of_promoter",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "shareholding.fundamentals.held_percent_insiders (Equity Overview 'Insiders' field)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P12-1",
+    "DAT-P12-2",
+    "DAT-P12-3",
+    "DAT-P12-4",
+    "DAT-P12-5"
+   ]
+  },
+  {
+   "slot": "P13",
+   "symbol": "ELCIDIN",
+   "file": "r15/battery/diffs/P13_ELCIDIN.json",
+   "n_fields": 38,
+   "status_counts": {
+    "definitional difference": 1,
+    "match": 10,
+    "app blank": 25,
+    "no source truth": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "app blank": 3
+   },
+   "normal_status_counts": {
+    "definitional difference": 1,
+    "match": 10,
+    "app blank": 22,
+    "no source truth": 2
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date_bse",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P13-1",
+    "DAT-P13-2",
+    "DAT-P13-3",
+    "DAT-P13-4",
+    "DAT-P13-5",
+    "DAT-P13-6",
+    "DAT-P13-7",
+    "DAT-P13-8",
+    "DAT-P13-9",
+    "DAT-P13-10",
+    "DAT-P13-11",
+    "DAT-P13-12",
+    "DAT-P13-13",
+    "DAT-P13-14",
+    "DAT-P13-15",
+    "DAT-P13-16",
+    "DAT-P13-17",
+    "DAT-P13-18",
+    "DAT-P13-19",
+    "DAT-P13-20",
+    "DAT-P13-21",
+    "DAT-P13-22",
+    "DAT-P13-23",
+    "DAT-P13-24",
+    "DAT-P13-25"
+   ]
+  },
+  {
+   "slot": "P14",
+   "symbol": "JONJUA",
+   "file": "r15/battery/diffs/P14_JONJUA.json",
+   "n_fields": 38,
+   "status_counts": {
+    "match": 18,
+    "no source truth": 5,
+    "app blank": 8,
+    "mismatch": 5,
+    "definitional difference": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 18,
+    "no source truth": 5,
+    "app blank": 8,
+    "mismatch": 5,
+    "definitional difference": 2
+   },
+   "no_source_truth_fields": [
+    "identity.former_names",
+    "shareholding.fii_pct",
+    "shareholding.dii_pct",
+    "shareholding.pledged_pct_of_promoter",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "identity.sector",
+    "identity.industry",
+    "revenue_ttm (+ as-of date)",
+    "net_profit_ttm (+ as-of date)",
+    "shareholding.fundamentals.held_percent_insiders (Equity Overview 'Insiders' field)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P14-1",
+    "DAT-P14-2",
+    "DAT-P14-3",
+    "DAT-P14-4",
+    "DAT-P14-5",
+    "DAT-P14-6",
+    "DAT-P14-7"
+   ]
+  },
+  {
+   "slot": "P15",
+   "symbol": "SUMAX",
+   "file": "r15/battery/diffs/P15_SUMAX.json",
+   "n_fields": 39,
+   "status_counts": {
+    "mismatch": 2,
+    "no source truth": 7,
+    "match": 2,
+    "app blank": 28
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "app blank": 1
+   },
+   "normal_status_counts": {
+    "mismatch": 2,
+    "no source truth": 7,
+    "match": 2,
+    "app blank": 27
+   },
+   "no_source_truth_fields": [
+    "identity.former_names",
+    "identity.isin",
+    "identity.nse_series",
+    "dividend.last_declared_per_share",
+    "week52.dates (high and low)",
+    "shareholding.pledged_pct_of_promoter",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "identity.legal_name",
+    "resolve(company name search)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P15-1",
+    "DAT-P15-2",
+    "DAT-P15-3",
+    "DAT-P15-4",
+    "DAT-P15-5"
+   ]
+  },
+  {
+   "slot": "P16",
+   "symbol": "CREST",
+   "file": "r15/battery/diffs/P16_CREST.json",
+   "n_fields": 37,
+   "status_counts": {
+    "match": 19,
+    "no source truth": 3,
+    "app blank": 6,
+    "definitional difference": 5,
+    "as-of skew": 2,
+    "mismatch": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 19,
+    "no source truth": 3,
+    "app blank": 6,
+    "definitional difference": 5,
+    "as-of skew": 2,
+    "mismatch": 2
+   },
+   "no_source_truth_fields": [
+    "identity.former_names",
+    "identity.listing_date",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "shareholding.promoter_pct (fundamentals held_percent_insiders)",
+    "consolidated_vs_standalone (basis disclosure)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P16-1",
+    "DAT-P16-2",
+    "DAT-P16-3",
+    "DAT-P16-4",
+    "DAT-P16-5",
+    "DAT-P16-6"
+   ]
+  },
+  {
+   "slot": "P17",
+   "symbol": "SIFY",
+   "file": "r15/battery/diffs/P17_SIFY.json",
+   "n_fields": 45,
+   "status_counts": {
+    "match": 15,
+    "app blank": 13,
+    "mismatch": 3,
+    "as-of skew": 6,
+    "definitional difference": 3,
+    "no source truth": 5
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 15,
+    "app blank": 13,
+    "mismatch": 3,
+    "as-of skew": 6,
+    "definitional difference": 3,
+    "no source truth": 5
+   },
+   "no_source_truth_fields": [
+    "roce",
+    "week52.as_of (date the extremum was actually set)",
+    "shareholding.fii_pct",
+    "shareholding.dii_pct",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "identity.resolve_by_company_name",
+    "revenue_ttm (as labeled: currency=USD)",
+    "net_profit_ttm (as labeled: currency=USD)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P17-1",
+    "DAT-P17-2",
+    "DAT-P17-3",
+    "DAT-P17-4",
+    "DAT-P17-5",
+    "DAT-P17-6"
+   ]
+  },
+  {
+   "slot": "P18",
+   "symbol": "ONC",
+   "file": "r15/battery/diffs/P18_ONC.json",
+   "n_fields": 40,
+   "status_counts": {
+    "definitional difference": 2,
+    "app blank": 8,
+    "match": 18,
+    "as-of skew": 1,
+    "mismatch": 4,
+    "no source truth": 7
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "definitional difference": 2,
+    "app blank": 8,
+    "match": 18,
+    "as-of skew": 1,
+    "mismatch": 4,
+    "no source truth": 7
+   },
+   "no_source_truth_fields": [
+    "week52.high_date / week52.low_date",
+    "shareholding.promoter_pct",
+    "shareholding.fii_pct",
+    "shareholding.dii_pct",
+    "shareholding.public_pct",
+    "shareholding.pledged_pct_of_promoter",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "market_cap",
+    "pe_forward",
+    "shareholding.insider_ownership_pct (nearest US equivalent to promoter_pct)",
+    "shareholding.institutional_ownership_pct"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P18-1",
+    "DAT-P18-2",
+    "DAT-P18-3",
+    "DAT-P18-4",
+    "DAT-P18-5",
+    "DAT-P18-6"
+   ]
+  },
+  {
+   "slot": "P19",
+   "symbol": "AMAL",
+   "file": "r15/battery/diffs/P19_AMAL.json",
+   "n_fields": 33,
+   "status_counts": {
+    "mismatch": 22,
+    "match": 1,
+    "no source truth": 4,
+    "app blank": 6
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "mismatch": 1
+   },
+   "normal_status_counts": {
+    "mismatch": 21,
+    "match": 1,
+    "no source truth": 4,
+    "app blank": 6
+   },
+   "no_source_truth_fields": [
+    "identity.nse_symbol",
+    "roce",
+    "shareholding.quarter / promoter_pct / fii_pct / dii_pct / public_pct",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "identity.legal_name",
+    "identity.isin",
+    "identity.bse_code",
+    "identity.board / exchange tier",
+    "identity.sector / identity.industry",
+    "price.last_close",
+    "market_cap",
+    "pe_ttm",
+    "pb",
+    "roe (ttm)",
+    "debt_to_equity",
+    "revenue_ttm",
+    "net_profit_ttm",
+    "revenue_growth_yoy",
+    "eps_ttm",
+    "book_value_per_share",
+    "dividend.last_declared_per_share",
+    "dividend.paid_trailing_12m_per_share",
+    "dividend.yield",
+    "week52.high",
+    "week52.low",
+    "last_3_announcements"
+   ],
+   "subtle_mismatch_fields": [
+    "week52.high"
+   ],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P19-1",
+    "DAT-P19-2",
+    "DAT-P19-3",
+    "DAT-P19-4",
+    "DAT-P19-5"
+   ]
+  },
+  {
+   "slot": "P1",
+   "symbol": "JNPR",
+   "file": "r15/battery/diffs/P1_JNPR.json",
+   "n_fields": 43,
+   "status_counts": {
+    "match": 14,
+    "app blank": 18,
+    "no source truth": 4,
+    "definitional difference": 3,
+    "mismatch": 4
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 14,
+    "app blank": 18,
+    "no source truth": 4,
+    "definitional difference": 3,
+    "mismatch": 4
+   },
+   "no_source_truth_fields": [
+    "identity.former_names.rename_date",
+    "dividend.record_date",
+    "dividend.ex_date",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "pb",
+    "eps_ttm",
+    "book_value_per_share",
+    "shareholding.institutions_combined (fii_pct+dii_pct, cross-checked against the app's fundamentals proxy)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": "5 findings (DAT-P1-1..5): 2 high (shareholding/announcements/results endpoint failure + institutional-holding mismatch; eps_ttm/pe_ttm internal inconsistency), 2 medium (book_value_per_share/pb internal inconsistency; roe/roce null despite derivable inputs), 1 low (52-week high/low as-of dates not surfaced).",
+   "dat_ids": [
+    "DAT-P1-1",
+    "DAT-P1-2",
+    "DAT-P1-3",
+    "DAT-P1-4",
+    "DAT-P1-5"
+   ]
+  },
+  {
+   "slot": "P20",
+   "symbol": "SMR",
+   "file": "r15/battery/diffs/P20_SMR.json",
+   "n_fields": 41,
+   "status_counts": {
+    "mismatch": 21,
+    "match": 5,
+    "app blank": 8,
+    "no source truth": 7
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "mismatch": 1
+   },
+   "normal_status_counts": {
+    "mismatch": 20,
+    "match": 5,
+    "app blank": 8,
+    "no source truth": 7
+   },
+   "no_source_truth_fields": [
+    "roce",
+    "shareholding.promoter_pct (latest filed quarter)",
+    "shareholding.fii_pct",
+    "shareholding.dii_pct",
+    "shareholding.public_pct",
+    "shareholding.pledged_pct_of_promoter",
+    "shareholding.as_of_quarter"
+   ],
+   "mismatch_fields": [
+    "identity.legal_name",
+    "identity.former_names",
+    "identity.isin",
+    "identity.bse_code",
+    "identity.sector",
+    "identity.industry",
+    "price.last_close",
+    "market_cap",
+    "pe_ttm",
+    "pb",
+    "roe",
+    "debt_to_equity",
+    "revenue_ttm",
+    "net_profit_ttm",
+    "eps_ttm",
+    "book_value_per_share",
+    "dividend.paid_trailing_12m_per_share",
+    "dividend.yield",
+    "week52.high",
+    "week52.low",
+    "last_3_announcements"
+   ],
+   "subtle_mismatch_fields": [
+    "week52.high"
+   ],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P20-1"
+   ]
+  },
+  {
+   "slot": "P2",
+   "symbol": "DAL",
+   "file": "r15/battery/diffs/P2_DAL.json",
+   "n_fields": 37,
+   "status_counts": {
+    "match": 16,
+    "definitional difference": 2,
+    "mismatch": 7,
+    "app blank": 10,
+    "no source truth": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 16,
+    "definitional difference": 2,
+    "mismatch": 7,
+    "app blank": 10,
+    "no source truth": 2
+   },
+   "no_source_truth_fields": [
+    "corporate_actions_2026",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "price.last_close (as_of date)",
+    "market_cap (as_of date)",
+    "pe_ttm",
+    "revenue_ttm (fundamentals endpoint)",
+    "revenue_ttm / net_profit_ttm (income-statement endpoint)",
+    "eps_ttm",
+    "week52.low"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P2-1",
+    "DAT-P2-2",
+    "DAT-P2-3",
+    "DAT-P2-4",
+    "DAT-P2-5",
+    "DAT-P2-6",
+    "DAT-P2-7",
+    "DAT-P2-8",
+    "DAT-P2-9"
+   ]
+  },
+  {
+   "slot": "P3",
+   "symbol": "CHTR",
+   "file": "r15/battery/diffs/P3_CHTR.json",
+   "n_fields": 40,
+   "status_counts": {
+    "match": 16,
+    "not collected": 5,
+    "definitional difference": 3,
+    "no source truth": 4,
+    "as-of skew": 3,
+    "mismatch": 4,
+    "app blank": 5
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 16,
+    "not collected": 5,
+    "definitional difference": 3,
+    "no source truth": 4,
+    "as-of skew": 3,
+    "mismatch": 4,
+    "app blank": 5
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date",
+    "dividend.record_date",
+    "dividend.ex_date",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "pe_ttm",
+    "revenue_growth_yoy",
+    "eps_ttm",
+    "financial_statements (income/balance/cashflow)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P3-1",
+    "DAT-P3-2",
+    "DAT-P3-3",
+    "DAT-P3-4",
+    "DAT-P3-5"
+   ]
+  },
+  {
+   "slot": "P4",
+   "symbol": "SAFE",
+   "file": "r15/battery/diffs/P4_SAFE.json",
+   "n_fields": 39,
+   "status_counts": {
+    "match": 23,
+    "mismatch": 5,
+    "no source truth": 5,
+    "app blank": 5,
+    "definitional difference": 1
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 23,
+    "mismatch": 5,
+    "no source truth": 5,
+    "app blank": 5,
+    "definitional difference": 1
+   },
+   "no_source_truth_fields": [
+    "roce",
+    "face_value",
+    "shareholding.dii_pct (Sep-2025)",
+    "shareholding.pledged_pct_of_promoter",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "identity.sector_and_industry",
+    "roe",
+    "revenue_ttm (income-statement endpoint)",
+    "net_profit (income-statement endpoint)",
+    "shareholding.insiders_pct (/fundamentals main endpoint, held_percent_insiders)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P4-1",
+    "DAT-P4-2",
+    "DAT-P4-3",
+    "DAT-P4-4",
+    "DAT-P4-5",
+    "DAT-P4-6",
+    "DAT-P4-7",
+    "DAT-P4-8"
+   ]
+  },
+  {
+   "slot": "P5",
+   "symbol": "CSL",
+   "file": "r15/battery/diffs/P5_CSL.json",
+   "n_fields": 38,
+   "status_counts": {
+    "match": 16,
+    "definitional difference": 2,
+    "no source truth": 3,
+    "app blank": 16,
+    "mismatch": 1
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "app blank": 4
+   },
+   "normal_status_counts": {
+    "match": 16,
+    "definitional difference": 2,
+    "no source truth": 3,
+    "app blank": 12,
+    "mismatch": 1
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date",
+    "shareholding.promoter_and_promoter_group_detail (held_percent_insiders cross-check)",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "revenue_ttm / net_profit_ttm via /fundamentals/{symbol}/income and /cashflow (statement lines, not the scalar fields above)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P5-1",
+    "DAT-P5-2"
+   ]
+  },
+  {
+   "slot": "P6",
+   "symbol": "ICON",
+   "file": "r15/battery/diffs/P6_ICON.json",
+   "n_fields": 49,
+   "status_counts": {
+    "definitional difference": 4,
+    "match": 23,
+    "no source truth": 5,
+    "app blank": 13,
+    "mismatch": 4
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "definitional difference": 4,
+    "match": 23,
+    "no source truth": 5,
+    "app blank": 13,
+    "mismatch": 4
+   },
+   "no_source_truth_fields": [
+    "identity.isin",
+    "identity.industry",
+    "shareholding.pledged_pct_of_promoter",
+    "last_3_announcements[2].url_guid",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "pe_ttm",
+    "eps_ttm",
+    "last_3_announcements[0].headline",
+    "fundamentals.income/balance/cashflow statements (bonus, non-pack field)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P6-1",
+    "DAT-P6-2",
+    "DAT-P6-3",
+    "DAT-P6-4",
+    "DAT-P6-5",
+    "DAT-P6-6",
+    "DAT-P6-7",
+    "DAT-P6-8",
+    "DAT-P6-9",
+    "DAT-P6-10"
+   ]
+  },
+  {
+   "slot": "P7",
+   "symbol": "JUMBO",
+   "file": "r15/battery/diffs/P7_JUMBO.json",
+   "n_fields": 35,
+   "status_counts": {
+    "match": 14,
+    "no source truth": 6,
+    "definitional difference": 4,
+    "as-of skew": 2,
+    "app blank": 7,
+    "mismatch": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 14,
+    "no source truth": 6,
+    "definitional difference": 4,
+    "as-of skew": 2,
+    "app blank": 7,
+    "mismatch": 2
+   },
+   "no_source_truth_fields": [
+    "identity.former_names",
+    "identity.board",
+    "identity.listing_date",
+    "dividend.last_declared_per_share",
+    "shareholding.fii_pct",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "eps_ttm",
+    "book_value_per_share"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P7-1",
+    "DAT-P7-2",
+    "DAT-P7-3",
+    "DAT-P7-4",
+    "DAT-P7-5",
+    "DAT-P7-6"
+   ]
+  },
+  {
+   "slot": "P8",
+   "symbol": "NAPEROL",
+   "file": "r15/battery/diffs/P8_NAPEROL.json",
+   "n_fields": 42,
+   "status_counts": {
+    "match": 18,
+    "app blank": 5,
+    "mismatch": 5,
+    "no source truth": 8,
+    "as-of skew": 5,
+    "definitional difference": 1
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 18,
+    "app blank": 5,
+    "mismatch": 5,
+    "no source truth": 8,
+    "as-of skew": 5,
+    "definitional difference": 1
+   },
+   "no_source_truth_fields": [
+    "identity.listing_date",
+    "roce",
+    "face_value",
+    "shares_outstanding",
+    "dividend.record_or_ex_date",
+    "dividend.paid_trailing_12m_per_share",
+    "shareholding.pledged_pct_of_promoter",
+    "latest_results.filing_date"
+   ],
+   "mismatch_fields": [
+    "identity.sector",
+    "identity.industry",
+    "dividend.last_declared_per_share",
+    "shareholding.promoter_pct (fundamentals/held_percent_insiders, yfinance)",
+    "shareholding.institutions_pct (fundamentals/held_percent_institutions, yfinance)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P8-1",
+    "DAT-P8-2",
+    "DAT-P8-3",
+    "DAT-P8-4",
+    "DAT-P8-5",
+    "DAT-P8-6",
+    "DAT-P8-7"
+   ]
+  },
+  {
+   "slot": "P9",
+   "symbol": "AMAL",
+   "file": "r15/battery/diffs/P9_AMAL.json",
+   "n_fields": 39,
+   "status_counts": {
+    "match": 15,
+    "no source truth": 4,
+    "mismatch": 6,
+    "definitional difference": 4,
+    "app blank": 10
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {
+    "app blank": 1
+   },
+   "normal_status_counts": {
+    "match": 15,
+    "no source truth": 4,
+    "mismatch": 6,
+    "definitional difference": 4,
+    "app blank": 9
+   },
+   "no_source_truth_fields": [
+    "identity.former_names",
+    "revenue_growth_yoy",
+    "shareholding.fii_pct",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "identity.exchange_venues (NSE second listing)",
+    "shareholding.promoter_pct (fundamentals held_percent_insiders, yfinance-sourced)",
+    "shareholding.dii_pct (fundamentals held_percent_institutions, yfinance-sourced)",
+    "income statement (all line items)",
+    "balance sheet (all line items)",
+    "cash flow statement (all line items)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-P9-1",
+    "DAT-P9-2",
+    "DAT-P9-3",
+    "DAT-P9-4",
+    "DAT-P9-5",
+    "DAT-P9-6",
+    "DAT-P9-7",
+    "DAT-P9-8"
+   ]
+  },
+  {
+   "slot": "S1",
+   "symbol": "DHOOTTRANS",
+   "file": "r15/battery/diffs/S1_DHOOTTRANS.json",
+   "n_fields": 28,
+   "status_counts": {
+    "match": 8,
+    "definitional difference": 4,
+    "app blank": 7,
+    "mismatch": 7,
+    "no source truth": 2
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 8,
+    "definitional difference": 4,
+    "app blank": 7,
+    "mismatch": 7,
+    "no source truth": 2
+   },
+   "no_source_truth_fields": [
+    "dividend.last_declared_per_share / paid_trailing_12m_per_share",
+    "consolidated_vs_standalone basis disclosure"
+   ],
+   "mismatch_fields": [
+    "price.change / change_percent (implied previous_close)",
+    "pe_ttm",
+    "pb / book_value_per_share",
+    "earnings_growth (same growth_basis='mrq_yoy')",
+    "eps_ttm",
+    "every fundamentals field's as_of (systemic)",
+    "shareholding (fallback: fundamentals.held_percent_insiders / held_percent_institutions)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-S1-1",
+    "DAT-S1-2",
+    "DAT-S1-3",
+    "DAT-S1-4",
+    "DAT-S1-5",
+    "DAT-S1-6",
+    "DAT-S1-7",
+    "DAT-S1-8"
+   ]
+  },
+  {
+   "slot": "S2",
+   "symbol": "SMR",
+   "file": "r15/battery/diffs/S2_SMR.json",
+   "n_fields": 42,
+   "status_counts": {
+    "match": 18,
+    "app blank": 15,
+    "definitional difference": 3,
+    "mismatch": 3,
+    "no source truth": 3
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 18,
+    "app blank": 15,
+    "definitional difference": 3,
+    "mismatch": 3,
+    "no source truth": 3
+   },
+   "no_source_truth_fields": [
+    "pb",
+    "book_value_per_share",
+    "shareholding.pledged_pct_of_promoter"
+   ],
+   "mismatch_fields": [
+    "pe_ttm",
+    "eps_ttm",
+    "financials_detail (income/balance/cashflow statements)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-S2-1",
+    "DAT-S2-2",
+    "DAT-S2-3",
+    "DAT-S2-4",
+    "DAT-S2-5",
+    "DAT-S2-6",
+    "DAT-S2-7",
+    "DAT-S2-8",
+    "DAT-S2-9"
+   ]
+  },
+  {
+   "slot": "S3",
+   "symbol": "VERTEX",
+   "file": "r15/battery/diffs/S3_VERTEX.json",
+   "n_fields": 37,
+   "status_counts": {
+    "match": 17,
+    "definitional difference": 3,
+    "mismatch": 5,
+    "app blank": 5,
+    "no source truth": 7
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 17,
+    "definitional difference": 3,
+    "mismatch": 5,
+    "app blank": 5,
+    "no source truth": 7
+   },
+   "no_source_truth_fields": [
+    "revenue_growth_yoy",
+    "face_value",
+    "dividend.last_declared_per_share",
+    "shareholding.fii_pct",
+    "shareholding.pledged_pct_of_promoter",
+    "corporate_actions_2026 (rights issue)",
+    "consolidated_vs_standalone"
+   ],
+   "mismatch_fields": [
+    "shares_outstanding",
+    "book_value_per_share",
+    "pb",
+    "eps_ttm",
+    "shareholding.promoter_pct (fundamentals.held_percent_insiders)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-S3-1",
+    "DAT-S3-2",
+    "DAT-S3-3",
+    "DAT-S3-4",
+    "DAT-S3-5",
+    "DAT-S3-6",
+    "DAT-S3-7"
+   ]
+  },
+  {
+   "slot": "S4",
+   "symbol": "TTC",
+   "file": "r15/battery/diffs/S4_TTC.json",
+   "n_fields": 45,
+   "status_counts": {
+    "match": 20,
+    "app blank": 9,
+    "definitional difference": 3,
+    "as-of skew": 4,
+    "no source truth": 5,
+    "mismatch": 4
+   },
+   "subtle_tier_covered": true,
+   "subtle_status_counts": {},
+   "normal_status_counts": {
+    "match": 20,
+    "app blank": 9,
+    "definitional difference": 3,
+    "as-of skew": 4,
+    "no source truth": 5,
+    "mismatch": 4
+   },
+   "no_source_truth_fields": [
+    "dividend.last_declared_per_share",
+    "shareholding.pledged_pct_of_promoter",
+    "corporate_actions_2026.dividends",
+    "corporate_actions_2026.splits_bonus_rights",
+    "consolidated_vs_standalone_note"
+   ],
+   "mismatch_fields": [
+    "shareholding.promoter_pct (fundamentals/held_percent_insiders, yfinance)",
+    "shareholding.institutions_pct (fundamentals/held_percent_institutions, yfinance)",
+    "latest_results.quarter / filing_date / reporting_regime",
+    "latest_results.annual_figures_inr_crore / half_yearly_figures_inr_crore (income statement)"
+   ],
+   "subtle_mismatch_fields": [],
+   "raw_findings_summary": null,
+   "dat_ids": [
+    "DAT-S4-1",
+    "DAT-S4-2",
+    "DAT-S4-3",
+    "DAT-S4-4",
+    "DAT-S4-5",
+    "DAT-S4-6",
+    "DAT-S4-7",
+    "DAT-S4-8",
+    "DAT-S4-9",
+    "DAT-S4-10"
+   ]
+  }
+ ]
+}

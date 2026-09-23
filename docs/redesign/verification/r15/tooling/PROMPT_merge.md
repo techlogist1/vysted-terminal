@@ -19,6 +19,25 @@ what check). Output: `CENSUS/refute/<file>.json` — array of
 `{raw_id, verdict, severity_final, reason, evidence_checked}` covering EVERY raw_id in the
 input (counts must match). Return counts by verdict.
 
+> **23 Sep note (register bundler, Gate 2):** the verdict list above is what this doc originally
+> specified, not what the refuters used. `PROMPT_refute.md` §"Verdict shape" is the vocabulary
+> actually on disk (803 verdicts across 68 refute files): `refuted | admitted |
+> admitted_with_correction | removed_with_feature`. `register.py` reads that vocabulary —
+> `refuted` and `removed_with_feature` are excluded at bundle time (the latter always with the
+> canonical trading-removal rejection reason); `admitted`/`admitted_with_correction` carry
+> `severity_final` into the merge-in bundle as `row.refuter.severity_final`, which is the
+> "corrected severity" the MERGE section below means. `code-brokers-adapters.json` has no
+> refute file by design and is bulk-closed the same way. Two OTHER raw files
+> (`surf-portfolio-notes.json`, `surf-settings-plugins.json`) currently have **no refute
+> coverage either** — `register.py status`/`bundle` flags this as an ERROR (unlike
+> brokers-adapters, nothing in COMMON.md or the 23 Sep scope change exempts them); their raw
+> findings are in the `ui.json` merge-in bundle with no `refuter` block. A refuter recording a
+> defect it stumbled onto while refuting something else writes it to that same output file as a
+> top-level `new_findings` array (sibling to the verdict array, each item shaped like a raw
+> finding); `register.py` folds each into the raw set as `<file>-N<n>` and it rides the normal
+> bundle/merge/reject accounting like any other raw id — no verdict of its own, so the merger
+> must dispose of it (entry or rejection) same as unrefuted findings.
+
 ## MERGE — turn one cluster of surviving findings into register entries
 
 Input: `CENSUS/merge-in/<cluster>.json` — surviving raw findings from ALL sweeps for one area

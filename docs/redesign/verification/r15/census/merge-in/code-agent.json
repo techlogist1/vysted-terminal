@@ -1,0 +1,538 @@
+[
+ {
+  "raw_id": "COD-agent-runtime-5",
+  "title": "The agent loop decodes the research tool's private payload variants and hand-mirrors the frontend's brief parser",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "design",
+  "evidence": "sidecar/services/agent_runtime.py:846, sidecar/services/agent_runtime.py:863, sidecar/services/agent_runtime.py:866, sidecar/services/agent_runtime.py:883, sidecar/services/agent_runtime.py:894, sidecar/services/agent_runtime.py:906, sidecar/services/agent_runtime.py:770, sidecar/services/agent_runtime.py:786",
+  "notes": "Information hiding / better-together: _auto_publish_event (138 lines) knows that a FAST research payload strands its citations under web.citations OR web.results, that a row's text is excerpt OR snippet, that web_available lives top-level OR nested, that execution.loop in {fast,iter,heavy,research-model} maps to the brief's (mode,depth) badges, and that the frontend's briefFromInput reads snake_case keys. Three layers' internals restated in the agent loop. Consequence: change amplification -- adding a research engine means editing _LOOP_TO_MODE_DEPTH in agent_runtime.py, and a FAST-payload field rename silently empties the brief's sources (the exact bug the comment at :857-862 says it already fixed once). Smallest fix: have the research tool return a brief-shaped result (markdown, sources, structured, mode, depth, backend) so the loop publishes it without interpreting it.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds as a design finding: _auto_publish_event decodes the research payload's private variants (web.citations OR web.results, excerpt OR snippet, top-level vs nested web_available/note/reason), maps execution.loop to brief badges via runtime-owned tables, and emits snake_case keys shaped for the frontend's briefFromInput - so a research-engine or payload change requires editing the agent loop. The comment at the sources block itself records a prior regression from exactly this coupling."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-6",
+  "title": "invoke_agent is a 403-line function owning fourteen concerns; nothing in the turn can be tested or changed in isolation",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "design",
+  "evidence": "sidecar/services/agent_runtime.py:1229, sidecar/services/agent_runtime.py:1631, sidecar/services/agent_runtime.py:1281, sidecar/services/agent_runtime.py:1321, sidecar/services/agent_runtime.py:1350, sidecar/services/agent_runtime.py:1381, sidecar/services/agent_runtime.py:1393, sidecar/services/agent_runtime.py:1426",
+  "notes": "Strategic-over-tactical: agent resolution, read-only intent gating, native-search tier dispatch, three ContextVar publications, option scrubbing, the planner pre-pass, the round loop, per-round reasoning echo, assistant-turn reconstruction, tool dispatch, the web-search cap, research auto-publish, host-action read-back and end-of-stream divergence notices all live in one body, four levels of nesting deep. Every increment (D21, R9, R10 E2/E3.3/E7, R13 JARVIS 1b, WS8, FR-081, FR-115) was appended in place. Consequence: cognitive load -- a reader must hold the whole turn to change one branch, and the two proven defects above (COD-1, COD-4) both hide in branches no unit test can reach without driving a full fake provider. Smallest fix shape: extract the three self-contained blocks named in findings 3/5/15 (planner pre-pass, brief translation, option scrub); that is ~250 lines out without touching the loop's logic.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: invoke_agent runs from line 1229 to end of file (1631), ~400 lines covering agent resolution, read-only gating, web-search tier dispatch, option scrubbing, planner pre-pass, the round loop, reasoning echo, tool dispatch, web-search cap, auto-publish, host-action read-back and divergence notices; COD-1 and COD-4 both sit in branches only reachable by driving a full fake provider."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-7",
+  "title": "Two frozensets with identical membership and different safety meanings -- one of them is the read-only gate",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "PROVEN: sidecar/.venv/bin/python -c \"from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS)\" -> True. Both are {open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, open_company_overview}.",
+  "evidence": "sidecar/services/agent_runtime.py:61, sidecar/services/agent_runtime.py:76, sidecar/services/agent_runtime.py:1300",
+  "notes": "Duplicated truth: _STAGEABLE_PLAN_ACTIONS bounds what a plan may pre-stage into the diff gate; _READ_SAFE_PANEL_ACTIONS is the section-6.5-adjacent allow-list that survives the read-only strip on an inferred read intent (agent_runtime.py:1300-1305). Their 25 lines of rationale comments describe different properties, but they are the same set. Consequence: the next person adding a panel action edits one of the two -- either silently widening what a read-only turn may do, or silently failing to stage a step -- and no test pins the relationship. Smallest fix: define one constant and derive the other from it (_STAGEABLE_PLAN_ACTIONS = _READ_SAFE_PANEL_ACTIONS), or add a one-line test asserting the intended relation.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The two sets are indeed identical today (verified). Lowered to low: they encode different properties (what a plan may pre-stage vs what survives the read-intent strip), so the proposed fix of deriving one from the other would conflate two distinct safety meanings; and the read-safe set is not unpinned - test_toolbelt_integrity.py asserts no R10 mutating host action leaks into it. The residual is a maintainer-clarity nit."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-10",
+  "title": "The provider allow-list is forked three ways; a first-party agent cannot declare openrouter and would vanish from the roster with only a warning log",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "PROVEN: model_registry.provider_ids() -> 8 ids including 'openrouter'; sidecar/agents/_schema.json defaultProvider enum -> 7 ids, no 'openrouter'; agent_runtime._PLANNER_PROVIDERS -> 6 ids including 'openrouter'. An agent JSON with defaultProvider 'openrouter' fails Draft7 validation at _discover_specs, logs a warning, and is skipped -- GET /agents then returns 12 agents with HTTP 200.",
+  "evidence": "sidecar/agents/_schema.json:43, sidecar/models/custom_agent.py:44, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:253",
+  "notes": "Duplicated truth across three layers, one of which (models/custom_agent.py:44) correctly DERIVES from the registry while the schema hardcodes and the planner hardcodes a third list. Consequence: the roster silently loses an agent for a reason that is only visible in a log line, and 'which providers are supported' has three different answers depending on where you look. Smallest fix: generate the schema's enum from model_registry.provider_ids() in the same way models/custom_agent.py already does, or drop the enum and let the Pydantic LLMProviderId union be the single gate.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The schema's defaultProvider enum is stale (7 ids, no openrouter) while model_registry/LLMProviderId have 8, and a first-party JSON declaring openrouter would be skipped with only a warning. Corrected: _PLANNER_PROVIDERS is a deliberate capability subset (it intentionally excludes ollama/groq), not a third copy of the allow-list; no shipped agent declares openrouter, and the CI roster-count tests would catch the skip, so this is a latent maintainer trap - low."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-12",
+  "title": "One corrupt custom-agent row 500s the entire GET /custom-agents list, while the sibling first-party loader skips one bad entry and keeps the rest",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "A custom_agents.db row whose tools_json is not valid JSON (a hand edit, a truncated write, a partially-restored data dir) -> agents_store._row_to_read raises json.JSONDecodeError inside list_agents; agents_store.py has zero exception handling and routers/custom_agents.py:51-54 has none either, so FastAPI returns 500 and EVERY custom agent disappears from the picker. Per CLAUDE.md's CORS gotcha the webview reports it as a CORS policy error, not a 500.",
+  "evidence": "sidecar/services/agents_store.py:87, sidecar/services/agents_store.py:103, sidecar/routers/custom_agents.py:51, sidecar/services/agent_runtime.py:250",
+  "notes": "Consistency: the same subsystem answers 'one bad record among many' two opposite ways -- _discover_specs deliberately skips the bad file and keeps the roster (and its docstring says tests rely on that), agents_store lets one row take out the collection. sqlite3.OperationalError on a locked/corrupt DB has the same blast radius. Smallest fix: wrap the per-row mapping in _row_to_read's caller and skip+log an unparseable row, mirroring the first-party loader.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Mechanically true: list_agents maps every row through _row_to_read's unguarded json.loads, and neither the store nor the router handles errors, so one bad tools_json 500s the whole list. Lowered to low: the column is only ever written by the app via json.dumps inside a SQLite transaction, so a 'truncated write' cannot produce half-JSON; the trigger needs external tampering or a corrupt DB, which would break any design."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-13",
+  "title": "The same problem (unsupported option keys reaching the provider SDK) is solved by an allow-list in the runtime and a deny-list in the chat router; the chat path is still broken",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "POST /llm/chat with options {\"depth\": \"deep\"}: routers/llm.py:126-130 strips only {research_depth, deepResearchBackend, modelWebSearch, history}, so `depth` rides **adapter_options into the SDK. agent_runtime.py:1363-1366 documents that exact crash ('AsyncCompletions.create() got an unexpected keyword argument depth') and fixes it only for the agent path, by popping `depth` (:1368) and then scrubbing everything outside _ADAPTER_OPTION_KEYS (:1381-1385).",
+  "evidence": "sidecar/services/agent_runtime.py:98, sidecar/services/agent_runtime.py:1368, sidecar/services/agent_runtime.py:1381, sidecar/routers/llm.py:126",
+  "notes": "Different layer / pull complexity downward: which kwargs a provider SDK tolerates is the adapter layer's knowledge, restated in two callers with opposite (and unequal) policies -- the allow-list is safe, the deny-list is a list of the four keys someone remembered. Consequence: the hardened fix did not reach the sibling route, and every future control key must be added to the deny-list or it crashes /llm/chat. Smallest fix: move the allow-list scrub into the adapter base (or get_provider) and delete both call-site filters.",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The asymmetry is real: /llm/chat strips a 4-key deny-list while invoke_agent pops `depth` and allow-list-scrubs everything else, and the OpenAI adapter merges leftover kwargs into the SDK request (request_kwargs.update(kwargs)). Corrected: 'the chat path is still broken' is latent - the only frontend caller (streamChat from ChatSidebar raw-chat) sends no options at all, and a TypeError would surface as an error frame via the generator's except, not a crash - so low."
+  }
+ },
+ {
+  "raw_id": "COD-agent-runtime-15",
+  "title": "agents_store._ensure_schema is production-dead -- its only caller is the test that tests it, and the dead pair is copy-pasted across four stores",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "agent-runtime",
+  "repro": "grep -rn '_ensure_schema' sidecar --include=*.py -> services/agents_store.py:79 (definition) and tests/test_agents_store.py:49-51 (the only call). The schema is in fact ensured by _connect() on every call (agents_store.py:72), so the function is redundant as well as unused. The identical dead-function + 'test_ensure_schema_is_idempotent' pair exists in plugins_store.py:89, portfolio_db.py:61 and runs_store.py:119.",
+  "evidence": "sidecar/services/agents_store.py:79, sidecar/services/agents_store.py:72, sidecar/tests/test_agents_store.py:49, sidecar/services/plugins_store.py:89, sidecar/services/runs_store.py:119",
+  "notes": "Code kept alive by its own test -- the cheapest possible false signal of coverage, replicated four times. Consequence: a reader assumes there is an initialisation step to call and looks for where it happens. Smallest fix: delete the function and its test in all four stores (the connect-time CREATE TABLE IF NOT EXISTS is the real mechanism and is already exercised by every other test in the file).",
+  "source_file": "code-agent-runtime.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Holds: _ensure_schema in agents_store, plugins_store, portfolio_db and runs_store has no production caller and is redundant with the CREATE TABLE in each _connect(). Minor scope correction: runs_store's copy has no test caller at all (plain dead code); the function+idempotency-test pairs are in test_agents_store.py, test_plugins.py and test_portfolio.py."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-4",
+  "title": "Five Capability knobs are dead: internal/default_grant never False, aliases never read, mcp unconditionally clobbered, and _cap re-declares every default",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "design. Verified by materializing the projections: internal_tool_ids(), agent_selectable_tool_ids() and default_grant_tool_ids() all return the same 50 ids; grep finds zero readers of Capability.aliases; catalog.py:1471-1474 overwrites every entry's mcp value.",
+  "evidence": "sidecar/services/agent_tools/catalog.py:91, sidecar/services/agent_tools/catalog.py:93, sidecar/services/agent_tools/catalog.py:96, sidecar/services/agent_tools/catalog.py:101, sidecar/services/agent_tools/catalog.py:109, sidecar/services/agent_tools/catalog.py:1471, sidecar/services/agent_tools/catalog.py:1491, sidecar/services/agent_tools/catalog.py:1520, sidecar/services/agent_tools/catalog.py:1531",
+  "notes": "Obviousness + naming: agent_selectable_tool_ids() is documented (catalog.py:10-12) as the Custom Agent Builder allow-list but is the identity function, so every custom agent is offered propose_order, portfolio_delete_position and set_region. _cap (:109-135) duplicates every Capability default, so changing a default on the dataclass silently has no effect on the catalog. Consequence: the next maintainer reasons about an allow-list that does not filter, and is the first person ever to exercise internal=False. Smallest fix: delete _cap and build {c.id: c for c in [Capability(...)]} (-27 lines, kills the duplicated defaults); delete aliases and the mcp field; collapse the four projections to one until a second real value exists.",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Mechanism verified: no catalog entry sets internal=False, default_grant=False or aliases; Capability.aliases has zero readers; the post-build dict comprehension overwrites every entry's mcp; _cap re-declares every dataclass default; and the three projections materialize to the same 50 ids. Downgraded high -> medium: this is dead configuration that misleads the next maintainer, not a broken or silently degraded user flow; the custom-agent exposure of mutating host actions is by documented design (catalog.py:1520-1528, mutations still pass the diff gate), and propose_order leaves with the trading removal."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-5",
+  "title": "ToolKind declares mcp_endpoint as MCP-only but the projection rule would set mcp=False for it; zero uses repo-wide",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "Add a Capability with kind='mcp_endpoint' -> the rewrite rule at catalog.py:1472 evaluates (cap.kind == 'read_handler' and ...) = False -> mcp=False -> the capability is projected to neither the MCP surface nor anywhere else, the exact opposite of its documented meaning.",
+  "evidence": "sidecar/services/agent_tools/catalog.py:59, sidecar/services/agent_tools/catalog.py:61, sidecar/services/agent_tools/catalog.py:1472",
+  "notes": "Speculative generality that is also wired backwards: catalog.py:59-60 documents mcp_endpoint as 'projected only to the external MCP surface'. The trap only springs when someone finally uses the kind, and it fails silently (no error, the tool just never appears). Smallest fix: delete the mcp_endpoint member until there is a caller; if kept, change the rule to kind in ('read_handler','mcp_endpoint').",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Accurate: ToolKind documents mcp_endpoint as projected only to MCP, zero catalog entries use it, and the rewrite rule sets mcp=True only for kind=='read_handler', so a future mcp_endpoint entry would silently appear nowhere. Downgraded to low because it is a latent trap with no current caller and no present behaviour change."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-7",
+  "title": "The {ok:false,error} envelope is hand-copied in ~20 handlers with four incompatible error prefixes while invoke_tool stays a bare await",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "design. The same try/except ProviderError/except Exception -> {ok:false,error} block is duplicated across every domain file; the model receives four different spellings of one failure class and cannot pattern-match recovery.",
+  "evidence": "sidecar/services/agent_tools/__init__.py:62, sidecar/services/agent_tools/analyst_tools.py:37, sidecar/services/agent_tools/earnings_tools.py:48, sidecar/services/agent_tools/macro_tools.py:46, sidecar/services/agent_tools/sec_tools.py:66, sidecar/services/agent_tools/price_data.py:54, sidecar/services/agent_tools/news_tool.py:50, sidecar/services/agent_runtime.py:670",
+  "notes": "Fails 'pull complexity downward': the registry (invoke_tool, __init__.py:62-67) is the one seam every tool already routes through, yet it does nothing but await the handler. Prefixes in use: 'provider error: ', 'unexpected error: ', 'news fetch failed: ' (news_tool.py:50) and the runtime's own \"tool {name!r} raised: \" (agent_runtime.py:670). Consequence: change amplification — tool #21 re-derives the envelope and adds a fifth spelling. Smallest fix: move the wrapper into invoke_tool and delete it from the handlers.",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Duplication is real (11 handler files carry their own except ProviderError -> {ok:false,error} block while invoke_tool is a bare await). The 'four incompatible spellings of one failure class' is overstated: 'provider error:' (16 uses) and 'unexpected error:' (15 uses) are two distinct, consistently used classes, only news_tool's 'news fetch failed:' is an outlier, and the runtime's 'tool ... raised' is the catch-all for escaped exceptions; the model reads free text, so recovery is not prefix-matched. Maintenance smell, low."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-8",
+  "title": "sec_tools is the only tool family with no limit clamp; four different clamp conventions coexist in one package",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "sec_filings_list({'symbol':'AAPL','limit':100000}) -> int() parses cleanly -> 100000 passes straight to sec_filings_provider.list_filings with no clamp. limit:-1 likewise. Every sibling clamps.",
+  "evidence": "sidecar/services/agent_tools/sec_tools.py:49, sidecar/services/agent_tools/sec_tools.py:126, sidecar/services/agent_tools/news_tool.py:37, sidecar/services/agent_tools/macro_tools.py:72, sidecar/services/agent_tools/analyst_tools.py:29, sidecar/services/agent_tools/earnings_tools.py:75",
+  "notes": "Consistency violation of the 'route with no guard while its five siblings have it' shape. Four conventions to learn: max(1,min(100,..)), max(1,min(50,..)), a module constant [:60], a bare slice [:12], and nothing. Consequence: an unclamped limit blows the model's prompt budget on a tool already given a 30s timeout. Smallest fix: one _clamp_limit(args, key, default, maximum) in agent_tools/__init__.py called by all five families.",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real: sec_filings_list and sec_insider_transactions int() the limit with no clamp and pass it through list_filings/list_insider_transactions to the upstream sec-edgar-mcp call unchanged, while news/macro clamp and analyst/earnings slice. Downgraded to low: the trigger needs the model to pick an absurd limit, the catalog schema carries a small default, the upstream cap behaviour could not be checked (package not installed in the sidecar venv), and SEC filings are a secondary US-only surface for an India-first product."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-14",
+  "title": "registry_v0_6_5.py is a 27-line no-op module kept alive, by its own docstring, to satisfy a §6.5 grep",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "design. register_v0_6_5_tools() logs one debug line and returns; it is wired into two boot paths.",
+  "evidence": "sidecar/services/agent_tools/registry_v0_6_5.py:4, sidecar/services/agent_tools/registry_v0_6_5.py:18, sidecar/app.py:214, sidecar/main.py:68",
+  "notes": "Special-casing to satisfy a test (registry_v0_6_5.py:4-8 states the module is 'deliberately empty' to keep test_safety_end_to_end's grep returning zero matches), plus a pass-through sibling: __init__.py:121-134 register_v0_6_0_tools() forwards to the identically-named registry_v0_6_0.register_v0_6_0_tools() and adds nothing. Consequence: two boot paths and three files the next reader must walk to discover there is no code. Smallest fix: delete registry_v0_6_5.py and its two call sites; inline the v0_6_0 pass-through.",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: register_v0_6_5_tools only logs a debug line and is wired into two boot paths (main.py, app.py), and register_v0_6_0_tools is a pure pass-through. One small correction: the docstring gives the per-phase aggregator convention as the reason the file exists and notes the §6.5 grep stays clean, rather than saying it is kept alive for the grep. Low as stated."
+  }
+ },
+ {
+  "raw_id": "COD-agent-tools-catalog-ledger-15",
+  "title": "reset_for_tests hardcodes 'backtest_summary is the only import-time tool' in three places; action_ledger.KNOWN_STATUSES is never validated against",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "agent-tools-catalog-ledger",
+  "repro": "design. Add a second module-level register_tool(...) call anywhere in the package -> reset_for_tests() clears it and re-registers only backtest_summary -> tests that reset become order-dependent and fail only when run after that reset.",
+  "evidence": "sidecar/services/agent_tools/__init__.py:70, sidecar/services/agent_tools/__init__.py:85, sidecar/services/agent_tools/__init__.py:103, sidecar/services/agent_tools/backtest_summary.py:71, sidecar/services/action_ledger.py:28, sidecar/services/action_ledger.py:55",
+  "notes": "An invariant held by a comment and a hand-maintained list when the structure could hold it — true today (backtest_summary.py:71 is the only import-time registration, verified) but silent on breach. Separately, action_ledger.KNOWN_STATUSES is exported and documented as the permitted status set yet never compared against anywhere in the repo; record() stores any spelling verbatim by design (:55-57), so the constant reads as validation that does not happen. Smallest fix: have reset_for_tests re-run importlib.reload on the import-time modules rather than naming one; either enforce KNOWN_STATUSES at the ack route or drop it from __all__.",
+  "source_file": "code-agent-tools-catalog-ledger.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds: reset_for_tests hardcodes backtest_summary as the only import-time registration (true today: backtest_summary.py:71 is the only module-level register_tool), so it would break silently on a second one; KNOWN_STATUSES has no reader anywhere in the sidecar or src, and record() stores any status as-is. Its docstring does say unknown spellings are stored as-is, so the constant is documentation rather than failed validation. Latent, low as stated."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-2-4",
+  "title": "Key validation is wrong for three of eight providers: OpenRouter accepts any string, Gemini and xAI report a bad key as a 'transport error'",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "get_provider('openrouter').validate_key('not-a-real-key') -> True (live call; openrouter.ai/api/v1/models answers 200 with or without auth, while /api/v1/key answers 401 'User not found.' for the same key). get_provider('gemini').validate_key('AIzaSyNOTAREALKEY...') -> raises ClientError 400 INVALID_ARGUMENT 'API key not valid' -> POST /llm/keys/validate returns ok=false detail='transport error: 400 INVALID_ARGUMENT. {...}'. curl api.x.ai/v1/models with a fake bearer -> HTTP 400 {\"code\":\"invalid-argument\",\"error\":\"Incorrect API key provided...\"} -> openai.BadRequestError, not AuthenticationError -> same 'transport error' path.",
+  "evidence": "sidecar/services/llm/openai.py:842-855, sidecar/services/llm/gemini.py:186-204, sidecar/routers/llm.py:99-111, src/components/KeyEntryDialog.tsx:64-82, sidecar/services/errors.py:165-171, sidecar/services/llm/base.py:109-118",
+  "notes": "The base contract defines 'invalid key' as HTTP 401/403 (base.py:113-116) and every adapter implements it that way, but the probe/status mapping is provider-specific and nobody checked it per provider. OpenRouter (the recommended broker lane) is the worst case: its /models is a public catalog, so the Key Entry Dialog says 'valid' and writes a typo'd or revoked key to the keychain (KeyEntryDialog.tsx:79); the user discovers it as a 401 in the middle of their first research turn. Gemini/xAI signal a bad key with 400, so validate_key re-raises and the dialog tells the user their network is broken; the same 400 also misses humanize's auth branch (errors.py:165) on the chat stream, so a bad Gemini/xAI key never gets the 'key was rejected - check Settings' message either. Distinct from COD-llm-adapters-9 (raw exception text): humanize alone would not fix this, the classification itself is wrong. Smallest fix: OpenRouter probes GET /key (authenticated); Gemini/xAI treat 400 with API_KEY_INVALID / 'Incorrect API key' as False; add the same mapping to humanize.",
+  "source_file": "code-llm-adapters-2.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "All three halves reproduced against the real endpoints: OpenRouter's /api/v1/models answers 200 to a bogus bearer (while /api/v1/key answers 401), and OpenRouter shares OpenAIProvider.validate_key which only probes models.list, so a typo'd key is reported valid and written to the keychain. xAI answers a bad key with HTTP 400 'Incorrect API key provided' and Gemini with 400 API_KEY_INVALID; neither adapter maps 400 to False, so the router returns 'transport error: ...' and humanize's auth branch (401/403 only) misses it on the chat stream too. For Gemini/xAI the key is still correctly not saved (ok=false) - the defect there is the misleading message, so medium overall is right."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-2-6",
+  "title": "Gemini usage omits thinking tokens, so the BudgetGuard spend/token ceiling under-meters every Gemini 2.5 round",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "Gemini 2.5 Pro round that thinks 6k tokens and answers 800 -> usage_metadata.candidates_token_count=800, thoughts_token_count=6000 -> adapter reports output_tokens=800 -> BudgetGuard.record folds 800 + input; the user's key is billed for 6800 output tokens.",
+  "evidence": "sidecar/services/llm/gemini.py:167-173, sidecar/.venv/lib/python3.13/site-packages/google/genai/types.py:7796-7826 (total_token_count 'is the sum of prompt_token_count, candidates_token_count, tool_use_prompt_token_count, and thoughts_token_count'), sidecar/services/budget_guard.py:116-133, https://ai.google.dev/gemini-api/docs/thinking.md.txt ('When thinking is turned on, response pricing is the sum of output tokens and thinking tokens.')",
+  "notes": "The adapter is the only place that knows the provider's usage schema, and it drops two of the four billed components (thoughts_token_count, and tool_use_prompt_token_count from google_search grounding). The registry marks these prices as §6.5-adjacent because they meter the Delegate spend ceiling (model_registry.json prices._comment); for the default gemini-2.5-pro, which always thinks, thinking tokens routinely dominate output, so a detached Delegate run can blow well past its configured USD/token ceiling before BudgetGuard trips. Anthropic and OpenAI-shaped adapters are fine (their output/completion counts include reasoning). Smallest fix: output_tokens = candidates + thoughts, input_tokens = prompt + tool_use_prompt (or read total_token_count).",
+  "source_file": "code-llm-adapters-2.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed: the adapter reports output_tokens=candidates_token_count and input_tokens=prompt_token_count only, while the installed google-genai types document total_token_count as the sum of prompt + candidates + tool_use_prompt + thoughts, i.e. thoughts and grounding-prompt tokens are separate and dropped. BudgetGuard.record folds only input+output (+cache fields Gemini never sets), so token and USD ceilings under-meter every thinking Gemini round. Wall and step ceilings still bound a run, so it is an overspend-past-ceiling defect, not unbounded spend - medium holds."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-4",
+  "title": "POST /llm/chat scrubs adapter options with a four-name DENYLIST while the agent path uses an allowlist - the same bug class already shipped once",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "Add any new control key to the composer (streaming.ts wireOptions forwards every option verbatim) -> POST /llm/chat forwards it into the provider SDK -> TypeError: create() got an unexpected keyword argument -> the stream dies with a humanized error. The router's own comment records the live repro of this exact failure: 'research_depth killed a DeepSeek stream'",
+  "evidence": "sidecar/routers/llm.py:122-130, sidecar/services/agent_runtime.py:91-107, src/modules/chat/streaming.ts:117-130",
+  "notes": "Consistency / define errors out of existence / duplicated truth. Two routes into the same adapters solve the identical problem two ways: agent_runtime uses `_ADAPTER_OPTION_KEYS` - a frozenset allowlist whose own comment says 'any OTHER leftover key is scrubbed so an unknown option... can never reach the provider SDK and TypeError the round' (agent_runtime.py:96-107); routers/llm.py filters out four hardcoded names and passes everything else (llm.py:126-130). Only the allowlist is safe under change, and the denylist is the one that already broke in production. wireOptions (streaming.ts:124-130) explicitly passes 'every other key... unchanged', so the two files are one composer edit apart from re-breaking. Smallest fix: promote _ADAPTER_OPTION_KEYS into services/llm/__init__.py and filter against it in both call sites - one list, allowlist semantics, no third copy.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Confirmed: routers/llm.py:126-130 is a four-name denylist, agent_runtime._ADAPTER_OPTION_KEYS is an allowlist, and wireOptions forwards every other key. The same class already shipped once (commit 7ad0b79). It is not a live break today, though: the only raw-chat caller (ChatSidebar.tsx:1028-1035) sends no options at all, so it is a trap set rather than a core flow failing. high -> medium."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-5",
+  "title": "get_provider() silently discards base_url for gemini and groq although its signature and docstring accept one",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "POST /llm/keys/validate {provider:'gemini', base_url:'https://gemini-proxy.internal', api_key:'...'} -> get_provider returns GeminiProvider() with the base_url dropped -> the key is sent to generativelanguage.googleapis.com; validation 'succeeds' or fails for reasons unrelated to the proxy, with no warning anywhere",
+  "evidence": "sidecar/services/llm/__init__.py:72-93, sidecar/services/llm/gemini.py:96-97, sidecar/services/llm/groq.py:98-99, sidecar/routers/llm.py:67, sidecar/routers/llm.py:102, sidecar/routers/llm.py:118, src/store/model-catalog.ts:95-99",
+  "notes": "Obviousness / a parameter that lies. The factory takes base_url and documents it ('Optional override; takes precedence over the dispatch default', __init__.py:80-81), then ignores it on two of eight branches (lines 89, 91) because neither adapter's constructor accepts one. All three LLM routes pass it through and the frontend sends it (model-catalog.ts:97). Today the value is undefined for those two providers so nothing visibly breaks - which is exactly why it will bite the first user who configures a Gemini or Groq proxy and gets no error to debug. Smallest fix: give GeminiProvider/GroqProvider the same `base_url` constructor the other three have (both SDKs accept one - genai.Client(http_options=...), groq.AsyncGroq(base_url=...)), or raise ValueError when a base_url is supplied for a provider that cannot honour it.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Confirmed: get_provider returns GeminiProvider()/GroqProvider() and drops base_url despite documenting it as an override. No UI surface can send one, though: the registry default_base_url is null for gemini and groq, and KeyEntryDialog/OnboardingFlow/sidecar-client post only {provider, api_key} to /llm/keys/validate. The cited repro needs a hand-crafted request. This is a parameter that lies, with no user-reachable consequence. medium -> low."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-6",
+  "title": "DeepSeek/xAI/OpenRouter base URLs are hardcoded next to a comment asserting they must match the registry - in a file that already imports the registry",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "design (change default_base_url for deepseek in sidecar/config/model_registry.json -> GET /llm/providers reports the new host while get_provider keeps dispatching to the old one; nothing fails, nothing tests it)",
+  "evidence": "sidecar/services/llm/__init__.py:33-47, sidecar/services/llm/__init__.py:24, sidecar/services/llm/__init__.py:54-64, sidecar/services/model_registry.py:108-121",
+  "notes": "An invariant held by a comment when the structure could hold it. Lines 36-39 state the rule in prose - 'They must match the default_base_url for deepseek/xai in config/model_registry.json' - two lines above three string literals, in a module that already does `from services import model_registry` (line 24) and already derives PROVIDER_INFO from it (lines 54-64). The registry module is explicitly billed as the single source of truth (model_registry.py:1-20). Consequence: a split-brain where the served provider catalog and the runtime dispatch disagree about which host holds the user's money-relevant data, with no test and no runtime check. Smallest fix: add `default_base_url_for(provider)` next to `default_model_for` (model_registry.py:108-113) and define the three constants from it.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed: DEEPSEEK/XAI/OPENROUTER base URLs are string literals guarded only by a prose 'must match' comment, in a module that already imports model_registry and derives PROVIDER_INFO from it. They match the JSON today. /llm/models is fed the registry value by the frontend (model-catalog.ts:97) while the agent path uses the constant, so an edit to the JSON would split the two paths silently. No test covers it."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-7",
+  "title": "The model registry is hand-copied into two TypeScript tables and the drift guard only compares those two copies to each other, never to the JSON",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "Change a provider's default_model in sidecar/config/model_registry.json -> both TS fallback tables keep the retired id -> on any launch where the sidecar is unreachable (first run, failed sidecar spawn) the picker offers a model that 404s, and model-selection.test.ts still passes",
+  "evidence": "src/store/llm-providers.ts:34-113, src/store/model-selection.ts:16-61, src/store/model-selection.test.ts:16-24, sidecar/config/model_registry.json, sidecar/services/model_registry.py:1-20",
+  "notes": "Duplicated truth that will drift, plus a test asserting the wrong pair. Three copies of one table: the JSON (declared the single source of truth), DEFAULT_PROVIDERS (llm-providers.ts:40-113), and DEFAULT_MODEL_BY_PROVIDER + KNOWN_MODELS_BY_PROVIDER (model-selection.ts:26-61). The drift guard asserts copy 2 == copy 3 (model-selection.test.ts:16-24), which is the cheap half; nothing asserts either TS copy against the JSON. The TS comments even instruct the human to 'edit both + the JSON together' (model-selection.ts:24) - the maintenance burden is documented rather than removed. The copies are in lockstep today, so this is a trap set rather than a live break. Smallest fix: one vitest that imports sidecar/config/model_registry.json and asserts the two TS tables equal it (the file is already in the repo, no codegen needed).",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The finding holds, and its scope is broader than stated. The static TS tables are not just an offline fallback: resolveModel returns DEFAULT_MODEL_BY_PROVIDER for any provider without an override even when the sidecar is up (model-selection.ts:119), and restored overrides are pruned against the static KNOWN_MODELS_BY_PROVIDER (model-selection.ts:76). A JSON default change therefore ships a stale model id to every user with no override, and a JSON-only new model is dropped on relaunch. The drift test compares only the two TS copies. Severity medium stands."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-9",
+  "title": "POST /llm/keys/validate is the one route that bypasses humanize() and echoes the raw provider exception to the UI",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "Save a key against an unreachable base_url -> the Key Entry Dialog shows 'transport error: <raw SDK repr, including the request URL>' where every other failure surface in the subsystem shows a sentence + action + code",
+  "evidence": "sidecar/routers/llm.py:99-111, sidecar/routers/llm.py:141-146, sidecar/services/llm/openai.py:831-840, sidecar/services/llm/anthropic.py:147-156, sidecar/services/llm/gemini.py:175-184, sidecar/services/llm/groq.py:185-194, sidecar/services/llm/ollama.py:206-215",
+  "notes": "The route with no error handling while its siblings have it, inverted: six call sites route failures through services.errors.humanize / error_frame to produce message + action + detail + code, and one stringifies the exception straight into a user-facing field (llm.py:107). Two consequences. (a) Inconsistent UX at the single surface where a confused user most needs an actionable sentence - the key dialog. (b) Raw stringification of a transport exception can carry the request URL, and a user-supplied credentialed base_url (https://user:pass@host, accepted verbatim at models/llm.py:269) then renders the secret on screen and into whatever the frontend logs - in a module whose stated contract is 'never logs the key'. Smallest fix: `_h = humanize(payload.provider, exc)` and return _h.message/_h.action, matching the five adapters.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Confirmed that validate_key returns detail=f'transport error: {exc}', bypassing humanize(), and KeyEntryDialog renders validation.detail (KeyEntryDialog.tsx:76). The credential-leak half is unreachable: no frontend caller sends base_url to /llm/keys/validate (KeyEntryDialog.tsx:181, OnboardingFlow.tsx:80, sidecar-client.ts:233), so no user:pass@host URL can appear. What remains is a raw SDK string (e.g. 'Connection error.') instead of message+action in one dialog. medium -> low."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-10",
+  "title": "Two BYOK key transports inside one router, with the docstring for one forbidding what the other two do",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "design (GET /llm/models takes the key as X-LLM-Key header; POST /llm/chat and POST /llm/keys/validate take api_key as a JSON body field - all three in the same 162-line file)",
+  "evidence": "sidecar/routers/llm.py:52-65, sidecar/routers/llm.py:60-64, sidecar/models/llm.py:243-259, sidecar/models/llm.py:262-269, sidecar/services/llm/base.py:7-11",
+  "notes": "Consistency / a comment that contradicts its neighbours. get_models' docstring states the rule as a rule - 'read-only-plugin pattern: secret in a header, never the body/query/log' (llm.py:60-64) - thirty lines above two routes that put the same class of secret in the body. base.py:7-11 documents the body convention as the design. Both cannot be the convention. The next maintainer adding a route has no way to tell which precedent to follow, and CLAUDE.md's broker rule ('a header for read-only plugins, never the body') reads as though it already settled this. Body transport is also the half exposed to FastAPI validation-error echo and request-body logging. Smallest fix: pick one - move api_key off LLMChatRequest/LLMKeyValidationRequest to an X-LLM-Key header like the third route - or delete the 'never the body' clause from llm.py:63 so the file stops arguing with itself.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Confirmed: GET /llm/models takes X-LLM-Key with a docstring saying 'never the body', while /llm/chat and /llm/keys/validate carry api_key in the JSON body. It is a documentation and consistency contradiction with no functional defect. The transport is loopback-only, and a 422 echo would return the key only to the same local caller that sent it. medium -> low."
+  }
+ },
+ {
+  "raw_id": "COD-llm-adapters-12",
+  "title": "Four adapters carry an `except <ProviderError>: raise` clause that reads as handling and does nothing",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "llm-adapters",
+  "repro": "design",
+  "evidence": "sidecar/services/llm/openai.py:854-855, sidecar/services/llm/groq.py:208-209, sidecar/services/llm/gemini.py:203-204, sidecar/services/llm/anthropic.py:170-173",
+  "notes": "Obviousness. Each validate_key ends with a catch of the provider's base error class whose entire body is `raise` - byte-for-byte identical behaviour to having no clause. A reader must open all four files to learn there is no handling anywhere, and the shape is an invitation: the next person touching it 'fixes the empty handler' by returning False, which converts a transport outage into 'your key is invalid' - the exact confusion base.py:114-117 tells adapters to avoid. Only anthropic.py:171-172 carries the comment explaining the intent. Smallest fix: delete all four clauses (propagation is unchanged) and move anthropic's comment up to the method docstring.",
+  "verdict": "CONFIRMED",
+  "source_file": "code-llm-adapters.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Confirmed: openai.py:854-855, groq.py:208-209 and gemini.py:203-204 have `except <ProviderError>: raise` with no body beyond the re-raise. anthropic.py:170-173 is the same, though it carries an intent comment. Behaviour is identical to having no clause. This is polish only."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-1",
+  "title": "The /mcp tool surface (36 tools, unauthenticated) performs no Origin validation and answers any cross-origin caller with access-control-allow-origin: *",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "Against the isolated R15 sidecar: `curl -i -X OPTIONS http://127.0.0.1:52152/mcp/ -H 'Origin: https://evil.example' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type'` -> 200 with `access-control-allow-origin: *`; then `curl -i -X POST http://127.0.0.1:52152/mcp/ -H 'Origin: https://evil.example' -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"x\",\"version\":\"0\"}}}'` -> 200, `access-control-allow-origin: *`, full capability handshake. `grep -n 'Origin' sidecar/app.py sidecar/services/mcp_server.py sidecar/routers/mcp.py` returns no hits.",
+  "evidence": "sidecar/app.py:301, sidecar/app.py:303, sidecar/app.py:345, sidecar/services/mcp_server.py:377, sidecar/routers/mcp.py:14",
+  "notes": "Define errors out of existence / information hiding: the MCP spec requires a locally-bound Streamable-HTTP server to validate the Origin header precisely because browser-side mitigations are inconsistent, and routers/mcp.py:13-14 justifies the whole layer being unauthenticated with 'the process binds to 127.0.0.1 only - no remote surface', which is the assumption Origin validation exists to defend. Behind the one path sit all 36 registered tools: workspaces, portfolio, broker reads, run_workflow / save_workflow, and invoke_agent (which spends the user's BYOK LLM budget). Consequence: any local process, and any web page that finds the random port under a browser that does not enforce Private Network Access, can drive Vysted's whole tool surface and read the replies. Smallest fix: one Starlette middleware on the /mcp mount rejecting a present-and-unexpected Origin (allow tauri://localhost and http://localhost:*). transform.code is a restricted AST evaluator (services/workflow_nodes/code_node.py:6) so there is NO code-execution escalation.",
+  "notes_confidence": "CORS/no-Origin-check proven live against the isolated sidecar; browser reachability depends on Chrome PNA + mixed-content policy and is unverified",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "Real and reproduced live: /mcp answers a cross-origin preflight and an initialize from Origin https://evil.example with access-control-allow-origin: * and a full handshake. Correction on scope and mechanism: the wildcard CORS is the app-wide CORSMiddleware (allow_origins=['*'], allow_methods=['*']) covering every REST route, so /mcp is not a special case and the fix belongs at the app level (Origin allow-list for tauri://localhost + dev origins), not only on the /mcp mount; and Origin validation defends against browser pages only, not the 'any local process' case the notes also claim (local processes send no Origin)."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-2",
+  "title": "McpClient's documented reconnect-on-error cannot fire: the except tuple misses every exception the anyio/httpx transports actually raise, so a dead session is cached until app restart",
+  "severity": "high",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "sidecar/.venv/bin/python: build `c = mcp_client.McpClient('t', transport='http', endpoint='http://x/mcp')`, set `c._session` to a stub whose `call_tool` raises each of anyio.ClosedResourceError / anyio.BrokenResourceError / httpx.ReadError, then `await c.call_tool('t', {})`. Result: `ClosedResourceError session dropped? False`, `BrokenResourceError session dropped? False`, `ReadError session dropped? False` (expected True). Verified against the installed venv that none of anyio.ClosedResourceError, anyio.BrokenResourceError, anyio.EndOfStream, httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError is an OSError subclass (anyio 4.13.0, httpx 0.28.1, mcp 1.27.1).",
+  "evidence": "sidecar/services/mcp_client.py:158, sidecar/services/mcp_client.py:182, sidecar/services/mcp_client.py:15, sidecar/tests/test_mcp_client.py:114, sidecar/tests/test_mcp_client.py:124",
+  "notes": "Define errors out of existence + special-casing to satisfy a test: the module docstring (mcp_client.py:15-19) promises 'any transport-level failure (the underlying anyio streams close ...) drops the cached session so the next call rebuilds it', and the only test guarding it (test_mcp_client.py:114) raises mcp.McpError - the single class that IS in the tuple. Consequence: when the openbb-mcp or sec-edgar-mcp PyInstaller child dies or its stream breaks mid-life (the expected failure mode for --onefile children, see CLAUDE.md MCP cold-bind gotcha), the cached McpClient never rebuilds; every later /fundamentals, /macro, /sec/* call fails identically until the whole app restarts, and the plugin chip still says available. Smallest fix: catch `Exception` (re-raising asyncio.CancelledError) in both handlers - the handler only drops a cache entry, so over-catching is strictly safer - and parametrise test_mcp_client.py:114 over anyio.ClosedResourceError and httpx.ReadError too.",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The except tuple (TimeoutError, McpError, OSError) is narrower than the docstring promises, but the headline consequence is disproved by a real kill/restart experiment: when the MCP server dies the SDK surfaces the in-flight call as McpError (60 s read timeout / CONNECTION_CLOSED), which IS caught, the session is dropped, and after the server restarts the next call succeeds - no 'cached until app restart'. The real defect is different: a dead child costs a full 60 s stall on the first call, and the call after that raised asyncio.CancelledError ('Cancelled via cancel scope' from the dead transport's task group) which escapes _call_tool's `except Exception` as a non-ProviderError, so the registry does not fall through to yfinance for that request."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-5",
+  "title": "McpClient is a shallow module: the whole 'env-var-discovered local MCP subprocess' abstraction is duplicated verbatim in two providers, so every bug here is two bugs",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "design. Diff sidecar/services/openbb_mcp_provider.py:122-252 against sidecar/services/sec_filings_provider.py:95-170: the same seven members with two env-var names changed - _resolve_endpoint, is_available, status, _get_client, _decode_tool_result, _call_tool, and the _last_tool_call_ok/_last_error pair.",
+  "evidence": "sidecar/services/mcp_client.py:153, sidecar/services/mcp_client.py:171, sidecar/services/openbb_mcp_provider.py:122, sidecar/services/openbb_mcp_provider.py:239, sidecar/services/sec_filings_provider.py:95, sidecar/services/sec_filings_provider.py:158",
+  "notes": "Deep modules / information leakage: mcp_client.py:153-206 re-exports the SDK's two verbs with a dict rename and a NARROWED result, so it hides nothing the callers needed hidden; the real abstraction was left for each consumer to rebuild. Consequence: change amplification - COD-mcp-servers-4 (stale health flag) and COD-mcp-servers-6 (dropped structuredContent) each exist twice today, and the Rust comments already anticipate a third child (sec_edgar_mcp.rs:18 references fred_mcp). Smallest fix: promote the duplicated half into mcp_client as LocalMcpSubprocess(server_id, port_env, host_env) owning discovery, status(), the health flags and call_tool_json(); both providers shrink to field mapping (~-120 LOC, one place to fix the health flag).",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Duplication is real (discovery, is_available, status, _get_client, _call_tool and the health-flag pair are copied), but not 'verbatim with two env names changed': sec treats port '0' as unavailable and openbb does not, and the two _decode_tool_result functions diverge (sec returns raw text on non-JSON and has a structuredContent branch; openbb raises). It is a maintainability refactor (~60 LOC per copy), with only two consumers today; low."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-6",
+  "title": "McpClient.call_tool drops structuredContent, making sec_filings_provider's documented structured-content fallback unreachable dead code",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "sidecar/.venv/bin/python: stub a session whose call_tool returns an object with isError=False, content=[], structuredContent={'x': 1}; `await McpClient(...).call_tool('t', {})` returns {'isError': False, 'content': []} - structuredContent is gone, so sec_filings_provider._decode_tool_result falls through to `raise ProviderError(... returned no content)`. `mcp.types.CallToolResult.model_fields` is ['meta', 'content', 'structuredContent', 'isError'].",
+  "evidence": "sidecar/services/mcp_client.py:189, sidecar/services/mcp_client.py:206, sidecar/services/sec_filings_provider.py:151, types/mcp.ts:74",
+  "notes": "Information hiding: the wrapper narrows the protocol result rather than hiding complexity, and the narrowing is invisible to the caller - sec_filings_provider.py:150-153 was written against the real CallToolResult shape with the comment 'Fallback: structured content (FastMCP 3.x with output_schema)' and can never execute. Consequence: any sec-edgar-mcp tool declaring an output_schema (which FastMCP 3.x encourages) returns a hard ProviderError instead of its structured body, and the /sec route 502s on data that was actually delivered. Smallest fix: pass structuredContent (and meta) through in the call_tool return dict - one key each - and add structuredContent to McpToolCallResult in types/mcp.ts.",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "McpClient.call_tool does drop structuredContent, so sec_filings_provider's structuredContent fallback is dead code. The claimed consequence (a ProviderError/502 on delivered data from output_schema tools) does not follow: both the SDK FastMCP (convert_result returns unstructured AND structured content) and jlowin fastmcp (ToolResult(content=..., structured_content=...)) always emit a text block alongside structured output, which the text branch decodes first. Latent dead code, low."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-7",
+  "title": "GET /mcp/status reports protocolVersion 2025-06-18 while the live server negotiates 2025-11-25; types/mcp.ts documents a third answer",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "`curl -s http://127.0.0.1:52152/mcp/status` -> {\"ready\":true,\"toolCount\":36,\"endpoint\":\"/mcp\",\"protocolVersion\":\"2025-06-18\"}. `curl -s -X POST http://127.0.0.1:52152/mcp/ -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"x\",\"version\":\"0\"}}}'` -> result.protocolVersion = \"2025-11-25\". `mcp.types.LATEST_PROTOCOL_VERSION` in the venv is \"2025-11-25\".",
+  "evidence": "sidecar/services/mcp_server.py:58, sidecar/routers/mcp.py:40, types/mcp.ts:8, types/mcp.ts:104",
+  "notes": "Consistency / duplicated truth: one fact is stored in three places - a hardcoded Python constant commented 'MCP revision FastMCP 3.x speaks', the TS doc comment, and the SDK - and it has ALREADY drifted two ways. Consequence: the one endpoint that exists so a client need not speak JSON-RPC (routers/mcp.py:30-33) is the only place reporting the wrong revision, and a plugin-manager or external tool gating on it makes a wrong compatibility call; every SDK bump widens the gap silently because test_mcp_server.py:146 only asserts it is a string. Smallest fix: `return mcp.types.LATEST_PROTOCOL_VERSION` from protocol_version() and delete the constant plus the stale TS prose.",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Drift is real and reproduced: /mcp/status reports the hardcoded 2025-06-18 while initialize negotiates 2025-11-25. Correction: types/mcp.ts is not a third answer - it says 2025-11-25, matching the live server - and no frontend/plugin code reads protocolVersion (grep src/ plugins/ empty), so no consumer makes a wrong compatibility call today; low."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-11",
+  "title": "The invoke_agent MCP tool advertises api_key as a tool parameter, inviting every external MCP client (and its model) to carry a BYOK secret in its transcript",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "design. mcp_server.py:182-185 declares `async def invoke_agent(agent_id: str, prompt: str, api_key: str | None = None)`; FastMCP publishes that signature as the tool's JSON-Schema input, so it appears in tools/list to Claude Desktop / Claude Code / any MCP client, and a filled value is put into the POST body at :194-197.",
+  "evidence": "sidecar/services/mcp_server.py:183, sidecar/services/mcp_server.py:194, sidecar/services/mcp_server.py:196",
+  "notes": "Information hiding at a trust boundary: CLAUDE.md's BYOK rule is that the renderer reads the OS keychain and passes the secret in the REQUEST (a header), never persisted or echoed, and that the secret never leaves process memory. Publishing it as a tool ARGUMENT inverts that - the value must pass through a third-party model's context and lands in that client's tool-call transcript and provider logs, where the user cannot revoke it. Consequence: a footgun on the one surface Vysted advertises to external LLMs; no active leak today because a human must paste the key. Smallest fix: drop the parameter and let the in-process invoke inherit the sidecar's own key resolution, or read it from a request header at the /mcp mount.",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds: the hand-written invoke_agent MCP tool publishes api_key as a tool input and forwards it in the POST body to /agents/{id}/invoke (AgentInvocationRequest.api_key), so the only way an external MCP client can supply a BYOK key is through the third-party model's context/transcript. No active leak without a human pasting a key, as the finding itself says."
+  }
+ },
+ {
+  "raw_id": "COD-mcp-servers-13",
+  "title": "Vysted-as-server never sets isError while Vysted-as-client keys failure off isError - the two halves of the same subsystem disagree about the protocol's failure signal",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "mcp-servers",
+  "repro": "design. mcp_server.py:116-122 converts every handler failure (KeyError, any Exception) into a SUCCESSFUL tool result whose body is {'ok': False, 'error': ...}; nothing in _build_server ever sets isError. Meanwhile openbb_mcp_provider.py:187-190 and sec_filings_provider.py:131-134 treat result['isError'] as THE failure signal.",
+  "evidence": "sidecar/services/mcp_server.py:120, sidecar/services/mcp_server.py:122, sidecar/services/openbb_mcp_provider.py:187, sidecar/services/sec_filings_provider.py:131",
+  "notes": "Consistency: one subsystem implements both sides of MCP and uses two different failure conventions. Consequence: any MCP client that keys off the protocol flag - including a future Vysted-to-Vysted federation, and generic MCP tooling that retries on isError - reads every Vysted tool failure as a success carrying prose; the error is visible only to a model that reads the body. Smallest fix: raise fastmcp ToolError from _make_catalog_tool (FastMCP sets isError for it) instead of returning an error dict, or set isError explicitly.",
+  "source_file": "code-mcp-servers.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "Real for the catalog-projected tools (the majority): _make_catalog_tool turns every failure into a successful {'ok': False, 'error': ...} result. Correction: 'nothing ever sets isError' is too strong - the hand-written tools that raise (list_workspaces, get_workspace, save_workflow via bare raise_for_status) do produce isError=True through the MCP server's exception handler, so the server mixes both conventions rather than never using the flag."
+  }
+ },
+ {
+  "raw_id": "COD-runs-durable-delegate-5",
+  "title": "No lifecycle state machine: cancel / pause / resume act on any status and rewrite terminal history",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "runs-durable-delegate",
+  "repro": "POST /runs/{id}/cancel on a finished run -> 200 and the row flips done -> cancelled 'cancelled by user' (scratch proof P3). POST /runs/{id}/resume on a done run re-executes it and zeroes its cost. pause_run on a done run flips it to paused - the repo's own test does exactly that because it is the only way to exercise pause.",
+  "evidence": "sidecar/services/run_manager.py:291-298 (cancel: no status check), :309-316 (pause: none), :361-366 (resume: only checks a live task), :394-400, sidecar/services/runs_store.py:273-275 (update_run accepts any transition), sidecar/tests/test_run_manager.py:258-266 (test pauses a completed run), sidecar/routers/runs.py:133 (error kind classified by `'already running' in str(exc)`), sidecar/routers/runs.py:119-120 (answer maps the same error to 404 that resume maps to 409)",
+  "notes": "The legal transitions are held by docstrings (models/run.py:28-36), not structure. Consequence: audit trail of a spend-bearing run is mutable after the fact; resume of a done run re-spends. Fix shape: one transition table, enforced in the store as `UPDATE … WHERE id=? AND status IN (…)` (rowcount 0 -> typed RunStateError -> 409, RunNotFound -> 404), which also removes the substring matching.",
+  "source_file": "code-runs-durable-delegate.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds. cancel_run and pause_run perform no status check, resume_run only rejects a live task, update_run writes any status, and the router classifies errors by substring with answer mapping 'already running' to 404 where resume maps it to 409. The UI-reachable form is the cancel race (row visible until the next 2 s poll after completion); resume-of-done is API-only. Note the runs table is not the §6.5 audit log."
+  }
+ },
+ {
+  "raw_id": "COD-runs-durable-delegate-10",
+  "title": "The FR-028 pause/answer control plane is unreachable in production: pause_run has no caller and no route",
+  "severity": "medium",
+  "area": "code",
+  "subsystem": "runs-durable-delegate",
+  "repro": "design - `grep -rn pause_run sidecar --include=*.py` outside tests returns only its definition; there is no /pause route and no catalog capability. Status `paused`, the `question` column, answer_run, POST /runs/{id}/answer, answerDelegateRun and the rail's answer form can never execute.",
+  "evidence": "sidecar/services/run_manager.py:301-316 (pause_run, zero callers), :24-34 (docstring: 'fully implemented and durable; only the autonomous self-pause trigger is out of scope'), sidecar/routers/runs.py:13-18 (no pause route), src/modules/chat/AgentsRail.tsx:139-180 (answer form), sidecar/models/run.py:30-31 (comment describes a different design: 'task is suspended on a future'), also dead: src/lib/delegate-runs.ts:226 resumeDelegateRun, src/store/agent-runs.ts:116 clearFinished (and it drops `paused` runs although every sibling treats paused as active), sidecar/services/run_manager.py:416 active_run_ids, sidecar/models/run.py:95-104 RunLaunchResponse",
+  "notes": "Design-for-the-future taken too far: a feature built end to end except its trigger, exercised only by tests, which is why finding 9 survived. Decision for the operator: wire an `ask_user` trigger (catalog capability + parity audits) or delete the plane and the claim. Either is smaller than carrying it.",
+  "source_file": "code-runs-durable-delegate.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds. pause_run has no non-test caller and no route, so status 'paused', the question column, answer_run/POST /answer, answerDelegateRun and the rail's answer form can never fire; resumeDelegateRun, clearFinished (which also drops paused runs), active_run_ids and RunLaunchResponse are likewise unused, and models/run.py describes a different 'suspended on a future' design."
+  }
+ },
+ {
+  "raw_id": "COD-runs-durable-delegate-13",
+  "title": "Wire contract described three contradictory ways and papered over with a dual-case serializer",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "runs-durable-delegate",
+  "repro": "design",
+  "evidence": "sidecar/routers/runs.py:44-60 (_dual_case emits every key twice 'without a contract negotiation'), sidecar/models/run.py:10-17 (says the wire is camelCase and that types/data.ts mirrors it - no TS mirror of the run models exists), src/lib/delegate-runs.ts:29-38 and :167-172 (RunWire: 'snake_case from the sidecar', reads only spend_usd), docs/SIDECAR_API.md (no runs section)",
+  "notes": "Duplicated truth that will drift: whoever 'cleans up' _dual_case to match the documented camelCase contract silently zeroes cost in the rail (`w.cost.spend_usd ?? 0`). Fix shape: pick snake_case (what the only consumer reads), delete _dual_case and the aliases, correct the docstring.",
+  "source_file": "code-runs-durable-delegate.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds. _dual_case emits both spellings, models/run.py claims a camelCase wire mirrored in types/data.ts (no run types exist in types/), the frontend RunWire reads only snake_case spend_usd, and docs/SIDECAR_API.md has no runs section."
+  }
+ },
+ {
+  "raw_id": "COD-runs-durable-delegate-14",
+  "title": "Unbounded runs table read in full (checkpoints included) every 2 s; every cost write re-reads and re-digests the row for a return value nobody uses",
+  "severity": "low",
+  "area": "code",
+  "subsystem": "runs-durable-delegate",
+  "repro": "design - no DELETE route / retention exists; row count and checkpoint_json only grow.",
+  "evidence": "sidecar/services/runs_store.py:246-250 (`SELECT *`, no LIMIT, pulls checkpoint_json that _row_to_summary never uses), :105-116 (CREATE TABLE + PRAGMA table_info on every connection), :296-304 (update_run opens a second connection and rebuilds RunDetail; run_manager never uses the result), sidecar/services/run_manager.py:137 (that sync SQLite work runs on the event loop each round), src/lib/delegate-runs.ts:40 and :145-147 (2 s poll, no in-flight guard, no fetch timeout)",
+  "notes": "Performance as design. Fix shape: select the summary columns explicitly with LIMIT 100, make update_run return None, add a prune-older-than-N on startup next to the reconciliation in finding 6.",
+  "source_file": "code-runs-durable-delegate.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Holds. list_runs is SELECT * with no LIMIT (checkpoint_json pulled and discarded), every connection runs CREATE TABLE + PRAGMA table_info, update_run re-reads the full row via get_run for a result run_manager ignores, the sync SQLite write runs on the event loop inside the per-round callback, and the 2 s setInterval poll has no in-flight guard or timeout; no retention/delete path exists."
+  }
+ }
+]

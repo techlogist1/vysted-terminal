@@ -1,0 +1,1002 @@
+{
+ "entries": [
+  {
+   "id": "R15-RESEARCH-001",
+   "severity": "critical",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "DEEP/ULTRA brief states another company's news as the target's own facts: the structured news leg feeds the unfiltered region-wide feed blend to synthesis with no relevance gate (BDL brief claimed Sterling and Wilson's Rs 985 cr order and solar/storage projects)",
+   "files": [
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/fast.py",
+    "sidecar/services/research/relevance.py",
+    "sidecar/services/news_provider.py"
+   ],
+   "repro": "vy.py invoke copilot 'Bharat Dynamics - order book, margins and valuation' --provider openai --model gpt-4o-mini --autonomy auto, research_depth=deep, symbol=BDL -> published brief: 'BDL has secured ... contracts exceeding Rs 985 crore ... [8]' and '534.3 MWp solar project ... 616 MWh energy storage' cited to [8] 'News for BDL' (vysted://news/BDL); the news tool result item 1e4af0a955903e90 is 'Sterling and Wilson Renewable Energy shares rally 8% after securing Rs 985 crore ... orders', symbols: [].",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/12-deep-bdl-4omini.jsonl, docs/redesign/verification/r15/surface/research-briefs/21-news-tool-BDL.json; sidecar/services/research/deep.py:376-393, deep.py:715-716, deep.py:1140-1148 (news dim folded as one generic source, no per-item check); contrast sidecar/services/research/fast.py:455-498 (_news_value gates the same blend via relevance.row_relevant, R13 ledger #9); sidecar/services/news_provider.py:63-98 (region-wide feeds folded in unlabelled). Refuter: admitted, critical.",
+   "root_cause": "_record_structured folds the whole news tool result (129 items, most symbols: [] market-wide noise) into one 'News for <SYM>' source; the R13 #9 off-entity gate was added only to fast._news_value and never ported to the DEEP/ULTRA structured news leg.",
+   "fix_shape": "Route the DEEP/ULTRA structured news leg through the same relevance.row_relevant filter fast._news_value uses (share one helper, don't copy), drop off-entity items with the honest no-on-entity-news note, and cite each kept item as its own source. Pin with a test feeding a blended news result (one on-entity, one off-entity symbols:[] item) through the deep structured path and asserting the off-entity item never reaches the researcher context.",
+   "defect_class": "off-entity-evidence",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-002",
+   "severity": "critical",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "ULTRA cross-check prints AGREE (and hides the reason) for claims the verifier reported UNVERIFIED, because _parse_verdict substring-scans the whole line instead of reading the leading verdict word",
+   "files": [
+    "sidecar/services/research/verify.py",
+    "sidecar/tests/test_research_verify.py"
+   ],
+   "repro": "python -c \"from services.research.verify import _parse_verdict; print(_parse_verdict('UNVERIFIED - no source confirms the 23% operating margin.'))\" -> ('agree', ...); also 'UNVERIFIED - evidence does not support the figure' and 'UNVERIFIED - no matching figure' -> agree. The ULTRA brief renders '- **AGREE** - <claim>' with detail suppressed.",
+   "evidence": "sidecar/services/research/verify.py:102-116, verify.py:199-207, verify.py:268, verify.py:273, verify.py:396; sidecar/tests/test_research_verify.py:191-197 (only covers 'cannot tell'). Refuter: admitted, critical (reproduced exactly).",
+   "root_cause": "The prompt mandates a leading <VERDICT> token but the parser checks agree/disagree marker substrings across the whole first line; reasons for UNVERIFIED routinely contain 'confirm'/'support'/'match'.",
+   "fix_shape": "Parse the first word (strip '*:-'), exact-match UNVERIFIED/DISAGREE/AGREE, fall back to marker scan only when the head is not a verdict token; add the three proven UNVERIFIED strings to test_parse_verdict. Apply the same first-token convention to deep._reflect_says_complete (see R15-RESEARCH-034 (COD-research-depth-iter-deep-13)).",
+   "defect_class": "llm-output-marker-scan",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-003",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "DEEP/ULTRA brief [n] citations point at unrelated documents: markers minted against one round's source numbering survive into a brief published under a re-ranked, longer list (price/P&E chips open 'Change in Directorate' PDFs)",
+   "files": [
+    "sidecar/services/research/iter.py",
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/citecheck.py"
+   ],
+   "repro": "vy.py invoke copilot 'Deep research on Blue Star (BLUESTARCO): ... Cite sources.' --provider openai --model gpt-4o-mini --autonomy auto, research_depth=deep -> brief cites 'Closing Price Rs 1,525.0 [6]', 'P/E 61.67 [7]'; rail [7] = nsearchives BLUESTARCO ... change in directors PDF, [6] = Q1FY27 shareholder communication; figures actually came from [11] vysted://price / [12] vysted://fundamentals. Same on ULTRA HAL (13-ultra-hal-4omini.jsonl); absent on the control run whose list never changed (12-deep-bdl-4omini.jsonl).",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/r4-deep-bluestar-4omini.jsonl, replay-r4-deep-bluestar-4omini.json, 13-ultra-hal-4omini.jsonl, 12-deep-bdl-4omini.jsonl, EVIDENCE.md 'Finding 1'; sidecar/services/research/deep.py:356-373 (all_sources ranks web/filings ahead of structured), sidecar/services/research/iter.py:127-129 (_numbered_sources renumbers every round), iter.py:223-260 (synthesis reuses working-report markers). Refuter: admitted, high (transcript proves the mismatch; line-level mechanism corroborated, not traced statement-by-statement).",
+   "root_cause": "Source numbering is recomputed from a re-ranked, growing list each round while the evolving report text keeps markers minted under the earlier numbering; citecheck only strips out-of-range markers, so in-range stale ones ship.",
+   "fix_shape": "Give every source a stable id at first sight (append-only numbering; rank only for display/priority, never renumber after a marker exists), or rewrite report markers by URL whenever the list is re-ranked. Pin with a multi-round iter test where round 2 inserts sources ahead of round 1's and the final brief's [n] still resolves to the round-1 URL.",
+   "defect_class": "citation-integrity",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-004",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "ULTRA cross-check mangles every figure that starts a claim line ('40.5%' -> '5%', '-0.4%' -> '4%', '67.13953' -> '13953') and its step reports 'verified 5 numeric claim(s), 0 disagreement(s)' over five UNVERIFIED rows",
+   "files": [
+    "sidecar/services/research/verify.py",
+    "sidecar/services/research/deep.py",
+    "sidecar/tests/test_research_verify.py"
+   ],
+   "repro": "vy.py invoke copilot 'Research Kaynes Technology in depth: ...' --provider ollama --model llama3.1:8b --autonomy auto, research_depth=ultra -> body: revenue growth +40.5%, P/E 67.13953; '## Cross-check' renders 'UNVERIFIED - 5%', 'UNVERIFIED - 4%', 'UNVERIFIED - 13953'; trace: 'cross-check: verified 5 numeric claim(s), 0 disagreement(s)'. Same on gpt-4o-mini HAL ('P/E 34.42' -> '42', 'Gross Margin 51.70%' -> '70%').",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/r3-ultra-kaynes.jsonl + .stdout.txt, replay-r3-ultra-kaynes.json, 13-ultra-hal-4omini.jsonl; sidecar/services/research/verify.py:137-158 (_extract_claims routes claims through _split_subquestions), sidecar/services/research/deep.py:179-202 (strips leading '<digits>.'/'-' with no following-space requirement), verify.py:412-418 (label counts checks, not verified). Refuter: admitted, high (reproduced in-process).",
+   "root_cause": "Claim extraction reuses the sub-question splitter, whose ordered-list/bullet stripping eats the integer part of a leading decimal and a leading minus sign; the step label interpolates len(checks).",
+   "fix_shape": "Give claims their own splitter that strips '<digits>. ' only when followed by whitespace + non-digit and never strips a sign; make the step label state verified/unverified/disagree counts separately. Pin with a test over '40.5% revenue growth', '-0.4% earnings growth', '67.13953 P/E' asserting the extracted claim text is unchanged.",
+   "defect_class": "crosscheck-integrity",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-005",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "On the local (zero-setup) lane DEEP/ULTRA synthesis hits the 60 s per-call cap and silently ships the structured floor, labelled 'web coverage for this name is thin' while 13+ web sources were captured, with raw floats and no degraded_reason",
+   "files": [
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/iter.py",
+    "sidecar/services/agent_tools/deep_research.py"
+   ],
+   "repro": "vy.py invoke copilot 'Do a deep research brief on CG Power ... order book, margins, valuation vs peers' --provider ollama --model llama3.1:8b --autonomy auto, research_depth=deep -> step 'synthesize | wrote brief from evolving report | 60014 ms'; published markdown = '_Web coverage for this name is thin; ..._' + filings list + 'change % -1.527472527472525' + 'market cap 1411777036288.0' while the brief carries 13 http web sources; panel header 'DEEP - 21 sources', no note, execution.degraded_reason null. Also 11-deep-bdl-llama (60007 ms) and r3-ultra-kaynes (all three angle syntheses 60001-60012 ms).",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/r2-deep-cgpower.jsonl + .stdout.txt, 11-deep-bdl-llama.jsonl, r3-ultra-kaynes.stdout.txt, replay-r2-deep-cgpower.json; sidecar/services/research/deep.py:165 (_LLM_CALL_TIMEOUT_SECS=60.0), deep.py:173 (_safe_llm -> '' on timeout), sidecar/services/research/iter.py:260-272 (empty synthesis + empty report -> floor), deep.py:459-505 (raw f'{label} {val}'), deep.py:523-556 (floor copy). Refuter: admitted, high.",
+   "root_cause": "A fixed 60 s per-LLM-call cap sized for hosted models degrades every local-lane distill/synthesis to empty; the floor fallback hardcodes a 'thin web coverage' explanation regardless of why it fired and records no degraded reason.",
+   "fix_shape": "Scale the per-call cap by provider class (local vs hosted) or stream synthesis against a progress deadline; when the floor fires because synthesis returned empty, set execution.degraded_reason='synthesis_timeout' and a brief.note naming it; only claim thin coverage when web sources are actually empty; format floor numbers through the percent/INR-crore formatters. Pin with a test where the LLM stub times out and web sources exist, asserting degraded_reason and the absence of the thin-coverage copy.",
+   "defect_class": "silent-degradation-misattributed",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-006",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "ULTRA cross-check runs unmetered after its entry check: up to 1 extract + 5 sequential 60 s verdict calls inside a '90 s' BudgetGuard, which can push the whole ULTRA brief past the runtime dispatch guard and lose it as a timeout",
+   "files": [
+    "sidecar/services/research/verify.py",
+    "sidecar/services/agent_tools/deep_research.py"
+   ],
+   "repro": "ULTRA run whose 5 extracted claims each take a slow verdict turn: cross_check() calls budget.breach() once at entry, then extract + parallel searches/native calls + a SEQUENTIAL loop of up to 5 _verdict_for calls each capped only at 60 s by _safe_llm -> ~360 s inside BudgetGuard(max_wall_seconds=90); only bound is the agent-runtime research dispatch guard (570 s for ULTRA), whose breach discards the whole brief.",
+   "evidence": "sidecar/services/research/verify.py:37-41 (docstring claims 'SAME BudgetGuard' - false), verify.py:304, verify.py:319, verify.py:357-394, sidecar/services/research/deep.py:165, sidecar/services/agent_tools/deep_research.py:78, deep_research.py:231-236, deep_research.py:272 (fresh guard); sidecar/services/agent_runtime.py:579-615,652-667 (refuter context). Refuter: admitted, high.",
+   "root_cause": "The cross-check round builds its own BudgetGuard and checks it once; the per-claim loop has no breach re-check and no asyncio.timeout.",
+   "fix_shape": "Wrap the claim loop in asyncio.timeout(budget.max_wall_seconds) and re-check budget.breach() before each _verdict_for, degrading the remaining claims to UNVERIFIED with the existing out-of-budget reason; fix the docstring. Pin with a test whose verdict stub sleeps past the budget and asserts the round returns within budget with the tail marked UNVERIFIED.",
+   "defect_class": "research-wall-budget",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-007",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "Any URL with '/investor' in its path or an 'ir.' host is ranked PRIMARY (exchange/regulator grade), so a Medium or WordPress post outranks Reuters, owns marker [1], and the synthesis prompt tells the model [1] is the primary record",
+   "files": [
+    "sidecar/services/research/finance.py",
+    "sidecar/tests/test_research_finance.py"
+   ],
+   "repro": "sidecar/.venv/bin/python: domain_tier('https://medium.com/investor-diary/why-i-bought-xyz') -> 1 (TIER_PRIMARY); domain_tier('https://someblog.wordpress.com/ir/2024/hot-tip') -> 1; domain_tier('https://reuters.com/markets/x') -> 2; rank_sources([Reuters, Medium]) -> ['Blog','Reuters']; priority_note -> 'primary record (exchange/regulator/filings/IR): [1]'.",
+   "evidence": "sidecar/services/research/finance.py:72, finance.py:127-132, finance.py:140, finance.py:173; sidecar/services/research/deep.py:368, sidecar/services/research/iter.py:845. Refuter: admitted, high (reproduced; also '/markets/investors-rush' news paths).",
+   "root_cause": "_looks_like_ir is a substring/prefix heuristic ('/investor' anywhere in the path, any 'ir.' host) guarding the table that decides source authority.",
+   "fix_shape": "Require a corroborated IR signal (ir./investors. host prefix AND host not on a publishing-platform denylist - medium.com, *.wordpress.com, substack.com, seekingalpha.com, reddit.com) or give IR its own tier between PRIMARY and PRESS. Pin with a table test of the reproduced URLs asserting none reaches TIER_PRIMARY and Reuters outranks them.",
+   "defect_class": "source-authority-heuristic",
+   "raw_ids": [
+    "COD-research-extraction-synthesis-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-008",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "On the keyless search tier (no Docker/SearXNG, the default for most users) chat web_search times out at its 25 s tool cap because DuckDuckGo, first in the fixed chain, burns ~41 s of nested retries before a healthy Brave (0.9 s) is tried; the model then blames the network and suggests 'a lighter depth'",
+   "files": [
+    "sidecar/services/search/keyless.py",
+    "sidecar/services/search/ddg.py",
+    "sidecar/services/search/pacing.py",
+    "sidecar/services/agent_tools/web_search.py",
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "Sidecar booted without Docker (/search/status t1_keyless, all engines 'available'); vy.py invoke copilot 'Use your web_search tool to find recent news about Dixon Technologies and cite the sources' --provider ollama --model llama3.1:8b -> tool timeout; model: 'there was a timeout error ... try again ... at a lighter depth' (2/2 runs). Direct handler timing: ddg FAIL 20.5 s, ddg FAIL 20.4 s, brave ok 0.9 s -> 42.5 s total.",
+   "evidence": "docs/redesign/verification/r15/surface/failure-inducer/44-keyless-engine-timing.txt, 42-websearch-direct.txt, 41-deadsearxng-nodocker-websearch.txt, 43-nodocker-websearch-2nd.txt, 40-nodocker-status.txt; sidecar/services/agent_tools/catalog.py:313 (25 s), catalog.py:1572 (research-domain timeout hint), sidecar/services/agent_runtime.py:652-666 (wait_for), sidecar/services/search/keyless.py:53 (fixed ddg->brave->mojeek), keyless.py:150-190, keyless.py:201-232, sidecar/services/search/pacing.py:42 (2 attempts/engine), sidecar/services/search/ddg.py:60 (2 inner attempts), ddg.py:84 (12 s timeout). Refuters: SURF admitted high; COD-6 admitted_with_correction medium (outer 25 s bound exists, but DDG's nested budget exceeds it so failover never happens) - the live repro makes that corrected mechanism a core-flow failure, high kept.",
+   "root_cause": "Three independently reasonable retry layers (keyless 2 attempts x ddg 2 attempts x 12 s timeouts) with no per-engine deadline exceed the 25 s outer tool cap, so wait_for cancels before rotation reaches the next engine; the timeout hint is the research tool's copy.",
+   "fix_shape": "Give keyless.search a per-engine deadline that fits inside the tool cap (e.g. 6 s, no second attempt after a transport timeout), drop ddg.py's private retry loop now that keyless owns retry, and give web_search its own timeout hint naming the search tier. Pin with a test where the ddg stub hangs and brave answers, asserting web_search returns brave rows inside the catalog timeout.",
+   "defect_class": "keyless-search-resilience",
+   "raw_ids": [
+    "SURF-FAILURE-INDUCER-2",
+    "COD-research-retrieval-relevance-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-009",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "DEEP/ULTRA research never meters tokens or spend: the BudgetGuard has no token/spend ceiling, every loop site records usage=None, and the brief header shows no cost although dozens of paid LLM calls were billed",
+   "files": [
+    "sidecar/services/agent_tools/deep_research.py",
+    "sidecar/services/llm/oneshot.py",
+    "sidecar/services/research/iter.py",
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/verify.py",
+    "sidecar/services/budget_guard.py",
+    "src/modules/research/BriefPanel.tsx"
+   ],
+   "repro": "Run any DEEP brief on an OpenRouter paid model: deep_research._run_native builds BudgetGuard(max_steps=..., max_wall_seconds=...) only; oneshot.complete returns bare str; every loop site calls budget.record(None, model, provider) -> brief.cost carries zero tokens/spend and BriefPanel omits the segments.",
+   "evidence": "sidecar/services/agent_tools/deep_research.py:232-236, deep_research.py:322-325; sidecar/services/research/iter.py:585, iter.py:962, iter.py:1023, iter.py:1146; sidecar/services/research/deep.py:19-25, deep.py:1214; sidecar/services/research/verify.py:319; sidecar/services/budget_guard.py:95-107, budget_guard.py:116; src/modules/research/BriefPanel.tsx:113-146; spec FR-072/074/075. Refuter: admitted, high. Cross-cluster: same defect as R15-AGENT-012 (COD-research-extraction-synthesis-2, agent cluster) - the lead should fold the two at build time.",
+   "root_cause": "oneshot.complete drops the adapter's LLMUsage and returns text only, so research loops have nothing to record; the guard is built without the agent-invoke budget's token/spend ceilings.",
+   "fix_shape": "Make oneshot.complete return (text, usage), pass usage into budget.record at every research site, construct the research guard with the invoking run's token/spend ceilings so the existing breach path forces synthesis. Pin with a test that a stubbed-usage DEEP run reports non-zero brief.cost and breaches on a tiny max_spend_usd.",
+   "defect_class": "research-cost-metering",
+   "raw_ids": [
+    "INT-spec-135-143"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-010",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "llm-adapters",
+   "title": "Settings certifies any string as a working OpenRouter key ('research bills to it'), and when hosted Tier B research then 401s the trace shows only ok steps and 'done' - the failure reaches only the model, which answers with unfetched 'sources'",
+   "files": [
+    "sidecar/services/llm/openai.py",
+    "sidecar/services/agent_tools/deep_research.py",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "Settings -> AI Providers -> OpenRouter -> paste 'sk-or-v1-R15CANARY-this-is-not-a-real-key' -> POST /llm/keys/validate {ok:true}; Tier B card: 'OpenRouter key configured - research bills to it.' Then Tier B research with that key (vy.py invoke copilot ... --provider ollama --model llama3.1:8b --tier tier_b): stream = 2 research_step frames both 'ok', then 'done'; no error step/frame; llama3.1:8b answered with 'Brief sources: Wikipedia, Forbes, Bloomberg' (none fetched).",
+   "evidence": "docs/redesign/verification/r15/surface/settings-plugins/10-settings-panel-replay.json (S2), G01-tierb-fake-openrouter-key.jsonl + .stdout.txt, http-log.jsonl B01/B12; sidecar/services/llm/openai.py:842-849 (validate = models.list()), sidecar/services/llm/openrouter_catalog.py:15 (/api/v1/models is unauthenticated), sidecar/services/agent_tools/deep_research.py:682, deep_research.py:723-724 (HTTP error returns ok:false without a _step), src/components/SettingsPanel.tsx:1103-1105. Refuter: admitted_with_correction, high (model did disclose it could not fetch; no brief was published; fabrication is the chat-text source list). Validation half's code root cause is R15-CODE-AGENT-003 (COD-llm-adapters-2-4, code-agent cluster).",
+   "root_cause": "OpenRouter key validation calls a public endpoint, so it cannot fail on a bad key; run_research_model_brief returns ok:false on HTTPStatusError without emitting an error step, so the trace and panel never show the failure.",
+   "fix_shape": "Validate OpenRouter against an authenticated endpoint (GET /api/v1/auth/key with the key; 401 -> invalid); in run_research_model_brief emit _step('error', <humanised 401 message>) before returning ok:false. Pin with a test that a 401 from the hosted research call produces an error research_step on the stream.",
+   "defect_class": "failure-not-surfaced",
+   "raw_ids": [
+    "SURF-SETTINGS-PLUGINS-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-011",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "disclosures-witnesses",
+   "title": "A BSE-XBRL institutional-holding figure is shown in the brief labelled 'NSE shareholding filing, <NSE quarter>' - the service's honest split_source/split_as_of stamp is discarded one layer up",
+   "files": [
+    "sidecar/services/ownership_check.py",
+    "sidecar/services/research/semantics.py",
+    "sidecar/tests/test_ownership_check.py"
+   ],
+   "repro": "Dual-listed Indian name whose latest NSE quarterly master row has no matching BSE XBRL quarter (nearest-quarter branch, corporate_disclosures.py:530): _merge_bse_split stamps split_source='BSE', split_as_of=<BSE quarter>; ownership_check._fetch_latest copies institutions_percent but sets as_of_quarter=latest.quarter_end and source=latest.source (NSE) -> semantics renders basis 'NSE shareholding filing, <NSE quarter>' on institutions_percent_exchange.",
+   "evidence": "sidecar/services/corporate_disclosures.py:507, corporate_disclosures.py:538, sidecar/services/ownership_check.py:126-132, sidecar/services/research/semantics.py:555, semantics.py:559, semantics.py:578, sidecar/models/announcements.py:133. Refuter: admitted_with_correction critical -> high (live RELIANCE/SIL/TCS have split_as_of == quarter_end, so the wrong-QUARTER label fires only in the nearest-quarter branch; the 'NSE' source label on a BSE figure is always-on; both exchanges carry the same SEBI SHP filing).",
+   "root_cause": "split_source/split_as_of have no production reader; _fetch_latest re-derives provenance from the NSE master row.",
+   "fix_shape": "In _fetch_latest set as_of_quarter=(latest.split_as_of or latest.quarter_end).isoformat() and carry latest.split_source into source when the institutions figure was merged. Pin with a test where the merged BSE quarter differs from the NSE master quarter and the rendered basis names BSE and the BSE quarter.",
+   "defect_class": "provenance-label-honesty",
+   "raw_ids": [
+    "COD-disclosures-witnesses-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-012",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "disclosures-witnesses",
+   "title": "The research structured filings floor is the 5 newest attachments, not the results filing first: gather_floor omits the sub_question that turns on results-banding, so in results season thin-web runs cite procedural intimations",
+   "files": [
+    "sidecar/services/research/disclosures.py"
+   ],
+   "repro": "Thin-web DEEP run on an Indian listing in results season: gather_floor (disclosures.py:169) calls announcement_rows without sub_question -> results_shaped False -> no sort -> the floor's 5 citable rows are the 5 newest attachments (procedural intimations), while gather (:324) passes sub_question and ranks the outcome filing first.",
+   "evidence": "sidecar/services/research/disclosures.py:169, disclosures.py:222, disclosures.py:252, disclosures.py:324, sidecar/services/research/iter.py:351, iter.py:924, deep.py:731-738 (refuter mitigation). Refuter: admitted_with_correction high -> medium (per-researcher gather still ranks results filings whenever a results-shaped researcher fires).",
+   "root_cause": "Results-banding is conditional on a sub_question that the floor path never supplies.",
+   "fix_shape": "Pass sub_question='results' from gather_floor (or make banding unconditional when sub_question is empty). Pin with a test feeding 6 announcements (5 procedural newer, 1 results older) through gather_floor and asserting the results filing is row 1.",
+   "defect_class": "filings-floor-ranking",
+   "raw_ids": [
+    "COD-disclosures-witnesses-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-013",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "FAST research's filings leg always stamps provider 'nse+bse', including BSE-only listings and single-lane outages, overriding the sources/errors the announcements tool already reports",
+   "files": [
+    "sidecar/services/research/fast.py"
+   ],
+   "repro": "BSE lane down (AnnouncementsResponse.errors set, sources == ['NSE']) or any BSE-only small-cap -> research/fast._filings_leg sets value['provider']='nse+bse' whenever ok -> FR-041 provenance badge claims both exchanges served.",
+   "evidence": "sidecar/services/research/fast.py:437, sidecar/models/announcements.py:52, announcements.py:56, sidecar/services/corporate_disclosures.py:299. Refuter: admitted, medium (also every BSE-only listing, the thin small-cap class).",
+   "root_cause": "The consumer hardcodes the provider string instead of reading result.sources.",
+   "fix_shape": "value['provider'] = '+'.join(result.get('sources') or []) or 'exchange'. Pin with a test where the announcements stub returns sources=['BSE'] and the leg's provider is 'BSE'.",
+   "defect_class": "provenance-label-honesty",
+   "raw_ids": [
+    "COD-disclosures-witnesses-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-014",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "llm-adapters",
+   "title": "A cut-off answer is shown as complete: the Anthropic adapter hard-caps every call at 4096 output tokens and no layer (oneshot, runtime, UI) acts on a max_tokens/length finish_reason, so a truncated deep-research synthesis renders as final",
+   "files": [
+    "sidecar/services/llm/anthropic.py",
+    "sidecar/services/llm/oneshot.py",
+    "sidecar/services/agent_runtime.py",
+    "src/modules/chat/streaming.ts"
+   ],
+   "repro": "Deep-research synthesis or a long agent answer on Anthropic -> adapter sends max_tokens=4096 (no caller sets it) -> stream stops mid-sentence with stop_reason 'max_tokens' -> LLMDoneEvent.finish_reason='max_tokens' -> oneshot.complete returns the partial text; agent_runtime only inspects 'content_filter'; streaming.ts decodes finishReason with no consumer.",
+   "evidence": "sidecar/services/llm/anthropic.py:36-37, anthropic.py:110, sidecar/services/llm/oneshot.py:84-92, sidecar/services/agent_runtime.py:102, agent_runtime.py:1483-1493, sidecar/services/agent_tools/deep_research.py:323, src/modules/chat/streaming.ts:327-342. Refuter: admitted, medium. Cross-cluster: overlaps R15-AGENT-026 (COD-error-layer-2-3, SURF-FAILURE-INDUCER-1, agent cluster) on the chat side; this entry owns the research-synthesis path and the Anthropic cap.",
+   "root_cause": "DEFAULT_MAX_TOKENS=4096 is the only value ever sent; finish_reason is carried end to end but never acted on.",
+   "fix_shape": "Raise the Anthropic default to the model's documented output ceiling from the registry; have oneshot.complete and the runtime flag finish_reason in {'max_tokens','length'} as a visible 'answer truncated' note on the brief/message. Pin with a stub adapter returning finish_reason='max_tokens' and assert the note is emitted.",
+   "defect_class": "silent-truncation",
+   "raw_ids": [
+    "COD-llm-adapters-2-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-015",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "ULTRA's independence floor double-counts the native channel, so a claim resting on one domain reached by both lanes is rendered 'AGREE (corroborated across channels)' under a '2 independent sources' promise",
+   "files": [
+    "sidecar/services/research/verify.py",
+    "sidecar/tests/test_research_verify.py"
+   ],
+   "repro": "Dual-channel ULTRA claim whose only evidence is one domain d reached by SearXNG and native: domains = {d}; independence = len(domains) + 1 (native_text) = 2 >= min_domains 2 -> verdict runs, AGREE renders 'AGREE (corroborated across channels)'.",
+   "evidence": "sidecar/services/research/verify.py:250-255, verify.py:265-266, verify.py:365, verify.py:371-373, verify.py:391-393, sidecar/services/agent_tools/deep_research.py:274. Refuter: admitted_with_correction high -> medium (figure is still sourced from one domain; overstates independence rather than publishing an unsourced number).",
+   "root_cause": "Line 365 already folds native citation domains into `domains`; line 373 adds +1 for the same lane.",
+   "fix_shape": "independence = len(domains) + (1 if native_text and not native_rows else 0); gate 'corroborated' on the two channels resting on different domains. Pin with a one-domain-both-lanes test asserting UNVERIFIED (insufficient independence).",
+   "defect_class": "crosscheck-integrity",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-016",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "ULTRA never records the always-on exchange-filings floor rows as [n] citations (DEEP does): the pre-seeded snapshot trips the guard that also controls _record_web",
+   "files": [
+    "sidecar/services/research/iter.py"
+   ],
+   "repro": "ULTRA on a thin-web Indian micro-cap: run_heavy_research pre-seeds snapshot['disclosures'] (iter.py:918-929) -> each explorer's `structured.get('disclosures') is None` is False -> the block containing _record_web(floor['rows']) is skipped -> no floor citations and no web coverage credit for them; same query at DEEP records them.",
+   "evidence": "sidecar/services/research/iter.py:350, iter.py:357-363, iter.py:918-929, sidecar/services/research/disclosures.py:127-137, deep.py:731-759 (refuter mitigation). Refuter: admitted_with_correction high -> medium (disclosure-shaped researchers still cite announcement rows; loss is the always-on floor citations and their coverage credit).",
+   "root_cause": "One guard controls two unrelated actions: fetching the floor and recording its rows as sources.",
+   "fix_shape": "Split the guard: pull only when absent, but always _record_web(structured['disclosures']['rows']) (once, in run_heavy_research). Pin with a test that an ULTRA run over a stub floor lists the floor rows in brief.sources.",
+   "defect_class": "filings-floor-ranking",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-017",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "An exception inside ULTRA's run_heavy_research escapes _run_loop and loses the brief, while the identical failure at DEEP degrades to the single-pass fallback with an honest note",
+   "files": [
+    "sidecar/services/agent_tools/deep_research.py",
+    "sidecar/services/research/fast.py"
+   ],
+   "repro": "Any exception raised in run_heavy_research (resolve_target, snapshot_structured at iter.py:915, gather_floor, webweaver synthesis, citation integrity - all outside any guard) -> escapes _run_loop to agent_runtime._dispatch_tool -> 'tool research raised' to the model, no brief. At DEEP the same exception is caught at deep_research.py:283 and falls back.",
+   "evidence": "sidecar/services/agent_tools/deep_research.py:259-280, deep_research.py:281-296, sidecar/services/research/iter.py:915, sidecar/services/research/fast.py:377-385. Refuter: admitted_with_correction high -> medium (no concrete raising path demonstrated; runtime catches the escape). Related: R15-CODE-RESEARCH-002 (snapshot_structured's gather lacks return_exceptions).",
+   "root_cause": "The heavy branch of _run_loop was added without the try/except the iter branch has.",
+   "fix_shape": "Give the heavy branch the same try/except + fallback + note as the iter branch. Pin with a test that a raising run_heavy_research stub still yields a published single-pass brief with the fallback note.",
+   "defect_class": "depth-asymmetry",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-018",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "DEEP/ULTRA researchers query SEC EDGAR for Indian listings on any filing/sec/insider-shaped sub-question (and on 'sector'/'second' via a bare 'sec' substring), showing the model an empty-success SEC list or a false 'feed outage' framing",
+   "files": [
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/relevance.py"
+   ],
+   "repro": "DEEP/ULTRA on an NSE/BSE name with a filing-shaped sub-question: deep.py:707-709 picks sec_filings_list with the Indian symbol; with sec-edgar-mcp up /sec/filings?symbol=RELIANCE.NS returns filings:[] wrapped ok:true (reads as 'no filings'); with it down deep.py:806-812 injects 'temporarily unavailable ... NOT evidence the data does not exist'. fast._filings_leg routes the same decision by region to corporate_announcements.",
+   "evidence": "sidecar/services/research/deep.py:705-717, deep.py:806-812, sidecar/services/research/fast.py:413-442, sidecar/services/research/relevance.py:374-378. Refuter: admitted_with_correction, medium (corrected mechanism: usually an empty SUCCESS, not a failure).",
+   "root_cause": "The region fix landed only in fast.py; the researcher bucket choice is region-blind and substring-matched.",
+   "fix_shape": "Reuse relevance.is_india_target in the researcher bucket selection (route India to corporate_announcements) and match 'sec' as a word. Pin with a test that an India target's filings sub-question never selects sec_filings_list and 'sector outlook' does not match the filings bucket.",
+   "defect_class": "depth-asymmetry",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-019",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "A primary filing behind an anti-bot 403, an SSRF block or an unsupported content type silently vanishes from research evidence: visit_for_research collapses every fetch_page error to None and no step records it",
+   "files": [
+    "sidecar/services/search/extract.py",
+    "sidecar/services/research/deep.py"
+   ],
+   "repro": "fetch_page returns distinct errors ('blocked non-public ...' extract.py:594, 'fetch failed' :604, 'HTTP 403' :613, 'unsupported content type' :621, 'no readable content' :631); visit_for_research reads only page.get('ok') and returns None (extract.py:674-679) under a blanket except (:670-671); _safe_visit drops a None visit with no step (deep.py:639-646, deep.py:768-786).",
+   "evidence": "sidecar/services/search/extract.py:594, extract.py:604, extract.py:613, extract.py:621, extract.py:631, extract.py:670-679, sidecar/services/research/deep.py:639-646, deep.py:768-786, sidecar/services/research/models.py:81-103. Refuter: admitted, medium.",
+   "root_cause": "The visit wrapper narrows a typed result to str|None and swallows exceptions.",
+   "fix_shape": "Return a small VisitResult(text, reason) and have the loop record a ResearchStep(status='error', detail=reason) for each failed visit. Pin with a test where fetch_page returns 'HTTP 403' and the run's steps include that error.",
+   "defect_class": "swallowed-failure",
+   "raw_ids": [
+    "COD-research-extraction-synthesis-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-020",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "On the SearXNG tier web_search ignores the caller's numResults: an agent asking for 3 results gets every row the instance returned (40 in repro) into its context, and citations are pinned at 8",
+   "files": [
+    "sidecar/services/search/searxng.py",
+    "sidecar/services/search/base.py",
+    "sidecar/services/search/ddg.py",
+    "sidecar/services/search/brave.py",
+    "sidecar/services/search/mojeek.py"
+   ],
+   "repro": "SearxngBackend('http://127.0.0.1:1', client=stub-40-rows).search('q', options={'numResults': 3, 'category': 'general', 'region': 'IN'}) (the exact dict web_search._dispatch builds) -> 40 results, 8 citations; ddg._coerce_limit({'numResults': 3}) == 3; searxng._citation_limit({'numResults': 3}) == None.",
+   "evidence": "sidecar/services/search/searxng.py:205-215, searxng.py:263, sidecar/services/agent_tools/web_search.py:198, web_search.py:223-232, sidecar/services/search/ddg.py:401, sidecar/services/search/brave.py:142, sidecar/services/search/mojeek.py:134, sidecar/services/search/base.py:120. Refuter: admitted_with_correction high -> medium (brief recorder reads citations capped at 8; harm is agent context bloat + an 8-row ceiling on the opt-in tier).",
+   "root_cause": "The 'result cap is numResults-or-maxResults' rule is hand-copied into four backends and has drifted in SearXNG, which reads only maxResults and never slices results.",
+   "fix_shape": "One result_limit(options) helper in base.py next to DEFAULT_CITATION_LIMIT; delete the per-backend copies; slice results in searxng.py. Pin with a parametrised test over all four backends asserting numResults=3 yields <=3 results and citations.",
+   "defect_class": "search-backend-contract-drift",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-021",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "A headline naming the ticker followed by a 2-3 digit number ('BAJFINANCE 200 DMA breakout', 'BAJFINANCE 52-week high') scores 0.0 and is silently dropped as off-entity",
+   "files": [
+    "sidecar/services/research/relevance.py",
+    "sidecar/tests/test_research_relevance.py"
+   ],
+   "repro": "sidecar/.venv/bin/python: target=ResearchTarget(symbol='BAJFINANCE', name='Bajaj Finance Limited', exchange='NSE', region='IN', ...); entity_match({'title': 'BAJFINANCE 200 DMA breakout as stock nears record'}, target=target) -> 0.0, row_relevant -> False; without '200' -> 1.0.",
+   "evidence": "sidecar/services/research/relevance.py:203, relevance.py:407-412, relevance.py:440, sidecar/services/research/deep.py:611. Refuter: admitted_with_correction high -> medium (INFY 1500 example wrong - 4 digits pass; bites only ticker-only titles, not brand-token titles).",
+   "root_cause": "The KSE-100 index-collision regex `[\\s-]?\\d{2,3}(?![a-z0-9])` treats any 2-3 digit number after the ticker as an index name.",
+   "fix_shape": "Drop \\s from the index-tail pattern (require contiguous/hyphenated suffix) and gate the check behind _foreign_shadow(text_lc, host). Pin with cases 'BAJFINANCE 200 DMA', 'BAJFINANCE 52-week high' (kept) and 'KSE-100' (still dropped for a KSE-shadowed target).",
+   "defect_class": "relevance-false-negative",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-022",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited'",
+   "files": [
+    "sidecar/services/search/keyless.py",
+    "sidecar/services/search/ddg.py"
+   ],
+   "repro": "KeylessSearchBackend(engines={'ddg': stub}) where stub returns one row 'Unusual traffic from your computer network' / 'verify you are a human' -> SearchResponse(results=[], backend='keyless') ok, breaker_for('ddg').state=='closed', _failures==0. Real-world: a 200 DDG block page parses to zero rows (ddg.py:385-394) and takes the same success branch.",
+   "evidence": "sidecar/services/search/keyless.py:75, keyless.py:163-165, keyless.py:175-176, keyless.py:186, keyless.py:194, sidecar/services/search/ddg.py:385-394, sidecar/services/agent_tools/web_search.py:157. Refuter: admitted_with_correction high -> medium (empty engine rotates to the next; user-visible 'found nothing' vs 'rate-limited' only when all three soft-block).",
+   "root_cause": "record_success() and any_engine_answered=True run before _filter_results applies the block-page markers.",
+   "fix_shape": "Move _filter_results above record_success; when non-empty rows filter to zero (or a 200 parses to zero rows with block markers), call record_failure(), note 'blocked (challenge page)' and don't set any_engine_answered. Pin with the stub repro asserting the breaker counts a failure and the all-blocked case raises the typed rate_limited error.",
+   "defect_class": "keyless-breaker-accounting",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-023",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "The keyless SERP quality filter drops company investor-relations results because their snippet carries an 'All rights reserved' footer, before relevance ever scores them",
+   "files": [
+    "sidecar/services/search/keyless.py",
+    "sidecar/services/search/extract.py"
+   ],
+   "repro": "sidecar/.venv/bin/python: _filter_results([SearchResult(url='https://www.routemobile.com/investors', title='Route Mobile Q2 FY25 results', snippet='Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.')], set()) == [].",
+   "evidence": "sidecar/services/search/keyless.py:80, keyless.py:84, keyless.py:98, sidecar/services/search/extract.py:219, sidecar/services/research/finance.py:138. Refuter: admitted, medium (exact row dropped).",
+   "root_cause": "One LOW_QUALITY_MARKERS list is consumed per paragraph by the page extractor (correct) and per whole result by the SERP filter (destructive).",
+   "fix_shape": "Split the list: footer noise stays paragraph-level for extract.py; only interstitial markers ('verify you are a human', 'unusual traffic', 'access denied') stay result-level, and those feed the block-page failure signal. Pin with the Route Mobile row kept and a challenge row still filtered.",
+   "defect_class": "relevance-false-negative",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-024",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "Every web source in a research brief loses its publication date and its domain reads as the literal 'web': the Citation shape drops published_at/source and the brief recorder prefers citations",
+   "files": [
+    "sidecar/services/search/base.py",
+    "sidecar/services/agent_tools/web_search.py",
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/models.py",
+    "types/brief.ts"
+   ],
+   "repro": "Code read: SearchResult carries published_at/source (base.py:41-42); Citation has url/title/excerpt only (base.py:54-56); normalize_results_to_citations discards the rest (base.py:132-135); deep.py:604 rows = citations if citations else results; ResearchSource.domain falls back to 'web' (deep.py:614); ResearchSource has no date field (models.py:62-69).",
+   "evidence": "sidecar/services/search/base.py:41-42, base.py:54-56, base.py:132-135, sidecar/services/search/searxng.py:246, sidecar/services/agent_tools/web_search.py:233-235, sidecar/services/research/deep.py:602-614, sidecar/services/research/models.py:62-69. Refuter: admitted_with_correction, medium (fix needs published_at end to end plus a URL-derived domain; only the SearXNG tier supplies dates today).",
+   "root_cause": "Information-losing narrowing at the search->research boundary plus a ResearchSource contract with no date field.",
+   "fix_shape": "Add published_at to Citation and ResearchSource (types/brief.ts mirror), derive domain from the URL host, and carry both into the brief source rail. Pin with a test that a SearXNG row with publishedDate yields a dated, host-labelled ResearchSource.",
+   "defect_class": "source-metadata-loss",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-025",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "screener",
+   "title": "Screener formulas silently coerce a boolean into a number inside arithmetic and min/max/abs: 'min(pe < 5, roe) > 0.5' validates ok and returns a plausible but meaningless screen",
+   "files": [
+    "sidecar/services/screener_formula.py",
+    "sidecar/tests/test_screener_formula.py"
+   ],
+   "repro": "POST /screener/formula/validate {'formula': 'min(pe < 5, roe) > 0.5'} -> ok:true; evaluates True for pe=3/roe=0.9 and False for pe=99/roe=0.9 (min(1.0, 0.9) > 0.5). Same for 'abs(pe_ratio > 3) > 0.5' and '(pe_ratio < 15) + 1 > 1.5'.",
+   "evidence": "sidecar/services/screener_formula.py:388-391, screener_formula.py:449-450, screener_formula.py:513-517, src/lib/screener-expr.ts:249-325 (TS twin tracks per-production boolean-ness). Refuter: admitted, medium (reproduced).",
+   "root_cause": "_is_boolean inspects only the root node while _call parses each argument as a full _or_expr, and the evaluator float()s bools.",
+   "fix_shape": "Port the TS parser's per-production isBool flag into _Parser and raise a positioned FormulaError on a boolean operand in _call/_sum/_term/_factor. Pin with the three repro formulas asserting validate returns ok:false with a position.",
+   "defect_class": "formula-type-check",
+   "raw_ids": [
+    "COD-screener-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-026",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "The research brief uses its own shadow money formatter (en-US grouping, ISO-code spelling) that renders an unknown currency identically to USD, so the same market cap reads differently in the brief and Equity Overview",
+   "files": [
+    "src/modules/research/brief-blocks.tsx",
+    "src/lib/format.ts"
+   ],
+   "repro": "Publish a brief for a name with no quote and fundamentals without `currency` -> metric card 'Market cap  4.48T' (byte-identical to a USD name); Equity Overview on the same symbol renders via formatCompactMoney with the instrument code.",
+   "evidence": "src/modules/research/brief-blocks.tsx:55-101 (shadow formatNumber/formatLarge/formatFractionPct/formatSignedPct/formatSigned), brief-blocks.tsx:61 (toLocaleString('en-US')), brief-blocks.tsx:187-192 (withCode: null or 'USD' -> bare number), brief-blocks.tsx:351, brief-blocks.tsx:368; src/lib/format.ts:63-64, format.ts:74-114; sidecar/models/market.py:22 (Quote.currency defaults 'USD'). Refuter: admitted_with_correction high -> medium (live SUZLON.NS resolves INR -> 'INR 591B', labelled not wrong; a consistency/maintenance defect). Subsystem: brief-blocks.tsx is unpartitioned; assigned to research-extraction-synthesis, which owns brief-ingest.ts.",
+   "root_cause": "The brief panel re-implemented formatting instead of routing through the single src/lib/format.ts suite (PRODUCT_DESIGN_DECISIONS sec11).",
+   "fix_shape": "Delete brief-blocks.tsx:55-101 and route call sites through formatCompactMoney/formatPercent/formatUnit with the instrument currency, stating an unknown currency instead of defaulting to bare. Pin with a vitest that a null-currency metric renders an explicit unknown-currency form and an INR metric matches Equity Overview's string.",
+   "defect_class": "shadow-formatter",
+   "raw_ids": [
+    "INT-pdd-readme-45-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-027",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "NORMAL research takes 33-38 s against the <=15 s interactive target (FR-070), and nothing measures or guards the fast-path latency",
+   "files": [
+    "sidecar/services/research/fast.py",
+    "sidecar/tests/test_research_depth.py"
+   ],
+   "repro": "R13 live drives: 'NORMAL (15:07, 33s, 12 steps)' and 'NORMAL (19:37, 38s)' for KSE.",
+   "evidence": "docs/redesign/verification/R13_RUN_REPORT.md:31, R13_RUN_REPORT.md:47; sidecar/services/research/fast.py:377, fast.py:534-640; spec.md#FR-070. Refuter: admitted, medium (seven witness legs gathered with no per-leg timeout; no latency assertion in tests; part of the time is the free-lane prose turn).",
+   "root_cause": "Each R11-R13 witness leg widened the structured gather with no per-leg timeout, then a sequential web round and the prose turn follow; no budget is measured.",
+   "fix_shape": "Stamp per-leg latency_ms in the step log, publish the structured cockpit as soon as the gather returns (before web + prose), put a per-leg timeout on slow witnesses, and add a timing assertion on a recorded fixture. Pin with a test where one witness stub sleeps 20 s and the fast path still publishes within budget with that leg marked timed out.",
+   "defect_class": "research-latency-budget",
+   "raw_ids": [
+    "INT-spec-135-141"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-028",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "Managed SearXNG reports 'ready' while every upstream engine is CAPTCHA-blocked, so Settings says research routes through it and every brief tells the user to 'set up Unlimited local research' for a service that is already running",
+   "files": [
+    "sidecar/services/searxng_manager.py",
+    "sidecar/services/agent_tools/web_search.py",
+    "src/components/SettingsPanel.tsx",
+    "src/modules/research/BriefPanel.tsx"
+   ],
+   "repro": "GET /search/searxng/status -> {state: ready}; same container GET 127.0.0.1:8888/search?q=KPIT+Technologies+share&format=json -> results: 0, unresponsive_engines: [[brave,'too many requests'],[duckduckgo,'CAPTCHA'],[startpage,'Suspended: CAPTCHA']]; briefs publish backend 'keyless-fallback' and BriefPanel renders 'Limited keyless search - set up Unlimited local research'.",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/http-log.jsonl, EVIDENCE.md 'Finding 3', replay-10-normal-kpit.json; sidecar/services/searxng_manager.py:161-179 (_probe_health: any results list, empty included, is healthy), sidecar/services/agent_tools/web_search.py:148-166, src/components/SettingsPanel.tsx:908-913, src/modules/research/BriefPanel.tsx:340-377. Refuter: admitted, medium.",
+   "root_cause": "The health probe ignores unresponsive_engines, and the brief nudge copy is keyed on 'keyless-fallback' rather than on why the fallback happened.",
+   "fix_shape": "Have _probe_health read unresponsive_engines (all engines unresponsive or a run of empty answers -> 'degraded' with engine reasons), surface 'degraded' in Settings, and key the brief nudge on it ('SearXNG is running but its engines are blocked'). Pin with a probe test on a canned all-CAPTCHA JSON asserting state 'degraded'.",
+   "defect_class": "searxng-status-honesty",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-029",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "ULTRA briefs ship a model-authored 'Merged Sources'/'References' list and literal '[n] 1' markers that do not resolve to the source rail, and the citation check never inspects them",
+   "files": [
+    "sidecar/services/research/iter.py",
+    "sidecar/services/research/citecheck.py",
+    "src/lib/brief-ingest.ts"
+   ],
+   "repro": "r3-ultra-kaynes published markdown: 'Earnings growth: -0.4% (... [n] 1)', a '**Merged Sources**' list of 7 items and 'References:' '[n] 1. ...' ... '[n] 7. ... ([n] 9)' while brief.sources = 3 vysted:// rows; step 'citation check: stripped 0 out-of-range marker(s)'; BriefPanel renders both lists above 'Sources (3)'. gpt-4o-mini HAL run also ends with a model-authored '### Sources' list.",
+   "evidence": "docs/redesign/verification/r15/surface/research-briefs/r3-ultra-kaynes.jsonl, replay-r3-ultra-kaynes.json, 13-ultra-hal-4omini.jsonl; src/lib/brief-ingest.ts:392 (CITE_MARKER_RE knows only '[digits]'); sidecar/services/research/iter.py:1059-1080 (merge prompt asks the model to 'RENUMBER'). Refuter: admitted_with_correction, medium (items paraphrase filings the run gathered in structured.disclosures but never put on the numbered rail - an unresolvable model bibliography, not wholly fabricated sources).",
+   "root_cause": "Synthesis output is not sanitised for model-written bibliographies, the merge prompt invites renumbering text, and citecheck validates only numeric [n] ranges.",
+   "fix_shape": "Strip model-authored Sources/References sections from synthesis (the rail is the only bibliography), reject or rewrite '[n]'-literal markers, and put gathered-but-uncited filings on the rail if they are referenced; when ULTRA ends below min_web_domains say so in brief.note. Pin with a citecheck test over the Kaynes markdown asserting no References section and no '[n] k' text survive.",
+   "defect_class": "citation-integrity",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-030",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "disclosures-witnesses",
+   "title": "The agent cannot answer 'what did management say on the last call': there is no earnings-call transcript capability, and transcript PDFs are reachable only if a research sub-question happens to select that announcement",
+   "files": [
+    "sidecar/services/agent_tools/catalog.py",
+    "sidecar/services/agent_tools/disclosure_tools.py",
+    "sidecar/services/research/disclosures.py",
+    "sidecar/services/search/extract.py"
+   ],
+   "repro": "Ask the agent about management commentary on the last concall -> no tool; `grep -in transcript sidecar/services/agent_tools/catalog.py` returns nothing.",
+   "evidence": "sidecar/services/agent_tools/catalog.py (no transcript capability among 51 entries), sidecar/services/research/disclosures.py:4; https://trendlyne.com/ai-conference-calls/ ; https://www.koyfin.com/pricing-llm-info/ ; https://techcrunch.com/2025/08/18/perplexity-now-supports-live-earnings-call-transcripts-for-indian-stocks/ . Refuter: admitted_with_correction high -> medium (India research routes concall-shaped sub-questions to announcement PDFs; the gap is no guaranteed selection - transcripts rank lowest with a 5-row cap - no chat-level tool, no US coverage).",
+   "root_cause": "Transcripts are treated as ordinary announcement attachments rather than a first-class capability.",
+   "fix_shape": "Add an earnings_transcript(symbol, quarter) read capability in catalog.py over the announcement-attachment lane + the existing PDF extractor (India), projected to TOOL_SCHEMAS/MCP by the catalog. Pin with a catalog parity test plus a handler test on a recorded concall announcement returning extracted text with filing date and URL.",
+   "defect_class": "missing-capability",
+   "raw_ids": [
+    "WLD-T-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "data-smallcaps",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-031",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "error-layer",
+   "title": "A research query containing a newline never starts the brief panel's in-flight run: research:begin is parsed with a single-line regex, so every later step is ignored",
+   "files": [
+    "src/modules/chat/streaming.ts",
+    "sidecar/services/agent_tools/research.py"
+   ],
+   "repro": "node -e 're=/^research:begin\\s+(\\S+)\\s+depth=(\\S+)(?:\\s+query=(.*))?$/; console.log(!!re.exec(\"research:begin r1 depth=deep query=Compare TCS and Infosys:\\n1) margins\\n2) attrition\"))' -> false.",
+   "evidence": "src/modules/chat/streaming.ts:57 (RESEARCH_BEGIN_RE, no s flag), streaming.ts:83-91, sidecar/services/agent_tools/research.py:56-72. Refuter: admitted, low.",
+   "root_cause": "run_id/depth/query are serialised into a prose step detail and re-parsed by regex with the model-supplied query as the unescaped tail.",
+   "fix_shape": "Carry run_id/depth/query as typed fields on the research_step event (normalizeEvent already maps typed fields); minimum: `(.*)` -> `([\\s\\S]*)`. Pin with a vitest feeding a multi-line query begin step and asserting beginRun fires.",
+   "defect_class": "prose-telemetry-parse",
+   "raw_ids": [
+    "COD-error-layer-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-032",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Settings' SearXNG and hardware sections fetch once on mount, report every failure (including a sidecar 500 or a failed 'Set up' POST) as 'sidecar not connected', and keep showing 'Ready' for an instance that died while the panel stays open",
+   "files": [
+    "src/components/SettingsPanel.tsx",
+    "src/lib/hardware-fit.ts",
+    "src/lib/sidecar-client.ts"
+   ],
+   "repro": "Set up SearXNG until Ready, stop the container outside the app -> chip keeps 'Ready - research searches route through it automatically' until Settings is reopened; any non-2xx from /search/searxng/status or /system/hardware -> 'unavailable (sidecar not connected)'; failed Set up POST shows no error.",
+   "evidence": "src/components/SettingsPanel.tsx:697-734, SettingsPanel.tsx:785-831, SettingsPanel.tsx:849-853, SettingsPanel.tsx:1210-1223, SettingsPanel.tsx:1244-1248, src/lib/hardware-fit.ts:44-55. Refuter: admitted_with_correction medium -> low (routing doesn't depend on the chip; stale only while mounted; misleading copy only on a 5xx).",
+   "root_cause": "The component carries a private raw-fetch client with a one-shot sample and a collapse-everything-to-null error policy, bypassing sidecarGet.",
+   "fix_shape": "Add sidecarPost to sidecar-client, route both calls through it, render the SidecarError reason, and re-fetch on visibilitychange/focus or a slow poll while mounted. Pin with a vitest where status returns 500 and the panel shows the server reason, not 'not connected'.",
+   "defect_class": "searxng-status-honesty",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-033",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "A crashed ULTRA explorer is dropped with no step, log or note naming it; the exception is filtered out by isinstance",
+   "files": [
+    "sidecar/services/research/iter.py"
+   ],
+   "repro": "One of three ULTRA explorers raises -> asyncio.gather(return_exceptions=True) returns it -> comprehension filters it (iter.py:1001-1002) with no log/step; trace shows '3 parallel angle(s)' then 'synthesized 2 angle report(s)'.",
+   "evidence": "sidecar/services/research/iter.py:976-980, iter.py:1001-1005, iter.py:1098-1102, iter.py:1134-1136, iter.py:1150-1156. Refuter: admitted_with_correction medium -> low (survivor count is visible in steps; brief doesn't claim 3; remaining gap is the swallowed exception).",
+   "root_cause": "The gather comprehension discards exceptions silently.",
+   "fix_shape": "Emit one error ResearchStep per dropped angle carrying the exception type/message and log it. Pin with a test where one explorer stub raises and a matching error step appears.",
+   "defect_class": "swallowed-failure",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-034",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "_reflect_says_complete reads 'Price action is not covered yet' as complete: it substring-scans the whole reflect reply for 'covered', and its 'no gaps' marker can never fire",
+   "files": [
+    "sidecar/services/research/deep.py"
+   ],
+   "repro": "_reflect_says_complete('Price action is not covered yet') -> True.",
+   "evidence": "sidecar/services/research/deep.py:308-323, deep.py:1202-1204, sidecar/services/research/iter.py:576-578. Refuter: admitted, low (bounded by the AND with coverage_floor_met).",
+   "root_cause": "Whole-text marker scan where the prompt asks for a structured COMPLETE/GAPS answer.",
+   "fix_shape": "Read the leading COMPLETE/GAPS token (same first-token convention as the cross-check verdict fix). Pin with the repro string and 'No gaps remain' cases.",
+   "defect_class": "llm-output-marker-scan",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-035",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-depth-iter-deep",
+   "title": "An over-length distilled report is truncated from the head, so '## Facts established' (the cited evidence) is lost first while '## Planned next' always survives into synthesis",
+   "files": [
+    "sidecar/services/research/iter.py"
+   ],
+   "repro": "A distilled report longer than char_cap (6000 DEEP / 9000 ULTRA) -> _Report.render() keeps text[-cap:] -> Facts established dropped, Planned next kept.",
+   "evidence": "sidecar/services/research/iter.py:108-115, iter.py:173-180, iter.py:250-256. Refuter: admitted, low (prompt asks for ~450 words, so it fires only on 2-3x overshoot).",
+   "root_cause": "Tail-keeping truncation predates the four-section report contract.",
+   "fix_shape": "When the four headings are present, trim Dead ends and Planned next first and keep Facts established whole. Pin with an over-cap report asserting Facts established survives.",
+   "defect_class": "report-truncation",
+   "raw_ids": [
+    "COD-research-depth-iter-deep-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-036",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "_PROMPT_KEYS hand-re-lists every derived metric with no drift guard: a new semantics leg forgotten there renders a metric card but never reaches the synthesis prompt",
+   "files": [
+    "sidecar/services/research/semantics.py",
+    "sidecar/tests/test_research_semantics.py"
+   ],
+   "repro": "design: adding a cross-check leg to derive_semantics is a three-site edit (_x_leg, the update/extend pair at semantics.py:1086-1146, _PROMPT_KEYS at :1168-1186); forgetting the third fails no test. All 17 keys match today.",
+   "evidence": "sidecar/services/research/semantics.py:1086-1146, semantics.py:1168-1186, semantics.py:1251, sidecar/tests/test_research_semantics.py:776-778. Refuter: admitted_with_correction medium -> low (latent; nothing broken today).",
+   "root_cause": "A hand-maintained list with no test, while sibling literals in the same file are pinned.",
+   "fix_shape": "Add set(derive_semantics(rich_fixture)['data']) - {'conflicts'} <= set(_PROMPT_KEYS) to test_research_semantics.py.",
+   "defect_class": "unguarded-hand-list",
+   "raw_ids": [
+    "COD-research-extraction-synthesis-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-037",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "priority_note reports citation-preference indices by enumerating whatever list it is given; its 'already ranked' precondition is a docstring, so a new unranked caller would steer the model to the wrong [n]",
+   "files": [
+    "sidecar/services/research/finance.py"
+   ],
+   "repro": "design: priority_note enumerates its input and emits i+1 (finance.py:173-174); all three current callers pass ranked lists (deep.py:930, iter.py:219, iter.py:1019).",
+   "evidence": "sidecar/services/research/finance.py:166-174, sidecar/services/research/deep.py:368, deep.py:930, sidecar/services/research/iter.py:219, iter.py:845, iter.py:1019. Refuter: admitted_with_correction medium -> low (3 call sites, all compliant; latent trap).",
+   "root_cause": "Precondition held by a comment rather than by the function.",
+   "fix_shape": "Have priority_note call rank_sources itself (stable sort, idempotent on ranked input). Pin with a test passing an unranked list and asserting the primary index points at the primary-tier source.",
+   "defect_class": "unguarded-hand-list",
+   "raw_ids": [
+    "COD-research-extraction-synthesis-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-038",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "One failed search opens DuckDuckGo's circuit breaker for 45 s: record_failure runs on every attempt and attempts-per-engine equals the fail threshold, benching the primary engine after a single bad search",
+   "files": [
+    "sidecar/services/search/keyless.py",
+    "sidecar/services/search/breaker.py",
+    "sidecar/services/search/pacing.py"
+   ],
+   "repro": "design: ATTEMPTS_PER_ENGINE == DEFAULT_FAIL_THRESHOLD == 2 and _try_engine calls record_failure() per attempt (keyless.py:227) -> one fully failed search opens the breaker for DEFAULT_COOLDOWN_SECS=45.",
+   "evidence": "sidecar/services/search/pacing.py:42, sidecar/services/search/breaker.py:9-19, breaker.py:39, breaker.py:42, sidecar/services/search/keyless.py:214-217, keyless.py:227, sidecar/services/search/ddg.py:60, ddg.py:212. Refuter: admitted_with_correction medium -> low (benching needs 4+ consecutive failed POSTs for DDG; the 'blocking engine stays closed' half is R15-RESEARCH-022 (COD-research-retrieval-relevance-3)).",
+   "root_cause": "The two tuning constants live in different modules and their coincidence collapses 'consecutive bad searches' into 'one bad search'.",
+   "fix_shape": "Record at most one failure per engine per search (after the retry budget), leaving fail_threshold=2 to mean two consecutive bad searches. Pin with a test where one search fails both attempts and the breaker stays closed.",
+   "defect_class": "keyless-breaker-accounting",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-039",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-retrieval-relevance",
+   "title": "DuckDuckGo's 403-then-impersonate path discards a 429, so a hard-throttled engine is reported 'unreachable' instead of 'rate-limited'",
+   "files": [
+    "sidecar/services/search/ddg.py",
+    "sidecar/services/search/keyless.py"
+   ],
+   "repro": "design: on 403 (ddg.py:225) _impersonated_fallback returns None for any non-2xx incl. 429 (ddg.py:196-198) -> SearchError(unreachable) without reason (ddg.py:233) -> keyless records 'unreachable', any_rate_limited stays False (keyless.py:180-198).",
+   "evidence": "sidecar/services/search/ddg.py:196-198, ddg.py:225-233, ddg.py:241-245, sidecar/services/search/keyless.py:180-198, sidecar/services/search/base.py:78-84. Refuter: admitted_with_correction medium -> low (surfaces only when Brave and Mojeek also fail without rate-limiting; 'most common shape' unverified).",
+   "root_cause": "The impersonated lane returns text-or-None, losing the status the plain lane checks against _RATE_LIMIT_STATUSES.",
+   "fix_shape": "Return the FetchResult from _impersonated_fallback and route its status through the same rate-limit check. Pin with a stub 403-then-429 asserting SearchError.reason == rate_limited.",
+   "defect_class": "keyless-breaker-accounting",
+   "raw_ids": [
+    "COD-research-retrieval-relevance-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-040",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "title": "Hosted Tier B research shows its cost estimate only after the run has been billed; nothing shows a per-run estimate before dispatch (FR-073)",
+   "files": [
+    "sidecar/services/agent_tools/deep_research.py",
+    "sidecar/services/research/sonar.py",
+    "src/store/search-settings.ts",
+    "src/modules/chat/DepthControl.tsx"
+   ],
+   "repro": "Select Tier B, send an ULTRA research -> sonar-deep-research runs immediately; cost_estimate_usd attached to the tool result afterwards; grep estimate in src/modules/chat -> none.",
+   "evidence": "sidecar/services/agent_tools/deep_research.py:151, deep_research.py:184, sidecar/services/research/sonar.py:110, src/store/search-settings.ts:92-109; spec FR-073. Refuter: admitted, low (Settings shows per-token unit rates only).",
+   "root_cause": "estimate_cost_usd exists but is only called post-run.",
+   "fix_shape": "Show a one-line '~$0.xx est.' beside the depth stop when Tier B is active, computed from the pricing table the store already carries. Pin with a vitest that the composer renders an estimate for Tier B + ULTRA.",
+   "defect_class": "research-cost-metering",
+   "raw_ids": [
+    "INT-spec-135-144"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-RESEARCH-041",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "host-actions-proposed-changes",
+   "title": "The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance",
+   "files": [
+    "src/lib/host-actions.ts",
+    "sidecar/services/research/deep.py",
+    "sidecar/services/research/iter.py",
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "DEEP BDL / ULTRA HAL on gpt-4o-mini with '0 web source(s)' step -> replay through applyHostAction/useBriefStore: webAvailable true, noWebBanner false; run 36 published web_available=true with 0 sources.",
+   "evidence": "src/lib/host-actions.ts:221-228, sidecar/services/research/deep.py:901, sidecar/services/research/iter.py:1152, sidecar/services/agent_runtime.py:883-887, src/modules/research/BriefPanel.tsx:154-167, BriefPanel.tsx:650, BriefPanel.tsx:701-720; docs/redesign/verification/r15/surface/research-briefs/12-deep-bdl-4omini.jsonl, 13-ultra-hal-4omini.jsonl, 36-staleack-run2-final.jsonl. Refuter: admitted_with_correction medium -> low (header ProvenanceBadge keys on http(s) URLs so a pure-structured brief reads 'structured data'; residual mislabel is exchange PDF rows flipping it to 'web + structured').",
+   "root_cause": "web_available is derived from 'any source exists' on both sides of the wire rather than from web-search-derived sources.",
+   "fix_shape": "Derive webAvailable from web-search-origin sources only (exclude vysted:// and exchange-filing provenance) in the engines and briefFromInput. Pin with a vitest that a brief with only vysted:// + nsearchives rows shows the structured-only banner.",
+   "defect_class": "provenance-label-honesty",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  }
+ ],
+ "rejections": []
+}

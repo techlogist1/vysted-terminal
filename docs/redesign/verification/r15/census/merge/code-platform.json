@@ -1,0 +1,1568 @@
+{
+  "entries": [
+    {
+      "id": "R15-CODE-PLATFORM-001",
+      "title": "Kill switch has no trigger in the shipped UI (no listener, fireKillSwitch never called) while manual Order Entry, live-mode toggle and the order routes stay reachable, and the accepted TOS promises a Cmd/Ctrl+Shift+K halt",
+      "severity": "high",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/app/page.tsx",
+        "src/store/safety.ts",
+        "src/modules/safety/index.ts",
+        "src/modules/broker-connect/index.ts",
+        "sidecar/routers/brokers.py",
+        "src/modules/safety/DisclaimerFlow.tsx",
+        "docs/SAFETY_ARCHITECTURE.md"
+      ],
+      "repro": "[COD-safety-audit-1] grep -rn 'kill-switch:requested\\|fireKillSwitch' src (excluding tests + src/store/safety.ts) -> zero listeners, zero callers. Meanwhile the command palette still opens 'Order Entry' and POST /brokers/{id}/orders, /orders/{id}/confirm and /mode are mounted.",
+      "evidence": "[COD-safety-audit-1] src/store/safety.ts:13-17, src/modules/safety/index.ts:10-12, src/modules/index.ts:52-54 (kill-switch UI removed, 'read-only app, nothing to halt'); src/modules/broker-connect/index.ts:26-47 (Order Entry panel + command registered), sidecar/routers/brokers.py:255,284,327 (propose/confirm/mode routes), sidecar/services/brokers/alpaca.py:158-190 (_place_confirmed submits a real order); src/modules/safety/DisclaimerFlow.tsx:45 (TOS the user must accept promises the kill switch); docs/SAFETY_ARCHITECTURE.md:118,243 (still documents KillSwitchToolbar, which no longer exists) -- refuter admitted (high->high): Holds: no frontend listen('kill-switch:requested') exists and fireKillSwitch has no caller, while the Order Entry panel/command, POST /brokers/{id}/orders, /confirm and /mode stay mounted and the TOS still promises a Cmd/Ctrl+Shift+K halt. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading. The trading removal resolves this via the finding's option (b).",
+      "root_cause": "A craft pass removed the kill switch's only UI trigger on a 'read-only app' premise while the order path it guards (propose -> confirm -> _place_confirmed, live mode) stayed mounted.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: the trading removal (option b: unregister shortcut, delete Order Entry + live-mode toggle + /orders,/confirm,/mode routes, drop the TOS bullet) makes the two surfaces consistent; option (a) re-wire listen('kill-switch:requested') -> fireKillSwitch + fired banner only if trading stays. Pin with a test asserting no order route is mounted (or that the listener exists).",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-1"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-002",
+      "title": "Node-editor palette specs drift from the sidecar handlers: 7 of 10 built-in nodes wire ports/config keys the handler never reads, so composed graphs return None/0/'' as status ok or fail on the UI's own option values",
+      "severity": "high",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/modules/node-editor/node-registry.ts",
+        "sidecar/services/workflow_nodes/builtin.py",
+        "sidecar/services/workflow_engine.py",
+        "sidecar/routers/workflow.py"
+      ],
+      "repro": "[COD-workflow-engine-1] Proof run (scratchpad wf/proof.py) of a spec shaped exactly as the palette builds it: json_path wired on targetPort 'input' -> {extracted: None}; logic.branch wired on 'condition' -> {true_path: None, false_path: None}; flow.sleep config {duration_ms: 1000} -> slept 0.0; logic.compare op 'ne' (the palette's option) -> 'unknown op ne'; notify_desktop wired on 'message' -> message ''. Every node except compare reports status ok.",
+      "evidence": "[COD-workflow-engine-1] src/modules/node-editor/node-registry.ts:102-165 (ports: compute.indicator out 'values', agent_invoke out 'response', branch in 'condition' out 'true'/'false', compare in 'left'/'right', notify in 'message', json_path in 'input' out 'value', sleep in 'trigger' out 'done'), node-registry.ts:438-509 (config keys 'indicator'+'period', 'prompt', op option 'ne', 'duration_ms'); vs sidecar/services/workflow_nodes/builtin.py:109 ('indicator_id'), :122 (out 'result'), :167 ('prompt_template'), :207 (out 'content'), :235,249-250 ('value' -> 'true_path'/'false_path'), :258-265,281-282 ('a'/'b', 'neq'), :335 ('message_template' default '{value}'), :391-392 ('value' -> 'extracted'), :406,414 ('seconds' -> 'value'/'slept'); node-registry.ts:162 says 'milliseconds', handler clamps seconds -- refuter admitted_with_correction (high->high): The palette/handler drift is real and there is no translation layer: graph-state.flowToSpec copies handle ids verbatim into sourcePort/targetPort and config keys verbatim, and the engine wires inputs[target_port] = upstream[source_port]. Every mismatch reproduced (json_path 'input' -> extracted None, sleep duration_ms -> slept 0.0, compare 'ne' -> unknown op, indicator -> missing indicator_id, notify 'message' -> message ''). Correction: it is 7 of 10 built-ins, not 9 - data.fetch_quote, data.fetch_history and action.log ports/config match their handlers.",
+      "root_cause": "The node contract (ports + config schema) is hand-copied into TS with no parity test; graph-state.flowToSpec copies handle ids and config keys verbatim, so every name mismatch silently wires nothing.",
+      "fix_shape": "Make handler registration carry its port/config spec (register_node_type(type_id, handler, spec)), expose GET /workflow/node-types and derive the palette from it; interim: correct the 7 TS specs to the handler keys (indicator_id, prompt_template, value/true_path/false_path, a/b + 'neq', message_template, value/extracted, seconds) and add a pytest+vitest parity test that diffs palette ports/config against the registered specs.",
+      "defect_class": "node-contract-drift",
+      "raw_ids": [
+        "COD-workflow-engine-1"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-003",
+      "title": "Workflow agent node launders every failure (bad agent id, 401, rate limit, network) into the literal '(no provider key configured)' with status ok, which downstream nodes consume as the agent's answer",
+      "severity": "high",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "sidecar/services/workflow_nodes/builtin.py",
+        "sidecar/services/agent_runtime.py",
+        "src/modules/node-editor/node-registry.ts",
+        "sidecar/tests/test_workflow_builtin_nodes.py"
+      ],
+      "repro": "[COD-workflow-engine-2] Any ai.agent_invoke failure (bad agent_id, rate limit, 401, network) -> handler catches it (builtin.py:197), content is replaced with the literal '(no provider key configured)' (builtin.py:205-206) and the node returns normally -> engine records status 'ok' and downstream nodes consume the sentinel string as the agent's answer.",
+      "evidence": "[COD-workflow-engine-2] sidecar/services/workflow_nodes/builtin.py:20-23 (CI motive stated), :156-162 (docstring claims env VYSTED_<PROV>_API_KEY fallback), :170 (api_key from node config), :183-206; sidecar/services/agent_runtime.py:1229-1239 (no env-key read; on_round_usage defaults None); src/modules/node-editor/node-registry.ts:448-463 (UI offers no provider/key field) -- refuter admitted_with_correction (high->high): Core claim holds: any exception or LLMErrorEvent with no streamed text becomes content '(no provider key configured)' and the handler returns normally, so the engine records status ok and downstream nodes consume the sentinel; the docstring's VYSTED_<PROV>_API_KEY env fallback does not exist anywhere in the sidecar. Corrections: the real error string is kept in outputs['error'] (not fully erased), and the BudgetGuard point is overstated - the foreground POST /agents/{id}/invoke route also omits on_round_usage; only durable Delegate runs are metered, so workflows are not a unique leak.",
+      "root_cause": "A CI-motivated special case in the handler catches every exception/LLMErrorEvent and substitutes a sentinel string; the docstring's VYSTED_<PROV>_API_KEY env fallback does not exist and the node editor supplies no provider/key, so in-app the node realistically always hits the sentinel. A config api_key (documented override, reachable via MCP save_workflow) is persisted plaintext in workflows.db spec_json.",
+      "fix_shape": "Raise on LLMErrorEvent/exception (the engine already turns raises into node-error); drop config api_key and thread the foreground BYOK creds from the run request like agents.invoke does; pass a BudgetGuard on_round_usage callback; move the CI stub into the test fixture. Pin: a test that an adapter error yields node status 'error', and that a spec carrying api_key is rejected on save.",
+      "defect_class": "error-laundered-as-success",
+      "raw_ids": [
+        "COD-workflow-engine-2"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-004",
+      "title": "logic.branch does not branch: both downstream subgraphs always run (side effects such as notify or LLM spend fire on the un-taken path), and the strings 'false'/'no'/'0'/'off' route TRUE",
+      "severity": "high",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/workflow_nodes/builtin.py",
+        "sidecar/services/workflow_engine.py",
+        "sidecar/tests/test_workflow_engine.py"
+      ],
+      "repro": "[COD-workflow-engine-3] builtin.logic_branch({'value': 'false'}, {}) -> {'true_path': 'false', 'false_path': None} (same for 'no', '0', 'off' — proof run). And in the engine a node fed by the un-taken port still runs with input None (proof: notify_desktop wired to branch's false port ran, status ok, notified: True).",
+      "evidence": "[COD-workflow-engine-3] sidecar/services/workflow_nodes/builtin.py:44 (_TRUTHY_STRINGS), :215-219 (`in _TRUTHY_STRINGS or bool(value.strip())` — any non-empty string is truthy, the set is dead), :248-250; sidecar/services/workflow_engine.py:210-282 (no skip state: a dep is satisfied by output-or-failure; None payloads are ordinary outputs) -- refuter admitted (high->high): Both halves reproduced. _is_truthy returns True for any non-empty string, so the _TRUTHY_STRINGS set is dead and 'false'/'no'/'0'/'off' route to true_path. The engine has only ok/error states, and None outputs are ordinary outputs, so a node wired to the un-taken port runs anyway (side effects such as notify or an LLM call still happen).",
+      "root_cause": "_is_truthy returns True for any non-empty string (the _TRUTHY_STRINGS set is dead), and the engine has only ok/error states with None outputs treated as ordinary outputs, so no node can be gated.",
+      "fix_shape": "Add a 'skipped' node status: logic.branch emits a SKIP sentinel on the un-taken port, a node whose every input edge carries SKIP is skipped and propagates skip; fix _is_truthy to map a falsy-string set ('false','no','0','off','') to False. Pin with an engine test that a notify node on the false port does not run.",
+      "defect_class": "workflow-control-flow",
+      "raw_ids": [
+        "COD-workflow-engine-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-005",
+      "title": "Concurrent quant pricings corrupt each other through QuantLib's process-global evaluation date (a valid call priced at 0.0 in 1413 of 3000 overlapping runs), and the async quant agent tools price synchronously on the event loop",
+      "severity": "high",
+      "area": "code",
+      "subsystem": "macro-quant",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/quant/_common.py",
+        "sidecar/services/quant/bonds.py",
+        "sidecar/services/quant/yield_curve.py",
+        "sidecar/routers/quant.py",
+        "sidecar/services/agent_tools/quant_tools.py"
+      ],
+      "repro": "[COD-macro-quant-2] Two threads call services.quant._common.set_evaluation_date with different dates then read ql.Settings.instance().evaluationDate: thread A set 2026-05-16, thread B set 2030-01-02, both observe 'January 2nd, 2030'. The four /quant routes are plain sync `def`, so FastAPI runs them concurrently in the anyio worker threadpool -> two simultaneous pricing calls with different valuation_date can each be served the other's date.",
+      "evidence": "[COD-macro-quant-2] sidecar/services/quant/_common.py:34-41 (set_evaluation_date writes the process global), _common.py:57 (build_bsm_process calls it on every price), sidecar/services/quant/bonds.py:52 and sidecar/services/quant/yield_curve.py:70 (write it directly), sidecar/routers/quant.py:37,46,55,64 (all four routes are sync `def`, unlike routers/macro.py:47,60,72 which are async def) -- refuter admitted_with_correction (critical->high): Mechanism is real and worse than a date mix-up: the four /quant routes are sync def (threadpool) and every engine writes the process-global ql.Settings evaluationDate before a lazy NPV(); a two-thread probe returned price 0.0 (option judged already expired) for 1413 of 3000 pricings of a valid ITM-ish call when a second thread priced with a later valuation date. Severity corrected critical->high only because the trigger needs two overlapping quant computations with DIFFERENT valuation dates in a single-user desktop (panel computes are click-driven; the async agent tools call options.price synchronously on the event loop, quant_tools.py:54, which also blocks the loop for large binomial_steps).",
+      "root_cause": "ql.Settings.instance().evaluationDate is a process singleton; the four /quant routes are sync def (anyio threadpool) and every engine writes the global before a lazy NPV(), so two overlapping pricings with different valuation dates read each other's date.",
+      "fix_shape": "Module-level threading.Lock in _common.py wrapping set-date-through-NPV as one critical section (used by options, greeks, bonds, yield_curve), plus await asyncio.to_thread(...) in the four quant_tools handlers. Pin with the two-thread probe as a pytest. Must land before/with R15-CODE-PLATFORM entry for quant workflow nodes (moving those to to_thread without the lock makes this race reachable from workflows too).",
+      "defect_class": "quantlib-global-state",
+      "raw_ids": [
+        "COD-macro-quant-2"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-006",
+      "title": "Registered kill-switch chord is Ctrl+Cmd+Shift+K (all three modifiers AND-ed), not the documented CmdOrCtrl+Shift+K, so the emergency chord never matches while an OS-wide chord is grabbed for a dead event",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/kill_switch.rs"
+      ],
+      "repro": "[COD-safety-audit-2] Read src-tauri/src/kill_switch.rs:35-38: Modifiers::SHIFT | Modifiers::SUPER | Modifiers::CONTROL is a bitflag AND-requirement. The crate's own CmdOrCtrl parse sets SUPER on macOS OR CONTROL elsewhere, never both (~/.cargo/registry/src/*/global-hotkey-0.7.0/src/hotkey.rs:212-217). Pressing Cmd+Shift+K (mac) or Ctrl+Shift+K (win/linux) therefore never matches the handler's `shortcut != &kill_switch_shortcut()` guard.",
+      "evidence": "[COD-safety-audit-2] src-tauri/src/kill_switch.rs:34-39 (the OR'd modifiers), :20,:30,:75 (docs + log line claim CmdOrCtrl+Shift+K); src/modules/safety/DisclaimerFlow.tsx:45 (TOS tells the user Cmd/Ctrl+Shift+K); docs/SAFETY_ARCHITECTURE.md:119,240; no Rust test references kill_switch_shortcut (grep src-tauri/src) -- refuter admitted_with_correction (high->medium): The bug is real: Shortcut::new(SHIFT|SUPER|CONTROL) registers Ctrl+Cmd+Shift+K and HotKey::matches is an exact equality on modifiers, whereas the crate's CmdOrCtrl parse sets SUPER on macOS or CONTROL elsewhere, never both. Downgraded high->medium: today it has no functional consequence because nothing listens for the emitted event (-1), so the only live effect is an OS-wide chord grabbed for a dead event. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+      "root_cause": "Shortcut::new(SHIFT|SUPER|CONTROL) requires all three modifiers; HotKey::matches is exact equality, whereas CmdOrCtrl means SUPER on macOS or CONTROL elsewhere.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: cfg-gate SUPER (macOS) vs CONTROL (else) or parse \"CmdOrCtrl+Shift+K\", plus a Rust unit test asserting equality with the parsed string.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-2"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-007",
+      "title": "KillSwitchBus.fire sets the fired flag only after awaiting every subscriber under the lock with no timeout, so one hung subscriber leaves is_fired False and every later fire queued",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/kill_switch.py",
+        "sidecar/tests/test_kill_switch.py"
+      ],
+      "repro": "[COD-safety-audit-3] PYTHONPATH=sidecar sidecar/.venv/bin/python: bus=KillSwitchBus(); bus.subscribe('slow', lambda ev: asyncio.sleep(3600)); await asyncio.wait_for(bus.fire('emergency','user-toolbar'), 0.3) -> TimeoutError and bus.is_fired == False (ran: 'P1 hung subscriber -> is_fired after 0.3s: False').",
+      "evidence": "[COD-safety-audit-3] sidecar/services/kill_switch.py:109 (lock held), :131-133 (asyncio.gather, no wait_for), :135 (_fired = True AFTER the gather), :126 ('never block the kill switch' only covers exceptions), :37 (ACK_BUDGET_NS defined, zero readers — grep); consumers read the flag at sidecar/services/broker_base.py:251,345; sidecar/services/broker_base.py:436-438 invites subclasses to add network cancel-all in the callback -- refuter admitted_with_correction (high->medium): Reproduced: a subscriber that never returns leaves is_fired False after the fire is cancelled, because _fired is set only after the un-timed gather under the lock; ACK_BUDGET_NS has no reader. Downgraded high->medium: latent - the only subscriber is the base _on_kill_switch (no subclass overrides it), which is a sync flag flip + one SQLite insert. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+      "root_cause": "The 'never block the kill switch' / 2s ack budget invariant is held by comments; ACK_BUDGET_NS has no reader and _fired is set after an un-timed asyncio.gather.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: set _fired/_last_event before dispatch and wrap each callback in asyncio.wait_for(ACK_BUDGET_NS/1e9); pin with the hung-subscriber snippet as a test.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-3"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-008",
+      "title": "Kill-switch fire and reset write no audit row of their own ('kill-switch-reset' has no writer anywhere); with no broker subscribed a fire and every un-halt leave no trace in the append-only log",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/kill_switch.py",
+        "sidecar/routers/safety.py",
+        "sidecar/services/audit_log.py"
+      ],
+      "repro": "[COD-safety-audit-5] Temp data dir: await KillSwitchBus().fire('emergency','user-toolbar'); bus.reset(); audit_log.count() -> 0 (ran: 'P3 fire+reset with 0 subscribers -> audit rows: 0'). grep -rn 'kill-switch-reset' sidecar (non-test) -> only the Literal in models/safety.py:71.",
+      "evidence": "[COD-safety-audit-5] sidecar/services/audit_log.py:3-6 (promises 'every kill-switch fire … lands here'); sidecar/routers/safety.py:119-139 (fire + reset routes write nothing); sidecar/services/kill_switch.py:102-152 (bus writes nothing); sidecar/services/broker_base.py:442-457 (the ONLY writer: each subscribed adapter); sidecar/services/brokers/registry.py:98-104 (FR-051: no adapter is registered at boot, so zero subscribers is the default state) -- refuter admitted (medium->medium): Reproduced: fire + reset with no subscribed adapter writes zero audit rows; the router and bus write nothing and 'kill-switch-reset' has no writer outside the Literal, contradicting audit_log.py's 'every kill-switch fire lands here'. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading. Mechanism scope: the audit log records ONLY trading actions - its sole writers are broker_base.py (orders, kill-switch acks), disclaimer_session.py:39 (first-live-order ack) and brokers/kite.py:160 (mode change); nothing non-trading writes it, so after the removal it has no writers.",
+      "root_cause": "The bus owns the event but delegates its forensic record to whichever adapters are subscribed; zero subscribers is the default state (FR-051).",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: bus.fire / bus.reset each append one broker='_meta' audit row; pin with a zero-subscriber fire+reset test asserting two rows.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-5"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-009",
+      "title": "The emergency stop can be rejected on a forensic label: an unknown firedBy (or any extra key) raises ValidationError / 422 before dispatch and nothing halts",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/kill_switch.py",
+        "sidecar/routers/safety.py",
+        "sidecar/models/safety.py",
+        "types/safety.ts",
+        "src-tauri/src/kill_switch.rs"
+      ],
+      "repro": "[COD-safety-audit-7] await KillSwitchBus().fire('emergency', 'workflow') -> pydantic ValidationError, is_fired False, no subscriber called (ran: 'P2 unknown fired_by -> ValidationError | is_fired: False'). Over HTTP: POST /safety/kill-switch {\"firedBy\":\"user-menu\"} or any extra key -> 422, nothing halted (live-confirmed on the isolated sidecar: curl -X POST 127.0.0.1:52152/safety/kill-switch -d '{\"firedBy\":\"user-menu\"}' -> 422; GET /safety/kill-switch/status -> {\"fired\":false,\"lastResult\":null}).",
+      "evidence": "[COD-safety-audit-7] sidecar/services/kill_switch.py:102 (signature takes str), :114-118 (event built before dispatch, `# type: ignore[arg-type]`); sidecar/routers/safety.py:88-93 (extra='forbid' + the Literal re-declared inline instead of importing KillSwitchFiredBy); src-tauri/src/kill_switch.rs:89-92 (kill_switch_emit forwards ANY String as firedBy); the vocabulary is hand-declared 4x: sidecar/models/safety.py:29-34, sidecar/routers/safety.py:91, types/safety.ts:39, src-tauri/src/kill_switch.rs:59 -- refuter admitted (medium->medium): Reproduced at the service layer: fire('emergency','workflow') raises pydantic ValidationError before dispatch and is_fired stays False; the router re-declares the Literal with extra='forbid', so an unknown firedBy is a 422 while kill_switch_emit forwards any string. Latent until a new trigger surface is added. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+      "root_cause": "The firedBy vocabulary is a Literal hand-declared in four places with extra='forbid', validated before the halt is dispatched.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: fire() coerces an unknown fired_by to 'user-command' (raw value kept in reason), drop extra='forbid' on the request, import KillSwitchFiredBy in the router; pin with fire('emergency','workflow') -> is_fired True.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-7"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-010",
+      "title": "write_text_atomic / write_bytes_atomic accept any absolute path from the webview with no confinement, and CSP is null, so any webview script can write arbitrary bytes anywhere the user can write",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/tauri.conf.json"
+      ],
+      "repro": "[COD-rust-core-5] design — invoke('write_bytes_atomic', { path: '<any absolute path>', contents: [...] }) from any script in the webview writes those bytes there; the command validates nothing beyond dest.parent() and then create_dir_all's it.",
+      "evidence": "[COD-rust-core-5] src-tauri/src/lib.rs:287-310 (write_text_atomic) and :318-342 (write_bytes_atomic) — no path validation; src-tauri/src/lib.rs:410-411 (both in the production invoke_handler); src-tauri/tauri.conf.json app.security.csp = null; the guard lives in callers and only in some of them: src/modules/notes/notes-persistence.ts:68 strips [/\\\\] from the scope, src/lib/export-artifact.ts:76-88 interpolates subdir + filename straight in; docs/research/phase-10/hunt-rust-tauri.md 'SECURITY HARDENING — csp: null' reported the CSP half and it is unfixed at 2d99cda -- refuter admitted_with_correction (high->medium): The missing boundary is real: write_text_atomic/write_bytes_atomic take any path and only create_dir_all the parent (lib.rs:287-342), they are in the release invoke_handler (lib.rs:410-411), app commands are unrestricted (no AppManifest in build.rs), and CSP is null. Corrected on two particulars: (1) 'one caller already forgot' is wrong in effect - export-artifact.ts saveTextArtifact interpolates subdir/filename unsanitised, but its only callers (NotesPanel.tsx:225,236,247) pass the constant 'notes' and a base name sanitised at NotesPanel.tsx:220; (2) the plugin threat model cited does not exist today - plugins are static bundled imports (plugin-runtime.ts:26-28, marketplace.ts:8-41), not runtime-loaded third-party JS, and the finder itself found no injection sink. Defense-in-depth gap with no live vector: medium, not high.",
+      "root_cause": "Path confinement was pushed up into callers (notes-persistence sanitises, export-artifact interpolates) instead of held by the command; no CSP backstop. No live injection vector today (no innerHTML sinks, plugins are static imports).",
+      "fix_shape": "One private write_atomic(path, bytes) that canonicalises the parent and rejects anything outside app_data_dir(); both commands become one line over it (collapses the write_atomic duplication entry). Rust test: a path outside app_data_dir is refused. The CSP half touches tauri.conf.json (Tier-1) -> operator; the lib.rs half can proceed independently.",
+      "defect_class": "unconfined-ipc-boundary",
+      "raw_ids": [
+        "COD-rust-core-5"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-011",
+      "title": "Shared sidecar client is GET-only, so 39 files hand-roll fetch + error parsing; a 422 on starting a Delegate run renders 'Could not start: [object Object]' in the agents rail",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "error-layer",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "src/lib/sidecar-client.ts",
+        "src/lib/delegate-runs.ts",
+        "src/modules/agent-builder/AgentBuilderPanel.tsx",
+        "src/lib/workspace.ts"
+      ],
+      "repro": "[COD-error-layer-3] curl -s -X POST http://127.0.0.1:52152/agents/buffett/runs -H 'Content-Type: application/json' -d '{\"prompt\":\"x\",\"budget\":{\"max_tokens\":\"abc\"}}' -> {\"detail\":[{...int_parsing...}]} (array). delegate-runs.ts does `if (body.detail) detail = body.detail` then `Could not start: ${detail}` -> 'Could not start: [object Object]' in the agents rail.",
+      "evidence": "[COD-error-layer-3] src/lib/sidecar-client.ts:154-158 (sidecarGet is the only verb), src/lib/sidecar-client.ts:42-47 (comment naming the bug), src/lib/delegate-runs.ts:107-115, src/lib/host-actions.ts:1553-1562, src/modules/broker-connect/BrokerOrderEntry.tsx:115-120, src/modules/agent-builder/AgentBuilderPanel.tsx:90-100 (a 4th variant that drops arrays), src/lib/workspace.ts:384,409,424,649 (status code only). Census (re-counted): 79 non-test fetch( sites in 39 files (src/: 59 in 29, plugins/: 20 in 10); extractSidecarDetail is used by 2 files (sidecar-client.ts, equity-overview/api.ts); X-Vysted-Region is sent by 2 files (sidecar-client.ts, streaming.ts). -- refuter admitted_with_correction (medium->medium): Real: sidecarGet is the only verb; census reproduces exactly (79 non-test fetch( sites in 39 files; extractSidecarDetail used only in sidecar-client.ts and equity-overview/api.ts), and delegate-runs.ts casts body.detail as string so a 422 array renders 'Could not start: [object Object]'. Correction: two of the three cited 'provably wrong' sites (host-actions.ts:1553-1562 order-proposal POST, BrokerOrderEntry.tsx:115-120) are trading surfaces being deleted by the 23 Sep removal, so the live defect is delegate-runs.ts (+ AgentBuilderPanel dropping arrays) and the structural gap.",
+      "root_cause": "The 'one place a failure becomes a legible message' only covers GET; every POST/PUT/DELETE caller re-derives base URL, headers, non-ok parsing and JSON-parse failure (and omits X-Vysted-Region). delegate-runs.ts casts body.detail (an array for 422) as a string.",
+      "fix_shape": "One sidecarRequest<T>(method, path, {params, body, headers, signal}) that sidecarGet delegates to, using extractSidecarDetail; migrate delegate-runs.ts and AgentBuilderPanel first (host-actions order POST and BrokerOrderEntry go with the trading removal). Pin with a vitest that a 422 array detail renders a readable message.",
+      "defect_class": "error-surface-fragmentation",
+      "raw_ids": [
+        "COD-error-layer-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-012",
+      "title": "Plugin Manager enable/disable toggle lies: disable stops the instance in memory only (back after restart, panels/commands/agents never leave) and enable of a Marketplace-disabled plugin is a no-op",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/components/PluginManagerPanel.tsx",
+        "src/lib/plugin-runtime.ts",
+        "src/store/marketplace.ts"
+      ],
+      "repro": "[COD-plugins-1] Open the Plugin Manager panel -> flip any active plugin's toggle off -> restart the app. The plugin is active again. Before restarting: its panels/slash commands are still in cmd+K and its agents still in the chat roster.",
+      "evidence": "[COD-plugins-1] src/components/PluginManagerPanel.tsx:171-185 (calls runtime.unloadPlugin directly), src/lib/plugin-runtime.ts:278-295 (unloadPlugin touches no persistence), src/store/marketplace.ts:176-191 (the sibling path calls disablePlugin + unbridgePluginModule + syncPluginAgents(false) + disconnectBroker), src/lib/plugin-bootstrap.ts:262-264 (boot re-reads plugins.db, which still says enabled:true) -- refuter admitted_with_correction (high->medium): Real: PluginRow.handleToggle calls runtime.loadPlugin/unloadPlugin directly; unloadPlugin persists nothing, so boot re-reads enabled:true and reloads it, and no unbridge/agent-sync runs. The reverse direction is also dead: toggling ON a Marketplace-disabled plugin is a no-op because loadPlugin honours persisted enabled:false. Severity corrected high->medium: the designated lifecycle surface (Marketplace store enable/disable) is correct; this is a second, lying control on a secondary panel, not a broken core flow.",
+      "root_cause": "The panel calls the runtime primitives (loadPlugin/unloadPlugin) while the Marketplace store calls the policies (disablePlugin + unbridge + syncPluginAgents + persistence).",
+      "fix_shape": "Route PluginRow.handleToggle through useMarketplaceStore.enable/disable; structural: move persist+bridge+agent-sync into PluginRuntime.enable/disable so every caller is thin. Pin with a test that toggling off persists enabled:false and unbridges the module.",
+      "defect_class": "plugin-lifecycle-split",
+      "raw_ids": [
+        "COD-plugins-1"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-013",
+      "title": "'Is this plugin on?' lives in two independent stores (plugins.db enabled and workspace enabledModules['plugin:<id>']) that only one of three code paths keeps in sync; restoring an older named workspace hides the panels of a plugin re-enabled since",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "sidecar/services/plugins_store.py",
+        "src/lib/workspace.ts",
+        "src/lib/plugin-runtime.ts",
+        "src/lib/plugin-bootstrap.ts",
+        "src/store/marketplace.ts"
+      ],
+      "repro": "[COD-plugins-12] design (drift hazard, reachable via COD-plugins-1): plugins.db `enabled` and the workspace blob's enabledModules['plugin:<id>'] are written by different callers; disable via the Plugin Manager writes neither, disable via the runtime writes only the first, unbridgePluginModule writes only the second.",
+      "evidence": "[COD-plugins-12] sidecar/services/plugins_store.py:38-44 (plugins.db enabled column), src/lib/workspace.ts:50,263 (workspace.enabledModules -> setEnabledMap replaces the map wholesale on restore), src/lib/plugin-runtime.ts:344-348 (disablePlugin writes only plugins.db), src/lib/plugin-bootstrap.ts:193-194 (unbridgePluginModule writes only the module map), src/store/marketplace.ts:182-183 (the only caller that writes both). Four sites encode the never-persisted default and disagree: plugin-runtime.ts:221, plugin-runtime.ts:310, plugin-bootstrap.ts:262-263, store/marketplace.ts:109-110/123-125 -- refuter admitted (medium->medium): Holds: plugins.db enabled and the workspace blob's enabledModules['plugin:<id>'] are independent; disablePlugin writes only the former, unbridgePluginModule only the latter, and workspace restore replaces the whole enabled map (so an older named workspace carrying plugin:x=false hides panels of a plugin re-enabled since). The never-persisted default is spelled at four sites with two answers.",
+      "root_cause": "No single owner for the enabled fact; the never-persisted default is spelled at four sites with two different answers (true vs row.entry.preinstalled).",
+      "fix_shape": "One lifecycle owner writes both, or derive the module-enabled flag from runtime state instead of persisting it in the workspace blob; one shared default. Pin with a test restoring a workspace blob with plugin:x=false over a re-enabled plugin.",
+      "defect_class": "plugin-lifecycle-split",
+      "raw_ids": [
+        "COD-plugins-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-014",
+      "title": "Saving a BYOK secret for an already-active plugin never re-runs initialize(), so PluginConfig.secrets stays stale until restart (and a green test locks the no-op)",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/store/marketplace.ts",
+        "src/lib/plugin-runtime.ts",
+        "src/lib/plugin-runtime.test.ts"
+      ],
+      "repro": "[COD-plugins-3] Marketplace -> Configure any plugin that is already active (e.g. vysted-news, preinstalled+enabled) -> save a key. The keychain write lands and grantedSecretIds is persisted, but initialize() is never called again, so the running instance keeps the secrets map it got at boot (empty).",
+      "evidence": "[COD-plugins-3] src/store/marketplace.ts:238-244 (comment: 'Reload so the plugin resolves the new secrets via PluginConfig.secrets' -> calls runtime.enablePlugin), src/lib/plugin-runtime.ts:339-342 (enablePlugin -> patchConfig -> loadPlugin), src/lib/plugin-runtime.ts:199-202 (loadPlugin returns early when state is 'active'), src/lib/plugin-runtime.test.ts:171-177 (green test locks the no-op: initialize called once after two loadPlugin calls), types/plugin.ts:41-42 (PluginConfig.secrets is the contract's designated credential channel) -- refuter admitted_with_correction (high->medium): Mechanism holds: configure() calls enablePlugin -> patchConfig -> loadPlugin, which returns early for an active record, so initialize() never re-runs and PluginConfig.secrets stays stale; the green test locks that idempotence. Severity corrected high->medium because it is latent: no bundled plugin reads config.secrets for a credential (only plugins/example reports the key ids), vysted-news reads its key out-of-band, and the broker consumers are being removed.",
+      "root_cause": "configure() calls enablePlugin -> patchConfig -> loadPlugin, which returns early for an active record; the comment claims a reload.",
+      "fix_shape": "Add a real runtime.reloadPlugin() (unload then load) and call it from configure(); update the test that asserts initialize() is called once to assert it re-runs after configure. Latent: no bundled plugin reads config.secrets for a credential yet.",
+      "defect_class": "plugin-lifecycle-split",
+      "raw_ids": [
+        "COD-plugins-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-015",
+      "title": "Plugin data contribution is declaration-only: getDataSources() output only feeds a count in the Plugin Manager subtitle, VystedPlugin.subscribe has no host call site, so DataSource.realtime cannot be honoured and a data plugin cannot serve one quote",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "files": [
+        "types/plugin.ts",
+        "src/lib/plugin-runtime.ts",
+        "src/store/plugins.ts",
+        "sidecar/services/provider_registry.py",
+        "docs/PLUGIN_DEVELOPMENT.md"
+      ],
+      "repro": "[INT-blueprint-48-5] Write a plugin with `contributesData: true` and a DataSource; it loads, and the only effect anywhere in the app is the count in the plugin-manager subtitle (`${dataSources.length} data sources`, src/components/PluginManagerPanel.tsx:42). No panel, store or sidecar route resolves a read through a plugin-contributed source. The bundled reference plugin says so in its own header: 'The actual data flows through the sidecar's provider_registry (this plugin is a thin declaration of the source...)' (plugins/yfinance/index.ts:1-11). Likewise `VystedPlugin.subscribe` (types/plugin.ts:251) has no host call site in src/ and no implementor in plugins/, so `DataSource.realtime: true` (types/plugin.ts:84) cannot be honoured.",
+      "evidence": "[INT-blueprint-48-5] types/plugin.ts:76-87,236,251; src/lib/plugin-runtime.ts:419-425; src/store/plugins.ts:62,86; src/components/PluginManagerPanel.tsx:28,42; plugins/yfinance/index.ts:1-11; plugins/openbb-mcp/index.ts:168 -- refuter admitted (medium->medium): Holds. getDataSources() output goes only into the plugins store (plugin-runtime.ts:422, store/plugins.ts:62,86), and its only reader is the PluginManagerPanel count (PluginManagerPanel.tsx:28,42). Nothing in src/ calls `VystedPlugin.subscribe`: the runtime's own `subscribe` (plugin-runtime.ts:525) is a UI-listener API. So `DataSource.realtime` (types/plugin.ts:86) cannot be honoured, and yfinance/index.ts:1-11 admits the plugin is a declaration only. This does not reopen the plugin system's existence; it is an inert contract slice.",
+      "root_cause": "The data slice of the contract was never wired to a resolution seam; actual data flows only through the sidecar provider_registry (plugins/yfinance/index.ts:1-11 admits it).",
+      "fix_shape": "Operator choice (contract honesty is Tier-4): either a resolution seam (provider_registry entry backed by a plugin-declared sidecar route) or document DataSource as a declaration and mark realtime/subscribe reserved in types/plugin.ts + PLUGIN_DEVELOPMENT.md. Pin with a test that a declared source is either resolvable or flagged not-runnable.",
+      "defect_class": "inert-contract-slice",
+      "raw_ids": [
+        "INT-blueprint-48-5"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-016",
+      "title": "The Notify Desktop workflow node never produces an OS notification: the bridge reads useWorkflowStore, which no production code writes to",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/modules/node-editor/NodeEditorPanel.tsx",
+        "src/store/workflow.ts",
+        "src/lib/desktop-notification.ts"
+      ],
+      "repro": "[COD-workflow-engine-5] Run a workflow containing action.notify_desktop from the node editor -> NodeEditorPanel consumes SSE with its own consumeSse + local setRunState and never calls useWorkflowStore.appendEvent -> pendingNotifications stays empty -> useDesktopNotificationBridge (mounted in page.tsx:43) never fires.",
+      "evidence": "[COD-workflow-engine-5] src/store/workflow.ts:173-192,203-220,240-311 (the only intent capture + a second full SSE client); grep: no production caller of runWorkflow/appendEvent outside src/store/workflow.ts (only src/lib/desktop-notification.ts reads the slice); src/modules/node-editor/NodeEditorPanel.tsx:386-431,937-976 (separate SSE parser); src/app/page.tsx:43; sidecar/services/workflow_nodes/builtin.py:325-344 -- refuter admitted (medium->medium): No production code calls useWorkflowStore.appendEvent or runWorkflow: the only consumer of the store is the notification bridge (src/lib/desktop-notification.ts), while NodeEditorPanel runs its own fetch + consumeSse + local setRunState. The bridge mounted in page.tsx therefore never receives an intent, so the Notify Desktop node never produces an OS notification.",
+      "root_cause": "Two SSE clients / run-state models for one wire; NodeEditorPanel runs its own consumeSse + local state while the notification bridge listens to the dead store (376 lines, unit-tested in isolation).",
+      "fix_shape": "NodeEditorPanel dispatches every server event through useWorkflowStore.appendEvent (or calls the intent capture directly); delete the store's unused runWorkflow SSE client and dead clearRun/clearAll. Pin with a NodeEditorPanel test that a notify_desktop node-complete event enqueues a notification.",
+      "defect_class": "duplicate-client-drift",
+      "raw_ids": [
+        "COD-workflow-engine-5"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-017",
+      "title": "transform.code has two evaluators with different semantics: the editor (mathjs) and the agent/MCP path (Python ast) disagree on round(2.5), '^' and ternaries for the same saved workflow",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "src/modules/node-editor/code-node.ts",
+        "src/modules/node-editor/code-node-run.ts",
+        "sidecar/services/workflow_nodes/code_node.py",
+        "src/modules/node-editor/NodeEditorPanel.tsx"
+      ],
+      "repro": "[COD-workflow-engine-6] round(2.5): mathjs 3 vs server 2; 2^3: mathjs 8 vs server 'disallowed syntax: BinOp'; 'a > 1 ? 1 : 0': mathjs 1 vs server parse error (both measured). A workflow authored and tested in the editor then run by the agent via MCP run_workflow yields a different value or fails.",
+      "evidence": "[COD-workflow-engine-6] sidecar/services/workflow_nodes/code_node.py:20-45,97 (Python round = banker's rounding, '^' unsupported, no ternary); src/modules/node-editor/code-node.ts:1-27 (mathjs); stale comments claiming no server handler exists: src/modules/node-editor/code-node.ts:26-27, src/modules/node-editor/code-node-run.ts:12-15; now-obsolete restriction: code-node-run.ts:63-74; sidecar/services/mcp_server.py:258-285 -- refuter admitted (medium->medium): The server lane really is a separate Python-ast evaluator with different semantics (banker's rounding, '^' parsed as BitXor and rejected, no ternary), and the client comments claiming no server handler exists are stale since code_node.register() is called from register_all. The code_node.py header does document the '^' gap, but round() divergence is silent and the client partition restriction is now obsolete.",
+      "root_cause": "Two implementations shipped and never compared; client comments still claim no server handler exists, so the client partition (code nodes evaluate after the stream, code->server edges forbidden) is obsolete.",
+      "fix_shape": "Run transform.code only on the server (keep mathjs for inline syntax preview at most), drop the partition restriction and the stale comments; if both stay, a shared parity fixture both suites evaluate.",
+      "defect_class": "duplicate-client-drift",
+      "raw_ids": [
+        "COD-workflow-engine-6"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-018",
+      "title": "Quant workflow nodes run CPU-bound pricing synchronously on the sidecar event loop (Monte Carlo up to 10M paths, binomial up to 100k steps), freezing every sidecar route for the duration",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/workflow_nodes/quant_nodes.py",
+        "sidecar/services/workflow_engine.py"
+      ],
+      "repro": "[COD-workflow-engine-8] A workflow with quant.price_option {method: 'monte-carlo', monte_carlo_paths: 10000000} (MAX_MC_PATHS) or binomial_steps up to 100000 -> options.price runs inline in the async handler, freezing the whole sidecar for the duration.",
+      "evidence": "[COD-workflow-engine-8] sidecar/services/workflow_nodes/quant_nodes.py:46-52,57-63,68-74,79-85 (sync calls, no to_thread); sidecar/models/quant.py:33-34 (MAX_BINOMIAL_STEPS=100_000, MAX_MC_PATHS=10_000_000); contrast sidecar/services/workflow_nodes/builtin.py:62-64,87-89,121 (to_thread) and sidecar/routers/quant.py:36-37 (sync def -> threadpool) -- refuter admitted (medium->medium): All four quant adapters call options.price / greeks / bonds / yield_curve synchronously inside async handlers, while the builtin adapters use asyncio.to_thread and the HTTP /quant routes are sync defs (threadpool). Parameters up to MAX_BINOMIAL_STEPS=100000 (binomial prices ~9 trees for FD greeks) and MAX_MC_PATHS=10M are accepted as valid, so a user-permitted config stalls the whole sidecar loop.",
+      "root_cause": "The four quant adapters call options/greeks/bonds/yield_curve inline in async handlers, unlike the builtin adapters (to_thread) and the /quant HTTP routes (threadpool).",
+      "fix_shape": "asyncio.to_thread around each quant call (four one-line changes), landing with or after the QuantLib evaluation-date lock (else the date race becomes reachable here); ideally the engine runs every handler off-loop under a per-node timeout. Pin with a test that a long pricing does not block a concurrent /health.",
+      "defect_class": "blocking-on-event-loop",
+      "raw_ids": [
+        "COD-workflow-engine-8"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-019",
+      "title": "Workflow engine has no per-node or per-run timeout and schedules in gather-barrier waves, so a slow node stalls unrelated dependants and a hung handler keeps the run (and the MCP run_workflow call) open forever",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "sidecar/services/workflow_engine.py",
+        "sidecar/services/mcp_server.py"
+      ],
+      "repro": "[COD-workflow-engine-9] Sources A (flow.sleep 300 s or a hung provider fetch) and B (fast); C depends only on B -> C does not start until A finishes because each wave is awaited with asyncio.gather. A handler that never returns keeps the run (and the MCP run_workflow tool call) open indefinitely.",
+      "evidence": "[COD-workflow-engine-9] sidecar/services/workflow_engine.py:3-5 (docstring: 'runs downstream nodes when their inputs are available'), :210-282 (ready-set recomputed only after the whole wave's gather), :366-367 (await handler with no wait_for); sidecar/services/mcp_server.py:282-283 (no timeout around run_workflow) -- refuter admitted (medium->medium): The scheduler recomputes the ready set only after asyncio.gather of the whole wave, so a slow node delays unrelated dependants, and the handler call has no wait_for; the MCP run_workflow tool awaits the engine with no timeout either. Only flow.sleep has a bound (300 s).",
+      "root_cause": "The ready set is recomputed only after asyncio.gather of the whole wave; handlers are awaited without wait_for; the docstring says the opposite.",
+      "fix_shape": "Schedule with asyncio.wait(FIRST_COMPLETED) so each completion releases its dependants, and wrap each handler in asyncio.wait_for(node_timeout) producing node-error; pin with an A(slow)/B(fast)/C<-B test asserting C starts before A ends.",
+      "defect_class": "workflow-control-flow",
+      "raw_ids": [
+        "COD-workflow-engine-9"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-020",
+      "title": "Saved workflows have no schema versioning: one row that no longer validates makes GET /workflow/saved 500 and the Load dialog shows no workflow at all",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "sidecar/services/workflow_store.py",
+        "sidecar/models/workflow.py",
+        "types/workflow.ts"
+      ],
+      "repro": "[COD-workflow-engine-10] A row whose spec_json no longer validates (a field removed/renamed in a later release, or any extra key — every model is extra='forbid') -> list_workflows validates all rows in one comprehension -> ValidationError -> 500 -> Load dialog shows 'list failed (500)' and no workflow is loadable.",
+      "evidence": "[COD-workflow-engine-10] sidecar/services/workflow_store.py:53-63; sidecar/models/workflow.py:23,32,43,55 (extra='forbid'), :60 (version stored, never checked); types/workflow.ts:65 ('the engine refuses unknown majors' — not implemented anywhere); src/modules/node-editor/NodeEditorPanel.tsx:292-295 -- refuter admitted (medium->medium): list_workflows validates every row in one comprehension against extra='forbid' models with no try/skip, spec.version is stored but never checked, and types/workflow.ts:65's 'engine refuses unknown majors' is unimplemented. No current write path produces a bad row (save goes through the same model), so this is latent - it bites at the first schema change, which the medium bar ('bites the next maintainer') covers.",
+      "root_cause": "list_workflows validates every row in one comprehension against extra='forbid' models; spec.version is stored but never checked (types/workflow.ts:65's 'engine refuses unknown majors' is unimplemented).",
+      "fix_shape": "Skip-and-log rows that fail validation (return them as 'needs migration' summaries) and check spec.version on load with an explicit migrate step; pin with a store test inserting one bad row and asserting the rest still list.",
+      "defect_class": "persistence-without-versioning",
+      "raw_ids": [
+        "COD-workflow-engine-10"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-021",
+      "title": "Portfolio truth is forked between sidecar SQLite and the frontend store: the agent path writes both, the panel writes only the store, nothing reads GET /portfolio/positions, and four docstrings make three incompatible authority claims",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "sidecar/routers/portfolio.py",
+        "sidecar/services/portfolio_db.py",
+        "sidecar/models/portfolio.py",
+        "sidecar/tests/test_portfolio.py",
+        "src/lib/host-actions.ts",
+        "sidecar/models/__init__.py",
+        "src/modules/portfolio/api.ts"
+      ],
+      "repro": "[COD-portfolio-3] design — hand-enter a holding in the panel (store only) then have the agent add one (store + sidecar POST); GET /portfolio/positions now returns a subset that matches no surface. No production code path reads that endpoint: it appears only in sidecar/tests/test_portfolio.py and src/lib/host-actions.test.ts:987.",
+      "evidence": "[COD-portfolio-3] src/modules/portfolio/PortfolioPanel.tsx:286-289,309 (user path: store only); src/lib/host-actions.ts:1337+1342, 1361+1366, 1381+1386 (agent path: both); contradictory docs at sidecar/services/portfolio_db.py:1-12, src/modules/portfolio/api.ts:4-7, src/store/portfolios.ts:212-213, src/lib/host-actions.ts:1254,1321; grep for /portfolio/positions readers: sidecar/tests/test_portfolio.py, src/lib/host-actions.test.ts only -- refuter admitted_with_correction (high->medium): Confirmed. A repo-wide grep finds no production reader of /portfolio/positions or portfolio_db: only tests, the router itself and the host-actions write-only sync. api.ts:4-7 says there is 'NO sidecar positions CRUD', portfolio_db.py:1-12 says the sidecar owns persistence, and host-actions.ts:1319-1323 says writes 'ride' the sidecar. Corrected from high to medium: this is a maintainability and truth-ambiguity defect with no user-visible break, because every surface reads the store. Deletion is the right fix.",
+      "root_cause": "A second design (frontend store) shipped and the first (sidecar CRUD) was never deleted; 521 LOC with no production reader.",
+      "fix_shape": "Delete the sidecar portfolio router/service/model/tests and host-actions.ts's write-only sync (1254-1317); fix the re-export at models/__init__.py:74 and the prose at models/broker.py:13; correct the api.ts docstring. Pin with a grep-style test that no host action posts to /portfolio.",
+      "defect_class": "dead-parallel-path",
+      "raw_ids": [
+        "COD-portfolio-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-022",
+      "title": "portfolios.ts carries a 68-line typed client (addPosition/updatePosition/deletePosition/refresh) with no production importer, a comment naming a consumer that does not use it, green tests, and the only surviving fabricated-success count-before/after re-read",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/store/portfolios.ts",
+        "src/store/portfolios.test.ts",
+        "src/modules/panel-context-publishers.test.tsx"
+      ],
+      "repro": "[COD-portfolio-7] design — grep the tree for importers of addPosition/updatePosition/deletePosition/refresh from @/store/portfolios: only src/store/portfolios.test.ts and a vi.fn() mock in src/modules/panel-context-publishers.test.tsx. The real host-action apply path imports only the hook and calls addHolding/updateHolding/removeHolding directly.",
+      "evidence": "[COD-portfolio-7] src/store/portfolios.ts:209-276 (the block), 210-212 (\"Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import from here\" — they do not), 271-276 (refresh() is an empty no-op); src/lib/host-actions.ts:43 (imports usePortfoliosStore, AssetClass, Holding only), 1342, 1366, 1386 (calls the store methods directly); src/store/portfolios.test.ts:4-7 (the only importer) -- refuter admitted (medium->medium): Confirmed. addPosition, updatePosition, deletePosition and refresh have no production importer: only src/store/portfolios.test.ts plus vi.fn() mocks in panel-context-publishers.test.tsx. host-actions.ts imports only usePortfoliosStore and its types and calls addHolding/updateHolding/removeHolding directly. The block comment at 209-213 names a consumer that does not use it, and addPosition keeps the count-before/after re-read pattern.",
+      "root_cause": "Dead seam left after host-actions switched to calling addHolding/updateHolding/removeHolding directly.",
+      "fix_shape": "Delete lines 209-276 and the matching describe blocks; if the seam is wanted, make addHolding return the new id so the re-read trick is unnecessary.",
+      "defect_class": "dead-parallel-path",
+      "raw_ids": [
+        "COD-portfolio-7"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-023",
+      "title": "Portfolio risk analytics promised under Portfolio & Risk (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix) do not exist for the user's tracked portfolio; 4 of 7 exist only inside the backtest engine and VaR/Beta/correlation exist nowhere",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/modules/portfolio/metrics.ts",
+        "src/modules/portfolio/PortfolioPanel.tsx",
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "[INT-blueprint-96-2] grep -rn 'value_at_risk|\\bVaR\\b|def.*beta|correlation_matrix' sidecar/services sidecar/routers -> 0 hits anywhere in the whole sidecar. grep -n 'sharpe|sortino|calmar' sidecar/services/*.py -> matches ONLY inside sidecar/services/backtest_engine.py (lines 236-282, 480); sidecar/services/portfolio_db.py and sidecar/models/portfolio.py have no risk-metric fields at all, only cost_basis/quantity",
+      "evidence": "[INT-blueprint-96-2] sidecar/services/backtest_engine.py:236-282 (sharpe/sortino/calmar computed only for a backtest run); sidecar/models/portfolio.py (position model: no risk fields); sidecar/services/portfolio_db.py (no risk computation); docs/BLUEPRINT.md:266 \"Risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix)\" listed under Portfolio & Risk, not Backtesting -- refuter admitted (medium->medium): Confirmed VaR/Beta/correlation-matrix are absent sidecar-wide (not just in portfolio code), and that Sharpe/Sortino/Calmar/max-drawdown are computed only inside backtest_engine.py against a simulated equity curve, never against the user's actual tracked-portfolio return series in portfolio_db.py/models/portfolio.py. The promise sits under 'Portfolio & Risk' in BLUEPRINT.md's own module catalog, not under Backtesting, so grading it against the live portfolio (where it is 0% built for 3 of 7 metrics and 100% absent for the rest) is the right frame, not a misread of scope.",
+      "root_cause": "The risk-metric promise was only ever met by the backtest module on a simulated equity curve.",
+      "fix_shape": "Either compute the metrics on the tracked portfolio's return series (client-side in metrics.ts over price history, since the sidecar portfolio store is slated for deletion) and surface them in the panel with tests, or correct BLUEPRINT.md to scope risk analytics to backtests.",
+      "defect_class": "promise-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-96-2"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-024",
+      "title": "BLUEPRINT's 'Rust layer provides file system access' is not implemented: no fs capability or plugin is granted and the only user file-write flow (portfolio CSV export) is a webview Blob download",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/capabilities/default.json",
+        "src-tauri/Cargo.toml",
+        "src/lib/csv.ts",
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "[INT-blueprint-0-7] cat src-tauri/capabilities/default.json -> permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open], no fs:*; grep tauri-plugin-fs src-tauri/Cargo.toml package.json -> 0 hits",
+      "evidence": "[INT-blueprint-0-7] src-tauri/capabilities/default.json:6-11; src/modules/portfolio/PortfolioPanel.tsx:9,504 (imports downloadCsv from src/lib/csv.ts, a webview Blob/anchor download, not a Tauri fs write) -- refuter admitted (medium->medium): Re-verified independently: capabilities/default.json's permission list has no fs:* entry, neither tauri-plugin-fs nor @tauri-apps/plugin-fs appears in Cargo.toml/package.json, and lib.rs's full .plugin() chain (shell/updater/notification/kill_switch/mcp) confirms fs was never registered. PortfolioPanel's CSV export genuinely goes through a Blob/anchor download helper, not a Tauri command. Tauri v2's core:default does not itself grant fs — fs is always a separate opt-in plugin — so this isn't a case of the capability being implicitly covered elsewhere.",
+      "root_cause": "fs was never registered (no tauri-plugin-fs, no fs:* permission); core:default does not grant it.",
+      "fix_shape": "Either grant a scoped fs capability and wire a real save-to-path flow for exports, or correct BLUEPRINT.md §3.1 to describe the browser-download mechanism.",
+      "defect_class": "promise-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-0-7"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-025",
+      "title": "BLUEPRINT's 'Multi-window' is unbuilt: the app is one fixed Tauri window with no pop-out path for a chart or brief (only dockview multi-tab exists)",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "src/components/PanelHost.tsx",
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "[INT-blueprint-96-4] python3 -c \"import json; print(json.load(open('src-tauri/tauri.conf.json'))['app']['windows'])\" -> exactly one window entry (\"Vysted Terminal\", fixed size/min-size); grep -rln 'popout|pop-out|newWindow|WebviewWindow|secondary window' src/ src-tauri/src/*.rs -> 0 hits anywhere",
+      "evidence": "[INT-blueprint-96-4] src-tauri/tauri.conf.json app.windows (array of 1); src-tauri/src/lib.rs (no WebviewWindowBuilder / additional-window spawn code); docs/BLUEPRINT.md:235 \"Multi-window / multi-tab layout\" -- refuter admitted (medium->medium): Parsed tauri.conf.json's app.windows array directly (not a text grep that could miss a second definition elsewhere) and confirmed exactly one window is declared; confirmed no WebviewWindowBuilder or equivalent second-window spawn exists in the Rust core, and no pop-out affordance exists in the frontend. Multi-tab (dockview) is real and not in question - only the 'multi-window' half of the combined promise is unmet.",
+      "root_cause": "No WebviewWindowBuilder / second-window spawn path in Rust or the frontend.",
+      "fix_shape": "Either scope BLUEPRINT.md to multi-tab, or add a minimal pop-out-panel-to-window via WebviewWindowBuilder in lib.rs (no tauri.conf.json change needed for a runtime-spawned window).",
+      "defect_class": "promise-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-96-4"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-026",
+      "title": "The three ensure-*.mjs sidecar build scripts are one script copied twice (~90 of ~190 lines identical); adding a sidecar touches six sites, and missing the smoke-test sites leaves CI green while gating one fewer binary",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/ensure-sidecar.mjs",
+        "scripts/ensure-openbb-mcp-sidecar.mjs",
+        "scripts/ensure-sec-edgar-mcp-sidecar.mjs",
+        "scripts/smoke-test-sidecars.mjs",
+        "scripts/ensure-all-sidecars.mjs"
+      ],
+      "repro": "[COD-scripts-build-3] design",
+      "evidence": "[COD-scripts-build-3] targetTriple: scripts/ensure-sidecar.mjs:29-34, scripts/ensure-openbb-mcp-sidecar.mjs:46-51, scripts/ensure-sec-edgar-mcp-sidecar.mjs:36-41, scripts/smoke-test-sidecars.mjs:519-524 (four copies). run(): :36-39 / :53-56 / :43-46. sleepSync: :42-44 / :59-61 / :49-51. copyWithRetry: :50-62 / :64-78 / :54-68. Staleness guard: :81-91 / :91-101 / :81-91. Venv bootstrap: :97-100 / :107-110 / :97-100. Copy/sign/tidy tail: :201-210 / :178-187 / :159-171. Orchestrator list: scripts/ensure-all-sidecars.mjs:28-32 -- refuter admitted (medium->medium): Confirmed. targetTriple/run/sleepSync/copyWithRetry are copied across the three ensure scripts (the sec-edgar copy differs from ensure-sidecar's only in log prefixes and a docstring), smoke-test has a fourth triple helper, and the venv/pip/staleness/copy/sign/tidy sequence repeats in each. Adding a sidecar touches ensure-all SCRIPTS, the smoke-test spec + loop, and externalBin.",
+      "root_cause": "Each script's body is a numbered execution sequence, so copy-paste was the only reuse unit.",
+      "fix_shape": "One scripts/build-sidecar.mjs exporting buildSidecar({name, sourceDir, venvDir, requirements, pyinstallerFlags, identifier, staleOpts}); the three scripts become ~20-line specs, and the smoke-test reads the same spec list.",
+      "defect_class": "build-recipe-duplication",
+      "raw_ids": [
+        "COD-scripts-build-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-027",
+      "title": "audit-design-tokens.mjs resolves ROOT via URL.pathname, which is invalid on Windows, so the audit walks zero files and prints 'design-token audit clean'",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/audit-design-tokens.mjs"
+      ],
+      "repro": "[COD-scripts-build-6] On Windows: node scripts/audit-design-tokens.mjs -> new URL('..', import.meta.url).pathname yields '/C:/Users/.../vysted-terminal/' (leading slash, %20-escaped spaces) -> join(ROOT,'src') does not resolve -> statSync throws at :78-81 -> `continue` skips every scan root -> zero files walked -> prints 'design-token audit clean' and exits 0.",
+      "evidence": "[COD-scripts-build-6] scripts/audit-design-tokens.mjs:23 (const ROOT = new URL(\"..\", import.meta.url).pathname), :75-81 (statSync(abs) in try/catch -> continue), :121 (console.log(\"design-token audit clean\")), :62 (SKIP_FILES = new Set([\"styles/tokens.css\"]) compared against relative() output which is backslash-separated on Windows, and dead anyway under the default SCAN at :27). Contrast the four sibling scripts, all using import.meta.dirname: scripts/ensure-sidecar.mjs:18, scripts/ensure-openbb-mcp-sidecar.mjs:35, scripts/ensure-sec-edgar-mcp-sidecar.mjs:25, scripts/smoke-test-sidecars.mjs:82 -- refuter admitted (medium->medium): Confirmed by simulating the path on win32. ROOT becomes '/C:/Users/.../' (percent-escaped), path.win32.join gives '\\\\C:\\\\...\\\\src', and that resolves to '<drive>:\\\\C:\\\\...', an invalid path. statSync throws, the catch hits continue, and the script prints 'design-token audit clean' having scanned nothing. The operator's primary dev machine is Windows, so a manual run there (the workflow R9_DESIGN_SYSTEM.md:133 prescribes) gives a false clean today.",
+      "root_cause": "new URL('..', import.meta.url).pathname yields '/C:/...'; statSync throws and the catch continues silently; siblings use import.meta.dirname.",
+      "fix_shape": "const ROOT = resolve(import.meta.dirname, '..'); delete or normalise the dead SKIP_FILES guard; make the script fail when zero files were scanned. Pin with a test that the scan count is > 0.",
+      "defect_class": "false-clean-gate",
+      "raw_ids": [
+        "COD-scripts-build-6"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-028",
+      "title": "The scripts-build subsystem has zero tests, including sidecar-staleness.mjs (a pure module whose staleness bug a unit test would have caught), and vitest does not even include scripts/",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/sidecar-staleness.test.mjs",
+        "vitest.config.ts",
+        "scripts/sidecar-staleness.mjs"
+      ],
+      "repro": "[COD-scripts-build-14] design — CODE_PARTITION.json entry scripts-build lists \"tests\": []. No scripts/*.test.mjs, no vitest coverage of scripts/.",
+      "evidence": "[COD-scripts-build-14] docs/redesign/verification/r15/census/CODE_PARTITION.json (scripts-build entry, \"tests\": []), scripts/sidecar-staleness.mjs:41-124 (pure, filesystem-only, 124 lines, exports isStale/assertFresh/newestSourceMtime), package.json:13 (\"test\": \"vitest run\") -- refuter admitted_with_correction (medium->medium): Confirmed. The partition lists no tests, no test file references the staleness, ensure, smoke or audit scripts, and a scratch-tree check proves a unit test would have caught COD-scripts-build-1. Fix-shape correction: vitest.config includes only src/** and plugins/** test files, so a scripts/*.test.mjs would NOT run under 'pnpm test' until the include list is widened. The raw note's 'no new tooling' is slightly wrong.",
+      "root_cause": "The smoke test consumes the same staleness predicate it would need to test (assertFresh), so it cannot catch its bugs.",
+      "fix_shape": "Widen the vitest include to scripts/**/*.test.mjs and add a tmpdir test covering isStale true/false, the excludeDirs prune, extraFiles and a non-.py bundled data file.",
+      "defect_class": "untested-build-logic",
+      "raw_ids": [
+        "COD-scripts-build-14"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-029",
+      "title": "Backtest engine replaces an existing position on a second buy: cash is debited for every buy but only the last lot is held, so a flat market reports -3.0% total return and orphaned entries never reach the metrics",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "backtest",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/backtest_engine.py",
+        "sidecar/tests/test_backtest_engine.py"
+      ],
+      "repro": "[COD-backtest-3] sidecar/.venv/bin/python, fixture loader, a strategy that returns BacktestOrderIntent(qty=+10) on every bar without gating on has_position: 4 bars at a flat close of 100, initialCapital 100000. Result: 4 trade rows recorded, cash correctly debited 4 x 1001 = 4004, but portfolio.positions['AAA'] holds 10 shares not 40 -> final equity 96996 and metrics.totalReturn = -0.03004 on a market that never moved. The three orphaned entry rows keep pnl=None forever, so tradeCount/winRate never see them.",
+      "evidence": "[COD-backtest-3] sidecar/services/backtest_engine.py:343 (`portfolio.positions[intent.symbol] = _OpenPosition(...)` — assignment, not merge), sidecar/services/backtest_engine.py:324 (comment directly above reads `# New long position OR add to existing`), sidecar/services/backtest_engine.py:114-118 (equity marks only the surviving position) -- refuter admitted_with_correction (high->medium): Mechanism confirmed (buy assigns a fresh _OpenPosition, orphaning the earlier one while cash stays debited, under a comment claiming 'add to existing'), but it is unreachable in the shipped product: register_strategy is only called by register_all for four strategies, all of which gate entries on has_position, and plugins have no backtest-strategy registration path. Latent maintainer trap, not a core flow that breaks today -> medium.",
+      "root_cause": "_run_single_slice assigns a fresh _OpenPosition instead of merging (under a comment saying 'add to existing'); only the four bundled strategies' has_position self-gating hides it.",
+      "fix_shape": "On buy, merge into the existing _OpenPosition with a weighted-average entry price; pin with the flat-market pyramiding test (final equity == capital - fees).",
+      "defect_class": "backtest-book-reconciliation",
+      "raw_ids": [
+        "COD-backtest-3"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-030",
+      "title": "Backtest engine credits a sell larger than the held position in full and pops the whole position, minting cash from phantom shares",
+      "severity": "medium",
+      "area": "code",
+      "subsystem": "backtest",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/backtest_engine.py",
+        "sidecar/tests/test_backtest_engine.py"
+      ],
+      "repro": "[COD-backtest-4] sidecar/.venv/bin/python, fixture loader, flat close of 100: strategy buys 10 on bar 2 then returns BacktestOrderIntent(qty=-100) on bar 5. Result: final equity 108989 from initialCapital 100000 on a market that never moved; the trade's reported pnl is -19.99 (fees only), so nothing in the trade log or metrics hints that 90 phantom shares were sold.",
+      "evidence": "[COD-backtest-4] sidecar/services/backtest_engine.py:362-365 (position looked up, then `portfolio.cash += abs(intent.quantity) * fill_price` with no reconciliation against position.quantity), sidecar/services/backtest_engine.py:371 (pnl computed on abs(intent.quantity)), sidecar/services/backtest_engine.py:385 (`portfolio.positions.pop(...)` regardless of size), sidecar/services/backtest_engine.py:368-370 (comment parks the partial-close case as a 'documented limitation') -- refuter admitted_with_correction (high->medium): Mechanism confirmed (sell credits abs(intent.quantity) with no reconciliation against position.quantity, then pops the whole position), but, as with COD-backtest-3, every registered strategy exits with quantity=-held, so no shipped path (UI, custom DSL, agent tool) can over-sell. Latent -> medium.",
+      "root_cause": "Same mechanism as the pyramiding defect: intents are applied without reconciliation against position.quantity; the partial-close case is parked as a 'documented limitation'.",
+      "fix_shape": "qty = min(abs(intent.quantity), position.quantity); credit and compute pnl on qty; pop only when the remainder is 0; pin with the flat-market oversell test.",
+      "defect_class": "backtest-book-reconciliation",
+      "raw_ids": [
+        "COD-backtest-4"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-031",
+      "title": "Kill-switch unsubscribe pops by name, so replacing an adapter under the same name leaves the replacement unsubscribed",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/kill_switch.py",
+        "sidecar/services/brokers/registry.py"
+      ],
+      "repro": "[COD-safety-audit-4] bus.subscribe('alpaca', old) -> unsub_old; bus.subscribe('alpaca', new); unsub_old(); await bus.fire(...) -> 'subscribers after replace: 0 | callbacks hit: []' (ran). This is exactly the order registry.register() uses: the new adapter already subscribed in __init__, then existing._unsubscribe() pops the slot by name.",
+      "evidence": "[COD-safety-audit-4] sidecar/services/kill_switch.py:67-75 (docstring claims duplicate names are 'safe'; _unsubscribe pops by name, not identity); sidecar/services/brokers/registry.py:80-94 (register-or-replace calls existing._unsubscribe() after the new adapter was constructed); sidecar/services/broker_base.py:100-103 ('adapters CANNOT be instantiated without subscribing … architectural rather than convention') -- refuter admitted_with_correction (medium->low): Reproduced: subscribe old, subscribe new under the same name, call old unsubscribe -> 0 subscribers, no callback hit; registry.register() does exactly this on replace. Downgraded medium->low: no production path replaces an adapter - register() is only called from ensure_registered(), which returns an existing adapter untouched. Mechanism scope: the kill switch gates ONLY broker order placement - its sole subscriber is BrokerAdapter.__init__ (sidecar/services/broker_base.py:103) and its sole is_fired readers are propose/confirm (broker_base.py:251,345); no workflow, agent run or other control-plane action subscribes or checks it (grep of non-test sidecar), so the whole mechanism goes with trading.",
+      "root_cause": "subscribe overwrites on duplicate name and the unsubscribe closure deletes by name, not identity; registry.register constructs (and subscribes) the replacement before unsubscribing the old one.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: in _unsubscribe delete only if self._subscribers.get(name) is callback; pin with the subscribe-replace-unsubscribe test.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-4"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-032",
+      "title": "Safety chain carries dead code (ACK_BUDGET_NS, _unused, AUDIT_LOG_NAMESPACE, unused TS contract types, a ~50-LOC dormant kill-switch store slice) and a hand-copied audit action vocabulary across three files with no parity test",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "safety-audit",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/kill_switch.py",
+        "sidecar/models/audit_log.py",
+        "types/safety.ts",
+        "src/store/safety.ts",
+        "src/modules/safety/AuditLogViewer.tsx",
+        "sidecar/models/safety.py"
+      ],
+      "repro": "[COD-safety-audit-14] grep: ACK_BUDGET_NS, AUDIT_LOG_NAMESPACE, SafetyStoreSnapshot, AiOrderGateProposal (TS), audit_log.range_ -> zero non-test readers. grep AuditLogAction in sidecar/tests + src tests -> no parity assertion between models/safety.py and types/safety.ts.",
+      "evidence": "[COD-safety-audit-14] sidecar/services/kill_switch.py:26,216-217 (_unused() exists only to keep an unused `Any` import), :37 (ACK_BUDGET_NS); sidecar/models/audit_log.py:56-58 ('reserved for future'); types/safety.ts:207-219,229-236 (unused contract types); src/store/safety.ts:196-243 (dormant kill-switch slice, ~50 LOC, zero callers); action list copied at sidecar/models/safety.py:63-76, types/safety.ts:81-93, src/modules/safety/AuditLogViewer.tsx:40-53; broker list copied at src/modules/safety/AuditLogViewer.tsx:26-38, src/store/safety.ts:166-177, src/modules/safety/DisclaimerFlow.tsx:205-222 -- refuter admitted_with_correction (low->low): Dead code confirmed (_unused/Any, ACK_BUDGET_NS, AUDIT_LOG_NAMESPACE only re-exported, AiOrderGateProposal + SafetyStoreSnapshot unreferenced, range_ test-only, the dormant kill-switch store slice). Minor correction: not every broker-list copy is unchecked - EMPTY_STATIC_IP_STATUS is typed Record<BrokerId,...> so tsc enforces completeness, and brokerHandle has a default branch; the unguarded drift risk is the action vocabulary (models/safety.py vs types/safety.ts vs AuditLogViewer KNOWN_ACTIONS/KNOWN_BROKERS). All of it is trading/kill-switch/audit scaffolding that goes with trading.",
+      "root_cause": "Scaffolding left behind by the removed kill-switch UI; the action list is copied in models/safety.py, types/safety.ts and AuditLogViewer KNOWN_ACTIONS.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: delete the dead constructs, derive viewer filter options from fetched rows, wire ACK_BUDGET_NS into the fire timeout.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-safety-audit-14"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-033",
+      "title": "kill_switch_emit ships in the release invoke_handler and lets the renderer choose the kill switch's firedBy provenance",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/kill_switch.rs",
+        "src-tauri/src/lib.rs"
+      ],
+      "repro": "[COD-rust-core-15] design — invoke('kill_switch_emit', { firedBy: '<anything>' }) emits the same event the OS shortcut does, with caller-chosen provenance.",
+      "evidence": "[COD-rust-core-15] src-tauri/src/kill_switch.rs:89-92 (#[tauri::command] pub fn kill_switch_emit(app, fired_by: String)); src-tauri/src/lib.rs:416 (registered in the production invoke_handler — no cfg gate); src-tauri/src/kill_switch.rs:83-88 (doc: 'Exposed as a Tauri command so the frontend can fire-test the path from a developer console'); the payload field feeds types/safety.ts KillSwitchFiredBy -- refuter admitted (low->low): Holds. kill_switch_emit takes a caller-chosen fired_by (kill_switch.rs:89-92), is documented as a developer fire-test (kill_switch.rs:83-88), and is registered in the release invoke_handler with no cfg gate (lib.rs:416); no live consequence because nothing listens (see COD-rust-core-3). Mechanism fact for the removal batch: the kill switch gates order placement ONLY - bus subscribers are broker adapters (broker_base.py:103) and the only is_fired checks are the propose/confirm order gates (broker_base.py:251, :345) - so this command, like the shortcut, serves only the trading surface.",
+      "root_cause": "A developer fire-test command was registered without a cfg gate and takes a caller-supplied provenance string.",
+      "fix_shape": "Refuters established the kill switch gates ONLY broker order placement (sole subscriber BrokerAdapter.__init__, sidecar/services/broker_base.py:103; sole is_fired readers the propose/confirm gates, broker_base.py:251,345) and the audit log has only trading writers. Operator decides (Tier-4, §6.5): if the 23 Sep trading removal deletes the kill switch + audit log with trading, this entry closes with that commit; if the mechanism is kept, apply: #[cfg(debug_assertions)] the command or hardcode a distinct fired_by such as 'frontend-command'.",
+      "defect_class": "killswitch-trading-remnant",
+      "raw_ids": [
+        "COD-rust-core-15"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-034",
+      "title": "Walk-forward slices share their boundary date, so each boundary bar is traded in two slices while the UI strip presents them as disjoint periods",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "backtest",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "sidecar/services/backtest_engine.py"
+      ],
+      "repro": "[COD-backtest-11] sidecar/.venv/bin/python -c 'from services.backtest_engine import _slice_dates; print(_slice_dates(\"2024-01-01\",\"2024-01-11\",2))' -> [('2024-01-01','2024-01-06'), ('2024-01-06','2024-01-11')]. The slice filter is `slice_start <= b.timestamp <= slice_end`, so every bar dated 2024-01-06 is replayed in both slices; with 10 slices, nine bars are double-counted across the strip.",
+      "evidence": "[COD-backtest-11] sidecar/services/backtest_engine.py:222-223 (contiguous boundaries), sidecar/services/backtest_engine.py:466 (inclusive on both ends), src/modules/backtest/BacktestResultView.tsx:370-394 (the strip presents the per-slice return/sharpe/trade count as disjoint periods) -- refuter admitted (low->low): Confirmed: _slice_dates returns contiguous boundaries that share the edge date, the slice filter is inclusive on both ends, and bar_loader normalises timestamps to bare YYYY-MM-DD strings (so no time suffix breaks the tie), so each boundary bar is replayed in two slices.",
+      "root_cause": "_slice_dates returns contiguous boundaries and the slice filter is inclusive on both ends.",
+      "fix_shape": "Half-open filter (slice_start <= ts < slice_end, inclusive only on the last slice); pin with a test that each bar lands in exactly one slice.",
+      "defect_class": "off-by-one-seam",
+      "raw_ids": [
+        "COD-backtest-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-035",
+      "title": "Backtest bar-loader seam keeps dead scaffolding (raise-only default loader, impossible `or` fallback, unreachable router handler, uncalled _encode_event_dict) and build-narrative docstrings",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "backtest",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/backtest_engine.py",
+        "sidecar/routers/backtest.py",
+        "sidecar/services/backtest_strategies.py"
+      ],
+      "repro": "[COD-backtest-12] design: _default_bar_loader exists only to raise NotImplementedError; `loader = bar_loader or _default_bar_loader` presents a fallback that cannot succeed; the router keeps a NotImplementedError handler its own module docstring calls unreachable; _encode_event_dict is marked 'kept for parity' and has no caller. A reader tracing how production loads bars hits three misleading signposts before finding services/bar_loader.load_bars.",
+      "evidence": "[COD-backtest-12] sidecar/services/backtest_engine.py:169-182 (raise-only default), sidecar/services/backtest_engine.py:417 (the impossible `or` fallback), sidecar/routers/backtest.py:13-14 ('no longer reachable') vs sidecar/routers/backtest.py:62-72 (the handler for it), sidecar/routers/backtest.py:198 (_encode_event_dict, no callers), sidecar/services/backtest_engine.py:9-11 and :176-181 + sidecar/services/backtest_strategies.py:1 + sidecar/routers/backtest.py:11 ('Teammate K's deliverable' — build-process narrative, now false in two places) -- refuter admitted (low->low): Confirmed: _default_bar_loader only raises NotImplementedError, run_backtest falls back to it via `bar_loader or`, the router keeps a NotImplementedError handler that its own docstring calls unreachable, _encode_event_dict in backtest.py has no caller (the same-named helpers in llm.py/agents.py are separate module-locals), and the 'Teammate K' build narrative persists.",
+      "root_cause": "Leftovers from the phase that wired services/bar_loader.load_bars.",
+      "fix_shape": "Delete the three dead constructs, make bar_loader required, rewrite the four docstrings to describe current behaviour.",
+      "defect_class": "dead-code-misleading-docs",
+      "raw_ids": [
+        "COD-backtest-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-036",
+      "title": "CustomDslStrategy parses each rule twice at construction (validate_definition compiles then discards, then compile_rule again), two sources of truth for what a rule compiles to",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "backtest",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/backtest_dsl.py"
+      ],
+      "repro": "[COD-backtest-14] design: CustomDslStrategy.__init__ calls validate_definition(params) (which compiles both rules to build its report), discards the compiled rules, then calls compile_rule on entry and exit again. Every walk-forward slice constructs a fresh strategy, so an N-slice run parses 2(N+1) times.",
+      "evidence": "[COD-backtest-14] sidecar/services/backtest_dsl.py:685 (validate_definition), sidecar/services/backtest_dsl.py:645 (it already compiles inside), sidecar/services/backtest_dsl.py:693-694 (compile_rule again), sidecar/services/backtest_engine.py:469 (a fresh strategy per slice) -- refuter admitted (low->low): Confirmed: CustomDslStrategy.__init__ calls validate_definition (which compiles both rules into a local dict and discards them), then compiles both rules again; each walk-forward slice constructs a new strategy.",
+      "root_cause": "validate_definition builds compiled rules internally and does not return them.",
+      "fix_shape": "validate_definition returns the compiled rules (or compile once and derive the report); pin with a test that the strategy uses the validated parse.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-backtest-14"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-037",
+      "title": "Chat SSE consumer relabels consumer exceptions as 'unparseable SSE frame', and a stream that ends without a done/error frame leaves the message streaming, the run 'running' and the brief in_flight forever",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "error-layer",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "src/modules/chat/streaming.ts",
+        "src/modules/chat/ChatSidebar.tsx",
+        "src/modules/chat/streaming.test.ts"
+      ],
+      "repro": "[COD-error-layer-11] design: handlers.onEvent(event) is inside the same try as JSON.parse (streaming.ts:263-271). A throw in ChatSidebar's onToolUse/enqueueChange or in feedBriefLifecycle (called from normalizeEvent) is caught, relabelled `unparseable SSE frame: <consumer message>`, routed to onError -> the assistant message is failed and the run ended as 'error' while the stream keeps delivering frames to a settled message. SECOND HALF (design): consumeSseStream returns normally when reader.read() reports done (streaming.ts:225-244) whether or not a terminal frame was seen; ChatSidebar settles a turn ONLY in onDone/onError (ChatSidebar.tsx:890-939) and does nothing after `await streamAgentInvocation(...)` (:1005-1038). Any server path that closes the generator without `done` leaves the message 'streaming', the rail run 'running', abortRef held and the brief panel in_flight, forever.",
+      "evidence": "[COD-error-layer-11] src/modules/chat/streaming.ts:263-271, src/modules/chat/streaming.ts:302-305 (store side effect inside normalizeEvent), src/modules/chat/ChatSidebar.tsx:890-912, src/modules/chat/streaming.ts:225-249 (no sawTerminal tracking), src/modules/chat/ChatSidebar.tsx:914-939,1005-1038, src/modules/chat/streaming.test.ts (10 tests; none for non-ok, malformed frame, consumer throw, or EOF-without-done) -- refuter admitted (low->low): Holds on both halves: dispatchFrame wraps JSON.parse, normalizeEvent (which calls feedBriefLifecycle) and handlers.onEvent in one try and relabels any throw 'unparseable SSE frame: …'; consumeSseStream returns normally on reader done without tracking a terminal frame, and ChatSidebar settles only in onDone/onError with nothing after the await.",
+      "root_cause": "dispatchFrame wraps JSON.parse, normalizeEvent (which mutates the brief store) and handlers.onEvent in one try; consumeSseStream does not track a terminal frame and ChatSidebar settles only in onDone/onError.",
+      "fix_shape": "try only around JSON.parse/normalizeEvent, call onEvent outside it, move feedBriefLifecycle out of normalizeEvent; track sawTerminal and call onError('The stream ended before the answer finished.') after the read loop if false. Pin with streaming.test.ts cases for consumer throw and EOF-without-done.",
+      "defect_class": "stream-terminal-invariant",
+      "raw_ids": [
+        "COD-error-layer-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-038",
+      "title": "The error struct is declared six times across the wire, its `code` is consumed by nothing (so auth/402/model_not_found errors still offer a Retry that cannot succeed), and the durable-run crash path bypasses the humaniser",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "error-layer",
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "files": [
+        "sidecar/services/errors.py",
+        "sidecar/models/llm.py",
+        "sidecar/services/llm/",
+        "types/ai.ts",
+        "src/modules/chat/streaming.ts",
+        "src/modules/chat/message-notices.ts",
+        "src/modules/chat/ChatSidebar.tsx",
+        "sidecar/services/run_manager.py"
+      ],
+      "repro": "[COD-error-layer-13] design: grep for any branch on the code values (provider_402|auth|model_not_found|rate_limit|provider_5xx|network|parse_error|content_filter) in src/ -> none; MessageError renders the same Retry button for auth/402/model_not_found where a retry cannot succeed. run_manager writes detail=f'run failed: {exc}' (raw) which the agents rail renders.",
+      "evidence": "[COD-error-layer-13] sidecar/services/errors.py:71-83 (HumanError), sidecar/models/llm.py:220-235 (LLMErrorEvent), sidecar/services/errors.py:313-319 (dict form), src/modules/chat/streaming.ts:30-39 (StreamErrorFrame), src/modules/chat/message-notices.ts:19-23 (MessageErrorFrame), types/ai.ts:194 (union member still `{kind:'error'; message}` -> cast at streaming.ts:48); 12 copies of `LLMErrorEvent(message=_h.message, action=_h.action, detail=_h.detail, code=_h.code)` e.g. sidecar/services/llm/anthropic.py:147-156, ollama.py:158-169,206-215; src/modules/chat/ChatSidebar.tsx:1439-1475 (code unused); sidecar/services/run_manager.py:216-220 + src/modules/chat/ChatSidebar.tsx:1184 -- refuter admitted (low->low): Holds: no src/ code branches on any error code value (grep for provider_402/model_not_found/rate_limit/provider_5xx/parse_error/content_filter finds only the type comment); 12 identical LLMErrorEvent(message=_h.message,…) re-spellings across adapters; types/ai.ts:194 still `{kind:'error'; message}`; run_manager writes raw detail=f'run failed: {exc}'.",
+      "root_cause": "humanize() returns a struct every adapter re-spells field by field into LLMErrorEvent (12 copies); types/ai.ts still types the error as {kind,message}; run_manager writes raw f'run failed: {exc}'.",
+      "fix_shape": "HumanError.to_event(); collapse each adapter's two excepts; mirror action/detail/code into types/ai.ts and drop the casts; suppress Retry (link Settings) on auth/402/model_not_found; route run_manager's crash through humanize. Pin with a MessageError test per code.",
+      "defect_class": "error-surface-fragmentation",
+      "raw_ids": [
+        "COD-error-layer-13"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-039",
+      "title": "On the hosted research tier every sidecar GET (watchlist polls every 5 s included) does an unmemoised OS-keychain read and ships the BYOK OpenRouter key as a header to routes that never run research; the comment still names the dead Exa key",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "error-layer",
+      "operator_areas": [
+        "research-search"
+      ],
+      "files": [
+        "src/lib/sidecar-client.ts",
+        "src/lib/search-headers.ts"
+      ],
+      "repro": "[COD-error-layer-15] design: sidecarGet awaits buildSearchHeaders() on EVERY call (sidecar-client.ts:180-185); with researchTier==='tier_b' that awaits getOpenrouterApiKey() -> getSecret -> Tauri invoke('keychain_get') with no memo (search-headers.ts:53-60,84-98; keychain.ts:63-66) and sets X-Vysted-Openrouter-Key. The watchlist alone polls every 5 s (WatchlistPanel.tsx:24,219-221), so a tier_b user does a keychain IPC + sends the secret on each poll to routes that never run research.",
+      "evidence": "[COD-error-layer-15] src/lib/sidecar-client.ts:175-185 (comment: 'the active tier, the BYOK Exa key (keychain), and the local SearXNG URL ride every request' — search-headers.ts:27-30 says those lanes are dead), src/lib/search-headers.ts:84-98, src/lib/keychain.ts:63-66, src/modules/watchlist/WatchlistPanel.tsx:24,219-221, src/modules/chat/streaming.ts:187-203 (the transport that actually needs it) -- refuter admitted (low->low): Holds: sidecarGet awaits buildSearchHeaders() on every call, which on tier_b does an unmemoised getSecret -> invoke('keychain_get') and sets X-Vysted-Openrouter-Key; the watchlist polls /quotes via sidecarApi every 5 s; the sidecarGet comment still names the 'BYOK Exa key' although search-headers.ts states the Exa lane is dead. Loopback-only, so low.",
+      "root_cause": "buildSearchHeaders() was pulled into sidecarGet's default path instead of staying with the two research-invoking transports.",
+      "fix_shape": "Drop buildSearchHeaders from sidecarGet's default path (keep it in consumeSseStream; research-adjacent GETs pass it via the headers arg) or memoise per settings change; fix the comment. Pin with a test that /quotes requests carry no X-Vysted-Openrouter-Key.",
+      "defect_class": "secret-overexposure",
+      "raw_ids": [
+        "COD-error-layer-15"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-040",
+      "title": "services/quant/monte_carlo.py is 184 LOC of unreachable, untested, bundled code whose docstring names callers that do not exist (and it skips validate_domain)",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "macro-quant",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/quant/monte_carlo.py"
+      ],
+      "repro": "[COD-macro-quant-11] grep -rn 'price_asian_mc|price_barrier_mc|quant.monte_carlo|from .monte_carlo' across the repo (excluding .venv/node_modules) returns only the definitions inside monte_carlo.py itself plus two R15 partition manifests. No importer, not re-exported from services/quant/__init__.py, and no test_quant_monte_carlo.py among the ten quant test files.",
+      "evidence": "[COD-macro-quant-11] sidecar/services/quant/monte_carlo.py:13-16 (docstring: 'utility surfaces the workflow nodes + agent tools can reach into when a path-dependent payoff is requested'), sidecar/services/quant/__init__.py:24-29 (imports nothing - only a docstring and `from __future__`), sidecar/services/quant/monte_carlo.py:115-176 (price_barrier_mc never checks expiry_date > valuation_date, unlike every wired engine which calls req.validate_domain()), sidecar/tests/ (test_quant_bonds/greeks/options/router/tools/yield_curve.py - no monte_carlo) -- refuter admitted_with_correction (medium->low): Holds: monte_carlo.py (184 LOC) has no importer anywhere outside its own definitions and a package-docstring mention, no test, and its docstring claims workflow nodes/agent tools reach into it. Downgraded medium->low: dead code with a misleading docstring, no user-visible effect.",
+      "root_cause": "Written for a caller that was never wired.",
+      "fix_shape": "Delete it (git keeps it); if deliberately kept, say so and add one smoke test with validate_domain.",
+      "defect_class": "dead-code-misleading-docs",
+      "raw_ids": [
+        "COD-macro-quant-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-041",
+      "title": "Option Pricer binomial step floor is stated three ways (panel >=1, model 1..100000, service >=3), so steps=2 passes the UI and returns a 400 (same drift for MC paths)",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "macro-quant",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/modules/quant/OptionPricerPanel.tsx",
+        "sidecar/models/quant.py",
+        "sidecar/services/quant/options.py"
+      ],
+      "repro": "[COD-macro-quant-12] In the Option Pricer, choose Binomial and enter Tree steps = 2. Panel validation passes (it requires >= 1), OptionPricingRequest.validate_domain passes (it requires 1..100_000), and the service rejects it -> HTTP 400 'binomial steps must be at least 3'.",
+      "evidence": "[COD-macro-quant-12] src/modules/quant/OptionPricerPanel.tsx:270-275 (steps >= 1), sidecar/models/quant.py:104-108 (1 <= binomial_steps <= MAX_BINOMIAL_STEPS), sidecar/services/quant/options.py:179-180 (raises below 3) -- refuter admitted_with_correction (medium->low): Holds: panel requires >=1, validate_domain 1..100000, service rejects <3 (same three-way drift exists for MC paths: panel >=1, model >=1, service >=100). Downgraded medium->low: the consequence is a clear 400 with an accurate message, never a wrong number.",
+      "root_cause": "Duplicated truth across three layers.",
+      "fix_shape": "Put the floor in validate_domain only, read it in the panel from the same constant, drop the service check; pin with a model test for steps=2 and paths<100.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-macro-quant-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-042",
+      "title": "greeks.compute_greeks duplicates price_european_bs line for line instead of calling it",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "macro-quant",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/quant/greeks.py",
+        "sidecar/services/quant/options.py"
+      ],
+      "repro": "[COD-macro-quant-15] design",
+      "evidence": "[COD-macro-quant-15] sidecar/services/quant/greeks.py:32-51 vs sidecar/services/quant/options.py:60-80 - both build the same BSM process from the same five inputs, the same PlainVanillaPayoff, the same EuropeanExercise, set the same AnalyticEuropeanEngine, and read the same five greeks plus NPV; sidecar/services/quant/greeks.py:3-5 states the reason for the split ('the Greeks Dashboard panel hits this surface independently of the generic option pricer') -- refuter admitted_with_correction (medium->low): Duplication is real: compute_greeks rebuilds the same BSM process, payoff, exercise, AnalyticEuropeanEngine and five greeks + NPV as price_european_bs. Downgraded medium->low: ~20 identical lines with no present divergence; a maintainability smell, not a defect a user hits.",
+      "root_cause": "Split for a shorter request shape on the Greeks panel.",
+      "fix_shape": "compute_greeks builds an OptionPricingRequest (or GreeksRequest.to_option_request()), calls price_european_bs and reshapes; existing greeks tests pin it.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-macro-quant-15"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-043",
+      "title": "The four macro-provider PROVIDER constants are untyped str instead of the MacroProvider Literal the model already defines",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "macro-quant",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/macro/fred_provider.py",
+        "sidecar/services/macro/imf_provider.py",
+        "sidecar/services/macro/ecb_provider.py",
+        "sidecar/services/macro/world_bank_provider.py"
+      ],
+      "repro": "[INT-deferred-0-5] sidecar/models/macro_extended.py:27 defines 'MacroProvider = Literal[\"fred\",\"ecb\",\"imf\",\"world-bank\"]' and uses it on MacroSeriesExtended.provider. But sidecar/services/macro/fred_provider.py:48, imf_provider.py:31, ecb_provider.py:30, world_bank_provider.py:37 each write 'PROVIDER = \"<id>\"' with no type annotation, so a type checker infers plain str for the constant that gets passed into the Literal-typed model field.",
+      "evidence": "[INT-deferred-0-5] sidecar/models/macro_extended.py:27-42, sidecar/services/macro/fred_provider.py:48, imf_provider.py:31, ecb_provider.py:30, world_bank_provider.py:37 -- refuter admitted (low->low): Holds as stated: MacroProvider is a Literal at macro_extended.py:27, and the four PROVIDER constants are unannotated at fred_provider.py:48, ecb_provider.py:30, imf_provider.py:31 and world_bank_provider.py:37, then passed as provider=PROVIDER (e.g. ecb_provider.py:40). Pydantic still validates the Literal at runtime and no type checker runs, so this is pure typing hygiene. Low is correct.",
+      "root_cause": "The audit fix narrowed only the model layer.",
+      "fix_shape": "Annotate PROVIDER: MacroProvider = '<id>' in each file (runtime already validated by pydantic).",
+      "defect_class": "typing-hygiene",
+      "raw_ids": [
+        "INT-deferred-0-5"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-044",
+      "title": "LLMProvider.stream_chat is declared 'async def -> AsyncIterator' (a coroutine) while all five adapters and all three callers treat it as an async generator",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "llm-adapters",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/llm/base.py"
+      ],
+      "repro": "[INT-deferred-0-4] sidecar/services/llm/base.py:83-90 declares '@abstractmethod async def stream_chat(...) -> AsyncIterator[LLMStreamEvent]'. Every concrete adapter (anthropic.py:103, gemini.py:99, groq.py:101, ollama.py:126, openai.py:656) is an async-generator function (contains 'yield' directly in its async def body). The only call site, sidecar/services/agent_runtime.py:1434, does 'async for event in adapter.stream_chat(...)' with no 'await' before it -- correct for an async generator, but inconsistent with what the ABC's 'async def' signature would imply (call, then await the coroutine to get the iterator).",
+      "evidence": "[INT-deferred-0-4] sidecar/services/llm/base.py:83-90, sidecar/services/llm/anthropic.py:103, sidecar/services/agent_runtime.py:1434 -- refuter admitted_with_correction (medium->low): The mismatch is real: base.py:85-108 is an abstract 'async def' whose body is just 'raise NotImplementedError' (no yield), so it declares a coroutine, while all five adapters are async generators. Two corrections. There are three call sites, not one: agent_runtime.py:1434, native_search.py:242 and oneshot.py:79, and all of them iterate without await. Severity also drops to low, because no type checker runs anywhere (no mypy/pyright config or CI step), so nothing enforces the ABC. Nothing changes at runtime; this is a one-word annotation fix.",
+      "root_cause": "The ABC's abstract body has no yield; no type checker runs to catch the mismatch.",
+      "fix_shape": "Drop `async` from the base declaration (BLOCKERS.md's named fix) or add a `yield` after the raise.",
+      "defect_class": "typing-hygiene",
+      "raw_ids": [
+        "INT-deferred-0-4"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-045",
+      "title": "Boot path bridges a plugin's panels and commands without checking that loadPlugin succeeded, so an errored plugin still contributes UI",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/lib/plugin-bootstrap.ts"
+      ],
+      "repro": "[COD-plugins-5] Make any bundled plugin's initialize() throw (or drift its manifest version from its instance version, which checkCompatibility rejects) -> restart. The Plugin Manager renders the row red 'error' while its panels and slash commands are live in cmd+K.",
+      "evidence": "[COD-plugins-5] src/lib/plugin-bootstrap.ts:264-270 (`await runtime.loadPlugin(plugin)` return value discarded, then appendModules unconditionally), vs the three guarded siblings src/store/marketplace.ts:147, :165, :241 (`if (snap.state === 'active')`), src/lib/plugin-runtime.ts:356-365 (documents the FR-054/SC-015 'contributes nothing' promise), src/lib/plugin-runtime.test.ts:516 ('an incompatible plugin contributes nothing' -- asserted at the runtime level only) -- refuter admitted_with_correction (medium->low): Core claim holds: the boot loop discards loadPlugin's snapshot and appendModules unconditionally (modules default enabled), unlike the three guarded store paths. Mechanism corrected: the cited hardcoded versions at marketplace.ts:91/125/140 are MarketplaceEntry.version, which checkCompatibility never reads, and manifest/instance version drift for bundled rows is CI-guarded by marketplace.test.ts:44; the reachable first-party path is a transient persistence.load failure at boot (config-load error) or an initialize() throw. Severity medium->low: plugins are compiled in, and after broker removal only vysted-example contributes commands and none contribute panels.",
+      "root_cause": "The boot loop discards loadPlugin's snapshot, unlike the three guarded store paths.",
+      "fix_shape": "const snap = await runtime.loadPlugin(plugin); bridge only if snap.state === 'active'; pin with a bootstrap test where initialize() throws.",
+      "defect_class": "plugin-lifecycle-split",
+      "raw_ids": [
+        "COD-plugins-5"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-046",
+      "title": "moduleForPlugin re-implements capability negotiation without the runtime's try/catch, so a throwing getPanels()/getCommands() rejects bootstrapPlugins() mid-loop",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/lib/plugin-bootstrap.ts",
+        "src/lib/plugin-runtime.ts"
+      ],
+      "repro": "[COD-plugins-6] A plugin whose getPanels() or getCommands() throws: runtime.collectPanels() contains it and emits `errored`, but moduleForPlugin lets it propagate -> the unguarded call at plugin-bootstrap.ts:266 rejects bootstrapPlugins() and the plugin layer never finishes booting. Same throw also breaks bridge/unbridge on disable.",
+      "evidence": "[COD-plugins-6] src/lib/plugin-bootstrap.ts:135-138 (flag -> optional getter, no try/catch) vs src/lib/plugin-runtime.ts:389-416 (callIfFlagged: flag check + getter-exists check + `errored` emit + try/catch), unguarded callers at src/lib/plugin-bootstrap.ts:183, :198, :266 -- refuter admitted_with_correction (medium->low): Real duplication: moduleForPlugin calls getPanels/getCommands with no try/catch or missing-getter errored event, while callIfFlagged has both; a throw at plugin-bootstrap.ts:266 would reject bootstrapPlugins mid-loop (page.tsx only .then()s it). Severity medium->low: every plugin is compiled in, and post-trading-removal the only panel/command contributor is plugins/example with a static getCommands array, so the throw path is latent.",
+      "root_cause": "The flag->getter rule is written twice; the copy lacks callIfFlagged's guard and errored event.",
+      "fix_shape": "Source panels/commands from runtime.collectPanels()/collectCommands() filtered by plugin id (or export callIfFlagged); collapse the five collect* bodies to one collect<T>. Pin with a throwing-getter test.",
+      "defect_class": "plugin-lifecycle-split",
+      "raw_ids": [
+        "COD-plugins-6"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-047",
+      "title": "healthCheckOne writes back a pre-await snapshot, reverting a disable/error transition that lands during the health check to 'active'",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/lib/plugin-runtime.ts"
+      ],
+      "repro": "[COD-plugins-10] Disable a plugin (or have it transition to error) while its healthCheck() promise is in flight: the health poll then writes {...staleRecord, healthHistory} over the map entry, restoring state:'active' and clearing the errorMessage/stateChangedAt that were just written.",
+      "evidence": "[COD-plugins-10] src/lib/plugin-runtime.ts:478-499 (record captured from the activePlugins() snapshot at :473, awaited at :484, wholesale `this.plugins.set(record.manifest.id, {...record, healthHistory: newHistory})` at :496), src/lib/plugin-bootstrap.ts:40,273-276 (poll armed every 30s, plus one immediately at boot) -- refuter admitted_with_correction (medium->low): The lost update is real: healthCheckOne captures the record from activePlugins() before awaiting healthCheck() and writes {...record, healthHistory} back, overwriting any transition (stopping/stopped/error) that landed during the await. Severity medium->low: the bundled healthChecks are a loopback GET /health (or synchronous), so the window is milliseconds every 30s, and a stale 'active' is corrected by the persisted enabled:false on next launch.",
+      "root_cause": "Lost update: full-record overwrite of state captured before an await.",
+      "fix_shape": "Re-read this.plugins.get(id) after the await and bail if gone or no longer active, or mutate only healthHistory; pin with a test disabling during a pending healthCheck.",
+      "defect_class": "lost-update",
+      "raw_ids": [
+        "COD-plugins-10"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-048",
+      "title": "parseSemver strips '<' with the range operators, inverting a '<x.y.z' requiredHostVersion into '>=x.y.z' (and the error message hardcodes '>=')",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/lib/plugin-runtime.ts"
+      ],
+      "repro": "[COD-plugins-14] A manifest with requiredHostVersion \"<0.9.0\" on host 0.8.0 is REJECTED at load with the message 'plugin requires host version >= <0.9.0 but host is 0.8.0' -- the opposite of what the manifest asked for.",
+      "evidence": "[COD-plugins-14] src/lib/plugin-runtime.ts:116-125 (`version.trim().replace(/^[\\^~>=<\\s]+/, \"\")` -- '<' is in the stripped class), src/lib/plugin-runtime.ts:133-139 (hostSatisfies then compares with >=), src/lib/plugin-runtime.ts:374-376 (the error message hardcodes '>=' regardless of the operator that was stripped) -- refuter admitted (low->low): parseSemver's stripped class includes '<', so '<0.9.0' parses as 0.9.0 and hostSatisfies applies >=, inverting the constraint, and the error message hardcodes '>='. Latent: bundled manifests use bare x.y.z or '>=0.4.0'.",
+      "root_cause": "'<' is in the stripped character class while ranges are documented as unsupported.",
+      "fix_shape": "Drop '<' from the class so an unsupported operator fails loudly; pin with a manifest test for '<0.9.0'.",
+      "defect_class": "silent-reinterpretation",
+      "raw_ids": [
+        "COD-plugins-14"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-049",
+      "title": "Removing a credentialed non-broker plugin (e.g. vysted-news) never deletes its plugin-secret keychain entry, and the legacy vysted-search-exa secret has no cleanup",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "plugins",
+      "operator_areas": [],
+      "files": [
+        "src/store/marketplace.ts",
+        "src/lib/plugin-runtime.ts"
+      ],
+      "repro": "[INT-deferred-84-5] install a search-tier backend with a key (e.g. Exa) -> disable or remove it -> plugin-secret:<id> keychain entry is never deleted, only manual Keychain Access cleanup removes it",
+      "evidence": "[INT-deferred-84-5] src/store/marketplace.ts:175-204 -- refuter admitted_with_correction (medium->low): The mechanism is real, but the subject and scope are wrong. No 'search-tier plugin' exists: the Exa/R7-R8 search lanes are dead (search-headers.ts:27-30) and the marketplace catalog has no search entry. The actual gap is that `remove()` on ANY credentialed non-broker plugin (e.g. vysted-news `plugin-secret:vysted-news:newsapi_key`) never calls deleteSecret. runtime.removePlugin only patches config and unloads, and disconnectBroker is broker-only and does not touch the keychain. Leaving the secret on `disable()` is correct: disable is reversible and the plugin stays installed. The legacy `plugin-secret:vysted-search-exa` orphan also has no migration that cleans it. The secret stays in the user's own OS keychain and is never exposed, so low.",
+      "root_cause": "remove() only patches config and unloads; disconnectBroker is broker-only and does not touch the keychain.",
+      "fix_shape": "remove() calls deleteSecret for each granted plugin-secret id (disable() correctly keeps it); one-shot migration deleting the dead exa secret; pin with a marketplace store test.",
+      "defect_class": "orphaned-secret",
+      "raw_ids": [
+        "INT-deferred-84-5"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-050",
+      "title": "Portfolio metrics compute on the sidecar snake_case Position via an adapter with id = array index, and table rows are re-joined to holdings by index, so any future sort/filter binds Edit/Delete to the wrong holding",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/modules/portfolio/metrics.ts",
+        "src/modules/portfolio/metrics.test.ts",
+        "src/modules/portfolio/PortfolioPanel.tsx"
+      ],
+      "repro": "[COD-portfolio-12] design — holdings (camelCase, string ids) are mapped to the snake_case Position shape with a synthetic integer id equal to the array index, purely so metrics.ts and its tests need not change; the table then recovers the real holding by position in the array.",
+      "evidence": "[COD-portfolio-12] src/modules/portfolio/PortfolioPanel.tsx:124-136 (the adapter; id: i at 127; stated reason at 121-123: \"keeps metrics.ts + its tests untouched\"), 314-317 (summary.rows.map((row, i) => ({...row, holding: holdings[i]}))), 312-313 (the ordering invariant, stated only in a comment), 831 (rowKey falls back to symbol when holding is undefined); src/modules/portfolio/metrics.ts:8 (imports Position from types/data) -- refuter admitted (low->low): Confirmed. The panel adapts Holding to the snake_case Position with id: i, citing 'keeps metrics.ts + its tests untouched', and tableRows re-joins summary.rows[i] to holdings[i] by index; the ordering invariant holds only because buildPortfolioSummary maps in order. It is correct today and latent, so low is right.",
+      "root_cause": "A test-shaped adapter kept metrics.ts untouched; the ordering invariant lives in a comment.",
+      "fix_shape": "metrics.ts takes Holding (real id); delete the adapter, synthetic id and index join; update metrics.test.ts.",
+      "defect_class": "invariant-held-by-comment",
+      "raw_ids": [
+        "COD-portfolio-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-051",
+      "title": "The P&L cell re-inlines the pnlTone ternary instead of calling the helper, so a tone change updates the summary bar and not the table",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/modules/portfolio/PortfolioPanel.tsx"
+      ],
+      "repro": "[COD-portfolio-13] design — grep the file for text-positive/text-negative: the helper at 43-45 and a byte-identical ternary at 391-393.",
+      "evidence": "[COD-portfolio-13] src/modules/portfolio/PortfolioPanel.tsx:43-45 (pnlTone), 742 and 748 (callers), 391-393 (the same ternary inlined in the pnl column's cell renderer) -- refuter admitted (low->low): Confirmed. pnlTone at 43-45 is used in the summary bar, and the P&L cell at 389-392 inlines the same ternary.",
+      "root_cause": "Duplicated truth in one file.",
+      "fix_shape": "Call pnlTone(r.pnl) in the P&L cell renderer.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-portfolio-13"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-052",
+      "title": "updateHolding's interface comment says 'Patch' but it replaces, turning an absent numeric into 0 (a zeroed cost basis for any future untyped caller)",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/store/portfolios.ts"
+      ],
+      "repro": "[COD-portfolio-14] design — a caller trusting the word \"Patch\" and passing {symbol, quantity} would get costBasis 0 (Number(undefined) -> NaN -> 0). TypeScript's required HoldingInput prevents it from a typed caller today, so the defect is in the comment, not yet in behaviour.",
+      "evidence": "[COD-portfolio-14] src/store/portfolios.ts:105 (\"Patch an existing holding.\"), 164-177 (builds a fresh holding from input via normalizeHolding), 84-85 (non-finite -> 0); contrast 239-248 (updatePosition's doc explicitly warns: \"Missing fields are NOT merged over the existing holding\") -- refuter admitted (low->low): Confirmed. The interface comment at 105 says 'Patch an existing holding.' while updateHolding rebuilds the holding from input via normalizeHolding (a missing numeric becomes 0). The sibling updatePosition doc at 239-246 states the replace semantics correctly. The typed HoldingInput prevents misuse today, so this is doc-only, low.",
+      "root_cause": "Interface comment contradicts normalizeHolding's replace semantics.",
+      "fix_shape": "Reword to 'Replace an existing holding's fields (not a partial merge)'.",
+      "defect_class": "dead-code-misleading-docs",
+      "raw_ids": [
+        "COD-portfolio-14"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-053",
+      "title": "PortfolioSummary.concentration is computed from cross-currency weights and returned unflagged; only the panel knows to withhold it",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "portfolio",
+      "operator_areas": [],
+      "files": [
+        "src/modules/portfolio/metrics.ts"
+      ],
+      "repro": "[COD-portfolio-15] design — buildPortfolioSummary on holdings quoted in INR and USD returns a concentration number computed from weights that divide by the cross-currency totalMarketValue; the value is meaningless but carries no marker on the contract.",
+      "evidence": "[COD-portfolio-15] src/modules/portfolio/metrics.ts:150 (concentration from row.weight), 144-147 (weight divides by totalMarketValue), 70-71 (its doc carries no mixed-currency caveat); contrast 54-62 (totalMarketValue and totalPnl both document the D57 caveat explicitly) and src/modules/portfolio/PortfolioPanel.tsx:756-767 (the panel withholds it with a stated reason) -- refuter admitted (low->low): Confirmed. concentration = max(row.weight), where weight divides by the cross-currency totalMarketValue. Its doc ('Largest single-position weight') carries no D57 caveat, unlike totalMarketValue and totalPnl, and the panel alone withholds it. grep shows buildPortfolioSummary has no other production consumer today, so this is latent, low.",
+      "root_cause": "The D57 mixed-currency rule is held by the caller, not the contract.",
+      "fix_shape": "Return concentration: null when mixedCurrencies (panel reads it), or document the caveat like its neighbours; pin with a mixed-currency metrics test.",
+      "defect_class": "invariant-held-by-comment",
+      "raw_ids": [
+        "COD-portfolio-15"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-054",
+      "title": "The 'atomic, crash-safe' note/export write never fsyncs (File::flush is a no-op), so the SC-032 survives-a-crash claim does not hold for the .md mirror",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs"
+      ],
+      "repro": "[COD-rust-core-7] design — write_text_atomic does File::create -> write_all -> flush() -> rename with no sync_all on the file or the parent directory; on power loss the renamed file can appear with zero or partial content.",
+      "evidence": "[COD-rust-core-7] src-tauri/src/lib.rs:303-309 (text) and :336-341 (bytes): `f.write_all(...)`, `f.flush()`, then `std::fs::rename`; std::fs::File's Write::flush is a documented no-op (File is unbuffered — it never fsyncs); doc comment src-tauri/src/lib.rs:281-286 claims 'the kernel rename(2) is atomic (SC-032: survives a crash mid-save)' -- refuter admitted_with_correction (medium->low): Real: both commands do File::create -> write_all -> flush -> rename with no sync_all on the file or directory (lib.rs:303-309, :336-341); File::flush does not fsync, so the SC-032 'survives a crash' comment (lib.rs:281-286) overclaims. Downgraded: the .md file is a mirror, not the note's primary store - notes-persistence.ts documents the workspace blob as 'the primary durable store' and the .md write as non-fatal (notes-persistence.ts:52,72-76), so a power-loss truncation of the mirror does not lose the note.",
+      "root_cause": "rename(2) is atomic for the directory entry, not the data; no sync_all on file or parent.",
+      "fix_shape": "f.sync_all()? before rename and (unix) sync the parent dir after, in the single write_atomic helper.",
+      "defect_class": "durability-overclaim",
+      "raw_ids": [
+        "COD-rust-core-7"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-055",
+      "title": "write_text_atomic and write_bytes_atomic are the same 22 lines twice, so every durability or confinement fix must be made in both",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs"
+      ],
+      "repro": "[COD-rust-core-14] design — the two functions differ only in `contents.as_bytes()` vs `&contents` and in the temp-name fallback string ('note' vs 'export').",
+      "evidence": "[COD-rust-core-14] src-tauri/src/lib.rs:287-310 vs src-tauri/src/lib.rs:318-342 (identical parent/create_dir_all/tmp-name/File::create/write_all/flush/rename sequence); the divergent detail: lib.rs:299 unwrap_or(\"note\") vs lib.rs:332 unwrap_or(\"export\") -- refuter admitted (low->low): Holds. write_text_atomic (lib.rs:287-310) and write_bytes_atomic (lib.rs:318-342) are the same parent/create_dir_all/tmp-name/create/write_all/flush/rename sequence, differing only in as_bytes() and the 'note' vs 'export' fallback name (lib.rs:299 vs :332).",
+      "root_cause": "The general function was never extracted.",
+      "fix_shape": "Private fn write_atomic(path, bytes); both commands one line over it (carries the confinement and fsync fixes).",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-rust-core-14"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-056",
+      "title": "Dev keychain migration swallows a failed read and still sets migrated=true, so that secret is never retried and the report says success",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/keychain.rs"
+      ],
+      "repro": "[COD-rust-core-11] Dev build, first boot, one account's keychain read errors on both passes (denied dialog / locked keychain) -> that secret is never copied, `migrated: true` is written, and the keychain is never read again by design. The report says already_done on every later boot.",
+      "evidence": "[COD-rust-core-11] src-tauri/src/keychain.rs:286-292 (pass 2: `resolved.insert(account.clone(), read(account).unwrap_or(None))` — the error is discarded); src-tauri/src/keychain.rs:197 (`store.migrated = true` runs unconditionally after the loop); src-tauri/src/keychain.rs:180-186 and :258-264 (both guards then short-circuit forever); src-tauri/src/keychain.rs:50-58 (MigrateReport has backend/migrated/already_done — no failed list, no error count); src-tauri/src/keychain.rs:189-190 (the comment acknowledges the skip: 'the user re-adds it via Settings' — but nothing tells the user WHICH) -- refuter admitted_with_correction (medium->low): The logic defect is real: pass 2 converts a read error to None (keychain.rs:287-289), migrate_at then sets migrated=true unconditionally (keychain.rs:197-198), both guards short-circuit forever after (keychain.rs:180-186, :258-264), and MigrateReport has no failed list (keychain.rs:49-58). Corrected: the whole path is cfg(debug_assertions) (keychain.rs:92, :353-361) - no shipped user runs it - and nothing is 'forfeited': the secret stays in the OS keychain and the frontend treats migration as best-effort with Settings re-entry as the fallback (src/lib/keychain.ts:141-151). Dev-only edge: low.",
+      "root_cause": "Pass 2 converts a read error to None and the flag is set unconditionally; MigrateReport has no failed list. Debug-only path.",
+      "fix_shape": "Set migrated only when no read errored, or add failed: Vec<String> to MigrateReport and leave the flag unset; pin with a Rust unit test using an erroring reader.",
+      "defect_class": "error-to-silent-empty",
+      "raw_ids": [
+        "COD-rust-core-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-057",
+      "title": "Dev keychain_migrate blocks an async-runtime worker for 140 s with no progress signal, so a dev first boot looks hung",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/keychain.rs"
+      ],
+      "repro": "[COD-rust-core-13] Dev build, first boot with existing OS-keychain items: keychain_migrate (an async command) calls std::thread::sleep(140s) inline; the renderer's invoke promise hangs for >2 minutes with no UI feedback.",
+      "evidence": "[COD-rust-core-13] src-tauri/src/keychain.rs:224 (MIGRATE_SELF_DISMISS_WAIT_SECS = 140); src-tauri/src/keychain.rs:286 (std::thread::sleep inside migrate_collecting); src-tauri/src/keychain.rs:348 (pub async fn keychain_migrate — runs on the Tauri async runtime); src-tauri/src/keychain.rs:354-360 (records that spawn_blocking was tried and broke the keychain read, so the inline placement is deliberate); the other three commands are async too (keychain.rs:299, :316, :332); docs/research/phase-10/hunt-rust-tauri.md BUG 6 flagged blocking keychain I/O on the async runtime and it is unfixed at 2d99cda -- refuter admitted (low->low): Holds as stated. keychain_migrate is an async command (keychain.rs:347-351) that runs migrate_collecting inline, which std::thread::sleep(140s) (keychain.rs:224, :286) on a Tauri async-runtime worker with no event/progress to the renderer; the inline placement is deliberate (keychain.rs:355-359) and the path is debug-only, so low is right.",
+      "root_cause": "Deliberate inline std::thread::sleep (spawn_blocking broke the read) with no event to the renderer.",
+      "fix_shape": "Emit a 'keychain-migrate:waiting' Tauri event with remaining seconds before the sleep; keep the inline read.",
+      "defect_class": "blocking-on-event-loop",
+      "raw_ids": [
+        "COD-rust-core-13"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-058",
+      "title": "The app-data-dir + temp-fallback policy is hand-copied into three functions (resolve_data_dir, get_app_data_dir, dev_keystore::file_path), kept in agreement only by comment",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/src/keychain.rs"
+      ],
+      "repro": "[COD-rust-core-12] design — resolve_data_dir (creates the dir, logs both failures), get_app_data_dir (no create, silent) and dev_keystore::file_path (creates, silent) each re-implement app_data_dir()-with-temp-fallback.",
+      "evidence": "[COD-rust-core-12] src-tauri/src/lib.rs:116-134 (resolve_data_dir — passed to the sidecar as --data-dir); src-tauri/src/lib.rs:142-151 (get_app_data_dir — the renderer's export/notes root, no create_dir_all, errors swallowed); src-tauri/src/keychain.rs:117-124 (dev_keystore::file_path, third copy, comment says 'mirrors resolve_data_dir in lib.rs'); consumers: src/modules/notes/notes-persistence.ts:31 and src/lib/export-artifact.ts:42 both build paths from get_app_data_dir -- refuter admitted_with_correction (medium->low): The triplication is real (lib.rs:116-134, lib.rs:142-151, keychain.rs:117-124, the last one saying it 'mirrors resolve_data_dir'). Corrected: the 'does not create the directory' half has no consequence, because every consumer of get_app_data_dir writes through write_text_atomic/write_bytes_atomic, which create_dir_all the parent (lib.rs:295, :326); and the three copies currently agree. A maintainability smell kept in sync by comment, not a medium defect.",
+      "root_cause": "One policy, three implementations.",
+      "fix_shape": "One fn app_data_dir(&AppHandle) -> PathBuf (create + log) called by all three.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-rust-core-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-059",
+      "title": "All three Rust child-kill closures hold the MutexGuard through the whole if-let body instead of releasing it after .take()",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/src/openbb_mcp.rs",
+        "src-tauri/src/sec_edgar_mcp.rs"
+      ],
+      "repro": "[INT-deferred-0-6] src-tauri/src/lib.rs:510 (main sidecar exit handler), src-tauri/src/openbb_mcp.rs:188, src-tauri/src/sec_edgar_mcp.rs:185 each still write 'if let Some(child) = state.0.lock().unwrap().take() { let _ = child.kill(); }' -- the MutexGuard temporary from '.lock().unwrap()' lives for the whole if-let block (the clippy::significant_drop_in_scrutinee shape), not just for the .take() call.",
+      "evidence": "[INT-deferred-0-6] src-tauri/src/lib.rs:508-513, src-tauri/src/openbb_mcp.rs:186-192, src-tauri/src/sec_edgar_mcp.rs:183-189 -- refuter admitted_with_correction (medium->low): The pattern is present at all three sites (lib.rs:510, openbb_mcp.rs:188, sec_edgar_mcp.rs:185), and on edition 2021 (Cargo.toml:6) the guard does live through the if-let body. The claimed consequence does not hold, though. Each of these mutexes is locked in exactly one place, the kill path itself; grep finds no other lock() on SidecarProcess, OpenbbMcpProcess or SecEdgarMcpProcess. So no concurrent locker can be blocked. child.kill() only sends a signal and never re-enters the mutex, so there is no deadlock either. significant_drop_in_scrutinee is a nursery lint that clippy -D warnings does not enable. This is lint hygiene with zero behavioural effect: lowered from medium to low.",
+      "root_cause": "Edition-2021 temporary lifetime in an if-let scrutinee; no behavioural effect today (each mutex locked only here).",
+      "fix_shape": "let child = state.0.lock().unwrap().take(); if let Some(child) = child { ... } at the three sites.",
+      "defect_class": "lint-hygiene",
+      "raw_ids": [
+        "INT-deferred-0-6"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-060",
+      "title": "BLUEPRINT promises a system tray; the Rust layer has none",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "rust-core",
+      "operator_areas": [],
+      "files": [
+        "src-tauri/src/lib.rs",
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "[INT-blueprint-0-6] grep -rn 'tray|Tray' src-tauri/src/*.rs src-tauri/tauri.conf.json -> 0 hits",
+      "evidence": "[INT-blueprint-0-6] src-tauri/tauri.conf.json (no trayIcon config); src-tauri/src/lib.rs (623 lines, window lifecycle + sidecar/MCP spawn + keychain + kill-switch, no tray setup) -- refuter admitted (low->low): No tray/Tray token anywhere in src-tauri's Rust sources or tauri.conf.json; the .plugin(...) chain in lib.rs (shell, updater, notification, kill_switch, mcp) confirms no tray-related plugin or manual TrayIconBuilder call either. Windowing and OS integration (keychain, sidecar lifecycle) are real, so only the named tray sub-feature is missing, consistent with a low/polish-tier finding.",
+      "root_cause": "Named sub-feature never implemented.",
+      "fix_shape": "Minimal tray (status icon + quit) via TrayIconBuilder in lib.rs, or drop the claim from BLUEPRINT.md §3.1.",
+      "defect_class": "promise-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-0-6"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-061",
+      "title": "sidecar-staleness newestMtime guards readdirSync but not statSync, so a source file deleted between readdir and stat crashes the ensure step (and tauri dev) with an unattributed stack trace",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/sidecar-staleness.mjs"
+      ],
+      "repro": "[COD-scripts-build-9] ln -s /nonexistent sidecar/services/dangling.py && node scripts/ensure-sidecar.mjs -> statSync throws ENOENT out of newestMtime -> out of isStale -> uncaught at ensure-sidecar.mjs:81, aborting the build (and with it tauri.conf.json's beforeDevCommand) with a stack trace naming neither the file nor the build step. Same shape for any file removed between readdirSync and statSync, e.g. a concurrent pytest/ruff writing and pruning caches.",
+      "evidence": "[COD-scripts-build-9] scripts/sidecar-staleness.mjs:63 (const m = statSync(full).mtimeMs — bare), vs :51-55 (readdirSync guarded, 'unreadable / missing dir contributes nothing') and :79-85 (the extraFiles stat guarded, 'missing extra file contributes nothing'), consumed at scripts/ensure-sidecar.mjs:81 -- refuter admitted_with_correction (low->low): The statSync at :63 is unguarded while :51-55 and :79-85 are guarded, which is real. The headline repro is wrong: readdirSync(withFileTypes) returns a symlink Dirent whose isFile() is false, so a dangling symlink is skipped and nothing crashes (verified). All that remains is a TOCTOU window where a SOURCE_EXT file outside IGNORE_DIRS is deleted between readdir and stat, which is rare because the cache dirs are already pruned. Side note: symlinked real sources are ignored for staleness for the same reason.",
+      "root_cause": "The hot-path stat lacks the try/catch applied six lines away; dangling symlinks are skipped (refuter), leaving only a TOCTOU window.",
+      "fix_shape": "Wrap the stat at :63-65 in the same 'contributes nothing' try/catch; covered by the staleness test file.",
+      "defect_class": "inconsistent-error-handling",
+      "raw_ids": [
+        "COD-scripts-build-9"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-062",
+      "title": "The BSE probe in smoke-test-sidecars has an unreachable catch, and _httpGetOk's blanket swallow discards the 404-vs-offline distinction the probe exists to report",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/smoke-test-sidecars.mjs"
+      ],
+      "repro": "[COD-scripts-build-11] design — _httpGetOk has `catch { return false }` over the whole fetch, so the try/catch wrapping `await _httpGetOk(url, 4000)` can never enter its handler.",
+      "evidence": "[COD-scripts-build-11] scripts/smoke-test-sidecars.mjs:382-398 (try { const ok = await _httpGetOk(url, 4000) ... } catch (err) { console.warn('probe errored') }), scripts/smoke-test-sidecars.mjs:334-345 (_httpGetOk: catch { return false }) -- refuter admitted (low->low): Confirmed. _httpGetOk wraps the fetch in try/catch returning false and clears its timer in finally, so the awaited promise cannot reject and the catch at :393-398 is dead. The status/error distinction the probe's own comment asks for is thrown away at :341.",
+      "root_cause": "_httpGetOk returns false on any failure.",
+      "fix_shape": "_httpGetOk returns {ok, status, error}; the warning names the actual outcome; delete the dead catch.",
+      "defect_class": "error-to-silent-empty",
+      "raw_ids": [
+        "COD-scripts-build-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-063",
+      "title": "scripts/*.py (12 files incl. r15 tooling and scripts/rig) sit outside every ruff gate in CI and ci-local",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        ".github/workflows/lint.yml",
+        "package.json"
+      ],
+      "repro": "[COD-scripts-build-12] python -m pip install ruff==0.15.12 && ruff check scripts -> reports issues (e.g. F541) that neither `ruff check sidecar` (CI) nor ci-local ever sees.",
+      "evidence": "[COD-scripts-build-12] .github/workflows/lint.yml:87-89 (ruff check sidecar; ruff format --check sidecar), package.json:19 (ci-local: same two path-scoped commands), scripts/render_phase_6_sc_screenshots.py:191 (f\"6 rows  (100 evaluated, 320 ms)\" — f-string with no placeholder, ruff F541), scripts/render_phase_6_sc_screenshots.py:151,208,220-221 (lines far past the formatter width) -- refuter admitted_with_correction (low->low): Confirmed that ruff runs only on sidecar/ in lint.yml and ci-local, and that ruff 0.15.12 on scripts/ reports F541 + F841 and would reformat 2 files. Scope correction: 12 tracked .py files sit outside the gate, not just the two screenshot generators. The others are the r15 tooling (vy.py, register.py, ...) and scripts/rig/ including test_rig_guard.py. Those are real tools today, so the blind spot is not only hypothetical. Still low.",
+      "root_cause": "ruff is path-scoped to sidecar/.",
+      "fix_shape": "ruff check/format --check over 'sidecar scripts' in lint.yml and ci-local (lint.yml is a Tier-1 CI workflow -> operator).",
+      "defect_class": "gate-scope-gap",
+      "raw_ids": [
+        "COD-scripts-build-12"
+      ],
+      "tier4": true
+    },
+    {
+      "id": "R15-CODE-PLATFORM-064",
+      "title": "Screenshot generator scripts depend on an undeclared Pillow and silently collapse all three font sizes into load_default() on macOS/Linux",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "scripts-build",
+      "operator_areas": [],
+      "files": [
+        "scripts/render_phase_6_e_screenshots.py",
+        "scripts/render_phase_6_sc_screenshots.py"
+      ],
+      "repro": "[COD-scripts-build-13] sidecar/.venv/bin/python scripts/render_phase_6_e_screenshots.py -> ModuleNotFoundError: No module named 'PIL' (Pillow is in none of the four requirements files). With Pillow installed on macOS/Linux: load_font tries only the two C:/Windows/Fonts paths, both raise OSError, and returns ImageFont.load_default(), which ignores `size` — so fnt_small/fnt_med/fnt_lg are the same bitmap font and the 1920x1080 / 2560x1440 'pair' is one render at two canvas sizes.",
+      "evidence": "[COD-scripts-build-13] scripts/render_phase_6_e_screenshots.py:20 (from PIL import Image, ImageDraw, ImageFont), :37-48 (load_font: candidates = [\"C:/Windows/Fonts/consola.ttf\", \"C:/Windows/Fonts/cour.ttf\"]; except OSError: continue; return ImageFont.load_default()), :55-57 (three distinct sizes requested), scripts/render_phase_6_sc_screenshots.py:39-47 and :88-96 (same pattern), sidecar/requirements.txt + sidecar/requirements-dev.txt + sidecar/openbb_mcp_subprocess/requirements.txt + sidecar/sec_edgar_mcp_subprocess/requirements.txt (grep -i pillow: no hits) -- refuter admitted (low->low): Confirmed. Pillow is in none of the four requirements files and the sidecar venv has no PIL. load_font tries only two C:/Windows/Fonts paths, then falls back to ImageFont.load_default() with no size argument, so every requested size collapses to one default font on macOS/Linux. These are dead v0.6.0-era scripts, and deleting them under COD-scripts-build-5 closes this too.",
+      "root_cause": "Windows-only font paths with a swallowed OSError fallback.",
+      "fix_shape": "Delete both dead v0.6.0-era scripts and their mock PNGs; if kept, declare Pillow and raise when no truetype font resolves.",
+      "defect_class": "error-to-silent-empty",
+      "raw_ids": [
+        "COD-scripts-build-13"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-065",
+      "title": "POST /workflow/run swallows spec-validation errors: the SSE stream closes with zero frames and the editor shows a guessed cause instead of the real reason",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "sidecar/routers/workflow.py",
+        "sidecar/services/workflow_engine.py",
+        "src/modules/node-editor/NodeEditorPanel.tsx",
+        "src/modules/node-editor/code-node-run.ts"
+      ],
+      "repro": "[COD-workflow-engine-4] Run a spec containing an unregistered node type (e.g. a plugin-contributed node) or a dangling edge -> _validate_spec raises before run-start (proof: 'events emitted: []') -> routers/workflow.py:55-58 logs and ends the stream -> the editor shows its generic 'stream ended without a terminal frame … e.g. a node type with no server-side handler' guess.",
+      "evidence": "[COD-workflow-engine-4] sidecar/routers/workflow.py:50-60 (comment at :57 'The engine emits run-error on validation failures already' is false); sidecar/services/workflow_engine.py:191 (_validate_spec before any _emit); siblings that do it right: sidecar/routers/llm.py:144-145 and sidecar/routers/agents.py:109-110 (yield an error frame), sidecar/services/mcp_server.py:282-285 (returns the WorkflowEngineError text); workarounds: src/modules/node-editor/NodeEditorPanel.tsx:374-379,435-441 and src/modules/node-editor/code-node-run.ts:76-90 (client re-implements cycle detection because of this) -- refuter admitted_with_correction (medium->low): Mechanism is real: _validate_spec raises before run-start, the router's except only logs, and the comment at routers/workflow.py:57 is false (zero events emitted). Downgraded because the failure is not silent: NodeEditorPanel already turns a no-terminal-frame stream into a run error with a likely-cause message and pre-empts cycles client-side, and the MCP run_workflow path returns the exact WorkflowEngineError text; what is lost is only the precise reason string in the editor.",
+      "root_cause": "_validate_spec raises before run-start and the router only logs (its comment claims the engine emits run-error).",
+      "fix_shape": "On WorkflowEngineError yield a run-error event carrying str(exc); delete the client-side 'no terminal frame' guesswork and duplicated Kahn cycle check; pin with a router test asserting a run-error frame for a dangling edge.",
+      "defect_class": "stream-terminal-invariant",
+      "raw_ids": [
+        "COD-workflow-engine-4"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-066",
+      "title": "The server code node admits unbounded ** and list * and evaluates synchronously on the event loop (7**10**7 blocked the sidecar 8.2 s), reachable via MCP run_workflow",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/workflow_nodes/code_node.py"
+      ],
+      "repro": "[COD-workflow-engine-7] evaluate_code({}, {'expression': '7**(10**7)'}) took 8.226 s on the event loop (7**10**6: 0.2 s; growth is super-linear, 7**10**8 is minutes). '[0]*10**9' is also admitted (ast.List + BinOp Mult). Reachable by an agent through MCP run_workflow/save_workflow.",
+      "evidence": "[COD-workflow-engine-7] sidecar/services/workflow_nodes/code_node.py:5-6 ('Safe by construction'), :20-27 (ast.Pow, ast.Mult unbounded), :62-63, :84-85, :89-100 (sync evaluation inside an async handler, no to_thread, no size guard) -- refuter admitted_with_correction (medium->low): Real: ast.Pow and ast.Mult are unbounded and evaluation runs synchronously inside the async handler on the event loop (7**10**6 took 0.21 s here; larger exponents grow super-linearly). Downgraded: it needs a pathological expression authored by the local user or their own agent in a single-user local app, and the node editor evaluates code nodes client-side, so only the MCP/agent path reaches it - not something hit in normal use.",
+      "root_cause": "'Safe by construction' covers code execution, not CPU/memory exhaustion.",
+      "fix_shape": "Bound Pow exponents, reject Mult on list/str operands, evaluate via asyncio.to_thread with a timeout; pin with a test that 7**(10**7) is rejected fast.",
+      "defect_class": "blocking-on-event-loop",
+      "raw_ids": [
+        "COD-workflow-engine-7"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-067",
+      "title": "Domain workflow node adapters re-own domain knowledge (a third copy of the macro provider list) and each invents its own input/config precedence, with `or` chains treating 0/''/[] inputs as missing",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/workflow_nodes/macro_nodes.py",
+        "sidecar/services/workflow_nodes/quant_nodes.py",
+        "sidecar/services/workflow_nodes/research_nodes.py",
+        "sidecar/services/workflow_nodes/screener_nodes.py",
+        "sidecar/services/workflow_nodes/sec_nodes.py",
+        "src/modules/node-editor/node-registry.ts"
+      ],
+      "repro": "[COD-workflow-engine-11] design",
+      "evidence": "[COD-workflow-engine-11] sidecar/services/workflow_nodes/macro_nodes.py:22,38-42 (_VALID_PROVIDERS copy of sidecar/services/macro/macro_router.py:47-52, and a third copy in src/modules/node-editor/node-registry.ts:364); precedence idioms: quant_nodes.py:31-36 (_merge, inputs win unless None), research_nodes.py:47 (`or` chain), :57 ('watchlist' in inputs), screener_nodes.py:54-56 (None check), sec_nodes.py:35-42 (6-way or-chain) -- refuter admitted (low->low): macro_nodes keeps its own _VALID_PROVIDERS copy of macro_router._PROVIDERS keys (and the palette a third copy), and adapters use inconsistent precedence idioms (`or` chains that treat 0/''/[] as missing vs. None checks vs. key-presence). Design-level, no current wrong output.",
+      "root_cause": "No shared input-resolution helper; provider validation duplicated from macro_router.",
+      "fix_shape": "Delete _VALID_PROVIDERS (let macro_router's ProviderError validate); one resolve(inputs, config, key, default) helper with 'input present (not None) wins'.",
+      "defect_class": "duplicated-truth",
+      "raw_ids": [
+        "COD-workflow-engine-11"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-068",
+      "title": "Workflow node registration is decomposed by release (version-stamped aggregator, split create_app/main boot paths, stale docstrings, hardcoded count) and resume-from is accepted but ignored",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [],
+      "files": [
+        "sidecar/services/workflow_nodes/registry_v0_6_0.py",
+        "sidecar/services/workflow_nodes/__init__.py",
+        "sidecar/app.py",
+        "sidecar/main.py",
+        "sidecar/routers/workflow.py",
+        "sidecar/models/workflow.py",
+        "types/workflow.ts"
+      ],
+      "repro": "[COD-workflow-engine-12] design",
+      "evidence": "[COD-workflow-engine-12] sidecar/services/workflow_nodes/registry_v0_6_0.py:27-68 (dead else branch at :67-68, 'Teammate M/F/Q/E/Sc' ordering); sidecar/app.py:188-200 (docstring 'Aggregator stubs that no-op until a Phase 6 teammate's submodule uncomments'); sidecar/main.py:46,61 (builtins registered only here); sidecar/services/workflow_nodes/__init__.py:60 (hardcoded count 11); sidecar/routers/workflow.py:120-121 (_encode_event_dict dead 'kept for parity'); sidecar/models/workflow.py:73-74 + types/workflow.ts:82-89 (mode 'resume-from'/resumeFrom accepted, ignored by the engine) -- refuter admitted (low->low): Confirmed: version-stamped aggregator with an unreachable else branch (registered is always non-empty), stale 'no-op until uncommented' docstring in app.py, builtins registered only in main.py (deliberately, per main.py's own docstring, so TestClient apps lack them), dead _encode_event_dict, and mode 'resume-from'/resumeFrom accepted by WorkflowRunRequest but never passed to run_workflow.",
+      "root_cause": "Temporal decomposition; builtins registered only in main.py so TestClient apps lack them.",
+      "fix_shape": "One register_all() in services/workflow_nodes called from one place; delete the dead branch and _encode_event_dict; drop resume-from from the request model until implemented.",
+      "defect_class": "dead-code-misleading-docs",
+      "raw_ids": [
+        "COD-workflow-engine-12"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-069",
+      "title": "Plugin-contributed workflow nodes appear in the palette but have no execution path (the engine rejects them), and the engine docstring claims they register through the same surface",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "workflow-engine",
+      "operator_areas": [
+        "ui-panels"
+      ],
+      "files": [
+        "src/modules/node-editor/node-registry.ts",
+        "sidecar/services/workflow_engine.py"
+      ],
+      "repro": "[COD-workflow-engine-13] A plugin with contributesNodes=true registers a NodeSpec -> buildRegistry shows it in the palette -> the sidecar engine only knows Python handlers registered via register_node_type -> _validate_spec rejects it -> zero-frame stream (COD-workflow-engine-4). No bundled plugin sets contributesNodes today.",
+      "evidence": "[COD-workflow-engine-13] src/modules/node-editor/node-registry.ts:563-573; src/modules/node-editor/NodeEditorPanel.tsx:116-117; sidecar/services/workflow_engine.py:9-12,115-120 (claims plugin nodes 'register through the same surface' — no TS->Python bridge exists); plugins/*/index.ts (all contributesNodes: false) -- refuter admitted (low->low): buildRegistry appends plugin NodeSpecs to the palette, but the only execution path is the Python _HANDLERS registry and there is no TS-to-Python bridge, so a plugin node would be rejected by _validate_spec. Latent: every bundled plugin sets contributesNodes false. Not an out-of-scope 'plugin system existence' reopening - it concerns one unreachable capability.",
+      "root_cause": "No TS-to-Python node bridge exists; latent (no bundled plugin sets contributesNodes).",
+      "fix_shape": "Host-side: filter or badge 'not runnable' plugin nodes absent from GET /workflow/node-types (from the palette-drift fix); correct the docstring. Contract change stays out of scope.",
+      "defect_class": "inert-contract-slice",
+      "raw_ids": [
+        "COD-workflow-engine-13"
+      ],
+      "tier4": false
+    },
+    {
+      "id": "R15-CODE-PLATFORM-070",
+      "title": "globals.css var() fallbacks are frozen at retired values (27 colour + ~10 type/weight/radius, incl. the .notes-prose 22/18/15/12 sizes and 590 weight R9 abolished), contradicting the file's own 'never warm' invariant",
+      "severity": "low",
+      "area": "code",
+      "subsystem": "frontend-panels-shell-chrome",
+      "operator_areas": [],
+      "files": [
+        "src/app/globals.css",
+        "scripts/audit-design-tokens.mjs"
+      ],
+      "repro": "[INT-pdd-readme-0-2] design -- grep 'var(--color-' src/app/globals.css and diff each fallback against styles/tokens.css: 27 color fallbacks and 17 non-color fallbacks disagree with the token they back. e.g. src/app/globals.css:201 'box-shadow: 0 0 0 1px var(--color-amber-400, #d89a4e)' backs a token whose value is #fab283. || [INT-pdd-readme-45-8] design",
+      "evidence": "[INT-pdd-readme-0-2] src/app/globals.css:18-20 (the claimed invariant: 'Fallbacks use NEUTRAL values so a missing token degrades to the same neutral gray -- never warm, never blue'); violating lines: :76,:189,:201,:202,:208,:209,:222,:237,:287,:289,:295,:302,:303,:320,:346,:347,:348,:349,:350,:351,:352,:353,:354,:355,:444,:502,:511 (color) and :73,:242,:244,:249,:251,:255,:257,:301,:304,:383,:421,:519 (non-color: --font-weight-heading 590 vs token 700 at styles/tokens.css:124; --radius-panel 0.375rem vs token 0 at styles/tokens.css:145; --text-panel-title 0.9375rem vs token 0.8125rem at styles/tokens.css:117). Authority for the rule: docs/redesign/PRODUCT_DESIGN_DECISIONS.md:83-89 (FR-030 lockstep, 'and every fallback hex') and CLAUDE.md's chart-theme lockstep gotcha. -- refuter admitted_with_correction (medium->low): The 27 stale colour fallbacks are real and exactly as listed (e.g. globals.css:201,208,222 amber-400 fallback #d89a4e vs token #fab283; :346,:352,:444 charcoal-900 fallback #1a1814 vs #161616; :502,:511 charcoal-300 #d4d4d4 vs #cccccc), contradicting the comment at :18-20 ('never warm'). Corrections: the non-colour count is 10 not 17 — :421 and :519 use a 4px fallback for --radius-control, which equals the token 0.25rem, so they do not disagree (the real ones are :73,:242,:244,:249,:251,:255,:257,:301,:304,:383). Severity lowered to low: the finding itself verifies no fallback ever fires (every token is emitted), so there is zero runtime effect; the harm is a misleading comment and a grep trap for a maintainer, i.e. polish/hygiene. || [INT-pdd-readme-45-8] src/app/globals.css:243 (h1 fallback `1.375rem` = 22px), :249 (h2 fallback `1.125rem` = 18px), :255 (h3 fallback `0.9375rem` = 15px), :301 (pre fallback `0.75rem` = 12px), :244,251 (weight fallback `590`); versus styles/tokens.css:112 ('12, 15, 18, 22 are dead sizes; the audit script rejects them') and :124 (--font-weight-heading 700) -- refuter admitted (low->low): Confirmed: the .notes-prose fallbacks are 1.375rem, 1.125rem, 0.9375rem and 0.75rem, with weight 590. The warm-palette colour fallbacks (#4d463b, #ada294, #2d2820, #17140f, #3e372d) are stale in the same way. tokens.css is imported unconditionally at globals.css:7, so none of these fallbacks ever renders today. It is dead or stale code, low as stated.",
+      "root_cause": "Fallbacks were not re-valued in the reskin; no audit compares a fallback to its token. No runtime effect (every token is emitted).",
+      "fix_shape": "Re-value or delete all stale fallbacks from styles/tokens.css in one sweep, and add a check to audit-design-tokens.mjs failing when a var() fallback disagrees with its token.",
+      "defect_class": "stale-token-fallbacks",
+      "raw_ids": [
+        "INT-pdd-readme-0-2",
+        "INT-pdd-readme-45-8"
+      ],
+      "tier4": false
+    }
+  ],
+  "rejections": []
+}

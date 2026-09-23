@@ -1,0 +1,292 @@
+[
+ {
+  "raw_id": "COD-rust-core-4",
+  "title": "Auto-updater is registered, configured and bundled but never invoked from anywhere, and the JS path is not even permitted by the capability",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "rust-core",
+  "repro": "design — grep the whole repo for an updater check: the Rust side never calls app.updater(), the frontend never imports @tauri-apps/plugin-updater, and capabilities/default.json grants no `updater:*` permission. A shipped build therefore never discovers a release.",
+  "evidence": "src-tauri/src/lib.rs:393 (.plugin(tauri_plugin_updater::Builder::new().build())); src-tauri/tauri.conf.json plugins.updater (endpoint https://github.com/techlogist1/vysted-terminal/releases/latest/download/latest.json + minisign pubkey); package.json:28 (@tauri-apps/plugin-updater 2.10.1 installed); src-tauri/capabilities/default.json permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open] — no updater permission; grep 'updater' over src/ returns zero hits; docs/CURRENT_STATE.md:232-234 and :896 already record it as non-functional; docs/research/phase-10/hunt-rust-tauri.md BUG 4 reported it and it is unfixed at 2d99cda",
+  "notes": "APOSD 18/obviousness: the feature is wired at every layer except the one that fires it, so it compiles, ships and looks present. Consequence: a released desktop app that can never self-update — every user stays on the version they installed, including past a security fix. Smallest fix inside rust-core: one background call to app.updater()?.check() in setup (the Rust path needs no capability); the full fix also needs createUpdaterArtifacts:true + a publish workflow (out of this subsystem). Known-and-unfixed since Phase 10 — the signal is that it survived a hunt.",
+  "source_file": "code-rust-core.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Holds. The updater plugin is registered (lib.rs:393) and configured with endpoint + pubkey (tauri.conf.json plugins.updater), but nothing in src-tauri/src calls app.updater(), nothing in src/ or plugins/ imports @tauri-apps/plugin-updater (package.json:29 installs it), capabilities/default.json grants no updater:* permission, and tauri.conf.json:45 sets createUpdaterArtifacts:false so a release would not even produce the signed update bundle. A shipped build can never discover or install an update."
+  }
+ },
+ {
+  "raw_id": "COD-scripts-build-1",
+  "title": "Staleness gate's extension whitelist misses the bundled .gz fundamentals seed — regenerating it does not rebuild the binary, and assertFresh passes too",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "scripts-build",
+  "repro": "node -e \"console.log(/\\.(py|txt|toml|cfg|ini|json|csv)$/i.test('india_fundamentals_seed.json.gz'))\" -> false. Then: regenerate sidecar/services/screener_universes/india_fundamentals_seed.json.gz (via regenerate_fundamentals_seed.py, which touches no .py) -> run `node scripts/ensure-all-sidecars.mjs` (no --force, exactly as tauri.conf.json beforeBuildCommand and package.json ci-local invoke it) -> prints '[ensure-sidecar] vysted-sidecar-<triple> present and fresh — skipping build.' -> `node scripts/smoke-test-sidecars.mjs` freshness gate also passes -> the bundled binary still carries the PREVIOUS Indian fundamentals snapshot.",
+  "evidence": "scripts/sidecar-staleness.mjs:41 (SOURCE_EXT = /\\.(py|txt|toml|cfg|ini|json|csv)$/i), scripts/sidecar-staleness.mjs:62 (the SOURCE_EXT.test gate in newestMtime), scripts/sidecar-staleness.mjs:94 (isStale), scripts/sidecar-staleness.mjs:108 (assertFresh), scripts/ensure-sidecar.mjs:179,184 (--add-data bundles services/screener_universes wholesale), scripts/ensure-sidecar.mjs:81-86 (the fresh -> skip build guard), scripts/smoke-test-sidecars.mjs:886 (assertFresh call site), sidecar/services/fundamentals_seed.py:37 (_PACK_FILENAME = \"india_fundamentals_seed.json.gz\"), sidecar/services/screener_universes/india_fundamentals_seed.json.gz (717 KB, committed)",
+  "notes": "Information hiding / duplicated truth: 'what is build input' is encoded twice in different shapes — as an --add-data path list in ensure-sidecar.mjs:182-189 and as a file-extension regex in sidecar-staleness.mjs:41 — and the two have already drifted. `\\.json$` does not match `...json.gz`. Consequence: the Phase-9.5 S0-2 stale-bundle trap re-enters through its own fix's allowlist, on money-relevant data (P/E, market cap for Indian equities seeded on fresh install), and BOTH layers of the defence (auto-rebuild + the belt-and-suspenders assertFresh CI gate) read the same drifted copy, so every gate reports green. Bites the local release build in particular, since CLAUDE.md's hard gates are run locally before a tag and src-tauri/binaries/ is gitignored (CI always builds fresh, so CI will not surface it). Smallest fix: invert the rule to a deny-list (skip .pyc/.log/.DS_Store, accept everything else) AND feed the ensure script's --add-data source paths into staleOpts.extraFiles so the two encodings become one; minimum viable is adding |gz|xml|yaml|yml to SOURCE_EXT plus a tmpdir unit test asserting a .gz edit marks the binary stale.",
+  "source_file": "code-scripts-build.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Real, and I reproduced it: SOURCE_EXT does not match '*.json.gz', so the bundled seed pack is invisible to both isStale (the auto-rebuild) and assertFresh (the gate), and a regenerated pack ships the old snapshot. Downgraded from high because the pack is NULL-fill only and stamped seed_updated_at/_generated, so its values are labeled with their vintage and are never presented as live. An out-of-date labeled seed is not wrong data shown as true. Also, CI builds from scratch (src-tauri/binaries/ is gitignored), so only a local incremental release build is exposed."
+  }
+ },
+ {
+  "raw_id": "COD-scripts-build-2",
+  "title": "CI freshness gate hand-copies the staleness config the ensure scripts own — the gate can silently diverge from the builder it gates",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "scripts-build",
+  "repro": "design",
+  "evidence": "scripts/smoke-test-sidecars.mjs:862-884 (three literal { name, dirs, opts:{excludeDirs, extraFiles} } blocks) vs scripts/ensure-sidecar.mjs:73-80 (SOURCE_EXCLUDES + STALE_OPTS), scripts/ensure-openbb-mcp-sidecar.mjs:88-90, scripts/ensure-sec-edgar-mcp-sidecar.mjs:78-80",
+  "notes": "General-purpose over special-purpose + information leakage. The two copies are byte-identical today, which is the hazard rather than the reassurance: the instant one side gains an entry (e.g. the --add-data paths that COD-scripts-build-1 needs), assertFresh certifies freshness against a DIFFERENT source set than ensure-sidecar.mjs built against, and still reports green. A gate that can diverge from the thing it gates is worse than no gate — it converts 'we did not check' into 'we checked and it is fine'. Fix shape: export one SIDECAR_SPECS table ({name, sourceDir, staleOpts, identifier}) from a shared module; _assertAllFresh becomes a for-loop over it and each ensure script reads its own row.",
+  "source_file": "code-scripts-build.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Confirmed: _assertAllFresh hard-codes its own copy of each sidecar's dirs/excludeDirs/extraFiles, separate from the STALE_OPTS in each ensure script. The copies match today. Downgraded to medium because nothing has diverged yet, so it is a latent maintainer hazard (it would bite as soon as COD-scripts-build-1 is fixed on one side only), not a flow that currently breaks."
+  }
+ },
+ {
+  "raw_id": "COD-scripts-build-4",
+  "title": "Sidecar smoke test conflates frozen-binary correctness with live-exchange reachability: ~95s of nondeterministic CI time that can never fail the run",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "scripts-build",
+  "repro": "node scripts/smoke-test-sidecars.mjs — runs _probeBseBhavcopyNoSla (4s HTTP to bseindia.com), _probeNseDirectNoSla (blocking execFileSync of the sidecar venv python with a 60s timeout, live nseindia.com), and the /history/ICONIKSPEV probe (30s, live BSE). All three only console.warn; none can set a non-zero exit code. Wired into every push via .github/workflows/test.yml:69 and build.yml:74.",
+  "evidence": "scripts/smoke-test-sidecars.mjs:370-399 (BSE bhavcopy, warn at :387), scripts/smoke-test-sidecars.mjs:413-471 (NSE direct, execFileSync timeout 60_000 at :451, warn at :459), scripts/smoke-test-sidecars.mjs:706-720 (/history/ICONIKSPEV, 30s, warn at :715), scripts/smoke-test-sidecars.mjs:917-919 (called unconditionally after the gating tests), .github/workflows/test.yml:69, .github/workflows/build.yml:74",
+  "notes": "Different-layer-different-abstraction + better-apart. A deterministic, gating check ('does the frozen binary boot and serve the bundled data') is fused with a nondeterministic, advisory one ('is the exchange reachable from this runner'). Consequence: up to ~95s wall-clock per CI run producing signal nobody reads — CI logs are opened when a run is red, and these probes structurally cannot make one red. The stated purpose (':390, :461 — flag a URL-SHAPE regression early') is also unachievable as written: a URL-shape break and 'no outbound network in CI' emit the same warning line. Fix shape: move the two exchange probes into a separate `pnpm probe:exchanges` the operator runs attended (where a warn is actually seen), or gate them behind --require-network so a caller that knows it has a network gets a hard failure. The binary smoke then stays hermetic and fast.",
+  "source_file": "code-scripts-build.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The mechanism is real. The BSE bhavcopy probe (4s), the NSE curl_cffi probe (60s execFileSync), and the /history/ICONIKSPEV probe (30s) can only console.warn, and main() calls them no matter how the gating tests went. Downgraded to low: they add at most ~95s of wall clock, and they never make a broken binary pass (the gating checks run separately and still push failures). The cost is CI time plus advisory signal nobody sees, and _httpGetOk's swallow means a URL-shape break cannot be told apart from 'offline'."
+  }
+ },
+ {
+  "raw_id": "COD-scripts-build-7",
+  "title": "The design-token audit is documented as running 'in the gate battery' and is wired into no gate at all",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "scripts-build",
+  "repro": "grep -rn 'audit-design-tokens' package.json .github/workflows/ -> no hits (only R9 track-brief docs reference it). package.json:19 ci-local does not include it either.",
+  "evidence": "scripts/audit-design-tokens.mjs (whole file), package.json:6-21 (scripts block — absent), .github/workflows/*.yml (absent; lint.yml:87-89 runs only eslint/prettier/ruff), docs/redesign/R9_DESIGN_SYSTEM.md:40-42 ('scripts/audit-design-tokens.mjs enforces the allowed set statically over src/ and plugins/; it runs in the gate battery')",
+  "notes": "The design system's only automated enforcement is claimed by the spec and does not exist. Currently clean (verified: `node scripts/audit-design-tokens.mjs --report` -> 'design-token audit clean'), so the cost is latent — but nothing prevents a return to the 274-violation state that docs/redesign/R9_TRACK_TIERS_REPORT.md:129 records, and the doc will keep telling the next maintainer it is covered. Fix shape (two lines): add \"audit:tokens\": \"node scripts/audit-design-tokens.mjs\" to package.json and chain it into ci-local plus a step in .github/workflows/lint.yml. Fix COD-scripts-build-6 first or the Windows CI leg will pass vacuously.",
+  "source_file": "code-scripts-build.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed. R9_DESIGN_SYSTEM.md:40-42 says the audit 'runs in the gate battery', but no package.json script, no ci-local step and no workflow invokes it; lint.yml runs only eslint/prettier/ruff. The spec's only automated token enforcement is not wired in."
+  }
+ },
+ {
+  "raw_id": "COD-scripts-build-10",
+  "title": "MCP bind budget is aligned to the Rust supervisor by a comment, not by structure — shrink the Rust constant and the smoke gate keeps passing binaries the app will abandon",
+  "severity": "low",
+  "area": "release",
+  "subsystem": "scripts-build",
+  "repro": "design — change src-tauri/src/lib.rs:78 MCP_PORT_WAIT_SECS from 45 to, say, 20; nothing in scripts/ or CI fails, and smoke-test-sidecars.mjs keeps certifying a subprocess that binds at 60s as OK while the shipped app gives up at 40s.",
+  "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (const MCP_BIND_TIMEOUT_MS = 90_000 with the comment 'aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x MCP_PORT_WAIT_ATTEMPTS(2) = 90s'), src-tauri/src/lib.rs:78 (MCP_PORT_WAIT_SECS = 45), src-tauri/src/lib.rs:83 (MCP_PORT_WAIT_ATTEMPTS = 2), src-tauri/src/openbb_mcp.rs:149-152 and src-tauri/src/sec_edgar_mcp.rs:148-151 (the consumers)",
+  "notes": "An invariant held by a comment where the structure could hold it. The comment is correct today and there is no mechanism keeping it correct. Consequence: the smoke gate's whole claim ('this binary binds inside the budget the app will actually wait') silently becomes false, in the one direction that produces a shipped hang. Smallest fix: put the number in one place the other side reads — e.g. a build.rs-emitted JSON or a shared constants file the smoke test parses — or, cheapest, a `cargo test` assertion that MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS * 1000 == the value the smoke script declares.",
+  "source_file": "code-scripts-build.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Confirmed. MCP_BIND_TIMEOUT_MS=90_000 is tied to lib.rs MCP_PORT_WAIT_SECS=45 x ATTEMPTS=2 only by a comment. The one Rust guard, mcp_wait_budget_constants_drive_the_helper, asserts only budget_secs >= 15, so dropping it to 20 passes every test while the smoke gate keeps certifying 90s binds."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-0-2",
+  "title": "Org/product domains (vysted.com, terminal.vysted.com) do not resolve",
+  "severity": "low",
+  "area": "release",
+  "subsystem": "distribution / brand",
+  "repro": "curl -s -o /dev/null -w '%{http_code}' https://vysted.com and https://terminal.vysted.com -> both exit 6 (could not resolve host)",
+  "evidence": "docs/BLUEPRINT.md:31-32 (domain structure); DNS lookup failure for both hosts",
+  "notes": "Expected pre-launch, but the BLUEPRINT.md claim reads as a current fact (\"vysted.com IS the org/lab landing page\") rather than a plan. Smallest fix: register + park a minimal landing page before a public 0.9.0 announcement, or soften the doc's tense to future/planned.",
+  "source_file": "intent-blueprint-0.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "DNS resolution genuinely fails for both hosts from this machine; BLUEPRINT.md's domain-structure lines are phrased as present-tense fact rather than a plan, so the finding's framing (doc tense) holds even though the missing domains themselves are unremarkable pre-launch."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-0-5",
+  "title": "Distribution promise (SignPath signing, Homebrew cask, GitHub Releases) is unbuilt; CI ships unsigned bundles",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "CI / distribution",
+  "repro": "grep -rli signpath .github/workflows scripts -> 0 hits; .github/workflows/build.yml:76 step name \"Build Tauri bundle (unsigned)\"; gh release list -> empty; no Homebrew formula/cask file anywhere in the repo",
+  "evidence": ".github/workflows/build.yml:76; .github/workflows/ (only build.yml, lint.yml, test.yml — no release.yml)",
+  "notes": "Auto-updater plugin and AppImage bundle target are wired; signing and cask distribution are not. This is normal for pre-0.9.0 but would block an actual public release as promised (users would get SmartScreen/Gatekeeper warnings with no bypass docs shipped either). Smallest fix: track as an explicit release-blocking TODO with an owner, not silently assumed done.",
+  "source_file": "intent-blueprint-0.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Confirmed no release.yml exists and build.yml's own step is explicitly named \"Build Tauri bundle (unsigned)\"; gh release list returned nothing; grep for signpath across .github/workflows and scripts/ is genuinely empty. This is expected for a project that has not tagged v1.0/public 0.9.0 yet, which is why it lands at medium rather than high — it is a real gap against the locked promise, not a functional break today."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-144-1",
+  "title": "No GitHub release pipeline exists — bundles never leave CI as artifacts a user can download",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "CI / distribution (.github/workflows/build.yml, tauri.conf.json)",
+  "repro": "git tag a release and push -> no workflow listens for a tag or `release:` event; build.yml only triggers on push-to-main/pull_request and uploads to actions/upload-artifact@v4 (ephemeral, expires, not attached to a Release).",
+  "evidence": ".github/workflows/build.yml:3-6, :76, :79-84; src-tauri/tauri.conf.json:45 createUpdaterArtifacts=false; docs/CURRENT_STATE.md:896, :681.",
+  "notes": "BLUEPRINT §4 (L312) promises a GitHub Releases pipeline with Tauri auto-update; none of the release-side machinery exists — no tag trigger, no release-creation step, no asset attach, no latest.json/sig production. Smallest fix shape: a release.yml triggered on `v*` tags that builds all three platforms, runs `tauri-apps/tauri-action` (or an explicit `gh release create` + asset upload), and flips createUpdaterArtifacts to true.",
+  "source_file": "intent-blueprint-144.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Holds and is live-confirmed: build.yml triggers only on push-to-main/pull_request and ends in actions/upload-artifact (ephemeral); no workflow listens for tags or creates a Release. The repo is public with tags v0.6.0..v0.8.0 but the GitHub releases API returns 0 releases, so there is no user-downloadable build at all."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-144-2",
+  "title": "No code-signing pipeline for any platform — every bundle is unsigned",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "CI / build signing (.github/workflows/build.yml, tauri.conf.json)",
+  "repro": "Build any platform's bundle via CI -> macOS: Gatekeeper 'app is damaged / cannot be opened'; Windows: SmartScreen flags the installer as unrecognized.",
+  "evidence": ".github/workflows/build.yml:76 'Build Tauri bundle (unsigned)' is the only signing-adjacent line in the whole workflows dir; tauri.conf.json has no macOS signingIdentity block and no Windows certificate block; docs/CURRENT_STATE.md:680-681.",
+  "notes": "BLUEPRINT §4 (L313) promises SignPath for Windows + ad-hoc signing for Mac; scripts/macos-dev-sign.mjs exists but only stabilizes the local `tauri dev` keychain ACL, not a release bundle. A first-time user on either platform hits an OS-level 'this is untrusted' wall before ever opening the app — this is the top-of-funnel blocker for every other release promise (185/186/187/188 all inherit this gap).",
+  "source_file": "intent-blueprint-144.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "The gap holds: no signing identity, certificate, sign command or signing secret exists anywhere in tauri.conf.json or .github/workflows, and a local release bundle carries only the linker ad-hoc signature (Info.plist not bound, no sealed resources), which Gatekeeper reports as 'damaged' once quarantined. Correction to the fix shape: the promised Windows route is no longer available. SignPath Foundation's free OSS tier requires 'an OSI-approved Open Source license without commercial dual-licensing', and PolyForm Strict + commercial (the 23 Sep relicense) fails both conditions, so Windows signing now needs a paid certificate or service. Findings 3 and 4 are per-platform duplicates of this one and should merge into it."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-144-3",
+  "title": "macOS CI bundle ships unsigned — no ad-hoc first-launch bypass as promised",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "CI macOS build (.github/workflows/build.yml)",
+  "repro": "Download the CI-built .dmg on macOS and open it -> Gatekeeper blocks with 'app is damaged', not the documented right-click-Open bypass.",
+  "evidence": ".github/workflows/build.yml:13, :54-61, :76; src-tauri/tauri.conf.json:32 targets include dmg/app but no signingIdentity; docs/CURRENT_STATE.md:680-681.",
+  "notes": "BLUEPRINT §6.2 (L371) specifically promises an ad-hoc-signed .dmg with a $0-cost bypass path; what ships is fully unsigned, so the documented bypass instructions (right-click Open) don't even apply — the user gets Gatekeeper's harsher 'damaged' dialog instead of the milder 'unidentified developer' one.",
+  "source_file": "intent-blueprint-144.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Holds. tauri.conf.json has no macOS signingIdentity (not even '-' for ad-hoc), and the produced .app is only linker-signed with no sealed resources, so a downloaded, quarantined copy gets 'damaged' rather than the milder unidentified-developer prompt. This is a per-platform duplicate of finding 2 and should merge into it. Note that even a correct ad-hoc signature needs System Settings > Open Anyway on macOS 15 rather than right-click Open, so the documented bypass text needs updating too."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-144-4",
+  "title": "Windows CI bundle is an unsigned .exe (nsis), not the promised signed .msi",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "CI Windows build (.github/workflows/build.yml, tauri.conf.json)",
+  "repro": "Download the CI-built Windows installer -> it is an nsis .exe (no .msi bundler configured) with no publisher signature, so SmartScreen flags every download.",
+  "evidence": "src-tauri/tauri.conf.json:32 targets = [deb, appimage, nsis, app, dmg] (no msi); .github/workflows/build.yml:13, :76 (unsigned), no SignPath step/secret anywhere in .github/workflows/.",
+  "notes": "BLUEPRINT §6.2 (L372) promises a SignPath-signed .msi on the free OSS tier; two independent drifts (wrong bundle format, no signing) compound the top-of-funnel Gatekeeper/SmartScreen problem for the majority-share desktop OS.",
+  "source_file": "intent-blueprint-144.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "The unsigned-Windows-installer half holds (targets are nsis with no sign step, secret or certificate). The '.msi not .exe' half is not a defect: NSIS is Tauri's recommended Windows installer and is supported by the updater, so format drift from the blueprint changes no user outcome. Also, SignPath's free OSS tier is unavailable under PolyForm Strict + commercial (see finding 2). Duplicate of finding 2; merge."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-144-5",
+  "title": "Auto-updater is wired on both ends but dead end-to-end — no user on an existing install can ever update",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "Tauri updater (src-tauri/src/lib.rs, tauri.conf.json, frontend)",
+  "repro": "Install any build, wait for a new release, open the app -> nothing checks for or downloads an update; even if it did, the endpoint the client is pointed at has never had a latest.json published to it.",
+  "evidence": "src-tauri/src/lib.rs:393 registers tauri_plugin_updater; tauri.conf.json:47-53 configures the endpoint + minisign pubkey but :45 createUpdaterArtifacts=false; grep across src/ for `.check()`/`downloadAndInstall`/`@tauri-apps/plugin-updater` returns only the package.json dependency line (no caller); docs/CURRENT_STATE.md:232-235.",
+  "notes": "BLUEPRINT §6.2 (L376) promises the Tauri auto-updater pulls updates on existing installs. Producer side (no release artifacts) and consumer side (no UI ever calls check()) are both unbuilt — a real user has no path off their install-day version short of manually re-downloading, which itself requires the still-missing release pipeline (raw finding 1).",
+  "source_file": "intent-blueprint-144.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Holds on both ends, and it is worse than stated. The plugin is registered (lib.rs:393) and the endpoint + pubkey are configured, but createUpdaterArtifacts=false, no frontend or Rust code ever calls check/downloadAndInstall, and src-tauri/capabilities/*.json grants no updater permission, so even a future frontend check() would be denied. The configured endpoint returns 404 live."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-192-4",
+  "title": "CI has never run on the product branch: 640 commits bypass GitHub Actions entirely, and the newest run on main (2026-05-30) is a lint FAILURE",
+  "severity": "high",
+  "area": "release",
+  "subsystem": "ci / release engineering",
+  "repro": "gh run list --workflow=lint.yml --limit 4 -> newest run headSha cfcf5be, createdAt 2026-05-30T19:08:14Z, conclusion 'failure'; no run exists for any commit on 004-r4-experience-rebuild. git rev-list --count main..HEAD -> 640. The workflows trigger only on push to main and on pull_request, and no PR is open for the branch.",
+  "evidence": ".github/workflows/build.yml:3-6 and .github/workflows/lint.yml:3-6 (on: push: branches: [main] / pull_request); build.yml:12-14 and lint.yml:9-13 (matrix os: windows-latest, macos-latest, ubuntu-latest); gh run list output above; git log -1 main -> cfcf5be 2026-05-30; git log -1 HEAD -> 2d99cda 2026-09-19",
+  "notes": "INT-BP-229 promises CI for Win/Mac/Linux build + lint + test and INT-BP-236 makes 'CI green for all OS builds' a success criterion; CLAUDE.md 'Coding standards' asserts 'Builds stay green on Windows, macOS, Linux'. For ~4 months the sole gate has been pnpm ci-local on one macOS ARM machine, which cannot exercise clippy, vitest, pytest or the Tauri bundle on Windows or Linux - so a public 0.9.0 would be the first time anyone finds out whether the R4-R15 product compiles off this laptop, and the last recorded cross-OS signal is red. Smallest fix: add the branch (or branches: ['**']) to the three workflows' push triggers, or open a draft PR for 004-r4-experience-rebuild, and treat the resulting run as a release gate alongside ci-local.",
+  "source_file": "intent-blueprint-192.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "All three workflows (build, lint, test) trigger only on push to main and on pull_request. No PR exists for 004-r4-experience-rebuild, so the product branch has never run CI. main..HEAD is now 654 commits (the raw finding said 640). The newest runs are on main cfcf5be (2026-05-30T19:08:14Z): lint failed, while test and build succeeded."
+  }
+ },
+ {
+  "raw_id": "INT-blueprint-192-7",
+  "title": "No terminal.vysted.com source in the repo: neither the Phase 0 landing page nor the /install/mac page with the unsigned-app screenshot",
+  "severity": "low",
+  "area": "release",
+  "subsystem": "distribution / first-run docs",
+  "repro": "Repo root listing contains no web/, site/, www/ or landing-page source and no vercel.json; README.md:88-90 sends a new user straight to the GitHub Releases page, and the Gatekeeper walkthrough (README.md:93-108) is text-only with no screenshot of the warning.",
+  "evidence": "repo root listing (BLOCKERS.md, CHANGELOG.md, CLAUDE.md, COMMERCIAL_LICENSE.md, CONTRIBUTING.md, LICENSE, README.md, components.json, docs, eslint.config.mjs, index.html, package.json, plugins, postcss.config.mjs, scripts, sidecar, specs, src, src-tauri, styles, types, vite.config.ts, vitest.config.ts); README.md:88-108; docs/BLUEPRINT.md L391-394 and L450",
+  "notes": "Covers INT-BP-193 (install/mac page with the warning screenshot) and INT-BP-232 (the landing page). Neither can be confirmed from code, so per COMMON.md neither is assumed delivered. Low because README already carries a CORRECT and more current bypass than the BLUEPRINT's (README.md:102-105 records that the right-click trick died on macOS 15+, which the promised page text still recommends) - the gap is a public front door for a public release, not a broken flow. Smallest fix: either publish the two pages and point README at them, or amend BLUEPRINT 6.3/7 to name README.md as the install surface so the promise stops being outstanding.",
+  "source_file": "intent-blueprint-192.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "The repo has no landing-page or install-page source: no web/, site/ or www/ directory and no vercel.json. README.md:86-108 is the de facto install surface, text-only with no Gatekeeper screenshot, and it correctly supersedes the BLUEPRINT's right-click advice for macOS 15+. The pages could live in a separate repo or hosting account, which cannot be verified from here. Unverified is not refuted, so this is admitted at low."
+  }
+ },
+ {
+  "raw_id": "INT-deferred-0-11",
+  "pid": "INT-DF-42",
+  "title": "vitest.config.ts has no coverage block -- 'pnpm test -- --coverage' has nothing configured to report against",
+  "severity": "low",
+  "area": "release",
+  "subsystem": "vitest.config.ts",
+  "repro": "vitest.config.ts:1-18 (full file) -- the 'test' block has environment, globals, setupFiles, include, but no 'coverage' key (provider, thresholds, or reporters).",
+  "evidence": "vitest.config.ts:1-18",
+  "notes": "No coverage regression gate exists for the frontend test suite. Smallest fix: add 'coverage: { provider: \"v8\", reporter: [\"text\",\"html\"] }' (thresholds optional, add once a baseline is measured).",
+  "source_file": "intent-deferred-0.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "It is true that vitest.config.ts has no coverage key. The stated consequence is wrong: @vitest/coverage-v8 is a devDependency (package.json:69) and installed (node_modules/@vitest/coverage-v8), and vitest's default coverage provider is v8, so 'pnpm test -- --coverage' does produce a report with no config block. The actual gap is narrower: there is no coverage threshold and no CI step that gates on it. Low stands."
+  }
+ },
+ {
+  "raw_id": "INT-deferred-0-15",
+  "pid": "INT-DF-20",
+  "title": "The macOS release build has no code-signing (Developer ID or notarization) configured",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "src-tauri/tauri.conf.json",
+  "repro": "src-tauri/tauri.conf.json:30-45 (bundle block) has no macOS signingIdentity or notarization keys. docs/redesign/KEYCHAIN_DEV_SIGNING.md + scripts/macos-dev-setup.sh cover only a dev-loop ad-hoc re-signing workaround for the keychain ACL (so 'tauri dev' doesn't re-prompt every rebuild) -- not a release signing pipeline.",
+  "evidence": "src-tauri/tauri.conf.json:30-45, docs/redesign/KEYCHAIN_DEV_SIGNING.md",
+  "notes": "A macOS build distributed to a stranger without Developer ID signing triggers Gatekeeper's 'unidentified developer' block on first launch -- a real first-minute defect for a public 0.9.0 release, not merely cosmetic. BLOCKERS.md already tracks this (v0.8.0->Phase 9 item 6); still open at current HEAD. Fix requires an Apple Developer ID (operator-owned credential), out of this worker's reach.",
+  "source_file": "intent-deferred-0.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "Holds. The tauri.conf.json bundle block (:30-45) has no macOS signingIdentity, entitlements or notarization settings. CI's build step is literally named 'Build Tauri bundle (unsigned)' (build.yml:76-77) and passes no APPLE_* secrets. The Windows NSIS target is likewise unsigned, so SmartScreen will warn too. The only signing tooling is the dev-loop keychain workaround (scripts/macos-dev-setup.sh). DECISIONS.md:33 (D11) asserts 'release builds for end users are signed properly', which the config contradicts; that claim should be corrected in the same fix. The fix needs an operator-owned Apple Developer ID."
+  }
+ },
+ {
+  "raw_id": "INT-pdd-readme-45-2",
+  "title": "The design-token audit that enforces the R9 spacing/type law runs in no script, no gate and no workflow",
+  "severity": "medium",
+  "area": "release",
+  "subsystem": "design-system / CI",
+  "repro": "`grep -rn audit-design .github/workflows/ package.json` -> no hits. `node scripts/audit-design-tokens.mjs` -> 'design-token audit clean' (so the law holds today, by hand-discipline only). Push any off-grid value (`gap-1.5`, `px-[7px]`, `text-[12px]`) and lint, typecheck, vitest, `pnpm ci-local` and all three workflows stay green.",
+  "evidence": "scripts/audit-design-tokens.mjs (exists, passes); docs/redesign/R9_DESIGN_SYSTEM.md:40-42 ('`scripts/audit-design-tokens.mjs` enforces the allowed set statically over `src/` and `plugins/`; it runs in the gate battery') and :133 ('Run `node scripts/audit-design-tokens.mjs` on your partition before pushing'); package.json:6-23 (no reference; the `ci-local` chain at :19 omits it); .github/workflows/{build,lint,test}.yml (no reference)",
+  "notes": "R9 sec0 documents what an unenforced spacing law already cost once: 1,897 call sites resolved against halved --spacing-N tokens, h-7 rendering taller than h-8, clipped Settings fields. The audit was written to stop that recurring and is then never invoked by anything automated. CLAUDE.md makes `pnpm ci-local` the hard pre-tag gate, so the audit is outside the only gate that counts. Smallest fix: append `&& node scripts/audit-design-tokens.mjs` to the `lint` script in package.json:9 (it is then inside ci-local and the lint workflow for free).",
+  "source_file": "intent-pdd-readme-45.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "medium",
+   "reason": "scripts/audit-design-tokens.mjs exists and passes, but nothing automated runs it: package.json lint and ci-local (:10, :20) omit it and no workflow, test or hook references it. That contradicts R9_DESIGN_SYSTEM.md:40-41, which says it 'runs in the gate battery'."
+  }
+ }
+]

@@ -1,0 +1,2025 @@
+{
+ "entries": [
+  {
+   "id": "R15-UI-001",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Notes editor and notes store drift apart and the editor overwrites the store: an agent write_note into the open note is invisible and clobbered by the next keystroke, clearing a note never persists, and edits within 600 ms of a scope switch or tab close are lost",
+   "files": [
+    "src/modules/notes/NotesPanel.tsx",
+    "src/store/notes.ts",
+    "src/lib/host-actions.ts"
+   ],
+   "repro": "(1) Notes open on General; agent write_note appends to General (host-actions.ts:1176-1191) -> editor still shows the old body (scope effect early-returns when prevScopeRef===scope) -> type one char -> 600 ms later the stale body + char replaces the agent's text in store and .md, while chat said 'Appended'. (2) Select-all + Delete -> editorMarkdown '' and debouncedMd '' -> guard at NotesPanel.tsx:169 returns -> old note resurrects on scope switch/relaunch. (3) Type in AAPL, switch to MSFT within 600 ms -> Tiptap setContent emits an update (emitUpdate defaults true) -> AAPL's last burst never written. (4) Close the Notes tab within 600 ms of typing -> debounce cleared, no flush.",
+   "evidence": "src/modules/notes/NotesPanel.tsx:45-52, :139-148, :150-178, :169; src/lib/host-actions.ts:1176-1191; src/store/notes.ts:58-65, :91-96; node_modules/@tiptap/core/src/commands/setContent.ts:51. Refuter: -1 admitted_with_correction high (workspace-load half refuted: fromJSON remounts the panel), -2 admitted high.",
+   "root_cause": "Two owners of the note body (Tiptap doc and useNotesStore) reconciled only on a scope-change edge; the debounced save is keyed to the scope current when the timer fires, an empty-guard meant for mount also swallows a real empty save, programmatic setContent emits user-update events, and unmount does not flush.",
+   "fix_shape": "Make the store authoritative: subscribe the editor to noteFor(scope) and setContent(value, {emitUpdate:false}) when it differs from lastWrittenRef; capture {scope, md} at update time and flush synchronously on scope change/unmount; replace the empty-guard with a 'user has edited' flag. Pin with vitest+jsdom: store write while editor open is shown and survives a keystroke; clear-all persists ''; type-then-switch within 600 ms persists the first scope's text.",
+   "defect_class": "two-sources-of-truth",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-1",
+    "COD-frontend-panels-data-surfaces-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-002",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Cmd-K ticker pick does nothing to the chart: the palette writes the opt-in chart-sync bus (off by default, no possible peer for the singleton chart) instead of the always-consumed chart-command channel",
+   "files": [
+    "src/components/CommandPalette.tsx",
+    "src/store/chart-sync.ts",
+    "src/modules/chart/ChartPanel.tsx",
+    "src/lib/host-actions.ts"
+   ],
+   "repro": "Default settings: Cmd-K -> type RELIANCE -> pick the Tickers row (or a recent) -> palette closes, chart unchanged. CommandPalette.tsx:200/:384 call useChartSyncBus.setSymbol('palette', sym); ChartPanel consumes it only when syncSubscriptions.symbol is true and DEFAULT_SUBS.symbol=false (chart-sync.ts:66).",
+   "evidence": "src/components/CommandPalette.tsx:162, :198-201, :384; src/store/chart-sync.ts:66; src/modules/chart/ChartPanel.tsx:314-325, :761-799 (comment at :775-777 claims the command channel serves palette picks); src/modules/chart/index.ts:30; src/lib/host-actions.ts:259-265. Refuter: admitted high.",
+   "root_cause": "The chart symbol lives in four places (local state, chart-command.activeSymbol, chart-sync.symbol, panel-context) and each caller picked a different inbox; the sync bus lost its only purpose when the chart became a singleton.",
+   "fix_shape": "Route both palette ticker paths through loadSymbolIntoChart (host-actions.ts:259) and delete the chart-sync symbol bus + Sync popover (or scope it to real multi-chart). Pin with a vitest that a palette ticker pick changes the chart's active symbol under default settings.",
+   "defect_class": "multiple-symbol-inboxes",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-003",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "Agent Builder hard-codes stale copies of sidecar vocabularies: only 20 of 50 selectable tools can be granted (no research, web_search, publish_brief, news, terminal/portfolio reads), editing an agent silently strips every other tool, and an unknown provider such as openrouter is silently rewritten to anthropic on save",
+   "files": [
+    "src/modules/agent-builder/form.tsx",
+    "src/modules/agent-builder/AgentBuilderPanel.tsx",
+    "sidecar/routers/llm.py",
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "(1) python -c 'from services.agent_tools.catalog import agent_selectable_tool_ids as f; print(len(f()))' -> 50; the builder's Tools row renders exactly the 20 in form.tsx:21-42. (2) POST /custom-agents tools:[research, web_search, price_data] (accepted) -> Edit in builder -> change Name -> Save -> PUT sends tools:[price_data]. (3) Edit an agent with default_provider 'openrouter' -> formStateFromAgent falls back to 'anthropic' -> Save writes anthropic; openrouter (the provider onboarding recommends) cannot be selected at all.",
+   "evidence": "src/modules/agent-builder/form.tsx:16-54, :139-141; src/modules/agent-builder/AgentBuilderPanel.tsx:51-67, :141-170, :319-337; sidecar/services/agent_tools/catalog.py:1520-1528; sidecar/models/custom_agent.py:28-43, :56-63; types/ai.ts:43-51. The form.tsx:16-17 claim 'verified by test_capability_catalog.py' is false. Refuter: -1 admitted high, -2 admitted high, -3 admitted_with_correction medium.",
+   "root_cause": "The frontend re-declares the host's tool and provider vocabularies (the exact bug custom_agent.py:28-38 fixed on the sidecar by deriving from the catalog); two gates (handleEdit reconcile over KNOWN_TOOL_IDS, validate() filter) and a '?? anthropic' fallback turn staleness into silent data loss.",
+   "fix_shape": "Serve the selectable tool ids and provider ids from the sidecar (GET /agents/tool-ids or extend GET /llm/providers) and render from the response; keep the agent's full tool set and provider in form state (unknown ids as read-only chips), delete the form.tsx:139-141 filter, keep static arrays only as a pre-sidecar fallback. Pin with a vitest that edit+save round-trips an agent holding research/web_search/openrouter unchanged, plus a parity test against the catalog's derived list.",
+   "defect_class": "hand-copied-vocabulary",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-1",
+    "COD-frontend-panels-agent-shell-2",
+    "COD-frontend-panels-agent-shell-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-004",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio live-quote failure is indistinguishable from 'symbol not found': fetchPositionQuote swallows every error to null, so the failure banner and its Retry (the panel's only recovery) can never render",
+   "files": [
+    "src/modules/portfolio/api.ts",
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/modules/portfolio/PortfolioPanel.test.tsx"
+   ],
+   "repro": "Stop the sidecar or break /quotes with holdings present -> every Price/Mkt val/P&L cell shows '—' and the footer says 'N without a live quote'; the warning banner never appears and Retry is unreachable, so the panel stays dashed until the holding set changes or it remounts.",
+   "evidence": "src/modules/portfolio/api.ts:23-32 (try/catch -> null), :35-45 (Promise.all over non-rejecting promises); src/modules/portfolio/PortfolioPanel.tsx:109-113, :153-159 (dead .catch), :794-808 (dead banner + Retry); PortfolioPanel.test.tsx:62,94,113,132 (only mockResolvedValue). Refuter: admitted high.",
+   "root_cause": "An exception masked at the per-symbol level erases the failure signal the panel-level handler needs; no test exercises a rejected fetch.",
+   "fix_shape": "fetchPositionQuote returns a {quote}|{error} union and fetchPositionQuotes returns {quotes, failed}; set quotesError when failed>0 (banner and Retry already exist). Pin with a PortfolioPanel test using mockRejectedValue that asserts the banner and Retry render.",
+   "defect_class": "unknown-rendered-as-value",
+   "raw_ids": [
+    "COD-portfolio-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-005",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio with no resolved live quote shows 'Market value ₹0.00 · Total P&L ₹0.00 (0.00%)' and publishes totalValue: 0 to the agent — the fabricated zero the TerminalPortfolio contract forbids; partial totals silently exclude unpriced holdings",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/modules/portfolio/metrics.ts",
+    "src/modules/chat/context-provider.ts"
+   ],
+   "repro": "Portfolio panel (jsdom, live sidecar): add ZZZZNOTREAL x10 @100, or a BTC/USDT lot, or any holding while /quotes fails -> summary 'Market value: ₹0.00 · Total P&L: ₹0.00 (0.00%) · Concentration: 0.0% · 1 without a live quote'; captureTerminalState().portfolio = {positionCount:1, totalValue:0} with no totalValueNote. With some holdings priced, totalValue excludes the rest with no note.",
+   "evidence": "docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json (P5-unresolved-crypto, P7-quotes-down); src/modules/portfolio/PortfolioPanel.tsx:202, :717-750; src/modules/portfolio/metrics.ts:111-113; src/modules/chat/context-provider.ts:53-61 ('NEVER 0 as a stand-in for unknown'). Refuter: admitted high.",
+   "root_cause": "metrics sums resolved rows starting from 0, and mixedCurrencies is false when byCurrency is empty, so 'no data' flows out as a numeric 0 to both the UI and the agent snapshot.",
+   "fix_shape": "When byCurrency is empty publish totalValue:null with totalValueNote 'no live quotes resolved' and render 'Market value: — (no live quotes)'; when unresolvedCount>0 add a totalValueNote naming the excluded holdings. Pin with a metrics/PortfolioPanel test: all-unresolved -> null + note, never 0.",
+   "defect_class": "unknown-rendered-as-value",
+   "raw_ids": [
+    "SURF-PORTFOLIO-NOTES-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-006",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "Screener results are a silent top-200-by-market-cap page: the header's 'N rows' is the page cap not the match count, and column sort only reorders that page — 'lowest P/E on the NSE' can never surface a small cap",
+   "files": [
+    "sidecar/services/screener.py",
+    "sidecar/models/screener.py",
+    "types/screener.ts",
+    "src/store/screener.ts",
+    "src/modules/screener/ScreenerResultsTable.tsx",
+    "src/modules/screener/ScreenerPanel.tsx"
+   ],
+   "repro": "india-all, 0<P/E<40, limit 200 (what Run always sends) -> result_count 200; same screen at limit 1000 -> 1000 (both evaluated 5,066); header '200 rows (5066 evaluated…)'. Click 'P/E' ascending -> lowest P/E among the 200 largest caps, not the universe. No control raises the limit or pages.",
+   "evidence": "sidecar/services/screener.py:396-399, :764-771, :821 (result_count=len(rows)); src/store/screener.ts:315 (limit=200); src/modules/screener/ScreenerResultsTable.tsx:326-334, :426-427; src/modules/screener/ScreenerPanel.tsx:252; surface/screener/runs.jsonl labels 11,12; surface/screener-probe/warm-standing-sector-limit10.json. Refuter: COD-screener-3 admitted high ('worse than stated'), SURF-SCREENER-4 admitted medium.",
+   "root_cause": "The server owns 'rank by market_cap then cut at limit', the client owns 'rank by clicked column', and the wire has no matched_count, so the composition answers a question no layer intends.",
+   "fix_shape": "Add sort_by/sort_dir to ScreenerRequest and apply before the limit cut; return matched_count=len(matched); header re-runs instead of re-sorting and renders 'N matched · showing top K by <sort>' with a show-more that raises limit. Pin with a sidecar test (sort applied pre-limit; matched_count > result_count) and a panel test on the header copy.",
+   "defect_class": "truncation-not-disclosed",
+   "raw_ids": [
+    "COD-screener-3",
+    "SURF-SCREENER-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-007",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "Clicking a screener preset while a Nested group or formula is set silently runs the OLD tree and formula and presents the rows as the named preset",
+   "files": [
+    "src/modules/screener/ScreenerPresets.tsx",
+    "src/store/screener.ts"
+   ],
+   "repro": "Real store + panel against the live sidecar: Nested mode with group (P/E<12 OR yield>4%) and formula 'pe < 12' -> click 'Founder-aligned (NSE)' -> request = preset criteria + old group + formula -> 3 rows (NTPC, ONGC, COALINDIA); same preset from a clean store -> 18 rows. Builder still shows the old nested tree.",
+   "evidence": "surface/screener/24-store-panel-replay.json S4 vs S5; src/modules/screener/ScreenerPresets.tsx:125-131; src/store/screener.ts:359-363 (pruned nested group supersedes criteria), :373 (formula always rides). Refuter: admitted high.",
+   "root_cause": "The preset writes only the flat criteria list; runScreener gives the nested tree precedence and ANDs the formula; setCriteria does not clear group/advanced/formula while resetCriteria/applyFilters do.",
+   "fix_shape": "Presets go through the same reset as resetCriteria (group:null, advanced:false, formula:'') before setCriteria, or build the request from the preset directly. Pin with a store test: preset apply after nested+formula sends exactly the preset's criteria.",
+   "defect_class": "hidden-mode-coupling",
+   "raw_ids": [
+    "SURF-SCREENER-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-008",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "llm-adapters",
+   "title": "Onboarding certifies any string as an OpenRouter key ('OpenRouter is connected — the agent and deep research are live'), switches the default provider to it, hides the key banner, and the first message 401s",
+   "files": [
+    "sidecar/services/llm/openai.py",
+    "sidecar/routers/llm.py",
+    "src/components/OnboardingFlow.tsx"
+   ],
+   "repro": "Clean keyless profile -> TOS -> 'Add a key' -> paste 'sk-or-v1-000...notarealkey' -> Save & continue -> POST /llm/keys/validate {provider:openrouter} -> {ok:true}; key stored, defaultProvider=openrouter; DoneStep claims live; first agent message -> code=auth 'The OpenRouter API key was rejected'. curl with a fake bearer: openrouter.ai/api/v1/models = 200, /api/v1/key = 401.",
+   "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/20-onboarding-replay.json (T2), http-log.jsonl K02, A3-fake-openrouter-key-first-message.stdout.txt; src/components/OnboardingFlow.tsx:343-359, :676-677; sidecar/services/llm/openai.py:842-849. Same root as R15-CODE-AGENT-003 (COD-llm-adapters-2-4) and R15-RESEARCH-010 (SURF-SETTINGS-PLUGINS-1) in other clusters — this is the onboarding instance, the most consequential because it replaces the working keyless default. Refuter: admitted high.",
+   "root_cause": "validate_key probes client.models.list(), and OpenRouter serves /models without auth, so the probe cannot fail on a bad key.",
+   "fix_shape": "In OpenAIProvider.validate_key for provider_id=='openrouter' probe an auth-required endpoint (GET /api/v1/key); fix once at the adapter so onboarding, Settings and /key all inherit it. Pin with an adapter test mocking /models 200 + /key 401 -> ok:false.",
+   "defect_class": "provider-error-classification",
+   "raw_ids": [
+    "SURF-ONBOARDING-STRANGER-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-009",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview",
+   "files": [
+    "src/lib/csv.ts",
+    "src/lib/export-artifact.ts",
+    "src/modules/watchlist/WatchlistPanel.tsx",
+    "src/modules/portfolio/PortfolioPanel.tsx"
+   ],
+   "repro": "Packaged desktop app (macOS): click Export CSV in Watchlist or Portfolio -> nothing happens, no error, no toast. csv.ts:27-37 creates a Blob and clicks an <a download>; the app registers no on_download handler and wry's WKWebView navigation delegate cancels downloads without one.",
+   "evidence": "src/lib/csv.ts:27-37; src/lib/export-artifact.ts:4-8 ('The WKWebView/Chromium webview blocks the browser <a download> + Blob-save path'); src/modules/watchlist/WatchlistPanel.tsx:265; src/modules/portfolio/PortfolioPanel.tsx:504. Refuter: admitted high (Windows WebView2 unverified).",
+   "root_cause": "A browser-only save primitive used inside a desktop webview; the working Rust write_text_atomic path exists but downloadCsv does not use it.",
+   "fix_shape": "Route downloadCsv through the export-artifact write_text_atomic path (save dialog + Rust write) and report the written path or error. Pin with a vitest that downloadCsv invokes the Tauri write command, not an anchor click.",
+   "defect_class": "browser-primitive-in-webview",
+   "raw_ids": [
+    "WLD-T-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-010",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "backtest",
+   "title": "Backtest paramsSchema minimum/maximum are advertised and enforced nowhere: a cleared or out-of-range field surfaces a raw Python exception as the run error",
+   "files": [
+    "src/modules/backtest/strategy-picker.tsx",
+    "sidecar/services/backtest_strategies.py",
+    "sidecar/models/backtest.py"
+   ],
+   "repro": "MeanReversionStrategy {'window': 0} -> 'StatisticsError: fmean requires at least one data point'; {'window': -5} -> 'ValueError: maxlen must be non-negative'; {'window': ''} (a cleared field) -> 'ValueError: invalid literal for int()'. Each renders as 'error: <python message>' in the panel header.",
+   "evidence": "sidecar/services/backtest_strategies.py:69-92, :235; src/modules/backtest/strategy-picker.tsx:110-119, :147-157; sidecar/models/backtest.py:48; src/modules/backtest/BacktestResultView.tsx:470-474. Refuter: admitted medium.",
+   "root_cause": "pickFields drops min/max, a non-numeric entry is stored as the raw string, params is an unvalidated dict and strategies coerce with bare int().",
+   "fix_shape": "Render min/max/step from the schema in ParamsForm and clamp on blur; validate params against the schema in the sidecar model and return a 422 with a readable detail. Pin with a strategy-picker test (clamping) and a sidecar test (out-of-range -> 422).",
+   "defect_class": "raw-exception-to-user",
+   "raw_ids": [
+    "COD-backtest-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-011",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "backtest",
+   "title": "A running backtest cannot be cancelled: startRun accepts an AbortSignal no caller supplies and there is no Stop control",
+   "files": [
+    "src/modules/backtest/BacktestPanel.tsx",
+    "src/modules/backtest/BacktestResultView.tsx",
+    "src/store/backtest.ts"
+   ],
+   "repro": "Start a 5-year, 8-symbol run with the wrong date range -> every rail control is disabled, the only button reads 'Running...'; the only exit is closing the panel.",
+   "evidence": "src/store/backtest.ts:86, :269; src/modules/backtest/BacktestPanel.tsx:133, :263-274; src/modules/backtest/BacktestResultView.tsx:536; sidecar/routers/backtest.py:92-94 (server already cancels on disconnect). Refuter: admitted medium.",
+   "root_cause": "Pass-through cancellation parameter with no supplier.",
+   "fix_shape": "Hold an AbortController in the panel, pass its signal from Run and Retry, and swap the disabled Run button for Stop while running. Pin with a panel test that Stop aborts the stream and resets status.",
+   "defect_class": "dead-parameter",
+   "raw_ids": [
+    "COD-backtest-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-012",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "error-layer",
+   "title": "Chat/agent stream non-2xx responses render the raw FastAPI JSON body in the transcript ('Something went wrong — {\"detail\":...}'), bypassing extractSidecarDetail",
+   "files": [
+    "src/modules/chat/streaming.ts",
+    "src/lib/sidecar-client.ts",
+    "src/modules/chat/streaming.test.ts"
+   ],
+   "repro": "curl -X POST :52152/agents/nope/invoke -d '{\"prompt\":\"hi\",\"provider\":\"ollama\"}' -> {\"detail\":\"unknown agent: 'nope'\"}; with {} -> a 422 detail array. streaming.ts passes response.text().slice(0,500) as the Error message and ChatSidebar renders it. Reached by a deleted custom agent, a stale agent id in a restored thread, or request-model drift.",
+   "evidence": "src/modules/chat/streaming.ts:216-219, :360-367; src/lib/sidecar-client.ts:48-72 (extractSidecarDetail, unused here); src/modules/chat/ChatSidebar.tsx:1446, :2033. Refuter: admitted medium.",
+   "root_cause": "The SSE transport's !response.ok branch does not share the REST client's detail humanisation.",
+   "fix_shape": "In consumeSseStream's !ok branch JSON.parse the text and run extractSidecarDetail(parsed, `sidecar returned ${status}`). Pin with a streaming.test.ts non-ok case (string detail and 422 array).",
+   "defect_class": "error-not-humanised",
+   "raw_ids": [
+    "COD-error-layer-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-013",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "error-layer",
+   "title": "Provider/key validation is split across three boolean-returning clients that erase why validation failed: a stopped sidecar or unreachable provider reads as 'That key wasn't accepted by OpenRouter' in onboarding or 'No AI model is set up yet' (auto-opening onboarding) in chat, with no timeout and Cancel disabled while validating",
+   "files": [
+    "src/lib/sidecar-client.ts",
+    "src/components/OnboardingFlow.tsx",
+    "src/components/KeyEntryDialog.tsx",
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/components/StatusChrome.tsx",
+    "sidecar/services/llm/ollama.py",
+    "sidecar/routers/llm.py"
+   ],
+   "repro": "(1) Keyless provider selected, sidecar down/5xx -> validateProvider returns false -> ChatSidebar 'No AI model is set up yet — opening setup' and opens onboarding. (2) Onboarding offline or OpenRouter down, paste a VALID key -> validateKey catch -> false -> 'That key wasn't accepted by OpenRouter'. (3) Key dialog against a hanging endpoint -> 'Validating…' with Save and Cancel both disabled (Escape still closes).",
+   "evidence": "src/lib/sidecar-client.ts:226-243; src/modules/chat/ChatSidebar.tsx:795-804; src/components/StatusChrome.tsx:95-100; src/components/OnboardingFlow.tsx:74-90, :343-363, :408-417; src/components/KeyEntryDialog.tsx:155-168, :175-189 (postValidate keeps detail); sidecar/routers/llm.py:99-111; sidecar/services/llm/ollama.py:239-248 (validate_key swallows every exception to False, so the route cannot report 'unreachable' for a stopped Ollama). Refuter: error-layer-7 admitted_with_correction medium, agent-shell-6 admitted_with_correction medium, agent-shell-12 admitted_with_correction low.",
+   "root_cause": "Three clients for one endpoint with different contracts; the two boolean ones discard status and detail, and the Ollama adapter collapses transport failure into 'no key'.",
+   "fix_shape": "One lib helper validateProvider(provider, key) -> {ok, reason:'invalid'|'not_configured'|'unreachable', detail} with AbortSignal.timeout(15000), used by onboarding, KeyEntryDialog, ChatSidebar and StatusChrome; ChatSidebar opens onboarding only on not_configured; OllamaAdapter.validate_key distinguishes connection errors; Cancel aborts an in-flight validation. Pin with helper unit tests per reason and a ChatSidebar test that an unreachable sidecar does not open onboarding.",
+   "defect_class": "provider-error-classification",
+   "raw_ids": [
+    "COD-error-layer-7",
+    "COD-frontend-panels-agent-shell-6",
+    "COD-frontend-panels-agent-shell-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-014",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "error-layer",
+   "title": "A dead or unreachable sidecar surfaces as WebKit's bare 'Load failed' in every panel and in chat, and a sidecar crash is never signalled or respawned",
+   "files": [
+    "src/lib/sidecar-client.ts",
+    "src/modules/chat/streaming.ts",
+    "src-tauri/src/lib.rs"
+   ],
+   "repro": "Kill the sidecar -> sidecarGet's fetch() (outside any try) rejects with TypeError 'Load failed' (WKWebView) which stores copy into panel error state (e.g. store/macro.ts:93-99); chat shows 'Something went wrong — Load failed'. The Rust event loop drops CommandEvent::Terminated, readyPromise stays resolved, so every later call takes this path.",
+   "evidence": "src/lib/sidecar-client.ts:115-117, :194-196, :206-215; src/modules/chat/streaming.ts:204-215; src/modules/chat/ChatSidebar.tsx:1446, :2033; src-tauri/src/lib.rs:226-238. Refuter: admitted medium.",
+   "root_cause": "Only JSON-parse failures are wrapped in SidecarError; transport failures pass through as engine strings; the Rust core has no Terminated handling.",
+   "fix_shape": "try/catch both fetches -> SidecarError(0, 'The data engine is not responding — it may have stopped. Restart Vysted.') and an SSE error frame code='sidecar_unreachable'; emit a sidecar-terminated event from lib.rs so the status chrome can say so (respawn is a separate decision). Pin with sidecar-client and streaming tests mocking a rejected fetch.",
+   "defect_class": "error-not-humanised",
+   "raw_ids": [
+    "COD-error-layer-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-015",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "error-layer",
+   "title": "Retry-on-sidecar-ready retries every failure 13 times over ~50 s, including deterministic upstream failures: a keyless fresh install hammers /macro and flickers loading/error, and the News panel's hand-rolled copy of the same backoff does the same",
+   "files": [
+    "src/lib/use-sidecar-retry.ts",
+    "src/modules/macro/MacroPanel.tsx",
+    "src/modules/news/NewsFeedPanel.tsx",
+    "src/modules/earnings/EarningsCalendarPanel.tsx",
+    "src/modules/sec/SecFilingsPanel.tsx",
+    "src/modules/screener/ScreenerPanel.tsx",
+    "src/store/sec.ts"
+   ],
+   "repro": "curl :52152/macro/DGS10?provider=fred -> 502 (deterministic 'FRED needs a free API key'); MacroPanel default fred/DGS10 rethrows -> hook schedules 1,2,4,5,5… s up to 12 retries, each resetting the store to 'loading'. Same for permanent upstream failures surfaced as 502 in News/Earnings/SEC/Screener. store/sec.ts:241-243 additionally discards the search error message.",
+   "evidence": "src/lib/use-sidecar-retry.ts:24-28, :32-35, :92-109; src/modules/macro/MacroPanel.tsx:14-15, :39-47; src/store/macro.ts:79; src/modules/news/NewsFeedPanel.tsx:152-156, :214-251; src/modules/earnings/EarningsCalendarPanel.tsx:110-119; src/modules/sec/SecFilingsPanel.tsx:62-72; src/modules/screener/ScreenerPanel.tsx:104-111; src/store/sec.ts:241-243. Refuter: error-layer-9 admitted medium; market-data-providers-3-5 admitted_with_correction low (the 4xx-NewsAPI repro is disproven — bad keys degrade to 200; the 502 wait remains).",
+   "root_cause": "The hook's catch has no error classification and its contract forces callers to flatten SidecarError to a plain Error, so 'sidecar not ready' and 'upstream says no' are indistinguishable; News re-implements the same loop.",
+   "fix_shape": "Let loadFn reject with the original error and retry only on connection-level failures or SidecarError 503 (or gate retries on sidecarStatus !== 'connected'); replace NewsFeedPanel's copy with the hook; keep the reason in sec.searchCompanies. Pin with a hook test: 502 -> one attempt and error state; TypeError -> retries.",
+   "defect_class": "retry-without-classification",
+   "raw_ids": [
+    "COD-error-layer-9",
+    "COD-market-data-providers-3-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-016",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-stores",
+   "title": "Settings → Keybindings is mostly dead: only 1 of 13 remappable actions reads the live binding; the command palette hardcodes Mod+K despite its docstring, and seven advertised shortcuts (save/load workspace, settings, open chart/watchlist/news/portfolio) have no handler at all",
+   "files": [
+    "src/store/keybindings.ts",
+    "src/components/CommandPalette.tsx",
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/components/AgentDock.tsx",
+    "src/app/page.tsx"
+   ],
+   "repro": "Rebind palette.open in Settings -> Keybindings -> the new chord does nothing and Mod+K still opens it (CommandPalette.tsx:76-81 never reads the store). Press Mod+S / Mod+O / Mod+, / Mod+1..4 with defaults -> nothing happens. Only agent.toggle (AgentDock.tsx:70-71) uses bindingFor+matchesEvent.",
+   "evidence": "src/store/keybindings.ts:58-157, :367; src/components/CommandPalette.tsx:20-22, :72-84; src/components/AgentDock.tsx:68-78; src/modules/chat/ChatSidebar.tsx:540-560; keybindings.ts:99-104 comment ('dispatch lives in their owning components') false for seven actions. Refuter: agent-shell-8 admitted medium; INT-deferred-0-9 admitted_with_correction medium (13 actions, not 11).",
+   "root_cause": "The store and Settings UI were built but consumers hardcode literals or have no keydown dispatch.",
+   "fix_shape": "One app-level keydown dispatcher that resolves every action through bindingFor+matchesEvent (keeping literals only as unavailable-store fallback) and routes to the owning command; delete per-component literals. Pin with a test that iterates DEFAULT_KEYBINDINGS and asserts each fires its handler, and that a remapped palette.open fires only on the new chord.",
+   "defect_class": "config-not-wired",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-8",
+    "INT-deferred-0-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-017",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "Sending with a missing API key leaves an orphaned user turn in the transcript with no assistant reply, error row or Retry",
+   "files": [
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "Select a key-requiring provider with no key, type a prompt, Enter -> appendUser (ChatSidebar.tsx:765) then getSecret null -> transient status line and return; the question stands alone forever (and auto-titles the space). Keyless-Ollama-unavailable branch (:796-806) has the same shape.",
+   "evidence": "src/modules/chat/ChatSidebar.tsx:735, :765, :787-806, :1238-1250, :1430-1477 (existing ErrorRow + Retry path). Refuter: admitted medium.",
+   "root_cause": "Precondition check runs after the state mutation it should gate.",
+   "fix_shape": "Resolve provider/key before appendUser, or emit a failed assistant message via beginAssistant+fail() with the human reason and Retry. Pin with a ChatSidebar test: no key -> no orphan user turn (or an ErrorRow follows it).",
+   "defect_class": "check-after-mutation",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-018",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Destructive actions across the shell are one unconfirmed click with no undo: deleting a custom agent, a saved workspace, a layout, a whole portfolio, 'Reset to default' layout, and key removal — and delete/remove paths drop the failure reason",
+   "files": [
+    "src/modules/agent-builder/AgentBuilderPanel.tsx",
+    "src/modules/platform/WorkspaceDialog.tsx",
+    "src/components/SettingsPanel.tsx",
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/lib/keychain.ts"
+   ],
+   "repro": "(1) Agent Builder: click × on an agent -> DELETE fires immediately; failure shows only 'delete failed (status)'. (2) Load Workspace -> Delete, Settings -> Layouts ×: deleted immediately (the blob holds that workspace's portfolios/notes). (3) 'Reset to default' ghost button beside Save. (4) Portfolio toolbar trash -> portfolio and all hand-entered holdings gone; autosave persists it. (5) Provider trash -> keychain_delete with no try/catch -> unhandled rejection, no message.",
+   "evidence": "src/modules/agent-builder/AgentBuilderPanel.tsx:90-111, :172-191, :484-491; src/modules/platform/WorkspaceDialog.tsx:209-222, :287-296; src/components/SettingsPanel.tsx:424-427, :516-526, :1656, :1685-1693; src/modules/portfolio/PortfolioPanel.tsx:607-616; src/store/portfolios.ts:136-146; src/lib/keychain.ts:69-71. Refuter: agent-shell-10, shell-chrome-7, portfolio-10 all admitted medium.",
+   "root_cause": "No shared confirm/undo primitive, so irreversible operations are the cheapest gesture on screen; per-site error handling diverged (writeCustomAgent extracts detail, deleteCustomAgent does not).",
+   "fix_shape": "One inline two-step confirm (or 5 s undo toast) primitive applied to every destructive call site; route delete errors through extractSidecarDetail; try/catch handleRemove with an inline reason. Pin with component tests that a single click does not delete in each site.",
+   "defect_class": "unconfirmed-destructive-action",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-10",
+    "COD-frontend-panels-shell-chrome-7",
+    "COD-portfolio-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-019",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The onboarding banner tells a correctly configured local-model user on every launch to 'add a cloud provider key — or run a local model — to unlock the assistant, agents, and research tools'",
+   "files": [
+    "src/components/OnboardingBanner.tsx",
+    "src/store/provider-keys.ts",
+    "src/store/llm-providers.ts"
+   ],
+   "repro": "Finish onboarding via 'Run it locally' (provider=ollama) -> hasAnyKey() is false (counts only requiresKey providers) -> banner shows though the agent works; dismissal is component useState, so it returns every relaunch. Copy also contradicts the flow's keyless claims.",
+   "evidence": "src/components/OnboardingBanner.tsx:26-32, :49-53; src/store/provider-keys.ts:58-62; src/components/OnboardingFlow.tsx:249-253, :266-273; mounted at src/app/page.tsx:279. Refuter: admitted medium.",
+   "root_cause": "The gate asks 'is a BYOK key configured' instead of 'is a model reachable'; dismissal is not persisted.",
+   "fix_shape": "Gate on hasAnyKey() OR an active keyless provider; persist dismissal with the onboarding 'seen' marker. Pin with a banner test for the ollama-default case.",
+   "defect_class": "wrong-predicate",
+   "raw_ids": [
+    "COD-frontend-panels-agent-shell-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-020",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Chart drawings are keyed only by the singleton panel id, so a level drawn on RELIANCE paints at the same price on every other symbol and timeframe; symbol/timeframe/indicators are not persisted, so relaunch opens SPY 1d with RELIANCE's drawings",
+   "files": [
+    "types/drawings.ts",
+    "src/store/chart-drawings.ts",
+    "src/modules/chart/ChartPanel.tsx",
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Load RELIANCE, draw a horizontal line at 2450 -> load TCS -> line stays at 2450 on TCS's scale. Relaunch -> chart opens SPY 1d (local useState) with the RELIANCE line restored.",
+   "evidence": "types/drawings.ts:80-114; src/modules/chart/ChartPanel.tsx:80-81, :259-262, :298; src/modules/chart/index.ts:24-30; src/store/chart-drawings.ts:62-66; src/lib/workspace.ts:48-56, :633. Refuter: admitted_with_correction medium.",
+   "root_cause": "DrawingSpec has no symbol/timeframe; the singleton decision turned 'per panel' into 'global'; chart state breaks the 'persisted UI state rides the workspace blob' rule.",
+   "fix_shape": "Store symbol+timeframe on DrawingSpec and filter in the selector; persist {symbol, timeframe, indicators, compare} in SerializedWorkspace with an autosave subscription. Pin with store tests (drawings filtered by symbol) and a workspace round-trip test.",
+   "defect_class": "wrong-key",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-021",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Pressing Backspace/Delete anywhere in the app (chat composer, symbol box) deletes the selected chart drawing, even one marked locked",
+   "files": [
+    "src/modules/chart/ChartPanel.tsx"
+   ],
+   "repro": "Draw a trendline, click its chip in the inspector, click into the agent composer, press Backspace -> drawing removed. Locked drawings are deleted the same way.",
+   "evidence": "src/modules/chart/ChartPanel.tsx:689-703 (window keydown, no target/contentEditable/container/locked check), :1070-1079. Refuter: admitted medium.",
+   "root_cause": "A panel-scoped shortcut installed as a global listener; selectedDrawingId persists after focus leaves the chart.",
+   "fix_shape": "Bail when event.target is input/textarea/contentEditable or outside containerRef; skip locked drawings. Pin with a test dispatching Backspace from an input with a selected drawing.",
+   "defect_class": "global-listener-scope",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-022",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control",
+   "files": [
+    "src/modules/chart/ChartPanel.tsx",
+    "src/modules/chart/drawings/renderers.ts"
+   ],
+   "repro": "(a) Horizontal line clicked at a wick high lands on the close. (b) Trendline clicked twice right of the last bar -> time:null -> listed in the inspector but TrendlineRenderer returns early (invisible). (c) Text tool kindOptions fixed {text:'label'}; nothing edits it. (d) Lock toggles `locked` which nothing reads.",
+   "evidence": "src/modules/chart/ChartPanel.tsx:632-676, :1074-1079, :1552-1564; src/modules/chart/drawings/renderers.ts:32-44, :280-303; types/drawings.ts:93-96. Refuter: admitted medium.",
+   "root_cause": "Renderers were built against a contract whose input side (click path, text entry, drag-edit) was never built.",
+   "fix_shape": "Always resolve price via coordinateToPrice(point.y) (optional magnet), use coordinateToTime/logical index off-bar, add an inline text prompt, and either implement drag-edit honouring locked or remove the Lock control. Pin with ChartPanel click-path tests.",
+   "defect_class": "half-built-contract",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-023",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Previous symbol's indicators stay drawn over the new symbol during every load and permanently after an indicator error; Parabolic SAR is computed against whichever candles happen to be cached",
+   "files": [
+    "src/modules/chart/ChartPanel.tsx"
+   ],
+   "repro": "Chart AAPL with SMA+RSI -> load RELIANCE whose /indicators call fails -> AAPL's SMA (~190) stays on RELIANCE's pane (~2450) and autoscale crushes the candles; RSI pane stays. If /indicators resolves before /history, SAR dots are placed against the previous symbol's closes and never recomputed.",
+   "evidence": "src/modules/chart/ChartPanel.tsx:364-419, :422-446, :454-492, :559-602. Refuter: admitted medium.",
+   "root_cause": "Price and indicator rendering are independent effects racing on shared refs; the indicator catch never clears series.",
+   "fix_shape": "Clear indicator series at the start of each load and in the catch; render indicators only once the matching {symbol,timeframe} candle set is committed. Pin with a test where /indicators rejects after a symbol change and asserts no overlay series remain.",
+   "defect_class": "stale-render-race",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-024",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Notes editor extensions are broken: 'Task List' throws (extension never registered) and the toolbar has no task control, slash and [[ menus are not keyboard-operable, and wikilinks are plain escaped text — not clickable, picker frozen at mount, toolbar button deletes the selection",
+   "files": [
+    "src/modules/notes/NotesPanel.tsx",
+    "src/modules/notes/slash-commands.ts",
+    "src/modules/notes/SlashCommandExtension.ts",
+    "src/modules/notes/WikiLinkExtension.ts",
+    "src/modules/notes/NotesToolbar.tsx"
+   ],
+   "repro": "(a) '/' -> click 'Task List' -> TypeError 'toggleTaskList is not a function' (StarterKit 3 has no TaskList; grep src: no TaskList/TaskItem registration). (b) '/' then ArrowDown/Enter -> Enter inserts a newline (onKeyDown handles only Escape). (c) Pick RELIANCE.NS from '[[' -> literal text, getMarkdown() 'see \\[\\[RELIANCE.NS\\]\\]', no click-to-chart. (d) Add TCS.NS to the watchlist after mount -> '[[' picker never offers it. (e) Select 'alpha', click 'Insert [[wikilink]]' -> '[[ beta gamma'. Toolbar Lists group offers bullet/numbered only (INT-pdd-readme-45-6's premise that task lists 'render correctly' is false — the command throws).",
+   "evidence": "src/modules/notes/slash-commands.ts:43-47; src/modules/notes/NotesPanel.tsx:105-126, :345-417; src/modules/notes/SlashCommandExtension.ts:75-84; src/modules/notes/WikiLinkExtension.ts:1-15, :41-48, :62, :101-107; src/modules/notes/NotesToolbar.tsx:155-158, :210-224; surface/portfolio-notes/20-notes-panel-replay.json N5-menus, 21-notes-toolbar-replay.json; package.json (no @tiptap/extension-task-list). Refuter: data-surfaces-10 admitted medium; SURF-PORTFOLIO-NOTES-8 admitted low; INT-pdd-readme-45-6 admitted low.",
+   "root_cause": "Headers describe an Obsidian-grade editor the code does not implement; the wikilink is inserted text rather than a node/mark, the suggestion source is a closure captured by useEditor with no deps, and the only editor test checks construction.",
+   "fix_shape": "Register TaskList+TaskItem and add the toolbar control; handle ArrowUp/Down/Enter in both suggestion onKeyDown hooks; implement the wikilink as an inline node/mark with its own Markdown serializer and click -> loadSymbolIntoChart; read symbols via store getState() inside getSymbols; wrap a selection instead of replacing it. Pin with jsdom editor tests for each command.",
+   "defect_class": "half-built-contract",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-10",
+    "INT-pdd-readme-45-6",
+    "SURF-PORTFOLIO-NOTES-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-025",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Notes toolbar Link button is a silent no-op in the macOS desktop app: it relies on window.prompt, which the Tauri WKWebView does not implement",
+   "files": [
+    "src/modules/notes/NotesToolbar.tsx"
+   ],
+   "repro": "Desktop app: select text in a note -> Link -> prompt returns null (wry 0.55.1's WKUIDelegate lacks runJavaScriptTextInputPanelWithPrompt) -> treated as cancel. One live click would confirm.",
+   "evidence": "src/modules/notes/NotesToolbar.tsx:144-153; src-tauri/Cargo.lock:6464-6465; ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wry-0.55.1/src/wkwebview/class/wry_web_view_ui_delegate.rs:64-141. Refuter: admitted medium (macOS only).",
+   "root_cause": "A browser-only primitive used inside the desktop webview.",
+   "fix_shape": "Replace window.prompt with an inline URL popover (SymbolChipInput pattern); grep-ban window.prompt/alert/confirm in src via lint. Pin with a toolbar test that Link opens the popover and applies the mark.",
+   "defect_class": "browser-primitive-in-webview",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-026",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Watchlist add/remove is racy: rows are a fetch-time snapshot so an added symbol is missing and a removed one reappears for a poll cycle, a fast Enter adds the stale autocomplete candidate (TCS -> 'TC' Token Cat, US), and polling never backs off or pauses",
+   "files": [
+    "src/modules/watchlist/WatchlistPanel.tsx",
+    "src/lib/symbol-autocomplete.ts"
+   ],
+   "repro": "(a) Add NVDA while a /quotes poll is in flight -> absent until the next 5 s tick. (b) Type 'TCS' quickly + Enter -> candidates still for 'TC' -> US Token Cat tracked (resolver ranks 'TC' first even with region=IN). (c) After an error the 5 s interval fires forever, also while hidden.",
+   "evidence": "src/modules/watchlist/WatchlistPanel.tsx:147, :195-245, :470-481; src/lib/symbol-autocomplete.ts:36-55, :61-90 (response `query` dropped). Refuter: admitted medium.",
+   "root_cause": "The panel stores a joined copy of entries+quotes instead of joining at render; autocomplete candidates are not tied to the draft they were fetched for.",
+   "fix_shape": "Keep Map<symbol, Quote> and render entries.map with map lookups; accept Enter only when candidates' query === draft; back off on error and pause when hidden. Pin with panel tests for add-during-poll and stale-candidate Enter.",
+   "defect_class": "stale-render-race",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-027",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "The keybinding recorder writes 'meta'/'ctrl' never 'mod', so the conflict check misses real collisions on macOS and exported bindings are platform-specific",
+   "files": [
+    "src/components/SettingsPanel.tsx",
+    "src/store/keybindings.ts"
+   ],
+   "repro": "macOS: Settings -> Keybindings, record Cmd+K for 'Toggle agent panel' -> 'meta+k'; conflicts() compares strings so no warning vs 'mod+k' (palette.open), yet matchesEvent fires both. Export and import on Windows -> Win+K.",
+   "evidence": "src/components/SettingsPanel.tsx:1342-1363, :1415, :1766-1773; src/store/keybindings.ts:31-33, :217-233, :367-383; census/code/evidence/frontend-panels-shell-chrome-repro.test.tsx.txt. Refuter: admitted medium.",
+   "root_cause": "comboFromEvent contradicts its own comment; conflicts() groups raw strings instead of resolved chords.",
+   "fix_shape": "Emit 'mod' for the platform-primary modifier in comboFromEvent and make conflicts() compare resolved physical chords. Pin with the existing repro test turned into an assertion.",
+   "defect_class": "config-not-wired",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-028",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "Greeks are shown in unlabelled QuantLib units (vega per unit vol, theta per year): the default Greeks example reads Vega 30.63 / Theta -39.68 where market convention is 0.306 per vol point / -0.109 per day, and the backend comment claiming 'the panel divides by 100' is false",
+   "files": [
+    "src/modules/quant/GreeksDashboard.tsx",
+    "src/modules/quant/OptionPricerPanel.tsx",
+    "sidecar/services/quant/options.py",
+    "sidecar/services/quant/greeks.py"
+   ],
+   "repro": "Open the Greeks Dashboard and press Compute with its defaults (spot 220, strike 220, r 0.05, q 0.005, vol 0.28) -> 'Vega 30.6270', 'Theta -39.6807' with no unit.",
+   "evidence": "sidecar/services/quant/options.py:131-132; sidecar/services/quant/greeks.py:26-27; src/modules/quant/GreeksDashboard.tsx:69-81, :103, :136; src/modules/quant/OptionPricerPanel.tsx:557-561. Refuter: admitted_with_correction medium (values are correct partials, units unlabelled).",
+   "root_cause": "Display layer passes the engine's convention through without labelling or converting.",
+   "fix_shape": "One toMarketUnits() helper at the frontend seam (vega/100 'per 1 vol pt', theta/365 'per day') used by both panels; correct the backend comments. Pin with a unit test on the helper and a panel render test showing units.",
+   "defect_class": "unlabelled-units",
+   "raw_ids": [
+    "COD-macro-quant-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-029",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "Macro catalog failure pulses a loading skeleton forever: loadCatalog swallows every error and resolves, so the picker's error + Retry UI is dead code",
+   "files": [
+    "src/store/macro.ts",
+    "src/modules/macro/MacroSeriesPicker.tsx"
+   ],
+   "repro": "Make GET /macro/catalog?provider=ecb fail (sidecar down/booting) -> open Macro, ECB tab, empty search -> 3-row skeleton that never resolves; no refetch until a provider-tab switch.",
+   "evidence": "src/store/macro.ts:92-105, :127-137; src/modules/macro/MacroSeriesPicker.tsx:50, :56-63, :140-170. Refuter: admitted_with_correction medium.",
+   "root_cause": "Store action contract 'resolves either way' consumed by a component expecting rejection.",
+   "fix_shape": "Record catalogError in store state (like loadSeries does) and render it in the picker with Retry. Pin with a picker test where loadCatalog fails.",
+   "defect_class": "swallowed-error",
+   "raw_ids": [
+    "COD-macro-quant-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-030",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "Switching a Macro provider tab reloads the current series id against the new provider and retries it 12 times over ~50 s: user-driven selection is routed through the cold-boot retry hook, against the hook's own contract",
+   "files": [
+    "src/modules/macro/MacroPanel.tsx"
+   ],
+   "repro": "Macro on FRED DGS10 -> click the World Bank/ECB/IMF tab -> the unchanged id fails against the new provider and the hook retries ~50 s while the panel's own Retry offers a second path.",
+   "evidence": "src/lib/use-sidecar-retry.ts:35, :44-46, :105; src/modules/macro/MacroPanel.tsx:47-52, :75-79. Refuter: admitted_with_correction medium (the tab switch is the realistic trigger).",
+   "root_cause": "useRetryOnSidecarReady(loadDefault, [provider, seriesId]) re-arms on every user change.",
+   "fix_shape": "Keep the hook on the mount default only; give onSelect/onProviderChange an explicit loadSeries and pick a valid default id per provider on tab switch. Pin with a panel test: tab switch triggers one request.",
+   "defect_class": "retry-without-classification",
+   "raw_ids": [
+    "COD-macro-quant-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-031",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "market-data-providers-3",
+   "title": "Equity Overview load has no sequence guard: when an open-company command arrives mid-load, whichever response settles last wins and the first one's finally clears the spinner early",
+   "files": [
+    "src/modules/equity-overview/EquityOverviewPanel.tsx",
+    "src/modules/equity-overview/api.ts"
+   ],
+   "repro": "Equity Overview loading A -> screener row / watchlist entry / $CASHTAG chip / Cmd-K opens B -> both doLoads run; if A settles last the panel shows A (labelled A) after the user asked for B, and the agent context publishes A.",
+   "evidence": "src/modules/equity-overview/EquityOverviewPanel.tsx:599-603 (narrativeSeqRef guard), :707-769, :821-831, :922, :992; src/modules/equity-overview/api.ts:101-125. Refuter: admitted_with_correction medium (the stale result is honestly labelled).",
+   "root_cause": "The seqRef pattern used for the narrative fetch was omitted from the data fetch; no AbortController/timeout.",
+   "fix_shape": "Copy the seqRef guard into doLoad (and abort the prior request). Pin with a test resolving two loads out of order.",
+   "defect_class": "stale-render-race",
+   "raw_ids": [
+    "COD-market-data-providers-3-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-032",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "market-data-providers-3",
+   "title": "SEC Filings has no company-name search: the store's searchCompanies has no UI, and the sidecar /sec/filings/search route returns empty for every query ('Apple', 'AAPL', 'NVIDIA')",
+   "files": [
+    "src/modules/sec/SecFilingsPanel.tsx",
+    "src/store/sec.ts",
+    "sidecar/services/sec_filings_provider.py"
+   ],
+   "repro": "Open SEC Filings and try to find a company by name -> only a 'Symbol / CIK' field exists. GET /sec/filings/search?q=Apple -> empty results while /sec/status reports sec-edgar-mcp available.",
+   "evidence": "src/store/sec.ts:93-95, :228-248; src/modules/sec/SecFilingsPanel.tsx:123-138; src/store/sec.test.ts:163-176 (only consumer). Refuter: admitted_with_correction medium (the sidecar search is also broken, fix it first).",
+   "root_cause": "Capability wired in store and route but never surfaced; the sidecar tool contract/decoding in search_companies returns nothing.",
+   "fix_shape": "Fix sec_filings_provider.search_companies against the MCP tool contract (test with a live-shaped fixture), then wire it into the symbol field as a debounced autocomplete (EquityOverview pattern). Pin with a sidecar test ('Apple' -> CIK 320193) and a panel test.",
+   "defect_class": "dead-capability",
+   "raw_ids": [
+    "COD-market-data-providers-3-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-033",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "plugins",
+   "title": "Marketplace configure() has no error path: a keychain rejection while saving a plugin credential is silent, leaves the form open and the grant unpersisted",
+   "files": [
+    "src/store/marketplace.ts",
+    "src/modules/marketplace/MarketplacePanel.tsx"
+   ],
+   "repro": "Make setSecret reject (macOS tauri-dev keychain re-prompt denial) while saving the vysted-news NewsAPI key -> configure() rejects, CredentialForm's `void configure(...).then(onDone)` has no catch -> form stays open, no message, updateConfig never runs.",
+   "evidence": "src/store/marketplace.ts:215-236 (deleteSecret is .catch'd, setSecret is not); src/modules/marketplace/MarketplacePanel.tsx:257; src/lib/keychain.ts:58-60. Refuter: admitted_with_correction medium (surviving surface is the single NewsAPI key; broker creds go with trading).",
+   "root_cause": "Unguarded await in a loop plus an uncaught promise at the call site.",
+   "fix_shape": "Wrap the loop, surface the error in the form's validationError slot, persist grantedSecretIds only for written secrets. Pin with a store test with setSecret rejecting.",
+   "defect_class": "swallowed-error",
+   "raw_ids": [
+    "COD-plugins-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-034",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio edit survives a portfolio switch: Save then silently writes nothing to the new portfolio while the form resets as if it saved",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/store/portfolios.ts"
+   ],
+   "repro": "Portfolio A: Edit RELIANCE -> switch the Active select to B -> change quantity -> Save -> updateHolding(B.id, A's holding id) no-ops; form clears; A unchanged; no error.",
+   "evidence": "src/modules/portfolio/PortfolioPanel.tsx:106, :285-303, :557-569; src/store/portfolios.ts:164-177. Refuter: admitted medium.",
+   "root_cause": "Edit target is a holding id, but the portfolio is read from `active` at submit; the store's miss is a silent no-op.",
+   "fix_shape": "Clear editingId and reset the form on portfolio change/delete, and make updateHolding return false on a miss so the form shows an error. Pin with a panel test for edit-then-switch.",
+   "defect_class": "portfolio-switch-stale-target",
+   "raw_ids": [
+    "COD-portfolio-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-035",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Holding Delete does nothing in any portfolio that was not active when the Portfolio panel mounted (stale closure in the memoised columns)",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx"
+   ],
+   "repro": "Panel on 'Portfolio', add RELIANCE.NS; create 'Second', add TCS.NS, click its trash -> holdings unchanged, no error. A fresh mount on 'Second' deletes correctly.",
+   "evidence": "surface/portfolio-notes/10-portfolio-panel-replay.json P4-stale-closure, P4b-fresh-mount-delete; src/modules/portfolio/PortfolioPanel.tsx:305-310, :332-443 (deps omit handleDelete; exhaustive-deps disabled at :442). Refuter: admitted medium.",
+   "root_cause": "holdingColumns useMemo captures the first render's handleDelete, which closes over the first `active`.",
+   "fix_shape": "Add handleDelete/handleEdit (or active.id) to the memo deps or call a ref-held handler; re-enable exhaustive-deps. Pin with the replay as a vitest.",
+   "defect_class": "portfolio-switch-stale-target",
+   "raw_ids": [
+    "SURF-PORTFOLIO-NOTES-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-036",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio prices are fetched once and never refresh, and market value / P&L carry no freshness badge or as-of time — stale or after-hours quotes read as live while the Watchlist badges the same quote",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/components/DataBadges.tsx"
+   ],
+   "repro": "Leave Portfolio open across a session without changing holdings -> no refetch; Price/Mkt val/P&L stay at first-resolved values. Open after IN close -> no live/EOD/stale label, while Watchlist shows StalenessBadge from quote.freshness (sidecar sets freshness='eod').",
+   "evidence": "src/modules/portfolio/PortfolioPanel.tsx:140-166 (deps [quotesKey, quotesNonce]), :717-792 (no timestamp); src/modules/watchlist/WatchlistPanel.tsx:72-75, :219-224; sidecar/services/locale.py:225-254. Refuter: COD-portfolio-9 admitted medium; INT-spec-90-2 admitted medium (FR-041).",
+   "root_cause": "The money surface ignores Quote.freshness/timestamp and has no poll, unlike its sibling.",
+   "fix_shape": "Bump quotesNonce on the watchlist's interval (cleared on unmount), render StalenessBadge per row and an 'as of' on totals. Pin with a panel test (timer advances -> refetch; eod freshness -> badge).",
+   "defect_class": "freshness-not-shown",
+   "raw_ids": [
+    "COD-portfolio-9",
+    "INT-spec-90-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-037",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio 'Cost basis' never tells the user it is per share, and entering the total invested scales cost and P&L by the quantity",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx"
+   ],
+   "repro": "Buy 100 @ 1,200 (120,000 total), enter 120000 as Cost basis -> costValue 12,000,000 -> ~11.88M loss at price 1,250. Only the LLM's catalog schema says 'Per-share cost'.",
+   "evidence": "src/modules/portfolio/metrics.ts:94; src/modules/portfolio/PortfolioPanel.tsx:353, :646-655, :818; sidecar/services/agent_tools/catalog.py:1350. Refuter: admitted medium.",
+   "root_cause": "Ambiguous label on a money input with no feedback.",
+   "fix_shape": "Label 'Avg cost / share' (placeholder 'per share'), column 'Avg cost'. Pin with a render test on the label.",
+   "defect_class": "unlabelled-units",
+   "raw_ids": [
+    "COD-portfolio-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-038",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "research-extraction-synthesis",
+   "title": "Every Perplexity/Sonar citation badges as plain 'web' in the Sources rail (an SEC filing and a random blog look the same) because ResearchSource.domain carries 'host (via Perplexity Sonar)'",
+   "files": [
+    "src/lib/brief-ingest.ts",
+    "sidecar/services/research/sonar.py",
+    "sidecar/services/research/perplexity.py"
+   ],
+   "repro": "Sonar run cites https://www.sec.gov/... -> domain 'sec.gov (via Perplexity Sonar)', no source_type -> hostOf prefers domain -> hostMatches('sec.gov') false -> FILING/RESEARCH/NEWS miss -> 'web'. Same for Reuters/Bloomberg on both hosted lanes.",
+   "evidence": "sidecar/services/research/sonar.py:197-205; sidecar/services/research/perplexity.py:178-187; sidecar/services/research/models.py:65; src/lib/brief-ingest.ts:250-258, :314-316, :326. Refuter: admitted_with_correction medium (Python tiering uses URL first, unaffected).",
+   "root_cause": "'domain' is a display label in the hosted lanes and a hostname in brief-ingest.",
+   "fix_shape": "hostOf prefers the URL host and falls back to domain only when the URL will not parse; keep domain a bare host and carry provenance in its own field. Pin with a brief-ingest test for a Sonar-shaped source.",
+   "defect_class": "overloaded-field",
+   "raw_ids": [
+    "COD-research-extraction-synthesis-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-039",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "resolver",
+   "title": "Symbol autocomplete bypasses the rename and enrichment stages that /resolve runs: the picker offers retired tickers (GUJGASLTD after its rename to GUJENERGY) and the wire promises isin/bse_code/industry/former_name that are always null",
+   "files": [
+    "sidecar/services/symbol_resolver.py",
+    "sidecar/routers/resolve.py"
+   ],
+   "repro": "symbol_resolver.autocomplete('GUJGAS','IN') -> GUJGASLTD / GUJGASLTD.NS; resolve('GUJGASLTD','IN') -> GUJENERGY with rename provenance. The palette/watchlist use c.symbol directly.",
+   "evidence": "sidecar/services/symbol_resolver.py:673, :919; sidecar/routers/resolve.py:40, :141, :145. Refuter: admitted_with_correction medium (quotes/history for the old symbol still work).",
+   "root_cause": "resolve() = enrich(annotate_renamed(masters)); autocomplete runs neither post-stage but is projected through the same payload.",
+   "fix_shape": "Map autocomplete rows through _rename_instrument + _enrich_instrument (already written), or drop the identity keys from the autocomplete payload. Pin with a resolver test on a rename row.",
+   "defect_class": "inconsistent-pipeline",
+   "raw_ids": [
+    "COD-resolver-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-040",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "runs-durable-delegate",
+   "title": "The client store, not the sidecar, decides which Delegate runs exist: after a webview reload a live run is invisible and uncancellable while it keeps spending, and a failed cancel shows 'cancelled' while the run continues",
+   "files": [
+    "src/store/agent-runs.ts",
+    "src/lib/delegate-runs.ts"
+   ],
+   "repro": "(1) Launch a Delegate run, reload the webview -> rail empty; run continues to its ceiling; no control to see or cancel it. (2) Click × while POST /runs/{id}/cancel fails -> local status already 'cancelled', error swallowed, response.ok never checked.",
+   "evidence": "src/store/agent-runs.ts:76, :90-111; src/lib/delegate-runs.ts:6-7, :124, :134-143, :164-166, :175, :183-192, :236. Refuter: -7 admitted medium; -8 admitted_with_correction low.",
+   "root_cause": "In-memory rail state; poller skips sidecar runs without a local mirror and only starts from launch/resume; cancel is optimistic.",
+   "fix_shape": "On sidecar-ready GET /runs and adopt running|paused rows, then ensurePolling(); make durable cancel pessimistic (flip on ok, else 'cancel failed — retry'). Pin with delegate-runs tests for boot adoption and failed cancel.",
+   "defect_class": "client-owns-server-truth",
+   "raw_ids": [
+    "COD-runs-durable-delegate-7",
+    "COD-runs-durable-delegate-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-041",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "safety-audit",
+   "title": "The first-launch TOS every user must accept still describes the removed trading product — live trading venues, broker orders, per-broker live mode and a Cmd/Ctrl+Shift+K kill switch that 'halts all order routing' but emits an event nothing listens to — and carries no licence acknowledgement, data-accuracy or AI-output disclosure",
+   "files": [
+    "src/modules/safety/DisclaimerFlow.tsx",
+    "src-tauri/src/kill_switch.rs",
+    "src-tauri/src/lib.rs",
+    "src/store/safety.ts"
+   ],
+   "repro": "Clean profile first launch -> blocking dialog 'Please review the operating terms before connecting a broker. Vysted Terminal connects to live trading venues… A kill switch (Cmd/Ctrl+Shift+K) halts all order routing globally' -> accept -> press Cmd+Shift+K -> kill_switch.rs emits 'kill-switch:requested', no listener, no feedback. No sentence says data may be delayed/wrong, AI output can be wrong, or names PolyForm Strict vs commercial licence.",
+   "evidence": "src/modules/safety/DisclaimerFlow.tsx:35-121 (TOS_BODY :37-45, description :94), mounted for every user at src/app/page.tsx:289; src-tauri/src/kill_switch.rs:43-63, :94-97; src-tauri/src/lib.rs:446; src/store/safety.ts:13-18; src/modules/safety/index.ts:10-12; docs/BLUEPRINT.md:283; docs/redesign/DECISIONS.md:141 (D81 trading removed); surface/onboarding-stranger/20-onboarding-replay.json T1_before_ack. Refuter: rust-core-3, blueprint-192-1, blueprint-96-3, onboarding-stranger-4 all admitted medium; kill switch gates orders only, so the fix is rewrite+delete, not wiring the listener.",
+   "root_cause": "The §6.5 #8 trading disclaimer doubles as the product's only first-launch acknowledgement and the gate onboarding sequences on; the trading removal did not replace it.",
+   "fix_shape": "In the trading-removal batch replace TOS_BODY with research/data-terminal terms (not advice; data may be delayed or wrong; AI output can be wrong; licence line naming PolyForm Strict 1.0.0 vs commercial) and delete the global shortcut registration and dead event; keep the dialog as the onboarding gate. Pin with a DisclaimerFlow test on the new body and a grep test that no order/kill-switch copy remains. Tier-4: edits the §6.5 disclaimer/kill-switch and licensing text.",
+   "defect_class": "false-written-promise",
+   "raw_ids": [
+    "COD-rust-core-3",
+    "INT-blueprint-192-1",
+    "INT-blueprint-96-3",
+    "SURF-ONBOARDING-STRANGER-4"
+   ],
+   "tier4": true,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-042",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "safety-audit",
+   "title": "Audit Log viewer has no error state and flickers Loading/Empty every 2 s on an empty log; a failed load renders as a bare '0 entries' table",
+   "files": [
+    "src/modules/safety/AuditLogViewer.tsx",
+    "src/store/safety.ts"
+   ],
+   "repro": "Open Audit Log with zero rows -> body alternates 'Loading…' and EmptyState every 2 s. Stop the sidecar -> status 'error' matches neither branch -> bare header + '0 entries'; auditError has no consumer.",
+   "evidence": "src/store/safety.ts:245-258; src/modules/safety/AuditLogViewer.tsx:62-68, :141-151, :148. Refuter: admitted medium; note the audit log records only trading actions, so after the removal it has no writers — whether this panel survives is an operator call.",
+   "root_cause": "Every poll sets status 'loading'; the viewer renders only loading/ready.",
+   "fix_shape": "Set 'loading' only from 'idle'; render auditError in a negative banner; choose the empty headline by whether a filter is set — or remove the panel with trading. Pin with AuditLogViewer tests for error and polling-empty. Tier-4: §6.5 locked subsystem and its survival depends on the trading-removal scope.",
+   "defect_class": "missing-error-state",
+   "raw_ids": [
+    "COD-safety-audit-9"
+   ],
+   "tier4": true,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-043",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "safety-audit",
+   "title": "Audit Log filters run client-side over the newest 200 rows, Export and table disagree for the same filter, and the Time column has no date",
+   "files": [
+    "src/modules/safety/AuditLogViewer.tsx",
+    "src/store/safety.ts",
+    "sidecar/services/audit_log.py",
+    "sidecar/routers/safety.py"
+   ],
+   "repro": "With >200 rows set From/To to last week -> table 'No audit entries match' while Export returns them; set only From -> table filtered, Export returns the full log; broker/action filters never reach export; rows from different days show identical times.",
+   "evidence": "src/modules/safety/AuditLogViewer.tsx:24, :75-78, :202; src/store/safety.ts:264-281; sidecar/services/audit_log.py:169-188, :199-216; sidecar/routers/safety.py:47-52. Refuter: admitted medium (trading-only records, as above).",
+   "root_cause": "Three read functions with separate SQL and none serving a filtered tail, so filtering happened in the UI.",
+   "fix_shape": "One _select(start, end, broker, action, limit, order) used by tail and export, route takes the same params, delete range_, render date+time — or remove with trading. Pin with a router test for filtered tail and a viewer test for date rendering. Tier-4: touches the §6.5 audit-log module.",
+   "defect_class": "filter-in-wrong-layer",
+   "raw_ids": [
+    "COD-safety-audit-10"
+   ],
+   "tier4": true,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-044",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "safety-audit",
+   "title": "A keychain read failure during first-launch TOS hydrate is a silent dead end: the TOS dialog never renders and first-run onboarding is suppressed with no message; sibling safety handlers also drop failures",
+   "files": [
+    "src/modules/safety/DisclaimerFlow.tsx",
+    "src/modules/safety/OrderConfirmationDialog.tsx",
+    "src/modules/safety/AuditLogViewer.tsx"
+   ],
+   "repro": "Deny the macOS keychain prompt on first launch -> keychain_get rejects -> hydrate IIFE rejects unhandled -> setHydrated(true) never runs -> FirstLaunchTosDialog returns null forever and OnboardingFlow (opens only when firstLaunchTosAcked) never opens. Decline/first-connect/CSV-export handlers likewise swallow failures (trading-only, go with the removal).",
+   "evidence": "src/modules/safety/DisclaimerFlow.tsx:55-76, :148-156; src/modules/safety/OrderConfirmationDialog.tsx:124-171; src/modules/safety/AuditLogViewer.tsx:79-82; src/lib/keychain.ts:63-66. Refuter: admitted_with_correction medium (onboarding suppression is the surviving consequence).",
+   "root_cause": "The hydrate effect has no catch while handleAck in the same file does.",
+   "fix_shape": "catch in the hydrate effect -> setHydrated(true) + ackError 'could not read keychain' with a retry; give remaining handlers the sibling catch->setError. Pin with a DisclaimerFlow test where getSecret rejects. Tier-4: §6.5 disclaimer component.",
+   "defect_class": "swallowed-error",
+   "raw_ids": [
+    "COD-safety-audit-12"
+   ],
+   "tier4": true,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-045",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "Changing a screener criterion's operator discards the typed threshold (P/E<8 -> 'between' becomes 0–100; back to a scalar becomes 20; market_cap 1e11 -> 20)",
+   "files": [
+    "src/modules/screener/ScreenerCriteriaBuilder.tsx",
+    "src/modules/screener/CriterionGroupEditor.tsx"
+   ],
+   "repro": "Set 'P/E < 8' -> change operator to 'between' -> {min:0,max:100}; to any scalar op -> value 20.",
+   "evidence": "src/modules/screener/ScreenerCriteriaBuilder.tsx:161-171; src/modules/screener/CriterionGroupEditor.tsx:175-179. Refuter: admitted medium.",
+   "root_cause": "The operator handler rebuilds a fresh criterion instead of carrying the value.",
+   "fix_shape": "Carry the current scalar through and seed between as {min:v,max:v}, in both editors via one helper. Pin with a builder test.",
+   "defect_class": "state-reset-on-edit",
+   "raw_ids": [
+    "COD-screener-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-046",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "workspace-layout",
+   "title": "The reserved __autosave__ slot is exposed: the Load Workspace dialog lists it with Load and Delete, and names starting '__' save and then vanish from Settings > Layouts",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/modules/platform/WorkspaceDialog.tsx",
+    "src/store/workspace.ts"
+   ],
+   "repro": "GET :52152/workspace -> ['__autosave__']; a fresh user sees '__autosave__' instead of 'No saved workspaces yet'; Delete removes the live session slot; Load sets the active name to '__autosave__'. Save '__mine' -> saved then filtered from Settings.",
+   "evidence": "src/store/workspace.ts:22-27; src/components/SettingsPanel.tsx:1598 (only filtering caller); src/modules/platform/WorkspaceDialog.tsx:99, :172-176, :214; src/lib/workspace.ts:271, :381-391, :519; sidecar/services/workspace_store.py:58-66. Refuter: admitted medium (confirmed live).",
+   "root_cause": "Reserved-name hiding is a caller convention rather than a property of listWorkspaces/saveWorkspace.",
+   "fix_shape": "Filter reserved names inside listWorkspaces() and reject them in saveWorkspace()/deleteWorkspace(). Pin with workspace.test.ts cases.",
+   "defect_class": "convention-not-enforced",
+   "raw_ids": [
+    "COD-workspace-layout-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-047",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Panels cannot pop out to a second window: no multi-monitor path for the dockview layout",
+   "files": [
+    "src/components/PanelHost.tsx",
+    "src-tauri/src/lib.rs"
+   ],
+   "repro": "Two-monitor desk: try to drag a chart panel off the main window -> no gesture; grep 'popout|addFloatingGroup|WebviewWindow' src/ -> no hits.",
+   "evidence": "src/components/PanelHost.tsx; dockview 6.2.2 installed with addPopoutGroup unused; docs/BLUEPRINT.md §5.2 L332. Refuter: admitted medium (dockview popout uses window.open, which a Tauri webview does not honour by default — needs a Tauri-side window handler).",
+   "root_cause": "Blueprint promise never implemented.",
+   "fix_shape": "Wire dockview addPopoutGroup/addFloatingGroup and a Tauri new-window handler that opens a WebviewWindow for the popout route; if that requires tauri.conf.json/capability changes it escalates. Pin with a PanelHost test that a popout action calls the handler.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-blueprint-144-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-048",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-stores",
+   "title": "There are no per-module preferences: chart symbol/timeframe/indicator defaults are hard-coded constants (SPY 1d), so every chart mount ignores what the user prefers",
+   "files": [
+    "src/store/settings.ts",
+    "src/modules/chart/ChartPanel.tsx",
+    "src/components/SettingsPanel.tsx",
+    "src/lib/indicator-presets.ts"
+   ],
+   "repro": "Want a default 15m timeframe -> no setting; every chart mount opens DEFAULT_SYMBOL 'SPY' / DEFAULT_TIMEFRAME '1d'.",
+   "evidence": "src/store/settings.ts:59-68 (bundle = defaultAgentId, region, deepResearchBackend); src/lib/indicator-presets.ts:22-55; src/modules/chart/ChartPanel.tsx:80-81; docs/BLUEPRINT.md §5.2 L338. Refuter: admitted medium.",
+   "root_cause": "Settings store has no module-scoped slice.",
+   "fix_shape": "Add a module-preferences slice (chart default timeframe/indicators first) persisted in the settings bundle and read at chart mount. Pin with a settings round-trip test and a ChartPanel mount test.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-blueprint-144-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-049",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "llm-adapters",
+   "title": "Adding a provider key after skipping onboarding (Settings or /key) leaves the default provider on keyless Ollama; the user must switch lanes by hand",
+   "files": [
+    "src/store/llm-providers.ts",
+    "src/components/KeyEntryDialog.tsx"
+   ],
+   "repro": "Clean install -> skip onboarding -> add an OpenRouter key in Settings -> defaultProviderId stays 'ollama' (llm-providers.ts:134); chat/research still target the local model until 'Set default' or /provider.",
+   "evidence": "src/store/llm-providers.ts:134. Refuter: admitted_with_correction medium (the guided onboarding Cloud step does switch the default).",
+   "root_cause": "Only onboarding promotes a newly keyed provider to default.",
+   "fix_shape": "When a key is saved and the current default is keyless and unavailable (or never user-chosen), promote the keyed provider (with a visible note). Pin with a store test.",
+   "defect_class": "wrong-default",
+   "raw_ids": [
+    "INT-deferred-84-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-050",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Notes slash-menu rows stack two 13px lines in a fixed 32px row, so descriptions overflow into the neighbouring item",
+   "files": [
+    "src/modules/notes/NotesPanel.tsx"
+   ],
+   "repro": "In Notes type '/' -> each item is h-8 (32px) holding two text-caption lines (19.5px each = 39px) -> text overruns and the active row's background cuts the next item's text.",
+   "evidence": "src/modules/notes/NotesPanel.tsx:357, :364, :375-376; styles/tokens.css:114, :127, :177-180; docs/redesign/R9_DESIGN_SYSTEM.md:75. Refuter: admitted medium.",
+   "root_cause": "Fixed height on a two-line flex-col row.",
+   "fix_shape": "min-h-8 + py-1 (or h-10). Pin with a render test asserting no fixed h-8 on two-line rows.",
+   "defect_class": "clipped-text",
+   "raw_ids": [
+    "INT-pdd-readme-45-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-051",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "Bond and Option pricers stamp a hard-coded '$' on prices computed from currency-free inputs (an INR bond shows dollars)",
+   "files": [
+    "src/modules/quant/BondPricerPanel.tsx",
+    "src/modules/quant/OptionPricerPanel.tsx",
+    "src/lib/format.ts"
+   ],
+   "repro": "Bond Pricer with an INR bond -> clean price, dirty price, accrued interest render '$…'; Option Pricer option price '$…'. Neither collects a currency.",
+   "evidence": "src/modules/quant/BondPricerPanel.tsx:301, :323, :326; src/modules/quant/OptionPricerPanel.tsx:525; src/lib/format.ts:74-100. Refuter: admitted_with_correction medium (four figures, SE has no '$').",
+   "root_cause": "Per-panel formatting bypassing format.ts.",
+   "fix_shape": "Render the mantissa bare (inputs are unit-free) or carry a currency and use currencyAffix. Pin with a render test asserting no '$'.",
+   "defect_class": "mislabelled-money",
+   "raw_ids": [
+    "INT-pdd-readme-45-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-052",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "First-run copy makes false promises: 'web research runs right now' with no key (no keyless web-research surface exists) and 'Nothing leaves this computer except the model calls you authorize' / 'fully private… offline' (tickers and search queries go to Yahoo/NSE/BSE and web search)",
+   "files": [
+    "src/components/OnboardingFlow.tsx",
+    "src/components/OnboardingBanner.tsx",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "Welcome step: 'It already works — no key, no account. Live quotes, charts, news, screeners and web research run right now.' Skip-path DoneStep and composer status repeat it; without a running model the composer re-opens onboarding. Local path 'fully private… offline' -> ask 'research NVDA' -> yfinance + 'searching the web' -> cnn.com, finance.yahoo.com, … sources.",
+   "evidence": "src/components/OnboardingFlow.tsx:242-243, :250-252, :270, :680; src/components/OnboardingBanner.tsx:50-52; src/modules/chat/ChatSidebar.tsx:797-805; sidecar/routers/search_status.py:20; sidecar/routers/search_tiers.py:27-42; surface/onboarding-stranger/A4-donestep-research-nvda-qwen3.jsonl; http-log.jsonl B01, C01-C08. Refuter: both admitted medium.",
+   "root_cause": "Copy written for the capability map before it was true; privacy sentence is absolute where data flows are inherent.",
+   "fix_shape": "Drop 'web research' from the keyless claims; reword privacy to what is true ('your keys, notes and portfolio stay on this machine; market data and web searches go to public providers'). Pin with a copy test on OnboardingFlow strings.",
+   "defect_class": "false-written-promise",
+   "raw_ids": [
+    "SURF-ONBOARDING-STRANGER-2",
+    "SURF-ONBOARDING-STRANGER-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-053",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "The Macro panel's IMF provider is 100% dead: every IMF catalog id contains '/', the /macro/{series_id} route is not a path param, so all 8 entries — including the only India series — 404 'Not Found'",
+   "files": [
+    "sidecar/routers/macro.py",
+    "src/store/macro.ts",
+    "sidecar/tests/test_macro_router.py"
+   ],
+   "repro": "GET /macro/catalog?provider=imf -> 8 'IFS/<freq>.<cc>.<code>' ids; panel loads /macro/IFS%2FA.US.NGDP_R_K_IX?provider=imf -> 404; raw slash form also 404.",
+   "evidence": "surface/panels-layouts/P-http-log.jsonl (macro-imf-*); sidecar/routers/macro.py:71; src/store/macro.ts:82-84; sidecar/services/macro/imf_provider.py:6, :44-52. Refuter: admitted medium.",
+   "root_cause": "Starlette decodes %2F before routing and '{series_id}' does not match slashes.",
+   "fix_shape": "Declare '/{series_id:path}' (or pass series_id as a query param); add an IMF id to the router test.",
+   "defect_class": "slash-in-path-param",
+   "raw_ids": [
+    "SURF-PANELS-LAYOUTS-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-054",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "error-layer",
+   "title": "The 'kept previous brief' divergence notice is not recognised by the chat's notice regex and is buried as a collapsed trace row, while the visible prose claims the new brief landed (live instance of R15-AGENT-031)",
+   "files": [
+    "src/modules/chat/message-notices.ts",
+    "sidecar/services/agent_runtime.py",
+    "src/modules/chat/ChatSidebar.tsx"
+   ],
+   "repro": "ULTRA run with the autobrief ack posted as kept_previous -> research_step {step_kind: engine, detail: 'The panel kept the brief already on screen — this publish did not replace it…'} -> DIVERGENCE_RE /did not confirm the publish|kept the previous, richer brief/ misses -> appendResearchStep into the collapsed 'Worked for… · N steps' trace.",
+   "evidence": "surface/research-briefs/r3-ultra-kaynes.stdout.txt, replay-r3-ultra-kaynes.json; sidecar/services/agent_runtime.py:1024-1042; src/modules/chat/message-notices.ts:57-61; src/modules/chat/ChatSidebar.tsx:291-352, :981-990. Same defect as R15-AGENT-031 (COD-error-layer-1, agent cluster), live-confirmed here. Refuter: admitted medium.",
+   "root_cause": "Notices are matched by prose regex that drifted from the runtime copy.",
+   "fix_shape": "Key notices on a structured field (step_kind 'notice' / code) or shared copy constants; fix once with R15-AGENT-031. Pin with a message-notices test over every runtime notice constant.",
+   "defect_class": "prose-as-contract",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-055",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "A screener run that evaluated nothing (every symbol rate-limited) renders 'No stocks in this universe passed every filter — loosen a threshold' with partial=false and a Reset CTA that restores the same screen",
+   "files": [
+    "sidecar/services/screener.py",
+    "src/modules/screener/ScreenerResultsTable.tsx",
+    "src/modules/screener/ScreenerPanel.tsx"
+   ],
+   "repro": "Default screener (sp500, P/E<20, mcap>1e11, Technology) on a Yahoo-throttled IP -> {evaluated_count:0, skipped_count:506 (rate_limited), partial:false, throttled:true} -> empty state blames filters; throttle line claims 'showing cached/snapshot values' while showing none. Header coverage line does say 'screened 0 of 506'.",
+   "evidence": "surface/screener/runs.jsonl labels 01,16,07b; surface/screener/24b-store-panel-replay-tail.json S1; sidecar/services/screener.py:812; src/modules/screener/ScreenerResultsTable.tsx:447-455; src/modules/screener/ScreenerPanel.tsx:407-431. Refuter: admitted_with_correction medium (failure disclosed in the header but contradicted by the empty state).",
+   "root_cause": "'partial' means budget cut only; the empty state keys on rows.length alone.",
+   "fix_shape": "Set partial/unevaluated when evaluated_count < total with non-budget skips; choose the empty state on evaluated_count===0 ('Nothing could be screened — provider throttled, retry in Ns'); show the throttle line only when snapshot rows exist. Pin with a sidecar test and a table test.",
+   "defect_class": "failure-shown-as-empty",
+   "raw_ids": [
+    "SURF-SCREENER-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-056",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "The screener stream's error frame is discarded: the server's reason never reaches the panel, which says 'Stream ended without a result frame' and suggests loosening a criterion",
+   "files": [
+    "src/store/screener.ts"
+   ],
+   "repro": "Feed the store progress then {event:'error', message:\"missing universe snapshot 'nifty50.json'\"} -> store.error 'Stream ended without a result frame'; table 'Could not load results — … loosen a criterion'.",
+   "evidence": "surface/screener/24-store-panel-replay.json S6; src/store/screener.ts:495-510, :558; sidecar/routers/screener.py:118-140; types/screener.ts ScreenerErrorFrame. Refuter: admitted medium.",
+   "root_cause": "processFrame handles only 'progress' and 'result'.",
+   "fix_shape": "On frame.event==='error' set status 'error' with String(frame.message) and stop reading. Pin with a store test feeding an error frame.",
+   "defect_class": "contract-drift",
+   "raw_ids": [
+    "SURF-SCREENER-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-057",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The Settings key dialog never trims a pasted key: a trailing space or newline surfaces as 'transport error: Connection error.' (reads as a network outage) for OpenAI/Anthropic/Groq/DeepSeek, while onboarding trims",
+   "files": [
+    "src/components/KeyEntryDialog.tsx",
+    "sidecar/models/llm.py",
+    "sidecar/routers/llm.py"
+   ],
+   "repro": "Settings -> AI Providers -> OpenAI -> paste key + ' ' -> Save -> 'transport error: Connection error.'. POST /llm/keys/validate {api_key:'<key> '} -> same for openai/anthropic/groq/deepseek; Gemini -> raw 400 dict.",
+   "evidence": "surface/settings-plugins/10-settings-panel-replay.json S3, http-log.jsonl B08-B11; src/components/KeyEntryDialog.tsx:73, :79, :181; src/components/OnboardingFlow.tsx:344-354; sidecar/routers/llm.py:99-111. Refuter: admitted medium.",
+   "root_cause": "Two entry points for one secret disagree; no strip at the boundary; SDK header error labelled transport.",
+   "fix_shape": "key.trim() in KeyEntryDialog.handleSave (validate + setSecret) and a strip validator on LLMKeyValidationRequest.api_key. Pin with a router test ('<key> ' validated as '<key>').",
+   "defect_class": "boundary-not-normalised",
+   "raw_ids": [
+    "SURF-SETTINGS-PLUGINS-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-058",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Settings Export carries only 3 preference fields (not research tier/models, SearXNG URL, default provider/model or module toggles), and Import reports 'Imported settings.' for any JSON — {} or another app's file — while resetting region to default and wiping remaps",
+   "files": [
+    "src/components/SettingsPanel.tsx",
+    "src/store/settings.ts",
+    "src/store/keybindings.ts",
+    "src/store/search-settings.ts"
+   ],
+   "repro": "Set Research tier Hosted, Deep model, custom SearXNG URL, default provider OpenAI -> Export -> {keybindingOverrides:{}, settings:{defaultAgentId, region, deepResearchBackend}}. Import '{}' or {theme:'dark'} -> green 'Imported settings.'; a bundle lacking region resets it; keybindingOverrides {'no.such.action':…, 'palette.open':42} wipes the existing remap.",
+   "evidence": "surface/settings-plugins/10-settings-panel-replay.json S4, S5; 10-settings-plugins-replay.json S2; src/components/SettingsPanel.tsx:1767-1773, :1798-1812, :1847-1850; src/store/settings.ts:81-85, :162-192; src/store/keybindings.ts:205-215. Refuter: admitted medium.",
+   "root_cause": "Export bundles only toBundle(); import success is unconditional and setAll merges over seed().",
+   "fix_shape": "SettingsExport v2 including search settings, default provider/model and enabledModules; import sets 'ok' only when a recognised section applied, merges over current state, rejects unknown action ids. Pin with export/import round-trip tests.",
+   "defect_class": "silent-partial-success",
+   "raw_ids": [
+    "SURF-SETTINGS-PLUGINS-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-059",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "fundamentals-profile",
+   "title": "No composite score or scorecard exists, so nothing in a watchlist row is triage-able, sortable or alertable at a glance (Trendlyne DVM / Tickertape scorecard are table stakes for Indian retail)",
+   "files": [
+    "sidecar/services/agent_tools/catalog.py",
+    "src/modules/watchlist/WatchlistPanel.tsx"
+   ],
+   "repro": "Open a 20-name watchlist and try to decide which two deserve attention -> every row is price + change; no score capability (grep composite_score|quality_score|scorecard over catalog.py and sidecar/models -> 0).",
+   "evidence": "sidecar/services/agent_tools/catalog.py:225; https://trendlyne.com/score-details/ (DVM, disclosed inputs, refresh cadence); https://www.strike.money/reviews/tickertape. Refuter: admitted medium. Coupled to R15-AGENT-023 (monitoring missing).",
+   "root_cause": "Capability absent.",
+   "fix_shape": "A disclosed-input composite (quality/valuation/momentum bands with stated inputs and as-of) as a catalog capability, rendered as a sortable watchlist column. Pin with a sidecar test on a fixture company and a watchlist sort test.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "WLD-T-11"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels",
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-060",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "backtest",
+   "title": "Backtest 'progress' and 'trade' SSE events are declared in three layers and never emitted, so the 0/N progress readout is frozen (briefly) and 38 lines of handlers are unreachable",
+   "files": [
+    "sidecar/services/backtest_engine.py",
+    "sidecar/models/backtest.py",
+    "types/backtest.ts",
+    "src/store/backtest.ts",
+    "src/modules/backtest/BacktestResultView.tsx"
+   ],
+   "repro": "10-bar run with an on_event collector -> engine emits only ['run-start','run-complete']; header shows 'running... 0/10 (0%)' until done (sub-second loop per refuter).",
+   "evidence": "sidecar/services/backtest_engine.py:435, :499; sidecar/models/backtest.py:142; types/backtest.ts:163-168; src/store/backtest.ts:183-220; src/modules/backtest/BacktestResultView.tsx:453-468, :541-543. Refuter: admitted_with_correction low.",
+   "root_cause": "Half-declared protocol.",
+   "fix_shape": "Emit progress every K bars or delete the kinds and handlers and show an indeterminate spinner. Pin with an engine event-sequence test.",
+   "defect_class": "dead-protocol",
+   "raw_ids": [
+    "COD-backtest-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-061",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "backtest",
+   "title": "'Trades' appears twice in the backtest result header with two different numbers (closed-only vs closed+open)",
+   "files": [
+    "src/modules/backtest/BacktestResultView.tsx"
+   ],
+   "repro": "Run a strategy ending with an open position -> metric strip 'Trades: 7', trade log 'Trades (8)'.",
+   "evidence": "src/modules/backtest/BacktestResultView.tsx:500-502, :551-553; sidecar/services/backtest_engine.py:272-285. Refuter: admitted low.",
+   "root_cause": "Same label, two meanings.",
+   "fix_shape": "Label the log 'Trades (N closed, M open)'. Pin with a render test.",
+   "defect_class": "ambiguous-label",
+   "raw_ids": [
+    "COD-backtest-15"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-062",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "backtest",
+   "title": "Backtest default date range ends on a hard-coded 2025-12-31, so default runs silently omit the last ~9 months",
+   "files": [
+    "src/modules/backtest/BacktestPanel.tsx"
+   ],
+   "repro": "Open Backtest -> End = 2025-12-31 (today 2026-09-23).",
+   "evidence": "src/modules/backtest/BacktestPanel.tsx:17-18. Refuter: admitted low.",
+   "root_cause": "Date literal frozen at authoring time.",
+   "fix_shape": "Derive defaults at mount (end=today, start=end-2y) via a shared date-default helper (same helper as the quant panels). Pin with a fake-timer test.",
+   "defect_class": "stale-date-literal",
+   "raw_ids": [
+    "COD-backtest-16"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-063",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "All four quant panels prefill valuation/expiry dates that are months in the past (2026-05-16 / 2026-06-30), so every open shows an expired example and the user retypes two dates",
+   "files": [
+    "src/modules/quant/OptionPricerPanel.tsx",
+    "src/modules/quant/GreeksDashboard.tsx",
+    "src/modules/quant/BondPricerPanel.tsx",
+    "src/modules/quant/YieldCurvePanel.tsx"
+   ],
+   "repro": "Open Option Pricer on 2026-09-19 -> Valuation 2026-05-16, Expiry 2026-06-30; same literals in Greeks, Bond, Yield-curve.",
+   "evidence": "src/modules/quant/OptionPricerPanel.tsx:235-236; src/modules/quant/GreeksDashboard.tsx:174-175; src/modules/quant/BondPricerPanel.tsx:107-109; src/modules/quant/YieldCurvePanel.tsx:81. Refuter: admitted_with_correction low (engine uses the supplied date, so prices are internally correct).",
+   "root_cause": "Date literals frozen at authoring time.",
+   "fix_shape": "One shared helper deriving defaults at mount (today, today+45d; bond issue today, maturity +10y). Pin with a fake-timer test per panel.",
+   "defect_class": "stale-date-literal",
+   "raw_ids": [
+    "SEAT-US-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-064",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Chart comparison and indicator styling mislead: '%' normalises only the overlay onto a hidden left scale, overlay data skips the de-dup the candles rely on (dev build asserts, series leaks), and two single-line indicators share one colour",
+   "files": [
+    "src/modules/chart/ChartPanel.tsx",
+    "src/lib/chart-theme.ts"
+   ],
+   "repro": "(a) Compare INFY with % on -> overlay on priceScaleId 'left' (hidden) vs absolute candles. (b) Duplicate timestamps -> setData throws after addSeries. (c) SMA + EMA both INDICATOR_COLORS[0].",
+   "evidence": "src/modules/chart/ChartPanel.tsx:108-121, :143-206, :494-529, :936-958; src/lib/chart-theme.ts:67-73. Refuter: admitted low.",
+   "root_cause": "Three hand-rolled ISO->time converters with divergent invariants; colour by line index.",
+   "fix_shape": "One toSeriesPoints helper (sort + dedupe); show the left scale or normalise both; colour by running series index. Pin with converter unit tests.",
+   "defect_class": "divergent-copies",
+   "raw_ids": [
+    "COD-frontend-panels-data-surfaces-15"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-065",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "plugins",
+   "title": "'Open Marketplace' buttons (Plugin Manager empty state, Settings → Integrations) are dead: they pass the component id 'marketplace-panel' and openPanel silently ignores unknown ids",
+   "files": [
+    "src/components/PluginManagerPanel.tsx",
+    "src/components/SettingsPanel.tsx",
+    "src/store/workspace.ts"
+   ],
+   "repro": "Click 'Open Marketplace' -> nothing; openPanel('marketplace-panel') -> findPanel undefined (panel id is 'marketplace') -> silent return. Proven by vitest.",
+   "evidence": "src/components/PluginManagerPanel.tsx:71; src/components/SettingsPanel.tsx:1578; src/store/workspace.ts:92-100; src/store/modules.ts:83; src/modules/marketplace/index.ts:17-20; census/code/evidence/frontend-panels-shell-chrome-repro.test.tsx.txt. Refuter: both admitted_with_correction low (Settings instance goes with trading; Plugin Manager empty state rarely reachable).",
+   "root_cause": "Panel ids and component ids share one untyped string namespace; openPanel no-ops silently.",
+   "fix_shape": "openPanel('marketplace') at the surviving call site; openPanel console.error in dev on unknown ids; export panel-id constants/PanelId union. Pin with a test that every openPanel literal resolves via findPanel.",
+   "defect_class": "silent-noop-on-unknown-id",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-2",
+    "COD-plugins-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-066",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "EmptyState cannot express failure: error and empty states share icon, tones and semantics with no role=alert",
+   "files": [
+    "src/components/EmptyState.tsx",
+    "src/modules/news/NewsFeedPanel.tsx",
+    "src/modules/macro/MacroPanel.tsx",
+    "src/modules/analyst-ratings/AnalystRatingsPanel.tsx"
+   ],
+   "repro": "News upstream failure <EmptyState icon=Newspaper headline='Could not load the news feed'> vs empty feed with the same icon/tones, neither with role=alert/status.",
+   "evidence": "src/components/EmptyState.tsx:15-58; src/modules/news/NewsFeedPanel.tsx:294-308; src/modules/macro/MacroPanel.tsx:70-88; src/modules/analyst-ratings/AnalystRatingsPanel.tsx:125-127, :189-191. Refuter: admitted_with_correction low (headlines and Retry already differ).",
+   "root_cause": "Primitive covers only the happy-empty case.",
+   "fix_shape": "Add variant 'empty'|'error' (error: role=alert, distinct icon, retry cta) and migrate error call sites. Pin with EmptyState tests.",
+   "defect_class": "missing-error-state",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-067",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Data-trust badges are forked: EquityOverview shadows the shared ProvenanceBadge, the shared one signals 'synthetic' by colour only, Watchlist/Chart show a bare 'EOD' with no date, and the as-of date is computed in UTC (off by a day 00:00–05:29 IST)",
+   "files": [
+    "src/components/DataBadges.tsx",
+    "src/modules/equity-overview/EquityOverviewPanel.tsx",
+    "src/modules/watchlist/WatchlistPanel.tsx",
+    "src/modules/chart/ChartPanel.tsx",
+    "src/modules/research/BriefPanel.tsx",
+    "types/data.ts"
+   ],
+   "repro": "TZ=Asia/Kolkata, 2026-09-24T01:30+05:30 -> asOfDate '2026-09-23'; BriefPanel 'EOD as of' disagrees with its local produced timestamp. <ProvenanceBadge provider='x' synthetic> renders only 'x'.",
+   "evidence": "src/components/DataBadges.tsx:30-119; src/modules/equity-overview/EquityOverviewPanel.tsx:280-312; types/data.ts:12; src/modules/watchlist/WatchlistPanel.tsx:74-75; src/modules/chart/ChartPanel.tsx:1424; src/modules/research/BriefPanel.tsx:170, :451. Refuter: admitted_with_correction low (BrokerReadsSection fork goes with trading).",
+   "root_cause": "Shallow shared primitive with optional asOf and duplicated Freshness type.",
+   "fix_shape": "One ProvenanceBadge with visible 'synthetic' text, asOf required when freshness==='eod', local-date formatting (toLocaleDateString('en-CA')); import Freshness from types/data. Pin with DataBadges tests including an IST-midnight case.",
+   "defect_class": "divergent-copies",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-068",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tables",
+   "files": [
+    "src/components/DataTable.tsx",
+    "src/modules/screener/ScreenerResultsTable.tsx",
+    "src/modules/watchlist/WatchlistPanel.tsx",
+    "src/modules/earnings/EarningsCalendarPanel.tsx",
+    "src/modules/backtest/BacktestResultView.tsx",
+    "src/modules/research/brief-blocks.tsx",
+    "src/modules/safety/AuditLogViewer.tsx"
+   ],
+   "repro": "Tab never reaches a sortable header (Screener, SEC filings, Ratings history cannot be sorted without a mouse). ScreenerResultsTable/Watchlist/Earnings restate column geometry in hand-written skeleton <table>s; brief markdown table, AuditLogViewer, BacktestResultView and the Earnings data table bypass DataTable.",
+   "evidence": "src/components/DataTable.tsx:13-39, :101-129, :239-266; src/modules/screener/ScreenerResultsTable.tsx:343-350; src/modules/watchlist/WatchlistPanel.tsx:437; src/modules/earnings/EarningsCalendarPanel.tsx:216, :278; src/modules/research/brief-blocks.tsx:926; src/modules/safety/AuditLogViewer.tsx:155; src/modules/backtest/BacktestResultView.tsx:242. Refuter: shell-chrome-12 admitted low; pdd-readme-45-3 admitted_with_correction low.",
+   "root_cause": "The primitive's interface covers only the populated state, so callers route around it.",
+   "fix_shape": "Add loading?:{rows} and empty?:ReactNode rendered through the same colgroup; put sort in a <button> inside <th> keeping aria-sort; port the plain survivors. Pin with DataTable tests (keyboard sort, loading rows).",
+   "defect_class": "shallow-primitive",
+   "raw_ids": [
+    "COD-frontend-panels-shell-chrome-12",
+    "INT-pdd-readme-45-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-069",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "screener",
+   "title": "ScreenerPanel recomputes three ledger aggregates twice per render on every SSE progress frame",
+   "files": [
+    "src/modules/screener/ScreenerPanel.tsx"
+   ],
+   "repro": "Run india-all -> each progress frame re-renders; basisLine()/skipBreakdown()/freshnessLine() each run twice ({fn() && <div>{fn()}</div>}).",
+   "evidence": "src/modules/screener/ScreenerPanel.tsx:91, :160-175, :433-446. Refuter: admitted_with_correction low (sub-ms).",
+   "root_cause": "Double-invocation idiom.",
+   "fix_shape": "useMemo each over lastResult and render the memo. No behaviour test needed beyond existing panel tests.",
+   "defect_class": "wasted-work",
+   "raw_ids": [
+    "COD-screener-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-070",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "workspace-layout",
+   "title": "No workspace export/import gesture: the .vysted-workspace file format exists but nothing in the UI produces or consumes one",
+   "files": [
+    "src/modules/platform/WorkspaceDialog.tsx",
+    "src/components/SettingsPanel.tsx",
+    "src/lib/workspace.ts"
+   ],
+   "repro": "Try to back up or share a layout -> Settings Export writes only vysted-settings.json; no control reads/writes a .vysted-workspace.",
+   "evidence": "sidecar/services/workspace_store.py:1-11, :26; src/components/SettingsPanel.tsx:1775-1812; docs/BLUEPRINT.md §5.2 L335. Refuter: admitted_with_correction low (files are plain JSON under <data-dir>/workspaces).",
+   "root_cause": "Blueprint gesture never wired.",
+   "fix_shape": "Export/Import buttons in WorkspaceDialog using the export-artifact write path and a file picker. Pin with a round-trip test.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-blueprint-144-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-071",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "No automated accessibility gate: 74 of 76 <input>s have neither id nor name and there is no axe/jsx-a11y/Lighthouse tooling to catch this or unlabelled controls",
+   "files": [
+    "package.json",
+    "eslint.config.mjs",
+    "src/components/SettingsPanel.tsx"
+   ],
+   "repro": "grep '<input' in src/**/*.tsx (non-test) for id/name -> 74/76 missing across 39 files (e.g. SettingsPanel.tsx:319-327); grep -i 'axe|lighthouse' package.json -> none.",
+   "evidence": "src/components/SettingsPanel.tsx:319-327; src/modules/portfolio/PortfolioPanel.tsx; src/modules/screener/ScreenerCriteriaBuilder.tsx; src/modules/quant/OptionPricerPanel.tsx; package.json. Refuter: INT-deferred-0-8 admitted_with_correction low; INT-deferred-0-14 admitted_with_correction low (light-theme half is an adopted decision, only the audit-tooling gap survives).",
+   "root_cause": "No lint/audit rule enforces control semantics.",
+   "fix_shape": "Add eslint-plugin-jsx-a11y (label-has-associated-control) and a vitest-axe smoke per panel, then a batch pass. Adding the lint to CI is Tier-1 CI territory only if a workflow file changes; the existing pnpm lint step picks up an ESLint config change.",
+   "defect_class": "a11y-unguarded",
+   "raw_ids": [
+    "INT-deferred-0-8",
+    "INT-deferred-0-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-072",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "Composer model selector has no chevron, so sighted users get no cue it opens a menu",
+   "files": [
+    "src/modules/chat/ModelControl.tsx"
+   ],
+   "repro": "Look at the composer model button -> label/Cpu icon only; aria-haspopup exists for screen readers only.",
+   "evidence": "src/modules/chat/ModelControl.tsx:156-189. Refuter: admitted low.",
+   "root_cause": "Missing affordance.",
+   "fix_shape": "Add a ChevronDown beside the label. Pin with a render test.",
+   "defect_class": "missing-affordance",
+   "raw_ids": [
+    "INT-deferred-84-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-073",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "--color-warning, documented as the 'stale data' signal, carries seven unrelated meanings (Docker missing, keybinding conflict, plugin initialising, run paused, budget exhausted), two of them colour-only",
+   "files": [
+    "styles/tokens.css",
+    "src/components/DataBadges.tsx",
+    "src/components/SettingsPanel.tsx",
+    "src/components/PluginManagerPanel.tsx",
+    "src/modules/chat/AgentsRail.tsx",
+    "src/modules/chart/ChartPanel.tsx"
+   ],
+   "repro": "Design: same yellow for synthetic provenance (DataBadges.tsx:57) and infrastructure nags; AgentsRail budget bar (:131-135) and paused dot (:95-99) are aria-hidden colour-only.",
+   "evidence": "styles/tokens.css:83; src/components/DataBadges.tsx:17, :57; src/components/SettingsPanel.tsx:744, :1482; src/components/PluginManagerPanel.tsx:136-138; src/modules/chat/AgentsRail.tsx:95-99, :131-135; src/modules/chart/ChartPanel.tsx:1385; docs/redesign/PRODUCT_DESIGN_DECISIONS.md:92-93. Refuter: admitted_with_correction low.",
+   "root_cause": "One semantic token absorbed every caution meaning.",
+   "fix_shape": "Reserve --color-warning for data provenance; add a caution token for infra/lifecycle; label the two colour-only uses. Pin with a grep test limiting text-warning to provenance components.",
+   "defect_class": "overloaded-token",
+   "raw_ids": [
+    "INT-pdd-readme-0-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-074",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "No reading surface caps its line length: brief prose and the Equity Overview narrative run ~150 characters per line on wide panels",
+   "files": [
+    "src/modules/research/brief-blocks.tsx",
+    "src/modules/equity-overview/EquityOverviewPanel.tsx"
+   ],
+   "repro": "Open a brief in a panel wider than ~1200px -> 16px prose across the full width.",
+   "evidence": "src/modules/research/brief-blocks.tsx:1001; src/modules/equity-overview/EquityOverviewPanel.tsx:419; docs/redesign/R9_DESIGN_SYSTEM.md:122-124 (max-w-prose). Refuter: admitted_with_correction low.",
+   "root_cause": "Only the leading half of the reading spec was implemented.",
+   "fix_shape": "Add max-w-prose to the brief body and narrative containers.",
+   "defect_class": "spec-half-built",
+   "raw_ids": [
+    "INT-pdd-readme-45-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-075",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Slashed zero was never enabled although tokens.css asserts it is",
+   "files": [
+    "src/app/globals.css",
+    "styles/tokens.css"
+   ],
+   "repro": "Design: globals.css:113-116 sets tnum/calt only; tokens.css:101 claims 'tabular figures + slashed zero'.",
+   "evidence": "src/app/globals.css:113-116; styles/tokens.css:101. Refuter: admitted low (only harm is the false comment).",
+   "root_cause": "Half of the numeric-typography decision shipped; comment claims all of it.",
+   "fix_shape": "Add '\"zero\" 1' to font-feature-settings or correct the comment.",
+   "defect_class": "comment-contradicts-code",
+   "raw_ids": [
+    "INT-pdd-readme-45-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-076",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "workspace-layout",
+   "title": "First-launch cockpit ignores the India-first default region: region is IN but the chart opens SPY and the watchlist is SPY/QQQ/BTC/ETH/NVDA/AAPL",
+   "files": [
+    "src/store/symbols.ts",
+    "src/modules/chart/ChartPanel.tsx",
+    "src/config/default-layout.ts",
+    "src/lib/region.ts"
+   ],
+   "repro": "Clean profile first launch -> chart SPY, watchlist DEFAULT_SYMBOLS (US + crypto) while settings region='IN' and news/screener default to India.",
+   "evidence": "src/lib/region.ts:37-39; src/modules/chart/ChartPanel.tsx:80; src/store/symbols.ts:21-27, :43; src/config/default-layout.ts:31-57; surface/onboarding-stranger/http-log.jsonl C01-C08. Refuter: admitted low.",
+   "root_cause": "Seeds were never made region-aware.",
+   "fix_shape": "Derive chart default and watchlist seed from region (IN -> NIFTY 50/RELIANCE/TCS/HDFCBANK). Pin with a store test per region.",
+   "defect_class": "wrong-default",
+   "raw_ids": [
+    "SURF-ONBOARDING-STRANGER-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-UI-077",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "macro-quant",
+   "title": "Yield Curve: two instruments on the same pillar crash the bootstrap with an uncaught 500 without CORS headers, so the panel shows a generic fetch failure instead of 'duplicate tenor'",
+   "files": [
+    "sidecar/routers/quant.py",
+    "src/modules/quant/YieldCurvePanel.tsx"
+   ],
+   "repro": "POST /quant/yield-curve with the default instruments plus a second 10Y swap -> 500 text/plain, no access-control-allow-origin; log 'RuntimeError: more than one instrument with pillar'.",
+   "evidence": "surface/panels-layouts/P-http-log.jsonl (quant-yc-dup-tenor); sidecar/routers/quant.py:63-69; src/modules/quant/YieldCurvePanel.tsx:149-160; src/store/quant.ts:58-78; sidecar/app.py:303. Refuter: admitted low.",
+   "root_cause": "Route maps only ValueError; QuantLib raises RuntimeError (CORS-masks-500 trap).",
+   "fix_shape": "Reject duplicate pillars in the panel's validationError and map RuntimeError to 400 in the route. Pin with a router test.",
+   "defect_class": "raw-exception-to-user",
+   "raw_ids": [
+    "SURF-PANELS-LAYOUTS-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-078",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Holding validation differs by entry path: the form saves a blank cost basis as 0 and a 1e20 quantity, '1,000' gets a misleading 'required' message, and the agent path stores a negative cost basis the sidecar rejects",
+   "files": [
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/lib/host-actions.ts",
+    "src/store/portfolios.ts"
+   ],
+   "repro": "Form: TCS.NS qty 5, cost blank -> saved as 0 (whole value shows as profit). qty '1e20' saved. Agent portfolio_add_position cost_basis:-1500 -> 'Added 4 INFY.NS @ ₹-1,500'; the sidecar mirror POST 422s and is ignored.",
+   "evidence": "surface/portfolio-notes/10-portfolio-panel-replay.json P2-validation, P9-agent; src/modules/portfolio/PortfolioPanel.tsx:264-277; src/lib/host-actions.ts:1262-1273, :1333-1337; sidecar/models/portfolio.py PositionInput. Related: R15-DATA-088 (COD-portfolio-8, store/restore path) and R15-AGENT-022. Refuter: admitted low.",
+   "root_cause": "Three writers, three rule sets; normalizeHolding validates nothing.",
+   "fix_shape": "One validateHolding() in the store used by form, agent path and restore (non-empty cost, 0<qty<=1e12, cost>=0) with field-specific messages. Pin with store tests.",
+   "defect_class": "validation-at-wrong-layer",
+   "raw_ids": [
+    "SURF-PORTFOLIO-NOTES-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-079",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "portfolio",
+   "title": "Portfolio and Watchlist CSV export write cells starting with '=', '+', '-' or '@' verbatim, so a holding note (which the agent can write from web text) becomes a live spreadsheet formula",
+   "files": [
+    "src/lib/csv.ts"
+   ],
+   "repro": "Holding note '=HYPERLINK(\"http://example.invalid\",\"x\")' -> Export CSV -> written as a quoted formula that Excel/Sheets evaluate.",
+   "evidence": "surface/portfolio-notes/10-portfolio-panel-replay.json P6-mixed-csv; src/lib/csv.ts:12-15; src/modules/portfolio/PortfolioPanel.tsx:469-504. Refuter: admitted low.",
+   "root_cause": "escapeCsvCell quotes only on [\",\\n\\r].",
+   "fix_shape": "Prefix cells starting with = + - @ (or tab/CR) with a single quote. Pin with a csv.ts unit test.",
+   "defect_class": "csv-injection",
+   "raw_ids": [
+    "SURF-PORTFOLIO-NOTES-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-080",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "research-extraction-synthesis",
+   "title": "Structured-provenance sources (vysted://price|fundamentals|news) render in the brief's Sources rail as external links with a favicon lookup",
+   "files": [
+    "src/modules/research/BriefPanel.tsx",
+    "src/lib/brief-ingest.ts"
+   ],
+   "repro": "Every live brief carried vysted:// rows (r2 3/21, r3 3/3, r4 3/13); SourceRow renders <a href='vysted://price/KAYNES' target='_blank'> with ExternalLink icon and a Google S2 favicon request for 'nse_direct'/'yfinance'.",
+   "evidence": "surface/research-briefs/r3-ultra-kaynes.jsonl; src/modules/research/BriefPanel.tsx:180-200, :223-262; src/lib/brief-ingest.ts:347-350. Refuter: admitted low (click behaviour in Tauri is NEEDS-GUI).",
+   "root_cause": "Every source treated as an external URL.",
+   "fix_shape": "Render vysted:// rows as non-link provenance chips (provider + as-of) that jump to the metric card. Pin with a BriefPanel render test.",
+   "defect_class": "internal-uri-as-link",
+   "raw_ids": [
+    "SURF-RESEARCH-BRIEFS-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
+  },
+  {
+   "id": "R15-UI-081",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "title": "Settings → Modules toggles do not do what they say: the 'AI Assistant' switch is wired to nothing, and a disabled module's panel still opens via openPanel from the agent and host actions",
+   "files": [
+    "src/components/SettingsPanel.tsx",
+    "src/store/modules.ts",
+    "src/store/workspace.ts",
+    "src/components/PanelHost.tsx",
+    "src/lib/host-actions.ts"
+   ],
+   "repro": "(1) Settings -> Advanced -> Modules: 'AI Assistant 0 panels · 0 commands' -> switch off -> chat unaffected. (2) Switch Portfolio off -> useWorkspaceStore.openPanel('portfolio') still adds and renders it; portfolio_add_position / write_note / open_panel reopen disabled panels.",
+   "evidence": "surface/settings-plugins/11-modules-region-replay.json; 13-openpanel-ids-disabled-module.json; 10-settings-plugins-replay.json S4-modules; src/modules/chat/index.ts:16-22; src/components/SettingsPanel.tsx:1720-1745; src/store/modules.ts:83; src/store/workspace.ts:92-100; src/components/PanelHost.tsx:123-126; src/lib/host-actions.ts:935-940, :1191, :1349, :1373, :1387. Refuter: both admitted low.",
+   "root_cause": "The enabled map filters only palette/menu listing; findPanel and PanelHost resolve over all modules.",
+   "fix_shape": "openPanel resolves through enabledModules() and returns false (open_panel apply reports 'X is disabled in Settings > Modules'); omit panel-less modules from the list or show them as always-on. Pin with a workspace store test.",
+   "defect_class": "config-not-wired",
+   "raw_ids": [
+    "SURF-SETTINGS-PLUGINS-5",
+    "SURF-SETTINGS-PLUGINS-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-082",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "workspace-layout",
+   "title": "Saving a layout under a Devanagari/Unicode or punctuated name fails with only 'HTTP 400' (the sidecar's reason is discarded), and a name over ~210 chars 500s on the temp filename",
+   "files": [
+    "src/lib/workspace.ts",
+    "src/components/SettingsPanel.tsx",
+    "sidecar/services/workspace_store.py"
+   ],
+   "repro": "POST /workspace {name:'मेरा लेआउट'} -> 400 with a clear detail, UI shows 'Could not save workspace \"…\" (HTTP 400)'. Names of 230-300 chars -> 500 'Errno 63 File name too long', no CORS header.",
+   "evidence": "surface/settings-plugins/http-log.jsonl D04-D08, D07b-*; src/lib/workspace.ts:408-410; src/components/SettingsPanel.tsx:1614-1624, :1646-1652; sidecar/services/workspace_store.py:42-50. Refuter: admitted low.",
+   "root_cause": "Status-only WorkspaceError; no length cap; ASCII-only name rule not stated in the UI.",
+   "fix_shape": "Surface extractSidecarDetail in saveWorkspace; cap length in _validate_name (400); allow Unicode letters filename-safely or state the rule under the input; maxLength on the input. Pin with a workspace_store test and a workspace.ts error-message test.",
+   "defect_class": "error-not-humanised",
+   "raw_ids": [
+    "SURF-SETTINGS-PLUGINS-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  }
+ ],
+ "rejections": [
+  {
+   "raw_id": "INT-blueprint-96-5",
+   "reason": "Out of scope by decision: dark-only is the adopted theme (spec FR-030 spec.md:888, constitution.md:89) and the R9 design system is not reopened (COMMON.md); the only surviving part, BLUEPRINT §4 overclaiming a light/custom theme, is doc drift already registered as R15-DOCS-007 (INT-deferred-0-7)."
+  }
+ ]
+}

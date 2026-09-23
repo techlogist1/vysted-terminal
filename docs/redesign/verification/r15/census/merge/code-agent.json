@@ -1,0 +1,756 @@
+{
+ "cluster": "code-agent",
+ "operator_area_tags": [
+  "ui-panels",
+  "agent-chat",
+  "research-search",
+  "data-smallcaps"
+ ],
+ "entries": [
+  {
+   "id": "R15-CODE-AGENT-001",
+   "title": "The whole sidecar (including the unauthenticated /mcp surface with 36 tools, invoke_agent among them) answers any browser Origin with access-control-allow-origin: * and performs no Origin validation",
+   "severity": "high",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/app.py",
+    "sidecar/routers/mcp.py",
+    "sidecar/tests/test_mcp_server.py"
+   ],
+   "repro": "Against the isolated R15 sidecar: `curl -i -X OPTIONS http://127.0.0.1:52152/mcp/ -H 'Origin: https://evil.example' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type'` -> 200 with `access-control-allow-origin: *`; then `curl -i -X POST http://127.0.0.1:52152/mcp/ -H 'Origin: https://evil.example' -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"x\",\"version\":\"0\"}}}'` -> 200, `access-control-allow-origin: *`, full capability handshake. `grep -n 'Origin' sidecar/app.py sidecar/services/mcp_server.py sidecar/routers/mcp.py` returns no hits.",
+   "evidence": "sidecar/app.py:301, sidecar/app.py:303, sidecar/app.py:345, sidecar/services/mcp_server.py:377, sidecar/routers/mcp.py:14 || refuter: COD-mcp-servers-1: refuter admitted_with_correction -> high",
+   "root_cause": "app.py:301-303 installs CORSMiddleware(allow_origins=['*'], allow_methods=['*']) app-wide and nothing checks Origin; routers/mcp.py:13-14 justifies no auth by the 127.0.0.1 bind, which is exactly the assumption MCP's Origin-validation requirement defends against (browser pages reaching localhost).",
+   "fix_shape": "Replace the wildcard with an explicit allow-list (tauri://localhost, http://tauri.localhost, the dev vite origin) and reject a present-but-unlisted Origin with 403 before routing (covers /mcp and every REST route). Pin with a TestClient test: Origin https://evil.example -> 403 on POST /mcp/ and on a REST GET; tauri origin -> 200. Note: does not defend against local processes (they send no Origin).",
+   "defect_class": "localhost-surface-trust",
+   "raw_ids": [
+    "COD-mcp-servers-1"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-002",
+   "title": "A dead openbb-mcp / sec-edgar-mcp child stalls the first call 60 s and the next call escapes as asyncio.CancelledError, so the provider registry does not fall through to yfinance for that request (reconnect except-tuple narrower than documented)",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_client.py",
+    "sidecar/services/openbb_mcp_provider.py",
+    "sidecar/services/sec_filings_provider.py",
+    "sidecar/tests/test_mcp_client.py"
+   ],
+   "repro": "sidecar/.venv/bin/python: build `c = mcp_client.McpClient('t', transport='http', endpoint='http://x/mcp')`, set `c._session` to a stub whose `call_tool` raises each of anyio.ClosedResourceError / anyio.BrokenResourceError / httpx.ReadError, then `await c.call_tool('t', {})`. Result: `ClosedResourceError session dropped? False`, `BrokenResourceError session dropped? False`, `ReadError session dropped? False` (expected True). Verified against the installed venv that none of anyio.ClosedResourceError, anyio.BrokenResourceError, anyio.EndOfStream, httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError is an OSError subclass (anyio 4.13.0, httpx 0.28.1, mcp 1.27.1).",
+   "evidence": "sidecar/services/mcp_client.py:158, sidecar/services/mcp_client.py:182, sidecar/services/mcp_client.py:15, sidecar/tests/test_mcp_client.py:114, sidecar/tests/test_mcp_client.py:124 || refuter: COD-mcp-servers-2: refuter admitted_with_correction -> medium || severity note: Raw said high ('cached until app restart'); refuter disproved that headline by experiment and restated the real defect, medium.",
+   "root_cause": "mcp_client.py:158/182 catch only (TimeoutError, McpError, OSError); the refuter's kill/restart experiment showed the SDK surfaces a dead server as McpError after a 60 s read timeout (caught, session dropped), but the following call raises CancelledError from the dead transport's task group, which is neither caught there nor a ProviderError in _call_tool, so the registry fallback is skipped.",
+   "fix_shape": "In McpClient.call_tool/list_tools catch Exception (re-raising only a genuine outer-task cancellation) and convert transport-origin CancelledError/anyio/httpx errors into ProviderError after dropping the session; shorten the per-call read timeout for local children or gate on a port probe. Test: parametrise test_mcp_client.py:114 over anyio.ClosedResourceError, httpx.ReadError and a transport CancelledError and assert the session is dropped and a ProviderError is raised.",
+   "defect_class": "error-handling-too-narrow",
+   "raw_ids": [
+    "COD-mcp-servers-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-003",
+   "title": "Key validation lies for three of eight providers: a typo'd/revoked OpenRouter key is reported valid and saved to the keychain; a bad Gemini/xAI key is reported as a 'transport error' and misses the chat stream's key-rejected message",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/services/llm/openai.py",
+    "sidecar/services/llm/gemini.py",
+    "sidecar/services/errors.py",
+    "sidecar/tests/test_llm_openai.py",
+    "sidecar/tests/test_llm_gemini.py"
+   ],
+   "repro": "get_provider('openrouter').validate_key('not-a-real-key') -> True (live call; openrouter.ai/api/v1/models answers 200 with or without auth, while /api/v1/key answers 401 'User not found.' for the same key). get_provider('gemini').validate_key('AIzaSyNOTAREALKEY...') -> raises ClientError 400 INVALID_ARGUMENT 'API key not valid' -> POST /llm/keys/validate returns ok=false detail='transport error: 400 INVALID_ARGUMENT. {...}'. curl api.x.ai/v1/models with a fake bearer -> HTTP 400 {\"code\":\"invalid-argument\",\"error\":\"Incorrect API key provided...\"} -> openai.BadRequestError, not AuthenticationError -> same 'transport error' path.",
+   "evidence": "sidecar/services/llm/openai.py:842-855, sidecar/services/llm/gemini.py:186-204, sidecar/routers/llm.py:99-111, src/components/KeyEntryDialog.tsx:64-82, sidecar/services/errors.py:165-171, sidecar/services/llm/base.py:109-118 || refuter: COD-llm-adapters-2-4: refuter admitted -> medium",
+   "root_cause": "OpenRouter shares OpenAIProvider.validate_key which probes models.list; openrouter.ai/api/v1/models is public (200 without auth). Gemini (400 API_KEY_INVALID) and xAI (400 'Incorrect API key') signal bad keys with 400, which neither validate_key nor humanize's 401/403 auth branch maps.",
+   "fix_shape": "OpenRouter validate_key probes the authenticated GET /api/v1/key; Gemini/xAI map a 400 carrying API_KEY_INVALID / 'Incorrect API key' to False; mirror that classification in errors.humanize. Tests: per-adapter validate_key with mocked 200-public-catalog / 400-invalid-key responses asserting False, and humanize on those 400s returning the auth message.",
+   "defect_class": "provider-error-classification",
+   "raw_ids": [
+    "COD-llm-adapters-2-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-004",
+   "title": "Gemini usage omits thinking and grounding-prompt tokens, so BudgetGuard under-meters every thinking Gemini round and a Delegate run can overspend past its USD/token ceiling",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/services/llm/gemini.py",
+    "sidecar/tests/test_llm_gemini.py"
+   ],
+   "repro": "Gemini 2.5 Pro round that thinks 6k tokens and answers 800 -> usage_metadata.candidates_token_count=800, thoughts_token_count=6000 -> adapter reports output_tokens=800 -> BudgetGuard.record folds 800 + input; the user's key is billed for 6800 output tokens.",
+   "evidence": "sidecar/services/llm/gemini.py:167-173, sidecar/.venv/lib/python3.13/site-packages/google/genai/types.py:7796-7826 (total_token_count 'is the sum of prompt_token_count, candidates_token_count, tool_use_prompt_token_count, and thoughts_token_count'), sidecar/services/budget_guard.py:116-133, https://ai.google.dev/gemini-api/docs/thinking.md.txt ('When thinking is turned on, response pricing is the sum of output tokens and thinking tokens.') || refuter: COD-llm-adapters-2-6: refuter admitted -> medium",
+   "root_cause": "gemini.py:167-173 reports output_tokens=candidates_token_count and input_tokens=prompt_token_count; google-genai documents thoughts_token_count and tool_use_prompt_token_count as separate billed components, and budget_guard.py:116-133 folds only input+output.",
+   "fix_shape": "output_tokens = candidates + thoughts; input_tokens = prompt + tool_use_prompt (None-safe). Test: fake usage_metadata with thoughts_token_count=6000, candidates=800 -> adapter usage output_tokens == 6800 and BudgetGuard trips accordingly.",
+   "defect_class": "usage-metering",
+   "raw_ids": [
+    "COD-llm-adapters-2-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-005",
+   "title": "POST /llm/chat scrubs adapter options with a four-name denylist while the agent path uses an allowlist, so any new composer control key reaches the provider SDK and TypeErrors the chat stream (the same class already shipped once)",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/routers/llm.py",
+    "sidecar/services/agent_runtime.py",
+    "sidecar/services/llm/__init__.py",
+    "sidecar/tests/test_llm_router.py"
+   ],
+   "repro": "Add any new control key to the composer (streaming.ts wireOptions forwards every option verbatim) -> POST /llm/chat forwards it into the provider SDK -> TypeError: create() got an unexpected keyword argument -> the stream dies with a humanized error. The router's own comment records the live repro of this exact failure: 'research_depth killed a DeepSeek stream' || POST /llm/chat with options {\"depth\": \"deep\"}: routers/llm.py:126-130 strips only {research_depth, deepResearchBackend, modelWebSearch, history}, so `depth` rides **adapter_options into the SDK. agent_runtime.py:1363-1366 documents that exact crash ('AsyncCompletions.create() got an unexpected keyword argument depth') and fixes it only for the agent path, by popping `depth` (:1368) and then scrubbing everything outside _ADAPTER_OPTION_KEYS (:1381-1385).",
+   "evidence": "sidecar/routers/llm.py:122-130, sidecar/services/agent_runtime.py:91-107, src/modules/chat/streaming.ts:117-130 ; sidecar/services/agent_runtime.py:98, sidecar/services/agent_runtime.py:1368, sidecar/services/agent_runtime.py:1381, sidecar/routers/llm.py:126 || refuter: COD-llm-adapters-4: refuter admitted_with_correction -> medium; COD-agent-runtime-13: refuter admitted_with_correction -> low || severity note: Two refuters: COD-llm-adapters-4 -> medium, COD-agent-runtime-13 -> low; kept medium because the denylist already broke production once (commit 7ad0b79) and is one composer edit from re-breaking, though no live caller sends options today.",
+   "root_cause": "routers/llm.py:126-130 filters out only {research_depth, deepResearchBackend, modelWebSearch, history}; agent_runtime.py:98/1368/1381 pops depth and scrubs to _ADAPTER_OPTION_KEYS; streaming.ts wireOptions forwards every other key; OpenAI adapter merges leftovers into the SDK request.",
+   "fix_shape": "Move _ADAPTER_OPTION_KEYS into services/llm (or get_provider/adapter base) and filter against it in one place; delete both call-site filters. Test: POST /llm/chat with options {depth:'deep', someNewKey:1} against a fake adapter asserting only allowlisted kwargs arrive.",
+   "defect_class": "duplicated-truth-divergent-policy",
+   "raw_ids": [
+    "COD-llm-adapters-4",
+    "COD-agent-runtime-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-006",
+   "title": "A static TS copy of the model registry is authoritative at runtime: a default_model change or new model in model_registry.json ships a stale default to every user without an override and prunes JSON-only models on relaunch; the drift test compares only the two TS copies",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "src/store/llm-providers.ts",
+    "src/store/model-selection.ts",
+    "src/store/model-selection.test.ts"
+   ],
+   "repro": "Change a provider's default_model in sidecar/config/model_registry.json -> both TS fallback tables keep the retired id -> on any launch where the sidecar is unreachable (first run, failed sidecar spawn) the picker offers a model that 404s, and model-selection.test.ts still passes",
+   "evidence": "src/store/llm-providers.ts:34-113, src/store/model-selection.ts:16-61, src/store/model-selection.test.ts:16-24, sidecar/config/model_registry.json, sidecar/services/model_registry.py:1-20 || refuter: COD-llm-adapters-7: refuter admitted_with_correction -> medium",
+   "root_cause": "resolveModel returns DEFAULT_MODEL_BY_PROVIDER even with the sidecar up (model-selection.ts:119) and restored overrides are pruned against static KNOWN_MODELS_BY_PROVIDER (:76); model-selection.test.ts:16-24 asserts TS copy == TS copy, never against sidecar/config/model_registry.json.",
+   "fix_shape": "Import sidecar/config/model_registry.json in the TS tables (or assert against it) so the JSON is the single source; add a vitest asserting DEFAULT_PROVIDERS / DEFAULT_MODEL_BY_PROVIDER / KNOWN_MODELS_BY_PROVIDER equal the JSON's projection.",
+   "defect_class": "model-registry-duplicated-truth",
+   "raw_ids": [
+    "COD-llm-adapters-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-007",
+   "title": "DeepSeek/xAI/OpenRouter base URLs are string literals guarded only by a 'must match the registry' comment, so editing model_registry.json splits /llm/models (registry host) from agent dispatch (constant host)",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/services/llm/__init__.py",
+    "sidecar/services/model_registry.py",
+    "sidecar/tests/test_llm_router.py"
+   ],
+   "repro": "design (change default_base_url for deepseek in sidecar/config/model_registry.json -> GET /llm/providers reports the new host while get_provider keeps dispatching to the old one; nothing fails, nothing tests it)",
+   "evidence": "sidecar/services/llm/__init__.py:33-47, sidecar/services/llm/__init__.py:24, sidecar/services/llm/__init__.py:54-64, sidecar/services/model_registry.py:108-121 || refuter: COD-llm-adapters-6: refuter admitted -> medium",
+   "root_cause": "llm/__init__.py:33-47 hardcodes three URLs next to a prose invariant while the same module imports model_registry (:24) and derives PROVIDER_INFO from it (:54-64).",
+   "fix_shape": "Add model_registry.default_base_url_for(provider) next to default_model_for and define the three constants from it. Test: monkeypatch the registry value and assert get_provider(...) dispatches to it.",
+   "defect_class": "model-registry-duplicated-truth",
+   "raw_ids": [
+    "COD-llm-adapters-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-008",
+   "title": "The research auto-publish in the agent loop decodes the research tool's private payload variants and hand-mirrors the frontend brief parser, so a research payload rename silently empties the brief's sources",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agent_runtime.py",
+    "sidecar/services/research/fast.py",
+    "sidecar/tests/test_agent_runtime.py"
+   ],
+   "repro": "design",
+   "evidence": "sidecar/services/agent_runtime.py:846, sidecar/services/agent_runtime.py:863, sidecar/services/agent_runtime.py:866, sidecar/services/agent_runtime.py:883, sidecar/services/agent_runtime.py:894, sidecar/services/agent_runtime.py:906, sidecar/services/agent_runtime.py:770, sidecar/services/agent_runtime.py:786 || refuter: COD-agent-runtime-5: refuter admitted -> medium",
+   "root_cause": "_auto_publish_event (agent_runtime.py:770-906) knows web.citations OR web.results, excerpt OR snippet, top-level vs nested web_available, the execution.loop -> (mode, depth) table, and briefFromInput's snake_case keys; the sources-block comment records one prior regression from this coupling.",
+   "fix_shape": "Have the research tool return a brief-shaped result (markdown, sources, structured, mode, depth, backend) and publish it verbatim from the loop; delete _LOOP_TO_MODE_DEPTH from the runtime. Test: each research engine's payload -> auto-published brief has non-empty sources and correct mode/depth.",
+   "defect_class": "layer-leak",
+   "raw_ids": [
+    "COD-agent-runtime-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search",
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-009",
+   "title": "invoke_agent is a ~400-line function owning fourteen concerns, so the branches holding proven defects are unreachable by unit tests without a full fake provider",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agent_runtime.py",
+    "sidecar/tests/test_agent_runtime.py"
+   ],
+   "repro": "design",
+   "evidence": "sidecar/services/agent_runtime.py:1229, sidecar/services/agent_runtime.py:1631, sidecar/services/agent_runtime.py:1281, sidecar/services/agent_runtime.py:1321, sidecar/services/agent_runtime.py:1350, sidecar/services/agent_runtime.py:1381, sidecar/services/agent_runtime.py:1393, sidecar/services/agent_runtime.py:1426 || refuter: COD-agent-runtime-6: refuter admitted -> medium",
+   "root_cause": "Every increment (D21, R9, R10, R13, WS8, FR-081, FR-115) was appended in place inside invoke_agent (agent_runtime.py:1229-1631).",
+   "fix_shape": "Extract the self-contained planner pre-pass, brief translation (see the auto-publish entry) and option scrub into functions with direct unit tests (~250 lines out, loop logic unchanged).",
+   "defect_class": "god-function",
+   "raw_ids": [
+    "COD-agent-runtime-6"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-010",
+   "title": "Delegate runs have no lifecycle state machine: cancel/pause act on any status and rewrite terminal history (done -> cancelled), and resume re-executes a finished run and zeroes its cost",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/services/runs_store.py",
+    "sidecar/routers/runs.py",
+    "sidecar/tests/test_run_manager.py"
+   ],
+   "repro": "POST /runs/{id}/cancel on a finished run -> 200 and the row flips done -> cancelled 'cancelled by user' (scratch proof P3). POST /runs/{id}/resume on a done run re-executes it and zeroes its cost. pause_run on a done run flips it to paused - the repo's own test does exactly that because it is the only way to exercise pause.",
+   "evidence": "sidecar/services/run_manager.py:291-298 (cancel: no status check), :309-316 (pause: none), :361-366 (resume: only checks a live task), :394-400, sidecar/services/runs_store.py:273-275 (update_run accepts any transition), sidecar/tests/test_run_manager.py:258-266 (test pauses a completed run), sidecar/routers/runs.py:133 (error kind classified by `'already running' in str(exc)`), sidecar/routers/runs.py:119-120 (answer maps the same error to 404 that resume maps to 409) || refuter: COD-runs-durable-delegate-5: refuter admitted -> medium",
+   "root_cause": "Legal transitions live only in docstrings (models/run.py:28-36); cancel_run/pause_run check nothing, resume_run only checks a live task, update_run writes any status, and the router classifies errors by substring ('already running') mapping it to 404 in answer and 409 in resume.",
+   "fix_shape": "One transition table enforced in the store as UPDATE ... WHERE id=? AND status IN (...); rowcount 0 -> typed RunStateError -> 409, RunNotFound -> 404; drop substring matching. Tests: cancel/resume/pause on a done run -> 409 and row unchanged; replace the test that pauses a completed run.",
+   "defect_class": "missing-state-machine",
+   "raw_ids": [
+    "COD-runs-durable-delegate-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-011",
+   "title": "The FR-028 pause/answer control plane can never fire in production: pause_run has no caller or route, so status 'paused', the question column, POST /runs/{id}/answer and the AgentsRail answer form are dead (plus resumeDelegateRun, clearFinished, active_run_ids, RunLaunchResponse)",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/routers/runs.py",
+    "sidecar/models/run.py",
+    "src/modules/chat/AgentsRail.tsx",
+    "src/lib/delegate-runs.ts",
+    "src/store/agent-runs.ts"
+   ],
+   "repro": "design - `grep -rn pause_run sidecar --include=*.py` outside tests returns only its definition; there is no /pause route and no catalog capability. Status `paused`, the `question` column, answer_run, POST /runs/{id}/answer, answerDelegateRun and the rail's answer form can never execute.",
+   "evidence": "sidecar/services/run_manager.py:301-316 (pause_run, zero callers), :24-34 (docstring: 'fully implemented and durable; only the autonomous self-pause trigger is out of scope'), sidecar/routers/runs.py:13-18 (no pause route), src/modules/chat/AgentsRail.tsx:139-180 (answer form), sidecar/models/run.py:30-31 (comment describes a different design: 'task is suspended on a future'), also dead: src/lib/delegate-runs.ts:226 resumeDelegateRun, src/store/agent-runs.ts:116 clearFinished (and it drops `paused` runs although every sibling treats paused as active), sidecar/services/run_manager.py:416 active_run_ids, sidecar/models/run.py:95-104 RunLaunchResponse || refuter: COD-runs-durable-delegate-10: refuter admitted -> medium",
+   "root_cause": "Feature built end to end except its trigger (run_manager.py:301-316 has zero non-test callers; no /pause route, no catalog capability).",
+   "fix_shape": "Operator decision: either wire an ask_user trigger (catalog capability + parity audits + test that a run pauses and resumes on answer) or delete the plane, the UI form and the docstring claim. Either way remove the other dead exports; fix clearFinished to treat paused as active if kept.",
+   "defect_class": "dead-feature",
+   "raw_ids": [
+    "COD-runs-durable-delegate-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-012",
+   "title": "The invoke_agent MCP tool publishes api_key as a tool argument, so any external MCP client must route a BYOK secret through a third-party model's context and transcript",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_server.py",
+    "sidecar/tests/test_mcp_server.py"
+   ],
+   "repro": "design. mcp_server.py:182-185 declares `async def invoke_agent(agent_id: str, prompt: str, api_key: str | None = None)`; FastMCP publishes that signature as the tool's JSON-Schema input, so it appears in tools/list to Claude Desktop / Claude Code / any MCP client, and a filled value is put into the POST body at :194-197.",
+   "evidence": "sidecar/services/mcp_server.py:183, sidecar/services/mcp_server.py:194, sidecar/services/mcp_server.py:196 || refuter: COD-mcp-servers-11: refuter admitted -> medium",
+   "root_cause": "mcp_server.py:182-197 declares invoke_agent(agent_id, prompt, api_key=None) and forwards api_key in the POST body; FastMCP publishes the signature as the tool's input schema.",
+   "fix_shape": "Drop the parameter; take the key from a request header on the /mcp mount (or the sidecar's own key resolution). Test: tools/list schema for invoke_agent has no api_key property.",
+   "defect_class": "secret-transport",
+   "raw_ids": [
+    "COD-mcp-servers-11"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-013",
+   "title": "Five Capability knobs are dead (internal/default_grant never False, aliases unread, mcp overwritten, _cap re-declares every default), so agent_selectable_tool_ids() documented as the Custom Agent Builder allow-list is the identity function",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/catalog.py",
+    "sidecar/tests/test_capability_catalog.py"
+   ],
+   "repro": "design. Verified by materializing the projections: internal_tool_ids(), agent_selectable_tool_ids() and default_grant_tool_ids() all return the same 50 ids; grep finds zero readers of Capability.aliases; catalog.py:1471-1474 overwrites every entry's mcp value.",
+   "evidence": "sidecar/services/agent_tools/catalog.py:91, sidecar/services/agent_tools/catalog.py:93, sidecar/services/agent_tools/catalog.py:96, sidecar/services/agent_tools/catalog.py:101, sidecar/services/agent_tools/catalog.py:109, sidecar/services/agent_tools/catalog.py:1471, sidecar/services/agent_tools/catalog.py:1491, sidecar/services/agent_tools/catalog.py:1520, sidecar/services/agent_tools/catalog.py:1531 || refuter: COD-agent-tools-catalog-ledger-4: refuter admitted_with_correction -> medium || severity note: Raw high; refuter downgraded to medium (misleading dead config, not a broken flow).",
+   "root_cause": "No catalog entry sets internal=False/default_grant=False/aliases; catalog.py:1471-1474 overwrites every mcp; _cap (:109-135) duplicates dataclass defaults; the three projections materialize the same 50 ids.",
+   "fix_shape": "Delete _cap (build the dict from Capability(...) directly), delete aliases and the mcp field, collapse the identical projections to one until a second value exists; keep test_capability_catalog parity green.",
+   "defect_class": "dead-configuration",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-4"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-014",
+   "title": "Tool-call failures come back as a hand-copied {ok:false,error} envelope in ~11 handler files while invoke_tool is a bare await, with an outlier 'news fetch failed:' prefix",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/__init__.py",
+    "sidecar/services/agent_tools/news_tool.py"
+   ],
+   "repro": "design. The same try/except ProviderError/except Exception -> {ok:false,error} block is duplicated across every domain file; the model receives four different spellings of one failure class and cannot pattern-match recovery.",
+   "evidence": "sidecar/services/agent_tools/__init__.py:62, sidecar/services/agent_tools/analyst_tools.py:37, sidecar/services/agent_tools/earnings_tools.py:48, sidecar/services/agent_tools/macro_tools.py:46, sidecar/services/agent_tools/sec_tools.py:66, sidecar/services/agent_tools/price_data.py:54, sidecar/services/agent_tools/news_tool.py:50, sidecar/services/agent_runtime.py:670 || refuter: COD-agent-tools-catalog-ledger-7: refuter admitted_with_correction -> low",
+   "root_cause": "The single registry seam (agent_tools/__init__.py:62-67) does no error handling, so every domain file re-derives it.",
+   "fix_shape": "Move the ProviderError/Exception -> {ok:false,error} wrapper into invoke_tool and delete it from the handlers. Test: a handler raising ProviderError via invoke_tool yields the envelope.",
+   "defect_class": "duplicated-boilerplate",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-015",
+   "title": "sec_filings_list and sec_insider_transactions pass an unclamped model-supplied limit (100000, -1) upstream while every sibling tool clamps",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/sec_tools.py",
+    "sidecar/services/agent_tools/__init__.py"
+   ],
+   "repro": "sec_filings_list({'symbol':'AAPL','limit':100000}) -> int() parses cleanly -> 100000 passes straight to sec_filings_provider.list_filings with no clamp. limit:-1 likewise. Every sibling clamps.",
+   "evidence": "sidecar/services/agent_tools/sec_tools.py:49, sidecar/services/agent_tools/sec_tools.py:126, sidecar/services/agent_tools/news_tool.py:37, sidecar/services/agent_tools/macro_tools.py:72, sidecar/services/agent_tools/analyst_tools.py:29, sidecar/services/agent_tools/earnings_tools.py:75 || refuter: COD-agent-tools-catalog-ledger-8: refuter admitted_with_correction -> low",
+   "root_cause": "sec_tools.py:49/126 int() the limit with no bound; four other clamp conventions coexist.",
+   "fix_shape": "One _clamp_limit(args, key, default, maximum) helper used by all tool families. Test: sec_filings_list limit=100000 and -1 reach the provider clamped.",
+   "defect_class": "missing-input-guard",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-8"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-016",
+   "title": "An agent JSON declaring defaultProvider 'openrouter' fails the stale _schema.json enum and silently vanishes from the roster with only a warning log",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/agents/_schema.json",
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "PROVEN: model_registry.provider_ids() -> 8 ids including 'openrouter'; sidecar/agents/_schema.json defaultProvider enum -> 7 ids, no 'openrouter'; agent_runtime._PLANNER_PROVIDERS -> 6 ids including 'openrouter'. An agent JSON with defaultProvider 'openrouter' fails Draft7 validation at _discover_specs, logs a warning, and is skipped -- GET /agents then returns 12 agents with HTTP 200.",
+   "evidence": "sidecar/agents/_schema.json:43, sidecar/models/custom_agent.py:44, sidecar/services/agent_runtime.py:90, sidecar/services/agent_runtime.py:253 || refuter: COD-agent-runtime-10: refuter admitted_with_correction -> low",
+   "root_cause": "_schema.json:43 hardcodes 7 provider ids while model_registry/LLMProviderId have 8; custom_agent.py:44 already derives from the registry. (_PLANNER_PROVIDERS is a deliberate capability subset, not a copy.)",
+   "fix_shape": "Generate the enum from model_registry.provider_ids() at load, or drop it and let LLMProviderId gate. Test: schema enum == set(model_registry.provider_ids()).",
+   "defect_class": "model-registry-duplicated-truth",
+   "raw_ids": [
+    "COD-agent-runtime-10"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-017",
+   "title": "One unparseable custom-agent row 500s GET /custom-agents and every custom agent disappears from the picker (surfacing as a CORS error), unlike the first-party loader which skips the bad entry",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agents_store.py",
+    "sidecar/tests/test_agents_store.py"
+   ],
+   "repro": "A custom_agents.db row whose tools_json is not valid JSON (a hand edit, a truncated write, a partially-restored data dir) -> agents_store._row_to_read raises json.JSONDecodeError inside list_agents; agents_store.py has zero exception handling and routers/custom_agents.py:51-54 has none either, so FastAPI returns 500 and EVERY custom agent disappears from the picker. Per CLAUDE.md's CORS gotcha the webview reports it as a CORS policy error, not a 500.",
+   "evidence": "sidecar/services/agents_store.py:87, sidecar/services/agents_store.py:103, sidecar/routers/custom_agents.py:51, sidecar/services/agent_runtime.py:250 || refuter: COD-agent-runtime-12: refuter admitted_with_correction -> low",
+   "root_cause": "list_agents maps every row through _row_to_read's unguarded json.loads (agents_store.py:87/103); neither store nor router handles errors.",
+   "fix_shape": "Skip+log an unparseable row in list_agents, mirroring _discover_specs. Test: insert a row with tools_json='{' -> list returns the other agents.",
+   "defect_class": "partial-failure-blast-radius",
+   "raw_ids": [
+    "COD-agent-runtime-12"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-018",
+   "title": "_STAGEABLE_PLAN_ACTIONS and the read-only gate _READ_SAFE_PANEL_ACTIONS are two identical frozensets with different meanings and no stated relation",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "PROVEN: sidecar/.venv/bin/python -c \"from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS)\" -> True. Both are {open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, open_company_overview}.",
+   "evidence": "sidecar/services/agent_runtime.py:61, sidecar/services/agent_runtime.py:76, sidecar/services/agent_runtime.py:1300 || refuter: COD-agent-runtime-7: refuter admitted_with_correction -> low || severity note: Refuter lowered to low and rejected the 'derive one from the other' fix; fix shape follows the refuter.",
+   "root_cause": "agent_runtime.py:61 and :76 define the same six actions independently; test_toolbelt_integrity pins the read-safe set against R10 mutating actions but nothing records how the two sets relate.",
+   "fix_shape": "Keep both (they encode different properties) but document the intended relation beside them and add a one-line test pinning it, so widening one is a deliberate decision.",
+   "defect_class": "duplicated-truth",
+   "raw_ids": [
+    "COD-agent-runtime-7"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-019",
+   "title": "POST /llm/keys/validate echoes the raw provider exception ('transport error: <SDK repr>') in the key dialog instead of humanize()'s message + action",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/routers/llm.py",
+    "sidecar/tests/test_llm_router.py"
+   ],
+   "repro": "Save a key against an unreachable base_url -> the Key Entry Dialog shows 'transport error: <raw SDK repr, including the request URL>' where every other failure surface in the subsystem shows a sentence + action + code",
+   "evidence": "sidecar/routers/llm.py:99-111, sidecar/routers/llm.py:141-146, sidecar/services/llm/openai.py:831-840, sidecar/services/llm/anthropic.py:147-156, sidecar/services/llm/gemini.py:175-184, sidecar/services/llm/groq.py:185-194, sidecar/services/llm/ollama.py:206-215 || refuter: COD-llm-adapters-9: refuter admitted_with_correction -> low",
+   "root_cause": "routers/llm.py:107 returns detail=f'transport error: {exc}' while every other failure surface routes through services.errors.humanize.",
+   "fix_shape": "Return humanize(provider, exc).message/.action from the validate route. Test: a transport failure yields the humanized message, not the exception repr.",
+   "defect_class": "error-surface-inconsistency",
+   "raw_ids": [
+    "COD-llm-adapters-9"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-020",
+   "title": "get_provider() silently discards base_url for gemini and groq although its signature and docstring accept it as an override",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/services/llm/__init__.py",
+    "sidecar/services/llm/gemini.py",
+    "sidecar/services/llm/groq.py"
+   ],
+   "repro": "POST /llm/keys/validate {provider:'gemini', base_url:'https://gemini-proxy.internal', api_key:'...'} -> get_provider returns GeminiProvider() with the base_url dropped -> the key is sent to generativelanguage.googleapis.com; validation 'succeeds' or fails for reasons unrelated to the proxy, with no warning anywhere",
+   "evidence": "sidecar/services/llm/__init__.py:72-93, sidecar/services/llm/gemini.py:96-97, sidecar/services/llm/groq.py:98-99, sidecar/routers/llm.py:67, sidecar/routers/llm.py:102, sidecar/routers/llm.py:118, src/store/model-catalog.ts:95-99 || refuter: COD-llm-adapters-5: refuter admitted_with_correction -> low",
+   "root_cause": "llm/__init__.py:89/91 construct GeminiProvider()/GroqProvider() without it because neither constructor accepts one.",
+   "fix_shape": "Give both adapters a base_url constructor arg (genai http_options / AsyncGroq(base_url=)) or raise ValueError when one is supplied. Test: get_provider('groq', base_url=X) targets X or raises.",
+   "defect_class": "parameter-that-lies",
+   "raw_ids": [
+    "COD-llm-adapters-5"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-021",
+   "title": "The LLM router carries BYOK keys two ways (X-LLM-Key header on /llm/models, JSON body on /llm/chat and /llm/keys/validate) while one docstring says 'never the body'",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/routers/llm.py",
+    "sidecar/models/llm.py",
+    "src/lib/sidecar-client.ts"
+   ],
+   "repro": "design (GET /llm/models takes the key as X-LLM-Key header; POST /llm/chat and POST /llm/keys/validate take api_key as a JSON body field - all three in the same 162-line file)",
+   "evidence": "sidecar/routers/llm.py:52-65, sidecar/routers/llm.py:60-64, sidecar/models/llm.py:243-259, sidecar/models/llm.py:262-269, sidecar/services/llm/base.py:7-11 || refuter: COD-llm-adapters-10: refuter admitted_with_correction -> low",
+   "root_cause": "Two conventions in one 162-line file (llm.py:52-65 vs models/llm.py:243-269; base.py:7-11 documents the body convention).",
+   "fix_shape": "Pick one transport (header, matching the BYOK rule) for all three routes, or delete the contradicting clause; add a router test that no response echoes the key.",
+   "defect_class": "secret-transport",
+   "raw_ids": [
+    "COD-llm-adapters-10"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-022",
+   "title": "GET /mcp/status reports protocolVersion 2025-06-18 while the live server negotiates 2025-11-25",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_server.py",
+    "sidecar/tests/test_mcp_server.py"
+   ],
+   "repro": "`curl -s http://127.0.0.1:52152/mcp/status` -> {\"ready\":true,\"toolCount\":36,\"endpoint\":\"/mcp\",\"protocolVersion\":\"2025-06-18\"}. `curl -s -X POST http://127.0.0.1:52152/mcp/ -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{\"name\":\"x\",\"version\":\"0\"}}}'` -> result.protocolVersion = \"2025-11-25\". `mcp.types.LATEST_PROTOCOL_VERSION` in the venv is \"2025-11-25\".",
+   "evidence": "sidecar/services/mcp_server.py:58, sidecar/routers/mcp.py:40, types/mcp.ts:8, types/mcp.ts:104 || refuter: COD-mcp-servers-7: refuter admitted_with_correction -> low",
+   "root_cause": "mcp_server.py:58 hardcodes the revision; the SDK's LATEST_PROTOCOL_VERSION moved (types/mcp.ts already says 2025-11-25).",
+   "fix_shape": "Return mcp.types.LATEST_PROTOCOL_VERSION and delete the constant; test asserts /mcp/status equals the initialize-negotiated version.",
+   "defect_class": "duplicated-truth",
+   "raw_ids": [
+    "COD-mcp-servers-7"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-023",
+   "title": "Vysted-as-MCP-server returns catalog-tool failures as successful results with an {ok:false} body (isError unset) while Vysted-as-client keys failure off isError",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_server.py",
+    "sidecar/tests/test_mcp_server.py"
+   ],
+   "repro": "design. mcp_server.py:116-122 converts every handler failure (KeyError, any Exception) into a SUCCESSFUL tool result whose body is {'ok': False, 'error': ...}; nothing in _build_server ever sets isError. Meanwhile openbb_mcp_provider.py:187-190 and sec_filings_provider.py:131-134 treat result['isError'] as THE failure signal.",
+   "evidence": "sidecar/services/mcp_server.py:120, sidecar/services/mcp_server.py:122, sidecar/services/openbb_mcp_provider.py:187, sidecar/services/sec_filings_provider.py:131 || refuter: COD-mcp-servers-13: refuter admitted_with_correction -> low",
+   "root_cause": "_make_catalog_tool (mcp_server.py:116-122) converts every handler failure into a success; hand-written tools that raise do set isError, so the server mixes both conventions.",
+   "fix_shape": "Raise fastmcp ToolError from _make_catalog_tool on failure. Test: a failing catalog tool over MCP returns isError=True.",
+   "defect_class": "protocol-inconsistency",
+   "raw_ids": [
+    "COD-mcp-servers-13"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-024",
+   "title": "The env-var-discovered local MCP subprocess client is duplicated (with divergences) in openbb_mcp_provider and sec_filings_provider; McpClient wraps nothing the callers needed hidden",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_client.py",
+    "sidecar/services/openbb_mcp_provider.py",
+    "sidecar/services/sec_filings_provider.py"
+   ],
+   "repro": "design. Diff sidecar/services/openbb_mcp_provider.py:122-252 against sidecar/services/sec_filings_provider.py:95-170: the same seven members with two env-var names changed - _resolve_endpoint, is_available, status, _get_client, _decode_tool_result, _call_tool, and the _last_tool_call_ok/_last_error pair.",
+   "evidence": "sidecar/services/mcp_client.py:153, sidecar/services/mcp_client.py:171, sidecar/services/openbb_mcp_provider.py:122, sidecar/services/openbb_mcp_provider.py:239, sidecar/services/sec_filings_provider.py:95, sidecar/services/sec_filings_provider.py:158 || refuter: COD-mcp-servers-5: refuter admitted_with_correction -> low",
+   "root_cause": "Discovery, is_available, status, _get_client, _call_tool and the health-flag pair are copied; port '0' handling and _decode_tool_result already diverge.",
+   "fix_shape": "Promote a LocalMcpSubprocess(server_id, port_env, host_env) into mcp_client owning discovery/status/health/call_tool_json; providers keep field mapping only.",
+   "defect_class": "shallow-module-duplication",
+   "raw_ids": [
+    "COD-mcp-servers-5"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-025",
+   "title": "McpClient.call_tool drops structuredContent, so sec_filings_provider's structured-content fallback is dead code",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "mcp-servers",
+   "files": [
+    "sidecar/services/mcp_client.py",
+    "types/mcp.ts"
+   ],
+   "repro": "sidecar/.venv/bin/python: stub a session whose call_tool returns an object with isError=False, content=[], structuredContent={'x': 1}; `await McpClient(...).call_tool('t', {})` returns {'isError': False, 'content': []} - structuredContent is gone, so sec_filings_provider._decode_tool_result falls through to `raise ProviderError(... returned no content)`. `mcp.types.CallToolResult.model_fields` is ['meta', 'content', 'structuredContent', 'isError'].",
+   "evidence": "sidecar/services/mcp_client.py:189, sidecar/services/mcp_client.py:206, sidecar/services/sec_filings_provider.py:151, types/mcp.ts:74 || refuter: COD-mcp-servers-6: refuter admitted_with_correction -> low",
+   "root_cause": "mcp_client.py:189-206 narrows CallToolResult to {isError, content}.",
+   "fix_shape": "Pass structuredContent through in the return dict and add it to McpToolCallResult in types/mcp.ts (or delete the dead fallback). Test: stub session with structuredContent only -> decoded.",
+   "defect_class": "lossy-wrapper",
+   "raw_ids": [
+    "COD-mcp-servers-6"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-026",
+   "title": "ToolKind.mcp_endpoint is documented as MCP-only but the projection rule would set mcp=False for it, so a future mcp_endpoint capability would silently appear nowhere",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/catalog.py"
+   ],
+   "repro": "Add a Capability with kind='mcp_endpoint' -> the rewrite rule at catalog.py:1472 evaluates (cap.kind == 'read_handler' and ...) = False -> mcp=False -> the capability is projected to neither the MCP surface nor anywhere else, the exact opposite of its documented meaning.",
+   "evidence": "sidecar/services/agent_tools/catalog.py:59, sidecar/services/agent_tools/catalog.py:61, sidecar/services/agent_tools/catalog.py:1472 || refuter: COD-agent-tools-catalog-ledger-5: refuter admitted_with_correction -> low",
+   "root_cause": "catalog.py:1472 sets mcp=True only for kind=='read_handler'; zero uses of mcp_endpoint.",
+   "fix_shape": "Delete the mcp_endpoint member until a caller exists (or include it in the projection rule with a parity test).",
+   "defect_class": "dead-configuration",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-5"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-027",
+   "title": "reset_for_tests hardcodes backtest_summary as the only import-time tool registration, and action_ledger.KNOWN_STATUSES is exported but never enforced",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/__init__.py",
+    "sidecar/services/action_ledger.py"
+   ],
+   "repro": "design. Add a second module-level register_tool(...) call anywhere in the package -> reset_for_tests() clears it and re-registers only backtest_summary -> tests that reset become order-dependent and fail only when run after that reset.",
+   "evidence": "sidecar/services/agent_tools/__init__.py:70, sidecar/services/agent_tools/__init__.py:85, sidecar/services/agent_tools/__init__.py:103, sidecar/services/agent_tools/backtest_summary.py:71, sidecar/services/action_ledger.py:28, sidecar/services/action_ledger.py:55 || refuter: COD-agent-tools-catalog-ledger-15: refuter admitted -> low",
+   "root_cause": "agent_tools/__init__.py:70-103 names one module; action_ledger.py:28/55 stores any status verbatim.",
+   "fix_shape": "reset_for_tests reloads the import-time modules generically; drop KNOWN_STATUSES from __all__ or enforce it at the ack route.",
+   "defect_class": "invariant-held-by-comment",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-15"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-028",
+   "title": "registry_v0_6_5.py is a no-op module wired into two boot paths and register_v0_6_0_tools is a pure pass-through",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-tools-catalog-ledger",
+   "files": [
+    "sidecar/services/agent_tools/registry_v0_6_5.py",
+    "sidecar/services/agent_tools/__init__.py",
+    "sidecar/app.py",
+    "sidecar/main.py"
+   ],
+   "repro": "design. register_v0_6_5_tools() logs one debug line and returns; it is wired into two boot paths.",
+   "evidence": "sidecar/services/agent_tools/registry_v0_6_5.py:4, sidecar/services/agent_tools/registry_v0_6_5.py:18, sidecar/app.py:214, sidecar/main.py:68 || refuter: COD-agent-tools-catalog-ledger-14: refuter admitted -> low",
+   "root_cause": "Per-phase aggregator convention kept an empty file (registry_v0_6_5.py:4-18).",
+   "fix_shape": "Delete registry_v0_6_5.py and its two call sites; inline the v0_6_0 pass-through. test_safety_end_to_end's grep stays clean (no code added).",
+   "defect_class": "dead-code",
+   "raw_ids": [
+    "COD-agent-tools-catalog-ledger-14"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-029",
+   "title": "_ensure_schema is production-dead in agents_store, plugins_store, portfolio_db and runs_store (each _connect already creates the table), kept alive only by idempotency tests",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agents_store.py",
+    "sidecar/services/plugins_store.py",
+    "sidecar/services/portfolio_db.py",
+    "sidecar/services/runs_store.py",
+    "sidecar/tests/test_agents_store.py",
+    "sidecar/tests/test_plugins.py",
+    "sidecar/tests/test_portfolio.py"
+   ],
+   "repro": "grep -rn '_ensure_schema' sidecar --include=*.py -> services/agents_store.py:79 (definition) and tests/test_agents_store.py:49-51 (the only call). The schema is in fact ensured by _connect() on every call (agents_store.py:72), so the function is redundant as well as unused. The identical dead-function + 'test_ensure_schema_is_idempotent' pair exists in plugins_store.py:89, portfolio_db.py:61 and runs_store.py:119.",
+   "evidence": "sidecar/services/agents_store.py:79, sidecar/services/agents_store.py:72, sidecar/tests/test_agents_store.py:49, sidecar/services/plugins_store.py:89, sidecar/services/runs_store.py:119 || refuter: COD-agent-runtime-15: refuter admitted_with_correction -> low",
+   "root_cause": "Redundant with CREATE TABLE IF NOT EXISTS in each _connect().",
+   "fix_shape": "Delete the four functions and the three idempotency tests.",
+   "defect_class": "dead-code",
+   "raw_ids": [
+    "COD-agent-runtime-15"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-030",
+   "title": "Four LLM adapters end validate_key with `except <ProviderError>: raise`, a no-op that reads as handling",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "llm-adapters",
+   "files": [
+    "sidecar/services/llm/openai.py",
+    "sidecar/services/llm/groq.py",
+    "sidecar/services/llm/gemini.py",
+    "sidecar/services/llm/anthropic.py"
+   ],
+   "repro": "design",
+   "evidence": "sidecar/services/llm/openai.py:854-855, sidecar/services/llm/groq.py:208-209, sidecar/services/llm/gemini.py:203-204, sidecar/services/llm/anthropic.py:170-173 || refuter: COD-llm-adapters-12: refuter admitted -> low",
+   "root_cause": "Identical behaviour to having no clause (openai.py:854, groq.py:208, gemini.py:203, anthropic.py:170).",
+   "fix_shape": "Delete the four clauses; move anthropic's intent comment into the base validate_key docstring.",
+   "defect_class": "dead-code",
+   "raw_ids": [
+    "COD-llm-adapters-12"
+   ],
+   "tier4": false,
+   "operator_areas": []
+  },
+  {
+   "id": "R15-CODE-AGENT-031",
+   "title": "The runs wire contract is documented as camelCase, consumed as snake_case, and papered over by a dual-case serializer; 'cleaning up' _dual_case to the documented contract zeroes cost in the rail",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/routers/runs.py",
+    "sidecar/models/run.py",
+    "src/lib/delegate-runs.ts",
+    "docs/SIDECAR_API.md"
+   ],
+   "repro": "design",
+   "evidence": "sidecar/routers/runs.py:44-60 (_dual_case emits every key twice 'without a contract negotiation'), sidecar/models/run.py:10-17 (says the wire is camelCase and that types/data.ts mirrors it - no TS mirror of the run models exists), src/lib/delegate-runs.ts:29-38 and :167-172 (RunWire: 'snake_case from the sidecar', reads only spend_usd), docs/SIDECAR_API.md (no runs section) || refuter: COD-runs-durable-delegate-13: refuter admitted -> low",
+   "root_cause": "runs.py:44-60 emits both spellings; models/run.py:10-17 claims a camelCase wire mirrored in types/data.ts (none exists); RunWire reads only spend_usd.",
+   "fix_shape": "Pick snake_case, delete _dual_case and the aliases, correct the docstring, add a runs section to SIDECAR_API.md; a router test pins the chosen keys.",
+   "defect_class": "contract-drift",
+   "raw_ids": [
+    "COD-runs-durable-delegate-13"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-CODE-AGENT-032",
+   "title": "The runs table is unbounded and read in full (checkpoint_json included) every 2 s, and every per-round cost write re-reads the row on the event loop for an unused return value",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "runs-durable-delegate",
+   "files": [
+    "sidecar/services/runs_store.py",
+    "sidecar/services/run_manager.py",
+    "src/lib/delegate-runs.ts"
+   ],
+   "repro": "design - no DELETE route / retention exists; row count and checkpoint_json only grow.",
+   "evidence": "sidecar/services/runs_store.py:246-250 (`SELECT *`, no LIMIT, pulls checkpoint_json that _row_to_summary never uses), :105-116 (CREATE TABLE + PRAGMA table_info on every connection), :296-304 (update_run opens a second connection and rebuilds RunDetail; run_manager never uses the result), sidecar/services/run_manager.py:137 (that sync SQLite work runs on the event loop each round), src/lib/delegate-runs.ts:40 and :145-147 (2 s poll, no in-flight guard, no fetch timeout) || refuter: COD-runs-durable-delegate-14: refuter admitted -> low",
+   "root_cause": "runs_store.py:246-250 SELECT * without LIMIT; :105-116 schema+PRAGMA per connection; :296-304 update_run rebuilds RunDetail; delegate-runs.ts:40/145 2 s poll without in-flight guard or timeout.",
+   "fix_shape": "Select summary columns with LIMIT 100, make update_run return None, prune old runs at startup, add an in-flight guard + timeout to the poll.",
+   "defect_class": "unbounded-growth",
+   "raw_ids": [
+    "COD-runs-durable-delegate-14"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  }
+ ],
+ "rejections": []
+}

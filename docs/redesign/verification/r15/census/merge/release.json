@@ -1,0 +1,257 @@
+{
+  "entries": [
+    {
+      "id": "R15-RELEASE-001",
+      "title": "Every desktop bundle ships unsigned on macOS and Windows: a downloaded .dmg is refused by Gatekeeper as 'damaged' and the NSIS installer is flagged by SmartScreen, before the app ever opens",
+      "severity": "high",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "src-tauri/tauri.conf.json",
+        ".github/workflows/build.yml",
+        "README.md",
+        "docs/BLUEPRINT.md",
+        "DECISIONS.md"
+      ],
+      "repro": "pnpm tauri build (CI step .github/workflows/build.yml:76 is literally 'Build Tauri bundle (unsigned)') -> download the macOS .dmg, open the quarantined .app -> Gatekeeper 'app is damaged' (only a linker ad-hoc signature, Info.plist unbound, no sealed resources), not the milder unidentified-developer prompt; download the Windows nsis .exe -> SmartScreen 'unrecognized app'. grep -rn 'signingIdentity\\|APPLE\\|signpath' src-tauri/tauri.conf.json .github/workflows scripts -> no hits.",
+      "evidence": ".github/workflows/build.yml:76; src-tauri/tauri.conf.json:30-45 (bundle block: targets [deb, appimage, nsis, app, dmg], no macOS signingIdentity/entitlements/notarization, no Windows certificate/signCommand); scripts/macos-dev-sign.mjs + scripts/macos-dev-setup.sh + docs/redesign/KEYCHAIN_DEV_SIGNING.md cover only the tauri-dev keychain ACL; docs/BLUEPRINT.md L313, L371-372 (promised SignPath Windows + ad-hoc mac); DECISIONS.md:33 (D11 'release builds for end users are signed properly' contradicted); docs/CURRENT_STATE.md:680-681; BLOCKERS.md (v0.8.0->Phase 9 item 6 still open). Refuters: INT-blueprint-144-2 admitted_with_correction high, INT-blueprint-144-3 admitted high, INT-blueprint-144-4 admitted_with_correction high (the .msi-vs-.exe half is not a defect: NSIS is Tauri's recommended installer and updater-supported), INT-blueprint-0-5 admitted medium, INT-deferred-0-15 admitted medium; merged severity high per the 144-x refuters (top-of-funnel blocker for every public-release user). Lead re-verified tauri.conf.json:30-56 and build.yml:76 at HEAD.",
+      "root_cause": "No release-signing configuration exists for any platform; the only signing tooling in the repo is the dev-loop keychain workaround, and the blueprint's promised Windows route (SignPath Foundation free OSS tier) is no longer available because it requires an OSI licence without commercial dual-licensing, which the 23 Sep PolyForm Strict + commercial relicense fails.",
+      "fix_shape": "Operator decision + credentials: (a) macOS - at minimum set bundle.macOS.signingIdentity='-' so the bundle gets a proper ad-hoc seal (turns 'damaged' into the Open-Anyway path), ideally Developer ID + notarization with APPLE_* secrets in the release workflow; (b) Windows - a paid code-signing certificate or service via bundle.windows.signCommand/certificateThumbprint; (c) correct DECISIONS.md D11, BLUEPRINT 6.2 (SignPath, .msi, right-click-Open) and README's bypass text (System Settings > Open Anyway on macOS 15). Pin with a release-workflow step that runs `codesign --verify --deep --strict` on the .app and `Get-AuthenticodeSignature` on the installer and fails on unsigned output. Homebrew cask (INT-blueprint-0-5) depends on this plus R15-RELEASE-002.",
+      "defect_class": "release-distribution-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-144-2",
+        "INT-blueprint-144-3",
+        "INT-blueprint-144-4",
+        "INT-blueprint-0-5",
+        "INT-deferred-0-15"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-002",
+      "title": "No GitHub release pipeline: pushing a v* tag produces no Release and no downloadable asset, so the public repo (tags v0.6.0..v0.8.0) has zero installable builds",
+      "severity": "high",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        ".github/workflows/release.yml",
+        ".github/workflows/build.yml",
+        "src-tauri/tauri.conf.json",
+        "README.md"
+      ],
+      "repro": "git tag vX && git push --tags -> no workflow triggers (build.yml/lint.yml/test.yml trigger only on push to main + pull_request); build.yml ends in actions/upload-artifact@v4 (ephemeral, expiring, attached to no Release). gh release list -> empty; GitHub releases API -> 0 releases despite tags v0.6.0..v0.8.0. README.md:88-90 sends new users to that empty Releases page.",
+      "evidence": ".github/workflows/build.yml:3-6 (triggers), :76 (unsigned build), :79-84 (upload-artifact); /bin/ls .github/workflows -> build.yml lint.yml test.yml only (no release.yml); src-tauri/tauri.conf.json:45 createUpdaterArtifacts=false (no latest.json/.sig produced); docs/BLUEPRINT.md L312 (promised GitHub Releases pipeline); docs/CURRENT_STATE.md:681, :896. Refuter INT-blueprint-144-1 admitted high, live-confirmed 0 releases. Lead re-verified the workflow listing and build.yml:3-6/:76-84 at HEAD.",
+      "root_cause": "The release half of distribution was never built: CI stops at ephemeral per-run artifacts and nothing listens for a tag.",
+      "fix_shape": "Add .github/workflows/release.yml on push tags 'v*': 3-OS matrix build via tauri-apps/tauri-action (or explicit gh release create + asset upload), flip createUpdaterArtifacts to true and wire TAURI_SIGNING_PRIVATE_KEY so latest.json + .sig are attached (feeds R15-RELEASE-003). Pin by a dry-run on a pre-release tag and a smoke check that the Release has one asset per platform plus latest.json.",
+      "defect_class": "release-distribution-unbuilt",
+      "raw_ids": [
+        "INT-blueprint-144-1"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-003",
+      "title": "Auto-updater is dead end-to-end: registered and configured but never invoked, not permitted by the capability, and no update artifact is ever produced, so no install can leave its install-day version (including past a security fix)",
+      "severity": "high",
+      "area": "release",
+      "subsystem": "rust-core",
+      "files": [
+        "src-tauri/src/lib.rs",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/capabilities/default.json",
+        "src/app/page.tsx"
+      ],
+      "repro": "Install any build; publish a newer one; relaunch -> nothing checks or downloads. grep -rn 'updater()\\|plugin-updater\\|downloadAndInstall' src-tauri/src src plugins -> only the lib.rs:393 plugin registration and the package.json dependency; capabilities/default.json permissions = [core:default, global-shortcut:allow-is-registered, notification:default, shell:allow-open] (no updater:*); tauri.conf.json:45 createUpdaterArtifacts=false; the configured endpoint .../releases/latest/download/latest.json returns 404 live.",
+      "evidence": "src-tauri/src/lib.rs:393 (.plugin(tauri_plugin_updater::Builder::new().build())); src-tauri/tauri.conf.json:45, :47-53 (endpoint + minisign pubkey); src-tauri/capabilities/default.json (no updater permission); package.json:28-29 (@tauri-apps/plugin-updater installed, no importer); docs/CURRENT_STATE.md:232-235, :896; docs/research/phase-10/hunt-rust-tauri.md BUG 4 (reported in Phase 10, unfixed); docs/BLUEPRINT.md L376. Refuters: COD-rust-core-4 admitted high, INT-blueprint-144-5 admitted high (endpoint 404 live). Lead re-verified lib.rs:393, tauri.conf.json:45-53 and capabilities/default.json at HEAD.",
+      "root_cause": "Wired at every layer except the one that fires it (consumer: no check() call and no capability; producer: createUpdaterArtifacts=false and no release pipeline), so it compiles, ships and looks present.",
+      "fix_shape": "Consumer: one background app.updater()?.check() in lib.rs setup (the Rust path needs no capability) that surfaces an 'update available' prompt, never auto-installs; producer: createUpdaterArtifacts=true + the release workflow from R15-RELEASE-002 publishing latest.json/.sig. Pin with a cargo test that the setup path invokes the updater check behind a feature/env seam, plus a release-workflow assertion that latest.json is attached.",
+      "defect_class": "release-distribution-unbuilt",
+      "raw_ids": [
+        "COD-rust-core-4",
+        "INT-blueprint-144-5"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-004",
+      "title": "CI has never run on the product branch: 654 commits (R4-R15) bypass GitHub Actions and the newest cross-OS signal (main, 2026-05-30) is a red lint run",
+      "severity": "high",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        ".github/workflows/build.yml",
+        ".github/workflows/lint.yml",
+        ".github/workflows/test.yml"
+      ],
+      "repro": "gh run list --workflow=lint.yml --limit 4 -> newest run headSha cfcf5be 2026-05-30T19:08:14Z conclusion failure; no run for any commit on 004-r4-experience-rebuild; git rev-list --count main..HEAD -> 654; no open PR for the branch. All three workflows trigger only on push to main and pull_request.",
+      "evidence": ".github/workflows/build.yml:3-6, .github/workflows/lint.yml:3-6 (triggers), build.yml:12-14 / lint.yml:9-13 (3-OS matrix that never runs); CLAUDE.md 'Builds stay green on Windows, macOS, Linux'; docs/BLUEPRINT.md INT-BP-229/236. Refuter INT-blueprint-192-4 admitted high (count now 654; newest main runs: lint failed, test+build passed). Lead re-verified build.yml:3-6 at HEAD.",
+      "root_cause": "Workflow triggers are scoped to main + PRs and the product branch has lived off-main without a PR for ~4 months, so the only gate is pnpm ci-local on one macOS ARM machine, which cannot exercise the Windows/Linux clippy, vitest, pytest or Tauri bundle legs.",
+      "fix_shape": "Operator choice: open a draft PR for 004-r4-experience-rebuild (no workflow edit) or add the branch to the push triggers; fix the red lint on main; treat a green 3-OS run as a release gate beside ci-local. The pin is the run itself.",
+      "defect_class": "gate-not-wired",
+      "raw_ids": [
+        "INT-blueprint-192-4"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-005",
+      "title": "Sidecar staleness gate ignores .json.gz, so regenerating the bundled Indian fundamentals seed does not rebuild the binary and assertFresh still passes: a local release ships the previous seed snapshot",
+      "severity": "medium",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "scripts/sidecar-staleness.mjs",
+        "scripts/ensure-sidecar.mjs"
+      ],
+      "repro": "node -e \"console.log(/\\.(py|txt|toml|cfg|ini|json|csv)$/i.test('india_fundamentals_seed.json.gz'))\" -> false. Regenerate sidecar/services/screener_universes/india_fundamentals_seed.json.gz (regenerate_fundamentals_seed.py touches no .py) -> node scripts/ensure-all-sidecars.mjs -> '[ensure-sidecar] vysted-sidecar-<triple> present and fresh - skipping build.' -> node scripts/smoke-test-sidecars.mjs freshness gate also green -> the bundled binary carries the old seed.",
+      "evidence": "scripts/sidecar-staleness.mjs:41 (SOURCE_EXT regex, lead re-verified at HEAD), :62, :94, :108; scripts/ensure-sidecar.mjs:81-86 (fresh -> skip), :179-189 (--add-data bundles services/screener_universes wholesale); scripts/smoke-test-sidecars.mjs:886; sidecar/services/fundamentals_seed.py:37. Refuter COD-scripts-build-1 admitted_with_correction high->medium (seed is NULL-fill only and vintage-stamped, so stale-not-wrong; CI builds from scratch, only a local incremental release build is exposed).",
+      "root_cause": "'What is build input' is encoded twice in different shapes - an --add-data path list in ensure-sidecar.mjs and a file-extension allow-list in sidecar-staleness.mjs - and they have drifted (\\.json$ does not match .json.gz).",
+      "fix_shape": "Invert SOURCE_EXT to a deny-list (skip .pyc/.log/.DS_Store, accept everything else) and feed ensure-sidecar.mjs's --add-data source paths into staleOpts.extraFiles so there is one encoding; pin with a tmpdir unit test that touching a .gz under a bundled data dir marks the binary stale (lands with R15-CODE-PLATFORM-028's staleness tests).",
+      "defect_class": "build-input-truth-duplicated",
+      "raw_ids": [
+        "COD-scripts-build-1"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ]
+    },
+    {
+      "id": "R15-RELEASE-006",
+      "title": "The CI freshness gate hand-copies each sidecar's staleness config instead of reading the ensure scripts' own, so the gate can certify a different source set than the builder used and still report green",
+      "severity": "medium",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "scripts/smoke-test-sidecars.mjs",
+        "scripts/ensure-sidecar.mjs",
+        "scripts/ensure-openbb-mcp-sidecar.mjs",
+        "scripts/ensure-sec-edgar-mcp-sidecar.mjs"
+      ],
+      "repro": "design - add an extraFiles entry to ensure-sidecar.mjs STALE_OPTS (e.g. the fix for R15-RELEASE-005) without editing smoke-test-sidecars.mjs:862-884 -> _assertAllFresh certifies against the old set and passes.",
+      "evidence": "scripts/smoke-test-sidecars.mjs:862-884 (three literal {name, dirs, opts} blocks) vs scripts/ensure-sidecar.mjs:73-80, scripts/ensure-openbb-mcp-sidecar.mjs:88-90, scripts/ensure-sec-edgar-mcp-sidecar.mjs:78-80. Refuter COD-scripts-build-2 admitted_with_correction high->medium (copies identical today; latent maintainer hazard that bites the moment R15-RELEASE-005 is fixed on one side).",
+      "root_cause": "Staleness spec per sidecar is duplicated between the builder and the gate rather than exported from one table.",
+      "fix_shape": "Export one SIDECAR_SPECS table ({name, sourceDir, staleOpts, identifier}) from a shared module; each ensure script reads its row and _assertAllFresh loops over it. Fix together with R15-RELEASE-005 and R15-CODE-PLATFORM-026 (the three ensure scripts are one script copied). Pin with a unit test asserting the gate and each ensure script resolve the identical staleOpts object.",
+      "defect_class": "build-input-truth-duplicated",
+      "raw_ids": [
+        "COD-scripts-build-2"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-007",
+      "title": "The design-token audit that enforces the R9 spacing/type law runs in no script, gate or workflow, although R9_DESIGN_SYSTEM.md says it 'runs in the gate battery'",
+      "severity": "medium",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "package.json",
+        "docs/redesign/R9_DESIGN_SYSTEM.md"
+      ],
+      "repro": "grep -rn audit-design package.json .github/workflows/ -> no hits (lead re-ran at HEAD, exit 1). node scripts/audit-design-tokens.mjs -> 'design-token audit clean' today, but add gap-1.5 / px-[7px] / text-[12px] to any panel and lint, typecheck, vitest, pnpm ci-local and all three workflows stay green.",
+      "evidence": "scripts/audit-design-tokens.mjs; package.json:6-23 (lint = 'eslint .', ci-local omits the audit); .github/workflows/lint.yml:87-89 (eslint/prettier/ruff only); docs/redesign/R9_DESIGN_SYSTEM.md:40-42, :133; docs/redesign/R9_TRACK_TIERS_REPORT.md:129 (the 274-violation state it once was; R9 sec0: 1,897 call sites on halved spacing tokens, clipped Settings fields). Refuters: COD-scripts-build-7 admitted medium, INT-pdd-readme-45-2 admitted medium.",
+      "root_cause": "The audit was written and documented as gated but never chained into package.json, ci-local or a workflow; enforcement is hand-discipline only.",
+      "fix_shape": "Append '&& node scripts/audit-design-tokens.mjs' to package.json 'lint' (then inside ci-local and the lint workflow with no workflow edit). Fix R15-CODE-PLATFORM-027 (URL.pathname ROOT walks zero files on Windows, false clean) first or the Windows leg passes vacuously. Pin with a fixture test that an off-grid class makes the audit exit non-zero.",
+      "defect_class": "gate-not-wired",
+      "raw_ids": [
+        "COD-scripts-build-7",
+        "INT-pdd-readme-45-2"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-RELEASE-008",
+      "title": "Sidecar smoke test runs ~95s of live-exchange probes on every CI run that can only console.warn, and cannot tell a URL-shape break from 'no network'",
+      "severity": "low",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "scripts/smoke-test-sidecars.mjs",
+        "package.json"
+      ],
+      "repro": "node scripts/smoke-test-sidecars.mjs -> _probeBseBhavcopyNoSla (4s bseindia.com), _probeNseDirectNoSla (execFileSync venv python, 60s timeout, nseindia.com), /history/ICONIKSPEV (30s live BSE) all run unconditionally after the gating tests and only warn; exit code unaffected. Wired into every push via .github/workflows/test.yml:69 and build.yml:74.",
+      "evidence": "scripts/smoke-test-sidecars.mjs:370-399 (warn :387), :413-471 (timeout :451, warn :459), :706-720 (warn :715), :917-919; .github/workflows/test.yml:69, build.yml:74. Refuter COD-scripts-build-4 admitted_with_correction medium->low (CI time + unseen advisory signal; never makes a broken binary pass).",
+      "root_cause": "A deterministic gating check (does the frozen binary boot and serve bundled data) is fused with a nondeterministic advisory one (is the exchange reachable from this runner).",
+      "fix_shape": "Move the exchange probes to a separate 'pnpm probe:exchanges' run attended, or gate them behind --require-network with a hard failure; keep the binary smoke hermetic. Distinguish offline from non-200 in _httpGetOk (see R15-CODE-PLATFORM-062). No workflow edit needed.",
+      "defect_class": "gate-signal-unreadable",
+      "raw_ids": [
+        "COD-scripts-build-4"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-009",
+      "title": "Smoke-test MCP bind budget (90s) is tied to the Rust supervisor's MCP_PORT_WAIT_SECS x ATTEMPTS only by a comment, so shrinking the Rust constant leaves the gate certifying binds the shipped app abandons",
+      "severity": "low",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "scripts/smoke-test-sidecars.mjs",
+        "src-tauri/src/lib.rs"
+      ],
+      "repro": "design - set src-tauri/src/lib.rs:78 MCP_PORT_WAIT_SECS to 20: every test passes (the only Rust guard asserts budget_secs >= 15) while smoke-test-sidecars.mjs still accepts a 60s bind the app gives up on at 40s.",
+      "evidence": "scripts/smoke-test-sidecars.mjs:97-100 (MCP_BIND_TIMEOUT_MS = 90_000 + alignment comment, lead re-verified); src-tauri/src/lib.rs:78, :83; src-tauri/src/openbb_mcp.rs:149-152; src-tauri/src/sec_edgar_mcp.rs:148-151. Refuter COD-scripts-build-10 admitted low.",
+      "root_cause": "Cross-language invariant held by a comment, no shared source or assertion.",
+      "fix_shape": "Cheapest: a cargo test that parses scripts/smoke-test-sidecars.mjs for MCP_BIND_TIMEOUT_MS and asserts it equals MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS * 1000 (or a shared constants JSON both read).",
+      "defect_class": "invariant-held-by-comment",
+      "raw_ids": [
+        "COD-scripts-build-10"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-010",
+      "title": "The promised public front door does not exist: vysted.com and terminal.vysted.com do not resolve, no landing or /install/mac page source exists, yet BLUEPRINT states the domain structure as present fact",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "scripts-build",
+      "files": [
+        "docs/BLUEPRINT.md",
+        "README.md"
+      ],
+      "repro": "curl -s -o /dev/null -w '%{http_code}' https://vysted.com and https://terminal.vysted.com -> curl exit 6 (could not resolve host). Repo root has no web/, site/, www/ or vercel.json; README.md:86-108 is the de facto install surface (text-only Gatekeeper walkthrough, no screenshot).",
+      "evidence": "docs/BLUEPRINT.md:31-32 (domain structure, present tense), L391-394, L450 (install/mac page + landing, INT-BP-193/232); README.md:88-108 (README's macOS 15 bypass is more current than BLUEPRINT's right-click advice). Refuters: INT-blueprint-0-2 admitted low (DNS fails; doc-tense framing holds), INT-blueprint-192-7 admitted low (could live in another repo/host; unverified is not refuted).",
+      "root_cause": "Pre-launch web presence was planned in BLUEPRINT and never built or re-scoped; the doc was not updated to planned tense.",
+      "fix_shape": "Either register + publish a minimal landing page and an install page before the 0.9.0 announcement and point README at them, or amend BLUEPRINT 1/6.3/7 to future tense and name README.md as the install surface. Docs-only; no test.",
+      "defect_class": "doc-promise-drift",
+      "raw_ids": [
+        "INT-blueprint-0-2",
+        "INT-blueprint-192-7"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-RELEASE-011",
+      "title": "Frontend test suite has no coverage threshold and no gate that runs coverage, so coverage can regress to zero unnoticed",
+      "severity": "low",
+      "area": "release",
+      "subsystem": "scripts-build",
+      "files": [
+        "vitest.config.ts",
+        "package.json"
+      ],
+      "repro": "vitest.config.ts:1-18 has no coverage key (grep coverage -> no hit, lead re-verified); pnpm test -- --coverage does report (v8 default, @vitest/coverage-v8 installed at package.json:69) but no threshold exists and neither ci-local nor any workflow runs with --coverage.",
+      "evidence": "vitest.config.ts:1-18; package.json:19 (ci-local runs plain 'pnpm test'), :69. Refuter INT-deferred-0-11 admitted_with_correction low (the raw's 'nothing to report against' consequence is wrong; the real gap is no threshold + no gating step).",
+      "root_cause": "Coverage tooling is installed but never configured with thresholds or invoked by a gate.",
+      "fix_shape": "Add coverage: { provider: 'v8', thresholds: { lines: <measured baseline> } } to vitest.config.ts and switch ci-local's test step to 'vitest run --coverage' (no workflow edit needed for the local gate). The pin is the threshold itself.",
+      "defect_class": "gate-not-wired",
+      "raw_ids": [
+        "INT-deferred-0-11"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    }
+  ],
+  "rejections": []
+}

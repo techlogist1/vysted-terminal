@@ -1,0 +1,74 @@
+[
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-1",
+  "verdict": "admitted",
+  "severity_final": "high",
+  "reason": "Holds. metrics.ts sums totalMarketValue as 0 when no row resolved, mixedCurrencies is false when byCurrency is empty, so the panel publishes totalValue 0 with no totalValueNote. That violates the TerminalPortfolio 'NEVER 0 as a stand-in for unknown' contract. The UI does show 'N without a live quote' next to the Rs 0.00 total, which partly discloses it, but the agent path gets a bare 0 with no reason, so it stays high.",
+  "evidence": "src/modules/portfolio/metrics.ts:111-113,136-139; src/modules/portfolio/PortfolioPanel.tsx:202-207,717-727,779-788; src/modules/chat/context-provider.ts:53-61,250; docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P5-unresolved-crypto.unresolved.bus.totalValue=0",
+  "evidence_checked": "Code opened at HEAD 6b8996f; replay JSON inspected (summary text and bus payload).",
+  "repro_check": "Read P5-unresolved-crypto in 10-portfolio-panel-replay.json: summary 'Market value: Rs0.00 ... 1 without a live quote', bus.totalValue=0. Did not re-run the jsdom replay."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-2",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. The portfolio quote path calls /quotes/${encodeURIComponent(symbol)}, which 404s for BTC/USDT against the iso stack. The batch /quotes?symbols=BTC/USDT prices the same pair (ccxt:binance, USDT), and the watchlist routes crypto through cryptoTicker instead.",
+  "evidence": "src/modules/portfolio/api.ts:23-32; src/lib/sidecar-client.ts:266-267; src/modules/watchlist/api.ts:44-47; src/store/symbols.ts:24",
+  "evidence_checked": "Code opened; repro run against :52152 (GET only).",
+  "repro_check": "curl '127.0.0.1:52152/quotes/BTC%2FUSDT?asset_class=crypto' -> 404; curl '127.0.0.1:52152/quotes?symbols=BTC/USDT&asset_class=crypto' -> 200, price 86408.0, currency USDT, provider ccxt:binance."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-3",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. holdingColumns useMemo deps are only [showQty, showCost, showPrice, showWeight, mixedCurrencies] with exhaustive-deps disabled. The delete cell calls the memoised handleDelete, which closes over the first render's `active`, so removeHolding(active.id, ...) targets the stale portfolio id after a portfolio switch. Edit still works only because setForm and setEditingId are stable setters.",
+  "evidence": "src/modules/portfolio/PortfolioPanel.tsx:305-310,332,425-443; docs/redesign/verification/r15/surface/portfolio-notes/10-portfolio-panel-replay.json P4-stale-closure (afterDelete holdings unchanged ['TCS.NS'])",
+  "evidence_checked": "Code opened; replay JSON inspected.",
+  "repro_check": "Read P4-stale-closure: before {active: Second, holdings: [TCS.NS]}, afterDelete the same, afterEdit works. Did not re-run the jsdom replay."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-4",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. publishedHoldings maps symbol/quantity/costBasis/assetClass/marketValue/pnl with no id, whereas the closed-panel store fallback carries id. resolveHolding falls back to the first same-symbol holding when the id misses, while the catalog tells the model to learn position_id from get_portfolio. This concerns the user's tracked portfolio and the proposed-changes gate, not order placement, so it is in scope.",
+  "evidence": "src/modules/portfolio/PortfolioPanel.tsx:212-221; src/modules/chat/context-provider.ts:166-187,242-258; src/lib/host-actions.ts:545-560,1255-1310; sidecar/services/agent_tools/catalog.py:1336-1341,1364-1368",
+  "evidence_checked": "Code opened; replay P9-agent and the http jsonl referenced but not re-driven (non-GET).",
+  "repro_check": "Code read: publishedHoldings has no `id` key, and resolveHolding returns portfolio.holdings.find(baseSymbol match) on an id miss. The replay records x5 lot -> x25 and x20 untouched."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-5",
+  "verdict": "admitted",
+  "severity_final": "medium",
+  "reason": "Holds. In 'agent' mode, classify_intent returns 'read' for all five everyday portfolio-write phrasings (no signal), and agent_runtime then strips every non-read-only tool except the read-safe panel list. The portfolio write tools are dropped. 'Add ...' matches \\badd\\b and keeps them.",
+  "evidence": "sidecar/services/planner.py:76-97,167-200; sidecar/services/agent_runtime.py:1281-1303",
+  "evidence_checked": "Code opened; classify_intent run directly in the sidecar venv (pure function, no network).",
+  "repro_check": "sidecar/.venv/bin/python -c 'from services.planner import classify_intent; ...' -> 'Delete TCS from my portfolio' read [], 'Update my RELIANCE cost basis to 1180' read [], 'My RELIANCE lot is actually 12 shares' read [], 'I bought 10 shares of INFY ... track it' read [], 'Put 25 HDFC Bank ...' read []; 'Add 10 INFY.NS ...' edit ['\\badd\\b']."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-6",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds. The form uses Number(form.costBasis), so a blank field becomes 0 and passes isFinite. '1,000' becomes NaN and gets the generic 'required' message, and there is no upper bound on quantity. The agent add path checks only symbol and quantity>0, so a negative cost_basis reaches the store, and syncPositionToSidecar's result is not used to block the apply.",
+  "evidence": "src/modules/portfolio/PortfolioPanel.tsx:262-277; src/lib/host-actions.ts:1262-1273,1331-1345",
+  "evidence_checked": "Code opened; replay P2-validation and P9-agent referenced, not re-run.",
+  "repro_check": "Code read: handleSubmit's only guards are symbol non-empty, isFinite(qty/cost), qty>0, cost>=0, and Number('') === 0. applyHostActionAsync portfolio_add_position guards only !body.symbol || !(body.quantity > 0)."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-7",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds. escapeCsvCell quotes only on [\",\\n\\r] and never neutralises a leading = + - @. The portfolio export writes position.note and symbol verbatim through buildCsv. Spreadsheet apps evaluate a leading '=' in a quoted cell.",
+  "evidence": "src/lib/csv.ts:12-15,18-24; src/modules/portfolio/PortfolioPanel.tsx:469-504",
+  "evidence_checked": "Code opened; replay P6-mixed-csv referenced.",
+  "repro_check": "Code read: escapeCsvCell('=HYPERLINK(\"x\",\"y\")') -> '\"=HYPERLINK(\"\"x\"\",\"\"y\"\")\"'. The leading '=' survives."
+ },
+ {
+  "raw_id": "SURF-PORTFOLIO-NOTES-8",
+  "verdict": "admitted",
+  "severity_final": "low",
+  "reason": "Holds on all three counts. (1) useEditor has no deps, so WikiLinkExtension.configure({getSymbols}) captures the first render's getWikiSymbols; the replay shows the picker unchanged after a watchlist add. (2) The toolbar runs insertContent('[['), which replaces a non-empty selection. (3) The replay's getMarkdown gives 'see \\\\[\\\\[RELIANCE.NS\\\\]\\\\]' because insertWikiLink inserts literal text.",
+  "evidence": "src/modules/notes/NotesPanel.tsx:103-126; src/modules/notes/WikiLinkExtension.ts:42-48,59-62; src/modules/notes/NotesToolbar.tsx:155-158; docs/redesign/verification/r15/surface/portfolio-notes/20-notes-panel-replay.json N5-menus (wikiItems == wikiItemsAfterWatchlistAdd; afterWiki.md)",
+  "evidence_checked": "Code opened; replay JSON N5-menus inspected.",
+  "repro_check": "Read N5-menus: wikiItemsAfterWatchlistAdd = [KAYNES, RELIANCE.NS, BTC/USDT] (no TCS.NS), afterWiki.md = 'see \\\\[\\\\[RELIANCE.NS\\\\]\\\\]'."
+ }
+]

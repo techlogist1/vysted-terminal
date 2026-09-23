@@ -1,0 +1,325 @@
+{
+  "entries": [
+    {
+      "id": "R15-DOCS-001",
+      "title": "Safety contract comments and SAFETY_ARCHITECTURE.md state behaviour the code does not have: 'Halt All Trading' claimed to cancel open orders (it only blocks new ones), wrong trigger exception type, wrong file pointers, a removed toolbar fallback",
+      "severity": "medium",
+      "area": "docs",
+      "subsystem": "safety-audit",
+      "files": [
+        "types/safety.ts",
+        "sidecar/services/audit_log.py",
+        "src-tauri/src/kill_switch.rs",
+        "docs/SAFETY_ARCHITECTURE.md"
+      ],
+      "repro": "Read types/safety.ts:41-46 ('Adapters cancel all open orders, set readOnly = true') then sidecar/services/broker_base.py:433-441 (base _on_kill_switch explicitly does NOT cancel; no subclass overrides it). Run a DELETE against audit_orders -> sqlite3.IntegrityError, while sidecar/services/audit_log.py:12-15 documents sqlite3.OperationalError. types/safety.ts:17-18,76-78 point at services/audit_log.py for triggers that live in sidecar/models/audit_log.py:40-50. kill_switch.rs:46-48,69-71,77-78 log 'toolbar button still works' for a toolbar that no longer exists.",
+      "evidence": "types/safety.ts:17-18,41-46,76-78; sidecar/services/broker_base.py:103,251,345,433-441; sidecar/services/audit_log.py:12-15; sidecar/models/audit_log.py:40-50; src-tauri/src/kill_switch.rs:46-48,69-71,77-78; docs/SAFETY_ARCHITECTURE.md:118,243. Refuter admitted, medium; refuter scope note: the kill switch gates ONLY broker order placement, so the mechanism's future is tied to the 23 Sep trading-removal scope change.",
+      "root_cause": "Comments written against the original §6.5 design (cancel-all, OperationalError, KillSwitchToolbar fallback) and never updated when the implementation narrowed and the toolbar was removed.",
+      "fix_shape": "Text-only: state 'blocks new orders; open orders are NOT cancelled', correct the exception type to IntegrityError, fix the file pointers to sidecar/models/audit_log.py, delete the toolbar-fallback sentences in kill_switch.rs and SAFETY_ARCHITECTURE.md. If the trading removal retires the kill switch, delete the comments with it instead. Pin: a test asserting the append-only trigger raises sqlite3.IntegrityError (already implied by CLAUDE.md) keeps the doc honest.",
+      "defect_class": "false-invariant-comment",
+      "raw_ids": [
+        "COD-safety-audit-13"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-DOCS-002",
+      "title": "COMMERCIAL_LICENSE.md and LICENSING.md give commercial@vysted.com as the only commercial contact, but vysted.com has no MX or A record, so a would-be licensee under PolyForm Strict has no working way to buy a license",
+      "severity": "medium",
+      "area": "docs",
+      "subsystem": "scripts-build",
+      "files": [
+        "COMMERCIAL_LICENSE.md",
+        "LICENSING.md"
+      ],
+      "repro": "Read the PolyForm Strict notice (no commercial use), open COMMERCIAL_LICENSE.md:63 -> contact commercial@vysted.com '(placeholder address'; DNS lookup for vysted.com MX -> none, A -> none (Cloudflare nameservers only). Mail to the address cannot be delivered.",
+      "evidence": "COMMERCIAL_LICENSE.md:3,50,59,63; LICENSING.md (same contact); refuter admitted_with_correction, medium: TBD pricing is what BLUEPRINT §6.1 specifies until v1.0, so the live defect is the undeliverable contact, not the TBD prices.",
+      "root_cause": "Placeholder contact kept through the D83 relicense; the domain was never given mail routing.",
+      "fix_shape": "Operator: set up a real inbox (MX on vysted.com or another owned address) and replace the placeholder in COMMERCIAL_LICENSE.md and LICENSING.md before any public 0.9.0 announcement; pricing may stay TBD per §6.1. Pin: a release-checklist line checking the contact domain resolves MX.",
+      "defect_class": "licensing-placeholder",
+      "raw_ids": [
+        "INT-blueprint-144-9"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-DOCS-003",
+      "title": "BLUEPRINT §2 Locked Decisions and CLAUDE.md (project DNA) name Next.js 16 App Router static export as the frontend stack; the repo has no Next.js and ships Vite 8 + React 19 (D6)",
+      "severity": "medium",
+      "area": "docs",
+      "subsystem": "frontend-panels-shell-chrome",
+      "files": [
+        "docs/BLUEPRINT.md",
+        "CLAUDE.md",
+        "docs/redesign/CLAUDE_MD_PROPOSAL.md"
+      ],
+      "repro": "grep '\"next\"' package.json -> no match; package.json scripts dev='vite', build='vite build', vite ^8.0.16; no next.config.*; vite.config.ts + index.html at repo root. Yet docs/BLUEPRINT.md:52 (Locked table) and :90,108,232,442 say Next.js, and CLAUDE.md:5,28,38,222 say 'Next.js 16 (App Router, static export)' with a static-export SSR rationale.",
+      "evidence": "package.json:8,82; docs/BLUEPRINT.md:52,90,108,232,442; CLAUDE.md:5,28,38,222; docs/redesign/DECISIONS.md:28 (D6 authorized the Vite migration); docs/redesign/CLAUDE_MD_PROPOSAL.md:5-6 (pending correction). Refuters admitted both at medium. Refuter extra: CLAUDE.md:57 still lists 'AGPL-3.0 + commercial dual license' as Locked while the core is PolyForm Strict after 0c63d46 (BLUEPRINT.md:58 is already corrected).",
+      "root_cause": "D6 migrated the bundler but only the license line of the Locked table got an in-place correction; CLAUDE.md is Tier-1 and its correction sits unlanded in CLAUDE_MD_PROPOSAL.md.",
+      "fix_shape": "One-line swaps Next.js 16 -> Vite 8 in BLUEPRINT.md §2 (:52) and the architecture diagrams/prose (:90,:108,:232), citing D6; land the pending CLAUDE_MD_PROPOSAL.md edit for CLAUDE.md:5,28,38,222 and the :57 AGPL->PolyForm line. Pin: a docs check (grep in ci-local) that fails if 'Next.js' appears in CLAUDE.md or BLUEPRINT §2 while package.json has no next dependency.",
+      "defect_class": "stack-doc-drift",
+      "raw_ids": [
+        "INT-blueprint-0-3",
+        "INT-blueprint-192-6"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-DOCS-004",
+      "title": "PRODUCT_DESIGN_DECISIONS.md still declares itself the RATIFIED single taste authority though its palette/scale sections (§0-§7) were reversed by R6/R9, live source files still cite it, and the reversal has no DECISIONS/CHANGELOG entry",
+      "severity": "medium",
+      "area": "docs",
+      "subsystem": "frontend-panels-shell-chrome",
+      "files": [
+        "docs/redesign/PRODUCT_DESIGN_DECISIONS.md",
+        "docs/redesign/DECISIONS.md",
+        "styles/tokens.css"
+      ],
+      "repro": "Read docs/redesign/PRODUCT_DESIGN_DECISIONS.md:3-4 ('RATIFIED ... the single document every teammate obeys') and implement its §1-§2 palette -> amber #d89a4e on a warm #1a1814 ramp; the live system is pure-neutral #161616 + peach #fab283 (styles/tokens.css:35,54), and tokens.css:21 still points readers at the doc.",
+      "evidence": "docs/redesign/PRODUCT_DESIGN_DECISIONS.md:3-4,13-21,80-93; styles/tokens.css:1-21,35,54; docs/redesign/R9_DESIGN_SYSTEM.md:79; docs/redesign/VYSTED_DESIGN.md:17-20; docs/redesign/DECISIONS.md (jumps R8 -> R9 at :39, no R6 row); CHANGELOG.md (0 hits for 'Warm Graphite|Pure Black|#fab283'); citing source: src/app/globals.css:69,199,232, src/components/DataTable.tsx:14, src/modules/chat/SuggestionChips.tsx:11, src/modules/notes/NotesToolbar.tsx:4, src/store/workspace.ts:34,112. Refuter admitted, medium.",
+      "root_cause": "The R6/R9 design reversal superseded half the doc but nobody marked the boundary or recorded the decision, and component docs kept citing the doc for its still-live §8/§11-§16 rules.",
+      "fix_shape": "A SUPERSEDED banner at the top of PRODUCT_DESIGN_DECISIONS.md naming the dead sections (§0-§7) and the still-binding ones (§8, §11-§16) with pointers to VYSTED_DESIGN.md / R9_DESIGN_SYSTEM.md, plus one DECISIONS.md row recording the Warm-Graphite -> Pure-Black reversal. Pin: scripts/audit-design-tokens.mjs (or a grep) flags any source comment citing a PDD section listed as dead.",
+      "defect_class": "superseded-design-authority",
+      "raw_ids": [
+        "INT-pdd-readme-0-1"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-DOCS-005",
+      "title": "BLUEPRINT TL;DR and Module Catalog promise ~38 modules in v1.0; 22 are registered and no decision trims the count",
+      "severity": "medium",
+      "area": "docs",
+      "subsystem": "frontend-panels-shell-chrome",
+      "files": [
+        "docs/BLUEPRINT.md",
+        "docs/redesign/DECISIONS.md"
+      ],
+      "repro": "Count imports in src/modules/index.ts:3-27 -> 22 module imports, all wired into vystedModules[]; docs/BLUEPRINT.md:20 '~38 modules' and :228 'Module Catalog (~38 modules in v1.0)'. No DECISIONS/CHANGELOG entry trims scope.",
+      "evidence": "src/modules/index.ts:3-27; docs/BLUEPRINT.md:20,228. Refuter admitted, medium.",
+      "root_cause": "Scope evolved through the redesign (agent-centric, fewer panels) without a recorded scope decision updating the blueprint count.",
+      "fix_shape": "Operator picks: record a scope decision in DECISIONS.md and correct BLUEPRINT.md:20/:228 to the real module count (preferred for an honest 0.9.0), or list the missing modules as v1.0 roadmap. Pin: none needed beyond the decision row; optionally a docs test comparing the stated count to src/modules/index.ts.",
+      "defect_class": "blueprint-scope-drift",
+      "raw_ids": [
+        "INT-blueprint-0-1"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-DOCS-006",
+      "title": "Shell source comments state false invariants: SSR/static-export rationale in a Vite SPA, a 'three-place accent lockstep' the CSS abandoned, and a 'ONE search surface' in Settings that does not exist",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "frontend-panels-shell-chrome",
+      "files": [
+        "src/components/PanelHost.tsx",
+        "src/app/page.tsx",
+        "src/lib/chart-theme.ts",
+        "src/components/SettingsPanel.tsx"
+      ],
+      "repro": "Read src/components/PanelHost.tsx:118-119 and src/app/page.tsx:46-49 ('keeps the static-export build SSR-safe') in an app whose src/main.tsx:17-21 calls createRoot under Vite; src/lib/chart-theme.ts:45 calls ACCENT_CORAL_RGB (#cccccc) a 'three-place lockstep' while src/app/globals.css:52-55 --accent-rgb is a neutral gray explicitly 'NOT the accent' and styles/tokens.css:47-54 defines a peach accent; src/components/SettingsPanel.tsx:72 promises 'ONE search surface' and Settings has no search. 82 src files still carry 'use client'.",
+      "evidence": "src/components/PanelHost.tsx:118-119,149; src/app/page.tsx:46-49,75; src/main.tsx:17-21; src/lib/chart-theme.ts:11,45; src/app/globals.css:52-55; styles/tokens.css:47-54; src/components/SettingsPanel.tsx:68-98. Refuter admitted, low. The CLAUDE.md half of this raw finding (Stack line, token gotcha) is carried by the Next.js stack-drift entry R15-DOCS-003.",
+      "root_cause": "Comments survived the Next -> Vite migration (D6) and the R9 accent change unedited.",
+      "fix_shape": "Rewrite the two SSR comments to the real reason (dockview needs registered components before onReady), fix the lockstep comment in chart-theme.ts to say which values actually move together, delete the settings-search claim; optionally strip the dead 'use client' directives in one mechanical commit. Pin: grep check in lint for 'static-export' / 'SSR-safe' under src/.",
+      "defect_class": "false-invariant-comment",
+      "raw_ids": [
+        "COD-frontend-panels-shell-chrome-13"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-DOCS-007",
+      "title": "BLUEPRINT Module Catalog and Use Cases overclaim: §4 describes the retired charcoal/amber/sage palette and a light-theme option (dark-only by spec), and UC2/UC4 omit the MCP-unavailable degrade a user can hit",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "frontend-panels-shell-chrome",
+      "files": [
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "grep -n 'charcoal + warm amber + sage' docs/BLUEPRINT.md -> :233; :237 'Theming engine (dark default + light option ...)' contradicts specs/001-agent-native-redesign/spec.md:888 FR-030 'dark-only (light theme remains deferred)' and .specify/memory/constitution.md:89; UC2 (:737) 'AI Researcher pulls everything' has no caveat for the openbb-mcp port-bind degrade (yfinance fallback / 501).",
+      "evidence": "docs/BLUEPRINT.md:233,237,737-740; specs/001-agent-native-redesign/spec.md:888; .specify/memory/constitution.md:89; docs/CURRENT_STATE.md:894 (light theme recorded deferred); CLAUDE.md Frontend gotcha on historical token names. Refuters admitted (96-6) and admitted_with_correction (deferred-0-7: Module 7 is :237 not :235), both low.",
+      "root_cause": "The 003/R9 rebuilds and the dark-only spec decision were recorded in CLAUDE.md/spec/CURRENT_STATE but never back-ported to the blueprint catalog.",
+      "fix_shape": "Edit BLUEPRINT.md:233 to the current neutral + single-accent language, strike or footnote 'light option' at :237 as deferred (FR-030), add a one-line MCP-unavailable degrade caveat under UC2/UC4. Pin: none (doc-only).",
+      "defect_class": "blueprint-stack-drift",
+      "raw_ids": [
+        "INT-blueprint-96-6",
+        "INT-deferred-0-7"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels",
+        "research-search"
+      ]
+    },
+    {
+      "id": "R15-DOCS-008",
+      "title": "BLUEPRINT §2/§3.1 still say the OpenBB data layer is 'wrapped as a runtime sidecar'; it is now the out-of-process openbb-mcp subprocess",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "mcp-servers",
+      "files": [
+        "docs/BLUEPRINT.md"
+      ],
+      "repro": "sidecar/requirements.txt:32-36: 'the retired Phase-2 OpenBB Tier-2 plugin is gone in v0.4.0; its data surface is preserved through openbb-mcp'; docs/BLUEPRINT.md:55 (Locked table 'OpenBB ODP wrapped as runtime sidecar') and :84 still describe the in-process wrap.",
+      "evidence": "sidecar/requirements.txt:32-36; sidecar/openbb_mcp_subprocess/; sidecar/services/openbb_mcp_provider.py; src-tauri/src/openbb_mcp.rs; docs/BLUEPRINT.md:55,84. Refuter admitted, low.",
+      "root_cause": "v0.4.0 retired the in-process OpenBB plugin; the blueprint was not updated.",
+      "fix_shape": "Rewrite BLUEPRINT.md:55/:84 to describe the openbb-mcp subprocess spawned by the Tauri core. Pin: none (doc-only).",
+      "defect_class": "blueprint-stack-drift",
+      "raw_ids": [
+        "INT-blueprint-0-4"
+      ],
+      "tier4": false,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-DOCS-009",
+      "title": "BLUEPRINT §3.1 lists LangGraph as the agent orchestrator; the build uses a hand-rolled loop and no decision records dropping LangGraph",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "agent-runtime",
+      "files": [
+        "docs/BLUEPRINT.md",
+        "docs/redesign/DECISIONS.md"
+      ],
+      "repro": "docs/BLUEPRINT.md:86 and :122 'AI agent orchestration (LangGraph)'; grep langgraph/langchain in sidecar/requirements.txt -> none; only 'LangGraph-style' phrasing at sidecar/services/research/deep.py:4 and services/research/__init__.py:12; no CHANGELOG/DECISIONS entry (contrast the recorded custom-backtest decision at CHANGELOG.md:1041-1045).",
+      "evidence": "docs/BLUEPRINT.md:86,122; sidecar/requirements.txt; sidecar/services/research/deep.py:4; sidecar/services/agent_runtime.py:1229; CHANGELOG.md:1041-1045. Refuter admitted, low.",
+      "root_cause": "Orchestration was built in-house (agent_runtime/run_manager/workflow_engine) without a Tier-3 doc trail.",
+      "fix_shape": "One DECISIONS/CHANGELOG line recording the hand-rolled orchestration choice; strike LangGraph from BLUEPRINT.md:86,122. Pin: none (doc-only).",
+      "defect_class": "blueprint-stack-drift",
+      "raw_ids": [
+        "INT-blueprint-48-7"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat"
+      ]
+    },
+    {
+      "id": "R15-DOCS-010",
+      "title": "DataTable and NotesToolbar header contracts promise an amber active-state affordance the code deliberately does not render, and the NotesToolbar active state is left as one faint luminance step",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "frontend-panels-data-surfaces",
+      "files": [
+        "src/components/DataTable.tsx",
+        "src/modules/notes/NotesToolbar.tsx"
+      ],
+      "repro": "src/components/DataTable.tsx:29-30 promises a caret 'amber only on the active sort key'; the caret renders text-charcoal-300 (:261-262). src/modules/notes/NotesToolbar.tsx:10 says active is 'amber TEXT'; active is text-charcoal-300 (#cccccc) vs idle text-charcoal-400 (#a8a8a8) with no fill/weight (:104-106; styles/tokens.css:42-43), so toggling Bold in a note is barely distinguishable.",
+      "evidence": "src/components/DataTable.tsx:29-30,261-262; src/modules/notes/NotesToolbar.tsx:10,104-106; styles/tokens.css:42-43; docs/redesign/R9_DESIGN_SYSTEM.md:79-81; src/modules/notes/NotesPanel.tsx:73-75 (filled-pill precedent). Refuter admitted, low.",
+      "root_cause": "R9 reserved the accent for live agent activity; the two components were neutralized but their header docs and the toolbar's second active cue were not updated.",
+      "fix_shape": "Correct both comments to the neutral rule; give NotesToolbar's active state a second cue (filled charcoal-800 surface, as NotesPanel scope pills do). Pin: a vitest asserting the active toolbar button carries the fill class.",
+      "defect_class": "superseded-design-authority",
+      "raw_ids": [
+        "INT-pdd-readme-45-9"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-DOCS-011",
+      "title": "CONTRIBUTING.md asks for a CLA but no CLA gate exists in CI and the process is not finalized, contrary to BLUEPRINT §4/§6.1",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "scripts-build",
+      "files": [
+        ".github/workflows/",
+        "CONTRIBUTING.md"
+      ],
+      "repro": "Open a PR with no CLA statement -> nothing blocks merge; .github/workflows holds only build.yml, lint.yml, test.yml; CONTRIBUTING.md:95 'The formal CLA process is still being finalized'. Contributions are closed (CONTRIBUTING.md:3), so no live PR is exposed today.",
+      "evidence": ".github/workflows/{build,lint,test}.yml; CONTRIBUTING.md:3,95; docs/BLUEPRINT.md L314, L356. Refuter admitted, low.",
+      "root_cause": "CLA mechanism deferred while contributions are closed.",
+      "fix_shape": "Before contributions reopen: add a CLA-assistant (or PR-body check) workflow and finalize the CLA text. Pin: the workflow itself. Touches CI workflows + licensing -> operator.",
+      "defect_class": "licensing-placeholder",
+      "raw_ids": [
+        "INT-blueprint-144-10"
+      ],
+      "tier4": true,
+      "operator_areas": []
+    },
+    {
+      "id": "R15-DOCS-012",
+      "title": "Phase-6 PIL mock screenshots with invented rows in the retired amber palette still sit in docs/screenshots/v0.6.0 next to real captures, with their dead generator scripts",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "scripts-build",
+      "files": [
+        "scripts/render_phase_6_e_screenshots.py",
+        "scripts/render_phase_6_sc_screenshots.py",
+        "docs/screenshots/v0.6.0/teammate-e/",
+        "docs/screenshots/v0.6.0/teammate-sc/"
+      ],
+      "repro": "Read scripts/render_phase_6_e_screenshots.py:81-87 and scripts/render_phase_6_sc_screenshots.py:54-62 (hard-coded rows), then look at docs/screenshots/v0.6.0/teammate-e/ and teammate-sc/: PNGs are Pillow drawings, not captures, in the amber/charcoal palette (render_*:26-36).",
+      "evidence": "scripts/render_phase_6_e_screenshots.py:1-14,26-34,81-87; scripts/render_phase_6_sc_screenshots.py:28-36,54-62; docs/screenshots/v0.6.0/teammate-e/README.md:18; docs/screenshots/v0.6.0/teammate-sc/README.md:35. Refuter admitted_with_correction medium -> low: the READMEs do label them Pillow 'stand-ins' and they are version-scoped to v0.6.0, not presented as v0.8.0 proof.",
+      "root_cause": "The promised replacement with real chrome-devtools captures never happened; the stand-ins and generators were never retired.",
+      "fix_shape": "Delete both generator scripts; move the mock PNGs to docs/mockups/ under unmistakable names (the never-overwrite rule protects captures, not mocks) and strike the README claims. Pin: none (doc hygiene).",
+      "defect_class": "mock-evidence",
+      "raw_ids": [
+        "COD-scripts-build-5"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "ui-panels"
+      ]
+    },
+    {
+      "id": "R15-DOCS-013",
+      "title": "Range52w docstring lists 'yfinance' as a possible source lane that the circularity guard makes unreachable",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "disclosures-witnesses",
+      "files": [
+        "sidecar/services/research/range_check.py"
+      ],
+      "repro": "sidecar/services/research/range_check.py:90-95 docstring lists source ∈ {nse_direct, nse, bse, yfinance}; get_52w_range (:219) returns None before constructing Range52w for any provider outside _EXCHANGE_DIRECT_PROVIDERS (:70), which excludes yfinance by design.",
+      "evidence": "sidecar/services/research/range_check.py:70,93,219. Refuter admitted, low.",
+      "root_cause": "Docstring written before the exchange-direct-only circularity guard was added.",
+      "fix_shape": "Drop 'yfinance' from the docstring list and state that only exchange-direct lanes can witness. Pin: existing range_check tests already assert yfinance returns None; no new test needed.",
+      "defect_class": "false-invariant-comment",
+      "raw_ids": [
+        "COD-disclosures-witnesses-12"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ]
+    },
+    {
+      "id": "R15-DOCS-014",
+      "title": "No BYOK provider has a documented first-token latency; the Phase-8 perf baseline still says 'Not measured' and was never superseded",
+      "severity": "low",
+      "area": "docs",
+      "subsystem": "llm-adapters",
+      "files": [
+        "docs/archive/PHASE_8_PERF_BASELINE.md",
+        "docs/CURRENT_STATE.md"
+      ],
+      "repro": "docs/archive/PHASE_8_PERF_BASELINE.md:126-140 'Agent first-token latency -- Not measured this session ... Deferred to Phase 9 operator manual test'; no later doc or CHANGELOG entry records per-provider figures for the served providers (anthropic, openai, gemini, groq, ollama, deepseek, xai, openrouter per /llm/providers).",
+      "evidence": "docs/archive/PHASE_8_PERF_BASELINE.md:126-140; GET /llm/providers on :52152; r15 live-drive transcripts carry per-event timestamps for ollama, openrouter, openai, deepseek. Refuter admitted_with_correction, low (Mistral/Cohere in the raw list are not providers).",
+      "root_cause": "The Phase-9 manual measurement was never run or written up.",
+      "fix_shape": "Write the rough first-token figures from the r15 drive timestamps for the four measured lanes into CURRENT_STATE.md (or a perf doc), and mark the rest unmeasured. Pin: none (measurement doc).",
+      "defect_class": "unmeasured-promise",
+      "raw_ids": [
+        "INT-deferred-0-13"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat"
+      ]
+    }
+  ],
+  "rejections": []
+}

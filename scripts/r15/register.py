@@ -31,6 +31,14 @@ OPERATOR_AREAS = {
     "research": "Research / web search",
     "data": "Data on small or obscure stocks",
 }
+# Verdict vocabulary the refuters actually used (PROMPT_refute.md): confirmed|refuted stays
+# out of the register at bundle time; removed_with_feature is the 23 Sep trading-removal close.
+AUTO_REJECT_VERDICTS = {"refuted", "removed_with_feature"}
+REMOVED_WITH_FEATURE_REASON = (
+    "removed with the feature (trading removal, operator decision 23 Sep 2026; "
+    "evidence: the Stage C removal commit)"
+)
+BROKERS_ADAPTERS_FILE = "code-brokers-adapters.json"
 
 
 def _rows(path: Path) -> list[dict]:
@@ -44,6 +52,16 @@ def _rows(path: Path) -> list[dict]:
     return [r for r in data if isinstance(r, dict)]
 
 
+def _new_findings(path: Path) -> list[dict]:
+    # A refuter records a defect it stumbled onto that isn't the finding it was refuting as a
+    # top-level "new_findings" array alongside its verdict list (a bare array has none).
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return []
+    return [n for n in data.get("new_findings", []) if isinstance(n, dict)] if isinstance(data, dict) else []
+
+
 def load() -> tuple[dict[str, dict], dict[str, dict], list[dict], dict[str, str]]:
     raw: dict[str, dict] = {}
     for f in sorted((CENSUS / "raw").glob("*.json")):
@@ -54,11 +72,25 @@ def load() -> tuple[dict[str, dict], dict[str, dict], list[dict], dict[str, str]
             if rid in raw:
                 rid = f"{rid}@{f.stem}"  # two sweeps reused an id: keep both, disambiguated
             raw[rid] = {**r, "raw_id": rid, "_file": f.name}
+    for f in sorted((CENSUS / "refute").glob("*.json")):
+        for i, nf in enumerate(_new_findings(f), 1):
+            rid = f"{f.stem}-N{i}"
+            raw[rid] = {**nf, "raw_id": rid, "_file": f.name}
     verdicts = {
         str(v.get("raw_id")): v
         for f in sorted((CENSUS / "refute").glob("*.json"))
         for v in _rows(f)
     }
+    # code-brokers-adapters.json is never refuted per-finding (PROMPT_refute.md) — it bulk-closes
+    # as removed_with_feature for every raw id that has no explicit verdict of its own.
+    for rid, r in raw.items():
+        if r["_file"] == BROKERS_ADAPTERS_FILE and rid not in verdicts:
+            verdicts[rid] = {
+                "raw_id": rid,
+                "verdict": "removed_with_feature",
+                "severity_final": r.get("severity", "low"),
+                "reason": REMOVED_WITH_FEATURE_REASON,
+            }
     entries: list[dict] = []
     rejections: dict[str, str] = {}
     for f in sorted((CENSUS / "merge").glob("*.json")):
@@ -103,7 +135,7 @@ def bundle(raw: dict[str, dict], verdicts: dict[str, dict]) -> int:
     clusters: dict[str, list[dict]] = {}
     for rid, r in raw.items():
         v = verdicts.get(rid) or verdicts.get(rid.split("@")[0])
-        if v and v.get("verdict") == "refuted":
+        if v and v.get("verdict") in AUTO_REJECT_VERDICTS:
             continue
         row = {k: val for k, val in r.items() if k != "_file"}
         row["source_file"] = r["_file"]
@@ -126,10 +158,19 @@ def main() -> int:
     if cmd == "bundle":
         return bundle(raw, verdicts)
     cited = {rid for e in entries for rid in e.get("raw_ids", [])}
-    # A refuted finding is a rejection by construction; the refuter's reason is the one-liner.
+    # A refuted or removed_with_feature finding is a rejection by construction; refuted carries
+    # the refuter's own reason, removed_with_feature always carries the canonical scope-change one
+    # (so every trading-removal rejection cites the same commit, regardless of what a refuter wrote).
     for rid, v in verdicts.items():
-        if v.get("verdict") == "refuted" and rid in raw and rid not in cited:
-            rejections.setdefault(rid, f"refuted: {v.get('reason', '')}"[:300])
+        verdict = v.get("verdict")
+        if verdict not in AUTO_REJECT_VERDICTS or rid not in raw or rid in cited:
+            continue
+        reason = (
+            REMOVED_WITH_FEATURE_REASON
+            if verdict == "removed_with_feature"
+            else f"refuted: {v.get('reason', '')}"[:300]
+        )
+        rejections.setdefault(rid, reason)
     unaccounted = sorted(set(raw) - cited - set(rejections))
     phantom = sorted(cited - set(raw))
     by_sev = {s: sum(1 for e in entries if e.get("severity") == s) for s in SEVERITIES}
@@ -139,6 +180,18 @@ def main() -> int:
     print(
         f"refuter verdicts: {len(verdicts)} (no verdict yet: {len(set(raw) - set(verdicts))})"
     )
+    no_verdict_files = sorted(
+        {
+            r["_file"]
+            for r in raw.values()
+            if r["_file"] != BROKERS_ADAPTERS_FILE
+        }
+        - {r["_file"] for rid, r in raw.items() if rid in verdicts}
+    )
+    if no_verdict_files:
+        print(f"ERROR: {len(no_verdict_files)} raw file(s) have NO refute coverage at all:")
+        for fname in no_verdict_files:
+            print("   ", fname)
     print(f"register entries: {len(entries)} {by_sev} · rejections: {len(rejections)}")
     print(
         f"unaccounted raw ids: {len(unaccounted)} · entries citing unknown raw ids: {len(phantom)}"
