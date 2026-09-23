@@ -419,6 +419,30 @@ def test_get_news_passes_header_key_to_provider(
     assert "keychain-key" not in response.text
 
 
+def test_bare_nse_symbol_in_an_in_session_fetches_its_ns_feed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-029: bare BDL in IN must hit BDL.NS, not Flanigan's (US BDL)."""
+    import config
+
+    urls: list[str] = []
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        urls.append(feed_url)
+        return [_news_item("x", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+    token = config.set_request_region("IN")
+    try:
+        asyncio.run(news_provider.fetch_news(_CLIENT, ["BDL"], limit=10))
+    finally:
+        config.reset_request_region(token)
+    symbol_feeds = [u for u in urls if "headline?s=" in u]
+    assert len(symbol_feeds) == 1
+    assert "s=BDL.NS&" in symbol_feeds[0]
+
+
 # --------------------------------------------------------------------------
 # Shared httpx.AsyncClient lifespan wiring
 # --------------------------------------------------------------------------

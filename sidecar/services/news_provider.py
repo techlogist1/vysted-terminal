@@ -54,6 +54,7 @@ import httpx
 from config import get_region
 from models.news import NewsItem
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,8 @@ _MARKET_RSS_FEEDS_BY_REGION: dict[str, tuple[tuple[str, str], ...]] = {
 
 # Per-symbol Yahoo Finance RSS feed template. Yahoo serves ``.NS`` (NSE) per-symbol
 # feeds, so it is kept for every region; only the ``region``/``lang`` params shift
-# to the locale. For un-suffixed Indian symbols this is best-effort.
+# to the locale. The symbol is resolved with ``_yahoo_symbol`` first, so a bare
+# NSE ticker in an IN session hits its ``.NS`` feed, not a US namesake.
 _SYMBOL_RSS_TEMPLATE = (
     "https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}&region={region}&lang={lang}"
 )
@@ -286,7 +288,9 @@ def _feed_urls_for(symbols: list[str], region: str) -> list[tuple[str, str]]:
         feeds.append(
             (
                 f"Yahoo Finance · {symbol}",
-                _SYMBOL_RSS_TEMPLATE.format(symbol=symbol, region=feed_region, lang=feed_lang),
+                _SYMBOL_RSS_TEMPLATE.format(
+                    symbol=_yahoo_symbol(symbol), region=feed_region, lang=feed_lang
+                ),
             )
         )
     return feeds

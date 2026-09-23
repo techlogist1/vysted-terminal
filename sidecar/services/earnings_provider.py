@@ -55,6 +55,7 @@ from models.earnings import (
     FiscalPeriod,
 )
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,6 @@ _DEFAULT_UNIVERSE: tuple[str, ...] = (
     "V",
     "WMT",
 )
-
-
-def _normalise_symbol(symbol: str) -> str:
-    """Translate dotted tickers (``BRK.B``) to yfinance's dashed form."""
-    return symbol.strip().upper().replace(".", "-")
 
 
 def _num(value: Any) -> float | None:
@@ -150,9 +146,10 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     yfinance exposes ``Ticker.calendar`` (a dict with ``"Earnings Date"`` and
     ``"Earnings Average"`` keys) plus ``Ticker.earnings_dates`` (a DataFrame
     indexed by report date with columns ``EPS Estimate`` / ``Reported EPS`` /
-    ``Surprise(%)``). We pull both and let the caller merge.
+    ``Surprise(%)``). We pull both and let the caller merge. ``symbol`` is
+    resolved once here, region-aware (``_yahoo_symbol``), and echoed back.
     """
-    normalized = _normalise_symbol(symbol)
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
         calendar = getattr(ticker, "calendar", None) or {}
@@ -182,8 +179,8 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
 
 
 def _fetch_history_sync(symbol: str) -> dict[str, Any]:
-    """Return the yfinance earnings_history DataFrame for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
+    """Return the yfinance earnings_history DataFrame for ``symbol`` (resolved here)."""
+    normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
         try:
@@ -323,8 +320,8 @@ async def get_upcoming(
 
 async def get_history(symbol: str) -> EarningsHistoryResponse:
     """Return the historical earnings results for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_history_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_history_sync, symbol)
+    normalized = payload["symbol"]
     history_frame = payload.get("history")
     currency = str(payload.get("currency") or "USD")
     entries: list[EarningsHistoryEntry] = []
@@ -361,8 +358,8 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
 
 async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter surprises (actual vs. consensus) for ``symbol``."""
-    normalized = _normalise_symbol(symbol)
-    history = await get_history(normalized)
+    history = await get_history(symbol)
+    normalized = history.symbol
     surprises: list[EarningsSurprise] = []
     for entry in history.history:
         estimate = entry.eps_estimate_mean
@@ -396,8 +393,8 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
 
 async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     """Return the analyst estimate breakdown for the next earnings event."""
-    normalized = _normalise_symbol(symbol)
-    payload = await asyncio.to_thread(_fetch_calendar_sync, normalized)
+    payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
+    normalized = payload["symbol"]
     cal = payload.get("calendar") or {}
     earnings_dates = cal.get("Earnings Date") or []
     if not earnings_dates:
