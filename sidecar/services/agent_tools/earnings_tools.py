@@ -12,8 +12,7 @@ The tools wrap :mod:`services.earnings_provider`; on any provider error
 they return ``{"ok": False, "error": "<msg>"}`` so the agent can surface
 the failure verbatim rather than crashing the run.
 
-None of these tools place orders or otherwise touch the §6.5 broker
-execution surface — they are read-only data tools.
+These are read-only data tools (Vysted has no trading path, D81).
 """
 
 from __future__ import annotations

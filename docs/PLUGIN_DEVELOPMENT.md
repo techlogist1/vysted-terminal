@@ -285,8 +285,8 @@ plugins/<bot-id>/
   useTradesaConnectionState.ts     # shared connection-state hook
   panels.ts                        # companion panel-components map
   components/
-    BotStatusStrip.tsx             # always-visible header (mode, kill-switch,
-                                   #   heartbeat age) every panel mounts
+    BotStatusStrip.tsx             # always-visible header (mode, heartbeat
+                                   #   age) every panel mounts
     <Panel1>.tsx ... <PanelN>.tsx  # one component per PanelSpec
   <bot>-v2.test.ts                 # Vitest: identity, capability negotiation,
                                    #   lifecycle, graceful-degradation mapping

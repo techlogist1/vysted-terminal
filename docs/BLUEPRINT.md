@@ -54,7 +54,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 | Backend | Local Python sidecar (FastAPI on localhost) |
 | Data layer | OpenBB ODP wrapped as runtime sidecar (~100 providers) |
 | AI | BYOK for all major LLM providers + local Ollama + 12 pre-built agents + Custom Agent Builder |
-| Plugin architecture | Full VystedPlugin contract; Tradesa V2 = plugin #1 |
+| Plugin architecture | Full VystedPlugin contract (Tradesa V2, the original plugin #1, was removed — E11/D81) |
 | License | PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md) |
 | OS targets | Windows + macOS + Linux at v1.0 |
 | Distribution | GitHub Releases + Tauri auto-updater + SignPath.io (Win, free OSS) + ad-hoc + bypass docs (Mac at $0 launch) + AppImage (Linux) + Homebrew cask |
@@ -125,7 +125,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
                 │ Plugin SDK contracts
 ┌───────────────▼─────────────────────────────────┐
 │  Plugins                                         │
-│  - Tradesa V2 plugin (plugin #1)                │
+│  - Data plugins (yfinance, news, lenses)        │
 │  - OpenBB ODP wrap plugin (data-only)           │
 │  - Future plugins                               │
 └─────────────────────────────────────────────────┘
@@ -308,7 +308,6 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 - News feed (filtered to watchlist tickers)
 - AI chat sidebar (with welcome message + suggested first commands)
 - Portfolio panel (empty until user adds positions)
-- Optional: Tradesa V2 plugin panel if connected
 
 ### 5.2 Customization primitives
 - Drag-drop panel layout (resize, hide, pop-out to second window)

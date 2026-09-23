@@ -11,8 +11,7 @@ targets:
 The tools wrap :mod:`services.analyst_ratings_extended`; provider errors
 surface as ``{"ok": False, "error": "<msg>"}``.
 
-None of these tools place orders or touch the §6.5 broker execution
-surface — they are read-only data tools.
+These are read-only data tools (Vysted has no trading path, D81).
 """
 
 from __future__ import annotations

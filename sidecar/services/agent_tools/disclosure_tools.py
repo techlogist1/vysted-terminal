@@ -12,7 +12,7 @@ research run on an Indian name can pull real filings:
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. Both are
-read-only — nothing here touches the §6.5 broker execution surface.
+read-only data tools (Vysted has no trading path, D81).
 """
 
 from __future__ import annotations
