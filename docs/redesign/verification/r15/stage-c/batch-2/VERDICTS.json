@@ -1,0 +1,59 @@
+{
+  "certified": [
+    "R15-DATA-008",
+    "R15-DATA-004",
+    "R15-DATA-013",
+    "R15-DATA-006",
+    "R15-DATA-070",
+    "R15-DATA-033",
+    "R15-DATA-012",
+    "R15-CODE-DATA-001",
+    "R15-DATA-018",
+    "R15-DATA-001",
+    "R15-DATA-002",
+    "R15-DATA-003",
+    "R15-CODE-DATA-005",
+    "R15-RESEARCH-001",
+    "R15-RESEARCH-002",
+    "R15-RESEARCH-034",
+    "R15-RESEARCH-004",
+    "R15-RESEARCH-015",
+    "R15-RESEARCH-003",
+    "R15-RESEARCH-029",
+    "R15-RESEARCH-037",
+    "R15-CODE-FRONTEND-001",
+    "R15-LIFECYCLE-002",
+    "R15-LIFECYCLE-003",
+    "R15-CODE-FRONTEND-004",
+    "R15-CODE-FRONTEND-005",
+    "R15-CODE-FRONTEND-018",
+    "R15-LIFECYCLE-009",
+    "R15-DATA-009",
+    "R15-DATA-010",
+    "R15-DATA-011",
+    "R15-DATA-031",
+    "R15-DATA-042",
+    "R15-CODE-PLATFORM-053",
+    "R15-DATA-043",
+    "R15-DATA-100",
+    "R15-DATA-007"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-005",
+      "reason": "VERTEX (critical leg) and ONC now flagged live, but 2 of the 4 raw repros still reproduce on the running sidecar: JNPR book_value 70.02 / price_to_book 3.82 served status ok (equity / pre-IPO 488,989,292 shares while shares_outstanding is the post-IPO 568,998,442), and JUMBO book_value 54.361 served ok against its own balance sheet 477,377,000 / 8,373,700 = 57.01. The share-basis pass compares shares_outstanding with market_cap/price only, so a BVPS on a stale denominator with a consistent share count passes."
+    },
+    {
+      "id": "R15-DATA-014",
+      "reason": "FUSION flagged and JONJUA labelled live, but the DAL leg still reproduces: GET /fundamentals/DAL serves revenue_ttm 27,600,000 status ok while screener.in (fetched 2026-09-23) shows TTM revenue 9.97 Cr. The witness is the provider's own statement, and Yahoo's DAL.BO FY2026 Total Revenue is 20,668,000 (within the 30% band) with a matching profit margin, so it cannot see this. The committed 'case the fix was not written against' test (test_fundamentals.py:455-457) stubs an annual of 99,700,000 that the provider does not have."
+    },
+    {
+      "id": "R15-AGENT-001",
+      "reason": "The percent half is fixed (every derived value is unit fraction with a display; KPIT chat said 'Dividend Yield: 1.42%', 'Market Cap: Rs 14,346 cr', screener 1.42% / Rs 14,449 Cr). The market-cap half still reproduces on a fresh case: 'research Bharat Electronics' on local llama3.1:8b answered 'Market Cap: Rs 2,895,037 cr' (10x high) while the payload display was 'Rs 289,504 cr' and screener shows Rs 2,90,636 Cr. The raw rupee float (fundamentals.market_cap 2895037857792.0) still rides the model payload next to the display, so correctness depends on the model obeying the prompt."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-2-int@16f2a5eb120053b0839ea1936991958ee0f085e5"
+}

@@ -1296,7 +1296,9 @@
     "COD-safety-audit-1"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "Kill switch, Order Entry and the order/live-mode routes were deleted whole; nothing remains to trigger or reach."
   },
   {
    "id": "R15-CODE-PLATFORM-002",
@@ -2401,7 +2403,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The broker-connect-panel trigger condition is moot post-removal (a122dbf6 feat(d81)), but any unregistered panel in an old layout reproduces the same failure. Core defect stays open: a layout-restore failure silently discards the surviving portfolio holdings, watchlist, notes, settings and research memory, then autosaves the loss, pending verification of the workspace.ts restore-order fix."
   },
   {
    "id": "R15-LIFECYCLE-003",
@@ -4969,7 +4972,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Kill-switch/audit-log half moot: both deleted whole (a122dbf6 feat(d81)). Surviving half stays open: the agent data-write gate (portfolio, notes, screens, layouts, region) still has no stop button and no durable record; SAFETY_ARCHITECTURE.md now documents this as an accepted gap."
   },
   {
    "id": "R15-CODE-FRONTEND-014",
@@ -5169,7 +5173,9 @@
     "COD-safety-audit-2"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "kill_switch.rs and its OS-wide shortcut were deleted whole; the chord bug has no surviving code to affect."
   },
   {
    "id": "R15-CODE-PLATFORM-007",
@@ -5191,7 +5197,9 @@
     "COD-safety-audit-3"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "KillSwitchBus and services/kill_switch.py were deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-008",
@@ -5214,7 +5222,9 @@
     "COD-safety-audit-5"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "Kill-switch fire/reset and the append-only audit log were both deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-009",
@@ -5239,7 +5249,9 @@
     "COD-safety-audit-7"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "The /safety/kill-switch route and its validation were deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-010",
@@ -6868,7 +6880,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "The copy half (chart empty-state pointing at a BYOK broker path) is fixed by the D81 copy change (a122dbf6 feat(d81)). Vendor half stays open: no way to upgrade India data off T+1 EOD, no marketplace row for a keyless/BYOK India realtime vendor."
   },
   {
    "id": "R15-DATA-078",
@@ -6916,7 +6929,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "The broker_reads.py evidence citation is moot: deleted whole (a122dbf6 feat(d81)). Per the refuter, the defect itself (no open-interest or options-chain data) is market data for research, not trading, and the removal does not affect it; stays open."
   },
   {
    "id": "R15-DATA-080",
@@ -7204,7 +7218,9 @@
    ],
    "operator_areas": [],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "audit_log.py, its DDL/triggers and the /safety/audit-log route were deleted whole."
   },
   {
    "id": "R15-DATA-092",
@@ -7375,7 +7391,9 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "SAFETY_ARCHITECTURE.md was rewritten as the agent-write safety model; the order-cancel/audit_orders claims it corrected no longer exist."
   },
   {
    "id": "R15-DOCS-002",
@@ -7501,7 +7519,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "The broker-registry half of this doc-drift finding is moot (a122dbf6 feat(d81)). The core finding is unrelated to trading — PLUGIN_DEVELOPMENT.md/CLAUDE.md still describe the retired panels.ts+PLUGIN_COMPANIONS/BUNDLED_PLUGINS model instead of the current marketplace.ts catalog — and stays open."
   },
   {
    "id": "R15-DOCS-016",
@@ -7526,7 +7545,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The stale host-action count (4 vs 19/18) is addressed by the CURRENT_STATE.md trading-removal edit (a122dbf6 feat(d81)). Core finding stays open: the doc calls non-order host actions 'live mutations' and claims every mutation waits in the diff/accept gate when AUTO auto-applies portfolio deletes, note writes and set_region."
   },
   {
    "id": "R15-DOCS-017",
@@ -7748,7 +7768,9 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "The kill-switch bus and its halt state were deleted whole; there is nothing left to un-halt."
   },
   {
    "id": "R15-LIFECYCLE-017",
@@ -7954,7 +7976,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "audit_log.db is moot: deleted whole (a122dbf6 feat(d81)). Core finding stays open: no DB carries a schema version and nothing backs up the data dir before a build touches it, across the 7 surviving databases (custom_agents, data_cache, delegate_runs, fundamentals_cache, plugins, portfolio, workflows)."
   },
   {
    "id": "R15-LIFECYCLE-025",
@@ -9172,7 +9195,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The broker-credential path this finding also covered is gone with the broker plugins (a122dbf6 feat(d81)); per the refuter, the surviving surface is the single NewsAPI key. Missing .catch on marketplace.ts setSecret (silent failure, form stays open, grant unpersisted) stays open there and for any future BYOK data-plugin credential."
   },
   {
    "id": "R15-UI-034",
@@ -9373,7 +9397,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The 'removed trading product' description (live venues, broker orders, live mode, the kill-switch promise) is moot: the terms dialog was rewritten as research-only terms and the kill switch deleted whole (a122dbf6 feat(d81)). Whether the rewrite now discloses licence terms, data accuracy and AI-output caveats is unverified by this batch; stays open on that question."
   },
   {
    "id": "R15-UI-042",
@@ -9397,7 +9422,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "AuditLogViewer.tsx was deleted whole."
   },
   {
    "id": "R15-UI-043",
@@ -9423,7 +9450,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "AuditLogViewer.tsx and its export/filter code were deleted whole."
   },
   {
    "id": "R15-UI-044",
@@ -10105,7 +10134,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The broker_portfolio example is moot: deleted whole (a122dbf6 feat(d81)). The underlying design flaw (MCP projection by tool kind alone, no per-entry session/account-scope axis) still applies to web_search, research and run_custom_backtest/backtest_summary; stays open on those."
   },
   {
    "id": "R15-AGENT-068",
@@ -11759,7 +11789,9 @@
     "COD-safety-audit-4"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "KillSwitchBus and the broker-adapter registry it served were deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-032",
@@ -11785,7 +11817,9 @@
     "COD-safety-audit-14"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "Every dead artifact named (kill-switch store slice, audit vocabulary, safety types) was deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-033",
@@ -11807,7 +11841,9 @@
     "COD-rust-core-15"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "kill_switch_emit and the Rust kill-switch command were deleted whole."
   },
   {
    "id": "R15-CODE-PLATFORM-034",
@@ -12929,7 +12965,9 @@
     "HYG-5"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "removed_with_feature",
+   "closure_evidence": "a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)",
+   "closure_reason": "kill_switch.rs and the OS-wide shortcut registration were deleted whole."
   },
   {
    "id": "R15-CROSS-PLATFORM-006",
@@ -14687,7 +14725,8 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "The BrokerReadsSection fork is moot: deleted whole (a122dbf6 feat(d81)). The other forks this finding names — EquityOverview shadowing the shared ProvenanceBadge, Watchlist/Chart's bare 'EOD' with no date, and the UTC off-by-a-day as-of date — are on surviving surfaces and stay open."
   },
   {
    "id": "R15-UI-068",
