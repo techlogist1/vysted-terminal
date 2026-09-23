@@ -84,9 +84,11 @@ def test_merged_feed_combines_both_exchanges_newest_first(
     assert response.exchange is None
     assert response.sources == ["NSE", "BSE"]
     assert response.errors == {}
-    assert response.count == len(response.announcements) > 0
+    # The fixtures' six rows are three filings on both exchanges: each BSE row
+    # pairs with its NSE twin (R15-DATA-020), so three NSE items remain.
+    assert response.count == len(response.announcements) == 3
     exchanges = {item.exchange for item in response.announcements}
-    assert exchanges == {"NSE", "BSE"}
+    assert exchanges == {"NSE"}
     # Newest first.
     stamps = [item.ts for item in response.announcements if item.ts is not None]
     assert stamps == sorted(stamps, reverse=True)
@@ -176,6 +178,73 @@ def test_dedup_keeps_two_distinct_same_day_filings(monkeypatch: pytest.MonkeyPat
 
     response = corporate_disclosures.get_announcements("RELIANCE")
     assert response.count == 2
+
+
+# Live feeds captured 2026-09-23 IST (verbatim rows): each exchange's text for
+# one filing differs (NSE's "has informed the Exchange about Credit Rating"
+# against BSE's "Intimation of Credit Rating ..."; INFY's BSE body is just
+# "Enclosed"), so only a fuzzy cross-feed pairing collapses them (R15-DATA-020).
+_CROSSFEED_NSE = json.loads((_NSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text())
+_CROSSFEED_BSE = json.loads((_BSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text())
+
+
+def _serve_crossfeed(monkeypatch: pytest.MonkeyPatch, nse_rows: list, bse_rows: list) -> None:
+    _patch_nse_announcements(monkeypatch, nse_rows)
+    _patch_bse_payload(monkeypatch, {"Table": bse_rows, "Table1": [{"ROWCNT": len(bse_rows)}]})
+
+
+@pytest.mark.parametrize(
+    ("symbol", "day", "filings"),
+    [
+        ("RELIANCE", "2026-09-09", 1),  # credit rating: NSE 20:35, BSE 20:37
+        ("RELIANCE", "2026-09-21", 2),  # two investor-meeting filings, each on both feeds
+        ("TCS", "2026-09-05", 1),  # HyperVault press release: BSE body "Enclosed Press Release"
+        (
+            "INFY",
+            "2026-07-28",
+            2,
+        ),  # earnings-call transcript + a press release, BSE body "Enclosed"
+    ],
+)
+def test_live_cross_feed_pairs_collapse_to_the_nse_item(
+    monkeypatch: pytest.MonkeyPatch, symbol: str, day: str, filings: int
+) -> None:
+    nse_rows = [r for r in _CROSSFEED_NSE[symbol] if r["sort_date"].startswith(day)]
+    bse_rows = [r for r in _CROSSFEED_BSE[symbol] if r["NEWS_DT"].startswith(day)]
+    assert len(nse_rows) == len(bse_rows) == filings
+    _serve_crossfeed(monkeypatch, nse_rows, bse_rows)
+
+    response = corporate_disclosures.get_announcements(symbol)
+    assert response.count == filings
+    assert {item.exchange for item in response.announcements} == {"NSE"}
+
+
+def test_two_different_filings_minutes_apart_stay_separate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # RELIANCE 2026-09-21: NSE's 19:11 update on the J.P. Morgan meeting and BSE's
+    # 19:08 notice of the BofA meeting are different filings 3 minutes apart
+    # sharing the "Company executives ... Institutional Investors' Meeting" text.
+    nse_rows = [r for r in _CROSSFEED_NSE["RELIANCE"] if r["sort_date"] == "2026-09-21 19:11:29"]
+    bse_rows = [
+        r for r in _CROSSFEED_BSE["RELIANCE"] if r["NEWS_DT"].startswith("2026-09-21T19:08")
+    ]
+    assert len(nse_rows) == len(bse_rows) == 1
+    _serve_crossfeed(monkeypatch, nse_rows, bse_rows)
+
+    response = corporate_disclosures.get_announcements("RELIANCE")
+    assert [item.exchange for item in response.announcements] == ["NSE", "BSE"]
+
+
+def test_live_hdfcbank_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A case the pairing was not written against: HDFCBANK's 09-06 stock-option
+    # grant and its 08-19 credit rating + SEBI intimation (27 minutes apart, so
+    # the rating never pairs with the other day-mate).
+    _serve_crossfeed(monkeypatch, _CROSSFEED_NSE["HDFCBANK"], _CROSSFEED_BSE["HDFCBANK"])
+
+    response = corporate_disclosures.get_announcements("HDFCBANK")
+    assert response.count == 3
+    assert {item.exchange for item in response.announcements} == {"NSE"}
 
 
 def test_bse_only_symbol_skips_the_nse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
