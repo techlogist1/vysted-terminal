@@ -237,8 +237,12 @@ export function PortfolioPanel() {
   // R15-UI-005: an empty `byCurrency` means NOTHING resolved — the sum then
   // starts and stays at 0, which is a fabricated value, not a real zero
   // total. Publish null with a reason instead, same as the mixed-currency case.
+  // An empty portfolio has nothing unresolved: its 0 is a real total.
   const hasLiveQuotes = summary.byCurrency.length > 0;
-  const totalValue = summary.mixedCurrencies || !hasLiveQuotes ? null : summary.totalMarketValue;
+  const totalValue =
+    summary.mixedCurrencies || (!hasLiveQuotes && positionCount > 0)
+      ? null
+      : summary.totalMarketValue;
   const unresolvedSymbols = summary.rows
     .filter((row) => row.quote === null)
     .map((row) => row.position.symbol);
