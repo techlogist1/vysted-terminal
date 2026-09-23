@@ -24,7 +24,8 @@ from typing import Any
 
 import pytest
 
-from services import agent_tools, corporate_disclosures, nse_provider, symbol_resolver
+from config import DATA_DIR_ENV
+from services import agent_tools, corporate_disclosures, data_cache, nse_provider, symbol_resolver
 from services.errors import ProviderError
 
 _NSE_FIXTURES = Path(__file__).parent / "fixtures" / "nse"
@@ -37,8 +38,14 @@ _BSE_ANNOUNCEMENTS = json.loads((_BSE_FIXTURES / "ann_sub_category_get_data.json
 
 
 @pytest.fixture(autouse=True)
-def _isolate() -> None:
+def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     symbol_resolver.reset_caches_for_tests()
+    # The announcements tool reads through the service's data_cache
+    # (R15-DATA-074): pin it to a per-test db so no run serves another's rows.
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    yield
+    data_cache.reset_for_tests()
 
 
 def _patch_nse_announcements(monkeypatch: pytest.MonkeyPatch, rows: list[dict] | Exception) -> None:

@@ -47,9 +47,7 @@ async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": "limit must be an integer"}
     limit = max(1, min(limit, _MAX_LIMIT))
     try:
-        response = await asyncio.to_thread(
-            corporate_disclosures.get_announcements, symbol, exchange, limit
-        )
+        response = await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
     except ProviderError as exc:
         return {"ok": False, "error": f"provider error: {exc}"}
     except Exception as exc:  # noqa: BLE001

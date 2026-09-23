@@ -6,8 +6,9 @@ R7 Component 3. Serves the typed feeds from
 shareholding patterns) through :mod:`services.data_cache` with domain-tuned
 TTLs:
 
-* announcements — 15 minutes (the live-ish feed; also respects the NSE
-  throttle by not re-walking the cookie dance per panel refresh)
+* announcements — 15 minutes, cached inside the service
+  (:func:`corporate_disclosures.get_announcements_cached`, shared with the agent
+  tool and research; also respects the NSE throttle)
 * results calendar — 6 hours
 * shareholding — 24 hours (a quarterly series)
 
@@ -36,7 +37,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/disclosures", tags=["disclosures"])
 
-_TTL_ANNOUNCEMENTS = 15 * 60  # 15 minutes
 _TTL_RESULTS = 6 * 60 * 60  # 6 hours
 _TTL_SHAREHOLDING = 24 * 60 * 60  # 24 hours
 
@@ -53,22 +53,10 @@ async def get_announcements(
     ),
 ) -> AnnouncementsResponse:
     """Merged BSE+NSE corporate announcements for ``symbol``, newest first."""
-    normalized = symbol.strip().upper()
-    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
-    cached = await data_cache.get(cache_key, _TTL_ANNOUNCEMENTS)
-    if isinstance(cached, dict):
-        try:
-            return AnnouncementsResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
     try:
-        response = await asyncio.to_thread(
-            corporate_disclosures.get_announcements, normalized, exchange, limit
-        )
+        return await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
-    return response
 
 
 @router.get("/results")

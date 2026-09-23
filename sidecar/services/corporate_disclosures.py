@@ -51,6 +51,7 @@ accessors and :func:`_bse_get_json`.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
 import re
@@ -65,7 +66,7 @@ from models.announcements import (
     ShareholdingPattern,
     ShareholdingResponse,
 )
-from services import locale, nse_provider, symbol_resolver
+from services import data_cache, locale, nse_provider, symbol_resolver
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,10 @@ EXCHANGES = (EXCHANGE_NSE, EXCHANGE_BSE)
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
+#: The merged announcements feed is cached for 15 minutes for every caller (the
+#: panel route, the agent tool and research's gather), which also keeps the NSE
+#: throttle from re-walking the cookie dance per call (R15-DATA-074).
+ANNOUNCEMENTS_TTL_SECONDS = 15 * 60
 
 # The exchange "Public" category (NSE quarterly master ``public_val`` and the BSE
 # SEBI ``PublicShareholdingMember``) FOLDS institutions in — it is the full public
@@ -482,6 +487,25 @@ def get_announcements(
     )
 
 
+async def get_announcements_cached(
+    symbol: str, exchange: str | None = None, limit: int = DEFAULT_LIMIT
+) -> AnnouncementsResponse:
+    """:func:`get_announcements` through :mod:`services.data_cache` — the one
+    cached entry point the router, the agent tool and research share. Raises
+    :class:`ProviderError` like the uncached call; a failure is never cached."""
+    normalized = symbol.strip().upper()
+    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
+    cached = await data_cache.get(cache_key, ANNOUNCEMENTS_TTL_SECONDS)
+    if isinstance(cached, dict):
+        try:
+            return AnnouncementsResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
+    response = await asyncio.to_thread(get_announcements, normalized, exchange, limit)
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Results calendar (NSE event-calendar feed).
 # ---------------------------------------------------------------------------
@@ -780,6 +804,7 @@ __all__ = [
     "EXCHANGE_NSE",
     "MAX_LIMIT",
     "get_announcements",
+    "get_announcements_cached",
     "get_results_calendar",
     "get_shareholding",
 ]
