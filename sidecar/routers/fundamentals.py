@@ -182,21 +182,27 @@ async def get_company_narrative(
 
 
 @router.get("/{symbol}/income")
-async def get_income_statement(symbol: str) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
-    return await provider_registry.get_income_statement(symbol)
+async def get_income_statement(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_income_statement(symbol, period=period)
 
 
 @router.get("/{symbol}/balance")
-async def get_balance_sheet(symbol: str) -> BalanceSheet:
-    """Return the balance sheet excerpt for ``symbol``."""
-    return await provider_registry.get_balance_sheet(symbol)
+async def get_balance_sheet(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> BalanceSheet:
+    """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_balance_sheet(symbol, period=period)
 
 
 @router.get("/{symbol}/cashflow")
-async def get_cash_flow(symbol: str) -> CashFlowStatement:
-    """Return the cash-flow statement excerpt for ``symbol``."""
-    return await provider_registry.get_cash_flow(symbol)
+async def get_cash_flow(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> CashFlowStatement:
+    """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_cash_flow(symbol, period=period)
 
 
 @router.get("/{symbol}/ratings")

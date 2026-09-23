@@ -512,9 +512,17 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     return fund
 
 
-def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine]]:
-    """Convert a yfinance statement DataFrame to (periods, lines)."""
-    periods = [str(getattr(col, "year", col)) for col in frame.columns]
+def _statement_lines(
+    frame: pd.DataFrame, period: str = "annual"
+) -> tuple[list[str], list[StatementLine]]:
+    """Convert a yfinance statement DataFrame to (periods, lines).
+
+    Annual periods are labelled by fiscal year; quarterly ones by their ISO
+    period-end date, since four quarters share one year (R15-DATA-026)."""
+    if period == "quarterly":
+        periods = [pd.Timestamp(col).date().isoformat() for col in frame.columns]
+    else:
+        periods = [str(getattr(col, "year", col)) for col in frame.columns]
     lines: list[StatementLine] = []
     for label, row in frame.iterrows():
         values = {period: _num(row.iloc[idx]) for idx, period in enumerate(periods)}
@@ -522,15 +530,17 @@ def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine
     return periods, lines
 
 
-def get_income_statement(symbol: str) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
+def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``period`` is
+    ``"annual"`` or ``"quarterly"``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).income_stmt
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_income_stmt if period == "quarterly" else ticker.income_stmt
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("income statement", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame)
+    periods, lines = _statement_lines(frame, period)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
@@ -552,15 +562,16 @@ def get_quarterly_period_ends(symbol: str) -> list[date]:
     return ends
 
 
-def get_balance_sheet(symbol: str) -> BalanceSheet:
+def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).balance_sheet
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_balance_sheet if period == "quarterly" else ticker.balance_sheet
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame)
+    periods, lines = _statement_lines(frame, period)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
 
@@ -596,15 +607,16 @@ def get_newest_equity(symbol: str) -> tuple[date, float] | None:
     return newest
 
 
-def get_cash_flow(symbol: str) -> CashFlowStatement:
+def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).cashflow
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_cashflow if period == "quarterly" else ticker.cashflow
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("cash flow", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame)
+    periods, lines = _statement_lines(frame, period)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
