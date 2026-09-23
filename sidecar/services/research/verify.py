@@ -35,10 +35,15 @@ tier_b or native-less run simply passes ``None`` and this round behaves
 exactly as before. Cost stays bounded: ONE cross-verify pass, one native call
 per claim (≤ :data:`_MAX_CLAIMS`), inside the same budget walls.
 
-The round holds the loop invariants: it is metered by the SAME
-:class:`~services.budget_guard.BudgetGuard` as the run (an already-breached
-budget skips the round HONESTLY with a step saying so — never a hang, never a
-silent pass), every LLM/tool failure degrades to UNVERIFIED, fresh web evidence
+The round holds the loop invariants: it runs under its OWN
+:class:`~services.budget_guard.BudgetGuard` — the wall slice the engine
+reserves for it out of the run's budget. An already-breached budget skips the
+round HONESTLY with a step saying so; the per-claim verdict loop runs inside
+``asyncio.timeout`` of the guard's remaining wall and re-checks the guard
+before every verdict, so a slow verdict turn can never carry the round past
+its slice — claims it never reached are UNVERIFIED with the out-of-budget
+reason, never a hang and never a silent pass. Every LLM/tool failure degrades
+to UNVERIFIED, fresh web evidence
 enters prompts fenced as untrusted, and the existing ``[n]`` source numbering
 is never disturbed (re-check sources are named by domain in the section text,
 not renumbered into the rail).
@@ -62,6 +67,7 @@ from services.research.deep import (
     _safe_llm,
     _safe_tool,
     leading_token,
+    remaining_wall,
 )
 from services.research.models import ResearchBrief, ResearchStep
 
@@ -86,6 +92,9 @@ _VERIFY_PROVIDER = "research"
 _VERDICT_AGREE = "agree"
 _VERDICT_DISAGREE = "disagree"
 _VERDICT_UNVERIFIED = "unverified"
+
+#: The detail on a claim the round ran out of wall before checking.
+_OUT_OF_BUDGET_DETAIL = "not checked: the cross-check ran out of its time budget"
 
 #: Disagreement markers are checked FIRST — a reply like "the sources disagree"
 #: must never be read as an agreement because it also contains "agree".
@@ -286,6 +295,60 @@ async def _safe_native(native_search: NativeSearchCall, prompt: str) -> dict[str
     return result
 
 
+def _claim_evidence(result: dict[str, Any], native_res: dict[str, Any]) -> dict[str, Any]:
+    """One claim's re-check evidence across both channels, and its independence."""
+    rows = _evidence_rows(result)
+    native_text = str(native_res.get("text") or "").strip() if native_res.get("ok") else ""
+    native_rows = [
+        row
+        for row in (native_res.get("citations") or [])
+        if isinstance(row, dict) and row.get("url")
+    ]
+    searxng_domains = _row_domains(rows)
+    native_domains = _row_domains(native_rows)
+    domains = searxng_domains | native_domains
+    channels: list[str] = []
+    if rows:
+        channels.append("searxng")
+    if native_text:
+        channels.append("native")
+    return {
+        "rows": rows,
+        "native_text": native_text,
+        "domains": domains,
+        "channels": channels,
+        # Independence: distinct registrable domains. A native completion that
+        # cites its sources is already counted by those domains; only an
+        # UNCITED native completion adds one retrieval path of its own.
+        "independence": len(domains) + (1 if native_text and not native_rows else 0),
+        # The lanes corroborate each other only when the native lane rests on
+        # a domain the SearXNG lane did not already reach.
+        "distinct_lanes": not native_rows or not native_domains <= searxng_domains,
+    }
+
+
+def _check_row(
+    claim: str, verdict: str, detail: str, evidence: dict[str, Any], *, dual: bool
+) -> dict[str, Any]:
+    """The ``structured["cross_check"]`` row for one claim."""
+    check: dict[str, Any] = {
+        "claim": claim,
+        "verdict": verdict,
+        "detail": detail,
+        "domains": sorted(evidence["domains"]),
+    }
+    if dual:
+        channels = evidence["channels"]
+        check["channels"] = channels
+        check["corroborated"] = (
+            verdict == _VERDICT_AGREE
+            and "searxng" in channels
+            and "native" in channels
+            and evidence["distinct_lanes"]
+        )
+    return check
+
+
 def _render_section(checks: list[dict[str, Any]], min_domains: int, *, dual: bool = False) -> str:
     """The markdown "Cross-check" section appended to the ULTRA brief."""
     intro = (
@@ -398,53 +461,44 @@ async def cross_check(
         )
 
     checks: list[dict[str, Any]] = []
-    for claim, result, native_res in zip(claims, rechecks, native_rechecks, strict=False):
-        rows = _evidence_rows(result)
-        native_text = str(native_res.get("text") or "").strip() if native_res.get("ok") else ""
-        native_rows = [
-            row
-            for row in (native_res.get("citations") or [])
-            if isinstance(row, dict) and row.get("url")
-        ]
-        searxng_domains = _row_domains(rows)
-        native_domains = _row_domains(native_rows)
-        domains = searxng_domains | native_domains
-        channels: list[str] = []
-        if rows:
-            channels.append("searxng")
-        if native_text:
-            channels.append("native")
-        # Independence: distinct registrable domains. A native completion that
-        # cites its sources is already counted by those domains; only an
-        # UNCITED native completion adds one retrieval path of its own.
-        independence = len(domains) + (1 if native_text and not native_rows else 0)
-        # The lanes corroborate each other only when the native lane rests on
-        # a domain the SearXNG lane did not already reach.
-        distinct_lanes = not native_rows or not native_domains <= searxng_domains
-        if independence < max(1, min_domains):
-            verdict, detail = (
+    pending = list(zip(claims, rechecks, native_rechecks, strict=False))
+    try:
+        # The verdict turns are sequential LLM calls: bound the whole loop by
+        # what is left of this round's wall, and re-check the guard before each.
+        async with asyncio.timeout(remaining_wall(budget)):
+            for claim, result, native_res in pending:
+                evidence = _claim_evidence(result, native_res)
+                if evidence["independence"] < max(1, min_domains):
+                    verdict, detail = (
+                        _VERDICT_UNVERIFIED,
+                        f"only {len(evidence['domains'])} independent source(s) found",
+                    )
+                elif budget.breach() is not None:
+                    break
+                else:
+                    verdict, detail = await _verdict_for(
+                        claim,
+                        evidence["rows"],
+                        evidence["domains"],
+                        llm_call,
+                        native_text=evidence["native_text"],
+                    )
+                checks.append(
+                    _check_row(claim, verdict, detail, evidence, dual=native_search is not None)
+                )
+    except TimeoutError:
+        pass
+    for claim, result, native_res in pending[len(checks) :]:
+        evidence = _claim_evidence(result, native_res)
+        checks.append(
+            _check_row(
+                claim,
                 _VERDICT_UNVERIFIED,
-                f"only {len(domains)} independent source(s) found",
+                _OUT_OF_BUDGET_DETAIL,
+                evidence,
+                dual=native_search is not None,
             )
-        else:
-            verdict, detail = await _verdict_for(
-                claim, rows, domains, llm_call, native_text=native_text
-            )
-        check: dict[str, Any] = {
-            "claim": claim,
-            "verdict": verdict,
-            "detail": detail,
-            "domains": sorted(domains),
-        }
-        if native_search is not None:
-            check["channels"] = channels
-            check["corroborated"] = (
-                verdict == _VERDICT_AGREE
-                and "searxng" in channels
-                and "native" in channels
-                and distinct_lanes
-            )
-        checks.append(check)
+        )
 
     disagreements = sum(1 for c in checks if c["verdict"] == _VERDICT_DISAGREE)
     brief.markdown = (
