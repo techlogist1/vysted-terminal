@@ -56,7 +56,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:  # import-light: the profile type only rides annotations
+if TYPE_CHECKING:  # import-light: these types only ride annotations
+    from services.budget_guard import BudgetGuard
     from services.research.depth import DepthProfile
 
 #: Per-LLM-call wall-clock cap (seconds) for the research loop. An LLM adapter
@@ -67,6 +68,16 @@ if TYPE_CHECKING:  # import-light: the profile type only rides annotations
 #: this is defense-in-depth at the single-call layer. On timeout the loop gets the
 #: partial text and degrades gracefully.
 _LLM_CALL_TIMEOUT_SECS = 60.0
+
+#: The local (Ollama) lane's per-call cap. A local 8B model on a laptop
+#: measured ~70 s per researcher turn (r2-deep-cgpower) and every
+#: distill/synthesis call hit the 60 s hosted cap, shipping the no-synthesis
+#: floor. 150 s gives a long local synthesis ~2x that measured turn while the
+#: research dispatch guard (deep 390 s / ultra 570 s) still bounds the run.
+_LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
+
+#: Providers that run on the user's own machine (the per-call cap scales up).
+_LOCAL_PROVIDERS = frozenset({"ollama"})
 
 #: The panel threshold: a profile with ``angles >= 2`` runs Heavy mode. Kept in
 #: lockstep with ``iter._MIN_ANGLES``; the actual per-depth angle counts live in
@@ -186,13 +197,49 @@ async def _run_sonar(query: str, key: str | None, model: str | None = None) -> d
     return out
 
 
+def _research_budget(profile: DepthProfile, rounds: int, wall: int) -> BudgetGuard:
+    """The run's :class:`BudgetGuard`: steps + wall scale with the fan-out, and
+    the token/spend ceilings come from the depth profile.
+
+    Budget scales with the angle fan-out so the panel stays inside one ceiling;
+    the ULTRA cross-check round's wall is carved OUT (R9, V14, third live skip:
+    under a shared pot the heavy panel always consumed it and the verification
+    round — ULTRA's point — skipped honestly every run). The cross-check gets its
+    own guard. A token/spend breach takes the loops' existing breach path
+    (abort→synthesize), because every research LLM call is metered into this
+    guard at the one ``llm_call`` seam (:func:`_run_native`).
+    """
+    from services.budget_guard import BudgetGuard
+
+    heavy = profile.angles >= _MIN_HEAVY_ANGLES
+    step_factor = profile.angles if heavy else 1
+    cross_reserve = _CROSS_CHECK_RESERVE_SECS if (heavy and profile.cross_check) else 0
+    return BudgetGuard(
+        max_steps=step_factor * rounds * (profile.researchers + 2)
+        + (2 if profile.cross_check else 0),
+        max_wall_seconds=max(60, wall - cross_reserve),
+        max_tokens=profile.max_tokens or None,
+        max_spend_usd=profile.max_spend_usd or None,
+    )
+
+
+def _brief_cost(budget: BudgetGuard) -> dict[str, Any]:
+    """The brief's ``cost`` from the run guard — ``None`` tokens/spend when no
+    provider call ever reported usage (UNKNOWN cost, never a "free" ``0``)."""
+    cost: dict[str, Any] = dict(budget.cost())
+    if not budget.measured:
+        cost["tokens"] = None
+        cost["spend_usd"] = None
+    cost["estimate"] = True
+    return cost
+
+
 async def _run_loop(
     *,
     profile: DepthProfile,
     query: str,
     llm_call: Any,
-    rounds: int,
-    wall: int,
+    budget: BudgetGuard,
     native_search: Any = None,
 ) -> Any:
     """Run THE one deep loop at the profile's knobs, returning a ``ResearchBrief``.
@@ -211,9 +258,7 @@ async def _run_loop(
     The iter/heavy loops are designed never to raise (budget breach →
     abort→synthesize); a belt-and-suspenders ``except`` still drops to the proven
     single-pass ``run_deep_research`` (the NAMED internal fallback — never a
-    user/model-reachable mode) so the default path can never error out. Budget
-    scales with the angle fan-out so the panel stays inside one ceiling, with
-    headroom budgeted for the ULTRA cross-check round.
+    user/model-reachable mode) so the default path can never error out.
     """
     import config
     from services import agent_tools
@@ -223,17 +268,6 @@ async def _run_loop(
     from services.search.extract import visit_for_research
 
     heavy = profile.angles >= _MIN_HEAVY_ANGLES
-    step_factor = profile.angles if heavy else 1
-    # R9 (V14, third live skip): the cross-check round gets a RESERVED wall
-    # slice — under a shared pot the heavy panel always consumed it and the
-    # verification round (ULTRA's point) skipped honestly every run. The panel
-    # runs against wall minus the reserve; the cross-check gets its own guard.
-    cross_reserve = _CROSS_CHECK_RESERVE_SECS if (heavy and profile.cross_check) else 0
-    budget = BudgetGuard(
-        max_steps=step_factor * rounds * (profile.researchers + 2)
-        + (2 if profile.cross_check else 0),
-        max_wall_seconds=max(60, wall - cross_reserve),
-    )
     region = config.get_region()
     on_step = config.get_step_sink()
     common = {
@@ -318,11 +352,22 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     provider, model, key = creds
 
     _emit_backend_step(_engine_label(provider, model, profile))
+    budget = _research_budget(profile, rounds, wall)
+    from services.research import deep
+
+    per_call = (
+        _LOCAL_LLM_CALL_TIMEOUT_SECS if provider in _LOCAL_PROVIDERS else _LLM_CALL_TIMEOUT_SECS
+    )
 
     async def llm_call(messages: list[dict[str, Any]]) -> str:
-        return await oneshot.complete(
-            provider, model, key, messages, timeout=_LLM_CALL_TIMEOUT_SECS
+        # THE one metering seam: every research LLM call (plan, distill,
+        # reflect, synthesis, citecheck, cross-check) folds its usage into the
+        # run guard here, so the token/spend ceilings see real cost.
+        text, usage = await oneshot.complete_with_usage(
+            provider, model, key, messages, timeout=per_call
         )
+        budget.add_usage(usage, model, provider)
+        return text
 
     # R9 B4 (lead integration): on this tier_a lane, a native-search-capable
     # chat model compounds as a SECOND verification channel — the loop's
@@ -346,14 +391,19 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     # retrieval anywhere in the run surfaces on the published brief.
     telemetry = config.begin_search_telemetry()
 
-    brief = await _run_loop(
-        profile=profile,
-        query=query,
-        llm_call=llm_call,
-        rounds=rounds,
-        wall=wall,
-        native_search=native_search,
-    )
+    # The loop's universal per-call cap follows this run's lane (child tasks
+    # copy the context, so every researcher/angle inherits it).
+    cap_token = deep.LLM_CALL_TIMEOUT.set(per_call)
+    try:
+        brief = await _run_loop(
+            profile=profile,
+            query=query,
+            llm_call=llm_call,
+            budget=budget,
+            native_search=native_search,
+        )
+    finally:
+        deep.LLM_CALL_TIMEOUT.reset(cap_token)
     # The execution-loop hint (R10, D38): which loop ACTUALLY ran — Team
     # RUNTIME builds the full ResearchExecution from it at the tool boundary.
     loop_label = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "iter"
@@ -364,6 +414,12 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     out = brief.to_dict()
     out["ok"] = True
     out["execution_loop"] = loop_label
+    # Re-read AFTER the loop: the ULTRA cross-check round runs after the panel
+    # stamped its cost, and its calls are metered into the same guard.
+    out["cost"] = _brief_cost(budget)
+    if deep.SYNTHESIS_TIMEOUT_NOTE in (out.get("note") or ""):
+        # For the execution record's degraded_reason (stamped at the tool boundary).
+        out["degraded_reason"] = deep.SYNTHESIS_TIMEOUT_REASON
     # The honest backend id: "native" names the chat-model engine; when ANY
     # retrieval in the run was served by the keyless floor the brief carries
     # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.
@@ -502,8 +558,13 @@ def estimate_research_model_cost_usd(query: str, stop: str) -> float:
     return round(min(base + length * per_char, ceiling), 4)
 
 
-def _research_model_http_error(status: int) -> str:
+def _research_model_http_error(status: int, model: str) -> str:
     """Translate an OpenRouter HTTP status into a clean, key-free human message."""
+    if status == 404:
+        return (
+            f"The research model {model} is no longer available on OpenRouter; pick "
+            "another in Settings > Research."
+        )
     if status in (401, 403):
         return (
             "OpenRouter rejected the request — check that your OpenRouter API "
@@ -590,11 +651,11 @@ def _research_model_sources(body: dict[str, Any]) -> list[Any]:
     return sources
 
 
-def _make_step(kind: str, detail: str) -> Any:
+def _make_step(kind: str, detail: str, status: str = "ok") -> Any:
     """A :class:`ResearchStep` for the Tier B trace (collected + sunk live)."""
     from services.research.models import ResearchStep
 
-    return ResearchStep(kind=kind, detail=detail)
+    return ResearchStep(kind=kind, detail=detail, status=status)
 
 
 async def run_research_model_brief(
@@ -619,7 +680,11 @@ async def run_research_model_brief(
     ``research-model:<model-id>`` up front, then heartbeat steps while the
     (potentially minutes-long on ULTRA) call runs. The brief AND every step
     carry the ``research-model:<model-id>`` backend id — evidence that research
-    routed to the research model regardless of the chat model.
+    routed to the research model regardless of the chat model. EVERY
+    ``ok: False`` return (a missing key, an HTTP error — 401 and 404 included —
+    an unreachable or unparseable reply, an empty brief) also emits an
+    ``engine`` step with ``status="error"`` carrying the same human message, so
+    the failure reaches the stream and the trace, not only the model.
     """
     import asyncio
     import time
@@ -629,6 +694,23 @@ async def run_research_model_brief(
     import config
     from services.search.base import SearchError
 
+    sink = config.get_step_sink()
+    steps: list[Any] = []
+
+    def _step(kind: str, detail: str, status: str = "ok") -> None:
+        step = _make_step(kind, detail, status)
+        steps.append(step)
+        if sink is not None:
+            try:
+                sink(step)
+            except Exception:  # pragma: no cover — cosmetic; never breaks a run
+                pass
+
+    def _fail(message: str) -> dict[str, Any]:
+        # The failure rides the stream as an error step, never only the model.
+        _step("engine", message, status="error")
+        return {"ok": False, "message": message}
+
     key = (api_key or "").strip() or config.get_openrouter_search_key()
     if not key:
         creds = config.get_llm_creds()
@@ -636,11 +718,11 @@ async def run_research_model_brief(
         if creds is not None and creds[0] == "openrouter":
             key = creds[2]
     if not key:
-        return {"ok": False, "message": _RESEARCH_MODEL_NEEDS_KEY}
+        return _fail(_RESEARCH_MODEL_NEEDS_KEY)
 
     text = (query or "").strip()
     if not text:
-        return {"ok": False, "message": "Research needs a query — tell me what to look into."}
+        return _fail("Research needs a query — tell me what to look into.")
 
     stop = _research_model_stop(depth)
     resolved_model = (model or "").strip() or config.get_research_model_for(stop)
@@ -666,18 +748,6 @@ async def run_research_model_brief(
         out = target.payload(query=text)
         out["execution_loop"] = "research-model"
         return out
-
-    sink = config.get_step_sink()
-    steps: list[Any] = []
-
-    def _step(kind: str, detail: str) -> None:
-        step = _make_step(kind, detail)
-        steps.append(step)
-        if sink is not None:
-            try:
-                sink(step)
-            except Exception:  # pragma: no cover — cosmetic; never breaks a run
-                pass
 
     _step("engine", f"{backend_id} — hosted research model ({stop} stop, via OpenRouter)")
 
@@ -721,20 +791,20 @@ async def run_research_model_brief(
         response.raise_for_status()
         body: dict[str, Any] = response.json()
     except httpx.HTTPStatusError as exc:
-        return {"ok": False, "message": _research_model_http_error(exc.response.status_code)}
+        return _fail(_research_model_http_error(exc.response.status_code, resolved_model))
     except httpx.HTTPError:
-        return {"ok": False, "message": "Could not reach OpenRouter — check your network."}
+        return _fail("Could not reach OpenRouter — check your network.")
     except ValueError:
-        return {"ok": False, "message": "OpenRouter returned a response that could not be parsed."}
+        return _fail("OpenRouter returned a response that could not be parsed.")
     except SearchError as exc:  # defensive — keep the human message
-        return {"ok": False, "message": str(exc)}
+        return _fail(str(exc))
     finally:
         heartbeat.cancel()
 
     content = _research_model_message(body).get("content")
     markdown = content.strip() if isinstance(content, str) else ""
     if not markdown:
-        return {"ok": False, "message": "The hosted research model returned an empty brief."}
+        return _fail("The hosted research model returned an empty brief.")
 
     sources = _research_model_sources(body)
     elapsed_total = int(time.monotonic() - started)

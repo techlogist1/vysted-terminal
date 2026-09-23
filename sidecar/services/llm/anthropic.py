@@ -205,9 +205,9 @@ def _translate_event(event: Any) -> LLMStreamEvent | None:
     Anthropic's SDK emits granular events (``message_start``,
     ``content_block_start``, ``content_block_delta`` for text/thinking,
     ``content_block_stop``, ``message_delta``, ``message_stop``). The host
-    only cares about text deltas, thinking deltas, and tool-use blocks — the
-    rest are filtered out and the surrounding context manager terminator
-    becomes our ``done``.
+    only cares about text deltas, thinking deltas, and completed tool-use
+    blocks — the rest are filtered out and the surrounding context manager
+    terminator becomes our ``done``.
     """
     event_type = getattr(event, "type", None)
     if event_type == "content_block_delta":
@@ -222,7 +222,10 @@ def _translate_event(event: Any) -> LLMStreamEvent | None:
             if thinking:
                 return LLMThinkingEvent(text=thinking)
         return None
-    if event_type == "content_block_start":
+    if event_type == "content_block_stop":
+        # A streamed tool_use block starts with ``input: {}``; its arguments
+        # arrive afterwards as ``input_json_delta`` fragments. The SDK hands the
+        # accumulated block back on ``content_block_stop``, so emit it there.
         block = getattr(event, "content_block", None)
         if block is not None and getattr(block, "type", None) == "tool_use":
             return LLMToolUseEvent(

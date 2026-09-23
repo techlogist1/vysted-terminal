@@ -187,3 +187,12 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **`src-tauri/tauri.conf.json`, `.github/**`, `LICENSE\*`, `r15-fanout.js`** — Tier-1 or
   instructed not to edit. **No edit was needed:\*\* verified no shortcut, broker, or safety
   content in any of them.
+
+### 3.5 D-B3-1 — AUTO scope tightened back to SC-025 (Stage C batch 3; done, revertable)
+
+- AUTO now skips review only for `panel`, `chart` and `watchlist` kinds; `data-write` (notes,
+  portfolio positions, saved screens and layouts) and `settings` always stage, and the model is
+  told "awaiting review" (`staged` ack). The refuter on R15-CODE-FRONTEND-008 called this policy
+  an operator call; the spec (SC-025, FR-094) settles it, and the D81 docs rewrite of acceptance
+  scenario 4 had widened AUTO by drafting drift. **Reversible in one predicate**
+  (`types/proposed-change.ts` `autoApplies`) if you want AUTO to apply data writes.

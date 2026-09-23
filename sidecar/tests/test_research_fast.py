@@ -549,6 +549,34 @@ def test_fast_filings_leg_routes_to_announcements_for_in_target() -> None:
     assert "corporate_announcements" in tool.calls
 
 
+@pytest.mark.parametrize(
+    ("sources", "errors", "provider"),
+    [
+        # R15-RESEARCH-013: a BSE-only listing is served by BSE alone.
+        (["BSE"], {}, "bse"),
+        # A case the fix was not written against: the BSE lane is down.
+        (["NSE"], {"BSE": "bse announcements: HTTP 503"}, "nse"),
+    ],
+)
+def test_fast_filings_leg_provider_names_only_the_serving_exchanges(
+    sources: list[str], errors: dict[str, str], provider: str
+) -> None:
+    announcements_result = {
+        "ok": True,
+        "symbol": "CDG",
+        "exchange": None,
+        "sources": sources,
+        "errors": errors,
+        "count": 0,
+        "announcements": [],
+    }
+    tool = _INToolCall(
+        symbol="CDG", name="CDG Petchem Ltd", announcements_result=announcements_result
+    )
+    bundle = asyncio.run(gather_fast("CDG outlook", region="IN", tool_call=tool))
+    assert bundle["structured"]["filings"]["provider"] == provider
+
+
 def test_fast_filings_leg_us_target_still_uses_sec_edgar() -> None:
     """The US path is UNCHANGED by the region routing — sec_filings_list,
     never the exchange-announcements lane."""

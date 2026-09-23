@@ -44,6 +44,7 @@ from services.research.deep import (
     _WEB_ONLY_FLOOR_NOTE,
     BUDGET_STOP_NOTE,
     MIN_ROUND_WALL_SECS,
+    SYNTHESIS_TIMEOUT_NOTE,
     LLMCall,
     OnStep,
     ToolCall,
@@ -214,9 +215,13 @@ async def _synthesis_from_report(
     report: _Report,
     findings: _Findings,
     structured: dict[str, Any] | None = None,
-) -> str:
+) -> tuple[str, bool]:
     """Write the final brief markdown from the evolving report + numbered sources.
-    Falls back to the raw report (then a terse stub) so a dead LLM still ships."""
+
+    Returns ``(markdown, synthesized)``. Falls back to the raw report (then the
+    structured floor, then a terse stub) so a dead LLM still ships;
+    ``synthesized`` is ``False`` on every fallback, so the caller can state the
+    degradation instead of shipping it silently."""
     priority = finance.priority_note(findings.all_sources())
     snapshot = snapshot_context(structured or {})
     # R10 (E8): the derived metric facts ride the prompt so the prose states
@@ -260,20 +265,25 @@ async def _synthesis_from_report(
         ],
     )
     if body.strip():
-        return body.strip()
+        return body.strip(), True
     rendered = report.render()
     if rendered and rendered != "(no findings distilled yet)":
-        return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}"
+        return f"# Research brief: {query}\n\nSymbol: {symbol}\n\n{rendered}", False
     # R13 filings floor: a dead-LLM wind-down with no distilled report still
     # ships a brief built from the structured legs + exchange filings — never the
     # bare "No findings" line when price/announcements/fundamentals were gathered.
-    floor = build_structured_floor(query=query, symbol=symbol, structured=structured or {})
+    floor = build_structured_floor(
+        query=query,
+        symbol=symbol,
+        structured=structured or {},
+        web_sources=len(findings.web_sources),
+    )
     if floor is not None:
-        return floor
+        return floor, False
     return (
         f"# Research brief: {query}\n\nSymbol: {symbol}\n\n"
         "_No findings were gathered before the run ended._"
-    )
+    ), False
 
 
 async def run_iter_research(
@@ -372,7 +382,7 @@ async def run_iter_research(
         from services.research.citecheck import ensure_citation_integrity
 
         t0 = time.monotonic()
-        markdown = await _synthesis_from_report(
+        markdown, synthesized = await _synthesis_from_report(
             llm_call,
             query=query,
             symbol=symbol,
@@ -408,7 +418,9 @@ async def run_iter_research(
             structured=structured,
             steps=steps,
             budget=budget,
-            note=BUDGET_STOP_NOTE,
+            note=BUDGET_STOP_NOTE
+            if synthesized
+            else f"{BUDGET_STOP_NOTE} {SYNTHESIS_TIMEOUT_NOTE}",
         )
 
     async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
@@ -646,7 +658,7 @@ async def run_iter_research(
     from services.research.citecheck import ensure_citation_integrity
 
     synth_t0 = time.monotonic()
-    markdown = await _synthesis_from_report(
+    markdown, synthesized = await _synthesis_from_report(
         llm_call,
         query=query,
         symbol=symbol,
@@ -680,7 +692,7 @@ async def run_iter_research(
         structured=structured,
         steps=steps,
         budget=budget,
-        note=None,
+        note=None if synthesized else SYNTHESIS_TIMEOUT_NOTE,
     )
 
 
@@ -1108,7 +1120,8 @@ async def run_heavy_research(
                 },
             ],
         )
-    if not markdown.strip():
+    lead_synthesized = bool(markdown.strip())
+    if not lead_synthesized:
         markdown = f"# Research brief: {query}\n\n{panel}"  # deterministic fallback
     # Panel-level web-only honesty: each angle stamps its own coverage note, but
     # the synthesist rewrites the prose and may drop it. With NO bound target the
@@ -1178,8 +1191,9 @@ async def run_heavy_research(
         web_available=any(b.web_available for b in good) or bool(merged_sources),
         # The "heavy:N angles" implementation note is GONE (R8): structured.panel
         # already carries the angle data, and brief.note renders to the USER —
-        # human sentences only (a failed-angle count is a dev detail).
-        note=None,
+        # human sentences only (a failed-angle count is a dev detail). A lead
+        # synthesis that never came back is stated, never shipped silently.
+        note=None if lead_synthesized else SYNTHESIS_TIMEOUT_NOTE,
     )
 
 

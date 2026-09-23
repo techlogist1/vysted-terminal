@@ -7,7 +7,36 @@ import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore, type AgentAutonomy } from "@/store/agent-autonomy";
 
 import { type AgentMode, AGENT_MODES } from "../../../types/agent-modes";
+import {
+  autoApplies,
+  PROPOSED_CHANGE_KINDS,
+  type ProposedChangeKind,
+} from "../../../types/proposed-change";
 import { type MentionDef, type MentionKind, STATIC_MENTIONS } from "./mentions";
+
+/** The word the AUTO hint uses for each change kind. */
+const KIND_WORD: Record<ProposedChangeKind, string> = {
+  chart: "chart",
+  panel: "panel",
+  watchlist: "watchlist",
+  "data-write": "data",
+  settings: "settings",
+};
+
+function wordList(words: readonly string[]): string {
+  return words.length < 2
+    ? words.join("")
+    : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
+}
+
+/** The AUTO hint, rendered from the one `autoApplies` predicate so the copy
+ *  names exactly which kinds skip review and which still wait. */
+export function autoApplyHint(): string {
+  const instant = PROPOSED_CHANGE_KINDS.filter(autoApplies).map((k) => KIND_WORD[k]);
+  const staged = PROPOSED_CHANGE_KINDS.filter((k) => !autoApplies(k)).map((k) => KIND_WORD[k]);
+  const text = `${wordList(instant)} changes apply instantly; ${wordList(staged)} changes wait for review`;
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 /**
  * The composer's plus-menu (R9 Track C) — the Claude-reference "+" affordance
@@ -182,7 +211,7 @@ export function ComposerPlusMenu({
 
   const autonomyHint: Record<AgentAutonomy, string> = {
     ask: "Every change waits for your review",
-    auto: "Changes apply instantly",
+    auto: autoApplyHint(),
   };
 
   return (

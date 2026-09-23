@@ -44,8 +44,34 @@ def test_primary_record_domains_rank_first() -> None:
 def test_company_ir_pages_rank_primary_by_heuristic() -> None:
     assert finance.domain_tier("https://ir.nvidia.com/financial-info") == finance.TIER_PRIMARY
     assert finance.domain_tier("https://investors.apple.com/") == finance.TIER_PRIMARY
+    # R15-RESEARCH-007 (D-B3-14): a path marker alone is not the primary record.
     assert (
         finance.domain_tier("https://example.com/investor-relations/results")
+        == finance.TIER_GENERAL
+    )
+
+
+def test_ir_lookalikes_never_rank_primary_and_reuters_outranks_them() -> None:
+    """R15-RESEARCH-007: the reproduced URLs (and platform-hosted IR-looking
+    hosts) are not the primary record, and Reuters outranks them."""
+    lookalikes = [
+        "https://medium.com/investor-diary/why-i-bought-xyz",
+        "https://someblog.wordpress.com/ir/2024/hot-tip",
+        "https://www.reuters.com/markets/investors-rush-into-x",
+        "https://investors.substack.com/p/hot-stock",
+        "https://ir.medium.com/some-post",
+    ]
+    for url in lookalikes:
+        assert finance.domain_tier(url) != finance.TIER_PRIMARY, url
+    reuters = _src("https://reuters.com/markets/x")
+    ranked = finance.rank_sources([_src(lookalikes[0]), _src(lookalikes[1]), reuters])
+    assert ranked[0] is reuters
+    assert "primary record" not in finance.priority_note(ranked)
+
+
+def test_real_ir_host_stays_primary() -> None:
+    assert (
+        finance.domain_tier("https://investors.infosys.com/annual-report/2025")
         == finance.TIER_PRIMARY
     )
 

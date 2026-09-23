@@ -35,6 +35,8 @@ the service in place.
 
 from __future__ import annotations
 
+import copy
+import json
 import time
 import uuid
 from typing import Any
@@ -218,9 +220,103 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
 
 
+#: Statement-denominated money sizes (the ``Fundamentals`` contract in
+#: ``models/fundamentals.py`` plus the semantics statement facts): rendered in
+#: ``financial_currency`` when the reporter's statements differ from the
+#: trading currency. Every other money field's unit comes from the semantics
+#: ``derived`` leg (``unit == "currency"``) of the bundle itself.
+_STATEMENT_MONEY_FIELDS = frozenset(
+    {
+        "revenue_ttm",
+        "net_income_ttm",
+        "free_cash_flow",
+        "reported_net_income",
+        "normalized_net_income",
+    }
+)
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def model_view(payload: Any) -> Any:
+    """The MODEL-facing projection of a research result (R15-AGENT-001).
+
+    The raw bundle rides next to its displays, and a small model reads the raw
+    rupee float (``market_cap = 2895037857792.0``) and mis-scales it 10x. This
+    copy replaces every money scalar in ``structured`` with its
+    :func:`semantics.display_value` string, so the model can only quote the
+    scaled figure. Money fields are the semantics ``derived`` values whose
+    ``unit`` is ``currency`` (by key, wherever they recur in the bundle, and in
+    the ``sources`` of a conflict on that field) plus the statement sizes.
+    Non-money numbers are kept. The panel and auto-publish keep the raw payload.
+    """
+    if not isinstance(payload, dict) or not isinstance(payload.get("structured"), dict):
+        return payload
+    from services.research.semantics import display_value
+
+    view = copy.deepcopy(payload)
+    structured = view["structured"]
+    fund_leg = structured.get("fundamentals")
+    fund = fund_leg.get("data") if isinstance(fund_leg, dict) else None
+    fund = fund if isinstance(fund, dict) else {}
+    currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
+    statement_currency = fund.get("financial_currency") or currency
+    derived_leg = structured.get("derived")
+    derived = derived_leg.get("data") if isinstance(derived_leg, dict) else None
+    derived = derived if isinstance(derived, dict) else {}
+    money = set(_STATEMENT_MONEY_FIELDS)
+    money.update(
+        key
+        for key, item in derived.items()
+        if isinstance(item, dict) and item.get("unit") == "currency"
+    )
+
+    def show(field: str | None, value: float) -> str:
+        code = statement_currency if field in _STATEMENT_MONEY_FIELDS else currency
+        return display_value(value, "currency", code)
+
+    def walk(node: Any) -> None:
+        if isinstance(node, list):
+            for item in node:
+                walk(item)
+            return
+        if not isinstance(node, dict):
+            return
+        if node.get("unit") == "currency" and _is_number(node.get("value")):
+            node["value"] = node.get("display") or show(None, node["value"])
+        conflict_field = node.get("field") if node.get("field") in money else None
+        for key, value in node.items():
+            if key in money and _is_number(value):
+                node[key] = show(key, value)
+            elif conflict_field and key == "sources" and isinstance(value, list):
+                for source in value:
+                    if isinstance(source, dict) and _is_number(source.get("value")):
+                        source["value"] = show(conflict_field, source["value"])
+            else:
+                walk(value)
+
+    walk(structured)
+    return view
+
+
+def model_content(result_str: str) -> str:
+    """:func:`model_view` over a serialised research result (the tool message)."""
+    try:
+        payload = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return result_str
+    view = model_view(payload)
+    if view is payload:
+        return result_str
+    # ensure_ascii=False: the model reads "₹289,504 cr", not "\u20b9289,504 cr".
+    return json.dumps(view, default=str, ensure_ascii=False)
+
+
 def register() -> None:
     """Register the ``research`` tool in the package registry."""
     register_tool("research", _research)
 
 
-__all__ = ["_research", "register"]
+__all__ = ["_research", "model_content", "model_view", "register"]

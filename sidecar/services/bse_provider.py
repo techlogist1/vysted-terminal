@@ -622,7 +622,12 @@ _SHP_CATEGORY = {
     "InstitutionsForeignMember": "institutions_foreign",
     "NonInstitutionsMember": "non_institutions",
 }
-_MONTHS = {name.lower(): index for index, name in enumerate(calendar.month_name) if name}
+_MONTHS = {
+    name.lower(): index
+    for names in (calendar.month_name, calendar.month_abbr)
+    for index, name in enumerate(names)
+    if name
+}
 
 
 def _shp_cache_dir() -> str:
@@ -661,6 +666,7 @@ def get_shareholding(symbol: str) -> list[dict]:
             summary = _fetch_and_parse_shp_xbrl(xbrl_file)
         row: dict = {
             "quarter_end": _shp_quarter_end(quarter.get("qtr")),
+            "period": _clean_str(quarter.get("qtr")),
             "submission_date": _shp_filing_date(quarter.get("filing_date_time")),
             "xbrl_url": _shp_site_url(quarter.get("xbrlurl")),
             "source": PROVIDER.upper(),
@@ -883,21 +889,25 @@ def _shp_write_cache(xbrl_file: str, summary: dict) -> None:
 
 
 def _shp_quarter_end(qtr: object) -> date | None:
-    """``"June 2026"`` → the last calendar day of that month (2026-06-30)."""
+    """``"June 2026"`` → the last calendar day of that month (2026-06-30); a
+    day-dated ``"04 Jun 2026"`` / ``"30 September 2026"`` → that day. BSE dates a
+    listing-time (IPO) pattern to the day, and it is a fresh listing's only one
+    (R15-DATA-022)."""
     raw = _clean_str(qtr)
     if not raw:
         return None
     parts = raw.split()
-    if len(parts) != 2:
+    if len(parts) not in (2, 3):
         return None
-    month = _MONTHS.get(parts[0].lower())
+    month = _MONTHS.get(parts[-2].lower())
     if not month:
         return None
     try:
-        year = int(parts[1])
+        year = int(parts[-1])
+        day = int(parts[0]) if len(parts) == 3 else calendar.monthrange(year, month)[1]
+        return date(year, month, day)
     except ValueError:
         return None
-    return date(year, month, calendar.monthrange(year, month)[1])
 
 
 def _shp_filing_date(raw: object) -> date | None:

@@ -4,6 +4,51 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 3: agent runtime, AUTO gate, LLM adapters, research depth, India witnesses (2026-09-23)
+
+**Scope:** 40 register entries (both open criticals, AGENT-001 and DATA-005, plus root-cause mates and
+highs in the same seams), planned in `docs/redesign/verification/r15/stage-c/batch-3/PLAN.md`, built by
+five isolated writers and merged in plan order W5 → W3 → W1 → W4 → W2 on `worktree-agent-batch-3-int`
+(base `56e12b2`). No file conflicts.
+
+- **W5 India data witnesses** — BVPS and P/B witnessed against the newest filed equity; witness inputs
+  cached per listing within the row TTL; merged institutions splits labelled with their own lane and
+  quarter; FAST filings provider stamped from the serving exchanges; BSE announcements paged with a
+  stated window and `PDFFLAG` attachment paths; announcements deduped on a body prefix; the BSE split
+  merge bounded to ~100 days; day-dated IPO shareholding kept; the resolver run off the event loop in
+  agent tools (DATA-005/019/020/021/022, LEAD-002, RESEARCH-011/013, AGENT-010).
+- **W3 LLM adapters and errors** — Anthropic `tool_use` emitted on `content_block_stop` with the streamed
+  input; Gemini and Groq native search gated per model; Groq and Ollama stamp the invalid-args sentinel
+  (moved to `llm/base.py`); text-leaked Ollama tool calls rescued; key validation fails on a bad
+  OpenRouter/Gemini/xAI key; provider errors classified by body (AGENT-004/005/018/027/047, UI-008,
+  CODE-AGENT-003, the key half of RESEARCH-010).
+- **W1 agent runtime** — in-flight tool task cancelled on stream close; research money reaches the
+  model as displays only; third-party text fenced; write tools stripped only on a positive read cue;
+  capped final round drops its tool calls and closes honestly; runtime-central tool-arg validation and
+  JSON-string parsing (an invalid host action is never yielded); indicator enum from the registry; the
+  non-terminal `staged` ack; `web_search` timeout hint (AGENT-001/002/003/019/021/022/024/054/047/080,
+  RESEARCH-008 hint).
+- **W4 research depth** — research LLM usage metered into the run guard via
+  `oneshot.complete_with_usage`; budget-stop note names token and spend ceilings; ULTRA cross-check
+  bounded by its wall; IR authority needs an IR host off publishing platforms; per-engine keyless
+  deadline; every redirect hop re-checked against the SSRF guard; research-model failures surfaced and
+  retired slugs dropped (RESEARCH-006/007/008/009, AGENT-012, DATA-045, LIFECYCLE-006, the error half
+  of RESEARCH-010). RESEARCH-005 is partial (missing synthesis stated; the execution record's
+  `degraded_reason` still needs `agent_tools/research.py` to copy it) and stays open.
+- **W2 agent frontend gate** — AUTO applies only panel/chart/watchlist (D-B3-1) and posts `staged`
+  otherwise; `write_note`/`save_layout` follow the catalog's arg semantics; no fabricated cost basis on
+  an agent portfolio add; `set_chart_indicators` applies known keys and reports dropped ones; the notes
+  store owns the note body; a Cmd-K ticker pick loads the chart; a pre-installed agent pack registers
+  at boot (AGENT-080/022/054/014, CODE-FRONTEND-003/008/014, UI-001/002).
+
+**Integration:** the Gate-8 test `test_proposed_change_kind_has_no_order` read only a literal
+`ProposedChangeKind` union; W2 derives it from an `as const` list, so the test found no kinds (its
+no-`order` check passed vacuously). The test now reads the list. The openbb-mcp and sec-edgar-mcp build
+venvs were pinned to the last known-good freeze because an unpinned `fastmcp` 4.x now resolves (it
+depends on `httpx2`, and the build's `copy_metadata('httpx')` fails); environment only, no repo change.
+Spec acceptance scenario 4 is corrected back to SC-025. Tier-3 decisions D-B3-1…16 are in
+`docs/redesign/DECISIONS.md`; D-B3-1 is also logged in `docs/redesign/DECISIONS_FOR_OPERATOR.md` §3.5.
+
 ## R15 Stage C — batch 2: critical + high data/research/workspace fixes (2026-09-23)
 
 **Scope:** 40 register entries (all 16 criticals plus root-cause mates and highs in the same seams),

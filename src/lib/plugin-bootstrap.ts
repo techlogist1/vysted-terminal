@@ -22,6 +22,7 @@ import {
   PluginRuntime,
 } from "@/lib/plugin-runtime";
 import { getSecret } from "@/lib/keychain";
+import { syncPluginAgents } from "@/lib/plugin-agents";
 import { getSidecarBaseUrl, sidecarGet, SidecarError } from "@/lib/sidecar-client";
 import { useModulesStore } from "@/store/modules";
 import { usePluginsStore } from "@/store/plugins";
@@ -261,10 +262,19 @@ export async function bootstrapPlugins(): Promise<() => void> {
     const installed = persisted?.installed ?? row.entry.preinstalled;
     const enabled = persisted?.enabled ?? row.entry.preinstalled;
     if (installed && enabled) {
-      await runtime.loadPlugin(plugin);
+      const snap = await runtime.loadPlugin(plugin);
       const pluginModule = moduleForPlugin(row);
       if (pluginModule) {
         useModulesStore.getState().appendModules([pluginModule]);
+      }
+      // Register its agents in the sidecar custom-agent store, as Marketplace
+      // enable does — otherwise a pre-installed agent pack never reaches the
+      // roster. Fire-and-forget (a no-op for plugins without agents), so boot
+      // never waits on the sidecar.
+      if (snap.state === "active") {
+        void syncPluginAgents(plugin.manifest.id, true).catch((err: unknown) => {
+          console.warn(`[plugin-bootstrap] could not register ${plugin.manifest.id} agents`, err);
+        });
       }
     }
   }

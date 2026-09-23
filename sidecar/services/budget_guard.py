@@ -108,6 +108,9 @@ class BudgetGuard:
 
         self._tokens = 0
         self._spend_usd = 0.0
+        #: Whether ANY usage was ever reported — a run whose provider reported
+        #: none has an UNKNOWN cost, not a zero one.
+        self.measured = False
         self._steps = 0
         self._start = _now if _now is not None else time.monotonic()
 
@@ -123,8 +126,18 @@ class BudgetGuard:
         run that switches models mid-stream is priced per round.
         """
         self._steps += 1
+        self.add_usage(usage, model, provider)
+
+    def add_usage(self, usage: LLMUsage | None, model: str, provider: str = "") -> None:
+        """Fold one LLM call's usage into the running cost WITHOUT ticking a step.
+
+        For a loop whose steps are rounds but whose LLM calls happen many times
+        per round (the research loops meter every call at their one ``llm_call``
+        seam). ``None`` usage is a no-op and leaves :attr:`measured` untouched.
+        """
         if usage is None:
             return
+        self.measured = True
         round_tokens = max(usage.input_tokens, 0) + max(usage.output_tokens, 0)
         # Cache-read/creation tokens are billed (at a discount upstream) but we
         # fold them in at the blended rate — an over-estimate is the safe side

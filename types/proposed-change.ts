@@ -4,17 +4,35 @@
  * Every change an agent proposes (panel re-config, chart symbol, watchlist
  * edit, multi-panel build, portfolio/notes/screen/layout write, or setting) is
  * staged as a ProposedChange and shown as a reviewable old→new diff. Nothing
- * lands until the user accepts (or has chosen AUTO autonomy); rejecting leaves
- * state unchanged. This is the trust spine (Constitution / spec US4).
+ * lands until the user accepts (or has chosen AUTO autonomy and the kind
+ * {@link autoApplies}); rejecting leaves state unchanged. This is the trust
+ * spine (Constitution / spec US4).
  */
 
 /**
  * The host-action families the gate governs (all `read_only=false` in the
- * catalog). R10 (D41/D45) adds `data-write` (portfolio positions, notes,
- * saved screens — auto-applicable under AUTO autonomy) and `settings` (the two
- * agent-drivable settings: region + default research depth).
+ * catalog). R10 (D41/D45) adds `data-write` (portfolio positions, notes, saved
+ * screens and layouts) and `settings` (the agent-drivable region).
  */
-export type ProposedChangeKind = "panel" | "chart" | "watchlist" | "data-write" | "settings";
+export const PROPOSED_CHANGE_KINDS = [
+  "chart",
+  "panel",
+  "watchlist",
+  "data-write",
+  "settings",
+] as const;
+
+export type ProposedChangeKind = (typeof PROPOSED_CHANGE_KINDS)[number];
+
+/**
+ * Whether a change of this kind applies without review under AUTO autonomy
+ * (spec SC-025): only `panel` (which covers publish_brief, arrange_layout and
+ * write_screener_filters), `chart` and `watchlist`. `data-write` and `settings`
+ * always wait for the user's review.
+ */
+export function autoApplies(kind: ProposedChangeKind): boolean {
+  return kind === "panel" || kind === "chart" || kind === "watchlist";
+}
 
 export type ProposedChangeStatus = "pending" | "accepted" | "rejected";
 

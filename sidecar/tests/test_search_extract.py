@@ -290,7 +290,7 @@ _RESULTS_PDF_PAGES = [
 
 
 def _pdf_fetcher(data: bytes, status: int = 200, calls: list[str] | None = None):
-    async def _fetch(url):  # noqa: ANN001, ANN202
+    async def _fetch(url, **kw):  # noqa: ANN001, ANN003, ANN202
         if calls is not None:
             calls.append(url)
         return status, data

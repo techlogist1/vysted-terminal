@@ -254,7 +254,13 @@ def test_proposed_change_kind_has_no_order() -> None:
     text = (REPO_ROOT / "types" / "proposed-change.ts").read_text(encoding="utf-8")
     match = re.search(r"type ProposedChangeKind\s*=([^;]*);", text)
     assert match, "ProposedChangeKind union not found in types/proposed-change.ts"
-    kinds = set(re.findall(r'"([a-z-]+)"', match.group(1)))
+    body = match.group(1)
+    if "PROPOSED_CHANGE_KINDS" in body:
+        # The union is derived from the `as const` kinds list; read the list.
+        listed = re.search(r"PROPOSED_CHANGE_KINDS\s*=\s*\[([^\]]*)\]", text)
+        assert listed, "PROPOSED_CHANGE_KINDS list not found in types/proposed-change.ts"
+        body = listed.group(1)
+    kinds = set(re.findall(r'"([a-z-]+)"', body))
     assert "order" not in kinds
     assert {"panel", "chart", "watchlist", "data-write", "settings"} <= kinds
 

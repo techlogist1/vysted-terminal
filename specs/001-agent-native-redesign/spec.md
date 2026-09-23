@@ -699,8 +699,8 @@ action is gated (orders never auto-applied; §6.5 audit clean).
    source/route and succeeds, or returns a human message naming the cause — never raw JSON, never
    wrong data.
 4. **Given** any agent mutation, **When** proposed, **Then** it routes through the diff/accept gate;
-   AUTO auto-applies every kind under this gate — there is no exempt kind, since no order kind
-   exists (D81, FR-010/012).
+   AUTO auto-applies only UI/layout/chart/watchlist kinds (`panel`, `chart`, `watchlist`); data
+   writes and settings always stage for review (SC-025, FR-094; D-B3-1).
 
 ---
 

@@ -12,6 +12,9 @@ github.com/pewdiepie-archdaemon/odysseus, ``services/search/content.py``):
   1. SSRF guard: http(s) only; loopback/private/link-local/internal hosts are
      refused (literal IPs checked directly, hostnames via the injectable
      resolver) — a research visit must never become a port-scan of localhost.
+     The guard runs on the input URL AND on every redirect hop, in every lane
+     (httpx, curl_cffi, and both PDF lanes): no lane lets its HTTP library
+     follow a redirect unvetted.
   2. Strip ``script/style/noscript/template/nav/header/footer/aside/form/
      iframe`` — boilerplate that poisons text extraction.
   3. Prefer semantic containers: ``main`` / ``article``, then ``section`` /
@@ -41,7 +44,18 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
 from .keyless import is_low_quality
-from .transport import TransportError, httpx_fetch, impersonated_fetch
+from .transport import (
+    MAX_REDIRECTS,
+    RedirectBlocked,
+    TransportError,
+    UrlGuard,
+    httpx_fetch,
+    impersonated_fetch,
+    redirect_target,
+)
+
+#: The honest miss when a redirect hop pointed at a non-public URL.
+_BLOCKED_REDIRECT = "blocked redirect to a non-public or non-http(s) URL"
 
 #: Default cap on extracted content (characters).
 DEFAULT_MAX_CHARS = 8000
@@ -261,15 +275,18 @@ def _needs_impersonated_pdf_lane(url: str) -> bool:
     return any(host == s or host.endswith("." + s) for s in _PDF_IMPERSONATED_SUFFIXES)
 
 
-async def _default_pdf_fetch(url: str) -> tuple[int, bytes]:
+async def _default_pdf_fetch(url: str, *, url_allowed: UrlGuard | None = None) -> tuple[int, bytes]:
     """Download a PDF body as bytes — ``(status_code, body)``.
 
     Exchange archives (nsearchives.nseindia.com, bseindia.com attachment
     endpoints) reject plain httpx, so they ride the curl_cffi Chrome
     impersonation lane directly; everyone else gets httpx (streamed, so the
     15MB cap aborts the download rather than buffering past it) with ONE
-    impersonated retry on an anti-bot wall status. Raises
-    :class:`TransportError` on a transport-level failure.
+    impersonated retry on an anti-bot wall status. Neither lane auto-follows
+    redirects: each hop is vetted by ``url_allowed`` first
+    (:func:`~services.search.transport.redirect_target`). Raises
+    :class:`TransportError` on a transport-level failure and
+    :class:`~services.search.transport.RedirectBlocked` on a refused hop.
     """
     import httpx
 
@@ -284,30 +301,54 @@ async def _default_pdf_fetch(url: str) -> tuple[int, bytes]:
     headers["Accept"] = "application/pdf,*/*;q=0.8"
     headers["User-Agent"] = USER_AGENT
 
-    async def _impersonated() -> tuple[int, bytes]:
+    async def _impersonated(start: str) -> tuple[int, bytes]:
         try:
             from curl_cffi.requests import AsyncSession
         except Exception as exc:  # pragma: no cover — environment-dependent import
             raise TransportError(f"curl_cffi unavailable: {exc}") from exc
-        try:
-            async with AsyncSession(impersonate=IMPERSONATE_PROFILE) as session:
-                resp = await session.get(url, headers=headers, timeout=DEFAULT_TIMEOUT_SECS * 2)
-        except Exception as exc:
-            raise TransportError(f"impersonated PDF fetch failed for {url}: {exc}") from exc
+        current = start
+        async with AsyncSession(impersonate=IMPERSONATE_PROFILE) as session:
+            for _ in range(MAX_REDIRECTS + 1):
+                try:
+                    resp = await session.get(
+                        current,
+                        headers=headers,
+                        timeout=DEFAULT_TIMEOUT_SECS * 2,
+                        allow_redirects=False,
+                    )
+                except Exception as exc:
+                    raise TransportError(f"impersonated PDF fetch failed for {url}: {exc}") from exc
+                status = int(getattr(resp, "status_code", 0))
+                location = (getattr(resp, "headers", None) or {}).get("location")
+                nxt = redirect_target(current, status, location, url_allowed)
+                if nxt is None:
+                    break
+                current = nxt
+            else:
+                raise TransportError(f"too many redirects for {url}")
         body = bytes(getattr(resp, "content", b"") or b"")
         if len(body) > PDF_MAX_BYTES:
             raise TransportError(f"PDF exceeds the {PDF_MAX_BYTES // (1024 * 1024)}MB cap")
-        return int(getattr(resp, "status_code", 0)), body
+        return status, body
 
     if _needs_impersonated_pdf_lane(url):
-        return await _impersonated()
+        return await _impersonated(url)
 
+    current = url
     try:
         async with httpx.AsyncClient(
-            timeout=DEFAULT_TIMEOUT_SECS * 2, follow_redirects=True
+            timeout=DEFAULT_TIMEOUT_SECS * 2, follow_redirects=False
         ) as client:
-            async with client.stream("GET", url, headers=headers) as resp:
-                if resp.status_code not in _WALL_STATUSES:
+            for _ in range(MAX_REDIRECTS + 1):
+                async with client.stream("GET", current, headers=headers) as resp:
+                    nxt = redirect_target(
+                        current, resp.status_code, resp.headers.get("location"), url_allowed
+                    )
+                    if nxt is not None:
+                        current = nxt
+                        continue
+                    if resp.status_code in _WALL_STATUSES:
+                        break
                     chunks: list[bytes] = []
                     size = 0
                     async for chunk in resp.aiter_bytes():
@@ -318,11 +359,14 @@ async def _default_pdf_fetch(url: str) -> tuple[int, bytes]:
                             )
                         chunks.append(chunk)
                     return resp.status_code, b"".join(chunks)
+            else:
+                raise TransportError(f"too many redirects for {url}")
     except httpx.HTTPError as exc:
         raise TransportError(f"PDF fetch failed for {url}: {exc}") from exc
 
-    # Anti-bot wall — one retry over the Chrome-impersonation lane.
-    return await _impersonated()
+    # Anti-bot wall — one retry over the Chrome-impersonation lane, from the
+    # (already vetted) URL that answered with the wall.
+    return await _impersonated(current)
 
 
 def _pdf_paragraphs(page_texts: list[str]) -> list[str]:
@@ -541,12 +585,15 @@ async def _fetch_pdf_page(
     url: str,
     *,
     max_chars: int,
+    url_allowed: UrlGuard,
     pdf_fetch=None,  # noqa: ANN001 — injectable byte fetch for tests
 ) -> dict[str, Any]:
     """The PDF lane of :func:`fetch_page`: bytes → finance-relevant text."""
     fetch_bytes = pdf_fetch or _default_pdf_fetch
     try:
-        status, body = await fetch_bytes(url)
+        status, body = await fetch_bytes(url, url_allowed=url_allowed)
+    except RedirectBlocked:
+        return {"ok": False, "url": url, "error": _BLOCKED_REDIRECT}
     except TransportError as exc:
         return {"ok": False, "url": url, "error": f"fetch failed: {exc}"}
     if status >= 400:
@@ -593,20 +640,30 @@ async def fetch_page(
     if not is_public_http_url(url, resolver=resolver):
         return {"ok": False, "url": url, "error": "blocked non-public or non-http(s) URL"}
 
+    def _allowed(hop: str) -> bool:
+        # The SAME guard as the input URL, applied to every redirect hop.
+        return is_public_http_url(hop, resolver=resolver)
+
     if _is_pdf_url(url):
-        return await _fetch_pdf_page(url, max_chars=max_chars, pdf_fetch=pdf_fetch)
+        return await _fetch_pdf_page(
+            url, max_chars=max_chars, url_allowed=_allowed, pdf_fetch=pdf_fetch
+        )
 
     primary = fetch or httpx_fetch
     fallback = fallback_fetch or impersonated_fetch
     try:
-        fetched = await primary(url)
+        fetched = await primary(url, url_allowed=_allowed)
+    except RedirectBlocked:
+        return {"ok": False, "url": url, "error": _BLOCKED_REDIRECT}
     except TransportError as exc:
         return {"ok": False, "url": url, "error": f"fetch failed: {exc}"}
 
     if fetched.status_code in _WALL_STATUSES:
         # Anti-bot wall — one retry over the Chrome-impersonation lane.
         try:
-            fetched = await fallback(url)
+            fetched = await fallback(url, url_allowed=_allowed)
+        except RedirectBlocked:
+            return {"ok": False, "url": url, "error": _BLOCKED_REDIRECT}
         except TransportError as exc:
             return {"ok": False, "url": url, "error": f"fetch failed after wall: {exc}"}
     if fetched.status_code >= 400:
@@ -616,7 +673,9 @@ async def fetch_page(
     if "pdf" in content_type:
         # Served as a PDF without a .pdf path — refetch on the byte lane (the
         # text lane has already mangled the binary body).
-        return await _fetch_pdf_page(url, max_chars=max_chars, pdf_fetch=pdf_fetch)
+        return await _fetch_pdf_page(
+            url, max_chars=max_chars, url_allowed=_allowed, pdf_fetch=pdf_fetch
+        )
     if content_type and ("html" not in content_type and not content_type.startswith("text/")):
         return {"ok": False, "url": url, "error": f"unsupported content type: {content_type}"}
 

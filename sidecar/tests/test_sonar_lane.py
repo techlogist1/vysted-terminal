@@ -51,7 +51,13 @@ def test_short_spellings_resolve() -> None:
     assert resolve_model("sonar-pro") == "perplexity/sonar-pro"
     assert resolve_model("sonar") == "perplexity/sonar"
     assert resolve_model("deep-research") == SONAR_DEEP_MODEL
-    assert resolve_model("SONAR-REASONING") == "perplexity/sonar-reasoning"
+    assert resolve_model("SONAR-REASONING-PRO") == "perplexity/sonar-reasoning-pro"
+
+
+def test_retired_sonar_reasoning_is_not_pinned() -> None:
+    """R15-LIFECYCLE-006: perplexity/sonar-reasoning left OpenRouter's catalog."""
+    assert "perplexity/sonar-reasoning" not in SONAR_MODELS
+    assert resolve_model("sonar-reasoning") == SONAR_DEEP_MODEL
 
 
 def test_unknown_model_floors_to_deep_default() -> None:

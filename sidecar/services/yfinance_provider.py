@@ -546,6 +546,37 @@ def get_balance_sheet(symbol: str) -> BalanceSheet:
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
 
+#: Balance-sheet rows read as total stockholders' equity, in preference order.
+_EQUITY_LABELS = ("Stockholders Equity", "Common Stock Equity")
+
+
+def get_newest_equity(symbol: str) -> tuple[date, float] | None:
+    """The newest filed stockholders' equity for ``symbol`` and its period end,
+    across Yahoo's quarterly and annual balance sheets (a quarter filed after the
+    last fiscal year wins). ``None`` when neither frame carries an equity row.
+
+    The witness for the per-share book fields: ``bookValue`` and ``priceToBook``
+    are Yahoo scalars that can sit on a stale share count (R15-DATA-005).
+    """
+    normalized = _yahoo_symbol(symbol)
+    try:
+        ticker = yf.Ticker(normalized)
+        frames = (ticker.quarterly_balance_sheet, ticker.balance_sheet)
+    except Exception as exc:  # noqa: BLE001
+        raise _provider_error("balance sheet", symbol, exc) from exc
+    newest: tuple[date, float] | None = None
+    for frame in frames:
+        label = next((name for name in _EQUITY_LABELS if name in frame.index), None)
+        if label is None:
+            continue
+        for column, raw in frame.loc[label].items():
+            value = _num(raw)
+            period_end = pd.Timestamp(column).date()
+            if value is not None and (newest is None or period_end > newest[0]):
+                newest = (period_end, value)
+    return newest
+
+
 def get_cash_flow(symbol: str) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``."""
     normalized = _yahoo_symbol(symbol)

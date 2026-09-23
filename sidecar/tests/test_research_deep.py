@@ -604,9 +604,9 @@ def test_researcher_web_query_web_only_target_unanchored() -> None:
 def test_build_structured_floor_none_when_no_structured_data() -> None:
     from services.research.deep import build_structured_floor
 
-    assert build_structured_floor(query="x", symbol="", structured={}) is None
+    assert build_structured_floor(query="x", symbol="", structured={}, web_sources=0) is None
     empty = {"price": {"ok": False}, "fundamentals": {"ok": False}}
-    assert build_structured_floor(query="x", symbol="KSE", structured=empty) is None
+    assert build_structured_floor(query="x", symbol="KSE", structured=empty, web_sources=0) is None
 
 
 def test_build_structured_floor_renders_price_and_dated_filings() -> None:
@@ -627,7 +627,9 @@ def test_build_structured_floor_renders_price_and_dated_filings() -> None:
             "rows": [],
         },
     }
-    md = build_structured_floor(query="KSE outlook", symbol="KSE", structured=structured)
+    md = build_structured_floor(
+        query="KSE outlook", symbol="KSE", structured=structured, web_sources=0
+    )
     assert md is not None
     assert "exchange data and filings" in md
     assert "142.5" in md

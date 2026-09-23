@@ -12,8 +12,10 @@ and the existing ``[n]`` source rail is never renumbered.
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import Any
 
+from models.llm import LLMUsage
 from services.budget_guard import BudgetGuard
 from services.research.models import ResearchBrief, ResearchSource
 from services.research.verify import _parse_verdict, cross_check
@@ -466,3 +468,74 @@ def test_one_domain_reached_by_both_lanes_is_not_independent() -> None:
     assert check["corroborated"] is False
     assert llm.verdict_prompts == []
     assert "corroborated across channels" not in brief.markdown
+
+
+# --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
+
+_FIVE_CLAIMS = "\n".join(f"NVDA metric {i} was {i}0%" for i in range(1, 6))
+_OUT_OF_BUDGET = "ran out of its time budget"
+
+
+class _SlowVerdictLLM:
+    """Claim extraction answers at once; verdict turns sleep per ``delays``."""
+
+    def __init__(self, delays: list[float], budget: BudgetGuard | None = None) -> None:
+        self.delays = delays
+        self.budget = budget
+        self.verdict_calls = 0
+
+    async def __call__(self, messages: list[dict[str, Any]]) -> str:
+        system = messages[0]["content"].lower()
+        if "numeric claims" in system:
+            return _FIVE_CLAIMS
+        delay = self.delays[min(self.verdict_calls, len(self.delays) - 1)]
+        self.verdict_calls += 1
+        await asyncio.sleep(delay)
+        if self.budget is not None:
+            # A metered verdict turn (usage folded into the round's guard).
+            self.budget.add_usage(LLMUsage(input_tokens=600, output_tokens=0), "m")
+        return "AGREE — matches"
+
+
+def test_slow_verdicts_cannot_carry_the_round_past_its_wall() -> None:
+    budget = BudgetGuard(max_steps=10, max_wall_seconds=0.3)
+    t0 = time.monotonic()
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_SlowVerdictLLM([5.0]),
+            budget=budget,
+        )
+    )
+    assert time.monotonic() - t0 < 1.0  # the 0.3 s wall plus epsilon, not 5 x 5 s
+    claims = brief.structured["cross_check"]["claims"]
+    assert len(claims) == 5
+    assert all(c["verdict"] == "unverified" for c in claims)
+    assert all(_OUT_OF_BUDGET in c["detail"] for c in claims)
+
+
+def test_verdicts_reached_in_budget_are_kept_and_the_tail_is_unverified() -> None:
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool(TWO_DOMAINS),
+            llm_call=_SlowVerdictLLM([0.0, 5.0]),
+            budget=BudgetGuard(max_steps=10, max_wall_seconds=0.4),
+        )
+    )
+    claims = brief.structured["cross_check"]["claims"]
+    assert [c["verdict"] for c in claims] == ["agree"] + ["unverified"] * 4
+    assert all(_OUT_OF_BUDGET in c["detail"] for c in claims[1:])
+
+
+def test_guard_breach_between_verdicts_stops_the_loop() -> None:
+    """The guard is re-checked before each verdict, not only at round entry."""
+    budget = BudgetGuard(max_steps=10, max_tokens=1000)
+    llm = _SlowVerdictLLM([0.0], budget=budget)
+    brief = _run(
+        cross_check(_brief(), tool_call=_web_tool(TWO_DOMAINS), llm_call=llm, budget=budget)
+    )
+    claims = brief.structured["cross_check"]["claims"]
+    assert llm.verdict_calls == 2  # 600 + 600 tokens crosses the 1000 ceiling
+    assert [c["verdict"] for c in claims] == ["agree", "agree"] + ["unverified"] * 3

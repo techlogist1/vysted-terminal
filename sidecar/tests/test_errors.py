@@ -251,3 +251,207 @@ def test_human_error_frozen() -> None:
     h = HumanError(message="x", action=None, detail=None, code="auth")
     with pytest.raises((AttributeError, TypeError)):
         h.message = "y"  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# R15-AGENT-027: body-aware classification over captured provider bodies
+# ---------------------------------------------------------------------------
+
+
+def _openai_err(cls: type, status: int, body: object) -> Exception:
+    """An openai SDK status error shaped exactly as the SDK raises it."""
+    import httpx
+
+    request = httpx.Request("POST", "https://api.example/v1/chat/completions")
+    response = httpx.Response(status, request=request)
+    return cls(f"Error code: {status} - {body}", response=response, body=body)
+
+
+def _captured_errors() -> list[tuple[str, str, Exception, str]]:
+    import httpx
+    import ollama
+    import openai
+    from google.genai import errors as genai_errors
+
+    # OpenRouter free-model 429 (research-briefs r0-429-gemma-free), with a
+    # stand-in user id.
+    shared_pool = {
+        "error": {
+            "message": "Provider returned error",
+            "code": 429,
+            "metadata": {
+                "raw": "google/gemma-4-31b-it:free is temporarily rate-limited upstream. "
+                "Please retry shortly, or add your own key to accumulate your rate limits",
+                "provider_name": "Google AI Studio",
+                "limit_source": "upstream_provider_shared_pool",
+            },
+        },
+        "user_id": "user_2FAKEFIXTUREID",
+    }
+    return [
+        (
+            "openai credit 429",
+            "openai",
+            _openai_err(
+                openai.RateLimitError,
+                429,
+                {
+                    "error": {
+                        "message": "You exceeded your current quota, please check your plan "
+                        "and billing details.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            ),
+            "insufficient_credit",
+        ),
+        (
+            "openai credit balance exhausted 429",
+            "openai",
+            _FakeExc("credit balance exhausted", 429),
+            "insufficient_credit",
+        ),
+        (
+            "openrouter shared-pool 429",
+            "openrouter",
+            _openai_err(openai.RateLimitError, 429, shared_pool),
+            "free_pool_busy",
+        ),
+        (
+            "gemini 400 invalid key",
+            "gemini",
+            genai_errors.ClientError(
+                400,
+                {
+                    "error": {
+                        "code": 400,
+                        "message": "API key not valid. Please pass a valid API key.",
+                        "status": "INVALID_ARGUMENT",
+                        "details": [{"reason": "API_KEY_INVALID"}],
+                    }
+                },
+            ),
+            "auth",
+        ),
+        (
+            "xai 400 invalid key",
+            "xai",
+            _openai_err(
+                openai.BadRequestError,
+                400,
+                {"code": "invalid-argument", "error": "Incorrect API key provided: xa***ey."},
+            ),
+            "auth",
+        ),
+        (
+            "openrouter 400 invalid model id",
+            "openrouter",
+            _openai_err(
+                openai.BadRequestError,
+                400,
+                {
+                    "error": {
+                        "message": "zzz-nonsense/not-a-model-9000:free is not a valid model ID",
+                        "code": 400,
+                    },
+                    "user_id": "user_2FAKEFIXTUREID",
+                },
+            ),
+            "model_not_found",
+        ),
+        (
+            "openai 400 context length",
+            "openai",
+            _FakeExc(
+                "This model's maximum context length is 128000 tokens. However, your "
+                "messages resulted in 131072 tokens.",
+                400,
+            ),
+            "context_overflow",
+        ),
+        ("groq 413", "groq", _FakeExc("Request too large for model", 413), "context_overflow"),
+        (
+            "ollama not running",
+            "ollama",
+            httpx.ConnectError("All connection attempts failed"),
+            "ollama_not_running",
+        ),
+        (
+            "ollama model not pulled",
+            "ollama",
+            ollama.ResponseError('model "qwen3:8b" not found, try pulling it first', 404),
+            "model_not_pulled",
+        ),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("provider", "exc", "code"),
+    [pytest.param(p, e, c, id=name) for name, p, e, c in _captured_errors()],
+)
+def test_captured_provider_bodies_get_the_right_next_step(
+    provider: str, exc: Exception, code: str
+) -> None:
+    h = humanize(provider, exc)
+    assert h.code == code
+    assert h.message and h.action
+
+
+def test_ollama_not_pulled_names_the_pull_command() -> None:
+    import ollama
+
+    h = humanize("ollama", ollama.ResponseError('model "qwen3:8b" not found, try pulling', 404))
+    assert "qwen3:8b" in h.message
+    assert h.action is not None and "ollama pull qwen3:8b" in h.action
+
+
+def test_user_id_is_scrubbed_from_detail() -> None:
+    import openai
+
+    exc = _openai_err(
+        openai.BadRequestError,
+        400,
+        {"error": {"message": "x is not a valid model ID"}, "user_id": "user_2FAKEFIXTUREID"},
+    )
+    h = humanize("openrouter", exc)
+    assert h.detail is not None
+    assert "user_2FAKEFIXTUREID" not in h.detail
+    assert "not a valid model ID" in h.detail
+
+
+def test_anthropic_prompt_too_long_is_context_overflow() -> None:
+    # Held out: the table was not written against an Anthropic body.
+    import anthropic
+    import httpx
+
+    body = {
+        "type": "error",
+        "error": {
+            "type": "invalid_request_error",
+            "message": "prompt is too long: 215000 tokens > 200000 maximum",
+        },
+    }
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    exc = anthropic.BadRequestError(
+        f"Error code: 400 - {body}", response=httpx.Response(400, request=request), body=body
+    )
+    assert humanize("anthropic", exc).code == "context_overflow"
+
+
+def test_anthropic_low_credit_400_is_insufficient_credit() -> None:
+    # Held out: Anthropic reports an empty balance as a 400, not a 402/429.
+    h = humanize(
+        "anthropic",
+        _FakeExc(
+            "Your credit balance is too low to access the Anthropic API. Please go to "
+            "Plans & Billing to upgrade or purchase credits.",
+            400,
+        ),
+    )
+    assert h.code == "insufficient_credit"
+
+
+def test_plain_rate_limit_429_still_says_wait() -> None:
+    h = humanize("openai", _FakeExc("Rate limit reached for requests per min (RPM)", 429))
+    assert h.code == "rate_limit"

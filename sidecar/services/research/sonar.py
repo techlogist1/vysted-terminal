@@ -46,10 +46,12 @@ OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
 SONAR_DEEP_MODEL = "perplexity/sonar-deep-research"
 
 #: The routable sonar family (one-call research models with citations).
+#: ``perplexity/sonar-reasoning`` is retired from OpenRouter's live catalog
+#: (checked 2026-09-23) and no longer pinned; a stale spelling floors to the
+#: deep-research default like any other unknown slug.
 SONAR_MODELS: tuple[str, ...] = (
     "perplexity/sonar",
     "perplexity/sonar-pro",
-    "perplexity/sonar-reasoning",
     "perplexity/sonar-reasoning-pro",
     SONAR_DEEP_MODEL,
 )

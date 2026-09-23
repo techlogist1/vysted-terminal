@@ -68,10 +68,25 @@ PRESS_DOMAINS: frozenset[str] = frozenset(
 )
 
 #: Company investor-relations hosts — primary-record tier without enumerating
-#: every issuer: a host like ``ir.nvidia.com`` / ``investors.apple.com`` or an
-#: ``/investor-relations`` path marks the company's own disclosure surface.
+#: every issuer: a dedicated IR host like ``ir.nvidia.com`` /
+#: ``investors.apple.com`` marks the company's own disclosure surface. A path
+#: marker (``/investor…``, ``/ir/``) is NOT enough: any blog post about
+#: investing carries one, and the tier decides which source is "the record".
 _IR_HOST_PREFIXES = ("ir.", "investor.", "investors.")
-_IR_PATH_MARKERS = ("/investor", "/investor-relations", "/ir/")
+
+#: Publishing platforms where anyone can host an ``ir.``/``investors.``-looking
+#: page — never the company's own disclosure surface (suffix-matched).
+_IR_PLATFORM_DENYLIST: frozenset[str] = frozenset(
+    {
+        "medium.com",
+        "wordpress.com",
+        "substack.com",
+        "seekingalpha.com",
+        "reddit.com",
+        "blogspot.com",
+        "linkedin.com",
+    }
+)
 
 #: Regulator/exchange ``site:`` groups per session region, used to bias the
 #: filings/fundamentals researcher queries on DEEP/ULTRA rounds. Kept to two
@@ -125,12 +140,12 @@ def _matches(host: str, table: frozenset[str]) -> bool:
     return any(host == entry or host.endswith("." + entry) for entry in table)
 
 
-def _looks_like_ir(url: str, host: str) -> bool:
-    """Heuristic: is this a company investor-relations page?"""
-    if any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES):
-        return True
-    path = urlparse(url.lower()).path if "//" in url.lower() else ""
-    return any(marker in path for marker in _IR_PATH_MARKERS)
+def _looks_like_ir(host: str) -> bool:
+    """Is this a company investor-relations host? Needs BOTH a dedicated IR
+    host prefix AND a host that is not a publishing platform."""
+    return any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES) and not _matches(
+        host, _IR_PLATFORM_DENYLIST
+    )
 
 
 def domain_tier(url_or_domain: str) -> int:
@@ -138,7 +153,7 @@ def domain_tier(url_or_domain: str) -> int:
     host = domain_of(url_or_domain)
     if not host:
         return TIER_GENERAL
-    if _matches(host, PRIMARY_DOMAINS) or _looks_like_ir(url_or_domain, host):
+    if _matches(host, PRIMARY_DOMAINS) or _looks_like_ir(host):
         return TIER_PRIMARY
     if _matches(host, PRESS_DOMAINS):
         return TIER_PRESS

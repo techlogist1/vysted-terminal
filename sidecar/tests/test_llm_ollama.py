@@ -148,3 +148,99 @@ async def test_stream_chat_humanizes_error(monkeypatch: pytest.MonkeyPatch) -> N
     assert err.message and "ollama exploded" not in err.message
     assert err.detail is not None and "ollama exploded" in err.detail
     assert err.code is not None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("arguments", "expected"),
+    [
+        ('{"symbol": "RELI', None),  # truncated JSON string -> sentinel
+        ('["RELIANCE.NS"]', None),  # valid JSON, not an object -> sentinel
+        ('{"symbol": "RELIANCE.NS"}', {"symbol": "RELIANCE.NS"}),
+        ({"symbol": "TCS.NS"}, {"symbol": "TCS.NS"}),
+        ("", {}),  # a no-argument call
+    ],
+)
+async def test_native_tool_call_arguments_never_coerce_to_empty(
+    monkeypatch: pytest.MonkeyPatch, arguments: Any, expected: dict[str, Any] | None
+) -> None:
+    # R15-AGENT-047 (adapter half): malformed arguments carry the invalid-args
+    # sentinel so the model learns its call was wrong.
+    from services.llm.base import INVALID_ARGS_SENTINEL
+
+    chunks = [
+        {
+            "message": {
+                "content": "",
+                "tool_calls": [{"function": {"name": "price_data", "arguments": arguments}}],
+            },
+            "done": True,
+            "done_reason": "stop",
+        },
+    ]
+    _patch(monkeypatch, chunks=chunks)
+    out = [
+        e
+        async for e in OllamaProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="quote RELIANCE")],
+            model="llama3.1:8b",
+            tool_ids=["price_data"],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    if expected is None:
+        assert set(tool_use[0].input) == {INVALID_ARGS_SENTINEL}
+    else:
+        assert tool_use[0].input == expected
+
+
+async def _ollama_text_round(monkeypatch: pytest.MonkeyPatch, text: str) -> list[Any]:
+    """A round where the model streams ``text`` as content and no tool_calls."""
+    half = len(text) // 2
+    chunks = [
+        {"message": {"content": text[:half]}, "done": False},
+        {"message": {"content": text[half:]}, "done": False},
+        {"message": {"content": ""}, "done": True, "done_reason": "stop"},
+    ]
+    _patch(monkeypatch, chunks=chunks)
+    return [
+        e
+        async for e in OllamaProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="note that Cochin looks stretched")],
+            model="llama3.1:8b",
+            tool_ids=["write_note", "price_data"],
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_leaked_text_tool_call_is_rescued(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-AGENT-018: the captured llama3.1:8b turn (composer-chat 13) wrote the
+    # call as literal JSON text with "parameters"; it must become a tool_use.
+    leaked = (
+        '{"name": "write_note", "parameters": {"scope": "COCHINSHIP.NS", '
+        '"text": "Valuation looks stretched at ~54x trailing P/E."}}'
+    )
+    out = await _ollama_text_round(monkeypatch, leaked)
+    assert [e.kind for e in out] == ["delta", "delta", "tool_use", "done"]
+    call = out[2]
+    assert call.name == "write_note"
+    assert call.input == {
+        "scope": "COCHINSHIP.NS",
+        "text": "Valuation looks stretched at ~54x trailing P/E.",
+    }
+    assert call.tool_call_id
+    # Two rescued calls never share an id.
+    again = await _ollama_text_round(monkeypatch, leaked)
+    assert again[2].tool_call_id != call.tool_call_id
+
+
+@pytest.mark.asyncio
+async def test_leaked_json_for_a_tool_not_offered_stays_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    out = await _ollama_text_round(
+        monkeypatch, '{"name": "screener_run", "parameters": {"sector": "Defence"}}'
+    )
+    assert [e.kind for e in out] == ["delta", "delta", "done"]

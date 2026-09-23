@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -51,12 +51,16 @@ def _patch_nse_announcements(monkeypatch: pytest.MonkeyPatch, rows: list[dict] |
 
 
 def _patch_bse_payload(monkeypatch: pytest.MonkeyPatch, payload: object | Exception) -> list[dict]:
+    """Serve ``payload`` as page 1 of the BSE feed; later pages are empty (the
+    trimmed fixtures hold fewer rows than their ``ROWCNT``)."""
     calls: list[dict] = []
 
     def fake(url: str, params: dict[str, str]) -> object:
         calls.append({"url": url, "params": params})
         if isinstance(payload, Exception):
             raise payload
+        if params.get("pageno") != "1" and isinstance(payload, dict):
+            return dict(payload, Table=[])
         return payload
 
     monkeypatch.setattr(corporate_disclosures, "_bse_get_json", fake)
@@ -83,12 +87,13 @@ def test_merged_feed_combines_both_exchanges_newest_first(
     assert response.count == len(response.announcements) > 0
     exchanges = {item.exchange for item in response.announcements}
     assert exchanges == {"NSE", "BSE"}
-    # Newest first (the fixtures' distinct headlines never collide in dedup).
+    # Newest first.
     stamps = [item.ts for item in response.announcements if item.ts is not None]
     assert stamps == sorted(stamps, reverse=True)
-    # The BSE lane was asked with the observed query contract, scrip-code keyed.
-    assert len(calls) == 1
+    # The BSE lane was asked with the observed query contract, scrip-code keyed,
+    # from page 1 (it pages on while the window's ROWCNT rows remain).
     params = calls[0]["params"]
+    assert params["pageno"] == "1"
     assert params["strScrip"] == "500325"
     assert params["strSearch"] == "P" and params["strType"] == "C"
 
@@ -133,29 +138,44 @@ def test_observed_bse_row_parse(monkeypatch: pytest.MonkeyPatch) -> None:
     assert (first.ts.year, first.ts.month, first.ts.day) == (2026, 6, 9)
 
 
+@pytest.mark.parametrize(
+    "index",
+    [
+        0,  # 2026-06-09 ICICI update: BSE HEADLINE truncated, quotes/spaces doubled
+        1,  # 2026-06-08 AGM presentation: NSE wraps the title in "has informed ..."
+    ],
+)
 def test_dedup_collapses_the_same_story_across_exchanges(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, index: int
 ) -> None:
-    """Same symbol + same (normalised) headline + same IST day → ONE item, NSE wins."""
-    nse_row = _NSE_ANNOUNCEMENTS[0]
-    duplicate_headline = "  " + str(nse_row["attchmntText"]).upper() + "  "  # cosmetic drift
-    bse_payload = {
-        "Table": [
-            dict(
-                _BSE_ANNOUNCEMENTS["Table"][0],
-                NEWSSUB=duplicate_headline,
-                NEWS_DT="2026-06-09T19:44:02.21",  # same IST calendar day as the NSE row
-            )
-        ],
-        "Table1": [{"ROWCNT": 1}],
-    }
-    _patch_nse_announcements(monkeypatch, [nse_row])
-    _patch_bse_payload(monkeypatch, bse_payload)
+    """R15-DATA-020: the UNMODIFIED NSE and BSE fixture rows of one RELIANCE
+    filing (NSE's attchmntText body; BSE's short NEWSSUB subject plus its
+    HEADLINE body) are ONE item, and NSE wins."""
+    _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS[index : index + 1])
+    bse_rows = _BSE_ANNOUNCEMENTS["Table"][index : index + 1]
+    _patch_bse_payload(monkeypatch, {"Table": bse_rows, "Table1": [{"ROWCNT": 1}]})
 
     response = corporate_disclosures.get_announcements("RELIANCE")
     assert response.sources == ["NSE", "BSE"]
     assert response.count == 1
     assert response.announcements[0].exchange == "NSE"  # the NSE lane merges first
+
+
+def test_dedup_keeps_two_distinct_same_day_filings(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: two different filings by the same
+    company on the same IST day stay two."""
+    first = _NSE_ANNOUNCEMENTS[0]
+    other = dict(
+        first,
+        attchmntText="Reliance Industries Limited has informed the Exchange regarding "
+        "'Allotment of Non-Convertible Debentures on private placement basis'.",
+        sort_date="2026-06-09 11:02:10",
+    )
+    _patch_nse_announcements(monkeypatch, [first, other])
+    _patch_bse_payload(monkeypatch, ProviderError("bse down"))
+
+    response = corporate_disclosures.get_announcements("RELIANCE")
+    assert response.count == 2
 
 
 def test_bse_only_symbol_skips_the_nse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -221,6 +241,98 @@ def test_malformed_bse_payload_is_a_lane_error(monkeypatch: pytest.MonkeyPatch) 
     response = corporate_disclosures.get_announcements("RELIANCE")
     assert response.sources == ["NSE"]
     assert "malformed" in response.errors["BSE"]
+
+
+def _bse_row(newsid: str, subject: str, day: date) -> dict:
+    stamp = f"{day.isoformat()}T17:43:00.00"
+    return {
+        "NEWSID": newsid,
+        "SCRIP_CD": 516078,
+        "NEWSSUB": subject,
+        "HEADLINE": subject,
+        "NEWS_DT": stamp,
+        "DT_TM": stamp,
+        "CATEGORYNAME": "Company Update",
+        "ATTACHMENTNAME": f"{newsid}.pdf",
+        "PDFFLAG": 0,
+    }
+
+
+def _patch_bse_feed(
+    monkeypatch: pytest.MonkeyPatch, rows: list[dict], page_size: int
+) -> list[dict[str, str]]:
+    """Emulate the BSE feed: only rows inside the requested strPrevDate..strToDate
+    window, ``page_size`` per ``pageno``, with the window's ROWCNT."""
+    calls: list[dict[str, str]] = []
+
+    def fake(url: str, params: dict[str, str]) -> object:  # noqa: ARG001
+        calls.append(params)
+        lo = datetime.strptime(params["strPrevDate"], "%Y%m%d").date()
+        hi = datetime.strptime(params["strToDate"], "%Y%m%d").date()
+        window = [r for r in rows if lo <= date.fromisoformat(r["NEWS_DT"][:10]) <= hi]
+        page = int(params["pageno"])
+        return {
+            "Table": window[(page - 1) * page_size : page * page_size],
+            "Table1": [{"ROWCNT": len(window)}],
+        }
+
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", fake)
+    return calls
+
+
+def test_bse_lane_reaches_an_infrequent_filers_older_filings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-019, JUMBO-shaped: a BSE-only filer whose newest filing is 50
+    days old. The 30-day window served an empty feed as complete; the filings
+    now arrive with the covered window stated."""
+    today = corporate_disclosures._today_ist()
+    newest = today - timedelta(days=50)
+    rows = [
+        _bse_row("a1", "Scrutinizers Report", newest),
+        _bse_row("a2", "Outcome of AGM", newest - timedelta(days=1)),
+        _bse_row("a3", "Financial Results for the quarter ended June 30, 2026", newest),
+        _bse_row("a4", "Appointment of Director", newest - timedelta(days=1)),
+    ]
+    _patch_bse_feed(monkeypatch, rows, page_size=50)
+
+    response = corporate_disclosures.get_announcements("JUMBO", limit=25)
+    assert response.sources == ["BSE"]
+    assert response.count == 4
+    window = response.windows["BSE"]
+    assert window.window_end == today
+    assert window.window_start == today - timedelta(days=corporate_disclosures._BSE_ANN_WINDOW_DAYS)
+
+
+def test_bse_lane_pages_until_the_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A case the fix was not written against: two-row pages stop once the limit
+    is reached, and the window starts at the oldest item kept."""
+    today = corporate_disclosures._today_ist()
+    rows = [_bse_row(f"r{i}", f"Filing number {i}", today - timedelta(days=i)) for i in range(6)]
+    calls = _patch_bse_feed(monkeypatch, rows, page_size=2)
+
+    response = corporate_disclosures.get_announcements("JUMBO", limit=3)
+    assert [c["pageno"] for c in calls] == ["1", "2"]
+    assert [a.headline for a in response.announcements] == [f"Filing number {i}" for i in range(3)]
+    assert response.windows["BSE"].window_start == today - timedelta(days=2)
+
+
+def test_bse_pdfflag_row_resolves_under_the_history_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The fixture's PDFFLAG 1 row (the 2026-06-05 Citi update) is filed under
+    AttachHis; a PDFFLAG 0 row stays under AttachLive."""
+    _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("RELIANCE", exchange="BSE")
+    by_file = {a.attachment_url.rsplit("/", 1)[1]: a.attachment_url for a in response.announcements}
+    assert by_file["75dcb382-c995-429e-ac79-be791c57e7c8.pdf"] == (
+        "https://www.bseindia.com/xml-data/corpfiling/AttachHis/"
+        "75dcb382-c995-429e-ac79-be791c57e7c8.pdf"
+    )
+    assert by_file["94035dd9-d667-49df-8161-a90b6c8cd851.pdf"].startswith(
+        "https://www.bseindia.com/xml-data/corpfiling/AttachLive/"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -409,6 +521,50 @@ def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.Monk
     assert latest.split_as_of == date(2026, 3, 31)
 
 
+@pytest.mark.parametrize(
+    ("nse_quarter", "merged"),
+    [
+        # R15-DATA-021, SIL-shaped: two years from the only BSE split → no split.
+        ("30-SEP-2022", False),
+        # A case the fix was not written against: the adjacent quarter (92 days).
+        ("30-SEP-2024", True),
+    ],
+)
+def test_shareholding_split_merge_is_bounded_to_about_a_quarter(
+    monkeypatch: pytest.MonkeyPatch, nse_quarter: str, merged: bool
+) -> None:
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: [
+            {"symbol": "SIL", "date": nse_quarter, "pr_and_prgrp": "20.31", "public_val": "79.69"}
+        ],
+    )
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {
+                "quarter_end": date(2024, 12, 31),
+                "source": "BSE",
+                "institutions_percent": 42.91,
+                "fii_percent": 38.87,
+                "dii_percent": 4.04,
+            }
+        ],
+    )
+    pattern = corporate_disclosures.get_shareholding("SIL").patterns[0]
+    assert pattern.promoter_percent == 20.31  # the NSE figure always stands
+    if merged:
+        assert pattern.institutions_percent == 42.91
+        assert pattern.split_as_of == date(2024, 12, 31)
+    else:
+        assert pattern.institutions_percent is None and pattern.fii_percent is None
+        assert pattern.split_source is None and pattern.split_as_of is None
+
+
 def test_shareholding_never_merges_another_companys_bse_split(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -480,6 +636,59 @@ def test_shareholding_bse_only_symbol_routes_to_bse_lane(
     assert latest.quarter_end == date(2026, 6, 30)
 
 
+@pytest.mark.parametrize(
+    ("qtr", "quarter_end", "basis"),
+    [
+        # R15-DATA-022, SMR: BSE dates the listing-time (IPO) pattern to the day.
+        ("04 Jun 2026", date(2026, 6, 4), None),
+        # A case the fix was not written against: a full month name, day-dated.
+        ("30 September 2026", date(2026, 9, 30), None),
+        # A label no parser knows: kept, dated by its filing, and it says so.
+        ("Pre-listing 2026", date(2026, 6, 8), "filing date"),
+    ],
+)
+def test_shareholding_keeps_a_day_dated_or_unparsed_bse_pattern(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    qtr: str,
+    quarter_end: date,
+    basis: str | None,
+) -> None:
+    import httpx
+
+    from services import bse_provider
+
+    index = {
+        "Table": [
+            {
+                "qtr": qtr,
+                "filing_date_time": "2026-06-08T16:34:05.267",
+                "XbrlFile": "544774_86202616343_SHP.xml",
+                "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/544774_86202616343_SP.html",
+            }
+        ]
+    }
+
+    def fake_get(url: str) -> httpx.Response:
+        if "SHPQNewFormat" in url:
+            return httpx.Response(200, json=index)
+        return httpx.Response(404, content=b"")  # the XBRL itself is offline
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+
+    response = corporate_disclosures.get_shareholding("SMR")
+    assert response.count == 1
+    pattern = response.patterns[0]
+    assert pattern.quarter_end == quarter_end
+    assert pattern.xbrl_url is not None and pattern.source == "BSE"
+    if basis is None:
+        assert pattern.quarter_basis is None
+    else:
+        assert pattern.quarter_basis is not None and basis in pattern.quarter_basis
+        assert qtr in pattern.quarter_basis
+
+
 def test_shareholding_nse_first_falls_back_to_bse_on_nse_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -530,13 +739,15 @@ def test_corporate_announcements_tool_round_trip(
     _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS)
     _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
 
+    # limit 3: the fixtures' six rows are three filings on both exchanges, and
+    # the cross-exchange dedup collapses the pairs it can match.
     result = asyncio.run(
-        agent_tools.invoke_tool("corporate_announcements", {"symbol": "RELIANCE", "limit": 5})
+        agent_tools.invoke_tool("corporate_announcements", {"symbol": "RELIANCE", "limit": 3})
     )
     assert result["ok"] is True
     assert result["symbol"] == "RELIANCE"
     assert result["sources"] == ["NSE", "BSE"]
-    assert result["count"] == len(result["announcements"]) == 5
+    assert result["count"] == len(result["announcements"]) == 3
     item = result["announcements"][0]
     assert {"symbol", "exchange", "headline", "category", "attachment_url", "ts"} <= set(item)
 

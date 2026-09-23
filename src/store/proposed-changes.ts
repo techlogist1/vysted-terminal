@@ -6,7 +6,8 @@
  * diff and accepts/rejects per-item or in bulk (keyboard-driven, in the agent
  * surface). NOTHING lands before acceptance — accepting applies the mutation;
  * rejecting leaves state unchanged. The only auto-apply path is the user's own
- * AUTO autonomy choice (Constitution / spec US4).
+ * AUTO autonomy choice, and only for the kinds `autoApplies` allows (panel,
+ * chart, watchlist — spec SC-025); data writes and settings still wait.
  */
 
 import { create } from "zustand";
@@ -21,7 +22,7 @@ import {
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useBriefStore } from "@/store/brief";
 
-import type { ProposedChange } from "../../types/proposed-change";
+import { autoApplies, type ProposedChange } from "../../types/proposed-change";
 
 let _seq = 0;
 function nextId(): string {
@@ -105,10 +106,15 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       createdAt: Date.now(),
     };
     set((state) => ({ changes: [...state.changes, change] }));
-    // Autonomy: in AUTO mode, every host action applies without a per-action
-    // confirmation (still recorded in the transcript).
+    // Autonomy: in AUTO mode an auto-applicable kind applies without a
+    // per-action confirmation (still recorded in the transcript). Any other
+    // kind stays pending, and the ledger learns it is awaiting review, not failed.
     if (useAgentAutonomyStore.getState().autonomy === "auto") {
-      void get().accept(id);
+      if (autoApplies(change.kind)) {
+        void get().accept(id);
+      } else {
+        ackHostAction(toolCallId, "staged", hostActionAckDetail(name, input));
+      }
     }
     return id;
   },

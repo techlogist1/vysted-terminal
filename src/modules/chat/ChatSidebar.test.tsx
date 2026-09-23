@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { resetMessageNoticesForTests } from "@/modules/chat/message-notices";
+import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
@@ -605,6 +606,35 @@ describe("ChatSidebar", () => {
     expect(change.action).toEqual({ name: "set_chart_symbol", input: { symbol: "NVDA" } });
     // The mutation did NOT apply — the chart bus is untouched until acceptance.
     expect(useChartSyncBus.getState().symbol).toBeNull();
+  });
+
+  it("under AUTO a staged data write reads 'Proposed:', never 'Applied:'", async () => {
+    useAgentAutonomyStore.setState({ autonomy: "auto" });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "tool_use",
+          name: "portfolio_delete_position",
+          input: { symbol: "RELIANCE" },
+          toolCallId: "tc-del",
+        });
+        handlers.onEvent({ kind: "done" });
+      },
+    );
+    try {
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+      fireEvent.change(input, { target: { value: "drop reliance" } });
+      fireEvent.submit(input.closest("form")!);
+      await waitFor(() => expect(useProposedChangesStore.getState().changes.length).toBe(1));
+      expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
+      const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
+      const steps = assistant?.toolSteps ?? [];
+      expect(steps.some((s) => s.startsWith("Proposed: Remove RELIANCE"))).toBe(true);
+      expect(steps.some((s) => s.startsWith("Applied:"))).toBe(false);
+    } finally {
+      resetAgentAutonomyStoreForTests();
+    }
   });
 });
 

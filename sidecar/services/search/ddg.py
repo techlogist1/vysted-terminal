@@ -50,15 +50,9 @@ _LITE_ENDPOINT = "https://lite.duckduckgo.com/lite/"
 
 #: DDG soft-rate-limit statuses. ``html.duckduckgo.com`` answers an over-eager
 #: client with 202 (an "anomaly" challenge page) rather than a 4xx; treat it (and
-#: 429) as a RETRIABLE rate-limit so the loop surfaces an honest "try again"
-#: instead of silently parsing a block page as "no results".
+#: 429) as a rate-limit so the loop surfaces an honest "try again" instead of
+#: silently parsing a block page as "no results".
 _RATE_LIMIT_STATUSES = frozenset({202, 429})
-
-#: Bounded retry: a single re-attempt with a short backoff absorbs a transient
-#: network blip / momentary rate-limit without turning a keyless search into a
-#: long stall.
-_MAX_ATTEMPTS = 2
-_BACKOFF_SECS = 0.3
 
 #: PROACTIVE pacing rate for the keyless DDG floor. ~20/min keeps us comfortably
 #: under DuckDuckGo's soft burst threshold: the ``html.`` host trips its 202
@@ -199,61 +193,46 @@ async def _impersonated_fallback(endpoint: str, data: dict[str, str]) -> str | N
 
 
 async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -> str:
-    """POST to a DDG endpoint with a bounded retry + honest rate-limit handling.
+    """POST to a DDG endpoint ONCE, with honest rate-limit handling.
 
-    Returns the response text. Raises :class:`SearchError` (unreachable OR
-    rate-limited) only after the retry budget is spent — so a transient blip
-    self-heals, while a persistent block surfaces a clear, human message instead
-    of being silently parsed as "no results". A 403 (DDG's TLS-fingerprint
+    Returns the response text, or raises :class:`SearchError` (unreachable OR
+    rate-limited) so a persistent block surfaces a clear, human message instead
+    of being silently parsed as "no results". There is no retry here: the
+    keyless tier (:mod:`services.search.keyless`) owns retry and the per-engine
+    deadline, so a slow DDG can never stack a private retry budget on top of it
+    and starve the rotation (R15-RESEARCH-008). A 403 (DDG's TLS-fingerprint
     block, distinct from the 202/429 throttle) gets one Chrome-impersonated
-    retry via curl_cffi before counting as a failed attempt.
+    request via curl_cffi — a different transport, not a retry of this one.
     """
     headers = {"User-Agent": _USER_AGENT}
     unreachable = (
         "keyless web search (DuckDuckGo) is unreachable — check your network, "
         "or add an Exa key / local SearXNG for a dedicated search route"
     )
-    for attempt in range(_MAX_ATTEMPTS):
-        last = attempt + 1 >= _MAX_ATTEMPTS
-        try:
-            resp = await http.post(endpoint, data=data, headers=headers)
-        except httpx.HTTPError as exc:
-            if last:
-                raise SearchError(unreachable) from exc
-            await asyncio.sleep(_BACKOFF_SECS)
-            continue
-        if resp.status_code == 403:
-            # Fingerprint block, not a throttle: retry once with a real Chrome
-            # TLS hello. Success short-circuits; failure falls through to the
-            # normal retry/raise accounting.
-            text = await _impersonated_fallback(endpoint, data)
-            if text is not None:
-                return text
-            if last:
-                raise SearchError(unreachable)
-            await asyncio.sleep(_BACKOFF_SECS)
-            continue
-        if resp.status_code in _RATE_LIMIT_STATUSES:
-            if last:
-                # TRANSIENT throttle (202 anomaly / 429), NOT a missing backend:
-                # tag it so the brief surfaces "rate-limited, retrying" instead of
-                # the false global "no web-search backend configured".
-                raise SearchError(
-                    "keyless web search (DuckDuckGo) is rate-limiting right now — wait a "
-                    "moment and retry, or add an Exa key / local SearXNG for a dedicated route",
-                    reason=SEARCH_REASON_RATE_LIMITED,
-                )
-            await asyncio.sleep(_BACKOFF_SECS)
-            continue
-        try:
-            resp.raise_for_status()
-        except httpx.HTTPError as exc:
-            if last:
-                raise SearchError(unreachable) from exc
-            await asyncio.sleep(_BACKOFF_SECS)
-            continue
-        return resp.text
-    raise SearchError(unreachable)  # pragma: no cover — loop always returns/raises
+    try:
+        resp = await http.post(endpoint, data=data, headers=headers)
+    except httpx.HTTPError as exc:
+        raise SearchError(unreachable) from exc
+    if resp.status_code == 403:
+        # Fingerprint block, not a throttle: one real Chrome TLS hello.
+        text = await _impersonated_fallback(endpoint, data)
+        if text is not None:
+            return text
+        raise SearchError(unreachable)
+    if resp.status_code in _RATE_LIMIT_STATUSES:
+        # TRANSIENT throttle (202 anomaly / 429), NOT a missing backend: tag it
+        # so the brief surfaces "rate-limited, retrying" instead of the false
+        # global "no web-search backend configured".
+        raise SearchError(
+            "keyless web search (DuckDuckGo) is rate-limiting right now — wait a "
+            "moment and retry, or add an Exa key / local SearXNG for a dedicated route",
+            reason=SEARCH_REASON_RATE_LIMITED,
+        )
+    try:
+        resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise SearchError(unreachable) from exc
+    return resp.text
 
 
 class _TokenBucket:

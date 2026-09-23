@@ -28,7 +28,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services.errors import humanize
+from services.errors import humanize, says_invalid_key
 
 from .base import LLMProvider, LLMStreamEvent
 from .native_search import gemini_google_search_tool
@@ -121,8 +121,9 @@ class GeminiProvider(LLMProvider):
 
             tools.extend(gemini_tools(tool_ids))
         # Native server-side web search (FR-081): enable the ``google_search``
-        # grounding tool, opt-in via ``web_search``. Supported on current Gemini
-        # models; a model that rejects it surfaces an error the runtime handles.
+        # grounding tool, opt-in via ``web_search``. Alongside function tools it
+        # is Gemini 3 only; ``native_search_available`` gates the flag per model,
+        # so an agent round on an older model never sets it.
         if web_search:
             tools.append(gemini_google_search_tool())
         if tools:
@@ -198,6 +199,9 @@ class GeminiProvider(LLMProvider):
         except genai_errors.ClientError as exc:
             status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
             if status in {401, 403}:
+                return False
+            # Gemini answers a bad key with 400 INVALID_ARGUMENT / API_KEY_INVALID.
+            if status == 400 and says_invalid_key(str(exc)):
                 return False
             raise
         except genai_errors.APIError:

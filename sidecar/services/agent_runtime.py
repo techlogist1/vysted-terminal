@@ -22,6 +22,7 @@ passed straight through to the provider adapter. Sidecar never persists.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import time
@@ -39,6 +40,7 @@ from models.agent import (
 )
 from models.llm import (
     LLMAgentPlanEvent,
+    LLMDeltaEvent,
     LLMDoneEvent,
     LLMErrorEvent,
     LLMMessage,
@@ -54,6 +56,7 @@ from services.llm import get_provider, native_search, oneshot
 from services.llm.base import LLMStreamEvent
 from services.llm.openai import INVALID_ARGS_SENTINEL
 from services.planner import classify_intent, decompose
+from services.search.scrub import wrap_untrusted
 
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
 #: vocabulary minus research/answer, which execute inside the loop).
@@ -541,6 +544,17 @@ def _resolve_model(spec: AgentSpec, override: str | None) -> str:
 #: price_data + fundamentals); a runaway agent that loops on the same
 #: tool is bounded by this constant.
 _MAX_TOOL_ROUNDS = 6
+#: The note that opens the capped final round (R15-AGENT-003, D-B3-6).
+_CAPPED_ROUND_NOTE = (
+    "The tool budget for this turn is exhausted: do not call any more tools. "
+    "Answer the user now from the results you already have, and say plainly "
+    "what is still missing."
+)
+#: The honest close when the capped round still produced no text.
+_CAPPED_ROUND_CLOSE = (
+    f"I stopped after {_MAX_TOOL_ROUNDS} tool rounds without reaching a final answer. "
+    "Ask me to continue, or narrow the request."
+)
 #: Per-run web-search cap (FR-081) — bounds per-search billing during a multi-round
 #: research run, for BOTH the native tier (passed as the provider's max_uses) and
 #: the BYOK/local `web_search` tool (counted in the loop; further calls return a
@@ -556,11 +570,12 @@ def _native_search_enabled(
     Delegates to :func:`services.llm.native_search.native_search_available` —
     THE one detection truth (R9 Track A interface; Team B's tier_a cross-verify
     reads the same function, so the two surfaces can never disagree). WS5
-    semantics unchanged: the five provider-level providers always qualify;
-    OpenRouter is gated per-MODEL on the resolved model's
-    :attr:`LLMModelOption.web_search` flag (``"native"`` → ride it; ``"plugin"``
-    is OpenRouter's billed plugin, never auto-enabled; ``"none"``/unknown keeps
-    the local tool — the FR-082 fallback, which never fabricates).
+    semantics: the provider-level providers (anthropic/xai) always qualify;
+    OpenAI, Groq and Gemini are per-MODEL (R15-AGENT-005); OpenRouter is gated
+    per-MODEL on the resolved model's :attr:`LLMModelOption.web_search` flag
+    (``"native"`` → ride it; ``"plugin"`` is OpenRouter's billed plugin, never
+    auto-enabled; ``"none"``/unknown keeps the local tool — the FR-082
+    fallback, which never fabricates).
     """
     return native_search.native_search_available(provider_id, model_web_search, model)
 
@@ -676,6 +691,86 @@ async def _dispatch_tool(
         return str(payload)
 
 
+#: Schema container types a small model often sends as a JSON *string*
+#: (R15-AGENT-024: ``criteria: "[{...}]"``), mapped to the parsed Python type.
+_JSON_CONTAINER_TYPES: dict[str, type] = {"array": list, "object": dict}
+
+
+def _normalise_tool_args(event: LLMToolUseEvent) -> None:
+    """The ONE runtime argument check, for every adapter (D-B3-4).
+
+    Validation used to live only in the OpenAI adapter, so a host action with a
+    missing required field (``portfolio_add_position`` with no ``cost_basis``)
+    reached the UI, which coerced it to 0 (R15-AGENT-022). Runs on every
+    ``tool_use`` before it is yielded, and mutates ``event.input`` in place:
+
+    - an explicit ``null`` means "not given" and is dropped, so it reads as a
+      missing field rather than a type error;
+    - an ``array``/``object`` param sent as a JSON string is parsed, kept only
+      when the parsed type matches (R15-AGENT-024: local 8B models send
+      ``write_screener_filters.criteria`` as a string and the host drops it);
+    - the args are validated against the catalog ``input_schema``; on failure
+      the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
+      model-readable reason, which ``_dispatch_tool`` returns as
+      ``{ok: false, error}`` without running the handler.
+
+    No schema default is filled (C2): an omitted optional arg stays omitted.
+    An unknown tool is left to ``_dispatch_tool``'s "not available" result.
+    """
+    args = event.input
+    cap = catalog.CAPABILITY_CATALOG.get(event.name)
+    if cap is None or INVALID_ARGS_SENTINEL in args:
+        return
+    for key in [k for k, v in args.items() if v is None]:
+        del args[key]
+    properties = cap.input_schema.get("properties") or {}
+    for key, value in args.items():
+        expected = (properties.get(key) or {}).get("type")
+        if expected not in _JSON_CONTAINER_TYPES or not isinstance(value, str):
+            continue
+        if value.lstrip()[:1] not in ("[", "{"):
+            continue
+        try:
+            parsed = json.loads(value)
+        except ValueError:
+            continue
+        if isinstance(parsed, _JSON_CONTAINER_TYPES[expected]):
+            args[key] = parsed
+    validator_cls = jsonschema.validators.validator_for(cap.input_schema)
+    error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))
+    if error is None:
+        return
+    if error.validator == "required" and not error.path and cap.kind == "host_action":
+        missing = next(f for f in error.validator_value if f not in error.instance)
+        reason = (
+            f"invalid arguments for {event.name}: missing {missing} — ask the user "
+            "for it; do not guess"
+        )
+    else:
+        reason = f"invalid arguments for {event.name}: {error.message}; call again with valid args"
+    event.input = {INVALID_ARGS_SENTINEL: reason}
+
+
+def _model_facing_content(tool_name: str, result_str: str) -> str:
+    """The tool message the MODEL reads, split from the raw result (D-B3-5).
+
+    A research result's money scalars become their semantics displays, so a
+    small model cannot mis-scale a raw rupee float (R15-AGENT-001). A tool whose
+    catalog entry is ``untrusted_text`` (web, news, disclosures, research) is
+    fenced with ``wrap_untrusted``, so injected instructions in a page read as
+    data in a turn that also holds write tools (R15-AGENT-021). The panel view
+    (auto-publish) keeps parsing the raw, unfenced ``result_str``.
+    """
+    content = result_str
+    if tool_name in _RESEARCH_TOOLS:
+        from services.agent_tools import research
+
+        content = research.model_content(content)
+    if catalog.is_untrusted_text(tool_name):
+        content = wrap_untrusted(tool_name, content)
+    return content
+
+
 class _ToolDone:
     """Terminal item from :func:`_dispatch_tool_with_progress` — the JSON result
     string of the completed tool. Distinguished from the live
@@ -760,6 +855,12 @@ async def _dispatch_tool_with_progress(
             yield _step_event(tool_call, item, index)
         yield _ToolDone(await task)
     finally:
+        # The consumer closed us mid-tool (Stop / SSE disconnect -> aclose()):
+        # cancel the tool so its research / LLM / web calls stop spending now.
+        if not task.done():
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
         config.reset_step_sink(token)
 
 
@@ -1132,6 +1233,19 @@ def _grounded_host_action_result(tool_call: LLMToolUseEvent, entry: dict[str, An
                     "run superseded this) — do NOT claim this change rendered."
                 ),
             }
+        elif status == "staged":
+            # D-B3-2: AUTO does not skip review for this kind; it waits in the
+            # user's review queue. Not applied, and not a failure either.
+            payload = {
+                "ok": True,
+                "status": "staged",
+                "detail": descriptor,
+                "note": (
+                    "Staged in the user's review queue, awaiting their review — it has "
+                    "NOT been applied yet. Tell the user you proposed it; do not claim "
+                    "it is done."
+                ),
+            }
         else:  # failed / unknown — an honest non-application.
             payload = {
                 "ok": False,
@@ -1268,8 +1382,13 @@ async def invoke_agent(
     # (agent-with-edit/build intent, delegate, legacy edit/build) keeps the full set.
     inferred_intent: str | None = None
     if mode == "agent":
-        inferred_intent = classify_intent(prompt).intent
-        read_only = inferred_intent == "read"
+        intent = classify_intent(prompt)
+        inferred_intent = intent.intent
+        # Strip writes only on a POSITIVE read cue (D-B3-3): classify_intent
+        # defaults cue-less text ("I bought 10 INFY at 1500", "Remember that…")
+        # to read, which removed the exact write tool the user asked for. A
+        # cue-less prompt keeps the full set; data writes still stage for review.
+        read_only = inferred_intent == "read" and bool(intent.signals)
     else:
         read_only = mode == "ask"
     if read_only:
@@ -1297,10 +1416,11 @@ async def invoke_agent(
     # model's own server-side search when THIS model supports it (the adapter
     # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
     # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The provider-level native providers (anthropic/gemini/groq/xai) always
-    # qualify; OpenAI is per-MODEL (chat-completions serves native search only on
-    # its *-search-preview models — a `web_search` tools entry 400s elsewhere),
-    # and OpenRouter is gated PER-MODEL on the resolved model's
+    # The provider-level native providers (anthropic/xai) always qualify; Groq
+    # (Compound only) and Gemini (Gemini 3 alongside function tools) are
+    # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
+    # native search only on its *-search-preview models — a `web_search` tools
+    # entry 400s elsewhere), and OpenRouter is gated PER-MODEL on the resolved model's
     # `web_search` capability ("native"), threaded from the frontend catalog as
     # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
     # local tier, a non-native provider, or an OpenRouter model that is plugin-/
@@ -1413,6 +1533,15 @@ async def invoke_agent(
     # publish the panel never confirmed gets an honest divergence notice.
     publish_brief_calls: list[str] = []
     while True:
+        # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
+        # (Anthropic rejects a tool_use/tool_result history with no `tools`),
+        # but the model is told to answer now, and any tool call it still makes
+        # is dropped — never yielded to the UI (AUTO would apply it), never
+        # dispatched, never recorded — so announced == dispatched.
+        capped = rounds >= _MAX_TOOL_ROUNDS
+        if capped:
+            messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
+        streamed_text = False
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
         # streams its chain-of-thought as thinking events) so it can be echoed on
@@ -1432,6 +1561,15 @@ async def invoke_agent(
                 yield event
                 continue
             if isinstance(event, LLMToolUseEvent):
+                if capped:
+                    continue
+                _normalise_tool_args(event)
+                if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
+                    # Never hand the UI a host action with invalid args (it would
+                    # stage or AUTO-apply a coerced change). It still dispatches,
+                    # so the model gets the {ok: false, error} result to act on.
+                    pending_tools.append(event)
+                    continue
                 # R10 (E2): a model-issued publish_brief without an execution
                 # record inherits the run's tracked record before anything
                 # downstream (frontend, dispatch) sees the event.
@@ -1460,6 +1598,8 @@ async def invoke_agent(
                 # needs it.
                 if pending_tools and rounds < _MAX_TOOL_ROUNDS:
                     break
+                if capped and not streamed_text:
+                    yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
                 # E3.3 end-of-stream read-back: under AUTO autonomy a publish
                 # was DISPATCHED optimistically — surface any divergence the
                 # panel acked (or never acked) before the terminator.
@@ -1484,10 +1624,14 @@ async def invoke_agent(
                     )
                 yield event
                 return
+            if isinstance(event, LLMDeltaEvent) and event.text.strip():
+                streamed_text = True
             yield event
         if not seen_done:
             # Provider closed without a terminator — emit one so the SSE
             # framing stays well-formed for the consumer.
+            if capped and not streamed_text:
+                yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
             if autonomy == "auto" and publish_brief_calls:
                 for notice in await _publish_divergence_notices(publish_brief_calls):
                     yield notice
@@ -1564,7 +1708,9 @@ async def invoke_agent(
                         yield item
             tool_result_msg = LLMMessage(
                 role="tool",
-                content=result_str,
+                # The model reads its own view (money as displays); the raw
+                # result_str still feeds auto-publish and the execution record.
+                content=_model_facing_content(tool_call.name, result_str),
                 tool_call_id=tool_call.tool_call_id,
                 # Carry the tool NAME alongside the id: Gemini pairs a
                 # function_response to its call by name (not id), so a
@@ -1575,8 +1721,13 @@ async def invoke_agent(
             )
             messages.append(tool_result_msg)
             # Queue a host action dispatched under AUTO for the grounded
-            # read-back below.
-            if autonomy == "auto" and tool_call.name in _host_ids:
+            # read-back below. An invalid-args call was never dispatched to the
+            # panel, so its {ok: false, error} result stands as is.
+            if (
+                autonomy == "auto"
+                and tool_call.name in _host_ids
+                and INVALID_ARGS_SENTINEL not in tool_call.input
+            ):
                 host_action_readbacks.append((tool_call, tool_result_msg))
             # Auto-publish the brief deterministically (Track 3): the full brief
             # is in result_str but only the model sees it. Emit a synthetic
@@ -1607,9 +1758,6 @@ async def invoke_agent(
             await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
             for tc, msg in host_action_readbacks:
                 msg.content = _grounded_host_action_result(tc, action_ledger.get(tc.tool_call_id))
+        # At the cap the next iteration is the capped final round (see the
+        # loop head): it streams the answer and exits on its terminator.
         rounds += 1
-        if rounds >= _MAX_TOOL_ROUNDS:
-            # Hit the cap — let the next provider stream finalise. The
-            # subsequent loop iteration sees no pending tools and exits
-            # via the ``not pending_tools`` branch above.
-            continue

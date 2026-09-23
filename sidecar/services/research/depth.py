@@ -107,6 +107,12 @@ class DepthProfile:
     #: Whether researcher web queries carry the finance ``site:`` bias
     #: toward exchange/regulator/filings domains (DEEP/ULTRA rounds).
     site_bias: bool
+    #: Token ceiling for the run's research LLM calls (0 = n/a: the fast pass
+    #: makes none). A breach takes the loop's abort→synthesize path.
+    max_tokens: int
+    #: Estimated-spend ceiling in USD (0 = n/a), priced by
+    #: :func:`services.budget_guard.estimate_spend_usd` per metered call.
+    max_spend_usd: float
 
 
 #: THE depth table. Change a knob here and every surface (tool, router,
@@ -123,6 +129,8 @@ PROFILES: dict[str, DepthProfile] = {
         min_web_domains=0,
         cross_check=False,
         site_bias=False,
+        max_tokens=0,
+        max_spend_usd=0.0,
     ),
     DEPTH_DEEP: DepthProfile(
         depth=DEPTH_DEEP,
@@ -142,6 +150,11 @@ PROFILES: dict[str, DepthProfile] = {
         min_web_domains=1,
         cross_check=False,
         site_bias=True,
+        # ~20 calls a run (plan + 3 distills + reflect per round over 3 rounds,
+        # synthesis, citecheck) at <=10k tokens each is ~200k; the ceilings give
+        # 3x headroom and stop a runaway loop on a premium model near $3.
+        max_tokens=600_000,
+        max_spend_usd=3.0,
     ),
     DEPTH_ULTRA: DepthProfile(
         depth=DEPTH_ULTRA,
@@ -157,6 +170,10 @@ PROFILES: dict[str, DepthProfile] = {
         min_web_domains=2,
         cross_check=True,
         site_bias=True,
+        # The panel is 3 angles of the DEEP loop plus the lead synthesis and
+        # the cross-check round: 3x DEEP's ceilings.
+        max_tokens=1_800_000,
+        max_spend_usd=9.0,
     ),
 }
 

@@ -186,3 +186,52 @@ async def test_validate_key_false_when_no_key(monkeypatch: pytest.MonkeyPatch) -
     _patch_client(monkeypatch)
     provider = GeminiProvider()
     assert await provider.validate_key(None) is False
+
+
+def _patch_list_error(monkeypatch: pytest.MonkeyPatch, exc: Exception) -> None:
+    class _Models:
+        async def list(self) -> Any:
+            raise exc
+
+    class _Client:
+        def __init__(self, **_: Any) -> None:
+            self.aio = type("_Aio", (), {"models": _Models()})()
+
+    monkeypatch.setattr(genai, "Client", _Client)
+
+
+#: The body Gemini returned for a bogus key (live probe, R15 error-layer-2).
+_GEMINI_BAD_KEY_BODY = {
+    "error": {
+        "code": 400,
+        "message": "API key not valid. Please pass a valid API key.",
+        "status": "INVALID_ARGUMENT",
+        "details": [
+            {
+                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                "reason": "API_KEY_INVALID",
+                "domain": "googleapis.com",
+            }
+        ],
+    }
+}
+
+
+@pytest.mark.asyncio
+async def test_validate_key_false_on_400_invalid_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-CODE-AGENT-003: Gemini says "bad key" with 400, not 401/403; that is a
+    # failed validation, not a transport error.
+    from google.genai import errors as genai_errors
+
+    _patch_list_error(monkeypatch, genai_errors.ClientError(400, _GEMINI_BAD_KEY_BODY))
+    assert await GeminiProvider().validate_key("AIzaSyNOTAREALKEY") is False
+
+
+@pytest.mark.asyncio
+async def test_validate_key_raises_on_other_400(monkeypatch: pytest.MonkeyPatch) -> None:
+    from google.genai import errors as genai_errors
+
+    body = {"error": {"code": 400, "message": "Bad request.", "status": "FAILED_PRECONDITION"}}
+    _patch_list_error(monkeypatch, genai_errors.ClientError(400, body))
+    with pytest.raises(genai_errors.ClientError):
+        await GeminiProvider().validate_key("AIzaSyREAL")
