@@ -235,3 +235,38 @@ async def test_validate_key_raises_on_other_400(monkeypatch: pytest.MonkeyPatch)
     _patch_list_error(monkeypatch, genai_errors.ClientError(400, body))
     with pytest.raises(genai_errors.ClientError):
         await GeminiProvider().validate_key("AIzaSyREAL")
+
+
+def test_gemini_tools_build_a_valid_config_for_every_internal_tool() -> None:
+    # R15-LEAD-007: the catalog's JSON Schema (int enums, list-valued ``type``)
+    # failed google-genai's OpenAPI-subset ``parameters`` validation, so every
+    # Gemini tool turn died before the request left the process.
+    from google.genai import types
+
+    from services.agent_tools.schemas import TOOL_SCHEMAS, gemini_tools
+
+    types.GenerateContentConfig(tools=gemini_tools(list(TOOL_SCHEMAS)))
+
+
+def test_gemini_tools_accept_json_schema_outside_the_openapi_subset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from google.genai import types
+
+    from services.agent_tools import schemas
+
+    monkeypatch.setitem(
+        schemas.TOOL_SCHEMAS,
+        "probe_tool",
+        {
+            "description": "probe",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "when": {"type": ["string", "null"]},
+                    "target": {"oneOf": [{"type": "string"}, {"type": "integer"}]},
+                },
+            },
+        },
+    )
+    types.GenerateContentConfig(tools=schemas.gemini_tools(["probe_tool"]))
