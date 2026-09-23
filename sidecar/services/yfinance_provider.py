@@ -167,9 +167,10 @@ _PROVENANCE_EXCLUDED_FIELDS = frozenset(
 )
 
 # Fields ``get_fundamentals`` does NOT source from yfinance's ``info`` snapshot —
-# they are computed downstream (the research derived leg: trailing-12m dividends,
-# quarterly-statement growth). They are ``None`` here for a reason other than
-# "provider did not publish", so they must not be pre-stamped "unavailable" (the
+# they are computed downstream (trailing-12m dividends by the shared paid-TTM leg
+# on /fundamentals and research; quarterly-statement growth by research). They
+# are ``None`` here for a reason other than "provider did not publish", so they
+# must not be pre-stamped "unavailable" (the
 # derived leg stamps their real provenance — an affirmed-zero label, a computed
 # value, or an insufficient-depth reason — when it runs).
 _DERIVED_FIELDS = frozenset(

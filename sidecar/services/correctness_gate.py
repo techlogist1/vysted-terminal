@@ -36,7 +36,13 @@ from typing import Any
 
 from models.fundamentals import FieldMeta, Fundamentals, IncomeStatement
 from models.market import OHLCVSeries, Quote
-from services import fundamentals_store, locale, ownership_check, yfinance_provider
+from services import (
+    dividend_history,
+    fundamentals_store,
+    locale,
+    ownership_check,
+    yfinance_provider,
+)
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -686,6 +692,15 @@ async def _statement_witness(fn: Any, symbol: str) -> Any:
         return None
 
 
+async def _dividend_witness(symbol: str) -> dividend_history.DividendTTM | None:
+    """The paid-TTM dividend history for ``symbol``; a failed round-trip is
+    ``None`` so :func:`_cached_witness` does not keep it."""
+    ttm = await dividend_history.get_dividend_ttm(symbol)
+    if ttm is None or ttm.reason == dividend_history.UNAVAILABLE_REASON:
+        return None
+    return ttm
+
+
 async def apply_witnesses(f: Fundamentals) -> Fundamentals:
     """Run the witnesses that need a network fetch over served fundamentals.
 
@@ -698,7 +713,10 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
       * for a yfinance-served ``revenue_ttm``, the same provider's annual income
         statement and quarterly period ends → :func:`reconcile_revenue`;
       * for a yfinance-served ``book_value``/``price_to_book``, the same
-        provider's newest filed stockholders' equity → :func:`reconcile_book_value`.
+        provider's newest filed stockholders' equity → :func:`reconcile_book_value`;
+      * for yfinance-served fundamentals, the trailing-12m dividends actually
+        paid → :func:`services.dividend_history.apply_dividend_ttm`, the same leg
+        the research snapshot runs (R15-DATA-047/049).
 
     Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`;
     the reconcile functions run on every call.
@@ -721,11 +739,17 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
             return None
         return await _cached_witness(kind, f.symbol, lambda: _statement_witness(fn, f.symbol))
 
-    exchange, annual, quarter_ends, equity = await asyncio.gather(
+    async def dividends() -> dividend_history.DividendTTM | None:
+        if not yfinance_served:
+            return None
+        return await _cached_witness("dividends", f.symbol, lambda: _dividend_witness(f.symbol))
+
+    exchange, annual, quarter_ends, equity, paid = await asyncio.gather(
         ownership(),
         statement("income", yfinance_provider.get_income_statement, check_revenue),
         statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
         statement("equity", yfinance_provider.get_newest_equity, check_book),
+        dividends(),
     )
     if check_ownership:
         f = reconcile_ownership(f, exchange)
@@ -733,6 +757,10 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         f = reconcile_revenue(f, annual, quarter_ends)
     if check_book:
         f = reconcile_book_value(f, equity)
+    if yfinance_served:
+        data = f.model_dump()
+        dividend_history.apply_dividend_ttm(data, paid)
+        f = Fundamentals.model_validate(data)
     return f
 
 
