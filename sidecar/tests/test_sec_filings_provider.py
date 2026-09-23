@@ -542,3 +542,61 @@ async def test_amendments_and_schedules_are_listed(recorder: _RecordingClient) -
     )
     response = await sec_filings_provider.list_filings("AAPL", limit=3)
     assert [f.form_type for f in response.filings] == ["10-K/A", "SC 13D", "10-K"]
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-010 — a listed 10-K resolves outside the unfiltered 40-row window
+# ---------------------------------------------------------------------------
+
+#: AAPL-shaped issuer history, newest first: 59 Form 4/144 rows push the
+#: 10-K to position 60 and the 10-Q to position 75 of the unfiltered list.
+_HEAVY_FILER_FORMS = (
+    [("4" if n % 3 else "144", f"0000320193-26-{n:06d}") for n in range(59)]
+    + [("10-K", "0000320193-25-000079")]
+    + [("4", f"0000320193-25-{n:06d}") for n in range(100, 114)]
+    + [("10-Q", "0000320193-25-000071")]
+)
+
+
+def _emulate_upstream(recorder: _RecordingClient) -> None:
+    """sec-edgar-mcp 1.0.8: filter by ``form_type``, then cut to ``limit``."""
+    original = recorder.call_tool
+
+    async def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        if name == "get_recent_filings":
+            form = arguments.get("form_type")
+            rows = [(f, a) for f, a in _HEAVY_FILER_FORMS if form is None or f == form]
+            recorder.respond(
+                name, _edgar_filings("Apple Inc.", "320193", rows[: arguments["limit"]])
+            )
+        return await original(name, arguments)
+
+    recorder.call_tool = call_tool  # type: ignore[method-assign]
+    recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("hint", ["10-K", None])
+async def test_get_filing_resolves_a_10k_outside_the_unfiltered_window(
+    recorder: _RecordingClient, hint: str | None
+) -> None:
+    _emulate_upstream(recorder)
+    detail = await sec_filings_provider.get_filing(
+        "0000320193-25-000079", cik_or_symbol="AAPL", form_type=hint
+    )
+    assert detail.filing.form_type == "10-K"
+    sections_call = next(c for c in recorder.calls if c["name"] == "get_filing_sections")
+    assert sections_call["arguments"]["form_type"] == "10-K"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("hint", ["10-Q", None])
+async def test_get_filing_resolves_a_deep_10q_too(
+    recorder: _RecordingClient, hint: str | None
+) -> None:
+    """The case the fix was not written against: a 10-Q at position 75."""
+    _emulate_upstream(recorder)
+    detail = await sec_filings_provider.get_filing(
+        "0000320193-25-000071", cik_or_symbol="AAPL", form_type=hint
+    )
+    assert detail.filing.form_type == "10-Q"

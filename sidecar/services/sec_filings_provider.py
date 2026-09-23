@@ -556,10 +556,18 @@ async def list_filings(
     return response
 
 
+#: The widest issuer window sec-edgar-mcp's ``get_recent_filings`` serves:
+#: its ``limit`` is applied client-side over the issuer's whole EDGAR
+#: submissions list (no upstream cap), and SEC's "recent" block holds at least
+#: 1,000 filings — so the metadata lookup reads that whole block.
+_WIDEST_RECENT_WINDOW = 1000
+
+
 async def get_filing(
     accession: str,
     *,
     cik_or_symbol: str | None = None,
+    form_type: str | None = None,
 ) -> FilingDetail:
     """Return the parsed filing detail for one accession.
 
@@ -572,6 +580,11 @@ async def get_filing(
     a synthesised ``Filing`` — so an accession outside the list window (or
     one sec-edgar-mcp doesn't recognise) surfaces as an honest 404, not a
     filing that reads "10-K filed today" with no company name.
+
+    R15-LEAD-010: ``form_type`` is the listed row's form — the lookup runs over
+    that form-filtered list first (what the panel showed), then, with no hint
+    or on a miss, over the upstream's widest unfiltered window, so a heavy
+    Form 4/144 filer's annual report is never pushed out of reach.
     """
     if not accession:
         raise ProviderError("accession is required")
@@ -584,12 +597,16 @@ async def get_filing(
     # Metadata FIRST — the sectioning call below needs the filing's REAL
     # form_type (a 10-Q sectioned as "10-K" mis-parses its headings), and a
     # miss here must raise, not synthesise a filing (§6 D-B2, R15-DATA-007).
-    list_payload = await _call_tool(
-        "get_recent_filings",
-        {"identifier": identifier, "limit": 40},
-    )
-    _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
-    match = next((f for f in filings if f.accession == accession), None)
+    match = None
+    for form_filter in ([{"form_type": form_type}] if form_type else []) + [{}]:
+        list_payload = await _call_tool(
+            "get_recent_filings",
+            {"identifier": identifier, "limit": _WIDEST_RECENT_WINDOW, **form_filter},
+        )
+        _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
+        match = next((f for f in filings if f.accession == accession), None)
+        if match is not None:
+            break
     if match is None:
         raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
 

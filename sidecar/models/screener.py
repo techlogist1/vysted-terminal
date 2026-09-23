@@ -359,9 +359,10 @@ class ScreenerResult(BaseModel):
     rows: list[ScreenerResultRow]
     duration_ms: float
     # R10 (D40) honest-coverage block — additive, defaulted for back-compat.
-    # ``partial`` is True when the wall budget or a cancellation cut the run
-    # before the whole universe was evaluated; ``coverage`` is the one human
-    # line the UI/agent surface ("screened 1,840 of 2,100 — 260 unavailable");
+    # ``partial`` is True when the wall budget, a cancellation, or upstream
+    # throttling / timeouts left universe members unevaluated; ``coverage`` is
+    # the one human line the UI/agent surface ("screened 1,840 of 2,100 — 260
+    # unavailable");
     # ``freshness`` stamps the data tiers the rows were served from (epoch
     # seconds: {"quotes_as_of": …, "valuation_as_of": …, "deep_as_of": …};
     # R11/D52 adds "seed_as_of" when any row served from the bundled snapshot).

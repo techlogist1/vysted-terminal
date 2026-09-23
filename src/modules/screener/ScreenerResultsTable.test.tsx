@@ -332,4 +332,23 @@ describe("ScreenerResultsTable", () => {
     render(<ScreenerResultsTable />);
     expect(screen.getByText(/no rows matched/i)).toBeInTheDocument();
   });
+
+  it("R15-UI-055: a run that evaluated nothing says so instead of blaming the filters", () => {
+    useScreenerStore.setState({
+      lastResult: {
+        ...RESULT,
+        rows: [],
+        result_count: 0,
+        evaluated_count: 0,
+        skipped_count: 506,
+        partial: true,
+        throttled: true,
+      },
+      status: "ready",
+    });
+    render(<ScreenerResultsTable />);
+    expect(screen.getByText("Nothing could be screened")).toBeInTheDocument();
+    expect(screen.getByText(/data provider is throttled; retry in a moment/)).toBeInTheDocument();
+    expect(screen.queryByText(/loosen a threshold/i)).not.toBeInTheDocument();
+  });
 });

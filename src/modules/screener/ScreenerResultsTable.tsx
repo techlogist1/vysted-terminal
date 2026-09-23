@@ -532,7 +532,19 @@ export function ScreenerResultsTable() {
         </div>
       </div>
       <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-none border">
-        {rows.length === 0 ? (
+        {result.evaluated_count === 0 ? (
+          // R15-UI-055: nothing was screened, so the filters are not to blame.
+          <EmptyState
+            icon={SlidersHorizontal}
+            headline="Nothing could be screened"
+            hint={
+              result.throttled
+                ? "The data provider is throttled; retry in a moment."
+                : "No symbol in this universe returned data; retry in a moment."
+            }
+            cta={{ label: "Retry", onClick: () => void runScreener(), primary: true }}
+          />
+        ) : rows.length === 0 ? (
           <EmptyState
             icon={FilterX}
             headline="No rows matched the criteria"

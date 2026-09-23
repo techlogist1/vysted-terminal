@@ -185,13 +185,18 @@ def test_filing_detail(
         total_chars=sum(len(s.text) for s in sections),
     )
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         assert accession == "0000320193-24-000123"
         assert cik_or_symbol == "AAPL"
+        assert form_type == "10-K"  # R15-LEAD-010: the listed row's form rides as a hint
         return fixture
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
-    response = client.get("/sec/filings/0000320193-24-000123", params={"identifier": "AAPL"})
+    response = client.get(
+        "/sec/filings/0000320193-24-000123", params={"identifier": "AAPL", "form_type": "10-K"}
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["filing"]["form_type"] == "10-K"
@@ -213,7 +218,9 @@ def test_filing_detail_not_found_maps_to_404(
     upstream tool failure gets."""
     from services.errors import ProviderError
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         raise ProviderError(f"filing metadata unavailable for {accession!r}", kind="not_found")
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)
@@ -237,7 +244,9 @@ def test_filing_detail_other_provider_error_stays_502(
     not 404 — only ``kind == "not_found"`` gets the honest 404."""
     from services.errors import ProviderError
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> FilingDetail:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> FilingDetail:
         raise ProviderError("sec-edgar-mcp call failed")
 
     monkeypatch.setattr(sec_filings_provider, "get_filing", _fake)

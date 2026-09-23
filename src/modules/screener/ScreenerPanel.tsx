@@ -121,6 +121,11 @@ export function ScreenerPanel() {
   }, [universe, loadUniverse]);
   useRetryOnSidecarReady(loadDefault, [universe]);
 
+  // R15-CODE-DATA-004: open on the session region's default universe (the
+  // sidecar owns the map) unless the user or a saved screen already chose one.
+  const adoptRegionDefaultUniverse = useScreenerStore((s) => s.adoptRegionDefaultUniverse);
+  useRetryOnSidecarReady(adoptRegionDefaultUniverse, [region]);
+
   const universeInfo = universeMeta[universe];
   const isRunning = status === "loading";
 
@@ -433,13 +438,16 @@ export function ScreenerPanel() {
           )}
           {/* D53: an honest, quiet one-liner when the run detected upstream
               throttling and degraded to cached/snapshot basis — text-only
-              (signal colors never fill a background). */}
-          {lastResult.throttled && (
-            <div className="text-warning text-micro" data-testid="throttle-notice">
-              Data provider is throttling this IP — showing cached/snapshot values; they refresh
-              automatically.
-            </div>
-          )}
+              (signal colors never fill a background). R15-UI-055: only when
+              stale/snapshot rows are actually shown. */}
+          {lastResult.throttled &&
+            (lastResult.basis_counts?.snapshot ?? 0) + (lastResult.basis_counts?.mixed ?? 0) >
+              0 && (
+              <div className="text-warning text-micro" data-testid="throttle-notice">
+                Data provider is throttling this IP — showing cached/snapshot values; they refresh
+                automatically.
+              </div>
+            )}
           {/* D52: the serving-basis mix for the returned rows. */}
           {basisLine() && (
             <div className="text-muted-foreground text-micro" data-testid="basis-counts">

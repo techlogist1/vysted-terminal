@@ -222,6 +222,29 @@ describe("EarningsCalendarPanel", () => {
     });
   });
 
+  it("R15-DATA-032: an absent dispersion / count renders '—' and sorts last both ways", async () => {
+    const [aapl, msft] = UPCOMING_SAMPLE.events;
+    vi.mocked(sidecarGet).mockResolvedValueOnce({
+      ...UPCOMING_SAMPLE,
+      events: [
+        { ...aapl!, eps_estimate_stddev: null, estimate_analyst_count: null },
+        { ...msft!, currency: aapl!.currency },
+      ],
+    });
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("AAPL")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("earnings-row-AAPL")).toHaveTextContent("— / —");
+
+    const order = () =>
+      screen.getAllByTestId(/^earnings-row-/).map((r) => r.getAttribute("data-testid"));
+    fireEvent.click(screen.getByText("Dispersion / # analysts"));
+    await waitFor(() => expect(order()).toEqual(["earnings-row-MSFT", "earnings-row-AAPL"]));
+    fireEvent.click(screen.getByText("Dispersion / # analysts"));
+    await waitFor(() => expect(order()).toEqual(["earnings-row-MSFT", "earnings-row-AAPL"]));
+  });
+
   it("applies a watchlist + days when the form submits", async () => {
     vi.mocked(sidecarGet)
       .mockResolvedValueOnce(UPCOMING_SAMPLE)

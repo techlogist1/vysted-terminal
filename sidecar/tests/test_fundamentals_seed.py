@@ -53,6 +53,29 @@ async def test_shipped_pack_has_screener_grade_coverage() -> None:
     assert sector > 3500, f"sector coverage too thin: {sector}"
 
 
+async def test_shipped_us_pack_covers_sp500_whole() -> None:
+    """R15-DATA-110: the US pack ships whole (SC-034's <5% skip bar), dated,
+    screener-grade, and never carries prices."""
+    import json
+    from importlib import resources
+
+    sp500 = set(
+        json.loads(
+            resources.files("services.screener_universes").joinpath("sp500.json").read_text()
+        )["symbols"]
+    )
+    rows = fundamentals_seed.load_seed_rows("US")
+    info = fundamentals_seed.pack_info("US")
+    symbols = {r["symbol"] for r in rows}
+    assert symbols <= sp500
+    assert len(symbols) >= 0.95 * len(sp500)
+    assert info.get("_rows") == len(rows) and info.get("_generated")
+    assert all(isinstance(r.get("seed_as_of"), (int, float)) for r in rows)
+    assert all("quote_price" not in r for r in rows)
+    assert sum(1 for r in rows if r.get("sector")) >= 0.95 * len(rows)
+    assert sum(1 for r in rows if r.get("market_cap") is not None) >= 0.95 * len(rows)
+
+
 # ---------------------------------------------------------------------------
 # seed_fundamentals — NULL-fill only, seed stamp only.
 # ---------------------------------------------------------------------------

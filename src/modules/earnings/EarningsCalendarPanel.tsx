@@ -49,13 +49,21 @@ function fmtDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function compare(a: number | string, b: number | string, direction: SortDirection): number {
+/** R15-DATA-032: a missing value sorts last in either direction — an absent
+ *  estimate is not "lowest". */
+function compare(
+  a: number | string | null,
+  b: number | string | null,
+  direction: SortDirection,
+): number {
   if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
   const cmp = a < b ? -1 : 1;
   return direction === "asc" ? cmp : -cmp;
 }
 
-function sortValue(event: EarningsEvent, key: SortKey): number | string {
+function sortValue(event: EarningsEvent, key: SortKey): number | string | null {
   switch (key) {
     case "scheduled_date":
       return event.scheduled_date;
@@ -64,9 +72,9 @@ function sortValue(event: EarningsEvent, key: SortKey): number | string {
     case "time_of_day":
       return event.time_of_day;
     case "consensus":
-      return event.eps_estimate_mean ?? Number.NEGATIVE_INFINITY;
+      return event.eps_estimate_mean;
     case "dispersion":
-      return event.eps_estimate_stddev ?? Number.NEGATIVE_INFINITY;
+      return event.eps_estimate_stddev;
     case "analysts":
       return event.estimate_analyst_count;
   }
@@ -380,7 +388,7 @@ export function EarningsCalendarPanel() {
                       </td>
                       <td className="text-charcoal-200 px-3 py-1 text-right tabular-nums">
                         {fmt(event.eps_estimate_stddev, event.currency, 3)} /{" "}
-                        {event.estimate_analyst_count}
+                        {event.estimate_analyst_count ?? "—"}
                       </td>
                     </tr>
                     {isExpanded && (

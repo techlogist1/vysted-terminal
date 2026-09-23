@@ -122,7 +122,7 @@ function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): stri
 // Store
 // ---------------------------------------------------------------------------
 
-export const useSecStore = create<SecState>((set) => ({
+export const useSecStore = create<SecState>((set, get) => ({
   activeIdentifier: null,
   filingsByIdentifier: {},
   filingsStatus: "idle",
@@ -177,10 +177,15 @@ export const useSecStore = create<SecState>((set) => ({
   loadFilingDetail: async (accession, identifier) => {
     if (!accession) return;
     set({ filingDetailStatus: "loading", filingDetailError: null });
+    // R15-LEAD-010: the listed row's form type is the sidecar's lookup hint —
+    // a heavy Form 4 filer's 10-K sits far outside its unfiltered recent list.
+    const formType = Object.values(get().filingsByIdentifier)
+      .flatMap((list) => list.filings)
+      .find((filing) => filing.accession === accession)?.form_type;
     try {
       const detail = await sidecarGet<FilingDetail>(
         `/sec/filings/${encodeURIComponent(accession)}`,
-        { identifier },
+        { identifier, form_type: formType },
       );
       set((state) => ({
         filingDetailByAccession: {
