@@ -552,3 +552,24 @@ def test_yahoo_symbol_passes_caret_index_through_in_an_in_session(index: str) ->
         assert yfinance_provider._yahoo_symbol(index) == index
     finally:
         config.reset_request_region(token)
+
+
+def test_30m_history_asks_within_yahoos_60_day_intraday_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-064: a 3mo lookback at 30m is past Yahoo's cap and comes back empty."""
+    import pandas as pd
+
+    asked: list[tuple[str, str]] = []
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        def history(self, period: str, interval: str) -> object:
+            asked.append((period, interval))
+            return pd.DataFrame(columns=["Open", "High", "Low", "Close", "Volume"])
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    yfinance_provider.get_history("SPY", "30m")
+    assert asked == [("1mo", "30m")]

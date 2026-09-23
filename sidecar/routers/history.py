@@ -8,24 +8,35 @@ import config
 from models.market import OHLCVSeries
 from services import provider_registry, symbol_resolver
 from services.correctness_gate import EmptySeriesError
-from services.locale import REGION_IN, freshness_for, instrument_region
+from services.locale import REGION_IN, freshness_for, instrument_region, region_for_suffix
 
 router = APIRouter(prefix="/history", tags=["history"])
 
 
-def _empty_series_reason(symbol: str) -> str | None:
-    """A typed reason for an empty IN series so the chart can be region-aware.
+def _is_intraday(timeframe: str) -> bool:
+    tf = timeframe.lower()
+    return ("m" in tf or "h" in tf) and "mo" not in tf
 
-    When an IN symbol (a `.NS`/`.BO` suffix, a BSE/NSE master member, or an IN
-    active locale) has no EOD data from any provider, the honest cause is that
-    keyless BSE/NSE serve **EOD only** — no intraday/realtime lane exists for this listing.
-    The chart surfaces that instead of the generic "No price data" (WS6 Step 4).
-    Returns ``None`` for a non-IN symbol (the generic message stays correct).
+
+def _empty_series_reason(symbol: str, timeframe: str) -> str | None:
+    """A typed reason for an empty series the chart can state honestly.
+
+    ``in_eod_only`` (keyless BSE/NSE serve end-of-day only, so no intraday lane
+    exists) is true only for an INTRADAY timeframe on a KNOWN IN listing (a
+    ``.NS``/``.BO`` suffix or an NSE/BSE master member) in an IN context. An empty
+    daily series (a no-trade year), a caret index or an unknown symbol has some
+    other cause, so it gets ``None`` and the chart keeps its generic copy
+    (R15-DATA-064).
     """
-    region = symbol_resolver.region_hint(symbol)
-    if region is None:
-        region = config.get_region()
-    return "in_eod_only" if region == REGION_IN else None
+    if not _is_intraday(timeframe):
+        return None
+    known_in = (
+        region_for_suffix(symbol) == REGION_IN
+        or symbol_resolver.is_nse_symbol(symbol)
+        or symbol_resolver.is_bse_symbol(symbol)
+    )
+    region = symbol_resolver.region_hint(symbol) or config.get_region()
+    return "in_eod_only" if known_in and region == REGION_IN else None
 
 
 def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: str) -> OHLCVSeries:
@@ -42,8 +53,7 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
     if asset_class == "crypto":
         series.freshness = "live"
         return series
-    tf = timeframe.lower()
-    intraday = ("m" in tf or "h" in tf) and "mo" not in tf
+    intraday = _is_intraday(timeframe)
     try:
         region = instrument_region(series.symbol, series.provider)
         series.freshness = freshness_for(
@@ -78,6 +88,6 @@ def get_history(
             timeframe=timeframe,
             bars=[],
             provider="none",
-            reason=_empty_series_reason(symbol),
+            reason=_empty_series_reason(symbol, timeframe),
         )
     return _label_series_freshness(series, asset_class, timeframe)

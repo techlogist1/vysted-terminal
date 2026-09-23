@@ -70,7 +70,7 @@ _TIMEFRAME_MAP: dict[str, tuple[str, str]] = {
     "1m": ("1m", "5d"),
     "5m": ("5m", "1mo"),
     "15m": ("15m", "1mo"),
-    "30m": ("30m", "3mo"),
+    "30m": ("30m", "1mo"),  # Yahoo serves sub-hour bars for the last 60 days only
     "1h": ("1h", "6mo"),
     "1d": ("1d", "1y"),
     "1wk": ("1wk", "5y"),
