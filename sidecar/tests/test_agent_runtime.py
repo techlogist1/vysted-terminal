@@ -1146,6 +1146,36 @@ def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
     assert event.input["web_available"] is True
 
 
+def test_auto_publish_fast_source_keeps_its_date_and_a_host_domain() -> None:
+    """RESEARCH-024 (C4): a FAST web row with ``published_at`` and a URL yields a
+    dated source labelled by its host, never the literal 'web'."""
+    fast_bundle = {
+        "ok": True,
+        "query": "NVDA",
+        "execution": _execution(),
+        "structured": {"price": {"ok": True}},
+        "web": {
+            "available": True,
+            "results": [
+                {
+                    "url": "https://www.reuters.com/markets/nvda",
+                    "title": "NVDA",
+                    "source": "web",
+                    "published_at": "2026-09-20T10:00:00Z",
+                },
+                {"url": "https://ir.nvidia.com/q2", "title": "Q2", "domain": "ir.nvidia.com"},
+            ],
+        },
+    }
+    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    assert event is not None
+    first, second = event.input["sources"]
+    assert first["domain"] == "www.reuters.com"
+    assert first["published_at"] == "2026-09-20T10:00:00Z"
+    assert second["domain"] == "ir.nvidia.com"
+    assert second["published_at"] is None
+
+
 def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
     """A DEEP bundle's top-level `sources` pass through unchanged; a FAST bundle whose
     web round found nothing (web.available False) yields no sources + an honest

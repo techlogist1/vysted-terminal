@@ -32,6 +32,7 @@ from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import jsonschema
 
@@ -1257,7 +1258,9 @@ def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolU
                 "url": row.get("url"),
                 "title": row.get("title") or row.get("url"),
                 "excerpt": row.get("excerpt") or row.get("snippet") or "",
-                "domain": row.get("source") or "web",
+                # A bare host, never "web"; the date rides along (RESEARCH-024, C4).
+                "domain": row.get("domain") or urlparse(row["url"]).hostname or "",
+                "published_at": row.get("published_at"),
             }
             for row in rows
             if isinstance(row, dict) and row.get("url")
