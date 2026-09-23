@@ -10,8 +10,9 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.screener import NumericThresholdCriterion, ScreenerRequest, ScreenerUniverse
-from services import data_cache, fundamentals_store, screener
+from services import data_cache, fundamentals_store, provider_health, screener
 from services import yahoo_batch_provider as yb
+from services.errors import ProviderError
 
 
 @pytest.fixture(autouse=True)
@@ -19,10 +20,12 @@ def _isolated_stores(tmp_path: Path) -> None:
     data_cache.reset_for_tests(tmp_path / "cache.db")
     fundamentals_store.reset_for_tests(tmp_path / "fundamentals.db")
     yb.reset_for_tests()
+    provider_health.reset_for_tests()
     yield
     data_cache.reset_for_tests(None)
     fundamentals_store.reset_for_tests(None)
     yb.reset_for_tests()
+    provider_health.reset_for_tests()
 
 
 def _v7_row(symbol: str) -> dict[str, object]:
@@ -90,3 +93,35 @@ async def test_enrichment_code_bug_logs_warning_and_progress_completes(
     assert all("AttributeError" in r.getMessage() for r in warnings)
     enrich = [(done, total) for phase, done, total in frames if phase == "enrich"]
     assert enrich and enrich[-1] == (3, 3)
+
+
+@pytest.mark.asyncio
+async def test_all_rate_limited_run_is_partial_with_nothing_evaluated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-UI-055: a run the upstream throttled end to end evaluated nothing,
+    so it is partial — not a complete run where no stock passed."""
+    symbols = ["AAA", "BBB", "CCC"]
+    monkeypatch.setattr(screener, "resolve_universe", _fake_universe(symbols))
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        return httpx.Response(429, text="Too Many Requests")
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    async def throttled(symbol: str) -> Fundamentals:
+        raise ProviderError(f"throttled {symbol}", kind="rate_limited")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", throttled)
+
+    result = await screener.run_screener(ScreenerRequest(universe="sp500", criteria=[]))
+
+    assert result.evaluated_count == 0
+    assert {d.reason for d in result.skip_details} == {"rate_limited"}
+    assert result.partial is True
+    assert result.throttled is True

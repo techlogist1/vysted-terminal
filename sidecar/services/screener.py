@@ -681,6 +681,11 @@ def _field_serving(
     return False, stamp, info_at is None and seed_at is not None
 
 
+#: Skip reasons meaning "the run could not reach this symbol" (a retry may
+#: screen it), as opposed to a verdict about the symbol itself.
+_UNREACHED_SKIP_REASONS = frozenset({"budget_exhausted", "rate_limited", "timeout"})
+
+
 def _row_has_any_data(row: dict[str, Any]) -> bool:
     """True when the row carries at least one data tier (live, EOD, or seed)
     — an identity-only row (name/sector but zero numerics provenance) is not
@@ -851,8 +856,12 @@ async def _finalize(
     # ``partial`` now means "rows remain UNEVALUATED": a budget-cut run whose
     # every row still served (live or labeled stale/snapshot) evaluated the
     # whole universe — the honesty rides ``data_basis``/``throttled``, not a
-    # contradictory partial flag (D52).
-    partial = state.partial and bool(skip_details)
+    # contradictory partial flag (D52). R15-UI-055: a symbol the run could not
+    # reach (throttled / timed out) is unevaluated just as a budget cut is; a
+    # verdict about the symbol itself (not_found, missing_field) is not.
+    partial = (state.partial and bool(skip_details)) or any(
+        d.reason in _UNREACHED_SKIP_REASONS for d in skip_details
+    )
     throttled = state.throttled_seen or provider_health.is_open(provider_health.YAHOO)
 
     duration_ms = (time.monotonic() - started_at) * 1000.0

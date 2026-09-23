@@ -265,8 +265,9 @@ export interface ScreenerResult {
   duration_ms: number;
   /**
    * R10 (D40) honest-coverage block — optional in the mirror for older blobs.
-   * `partial` = the wall budget or a cancel cut the run early; `coverage` is
-   * the one human line ("screened 1,840 of 2,100 — 260 unavailable");
+   * `partial` = the budget, a cancel or upstream throttling/timeouts left
+   * members unevaluated; `coverage` is the one human line ("screened 1,840 of
+   * 2,100 — 260 unavailable");
    * `freshness` stamps the serving data tiers (epoch seconds).
    */
   partial?: boolean;
