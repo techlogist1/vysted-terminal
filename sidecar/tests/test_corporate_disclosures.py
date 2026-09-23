@@ -521,6 +521,50 @@ def test_shareholding_dual_listed_split_nearest_quarter(monkeypatch: pytest.Monk
     assert latest.split_as_of == date(2026, 3, 31)
 
 
+@pytest.mark.parametrize(
+    ("nse_quarter", "merged"),
+    [
+        # R15-DATA-021, SIL-shaped: two years from the only BSE split → no split.
+        ("30-SEP-2022", False),
+        # A case the fix was not written against: the adjacent quarter (92 days).
+        ("30-SEP-2024", True),
+    ],
+)
+def test_shareholding_split_merge_is_bounded_to_about_a_quarter(
+    monkeypatch: pytest.MonkeyPatch, nse_quarter: str, merged: bool
+) -> None:
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: [
+            {"symbol": "SIL", "date": nse_quarter, "pr_and_prgrp": "20.31", "public_val": "79.69"}
+        ],
+    )
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {
+                "quarter_end": date(2024, 12, 31),
+                "source": "BSE",
+                "institutions_percent": 42.91,
+                "fii_percent": 38.87,
+                "dii_percent": 4.04,
+            }
+        ],
+    )
+    pattern = corporate_disclosures.get_shareholding("SIL").patterns[0]
+    assert pattern.promoter_percent == 20.31  # the NSE figure always stands
+    if merged:
+        assert pattern.institutions_percent == 42.91
+        assert pattern.split_as_of == date(2024, 12, 31)
+    else:
+        assert pattern.institutions_percent is None and pattern.fii_percent is None
+        assert pattern.split_source is None and pattern.split_as_of is None
+
+
 def test_shareholding_never_merges_another_companys_bse_split(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

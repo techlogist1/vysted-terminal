@@ -582,6 +582,13 @@ def _pattern_has_split(pattern: ShareholdingPattern) -> bool:
     )
 
 
+#: The farthest a BSE quarter may sit from an NSE pattern and still lend it its
+#: split: one quarter plus the filing lag (D-B3-11). The BSE lane parses only a
+#: few recent XBRLs, so without a bound years of NSE quarters carried one split
+#: (SIL 2021-09..2024-09 all showed 2024-12's, up to 1,188 days away).
+_SPLIT_MERGE_MAX_DAYS = 100
+
+
 def _merge_bse_split(
     bare: str, nse_patterns: list[ShareholdingPattern]
 ) -> list[ShareholdingPattern]:
@@ -590,7 +597,8 @@ def _merge_bse_split(
     For each NSE quarter, the split (institutions/FII/DII + the non-institutional
     public float) is taken from the BSE pattern of the SAME quarter-end, or — when
     that quarter has not filed on BSE yet — the NEAREST BSE quarter that carries a
-    split, stamped ``split_source="BSE"`` + ``split_as_of=<that quarter>`` so a
+    split, if it is within :data:`_SPLIT_MERGE_MAX_DAYS`, stamped
+    ``split_source="BSE"`` + ``split_as_of=<that quarter>`` so a
     consumer sees the as-of honestly (never silently aligned). The BSE lane failing
     or carrying no split is a no-op: the labeled NSE patterns stand unchanged (the
     split stays ``None``, never fabricated).
@@ -613,7 +621,12 @@ def _merge_bse_split(
     for pattern in nse_patterns:
         match = by_quarter.get(pattern.quarter_end)
         if match is None:
-            match = min(with_split, key=lambda p: abs((p.quarter_end - pattern.quarter_end).days))
+            nearest = min(with_split, key=lambda p: abs((p.quarter_end - pattern.quarter_end).days))
+            if abs((nearest.quarter_end - pattern.quarter_end).days) <= _SPLIT_MERGE_MAX_DAYS:
+                match = nearest
+        if match is None:
+            enriched.append(pattern)  # no BSE quarter close enough: the split stays None
+            continue
         enriched.append(
             pattern.model_copy(
                 update={
