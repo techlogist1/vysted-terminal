@@ -1,0 +1,153 @@
+{
+  "data.fetch_quote": {
+    "inputs": [
+      "symbol"
+    ],
+    "outputs": [
+      "quote"
+    ],
+    "config": {
+      "symbol": null,
+      "asset_class": null
+    }
+  },
+  "data.fetch_history": {
+    "inputs": [
+      "symbol",
+      "interval",
+      "period"
+    ],
+    "outputs": [
+      "series"
+    ],
+    "config": {
+      "symbol": null,
+      "period": null,
+      "interval": null,
+      "asset_class": null
+    }
+  },
+  "compute.indicator": {
+    "inputs": [
+      "series"
+    ],
+    "outputs": [
+      "result"
+    ],
+    "config": {
+      "indicator_id": null
+    }
+  },
+  "ai.agent_invoke": {
+    "inputs": [
+      "context",
+      "context_snapshot"
+    ],
+    "outputs": [
+      "content",
+      "agent_id",
+      "error"
+    ],
+    "config": {
+      "agent_id": null,
+      "prompt_template": null,
+      "provider": null,
+      "model": null
+    }
+  },
+  "logic.branch": {
+    "inputs": [
+      "value",
+      "threshold"
+    ],
+    "outputs": [
+      "true_path",
+      "false_path"
+    ],
+    "config": {
+      "mode": [
+        "truthy",
+        "gt"
+      ],
+      "threshold": null,
+      "condition_field": null
+    }
+  },
+  "logic.compare": {
+    "inputs": [
+      "a",
+      "b"
+    ],
+    "outputs": [
+      "result"
+    ],
+    "config": {
+      "op": [
+        "eq",
+        "gt",
+        "gte",
+        "lt",
+        "lte",
+        "neq"
+      ]
+    }
+  },
+  "action.log": {
+    "inputs": [
+      "value"
+    ],
+    "outputs": [
+      "logged",
+      "level",
+      "message"
+    ],
+    "config": {
+      "level": [
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "message_template": null
+    }
+  },
+  "action.notify_desktop": {
+    "inputs": [
+      "value"
+    ],
+    "outputs": [
+      "notified",
+      "title",
+      "message",
+      "intent"
+    ],
+    "config": {
+      "title": null,
+      "message_template": null
+    }
+  },
+  "transform.json_path": {
+    "inputs": [
+      "value"
+    ],
+    "outputs": [
+      "extracted"
+    ],
+    "config": {
+      "path": null
+    }
+  },
+  "flow.sleep": {
+    "inputs": [
+      "value"
+    ],
+    "outputs": [
+      "value",
+      "slept"
+    ],
+    "config": {
+      "seconds": null
+    }
+  }
+}
