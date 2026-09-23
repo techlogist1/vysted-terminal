@@ -480,3 +480,118 @@ def test_statement_fetch_failure_leaves_revenue_ok(
     resp_body = _revenue_route(client, monkeypatch, "FUSION.NS", fields, None, _QUARTERLY)
     assert resp_body["revenue_ttm"] == 8_582_000_128
     assert (resp_body["field_meta"] or {}).get("revenue_ttm") is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-005: BVPS and P/B reconciled against the newest filed equity
+# ---------------------------------------------------------------------------
+
+
+def _book_route(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    fields: dict,
+    annual: dict[str, float],
+    quarterly: dict[str, float] | None = None,
+) -> dict:
+    """GET /fundamentals for a stubbed yfinance payload whose own balance sheets
+    (Yahoo's frames: rows by label, one column per period end) carry the given
+    Stockholders Equity."""
+    import pandas as pd
+
+    from models.fundamentals import Fundamentals
+    from services import provider_registry, symbol_resolver, yfinance_provider
+    from services.symbol_resolver import Resolution
+
+    def frame(values: dict[str, float] | None) -> pd.DataFrame:
+        if not values:
+            return pd.DataFrame()
+        columns = pd.to_datetime(list(values))
+        return pd.DataFrame([list(values.values())], index=["Stockholders Equity"], columns=columns)
+
+    class _Ticker:
+        def __init__(self, listing: str) -> None:  # noqa: ARG002
+            self.quarterly_balance_sheet = frame(quarterly)
+            self.balance_sheet = frame(annual)
+
+    async def fake_fundamentals(requested: str) -> Fundamentals:  # noqa: ARG001
+        return Fundamentals(symbol=symbol, name="X Ltd", provider="yfinance", **fields)
+
+    def fake_resolve(query: str, region: str) -> Resolution:  # noqa: ARG001
+        return Resolution(query=query, best=None, candidates=[])
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    monkeypatch.setattr(symbol_resolver, "resolve", fake_resolve)
+    return client.get(f"/fundamentals/{symbol}").json()
+
+
+#: JNPR (R15 battery): BVPS 70.02 = equity / the pre-IPO 488,989,292 shares,
+#: while shares outstanding (568,998,442) agrees with market cap / price.
+_JNPR = {
+    "book_value": 70.02,
+    "price_to_book": 3.7867754,
+    "shares_outstanding": 568_998_442,
+    "ratio_price": 265.15,
+    "market_cap": 150_869_936_896,
+}
+#: JUMBO (R15 battery): BVPS 54.361 against its own 477,377,000 / 8,373,700 = 57.01.
+_JUMBO = {
+    "book_value": 54.361,
+    "price_to_book": 2.7593,
+    "shares_outstanding": 8_373_700,
+    "ratio_price": 150.0,
+    "market_cap": 1_256_055_000,
+}
+
+
+@pytest.mark.parametrize(
+    ("symbol", "fields", "equity"),
+    [("JNPR", _JNPR, 34_238_000_000), ("JUMBO.BO", _JUMBO, 477_377_000)],
+)
+def test_book_value_on_a_stale_share_count_is_flagged(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    fields: dict,
+    equity: float,
+) -> None:
+    body = _book_route(client, monkeypatch, symbol, fields, {"2026-03-31": equity})
+    assert body["book_value"] == fields["book_value"]  # kept, never substituted
+    assert body["price_to_book"] == fields["price_to_book"]
+    for field_name in ("book_value", "price_to_book"):
+        meta = body["field_meta"][field_name]
+        assert meta["status"] == "flagged"
+        assert f"{equity:,.0f} as of 2026-03-31" in meta["reason"]
+    # The share count itself agrees with market cap, so it stays unflagged.
+    assert (body["field_meta"] or {}).get("shares_outstanding") is None
+
+
+def test_book_value_within_the_band_is_untouched(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """About 1% off the balance-sheet figure (JUMBO at 56.44 vs 57.01) is rounding."""
+    fields = dict(_JUMBO, book_value=56.44, price_to_book=2.6577)
+    body = _book_route(client, monkeypatch, "JUMBO.BO", fields, {"2026-03-31": 477_377_000})
+    meta = body["field_meta"] or {}
+    assert meta.get("book_value") is None and meta.get("price_to_book") is None
+
+
+def test_book_value_is_witnessed_by_the_newest_quarter_over_an_older_annual(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A case the fix was not written against: the June quarter's equity (500M)
+    is newer than the March fiscal year's (477.4M). BVPS 59.71 matches the
+    quarter, so nothing is flagged; the annual figure alone would flag it by 4.6%."""
+    fields = dict(_JUMBO, book_value=59.71, price_to_book=2.5121)
+    body = _book_route(
+        client,
+        monkeypatch,
+        "JUMBO.BO",
+        fields,
+        annual={"2026-03-31": 477_377_000, "2025-03-31": 431_000_000},
+        quarterly={"2026-06-30": 500_000_000, "2026-03-31": 477_377_000},
+    )
+    meta = body["field_meta"] or {}
+    assert meta.get("book_value") is None and meta.get("price_to_book") is None

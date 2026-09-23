@@ -571,24 +571,61 @@ def reconcile_revenue(
     return _merge_meta(f, {}, flagged)
 
 
-async def _statement_witnesses(
-    f: Fundamentals,
-) -> tuple[IncomeStatement | None, list[date] | None]:
-    """The serving provider's own annual income statement and quarterly period
-    ends for the same listing. Only a yfinance-served payload has a same-provider
-    statement to check against; any fetch failure attaches nothing."""
+#: Relative gap between a served per-share book field and the same figure
+#: rebuilt from the newest filed equity above which the field is flagged
+#: (R15-DATA-005, D-B3-8). JUMBO's 54.361 against its own 57.01 is 4.6%.
+_BOOK_BASIS_DIVERGENCE = 0.03
 
-    async def fetch(fn: Any) -> Any:
-        try:
-            return await asyncio.to_thread(fn, f.symbol)
-        except Exception as exc:  # noqa: BLE001 — a witness must never break the payload
-            logger.debug("statement witness unavailable for %s: %s", f.symbol, exc)
-            return None
 
-    return await asyncio.gather(
-        fetch(yfinance_provider.get_income_statement),
-        fetch(yfinance_provider.get_quarterly_period_ends),
-    )
+def reconcile_book_value(f: Fundamentals, equity: tuple[date, float] | None) -> Fundamentals:
+    """Flag ``book_value`` and ``price_to_book`` the provider's own newest filed
+    stockholders' equity does not bear out (R15-DATA-005), never substituting.
+
+      * ``book_value`` against equity / ``shares_outstanding``;
+      * ``price_to_book`` against ``market_cap`` / equity.
+
+    A per-share figure computed on a stale share count (JNPR's pre-IPO shares)
+    passes the market-cap share-basis pass, because the share count itself is
+    current; only the balance sheet shows the stale denominator. A foreign
+    reporter is skipped (its statements are in another currency than its
+    per-share fields), as is a witness that could not be fetched.
+    """
+    if equity is None or f.financial_currency is not None:
+        return f
+    period_end, equity_value = equity
+    shares, market_cap = f.shares_outstanding, f.market_cap
+    flagged: dict[str, str] = {}
+    if f.book_value is not None and shares is not None and shares > 0:
+        implied = equity_value / shares
+        gap = _relative_divergence(f.book_value, implied)
+        if gap > _BOOK_BASIS_DIVERGENCE:
+            flagged["book_value"] = (
+                f"book value per share {f.book_value:,.4g} disagrees by {gap:.1%} with the "
+                f"provider's newest filed stockholders' equity / shares outstanding "
+                f"({equity_value:,.0f} as of {period_end} / {shares:,.0f} = {implied:,.2f}) — "
+                "it may sit on a stale share count; kept, flagged"
+            )
+    if f.price_to_book is not None and market_cap is not None and equity_value > 0:
+        implied = market_cap / equity_value
+        gap = _relative_divergence(f.price_to_book, implied)
+        if gap > _BOOK_BASIS_DIVERGENCE:
+            flagged["price_to_book"] = (
+                f"P/B {f.price_to_book:,.4g} disagrees by {gap:.1%} with market cap / the "
+                f"provider's newest filed stockholders' equity ({market_cap:,.0f} / "
+                f"{equity_value:,.0f} as of {period_end} = {implied:,.2f}) — the book value "
+                "behind it may sit on a stale share count; kept, flagged"
+            )
+    return _merge_meta(f, {}, flagged)
+
+
+async def _statement_witness(fn: Any, symbol: str) -> Any:
+    """One same-provider statement fetch for ``symbol``; any failure attaches
+    nothing (``None``) — a witness must never break the payload."""
+    try:
+        return await asyncio.to_thread(fn, symbol)
+    except Exception as exc:  # noqa: BLE001 — a witness must never break the payload
+        logger.debug("statement witness unavailable for %s: %s", symbol, exc)
+        return None
 
 
 async def apply_witnesses(f: Fundamentals) -> Fundamentals:
@@ -601,29 +638,41 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         shareholding pattern (``get_exchange_ownership`` never raises and
         respects its circuit) → :func:`reconcile_ownership`;
       * for a yfinance-served ``revenue_ttm``, the same provider's annual income
-        statement and quarterly period ends → :func:`reconcile_revenue`.
+        statement and quarterly period ends → :func:`reconcile_revenue`;
+      * for a yfinance-served ``book_value``/``price_to_book``, the same
+        provider's newest filed stockholders' equity → :func:`reconcile_book_value`.
     """
+    yfinance_served = f.provider == yfinance_provider.PROVIDER
     has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
     check_ownership = has_ownership and ownership_check.is_applicable(f.symbol)
-    check_revenue = f.revenue_ttm is not None and f.provider == yfinance_provider.PROVIDER
+    check_revenue = f.revenue_ttm is not None and yfinance_served
+    check_book = yfinance_served and (f.book_value is not None or f.price_to_book is not None)
 
     async def ownership() -> ownership_check.ExchangeOwnership | None:
         return await ownership_check.get_exchange_ownership(f.symbol) if check_ownership else None
 
-    async def statements() -> tuple[IncomeStatement | None, list[date] | None]:
-        return await _statement_witnesses(f) if check_revenue else (None, None)
+    async def statement(fn: Any, wanted: bool) -> Any:
+        return await _statement_witness(fn, f.symbol) if wanted else None
 
-    exchange, (annual, quarter_ends) = await asyncio.gather(ownership(), statements())
+    exchange, annual, quarter_ends, equity = await asyncio.gather(
+        ownership(),
+        statement(yfinance_provider.get_income_statement, check_revenue),
+        statement(yfinance_provider.get_quarterly_period_ends, check_revenue),
+        statement(yfinance_provider.get_newest_equity, check_book),
+    )
     if check_ownership:
         f = reconcile_ownership(f, exchange)
     if check_revenue:
         f = reconcile_revenue(f, annual, quarter_ends)
+    if check_book:
+        f = reconcile_book_value(f, equity)
     return f
 
 
 __all__ = [
     "CorrectnessError",
     "apply_witnesses",
+    "reconcile_book_value",
     "reconcile_ownership",
     "reconcile_revenue",
     "symbols_match",
