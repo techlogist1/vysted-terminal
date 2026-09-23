@@ -39,6 +39,16 @@ def _reset_witness_cache() -> None:
     correctness_gate.reset_witness_cache_for_tests()
 
 
+@pytest.fixture(autouse=True)
+def _bundled_resolver_masters_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The resolver unions a daily runtime refresh of the masters from the data
+    dir (R15-DATA-017); tests read the bundled masters only, and never start the
+    refresh (a network fetch)."""
+    from services import symbol_resolver
+
+    monkeypatch.setattr(symbol_resolver, "_refreshed_master", lambda filename: None)
+
+
 @pytest.fixture
 def client() -> TestClient:
     """A TestClient bound to a freshly built app instance."""

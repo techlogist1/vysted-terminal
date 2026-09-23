@@ -94,22 +94,31 @@ def _normalize_symbol(symbol: str) -> str:
     return symbol.replace(".", "-")
 
 
+def _nse_listing(bare: str) -> str:
+    """Yahoo's form of an NSE listing: Emerge (SME) names are ``-SM.NS``
+    (SUMAX-SM.NS; ``SUMAX.NS`` is empty), the main board ``.NS``."""
+    return f"{bare}-SM.NS" if symbol_resolver.is_nse_emerge(bare) else f"{bare}.NS"
+
+
 def _yahoo_symbol(symbol: str) -> str:
     """Resolve the symbol to the form Yahoo actually serves data for.
 
     Three cases, in order:
-      * a ``.NS``/``.BO`` suffix or a ``^`` index symbol is already Yahoo's form — pass it through
-        UNCHANGED (the old ``_normalize_symbol`` wrongly turned ``ROUTE.NS`` into
-        ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on — the root cause of
-        the all-dashes Indian Equity Overview);
+      * a ``.NS``/``.BO`` suffix or a ``^`` index symbol is already Yahoo's form —
+        pass it through UNCHANGED (the old ``_normalize_symbol`` wrongly turned
+        ``ROUTE.NS`` into ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on —
+        the root cause of the all-dashes Indian Equity Overview); an NSE Emerge
+        name given as ``.NS`` takes its ``-SM.NS`` form;
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
-        the ``.NS`` suffix so Yahoo returns NSE fundamentals instead of an empty
-        US lookup;
+        the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
+        instead of an empty US lookup;
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
-    if s.endswith((".NS", ".BO")) or s.startswith("^"):
+    if s.startswith("^") or s.endswith(".BO"):
         return s  # a caret index (^NSEI, ^BSESN) is served unsuffixed (R15-LEAD-011)
+    if s.endswith(".NS"):
+        return _nse_listing(s[:-3]) if symbol_resolver.is_nse_emerge(s) else s
     # Region-aware India resolution. The symbol's intrinsic hint wins; else the
     # active session region. In an IN context a bare (dot-free) ticker picks the
     # exchange the instrument actually lists on — NSE by default, BUT a BSE-ONLY
@@ -128,12 +137,12 @@ def _yahoo_symbol(symbol: str) -> str:
     region = symbol_resolver.region_hint(s) or config.get_region()
     if region == "IN" and "." not in s:
         if symbol_resolver.is_nse_symbol(s):
-            return f"{s}.NS"
+            return _nse_listing(s)
         if symbol_resolver.is_bse_symbol(s):
             return f"{s}.BO"
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
-        return f"{s}.NS"
+        return _nse_listing(s)
     return s.replace(".", "-")
 
 

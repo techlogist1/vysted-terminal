@@ -269,7 +269,9 @@ def test_get_fundamentals_accepts_a_legitimate_bse_name(monkeypatch) -> None:  #
 @pytest.mark.parametrize(
     ("bare", "expected"),
     [
-        ("KSE", "KSE.BO"),  # BSE-only listing (BSE 519421, never on NSE) → .BO
+        # BSE-only listing (BSE 542669; KSE, the old example, listed on NSE in
+        # 2026-08, so the regenerated master makes it dual-listed) → .BO
+        ("BMW", "BMW.BO"),
         ("GOLDBEES", "GOLDBEES.NS"),  # NSE-only → .NS
         ("RELIANCE", "RELIANCE.NS"),  # dual NSE+BSE — the INR NSE listing wins
         ("TCS", "TCS.NS"),  # dual NSE+BSE → .NS
@@ -294,18 +296,19 @@ def test_yahoo_symbol_routes_bse_only_to_bo(bare: str, expected: str) -> None:
 def test_get_fundamentals_bse_only_ticker_fetches_bo(
     recording_ticker: type[_RecordingTicker],
 ) -> None:
-    """End-to-end: get_fundamentals('KSE') must construct a Yahoo Ticker for
-    ``KSE.BO`` (the BSE listing), not ``KSE.NS`` — every fundamentals call routes
-    through the same ``_yahoo_symbol`` mapper the pinning test above covers."""
+    """End-to-end: get_fundamentals('BMW') (BMW Industries, BSE-only) must
+    construct a Yahoo Ticker for ``BMW.BO`` (the BSE listing), not ``BMW.NS`` —
+    every fundamentals call routes through the same ``_yahoo_symbol`` mapper the
+    pinning test above covers."""
     import config
 
     token = config.set_request_region("IN")
     try:
-        fundamentals = yfinance_provider.get_fundamentals("KSE")
+        fundamentals = yfinance_provider.get_fundamentals("BMW")
     finally:
         config.reset_request_region(token)
-    assert recording_ticker.instances == ["KSE.BO"]
-    assert fundamentals.symbol == "KSE.BO"
+    assert recording_ticker.instances == ["BMW.BO"]
+    assert fundamentals.symbol == "BMW.BO"
 
 
 # --- R13 deliverable 2: honest husk vs fund-id-blob messages ------------------

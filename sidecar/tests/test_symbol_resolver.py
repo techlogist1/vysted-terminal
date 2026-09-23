@@ -223,9 +223,11 @@ def test_exchange_agrees_with_yahoo_suffix_across_full_masters() -> None:
     (NSE ↔ .NS, BSE ↔ .BO, US ↔ no suffix) and each master carries one row per
     symbol with the fields the routing layer depends on."""
     suffix_by_exchange = {"NSE": ".NS", "BSE": ".BO", "US": ""}
-    for sym in symbol_resolver._nse_master():
+    for sym, (_name, typ) in symbol_resolver._nse_master().items():
         inst = symbol_resolver._instrument_nse(sym, 1.0)
-        assert inst.exchange == "NSE" and inst.yahoo_symbol == f"{sym}.NS"
+        # An NSE Emerge (SM) listing is Yahoo's -SM.NS form (R15-DATA-017).
+        listing = f"{sym}-SM.NS" if typ == "SM" else f"{sym}.NS"
+        assert inst.exchange == "NSE" and inst.yahoo_symbol == listing
     for sym, (_name, _group, code, _isin) in symbol_resolver._bse_master().items():
         inst = symbol_resolver._instrument_bse(sym, 1.0)
         assert inst.exchange == "BSE" and inst.yahoo_symbol == f"{sym}.BO"
@@ -612,16 +614,17 @@ def test_autocomplete_stays_keystroke_fast_over_full_masters() -> None:
 # --- R13 identity enrichment: the read-only ISIN / scrip / industry join ------
 
 
-def test_kse_resolves_with_isin_and_bse_code() -> None:
-    """The collision case: KSE Ltd (BSE-only scrip 519421, ISIN INE953E01022 —
-    formerly Kerala Solvent Extractions) is anchored to the ONE real company by
-    its ISIN + numeric scrip, not its Karachi-Stock-Exchange ticker collision."""
-    best = symbol_resolver.resolve("KSE", "IN").best
+def test_bse_only_collision_ticker_resolves_with_isin_and_bse_code() -> None:
+    """The collision case: BMW Industries Ltd (BSE-only scrip 542669, ISIN
+    INE374E01021) is anchored to the ONE real company by its ISIN + numeric
+    scrip, not its BMW AG ticker collision. (KSE, the old example, listed on NSE
+    in 2026-08 and is no longer BSE-only in the regenerated master.)"""
+    best = symbol_resolver.resolve("BMW", "IN").best
     assert best is not None
-    assert best.symbol == "KSE"
+    assert best.symbol == "BMW"
     assert best.exchange == "BSE"
-    assert best.isin == "INE953E01022"
-    assert best.bse_code == "519421"
+    assert best.isin == "INE374E01021"
+    assert best.bse_code == "542669"
 
 
 def test_scrip_code_query_carries_identity() -> None:

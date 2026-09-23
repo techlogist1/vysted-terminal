@@ -21,6 +21,32 @@ def _raise_if_network(*_a: object, **_k: object) -> None:
     raise AssertionError("live lookup must not fire for a bundled-master symbol")
 
 
+def _stale_gujgasltd_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Serve the masters as the June snapshot these tests pin still carried them:
+    GUJGASLTD on NSE and BSE. The regenerated masters list GUJENERGY instead
+    (R15-DATA-017), and a bundle that ages past a rename is the case under test."""
+    real = symbol_resolver._load_master
+    stale = {
+        "nse_instruments.json": ["GUJGASLTD", "Gujarat Gas Limited", "EQ"],
+        "bse_instruments.json": [
+            "539336",
+            "GUJGASLTD",
+            "Gujarat Gas Ltd",
+            "A",
+            "INE844O01030",
+            "Active",
+        ],
+    }
+
+    def june(filename: str, **kwargs: object) -> dict:
+        master = real(filename, **kwargs)
+        if filename in stale:
+            master = {**master, "instruments": [stale[filename], *master["instruments"]]}
+        return master
+
+    monkeypatch.setattr(symbol_resolver, "_load_master", june)
+
+
 @pytest.fixture(autouse=True)
 def _rename_map(monkeypatch: pytest.MonkeyPatch):
     """Inject the GUJGASLTD → GUJENERGY hop directly (offline) and pin the date.
@@ -28,7 +54,8 @@ def _rename_map(monkeypatch: pytest.MonkeyPatch):
     Resets both the live-lookup budget and the symbol-change map so nothing
     leaks into (or out of) the shared resolver test suite.
     """
-    symbol_resolver._reset_live_lookup_for_tests()
+    symbol_resolver.reset_caches_for_tests()
+    _stale_gujgasltd_rows(monkeypatch)
     monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
     monkeypatch.setattr(nse_symbol_change, "_ist_today", lambda: date(2026, 7, 10))
     nse_symbol_change.set_active_map_for_tests(
@@ -43,7 +70,7 @@ def _rename_map(monkeypatch: pytest.MonkeyPatch):
     )
     yield
     nse_symbol_change.reset_for_tests()
-    symbol_resolver._reset_live_lookup_for_tests()
+    symbol_resolver.reset_caches_for_tests()
 
 
 def _assert_renamed_to_gujenergy(best: symbol_resolver.Instrument) -> None:

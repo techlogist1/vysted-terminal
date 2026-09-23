@@ -38,13 +38,15 @@ Usage::
 
     python -m services.resolver_masters.regenerate_bse_master > bse_instruments.json
 
-(Nothing here is imported at runtime — the resolver only reads the committed JSON.)
+The resolver imports :func:`is_rights_entitlement` and :func:`fetch_master` (the
+daily runtime refresh, R15-DATA-017); the committed JSON stays the offline base.
 """
 
 from __future__ import annotations
 
 import json
 import random
+import re
 import sys
 import time
 from collections import Counter
@@ -129,13 +131,13 @@ def fetch_records() -> list[dict]:
 
 def is_rights_entitlement(symbol: str, group: str, isin: str) -> bool:
     """True for a rights-entitlement line (R15-DATA-057): BSE group ``R``, a
-    ``-RE`` ticker, or an Indian ISIN whose security-type digits are ``20``
-    (DHAN-RE, INE680A20011). An RE is a short-lived entitlement, not the
+    ``-RE``/``-RE<n>`` ticker, or an Indian ISIN whose security-type digits are
+    ``20`` (DHAN-RE, INE680A20011). An RE is a short-lived entitlement, not the
     company's equity; listed as equity it outranks the real share in a search."""
     isin = isin.strip().upper()
     return (
         group.strip().upper() == "R"
-        or symbol.strip().upper().endswith("-RE")
+        or re.search(r"-RE\d*$", symbol.strip().upper()) is not None
         or (isin.startswith("IN") and isin[7:9] == "20")
     )
 
@@ -190,6 +192,11 @@ def build_master(records: list[dict], *, min_rows: int = _MIN_ROWS) -> dict:
         "_groups": dict(groups.most_common()),
         "instruments": rows,
     }
+
+
+def fetch_master() -> dict:
+    """Fetch the live scrip list and build the master (raises on any failure)."""
+    return build_master(fetch_records())
 
 
 def dump_master(master: dict, fp: TextIO) -> None:
