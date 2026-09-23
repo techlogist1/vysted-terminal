@@ -107,8 +107,13 @@ class ShareholdingPattern(BaseModel):
     """
 
     symbol: str
-    #: The quarter-end date this pattern reports (e.g. 2026-03-31).
+    #: The quarter-end date this pattern reports (e.g. 2026-03-31). BSE dates a
+    #: listing-time (IPO) pattern to the day (2026-06-04).
     quarter_end: date
+    #: What ``quarter_end`` is when it is NOT the filed period — the filing date
+    #: of a pattern whose exchange period label could not be parsed (kept, not
+    #: dropped). ``None`` when ``quarter_end`` is the filed period.
+    quarter_basis: str | None = None
     #: Promoter + promoter-group holding, percent of equity.
     promoter_percent: float | None = None
     fii_percent: float | None = None

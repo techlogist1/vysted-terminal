@@ -544,13 +544,21 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
         if not isinstance(row, dict):
             continue
         quarter_end = row.get("quarter_end")
-        if not isinstance(quarter_end, date):
-            continue
         submission = row.get("submission_date")
+        xbrl_url = _clean(row.get("xbrl_url"))
+        quarter_basis = None
+        if not isinstance(quarter_end, date):
+            # A filed pattern is never dropped over a period label the parser
+            # does not know (R15-DATA-022): it is dated by its filing, and says so.
+            if not (xbrl_url and isinstance(submission, date)):
+                continue
+            quarter_end = submission
+            quarter_basis = f"filing date; the BSE period {row.get('period')!r} was not parsed"
         patterns.append(
             ShareholdingPattern(
                 symbol=bare,
                 quarter_end=quarter_end,
+                quarter_basis=quarter_basis,
                 promoter_percent=_as_float(row.get("promoter_percent")),
                 fii_percent=_as_float(row.get("fii_percent")),
                 dii_percent=_as_float(row.get("dii_percent")),
@@ -565,7 +573,7 @@ def _bse_shareholding(bare: str) -> list[ShareholdingPattern]:
                 ),
                 employee_trusts_percent=None,
                 submission_date=submission if isinstance(submission, date) else None,
-                xbrl_url=_clean(row.get("xbrl_url")) or None,
+                xbrl_url=xbrl_url,
                 source=EXCHANGE_BSE,
             )
         )

@@ -362,8 +362,16 @@ export interface ResultsCalendarResponse {
  */
 export interface ShareholdingPattern {
   symbol: string;
-  /** The quarter-end date this pattern reports (ISO date, e.g. "2026-03-31"). */
+  /**
+   * The quarter-end date this pattern reports (ISO date, e.g. "2026-03-31").
+   * BSE dates a listing-time (IPO) pattern to the day ("2026-06-04").
+   */
   quarter_end: string;
+  /**
+   * What `quarter_end` is when it is NOT the filed period (the filing date of a
+   * pattern whose exchange period label could not be parsed); null otherwise.
+   */
+  quarter_basis: string | null;
   /** Promoter + promoter-group holding, percent of equity. */
   promoter_percent: number | null;
   fii_percent: number | null;

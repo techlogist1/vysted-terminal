@@ -636,6 +636,59 @@ def test_shareholding_bse_only_symbol_routes_to_bse_lane(
     assert latest.quarter_end == date(2026, 6, 30)
 
 
+@pytest.mark.parametrize(
+    ("qtr", "quarter_end", "basis"),
+    [
+        # R15-DATA-022, SMR: BSE dates the listing-time (IPO) pattern to the day.
+        ("04 Jun 2026", date(2026, 6, 4), None),
+        # A case the fix was not written against: a full month name, day-dated.
+        ("30 September 2026", date(2026, 9, 30), None),
+        # A label no parser knows: kept, dated by its filing, and it says so.
+        ("Pre-listing 2026", date(2026, 6, 8), "filing date"),
+    ],
+)
+def test_shareholding_keeps_a_day_dated_or_unparsed_bse_pattern(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    qtr: str,
+    quarter_end: date,
+    basis: str | None,
+) -> None:
+    import httpx
+
+    from services import bse_provider
+
+    index = {
+        "Table": [
+            {
+                "qtr": qtr,
+                "filing_date_time": "2026-06-08T16:34:05.267",
+                "XbrlFile": "544774_86202616343_SHP.xml",
+                "xbrlurl": "/XBRLFILES/SHPXBRLDataXML/544774_86202616343_SP.html",
+            }
+        ]
+    }
+
+    def fake_get(url: str) -> httpx.Response:
+        if "SHPQNewFormat" in url:
+            return httpx.Response(200, json=index)
+        return httpx.Response(404, content=b"")  # the XBRL itself is offline
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+
+    response = corporate_disclosures.get_shareholding("SMR")
+    assert response.count == 1
+    pattern = response.patterns[0]
+    assert pattern.quarter_end == quarter_end
+    assert pattern.xbrl_url is not None and pattern.source == "BSE"
+    if basis is None:
+        assert pattern.quarter_basis is None
+    else:
+        assert pattern.quarter_basis is not None and basis in pattern.quarter_basis
+        assert qtr in pattern.quarter_basis
+
+
 def test_shareholding_nse_first_falls_back_to_bse_on_nse_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
