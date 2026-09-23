@@ -977,9 +977,9 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
 
   it("write_note replaces or appends, scoped to General or a ticker", () => {
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
-    expect(applyHostAction("write_note", { scope: "general", text: "First take." })).toMatch(
-      /Wrote the General note/,
-    );
+    expect(
+      applyHostAction("write_note", { scope: "general", text: "First take.", mode: "replace" }),
+    ).toMatch(/Wrote the General note/);
     expect(useNotesStore.getState().general).toBe("First take.");
     applyHostAction("write_note", { scope: "general", text: "Second take.", mode: "append" });
     expect(useNotesStore.getState().general).toBe("First take.\n\nSecond take.");
@@ -989,6 +989,42 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(applyHostAction("write_note", { scope: "general", text: "  " })).toBeNull();
     const diff = describeHostAction("write_note", { scope: "RELIANCE", text: "x", mode: "append" });
     expect(diff.kind).toBe("data-write");
+  });
+
+  it("write_note honours the catalog-documented args: 'global' is General, mode defaults to append", () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "My thesis.", bySymbol: { NVDA: "old", AAPL: "keep" } });
+    const input = { scope: "global", text: "Agent takeaway." };
+    expect(describeHostAction("write_note", input).title).toBe("Append to the General note");
+    expect(applyHostAction("write_note", input)).toBe("Appended to the General note");
+    expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
+    expect(useNotesStore.getState().bySymbol.GLOBAL).toBeUndefined();
+    // Not the case the fix was written against: an explicit replace on a ticker.
+    const replace = { scope: "NVDA", text: "new", mode: "replace" };
+    expect(describeHostAction("write_note", replace).title).toBe("Write the NVDA note");
+    expect(applyHostAction("write_note", replace)).toBe("Wrote the NVDA note");
+    expect(useNotesStore.getState().bySymbol).toEqual({ NVDA: "new", AAPL: "keep" });
+    expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
+  });
+
+  it("save_layout without a name updates the active saved layout", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+    useWorkspaceStore.setState({ name: "My desk", dockviewApi: { toJSON: () => ({}) } } as never);
+    try {
+      expect(describeHostAction("save_layout", {}).title).toBe('Update the saved layout "My desk"');
+      expect(await applyHostActionAsync("save_layout", {})).toBe('Saved the layout as "My desk"');
+      const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
+      expect(JSON.parse(String(init.body)).name).toBe("My desk");
+      // With no saved layout active, a new "Agent layout" is created.
+      useWorkspaceStore.setState({ name: "default" });
+      expect(describeHostAction("save_layout", {}).title).toBe(
+        'Save the current layout as "Agent layout"',
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      useWorkspaceStore.setState({ name: "default", dockviewApi: null } as never);
+    }
   });
 
   it("remove_from_watchlist removes a tracked symbol and is idempotent-honest", () => {

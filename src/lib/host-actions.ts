@@ -40,7 +40,7 @@ import { usePortfoliosStore, type AssetClass, type Holding } from "@/store/portf
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
-import { useWorkspaceStore } from "@/store/workspace";
+import { isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
 import type {
   BriefDepth,
@@ -559,10 +559,31 @@ function resolveHolding(input: Record<string, unknown>): Holding | null {
   return portfolio.holdings.find((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? null;
 }
 
-/** The note-scope key: "" = the General bucket, else an uppercased ticker. */
+/** The note-scope key: "" = the General bucket, else an uppercased ticker. The
+ *  catalog tells the model 'global'; 'general' and an empty scope mean it too. */
 function noteScope(input: Record<string, unknown>): string {
   const scope = str(input, "scope").trim();
-  return scope.toLowerCase() === "general" ? "" : scope.toUpperCase();
+  const lower = scope.toLowerCase();
+  return lower === "global" || lower === "general" || lower === "" ? "" : scope.toUpperCase();
+}
+
+/** The write_note mode: the catalog default is 'append', so only an explicit
+ *  'replace' overwrites the note. */
+function noteMode(input: Record<string, unknown>): "append" | "replace" {
+  return str(input, "mode") === "replace" ? "replace" : "append";
+}
+
+/** The layout save_layout writes: the named one, else the active saved layout
+ *  (the catalog: "omit name to update the active saved layout"); a new
+ *  "Agent layout" only when no saved layout is active ("default" is the
+ *  store's name for the unsaved cockpit, "__…" names are internal slots). */
+function saveLayoutName(input: Record<string, unknown>): string {
+  const named = str(input, "name").trim();
+  if (named) {
+    return named;
+  }
+  const active = useWorkspaceStore.getState().name;
+  return active && active !== "default" && !isReservedLayoutName(active) ? active : "Agent layout";
 }
 
 /** A short human label for a note scope. */
@@ -787,7 +808,7 @@ export function describeHostAction(
     case "write_note": {
       const scope = noteScope(input);
       const text = str(input, "text");
-      const append = str(input, "mode") === "append";
+      const append = noteMode(input) === "append";
       const current = useNotesStore.getState().noteFor(scope);
       return {
         kind: "data-write",
@@ -811,12 +832,17 @@ export function describeHostAction(
       };
     }
     case "save_layout": {
-      const layoutName = str(input, "name").trim() || "Agent layout";
+      const layoutName = saveLayoutName(input);
+      const updatesActive = layoutName === useWorkspaceStore.getState().name;
       return {
         kind: "data-write",
-        title: `Save the current layout as "${layoutName}"`,
+        title: updatesActive
+          ? `Update the saved layout "${layoutName}"`
+          : `Save the current layout as "${layoutName}"`,
         before: "Saved workspaces: unchanged",
-        after: `Saved workspaces: +"${layoutName}" (current cockpit)`,
+        after: updatesActive
+          ? `Saved workspaces: "${layoutName}" updated (current cockpit)`
+          : `Saved workspaces: +"${layoutName}" (current cockpit)`,
       };
     }
     case "save_screen": {
@@ -1163,7 +1189,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         return null;
       }
       const notes = useNotesStore.getState();
-      const append = str(input, "mode") === "append";
+      const append = noteMode(input) === "append";
       const current = notes.noteFor(scope);
       const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
       if (scope === "") {
@@ -1371,7 +1397,7 @@ export async function applyHostActionAsync(
       return `Removed ${target.symbol} from the portfolio`;
     }
     case "save_layout": {
-      const layoutName = str(input, "name").trim() || "Agent layout";
+      const layoutName = saveLayoutName(input);
       try {
         await saveWorkspace(layoutName);
       } catch {
