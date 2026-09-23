@@ -37,12 +37,9 @@ const SHOW_MORE_STEP = 200;
 const MAX_LIMIT = 1000;
 
 // AbortController for the active streaming run. Module-level (singleton store)
-// so cancelRun() can abort without threading it through state.
-// IMPORTANT: every async path that reads this must capture it into a local
-// `controller` variable at the START of the run, then guard every state write
-// with `if (_runAbortController === controller)` so a superseded run (run B
-// started while A streams) never clobbers B's loading/progress state or nulls
-// B's controller.
+// so cancelRun() can abort without threading it through state. Each run
+// captures its own `controller` and writes its outcome only through that run's
+// `finish()`, which no-ops once another run (or cancelRun) owns the slot.
 let _runAbortController: AbortController | null = null;
 
 /** Strip empty sub-groups so a serialized tree never carries dead nodes that
@@ -380,10 +377,14 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     _runAbortController = controller;
     set({ status: "loading", error: null, progress: null, lastLimit: limit });
 
-    /** Guard: only the CURRENT run may touch status/progress or null the slot.
-     *  Run B aborting run A must not let A's cleanup clobber B's state. */
-    function isCurrent(): boolean {
-      return _runAbortController === controller;
+    /** The one completion path (R15-CODE-DATA-006): only the CURRENT run may
+     *  write its outcome and free the slot — run B aborting run A must not let
+     *  A's late completion clobber B's state. Returns whether it applied. */
+    function finish(patch: Partial<ScreenerState>): boolean {
+      if (_runAbortController !== controller) return false;
+      set({ progress: null, ...patch });
+      _runAbortController = null;
+      return true;
     }
 
     // Three shapes for the boolean tree, in precedence:
@@ -419,9 +420,28 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     // Wire format: SSE (text/event-stream) — frames are `data: {json}\n\n`
     // (precedent: routers/backtest.py:195, _encode_event). The parser strips the
     // `data:` prefix and tolerates bare NDJSON for resilience.
+    /** The unary POST /screener/run, shared by both fallbacks. */
+    async function runUnary(describe: (err: unknown) => string): Promise<ScreenerResult | null> {
+      try {
+        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
+        if (controller.signal.aborted) {
+          finish({ status: "idle" });
+          return null;
+        }
+        return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
+      } catch (err: unknown) {
+        finish(
+          controller.signal.aborted
+            ? { status: "idle" }
+            : { status: "error", error: describe(err) },
+        );
+        return null;
+      }
+    }
+
     const base = await getSidecarBaseUrl();
     const streamUrl = new URL("/screener/run/stream", base).toString();
-    let streamResponse: Response | null = null;
+    let streamResponse: Response;
     try {
       streamResponse = await fetch(streamUrl, {
         method: "POST",
@@ -431,58 +451,19 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       });
     } catch (fetchErr) {
       if (controller.signal.aborted) {
-        if (isCurrent()) {
-          set({ status: "idle", progress: null });
-          _runAbortController = null;
-        }
+        finish({ status: "idle" });
         return null;
       }
       // Network error before any response (sidecar down / cold-boot).
       // Attempt the unary fallback — it may work if the sidecar just came up.
-      try {
-        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-        if (!controller.signal.aborted && isCurrent()) {
-          set({ lastResult: result, status: "ready", error: null, progress: null });
-          _runAbortController = null;
-        }
-        return controller.signal.aborted ? null : result;
-      } catch {
-        if (isCurrent()) {
-          const fetchErrMsg = fetchErr instanceof Error ? fetchErr.message : "sidecar unreachable";
-          set({
-            status: "error",
-            error: `Sidecar unreachable: ${fetchErrMsg}`,
-            progress: null,
-          });
-          _runAbortController = null;
-        }
-        return null;
-      }
+      const fetchErrMsg = fetchErr instanceof Error ? fetchErr.message : "sidecar unreachable";
+      return runUnary(() => `Sidecar unreachable: ${fetchErrMsg}`);
     }
     if (streamResponse.status === 404) {
       // Older sidecar: fall back to unary /screener/run.
-      try {
-        const result = await postJson<ScreenerRequest, ScreenerResult>("/screener/run", req);
-        if (!controller.signal.aborted && isCurrent()) {
-          set({ lastResult: result, status: "ready", error: null, progress: null });
-          _runAbortController = null;
-        }
-        return controller.signal.aborted ? null : result;
-      } catch (err: unknown) {
-        if (isCurrent()) {
-          if (controller.signal.aborted) {
-            set({ status: "idle", progress: null });
-          } else {
-            const message = err instanceof Error ? err.message : "screener run failed";
-            set({ status: "error", error: message, progress: null });
-          }
-          _runAbortController = null;
-        }
-        return null;
-      }
+      return runUnary((err) => (err instanceof Error ? err.message : "screener run failed"));
     }
     if (!streamResponse.ok) {
-      if (!isCurrent()) return null;
       let detail = streamResponse.statusText;
       try {
         const parsed = (await streamResponse.json()) as { detail?: string };
@@ -490,14 +471,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       } catch {
         // Not JSON — keep status text.
       }
-      if (isCurrent()) {
-        set({
-          status: "error",
-          error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
-          progress: null,
-        });
-        _runAbortController = null;
-      }
+      finish({
+        status: "error",
+        error: `POST /screener/run/stream failed (${streamResponse.status}): ${detail}`,
+      });
       return null;
     }
     // Consume the SSE stream.
@@ -507,10 +484,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
     // for resilience during development / older intermediary builds.
     const body = streamResponse.body;
     if (!body) {
-      if (isCurrent()) {
-        set({ status: "error", error: "Stream body was empty", progress: null });
-        _runAbortController = null;
-      }
+      finish({ status: "error", error: "Stream body was empty" });
       return null;
     }
     const reader = body.getReader();
@@ -532,23 +506,38 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       }
     }
 
-    function processFrame(frame: Record<string, unknown>) {
-      if (!isCurrent()) return;
+    /** Apply one frame; returns true on a terminal frame (stop reading). */
+    function processFrame(frame: Record<string, unknown>): boolean {
       if (frame.event === "progress") {
-        set({
-          progress: {
-            phase: String(frame.phase ?? ""),
-            done: Number(frame.done ?? 0),
-            total: Number(frame.total ?? 0),
-            detail: String(frame.detail ?? ""),
-          },
-        });
-      } else if (frame.event === "result") {
+        if (_runAbortController === controller) {
+          set({
+            progress: {
+              phase: String(frame.phase ?? ""),
+              done: Number(frame.done ?? 0),
+              total: Number(frame.total ?? 0),
+              detail: String(frame.detail ?? ""),
+            },
+          });
+        }
+        return false;
+      }
+      if (frame.event === "result") {
         // The result frame carries the full ScreenerResult fields inline.
         // Strip the envelope key so the shape matches ScreenerResult exactly.
         const { event: _e, ...resultFields } = frame;
         finalResult = resultFields as unknown as ScreenerResult;
+        return true;
       }
+      return false;
+    }
+
+    /** Parse + apply complete lines; returns true once a terminal frame landed. */
+    function processLines(lines: string[]): boolean {
+      for (const line of lines) {
+        const frame = parseLine(line);
+        if (frame && processFrame(frame)) return true;
+      }
+      return false;
     }
 
     try {
@@ -567,41 +556,34 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
         const lines = buffer.split("\n");
         // The last element may be an incomplete line — keep it in the buffer.
         buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          const frame = parseLine(line);
-          if (frame) processFrame(frame);
+        if (processLines(lines)) {
+          buffer = "";
+          break;
         }
       }
       // Process any remainder left in the buffer (final frame without trailing newline).
-      if (buffer.trim()) {
-        const frame = parseLine(buffer);
-        if (frame) processFrame(frame);
-        buffer = "";
-      }
+      if (buffer.trim()) processLines([buffer]);
     } catch (readErr) {
-      if (!controller.signal.aborted && isCurrent()) {
-        const message = readErr instanceof Error ? readErr.message : "stream read failed";
-        set({ status: "error", error: message, progress: null });
-        _runAbortController = null;
+      if (!controller.signal.aborted) {
+        finish({
+          status: "error",
+          error: readErr instanceof Error ? readErr.message : "stream read failed",
+        });
         return null;
       }
     } finally {
       reader.releaseLock();
     }
-    if (!isCurrent()) return null;
     if (controller.signal.aborted) {
-      set({ status: "idle", progress: null });
-      _runAbortController = null;
+      finish({ status: "idle" });
       return null;
     }
     if (!finalResult) {
-      set({ status: "error", error: "Stream ended without a result frame", progress: null });
-      _runAbortController = null;
+      finish({ status: "error", error: "Stream ended without a result frame" });
       return null;
     }
-    set({ lastResult: finalResult, status: "ready", error: null, progress: null });
-    _runAbortController = null;
-    return finalResult;
+    const result: ScreenerResult = finalResult;
+    return finish({ lastResult: result, status: "ready", error: null }) ? result : null;
   },
 
   cancelRun: () => {

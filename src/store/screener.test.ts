@@ -307,6 +307,35 @@ describe("useScreenerStore", () => {
       expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
     }, 10000);
 
+    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+      const RESULT_A: ScreenerResult = { ...RESULT_SAMPLE, universe: "nifty50", rows: [] };
+      let resolveUnaryA!: (r: Response) => void;
+      const unaryA = new Promise<Response>((r) => {
+        resolveUnaryA = r;
+      });
+      let calls = 0;
+      vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+        calls++;
+        if (calls === 1) return new Response(null, { status: 404 }); // A: older sidecar
+        if (calls === 2) return unaryA; // A: unary fallback, answered late
+        return makeStreamResponse(RESULT_SAMPLE); // B
+      });
+
+      const runA = useScreenerStore.getState().runScreener();
+      await vi.waitFor(() => expect(calls).toBe(2));
+      await useScreenerStore.getState().runScreener();
+      resolveUnaryA(
+        new Response(JSON.stringify(RESULT_A), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      expect(await runA).toBeNull();
+      expect(useScreenerStore.getState().lastResult).toEqual(RESULT_SAMPLE);
+      expect(useScreenerStore.getState().status).toBe("ready");
+    });
+
     it("for the custom universe, serialises custom_symbols from the raw text", async () => {
       const fetchMock = mockFetchFallback(RESULT_SAMPLE);
 
