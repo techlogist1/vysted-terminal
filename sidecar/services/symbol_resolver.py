@@ -776,8 +776,20 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     # disambiguation list for "Reliance Q4 results" leads with RELIANCE (NSE),
     # never FRLCY/FLNCF (US OTC).
     scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
-    if scored:
-        ranked = [t[3] for t in scored]
+    ranked = [t[3] for t in scored]
+
+    # 3b. A retired NSE ticker (R15-DATA-018). A refreshed master no longer
+    #     carries the old symbol, so a query for it misses (or only fuzzes below
+    #     ACCEPT); the NSE symbol-change master still knows it — answer the
+    #     current instrument, annotated, before any sub-accept guess or network.
+    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
+        retired = _retired_symbol_instrument(upper) if " " not in upper else None
+        if retired is not None:
+            return Resolution(
+                query=query, best=retired, candidates=[retired, *ranked][:_MAX_CANDIDATES]
+            )
+
+    if ranked:
         return Resolution(query=query, best=ranked[0], candidates=ranked[:_MAX_CANDIDATES])
 
     # 4. Live keyless fallback (best-effort; never blocks; never binds — every
@@ -843,26 +855,63 @@ def _rename_instrument(inst: Instrument) -> Instrument:
             return inst
     elif target is not None and not same_instrument(inst, target):
         return inst
-    effective = applied.effective_date.isoformat()
     current = target or replace(
         inst, symbol=new_symbol, exchange="NSE", yahoo_symbol=f"{new_symbol}.NS"
     )
+    return _as_renamed(current, inst.symbol, applied, score=inst.score, band=inst.band)
+
+
+def _as_renamed(
+    current: Instrument,
+    old_symbol: str,
+    applied: nse_symbol_change.AppliedRename,
+    *,
+    score: float,
+    band: int,
+) -> Instrument:
+    """``current`` answered for the retired ``old_symbol``, with explicit provenance."""
+    new_symbol = current.symbol
+    effective = applied.effective_date.isoformat()
     return replace(
         current,
         name=applied.new_name or current.name,
-        score=inst.score,
-        band=inst.band,
-        former_name=inst.symbol,
+        score=score,
+        band=band,
+        former_name=old_symbol,
         rename=RenameAnnotation(
-            renamed_from=inst.symbol,
+            renamed_from=old_symbol,
             renamed_to=new_symbol,
             effective_date=effective,
             note=(
-                f"{inst.symbol} was renamed to {new_symbol} on NSE "
+                f"{old_symbol} was renamed to {new_symbol} on NSE "
                 f"(effective {effective}); the resolver answers the current symbol."
             ),
         ),
     )
+
+
+def _retired_symbol_instrument(symbol: str) -> Instrument | None:
+    """The CURRENT NSE instrument for a retired NSE ticker the masters no longer
+    carry (ZOMATO → ETERNAL), annotated — or ``None`` when ``symbol`` is not a
+    retired symbol. An exact hit in the official symbol-change master is as
+    deterministic as an exact master ticker, so it rides the exact-ticker band.
+    """
+    applied = nse_symbol_change.lookup_current(symbol)
+    if applied is None:
+        return None
+    new_symbol = applied.renamed_to.strip().upper()
+    if new_symbol in _nse_master():
+        current = _instrument_nse(new_symbol, 1.0, BAND_EXACT_TICKER)
+    else:
+        current = Instrument(
+            symbol=new_symbol,
+            name=applied.new_name or new_symbol,
+            exchange="NSE",
+            region=REGION_IN,
+            asset_class="equity",
+            yahoo_symbol=f"{new_symbol}.NS",
+        )
+    return _as_renamed(current, symbol, applied, score=1.0, band=BAND_EXACT_TICKER)
 
 
 def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
@@ -940,8 +989,8 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
     A READ-ONLY join, never a fabricator: ``bse_code`` + ``isin`` come from the
     bundled BSE master (the ISIN falls back to the sector map for an NSE-only
     listing), ``industry`` from ``india_sector_map.json`` (``industry_raw``, else
-    the broad ``sector``), and ``former_name`` from the NSE rename lane's retired
-    symbol when this instrument was answered as its current form. A field the
+    the broad ``sector``), and ``former_name`` from the NSE rename lane: the
+    retired symbol this listing was renamed from (SEQUENT for VIYASH). A field the
     bundled data does not carry stays ``None`` — a group-X micro-cap present in
     the sector map with ``industry_raw: None`` (KSE) surfaces ``industry = None``,
     never an invented sector. Idempotent: returns the same object when nothing to
@@ -988,7 +1037,14 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         raw_industry = record.get("industry_raw") or record.get("sector")
         industry = raw_industry if isinstance(raw_industry, str) and raw_industry else None
 
-    former_name = inst.rename.renamed_from if inst.rename is not None else None
+    # The NSE rename lane governs NSE symbols: an NSE row (or the verified BSE
+    # dual listing of one) exposes the retired symbol it was renamed from.
+    former_name = (
+        nse_symbol_change.lookup_former(bare)
+        if inst.exchange == "NSE"
+        or (bse_code is not None and dual_listed_bse_code(bare) == bse_code)
+        else None
+    )
 
     if (
         isin == inst.isin
@@ -1058,8 +1114,17 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
         s = _score(sym, name)
         if s is not None:
             out.append(_instrument_us(sym, s))
+    # A retired NSE ticker (ZOMATO) lists its current instrument (ETERNAL) first,
+    # annotated — the old symbol is what the user remembers typing.
+    retired = (
+        _retired_symbol_instrument(q_sym) if not query.strip().upper().endswith(".BO") else None
+    )
+    if retired is not None:
+        out = [i for i in out if (i.symbol, i.exchange) != (retired.symbol, retired.exchange)]
     # Locale breaks ties as a SORT KEY, never an additive score bonus.
     out.sort(key=lambda i: (i.score, _locale_rank(region, i.region)), reverse=True)
+    if retired is not None:
+        out.insert(0, retired)
     return out[:limit]
 
 

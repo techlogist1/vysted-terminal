@@ -114,6 +114,15 @@ def test_lookup_current_unknown_symbol_returns_none() -> None:
     assert sc.lookup_current("RELIANCE", as_of=date(2026, 7, 10)) is None
 
 
+def test_lookup_former_answers_the_retired_symbol_once_effective() -> None:
+    """R15-DATA-018: the reverse lookup names what a current symbol was renamed
+    from — only for a hop that has already taken effect."""
+    sc.set_active_map_for_tests(sc.parse_symbol_change(_fixture_text()))
+    assert sc.lookup_former("GUJENERGY", as_of=date(2026, 7, 10)) == "GUJGASLTD"
+    assert sc.lookup_former("GUJENERGY", as_of=date(2026, 6, 30)) is None
+    assert sc.lookup_former("RELIANCE", as_of=date(2026, 7, 10)) is None
+
+
 # ---------------------------------------------------------------------------
 # fetch_latest — download, cache round-trip, missing-file no-op.
 # ---------------------------------------------------------------------------
