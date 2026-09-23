@@ -169,7 +169,7 @@ def test_validate_fundamentals_flags_price_13x_outside_52_week_range() -> None:
     assert out.fifty_two_week_high == 284.9
     assert out.fifty_two_week_low == 174.0
     meta = out.field_meta["fifty_two_week_high"]
-    assert meta.status == "ok"
+    assert meta.status == "flagged"
     assert meta.reason is not None and "outside" in meta.reason
 
 
@@ -185,7 +185,7 @@ def test_validate_fundamentals_flags_market_cap_divergence() -> None:
     out = correctness_gate.validate_fundamentals(f, "KSE.BO", "IN")
     assert out.market_cap == 5_000_000_000  # kept
     meta = out.field_meta["market_cap"]
-    assert meta.status == "ok"
+    assert meta.status == "flagged"
     assert meta.reason is not None and "diverges" in meta.reason
 
 

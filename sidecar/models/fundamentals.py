@@ -23,9 +23,11 @@ class FieldMeta(BaseModel):
     One entry per data field the payload speaks to. ``status`` is one of:
 
       * ``"ok"`` — the field carries a real value the named provider served
-        (``provider`` + ``as_of`` record who and when). A ``reason`` MAY still be
-        present as a soft FLAG (e.g. the correctness gate kept the value but noted
-        it disagrees with a cross-check).
+        (``provider`` + ``as_of`` record who and when).
+      * ``"flagged"`` — the value is KEPT but a cross-check disagrees with it;
+        ``reason`` names the disagreement and the witness figure (e.g. the
+        exchange shareholding, the payload-implied share count). Never a
+        substitution — the served value stays the provider's own.
       * ``"withheld"`` — a value existed but the correctness gate NULLED it as
         implausible; ``reason`` says exactly why (e.g. an ownership fraction above
         1, an ambiguous-unit dividend yield). The field on the payload is ``None``.
@@ -51,9 +53,12 @@ class Fundamentals(BaseModel):
     Units are documented per field: ``*_margin``/``roe``/``roa``/``*_growth``/
     ``held_percent_*``/``fifty_two_week_change`` are FRACTIONS (0.21 = 21%);
     ``dividend_yield`` is a fraction; ``debt_to_equity`` is a RATIO (yfinance's
-    percent form divided by 100, so 1.5 = 150%); currency-denominated sizes
-    (``revenue_ttm``/``net_income_ttm``/``free_cash_flow``/``dividend_per_share``)
-    are in ``currency``.
+    percent form divided by 100, so 1.5 = 150%). ``currency`` is the TRADING
+    currency (prices, ``market_cap``, ``book_value``, ``eps``,
+    ``dividend_per_share``); the statement-denominated sizes
+    (``revenue_ttm``/``net_income_ttm``/``free_cash_flow``) are in
+    ``financial_currency`` when it is set (a foreign reporter such as an ADR),
+    else in ``currency``.
     """
 
     symbol: str
@@ -61,6 +66,18 @@ class Fundamentals(BaseModel):
     sector: str | None = None
     industry: str | None = None
     currency: str | None = None
+    #: The currency of the statement-denominated sizes (``revenue_ttm``,
+    #: ``net_income_ttm``, ``free_cash_flow``) when the provider's reporting
+    #: currency differs from the trading ``currency`` (Yahoo ``financialCurrency``
+    #: — SIFY reports in INR, trades in USD). ``None`` when the two are equal.
+    #: No FX conversion is applied; a ratio that mixes the two bases is withheld.
+    financial_currency: str | None = None
+    #: The price the provider's valuation ratios and ``market_cap`` were computed
+    #: at (Yahoo ``currentPrice``/``regularMarketPrice`` from the same snapshot).
+    #: Its ``field_meta`` ``as_of`` is that price's trade time. The correctness
+    #: gate's cross-field pass prices through it (implied shares = market cap /
+    #: price) so a loss-maker with no trailing P/E is still reconciled.
+    ratio_price: float | None = None
     # --- Valuation ---
     market_cap: float | None = None
     pe_ratio: float | None = None
@@ -121,8 +138,8 @@ class Fundamentals(BaseModel):
     #: The quarter-end pair the computed growth compared, for disclosure.
     growth_computed_quarters: GrowthQuarters | None = None
     #: Per-field provenance / coverage metadata (R13). Keyed by the data-field
-    #: name; each entry records whether the field is ``ok``/``withheld``/
-    #: ``unavailable`` plus the serving provider, its ``as_of``, and any
+    #: name; each entry records whether the field is ``ok``/``flagged``/
+    #: ``withheld``/``unavailable`` plus the serving provider, its ``as_of``, and any
     #: withhold/flag reason. Additive — ``None`` on providers that do not populate
     #: it, and an absent map never changes how the value fields are read.
     field_meta: dict[str, FieldMeta] | None = None
