@@ -11,14 +11,14 @@ import type {
   Quote,
 } from "../../../types/data";
 import { EquityOverviewPanel } from "./EquityOverviewPanel";
-import type { EquityOverview } from "./api";
+import type { EquityOverview, SymbolCandidate } from "./api";
 
 vi.mock("./api", () => ({
   loadEquityOverview: vi.fn(),
   autocompleteSymbols: vi.fn(() => Promise.resolve([])),
 }));
 
-const { loadEquityOverview } = await import("./api");
+const { autocompleteSymbols, loadEquityOverview } = await import("./api");
 const mockLoad = vi.mocked(loadEquityOverview);
 
 function quote(): Quote {
@@ -165,7 +165,7 @@ describe("EquityOverviewPanel", () => {
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "AAPL" }));
     });
-    expect(mockLoad).toHaveBeenCalledWith("AAPL");
+    expect(mockLoad).toHaveBeenCalledWith("AAPL", undefined);
     expect(screen.getByRole("heading", { name: "AAPL" })).toBeInTheDocument();
   });
 
@@ -174,7 +174,7 @@ describe("EquityOverviewPanel", () => {
     render(<EquityOverviewPanel />);
     await loadSymbol();
 
-    expect(mockLoad).toHaveBeenCalledWith("AAPL");
+    expect(mockLoad).toHaveBeenCalledWith("AAPL", undefined);
     expect(screen.getByRole("heading", { name: "AAPL" })).toBeInTheDocument();
     expect(screen.getByText("Apple Inc.")).toBeInTheDocument();
     // Valuation ratio.
@@ -318,7 +318,7 @@ describe("EquityOverviewPanel", () => {
     useEquityCommandStore.getState().loadSymbol("SAKSOFT.NS");
     render(<EquityOverviewPanel />);
     await flushCommandTick();
-    expect(mockLoad).toHaveBeenCalledWith("SAKSOFT.NS");
+    expect(mockLoad).toHaveBeenCalledWith("SAKSOFT.NS", undefined);
   });
 
   it("re-issuing the SAME symbol re-triggers the load (seq-keyed consumption)", async () => {
@@ -336,7 +336,7 @@ describe("EquityOverviewPanel", () => {
     });
     await flushCommandTick();
     expect(mockLoad).toHaveBeenCalledTimes(2);
-    expect(mockLoad).toHaveBeenLastCalledWith("AAPL");
+    expect(mockLoad).toHaveBeenLastCalledWith("AAPL", undefined);
   });
 
   // --- R13: honest fundamentals coverage — never a silent blank --------------
@@ -352,8 +352,8 @@ describe("EquityOverviewPanel", () => {
       await loadSymbol();
 
       expect(screen.getByText("Ownership")).toBeInTheDocument();
-      expect(screen.getByText("Insiders")).toBeInTheDocument();
-      expect(screen.getByText("Institutions")).toBeInTheDocument();
+      expect(screen.getByText("Insiders (Yahoo)")).toBeInTheDocument();
+      expect(screen.getByText("Institutions (Yahoo)")).toBeInTheDocument();
       // Both rows fall back to the plain glyph — no fabricated reason chip.
       expect(screen.queryByText("withheld — implausible")).toBeNull();
       expect(screen.queryByText("unavailable")).toBeNull();
@@ -452,5 +452,112 @@ describe("EquityOverviewPanel", () => {
 
       expect(screen.getByText(/as of 2026-07-08/)).toBeInTheDocument();
     });
+  });
+});
+
+// --- R15-DATA-002: one company per panel, whatever the session region --------
+
+function candidate(
+  symbol: string,
+  name: string,
+  exchange: string,
+  region: string,
+): SymbolCandidate {
+  return {
+    symbol,
+    name,
+    exchange,
+    region,
+    asset_class: "equity",
+    yahoo_symbol: region === "US" ? symbol : `${symbol}.BO`,
+    confidence: 1,
+  };
+}
+
+describe("EquityOverviewPanel — cross-region tickers (R15-DATA-002)", () => {
+  it("loads the picked NASDAQ:AMAL candidate with its own region", async () => {
+    vi.mocked(autocompleteSymbols).mockResolvedValue([
+      candidate("AMAL", "Amal Ltd", "BSE", "IN"),
+      candidate("AMAL", "Amalgamated Financial Corp", "US", "US"),
+    ]);
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+
+    const input = screen.getByLabelText("Symbol");
+    input.focus();
+    fireEvent.change(input, { target: { value: "amal" } });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    });
+    await act(async () => {
+      fireEvent.mouseDown(screen.getByText("Amalgamated Financial Corp"));
+    });
+
+    expect(mockLoad).toHaveBeenCalledWith("AMAL", "US");
+  });
+
+  it("a typed ticker listed in two regions shows a chooser and loads nothing until picked", async () => {
+    vi.mocked(autocompleteSymbols).mockResolvedValue([
+      candidate("SMR", "SMR Jewels Ltd", "BSE", "IN"),
+      candidate("SMR", "NuScale Power Corp", "US", "US"),
+    ]);
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await loadSymbol("smr");
+
+    expect(screen.getByTestId("listing-chooser")).toBeInTheDocument();
+    expect(mockLoad).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /NuScale Power Corp/ }));
+    });
+    expect(mockLoad).toHaveBeenCalledWith("SMR", "US");
+    expect(screen.queryByTestId("listing-chooser")).toBeNull();
+  });
+
+  it("a host command carrying a region loads that listing", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await act(async () => {
+      useEquityCommandStore.getState().loadSymbol("AMAL", undefined, "US");
+    });
+    await flushCommandTick();
+    expect(mockLoad).toHaveBeenCalledWith("AMAL", "US");
+  });
+});
+
+describe("EquityOverviewPanel — batch-2 contract renders (C1, C2)", () => {
+  it("a flagged value stays visible with a flagged chip and its reason on hover", async () => {
+    const reason =
+      "market cap 3,000,000,000,000 is 40% above price x shares outstanding " +
+      "(witness 2,140,000,000,000); kept, flagged";
+    const meta: Record<string, FieldMeta> = {
+      market_cap: { status: "flagged", provider: "yfinance", reason },
+    };
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ field_meta: meta }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+
+    const value = screen.getByText("$3.00T");
+    const cell = value.closest("td");
+    expect(cell?.textContent).toContain("flagged");
+    expect(cell?.getAttribute("title")).toBe(reason);
+  });
+
+  it("statement sizes format in the reporting currency (SIFY: USD listing, INR books)", async () => {
+    const f = fundamentals({
+      symbol: "SIFY",
+      currency: "USD",
+      financial_currency: "INR",
+      market_cap: 300_000_000,
+      revenue_ttm: 14_000_000_000,
+    });
+    mockLoad.mockResolvedValue(overview({ symbol: "SIFY", fundamentals: f }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol("sify");
+
+    expect(screen.getByText("₹14.0B")).toBeInTheDocument(); // revenue (TTM), INR books
+    expect(screen.getByText("$300M")).toBeInTheDocument(); // market cap, USD listing
+    expect(screen.queryByText("$14.0B")).toBeNull();
   });
 });

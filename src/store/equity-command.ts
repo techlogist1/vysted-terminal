@@ -20,17 +20,20 @@ interface EquityCommandState {
    *  issue so an equal symbol still re-triggers the panel's consumer effect.
    *  `highlightMetric` (R7, the learner flow) names a fundamentals metric the
    *  panel should scroll to and pulse once loaded — e.g. "pe_ratio" when the
-   *  agent answers "what is a P/E ratio? show me on Tata Steel". */
-  command: { symbol: string; seq: number; highlightMetric?: string } | null;
+   *  agent answers "what is a P/E ratio? show me on Tata Steel". `region` is the
+   *  region of the listing the issuer picked (a `/resolve` candidate), carried so
+   *  a ticker that names different companies in different markets (AMAL) loads
+   *  the picked one; absent, the session region applies. */
+  command: { symbol: string; seq: number; highlightMetric?: string; region?: string } | null;
   /** Host → Equity Overview: load (and surface) a company's overview. */
-  loadSymbol: (symbol: string, highlightMetric?: string) => void;
+  loadSymbol: (symbol: string, highlightMetric?: string, region?: string) => void;
 }
 
 export const useEquityCommandStore = create<EquityCommandState>((set) => ({
   command: null,
-  loadSymbol: (symbol, highlightMetric) =>
+  loadSymbol: (symbol, highlightMetric, region) =>
     set((state) => ({
-      command: { symbol, seq: (state.command?.seq ?? 0) + 1, highlightMetric },
+      command: { symbol, seq: (state.command?.seq ?? 0) + 1, highlightMetric, region },
     })),
 }));
 
