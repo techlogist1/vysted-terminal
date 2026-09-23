@@ -627,7 +627,8 @@
    "fix_shape": "Turn the AUTO check into an allow-list of kinds (chart, panel, layout, watchlist) so data-write and settings always stage for review; orders unaffected. Vitest: under autonomy=auto, enqueue of a portfolio_delete_position / write_note / set_region stays pending while set_chart_symbol auto-applies.",
    "defect_class": "autonomy-scope-drift",
    "raw_ids": [
-    "INT-spec-180-205"
+    "INT-spec-180-205",
+    "INT-spec-135-156"
    ],
    "tier4": false,
    "operator_areas": [
@@ -1731,6 +1732,30 @@
    ]
   },
   {
+   "id": "R15-AGENT-088",
+   "title": "A bare ticker typed in the chat ('AAPL', '@AAPL') always pays a full LLM round-trip: there is no LLM-free fast path that loads the default cockpit instantly as FR-112 promises",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "frontend-panels-agent-shell",
+   "files": [
+    "src/modules/chat/slash-commands.ts",
+    "src/modules/chat/ChatSidebar.tsx",
+    "src/modules/chat/slash-commands.test.ts"
+   ],
+   "repro": "Type 'AAPL' or '@AAPL' in the chat composer and send -> parseSlashCommand returns {kind:'raw'} for any non-'/' input (slash-commands.ts:44-46) -> handleSend (ChatSidebar.tsx:683-780) resolves provider/key and opens an LLM stream; nothing loads the chart/cockpit client-side, so the fastest interaction costs model latency and spend (and fails outright with no key).",
+   "evidence": "src/modules/chat/slash-commands.ts:44-46 (non-slash input -> raw prompt); src/modules/chat/ChatSidebar.tsx:627 dispatchSlashAction / :683-696 handleSend (only curated slash actions /chart /watch /portfolio /sources /layout dispatch client-side with zero LLM); spec FR-112 (FAST: 'bare @TICKER/quick command -> default cockpit instantly', LLM-free). Refuter correction adopted (INT-spec-135-162): the quick-command half of FAST exists via slash actions and ORCHESTRATED behaviour exists under the proposed-changes gate, so only the bare-ticker path is missing; this does not contradict the INT-spec-180-206 rejection, which covered the named speeds, not the bare-ticker input.",
+   "root_cause": "The composer's parser classifies every non-slash input as a raw LLM prompt; no ticker recognition runs before the LLM hand-off.",
+   "fix_shape": "In parseSlashCommand, classify a lone token matching '@?<TICKER>' that resolves against the known symbol set (resolver/watchlist) as a client-side action reusing the /chart dispatch (set_chart_symbol + default cockpit layout via enqueueSlashChange); ambiguous or unresolved tokens still go to the LLM. Vitest in slash-commands.test.ts: 'AAPL' and '@RELIANCE' parse to the chart action, 'AAPL earnings?' stays raw.",
+   "defect_class": "fast-path-missing",
+   "raw_ids": [
+    "INT-spec-135-162"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
    "id": "R15-AGENT-065",
    "title": "Two documented-deferred copilot/customizability builds remain unbuilt: the 3-pane agent roster panel with hard persona hand-off, and the data-source connector hub (Plugin Manager shows only a count)",
    "severity": "low",
@@ -2148,6 +2173,30 @@
    "raw_ids": [
     "INT-spec-90-6",
     "INT-spec-180-209"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-AGENT-089",
+   "title": "close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/planner.py",
+    "sidecar/services/agent_runtime.py",
+    "sidecar/tests/test_planner.py"
+   ],
+   "repro": "Ask for a multi-step change that closes or focuses a panel (e.g. 'close the news panel and open the chart for TCS') with the planner pre-pass on -> the planner's close_panel/focus_panel step is dropped by _coerce_steps (planner.py:301-310, not in PLAN_ACTIONS :224-232) and would not be marked staged anyway (agent_runtime.py:61-70, :1408) -> PlanView omits that step, though the model can still call the host action in-loop through the diff gate.",
+   "evidence": "sidecar/services/planner.py:224-232 PLAN_ACTIONS (no close_panel/focus_panel), :310 drop of unknown actions; sidecar/services/agent_runtime.py:61-70 _STAGEABLE_PLAN_ACTIONS, :1408 staged flag; docs/redesign/R4_STALE_CODE_REGISTER.md S-17 (named set_chart_indicators/close_panel/focus_panel; only set_chart_indicators fixed). Severity low per refuter of INT-spec-135-164: the staged flag drives only PlanView's 'review' badge and the actions remain callable in-loop. The drawings half of INT-spec-135-164 is already R15-AGENT-084 (no drawing host action); this entry carries the raw id for the uncovered plan-stageable half.",
+   "root_cause": "Two hand-maintained action lists (planner.PLAN_ACTIONS and agent_runtime._STAGEABLE_PLAN_ACTIONS) restate the host-action catalog instead of deriving from it, so S-17 updated one entry and missed the rest.",
+   "fix_shape": "Derive the plannable/stageable sets from the capability catalog's host_action entries (or at minimum add close_panel/focus_panel to both constants). Pytest: _coerce_steps keeps a close_panel step and the emitted plan event marks it staged.",
+   "defect_class": "hand-list-drift",
+   "raw_ids": [
+    "INT-spec-135-164"
    ],
    "tier4": false,
    "operator_areas": [

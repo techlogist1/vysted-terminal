@@ -74,100 +74,110 @@
     "promise": "Live order placement is gated behind a fixed set of safeguards that are non-negotiable design constraints for every broker plugin; no broker plugin ships without them.",
     "source": "§6.5 (L409)",
     "kind": "guarantee",
-    "status": "partial",
-    "evidence": "sidecar/models/safety.py:6-21 maps all eight safeguards to code; enforced: #1 broker_base.py:94, #2 broker_base.py:310-325, #4 sidecar/models/audit_log.py:22-50, #6 src/modules/safety/OrderConfirmationDialog.tsx:40-61, #7 broker_base.py:253+347, #8 DisclaimerFlow.tsx:47+132",
-    "gap": "Three of the eight are not fully in place: #1's live-switch disclaimer dialog does not exist (INT-BP-203), #3's caps are half-inert with no configuration path (INT-BP-207/208), #5 has no UI surface and no event listener (INT-BP-211/212).",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/models/safety.py:6-21 maps all eight safeguards to code; enforced: #1 broker_base.py:94, #2 broker_base.py:310-325, #4 sidecar/models/audit_log.py:22-50, #6 src/modules/safety/OrderConfirmationDialog.tsx:40-61, #7 broker_base.py:253+347, #8 DisclaimerFlow.tsx:47+132 [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the partial evidence above is retained for record but the promise is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "partial"
   },
   {
     "pid": "INT-BP-201",
     "promise": "Paper mode is the default for every broker plugin.",
     "source": "§6.5 #1 (L411)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/services/broker_base.py:90-94 ('paper mode is the hard-coded default. There is no constructor argument that flips this to live'); models/broker.py BrokerState.mode",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:90-94 ('paper mode is the hard-coded default. There is no constructor argument that flips this to live'); models/broker.py BrokerState.mode [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-202",
     "promise": "Live trading is opt-in per broker, toggled by the user.",
     "source": "§6.5 #1 (L411)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/routers/brokers.py:327-328 POST /brokers/{broker_id}/mode (per-broker only); src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 + :278-280 ('Go live' / 'Go paper' per row)",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/routers/brokers.py:327-328 POST /brokers/{broker_id}/mode (per-broker only); src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 + :278-280 ('Go live' / 'Go paper' per row) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-203",
     "promise": "The first time a plugin is switched to live, a dedicated disclaimer dialog is shown and must be explicitly acknowledged.",
     "source": "§6.5 #1 (L411)",
     "kind": "guarantee",
-    "status": "missing",
-    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 handleModeToggle flips paper->live on one click with no dialog; src/modules/safety/DisclaimerFlow.tsx exports only FirstLaunchTosDialog + BrokerFirstConnectDialog (:47, :132); sidecar/models/safety.py:120-124 DisclaimerKind has no first-live-mode kind",
-    "gap": "The only live-related acknowledgment is a first-live-ORDER session ack inside the order dialog (OrderConfirmationDialog.tsx:128, :245-251). Switching a broker plugin from paper to live - the moment the BLUEPRINT gates - is an unguarded single click.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "src/modules/broker-connect/BrokerConnectPanel.tsx:246-249 handleModeToggle flips paper->live on one click with no dialog; src/modules/safety/DisclaimerFlow.tsx exports only FirstLaunchTosDialog + BrokerFirstConnectDialog (:47, :132); sidecar/models/safety.py:120-124 DisclaimerKind has no first-live-mode kind [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the missing evidence above is retained for record but the promise is dropped, not missing].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "missing"
   },
   {
     "pid": "INT-BP-204",
     "promise": "There is no global 'enable everything' shortcut for live trading — the decision is made one broker at a time.",
     "source": "§6.5 #1 (L411)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/routers/brokers.py:327 is the only mode route and is per-broker; no bulk/global enable route in routers/brokers.py or routers/safety.py; src/store/brokers.ts setMode takes a single broker id",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/routers/brokers.py:327 is the only mode route and is per-broker; no bulk/global enable route in routers/brokers.py or routers/safety.py; src/store/brokers.ts setMode takes a single broker id [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-205",
     "promise": "Every order, paper or live, requires a confirmation dialog showing symbol, quantity, side, order type, limit price, estimated value, broker, and account ID.",
     "source": "§6.5 #2 (L413)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:204-220 renders Broker, Account, Symbol, Side, Type, Quantity, Limit price, Stop price, Currency, Estimated value, Mode",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:204-220 renders Broker, Account, Symbol, Side, Type, Quantity, Limit price, Stop price, Currency, Estimated value, Mode [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-206",
     "promise": "There are no one-click trades anywhere in the app, in any panel, for any broker.",
     "source": "§6.5 #2 (L413)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/services/broker_base.py:310-325 (confirm_and_place requires human_confirmed=True; _place_confirmed is private with that single call site); src/modules/broker-connect/BrokerOrderEntry.tsx:243-245 (Propose only) -> OrderConfirmationDialog; audited by sidecar/tests/test_safety_end_to_end.py",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:310-325 (confirm_and_place requires human_confirmed=True; _place_confirmed is private with that single call site); src/modules/broker-connect/BrokerOrderEntry.tsx:243-245 (Propose only) -> OrderConfirmationDialog; audited by sidecar/tests/test_safety_end_to_end.py [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-207",
     "promise": "Position-size limits are configurable per plugin, with soft default caps on maximum order value, maximum percentage of account, and maximum position size per symbol.",
     "source": "§6.5 #3 (L415)",
     "kind": "guarantee",
-    "status": "partial",
-    "evidence": "sidecar/models/safety.py:110-118 declares four caps; sidecar/services/broker_base.py:82-87 sets conservative defaults; only two are enforced - broker_base.py:269 (max_order_value) and :274 (max_position_size_per_symbol)",
-    "gap": "max_percent_of_account and daily_loss_circuit_breaker are never read anywhere in sidecar/ or src/ (grep: only the declaration and the default). The caps are also class-level (ClassVar DEFAULT_LIMITS), identical for every plugin - 'configurable per plugin' is not implemented.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/models/safety.py:110-118 declares four caps; sidecar/services/broker_base.py:82-87 sets conservative defaults; only two are enforced - broker_base.py:269 (max_order_value) and :274 (max_position_size_per_symbol) [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the partial evidence above is retained for record but the promise is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "partial"
   },
   {
     "pid": "INT-BP-208",
     "promise": "A user can raise a position-size limit only through an explicit confirmation step; the defaults are conservative on purpose.",
     "source": "§6.5 #3 (L415)",
     "kind": "guarantee",
-    "status": "missing",
-    "evidence": "sidecar/services/broker_base.py:98 is the only assignment to self._limits; no /brokers/{id}/limits route in sidecar/routers/brokers.py; no limits control in src/modules/broker-connect/BrokerConnectPanel.tsx or src/store/brokers.ts",
-    "gap": "There is no path - route, UI or config - to raise a position limit, so the 'explicit confirmation step' that was supposed to gate a raise does not exist. Fails closed (safer than promised) but the promise is undelivered.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:98 is the only assignment to self._limits; no /brokers/{id}/limits route in sidecar/routers/brokers.py; no limits control in src/modules/broker-connect/BrokerConnectPanel.tsx or src/store/brokers.ts [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the missing evidence above is retained for record but the promise is dropped, not missing].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "missing"
   },
   {
     "pid": "INT-BP-209",
     "promise": "Every order, manual or AI-initiated, is written to a local SQLite audit log with timestamp, broker, full request payload, broker response, and outcome.",
     "source": "§6.5 #4 (L417)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/models/audit_log.py:22-33 (timestamp_ms, broker, account_id, action, payload_json, source, outcome); sidecar/services/broker_base.py:288-296 (propose), :357-358 (confirm), :365 (result)",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/models/audit_log.py:22-33 (timestamp_ms, broker, account_id, action, payload_json, source, outcome); sidecar/services/broker_base.py:288-296 (propose), :357-358 (confirm), :365 (result) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-210",
@@ -184,30 +194,33 @@
     "promise": "There is a global 'Halt All Trading' kill switch, always visible, that immediately disables order placement across every broker plugin at once.",
     "source": "§6.5 #5 (L419)",
     "kind": "guarantee",
-    "status": "partial",
-    "evidence": "Backend intact: sidecar/services/kill_switch.py:1-22 + :100-160 (bus, fire, ack aggregation), sidecar/routers/safety.py:119-143 (fire/reset/status), src-tauri/src/kill_switch.rs:50-63 + :96 (OS-wide Cmd/Ctrl+Shift+K -> emits 'kill-switch:requested'), src/store/safety.ts:212-232 (fireKillSwitch). UI: absent",
-    "gap": "No component anywhere in src/ calls fireKillSwitch (grep: zero call sites outside src/store/safety.ts) and nothing calls listen('kill-switch:requested') - src/store/safety.ts:16 records 'nothing currently listens for it'; src/modules/index.ts:52-54 records the toolbar was removed. The always-visible control does not exist and the OS shortcut is a dead end.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "Backend intact: sidecar/services/kill_switch.py:1-22 + :100-160 (bus, fire, ack aggregation), sidecar/routers/safety.py:119-143 (fire/reset/status), src-tauri/src/kill_switch.rs:50-63 + :96 (OS-wide Cmd/Ctrl+Shift+K -> emits 'kill-switch:requested'), src/store/safety.ts:212-232 (fireKillSwitch). UI: absent [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the partial evidence above is retained for record but the promise is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "partial"
   },
   {
     "pid": "INT-BP-212",
     "promise": "The kill switch is designed to be found and used under stress, without hunting through settings.",
     "source": "§6.5 #5 (L419)",
     "kind": "quality-bar",
-    "status": "missing",
-    "evidence": "src/modules/index.ts:52-54 ('The kill-switch toolbar was removed from the UI in the agent-native craft pass'); src/store/safety.ts:13-16",
-    "gap": "There is no surface to find under stress: no toolbar button, no tray item, no command-palette entry (src/modules/safety/index.ts registers only 'safety.open-audit-log'), and the keyboard shortcut emits an event with no listener.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "src/modules/index.ts:52-54 ('The kill-switch toolbar was removed from the UI in the agent-native craft pass'); src/store/safety.ts:13-16 [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the missing evidence above is retained for record but the promise is dropped, not missing].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "missing"
   },
   {
     "pid": "INT-BP-213",
     "promise": "When an AI agent or node-editor workflow attempts to place an order, the confirmation dialog opens defaulted to declined and names the agent (e.g. 'AI agent <name> is requesting this order').",
     "source": "§6.5 #6 (L421)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:40-61 (describeSource builds \"AI agent '<name>' is requesting this order.\"), :198 ai-agent-banner, :225-231 review checkbox, :285 confirm disabled until checked; sidecar/models/safety.py:152-171 AiOrderGateProposal",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "src/modules/safety/OrderConfirmationDialog.tsx:40-61 (describeSource builds \"AI agent '<name>' is requesting this order.\"), :198 ai-agent-banner, :225-231 review checkbox, :285 confirm disabled until checked; sidecar/models/safety.py:152-171 AiOrderGateProposal [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-214",
@@ -224,20 +237,22 @@
     "promise": "The terminal never lets an AI place an order the user did not see.",
     "source": "§6.5 #6 (L421)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/services/broker_base.py:310-325 (human_confirmed gate), :20-32 (AI never reaches _place_confirmed; no auto-approve route); proven live in D69 (docs/redesign/DECISIONS.md:119) - propose -> review bar -> human accept -> fails closed, audit_orders 0 rows",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:310-325 (human_confirmed gate), :20-32 (AI never reaches _place_confirmed; no auto-approve route); proven live in D69 (docs/redesign/DECISIONS.md:119) - propose -> review bar -> human accept -> fails closed, audit_orders 0 rows [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-216",
     "promise": "Any individual broker plugin can be marked read-only even with live trading globally enabled, enforced at the plugin boundary, not just the UI.",
     "source": "§6.5 #7 (L423)",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/services/broker_base.py:253-255 (propose_order raises when read-only) and :347-349 (re-checked at confirm time, after the propose/confirm window); plus the three-layer read-only wrapper-plugin audit described in CLAUDE.md (inspect.getmembers surface audit, router.routes audit, supportsControlPlane=false)",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/broker_base.py:253-255 (propose_order raises when read-only) and :347-349 (re-checked at confirm time, after the propose/confirm window); plus the three-layer read-only wrapper-plugin audit described in CLAUDE.md (inspect.getmembers surface audit, router.routes audit, supportsControlPlane=false) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-BP-217",
@@ -274,10 +289,11 @@
     "promise": "The execution path is conservative by construction: paper by default, confirmed every time, capped, logged, haltable, extra-gated for AI, and disclosed up front.",
     "source": "§6.5 (L431)",
     "kind": "guarantee",
-    "status": "partial",
-    "evidence": "Holds: paper by default (broker_base.py:94), confirmed every time (broker_base.py:310-325), logged (models/audit_log.py:22-50), extra-gated for AI (OrderConfirmationDialog.tsx:40-61), disclosed up front (DisclaimerFlow.tsx:47+132)",
-    "gap": "'capped' is half-true (two of four declared caps are inert - INT-BP-207) and 'haltable' is not true from the user's side (no kill-switch surface - INT-BP-211/212).",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "Holds: paper by default (broker_base.py:94), confirmed every time (broker_base.py:310-325), logged (models/audit_log.py:22-50), extra-gated for AI (OrderConfirmationDialog.tsx:40-61), disclosed up front (DisclaimerFlow.tsx:47+132) [session-2 correction: this promise's subject is order-execution safeguards / kill switch / live mode, entirely out of the product per D81 — the partial evidence above is retained for record but the promise is dropped, not partial].",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). COMMON.md out-of-scope list names broker order execution/the broker plugin.",
+    "prior_status": "partial"
   },
   {
     "pid": "INT-BP-221",

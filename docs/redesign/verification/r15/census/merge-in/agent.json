@@ -1111,6 +1111,54 @@
   }
  },
  {
+  "raw_id": "INT-spec-135-156",
+  "title": "AUTO autonomy mode auto-applies portfolio-position writes, note writes, and saved layouts/screens without per-action confirmation — wider than the promised 'UI/layout/chart/watchlist ONLY' scope and wider than the module's own safety-line docstring",
+  "severity": "high",
+  "area": "agent",
+  "subsystem": "proposed-changes-gate",
+  "repro": "set autonomy to 'auto' (src/store/agent-autonomy.ts) then have the agent call portfolio_add_position or write_note -> src/store/proposed-changes.ts:118 `described.kind !== \"order\"` is true for kind:\"data-write\", so the change auto-applies (no per-action accept) exactly like a chart/watchlist change would",
+  "evidence": "src/store/proposed-changes.ts:115-131 (auto-apply gate keys only on kind!==\"order\"); src/lib/host-actions.ts:762-849 (portfolio_add_position/update/delete_position, write_note, save_layout, save_screen all kind:\"data-write\"; set_region kind:\"settings\"); src/store/agent-autonomy.ts:6-16 (docstring claims auto 'only skips the per-change accept for the read-only-app host-actions (panel / chart / watchlist)'); src/store/proposed-changes.test.ts:132-158 (tests cover only the order-exclusion and one chart case, no data-write-under-auto test)",
+  "notes": "Information-hiding violation: the module's own comment describes a narrower contract than the code implements, and the actual behavior exceeds spec.md#FR-094's explicit scope ('AUTO autonomy MAY skip per-action confirm for UI/layout/chart/watchlist ONLY'). Concrete consequence: in AUTO mode a user's tracked-portfolio cost basis/quantity, personal notes, and saved layouts/screens can be silently mutated by the agent with zero confirmation step — not a §6.5 order-safety breach, but a real, currently-undocumented, currently-untested data-integrity gap for the user's own records. Smallest fix: narrow the auto-apply predicate to an explicit allowlist of kinds (panel/chart/watchlist), or extend the docstring+tests to intentionally cover data-write/settings and get an explicit sign-off that this is the intended broader scope.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "high",
+   "reason": "Confirmed end to end: every agent host-action tool call is enqueued via ChatSidebar (isHostActionMutation -> enqueueChange), and enqueue auto-accepts anything whose kind !== 'order' under AUTO, so portfolio_add/update/delete_position, write_note, save_layout, save_screen (kind 'data-write') and set_region ('settings') apply with no per-action confirm, writing through to POST/PUT/DELETE /portfolio/positions. That exceeds FR-094's 'UI/layout/chart/watchlist ONLY', contradicts agent-autonomy.ts's own safety-line docstring, and the user-facing AUTO hint ('UI changes apply instantly; orders always confirm') tells the user they are consenting to far less than they get, so severity high stands for silent agent writes (including deletes) to the user's own tracked-portfolio records. Not removed_with_feature: the tracked portfolio stays in the product; only the order exclusion becomes moot."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-162",
+  "title": "The spec's three named agent speeds (FAST LLM-free / ORCHESTRATED / DEEP) do not exist — every request, including a bare ticker mention, costs a full LLM round-trip",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "agent-runtime",
+  "repro": "send a bare '@AAPL' or 'AAPL' in the chat composer with no other text -> src/modules/chat/ChatSidebar.tsx:684-780 handleSend still resolves a provider/model and opens an LLM call; there is no code path that renders the default cockpit instantly with zero LLM invocation",
+  "evidence": "grep -rn \"ORCHESTRATED\" sidecar/ src/ -> zero matches anywhere in the tree; src/modules/chat/ChatSidebar.tsx:684-780 (every parsed input, slash or raw, ends in an LLM stream call)",
+  "notes": "FR-112 names FAST as an explicit, distinct LLM-free tier ('bare @TICKER/quick command -> default cockpit instantly') as a first-class product promise (implied SC-level responsiveness/cost claim) — the shipped design instead uses an orthogonal 'autonomy' (ask/auto) axis and a research 'depth' (quick/deep) axis, neither of which is a zero-LLM instant path. Consequence: a demanding user's fastest interaction ('just show me AAPL') always pays LLM latency + cost that the spec explicitly promised to avoid. Smallest fix (if still wanted post-redesign): special-case a bare, unambiguous @TICKER/ticker input in the composer to dispatch set_chart_symbol + arrange_layout directly, client-side, skipping the LLM call entirely.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The core gap holds: a bare '@AAPL' / 'AAPL' parses as kind 'raw' and falls through handleSend into provider/key resolution and an LLM stream, so FR-112's 'bare @TICKER -> default cockpit instantly, LLM-free' does not exist. Corrected: the claim that 'every parsed input, slash or raw, ends in an LLM stream call' is wrong — curated slash ACTIONS (/chart, /watch, /portfolio, /sources, /layout) dispatch client-side through dispatchSlashAction -> enqueueSlashChange and return with zero LLM, so the 'quick command' half of FAST is delivered; and ORCHESTRATED's behaviour (panel-set proposals through the diff gate) exists under the proposed-changes gate even though no tier carries that name. What is missing is the bare-ticker fast path, which is exactly the smallest fix the finding proposes."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-164",
+  "title": "The agent has no capability to write chart drawings, and close_panel/focus_panel remain non-plan-stageable despite the project's own register flagging both",
+  "severity": "medium",
+  "area": "agent",
+  "subsystem": "agent-tools-catalog",
+  "repro": "ask the agent to draw a trendline or Fibonacci retracement on the chart -> no capability exists to fulfil it (compare: a human can do this via src/modules/chart/drawings/ manually); ask the agent to close a panel as one step of a multi-step plan -> agent_runtime.py's _STAGEABLE_PLAN_ACTIONS doesn't include close_panel/focus_panel so they can't be pre-staged the way set_chart_indicators now can",
+  "evidence": "grep -n 'drawing' sidecar/services/agent_tools/catalog.py -> zero matches (vs. real, manual-only drawing UI: src/store/chart-drawings.ts, src/modules/chart/drawings/{factory,renderers,base}.ts); sidecar/services/agent_runtime.py:61-70 _STAGEABLE_PLAN_ACTIONS = {open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, open_company_overview} — close_panel/focus_panel absent",
+  "notes": "docs/redesign/R4_STALE_CODE_REGISTER.md S-17 already named exactly this trio (set_chart_indicators/close_panel/focus_panel) as needing the plan-stageable fix; only set_chart_indicators was actually fixed, so the register's own acceptance criterion is half-done. The drawings gap is a fresh (unregistered) finding: FR-114 names 'drawings' explicitly as an obvious app-driving verb the agent should reach, and no such capability was ever added to the catalog. Smallest fix: add close_panel/focus_panel to _STAGEABLE_PLAN_ACTIONS (one-line set literal), and add a write_drawing host-action capability mirroring write_screener_filters's shape.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Drawings half holds: no file under sidecar/services/agent_tools/ or src/lib/host-actions.ts mentions drawings, so FR-114's named 'drawings' verb has no capability while the manual drawing UI exists. Close/focus half corrected: close_panel/focus_panel ARE catalog host-actions the model can call inside the loop (through the diff gate); what is missing is only plan pre-staging, and the proposed one-line fix is wrong — planner._coerce_steps drops any step whose action is not in planner.PLAN_ACTIONS, which also lacks close_panel/focus_panel, so both constants must change. The staged flag only drives PlanView's 'review' badge, so that half is low on its own; the medium rests on the missing drawing verb."
+  }
+ },
+ {
   "raw_id": "INT-spec-180-202",
   "pid": "INT-SP-202",
   "title": "No completeness audit exists confirming every enumerated 'obvious action' is reachable by both the agent and by hand",

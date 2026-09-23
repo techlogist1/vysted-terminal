@@ -19,8 +19,8 @@ separately as a detached soak (`scratchpad/vysted-iso/soak/`, started 12:29, dur
 | life-S2A (l1-stranger, l2-rot) | COMPLETE | `census/raw/life-l1-stranger.json` + refute, `life-l2-rot.json` + refute |
 | life-S2B (l3-diagnostics, l4-upgrade) | COMPLETE | `census/raw/life-l3-diagnostics.json` + refute, `life-l4-upgrade.json` + refute |
 | life-S2C (l6-longsession) | IN PROGRESS (excluded per task scope) | detached soak running under `scratchpad/.../vysted-iso/soak/soak-status.json`, not stalled |
-| intent-S2A..E (19 chunk items) | COMPLETE (closed 2026-09-23, post-Gate-2-verifier re-check) — all 19 expected `census/intent/ledger-<id>.json` now present and non-placeholder on disk: `blueprint-0/48/96/144/192/240/288` (5 required: 0/96/144/240/288, plus 2 stale leftovers 48/192), `deferred-0/42/84`, `spec-0/45/90/135/180` (spec-90 now 45/45 rows, spec-180 now 41/41 rows — no longer placeholders), `pdd-readme-90/135/180/225/270/315` (plus 2 stale leftovers 0/45); 4 `promises-*.json` files also present = 23/23 total intent census items. The prior 13/23 finding (Gate 2 verifier, 13:25 IST) is superseded: the 10 missing chunks (`blueprint-288`, `deferred-42`, `spec-0`, `spec-45`, `pdd-readme-90/135/180/225/270/315`) have since landed. |
-| ledger-S2 (promise-ledger) | COMPLETE | `census/PROMISE_LEDGER.md` (577 lines) — states its own chunk coverage as "All 23 expected intent chunks present and non-placeholder"; every one of the 19 chunk ids + all 4 source names present in text |
+| intent-S2A..E (19 chunks dispatched in S2A-G; 23 expected in total) | COMPLETE (closed 2026-09-23, post-Gate-2-verifier re-check) — all 23 expected `census/intent/ledger-<id>.json` present and non-placeholder on disk, expected == assessed rows for every chunk (`stage0/INTENT_ROWCOUNT.md`, 1,032 total): `blueprint-0/48/96/144/192/240/288` (48 and 192 were dispatched before S2A-G, not leftovers — both are in the expected 23), `deferred-0/42/84`, `spec-0/45/90/135/180` (spec-90 now 45/45 rows, spec-180 now 41/41 rows — no longer placeholders), `pdd-readme-0/45/90/135/180/225/270/315` (0/45 likewise pre-S2A-G); the 4 `promises-*.json` source files are the row-count denominators, not chunks. The prior 13/23 finding (Gate 2 verifier, 13:25 IST) is superseded: the 10 missing chunks (`blueprint-288`, `deferred-42`, `spec-0`, `spec-45`, `pdd-readme-90/135/180/225/270/315`) have since landed. |
+| ledger-S2 (promise-ledger) | COMPLETE | `census/PROMISE_LEDGER.md` (579 lines, after the Gate 2 re-verifier's 21-row D81 regrade) — states its own chunk coverage as "All 23 expected intent chunks present, non-placeholder, and row-count-complete" (1,032 promises total, per `stage0/INTENT_ROWCOUNT.md`); every one of the 23 chunk ids + all 4 source names present in text |
 | world-S2 (harness-context, harness-tools, agent-native-ux, opp-ledger-verify) | COMPLETE | `census/world/harness-context.md`+`-COMPARE.md`, `harness-tools.md`+`-COMPARE.md`, `agent-native-ux.md`+`-COMPARE.md` (all 3 COMPARE docs substantial, 84-186 lines, "stub" mentions are only self-referential supersession notes, not empty stubs); `census/opp-ledger-verify.md` present |
 | ideate-S2 (sellside, designer, journalist-json, bloomberg-md) | COMPLETE | `invent/ideas/{sellside,designer}.{md,json}`, `journalist.json`, `bloomberg.md` all present; all 8 seats total (bloomberg, designer, forensic, hn-sceptic, journalist, quant, retail, sellside) have both `.md` and `.json` under `invent/ideas/` |
 | judge-S2 (backlog) | COMPLETE | `invent/BACKLOG.md` (1594 lines) + `invent/BACKLOG.json` — 58 items, every item has a rank (1..N, no gaps), all 6 surviving Tier-A opportunities (OPP-1,2,3,4,6,7; OPP-5 struck per the doc) folded in |
@@ -29,12 +29,13 @@ separately as a detached soak (`scratchpad/vysted-iso/soak/`, started 12:29, dur
 
 24/24 census items complete from disk (updated 2026-09-23, register re-build pass). Both
 previously-recorded gaps are now closed: the **refute stage of surf-S2C** (portfolio-notes,
-settings-plugins) landed its 8 + 7 verdict files, and the **intent census** now has all 19
+settings-plugins) landed its 8 + 7 verdict files, and the **intent census** now has all 23
 expected chunk ledgers on disk and non-placeholder (`blueprint-288`, `deferred-42`, `spec-0`,
 `spec-45`, `pdd-readme-90/135/180/225/270/315` all landed; `spec-90`/`spec-180` are fully
-assessed, not placeholders) — all 88 raw files parse and have refute files with matching
-verdict counts (except the one known exclusion, `code-brokers-adapters.json`, bulk-closed by
-design), all 19 intent chunk ledgers + 4 promise files (23/23, per `census/PROMISE_LEDGER.md`'s
-own "All 23 expected intent chunks present and non-placeholder"), all 3 world COMPARE docs, all
-8 invent seats + BACKLOG, and all 8 surface COVERAGE.json files — checks out complete, 0/24
-gaps remaining.
+assessed, not placeholders) — all 99 raw files (`census/raw/*.json`, counted from disk) parse
+and 98 have refute files with matching verdict counts (the one known exclusion,
+`code-brokers-adapters.json`, bulk-closed by design with no refute file), all 23 chunk ledgers
++ 4 promise files (23/23, per `census/PROMISE_LEDGER.md`'s own "All 23 expected intent chunks
+present, non-placeholder, and row-count-complete", 1,032 promises total, row counts verified
+per-chunk in `stage0/INTENT_ROWCOUNT.md`), all 3 world COMPARE docs, all 8 invent seats +
+BACKLOG, and all 8 surface COVERAGE.json files — checks out complete, 0/24 gaps remaining.

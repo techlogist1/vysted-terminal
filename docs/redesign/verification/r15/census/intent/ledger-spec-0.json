@@ -184,10 +184,11 @@
     "promise": "Orders never auto-apply; there is no 'YOLO' path.",
     "source": "constitution.md#Principle-III",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "src/modules/chat/ChatSidebar.tsx:359-360 \u2014 \"Orders route through the \u00a76.5 dialog (FR-011); the AI never reaches placement.\"; sidecar/services/broker_base.py's propose/confirm split (kill-switch re-checked at BOTH steps, :246-346) structurally prevents a single agent call from both proposing and executing an order.",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:359-360 \u2014 \"Orders route through the \u00a76.5 dialog (FR-011); the AI never reaches placement.\"; sidecar/services/broker_base.py's propose/confirm split (kill-switch re-checked at BOTH steps, :246-346) structurally prevents a single agent call from both proposing and executing an order. [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-SP-20",

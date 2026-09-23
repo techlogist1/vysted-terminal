@@ -424,10 +424,11 @@
     "promise": "A broker (or any) plugin attempts a write/execution path: the host \u00a76.5 gate governs it regardless of plugin code; the plugin cannot opt out.",
     "source": "spec.md#Edge-Cases",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "types/plugin.ts:68 (capabilities.supportsControlPlane: boolean \u2014 the host-side opt-out-proof flag); CLAUDE.md's own \u00a76.5/Plugin-contract sections (read at session start) describe the three-layer read-only-wrapper audit (inspect.getmembers over the provider's public surface, GET-only router.routes audit, supportsControlPlane=false) as Tier-1; sidecar/tests/test_brokers_readonly_routes.py and sidecar/tests/test_kite_account_readonly.py exist and are collected (compiled .pyc present in sidecar/tests/__pycache__).",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "types/plugin.ts:68 (capabilities.supportsControlPlane: boolean \u2014 the host-side opt-out-proof flag); CLAUDE.md's own \u00a76.5/Plugin-contract sections (read at session start) describe the three-layer read-only-wrapper audit (inspect.getmembers over the provider's public surface, GET-only router.routes audit, supportsControlPlane=false) as Tier-1; sidecar/tests/test_brokers_readonly_routes.py and sidecar/tests/test_kite_account_readonly.py exist and are collected (compiled .pyc present in sidecar/tests/__pycache__). [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-SP-89",

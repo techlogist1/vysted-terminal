@@ -434,10 +434,11 @@
     "promise": "HARD GUARDRAIL \u2014 a broker (or any) plugin MUST NOT be able to bypass the \u00a76.5 boundary: paper-mode default, read-only enforcement, the kill switch, position limits, the diff/accept gate, and append-only audit are all enforced by the host; plugins plug into them and cannot opt out.",
     "source": "spec.md#FR-055",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/tests/test_safety_end_to_end.py:163-179 (test_audit_2_no_bypass_path_to_place_confirmed greps sidecar/ for any `_place_confirmed(` call site outside the one sanctioned gate) plus the unchanged append-only DB triggers (audit_log.py) and kill-switch (services/kill_switch.py + src-tauri/src/kill_switch.rs) verified for pid105 above \u2014 enforcement is host-side and plugin adapters have no code path around it; the read-only-wrapper capability audit (inspect.getmembers for insert_/update_/delete_/place_/submit_/execute_/create_ methods, per CLAUDE.md's Plugin-contract section) applies uniformly to every installed broker plugin.",
-    "gap": null,
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/tests/test_safety_end_to_end.py:163-179 (test_audit_2_no_bypass_path_to_place_confirmed greps sidecar/ for any `_place_confirmed(` call site outside the one sanctioned gate) plus the unchanged append-only DB triggers (audit_log.py) and kill-switch (services/kill_switch.py + src-tauri/src/kill_switch.rs) verified for pid105 above \u2014 enforcement is host-side and plugin adapters have no code path around it; the read-only-wrapper capability audit (inspect.getmembers for insert_/update_/delete_/place_/submit_/execute_/create_ methods, per CLAUDE.md's Plugin-contract section) applies uniformly to every installed broker plugin. [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-SP-135",

@@ -158,5 +158,295 @@
     "evidence": "sidecar/services/search/searxng.py:45-49 (autodetect probes localhost:8888 + :8080), :116 (explicit URL wins); managed container sidecar/services/searxng_manager.py:69-71 + routes /search/searxng/{setup,status,teardown} (openapi on :52152); configurable URL src/store/search-settings.ts:198,355.",
     "gap": "",
     "decision_ref": "D20, D25, D74"
+  },
+  {
+    "pid": "INT-SP-152",
+    "promise": "The agent capability catalog MUST be complete for every obvious finance action so none is agent-unreachable: open/close/focus/arrange panels, apply/remove chart indicators, load any symbol, set timeframe, pull fundamentals/filings/news, compare instruments, run fast/deep research, and read/manage portfolios; every such capability MUST also be reachable by hand.",
+    "source": "spec.md#FR-090",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/catalog.py CAPABILITY_CATALOG declares open_panel/close_panel/focus_panel/arrange_layout, set_chart_indicators (replaces the selection => covers apply/remove), set_chart_symbol (optional timeframe param, l.983-990), fundamentals/sec_filings_list/sec_filing_content/news, compare_symbols, research (single tool, depth param covers fast/deep), get_portfolio/portfolio_add_position/portfolio_update_position/portfolio_delete_position. sidecar/tests/test_capability_completeness.py:19-45 pins the OBVIOUS_ACTIONS set against CAPABILITY_CATALOG in CI. Hand-reachability already verified in this same source at INT-SP-100 (ledger-spec-90.json) and INT-SP-74 (ledger-spec-45.json): every mutating HOST_ACTION_NAMES entry has a manual UI path (command palette / dockview tabs / chart search / watchlist controls / portfolio forms).",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-153",
+    "promise": "The agent MUST arrange the cockpit with built-in taste: arrange_layout MUST offer named templates (at least single-focus, research-cockpit, compare; macro-scan recommended) and the agent MUST pick a sensible template + default indicators for the asset class on its own when asked to 'research'/'set up' — not dumping everything in one tile, not asking the user how to arrange.",
+    "source": "spec.md#FR-091",
+    "kind": "behaviour",
+    "status": "delivered",
+    "evidence": "src/lib/layout-templates.ts:20 LayoutTemplate = \"single-focus\"|\"research-cockpit\"|\"compare\"|\"macro-scan\" (all four present, including the recommended macro-scan); sidecar/services/agent_tools/catalog.py:1115-1132 arrange_layout description explicitly instructs the model: \"When the user says 'set me up to research X' pick 'research-cockpit'... Choose the arrangement yourself — do not ask the user how to arrange.\"; sidecar/agents/copilot.json systemPrompt repeats this for the research flow (\"Pick the layout + indicators YOURSELF; never ask the user how to arrange\").",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-154",
+    "promise": "The system MUST apply sensible default indicators per asset class (equity daily: SMA50/200 + volume + RSI14; intraday: EMA9/21 + session-VWAP locale-anchored; ETF/index: + RS-line; crypto: EMA50/200 + week-VWAP + RSI, with OI/funding when a derivatives feed is available), centered and legible.",
+    "source": "spec.md#FR-092",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/lib/indicator-presets.ts:21-90 presetFor(assetClass, timeframe) returns per-asset-class/timeframe key sets (EQUITY_DAILY=[ma,volume,rsi,macd], EQUITY_INTRADAY=[ema,vwap,rsi,volume], ETF_DAILY=[ma,volume,rsi], CRYPTO_DEFAULT=[ema,vwap,rsi,volume]) with session/timeframe branching (isIntraday, l.55-59); sidecar/services/indicators.py:242-282 compute_vwap resets per calendar-day for intraday (session-VWAP, matches the equity-intraday clause) but for daily-or-coarser series (crypto/ETF) uses a whole-series running cumulative, never a week boundary.",
+    "gap": "The shipped indicator keys are generic, single-period ('ema'/'ma'), not the named multi-period combos: equity-intraday ships ONE EMA line (services/indicators.py:112 compute_ema default period=20) instead of an EMA9/21 crossover pair; crypto ships the same single EMA(20) instead of EMA50/200, and its VWAP is a full-series cumulative (indicators.py:268-271), never 'week-VWAP'. RS-line for ETF/index and OI/funding for crypto are explicitly, self-documented as deferred (indicator-presets.ts:36-38, 47-51: 'Deferred enhancement'/'Deferred-degrade (FR-092)').",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-155",
+    "promise": "The agent MUST be resourceful and never dead-end: on a failed path it MUST try an alternate source/route and succeed, or fail cleanly with a human message — it MUST NOT give up and print raw JSON or show wrong data.",
+    "source": "spec.md#FR-093",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_tools/price_data.py:44-54 (and the same pattern in fundamentals.py:67, macro_tools.py:46/77, earnings_tools.py:48-91, market_overview.py:63/90, compare_symbols.py:54-84, disclosure_tools.py:53-75, analyst_tools.py:39-79) catch ProviderError/Exception and return {\"ok\": False, \"error\": \"...\"} — a short human-readable string fed back to the LLM, never a raw traceback; provider_registry.get_history/get_quote (the shared call every agent tool goes through) already falls through providers before raising (evidence cited at INT-spec-135-137's admitted finding on the REST route layer). The agent-tool layer's clean {ok:false,error:...} shape is a different, already-humanized surface from the raw-exception REST routes flagged in INT-spec-135-137.",
+    "gap": "The registry-level 'try an alternate source/route' fallthrough is the same mechanism already flagged (raw-exception passthrough at the REST-route layer, not the agent-tool layer) in INT-spec-135-137 — see that finding for the REST-surface gap; at the agent-tool boundary itself the behaviour matches the promise.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-156",
+    "promise": "Every agent-mutating capability added by Pass B MUST route through the existing diff/accept gate; AUTO autonomy MAY skip per-action confirm for UI/layout/chart/watchlist ONLY and MUST NEVER auto-apply an order; the §6.5 boundary MUST NEVER be bypassed in any mode; brokers stay read-only.",
+    "source": "spec.md#FR-094",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/store/proposed-changes.ts:115-131 the AUTO auto-apply gate checks only `described.kind !== \"order\"` — propose_order is correctly excluded in every mode (src/store/agent-autonomy.ts:1-17 docstring, sidecar/services/agent_runtime.py:1186-1198 propose_order handler always returns status:\"awaiting_user_review\" regardless of autonomy). src/lib/host-actions.ts:762-849 shows portfolio_add_position/portfolio_update_position/portfolio_delete_position/write_note/save_layout/save_screen all classified kind:\"data-write\", and set_region kind:\"settings\" — none of these are order kind, so under `autonomy===\"auto\"` they ALL auto-apply via the same `kind !== \"order\"` check.",
+    "gap": "src/store/agent-autonomy.ts:6-16's own docstring states 'auto only skips the per-change accept for the read-only-app host-actions (panel / chart / watchlist)' — but the actual gate (proposed-changes.ts:118) auto-applies EVERY non-order kind, including data-write (portfolio position add/update/delete, note writes, saved layouts/screens) and settings (region). This is broader than both the spec promise ('UI/layout/chart/watchlist ONLY') and the module's own stated safety line: under AUTO mode a user's tracked-portfolio cost basis/quantity can be silently mutated with zero per-action confirmation. src/store/proposed-changes.test.ts:132-158 tests only the order-exclusion and a chart/UI case; no test exercises AUTO mode against a data-write kind, so the gap is unverified even by the project's own suite.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-157",
+    "promise": "The agent panel MUST provide a slash-command surface (inline fuzzy autocomplete, keyboard-driven) covering at least: /research, /deep, /compare, /chart, /screener, /watch, /portfolio, /layout, /export, /sources, /clear; custom .vysted/commands/ deferred to v2.",
+    "source": "spec.md#FR-100",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/chat/slash-commands.ts:155-227 SLASH_COMMANDS declares research/compare/chart/screener/watch/portfolio/layout/export/sources/clear, each with fuzzy scoring (scoreSlash, l.243) and keyboard nav via SlashCommandPicker.tsx (role=listbox/option, active index).",
+    "gap": "No `/deep` trigger — deliberate, self-documented: slash-commands.ts:156-160 'The ONE research entry (FR-115/SC-028). There is no /deep or /deep heavy — depth is internal escalation, not a user knob.' This is a later FR (FR-115, INT-SP-165) superseding FR-100's original list, not an unflagged gap.",
+    "decision_ref": "FR-115 (research-collapse, spec.md#FR-115) supersedes the /deep trigger named in FR-100"
+  },
+  {
+    "pid": "INT-SP-158",
+    "promise": "The agent panel MUST provide an @-mention surface (inline fuzzy picker) covering instruments (locale-aware resolution showing [exchange: price chg%]), surfaces, scopes, and sub-specialist routing (@analyst/@quant, implemented as prompt-prefix routing to existing personas in v1).",
+    "source": "spec.md#FR-101",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/chat/mentions.ts:90-103 @analyst/@quant defined as promptPrefix routing ('[Act as a fundamental analyst] ...') matching the v1 spec exactly; l.180-236 staticMatches + the /resolve-backed instrument picker (looksLikeInstrument, l.220-224) cover surfaces/scopes/instruments.",
+    "gap": "instrumentMention() (mentions.ts:229-236) renders instrument rows as `${symbol} · ${exchange}` with the instrument name as description — no price or change% is shown. The ResolveInstrument interface (l.192-207, mirroring sidecar/routers/resolve.py) carries no price field at all, so the picker cannot show '[exchange: price chg%]' as the promise names — it shows '[exchange]' only.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-159",
+    "promise": "Slash intent and @ scope MUST be orthogonally composable (/compare @AAPL @MSFT); a ticker MUST NOT be a slash command; the surfaces MUST not conflict with the §6.5 gate.",
+    "source": "spec.md#FR-102",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:685-696 a slash-command's PROMPT dispatch composes `template(args)` into a raw prompt (e.g. `compare @AAPL @MSFT`), and l.739 `applyMentionPrefixes(result.prompt)` runs on that composed string before send — slash templating and @-mention prefix routing chain on the same string. src/modules/chat/slash-commands.ts:155-226 SLASH_COMMANDS triggers (research/compare/chart/screener/watch/portfolio/layout/export/sources/clear) contain no bare ticker symbol. No slash/mention command reaches propose_order or any broker route.",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-160",
+    "promise": "The agent's portfolio read (get_portfolio and any portfolio-aware answer) MUST return the active portfolio from the real multi-portfolio store the UI shows — never a stale or divergent source; the portfolio panel publishes active-portfolio holdings to the panel-context bus, which the agent reads.",
+    "source": "spec.md#FR-110",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:187-248 publishes the ACTIVE portfolio's holdings/value/id/name to usePanelContextBus on mount and on change (comment cites 'FR-110/111, SC-024'); sidecar/services/agent_runtime.py:1183-1187 the local `_portfolio` tool handler reads `(terminal or {}).get(\"portfolio\")` from the same `__terminal__` snapshot the panel-context bus feeds per request.",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-161",
+    "promise": "Switching/creating/editing the active portfolio in the UI MUST change what the agent reads (single source of truth), with zero divergence; synthetic/paper values stay labeled.",
+    "source": "spec.md#FR-111",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/portfolio/PortfolioPanel.tsx:208-248 the publish effect keys off `activePortfolioId`/`activePortfolioName`/`holdingsKey` — any switch/edit of the active portfolio re-publishes to the same bus the agent's get_portfolio reads (see INT-SP-160 evidence), so there is one source of truth with no separate agent-side cache.",
+    "gap": "The 'synthetic/paper values stay labeled' clause targeted the now-removed broker paper-trading portfolio (COMMON.md/PROMPT_offmachine_s2.md §1 scope note: broker/paper-trading surfaces are dropped, not defects); the surviving manual tracked-portfolio (holdings/cost-basis/P&L) carries no 'synthetic' concept in code (grep for 'synthetic' in PortfolioPanel.tsx/portfolios.ts returns nothing) because real market prices, not simulated ones, price it.",
+    "decision_ref": "operator decision 23 Sep — trading/broker paper-portfolio removed from product; the surviving manual portfolio was never synthetic"
+  },
+  {
+    "pid": "INT-SP-162",
+    "promise": "Three agent speeds: FAST (bare @TICKER/quick command → default cockpit instantly, LLM-free), ORCHESTRATED (propose a panel set + ask-when-unsure, routed through the §6.5 bar), DEEP (one research path).",
+    "source": "spec.md#FR-112",
+    "kind": "capability",
+    "status": "missing",
+    "evidence": "grep -rn \"ORCHESTRATED\" across sidecar/services/*.py, src/store/*.ts, src/lib/*.ts returns zero matches. src/modules/chat/ChatSidebar.tsx:684-696 handleSend routes every input (bare ticker or not) through parseSlashInvocation/parseSlashCommand and then an LLM call (agentForCall/provider resolution, l.766+) — there is no code path that renders the default cockpit for a bare '@TICKER' without an LLM round-trip.",
+    "gap": "No FAST tier exists as a distinct LLM-free execution path, and no ORCHESTRATED label/tier exists anywhere in the codebase. The project does have an orthogonal 'autonomy' axis (ask/auto, src/store/agent-autonomy.ts) and a research 'depth' axis (quick/deep, src/store/research-depth.ts), but neither implements the specific three-named-speed model FR-112 describes — in particular, every request (including a bare ticker) still costs an LLM call and its latency; there is no zero-LLM instant path.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-163",
+    "promise": "Continuous situational awareness (live open-panels/focused-symbol/viewport every turn; 'this' resolves focus) + mandatory re-read of app state after any mutating action.",
+    "source": "spec.md#FR-113",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "sidecar/services/agent_runtime.py:444-517 _build_context_preamble reads the `__terminal__` snapshot and _render_terminal_preamble renders it as a system message appended to EVERY invocation (l.514-517), carrying open panels/focused symbol/viewport; sidecar/agents/copilot.json systemPrompt step 1: '\"this\", \"it\", \"my chart\"... call get_terminal_state... BEFORE answering'; agent_runtime.py:1157-1213 the host-action handler's AUTO-dispatch result explicitly instructs 'verify with get_terminal_state before claiming completion — panel state is authoritative, never your tool call' (also copilot.json's 'How your actions land' section).",
+    "gap": "The 'mandatory' re-read is enforced by system-prompt instruction to the LLM, not by a structural guarantee that re-injects fresh state after every mutation — compliance depends on the model following the instruction (consistent with how this agent architecture implements every other 'MUST'-worded behavioural promise in this chunk).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-164",
+    "promise": "Host-action completeness for obvious app-driving verbs (write screener filters, drawings, save-workspace, remove-from-watchlist, plan-stageable indicators/close/focus); each catalog-registered + §6.5-gated (orders never auto-apply, never FAST).",
+    "source": "spec.md#FR-114",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/agent_tools/catalog.py capability ids include write_screener_filters, save_layout (save-workspace), remove_from_watchlist, close_panel, focus_panel, set_chart_indicators — all host_action kind, routed through the same proposed-changes gate as every other host action (src/store/proposed-changes.ts). agent_runtime.py:61-70 _STAGEABLE_PLAN_ACTIONS now includes set_chart_indicators (fixed per docs/redesign/R4_STALE_CODE_REGISTER.md S-17, which originally flagged it missing).",
+    "gap": "No agent capability exists for chart drawings at all — grep for 'drawing' in catalog.py returns zero matches, even though drawings are a real, manual-only UI feature (src/store/chart-drawings.ts, src/modules/chart/drawings/{factory,renderers,base}.ts, ChartPanel.tsx) with no agent-facing write path. Separately, _STAGEABLE_PLAN_ACTIONS (agent_runtime.py:61-70) still omits close_panel and focus_panel — R4_STALE_CODE_REGISTER.md S-17 named all three (set_chart_indicators/close_panel/focus_panel) as needing the fix; only set_chart_indicators was added, close/focus_panel remain non-plan-stageable.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-165",
+    "promise": "Research collapses to ONE user-facing model (one entry; 'go deeper' escalates in place; mode/angles/backend internal; 0 redundant user-visible triggers; one deep loop).",
+    "source": "spec.md#FR-115",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/slash-commands.ts:156-163 self-documents the collapse ('The ONE research entry... There is no /deep or /deep heavy'); src/modules/chat/ChatSidebar.tsx:447-448 'There is no \"Deep Research\" toggle: research is ONE model and depth is the agent's call + the brief's \"Go deeper\" escalation (FR-115/SC-028)'; docs/redesign/REBUILD_R4_SESSION2_REPORT.md row 5 confirms (rendered-pixel + source-audit + 152 sidecar tests) the /deep + /deep-heavy triggers and the 'Deep research' composer toggle were removed, one deep loop (iter; deep.py demoted to internal helper), commit f97a3fe.",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-166",
+    "promise": "One interaction language: model-swap preserves context on every path; Enter sends in every composer; one mode system.",
+    "source": "spec.md#FR-116",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:749-757,1032 both the agent path and the raw-chat path build `messages: [...history, {role:\"user\",content:prompt}]` before sending, so a mid-thread model swap keeps the last-10-turn history on every path (docs/redesign/REBUILD_R4_REPORT.md 'APPLIED' row confirms this fix, commit 84a60c8: '/llm/chat now prepends the last-10 history (the agent path already did)'); the same report's VERIFIED row confirms the four-mode Ask/Edit/Build/Delegate vestige (S-15) was retired (`?? \"agent\"` default) leaving one mode system.",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-167",
+    "promise": "No hardcoded-that-should-be-dynamic; no TS↔Python contract drift; the stale-code register is executed.",
+    "source": "spec.md#FR-117",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "docs/redesign/R4_STALE_CODE_REGISTER.md enumerates the concrete drift/hardcoded items; spot-checked against current HEAD and all resolved: S-1 (warm-clay literal hex fallbacks) — grep for '#16140f|#100e0c|#a06b52' in src/app/globals.css returns zero; S-6 (BriefMode casing mismatch) — src/lib/brief-ingest.ts isAcceptableBriefMode/normalizeBriefMode now normalize the wire's lowercase mode at the boundary (used in src/store/brief.ts:121,250); S-7 (BriefStepKind missing 'distill'/'engine') — types/brief.ts:256-264 now includes both; S-8 (equity-hardcoded metric cards) — src/modules/research/brief-blocks.tsx:134,467-473 now branches deriveAssetClass into crypto/etf/fx/equity metric sets.",
+    "gap": "Not every register item was independently re-verified in this pass (29-promise budget); the register's own 'Cleanup acceptance' checklist (bottom of the file) was not re-run mechanically here — spot-checked items (S-1, S-6, S-7, S-8) all show as fixed at current HEAD, and the R4_STALE_CODE_REGISTER.md's E-section items (S-21a/b/c: cmdk palette, Tiptap notes, screener grammar) are independently confirmed delivered at INT-SP-170/171/172 below.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-168",
+    "promise": "Locale-aware market-session awareness (US+India first-class) on every price surface (open/pre/after/closed/last-close@tz), combined with staleness/provenance; a closed price never shown live.",
+    "source": "spec.md#FR-118",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/lib/market-session.ts:1-45 humanizeMarketState/isLiveQuote/sessionLabelFromFreshness implement exactly this (provider market_state -> friendly label; freshness-gated live-tick predicate), wired into src/modules/chart/ChartPanel.tsx:44 (sessionLabelFromFreshness) and src/modules/watchlist/WatchlistPanel.tsx (humanizeMarketState/isLiveQuote/useMarketSession).",
+    "gap": "The module is wired into only 2 price surfaces. grep for 'market-session' imports across src/modules/equity-overview/EquityOverviewPanel.tsx, src/modules/portfolio/PortfolioPanel.tsx, and every src/modules/screener/*.tsx file (CriterionGroupEditor, ScreenerCriteriaBuilder, ScreenerFormulaLeaf, ScreenerPanel, ScreenerPresets, ScreenerResultsTable) returns zero hits — those surfaces render prices/quotes with no session-awareness or staleness gating, contrary to 'every price surface'. docs/redesign/REBUILD_R4_SESSION2_REPORT.md's Tier-C list still named 'market-session awareness (FR-118)' as not-started at session-2 close; the chart/watchlist wiring found here is later, un-reported work, but it stops short of the other three named surfaces.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-169",
+    "promise": "Every interactive element + data surface renders its full state set via shared primitives; 0 silent '—' / raw-JSON dead-ends / silent skips.",
+    "source": "spec.md#FR-119",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "src/components/EmptyState.tsx is a shared, rolled-out primitive (git log: 5d09a6c 'feat(ui): shared EmptyState surface + rollout to dead-grey panels (R4 §8)').",
+    "gap": "This promise's 'raw-JSON dead-end' failure mode is the SAME underlying defect already raw-flagged (and admitted, medium) in this chunk's earlier session at INT-spec-135-137: /quotes and /macro REST routes surface a raw library exception/URL string, and services.errors.humanize is only wired into the LLM/agent routers, not the data routers a panel calls directly — not re-flagged here to avoid duplicating that finding.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-170",
+    "promise": "Raycast-grade ⌘K palette (grouped/scoped Ask-AI/Agents/Actions/Panels/Symbols; agents ranked above symbols; symbols gated; free-text AI-ask routes to the agent).",
+    "source": "spec.md#FR-120",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/components/CommandPalette.tsx:4-30 docstring: 'Five groups in fixed priority order: 1. Ask AI... 2. Agents 3. Actions 4. Panels 5. Symbols'; l.281-402 Command.Group blocks for ask-ai/Agents/Actions/Panels/Tickers/Symbols in that order (cmdk-powered, `import { Command } from \"cmdk\"` l.30); symbols group gated behind a query (l.139, 400-402). docs/redesign/REBUILD_R4_SESSION2_REPORT.md VERIFIED row confirms agents rank above symbols and symbols are query-gated via rendered-pixel proof (palette-groups.png).",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-171",
+    "promise": "Tiptap/Obsidian-grade notes (per-stock+general; markdown canonical blob via atomic write; slash/tables/wikilinks/markdown round-trip; .md share).",
+    "source": "spec.md#FR-121",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/notes/NotesPanel.tsx:23-29,113-122 useEditor with @tiptap/react StarterKit + Table/TableRow/TableCell/TableHeader + Markdown, plus slash-menu (l.94-95, SlashCommandExtension.ts) and wikilinks (WikiLinkExtension.ts); src/modules/notes/notes-persistence.ts:56-93 persistNoteMd/exportNoteMd write via the Rust `write_text_atomic` command (temp-file+rename) to `{appData}/notes/<scope>.md` and to a user-chosen `.md` export path.",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-172",
+    "promise": "Screener formula-grammar (nested AND/OR CriterionGroup editor + mathjs-in-Worker formula leaf — never expr-eval; agent-configurable via host action).",
+    "source": "spec.md#FR-122",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/modules/screener/CriterionGroupEditor.tsx is a recursive nested AND/OR group editor (nestable, per docs/redesign/R4_STALE_CODE_REGISTER.md S-21c and REBUILD_R4_SESSION2_REPORT.md's verified nested-group screenshot); src/lib/screener-expr.ts:1-31 is a hand-written recursive-descent parser (EBNF documented in the file) that mirrors sidecar/services/screener_formula.py — the SERVER is the sole evaluator ('it never evaluates anything; the server is the only evaluator', l.7-8), so there is no client-side eval surface at all (stronger than the named mathjs-in-Worker mitigation, which targeted the same expr-eval-RCE risk); grep for 'expr-eval'/'mathjs' across src/modules/screener/ and src/lib/screener-expr.ts returns zero — confirmed no expr-eval anywhere in the tree (package.json has no expr-eval dependency). write_screener_filters is a registered host_action capability (sidecar/services/agent_tools/catalog.py) routed through the proposed-changes gate.",
+    "gap": "An earlier commit (ba2d0eb, 'mathjs formula leaf') did add a client-side mathjs-in-Worker evaluator per the original FR-122 wording; a later commit (8b1d057, 'formula editor — caret-position errors, field autocomplete, example chips') replaced it with the current server-only design (deleted src/lib/screener-formula*.ts in favor of screener-expr.ts). docs/redesign/REBUILD_R4_SESSION2_REPORT.md still describes the earlier mathjs-Worker mechanism and is stale on this point relative to current HEAD; mathjs itself remains a real client-side dependency, but only for the UNRELATED node-editor 'code node' (src/modules/node-editor/code-node.ts:16-24, its own sandboxed-mathjs surface), not the screener formula leaf.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-173",
+    "promise": "Research presentation deepening (tables, ask-a-follow-up, storyline; clickable deduplicated source-type-badged sources rail with inline [n] hover/jump, broken-citations-shown).",
+    "source": "spec.md#FR-123",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "src/modules/research/BriefPanel.tsx:178-212,597-753 a collapsible sources tray with per-type quiet badges (news/research/filing/web), de-duplicated by URL (dedupeSources) before render, and l.740-753 renders [n]-clickable rows that scroll the matching source into view; src/modules/research/brief-blocks.tsx:668+ renders interactive `[n]` citation chips inline in the markdown body; MarkdownBody in brief-blocks.tsx parses tables (per CLAUDE.md's own gotcha: 'the synthesis markdown parsed into heading/prose/list/table blocks').",
+    "gap": "No 'ask-a-follow-up' UI affordance exists anywhere under src/modules/research/ (grep for 'follow.up'/'followup' returns nothing). 'broken-citations-shown' is implemented as the OPPOSITE of the promise: brief-blocks.tsx:1083-1089 sanitizeCitationMarkers STRIPS any `[n]` marker beyond the deduped source-rail range (or any marker on a zero-source brief) before parsing — comment: 'a dead chip never renders' — rather than rendering it visibly flagged as broken.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-174",
+    "promise": "Company-overview AI narrative (The-Take→business→storyline→balanced bull/bear→risks, typed blocks beside metric cards; numbers from structured only + post-generation numeric-verification pass; cite-every-claim; no buy/sell rec).",
+    "source": "spec.md#FR-124",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "sidecar/services/company_narrative.py:209 _verify_text (post-generation numeric-verification against a fixed source-values list, l.97-127) + the system prompt (l.322-330) restricts the model to ONLY the verified facts list ('never recall, estimate, or invent any figure... Any number you write that is not in the facts list will be redacted') and forbids price targets/forecasts; src/modules/equity-overview/EquityOverviewPanel.tsx:416-426 renders the narrative beside the metric cards via VerifiedProse.",
+    "gap": "The generated narrative is a 2-part structure — SUMMARY (company_narrative.py:335-337) + 2-4 INSIGHTS bullets (l.338-341), rendered as `narrative.summary`/`narrative.insights` (EquityOverviewPanel.tsx:416-426) — not the 5 named typed sections (The-Take / business / storyline / balanced bull/bear / risks) FR-124 specifies. There is no distinct bull/bear balance block and no distinct risks block; 'no buy/sell rec' is only implicitly covered via 'no price targets, no forecasts' in the system prompt, not an explicit recommendation ban.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-175",
+    "promise": "Shareable briefs, client-side only (markdown copy/export; PNG via html-to-image oklch-safe; PDF via window.print()+print stylesheet, jsPDF fallback; no backend/hosted link).",
+    "source": "spec.md#FR-125",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/export-artifact.ts:78-176 saveTextArtifact (markdown), savePngArtifact (html-to-image `toPng`, l.115-116), savePdfArtifact (l.145-176) all write via the Rust `write_text_atomic`/`write_bytes_atomic` commands to local disk (or a Blob-download fallback outside Tauri, l.10-11) — no network call, no backend route, no hosted link anywhere in the file.",
+    "gap": "PDF export does not use window.print()+a print stylesheet as the named primary mechanism with jsPDF as fallback; it goes straight through html-to-image raster → jsPDF pagination (l.151-174, no window.print/print() call anywhere in export-artifact.ts). Functionally equivalent (a shareable, client-side-only PDF is produced) but via a different mechanism than the one FR-125 names.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-176",
+    "promise": "Screener returns the full universe in seconds (batch quote endpoint + async + caching tiers + warm precompute; cold ≤ single-digit seconds for S&P 500, sub-second warm) with a visible skip ledger; 0 silently dropped symbols.",
+    "source": "spec.md#FR-126",
+    "kind": "guarantee",
+    "status": "partial",
+    "evidence": "sidecar/services/screener.py:145,510,785-875,1195-1327 implements the Yahoo v7 batch path (yahoo_batch_provider.fetch_quotes_batch), an itemized skip ledger (skip_details/skipped_count, l.785-819, 'SC-034 — zero silent drops'), and a warm-precompute background loop with 429-aware exponential backoff (_warm_sleep_seconds/_WARM_BACKOFF_FACTOR, l.1224-1236). docs/redesign/REBUILD_R4_SESSION2_REPORT.md's live numbers (freshly-rebuilt binary): S&P 500 warm 2.84s / 0 skipped (itemized, empty ledger), vs the pre-fix baseline of 205.5s / 178-of-506 silently skipped — skip-count target (0) is met.",
+    "gap": "Neither timing target is empirically confirmed as met: warm measured at 2.84s, not 'sub-second'; cold measured at 329.8s (S&P 500) / 32.7s (nifty50), both far above 'single-digit seconds', though session2's own report attributes this specific run to a self-inflicted Yahoo IP rate-limit (429) from the session's own heavy test load rather than a structural flaw, and the backoff hardening it recommended is now present in code (_warm_sleep_seconds). No live re-measurement was run in this pass (COMMON.md restricts driving the shared isolated stack to read-only GETs; a full-universe screener run was out of scope here).",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-177",
+    "promise": "The four named bugs (screener column overlap, 502 empty-series, date-change crash, macOS Layout menu) fixed/confirmed with rendered-pixel/trusted-event/native proof.",
+    "source": "spec.md#FR-127",
+    "kind": "guarantee",
+    "status": "delivered",
+    "evidence": "docs/redesign/REBUILD_R4_REPORT.md 'VERIFIED' table: Bug-1 screener column overlap (rig+Quartz, both maximized/narrow widths, commit d1dab34), Bug-2 502->200-empty (unit+HTTP+rig+Quartz on the fresh --onefile binary, commits 528deca/8d190b6), Bug-3 timeframe-switch crash (rig+Quartz against the real lightweight-charts series with the exact crash inputs injected, commit 552c7ac), Bug-4 macOS Layout menu (operator-ratified native click -> all 5 modes verified, commit 0397469). Spot-checked at current HEAD: sidecar/routers/history.py:10,66-73 still imports and catches EmptySeriesError, downgrading the empty-series case to a clean 200 (Bug-2 fix intact).",
+    "gap": "",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-178",
+    "promise": "The original 'Cold Instrument' design language applied (OKLCH zinc+indigo re-value into historical token names, 3-place canvas lockstep; type/spacing/unified-motion tokens; elevation-by-luminance with no neon/glow; warm-clay fallbacks purged; accent ≤5% of pixels).",
+    "source": "spec.md#FR-128",
+    "kind": "quality-bar",
+    "status": "delivered",
+    "evidence": "docs/redesign/REBUILD_R4_SESSION2_REPORT.md VERIFIED row (Design language, commit 3483aa1): live tokens read back charcoal-950 #0a0a0c, amber-400 #7e88e8 (re-valued indigo under the historical fossil name), --accent-rgb 126 136 232, --glow-coral removed, measured contrast floors (body 16.44:1, secondary 11.99:1, accent-on-surface 5.65:1, all passing), warm-clay rg-clean. Independently spot-checked: grep for '#16140f|#100e0c|#1a1714|#a06b52|#7c5240|warm.?clay' in src/app/globals.css returns zero matches.",
+    "gap": "The 'accent ≤5% of pixels' pixel-budget claim is a visual measurement from the cited report's screenshots, not independently re-measured in this headless pass.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-179",
+    "promise": "First-run teaches the agent's power (interactive 'try this' chips that run); keyboard-first navigation throughout.",
+    "source": "spec.md#FR-129",
+    "kind": "capability",
+    "status": "partial",
+    "evidence": "Keyboard-first navigation: src/store/keybindings.ts (411 lines, a full rebindable keybinding registry) + the ⌘K palette's arrow/enter navigation (src/components/CommandPalette.tsx) + SlashCommandPicker.tsx's role=listbox keyboard model together give the app a keyboard-first surface throughout.",
+    "gap": "No first-run 'try this' interactive chip feature exists: grep for 'try this'/'chip'/'example'/'suggest'/'quickstart' in src/components/OnboardingFlow.tsx returns no matching onboarding affordance (the only 'chip' hit is unrelated hardware-chip copy, l.527). docs/redesign/REBUILD_R4_SESSION2_REPORT.md's Tier-C list still names 'teach-the-agent first-run' as not-started at session-2 close, and current HEAD confirms it remains unbuilt.",
+    "decision_ref": null
+  },
+  {
+    "pid": "INT-SP-180",
+    "promise": "Session restore + per-research-space agent memory (typed research-space field; per-space agent context persisted in the workspace blob, restored on reopen).",
+    "source": "spec.md#FR-130",
+    "kind": "capability",
+    "status": "delivered",
+    "evidence": "src/lib/workspace.ts:138-151 `researchSymbol?: string` is a genuine TYPED field on the workspace blob, comment: 'TYPED research-space marker (S-19)... Replaces the fragile \"Research: \" name-prefix detection... read this field first and fall back to the prefix only for OLD blobs that pre-date it' — this is R4_STALE_CODE_REGISTER.md's S-19 fix, confirmed applied at current HEAD (the register, written against an earlier commit, still described the fragile prefix-only state). l.152 `researchSpaces?: WorkspaceResearchSpaces` persists per-space durable agent memory (chat transcript + prior-research summary) keyed by research-space name, restored via src/store/research-spaces.ts.",
+    "gap": "",
+    "decision_ref": null
   }
 ]

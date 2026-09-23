@@ -233,6 +233,33 @@
    ]
   },
   {
+   "id": "R15-UI-090",
+   "severity": "high",
+   "area": "ui",
+   "subsystem": "market-data-providers-3",
+   "title": "Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all",
+   "files": [
+    "sidecar/routers/quotes.py",
+    "sidecar/services/locale.py",
+    "src/lib/market-session.ts",
+    "src/modules/portfolio/PortfolioPanel.tsx",
+    "src/modules/equity-overview/EquityOverviewPanel.tsx"
+   ],
+   "repro": "Region IN, during NSE hours (US closed): GET /quotes/AAPL -> freshness 'live'; the chart/watchlist (isLiveQuote keys on freshness==='live') treat it as a live tick. Open Portfolio after close -> no Market-closed/After-hours/stale cue anywhere.",
+   "evidence": "sidecar/routers/quotes.py:30-45 (_label_freshness calls freshness_for(config.get_region(), ...)); sidecar/services/locale.py:227 freshness_for; src/lib/market-session.ts (FR-118 helpers) imported only by src/modules/chart/ChartPanel.tsx and src/modules/watchlist/WatchlistPanel.tsx. Refuter: INT-spec-135-168 admitted_with_correction high (reproduced the IN-locale US-quote 'live' label; corrected that Equity Overview and screener do carry a freshness chip/as-of line, only Portfolio has none).",
+   "root_cause": "_label_freshness derives the trading calendar from the session region (config.get_region()) instead of the instrument's exchange/region, and the FR-118 session helpers were rolled out to only two panels.",
+   "fix_shape": "Resolve the calendar region from the instrument (resolver exchange/region, or quote.exchange) inside _label_freshness; roll the market-session label into Portfolio and Equity Overview. Pin with a sidecar test (region=IN, US symbol, NSE-hours timestamp -> freshness != 'live') and a Portfolio panel test (eod freshness -> session cue rendered).",
+   "defect_class": "freshness-wrong-calendar",
+   "raw_ids": [
+    "INT-spec-135-168"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ]
+  },
+  {
    "id": "R15-UI-010",
    "severity": "medium",
    "area": "ui",
@@ -1472,7 +1499,11 @@
    "raw_ids": [
     "INT-spec-180-215"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
   },
   {
    "id": "R15-UI-084",
@@ -1492,7 +1523,11 @@
    "raw_ids": [
     "INT-spec-90-5"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
   },
   {
    "id": "R15-UI-085",
@@ -1515,7 +1550,10 @@
     "INT-deferred-42-4",
     "INT-spec-180-217"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
   },
   {
    "id": "R15-UI-086",
@@ -1535,7 +1573,10 @@
    "raw_ids": [
     "INT-spec-180-189"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
   },
   {
    "id": "R15-UI-087",
@@ -1557,7 +1598,11 @@
    "raw_ids": [
     "INT-spec-90-10"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "agent-chat"
+   ]
   },
   {
    "id": "R15-UI-088",
@@ -1578,7 +1623,57 @@
    "raw_ids": [
     "INT-deferred-42-2"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-091",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "frontend-panels-data-surfaces",
+   "title": "Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equity, EMA50/200 + week-anchored VWAP for crypto): the chart opens with an empty indicator set, the only live seeding has no timeframe dimension, and EMA is hard-fixed at period 20",
+   "files": [
+    "sidecar/services/research/fast.py",
+    "sidecar/services/indicators.py",
+    "src/lib/indicator-presets.ts"
+   ],
+   "repro": "Open an intraday equity chart or a crypto symbol -> no indicators seeded; the research cockpit's suggested set is the same daily ma/volume/rsi/macd for every equity regardless of timeframe; no indicator request can yield EMA9/21 or a week-boundary VWAP.",
+   "evidence": "sidecar/services/research/fast.py:85 _suggested_indicators(asset_class) (no timeframe input); sidecar/services/indicators.py:112 compute_ema(period=20, builders take only (df, times)), :242 compute_vwap (session-reset or whole-series only); src/lib/indicator-presets.ts presetFor is dead code (see R15-CODE-FRONTEND-024). Refuter: INT-spec-135-154 admitted_with_correction medium.",
+   "root_cause": "Indicator builders are not parameterised (period/anchor fixed), and the only live preset source ignores timeframe; the timeframe-aware preset module was never wired.",
+   "fix_shape": "Accept params in indicator specs (e.g. 'ema:9'), add a week anchor to compute_vwap, and have _suggested_indicators take timeframe+asset_class returning the FR-092 sets (delete or wire indicator-presets.ts, one source). Pin with a sidecar test: (equity,5m) -> ema:9,ema:21; (crypto,1d) -> ema:50,ema:200,vwap:week.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-135-154"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-092",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "research-extraction-synthesis",
+   "title": "Out-of-range citation markers are silently deleted from research briefs, so a cited-but-broken claim becomes indistinguishable from an uncited one (the inverse of FR-123 'broken citations shown'); no brief-anchored follow-up affordance either",
+   "files": [
+    "src/lib/brief-ingest.ts",
+    "src/modules/research/brief-blocks.tsx"
+   ],
+   "repro": "Brief markdown cites [47] against 21 deduped sources (or any [n] on a zero-source brief) -> the marker is stripped before render with no flag, count or notice; the reader sees an uncited claim.",
+   "evidence": "src/lib/brief-ingest.ts:401 sanitizeCitationMarkers; src/modules/research/brief-blocks.tsx:40, :1088 (applied on render). Refuter: INT-spec-135-173 admitted_with_correction medium (follow-up half corrected: askable via the chat composer, only a brief-anchored affordance is missing, low on its own).",
+   "root_cause": "The R8 'never a dead chip' rule was implemented as deletion instead of an inert flagged marker.",
+   "fix_shape": "Replace each out-of-range [n] with an inert, non-clickable flagged marker (muted '[?]' with 'citation not in sources' title) and surface a broken-citation count in the Sources rail header; optionally a 'Ask a follow-up' button that prefills the composer with the brief context. Pin with a brief-ingest unit test ([47] vs 21 sources -> flagged marker kept, count=1).",
+   "defect_class": "failure-hidden-from-user",
+   "raw_ids": [
+    "INT-spec-135-173"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ]
   },
   {
    "id": "R15-UI-060",
@@ -2162,7 +2257,59 @@
    "raw_ids": [
     "INT-spec-90-8"
    ],
-   "tier4": false
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ]
+  },
+  {
+   "id": "R15-UI-093",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-agent-shell",
+   "title": "The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change",
+   "files": [
+    "src/modules/chat/mentions.ts",
+    "src/modules/chat/MentionPicker.tsx",
+    "sidecar/routers/resolve.py"
+   ],
+   "repro": "Type '@AAPL' in the composer -> row reads 'AAPL · NMS' + company name; no price or day change.",
+   "evidence": "src/modules/chat/mentions.ts:192-207 (ResolveInstrument has no price field), :233 instrumentMention (label symbol · exchange); MentionPicker.tsx has no quote fetch; /resolve returns no price. Refuter: INT-spec-135-158 admitted_with_correction medium->low (exchange + name already disambiguate).",
+   "root_cause": "The resolver contract carries no quote and the picker does no follow-up fetch.",
+   "fix_shape": "Batch-fetch quotes for the top N visible candidates (debounced) and render price + chg% in the row description; pin with a mentions test that a quoted row renders '[NMS: 227.1 +0.8%]'.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-135-158"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ]
+  },
+  {
+   "id": "R15-UI-094",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "fundamentals-profile",
+   "title": "The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks)",
+   "files": [
+    "sidecar/services/company_narrative.py",
+    "src/modules/equity-overview/EquityOverviewPanel.tsx",
+    "types/data.ts"
+   ],
+   "repro": "Open Equity Overview for any symbol with a narrative -> only a 2-4 sentence summary and 2-4 insight bullets; no bull/bear or risks block.",
+   "evidence": "sidecar/services/company_narrative.py:339-341 (_build_messages asks only SUMMARY + INSIGHTS), :358-377 parser; src/modules/equity-overview/EquityOverviewPanel.tsx:420-426 (renders narrative.summary/insights only). Refuter: INT-spec-135-174 admitted low (facts-only prompt and _verify_text pass are delivered).",
+   "root_cause": "The narrative contract was built with two sections only.",
+   "fix_shape": "Extend the prompt and parser to the five named sections (each still through _verify_text), add the fields to the narrative model + types/data.ts mirror, render them as typed blocks. Pin with a parser test on a five-section fixture.",
+   "defect_class": "promise-unbuilt",
+   "raw_ids": [
+    "INT-spec-135-174"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "research-search"
+   ]
   }
  ],
  "rejections": [

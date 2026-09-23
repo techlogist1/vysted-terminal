@@ -94,10 +94,12 @@
     "promise": "The real Kite OAuth exchange (POST /brokers/kite/session) performs the genuine generate_session call (SHA-256 checksum plus a call to Kite's /session/token endpoint).",
     "source": "docs/CURRENT_STATE.md \u00a73.2",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "sidecar/services/brokers/kite.py:507-533 (exchange_request_token: real KiteConnect.generate_session SHA-256 exchange); sidecar/routers/brokers.py:415-420 (POST /brokers/kite/session wired to it)",
-    "gap": "The backend exchange is genuine and correct, but nothing in the frontend calls it: grep for 'kite/session' / 'exchangeSession' across src/ returns zero hits. src/modules/broker-connect/BrokerConnectPanel.tsx:54-58 instead lists a plain 'Access Token' paste field for kite alongside api_key/api_secret/static_ip and posts straight to /brokers/{id}/connect (see F1 in return summary) -- the 'genuine end-to-end OAuth exchange' is backend-only, unreachable through the shipped UI.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 (exchange_request_token: real KiteConnect.generate_session SHA-256 exchange); sidecar/routers/brokers.py:415-420 (POST /brokers/kite/session wired to it) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the partial evidence above is retained for record but the promise is dropped, not partial.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "partial",
+    "prior_gap": "The backend exchange is genuine and correct, but nothing in the frontend calls it: grep for 'kite/session' / 'exchangeSession' across src/ returns zero hits. src/modules/broker-connect/BrokerConnectPanel.tsx:54-58 instead lists a plain 'Access Token' paste field for kite alongside api_key/api_secret/static_ip and posts straight to /brokers/{id}/connect (see F1 in return summary) -- the 'genuine end-to-end OAuth exchange' is backend-only, unreachable through the shipped UI."
   },
   {
     "pid": "INT-PD-191",
@@ -374,30 +376,36 @@
     "promise": "Seven broker plugins under plugins/brokers/ each export a full plugin contract but are not registered in the bundled-plugins list and are not imported anywhere under the frontend source -- they exist only as contract-conformance test fixtures, and broker execution bypasses the plugin subsystem entirely.",
     "source": "docs/CURRENT_STATE.md \u00a73.4",
     "kind": "deferred-item",
-    "status": "partial",
-    "evidence": "plugins/brokers/*/manifest.json (7 broker plugin dirs, unchanged); src/lib/marketplace.ts:20-33 (alpacaPlugin, angelOnePlugin, ccxtExecPlugin, dhanPlugin, ibPlugin, kitePlugin, oandaPlugin ARE imported and each has a CATALOG_ROWS entry, contradicting 'not imported anywhere under the frontend source'); sidecar/services/brokers/registry.py:12-20,38-68 ('FR-051 -- no broker registers at boot ... KNOWN_ADAPTER_FACTORIES maps every supported BrokerId to a zero-arg factory')",
-    "gap": "'Not registered ... not imported anywhere under the frontend source' is now false -- all seven are imported into the marketplace catalog and are registered lazily through a real factory registry the moment their marketplace plugin connects. 'Broker execution bypasses the plugin subsystem entirely' still holds in the narrow sense that order placement itself is a REST call, not a plugin-contract method call, but broker DISCOVERY/CONNECTION now runs entirely through the marketplace/plugin path.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "plugins/brokers/*/manifest.json (7 broker plugin dirs, unchanged); src/lib/marketplace.ts:20-33 (alpacaPlugin, angelOnePlugin, ccxtExecPlugin, dhanPlugin, ibPlugin, kitePlugin, oandaPlugin ARE imported and each has a CATALOG_ROWS entry, contradicting 'not imported anywhere under the frontend source'); sidecar/services/brokers/registry.py:12-20,38-68 ('FR-051 -- no broker registers at boot ... KNOWN_ADAPTER_FACTORIES maps every supported BrokerId to a zero-arg factory') [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the partial evidence above is retained for record but the promise is dropped, not partial.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "partial",
+    "prior_gap": "'Not registered ... not imported anywhere under the frontend source' is now false -- all seven are imported into the marketplace catalog and are registered lazily through a real factory registry the moment their marketplace plugin connects. 'Broker execution bypasses the plugin subsystem entirely' still holds in the narrow sense that order placement itself is a REST call, not a plugin-contract method call, but broker DISCOVERY/CONNECTION now runs entirely through the marketplace/plugin path."
   },
   {
     "pid": "INT-PD-219",
     "promise": "Only Dhan, Angel One, and Kite broker adapters are registered by default; fully-implemented Alpaca, Interactive Brokers, OANDA, and ccxt-execution adapters are never registered and are therefore dead at runtime.",
     "source": "docs/CURRENT_STATE.md \u00a73.5",
     "kind": "deferred-item",
-    "status": "partial",
-    "evidence": "sidecar/services/brokers/registry.py:12-20 ('The sidecar registers no broker adapter at startup ... registered lazily via ensure_registered when its marketplace plugin connects'), :49-68 (KNOWN_ADAPTER_FACTORIES lists all of dhan, angelone, kite, alpaca, ib, oanda, plus 4 ccxt-* variants -- 10 factories, uniform); src/lib/marketplace.ts:188-320 (all 7 broker CATALOG_ROWS entries have preinstalled: false -- kite/dhan/angelone are NOT distinguished from alpaca/ib/oanda/ccxt-exec any more)",
-    "gap": "The promise's 3-registered-by-default vs 4-dead split no longer exists. The redesign (FR-051) made ALL adapters -- including Dhan/AngelOne/Kite -- lazy/on-connect rather than boot-registered, and Alpaca/IB/OANDA/ccxt-exec are reachable through the identical marketplace-connect path, so they are not 'dead at runtime.'",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/brokers/registry.py:12-20 ('The sidecar registers no broker adapter at startup ... registered lazily via ensure_registered when its marketplace plugin connects'), :49-68 (KNOWN_ADAPTER_FACTORIES lists all of dhan, angelone, kite, alpaca, ib, oanda, plus 4 ccxt-* variants -- 10 factories, uniform); src/lib/marketplace.ts:188-320 (all 7 broker CATALOG_ROWS entries have preinstalled: false -- kite/dhan/angelone are NOT distinguished from alpaca/ib/oanda/ccxt-exec any more) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the partial evidence above is retained for record but the promise is dropped, not partial.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "partial",
+    "prior_gap": "The promise's 3-registered-by-default vs 4-dead split no longer exists. The redesign (FR-051) made ALL adapters -- including Dhan/AngelOne/Kite -- lazy/on-connect rather than boot-registered, and Alpaca/IB/OANDA/ccxt-exec are reachable through the identical marketplace-connect path, so they are not 'dead at runtime.'"
   },
   {
     "pid": "INT-PD-220",
     "promise": "The Kite Connect OAuth flow is genuinely end-to-end: the user pastes an API key/secret, the login page opens in the system browser, the user manually pastes back the redirect URL or bare request token (a deliberate v1 choice, since the registered redirect has no Rust loopback listener), and the sidecar then performs the real session-generation exchange to obtain a daily access token.",
     "source": "docs/CURRENT_STATE.md \u00a73.5",
     "kind": "capability",
-    "status": "partial",
-    "evidence": "sidecar/services/brokers/kite.py:507-533 (genuine generate_session exchange, delivered); grep for 'request_token'/'kite.*login'/'kite.*oauth' across src/ (excluding tests) hits only src/lib/marketplace.ts's descriptive copy string, never a call site",
-    "gap": "The backend half is genuinely end-to-end as described. The frontend half is not: no UI path opens the login page or collects/exchanges a request_token -- BrokerConnectPanel.tsx:54-58 instead asks the user to paste a pre-obtained 'Access Token' directly as a stored credential field. A real user cannot exercise the documented flow through the shipped app; see F1 in return summary.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/brokers/kite.py:507-533 (genuine generate_session exchange, delivered); grep for 'request_token'/'kite.*login'/'kite.*oauth' across src/ (excluding tests) hits only src/lib/marketplace.ts's descriptive copy string, never a call site [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the partial evidence above is retained for record but the promise is dropped, not partial.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "partial",
+    "prior_gap": "The backend half is genuinely end-to-end as described. The frontend half is not: no UI path opens the login page or collects/exchanges a request_token -- BrokerConnectPanel.tsx:54-58 instead asks the user to paste a pre-obtained 'Access Token' directly as a stored credential field. A real user cannot exercise the documented flow through the shipped app; see F1 in return summary."
   },
   {
     "pid": "INT-PD-221",
@@ -424,20 +432,23 @@
     "promise": "At this baseline, the granular /positions, /holdings, and /margins broker endpoints all return the same account-summary shape as /account, because no adapter yet defines the granular per-endpoint methods.",
     "source": "docs/CURRENT_STATE.md \u00a73.5",
     "kind": "behaviour",
-    "status": "partial",
-    "evidence": "sidecar/services/brokers/kite.py:241,256,269 (positions_info/holdings_info/margins_info ARE defined -- genuinely granular BrokerPositionsResult/BrokerHoldingsResult/BrokerMarginsResult shapes); sidecar/routers/brokers.py:192-206 (_read_granular falls back to account_info() via getattr when a method is absent); grep confirms none of dhan.py/angelone.py/alpaca.py/ib.py/oanda.py/ccxt_exec.py define positions_info/holdings_info/margins_info",
-    "gap": "Stale for the reference broker: Kite now DOES define the granular per-endpoint methods, so its /positions, /holdings, /margins responses are genuinely distinct shapes, not account-summary copies. The other six adapters still fall back exactly as the promise describes.",
-    "decision_ref": null
+    "status": "dropped",
+    "evidence": "sidecar/services/brokers/kite.py:241,256,269 (positions_info/holdings_info/margins_info ARE defined -- genuinely granular BrokerPositionsResult/BrokerHoldingsResult/BrokerMarginsResult shapes); sidecar/routers/brokers.py:192-206 (_read_granular falls back to account_info() via getattr when a method is absent); grep confirms none of dhan.py/angelone.py/alpaca.py/ib.py/oanda.py/ccxt_exec.py define positions_info/holdings_info/margins_info [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the partial evidence above is retained for record but the promise is dropped, not partial.]",
+    "gap": "",
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "partial",
+    "prior_gap": "Stale for the reference broker: Kite now DOES define the granular per-endpoint methods, so its /positions, /holdings, /margins responses are genuinely distinct shapes, not account-summary copies. The other six adapters still fall back exactly as the promise describes."
   },
   {
     "pid": "INT-PD-224",
     "promise": "In paper mode, or when no live broker client is connected, a 'connected' broker returns a synthetic fixed account balance with empty positions -- fabricated data, not real holdings.",
     "source": "docs/CURRENT_STATE.md \u00a73.5",
     "kind": "behaviour",
-    "status": "delivered",
-    "evidence": "sidecar/services/brokers/kite.py:178-182 (paper/no-client -> accountId 'paper-kite', synthetic balance), :231-235 (result dict explicitly carries 'synthetic': synthetic -- the FR-041 provenance label, an extra safeguard beyond what the promise claims)",
+    "status": "dropped",
+    "evidence": "sidecar/services/brokers/kite.py:178-182 (paper/no-client -> accountId 'paper-kite', synthetic balance), :231-235 (result dict explicitly carries 'synthetic': synthetic -- the FR-041 provenance label, an extra safeguard beyond what the promise claims) [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 \u2014 the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
     "gap": "",
-    "decision_ref": null
+    "decision_ref": "operator decision 23 Sep \u2014 trading removed from product; docs/redesign/DECISIONS.md:141 (D81 \u2014 trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-PD-225",

@@ -1283,6 +1283,86 @@
   }
  },
  {
+  "raw_id": "INT-spec-135-154",
+  "title": "Default chart indicators for intraday-equity and crypto ship a single generic EMA(20) instead of the named EMA9/21 / EMA50/200 multi-line combos, and crypto's default VWAP is never week-anchored",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "chart-indicators",
+  "repro": "open an intraday-timeframe equity chart or any crypto symbol with no manual indicator selection -> the seeded indicator set is a single EMA line + one VWAP line (session or full-series cumulative), never the two-line EMA crossover or a week-boundary VWAP the spec names",
+  "evidence": "src/lib/indicator-presets.ts:21-90 (EQUITY_INTRADAY/CRYPTO_DEFAULT both just ['ema','vwap','rsi','volume']); sidecar/services/indicators.py:112 (compute_ema default period=20, no multi-period pair requested by the preset); sidecar/services/indicators.py:242-282 compute_vwap (session-reset for intraday, full-series cumulative for daily-or-coarser — never a calendar-week boundary)",
+  "notes": "FR-092 names specific multi-period combinations (EMA9/21 crossover for intraday equity, EMA50/200 + week-VWAP for crypto) as the researched, correct defaults; the shipped preset silently substitutes a single generic-period EMA and a non-week VWAP. Smallest fix: parametrize presetFor() to request `ema:9,ema:21` (or a distinct 'ema_pair' indicator) for intraday equity and `ema:50,ema:200` for crypto, and add a week-boundary grouping mode to compute_vwap gated on asset_class=crypto.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "The gap holds: no seeded default ever yields EMA9/21 (intraday equity) or EMA50/200 + week-VWAP (crypto), and it cannot, because every indicator builder takes only (df, times) so EMA is hard-fixed at period 20 and compute_vwap only knows session-reset or whole-series cumulative. Corrected mechanism: the cited src/lib/indicator-presets.ts presetFor is dead code (imported only by its own test); the chart opens with an EMPTY indicator set and the only live seeding is the research cockpit's _suggested_indicators in fast.py, which has no timeframe dimension at all (equity always gets the ma/volume/rsi/macd daily set, so there is no intraday-equity preset in the product)."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-158",
+  "title": "The @-mention instrument picker never shows live price or change%, contrary to the spec's named '[exchange: price chg%]' format",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "chat-mentions",
+  "repro": "type '@AAPL' in the chat composer -> the picker row reads 'AAPL · NMS' (symbol + exchange) with the company name as description; no price or day-change% appears anywhere in the row",
+  "evidence": "src/modules/chat/mentions.ts:192-207 (ResolveInstrument interface, no price/change field), :229-236 (instrumentMention: label=`${symbol} · ${exchange}`, description=name only)",
+  "notes": "FR-101 explicitly specifies the instrument row shows '[exchange: price chg%]' so a user can sanity-check which listing they're mentioning without leaving the composer; the /resolve route this picker calls (sidecar/routers/resolve.py) doesn't return price data at all, so the feature can't be added without either a resolver change or a follow-up quote fetch per candidate row. Smallest fix: have the mention picker batch-fetch quotes for the top N candidates (or extend /resolve to embed a last-quote snapshot) and render it inline.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "low",
+   "reason": "The gap is real: instrumentMention renders only `${symbol} · ${exchange}` plus the company name, the ResolveInstrument shape has no price/change field, MentionPicker.tsx has no quote fetch, and live /resolve returns no price, so FR-101's '[exchange: price chg%]' row is not delivered. Severity corrected medium -> low: the row already shows exchange + full company name, which is what actually disambiguates which listing is being mentioned; the missing price/chg% is a glanceability nicety, not a defect a user trips over in normal use."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-168",
+  "title": "Market-session/staleness awareness (FR-118) is wired into only the chart and watchlist panels; equity overview, portfolio, and every screener surface show quotes with no session or staleness context",
+  "severity": "high",
+  "area": "ui",
+  "subsystem": "market-session",
+  "repro": "open the Equity Overview panel, the Portfolio panel, or the Screener results table for any symbol after market close -> the price renders with no 'Market closed'/'After-hours'/staleness cue anywhere; compare to the Watchlist or Chart panel, which do show it",
+  "evidence": "src/lib/market-session.ts:1-45 (humanizeMarketState/isLiveQuote/sessionLabelFromFreshness/useMarketSession, self-documented FR-118); imports confirmed only in src/modules/chart/ChartPanel.tsx:44 and src/modules/watchlist/WatchlistPanel.tsx; grep for 'market-session' in src/modules/equity-overview/EquityOverviewPanel.tsx, src/modules/portfolio/PortfolioPanel.tsx, and every src/modules/screener/*.tsx file returns zero matches",
+  "notes": "FR-118 states 'a closed price never shown live' as a hard guarantee across EVERY price surface, and this is money-correctness-adjacent (a stale/closed price rendered with no distinguishing cue can mislead a user into thinking it's a live tick). docs/redesign/REBUILD_R4_SESSION2_REPORT.md's own Tier-C list still named this as not-started at session-2 close; the chart/watchlist wiring is later, undocumented work that only covers 2 of at least 5 price-bearing surfaces. Smallest fix: import the existing market-session.ts helpers into EquityOverviewPanel, PortfolioPanel, and ScreenerResultsTable the same way WatchlistPanel already does — the primitive exists, it's just not rolled out.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "high",
+   "reason": "FR-118's 'a closed price never shown live' is violated, but by a different and wider mechanism than cited. The 'no cue anywhere' claim is wrong in part: Equity Overview renders a provenance+freshness chip (live/stale/eod, stale in warning tone) and the screener header renders a data-tier freshness/as-of line; only Portfolio has no cue, and none of the three uses the session label helpers. The real defect: quotes.py stamps freshness via freshness_for(config.get_region(), ...), i.e. against the USER's locale calendar, not the instrument's exchange, so under the IN locale during Indian market hours a closed US quote is labelled 'live' (reproduced), and since isLiveQuote keys on freshness === 'live' even the chart/watchlist surfaces that ARE wired treat it as a live tick. Fix: derive the calendar region from the instrument (resolver region/exchange) in _label_freshness, then roll the session label into Portfolio/Equity Overview."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-173",
+  "title": "Research briefs silently strip out-of-range citation markers instead of showing them as broken, and no 'ask a follow-up' affordance exists on a published brief",
+  "severity": "medium",
+  "area": "ui",
+  "subsystem": "research-brief",
+  "repro": "a research run's markdown contains a `[n]` marker where n exceeds the deduplicated source count (or the brief has zero captured sources but the model still wrote a `[n]`) -> src/modules/research/brief-blocks.tsx sanitizeCitationMarkers removes the marker before render; the reader sees a claim with no citation at all, not a flagged 'broken citation'",
+  "evidence": "src/modules/research/brief-blocks.tsx:1083-1089 ('R8 marker truth: a `[n]` beyond the deduped source rail (or ANY marker on a zero-source brief) is stripped before parsing — a dead chip never renders'); grep for 'follow.up'/'followup' under src/modules/research/ returns zero matches",
+  "notes": "FR-123 explicitly names 'broken-citations-shown' as the required behavior — the shipped mechanism does the opposite by design (a deliberate, documented choice, not an oversight, but one that inverts the promise: a reader can no longer tell a claim was ORIGINALLY cited-but-broken from one that was never cited). The missing 'ask-a-follow-up' affordance is a separate, plainly absent capability the FR also names. Smallest fix for the citation half: render a visibly-flagged inert marker (e.g. a muted '[?]' chip with a tooltip) instead of stripping it outright, preserving the 'never a dead/clickable chip' safety property while still surfacing the break.",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted_with_correction",
+   "severity_final": "medium",
+   "reason": "Citation half holds: sanitizeCitationMarkers silently deletes every out-of-range [n] (e.g. an ULTRA brief citing [47] against 21 sources, per its own docstring) with no flag, count or notice, and both render paths use it, so a claim that was cited-but-broken becomes indistinguishable from an uncited one — the inverse of FR-123's 'broken-citations-shown', on the research-trust surface. Follow-up half corrected: a follow-up is askable today through the always-present chat composer (handleSend carries the last 10 turns of history), so the gap is only a brief-anchored follow-up affordance, not an absent capability; that half alone would be low."
+  }
+ },
+ {
+  "raw_id": "INT-spec-135-174",
+  "title": "The company-overview AI narrative is a flat summary+insights pair, not the 5 named typed sections (The-Take/business/storyline/balanced bull-bear/risks)",
+  "severity": "low",
+  "area": "ui",
+  "subsystem": "equity-overview-narrative",
+  "repro": "open the Equity Overview panel for any symbol with a generated narrative -> the AI section renders exactly two parts: a 2-4 sentence summary paragraph and 2-4 insight bullets; there is no distinct bull-case, bear-case, or risks block",
+  "evidence": "sidecar/services/company_narrative.py:333-341 (_build_messages prompt structure: 'SUMMARY: ...' + 'INSIGHTS: (2 to 4 insight bullets)' — only these two sections requested of the model); src/modules/equity-overview/EquityOverviewPanel.tsx:416-426 (renders only narrative.summary and narrative.insights)",
+  "notes": "FR-124 names a specific 5-part structure (The-Take -> business -> storyline -> balanced bull/bear -> risks) as typed blocks beside the metric cards; the shipped feature is a materially simpler 2-part narrative. The numeric-verification pass and facts-only constraint (the FR's other two clauses) ARE delivered (company_narrative.py:209 _verify_text, l.322-330 system prompt). Smallest fix: extend _build_messages' requested structure to the 5 named sections and _parse_output to split them into typed blocks the panel can render distinctly (mirroring how brief-blocks.tsx already does typed-block parsing for the research brief).",
+  "source_file": "intent-spec-135.json",
+  "refuter": {
+   "verdict": "admitted",
+   "severity_final": "low",
+   "reason": "Confirmed: _build_messages asks the model for exactly SUMMARY (2-4 sentences) + INSIGHTS (2-4 bullets) and the panel renders only narrative.summary and narrative.insights, so FR-124's five typed sections (The-Take, business, storyline, balanced bull/bear, risks) are not delivered; the facts-only prompt and the post-generation _verify_text pass are delivered as the finding says. Low stands: the narrative that ships is honest and number-verified, it is simply thinner than specified."
+  }
+ },
+ {
   "raw_id": "INT-spec-180-181",
   "pid": "INT-SP-181",
   "title": "No timed proof exists that a first-time user reaches a populated multi-panel cockpit via conversation alone in under 2 minutes",

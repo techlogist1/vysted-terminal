@@ -43,5 +43,86 @@
     "evidence": "sidecar/services/agent_tools/deep_research.py:147-152,180-185, sidecar/services/research/sonar.py:110-123, src/store/search-settings.ts:112-125, src/components/SettingsPanel.tsx:1026-1033, src/modules/chat/ChatSidebar.tsx:811-848, specs FR-073 (spec.md:1027-1028)",
     "evidence_checked": "Opened both Tier B runners, estimate_cost_usd, store pricing table, Settings render, grepped src for estimate/cost surfaces in chat; code-only",
     "repro_check": "grep -rn 'RESEARCH_MODEL_OPTIONS|priceHint' src --include=*.tsx -> SettingsPanel only; out.setdefault('cost_estimate_usd', ...) runs after await backend.research(...)"
+  },
+  {
+    "raw_id": "INT-spec-135-154",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The gap holds: no seeded default ever yields EMA9/21 (intraday equity) or EMA50/200 + week-VWAP (crypto), and it cannot, because every indicator builder takes only (df, times) so EMA is hard-fixed at period 20 and compute_vwap only knows session-reset or whole-series cumulative. Corrected mechanism: the cited src/lib/indicator-presets.ts presetFor is dead code (imported only by its own test); the chart opens with an EMPTY indicator set and the only live seeding is the research cockpit's _suggested_indicators in fast.py, which has no timeframe dimension at all (equity always gets the ma/volume/rsi/macd daily set, so there is no intraday-equity preset in the product).",
+    "evidence": "src/lib/indicator-presets.ts:31,55,71-89; src/modules/chart/ChartPanel.tsx:262,807-811; sidecar/services/research/fast.py:75-92,610,690; sidecar/services/indicators.py:112-119,242-282,1189-1206; specs FR-092 (spec.md:1074-1078)",
+    "evidence_checked": "Opened presets file, grepped all of src/sidecar/plugins/types for presetFor/EQUITY_INTRADAY/CRYPTO_DEFAULT consumers (test only), ChartPanel initial selection + command apply, fast.py indicator presets, compute_ema/compute_vwap and the _BUILDERS dispatch signature; code-only",
+    "repro_check": "grep -rn 'presetFor\\|indicator-presets' src sidecar --include=*.ts --include=*.tsx --include=*.py -> only src/lib/indicator-presets.ts and its .test.ts; _BUILDERS type is Callable[[DataFrame, list[str]], IndicatorSeries] so no period can reach compute_ema"
+  },
+  {
+    "raw_id": "INT-spec-135-156",
+    "verdict": "admitted",
+    "severity_final": "high",
+    "reason": "Confirmed end to end: every agent host-action tool call is enqueued via ChatSidebar (isHostActionMutation -> enqueueChange), and enqueue auto-accepts anything whose kind !== 'order' under AUTO, so portfolio_add/update/delete_position, write_note, save_layout, save_screen (kind 'data-write') and set_region ('settings') apply with no per-action confirm, writing through to POST/PUT/DELETE /portfolio/positions. That exceeds FR-094's 'UI/layout/chart/watchlist ONLY', contradicts agent-autonomy.ts's own safety-line docstring, and the user-facing AUTO hint ('UI changes apply instantly; orders always confirm') tells the user they are consenting to far less than they get, so severity high stands for silent agent writes (including deletes) to the user's own tracked-portfolio records. Not removed_with_feature: the tracked portfolio stays in the product; only the order exclusion becomes moot.",
+    "evidence": "src/store/proposed-changes.ts:113-120; src/store/agent-autonomy.ts:7-17; src/modules/chat/ComposerPlusMenu.tsx:183-186,286-294; src/modules/chat/ChatSidebar.tsx:941-944; src/lib/host-actions.ts:66-86,762-859,1327-1350; src/store/proposed-changes.test.ts:132-158; specs FR-094 (spec.md:1082-1086)",
+    "evidence_checked": "Opened the auto-apply predicate, autonomy store docstring, the AUTO picker copy, the agent tool-call enqueue site, describeHostAction kinds for every data-write/settings action, the async apply for portfolio writes, and the autonomy tests (no data-write-under-auto case); code-only, no LLM drive needed",
+    "repro_check": "In a vitest scratch case: setAutonomy('auto'); enqueue({name:'portfolio_delete_position', input:{symbol:'X'}}) -> accept() fires immediately because describeHostAction returns kind 'data-write' and proposed-changes.ts:118 only excludes 'order' (not run; predicate is a single readable line)"
+  },
+  {
+    "raw_id": "INT-spec-135-158",
+    "verdict": "admitted_with_correction",
+    "severity_final": "low",
+    "reason": "The gap is real: instrumentMention renders only `${symbol} · ${exchange}` plus the company name, the ResolveInstrument shape has no price/change field, MentionPicker.tsx has no quote fetch, and live /resolve returns no price, so FR-101's '[exchange: price chg%]' row is not delivered. Severity corrected medium -> low: the row already shows exchange + full company name, which is what actually disambiguates which listing is being mentioned; the missing price/chg% is a glanceability nicety, not a defect a user trips over in normal use.",
+    "evidence": "src/modules/chat/mentions.ts:192-240; src/modules/chat/MentionPicker.tsx (grep quote|price|chg: no hits); sidecar/routers/resolve.py (grep price|quote: no hits); specs FR-101 (spec.md:1094-1098)",
+    "evidence_checked": "Opened mentions.ts resolve types and row mapper, grepped MentionPicker and resolve router, ran a live /resolve against :52152",
+    "repro_check": "curl -s '127.0.0.1:52152/resolve?q=RELIANCE' -> resolved/candidates carry symbol, name, exchange, isin, bse_code, industry; no price or change field"
+  },
+  {
+    "raw_id": "INT-spec-135-162",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "The core gap holds: a bare '@AAPL' / 'AAPL' parses as kind 'raw' and falls through handleSend into provider/key resolution and an LLM stream, so FR-112's 'bare @TICKER -> default cockpit instantly, LLM-free' does not exist. Corrected: the claim that 'every parsed input, slash or raw, ends in an LLM stream call' is wrong — curated slash ACTIONS (/chart, /watch, /portfolio, /sources, /layout) dispatch client-side through dispatchSlashAction -> enqueueSlashChange and return with zero LLM, so the 'quick command' half of FAST is delivered; and ORCHESTRATED's behaviour (panel-set proposals through the diff gate) exists under the proposed-changes gate even though no tier carries that name. What is missing is the bare-ticker fast path, which is exactly the smallest fix the finding proposes.",
+    "evidence": "src/modules/chat/ChatSidebar.tsx:625-681,683-699,735-800; specs FR-112 (spec.md:1395-1396)",
+    "evidence_checked": "Opened FR-112 text, the slash-action dispatcher and handleSend through provider resolution; grepped sidecar/src for ORCHESTRATED/LLM-free paths (only planner.py and fast.py structured legs, neither a chat-side bare-ticker path); code-only",
+    "repro_check": "Trace: handleSend('@AAPL') -> parseSlashInvocation returns null -> parseSlashCommand -> kind 'raw' -> applyMentionPrefixes -> appendUser -> provider/key resolution -> stream; handleSend('/chart AAPL') -> dispatchSlashAction('chart') -> enqueueSlashChange('set_chart_symbol') -> return (no LLM)"
+  },
+  {
+    "raw_id": "INT-spec-135-164",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Drawings half holds: no file under sidecar/services/agent_tools/ or src/lib/host-actions.ts mentions drawings, so FR-114's named 'drawings' verb has no capability while the manual drawing UI exists. Close/focus half corrected: close_panel/focus_panel ARE catalog host-actions the model can call inside the loop (through the diff gate); what is missing is only plan pre-staging, and the proposed one-line fix is wrong — planner._coerce_steps drops any step whose action is not in planner.PLAN_ACTIONS, which also lacks close_panel/focus_panel, so both constants must change. The staged flag only drives PlanView's 'review' badge, so that half is low on its own; the medium rests on the missing drawing verb.",
+    "evidence": "sidecar/services/agent_runtime.py:57-70,1406-1411; sidecar/services/planner.py:224-232,300-315; sidecar/services/agent_tools/catalog.py:1092,1104; src/modules/chat/PlanView.tsx:22-30; docs/redesign/R4_STALE_CODE_REGISTER.md:64; specs FR-114 (spec.md:1399-1401)",
+    "evidence_checked": "Opened _STAGEABLE_PLAN_ACTIONS and its only consumer, the planner action vocabulary and step coercion, PlanView badge logic, catalog entries for close/focus_panel, register S-17; grep -il drawing across agent_tools + host-actions (no hits); code-only",
+    "repro_check": "grep -rln -i drawing sidecar/services/agent_tools/ src/lib/host-actions.ts -> nothing; planner.PLAN_ACTIONS = (open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, research, answer) so a close_panel plan step is dropped before staging is ever consulted"
+  },
+  {
+    "raw_id": "INT-spec-135-168",
+    "verdict": "admitted_with_correction",
+    "severity_final": "high",
+    "reason": "FR-118's 'a closed price never shown live' is violated, but by a different and wider mechanism than cited. The 'no cue anywhere' claim is wrong in part: Equity Overview renders a provenance+freshness chip (live/stale/eod, stale in warning tone) and the screener header renders a data-tier freshness/as-of line; only Portfolio has no cue, and none of the three uses the session label helpers. The real defect: quotes.py stamps freshness via freshness_for(config.get_region(), ...), i.e. against the USER's locale calendar, not the instrument's exchange, so under the IN locale during Indian market hours a closed US quote is labelled 'live' (reproduced), and since isLiveQuote keys on freshness === 'live' even the chart/watchlist surfaces that ARE wired treat it as a live tick. Fix: derive the calendar region from the instrument (resolver region/exchange) in _label_freshness, then roll the session label into Portfolio/Equity Overview.",
+    "evidence": "sidecar/routers/quotes.py:30-50; sidecar/services/locale.py:227-254; src/lib/market-session.ts:1-18,54-78; src/modules/equity-overview/EquityOverviewPanel.tsx:281-311; src/modules/screener/ScreenerPanel.tsx:116-139,444-445; src/modules/portfolio/PortfolioPanel.tsx (grep freshness|market_state|isLiveQuote: no hits); specs FR-118 (spec.md:1409-1410)",
+    "evidence_checked": "Opened market-session.ts, grepped all price surfaces for market-session/freshness consumers, read EquityOverview chip and Screener freshness line, read the quotes router freshness stamp and locale.freshness_for; live GETs against :52152 at 2026-09-23 14:36 IST (NSE open, US closed)",
+    "repro_check": "curl -s 127.0.0.1:52152/quotes/AAPL at 09:07Z (05:07 ET, US closed) -> market_state null, freshness 'live'; curl /quotes/RELIANCE -> freshness 'eod' (honest); cause: _label_freshness passes config.get_region()=IN, and is_market_open('IN') is true"
+  },
+  {
+    "raw_id": "INT-spec-135-173",
+    "verdict": "admitted_with_correction",
+    "severity_final": "medium",
+    "reason": "Citation half holds: sanitizeCitationMarkers silently deletes every out-of-range [n] (e.g. an ULTRA brief citing [47] against 21 sources, per its own docstring) with no flag, count or notice, and both render paths use it, so a claim that was cited-but-broken becomes indistinguishable from an uncited one — the inverse of FR-123's 'broken-citations-shown', on the research-trust surface. Follow-up half corrected: a follow-up is askable today through the always-present chat composer (handleSend carries the last 10 turns of history), so the gap is only a brief-anchored follow-up affordance, not an absent capability; that half alone would be low.",
+    "evidence": "src/lib/brief-ingest.ts:389-424,579; src/modules/research/brief-blocks.tsx:1084-1090; src/modules/chat/ChatSidebar.tsx:749-753; src/modules/research/BriefPanel.tsx (grep follow-up/ask: only the empty-state 'Ask JARVIS to research a company'); specs FR-123 (spec.md:1419-1420)",
+    "evidence_checked": "Opened the sanitizer and both call sites, grepped src/sidecar for any broken-citation flag or counter (none), grepped research/chat modules for follow-up affordances, read handleSend history assembly; code-only",
+    "repro_check": "sanitizeCitationMarkers('Revenue grew 12% [47].', 21) -> 'Revenue grew 12%.' with no trace (read from the regex replace at brief-ingest.ts:403-410; not executed)"
+  },
+  {
+    "raw_id": "INT-spec-135-174",
+    "verdict": "admitted",
+    "severity_final": "low",
+    "reason": "Confirmed: _build_messages asks the model for exactly SUMMARY (2-4 sentences) + INSIGHTS (2-4 bullets) and the panel renders only narrative.summary and narrative.insights, so FR-124's five typed sections (The-Take, business, storyline, balanced bull/bear, risks) are not delivered; the facts-only prompt and the post-generation _verify_text pass are delivered as the finding says. Low stands: the narrative that ships is honest and number-verified, it is simply thinner than specified.",
+    "evidence": "sidecar/services/company_narrative.py:209,322-345,487-491; src/modules/equity-overview/EquityOverviewPanel.tsx:405-430; specs FR-124 (spec.md:1421-1422)",
+    "evidence_checked": "Opened the narrative system/user prompt, the verify calls, and the panel's narrative render block; code-only (no LLM drive needed to see the requested structure)",
+    "repro_check": "sed -n 333,345p sidecar/services/company_narrative.py -> 'Write the overview as exactly this structure: SUMMARY: ... INSIGHTS: ...' with no bull/bear/risks section"
+  },
+  {
+    "raw_id": "INT-spec-135-179",
+    "verdict": "refuted",
+    "severity_final": "medium",
+    "reason": "The 'try this' chips exist and run: the empty chat state renders a 'Try this' header plus SuggestionChips, four clickable prompts (Research $NVDA, Compare AAPL vs MSFT, Scan today's movers, Summarize my portfolio P&L; symbol-scoped when a panel is focused) whose onClick calls sendToAgent(prompt), which submits through the same handleSend path. The finding grepped only OnboardingFlow.tsx and missed src/modules/chat/SuggestionChips.tsx, so FR-129's chips are delivered in the first-run landing state; its proposed fix is exactly what already ships.",
+    "evidence": "src/modules/chat/SuggestionChips.tsx:9-43,83-120; src/modules/chat/ChatSidebar.tsx:97,1505-1507",
+    "evidence_checked": "Opened SuggestionChips (defaults, focus-scoping, click handler) and the ChatSidebar empty-state render site; code-only",
+    "repro_check": "grep -rn SuggestionChips src --include=*.tsx -> ChatSidebar.tsx:1507 under the 'Try this' label; each chip button onClick={() => sendToAgent(s.prompt)}"
   }
 ]

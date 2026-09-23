@@ -53,5 +53,95 @@
     "repro": "design — select Tier B, send an ULTRA research: sonar-deep-research runs immediately; cost_estimate_usd is attached to the tool result afterwards (deep_research.py:151,184). No composer/depth-stop surface calls estimate_cost_usd before dispatch (grep estimate in src/modules/chat -> none).",
     "evidence": "sidecar/services/agent_tools/deep_research.py:151,184; sidecar/services/research/sonar.py:110; src/store/search-settings.ts:92-109",
     "notes": "FR-073 MUST: 'estimated cost shown before starting'. Within the settled two-tier model the smallest honest fix is a one-line '~$0.xx est.' beside the depth stop when tier_b is active, fed by the per-model pricing table the store already carries."
+  },
+  {
+    "raw_id": "INT-spec-135-154",
+    "title": "Default chart indicators for intraday-equity and crypto ship a single generic EMA(20) instead of the named EMA9/21 / EMA50/200 multi-line combos, and crypto's default VWAP is never week-anchored",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "chart-indicators",
+    "repro": "open an intraday-timeframe equity chart or any crypto symbol with no manual indicator selection -> the seeded indicator set is a single EMA line + one VWAP line (session or full-series cumulative), never the two-line EMA crossover or a week-boundary VWAP the spec names",
+    "evidence": "src/lib/indicator-presets.ts:21-90 (EQUITY_INTRADAY/CRYPTO_DEFAULT both just ['ema','vwap','rsi','volume']); sidecar/services/indicators.py:112 (compute_ema default period=20, no multi-period pair requested by the preset); sidecar/services/indicators.py:242-282 compute_vwap (session-reset for intraday, full-series cumulative for daily-or-coarser — never a calendar-week boundary)",
+    "notes": "FR-092 names specific multi-period combinations (EMA9/21 crossover for intraday equity, EMA50/200 + week-VWAP for crypto) as the researched, correct defaults; the shipped preset silently substitutes a single generic-period EMA and a non-week VWAP. Smallest fix: parametrize presetFor() to request `ema:9,ema:21` (or a distinct 'ema_pair' indicator) for intraday equity and `ema:50,ema:200` for crypto, and add a week-boundary grouping mode to compute_vwap gated on asset_class=crypto."
+  },
+  {
+    "raw_id": "INT-spec-135-156",
+    "title": "AUTO autonomy mode auto-applies portfolio-position writes, note writes, and saved layouts/screens without per-action confirmation — wider than the promised 'UI/layout/chart/watchlist ONLY' scope and wider than the module's own safety-line docstring",
+    "severity": "high",
+    "area": "agent",
+    "subsystem": "proposed-changes-gate",
+    "repro": "set autonomy to 'auto' (src/store/agent-autonomy.ts) then have the agent call portfolio_add_position or write_note -> src/store/proposed-changes.ts:118 `described.kind !== \"order\"` is true for kind:\"data-write\", so the change auto-applies (no per-action accept) exactly like a chart/watchlist change would",
+    "evidence": "src/store/proposed-changes.ts:115-131 (auto-apply gate keys only on kind!==\"order\"); src/lib/host-actions.ts:762-849 (portfolio_add_position/update/delete_position, write_note, save_layout, save_screen all kind:\"data-write\"; set_region kind:\"settings\"); src/store/agent-autonomy.ts:6-16 (docstring claims auto 'only skips the per-change accept for the read-only-app host-actions (panel / chart / watchlist)'); src/store/proposed-changes.test.ts:132-158 (tests cover only the order-exclusion and one chart case, no data-write-under-auto test)",
+    "notes": "Information-hiding violation: the module's own comment describes a narrower contract than the code implements, and the actual behavior exceeds spec.md#FR-094's explicit scope ('AUTO autonomy MAY skip per-action confirm for UI/layout/chart/watchlist ONLY'). Concrete consequence: in AUTO mode a user's tracked-portfolio cost basis/quantity, personal notes, and saved layouts/screens can be silently mutated by the agent with zero confirmation step — not a §6.5 order-safety breach, but a real, currently-undocumented, currently-untested data-integrity gap for the user's own records. Smallest fix: narrow the auto-apply predicate to an explicit allowlist of kinds (panel/chart/watchlist), or extend the docstring+tests to intentionally cover data-write/settings and get an explicit sign-off that this is the intended broader scope."
+  },
+  {
+    "raw_id": "INT-spec-135-158",
+    "title": "The @-mention instrument picker never shows live price or change%, contrary to the spec's named '[exchange: price chg%]' format",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "chat-mentions",
+    "repro": "type '@AAPL' in the chat composer -> the picker row reads 'AAPL · NMS' (symbol + exchange) with the company name as description; no price or day-change% appears anywhere in the row",
+    "evidence": "src/modules/chat/mentions.ts:192-207 (ResolveInstrument interface, no price/change field), :229-236 (instrumentMention: label=`${symbol} · ${exchange}`, description=name only)",
+    "notes": "FR-101 explicitly specifies the instrument row shows '[exchange: price chg%]' so a user can sanity-check which listing they're mentioning without leaving the composer; the /resolve route this picker calls (sidecar/routers/resolve.py) doesn't return price data at all, so the feature can't be added without either a resolver change or a follow-up quote fetch per candidate row. Smallest fix: have the mention picker batch-fetch quotes for the top N candidates (or extend /resolve to embed a last-quote snapshot) and render it inline."
+  },
+  {
+    "raw_id": "INT-spec-135-162",
+    "title": "The spec's three named agent speeds (FAST LLM-free / ORCHESTRATED / DEEP) do not exist — every request, including a bare ticker mention, costs a full LLM round-trip",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-runtime",
+    "repro": "send a bare '@AAPL' or 'AAPL' in the chat composer with no other text -> src/modules/chat/ChatSidebar.tsx:684-780 handleSend still resolves a provider/model and opens an LLM call; there is no code path that renders the default cockpit instantly with zero LLM invocation",
+    "evidence": "grep -rn \"ORCHESTRATED\" sidecar/ src/ -> zero matches anywhere in the tree; src/modules/chat/ChatSidebar.tsx:684-780 (every parsed input, slash or raw, ends in an LLM stream call)",
+    "notes": "FR-112 names FAST as an explicit, distinct LLM-free tier ('bare @TICKER/quick command -> default cockpit instantly') as a first-class product promise (implied SC-level responsiveness/cost claim) — the shipped design instead uses an orthogonal 'autonomy' (ask/auto) axis and a research 'depth' (quick/deep) axis, neither of which is a zero-LLM instant path. Consequence: a demanding user's fastest interaction ('just show me AAPL') always pays LLM latency + cost that the spec explicitly promised to avoid. Smallest fix (if still wanted post-redesign): special-case a bare, unambiguous @TICKER/ticker input in the composer to dispatch set_chart_symbol + arrange_layout directly, client-side, skipping the LLM call entirely."
+  },
+  {
+    "raw_id": "INT-spec-135-164",
+    "title": "The agent has no capability to write chart drawings, and close_panel/focus_panel remain non-plan-stageable despite the project's own register flagging both",
+    "severity": "medium",
+    "area": "agent",
+    "subsystem": "agent-tools-catalog",
+    "repro": "ask the agent to draw a trendline or Fibonacci retracement on the chart -> no capability exists to fulfil it (compare: a human can do this via src/modules/chart/drawings/ manually); ask the agent to close a panel as one step of a multi-step plan -> agent_runtime.py's _STAGEABLE_PLAN_ACTIONS doesn't include close_panel/focus_panel so they can't be pre-staged the way set_chart_indicators now can",
+    "evidence": "grep -n 'drawing' sidecar/services/agent_tools/catalog.py -> zero matches (vs. real, manual-only drawing UI: src/store/chart-drawings.ts, src/modules/chart/drawings/{factory,renderers,base}.ts); sidecar/services/agent_runtime.py:61-70 _STAGEABLE_PLAN_ACTIONS = {open_panel, set_chart_symbol, set_chart_indicators, add_to_watchlist, arrange_layout, open_company_overview} — close_panel/focus_panel absent",
+    "notes": "docs/redesign/R4_STALE_CODE_REGISTER.md S-17 already named exactly this trio (set_chart_indicators/close_panel/focus_panel) as needing the plan-stageable fix; only set_chart_indicators was actually fixed, so the register's own acceptance criterion is half-done. The drawings gap is a fresh (unregistered) finding: FR-114 names 'drawings' explicitly as an obvious app-driving verb the agent should reach, and no such capability was ever added to the catalog. Smallest fix: add close_panel/focus_panel to _STAGEABLE_PLAN_ACTIONS (one-line set literal), and add a write_drawing host-action capability mirroring write_screener_filters's shape."
+  },
+  {
+    "raw_id": "INT-spec-135-168",
+    "title": "Market-session/staleness awareness (FR-118) is wired into only the chart and watchlist panels; equity overview, portfolio, and every screener surface show quotes with no session or staleness context",
+    "severity": "high",
+    "area": "ui",
+    "subsystem": "market-session",
+    "repro": "open the Equity Overview panel, the Portfolio panel, or the Screener results table for any symbol after market close -> the price renders with no 'Market closed'/'After-hours'/staleness cue anywhere; compare to the Watchlist or Chart panel, which do show it",
+    "evidence": "src/lib/market-session.ts:1-45 (humanizeMarketState/isLiveQuote/sessionLabelFromFreshness/useMarketSession, self-documented FR-118); imports confirmed only in src/modules/chart/ChartPanel.tsx:44 and src/modules/watchlist/WatchlistPanel.tsx; grep for 'market-session' in src/modules/equity-overview/EquityOverviewPanel.tsx, src/modules/portfolio/PortfolioPanel.tsx, and every src/modules/screener/*.tsx file returns zero matches",
+    "notes": "FR-118 states 'a closed price never shown live' as a hard guarantee across EVERY price surface, and this is money-correctness-adjacent (a stale/closed price rendered with no distinguishing cue can mislead a user into thinking it's a live tick). docs/redesign/REBUILD_R4_SESSION2_REPORT.md's own Tier-C list still named this as not-started at session-2 close; the chart/watchlist wiring is later, undocumented work that only covers 2 of at least 5 price-bearing surfaces. Smallest fix: import the existing market-session.ts helpers into EquityOverviewPanel, PortfolioPanel, and ScreenerResultsTable the same way WatchlistPanel already does — the primitive exists, it's just not rolled out."
+  },
+  {
+    "raw_id": "INT-spec-135-173",
+    "title": "Research briefs silently strip out-of-range citation markers instead of showing them as broken, and no 'ask a follow-up' affordance exists on a published brief",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "research-brief",
+    "repro": "a research run's markdown contains a `[n]` marker where n exceeds the deduplicated source count (or the brief has zero captured sources but the model still wrote a `[n]`) -> src/modules/research/brief-blocks.tsx sanitizeCitationMarkers removes the marker before render; the reader sees a claim with no citation at all, not a flagged 'broken citation'",
+    "evidence": "src/modules/research/brief-blocks.tsx:1083-1089 ('R8 marker truth: a `[n]` beyond the deduped source rail (or ANY marker on a zero-source brief) is stripped before parsing — a dead chip never renders'); grep for 'follow.up'/'followup' under src/modules/research/ returns zero matches",
+    "notes": "FR-123 explicitly names 'broken-citations-shown' as the required behavior — the shipped mechanism does the opposite by design (a deliberate, documented choice, not an oversight, but one that inverts the promise: a reader can no longer tell a claim was ORIGINALLY cited-but-broken from one that was never cited). The missing 'ask-a-follow-up' affordance is a separate, plainly absent capability the FR also names. Smallest fix for the citation half: render a visibly-flagged inert marker (e.g. a muted '[?]' chip with a tooltip) instead of stripping it outright, preserving the 'never a dead/clickable chip' safety property while still surfacing the break."
+  },
+  {
+    "raw_id": "INT-spec-135-174",
+    "title": "The company-overview AI narrative is a flat summary+insights pair, not the 5 named typed sections (The-Take/business/storyline/balanced bull-bear/risks)",
+    "severity": "low",
+    "area": "ui",
+    "subsystem": "equity-overview-narrative",
+    "repro": "open the Equity Overview panel for any symbol with a generated narrative -> the AI section renders exactly two parts: a 2-4 sentence summary paragraph and 2-4 insight bullets; there is no distinct bull-case, bear-case, or risks block",
+    "evidence": "sidecar/services/company_narrative.py:333-341 (_build_messages prompt structure: 'SUMMARY: ...' + 'INSIGHTS: (2 to 4 insight bullets)' — only these two sections requested of the model); src/modules/equity-overview/EquityOverviewPanel.tsx:416-426 (renders only narrative.summary and narrative.insights)",
+    "notes": "FR-124 names a specific 5-part structure (The-Take -> business -> storyline -> balanced bull/bear -> risks) as typed blocks beside the metric cards; the shipped feature is a materially simpler 2-part narrative. The numeric-verification pass and facts-only constraint (the FR's other two clauses) ARE delivered (company_narrative.py:209 _verify_text, l.322-330 system prompt). Smallest fix: extend _build_messages' requested structure to the 5 named sections and _parse_output to split them into typed blocks the panel can render distinctly (mirroring how brief-blocks.tsx already does typed-block parsing for the research brief)."
+  },
+  {
+    "raw_id": "INT-spec-135-179",
+    "title": "First-run onboarding has no interactive 'try this' chips that demonstrate the agent by running a real example",
+    "severity": "medium",
+    "area": "ui",
+    "subsystem": "onboarding",
+    "repro": "complete first-run setup (a configured provider) -> land in the cockpit with no interactive example prompt anywhere that a new user can click to see the agent actually do something",
+    "evidence": "grep -niE 'try this|chip|example|suggest|quickstart' src/components/OnboardingFlow.tsx -> only one unrelated hit (hardware chip label, l.527); no onboarding component under src/components/ or src/modules/ implements a clickable example-prompt affordance",
+    "notes": "FR-129 explicitly names 'interactive try this chips that run' as the mechanism for teaching a first-time user the agent's power — this is the single most direct lever spec.md#SC-001 (empty-to-populated-cockpit-in-under-2-minutes) depends on for a user who doesn't already know what to type. docs/redesign/REBUILD_R4_SESSION2_REPORT.md's own Tier-C list still named this not-started at session-2 close, and it remains unbuilt at current HEAD. Smallest fix: add 2-3 clickable example-prompt chips ('Research NVDA', 'Compare AAPL vs MSFT', 'Show me the market today') to the empty-chat/first-run state that submit the prompt on click, reusing the existing handleSend path."
   }
 ]

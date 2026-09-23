@@ -254,10 +254,11 @@
     "promise": "A §6.5 execution-safety layer (paper-default, kill-switch, append-only audit log) exists in code, but order execution is not enabled.",
     "source": "README.md#Overview",
     "kind": "guarantee",
-    "status": "delivered",
-    "evidence": "sidecar/models/audit_log.py (append-only DDL with BEFORE UPDATE/DELETE RAISE(ABORT) triggers per root CLAUDE.md), sidecar/services/kill_switch.py + src-tauri/src/kill_switch.rs both present; COMMON.md's own 'out of scope by decision' list confirms live broker order execution is explicitly deferred/never auto-applied product-wide.",
+    "status": "dropped",
+    "evidence": "sidecar/models/audit_log.py (append-only DDL with BEFORE UPDATE/DELETE RAISE(ABORT) triggers per root CLAUDE.md), sidecar/services/kill_switch.py + src-tauri/src/kill_switch.rs both present; COMMON.md's own 'out of scope by decision' list confirms live broker order execution is explicitly deferred/never auto-applied product-wide. [Gate 2 re-verifier correction: this promise's subject is broker order execution / order safeguards / paper brokerage / live mode / broker connectivity, out of the product per D81 — the delivered evidence above is retained for record but the promise is dropped, not delivered.]",
     "gap": "",
-    "decision_ref": ""
+    "decision_ref": "operator decision 23 Sep — trading removed from product; docs/redesign/DECISIONS.md:141 (D81 — trading is out of the product, permanently: no broker connectivity, order placement, order proposal/review, simulated paper brokerage, live/paper mode switch, or broker plugin; the user's own tracked portfolio stays in scope). Gate 2 re-verifier consistency correction: the same subject is already graded dropped elsewhere in this corpus (INT-PD-225/227-234/284/302, INT-DF-9/10/11/16/31).",
+    "prior_status": "delivered"
   },
   {
     "pid": "INT-PD-117",

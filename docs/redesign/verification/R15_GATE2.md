@@ -13,9 +13,11 @@ a hang. The workflow was stopped and L6 was finished from the soak's log (`lifec
 `LIFE-L6-LONGSESSION-1`, a real main-thread CPU burn whose source is measured but not yet
 attributed, carried forward as an open finding, not a stall. **Correction (Gate 2 verifier, 13:25 IST):
 the soak itself has NOT completed** — pid 64697 is still running detached (`DURATION_S=12000`, ends
-≈15:49 IST), `soak-status.json` fresh at cycle 57 / 3,365 s, so it is progressing, not hung; its
-sidecar on :52229 sits at ~60% CPU, which is the LIFE-L6-LONGSESSION-1 burn itself. The ≥3 h verdict
-in L6 §8 stays pending until the soak ends.
+≈15:49 IST). **Re-checked live for this pass (14:50 IST):** `soak-status.json` is now at
+cycle 142 / elapsed 8,471 s of 12,000 s (10 invokes logged, pid 64697 confirmed alive,
+`ps` shows 02:21:38 elapsed) — progressing normally, ~3,529 s / ~59 min remaining, not hung.
+Gate 2 re-verifier re-check (15:01 IST): cycle 152 / 9,067 s, 11 invokes, pid 64697 alive —
+still progressing. The ≥3 h verdict in L6 §8 stays pending until the soak ends.
 
 ## 1. Census — items done
 
@@ -26,49 +28,53 @@ findings, closed earlier — `census/refute/surf-portfolio-notes.json`,
 `census/refute/surf-settings-plugins.json`), and the **intent census, previously only 13 of 23
 chunk ledgers** — the remaining 10 (`blueprint-288`, `deferred-42`, `spec-0`, `spec-45`,
 `pdd-readme-90/135/180/225/270/315`) have since landed on disk, non-placeholder (`spec-90`
-45/45 rows, `spec-180` 41/41 rows), giving **23/23 intent chunk ledgers** (19 chunks + 4 promise
-files). Full item-by-item table: `stage0/CENSUS_COMPLETENESS.md`.
+45/45 rows, `spec-180` 41/41 rows), giving **23/23 intent chunk ledgers** (all 23 `ledger-<chunk>.json`, alongside the 4
+`promises-<source>.json` source files). Full item-by-item table: `stage0/CENSUS_COMPLETENESS.md`.
 
 Paths of record: `census/raw/*.json` (99 files, code/data/intent/world/seat findings),
 `census/refute/*.json` (98 verdict files; `code-brokers-adapters.json` is the one raw file with
 no refute file by design — bulk-closed as removed-with-the-feature per the 23 Sep trading
 removal), `census/merge/` + `census/merge-in/` (13 cluster merges), `census/intent/` (23/23 chunk
-ledgers: 19 chunks + 4 promise files, `census/PROMISE_LEDGER.md`), `census/world/` (3 research docs + 3
+ledgers + 4 promise source files, `census/PROMISE_LEDGER.md`), `census/world/` (3 research docs + 3
 COMPARE docs + `opp-ledger-verify.md`), `invent/ideas/` (8 seats) + `invent/BACKLOG.md`/`.json`
 (58 ranked items), `lifecycle/L1-stranger.md`..`L6-longsession.md` (6 stages), `battery/packs/`
 + `battery/collected/` + `battery/diffs/` (24 slots), `surface/*/COVERAGE.json` (8 surface dirs).
 
 ## 2. Register — raw / verdict / entry / rejection counts
 
-`vysted-r15-register.json` (rebuilt via `scripts/r15/register.py build` on 2026-09-23 after the
-19 remaining intent chunks + assorted delta merges landed; refuses on any unaccounted raw id —
-ran clean, 0 unaccounted, 0 phantom):
+`vysted-r15-register.json` (rebuilt via `scripts/r15/register.py build` on 2026-09-23, this pass
+after the `merge-S2-delta2` agent/ui delta merges landed on top of the prior 19-remaining-intent-
+chunks build; refuses on any unaccounted raw id — ran clean, 0 unaccounted, 0 phantom):
 
-- **878 raw findings** across 99 files -> **878 explicit refuter verdicts** (98 refute files;
-  `code-brokers-adapters.json` findings bulk-closed without a refute file, by design).
-- **596 register entries**: critical 16, high 103, medium 265, low 212.
-- **75 rejections**: 48 refuted (a refuter verdict of `refuted`, reason carried from the
+- **887 raw findings** across 99 files -> **887 refuter verdicts**: 872 explicit, in 98 refute
+  files, + the 15 `code-brokers-adapters.json` findings bulk-closed `removed_with_feature` without a
+  refute file, by design.
+- **603 register entries**: critical 16, high 104, medium 268, low 215.
+- **76 rejections**: 49 refuted (a refuter verdict of `refuted`, reason carried from the
   refuter) + 24 `removed_with_feature` verdicts (trading removal, operator decision 23 Sep 2026,
   including `code-brokers-adapters.json`) + 3 merger out-of-scope/not-a-defect rejections
   (`INT-blueprint-96-5` dark-only theme; `INT-spec-180-181` and `INT-spec-180-206`, both
-  verification-paperwork gaps rather than product defects, surfaced by the newly-landed
-  `spec-180` chunk).
-- 803 raw ids cited by exactly one entry + 75 rejected = 878; none cited twice, none both.
+  verification-paperwork gaps rather than product defects, surfaced by the `spec-180` chunk).
+- 811 raw ids cited by exactly one entry + 76 rejected = 887; none cited twice, none both.
 
-35 entries are new since the prior build (561 -> 596), all additions, 0 removed: 8 in agent
-(`R15-AGENT-080..087`), 6 in code-platform (`R15-CODE-PLATFORM-071..076`), 2 in data
-(`R15-DATA-110/111`), 10 in docs (`R15-DOCS-015..024`), 1 in release (`R15-RELEASE-012`), 1 in
-research (`R15-RESEARCH-042`), 7 in ui (`R15-UI-083..089`) — drawn from the newly-landed intent
-chunks and delta cluster merges.
+7 entries are new since the prior build (596 -> 603), all additions, 0 removed: 2 in agent
+(`R15-AGENT-088/089`), 5 in ui (`R15-UI-090..094`) — the `merge-S2-delta2` agent/ui delta merge
+(116 agent + 5 ui merge-in raw ids). One existing entry, `R15-AGENT-080`, also picked up an
+additional raw id (`INT-spec-135-156`) without becoming a new entry, which is the 8th newly-cited
+raw id beyond the 7 the new entries themselves cite (887 - 878 = 9 new raw ids = 8 newly cited +
+1 newly rejected).
 
-By flat area: research 53, code 189, data 104, agent 82, ui 108, lifecycle 17, release 16,
-docs 27 (sums to 596; code/lifecycle/release/docs are cross-cutting findings that don't carry
+By flat area: research 53, code 189, data 104, agent 84, ui 113, lifecycle 17, release 16,
+docs 27 (sums to 603; code/lifecycle/release/docs are cross-cutting findings that don't carry
 one of the operator's four area tags).
 
 By operator area (an entry can carry more than one, see `NAMED_LISTS.md`, regenerated in this
-pass): UI and panels 232, Agent and chat 210, Research and web search 128, Data on small or
-obscure stocks 106 (125 entries carry no operator-area tag and are excluded from the four lists
-by design).
+pass): UI and panels 242, Agent and chat 215, Research and web search 131, Data on small or
+obscure stocks 107 (118 entries carry no operator-area tag and are excluded from the four lists
+by design). Gate 2 re-verifier fix: 7 ui entries (`R15-UI-083..089`) had no `operator_areas` key
+at all in `census/merge/ui.json`, so they were missing from every list; tagged there (all
+`ui-panels`; 084/087 also `agent-chat`, 083 also `research-search`) and the register rebuilt —
+only those 7 tags changed, counts/rejections/ids identical.
 
 Full severity-ranked view: `docs/redesign/verification/vysted-r15-register.md`.
 
@@ -99,12 +105,12 @@ No cell is blank. Full per-surface, per-state detail with evidence paths: `r15/C
 `r15/NAMED_LISTS.md`, severity-ranked, one-line repro each, drawn straight from the register
 (regenerated 2026-09-23 alongside the register rebuild):
 
-- **UI and panels — 232** (critical/high/medium/low breakdown in the doc)
-- **Agent and chat — 210**
-- **Research and web search — 128**
-- **Data on small or obscure stocks — 106**
+- **UI and panels — 242** (critical/high/medium/low breakdown in the doc)
+- **Agent and chat — 215**
+- **Research and web search — 131**
+- **Data on small or obscure stocks — 107**
 
-(These sum to more than 596 because an entry can carry more than one area tag; 125 entries carry
+(These sum to more than 603 because an entry can carry more than one area tag; 118 entries carry
 none and are pure code/lifecycle/release/platform findings, excluded from the four lists by
 design.)
 
@@ -147,12 +153,21 @@ explicitly flagged cells. Every DAT-* raw finding id is cross-referenced per slo
 - Ranked backlog: `r15/invent/BACKLOG.md`/`.json` — 58 ranked build items from 70 seat ideas (8
   seats) + 6 surviving Tier-A world-opportunities, every input traced in the source index.
 - Promise ledger: `r15/census/PROMISE_LEDGER.md` — the spec/blueprint/deferred/pdd-readme
-  promise census. **Now complete: 23/23 chunks on disk**, non-placeholder — the 10 that were
-  missing (`blueprint-288`, `deferred-42`, `spec-0`, `spec-45`,
+  promise census. **Now complete: 23/23 chunks on disk, 1,032 promises total**, non-placeholder
+  — the 10 that were missing (`blueprint-288`, `deferred-42`, `spec-0`, `spec-45`,
   `pdd-readme-90/135/180/225/270/315`) have landed, and `spec-90` (45/45 rows) / `spec-180`
-  (41/41 rows) are fully assessed, no longer placeholders. The ledger states its own coverage
-  as "All 23 expected intent chunks present and non-placeholder"; trading-removed promises are
-  correctly listed under "Dropped by the 23 Sep trading-removal decision", not as missing.
+  (41/41 rows) are fully assessed, no longer placeholders. Per-chunk row counts (expected ==
+  assessed for all 23) are tabulated in `stage0/INTENT_ROWCOUNT.md`, which also sums the raw/
+  verdict finding counts (152/152) each chunk contributed to the register. The ledger states
+  its own coverage as "All 23 expected intent chunks present, non-placeholder, and
+  row-count-complete"; trading-removed promises are listed under "Dropped by the 23 Sep
+  trading-removal decision", not as missing. **Gate 2 re-verifier correction:** 21 more rows on
+  the removed surface were still `delivered` (16) or `partial` (5) — e.g. INT-BP-205 (order
+  confirmation dialog) `delivered` while the identical INT-PD-229 was `dropped`; INT-PD-190/218/
+  219/220/223 (Kite OAuth, broker/execution adapters) `partial` in the flagged list. All 21 are
+  now `dropped` (D81) with `prior_status` kept. Rollup: delivered 573, partial 180, missing 72,
+  dropped 207 (96 citing D81) = 1,032; flagged list 252 (72 missing + 180 partial). No register
+  entry changes (none of the 21 had a linked raw finding).
 
 ## 8. Known gaps
 
@@ -168,11 +183,11 @@ explicitly flagged cells. Every DAT-* raw finding id is cross-referenced per slo
   this read-only, no-GUI run cannot close; for the operator.
 - **`google-genai`'s unpinned dependency floor** (`>=1.0`) is a live reproducibility gap, not
   fixed in this pass (a `requirements.txt` edit, out of scope for a verification run).
-- **Intent census closed this pass** — the remaining 10 of 23 chunks landed and the 2
-  placeholder chunks (`spec-90`, `spec-180`) are now fully assessed (§7); the register rebuild
-  folded in 35 new entries this surfaced (3 new rejections: `INT-spec-180-181`,
-  `INT-spec-180-206`, both verification-paperwork gaps, not product defects) — no longer carried
-  forward as a gap.
+- **Intent census closed** — the remaining 10 of 23 chunks landed and the 2 placeholder chunks
+  (`spec-90`, `spec-180`) are fully assessed (§7); that build folded in 35 new entries (3 new
+  rejections: `INT-spec-180-181`, `INT-spec-180-206`, both verification-paperwork gaps, not
+  product defects). This pass's `merge-S2-delta2` agent/ui delta merges added 7 further entries
+  (596 -> 603, §2) — no longer carried forward as a gap.
 - Everything else in this sheet is either closed (register unaccounted-raw-ids 0)
   or explicitly labelled with its own reason in the source document — no findings were silently
   dropped to reach these totals.

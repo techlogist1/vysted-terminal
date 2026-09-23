@@ -1,10 +1,10 @@
 # R15 register (readable view)
 
-878 raw findings → 596 entries + 75 rejections. critical: 16 · high: 103 · medium: 265 · low: 212
+887 raw findings → 603 entries + 76 rejections. critical: 16 · high: 104 · medium: 268 · low: 215
 
 ## The operator's four areas
 
-### UI / panels / layout (108)
+### UI / panels / layout (113)
 
 - **R15-DATA-031** [high] Earnings and analyst panels drop the contract's currency: EPS/revenue/targets render unlabelled, the Consensus EPS column sorts USD against INR by magnitude, and the surprise chart hardcodes 'EPS $' — _open_
 - **R15-DATA-042** [high] Portfolio CSV export writes a cross-currency Weight % and no currency column, abandoning the D57 rule the table enforces (the table drops Wt when currencies are mixed) — _open_
@@ -17,6 +17,7 @@
 - **R15-UI-007** [high] Clicking a screener preset while a Nested group or formula is set silently runs the OLD tree and formula and presents the rows as the named preset — _open_
 - **R15-UI-008** [high] Onboarding certifies any string as an OpenRouter key ('OpenRouter is connected — the agent and deep research are live'), switches the default provider to it, hides the key banner, and the first message 401s — _open_
 - **R15-UI-009** [high] Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview — _open_
+- **R15-UI-090** [high] Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all — _open_
 - **R15-AGENT-032** [medium] The chat transcript writes 'Applied: <change>' synchronously, before the async apply can fail and re-pend the change, so the transcript contradicts the review row — _open_
 - **R15-AGENT-052** [medium] The panel-context bus's focus id (dockview ids) and publishers' event keys ('chart-chart', 'equity', 'backtest-panel') never match, so suggestion chips and the context badge never find the focused symbol and a focused Equity Overview is ignored — _open_
 - **R15-AGENT-053** [medium] Panel-to-agent context covers only chart, watchlist and portfolio: 15 of 21 panels publish nothing, the backtest/news/equity payloads that are published are dropped by the consumer, and earnings/analyst/SEC/news symbols are dead, unclickable text — _open_
@@ -84,6 +85,8 @@
 - **R15-UI-086** [medium] Command-palette action and panel rows never show their keyboard shortcut: about 0% carry one, against SC-009's >=90% (the only <kbd> is a literal 'Enter' on the Ask-agent row) — _open_
 - **R15-UI-087** [medium] FR-038's preference depth does not exist: no provider/model fallback order, no palette-behaviour options and no starter-cockpit composition. The settings were killed in R9 as theatre, and the behaviour behind them was never built — _open_
 - **R15-UI-088** [medium] In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 — _open_
+- **R15-UI-091** [medium] Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equity, EMA50/200 + week-anchored VWAP for crypto): the chart opens with an empty indicator set, the only live seeding has no timeframe dimension, and EMA is hard-fixed at period 20 — _open_
+- **R15-UI-092** [medium] Out-of-range citation markers are silently deleted from research briefs, so a cited-but-broken claim becomes indistinguishable from an uncited one (the inverse of FR-123 'broken citations shown'); no brief-anchored follow-up affordance either — _open_
 - **R15-AGENT-078** [low] Agent arrange appliers defer to requestAnimationFrame but report success synchronously, so on an occluded window the layout snapshot read in the same turn is stale and a throw in the callback escapes the host-action error path — _open_
 - **R15-CROSS-PLATFORM-006** [low] Note .md mirror and export filenames strip only / and \ from a free-text symbol, so Windows-illegal names (NSE:RELIANCE, CON, :*?"<>|) silently fail to write the SC-032 per-note .md — _open_
 - **R15-CROSS-PLATFORM-009** [low] UI hints hardcode macOS glyphs (⌘K, ⌘B, ⌘↵, ⌘⌫) on every OS, bypassing formatBinding, so Windows/Linux users are told to press a key that does not exist there (Win+K opens Cast) and rebinding is ignored — _open_
@@ -114,8 +117,10 @@
 - **R15-UI-081** [low] Settings → Modules toggles do not do what they say: the 'AI Assistant' switch is wired to nothing, and a disabled module's panel still opens via openPanel from the agent and host actions — _open_
 - **R15-UI-082** [low] Saving a layout under a Devanagari/Unicode or punctuated name fails with only 'HTTP 400' (the sidecar's reason is discarded), and a name over ~210 chars 500s on the temp filename — _open_
 - **R15-UI-089** [low] Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save — _open_
+- **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
+- **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (82)
+### Agent / chat (84)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _open_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _open_
@@ -176,6 +181,7 @@
 - **R15-AGENT-082** [medium] A foreground chat run's token count and spend are never shown anywhere: spend is hard-coded to $0 and the only cost surface hides zero spend and finished runs — _open_
 - **R15-AGENT-083** [medium] No mutating capability reaches the external MCP surface, contradicting the spec's one-catalog parity and 'same confirmation path' promise, and the spec was never amended to match the in-code rule — _open_
 - **R15-AGENT-084** [medium] The agent cannot draw on or annotate the chart (no drawing host action), and no completeness audit exists to prove every obvious hand action is agent-reachable as SC-022/SC-027 require — _open_
+- **R15-AGENT-088** [medium] A bare ticker typed in the chat ('AAPL', '@AAPL') always pays a full LLM round-trip: there is no LLM-free fast path that loads the default cockpit instantly as FR-112 promises — _open_
 - **R15-CODE-DATA-002** [medium] resolve() re-runs a 300-900 ms SequenceMatcher scan over ~17.9k master names on every call with no result memo — _open_
 - **R15-CODE-DATA-003** [medium] The agent's resolve_symbol tool gets a drifted copy of the Instrument wire shape: no rename provenance (effective date / note), confidence rounded differently — _open_
 - **R15-CROSS-PLATFORM-003** [medium] Hardware-fit has no Windows branch: every Windows machine is reported as exactly 8 GiB RAM / 4.4 GiB budget (presented as measured), so the onboarding local-model recommendation is scored against a constant; dedicated VRAM is never detected on Windows or Linux — _open_
@@ -197,6 +203,7 @@
 - **R15-AGENT-077** [low] The tool-arg repair round and native-search oneshot rebuild the adapter without the configured base_url — _open_
 - **R15-AGENT-085** [low] Plain chat answers carry no citation object and no unverified-claim check: the citation and [unverified] machinery exists only on research briefs and the Equity Overview narrative — _open_
 - **R15-AGENT-086** [low] A Delegate run can never be paused for a question: pause_run has no caller (no ask_user tool, no pause route), so the answer route serves a state no run can reach — _open_
+- **R15-AGENT-089** [low] close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done — _open_
 - **R15-CODE-PLATFORM-076** [low] copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost — _open_
 - **R15-DATA-101** [low] market_overview returns region 'GLOBAL' with the US index set and no note in the payload — _open_
 
@@ -406,7 +413,7 @@
 | R15-AGENT-022 | high | agent | host-actions-proposed-changes | A missing required argument becomes a fabricated or zero cost basis in the user's tracked portfolio: the local lane never asks for the price, nothing validates host-action args, the frontend coerces null to 0, the review card omits the cost, and AUTO applies it | open | WLD-harness-tools-3 |
 | R15-AGENT-023 | high | agent | workflow-engine | Nothing runs unattended and nothing can reach the user out of the app: no alerts, schedules or triggers, and workflows can only end in a log line or a desktop notification | open | WLD-T-1, INT-blueprint-48-6, INT-blueprint-288-1 |
 | R15-AGENT-024 | high | agent | host-actions-proposed-changes | Agent screen authoring fails on the default local lane: write_screener_filters criteria arrive as a JSON string, the host action applies nothing, and the model says the filters were staged | open | SURF-SCREENER-5 |
-| R15-AGENT-080 | high | agent | host-actions-proposed-changes | AUTO autonomy silently auto-applies portfolio cost-basis edits/deletes, note writes, saved layouts/screens and region settings, not only the UI/layout/chart/watchlist changes AUTO is documented and specified to cover | open | INT-spec-180-205 |
+| R15-AGENT-080 | high | agent | host-actions-proposed-changes | AUTO autonomy silently auto-applies portfolio cost-basis edits/deletes, note writes, saved layouts/screens and region settings, not only the UI/layout/chart/watchlist changes AUTO is documented and specified to cover | open | INT-spec-180-205, INT-spec-135-156 |
 | R15-CODE-AGENT-001 | high | code | mcp-servers | The whole sidecar (including the unauthenticated /mcp surface with 36 tools, invoke_agent among them) answers any browser Origin with access-control-allow-origin: * and performs no Origin validation | open | COD-mcp-servers-1 |
 | R15-CODE-DATA-001 | high | data | resolver | A bare-ticker NSE/BSE join stamps one company's ISIN, BSE code and BSE shareholding split onto a different company (live: NSE FOCUS = Focus Lighting carries Focus Business Solution's INE0DXR01010 / 543312) | open | COD-resolver-8 |
 | R15-CODE-FRONTEND-002 | high | code | frontend-stores | Switching a chat tab mid-stream drops the reply, archives a forever-pending partial and unlocks a concurrent second run; entering a research space discards the active chat tab's transcript | open | COD-frontend-stores-1 |
@@ -486,6 +493,7 @@
 | R15-UI-007 | high | ui | screener | Clicking a screener preset while a Nested group or formula is set silently runs the OLD tree and formula and presents the rows as the named preset | open | SURF-SCREENER-2 |
 | R15-UI-008 | high | ui | llm-adapters | Onboarding certifies any string as an OpenRouter key ('OpenRouter is connected — the agent and deep research are live'), switches the default provider to it, hides the key banner, and the first message 401s | open | SURF-ONBOARDING-STRANGER-1 |
 | R15-UI-009 | high | ui | frontend-panels-data-surfaces | Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview | open | WLD-T-2 |
+| R15-UI-090 | high | ui | market-data-providers-3 | Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all | open | INT-spec-135-168 |
 | R15-AGENT-025 | medium | agent | llm-adapters | A provider that accepts the request and never streams (or a hung planner pre-pass) leaves the chat on a silent spinner for up to 600 s: no client timeout, no heartbeat and no stall watchdog | open | SURF-FAILURE-INDUCER-3, COD-agent-runtime-3 |
 | R15-AGENT-026 | medium | agent | error-layer | A truncated or empty answer is shown as a complete one: max_tokens/length finishes (Anthropic hard-capped at 4096), streams that end with no finish_reason, and rounds with zero text and zero tool calls all settle as success with no notice or Retry | open | COD-error-layer-2-3, SURF-FAILURE-INDUCER-1 |
 | R15-AGENT-027 | medium | agent | error-layer | humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network' | open | COD-error-layer-5, COD-error-layer-2-4, SURF-FAILURE-INDUCER-5, SURF-RESEARCH-BRIEFS-8 |
@@ -530,6 +538,7 @@
 | R15-AGENT-082 | medium | agent | frontend-panels-agent-shell | A foreground chat run's token count and spend are never shown anywhere: spend is hard-coded to $0 and the only cost surface hides zero spend and finished runs | open | INT-spec-0-1 |
 | R15-AGENT-083 | medium | agent | agent-tools-catalog-ledger | No mutating capability reaches the external MCP surface, contradicting the spec's one-catalog parity and 'same confirmation path' promise, and the spec was never amended to match the in-code rule | open | INT-spec-45-2 |
 | R15-AGENT-084 | medium | agent | host-actions-proposed-changes | The agent cannot draw on or annotate the chart (no drawing host action), and no completeness audit exists to prove every obvious hand action is agent-reachable as SC-022/SC-027 require | open | INT-spec-180-202, INT-spec-180-207 |
+| R15-AGENT-088 | medium | agent | frontend-panels-agent-shell | A bare ticker typed in the chat ('AAPL', '@AAPL') always pays a full LLM round-trip: there is no LLM-free fast path that loads the default cockpit instantly as FR-112 promises | open | INT-spec-135-162 |
 | R15-CODE-AGENT-002 | medium | code | mcp-servers | A dead openbb-mcp / sec-edgar-mcp child stalls the first call 60 s and the next call escapes as asyncio.CancelledError, so the provider registry does not fall through to yfinance for that request (reconnect except-tuple narrower than documented) | open | COD-mcp-servers-2 |
 | R15-CODE-AGENT-003 | medium | code | llm-adapters | Key validation lies for three of eight providers: a typo'd/revoked OpenRouter key is reported valid and saved to the keychain; a bad Gemini/xAI key is reported as a 'transport error' and misses the chat stream's key-rejected message | open | COD-llm-adapters-2-4 |
 | R15-CODE-AGENT-004 | medium | code | llm-adapters | Gemini usage omits thinking and grounding-prompt tokens, so BudgetGuard under-meters every thinking Gemini round and a Delegate run can overspend past its USD/token ceiling | open | COD-llm-adapters-2-6 |
@@ -751,6 +760,8 @@
 | R15-UI-086 | medium | ui | frontend-panels-shell-chrome | Command-palette action and panel rows never show their keyboard shortcut: about 0% carry one, against SC-009's >=90% (the only <kbd> is a literal 'Enter' on the Ask-agent row) | open | INT-spec-180-189 |
 | R15-UI-087 | medium | ui | frontend-panels-shell-chrome | FR-038's preference depth does not exist: no provider/model fallback order, no palette-behaviour options and no starter-cockpit composition. The settings were killed in R9 as theatre, and the behaviour behind them was never built | open | INT-spec-90-10 |
 | R15-UI-088 | medium | ui | workspace-layout | In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 | open | INT-deferred-42-2 |
+| R15-UI-091 | medium | ui | frontend-panels-data-surfaces | Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equity, EMA50/200 + week-anchored VWAP for crypto): the chart opens with an empty indicator set, the only live seeding has no timeframe dimension, and EMA is hard-fixed at period 20 | open | INT-spec-135-154 |
+| R15-UI-092 | medium | ui | research-extraction-synthesis | Out-of-range citation markers are silently deleted from research briefs, so a cited-but-broken claim becomes indistinguishable from an uncited one (the inverse of FR-123 'broken citations shown'); no brief-anchored follow-up affordance either | open | INT-spec-135-173 |
 | R15-AGENT-065 | low | agent | plugins | Two documented-deferred copilot/customizability builds remain unbuilt: the 3-pane agent roster panel with hard persona hand-off, and the data-source connector hub (Plugin Manager shows only a count) | open | INT-deferred-0-12 |
 | R15-AGENT-066 | low | agent | agent-tools-catalog-ledger | run_custom_backtest advertises readOnlyHint=true on the external MCP surface while it writes to the in-process backtest result cache | open | COD-agent-tools-catalog-ledger-1 |
 | R15-AGENT-067 | low | agent | agent-tools-catalog-ledger | MCP projection is derived from tool kind alone plus one hand-listed exclusion, with no per-entry axis for session-scoped or account-scoped reads (it excludes backtest_summary but projects its writer run_custom_backtest) | open | COD-agent-tools-catalog-ledger-12 |
@@ -769,6 +780,7 @@
 | R15-AGENT-085 | low | agent | agent-runtime | Plain chat answers carry no citation object and no unverified-claim check: the citation and [unverified] machinery exists only on research briefs and the Equity Overview narrative | open | INT-spec-0-2 |
 | R15-AGENT-086 | low | agent | runs-durable-delegate | A Delegate run can never be paused for a question: pause_run has no caller (no ask_user tool, no pause route), so the answer route serves a state no run can reach | open | INT-spec-90-7 |
 | R15-AGENT-087 | low | docs | frontend-stores | Spec FR-003/SC-029 and the agent-mode store docblock still describe four hotkeyed modes (Ask/Edit/Build/Delegate, alt+1-4) while the app ships two (Agent/Delegate) plus a layered intent gate and a separate autonomy axis | open | INT-spec-90-6, INT-spec-180-209 |
+| R15-AGENT-089 | low | agent | agent-runtime | close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done | open | INT-spec-135-164 |
 | R15-CODE-AGENT-014 | low | code | agent-tools-catalog-ledger | Tool-call failures come back as a hand-copied {ok:false,error} envelope in ~11 handler files while invoke_tool is a bare await, with an outlier 'news fetch failed:' prefix | open | COD-agent-tools-catalog-ledger-7 |
 | R15-CODE-AGENT-015 | low | code | agent-tools-catalog-ledger | sec_filings_list and sec_insider_transactions pass an unclamped model-supplied limit (100000, -1) upstream while every sibling tool clamps | open | COD-agent-tools-catalog-ledger-8 |
 | R15-CODE-AGENT-016 | low | code | agent-runtime | An agent JSON declaring defaultProvider 'openrouter' fails the stale _schema.json enum and silently vanishes from the roster with only a warning log | open | COD-agent-runtime-10 |
@@ -963,3 +975,5 @@
 | R15-UI-081 | low | ui | frontend-panels-shell-chrome | Settings → Modules toggles do not do what they say: the 'AI Assistant' switch is wired to nothing, and a disabled module's panel still opens via openPanel from the agent and host actions | open | SURF-SETTINGS-PLUGINS-5, SURF-SETTINGS-PLUGINS-7 |
 | R15-UI-082 | low | ui | workspace-layout | Saving a layout under a Devanagari/Unicode or punctuated name fails with only 'HTTP 400' (the sidecar's reason is discarded), and a name over ~210 chars 500s on the temp filename | open | SURF-SETTINGS-PLUGINS-6 |
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
+| R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
+| R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
