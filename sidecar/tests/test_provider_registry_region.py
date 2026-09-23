@@ -209,7 +209,7 @@ def test_statement_for_another_listing_is_rejected(monkeypatch: pytest.MonkeyPat
     from models.fundamentals import IncomeStatement
     from services import openbb_mcp_provider, yfinance_provider
 
-    async def us_listing(symbol: str) -> IncomeStatement:
+    async def us_listing(symbol: str, period: str = "annual") -> IncomeStatement:  # noqa: ARG001
         return IncomeStatement(symbol="DAL", periods=[], lines=[], provider="openbb-mcp")
 
     monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
@@ -217,7 +217,9 @@ def test_statement_for_another_listing_is_rejected(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(
         yfinance_provider,
         "get_income_statement",
-        lambda s: IncomeStatement(symbol="DAL.BO", periods=[], lines=[], provider="yfinance"),
+        lambda s, period="annual": IncomeStatement(
+            symbol="DAL.BO", periods=[], lines=[], provider="yfinance"
+        ),
     )
     token = config.set_request_region("IN")
     try:

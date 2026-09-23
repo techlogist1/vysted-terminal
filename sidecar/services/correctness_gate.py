@@ -713,7 +713,9 @@ def reconcile_52w_range(
         by more than the tolerance is flagged, and the reason says "since" the
         first bar, since the missing months could hold the provider's extreme.
 
-    Disclose, never substitute: flagged bounds keep the provider value.
+    Both bounds come from one provider window, so when either is flagged the
+    other is flagged too. Disclose, never substitute: flagged bounds keep the
+    provider value.
     """
     names = [n for n in ("fifty_two_week_high", "fifty_two_week_low") if getattr(f, n) is not None]
     if not names:
@@ -753,6 +755,20 @@ def reconcile_52w_range(
         flagged[name] = (
             f"52-week {label} {provider_value:,.2f} is {gap:.0%} off the {' + '.join(venues)} "
             f"exchange range {ex_low:,.2f}-{ex_high:,.2f} since {first.isoformat()}; kept, flagged"
+        )
+    # Both bounds come from ONE provider window: a flagged bound shows that window
+    # is off the exchange range, so its partner is not ok either (R15-DATA-015).
+    for name in names:
+        other = next((n for n in flagged if n != name), None)
+        if name in flagged or other is None:
+            continue
+        label = "high" if name.endswith("high") else "low"
+        other_label = "high" if other.endswith("high") else "low"
+        flagged[name] = (
+            f"52-week {label} {float(getattr(f, name)):,.2f} comes from the same provider "
+            f"52-week window as the flagged {other_label}, and that window disagrees with the "
+            f"{' + '.join(venues)} exchange range {ex_low:,.2f}-{ex_high:,.2f} since "
+            f"{first.isoformat()}; kept, flagged"
         )
     return _merge_meta(f, {}, flagged)
 

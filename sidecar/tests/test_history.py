@@ -64,18 +64,19 @@ def test_empty_series_in_symbol_carries_eod_only_reason(client: TestClient, monk
 
     monkeypatch.setattr(provider_registry, "get_history", _all_empty)
 
-    # A bare BSE-only ticker resolves to IN → the typed reason.
-    body = client.get("/history/ICONIKSPEV", params={"timeframe": "1d"}).json()
+    # A bare BSE-only ticker resolves to IN → the typed reason for an intraday
+    # timeframe (R15-DATA-064: an empty DAILY series is not an EOD-only cause).
+    body = client.get("/history/ICONIKSPEV", params={"timeframe": "5m"}).json()
     assert body["bars"] == []
     assert body["provider"] == "none"
     assert body["reason"] == "in_eod_only"
 
     # A .BO-suffixed symbol is decisively IN → same typed reason.
-    body_bo = client.get("/history/RELIANCE.BO", params={"timeframe": "1d"}).json()
+    body_bo = client.get("/history/RELIANCE.BO", params={"timeframe": "15m"}).json()
     assert body_bo["reason"] == "in_eod_only"
 
     # A US symbol carries no IN reason (the generic message stays correct).
-    body_us = client.get("/history/AAPL", params={"timeframe": "1d"}).json()
+    body_us = client.get("/history/AAPL", params={"timeframe": "5m"}).json()
     assert body_us["bars"] == []
     assert body_us.get("reason") is None
 
@@ -84,9 +85,25 @@ def test_empty_series_reason_unit() -> None:
     """Direct unit guard on the typed-reason helper (no route)."""
     from routers.history import _empty_series_reason
 
-    assert _empty_series_reason("ICONIKSPEV") == "in_eod_only"
-    assert _empty_series_reason("RELIANCE.BO") == "in_eod_only"
-    assert _empty_series_reason("AAPL") is None
+    assert _empty_series_reason("ICONIKSPEV", "5m") == "in_eod_only"
+    assert _empty_series_reason("RELIANCE.BO", "1h") == "in_eod_only"
+    assert _empty_series_reason("AAPL", "5m") is None
+
+
+def test_in_eod_only_is_only_for_intraday_on_a_known_in_listing() -> None:
+    """R15-DATA-064: a daily no-trade series (DAL), an unknown symbol and a caret
+    index are not "BSE/NSE serve EOD only"; a 5m RELIANCE.NS series is."""
+    import config
+    from routers.history import _empty_series_reason
+
+    token = config.set_request_region("IN")
+    try:
+        assert _empty_series_reason("DAL.BO", "1d") is None
+        assert _empty_series_reason("ZZUNKNOWNXQ", "5m") is None
+        assert _empty_series_reason("^NSEI", "30m") is None
+        assert _empty_series_reason("RELIANCE.NS", "5m") == "in_eod_only"
+    finally:
+        config.reset_request_region(token)
 
 
 def test_history_iconikspev_serves_real_bars_from_bhavcopy(

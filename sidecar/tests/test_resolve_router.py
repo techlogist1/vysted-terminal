@@ -183,11 +183,12 @@ def test_resolve_payload_carries_identity_enrichment(client: TestClient) -> None
     """R13: the /resolve wire payload additively carries the ISIN / scrip /
     industry / former-name enrichment so the mention picker can anchor a
     ≤3-char ticker to the one real company."""
-    resp = client.get("/resolve", params={"q": "KSE", "region": "IN"})
+    # BMW Industries (BSE-only; KSE, the old example, is NSE-listed since 2026-08).
+    resp = client.get("/resolve", params={"q": "BMW", "region": "IN"})
     assert resp.status_code == 200
     resolved = resp.json()["resolved"]
-    assert resolved["isin"] == "INE953E01022"
-    assert resolved["bse_code"] == "519421"
-    # honest: KSE's industry is genuinely absent in the sector map
+    assert resolved["isin"] == "INE374E01021"
+    assert resolved["bse_code"] == "542669"
+    # honest: BMW's industry is genuinely absent in the sector map
     assert resolved["industry"] is None
     assert "former_name" in resolved

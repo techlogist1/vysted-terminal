@@ -70,6 +70,10 @@ ModelKey = Literal[
     "macro_series",
 ]
 
+# Statement depth (R15-DATA-026): quarterly periods are ISO period-end dates,
+# annual ones the fiscal year.
+StatementPeriod = Literal["annual", "quarterly"]
+
 
 # ---------------------------------------------------------------------------
 # Provider declarations — declared once, projected to the resolver + /health.
@@ -120,7 +124,7 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
         serves={
             "quote": lambda symbol: ccxt_provider.get_ticker(DEFAULT_CRYPTO_EXCHANGE, symbol),
             "ohlcv": lambda symbol, timeframe, range_=None: ccxt_provider.get_ohlcv(
-                DEFAULT_CRYPTO_EXCHANGE, symbol, timeframe
+                DEFAULT_CRYPTO_EXCHANGE, symbol, timeframe, range_
             ),
         },
     ),
@@ -131,9 +135,15 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
         requires=lambda: openbb_mcp_provider.is_available(),
         serves={
             "fundamentals": lambda symbol: openbb_mcp_provider.get_fundamentals(symbol),
-            "income_statement": lambda symbol: openbb_mcp_provider.get_income_statement(symbol),
-            "balance_sheet": lambda symbol: openbb_mcp_provider.get_balance_sheet(symbol),
-            "cash_flow": lambda symbol: openbb_mcp_provider.get_cash_flow(symbol),
+            "income_statement": lambda symbol, period="annual": (
+                openbb_mcp_provider.get_income_statement(symbol, period)
+            ),
+            "balance_sheet": lambda symbol, period="annual": openbb_mcp_provider.get_balance_sheet(
+                symbol, period
+            ),
+            "cash_flow": lambda symbol, period="annual": openbb_mcp_provider.get_cash_flow(
+                symbol, period
+            ),
             "analyst_rating": lambda symbol: openbb_mcp_provider.get_analyst_rating(symbol),
             "macro_series": lambda series_id, provider=None: openbb_mcp_provider.get_macro_series(
                 series_id, provider=provider
@@ -207,9 +217,15 @@ _PROVIDERS: tuple[ProviderDeclaration, ...] = (
                 symbol, timeframe, range_
             ),
             "fundamentals": lambda symbol: yfinance_provider.get_fundamentals(symbol),
-            "income_statement": lambda symbol: yfinance_provider.get_income_statement(symbol),
-            "balance_sheet": lambda symbol: yfinance_provider.get_balance_sheet(symbol),
-            "cash_flow": lambda symbol: yfinance_provider.get_cash_flow(symbol),
+            "income_statement": lambda symbol, period="annual": (
+                yfinance_provider.get_income_statement(symbol, period)
+            ),
+            "balance_sheet": lambda symbol, period="annual": yfinance_provider.get_balance_sheet(
+                symbol, period
+            ),
+            "cash_flow": lambda symbol, period="annual": yfinance_provider.get_cash_flow(
+                symbol, period
+            ),
             "analyst_rating": lambda symbol: yfinance_provider.get_analyst_rating(symbol),
         },
     ),
@@ -496,36 +512,45 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
     )
 
 
-async def get_income_statement(symbol: str, region: str | None = None) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
+async def get_income_statement(
+    symbol: str, region: str | None = None, period: StatementPeriod = "annual"
+) -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
     return await _resolve_async(
         "income_statement",
         "equity",
         _effective_region(symbol, region),
         _statement_validator(symbol),
         symbol,
+        period,
     )
 
 
-async def get_balance_sheet(symbol: str, region: str | None = None) -> BalanceSheet:
-    """Return the balance sheet excerpt for ``symbol``."""
+async def get_balance_sheet(
+    symbol: str, region: str | None = None, period: StatementPeriod = "annual"
+) -> BalanceSheet:
+    """Return the balance sheet excerpt for ``symbol`` (``period`` annual or quarterly)."""
     return await _resolve_async(
         "balance_sheet",
         "equity",
         _effective_region(symbol, region),
         _statement_validator(symbol),
         symbol,
+        period,
     )
 
 
-async def get_cash_flow(symbol: str, region: str | None = None) -> CashFlowStatement:
-    """Return the cash-flow statement excerpt for ``symbol``."""
+async def get_cash_flow(
+    symbol: str, region: str | None = None, period: StatementPeriod = "annual"
+) -> CashFlowStatement:
+    """Return the cash-flow statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
     return await _resolve_async(
         "cash_flow",
         "equity",
         _effective_region(symbol, region),
         _statement_validator(symbol),
         symbol,
+        period,
     )
 
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from models.market import OHLCVSeries, Quote
 from services import ccxt_provider
@@ -42,9 +42,14 @@ async def crypto_ticker(exchange: str, symbol: str) -> Quote:
 
 
 @router.get("/history")
-async def crypto_history(exchange: str, symbol: str, timeframe: str = "1d") -> OHLCVSeries:
-    """Return an OHLCV series for ``symbol`` on ``exchange``."""
-    return await asyncio.to_thread(ccxt_provider.get_ohlcv, exchange, symbol, timeframe)
+async def crypto_history(
+    exchange: str,
+    symbol: str,
+    timeframe: str = "1d",
+    range_: str | None = Query(None, alias="range"),
+) -> OHLCVSeries:
+    """Return an OHLCV series for ``symbol`` on ``exchange`` covering ``range``."""
+    return await asyncio.to_thread(ccxt_provider.get_ohlcv, exchange, symbol, timeframe, range_)
 
 
 @router.websocket("/stream")

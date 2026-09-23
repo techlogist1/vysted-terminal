@@ -70,7 +70,7 @@ _TIMEFRAME_MAP: dict[str, tuple[str, str]] = {
     "1m": ("1m", "5d"),
     "5m": ("5m", "1mo"),
     "15m": ("15m", "1mo"),
-    "30m": ("30m", "3mo"),
+    "30m": ("30m", "1mo"),  # Yahoo serves sub-hour bars for the last 60 days only
     "1h": ("1h", "6mo"),
     "1d": ("1d", "1y"),
     "1wk": ("1wk", "5y"),
@@ -94,22 +94,31 @@ def _normalize_symbol(symbol: str) -> str:
     return symbol.replace(".", "-")
 
 
+def _nse_listing(bare: str) -> str:
+    """Yahoo's form of an NSE listing: Emerge (SME) names are ``-SM.NS``
+    (SUMAX-SM.NS; ``SUMAX.NS`` is empty), the main board ``.NS``."""
+    return f"{bare}-SM.NS" if symbol_resolver.is_nse_emerge(bare) else f"{bare}.NS"
+
+
 def _yahoo_symbol(symbol: str) -> str:
     """Resolve the symbol to the form Yahoo actually serves data for.
 
     Three cases, in order:
-      * a ``.NS``/``.BO`` suffix is already a Yahoo India symbol — pass it through
-        UNCHANGED (the old ``_normalize_symbol`` wrongly turned ``ROUTE.NS`` into
-        ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on — the root cause of
-        the all-dashes Indian Equity Overview);
+      * a ``.NS``/``.BO`` suffix or a ``^`` index symbol is already Yahoo's form —
+        pass it through UNCHANGED (the old ``_normalize_symbol`` wrongly turned
+        ``ROUTE.NS`` into ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on —
+        the root cause of the all-dashes Indian Equity Overview); an NSE Emerge
+        name given as ``.NS`` takes its ``-SM.NS`` form;
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
-        the ``.NS`` suffix so Yahoo returns NSE fundamentals instead of an empty
-        US lookup;
+        the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
+        instead of an empty US lookup;
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
-    if s.endswith((".NS", ".BO")):
-        return s
+    if s.startswith("^") or s.endswith(".BO"):
+        return s  # a caret index (^NSEI, ^BSESN) is served unsuffixed (R15-LEAD-011)
+    if s.endswith(".NS"):
+        return _nse_listing(s[:-3]) if symbol_resolver.is_nse_emerge(s) else s
     # Region-aware India resolution. The symbol's intrinsic hint wins; else the
     # active session region. In an IN context a bare (dot-free) ticker picks the
     # exchange the instrument actually lists on — NSE by default, BUT a BSE-ONLY
@@ -128,12 +137,12 @@ def _yahoo_symbol(symbol: str) -> str:
     region = symbol_resolver.region_hint(s) or config.get_region()
     if region == "IN" and "." not in s:
         if symbol_resolver.is_nse_symbol(s):
-            return f"{s}.NS"
+            return _nse_listing(s)
         if symbol_resolver.is_bse_symbol(s):
             return f"{s}.BO"
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
-        return f"{s}.NS"
+        return _nse_listing(s)
     return s.replace(".", "-")
 
 
@@ -367,6 +376,7 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
         frame = yf.Ticker(normalized).history(period=period, interval=interval)
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("history", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
 
     bars: list[OHLCVBar] = []
     prior_close: float | None = None
@@ -511,9 +521,17 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     return fund
 
 
-def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine]]:
-    """Convert a yfinance statement DataFrame to (periods, lines)."""
-    periods = [str(getattr(col, "year", col)) for col in frame.columns]
+def _statement_lines(
+    frame: pd.DataFrame, period: str = "annual"
+) -> tuple[list[str], list[StatementLine]]:
+    """Convert a yfinance statement DataFrame to (periods, lines).
+
+    Annual periods are labelled by fiscal year; quarterly ones by their ISO
+    period-end date, since four quarters share one year (R15-DATA-026)."""
+    if period == "quarterly":
+        periods = [pd.Timestamp(col).date().isoformat() for col in frame.columns]
+    else:
+        periods = [str(getattr(col, "year", col)) for col in frame.columns]
     lines: list[StatementLine] = []
     for label, row in frame.iterrows():
         values = {period: _num(row.iloc[idx]) for idx, period in enumerate(periods)}
@@ -521,14 +539,17 @@ def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine
     return periods, lines
 
 
-def get_income_statement(symbol: str) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
+def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``period`` is
+    ``"annual"`` or ``"quarterly"``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).income_stmt
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_income_stmt if period == "quarterly" else ticker.income_stmt
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("income statement", symbol, exc) from exc
-    periods, lines = _statement_lines(frame)
+    provider_health.record_success(provider_health.YAHOO)
+    periods, lines = _statement_lines(frame, period)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
@@ -543,19 +564,23 @@ def get_quarterly_period_ends(symbol: str) -> list[date]:
     normalized = _yahoo_symbol(symbol)
     try:
         frame = yf.Ticker(normalized).quarterly_income_stmt
-        return [pd.Timestamp(column).date() for column in frame.columns]
+        ends = [pd.Timestamp(column).date() for column in frame.columns]
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("quarterly income statement", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
+    return ends
 
 
-def get_balance_sheet(symbol: str) -> BalanceSheet:
+def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).balance_sheet
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_balance_sheet if period == "quarterly" else ticker.balance_sheet
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
-    periods, lines = _statement_lines(frame)
+    provider_health.record_success(provider_health.YAHOO)
+    periods, lines = _statement_lines(frame, period)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
 
@@ -577,6 +602,7 @@ def get_newest_equity(symbol: str) -> tuple[date, float] | None:
         frames = (ticker.quarterly_balance_sheet, ticker.balance_sheet)
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
     newest: tuple[date, float] | None = None
     for frame in frames:
         label = next((name for name in _EQUITY_LABELS if name in frame.index), None)
@@ -590,14 +616,16 @@ def get_newest_equity(symbol: str) -> tuple[date, float] | None:
     return newest
 
 
-def get_cash_flow(symbol: str) -> CashFlowStatement:
+def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``."""
     normalized = _yahoo_symbol(symbol)
     try:
-        frame = yf.Ticker(normalized).cashflow
+        ticker = yf.Ticker(normalized)
+        frame = ticker.quarterly_cashflow if period == "quarterly" else ticker.cashflow
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("cash flow", symbol, exc) from exc
-    periods, lines = _statement_lines(frame)
+    provider_health.record_success(provider_health.YAHOO)
+    periods, lines = _statement_lines(frame, period)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
@@ -612,6 +640,7 @@ def get_analyst_rating(symbol: str) -> AnalystRating:
         targets = ticker.analyst_price_targets
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("analyst rating", symbol, exc) from exc
+    provider_health.record_success(provider_health.YAHOO)
 
     counts = {"strongBuy": 0, "buy": 0, "hold": 0, "sell": 0, "strongSell": 0}
     if recommendations is not None and not recommendations.empty:

@@ -99,6 +99,47 @@ def test_get_cash_flow(client: TestClient, mock_yfinance: object) -> None:
     assert len(body["lines"]) == 2
 
 
+def _dhanbank_ticker() -> type:
+    """DHANBANK.NS-shaped frames: four quarters to Q1 FY27 and four fiscal years."""
+    import pandas as pd
+
+    def frame(ends: list[str]) -> pd.DataFrame:
+        columns = pd.to_datetime(ends)
+        return pd.DataFrame(
+            {col: [1_000.0 + i, 100.0 + i] for i, col in enumerate(columns)},
+            index=["Total Revenue", "Net Income"],
+        )
+
+    quarters = frame(["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30"])
+    years = frame(["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31"])
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        income_stmt = balance_sheet = cashflow = years
+        quarterly_income_stmt = quarterly_balance_sheet = quarterly_cashflow = quarters
+
+    return _Ticker
+
+
+@pytest.mark.parametrize("route", ["income", "balance", "cashflow"])
+def test_statement_routes_serve_quarters_by_iso_period_end(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, route: str
+) -> None:
+    """R15-DATA-026: ?period=quarterly returns four ISO period-end labels (not
+    four quarters collapsed into one year label); the annual route is unchanged."""
+    from services import yfinance_provider
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _dhanbank_ticker())
+    quarterly = client.get(f"/fundamentals/DHANBANK.NS/{route}?period=quarterly").json()
+    assert quarterly["periods"] == ["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30"]
+    revenue = next(line for line in quarterly["lines"] if line["label"] == "Total Revenue")
+    assert revenue["values"]["2026-06-30"] == 1_000.0
+    annual = client.get(f"/fundamentals/DHANBANK.NS/{route}").json()
+    assert annual["periods"] == ["2026", "2025", "2024", "2023"]
+
+
 def test_get_analyst_rating(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL/ratings").json()
     assert body["symbol"] == "AAPL"
@@ -660,3 +701,29 @@ def test_never_payer_reads_an_affirmed_zero_yield(
     assert body["dividend_per_share_ttm"] == 0.0
     assert body["dividend_yield"] == 0.0
     assert body["field_meta"]["dividend_yield"]["label"] == AFFIRMED_ZERO_LABEL
+
+
+def test_ratings_cache_is_keyed_on_the_resolved_listing(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: object
+) -> None:
+    """R15-LEAD-009: a region switch inside the TTL refetches for the other
+    listing instead of serving the first region's cached ratings."""
+    from config import DATA_DIR_ENV
+    from models.analyst_extended import RatingsHistoryResponse
+    from services import analyst_ratings_extended, data_cache, yfinance_provider
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    listings: list[str] = []
+
+    async def _history(symbol: str) -> RatingsHistoryResponse:
+        listings.append(yfinance_provider._yahoo_symbol(symbol))
+        return RatingsHistoryResponse(symbol=symbol, history=[])
+
+    monkeypatch.setattr(analyst_ratings_extended, "get_ratings_history", _history)
+    try:
+        for region in ("IN", "US", "IN"):
+            client.get("/fundamentals/INFY/ratings/history", headers={"X-Vysted-Region": region})
+    finally:
+        data_cache.reset_for_tests()
+    assert listings == ["INFY.NS", "INFY"]

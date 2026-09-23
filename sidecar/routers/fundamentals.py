@@ -44,6 +44,7 @@ from services import (
     symbol_resolver,
 )
 from services.errors import ProviderError
+from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
 
@@ -182,21 +183,27 @@ async def get_company_narrative(
 
 
 @router.get("/{symbol}/income")
-async def get_income_statement(symbol: str) -> IncomeStatement:
-    """Return the income statement excerpt for ``symbol``."""
-    return await provider_registry.get_income_statement(symbol)
+async def get_income_statement(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_income_statement(symbol, period=period)
 
 
 @router.get("/{symbol}/balance")
-async def get_balance_sheet(symbol: str) -> BalanceSheet:
-    """Return the balance sheet excerpt for ``symbol``."""
-    return await provider_registry.get_balance_sheet(symbol)
+async def get_balance_sheet(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> BalanceSheet:
+    """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_balance_sheet(symbol, period=period)
 
 
 @router.get("/{symbol}/cashflow")
-async def get_cash_flow(symbol: str) -> CashFlowStatement:
-    """Return the cash-flow statement excerpt for ``symbol``."""
-    return await provider_registry.get_cash_flow(symbol)
+async def get_cash_flow(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> CashFlowStatement:
+    """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    return await provider_registry.get_cash_flow(symbol, period=period)
 
 
 @router.get("/{symbol}/ratings")
@@ -214,7 +221,7 @@ async def get_analyst_rating(symbol: str) -> AnalystRating:
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:history"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:
@@ -233,7 +240,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     """Return price-target changes for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:price-targets"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:price-targets"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:
@@ -252,7 +259,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     """Return per-firm currently-active forecasts for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{normalized}:individual"
+    cache_key = f"ratings:{_yahoo_symbol(normalized)}:individual"  # the resolved listing
     cached = await data_cache.get(cache_key, _TTL_RATINGS)
     if isinstance(cached, dict):
         try:

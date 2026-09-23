@@ -127,7 +127,9 @@ def test_crypto_quote_and_series_are_gated(monkeypatch: pytest.MonkeyPatch) -> N
         timestamp=datetime.now(tz=UTC), open=1.0, high=2.0, low=1.0, close=1.5, volume=9.0
     )
     wrong = OHLCVSeries(symbol="ETH/USDT", timeframe="1d", bars=[bar], provider="ccxt:binance")
-    monkeypatch.setattr(ccxt_provider, "get_ohlcv", lambda exchange, symbol, timeframe: wrong)
+    monkeypatch.setattr(
+        ccxt_provider, "get_ohlcv", lambda exchange, symbol, timeframe, range_=None: wrong
+    )
     with pytest.raises(ProviderError, match="symbol mismatch"):
         provider_registry.get_history("BTC/USDT", "1d", asset_class="crypto")
 

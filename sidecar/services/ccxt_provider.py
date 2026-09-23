@@ -18,6 +18,7 @@ import ccxt
 import ccxt.pro as ccxtpro
 
 from models.market import OHLCVBar, OHLCVSeries, Quote
+from services import yfinance_provider
 from services.errors import ProviderError
 
 SUPPORTED_EXCHANGES = ("bybit", "binance", "kraken", "coinbase")
@@ -34,6 +35,41 @@ _CCXT_TIMEFRAME: dict[str, str] = {
     "1wk": "1w",
     "1mo": "1M",
 }
+
+
+# The /history range vocabulary (Yahoo's periods) in days; ``ytd``/``max`` are
+# handled in :func:`_since_ms`.
+_RANGE_DAYS: dict[str, int] = {
+    "1d": 1,
+    "5d": 5,
+    "1mo": 30,
+    "3mo": 91,
+    "6mo": 182,
+    "1y": 365,
+    "2y": 730,
+    "5y": 1826,
+    "10y": 3652,
+}
+_UNIT_MS = {"m": 60_000, "h": 3_600_000, "d": 86_400_000, "w": 604_800_000, "M": 2_592_000_000}
+_PAGE_LIMIT = 1000
+# ponytail: a range longer than this many bars serves its newest bars only (a
+# ``max`` 1m request would otherwise page thousands of rate-limited calls).
+_MAX_BARS = 10_000
+
+
+def _since_ms(range_: str, ccxt_timeframe: str, now: datetime) -> int:
+    """The epoch-ms start of ``range_`` back from ``now``, clamped to :data:`_MAX_BARS`."""
+    now_ms = int(now.timestamp() * 1000)
+    if range_ == "max":
+        since = 0
+    elif range_ == "ytd":
+        since = int(datetime(now.year, 1, 1, tzinfo=UTC).timestamp() * 1000)
+    elif range_ in _RANGE_DAYS:
+        since = now_ms - _RANGE_DAYS[range_] * _UNIT_MS["d"]
+    else:
+        raise ProviderError(f"unsupported range {range_!r}; supported: {', '.join(_RANGE_DAYS)}")
+    bar_ms = int(ccxt_timeframe[:-1] or 1) * _UNIT_MS[ccxt_timeframe[-1]]
+    return max(since, now_ms - _MAX_BARS * bar_ms)
 
 
 def _check_exchange(exchange: str) -> None:
@@ -85,12 +121,28 @@ def get_ticker(exchange: str, symbol: str) -> Quote:
     return _ticker_to_quote(ticker, exchange, symbol)
 
 
-def get_ohlcv(exchange: str, symbol: str, timeframe: str = "1d", limit: int = 200) -> OHLCVSeries:
-    """Return an OHLCV series for ``symbol`` on ``exchange``."""
+def get_ohlcv(
+    exchange: str, symbol: str, timeframe: str = "1d", range_: str | None = None
+) -> OHLCVSeries:
+    """Return an OHLCV series for ``symbol`` on ``exchange`` covering ``range_``.
+
+    ``range_`` uses the /history vocabulary (``1mo``, ``1y``, ``5y``, ``max`` ...);
+    ``None`` takes the timeframe's default lookback, the same one yfinance uses.
+    The range becomes ``since`` and ``fetch_ohlcv`` is paged from there to now
+    (R15-DATA-037: a fixed 200-bar fetch made every range the same series).
+    """
     instance = _sync_exchange(exchange)
     ccxt_timeframe = _CCXT_TIMEFRAME.get(timeframe, timeframe)
+    period = range_ or yfinance_provider._TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))[1]
+    cursor = _since_ms(period, ccxt_timeframe, datetime.now(tz=UTC))
+    rows: list[list[Any]] = []
     try:
-        rows = instance.fetch_ohlcv(symbol, ccxt_timeframe, limit=limit)
+        while True:
+            page = instance.fetch_ohlcv(symbol, ccxt_timeframe, since=cursor, limit=_PAGE_LIMIT)
+            rows.extend(row for row in page if not rows or row[0] > rows[-1][0])
+            if len(page) < _PAGE_LIMIT:
+                break
+            cursor = page[-1][0] + 1
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"ccxt OHLCV failed for {exchange}:{symbol}: {exc}") from exc
 
