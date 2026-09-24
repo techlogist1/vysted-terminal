@@ -47,13 +47,15 @@ def _label_freshness(quote: Quote, asset_class: str) -> Quote:
     return quote
 
 
-@router.get("/{symbol}")
+@router.get("/{symbol:path}")
 async def get_quote(symbol: str, asset_class: str = "equity") -> Quote:
     """Return the latest quote for one symbol.
 
-    The blocking provider call runs on a worker thread so a single-symbol
-    request never blocks the event loop. A ``ProviderError`` propagates to the
-    app-level handler and surfaces as a clean 502 (unchanged behaviour).
+    ``:path`` so a crypto pair (``BTC/USDT``, sent as ``BTC%2FUSDT``) routes —
+    Starlette decodes ``%2F`` before matching (R15-DATA-081). The blocking
+    provider call runs on a worker thread so a single-symbol request never
+    blocks the event loop. A ``ProviderError`` propagates to the app-level
+    handler.
     """
     quote = await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
     return _label_freshness(quote, asset_class)

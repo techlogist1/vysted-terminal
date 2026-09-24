@@ -61,6 +61,7 @@ import {
   type VisibleRangeBroadcast,
 } from "@/store/chart-sync";
 import { usePanelContextBus } from "@/store/panel-context";
+import { assetClassOf } from "@/store/symbols";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import type { DrawingKind, DrawingPoint, DrawingSpec } from "../../../types/drawings";
 import { fetchIndicators } from "./api";
@@ -405,7 +406,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       setPriceError(null);
       setCandlesKey(null);
       try {
-        const series = await sidecarApi.history(symbol, timeframe);
+        const series = await sidecarApi.history(symbol, timeframe, undefined, assetClassOf(symbol));
         if (cancelled) {
           return;
         }
@@ -609,7 +610,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
       setIndicatorState("loading");
       setIndicatorError(null);
       try {
-        const response = await fetchIndicators(symbol, selectedKeys, timeframe);
+        const response = await fetchIndicators(
+          symbol,
+          selectedKeys,
+          timeframe,
+          assetClassOf(symbol),
+        );
         if (cancelled) {
           return;
         }
@@ -1044,7 +1050,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
     const load = async () => {
       try {
-        const rawSeries = await sidecarApi.history(compareSymbol, timeframe);
+        const rawSeries = await sidecarApi.history(
+          compareSymbol,
+          timeframe,
+          undefined,
+          assetClassOf(compareSymbol),
+        );
         if (cancelled) {
           return;
         }

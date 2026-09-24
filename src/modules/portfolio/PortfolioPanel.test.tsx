@@ -265,6 +265,32 @@ describe("PortfolioPanel", () => {
     expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
   });
 
+  it("prices a BTC/USDT lot as crypto and shows its money in USDT, never ₹ (R15-DATA-081)", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "default",
+          name: "Portfolio",
+          holdings: [
+            { id: "h1", symbol: "BTC/USDT", quantity: 0.5, costBasis: 60000, assetClass: "crypto" },
+          ],
+        },
+      ],
+      activeId: "default",
+    });
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["BTC/USDT", quote("BTC/USDT", 67000, "USDT")]]),
+      failed: 0,
+    });
+    render(<PortfolioPanel />);
+
+    expect(await screen.findByText("67,000.00 USDT")).toBeInTheDocument();
+    expect(screen.getByText("60,000.00 USDT")).toBeInTheDocument();
+    expect(mockFetchQuotes).toHaveBeenCalledWith([{ symbol: "BTC/USDT", assetClass: "crypto" }]);
+    expect(screen.queryByText(/₹/)).not.toBeInTheDocument();
+  });
+
   it("mixed currencies: per-currency subtotals, null published total (D57)", async () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([
