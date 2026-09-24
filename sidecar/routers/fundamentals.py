@@ -8,16 +8,19 @@ awaits the resulting coroutine.
 Phase 6 (Teammate E) extends the surface with three additional ratings
 endpoints — history / price-target-history / individual — backed by
 :mod:`services.analyst_ratings_extended` and routed through the shared
-:mod:`services.data_cache` (TTL 6h).
+:mod:`services.data_cache` (TTL 6h). The statement and aggregate-rating
+routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Header
+from pydantic import BaseModel
 
 from config import get_region
 from models.analyst_extended import (
@@ -51,6 +54,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
 
 _TTL_RATINGS = 6 * 60 * 60  # 6 hours
+
+
+async def _cached[M: BaseModel](key: str, model: type[M], fetch: Callable[[], Awaitable[M]]) -> M:
+    """Serve ``key`` from the data cache within the TTL, else fetch and store it."""
+    cached = await data_cache.get(key, _TTL_RATINGS)
+    if isinstance(cached, dict):
+        try:
+            return model.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("fundamentals: cache deserialise failed for %s; refetching", key)
+    response = await fetch()
+    await data_cache.set(key, response.model_dump(mode="json"))
+    return response
+
+
+def _listing_key(symbol: str, what: str) -> str:
+    """A cache key on the listing the symbol resolves to in the active region."""
+    return f"fundamentals:{_yahoo_symbol(symbol.strip().upper())}:{what}"
 
 
 async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
@@ -174,7 +195,11 @@ async def get_income_statement(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_income_statement(symbol, period=period)
+    return await _cached(
+        _listing_key(symbol, f"income:{period}"),
+        IncomeStatement,
+        lambda: provider_registry.get_income_statement(symbol, period=period),
+    )
 
 
 @router.get("/{symbol}/balance")
@@ -182,7 +207,11 @@ async def get_balance_sheet(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_balance_sheet(symbol, period=period)
+    return await _cached(
+        _listing_key(symbol, f"balance:{period}"),
+        BalanceSheet,
+        lambda: provider_registry.get_balance_sheet(symbol, period=period),
+    )
 
 
 @router.get("/{symbol}/cashflow")
@@ -190,13 +219,21 @@ async def get_cash_flow(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_cash_flow(symbol, period=period)
+    return await _cached(
+        _listing_key(symbol, f"cashflow:{period}"),
+        CashFlowStatement,
+        lambda: provider_registry.get_cash_flow(symbol, period=period),
+    )
 
 
 @router.get("/{symbol}/ratings")
 async def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
-    return await provider_registry.get_analyst_rating(symbol)
+    return await _cached(
+        _listing_key(symbol, "ratings"),
+        AnalystRating,
+        lambda: provider_registry.get_analyst_rating(symbol),
+    )
 
 
 # ---------------------------------------------------------------------------

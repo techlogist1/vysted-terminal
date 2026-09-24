@@ -22,7 +22,12 @@ Design choices
   differently without separate cache buckets.
 - **``asyncio.Lock`` per process** rather than SQLite's WAL: keeps the
   contention model simple. The sidecar is a single Python process per
-  app instance; concurrent ``set`` calls serialise behind the lock.
+  app instance; concurrent ``set`` calls serialise behind the lock. The
+  SQLite work itself runs on a worker thread (``asyncio.to_thread``) so a
+  slow disk never blocks the event loop (R15-DATA-096).
+- **A row ceiling** (:data:`MAX_ROWS`): a ``set`` that takes the table past
+  it evicts the least recently written rows, so per-symbol keys cannot grow
+  the file without bound (R15-DATA-096).
 - **No in-memory hot tier**. SQLite reads from this single-process
   cache are microseconds; an extra LRU layer adds complexity without
   measurable benefit at v0.6.0's expected miss rate.
@@ -53,6 +58,7 @@ import json
 import logging
 import sqlite3
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -67,6 +73,10 @@ CREATE TABLE IF NOT EXISTS cache (
     updated_at REAL NOT NULL
 )
 """
+_INDEX_DDL = "CREATE INDEX IF NOT EXISTS cache_updated_at ON cache(updated_at)"
+
+#: The most rows kept; a ``set`` past it evicts the least recently written.
+MAX_ROWS = 20_000
 
 #: One row per setting; ``build`` holds the sidecar version that wrote the cache.
 _META_DDL = "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
@@ -83,8 +93,15 @@ def _connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(_DDL)
+    conn.execute(_INDEX_DDL)
     conn.execute(_META_DDL)
     return conn
+
+
+async def _run[T](work: Callable[[sqlite3.Connection], T]) -> T:
+    """Run ``work`` on the cache connection, off the event loop, one at a time."""
+    async with _lock:
+        return await asyncio.to_thread(lambda: work(_get_conn()))
 
 
 async def ensure_build(version: str) -> bool:
@@ -95,17 +112,22 @@ async def ensure_build(version: str) -> bool:
     after the upgrade. The lifespan calls this once at boot with the app
     version. Returns ``True`` when the cache was cleared.
     """
-    async with _lock:
-        conn = _get_conn()
+
+    def switch(conn: sqlite3.Connection) -> tuple[bool, Any]:
         row = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
         if row is not None and row[0] == version:
-            return False
+            return False, row
         conn.execute("DELETE FROM cache")
         conn.execute(
             "INSERT INTO meta(key, value) VALUES('build', ?) "
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
             (version,),
         )
+        return True, row
+
+    cleared, row = await _run(switch)
+    if not cleared:
+        return False
     logger.info(
         "data_cache: build %s (cache written by %s) - cleared",
         version,
@@ -144,24 +166,8 @@ async def get(key: str, ttl_seconds: float) -> Any | None:
     Returns the decoded JSON value (any shape ``json.loads`` returns) on
     hit, or ``None`` on miss / stale.
     """
-    if ttl_seconds <= 0:
-        return None
-    async with _lock:
-        cur = _get_conn().execute(
-            "SELECT value, updated_at FROM cache WHERE key = ?",
-            (key,),
-        )
-        row = cur.fetchone()
-    if row is None:
-        return None
-    value_text, updated_at = row
-    if time.time() - float(updated_at) > ttl_seconds:
-        return None
-    try:
-        return json.loads(value_text)
-    except (TypeError, ValueError):
-        logger.warning("data_cache: stored value for %r is not valid JSON; treating as miss", key)
-        return None
+    hit = await get_with_meta(key, ttl_seconds)
+    return None if hit is None else hit[0]
 
 
 async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | None:
@@ -178,12 +184,11 @@ async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | Non
     """
     if ttl_seconds <= 0:
         return None
-    async with _lock:
-        cur = _get_conn().execute(
-            "SELECT value, updated_at FROM cache WHERE key = ?",
-            (key,),
-        )
-        row = cur.fetchone()
+    row = await _run(
+        lambda conn: conn.execute(
+            "SELECT value, updated_at FROM cache WHERE key = ?", (key,)
+        ).fetchone()
+    )
     if row is None:
         return None
     value_text, updated_at = row
@@ -208,13 +213,21 @@ async def set(key: str, value: Any) -> None:  # noqa: A001 — set matches the c
     """
     payload = json.dumps(value, default=str)
     now = time.time()
-    async with _lock:
-        _get_conn().execute(
+
+    def upsert(conn: sqlite3.Connection) -> None:
+        conn.execute(
             "INSERT INTO cache(key, value, updated_at) VALUES(?, ?, ?) "
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value, "
             "updated_at = excluded.updated_at",
             (key, payload, now),
         )
+        conn.execute(
+            "DELETE FROM cache WHERE key IN "
+            "(SELECT key FROM cache ORDER BY updated_at DESC LIMIT -1 OFFSET ?)",
+            (MAX_ROWS,),
+        )
+
+    await _run(upsert)
 
 
 async def invalidate(key_prefix: str) -> int:
@@ -225,26 +238,22 @@ async def invalidate(key_prefix: str) -> int:
     """
     if not key_prefix:
         raise ValueError("invalidate() requires a non-empty key_prefix; use clear() instead")
-    async with _lock:
-        cur = _get_conn().execute(
-            "DELETE FROM cache WHERE key LIKE ?",
-            (f"{key_prefix}%",),
+    return await _run(
+        lambda conn: (
+            conn.execute("DELETE FROM cache WHERE key LIKE ?", (f"{key_prefix}%",)).rowcount or 0
         )
-        return cur.rowcount or 0
+    )
 
 
 async def clear() -> None:
     """Delete every row in the cache."""
-    async with _lock:
-        _get_conn().execute("DELETE FROM cache")
+    await _run(lambda conn: conn.execute("DELETE FROM cache"))
 
 
 async def size() -> int:
     """Return the current row count — test helper."""
-    async with _lock:
-        cur = _get_conn().execute("SELECT COUNT(*) FROM cache")
-        row = cur.fetchone()
-        return int(row[0]) if row else 0
+    row = await _run(lambda conn: conn.execute("SELECT COUNT(*) FROM cache").fetchone())
+    return int(row[0]) if row else 0
 
 
 def reset_for_tests(path: Path | None = None) -> None:

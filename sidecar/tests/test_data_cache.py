@@ -192,3 +192,34 @@ async def test_get_with_meta_fetch_time_is_the_original_set_not_the_read_time() 
     second = await data_cache.get_with_meta("k", ttl_seconds=60)
     assert first is not None and second is not None
     assert first[1] == second[1]
+
+
+@pytest.mark.asyncio
+async def test_a_set_past_the_ceiling_evicts_the_oldest_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-096: the cache had no ceiling. Past it, the least recently
+    written rows go; a re-written old key counts as recent."""
+    monkeypatch.setattr(data_cache, "MAX_ROWS", 3)
+    for key in ("a", "b", "c"):
+        await data_cache.set(key, key)
+        await asyncio.sleep(0.01)
+    await data_cache.set("a", "a2")  # refreshes a: b is now the oldest
+    await asyncio.sleep(0.01)
+    await data_cache.set("d", "d")
+    assert await data_cache.size() == 3
+    assert await data_cache.get("b", ttl_seconds=60) is None
+    assert [await data_cache.get(k, ttl_seconds=60) for k in ("a", "c", "d")] == ["a2", "c", "d"]
+
+
+@pytest.mark.asyncio
+async def test_sqlite_work_runs_off_the_event_loop_thread() -> None:
+    import threading
+
+    threads: set[int] = set()
+    data_cache._get_conn().set_trace_callback(lambda _sql: threads.add(threading.get_ident()))
+    await data_cache.set("k", "v")
+    await data_cache.get("k", ttl_seconds=60)
+    await data_cache.invalidate("k")
+    assert threads
+    assert threading.get_ident() not in threads

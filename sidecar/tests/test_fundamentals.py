@@ -18,6 +18,19 @@ def _no_network_filed_basis(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(exchange_financials, "filed_basis", _stub)
 
 
+@pytest.fixture(autouse=True)
+def _isolated_data_cache(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ANN001
+    """The statement and rating routes are cached (R15-DATA-096): each test gets
+    its own cache file, so one test's fake never serves the next."""
+    from config import DATA_DIR_ENV
+    from services import data_cache
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    yield
+    data_cache.reset_for_tests()
+
+
 def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL").json()
     assert body["symbol"] == "AAPL"
@@ -109,6 +122,52 @@ def test_get_balance_sheet(client: TestClient, mock_yfinance: object) -> None:
 def test_get_cash_flow(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL/cashflow").json()
     assert len(body["lines"]) == 2
+
+
+def test_a_second_statement_call_is_served_from_the_cache(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-096: /income (and its siblings) went to the provider on every
+    call; a repeat within the TTL is now a cache hit."""
+    from models.fundamentals import IncomeStatement, StatementLine
+    from services import provider_registry
+
+    calls: list[tuple[str, str]] = []
+
+    async def income(symbol: str, period: str = "annual") -> IncomeStatement:
+        calls.append((symbol, period))
+        return IncomeStatement(
+            symbol="AAPL",
+            periods=["2025-09-30"],
+            lines=[StatementLine(label="Total Revenue", values={"2025-09-30": 1.0})],
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_income_statement", income)
+    first = client.get("/fundamentals/AAPL/income").json()
+    assert client.get("/fundamentals/AAPL/income").json() == first
+    assert calls == [("AAPL", "annual")]
+    # The period is part of the key: quarters are their own fetch.
+    client.get("/fundamentals/AAPL/income?period=quarterly")
+    assert calls == [("AAPL", "annual"), ("AAPL", "quarterly")]
+
+
+def test_a_second_ratings_call_is_served_from_the_cache(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from models.fundamentals import AnalystRating
+    from services import provider_registry
+
+    calls: list[str] = []
+
+    async def rating(symbol: str) -> AnalystRating:
+        calls.append(symbol)
+        return AnalystRating(symbol="MSFT", provider="yfinance")
+
+    monkeypatch.setattr(provider_registry, "get_analyst_rating", rating)
+    client.get("/fundamentals/MSFT/ratings")
+    client.get("/fundamentals/MSFT/ratings")
+    assert calls == ["MSFT"]
 
 
 def _dhanbank_ticker() -> type:
