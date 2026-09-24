@@ -267,3 +267,78 @@ def test_in_quote_falls_through_nse_then_bse_then_yfinance(
     monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", s))
     q = provider_registry.get_quote("RELIANCE.BO", region="IN")
     assert q.provider == "yfinance"
+
+
+# --- R15-DATA-071: a partial series does not end the ohlcv walk --------------
+
+
+def _series(provider: str, symbol: str, *, partial: bool = False):  # noqa: ANN202
+    from datetime import date
+
+    from models.market import OHLCVBar, OHLCVSeries
+
+    bar = OHLCVBar(
+        timestamp=datetime.now(tz=UTC), open=10.0, high=11.0, low=9.0, close=10.5, volume=1000
+    )
+    return OHLCVSeries(
+        symbol=symbol,
+        timeframe="1d",
+        bars=[bar],
+        provider=provider,
+        partial=partial,
+        coverage_start=date(2026, 9, 1) if partial else None,
+    )
+
+
+def _in_history_lanes(monkeypatch: pytest.MonkeyPatch, bse, yfinance) -> None:  # noqa: ANN001
+    """Both NSE lanes have no listing; bse and yfinance answer as given."""
+    from services import bse_provider, india_provider, nse_provider, yfinance_provider
+
+    def no_listing(symbol: str, timeframe: str, range_: str | None = None):  # noqa: ANN202, ARG001
+        raise ProviderError("nse: not a known NSE instrument", kind="not_found")
+
+    monkeypatch.setattr(nse_provider, "get_history", no_listing)
+    monkeypatch.setattr(india_provider, "get_history", no_listing)
+    monkeypatch.setattr(bse_provider, "get_history", bse)
+    monkeypatch.setattr(yfinance_provider, "get_history", yfinance)
+
+
+def test_partial_bse_range_falls_through_to_complete_lane(monkeypatch: pytest.MonkeyPatch) -> None:
+    _in_history_lanes(
+        monkeypatch,
+        bse=lambda s, tf, r=None: _series("bse", s, partial=True),
+        yfinance=lambda s, tf, r=None: _series("yfinance", s),
+    )
+    series = provider_registry.get_history("ICONIKSPEV", "1d", "1y", region="IN")
+    assert series.provider == "yfinance"
+    assert series.partial is False
+
+
+def test_partial_bse_range_is_served_flagged_when_the_next_lane_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def yfinance_down(symbol: str, timeframe: str, range_: str | None = None):  # noqa: ANN202, ARG001
+        raise ProviderError("yfinance: rate limited", kind="rate_limited")
+
+    _in_history_lanes(
+        monkeypatch,
+        bse=lambda s, tf, r=None: _series("bse", s, partial=True),
+        yfinance=yfinance_down,
+    )
+    series = provider_registry.get_history("ICONIKSPEV", "1d", "1y", region="IN")
+    assert series.provider == "bse"
+    assert series.partial is True
+    assert series.coverage_start is not None
+
+
+def test_two_partial_lanes_serve_the_higher_ranked(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The class case (quotes carry no completeness gate and keep first-valid-wins,
+    # pinned by the quote fall-through tests above).
+    _in_history_lanes(
+        monkeypatch,
+        bse=lambda s, tf, r=None: _series("bse", s, partial=True),
+        yfinance=lambda s, tf, r=None: _series("yfinance", s, partial=True),
+    )
+    series = provider_registry.get_history("ICONIKSPEV", "1d", "1y", region="IN")
+    assert series.provider == "bse"
+    assert series.partial is True

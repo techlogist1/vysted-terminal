@@ -13,8 +13,9 @@ Region-aware: the loops only do WORK while ``config.get_region() == "IN"``
      reusing the screener warm loop's exponential 429 backoff discipline
      (``screener._warm_sleep_seconds`` + its constants; never duplicated).
   3. **Deep ``.info`` crawler** — ``fundamentals_store.info_priority(20)``
-     per cycle (never-attempted first, market cap desc, then stalest),
-     ``Semaphore(4)``, 1.5–3 s jitter between fetches, and it PAUSES while a
+     per cycle over the symbols whose ``.info`` is missing or past its TTL
+     (never-attempted first, market cap desc, then stalest), one fetch at a
+     time off the event loop, 1.5–3 s jitter between fetches, and it PAUSES while a
      foreground screen runs (the engine brackets every run with
      :func:`screen_started` / :func:`screen_finished`). A FAILED fetch is
      stamped (``mark_info_failure``) so never-succeeding symbols (BSE scrips
@@ -54,8 +55,11 @@ _BHAVCOPY_INTERVAL_SECONDS = 6 * 60 * 60.0
 _REGION_RECHECK_SECONDS = 60.0
 #: Deep-crawler batch per cycle (info_priority limit).
 _CRAWL_BATCH = 20
-#: Deep-crawler concurrency.
-_CRAWL_CONCURRENCY = 4
+#: Deep-crawler concurrency. One: the yfinance fetch used to block the event
+#: loop, so the crawler really ran one fetch at a time; now that it runs on a
+#: worker thread (R15-LIFECYCLE-026), four would quadruple the Yahoo pressure
+#: the D53 throttle discipline was tuned against.
+_CRAWL_CONCURRENCY = 1
 #: Jittered sleep between deep crawl cycles' individual fetches.
 _CRAWL_JITTER_RANGE = (1.5, 3.0)
 #: Per-symbol timeout on the deep crawl fetch.
@@ -328,7 +332,20 @@ async def _crawl_once() -> int:
         # D53: open circuit — a crawl cycle now would only deepen the block.
         return 0
     universe = screener_universe_india.load_india_universe("india-all")
-    batch = await fundamentals_store.info_priority(universe.symbols, _CRAWL_BATCH)
+    # Only a symbol whose .info is missing or past its TTL is due
+    # (R15-LIFECYCLE-026). info_priority ranks market cap ahead of staleness
+    # and never drops a fresh row, so without this gate every cycle handed back
+    # the same 20 largest caps, fresh or not, and the crawler re-fetched them
+    # every few seconds forever while the stale rows behind them starved.
+    rows = await fundamentals_store.fetch_rows(universe.symbols)
+    now = time.time()
+    due = [
+        s
+        for s in universe.symbols
+        if now - ((rows.get(s.upper()) or {}).get("info_updated_at") or 0.0)
+        > fundamentals_store.TTL_INFO_SECONDS
+    ]
+    batch = await fundamentals_store.info_priority(due, _CRAWL_BATCH)
     if not batch:
         return 0
     sem = asyncio.Semaphore(_CRAWL_CONCURRENCY)
