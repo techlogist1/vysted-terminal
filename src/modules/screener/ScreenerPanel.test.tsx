@@ -7,7 +7,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import type { ScreenerResult, ScreenerUniverse } from "../../../types/screener";
 
-vi.mock("@/lib/sidecar-client", () => ({
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  // The real SidecarError: the retry hook classifies failures by it
+  // (R15-UI-015).
+  SidecarError: (await importOriginal<typeof import("@/lib/sidecar-client")>()).SidecarError,
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
 }));
@@ -150,6 +153,26 @@ describe("ScreenerPanel", () => {
     await waitFor(() => {
       expect(screen.getByText(/5 tickers/i)).toBeInTheDocument();
     });
+  });
+
+  it("R15-UI-015: a deterministic universe-load 502 settles after one attempt", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { SidecarError } = await import("@/lib/sidecar-client");
+      vi.mocked(sidecarGet).mockReset();
+      vi.mocked(sidecarGet).mockRejectedValue(new SidecarError(502, "universe unreachable"));
+      render(<ScreenerPanel />);
+      // The retry hook's backoff window (~50s) fully elapses; a flattened
+      // new Error(string) used to read as transient and keep retrying.
+      await vi.advanceTimersByTimeAsync(60_000);
+      const universeCalls = vi
+        .mocked(sidecarGet)
+        .mock.calls.filter(([url]) => url === "/screener/universe");
+      expect(universeCalls).toHaveLength(1);
+      expect(useScreenerStore.getState().universeStatus.sp500).toBe("error");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("clicking Run posts to /screener/run and renders the results table", async () => {

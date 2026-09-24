@@ -58,8 +58,13 @@ interface Props {
  */
 export function PriceTargetTimeline({ history }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  // R15-DATA-069: how many targets were revised into each point's mean, keyed
+  // by the same UTCTimestamp the series data uses — read by the crosshair
+  // tooltip below, never rendered as a fake per-firm data point.
+  const countsRef = useRef<Map<number, number>>(new Map());
 
   const hasData = history.length > 0;
   // R15-DATA-031: "Price Target" carried no unit at all — label it with the
@@ -78,10 +83,30 @@ export function PriceTargetTimeline({ history }: Props) {
       lineWidth: 2,
       priceLineVisible: false,
       lastValueVisible: true,
-      title: `Price Target (${prefix}${suffix})`,
+      // R15-DATA-069: a point is the MEAN of every target revised that day,
+      // never a single firm's figure — say so, so the line is never read as
+      // one analyst's track.
+      title: `Mean of targets revised that day (${prefix}${suffix})`,
     });
     seriesRef.current = series;
+    const tooltip = tooltipRef.current;
+    const onCrosshair: Parameters<typeof chart.subscribeCrosshairMove>[0] = (param) => {
+      if (!tooltip) return;
+      const time = param.time as number | undefined;
+      const point = param.point;
+      if (time === undefined || !point || !param.seriesData.has(series)) {
+        tooltip.style.display = "none";
+        return;
+      }
+      const n = countsRef.current.get(time) ?? 1;
+      tooltip.textContent = n === 1 ? "1 target" : `${n} targets revised`;
+      tooltip.style.display = "block";
+      tooltip.style.left = `${point.x + 12}px`;
+      tooltip.style.top = `${point.y + 8}px`;
+    };
+    chart.subscribeCrosshairMove(onCrosshair);
     return () => {
+      chart.unsubscribeCrosshairMove(onCrosshair);
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
@@ -105,12 +130,14 @@ export function PriceTargetTimeline({ history }: Props) {
       bucket.count += 1;
       buckets.set(time, bucket);
     }
+    const counts = new Map<number, number>();
     const data: LineData<UTCTimestamp>[] = Array.from(buckets.entries())
       .sort((a, b) => a[0] - b[0])
-      .map(([time, { sum, count }]) => ({
-        time: time as UTCTimestamp,
-        value: sum / count,
-      }));
+      .map(([time, { sum, count }]) => {
+        counts.set(time, count);
+        return { time: time as UTCTimestamp, value: sum / count };
+      });
+    countsRef.current = counts;
     series.setData(data);
     chartRef.current?.timeScale().fitContent();
   }, [history]);
@@ -130,10 +157,15 @@ export function PriceTargetTimeline({ history }: Props) {
 
   return (
     <div
-      className={"h-64 w-full" /* tokens-ok: chart canvas height — layout, not rhythm */}
+      className={"relative h-64 w-full" /* tokens-ok: chart canvas height — layout, not rhythm */}
       data-testid="price-target-timeline-chart"
     >
       <div ref={containerRef} className="h-full w-full" />
+      <div
+        ref={tooltipRef}
+        data-testid="price-target-timeline-tooltip"
+        className="border-border bg-popover text-popover-foreground pointer-events-none absolute z-10 hidden rounded border px-2 py-1 text-xs shadow-sm"
+      />
     </div>
   );
 }

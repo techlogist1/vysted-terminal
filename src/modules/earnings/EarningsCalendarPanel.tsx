@@ -104,6 +104,7 @@ export function EarningsCalendarPanel() {
   const getHistory = useEarningsStore((s) => s.getHistory);
   const getSurprises = useEarningsStore((s) => s.getSurprises);
   const getEstimates = useEarningsStore((s) => s.getEstimates);
+  const refreshEarnings = useEarningsStore((s) => s.refresh);
 
   const [daysDraft, setDaysDraft] = useState<string>(String(lastDays));
   const [watchlistDraft, setWatchlistDraft] = useState<string>(
@@ -127,8 +128,13 @@ export function EarningsCalendarPanel() {
       return;
     }
     await loadUpcoming();
-    if (useEarningsStore.getState().upcomingStatus === "error") {
-      throw new Error(useEarningsStore.getState().upcomingError ?? "earnings load failed");
+    const state = useEarningsStore.getState();
+    if (state.upcomingStatus === "error") {
+      // R15-UI-015: re-throw the ORIGINAL caught error (a SidecarError for a
+      // real sidecar answer) rather than a flattened new Error(string) — a
+      // flattened error always reads as transient to isTransientSidecarFailure,
+      // so a deterministic 502 was retried instead of settling after one try.
+      throw state.upcomingCause ?? new Error(state.upcomingError ?? "earnings load failed");
     }
   }, [loadUpcoming]);
   useRetryOnSidecarReady(loadDefault, []);
@@ -396,9 +402,33 @@ export function EarningsCalendarPanel() {
                         <td colSpan={7} className="bg-charcoal-950 px-4 py-3">
                           <div className="flex flex-col gap-3">
                             <div className="flex flex-col gap-1">
-                              <h4 className="text-charcoal-200 text-micro">
-                                {event.symbol} — Last quarters&apos; surprises
-                              </h4>
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-charcoal-200 text-micro">
+                                  {event.symbol} — Last quarters&apos; surprises
+                                </h4>
+                                <div className="flex items-center gap-2">
+                                  {surprises[event.symbol]?.fetchedAt !== undefined && (
+                                    <span
+                                      className="text-charcoal-500 text-micro"
+                                      title={new Date(
+                                        surprises[event.symbol]!.fetchedAt,
+                                      ).toLocaleString()}
+                                    >
+                                      As of{" "}
+                                      {new Date(
+                                        surprises[event.symbol]!.fetchedAt,
+                                      ).toLocaleTimeString()}
+                                    </span>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="text-caption text-charcoal-300 underline"
+                                    onClick={() => void refreshEarnings(event.symbol)}
+                                  >
+                                    Refresh
+                                  </button>
+                                </div>
+                              </div>
                               {surpriseErrors[event.symbol] ? (
                                 <div className="flex items-center gap-2">
                                   <span className="text-negative text-caption">
@@ -423,7 +453,7 @@ export function EarningsCalendarPanel() {
                                 </div>
                               ) : (
                                 <EarningsSurpriseChart
-                                  surprises={surprises[event.symbol]?.surprises ?? []}
+                                  surprises={surprises[event.symbol]?.payload?.surprises ?? []}
                                 />
                               )}
                             </div>
@@ -454,12 +484,15 @@ export function EarningsCalendarPanel() {
                                   ))}
                                 </div>
                               ) : (
-                                <EpsEstimateGrid estimate={estimates[event.symbol] ?? null} />
+                                <EpsEstimateGrid
+                                  estimate={estimates[event.symbol]?.payload ?? null}
+                                />
                               )}
                             </div>
                             {histories[event.symbol] !== undefined && (
                               <p className="text-charcoal-500 text-micro">
-                                History rows cached: {histories[event.symbol]?.history.length ?? 0}
+                                History rows cached:{" "}
+                                {histories[event.symbol]?.payload?.history.length ?? 0}
                               </p>
                             )}
                           </div>

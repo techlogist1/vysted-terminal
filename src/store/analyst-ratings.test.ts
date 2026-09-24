@@ -111,19 +111,59 @@ describe("useAnalystRatingsStore", () => {
     const ptOut = await useAnalystRatingsStore.getState().getPriceTargets("AAPL");
     expect(ptOut).toBeNull();
     const state = useAnalystRatingsStore.getState();
-    expect(state.histories.AAPL).toEqual(HISTORY);
+    expect(state.histories.AAPL?.payload).toEqual(HISTORY);
     expect(state.priceTargetErrors.AAPL).toContain("offline");
   });
 
   it("normalises symbol case", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY);
     await useAnalystRatingsStore.getState().getHistory("aapl");
-    expect(useAnalystRatingsStore.getState().histories.AAPL).toEqual(HISTORY);
+    expect(useAnalystRatingsStore.getState().histories.AAPL?.payload).toEqual(HISTORY);
   });
 
   it("returns null on empty symbol without making a request", async () => {
     const out = await useAnalystRatingsStore.getState().getHistory("");
     expect(out).toBeNull();
     expect(sidecarGet).not.toHaveBeenCalled();
+  });
+});
+
+describe("useAnalystRatingsStore — TTL + refresh (R15-DATA-068)", () => {
+  it("refetches a stale per-symbol cache entry instead of serving it forever", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY);
+      await useAnalystRatingsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      await useAnalystRatingsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+
+      vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY);
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      await useAnalystRatingsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("refresh() bypasses a still-fresh cache and refetches all three slices", async () => {
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce(HISTORY)
+      .mockResolvedValueOnce(TARGETS)
+      .mockResolvedValueOnce(INDIVIDUAL);
+    await useAnalystRatingsStore.getState().getHistory("AAPL");
+    await useAnalystRatingsStore.getState().getPriceTargets("AAPL");
+    await useAnalystRatingsStore.getState().getIndividual("AAPL");
+    expect(sidecarGet).toHaveBeenCalledTimes(3);
+
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce(HISTORY)
+      .mockResolvedValueOnce(TARGETS)
+      .mockResolvedValueOnce(INDIVIDUAL);
+    await useAnalystRatingsStore.getState().refresh("AAPL");
+    expect(sidecarGet).toHaveBeenCalledTimes(6);
   });
 });

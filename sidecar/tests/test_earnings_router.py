@@ -64,6 +64,7 @@ def _stub_history(symbol: str) -> EarningsHistoryResponse:
         history=[
             EarningsHistoryEntry(
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 eps_actual=1.32,
                 eps_estimate_mean=1.30,
@@ -81,6 +82,7 @@ def _stub_surprises(symbol: str) -> EarningsSurprisesResponse:
         surprises=[
             EarningsSurprise(
                 symbol=symbol.upper(),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
                 eps_actual=1.32,
@@ -190,6 +192,24 @@ def test_history_caches(
     client.get("/earnings/AAPL/history")
     client.get("/earnings/AAPL/history")
     assert call_count["n"] == 1
+
+
+def test_history_as_of_on_a_cache_hit_equals_the_original_fetch_time(
+    client: TestClient, stub_provider: Any
+) -> None:
+    """R15-DATA-068: a cache hit's ``as_of`` is the ORIGINAL fetch time, not
+    the time of the second read."""
+    first = client.get("/earnings/AAPL/history").json()
+    second = client.get("/earnings/AAPL/history").json()
+    assert first["as_of"] is not None
+    assert first["as_of"] == second["as_of"]
+
+
+def test_upcoming_and_surprises_also_stamp_as_of(client: TestClient, stub_provider: Any) -> None:
+    upcoming = client.get("/earnings/upcoming?days=7").json()
+    surprises = client.get("/earnings/AAPL/surprises").json()
+    assert upcoming["as_of"] is not None
+    assert surprises["as_of"] is not None
 
 
 def test_a_region_switch_does_not_serve_the_other_listings_cache(

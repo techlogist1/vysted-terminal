@@ -194,6 +194,12 @@ interface ScreenerState {
   // --- universes ------------------------------------------------------
   universeMeta: Record<string, ScreenerUniverse>;
   universeStatus: Record<string, ScreenerStatus>;
+  /** R15-UI-015: the ORIGINAL caught error per universe id, kept alongside
+   *  ``universeStatus`` so a caller can tell a transient sidecar-not-ready
+   *  failure from a deterministic one (e.g. `useRetryOnSidecarReady`) instead
+   *  of re-throwing a flattened `new Error(string)` that always reads as
+   *  transient. */
+  universeCauses: Record<string, unknown>;
 
   // --- saved screens --------------------------------------------------
   savedScreens: SavedScreen[];
@@ -305,6 +311,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   progress: null,
   universeMeta: {},
   universeStatus: {},
+  universeCauses: {},
   savedScreens: [],
 
   setUniverse: (id) => set({ universe: id, universeChosen: true }),
@@ -640,9 +647,10 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
           universeStatus: { ...state.universeStatus, [id]: "ready" },
         }));
         return payload;
-      } catch {
+      } catch (err: unknown) {
         set((state) => ({
           universeStatus: { ...state.universeStatus, [id]: "error" },
+          universeCauses: { ...state.universeCauses, [id]: err },
         }));
         return null;
       } finally {
@@ -713,6 +721,7 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
       progress: null,
       universeMeta: {},
       universeStatus: {},
+      universeCauses: {},
       savedScreens: [],
     }),
 }));

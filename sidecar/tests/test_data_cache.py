@@ -152,3 +152,43 @@ async def test_ensure_build_keeps_rows_written_after_the_switch() -> None:
     await data_cache.set("macro:fred:GDP", {"v": 1})
     assert await data_cache.ensure_build("0.8.1") is False
     assert await data_cache.get("macro:fred:GDP", 60) == {"v": 1}
+
+
+# ---------------------------------------------------------------------------
+# get_with_meta (R15-DATA-068) — as-of stamping
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_hit_returns_value_and_fetch_time() -> None:
+    before = time.time()
+    await data_cache.set("earnings:AAPL:history", {"symbol": "AAPL"})
+    after = time.time()
+    got = await data_cache.get_with_meta("earnings:AAPL:history", ttl_seconds=60)
+    assert got is not None
+    value, fetched_at = got
+    assert value == {"symbol": "AAPL"}
+    assert before <= fetched_at <= after
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_miss_returns_none() -> None:
+    assert await data_cache.get_with_meta("not-there", ttl_seconds=60) is None
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_stale_returns_none() -> None:
+    await data_cache.set("k", "v")
+    assert await data_cache.get_with_meta("k", ttl_seconds=0) is None
+
+
+@pytest.mark.asyncio
+async def test_get_with_meta_fetch_time_is_the_original_set_not_the_read_time() -> None:
+    # A case not written against: reading twice must keep returning the
+    # SAME fetched_at, proving it is the row's write time, not read time.
+    await data_cache.set("k", "v")
+    first = await data_cache.get_with_meta("k", ttl_seconds=60)
+    await asyncio.sleep(0.05)
+    second = await data_cache.get_with_meta("k", ttl_seconds=60)
+    assert first is not None and second is not None
+    assert first[1] == second[1]
