@@ -334,20 +334,48 @@ async def _fetch_rss_resilient(
     return []
 
 
-async def _fetch_newsapi_resilient(
+async def _fetch_newsapi_status(
     client: httpx.AsyncClient, query: str, *, limit: int, api_key: str
-) -> list[NewsItem]:
-    """Fetch NewsAPI with bounded retry/backoff; return ``[]`` on final failure."""
+) -> tuple[list[NewsItem], str]:
+    """Fetch NewsAPI with bounded retry/backoff; return ``(items, status)``.
+
+    ``status`` is one of ``"ok"``, ``"unauthorized"`` (a 401 — the key itself is
+    bad, so retrying is pointless and the loop stops at once) or ``"error"``
+    (anything else, still retried). R15-DATA-094: a bad key used to be silently
+    swallowed into an empty list indistinguishable from "no news right now" —
+    the caller needs to know *why* NewsAPI produced nothing.
+    """
     last_exc: Exception | None = None
     for attempt in range(_MAX_RETRIES + 1):
         try:
-            return await fetch_newsapi(client, query, limit=limit, api_key=api_key)
+            return await fetch_newsapi(client, query, limit=limit, api_key=api_key), "ok"
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 401:
+                logger.warning("news: NewsAPI key rejected (401)")
+                return [], "unauthorized"
+            last_exc = exc
         except Exception as exc:  # noqa: BLE001 - NewsAPI down must not fail the request
             last_exc = exc
-            if attempt < _MAX_RETRIES:
-                await asyncio.sleep(_RETRY_BACKOFF_SECONDS * (attempt + 1))
+        if attempt < _MAX_RETRIES:
+            await asyncio.sleep(_RETRY_BACKOFF_SECONDS * (attempt + 1))
     logger.warning("news: NewsAPI source failed after retries: %s", last_exc)
-    return []
+    return [], "error"
+
+
+async def probe_newsapi_key(client: httpx.AsyncClient, api_key: str) -> str:
+    """Single, no-retry probe of whether ``api_key`` is a valid NewsAPI key.
+
+    Used by ``GET /news/sources/status`` (R15-DATA-094) — a bad key should fail
+    fast, not pay the ``_fetch_newsapi_status`` retry backoff. Returns ``"ok"``,
+    ``"unauthorized"`` (401) or ``"error"`` for any other failure.
+    """
+    try:
+        await fetch_newsapi(client, "stock market", limit=1, api_key=api_key)
+        return "ok"
+    except httpx.HTTPStatusError as exc:
+        return "unauthorized" if exc.response.status_code == 401 else "error"
+    except Exception:  # noqa: BLE001 - a probe failure is reported, never raised
+        return "error"
 
 
 async def fetch_news(
@@ -356,6 +384,7 @@ async def fetch_news(
     limit: int,
     *,
     newsapi_key: str | None = None,
+    source_status: dict[str, str] | None = None,
 ) -> list[NewsItem]:
     """Fetch news from every configured source, de-duplicated and newest-first.
 
@@ -369,6 +398,12 @@ async def fetch_news(
     ``newsapi_key`` is the BYOK NewsAPI key the ``/news`` router reads from a
     request header (sourced from the OS keychain — FR-036). It takes precedence
     over the ``NEWSAPI_KEY`` env var; absent both, the fetch is RSS-only.
+
+    ``source_status``, when given, is filled in-place with
+    ``{"newsapi": "ok"|"unauthorized"|"error"|"absent"}`` (R15-DATA-094) so a
+    caller (the ``/news`` route's ``X-News-Sources`` header) can report *why*
+    NewsAPI contributed nothing instead of that being indistinguishable from
+    "no fresh articles right now".
 
     The active region is read here (not passed by the router) via
     :func:`config.get_region` so the market feeds + per-symbol locale are
@@ -384,22 +419,34 @@ async def fetch_news(
     ]
 
     api_key = _newsapi_key(newsapi_key)
+    newsapi_task_index: int | None = None
     if api_key is not None:
         query = " OR ".join(symbols) if symbols else "stock market OR finance"
+        newsapi_task_index = len(tasks)
         tasks.append(
             asyncio.ensure_future(
-                _fetch_newsapi_resilient(client, query, limit=limit, api_key=api_key)
+                _fetch_newsapi_status(client, query, limit=limit, api_key=api_key)
             )
         )
+    elif source_status is not None:
+        source_status["newsapi"] = "absent"
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     collected: list[NewsItem] = []
-    for result in results:
+    for index, result in enumerate(results):
         # The resilient helpers swallow their own errors, but guard against any
         # unexpected exception escaping so one source still cannot fail the batch.
         if isinstance(result, BaseException):
             logger.warning("news: source raised unexpectedly: %s", result)
+            if index == newsapi_task_index and source_status is not None:
+                source_status["newsapi"] = "error"
+            continue
+        if index == newsapi_task_index:
+            items, status = result
+            if source_status is not None:
+                source_status["newsapi"] = status
+            collected.extend(items)
             continue
         collected.extend(result)
 

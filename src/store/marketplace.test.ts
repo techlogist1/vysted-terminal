@@ -7,6 +7,12 @@ const setSecretMock = vi.hoisted(() =>
 );
 const getSecretMock = vi.hoisted(() => vi.fn(async (): Promise<string | null> => null));
 const deleteSecretMock = vi.hoisted(() => vi.fn(async () => undefined));
+// R15-DATA-094: configure() probes a NewsAPI key against the sidecar before
+// saving it — defaults to "ok" so every test but the probe-specific ones below
+// behaves as if the sidecar accepted the key.
+const sidecarGetMock = vi.hoisted(() =>
+  vi.fn(async (): Promise<{ newsapi: string }> => ({ newsapi: "ok" })),
+);
 
 vi.mock("@/lib/keychain", async () => {
   const actual = await vi.importActual<typeof import("@/lib/keychain")>("@/lib/keychain");
@@ -16,6 +22,12 @@ vi.mock("@/lib/keychain", async () => {
     setSecret: setSecretMock,
     deleteSecret: deleteSecretMock,
   };
+});
+
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarGet: sidecarGetMock };
 });
 
 import { PluginRuntime } from "@/lib/plugin-runtime";
@@ -45,6 +57,8 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
     });
     setSecretMock.mockClear();
     getSecretMock.mockClear();
+    sidecarGetMock.mockClear();
+    sidecarGetMock.mockResolvedValue({ newsapi: "ok" });
     attachFreshRuntime();
     await useMarketplaceStore.getState().refresh();
   });
@@ -99,6 +113,39 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
     expect(setSecretMock).toHaveBeenCalledWith(
       "plugin-secret:vysted-news:newsapi_key",
       "my-secret",
+    );
+  });
+
+  it("configure() rejects a NewsAPI key the sidecar reports unauthorized (R15-DATA-094)", async () => {
+    await useMarketplaceStore.getState().install("vysted-news");
+    setSecretMock.mockClear();
+    sidecarGetMock.mockResolvedValueOnce({ newsapi: "unauthorized" });
+
+    await expect(
+      useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "bad-key" }),
+    ).rejects.toThrow("NewsAPI rejected this key");
+
+    expect(setSecretMock).not.toHaveBeenCalled();
+    expect(useMarketplaceStore.getState().busy["vysted-news"]).toBe(false);
+  });
+
+  it("configure() keeps an earlier valid grant when a re-configure attempt is rejected (R15-DATA-094)", async () => {
+    await useMarketplaceStore.getState().install("vysted-news");
+    await useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "good-key" });
+    const runtime = usePluginsStore.getState().runtime;
+    if (!runtime) throw new Error("runtime not attached");
+    expect((await runtime.readConfig("vysted-news"))?.grantedSecretIds).toContain(
+      "plugin-secret:vysted-news:newsapi_key",
+    );
+
+    sidecarGetMock.mockResolvedValueOnce({ newsapi: "unauthorized" });
+    await expect(
+      useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "bad-key" }),
+    ).rejects.toThrow("NewsAPI rejected this key");
+
+    // A failed re-configure must not un-grant the still-valid earlier secret.
+    expect((await runtime.readConfig("vysted-news"))?.grantedSecretIds).toContain(
+      "plugin-secret:vysted-news:newsapi_key",
     );
   });
 });

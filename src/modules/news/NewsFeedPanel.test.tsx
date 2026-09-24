@@ -11,12 +11,14 @@ import type { NewsItem } from "../../../types/data";
 // outer-scope bindings, so it is hoist-safe.
 vi.mock("./api", () => ({
   fetchNews: vi.fn(),
+  fetchNewsSourcesStatus: vi.fn(),
 }));
 
-import { fetchNews } from "./api";
+import { fetchNews, fetchNewsSourcesStatus } from "./api";
 import { NewsFeedPanel } from "./NewsFeedPanel";
 
 const mockFetchNews = vi.mocked(fetchNews);
+const mockFetchNewsSourcesStatus = vi.mocked(fetchNewsSourcesStatus);
 
 function newsItem(overrides: Partial<NewsItem> = {}): NewsItem {
   return {
@@ -42,6 +44,8 @@ describe("NewsFeedPanel", () => {
     // Reset region to the default so a prior region-switch test can't leak.
     useSettingsStore.setState({ region: "US" });
     mockFetchNews.mockReset();
+    mockFetchNewsSourcesStatus.mockReset();
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "absent" });
   });
 
   afterEach(() => {
@@ -160,6 +164,28 @@ describe("NewsFeedPanel", () => {
     });
     expect(screen.getByText("Could not reach the news service.")).toBeInTheDocument();
     vi.useRealTimers();
+  });
+
+  it("badges a rejected NewsAPI key without blocking the feed (R15-DATA-094)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem()]);
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "unauthorized" });
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("newsapi-status-badge")).toBeInTheDocument();
+    });
+    // The RSS-backed feed still renders — a bad NewsAPI key degrades, never blocks.
+    expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+  });
+
+  it("shows no badge when NewsAPI is unconfigured or working", async () => {
+    mockFetchNews.mockResolvedValue([newsItem()]);
+    mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "absent" });
+    render(<NewsFeedPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("NVDA shares climb on strong demand")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("newsapi-status-badge")).not.toBeInTheDocument();
   });
 
   it("renders the symbol tags for each item", async () => {

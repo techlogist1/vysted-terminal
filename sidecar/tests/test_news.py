@@ -106,7 +106,10 @@ def mock_news(monkeypatch: pytest.MonkeyPatch) -> list[NewsItem]:
         limit: int,  # noqa: ARG001
         *,
         newsapi_key: str | None = None,  # noqa: ARG001
+        source_status: dict[str, str] | None = None,
     ) -> list[NewsItem]:
+        if source_status is not None:
+            source_status["newsapi"] = "absent"
         return list(canned)
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
@@ -175,7 +178,7 @@ def test_get_news_provider_error_is_502(
 def _news_for(
     client: TestClient, monkeypatch: pytest.MonkeyPatch, item: NewsItem, symbols: str
 ) -> list[dict]:
-    async def fake_fetch_news(client, symbols, limit, *, newsapi_key=None):  # noqa: ANN001, ANN202, ARG001
+    async def fake_fetch_news(client, symbols, limit, *, newsapi_key=None, source_status=None):  # noqa: ANN001, ANN202, ARG001
         return [item]
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
@@ -458,8 +461,11 @@ def test_get_news_passes_header_key_to_provider(
         limit: int,  # noqa: ARG001
         *,
         newsapi_key: str | None = None,
+        source_status: dict[str, str] | None = None,
     ) -> list[NewsItem]:
         seen["newsapi_key"] = newsapi_key
+        if source_status is not None:
+            source_status["newsapi"] = "ok"
         return [_news_item("a1", "NVDA shares soar")]
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
@@ -468,6 +474,110 @@ def test_get_news_passes_header_key_to_provider(
     assert seen["newsapi_key"] == "keychain-key"
     # The key must never appear in the response payload.
     assert "keychain-key" not in response.text
+
+
+# --------------------------------------------------------------------------
+# R15-DATA-094: NewsAPI 401 is reported, not silently swallowed
+# --------------------------------------------------------------------------
+
+
+def test_fetch_news_reports_unauthorized_status_on_a_401(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A rejected NewsAPI key still returns the RSS items, but ``source_status``
+    names the 401 instead of it reading as merely "NewsAPI had nothing new"."""
+    request = httpx.Request("GET", "https://newsapi.org/v2/everything")
+    unauthorized = httpx.HTTPStatusError(
+        "401", request=request, response=httpx.Response(401, request=request)
+    )
+
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    async def failing_fetch_newsapi(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        raise unauthorized
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.setattr(news_provider, "fetch_newsapi", failing_fetch_newsapi)
+
+    status: dict[str, str] = {}
+    items = asyncio.run(
+        news_provider.fetch_news(_CLIENT, [], limit=10, newsapi_key="bad-key", source_status=status)
+    )
+    assert {item.id for item in items} == {"rss1"}
+    assert status == {"newsapi": "unauthorized"}
+
+
+def test_fetch_news_reports_absent_status_with_no_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_fetch_rss(client, feed_url, *, fallback_source):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("rss1", "RSS market item")]
+
+    monkeypatch.setattr(news_provider, "fetch_rss", fake_fetch_rss)
+    monkeypatch.delenv("NEWSAPI_KEY", raising=False)
+
+    status: dict[str, str] = {}
+    asyncio.run(news_provider.fetch_news(_CLIENT, [], limit=10, source_status=status))
+    assert status == {"newsapi": "absent"}
+
+
+def test_get_news_sets_the_x_news_sources_header(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def fake_fetch_news(
+        client_,  # noqa: ANN001, ARG001
+        symbols,  # noqa: ANN001, ARG001
+        limit,  # noqa: ANN001, ARG001
+        *,
+        newsapi_key=None,  # noqa: ANN001, ARG001
+        source_status=None,  # noqa: ANN001
+    ):
+        if source_status is not None:
+            source_status["newsapi"] = "unauthorized"
+        return [_news_item("a1", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
+    response = client.get("/news", headers={"X-Vysted-Newsapi-Key": "bad-key"})
+    assert response.status_code == 200
+    assert response.headers["X-News-Sources"] == "rss=ok;newsapi=unauthorized"
+
+
+def test_news_sources_status_probes_the_header_key(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    seen: dict[str, object] = {}
+
+    async def fake_probe(client_, api_key):  # noqa: ANN001, ARG001
+        seen["api_key"] = api_key
+        return "unauthorized"
+
+    monkeypatch.setattr(news_provider, "probe_newsapi_key", fake_probe)
+    response = client.get("/news/sources/status", headers={"X-Vysted-Newsapi-Key": "bad-key"})
+    assert response.status_code == 200
+    assert response.json() == {"newsapi": "unauthorized"}
+    assert seen["api_key"] == "bad-key"
+    assert "bad-key" not in response.text
+
+
+def test_news_sources_status_with_no_key_is_absent(client: TestClient) -> None:
+    response = client.get("/news/sources/status")
+    assert response.status_code == 200
+    assert response.json() == {"newsapi": "absent"}
+
+
+def test_probe_newsapi_key_ok_and_unauthorized(monkeypatch: pytest.MonkeyPatch) -> None:
+    request = httpx.Request("GET", "https://newsapi.org/v2/everything")
+
+    async def ok_fetch(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        return [_news_item("a1", "headline")]
+
+    monkeypatch.setattr(news_provider, "fetch_newsapi", ok_fetch)
+    assert asyncio.run(news_provider.probe_newsapi_key(_CLIENT, "good-key")) == "ok"
+
+    async def unauthorized_fetch(client, query, *, limit, api_key):  # noqa: ANN001, ANN202, ARG001
+        raise httpx.HTTPStatusError(
+            "401", request=request, response=httpx.Response(401, request=request)
+        )
+
+    monkeypatch.setattr(news_provider, "fetch_newsapi", unauthorized_fetch)
+    assert asyncio.run(news_provider.probe_newsapi_key(_CLIENT, "bad-key")) == "unauthorized"
 
 
 def test_bare_nse_symbol_in_an_in_session_fetches_its_ns_feed(
