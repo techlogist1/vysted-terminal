@@ -211,6 +211,42 @@ def list_strategy_specs() -> list[dict[str, Any]]:
     return [dict(spec) for spec in STRATEGY_SPECS]
 
 
+_TYPE_NAMES = {"integer": "an integer", "number": "a number", "string": "text"}
+
+
+def validate_params(strategy_id: str, params: dict[str, Any]) -> None:
+    """Raise ``ValueError`` naming the first param outside its ``paramsSchema``.
+
+    A strategy reads its params with ``int()``/``float()``, so a string or an
+    out-of-range value would otherwise crash mid-stream or run a nonsense
+    window (R15-UI-010). Strategies without a spec (test doubles) pass.
+    """
+    spec = next((s for s in STRATEGY_SPECS if s["id"] == strategy_id), None)
+    properties = spec["paramsSchema"]["properties"] if spec else {}
+    for key, value in params.items():
+        schema = properties.get(key)
+        if schema is None:
+            continue
+        kind = schema["type"]
+        if kind == "string":
+            ok = isinstance(value, str)
+        else:
+            ok = isinstance(value, int | float) and not isinstance(value, bool)
+            if kind == "integer" and ok:
+                ok = float(value).is_integer()
+        if not ok:
+            raise ValueError(f"`{key}` must be {_TYPE_NAMES[kind]}")
+        low, high = schema.get("minimum"), schema.get("maximum")
+        if kind != "string" and not (
+            (low is None or value >= low) and (high is None or value <= high)
+        ):
+            if high is None:
+                raise ValueError(f"`{key}` must be at least {low}")
+            if low is None:
+                raise ValueError(f"`{key}` must be at most {high}")
+            raise ValueError(f"`{key}` must be between {low} and {high}")
+
+
 # ---------------------------------------------------------------------------
 # 1. Mean reversion — z-score on N-day return
 # ---------------------------------------------------------------------------

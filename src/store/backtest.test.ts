@@ -209,6 +209,21 @@ describe("useBacktestStore — startRun", () => {
     expect(runs[0].status).toBe("error");
   });
 
+  it("shows the sidecar's 422 detail naming the bad param (R15-UI-010)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        body: null,
+        json: () => Promise.resolve({ detail: "`window` must be between 5 and 200" }),
+      }),
+    );
+    await useBacktestStore.getState().startRun(SAMPLE_REQUEST);
+    const runs = Object.values(useBacktestStore.getState().runs);
+    expect(runs[0].error).toBe("`window` must be between 5 and 200");
+  });
+
   it("handles a chunked SSE frame split across reads", async () => {
     // Split the run-start frame's data line across two reads to verify
     // the frame splitter buffers correctly.

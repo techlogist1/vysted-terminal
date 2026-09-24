@@ -97,6 +97,8 @@ interface FieldSpec {
   type: "integer" | "number" | "string";
   defaultValue: unknown;
   description?: string;
+  minimum?: number;
+  maximum?: number;
 }
 
 function pickFields(schema: Record<string, unknown> | undefined): FieldSpec[] {
@@ -108,15 +110,39 @@ function pickFields(schema: Record<string, unknown> | undefined): FieldSpec[] {
     return [];
   }
   return Object.entries(props as Record<string, unknown>).map(([key, raw]) => {
-    const def = (raw ?? {}) as { type?: string; default?: unknown; description?: string };
+    const def = (raw ?? {}) as {
+      type?: string;
+      default?: unknown;
+      description?: string;
+      minimum?: number;
+      maximum?: number;
+    };
     const type = def.type === "integer" ? "integer" : def.type === "number" ? "number" : "string";
     return {
       key,
       type,
       defaultValue: def.default,
       description: def.description,
+      minimum: def.minimum,
+      maximum: def.maximum,
     };
   });
+}
+
+/**
+ * The committed value of a numeric field on blur (R15-UI-010): a cleared or
+ * unparseable entry falls back to the schema default, anything else is
+ * clamped into ``[minimum, maximum]`` (and rounded for an integer).
+ */
+function commitNumber(field: FieldSpec, raw: unknown): unknown {
+  const parsed = typeof raw === "number" ? raw : parseFloat(String(raw));
+  if (!Number.isFinite(parsed)) {
+    return field.defaultValue;
+  }
+  let next = field.type === "integer" ? Math.round(parsed) : parsed;
+  if (field.minimum !== undefined) next = Math.max(field.minimum, next);
+  if (field.maximum !== undefined) next = Math.min(field.maximum, next);
+  return next;
 }
 
 export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormProps) {
@@ -138,11 +164,20 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
             <label key={field.key} className="flex flex-col gap-1">
               <span className="text-charcoal-300 text-micro font-mono" title={field.description}>
                 {field.key}
+                {(field.minimum !== undefined || field.maximum !== undefined) && (
+                  <span className="text-charcoal-500">
+                    {" "}
+                    {field.minimum ?? "…"}–{field.maximum ?? "…"}
+                  </span>
+                )}
               </span>
               <input
                 type={field.type === "string" ? "text" : "number"}
                 inputMode={field.type === "string" ? "text" : "decimal"}
                 aria-label={field.key}
+                min={field.minimum}
+                max={field.maximum}
+                step={field.type === "integer" ? 1 : "any"}
                 value={String(displayValue)}
                 onChange={(event) => {
                   const raw = event.target.value;
@@ -155,6 +190,15 @@ export function ParamsForm({ schema, values, onChange, disabled }: ParamsFormPro
                     next = Number.isFinite(parsed) ? parsed : raw;
                   }
                   onChange({ ...values, [field.key]: next });
+                }}
+                onBlur={() => {
+                  if (field.type === "string") {
+                    return;
+                  }
+                  const next = commitNumber(field, values[field.key]);
+                  if (next !== values[field.key]) {
+                    onChange({ ...values, [field.key]: next });
+                  }
                 }}
                 disabled={disabled}
                 className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-caption focus-visible:border-charcoal-500 h-8 border px-2 font-mono outline-none disabled:opacity-50"

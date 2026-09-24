@@ -43,8 +43,11 @@ import type {
 /** Catalogue load status — separate from per-run state. */
 export type BacktestCatalogueStatus = "idle" | "loading" | "ready" | "error";
 
-/** Per-run lifecycle status — drives the result view's progress chrome. */
-export type BacktestRunStatus = "pending" | "streaming" | "complete" | "error";
+/**
+ * Per-run lifecycle status — drives the result view's progress chrome.
+ * ``idle`` is a run the user stopped before it finished (R15-UI-011).
+ */
+export type BacktestRunStatus = "idle" | "pending" | "streaming" | "complete" | "error";
 
 /** One backtest run's slice. The result view reads this. */
 export interface BacktestRunState {
@@ -62,6 +65,8 @@ export interface BacktestRunState {
   result: BacktestResult | null;
   /** Human-readable error message on ``run-error``. */
   error: string | null;
+  /** Why an ``idle`` run ended early ("Stopped"). */
+  note?: string;
   /** Timestamps for progress chrome. */
   startedAt: number;
   finishedAt: number | null;
@@ -275,6 +280,25 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
     try {
       await consumeBacktestStream(request, handleEvent, options?.signal);
     } catch (err: unknown) {
+      if (options?.signal?.aborted) {
+        set((state) => {
+          const slot = state.runs[resolvedRunId];
+          return slot
+            ? {
+                runs: {
+                  ...state.runs,
+                  [resolvedRunId]: {
+                    ...slot,
+                    status: "idle",
+                    note: "Stopped",
+                    finishedAt: Date.now(),
+                  },
+                },
+              }
+            : state;
+        });
+        return resolvedRunId;
+      }
       const isSidecarDown =
         err instanceof TypeError && /fetch|Failed to fetch|NetworkError/i.test(err.message);
       const message = isSidecarDown
@@ -365,7 +389,14 @@ export async function consumeBacktestStream(
     signal,
   });
   if (!response.ok || !response.body) {
-    throw new Error(`Backtest stream failed (${response.status})`);
+    // A 422 names the offending param (R15-UI-010); keep that over the bare status.
+    const detail = await response
+      .json()
+      .then((body: { detail?: unknown }) => body.detail)
+      .catch(() => undefined);
+    throw new Error(
+      typeof detail === "string" ? detail : `Backtest stream failed (${response.status})`,
+    );
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");

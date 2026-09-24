@@ -241,7 +241,7 @@ describe("BacktestPanel", () => {
     expect(promptText).toContain("run-1");
   });
 
-  it("disables the Run button while a backtest is streaming", async () => {
+  it("swaps Run for Stop while a backtest is streaming", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
     render(<BacktestPanel />);
     await waitFor(() => screen.getByText("Mean Reversion"));
@@ -262,10 +262,11 @@ describe("BacktestPanel", () => {
       },
       activeRunId: "run-X",
     });
+    // No second run can start: the Run button is gone, Stop takes its place.
     await waitFor(() => {
-      const button = screen.getByTestId("run-backtest");
-      expect(button).toBeDisabled();
+      expect(screen.getByTestId("stop-backtest")).toBeEnabled();
     });
+    expect(screen.queryByTestId("run-backtest")).not.toBeInTheDocument();
     expect(screen.getByTestId("streaming-progress")).toBeInTheDocument();
   });
 
@@ -442,5 +443,75 @@ describe("BacktestPanel warnings (D65)", () => {
       const strip = screen.getByTestId("run-warning");
       expect(strip).toHaveTextContent("37 buy signal(s) skipped");
     });
+  });
+});
+
+describe("BacktestPanel params bounds (R15-UI-010)", () => {
+  const BOUNDED: BacktestStrategySpec[] = [
+    {
+      id: "trend_following",
+      name: "Trend Following",
+      description: "golden cross",
+      paramsSchema: {
+        type: "object",
+        properties: {
+          short_window: { type: "integer", default: 50, minimum: 2, maximum: 200 },
+        },
+      },
+    },
+  ];
+
+  it("clamps an out-of-range entry to the bound and a cleared one to the default on blur", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: BOUNDED });
+    render(<BacktestPanel />);
+    const input = await waitFor(() => screen.getByLabelText("short_window"));
+    expect(input).toHaveAttribute("min", "2");
+    expect(input).toHaveAttribute("max", "200");
+
+    fireEvent.change(input, { target: { value: "0" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(2));
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(50));
+  });
+});
+
+describe("BacktestPanel Stop (R15-UI-011)", () => {
+  it("Stop aborts the live stream, idles the run, and Retry runs on a fresh controller", async () => {
+    const signals: AbortSignal[] = [];
+    // A stream that never finishes on its own; it rejects only when aborted.
+    const fetchMock = vi.fn(
+      (_url: string, init: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const signal = init.signal as AbortSignal;
+          signals.push(signal);
+          signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+      render(<BacktestPanel />);
+      await waitFor(() => expect(screen.getByTestId("run-backtest")).toBeEnabled());
+      fireEvent.click(screen.getByTestId("run-backtest"));
+
+      fireEvent.click(await waitFor(() => screen.getByTestId("stop-backtest")));
+      await waitFor(() => expect(screen.getByTestId("run-note")).toHaveTextContent("Stopped"));
+      expect(signals[0].aborted).toBe(true);
+      expect(Object.values(useBacktestStore.getState().runs)[0].status).toBe("idle");
+      expect(screen.getByTestId("run-backtest")).toBeEnabled();
+
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+      await waitFor(() => expect(signals).toHaveLength(2));
+      expect(signals[1]).not.toBe(signals[0]);
+      expect(signals[1].aborted).toBe(false);
+      // The retried run is stoppable too.
+      fireEvent.click(await waitFor(() => screen.getByTestId("stop-backtest")));
+      await waitFor(() => expect(signals[1].aborted).toBe(true));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

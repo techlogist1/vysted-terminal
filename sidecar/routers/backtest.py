@@ -26,7 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from models.backtest import BacktestRequest, BacktestResult, BacktestRunEvent
 from services import backtest_dsl, backtest_engine, backtest_store
-from services.backtest_strategies import list_strategy_specs
+from services.backtest_strategies import list_strategy_specs, validate_params
 from services.bar_loader import load_bars
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,10 @@ router = APIRouter(prefix="/backtest", tags=["backtest"])
 @router.post("/run")
 async def run_backtest(request: BacktestRequest) -> StreamingResponse:
     """Open an SSE stream of BacktestRunEvent JSON frames."""
+    try:
+        validate_params(request.strategy_id, request.params)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     async def _generator() -> AsyncIterator[bytes]:
         import asyncio
@@ -173,13 +177,13 @@ def validate_custom_strategy(definition: CustomDefinition) -> CustomValidateResp
 
 @router.get("/runs")
 def list_runs() -> dict[str, list[str]]:
-    """List run ids currently in the in-memory cache (newest first)."""
+    """List every stored run id, newest first."""
     return {"runs": [r.run_id for r in backtest_store.list_runs()]}
 
 
 @router.get("/runs/{run_id}")
 def get_run(run_id: str) -> BacktestResult:
-    """Return the cached BacktestResult for ``run_id``."""
+    """Return the stored BacktestResult for ``run_id``."""
     result = backtest_store.get(run_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"unknown run_id {run_id!r}")
