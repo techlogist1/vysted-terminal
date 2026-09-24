@@ -188,6 +188,19 @@ def test_autocomplete_lists_the_current_symbol_for_a_retired_ticker() -> None:
     assert first.rename is not None and first.rename.renamed_from == "ZOMATO"
 
 
+def test_autocomplete_rows_pass_the_rename_and_enrichment_stages() -> None:
+    """R15-UI-039: a ticker-prefix row for the retired GUJGASLTD is listed as its
+    current identity with provenance (never bare), and NSE rows carry the enriched
+    ISIN the payload promises."""
+    rows = symbol_resolver.autocomplete("GUJGAS", "IN")
+    assert all(r.symbol != "GUJGASLTD" for r in rows)
+    current = next(r for r in rows if r.symbol == "GUJENERGY")
+    assert current.rename is not None and current.rename.renamed_from == "GUJGASLTD"
+    assert current.isin == "INE844O01030"
+    reliance = symbol_resolver.autocomplete("RELIANCE", "IN")[0]
+    assert (reliance.exchange, reliance.isin) == ("NSE", "INE002A01018")
+
+
 def test_current_symbol_exposes_its_former_symbol() -> None:
     """The case the lane was not written against: SEQUENT -> VIYASH (NSE,
     effective 2026-01-23). The old ticker finds VIYASH, and resolving VIYASH

@@ -1296,7 +1296,18 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     out.sort(key=lambda i: (i.score, _locale_rank(region, i.region)), reverse=True)
     if retired is not None:
         out.insert(0, retired)
-    return out[:limit]
+    # The same identity stages as :func:`resolve` (enrichment, then the rename
+    # lane), deduped the same way, so a row never lists a retired ticker bare or
+    # promises identity fields it never filled (R15-UI-039).
+    listed: list[Instrument] = []
+    for inst in out:
+        cand = _rename_instrument(_enrich_instrument(inst))
+        if any(c.exchange == cand.exchange and same_instrument(c, cand) for c in listed):
+            continue
+        listed.append(cand)
+        if len(listed) == limit:
+            break
+    return listed
 
 
 def _live_lookup(query: str, region: str) -> list[Instrument]:
