@@ -1,0 +1,42 @@
+// @vitest-environment node
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+const SCRIPT = join(import.meta.dirname, "audit-design-tokens.mjs");
+let root;
+
+const audit = (...targets) =>
+  spawnSync(process.execPath, [SCRIPT, ...targets], { encoding: "utf8" });
+
+beforeEach(() => {
+  root = mkdtempSync(join(tmpdir(), "token-audit-"));
+});
+
+afterEach(() => rmSync(root, { recursive: true, force: true }));
+
+describe("audit-design-tokens", () => {
+  it("exits non-zero when it scanned zero files instead of printing clean", () => {
+    mkdirSync(join(root, "empty"));
+    const r = audit(join(root, "empty"), join(root, "missing"));
+    expect(r.status).not.toBe(0);
+    expect(r.stdout).not.toContain("clean");
+  });
+
+  it("exits non-zero on an off-grid step and an arbitrary text size", () => {
+    writeFileSync(join(root, "Panel.tsx"), `<div className="gap-1.5 text-[12px]" />\n`);
+    const r = audit(root);
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain("off-grid step  gap-1.5");
+    expect(r.stdout).toContain("arbitrary value  text-[12px]");
+  });
+
+  it("exits zero on an on-grid file", () => {
+    writeFileSync(join(root, "Panel.tsx"), `<div className="gap-2 px-3 text-xs" />\n`);
+    const r = audit(root);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("design-token audit clean (1 files)");
+  });
+});
