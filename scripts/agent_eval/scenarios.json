@@ -55,7 +55,9 @@
     "prompt": "Add 10 shares of INFY bought at 1500 rupees each to my portfolio.",
     "state_probe": "/portfolio/positions",
     "expect": {
-      "tools": [{ "tool": "portfolio_add_position", "input": "(?s)(?=.*INFY)(?=.*\\b10\\b)(?=.*1500)" }]
+      "tools": [
+        { "tool": "portfolio_add_position", "input": "(?s)(?=.*INFY)(?=.*\\b10\\b)(?=.*1500)" }
+      ]
     }
   },
   {
@@ -64,14 +66,18 @@
     "state_probe": "/portfolio/positions",
     "expect": {
       "forbid_tools": ["portfolio_add_position"],
-      "answer_matches": ["(?i)\\?|\\bwhich\\b|please (provide|tell|share|specify|confirm|let me know)"]
+      "answer_matches": [
+        "(?i)\\?|\\bwhich\\b|please (provide|tell|share|specify|confirm|let me know)"
+      ]
     }
   },
   {
     "id": "macro-us-10y",
     "region": "US",
     "prompt": "What is the latest US 10-year Treasury yield from FRED?",
-    "expect": { "tools": [{ "tool": "macro_series|macro_search", "input": "(?i)DGS10|10.?year|treasury" }] }
+    "expect": {
+      "tools": [{ "tool": "macro_series|macro_search", "input": "(?i)DGS10|10.?year|treasury" }]
+    }
   },
   {
     "id": "macro-us-cpi",
