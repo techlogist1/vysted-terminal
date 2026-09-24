@@ -1,0 +1,4 @@
+data: {"candidates":[{"content":{"parts":[{"text":"Let me check your terminal and your RELIANCE notes."}],"role":"model"},"index":0}],"usageMetadata":{"promptTokenCount":2143,"totalTokenCount":2151,"promptTokensDetails":[{"modality":"TEXT","tokenCount":2143}]},"modelVersion":"gemini-3-pro-preview","responseId":"Yx3TaPq0Mdyg1dkP8r2x4Ac"}
+
+data: {"candidates":[{"content":{"parts":[{"functionCall":{"name":"get_terminal_state","args":{}},"thoughtSignature":"Q2lJQlZLaHZjM2xuTFdFPQ=="},{"functionCall":{"name":"read_notes","args":{"scope":"RELIANCE"}}}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":2143,"candidatesTokenCount":31,"totalTokenCount":2302,"thoughtsTokenCount":118,"toolUsePromptTokenCount":10,"promptTokensDetails":[{"modality":"TEXT","tokenCount":2143}]},"modelVersion":"gemini-3-pro-preview","responseId":"Yx3TaPq0Mdyg1dkP8r2x4Ac"}
+
