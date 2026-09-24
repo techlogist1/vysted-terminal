@@ -291,7 +291,10 @@ async def _run_loop(
         "site_bias": profile.site_bias,
     }
     if heavy:
-        brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+        try:
+            brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
+        except Exception:  # heavy never raises by design; same fallback as iter
+            return await _single_pass_fallback(deep, query, common, loop="heavy")
         if isinstance(brief, dict):
             # R10 (D37): needs-disambiguation pass-through — nothing to verify.
             return brief
@@ -315,19 +318,23 @@ async def _run_loop(
     try:
         return await iter_research.run_iter_research(query, **common)
     except Exception:  # iter never raises by design; fall back regardless
-        # The NAMED single-pass fallback (S-9): not a parallel user-reachable
-        # loop, only the catch-all so the deep path can never error out. It takes
-        # the shared researcher/coverage knobs but has no working report to cap.
-        common.pop("report_char_cap", None)
-        brief = await deep.run_deep_research(query, **common)
-        # R10 review (E2 — stamp what RAN): the closed EXECUTION_LOOPS enum
-        # ("fast"/"iter"/"heavy"/"research-model", frozen contract) has no
-        # label for this fallback, so the caller's "iter" stamp would be a
-        # silent lie on its own — the degradation rides the brief's
-        # never-silent note channel instead.
-        if not isinstance(brief, dict) and brief.note is None:
-            brief.note = "iter loop raised; the single-pass deep fallback ran"
-        return brief
+        return await _single_pass_fallback(deep, query, common, loop="iter")
+
+
+async def _single_pass_fallback(deep: Any, query: str, common: dict[str, Any], *, loop: str) -> Any:
+    """The NAMED single-pass fallback (S-9): not a parallel user-reachable loop,
+    only the catch-all so the deep and heavy paths can never error out. It takes
+    the shared researcher/coverage knobs but has no working report to cap."""
+    common.pop("report_char_cap", None)
+    brief = await deep.run_deep_research(query, **common)
+    # R10 review (E2 — stamp what RAN): the closed EXECUTION_LOOPS enum
+    # ("fast"/"iter"/"heavy"/"research-model", frozen contract) has no
+    # label for this fallback, so the caller's "iter"/"heavy" stamp would be a
+    # silent lie on its own — the degradation rides the brief's
+    # never-silent note channel instead.
+    if not isinstance(brief, dict) and brief.note is None:
+        brief.note = f"{loop} loop raised; the single-pass deep fallback ran"
+    return brief
 
 
 def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:

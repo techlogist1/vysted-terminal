@@ -29,6 +29,7 @@ import { existsSync, mkdirSync, copyFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { platform } from "node:os";
 
+import { ensureBuildVenv } from "./build-python.mjs";
 import { isStale } from "./sidecar-staleness.mjs";
 import { signDevBinary } from "./macos-dev-sign.mjs";
 
@@ -86,7 +87,11 @@ const outPath = join(BINARIES_DIR, outName);
 // source file under the subprocess dir (or this build recipe) is newer than
 // the binary, even without --force.
 const STALE_OPTS = {
-  extraFiles: [import.meta.filename, join(import.meta.dirname, "sidecar-staleness.mjs")],
+  extraFiles: [
+    import.meta.filename,
+    join(import.meta.dirname, "sidecar-staleness.mjs"),
+    join(import.meta.dirname, "build-python.mjs"),
+  ],
 };
 const stale = existsSync(outPath) && isStale(outPath, SUBPROCESS_DIR, STALE_OPTS);
 
@@ -103,11 +108,8 @@ if (stale && !FORCE) {
 console.log(`[ensure-openbb-mcp-sidecar] building ${outName} ...`);
 mkdirSync(BINARIES_DIR, { recursive: true });
 
-// 1. Create the build venv if missing.
-if (!existsSync(venvPython)) {
-  const py = isWin ? "python" : "python3";
-  run(`${py} -m venv "${VENV_DIR}"`);
-}
+// 1. Create the build venv on Python 3.13 (recreated if it is any other version).
+ensureBuildVenv(VENV_DIR, venvPython, run);
 
 // 2. Install openbb-mcp-server + build deps. This venv intentionally lives
 //    apart from the main sidecar's so the OpenBB strict pins don't collide.

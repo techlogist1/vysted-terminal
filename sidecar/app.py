@@ -63,6 +63,7 @@ from services import (
 )
 from services import screener as screener_service
 from services.errors import ProviderError
+from services.quant import pool as quant_pool
 
 _ROUTERS = (
     health,
@@ -153,6 +154,8 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
                 await run_manager.shutdown()
             except Exception as exc:  # noqa: BLE001 — shutdown best-effort
                 _log.debug("run_manager.shutdown raised on shutdown: %s", exc)
+            # Stop the QuantLib worker processes (R15-CODE-PLATFORM-018).
+            quant_pool.shutdown()
             # Cancel an in-flight managed-SearXNG setup task (docker pull can
             # run for minutes; it must not outlive the event loop).
             try:

@@ -683,6 +683,80 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
+  it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(
+      <>
+        <textarea aria-label="Composer" />
+        <ChartPanel api={{ id: "chart-A" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Select trendline" }));
+
+    fireEvent.keyDown(screen.getByLabelText("Composer"), { key: "Backspace" });
+    fireEvent.keyDown(screen.getByLabelText("Symbol"), { key: "Backspace" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+
+    // The same key on the chart's own (non-text) control does delete.
+    fireEvent.keyDown(screen.getByRole("button", { name: "Select trendline" }), {
+      key: "Backspace",
+    });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
+  it("a locked drawing survives Delete (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+      locked: true,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    const chip = screen.getByRole("button", { name: "Select trendline" });
+    fireEvent.click(chip);
+
+    fireEvent.keyDown(chip, { key: "Delete" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+  });
+
+  it("Delete with nothing focused still deletes (WebKit leaves a clicked chip unfocused; R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Select trendline" }));
+
+    fireEvent.keyDown(document.body, { key: "Delete" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
   it("clears every drawing through the inspector's Clear drawings control", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
@@ -758,7 +832,7 @@ describe("ChartPanel", () => {
     });
     render(<ChartPanel api={{ id: "chart-pub-1" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    const event = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-1"];
+    const event = usePanelContextBus.getState().lastEventBySource["chart-pub-1"];
     expect(event).toBeDefined();
     expect(event!.kind).toBe("snapshot");
     expect((event!.payload as { symbol: string }).symbol).toBe("SPY");
@@ -777,7 +851,7 @@ describe("ChartPanel", () => {
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
     fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
     await waitFor(() => {
-      const e = usePanelContextBus.getState().lastEventBySource["chart-chart-pub-2"];
+      const e = usePanelContextBus.getState().lastEventBySource["chart-pub-2"];
       expect((e!.payload as { timeframe: string }).timeframe).toBe("1h");
     });
   });
@@ -791,9 +865,32 @@ describe("ChartPanel", () => {
     });
     const { unmount } = render(<ChartPanel api={{ id: "chart-pub-3" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
-    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeDefined();
+    expect(usePanelContextBus.getState().lastEventBySource["chart-pub-3"]).toBeDefined();
     unmount();
-    expect(usePanelContextBus.getState().lastEventBySource["chart-chart-pub-3"]).toBeUndefined();
+    expect(usePanelContextBus.getState().lastEventBySource["chart-pub-3"]).toBeUndefined();
+  });
+
+  it("with two charts, the focused second chart is the snapshot's focus (R15-AGENT-052)", async () => {
+    const { usePanelContextBus } = await import("@/store/panel-context");
+    const { captureTerminalState } = await import("@/modules/chat/context-provider");
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+    render(
+      <>
+        <ChartPanel api={{ id: "chart" }} />
+        <ChartPanel api={{ id: "chart-2" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(2));
+    fireEvent.change(screen.getAllByLabelText("Symbol")[1]!, { target: { value: "INFY" } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Load" })[1]!);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("INFY", "1d"));
+    // PanelHost focuses the dockview id.
+    usePanelContextBus.getState().setFocusedSource("chart-2");
+
+    const state = captureTerminalState();
+    expect(state.focusedSymbol).toBe("INFY");
+    // The chart the runtime's preamble picks: the one whose panelId is focused.
+    expect(state.charts.find((c) => c.panelId === state.focusedPanel)?.symbol).toBe("INFY");
   });
 
   it("publish does not trigger an infinite re-render loop", async () => {
@@ -810,7 +907,7 @@ describe("ChartPanel", () => {
       render(<ChartPanel api={{ id: "chart-pub-4" }} />);
       await waitFor(() => expect(historyMock).toHaveBeenCalled());
       const calls = publishSpy.mock.calls.filter(
-        (c) => (c[0] as { source: string }).source === "chart-chart-pub-4",
+        (c) => (c[0] as { source: string }).source === "chart-pub-4",
       );
       expect(calls.length).toBeGreaterThan(0);
       expect(calls.length).toBeLessThan(10);

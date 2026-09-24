@@ -406,6 +406,10 @@ interface BacktestResultViewProps {
   onOpenInCritic?: (runId: string) => void;
 }
 
+// The bus key is the backtest's dockview panel id (a singleton), the id
+// PanelHost focuses (R15-AGENT-052).
+const BUS_SOURCE = "backtest";
+
 export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewProps) {
   const startRun = useBacktestStore((s) => s.startRun);
   // Publish a context snapshot so the chat sidebar's Strategy Critic
@@ -421,7 +425,7 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
       return;
     }
     publishPanelContext({
-      source: "backtest-panel",
+      source: BUS_SOURCE,
       kind: "snapshot",
       payload: {
         runId,
@@ -434,7 +438,7 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
 
   useEffect(() => {
     return () => {
-      unregisterPanelContext("backtest-panel");
+      unregisterPanelContext(BUS_SOURCE);
     };
   }, [unregisterPanelContext]);
 

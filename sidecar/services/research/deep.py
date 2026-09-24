@@ -830,6 +830,7 @@ async def _run_researcher(
     sub-question's web query carries the finance ``site:`` hint toward the
     regulator/exchange domains (:func:`services.research.finance.bias_query`).
     """
+    from services.research.relevance import is_india_target
     from services.search.scrub import wrap_untrusted
 
     low = sub_question.lower()
@@ -837,8 +838,15 @@ async def _run_researcher(
     if any(k in low for k in ("valuation", "fundamental", "earnings", "margin", "revenue", "debt")):
         dim, tool, args = "fundamentals", "fundamentals", {"symbol": symbol}
         bias_dim = "fundamentals"
-    elif any(k in low for k in ("filing", "10-k", "10-q", "8-k", "sec", "insider")):
-        dim, tool, args = "fundamentals", "sec_filings_list", {"symbol": symbol}
+    elif any(k in low for k in ("filing", "10-k", "10-q", "8-k", "insider")) or _SEC_WORD_RX.search(
+        low
+    ):
+        # EDGAR indexes US filings only: an Indian listing's filings live on the
+        # exchange announcements feed (the same region routing as fast._filings_leg).
+        if is_india_target(target):
+            dim, tool, args = "news", "corporate_announcements", {"symbol": symbol}
+        else:
+            dim, tool, args = "fundamentals", "sec_filings_list", {"symbol": symbol}
         bias_dim = "filings"
     elif any(k in low for k in ("price", "chart", "trend", "volatility", "momentum", "technical")):
         dim, tool, args = "price", "price_data", {"symbol": symbol}
@@ -984,6 +992,10 @@ async def _run_researcher(
         # vysted:// provenance source.
         structured_pairs.append({"dim": "news", "result": disclosure_bundle["announcements"]})
     return finding, web_res, structured_pairs, visited_pages
+
+
+#: "sec" as a whole word — a bare substring also matched "sector" and "second".
+_SEC_WORD_RX = re.compile(r"\bsec\b")
 
 
 def _researcher_web_query(sub_question: str, *, target: ResearchTarget | None, query: str) -> str:

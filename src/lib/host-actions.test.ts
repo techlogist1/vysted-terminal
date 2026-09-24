@@ -10,11 +10,14 @@ vi.mock("@/lib/sidecar-client", () => ({
 import {
   applyHostAction,
   applyHostActionAsync,
+  applyIntentAsync,
   describeHostAction,
+  describeIntent,
   HOST_ACTION_NAMES,
   hostActionAckDetail,
   isHostActionMutation,
   openCompanyOverview,
+  parseHostAction,
   publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
@@ -22,8 +25,13 @@ import { useBacktestStore } from "@/store/backtest";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useChartCommandStore } from "@/store/chart-command";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
+import { resetAgentAutonomyStoreForTests } from "@/store/agent-autonomy";
 import { useNotesStore } from "@/store/notes";
 import { usePortfoliosStore } from "@/store/portfolios";
+import {
+  resetProposedChangesStoreForTests,
+  useProposedChangesStore,
+} from "@/store/proposed-changes";
 import { useScreenerStore } from "@/store/screener";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -295,6 +303,9 @@ describe("host-actions", () => {
   // --- open_panel carries its arguments (R8 seams deliverable 3) -------------
 
   it("describeHostAction(open_panel) renders the symbol for a symbol-aware panel", () => {
+    // The diff now reads whether the panel is open; start from no layout
+    // rather than the previous test's partial fake api.
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
     const diff = describeHostAction("open_panel", {
       panel: "equity-overview",
       symbol: "SAKSOFT.NS",
@@ -931,7 +942,7 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(diff.after).toContain("+RELIANCE ×5");
   });
 
-  it("add: POSTs the sidecar ledger and lands the holding in the store", async () => {
+  it("add: lands the holding in the store", async () => {
     const label = await applyHostActionAsync("portfolio_add_position", {
       symbol: "reliance",
       quantity: 5,
@@ -940,18 +951,23 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(label).toMatch(/Added 5 RELIANCE/);
     expect(activeHoldings()).toHaveLength(1);
     expect(activeHoldings()[0]).toMatchObject({ symbol: "RELIANCE", quantity: 5, costBasis: 1263 });
-    const fetchMock = globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } };
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain("/portfolio/positions");
-    expect(init.method).toBe("POST");
-    expect(JSON.parse(String(init.body))).toMatchObject({
-      symbol: "RELIANCE",
-      quantity: 5,
-      cost_basis: 1263,
-    });
   });
 
-  it("update: resolves the holding by id-then-symbol and PUTs the ledger", async () => {
+  it("add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)", async () => {
+    await applyHostActionAsync("portfolio_add_position", {
+      symbol: "TCS",
+      quantity: 5,
+      cost_basis: 2500,
+    });
+    const id = activeHoldings()[0].id;
+    await applyHostActionAsync("portfolio_update_position", { position_id: id, quantity: 7 });
+    expect(activeHoldings()[0].quantity).toBe(7);
+    await applyHostActionAsync("portfolio_delete_position", { position_id: id });
+    expect(activeHoldings()).toHaveLength(0);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("update: resolves the holding by id-then-symbol", async () => {
     await applyHostActionAsync("portfolio_add_position", {
       symbol: "RELIANCE",
       quantity: 5,
@@ -998,6 +1014,17 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(activeHoldings()).toHaveLength(0);
   });
 
+  it("add with a negative cost basis is an honest null, not a stored holding (R15-DATA-088)", async () => {
+    expect(
+      await applyHostActionAsync("portfolio_add_position", {
+        symbol: "TCS",
+        quantity: 5,
+        cost_basis: -2500,
+      }),
+    ).toBeNull();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
   it("add with no symbol / non-positive quantity is an honest null", async () => {
     expect(
       await applyHostActionAsync("portfolio_add_position", { quantity: 5, cost_basis: 1 }),
@@ -1005,6 +1032,33 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
     expect(
       await applyHostActionAsync("portfolio_add_position", { symbol: "X", quantity: 0 }),
     ).toBeNull();
+  });
+
+  it("two lots of one symbol: an id picks its lot; the symbol alone refuses, naming both (R15-AGENT-042)", async () => {
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "default",
+        name: "Portfolio",
+        holdings: [
+          { id: "h-1", symbol: "TCS", quantity: 5, costBasis: 2500, assetClass: "equity" },
+          { id: "h-2", symbol: "TCS", quantity: 20, costBasis: 3900, assetClass: "equity" },
+        ],
+      },
+    ]);
+    const bySymbol = parseHostAction("portfolio_update_position", {
+      symbol: "TCS.NS",
+      quantity: 25,
+    });
+    const refused = await applyIntentAsync(bySymbol);
+    expect(refused.label).toBeNull();
+    expect(refused.reason).toMatch(/TCS\.NS has 2 lots; name one by position_id: h-1 .*, h-2 /);
+    expect(describeIntent(bySymbol).after).toMatch(/can't apply/);
+
+    const byId = parseHostAction("portfolio_update_position", { position_id: "h-2", quantity: 25 });
+    // The diff names the lot it will change.
+    expect(describeIntent(byId).before).toMatch(/^TCS \(lot 2 of 2\): ×20 @/);
+    expect((await applyIntentAsync(byId)).label).toMatch(/Updated TCS: ×25/);
+    expect(activeHoldings().map((h) => `${h.id}:${h.quantity}`)).toEqual(["h-1:5", "h-2:25"]);
   });
 });
 
@@ -1086,25 +1140,40 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(useSettingsStore.getState().region).toBe("IN");
   });
 
-  it("save_screen delegates to the screener store's saveScreen when it ships", () => {
-    const saveScreen = vi.fn();
-    useScreenerStore.setState({ saveScreen } as never);
-    const label = applyHostAction("save_screen", {
+  it("save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)", () => {
+    // The real store at its defaults: pe<20 + mcap + sector on screen.
+    useScreenerStore.getState().__resetForTests();
+    useScreenerStore.getState().setFormula("roe > 0.1");
+    const input = {
       name: "IT value",
       criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
       universe: "nse-all",
-    });
-    expect(label).toBe('Saved the screen as "IT value"');
-    expect(saveScreen).toHaveBeenCalledWith("IT value", {
-      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
-      universe: "nse-all",
-    });
-    expect(describeHostAction("save_screen", { name: "IT value" }).kind).toBe("data-write");
-  });
-
-  it("save_screen is an honest null until the saved-screens API lands", () => {
-    useScreenerStore.setState({ saveScreen: undefined } as never);
-    expect(applyHostAction("save_screen", { name: "IT value" })).toBeNull();
+    };
+    expect(describeHostAction("save_screen", input).after).toBe(
+      'Saved screens: +"IT value" (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", input)).toBe('Saved the screen as "IT value"');
+    expect(useScreenerStore.getState().savedScreens).toEqual([
+      {
+        name: "IT value",
+        universe: "nse-all",
+        criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+        group: null,
+        formula: undefined,
+        combinator: "and",
+      },
+    ]);
+    // Same name again: the diff and the label say "replaced"; one screen remains.
+    const again = { name: "IT value", criteria: [{ field: "roe", operator: "gt", value: 0.2 }] };
+    expect(describeHostAction("save_screen", again).after).toBe(
+      'Saved screens: "IT value" replaced (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", again)).toBe('Replaced the saved screen "IT value"');
+    const saved = useScreenerStore.getState().savedScreens;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].criteria).toEqual([{ field: "roe", operator: "gt", value: 0.2 }]);
+    expect(applyHostAction("save_screen", { name: " " })).toBeNull();
+    useScreenerStore.getState().__resetForTests();
   });
 
   it("save_layout is an honest null when the layout has not mounted", async () => {
@@ -1113,25 +1182,26 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(await applyHostActionAsync("save_layout", { name: "My desk" })).toBeNull();
   });
 
-  it("write_screener_filters passes formula + run through to applyFilters", () => {
+  it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
     useScreenerStore.getState().__resetForTests();
-    const applyFilters = vi.fn();
-    useScreenerStore.setState({ applyFilters } as never);
+    // Only the network-backed run is stubbed; applyFilters is the real store's.
+    const runScreener = vi.fn(async () => null);
+    useScreenerStore.setState({ runScreener });
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
-    const label = applyHostAction("write_screener_filters", {
+    const input = {
       criteria: [{ field: "roe", operator: "gt", value: 0.18 }],
       universe: "india-all",
       formula: "roe > 0.18 and pe_ratio < 30",
-      run: true,
-    });
-    expect(label).toMatch(/running/);
-    expect(applyFilters).toHaveBeenCalledWith(
-      expect.objectContaining({
-        universe: "india-all",
-        formula: "roe > 0.18 and pe_ratio < 30",
-        run: true,
-      }),
-    );
+    };
+    expect(applyHostAction("write_screener_filters", input)).toMatch(/review and Run$/);
+    expect(runScreener).not.toHaveBeenCalled();
+    const label = applyHostAction("write_screener_filters", { ...input, run: true });
+    expect(label).toMatch(/running$/);
+    expect(runScreener).toHaveBeenCalledTimes(1);
+    const s = useScreenerStore.getState();
+    expect(s.criteria).toEqual([{ field: "roe", operator: "gt", value: 0.18 }]);
+    expect(s.universe).toBe("india-all");
+    expect(s.formula).toBe("roe > 0.18 and pe_ratio < 30");
     useScreenerStore.getState().__resetForTests();
   });
 });
@@ -1180,5 +1250,207 @@ describe("open_panel backtest run_id (R15-AGENT-011)", () => {
       await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "gone" }),
     ).toBeNull();
     expect(useBacktestStore.getState().activeRunId).toBeNull();
+  });
+});
+
+// ── R15-CODE-FRONTEND-011/007: one parsed intent, targets bound at enqueue ──
+
+describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+  const screenerPanel = {
+    api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+  const chartPanel = { api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() } };
+
+  function setup() {
+    resetSettingsStoreForTests();
+    resetBriefStoreForTests();
+    useScreenerStore.getState().__resetForTests();
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    useSymbolsStore.setState({ entries: [{ symbol: "TSLA", assetClass: "equity" }] });
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "A",
+        name: "A",
+        holdings: [
+          { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+        ],
+      },
+    ]);
+    const panels = [screenerPanel, chartPanel];
+    useWorkspaceStore.setState({
+      name: "My desk",
+      openPanel: vi.fn(),
+      resetToDefaultLayout: vi.fn(),
+      dockviewApi: {
+        panels,
+        getPanel: (id: string) => panels.find((p) => p.api.component === `${id}-panel`),
+        toJSON: () => ({}),
+      },
+    } as never);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({}) })) as unknown as typeof fetch,
+    );
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    useWorkspaceStore.setState({ name: "default", dockviewApi: null } as never);
+    usePortfoliosStore.getState().setAll([], undefined);
+  });
+
+  // [name, input, what the diff promises (after), what apply reports (label)]
+  const ROWS: [string, Record<string, unknown>, RegExp, RegExp | null][] = [
+    ["set_chart_symbol", { symbol: "NVDA" }, /Chart symbol: NVDA/, /Loaded NVDA/],
+    [
+      "set_chart_indicators",
+      { indicators: ["rsi", "bogus"] },
+      /rsi \(dropped unknown: bogus\)/,
+      /rsi \(dropped unknown: bogus\)/,
+    ],
+    ["open_panel", { panel: "chart", symbol: "NVDA" }, /open — NVDA loaded/, /Chart — NVDA/],
+    // P7b: the alias resolves for the diff exactly as for the apply.
+    ["close_panel", { panel: "screener" }, /Screener panel: closed/, /^Closed Screener$/],
+    ["focus_panel", { panel: "chart" }, /Foreground: Chart/, /^Focused Chart$/],
+    ["arrange_layout", { pattern: "default" }, /default cockpit/, /default layout/],
+    ["open_company_overview", { symbol: "AAPL" }, /Equity Overview: AAPL/, /AAPL's overview/],
+    [
+      "publish_brief",
+      { markdown: "## x", mode: "fast", sources: [{ url: "https://a.example", title: "a" }] },
+      /1 cited source/,
+      /Published the FAST research brief/,
+    ],
+    ["add_to_watchlist", { symbol: "tsla" }, /TSLA already tracked/, /TSLA is already on/],
+    ["remove_from_watchlist", { symbol: "tsla" }, /−TSLA \(0 total\)/, /Removed TSLA/],
+    [
+      "write_screener_filters",
+      { criteria: [{ field: "roe", operator: "gt", value: 0.18 }] },
+      /1 criterion — review then Run/,
+      /1 screener criterion — review and Run/,
+    ],
+    ["save_screen", { name: "IT value" }, /\+"IT value"/, /"IT value"/],
+    [
+      "portfolio_add_position",
+      { symbol: "INFY", quantity: 2, cost_basis: 1500 },
+      /\+INFY ×2 @ .1,500/,
+      /Added 2 INFY @ .1,500/,
+    ],
+    // P6: a cost-only update keeps the lot's quantity in the diff AND the apply.
+    [
+      "portfolio_update_position",
+      { position_id: "h-a", cost_basis: 3100 },
+      /^TCS: ×10 @ .3,100$/,
+      /^Updated TCS: ×10 @ .3,100$/,
+    ],
+    ["portfolio_delete_position", { position_id: "h-a" }, /TCS: removed/, /Removed TCS/],
+    [
+      "write_note",
+      { scope: "NVDA", text: "hello", mode: "replace" },
+      /NVDA note: replaced \(5 chars\)/,
+      /Wrote the NVDA note/,
+    ],
+    ["save_layout", { name: "My desk" }, /"My desk" updated/, /Saved the layout as "My desk"/],
+    ["set_region", { region: "in" }, /Region: IN/, /Set the region to IN/],
+    // Refusals: the diff says it can't apply exactly when the apply fails.
+    ["set_region", { region: "MARS" }, /"MARS" is not a region — can't apply/, null],
+    ["close_panel", { panel: "flux-capacitor" }, /unknown panel — can't apply/, null],
+    ["portfolio_update_position", { position_id: "h-a", quantity: 0 }, /can't apply/, null],
+    ["write_note", { scope: "NVDA", text: "  " }, /nothing to write — can't apply/, null],
+  ];
+
+  it("the table covers every host action", () => {
+    expect(new Set(ROWS.map(([name]) => name))).toEqual(HOST_ACTION_NAMES);
+  });
+
+  it.each(ROWS)("%s %j: the diff promises what apply does", async (name, input, said, did) => {
+    setup();
+    const intent = parseHostAction(name, input);
+    const { after } = describeIntent(intent);
+    const { label } = await applyIntentAsync(intent);
+    expect(after).toMatch(said);
+    if (did === null) {
+      expect(label).toBeNull();
+    } else {
+      expect(label).toMatch(did);
+    }
+    expect(/can't apply/.test(after)).toBe(label === null);
+  });
+
+  function twoPortfolios() {
+    usePortfoliosStore.getState().setAll(
+      [
+        {
+          id: "A",
+          name: "A",
+          holdings: [
+            { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          ],
+        },
+        {
+          id: "B",
+          name: "B",
+          holdings: [
+            { id: "h-b", symbol: "TCS", quantity: 99, costBasis: 3900, assetClass: "equity" },
+          ],
+        },
+      ],
+      "A",
+    );
+  }
+
+  function lots(portfolioId: string): string[] {
+    return usePortfoliosStore
+      .getState()
+      .portfolios.find((p) => p.id === portfolioId)!
+      .holdings.map((h) => `${h.symbol}:${h.quantity}`);
+  }
+
+  it("P5: accept changes the lot the diff showed in portfolio A, not portfolio B's", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    twoPortfolios();
+    const gate = useProposedChangesStore.getState();
+    const update = gate.enqueue({
+      toolCallId: "tc-up",
+      name: "portfolio_update_position",
+      input: { position_id: "h-a", symbol: "TCS", quantity: 12 },
+      batchId: "b",
+    });
+    const add = gate.enqueue({
+      toolCallId: "tc-add",
+      name: "portfolio_add_position",
+      input: { symbol: "INFY", quantity: 1, cost_basis: 1500 },
+      batchId: "b",
+    });
+    // The user switches the active portfolio before accepting.
+    usePortfoliosStore.getState().setActive("B");
+    await gate.accept(update);
+    await gate.accept(add);
+    expect(lots("A")).toEqual(["TCS:12", "INFY:1"]);
+    expect(lots("B")).toEqual(["TCS:99"]);
+    expect(useProposedChangesStore.getState().pending()).toHaveLength(0);
+  });
+
+  it("a bound lot that is gone by accept fails honestly instead of hitting another lot", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    const gate = useProposedChangesStore.getState();
+    const id = gate.enqueue({
+      toolCallId: "tc-del",
+      name: "portfolio_delete_position",
+      input: { position_id: "h-a" },
+      batchId: "b",
+    });
+    usePortfoliosStore.getState().removeHolding("A", "h-a");
+    usePortfoliosStore
+      .getState()
+      .addHolding("A", { symbol: "TCS", quantity: 3, costBasis: 1, assetClass: "equity" });
+    await gate.accept(id);
+    const change = useProposedChangesStore.getState().changes[0];
+    expect(change.status).toBe("pending");
+    expect(change.detail).toMatch(/no longer in the portfolio/);
+    expect(lots("A")).toEqual(["TCS:3"]);
   });
 });

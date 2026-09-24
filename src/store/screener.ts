@@ -217,17 +217,15 @@ interface ScreenerState {
   setAdvanced: (advanced: boolean) => void;
   setFormula: (formula: string) => void;
   /** Write a full filter set at once (the agent's `write_screener_filters`
-   * host action lands here). Sets criteria, the optional nested group, the
-   * optional universe/limit, and clears the formula (the agent owns criteria;
-   * the user keeps their custom formula). `formula` overrides the formula field
-   * when provided. When `run` is true, the caller MUST follow up with runScreener()
-   * (the host-action path is responsible for chaining). */
+   * and `save_screen` host actions and the presets land here). Sets criteria,
+   * the optional nested group and the optional universe; `formula` overrides
+   * the formula field when provided, else the user keeps their own. Never runs:
+   * a caller that wants a run chains runScreener(). */
   applyFilters: (input: {
     criteria: ScreenerCriterion[];
     group?: CriterionGroup | null;
     universe?: ScreenerUniverseId;
     formula?: string;
-    run?: boolean;
   }) => void;
   runScreener: (limit?: number) => Promise<ScreenerResult | null>;
   /** Set the server-side sort and re-run at the current limit (R15-UI-006). */

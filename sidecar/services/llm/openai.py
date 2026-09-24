@@ -140,6 +140,11 @@ def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
 #: whose usage was never counted. Calls past the cap get the error turn at once.
 _MAX_REPAIRS_PER_ROUND = 2
 _REPAIR_TIMEOUT_S = 30.0
+#: JSON-Schema keywords: a repair reply keyed by these (and not by the tool's own
+#: property names) is the schema echoed back, not filled-in args (R15-LEAD-014).
+_SCHEMA_KEYWORDS = frozenset(
+    {"type", "properties", "required", "additionalProperties", "$schema", "description"}
+)
 
 
 #: A buffered tool call whose argument JSON could not be parsed/validated and
@@ -559,6 +564,11 @@ class OpenAIProvider(LLMProvider):
         except json.JSONDecodeError:
             return None
         if not isinstance(parsed, dict):
+            return None
+        # A schema echo validates for any tool with no required keys; it is not args.
+        if parsed == schema or (set(parsed) & _SCHEMA_KEYWORDS) - set(
+            schema.get("properties") or {}
+        ):
             return None
         if _validate_tool_args(tool_name, parsed) is not None:
             return None
