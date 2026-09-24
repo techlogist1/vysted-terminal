@@ -13,12 +13,17 @@ Endpoints:
 * ``POST /quant/option/greeks``  — analytic Greeks dashboard helper.
 * ``POST /quant/bond/price``     — fixed-rate bond clean/dirty/duration.
 * ``POST /quant/yield-curve``    — depo+swap bootstrap of a zero curve.
+* ``GET  /quant/option/chain/{symbol}`` — the listed chain with exchange OI
+  (NSE F&O bhavcopy / yfinance), EOD research data (R15-DATA-079).
 """
 
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, HTTPException
 
+from models.market import OptionChain
 from models.quant import (
     BondPricingRequest,
     BondPricingResult,
@@ -29,6 +34,7 @@ from models.quant import (
     YieldCurveRequest,
     YieldCurveResult,
 )
+from services import option_chain
 from services.quant import bonds, greeks, options, yield_curve
 from services.quant.pool import run_quant
 
@@ -69,6 +75,22 @@ async def yield_curve_bootstrap(req: YieldCurveRequest) -> YieldCurveResult:
         return await run_quant(yield_curve.bootstrap_curve, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/option/chain/{symbol}", response_model=OptionChain)
+async def option_chain_view(symbol: str, expiry: date | None = None) -> OptionChain:
+    """One expiry of the listed option chain (nearest when ``expiry`` is omitted)."""
+    try:
+        chain = await option_chain.get_option_chain(symbol, expiry)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except option_chain.OptionChainUnavailable as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    if chain is None:
+        raise HTTPException(
+            status_code=404, detail=f"{symbol.upper()} has no listed options (not_found)"
+        )
+    return chain
 
 
 __all__ = ["router"]

@@ -82,6 +82,39 @@ export interface MacroSeries {
   provider: string;
 }
 
+/** One listed option contract's end-of-day row in an option chain (R15-DATA-079). */
+export interface OptionContract {
+  /** ISO date. */
+  expiry: string;
+  strike: number;
+  option_type: "call" | "put";
+  /** Exchange-published open interest and its change on the session. */
+  open_interest: number | null;
+  change_in_oi: number | null;
+  last_price: number | null;
+  /** Exchange settlement price (NSE F&O); null on the US leg. */
+  settle_price: number | null;
+  volume: number | null;
+  /** The source's implied volatility (US leg); null on the NSE leg. */
+  implied_volatility: number | null;
+}
+
+/** One expiry of a symbol's listed option chain: EOD research data dated by `as_of`. */
+export interface OptionChain {
+  symbol: string;
+  /** The served expiry (ISO date). */
+  expiry: string;
+  /** Every listed expiry, nearest first (ISO dates). */
+  expiries: string[];
+  underlying_price: number | null;
+  contracts: OptionContract[];
+  /** The session the values describe (ISO date). */
+  as_of: string;
+  provider: string;
+  currency: string;
+  freshness: Freshness | null;
+}
+
 // --- fundamentals ---------------------------------------------------------
 
 /**

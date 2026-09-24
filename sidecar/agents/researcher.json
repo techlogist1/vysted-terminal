@@ -23,6 +23,7 @@
     "compute_greeks",
     "price_bond",
     "yield_curve_value",
+    "option_chain",
     "backtest_summary"
   ],
   "defaultProvider": "openai",

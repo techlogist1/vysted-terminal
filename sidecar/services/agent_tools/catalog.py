@@ -123,7 +123,16 @@ DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
         "bonus",
         "stock split",
     ),
-    "quant": ("option", "greeks", "black-scholes", "bond", "yield curve", "implied vol"),
+    "quant": (
+        "option",
+        "greeks",
+        "black-scholes",
+        "bond",
+        "yield curve",
+        "implied vol",
+        "open interest",
+        "f&o",
+    ),
     "agents": ("agent", "delegate"),
     "workflows": ("backtest", "strategy", "workflow"),
 }
@@ -1043,6 +1052,39 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=30.0,
+        ),
+        _cap(
+            "option_chain",
+            description=(
+                "The listed option chain for one expiry with exchange-published open "
+                "interest: per strike, call and put OI, change in OI, last/settle price, "
+                "volume (and implied volatility on US listings). India F&O underlyings "
+                "(NIFTY, BANKNIFTY, RELIANCE) come from the NSE F&O bhavcopy; US from "
+                "yfinance. End-of-day research data dated by as_of, never live. Returns "
+                "the strikes nearest spot (max_strikes) and every listed expiry."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Underlying, e.g. NIFTY, RELIANCE or AAPL.",
+                    },
+                    "expiry": {
+                        **_DATE,
+                        "description": "Expiry date YYYY-MM-DD; omit for the nearest.",
+                    },
+                    "max_strikes": {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Strikes nearest spot to return.",
+                    },
+                },
+                ["symbol"],
+            ),
+            domain="quant",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=45.0,
         ),
         # --- backtest --------------------------------------------------------
         _cap(
