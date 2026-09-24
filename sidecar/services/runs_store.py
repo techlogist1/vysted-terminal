@@ -3,9 +3,12 @@
 A Delegate run must SURVIVE the launching HTTP connection closing — the run row
 lives here, in ``config.get_data_dir()``, not in process memory. The detached
 asyncio task (``run_manager``) updates this row as it works; the run-tray UI
-reads it through ``GET /runs`` long after the launch request returned. If the
-sidecar restarts mid-run the task is gone but the row persists with its last
-status/cost/checkpoint, so the foreground view can still show what happened.
+reads it through ``GET /runs`` long after the launch request returned. The
+checkpoint is written every round, so a run killed mid-task resumes from its
+last round. A ``running`` row whose process died has no task: the first store
+connection of the next process marks it ``error`` "interrupted by sidecar
+restart" (R15-LIFECYCLE-012); ``paused`` and ``planned`` rows wait on the user
+and stay.
 
 Mirrors the ``agents_store`` pattern field-for-field: per-call connection,
 path resolved per call (so a test pointing ``VYSTED_DATA_DIR`` at ``tmp_path``
@@ -75,6 +78,13 @@ TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
 }
 
 
+#: The detail of a ``running`` row found by a new process (its task died).
+INTERRUPTED_DETAIL = "interrupted by sidecar restart"
+
+#: Database paths this process has reconciled (tests clear it to simulate a restart).
+_RECONCILED: set[str] = set()
+
+
 class RunNotFound(LookupError):
     """No run with this id exists (404)."""
 
@@ -141,12 +151,24 @@ def _ensure_added_columns(conn: sqlite3.Connection) -> None:
 
 @contextmanager
 def _connect() -> Iterator[sqlite3.Connection]:
-    """Yield a connection with the schema ensured; commit on clean exit."""
-    conn = sqlite3.connect(_db_path())
+    """Yield a connection with the schema ensured; commit on clean exit.
+
+    The first connection to a database in this process reconciles it: no task
+    of this process exists yet, so every ``running`` row is an orphan.
+    """
+    path = _db_path()
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute(_SCHEMA)
         _ensure_added_columns(conn)
+        if path not in _RECONCILED:
+            conn.execute(
+                "UPDATE runs SET status = 'error', detail = ?, updated_at = ? "
+                "WHERE status = 'running'",
+                (INTERRUPTED_DETAIL, int(time.time())),
+            )
+            _RECONCILED.add(path)
         yield conn
         conn.commit()
     finally:

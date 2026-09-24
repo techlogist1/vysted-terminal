@@ -187,9 +187,12 @@ async def _drive_run(
         return {"prompt": checkpoint["prompt"], "turns": list(turns)}
 
     def _on_tool_result(tool_call: Any, result_str: str) -> None:
-        _flush_text()
         _status, line = _result_line(result_str)
+        _flush_text()
         turns.append({"role": "assistant", "content": f"[{tool_call.name} → {line}]"})
+        # Checkpoint every step, not only at exit, so a killed process leaves a
+        # run that resumes without re-paying its tools (R15-LIFECYCLE-012).
+        runs_store.update_run(run_id, checkpoint=_checkpoint())
 
     def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
         # Fold the round's usage into the guard at the RESOLVED provider's rate
@@ -200,6 +203,7 @@ async def _drive_run(
         spent = guard.cost()
         runs_store.update_run(
             run_id,
+            checkpoint=_checkpoint(),
             cost=RunCost(
                 tokens=prior.tokens + int(spent["tokens"]),
                 spend_usd=round(prior.spend_usd + spent["spend_usd"], 6),

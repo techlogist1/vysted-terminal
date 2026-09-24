@@ -149,6 +149,24 @@ def test_terminal_run_refuses_every_status_change() -> None:
     assert (row.status, row.detail, row.updated_at) == ("done", "completed", 1100)
 
 
+def test_first_connection_marks_orphaned_running_rows_interrupted() -> None:
+    """R15-LIFECYCLE-012: a running row outlived its process forever."""
+    for run_id in ("run-live", "run-asked"):
+        runs_store.create_run(
+            run_id=run_id, agent_id="x", agent_name="X", budget=RunBudget(), now=1000
+        )
+    runs_store.update_run("run-asked", status="paused", question="Which exchange?")
+
+    runs_store._RECONCILED.clear()  # a new sidecar process opens the store
+
+    orphan = runs_store.get_run("run-live")
+    assert orphan is not None
+    assert (orphan.status, orphan.detail) == ("error", "interrupted by sidecar restart")
+    asked = runs_store.get_run("run-asked")
+    assert asked is not None
+    assert (asked.status, asked.question) == ("paused", "Which exchange?")
+
+
 def test_reset_for_tests_clears_rows() -> None:
     runs_store.create_run(
         run_id="run-1", agent_id="x", agent_name="X", budget=RunBudget(), now=1000

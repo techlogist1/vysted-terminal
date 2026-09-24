@@ -463,6 +463,58 @@ async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.Monk
     ]
 
 
+@pytest.mark.asyncio
+async def test_a_run_killed_mid_round_resumes_from_its_last_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-012: the checkpoint was written only at exit, so a killed
+    process left a running row with no checkpoint that could not be resumed."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="A1"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            ["stall"],
+            [LLMDeltaEvent(text="Final."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return '{"ok": true, "close": 101}'
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="ORIGINAL", api_key="sk")
+    while len(provider.requests) < 2:
+        await asyncio.sleep(0.01)
+
+    tool_turn = {"role": "assistant", "content": '[price_data → {"ok": true, "close": 101}]'}
+    expected = {"prompt": "ORIGINAL", "turns": [{"role": "assistant", "content": "A1"}, tool_turn]}
+    assert runs_store.get_checkpoint(run_id) == expected  # persisted mid-run
+
+    # The process dies: its task is gone, the row still says running.
+    task = run_manager._TASKS[run_id]
+    task.cancel()
+    await _await_terminal(run_id)
+    runs_store._RECONCILED.clear()
+    row = runs_store.get_run(run_id)
+    assert row is not None
+    assert (row.status, row.detail) == ("error", "interrupted by sidecar restart")
+
+    run_manager.resume_run(run_id, api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert provider.requests[2] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        (tool_turn["role"], tool_turn["content"]),
+        ("user", "Continue the task from where you stopped."),
+    ]
+
+
 def test_answer_unknown_run_raises() -> None:
     with pytest.raises(run_manager.RunNotFound):
         run_manager.answer_run("ghost", "hi")
