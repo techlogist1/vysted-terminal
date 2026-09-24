@@ -523,9 +523,19 @@ function LocalStep({
         <>
           <div className="border-charcoal-700 bg-charcoal-900 flex items-center gap-3 rounded-none border px-4 py-3">
             <Cpu className="text-charcoal-400 size-4 shrink-0" aria-hidden="true" />
-            <p className="text-charcoal-300 text-caption font-mono">
-              <span className="text-charcoal-100">{rec.device.chip}</span> · {rec.device.ramGib} GB
-              RAM · {rec.device.isAppleSilicon ? "Apple Silicon" : rec.device.arch}
+            <p className="text-charcoal-300 text-caption flex flex-wrap items-center gap-x-1 font-mono">
+              <span>
+                <span className="text-charcoal-100">{rec.device.chip}</span> · {rec.device.ramGib}{" "}
+                GB RAM · {rec.device.isAppleSilicon ? "Apple Silicon" : rec.device.arch}
+              </span>
+              {rec.device.estimated && (
+                <span
+                  className="border-charcoal-700 bg-charcoal-850 text-charcoal-400 rounded-control border px-1.5"
+                  title="RAM could not be measured on this machine — using a generic estimate."
+                >
+                  estimated
+                </span>
+              )}
             </p>
           </div>
 
