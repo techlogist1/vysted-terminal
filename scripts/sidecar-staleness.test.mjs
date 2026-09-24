@@ -58,6 +58,18 @@ describe("isStale", () => {
     expect(isStale(bin, src, { excludeDirs: [join(src, "sub")] })).toBe(false);
   });
 
+  it("counts any bundled data kind, e.g. a regenerated .json.gz seed (R15-RELEASE-005)", () => {
+    put("services/screener_universes/india_fundamentals_seed.json.gz", NEW);
+    expect(isStale(bin, src)).toBe(true);
+  });
+
+  it("ignores bytecode, logs and .DS_Store", () => {
+    put("services/x.cpython-313.pyc", NEW);
+    put("sidecar.log", NEW);
+    put(".DS_Store", NEW);
+    expect(isStale(bin, src)).toBe(false);
+  });
+
   it("counts a newer extraFile (the build recipe)", () => {
     const recipe = join(root, "recipe.mjs");
     writeFileSync(recipe, "r");

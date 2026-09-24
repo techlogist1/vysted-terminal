@@ -175,7 +175,8 @@ const SPECS = [
 export const SIDECAR_SPECS = SPECS.map((spec) => ({
   ...spec,
   stale: {
-    dirs: [spec.sourceDir],
+    // Everything --add-data bundles is build input, even outside sourceDir.
+    dirs: [spec.sourceDir, ...spec.addData.map(([src]) => src)],
     opts: { excludeDirs: spec.excludeDirs, extraFiles: RECIPE_FILES },
   },
 }));

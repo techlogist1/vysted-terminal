@@ -61,4 +61,13 @@ describe("SIDECAR_SPECS", () => {
     const spec = SIDECAR_SPECS.find((s) => s.name === name);
     expect(pyinstallerCommand(spec)).toBe(BASE[name]);
   });
+
+  it.each(SIDECAR_SPECS.map((s) => [s.name, s]))(
+    "%s staleness walks every --add-data source",
+    (_name, spec) => {
+      for (const [src] of spec.addData) expect(spec.stale.dirs).toContain(src);
+      const added = spec.pyinstallerFlags.filter((f) => f.startsWith("--add-data"));
+      expect(added).toHaveLength(spec.addData.length);
+    },
+  );
 });

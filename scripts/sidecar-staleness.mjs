@@ -35,14 +35,14 @@ const IGNORE_DIRS = new Set([
   ".git",
 ]);
 
-// File kinds that, when edited, can change the built binary: Python source,
-// dependency manifests, packaging config, and bundled data (JSON universes,
-// agent definitions, CSVs).
-const SOURCE_EXT = /\.(py|txt|toml|cfg|ini|json|csv)$/i;
+// Every file under a source dir is build input except bytecode, logs and OS
+// litter. An allow-list of extensions silently missed new data kinds: the
+// bundled `.json.gz` fundamentals seeds never triggered a rebuild (R15-RELEASE-005).
+const IGNORE_FILE = /\.(pyc|pyo|log)$|^\.DS_Store$/i;
 
 /**
- * Walk `dir` recursively and return the newest mtime (ms) of any file matching
- * SOURCE_EXT. `excludeDirs` is a list of absolute paths to prune (used to keep
+ * Walk `dir` recursively and return the newest mtime (ms) of any file not
+ * matching IGNORE_FILE. `excludeDirs` is a list of absolute paths to prune (used to keep
  * the main sidecar's walk from descending into the MCP subprocess dirs, which
  * have their own ensure scripts).
  */
@@ -59,7 +59,7 @@ function newestMtime(dir, excludeDirs, acc) {
       if (IGNORE_DIRS.has(entry.name)) continue;
       if (excludeDirs.includes(full)) continue;
       newestMtime(full, excludeDirs, acc);
-    } else if (entry.isFile() && SOURCE_EXT.test(entry.name)) {
+    } else if (entry.isFile() && !IGNORE_FILE.test(entry.name)) {
       const m = statSync(full).mtimeMs;
       if (m > acc.t) acc.t = m;
     }
