@@ -624,7 +624,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: Harness re-run live at k=3 from `scripts/agent_eval/run.py` against this sidecar. ollama llama3.1:8b: 15 of 16 scenarios reached k=3 inside the 45-min cap (shareholding-reliance not started), pass^3 0.60, pass^1 0.689. Writer's run: 0.6875. Same failing set (missing-param-portfolio, macro-us-10y, sec-filings-aapl, sec-insider-nvda, disclosures-tcs), plus one ask-chart-indicator trial that printed the call as JSON text. Every ollama failure is the model: JSON-text calls, guessed args, or integers sent as strings ('10', '100'), which the grader correctly fails. OpenRouter `qwen/qwen3.8-27b:free`: 13 scenarios in the 30-min cap, pass^3 0.54, pass^1 0.74. All 10 failed trials are lane errors (9 free_pool_busy, 1 provider_5xx); every trial that reached the model passed. Fresh grader case: live streams (OR fundamentals-tcs, ollama price-aapl, and an ad-hoc option_chain run, a tool new in this batch) grade [] as recorded. With the tool input doctored to {}, each fails with \"called without required ['symbol']\" plus the missing-call predicate. test_agent_eval / test_llm_anthropic / test_llm_gemini / test_gemini_multiround green. The Anthropic/Gemini live pass stays operator-attended (D-B11-10)."
   },
   {
    "id": "R15-AGENT-008",
@@ -4949,8 +4951,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-10 (f407107) not certified: invoke_agent is still a 488-line function (537 on the batch base, ~400 at census); the tool-surface, native-search and planner pre-pass extractions (test_runtime_prepass.py) are real but the entry's defect - a single function owning the defect-bearing branches - still reproduces."
+   "status": "fixed",
+   "note": "Batch-10 (f407107) not certified: invoke_agent is still a 488-line function (537 on the batch base, ~400 at census); the tool-surface, native-search and planner pre-pass extractions (test_runtime_prepass.py) are real but the entry's defect - a single function owning the defect-bearing branches - still reproduces. || Batch-11 (4097dac) certified: ast: `invoke_agent` is 95 lines (488 at base). test_runtime_phases.py has 9 direct phase tests. The runtime regression suites are byte-unmodified against base and pass: 212 passed with test_mcp_server/test_main_stdio/test_agents_router. Every live agent run above went through the split loop without an error frame. Note: `_dispatch_round` is 152 lines; the acceptance limit was on `invoke_agent`.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-CODE-AGENT-010",
@@ -6031,7 +6034,9 @@
     "INT-blueprint-96-2"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: Fresh real-data case: TCS.NS vs ^NSEI 1y closes from this sidecar (245 aligned days) were run through metrics.ts under node and through an independent Python `statistics` reference. vol 0.28688, Sharpe -1.19942, Sortino -1.57647, maxDD -0.40371, Calmar -0.85231, VaR95 0.02780, corr 0.37155 and beta 0.80555 agree to within 1e-15. vitest covers per-currency buckets, null under 30 days, and the Risk section's loading and insufficient states."
   },
   {
    "id": "R15-CODE-PLATFORM-024",
@@ -6081,7 +6086,9 @@
     "INT-blueprint-96-4"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: BLUEPRINT.md:249 reads \"Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred - R15-CODE-PLATFORM-025)\". :322 marks pop-out as v1.0 roadmap. §2 is untouched."
   },
   {
    "id": "R15-CODE-PLATFORM-026",
@@ -6106,7 +6113,9 @@
     "COD-scripts-build-3"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: One `SIDECAR_SPECS` table in scripts/sidecar-specs.mjs, and the three ensure scripts shrank to thin runners (-620 lines). sidecar-specs.test.mjs pins argv byte-identity. The integrator's `ensure-all-sidecars --force` built all three (BUILD_EXIT=0) and smoke booted them cleanly. `pyi-archive_viewer` on the built binary lists the `agents/`, `screener_universes` and `resolver_masters` data."
   },
   {
    "id": "R15-CODE-PLATFORM-027",
@@ -6127,7 +6136,9 @@
     "COD-scripts-build-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: `ROOT = resolve(import.meta.dirname, \"..\")` and no `import.meta.url).pathname`. Fresh runs: an empty scan dir exits 1, and a tmp fixture `gap-1.5 text-[12px]` exits 1 with 2 violations."
   },
   {
    "id": "R15-CODE-PLATFORM-028",
@@ -6150,7 +6161,9 @@
     "COD-scripts-build-14"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: vitest.config includes `scripts/**/*.test.mjs`. 4 script test files (staleness, specs, freshness gate, audit) run and pass inside the 873-test batch run."
   },
   {
    "id": "R15-CODE-PLATFORM-029",
@@ -6888,7 +6901,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: Live `/resolve?q=BeiGene` returns disambiguate candidates ONC and BEIGF, both with former_name 'BeiGene, Ltd.'. 'Toss the Coin Private Limited' binds TTC (BSE). Fresh cases the fix was not written against: Facebook binds META (former 'Facebook Inc'); Zomato binds ETERNAL (former ZOMATO); 'Adani Transmission' binds ADANIENSOL (former ADANITRANS); 'Square Inc' puts XYZ in the candidates. `former_names.json` is inside the built binary."
   },
   {
    "id": "R15-DATA-060",
@@ -7218,8 +7233,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-10 (f407107) not certified: Left open by the writers (D-B10-8, one leg): the registry fall-through is not delivered. Observed: cold 1y BSE-only history (ICONIKSPEV.BO) served 246 bars, partial false - the <=8-bar case did not reproduce today, but nothing certifies the flagged fall-through."
+   "status": "fixed",
+   "note": "Batch-10 (f407107) not certified: Left open by the writers (D-B10-8, one leg): the registry fall-through is not delivered. Observed: cold 1y BSE-only history (ICONIKSPEV.BO) served 246 bars, partial false - the <=8-bar case did not reproduce today, but nothing certifies the flagged fall-through. || Batch-11 (4097dac) certified: Cold `/history/KARNAVATI.BO?range=1y` served bse with 256 bars (2025-09-10 to 2026-09-24), a complete lane. TRADEWELL.BO: bse, 145 bars, partial false. `_resolve_sync` now takes `accept`, and `get_history` passes `not series.partial`. test_provider_registry covers partial-then-complete, partial-then-error, two partials, and a quote without `accept`.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-DATA-072",
@@ -7423,8 +7439,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "The broker_reads.py evidence citation is moot: deleted whole (a122dbf6 feat(d81)). Per the refuter, the defect itself (no open-interest or options-chain data) is market data for research, not trading, and the removal does not affect it; stays open."
+   "status": "fixed",
+   "note": "The broker_reads.py evidence citation is moot: deleted whole (a122dbf6 feat(d81)). Per the refuter, the defect itself (no open-interest or options-chain data) is market data for research, not trading, and the removal does not affect it; stays open. || Batch-11 (4097dac) certified: Live `/quant/option/chain/NIFTY` returns 200: provider nse-fo-bhavcopy, as_of 2026-09-24, freshness eod, expiry 2026-09-29, 276 contracts, 238 with OI. Cross-check against the NSE UDiFF F&O bhavcopy for 2026-09-24, fetched directly: NIFTY 26SEP 15000 PE has OI 109200, chg 6760, vol 1819, settle 0.45 and close 0.45, identical to the route. RELIANCE: 90 contracts. AAPL: yfinance with IV. TRADEWELL.NS and KARNAVATI.BO return 404 \"has no listed options\". Both agent lanes called `option_chain` (ollama llama3.1:8b with symbol NIFTY, nemotron free with symbol RELIANCE). ISSUE (new, not a regression): `fetch_latest_fo` re-probes today's file on every request, because today's 404 is never cached. A transport error on that probe returns None instead of walking back to the cached previous day. At 04:00:18-04:00:32 three consecutive requests got 502 \"the NSE F&O bhavcopy could not be fetched\" while 2026-09-24 sat in cache (services/option_chain.py:133-150). One of them was a live agent tool call.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-DATA-080",
@@ -7450,7 +7467,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "not_a_defect",
+   "note": "Batch-11 (4097dac) concur not-a-defect: nothing in spec.md or BLUEPRINT promises segment data (grep segment, segmental, operational metric: 0 hits). It needs a separate Reg-33 XBRL parser. Concur as roadmap."
   },
   {
    "id": "R15-DATA-081",
@@ -8217,8 +8235,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "source: verifier batch-5 || Batch-10 (f407107) not certified: Reverted out of batch 10 (d5370601); register status stays open, CURRENT_STATE says so."
+   "status": "fixed",
+   "note": "source: verifier batch-5 || Batch-10 (f407107) not certified: Reverted out of batch 10 (d5370601); register status stays open, CURRENT_STATE says so. || Batch-11 (4097dac) certified: sp500.json snapshot_date 2026-09-24, 503 symbols. Diffed against Wikipedia's live S&P 500 constituents table (503 rows): identical, with 0 missing and 0 extra. Delisted or acquired names are absent (WBA, ANSS, HES, JNPR); recent adds are present (PLTR, DELL, WDAY, XYZ, APP, COIN, HOOD). US seed pack: 498 rows, all inside the universe, 99.0% coverage (floor 95%), generated 2026-09-24.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-LEAD-014",
@@ -8417,7 +8436,8 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "source": "verifier batch-10"
+   "source": "verifier batch-10",
+   "note": "Batch-11 (4097dac) not certified: Live on the running sidecar GET /quotes/506597.BO -> 404 not_found and GET /history/544774.BO?range=1y -> 200 with bars [] provider none. The resolver half works (is_bse_symbol/bse_scrip_code/_require_bse map 506597->AMAL, 544774->SMR; bse_provider.get_quote('506597.BO') returns AMAL 688.1 directly), but provider_registry then rejects the result in correctness_gate.validate_quote/validate_series: \"provider 'bse' returned 'AMAL' for requested '506597.BO' (symbol mismatch)\" (correctness_gate.py:155-158, :193-196), falls through to yfinance, which has no data. The unit tests call bse_provider on fakes and never go through the registry gate. Fix: let the gate accept a code-addressed request whose provider returned the code's canonical ticker (or canonicalise the request before the walk), and pin it with a registry-level test. Not a regression: before the batch the same routes failed one lane earlier."
   },
   {
    "id": "R15-LIFECYCLE-010",
@@ -8816,8 +8836,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "audit_log.db is moot: deleted whole (a122dbf6 feat(d81)). Core finding stays open: no DB carries a schema version and nothing backs up the data dir before a build touches it, across the 7 surviving databases (custom_agents, data_cache, delegate_runs, fundamentals_cache, plugins, portfolio, workflows)."
+   "status": "fixed",
+   "note": "audit_log.db is moot: deleted whole (a122dbf6 feat(d81)). Core finding stays open: no DB carries a schema version and nothing backs up the data dir before a build touches it, across the 7 surviving databases (custom_agents, data_cache, delegate_runs, fundamentals_cache, plugins, portfolio, workflows). || Batch-11 (4097dac) certified: Booted a copy of the iso data dir whose data_cache build marker was set to `0.7.9-prior`. Log: \"data dir backed up to .../backups/0.7.9-prior before the upgrade\". The backup holds every db, notes, workspaces and searxng, with dev-keystore.json kept at mode 600. `meta.build` is now 0.8.0. All seven stores went from user_version 0 to 1 on first touch: data_cache, fundamentals_cache and workflows at boot, portfolio and delegate_runs and plugins and custom_agents on their routes. Fresh cases: a workflows.db copy set to user_version 7 comes back from `schema_version.migrate` as 7 with the \"newer than this build's 1; left untouched\" warning; a fresh DB migrates to 1 and a second call is a no-op. vitest: the v0 workspace blob round-trips with schemaVersion, and a newer blob is not downgraded.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-LIFECYCLE-025",
@@ -8867,7 +8888,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: Source sidecar, 5-minute idle window: process CPU went from 31.68 s to 41.57 s, so 3.3% process-wide. The last ~40 s of that window overlapped the start of the eval, so true idle is lower. A 5 s `sample` of the loop thread shows 3694/3703 samples in `uv__io_poll`/kevent (loop 99.8% idle); the 12 worker threads are parked on locks. Grep: `_resolve_async` runs accessors via `asyncio.to_thread` (provider_registry.py). The commit body records the profile attribution (fundamentals_warm re-crawling fresh rows inline)."
   },
   {
    "id": "R15-RELEASE-005",
@@ -8891,7 +8914,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: No extension allow-list is left in sidecar-staleness.mjs. Fresh case outside the tests: using the real `SIDECAR_SPECS` main spec, a binary newer than every input gives isStale false. Bumping `us_fundamentals_seed.json.gz` mtime makes it true."
   },
   {
    "id": "R15-RELEASE-006",
@@ -8915,7 +8940,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: smoke-test-sidecars.mjs no longer carries a literal `extraFiles: [join(ROOT, \"scripts\", \"ensure-`. The freshness gate is `assertAllFresh` over `SIDECAR_SPECS`, and sidecar-freshness-gate.test.mjs pins it."
   },
   {
    "id": "R15-RELEASE-007",
@@ -8940,7 +8967,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-11 (4097dac) not certified: Writers reported could-not and the integrator left it open: package.json lint is still 'eslint .'; the audit is wired into no script or gate. node scripts/audit-design-tokens.mjs at 9985b00e exits 1 with 4 pre-existing off-grid hits (OnboardingFlow.tsx:533 px-1.5, ProposedChangesReview.tsx:106 py-1.5, SecFilingsPanel.tsx:212 max-h-56, :226 py-1.5), which is why wiring it would turn lint red. Those four spacing fixes plus the one-line lint wiring close it."
   },
   {
    "id": "R15-RESEARCH-012",
@@ -10478,7 +10506,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "not_a_defect",
+   "note": "Batch-11 (4097dac) concur not-a-defect: no FR in specs/001 spec.md mentions pop-out or multi-window. BLUEPRINT §4/§5.2 now label it v1.0 roadmap (CODE-PLATFORM-025, same class, certified above). Building it needs either a Tier-1 tauri.conf.json window handler or a cross-window state sync. Concur."
   },
   {
    "id": "R15-UI-048",
@@ -10798,7 +10827,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "not_a_defect",
+   "note": "Batch-11 (4097dac) concur not-a-defect: nothing in spec.md, BLUEPRINT or the constitution promises a score or scorecard (grep scorecard, composite score, DVM, quality score: 0 hits). Choosing its inputs and bands is a product decision. Concur as roadmap."
   },
   {
    "id": "R15-UI-083",
@@ -10878,7 +10908,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: design-contrast.test.ts computes WCAG ratios from tokens.css for every text token on charcoal-900/950. `grep text-charcoal-600|700` over src/**/*.tsx outside tests turns up no unprefixed readable use."
   },
   {
    "id": "R15-UI-086",
@@ -10930,7 +10962,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "note": "Batch-11 (4097dac) certified: vitest: `orderedProviders` order. The fallback fires on a first-provider auth failure and the notice names both providers. It does not fire after answer text or on a content error. Start layout covers last session, a named layout, and a missing layout (keeps the session). Each palette option changes order or scope. The settings round-trip rejects garbled values. `PROVIDER_FAILURE_CODES` (auth, provider_402, insufficient_credit, network, ollama_not_running, provider_5xx) all exist in sidecar/services/errors.py; quota maps to insufficient_credit. The live free-lane run emitted `provider_5xx`, which is exactly the frame the fallback keys on. GUI feel (drag reorder, notice chip) is still unexercised in a real window."
   },
   {
    "id": "R15-UI-088",
@@ -10980,8 +11014,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-10 (f407107) not certified: Sidecar side is done (_suggested_indicators is timeframe/asset-aware, indicators.py parses ema:9 / vwap:week) but the chart never sees it: research/fast.py's two call sites pass no timeframe (default 1d), no frontend consumer of suggested_indicators exists, the chart catalog has only a fixed 'ema'/'vwap' key, and host-actions.ts:574 drops 'ema:9' as an unknown indicator. The entry's repro (open an intraday equity chart -> no EMA9/21; no request can yield EMA9/21 on the chart) still holds."
+   "status": "fixed",
+   "note": "Batch-10 (f407107) not certified: Sidecar side is done (_suggested_indicators is timeframe/asset-aware, indicators.py parses ema:9 / vwap:week) but the chart never sees it: research/fast.py's two call sites pass no timeframe (default 1d), no frontend consumer of suggested_indicators exists, the chart catalog has only a fixed 'ema'/'vwap' key, and host-actions.ts:574 drops 'ema:9' as an unknown indicator. The entry's repro (open an intraday equity chart -> no EMA9/21; no request can yield EMA9/21 on the chart) still holds. || Batch-11 (4097dac) certified: Live `/indicators/suggested`: (5m, equity) gives ema:9, ema:21, vwap, rsi. (1d, crypto) gives ema:50, ema:200, vwap:week, rsi. (1d, equity) gives ma, volume, rsi, macd, and every key exists in indicators.ts. Live `/indicators/AAPL?indicators=ema:9,ema:21` returns EMA(9) and EMA(21) lines. vitest: an untouched panel seeds, re-seeds on timeframe change, and stops after an edit; `set_chart_indicators ['ema:9']` is kept.",
+   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e"
   },
   {
    "id": "R15-UI-092",
