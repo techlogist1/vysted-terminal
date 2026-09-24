@@ -18,6 +18,11 @@ export interface Quote {
   change: number;
   change_percent: number;
   volume: number | null;
+  /** The session's open/high/low and the prior close, where the lane reports them. */
+  open?: number | null;
+  high?: number | null;
+  low?: number | null;
+  prev_close?: number | null;
   currency: string;
   market_state: string | null;
   timestamp: string;

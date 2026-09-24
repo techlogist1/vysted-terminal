@@ -92,9 +92,6 @@ _MAX_COLD_DOWNLOADS = 8
 _BHAVCOPY_URL = (
     "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{ymd}_F_0000.CSV"
 )
-# Per-scrip latest-EOD header (close + prior close) — keyed by BSE scrip code.
-_SCRIP_HEADER_URL = "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w"
-
 # BSE blocks an obvious bot; a real desktop UA + the bseindia.com Referer are
 # required for both the bhavcopy download and the JSON header endpoint.
 _USER_AGENT = (
@@ -563,17 +560,31 @@ def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
     correctness gate, mirroring india_provider which always sets ``symbol=bare``).
     Best-effort — any transport/parse failure returns ``None`` so the caller can
     fall back to the bhavcopy-derived quote.
+
+    The header carries no traded quantity, so the session volume is read from
+    ``StockTrading`` (``TTQ``) for the same code (R15-DATA-053); when that call
+    fails the quote is served with volume null. Both go through ``_api_json``:
+    ``api.bseindia.com`` answers a plain httpx client with 403.
     """
-    url = f"{_SCRIP_HEADER_URL}?Debtflag=&scripcode={code}&seriesid="
     try:
-        resp = _http_get(url)
-        if resp.status_code != 200:
-            return None
-        payload = resp.json()
-    except Exception as exc:  # noqa: BLE001 - any header failure → bhavcopy fallback
+        payload = _api_json(
+            "getScripHeaderData/w", {"Debtflag": "", "scripcode": code, "seriesid": ""}
+        )
+    except ProviderError as exc:
         logger.debug("bse: scrip header fetch failed for %s: %s", code, exc)
         return None
-    return _quote_from_header(bare, payload)
+    quote = _quote_from_header(bare, payload)
+    if quote is None:
+        return None
+    try:
+        trading = _api_json(
+            "StockTrading/w", {"flag": "0", "quotetype": "EQ", "scripcode": code, "seriesid": ""}
+        )
+    except ProviderError as exc:
+        logger.debug("bse: StockTrading fetch failed for %s: %s", code, exc)
+        return quote
+    quote.volume = _num(trading.get("TTQ")) if isinstance(trading, dict) else None
+    return quote
 
 
 def _ason_trade_day(raw: object) -> date | None:
@@ -590,12 +601,13 @@ def _ason_trade_day(raw: object) -> date | None:
 def _quote_from_header(bare: str, payload: dict) -> Quote | None:
     """Build a Quote for ``bare`` from a ``getScripHeaderData`` payload, or ``None``.
 
-    The endpoint returns ``{"Header": [{"Scrip_Cd"/"ScripCode","LTP"/"CurrVal",
-    "PrevClose"/"Prev_Cls","Volume","Ason",...}]}`` — keyed by the numeric scrip
-    code, with NO ticker field. We read the latest close and the official prior
-    close defensively (BSE has renamed these fields over time) and stamp the
-    requested ``bare`` symbol (NOT the scrip code) so the registry's symbol-match
-    correctness gate accepts the quote, mirroring india_provider.
+    The endpoint returns ``{"Header": {"PrevClose","Open","High","Low","LTP",
+    "Ason",...}}`` — keyed by the numeric scrip code, with NO ticker field and
+    no traded quantity (the caller adds volume from ``StockTrading``). We read
+    the latest close and the official prior close defensively (BSE has renamed
+    these fields over time) and stamp the requested ``bare`` symbol (NOT the
+    scrip code) so the registry's symbol-match correctness gate accepts the
+    quote, mirroring india_provider.
 
     The quote is dated by the header's own ``Ason`` trade date (R15-DATA-006),
     never by today's session: an illiquid scrip's last print can be months old
@@ -623,7 +635,10 @@ def _quote_from_header(bare: str, payload: dict) -> Quote | None:
         price=close,
         change=change,
         change_percent=change_percent,
-        volume=_num(h.get("Volume") or h.get("TotalTradedQty")),
+        open=_num(h.get("Open")),
+        high=_num(h.get("High")),
+        low=_num(h.get("Low")),
+        prev_close=prev,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=_bar_timestamp(trade_day),
@@ -647,6 +662,10 @@ def _quote_from_bhavcopy(bare: str, code: str | None) -> Quote:
         change=change,
         change_percent=change_percent,
         volume=last.volume,
+        open=last.open,
+        high=last.high,
+        low=last.low,
+        prev_close=prev_close,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=last.timestamp,

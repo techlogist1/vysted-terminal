@@ -19,6 +19,12 @@ class Quote(BaseModel):
     change: float
     change_percent: float
     volume: float | None = None
+    # The session's open/high/low and the prior close, where the lane reports
+    # them (R15-DATA-053); null when it does not.
+    open: float | None = None
+    high: float | None = None
+    low: float | None = None
+    prev_close: float | None = None
     currency: str = "USD"
     market_state: str | None = None
     timestamp: datetime
