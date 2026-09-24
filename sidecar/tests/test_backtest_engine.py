@@ -473,3 +473,78 @@ async def test_symbol_with_an_empty_series_is_named_in_warnings() -> None:
     assert result.warnings is not None
     assert "No price history loaded for MSFT " in result.warnings[0]
     assert "metrics cover 2 of 3 symbols" in result.warnings[0]
+
+
+# ---------------------------------------------------------------------------
+# Book reconciliation (R15-CODE-PLATFORM-029 / 030)
+# ---------------------------------------------------------------------------
+
+_CAPITAL = 100_000.0
+_FEE_RATE = 0.001  # the default 5 bps fee + 5 bps slippage, per side
+
+
+class _Scripted(BacktestStrategy):
+    """Order quantities keyed by 1-based bar number (params["script"])."""
+
+    NAME = "scripted"
+
+    def __init__(self, params: dict) -> None:
+        super().__init__(params)
+        self._n = 0
+
+    async def on_bar(self, bar: Bar, portfolio: SimPortfolio) -> list[BacktestOrderIntent]:
+        self._n += 1
+        qty = self.params["script"].get(self._n)
+        return [BacktestOrderIntent(symbol=bar.symbol, quantity=qty)] if qty else []
+
+
+async def _scripted_run(script: dict[int, float], closes: list[float]):  # noqa: ANN202
+    async def loader(_s: list[str], _a: str, _b: str) -> list[Bar]:
+        return [Bar(f"2025-01-{i + 2:02d}", "AAA", c, c, c, c, 1) for i, c in enumerate(closes)]
+
+    backtest_engine.register_strategy("scripted", _Scripted)
+    request = BacktestRequest(
+        strategyId="scripted",
+        params={"script": script},
+        symbols=["AAA"],
+        startDate="2025-01-01",
+        endDate="2025-12-31",
+        initialCapital=_CAPITAL,
+    )
+    return await backtest_engine.run_backtest(request, bar_loader=loader)
+
+
+@pytest.mark.asyncio
+async def test_flat_market_pyramiding_ends_at_capital_minus_fees() -> None:
+    result = await _scripted_run({1: 10, 2: 10, 3: 10}, [100.0] * 4)
+
+    fees = 30 * 100.0 * _FEE_RATE
+    assert result.equity_curve[-1].equity == pytest.approx(_CAPITAL - fees)
+    [trade] = result.trades
+    assert trade.quantity == 30
+    assert trade.entry_price == pytest.approx(100.0 * (1 + _FEE_RATE))
+
+
+@pytest.mark.asyncio
+async def test_flat_market_oversell_closes_the_held_quantity_once() -> None:
+    result = await _scripted_run({2: 10, 4: -20}, [100.0] * 4)
+
+    fees = 2 * 10 * 100.0 * _FEE_RATE
+    assert result.equity_curve[-1].equity == pytest.approx(_CAPITAL - fees)
+    [trade] = result.trades
+    assert trade.quantity == 10
+    assert trade.pnl == pytest.approx(-fees)
+    assert result.metrics.trade_count == 1
+
+
+@pytest.mark.asyncio
+async def test_partial_sell_keeps_the_rest_at_the_original_average() -> None:
+    result = await _scripted_run({1: 10, 2: 10, 3: -5}, [100.0, 110.0, 120.0])
+
+    average = (100.0 + 110.0) / 2 * (1 + _FEE_RATE)
+    held, sold = result.trades
+    assert (held.quantity, held.pnl) == (15, None)
+    assert held.entry_price == pytest.approx(average)
+    assert sold.quantity == 5
+    assert sold.entry_price == pytest.approx(average)
+    assert sold.pnl == pytest.approx((120.0 * (1 - _FEE_RATE) - average) * 5)
