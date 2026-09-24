@@ -89,6 +89,10 @@ _CACHE_KEY = "nse_symbol_change:{ymd}"
 _CACHE_TTL_SECONDS = 30 * 24 * 3600.0
 _MAX_STALE_DAYS = 30
 
+#: Waits between refresh attempts after a failed load (R15-LIFECYCLE-019). When
+#: every attempt fails the lane stays unavailable until the next IST day.
+_RETRY_BACKOFF_SECONDS = (60.0, 300.0, 900.0)
+
 #: Guard against a pathological rename cycle in the master (A→B→A).
 _MAX_CHAIN_HOPS = 8
 
@@ -159,7 +163,8 @@ _last_request_at: float = 0.0
 # In-process rename map the (synchronous, offline) resolver reads. Populated by
 # fetch_latest; empty by default so a cold app is an honest no-op.
 _active_map: dict[str, SymbolChange] = {}
-_refreshed_on: date | None = None
+_refreshed_on: date | None = None  # IST day of the last LOADED refresh
+_gave_up_on: date | None = None  # IST day every retry of a refresh failed
 _refresh_task: asyncio.Task[None] | None = None
 
 
@@ -193,7 +198,7 @@ def reset_for_tests(transport: httpx.BaseTransport | None = None) -> None:
     makes every request deterministic — no unit test touches the live network.
     """
     global _client, _transport, _last_request_at, _throttle_lock
-    global _active_map, _refreshed_on, _refresh_task
+    global _active_map, _refreshed_on, _gave_up_on, _refresh_task
     _client = None
     _transport = transport
     _last_request_at = 0.0
@@ -202,6 +207,7 @@ def reset_for_tests(transport: httpx.BaseTransport | None = None) -> None:
     _throttle_lock = asyncio.Lock()
     _active_map = {}
     _refreshed_on = None
+    _gave_up_on = None
     _refresh_task = None
 
 
@@ -402,7 +408,7 @@ async def _download_and_parse() -> dict[str, SymbolChange] | None:
     try:
         resp = await _throttled_get(_URL)
     except httpx.HTTPError as exc:
-        logger.warning("nse_symbol_change: request failed (%s)", exc)
+        logger.warning("nse_symbol_change: request failed (%s: %s)", type(exc).__name__, exc)
         return None
     if resp.status_code != 200:
         logger.warning("nse_symbol_change: HTTP %s from %s", resp.status_code, resp.url)
@@ -450,27 +456,48 @@ async def fetch_latest(max_stale_days: int = _MAX_STALE_DAYS) -> dict[str, Symbo
     return None
 
 
+def rename_lane_available() -> bool:
+    """True once a rename map is loaded (fresh or a recent cached as-of). While
+    it is empty the resolver cannot answer a renamed symbol's current identity."""
+    return bool(_active_map)
+
+
 async def _refresh_guarded() -> None:
-    global _refreshed_on
-    try:
-        await fetch_latest()
-    except Exception as exc:  # noqa: BLE001 - a refresh failure must never surface
-        logger.debug("nse_symbol_change: background refresh failed: %s", exc)
-    finally:
-        _refreshed_on = _ist_today()
+    """Load the map, retrying a failed load with backoff (R15-LIFECYCLE-019).
+
+    The day is stamped as refreshed only after a load (today's download or a
+    recent cached as-of); a failure is retried after each
+    :data:`_RETRY_BACKOFF_SECONDS` wait, and when every attempt fails the lane
+    is left unavailable until the next IST day."""
+    global _refreshed_on, _gave_up_on
+    for delay in (*_RETRY_BACKOFF_SECONDS, None):
+        try:
+            loaded = await fetch_latest()
+        except Exception as exc:  # noqa: BLE001 - a refresh failure must never surface
+            logger.warning("nse_symbol_change: refresh failed (%s)", type(exc).__name__)
+            loaded = None
+        if loaded is not None:
+            _refreshed_on = _ist_today()
+            return
+        if delay is None:
+            break
+        await asyncio.sleep(delay)
+    _gave_up_on = _ist_today()
+    logger.warning("nse_symbol_change: every refresh attempt failed; retrying tomorrow (IST)")
 
 
 async def schedule_refresh() -> None:
     """Fire a once-per-day, non-blocking background refresh of the rename map.
 
     Cheap and safe to call on every resolve: it returns immediately (no network
-    on the hot path). It spawns at most one refresh per IST day, and never while
-    a prior refresh is still in flight. For immediate + periodic freshness across
+    on the hot path). It spawns at most one LOADED refresh per IST day (a failed
+    one retries with backoff inside the task), and never while a prior refresh
+    is still in flight. For immediate + periodic freshness across
     the agent/search resolve paths too, the app lifespan should also drive
     :func:`fetch_latest` (see the module docstring).
     """
     global _refresh_task
-    if _refreshed_on == _ist_today():
+    if _ist_today() in (_refreshed_on, _gave_up_on):
         return
     if _refresh_task is not None and not _refresh_task.done():
         return
@@ -486,6 +513,7 @@ __all__ = [
     "lookup_current",
     "lookup_former",
     "parse_symbol_change",
+    "rename_lane_available",
     "reset_for_tests",
     "schedule_refresh",
     "set_active_map_for_tests",

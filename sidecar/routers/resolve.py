@@ -61,6 +61,9 @@ async def resolve_symbol(
     await nse_symbol_change.schedule_refresh()
 
     resolution = await asyncio.to_thread(symbol_resolver.resolve, query, active_region)
+    # R15-LIFECYCLE-019: with no rename map loaded a retired ticker answers its
+    # dead identity; say so instead of letting that read as current.
+    rename_lane = "available" if nse_symbol_change.rename_lane_available() else "unavailable"
 
     # ONE policy everywhere (R10, D37): the mention picker honors the SAME
     # acceptance decision as the research target binding and every agent tool —
@@ -77,6 +80,7 @@ async def resolve_symbol(
             "resolved": None,
             "needs_disambiguation": False,
             "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+            "rename_lane": rename_lane,
         }
 
     return {
@@ -90,6 +94,7 @@ async def resolve_symbol(
         ),
         "needs_disambiguation": decision.outcome == "disambiguate",
         "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+        "rename_lane": rename_lane,
     }
 
 

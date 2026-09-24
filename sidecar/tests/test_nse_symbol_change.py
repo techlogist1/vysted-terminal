@@ -232,3 +232,73 @@ async def test_fetch_latest_network_down_serves_recent_cache(
         assert changes["GUJGASLTD"].new_symbol == "GUJENERGY"
     finally:
         await sc.aclose()
+
+
+# ---------------------------------------------------------------------------
+# schedule_refresh — a failed load is retried, never stamped as today's refresh.
+# ---------------------------------------------------------------------------
+
+
+def _fast_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sc, "_ist_today", lambda: date(2026, 7, 10))
+    monkeypatch.setattr(sc, "_RETRY_BACKOFF_SECONDS", (0.0, 0.0, 0.0))
+    monkeypatch.setattr(sc, "_MIN_REQUEST_INTERVAL_SECONDS", 0.0)
+
+
+@pytest.mark.asyncio
+async def test_a_failed_boot_refresh_retries_after_backoff_and_loads(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-019: one ConnectTimeout at boot turned the lane off for the
+    IST day (the day was stamped refreshed although nothing loaded)."""
+    _fast_retries(monkeypatch)
+    attempts = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise httpx.ConnectTimeout("timed out", request=request)
+        return httpx.Response(200, text=_fixture_text())
+
+    sc.reset_for_tests(httpx.MockTransport(handler))
+    try:
+        assert not sc.rename_lane_available()
+        await sc.schedule_refresh()
+        assert sc._refresh_task is not None
+        await sc._refresh_task
+        assert attempts == 2
+        assert sc.rename_lane_available()
+        assert sc.lookup_current("GUJGASLTD") is not None
+        await sc.schedule_refresh()  # loaded today: no further download
+        assert attempts == 2
+    finally:
+        await sc.aclose()
+
+
+@pytest.mark.asyncio
+async def test_a_recent_cached_map_counts_as_loaded_without_a_retry_storm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class case: network down but yesterday's cache hydrates the map, so the
+    refresh is done for the day after one download attempt."""
+    _fast_retries(monkeypatch)
+    yesterday = sc._changes_to_cache(sc.parse_symbol_change(_fixture_text()))
+    await data_cache.set(sc._cache_key(date(2026, 7, 9)), yesterday)
+    attempts = 0
+
+    def down(request: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        raise httpx.ConnectTimeout("timed out", request=request)
+
+    sc.reset_for_tests(httpx.MockTransport(down))
+    try:
+        await sc.schedule_refresh()
+        assert sc._refresh_task is not None
+        await sc._refresh_task
+        await sc.schedule_refresh()
+        assert attempts == 1
+        assert sc.rename_lane_available()
+    finally:
+        await sc.aclose()
