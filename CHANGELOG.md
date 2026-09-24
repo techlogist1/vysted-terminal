@@ -4,6 +4,38 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 8: sidecar lifecycle and transport, provider readiness, data-error honesty, resolver and exchange lanes, research runtime (2026-09-24)
+
+**Scope:** 47 entries planned in `docs/redesign/verification/r15/stage-c/batch-8/PLAN.md`; the five writers
+delivered 40 commits covering 43 of them. Merged `--no-ff` in plan order W4 → W5 → W3 → W2 → W1 on
+`worktree-agent-batch-8-int` (base `b47ed2d`), no file conflicts; the one integrator edit deleted the orphaned
+boolean `validateProvider` from `sidecar-client.ts`. AGENT-046, CODE-AGENT-008 and CODE-PLATFORM-021 were not
+delivered; UI-015 landed partially (earnings/screener still flatten the error) and stays open.
+
+- **W4 resolver and exchange lanes:** one `instrument_payload` (CODE-DATA-003); autocomplete rows pass rename and
+  enrichment (UI-039); identity carries `board`/`exchange_group`/`face_value` from regenerated masters (DATA-051);
+  the last slot goes to a better cross-region match (DATA-058); a memoized name scan (CODE-DATA-002); the rename
+  lane stamps a refresh only after a load (LIFECYCLE-019); a bhavcopy primary 404 tries the fallback
+  (LIFECYCLE-022); `compare_symbols` failures carry per-symbol reasons (AGENT-045); macro `0.0`, World Bank
+  titles and uncached failed searches (DATA-084/085/086).
+- **W5 agent runtime and research:** Gemini meters thinking and tool-use-prompt tokens (CODE-AGENT-004); an
+  OpenRouter `:free` slug prices at 0 (LEAD-019); base URLs and the schema's provider enum derive from
+  `model_registry` (CODE-AGENT-007/016); skipped agents surface as `agents_degraded` (LIFECYCLE-014); FAST runs
+  the web round alongside a time-boxed fan-out (RESEARCH-027); the drifted single-pass deep loop is deleted
+  (CODE-RESEARCH-003).
+- **W3 data-error honesty:** one `ProviderError` mapper with classified yfinance failures (DATA-061, AGENT-061);
+  the SSE last-resort guard is `internal` (AGENT-030); quotes are dated by trade time (LEAD-005); slash ids route
+  (UI-053, DATA-081); the macro picker records a failed catalog and user loads run once (UI-029, UI-030).
+- **W2 provider readiness and host actions:** validation says why (UI-013, AGENT-028, UI-057); the banner asks
+  whether a model is reachable and a saved key replaces a dead keyless default (UI-019, UI-049); the TS model
+  tables import `model_registry.json` (CODE-AGENT-006); layout-only agent reset and one plan per template id
+  (AGENT-056, AGENT-055); `open_company_overview` spotlights a real metric (AGENT-081).
+- **W1 sidecar lifecycle and transport:** `sidecarRequest` and `SidecarError(0)` for a dead engine (UI-014); SSE
+  failures reach `onError` as sentences (UI-012); `sidecarStatus` follows reachability both ways (LIFECYCLE-011);
+  spawn failures and exits are named at once (LIFECYCLE-010); `setup()` returns at once (LIFECYCLE-001); delegate
+  runs and the agent builder use the shared error layer, start/resume excepted (CODE-PLATFORM-011); SearXNG and
+  hardware name their failure and re-read (RESEARCH-032); per-panel error boundaries (LIFECYCLE-023).
+
 ## R15 Stage C — batch 7: exchange-filed India fundamentals, durable delegate runs, unattended workflows, chart/workspace integrity, research funnel, agent-write Undo (2026-09-24)
 
 **Scope:** 55 entries planned in `docs/redesign/verification/r15/stage-c/batch-7/PLAN.md`; the five writers
