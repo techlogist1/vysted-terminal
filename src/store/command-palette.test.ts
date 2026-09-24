@@ -12,10 +12,11 @@
  *   - Recency tracking: recordSelection bumps items to the front of recents
  */
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildPaletteCorpus,
+  dispatchLayoutMenuCommand,
   GROUP_SCORE_OFFSET,
   GROUP_TIEBREAK_WEIGHT,
   matchQuality,
@@ -26,6 +27,7 @@ import {
 import { useAgentsStore } from "@/store/agents";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 import type { VystedModule } from "@/lib/module-registry";
 import type { AgentSummary } from "@/store/agents";
 
@@ -349,5 +351,30 @@ describe("symbol gating", () => {
     const panelScore = paletteFilter("panel:aapl", "aapl", ["AAPL"]);
     const symbolScore = paletteFilter("symbol:AAPL", "aapl", ["AAPL", "equity"]);
     expect(panelScore).toBeGreaterThan(symbolScore);
+  });
+});
+
+// The ONE dispatch both the palette's layout-mode commands and the macOS menu
+// bridge call (R15-CROSS-PLATFORM-004) — pins the routing contract so
+// Windows/Linux (palette-only; no native menu) get the same deterministic
+// layout modes the menu always gave macOS.
+describe("dispatchLayoutMenuCommand", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null });
+  });
+
+  it('"default" resets the layout even with no live dockview api', () => {
+    const resetToDefaultLayout = vi.fn();
+    useWorkspaceStore.setState({ resetToDefaultLayout } as never);
+    expect(dispatchLayoutMenuCommand("default")).toBe(true);
+    expect(resetToDefaultLayout).toHaveBeenCalledOnce();
+  });
+
+  it("an unknown payload returns false and touches nothing", () => {
+    expect(dispatchLayoutMenuCommand("not-a-real-mode")).toBe(false);
+  });
+
+  it("a known mode payload returns false when there is no live dockview api yet", () => {
+    expect(dispatchLayoutMenuCommand("research-cockpit")).toBe(false);
   });
 });
