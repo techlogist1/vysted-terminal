@@ -767,18 +767,6 @@ export function ChatSidebar() {
 
       const history = historyForSend(useChatHistoryStore.getState().messages);
 
-      // Auto-title the space from its first prompt (Perplexity-style) so the space
-      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
-      // adding a dep to this memoised handler.
-      if (useChatHistoryStore.getState().messages.length === 0) {
-        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
-        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
-        if (title) {
-          useAgentSpacesStore.getState().renameActive(title);
-        }
-      }
-      appendUser(prompt);
-
       // Resolve the effective provider/model (FR-004): HUD override → the called
       // agent's *deliberate* provider preference (a generic concierge has none) →
       // the user's persisted default. The key is resolved for THAT provider.
@@ -799,6 +787,10 @@ export function ChatSidebar() {
       const providerMeta = providers.find((p) => p.id === provider);
       const requiresKey = providerMeta?.requiresKey ?? true;
       const providerLabel = providerMeta?.label ?? provider;
+      // The provider/key gate runs BEFORE the user turn is appended: a send that
+      // cannot reach a model leaves no orphaned question in the transcript (and
+      // no auto-titled space) — the status line says why and the prompt goes
+      // back into an empty composer.
       let apiKey: string | null = null;
       if (requiresKey) {
         apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
@@ -806,6 +798,7 @@ export function ChatSidebar() {
           setStatusLine(
             `No API key for ${providerLabel}. Add one in Settings → AI Providers (or /key set ${provider}).`,
           );
+          setComposer((current) => current || rawInput);
           return;
         }
       } else if (!(await validateProvider(provider))) {
@@ -816,9 +809,22 @@ export function ChatSidebar() {
           "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
             "research already work without one.)",
         );
+        setComposer((current) => current || rawInput);
         useOnboardingStore.getState().open();
         return;
       }
+
+      // Auto-title the space from its first prompt (Perplexity-style) so the space
+      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
+      // adding a dep to this memoised handler.
+      if (useChatHistoryStore.getState().messages.length === 0) {
+        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
+        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
+        if (title) {
+          useAgentSpacesStore.getState().renameActive(title);
+        }
+      }
+      appendUser(prompt);
 
       // Thread the user's deep-research engine selection (Track 5) to the agent so
       // /deep routes to the chosen backend without depending on the model. Read at

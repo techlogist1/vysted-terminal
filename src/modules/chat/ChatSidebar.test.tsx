@@ -604,6 +604,17 @@ describe("ChatSidebar", () => {
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 
+  it("a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017)", async () => {
+    getSecretMock.mockResolvedValue(null as unknown as string);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "how is NVDA doing?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+    expect(useChatHistoryStore.getState().messages).toEqual([]);
+    expect(input.value).toBe("how is NVDA doing?");
+  });
+
   it("gates a keyless provider (Ollama) that isn't reachable by opening guided setup", async () => {
     // The ratified onboarding rule: a keyless local provider must be reachable
     // before the call fires. When it isn't (validateProvider false — no daemon in
