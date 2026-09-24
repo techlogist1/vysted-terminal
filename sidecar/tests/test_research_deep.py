@@ -1,11 +1,10 @@
-"""Tests for ``services.research.deep.run_deep_research`` — the bounded loop.
+"""Tests for the :mod:`services.research.deep` helpers and the loop behaviours
+the ONE deep loop (:func:`services.research.iter.run_iter_research`) inherits.
 
+The single-pass ``run_deep_research`` loop was removed (R15-CODE-RESEARCH-003);
+its behaviour tests that iter still owns run against ``run_iter_research`` here.
 No network, no real LLM: ``tool_call`` and ``llm_call`` are fakes returning
-canned dicts / strings. The tests assert (a) a normal run produces a
-``ResearchBrief`` with markdown + sources + steps; (b) a TINY budget forces
-abort→synthesize on the FIRST breach and STILL returns a brief (never raises),
-with ``note`` set to the breach reason; (c) the coverage floor gates "complete";
-and (d) steps are recorded via ``on_step``.
+canned dicts / strings.
 """
 
 from __future__ import annotations
@@ -17,7 +16,7 @@ import pytest
 
 from services.budget_guard import BudgetGuard
 from services.research import deep
-from services.research.deep import run_deep_research
+from services.research.iter import run_iter_research
 from services.research.models import ResearchBrief, ResearchStep
 from services.search.extract import VisitResult
 
@@ -115,7 +114,7 @@ def test_deep_normal_run_produces_brief() -> None:
     budget = BudgetGuard(max_steps=10)
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple outlook",
             region="US",
             tool_call=tools,
@@ -137,7 +136,7 @@ def test_deep_normal_run_produces_brief() -> None:
 
     # Steps recorded via on_step across the stages.
     kinds = {s.kind for s in captured}
-    assert {"plan", "tool", "compress", "reflect", "synthesize"} <= kinds
+    assert {"plan", "tool", "distill", "reflect", "synthesize"} <= kinds
     assert captured == brief.steps  # the sink saw exactly what's on the brief
 
     # to_dict round-trips cleanly (serialisable).
@@ -145,65 +144,6 @@ def test_deep_normal_run_produces_brief() -> None:
     assert d["mode"] == "deep"
     assert isinstance(d["sources"], list)
     assert isinstance(d["steps"], list)
-
-
-def test_deep_tiny_step_budget_aborts_to_synthesize() -> None:
-    """max_steps=1: the top-of-round gate trips on the SECOND round's check.
-
-    Round 1 records one step (steps=1). Round 2's top-of-round ``breach()`` sees
-    steps>=1 and forces abort→synthesize. The run STILL returns a brief and never
-    raises; ``note`` carries the HUMAN budget-stop sentence (R8) while the raw
-    ceiling reason rides the dev step trace.
-    """
-    llm = _FakeLLM(reflect_complete=False)  # never "complete" -> would loop forever
-    tools = _FakeToolCall(web_ok=True)
-    captured, sink = _collect_steps()
-    budget = BudgetGuard(max_steps=1)
-
-    brief = asyncio.run(
-        run_deep_research(
-            "Apple",
-            region="US",
-            tool_call=tools,
-            llm_call=llm,
-            budget=budget,
-            on_step=sink,
-        )
-    )
-
-    assert isinstance(brief, ResearchBrief)
-    assert brief.markdown.strip()  # a brief, never empty
-    assert brief.note == deep.BUDGET_STOP_NOTE
-    # The raw reason + abort marker are DEV details on the step trace.
-    assert any("step ceiling" in s.detail for s in brief.steps)
-    synth_steps = [s for s in brief.steps if s.kind == "synthesize"]
-    assert synth_steps and "abort" in synth_steps[-1].detail
-
-
-def test_deep_zero_wall_budget_aborts_on_first_breach() -> None:
-    """max_wall_seconds=0: breached on the very FIRST top-of-round check, before
-    any round runs — still returns a brief, note set, zero researcher steps."""
-    llm = _FakeLLM(reflect_complete=True)
-    tools = _FakeToolCall(web_ok=True)
-    budget = BudgetGuard(max_wall_seconds=0)
-
-    brief = asyncio.run(
-        run_deep_research(
-            "Apple",
-            region="US",
-            tool_call=tools,
-            llm_call=llm,
-            budget=budget,
-        )
-    )
-
-    assert isinstance(brief, ResearchBrief)
-    assert brief.note == deep.BUDGET_STOP_NOTE
-    # The raw wall-ceiling reason is a dev step detail, never the note.
-    assert any("wall-clock ceiling" in s.detail for s in brief.steps)
-    # Only the synthesize step ran (immediate abort before the first plan).
-    assert [s.kind for s in brief.steps] == ["synthesize"]
-    assert brief.markdown.strip()
 
 
 def test_deep_coverage_floor_blocks_premature_complete() -> None:
@@ -219,7 +159,7 @@ def test_deep_coverage_floor_blocks_premature_complete() -> None:
     budget = BudgetGuard(max_steps=3)
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=tools,
@@ -262,7 +202,7 @@ def test_deep_zero_sources_keeps_honest_structured_only_flag() -> None:
     budget = BudgetGuard(max_steps=3)
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=tools,
@@ -285,7 +225,7 @@ def test_deep_clean_finish_when_floor_and_reflect_agree() -> None:
     budget = BudgetGuard(max_steps=20)
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=tools,
@@ -295,8 +235,9 @@ def test_deep_clean_finish_when_floor_and_reflect_agree() -> None:
     )
 
     assert brief.note is None
-    assert brief.steps[-1].kind == "synthesize"
-    assert "abort" not in brief.steps[-1].detail
+    # iter closes with a citation-check step after the synthesis.
+    synth = [s for s in brief.steps if s.kind == "synthesize"]
+    assert synth and "abort" not in synth[-1].detail
 
 
 def test_deep_never_raises_on_dead_llm() -> None:
@@ -309,7 +250,7 @@ def test_deep_never_raises_on_dead_llm() -> None:
     budget = BudgetGuard(max_steps=2)
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=tools,
@@ -367,7 +308,7 @@ def test_visit_enriches_researcher_prompt_with_scrubbed_page() -> None:
 
     llm = _RecordingLLM()
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=_FakeToolCall(web_ok=True),
@@ -400,7 +341,7 @@ def test_web_evidence_is_fenced_even_without_visit() -> None:
 
     llm = _RecordingLLM()
     asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=_FakeToolCall(web_ok=True),
@@ -422,7 +363,7 @@ def test_failed_visit_is_soft_and_run_completes() -> None:
         raise RuntimeError("page exploded")
 
     brief = asyncio.run(
-        run_deep_research(
+        run_iter_research(
             "Apple",
             region="US",
             tool_call=_FakeToolCall(web_ok=True),
@@ -458,78 +399,6 @@ def test_web_source_titles_are_sanitized_inline() -> None:
     assert "\n" not in src.title and "\r" not in src.title
     assert GUARD_CLOSE not in src.title
     assert "\n" not in src.excerpt
-
-
-def test_deep_disambiguation_returns_chooser_before_any_research() -> None:
-    """R10 (D37): an ambiguous resolution returns the explicit chooser dict —
-    no rounds, no structured pulls, no web spend."""
-
-    class _Ambiguous(_FakeToolCall):
-        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
-            self.calls.append(name)
-            if name == "resolve_symbol":
-                return {
-                    "ok": True,
-                    "query": args.get("query"),
-                    "status": "disambiguate",
-                    "reason": "marquee family name",
-                    "resolved": None,
-                    "needs_disambiguation": True,
-                    "candidates": [
-                        {
-                            "symbol": "TCS",
-                            "name": "Tata Consultancy Services Limited",
-                            "exchange": "NSE",
-                            "confidence": 0.6,
-                            "yahoo_symbol": "TCS.NS",
-                        }
-                    ],
-                    "message": "which did you mean?",
-                }
-            return await super().__call__(name, args)
-
-    tools = _Ambiguous()
-    out = asyncio.run(
-        run_deep_research(
-            "tata results",
-            region="IN",
-            tool_call=tools,
-            llm_call=_FakeLLM(reflect_complete=True),
-            budget=BudgetGuard(max_steps=10),
-        )
-    )
-    assert isinstance(out, dict)
-    assert out["ok"] is True and out["needs_disambiguation"] is True
-    assert out["query"] == "tata results"
-    assert out["candidates"][0]["symbol"] == "TCS"
-    assert set(tools.calls) == {"resolve_symbol"}  # zero research spend
-
-
-def test_final_synthesis_prompt_carries_the_corporate_action_directive() -> None:
-    """R12: the final-synthesis system prompt (the one that writes the actual
-    brief narrative) carries the corporate-action date/filing discipline line —
-    the battery finding was a narrative that invented five specific filing
-    dates matching no real filing, with the same confidence as cited data."""
-    llm = _RecordingLLM()
-    brief = asyncio.run(
-        run_deep_research(
-            "Apple",
-            region="US",
-            tool_call=_FakeToolCall(web_ok=True),
-            llm_call=llm,
-            budget=BudgetGuard(max_steps=50),
-        )
-    )
-    assert isinstance(brief, ResearchBrief)
-    synthesis_prompts = [
-        str(m[0].get("content", ""))
-        for m in llm.seen
-        if m and "write a concise research brief" in str(m[0].get("content", "")).lower()
-    ]
-    assert synthesis_prompts, "no final-synthesis prompt was issued"
-    assert all("CORPORATE ACTIONS" in p for p in synthesis_prompts)
-    assert all("filing number" in p for p in synthesis_prompts)
-    assert all("unverified in this run" in p for p in synthesis_prompts)
 
 
 # --- R13 entity-anchored researcher web query -------------------------------
@@ -702,27 +571,9 @@ def _assert_off_entity_news_never_reaches_the_run(llm: _NewsOnlyLLM, brief: Any)
     assert not any(u.startswith("vysted://news/") for u in urls)
 
 
-def test_deep_news_leg_drops_off_entity_items_and_cites_each_kept_item() -> None:
-    """R15-RESEARCH-001: the DEEP researcher's structured news pull runs the
-    shared relevance gate — another company's story never reaches the
-    extraction prompt or the rail, and the kept story is its own source."""
-    llm = _NewsOnlyLLM()
-    brief = asyncio.run(
-        run_deep_research(
-            "Bharat Dynamics order book",
-            region="IN",
-            tool_call=_BDLToolCall(web_ok=True),
-            llm_call=llm,
-            budget=BudgetGuard(max_steps=3),
-        )
-    )
-    _assert_off_entity_news_never_reaches_the_run(llm, brief)
-
-
 def test_ultra_iter_news_leg_drops_off_entity_items() -> None:
-    """The same gate holds on the ULTRA/iter loop, which shares the researcher."""
-    from services.research.iter import run_iter_research
-
+    """The researcher's news pull runs the shared relevance gate on the iter loop
+    (R15-RESEARCH-001): another company's story never reaches the run."""
     llm = _NewsOnlyLLM()
     brief = asyncio.run(
         run_iter_research(

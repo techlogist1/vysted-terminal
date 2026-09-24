@@ -10,7 +10,7 @@ The research service (``services.research.fast`` / ``.deep`` / ``.iter`` /
 ``.perplexity``) is built in parallel; these tests inject lightweight fake modules
 into ``sys.modules`` so the handler's lazy imports resolve to the fakes. Every
 seam the handler touches — ``gather_fast``, ``run_iter_research`` /
-``run_heavy_research`` / ``run_deep_research``, ``config.get_llm_creds``,
+``run_heavy_research``, ``config.get_llm_creds``,
 ``agent_tools.invoke_tool``, the Perplexity backend, and the LLM provider — is
 faked; no test makes a live call.
 """
@@ -72,23 +72,6 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         }
         return {"ok": True, "query": query, "region": region, "bundle": ["news", "quote"]}
 
-    async def _run_deep_research(
-        query,  # noqa: ANN001
-        *,
-        region,  # noqa: ANN001
-        tool_call,  # noqa: ANN001
-        llm_call,  # noqa: ANN001
-        budget,  # noqa: ANN001
-        on_step=None,  # noqa: ANN001
-        max_researchers=3,  # noqa: ANN001
-        visit=None,  # noqa: ANN001
-        **knobs,  # noqa: ANN003 — R7 depth knobs (min_web_domains / site_bias)
-    ):
-        # The single-pass loop is the NAMED internal fallback only — it should NOT
-        # be reached on the normal deep path (iter never raises). A test asserts so.
-        calls["run_deep_research"] = {"query": query}
-        return _FakeBrief({"summary": "single-pass brief", "citations": [{"url": "https://x"}]})
-
     async def _run_iter_research(
         query,  # noqa: ANN001
         *,
@@ -145,7 +128,6 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
         return brief
 
     fast_mod.gather_fast = _gather_fast  # type: ignore[attr-defined]
-    deep_mod.run_deep_research = _run_deep_research  # type: ignore[attr-defined]
     deep_mod.ResearchBrief = _FakeBrief  # type: ignore[attr-defined]
     # The engine reads the loop's per-call cap and the synthesis-timeout note
     # from the real deep module (R15-RESEARCH-005); carry them onto the fake.
@@ -204,7 +186,7 @@ def research_modules(monkeypatch: pytest.MonkeyPatch):
     parent.depth = depth_mod  # type: ignore[attr-defined]
     parent.verify = verify_mod  # type: ignore[attr-defined]
 
-    return types.SimpleNamespace(calls=calls, perplexity_state=perplexity_state)
+    return types.SimpleNamespace(calls=calls, perplexity_state=perplexity_state, iter_mod=iter_mod)
 
 
 # ---------------------------------------------------------------------------
@@ -320,18 +302,25 @@ def test_research_deep_runs_the_iter_loop_and_returns_brief(
     assert out["execution"]["run_id"] in streamed[0].detail
 
 
-def test_research_deep_is_the_one_loop_single_pass_is_not_reached(
+def test_research_deep_iter_exception_is_an_honest_failure(
     research_modules, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """SC-028 / S-9: the normal deep path runs the iter loop ONLY — the single-pass
-    ``run_deep_research`` is the internal fallback and never runs when iter
-    succeeds."""
+    """R15-CODE-RESEARCH-003: an iter loop that raises returns ``ok: False`` with
+    the reason, stamped on the execution record, and no second loop runs."""
     monkeypatch.setattr(config, "get_llm_creds", lambda: ("anthropic", "claude-x", "sk-test"))
     monkeypatch.setattr(config, "get_deep_research_backend", lambda: None)
+
+    async def boom(query, **_kwargs):  # noqa: ANN001, ANN003
+        research_modules.calls["run_iter_research"] = {"query": query}
+        raise RuntimeError("iter exploded")
+
+    monkeypatch.setattr(research_modules.iter_mod, "run_iter_research", boom)
     out = _run(_research({"query": "q", "depth": "deep"}))
-    assert out["ok"] is True
-    assert "run_iter_research" in research_modules.calls
-    assert "run_deep_research" not in research_modules.calls
+    assert out["ok"] is False
+    assert "iter exploded" in out["message"]
+    assert out["execution"]["loop"] == "iter"
+    assert "iter exploded" in out["execution"]["degraded_reason"]
+    assert set(research_modules.calls) == {"run_iter_research"}
 
 
 def test_research_deep_clamps_rounds_and_wall(

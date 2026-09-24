@@ -84,6 +84,11 @@ _INDICATORS_BY_CLASS: dict[str, list[str]] = {
 }
 _DEFAULT_INDICATORS = _INDICATORS_BY_CLASS["equity"]
 
+#: Per-leg time box for the disclosure-only witness cross-checks (R15-RESEARCH-027):
+#: a slow leg is dropped like a failed one, so it never holds the NORMAL path
+#: past its FR-070 budget (<= 15 s).
+_WITNESS_LEG_TIMEOUT_S = 6.0
+
 
 def _suggested_indicators(asset_class: str | None) -> list[str]:
     """Map an instrument's asset class to the cockpit's opening indicator set."""
@@ -213,6 +218,7 @@ async def snapshot_structured(
     *,
     region: str | None = None,
     canonical_name: str | None = None,
+    on_step: OnStep | None = None,
 ) -> dict[str, Any]:
     """A price + fundamentals snapshot as provenance-tagged structured legs.
 
@@ -263,6 +269,10 @@ async def snapshot_structured(
     (:func:`services.market_cap_witness.get_market_cap_witness`) supplies a
     NON-provider (BSE-derived) share count so the market-cap check is not
     circular. All three never raise; an absent figure attaches nothing.
+
+    R15-RESEARCH-027: each witness leg is time-boxed by
+    :data:`_WITNESS_LEG_TIMEOUT_S` (a timed-out leg is dropped like a failed
+    one) and reports one ``on_step`` step carrying its ``latency_ms``.
     """
     from services import (
         dividend_actions,
@@ -323,23 +333,31 @@ async def snapshot_structured(
                 return None
             return await market_cap_witness.get_market_cap_witness(listing)
 
-        # Each leg is isolated: one raising cross-check drops only its own figure
-        # (the snapshot promises never to raise for every research depth).
-        legs = await asyncio.gather(
-            get_dividend_ttm(listing),
-            _yoy(),
-            _own(),
-            dividend_actions.get_declared_unpaid_dividend(listing),
-            _earn(),
-            _range(),
-            _mcap(),
-            return_exceptions=True,
-        )
-        for leg in legs:
-            if isinstance(leg, BaseException):
-                logger.debug("snapshot cross-check for %s failed: %r", listing, leg)
-        ttm, yoy, own, declared, earn, rng, mcw = (
-            None if isinstance(leg, BaseException) else leg for leg in legs
+        # Each leg is isolated and time-boxed: one raising or slow cross-check
+        # drops only its own figure (the snapshot never raises for any depth).
+        async def _witness(name: str, leg: Awaitable[Any]) -> Any:
+            start = time.perf_counter()
+            try:
+                value = await asyncio.wait_for(leg, _WITNESS_LEG_TIMEOUT_S)
+            except TimeoutError:
+                detail = f"{name} cross-check timed out after {_WITNESS_LEG_TIMEOUT_S:g}s — dropped"
+            except Exception as exc:  # noqa: BLE001 — a failed witness is a soft miss
+                logger.debug("snapshot cross-check %s for %s failed: %r", name, listing, exc)
+                detail = f"{name} cross-check failed — dropped"
+            else:
+                await _emit(on_step, ResearchStep("tool", f"{name} cross-check", _ms(start)))
+                return value
+            await _emit(on_step, ResearchStep("tool", detail, _ms(start), status="error"))
+            return None
+
+        ttm, yoy, own, declared, earn, rng, mcw = await asyncio.gather(
+            _witness("dividend TTM", get_dividend_ttm(listing)),
+            _witness("growth", _yoy()),
+            _witness("ownership", _own()),
+            _witness("declared dividend", dividend_actions.get_declared_unpaid_dividend(listing)),
+            _witness("earnings quality", _earn()),
+            _witness("52-week range", _range()),
+            _witness("market-cap witness", _mcap()),
         )
         apply_dividend_ttm(fund_data, ttm)
         if yoy is not None:
@@ -463,7 +481,8 @@ async def gather_fast(
       1. ``resolve_symbol`` — turn the free-text query into a concrete instrument.
       2. In PARALLEL (``asyncio.gather``, each leg wrapped non-fatal):
          ``price_data``, ``fundamentals``, ``news``, ``sec_filings_list``.
-      3. ONE web round: ``web_search`` for "<name> <query> news outlook".
+      3. ONE web round: ``web_search`` for "<name> <query> news outlook",
+         run concurrently with step 2.
 
     Returns the bundle described in the unit brief: ``resolved``, a provenance-
     tagged ``structured`` map, an honest ``web`` section (``available=False`` +
@@ -536,6 +555,10 @@ async def gather_fast(
     asset_class = target.asset_class
     await _emit(on_step, ResearchStep("plan", f"resolved → {symbol}", _ms(t0)))
 
+    # 2 + 3 run CONCURRENTLY (R15-RESEARCH-027): the web query needs only the
+    # resolved target, so the web round no longer waits for the structured
+    # fan-out — the bundle lands at max(fan-out, web), not their sum.
+    #
     # 2 — parallel structured fan-out. Each leg is pre-wrapped so a single
     # provider failure surfaces as ok:False in that slot, not a gather crash.
     # Price + fundamentals ride snapshot_structured — the ONE seam that also
@@ -544,31 +567,34 @@ async def gather_fast(
     # — SEC EDGAR for a US listing (unchanged), exchange announcements for an
     # IN one, so the wrong-jurisdiction/wrong-sidecar lane is never consulted
     # for an Indian name.
-    t1 = time.perf_counter()
-    await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
-    news_res, filings_value, snapshot = await asyncio.gather(
-        _safe_call(tool_call, "news", {"symbols": [symbol]}),
-        _filings_leg(tool_call, target),
-        snapshot_structured(tool_call, symbol, region=region, canonical_name=target.name),
-    )
-
-    # R13 ledger #9: the news leg is relevance-gated for a resolved IN equity
-    # (:func:`_news_value`) — off-entity rows (a foreign namesake's feed,
-    # generic macro headlines) never count as this instrument's coverage.
-    structured = {
-        **snapshot,
-        "news": _news_value(news_res, target=target),
-        "filings": filings_value,
-    }
-    _ok_legs = sum(
-        1
-        for leg in ("price", "fundamentals", "news", "filings")
-        if (structured.get(leg) or {}).get("ok")
-    )
-    await _emit(
-        on_step,
-        ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
-    )
+    async def _structured() -> dict[str, Any]:
+        t1 = time.perf_counter()
+        await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
+        news_res, filings_value, snapshot = await asyncio.gather(
+            _safe_call(tool_call, "news", {"symbols": [symbol]}),
+            _filings_leg(tool_call, target),
+            snapshot_structured(
+                tool_call, symbol, region=region, canonical_name=target.name, on_step=on_step
+            ),
+        )
+        # R13 ledger #9: the news leg is relevance-gated for a resolved IN equity
+        # (:func:`_news_value`) — off-entity rows (a foreign namesake's feed,
+        # generic macro headlines) never count as this instrument's coverage.
+        structured = {
+            **snapshot,
+            "news": _news_value(news_res, target=target),
+            "filings": filings_value,
+        }
+        _ok_legs = sum(
+            1
+            for leg in ("price", "fundamentals", "news", "filings")
+            if (structured.get(leg) or {}).get("ok")
+        )
+        await _emit(
+            on_step,
+            ResearchStep("tool", f"pulled {_ok_legs}/4 data sources", _ms(t1)),
+        )
+        return structured
 
     # 3 — ONE web round. The query anchors the instrument: the QUOTED display
     # name pins the engine on the company + the bare ticker for the exact-symbol
@@ -577,25 +603,29 @@ async def gather_fast(
     # NORMAL path favours a keyless-engine-friendly query — the DEEP/ULTRA
     # researcher queries carry the exchange anchor). ``name == symbol`` (no
     # display name) drops the redundant quoted duplicate.
-    t2 = time.perf_counter()
-    await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
-    web_query = (
-        f'"{name}" {symbol} {query} news outlook'
-        if name and name.upper() != symbol
-        else f"{symbol} {query} news outlook"
-    )
-    web = await _web_round(tool_call, web_query)
-    web_ok = web["available"]
-    _hits = len(web["citations"]) or len(web["results"])
-    await _emit(
-        on_step,
-        ResearchStep(
-            "search",
-            f"{_hits} web source(s)" if web_ok else "no web backend — structured only",
-            _ms(t2),
-            status="ok" if web_ok else "skipped",
-        ),
-    )
+    async def _web() -> dict[str, Any]:
+        t2 = time.perf_counter()
+        await _emit(on_step, ResearchStep("search", f"searching the web for {name}"))
+        web_query = (
+            f'"{name}" {symbol} {query} news outlook'
+            if name and name.upper() != symbol
+            else f"{symbol} {query} news outlook"
+        )
+        web = await _web_round(tool_call, web_query)
+        web_ok = web["available"]
+        _hits = len(web["citations"]) or len(web["results"])
+        await _emit(
+            on_step,
+            ResearchStep(
+                "search",
+                f"{_hits} web source(s)" if web_ok else "no web backend — structured only",
+                _ms(t2),
+                status="ok" if web_ok else "skipped",
+            ),
+        )
+        return web
+
+    structured, web = await asyncio.gather(_structured(), _web())
     await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
 
     return {

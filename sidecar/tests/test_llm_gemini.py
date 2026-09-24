@@ -35,9 +35,17 @@ class _Candidate:
 
 
 class _UsageMetadata:
-    def __init__(self, prompt: int, candidates: int) -> None:
+    def __init__(
+        self,
+        prompt: int,
+        candidates: int,
+        thoughts: int | None = None,
+        tool_use_prompt: int | None = None,
+    ) -> None:
         self.prompt_token_count = prompt
         self.candidates_token_count = candidates
+        self.thoughts_token_count = thoughts
+        self.tool_use_prompt_token_count = tool_use_prompt
 
 
 class _Response:
@@ -128,6 +136,36 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
     assert aio_models.last_kwargs["contents"] == [
         {"role": "user", "parts": [{"text": "hi"}]},
     ]
+
+
+@pytest.mark.asyncio
+async def test_usage_meters_thinking_and_tool_use_prompt_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-004: a thinking round bills its thoughts as output and the
+    tool-use prompt as input, so the BudgetGuard token ceiling sees them."""
+    from services.budget_guard import BudgetGuard
+
+    responses = [
+        _Response(
+            [_Candidate(_Content([_Part("ok")]), finish_reason="STOP")],
+            usage=_UsageMetadata(100, 800, thoughts=6000, tool_use_prompt=40),
+        ),
+    ]
+    _patch_client(monkeypatch, responses=responses)
+    out = [
+        e
+        async for e in GeminiProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="hi")],
+            model="gemini-2.5-pro",
+            api_key="key",
+        )
+    ]
+    usage = out[-1].usage
+    assert (usage.input_tokens, usage.output_tokens) == (140, 6800)
+    guard = BudgetGuard(max_tokens=5000)
+    guard.record(usage, provider="gemini", model="gemini-2.5-pro")
+    assert guard.breach() is not None
 
 
 @pytest.mark.asyncio

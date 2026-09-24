@@ -43,7 +43,7 @@
 //      - 200 OK → PASS. Process exit / timeout → FAIL.
 //      - Then assert: /health version matches package.json, the screener
 //        universe endpoint, the ICONIKSPEV deterministic resolve, the
-//        /agents roster (count > 0), and /mcp/status (this binary's OWN
+//        /agents roster (count > 0, /health agents_degraded empty), and /mcp/status (this binary's OWN
 //        embedded MCP integration reports ready).
 //   4. For each MCP subprocess sidecar (vysted-openbb-mcp-sidecar,
 //      vysted-sec-edgar-mcp-sidecar):
@@ -765,6 +765,16 @@ async function _smokeTestMainSidecar(triple) {
         `--add-data gap in scripts/ensure-sidecar.mjs) or ` +
         `services/agent_runtime.list_agents() failing to populate its registry inside the ` +
         `frozen binary. (CLAUDE.md deferred carry-forward: "/agents count > 0".)`,
+    );
+  }
+  // R15-LIFECYCLE-014: a skipped agent JSON shrinks the roster without failing
+  // /agents, so /health names every skipped file; the shipped roster is whole.
+  const agentsDegraded = healthBody && healthBody.agents_degraded;
+  if (!Array.isArray(agentsDegraded) || agentsDegraded.length > 0) {
+    throw new Error(
+      `[smoke] vysted-sidecar FAILED roster integrity: /health agents_degraded = ` +
+        `${JSON.stringify(agentsDegraded)} (expected []). Each entry names an agent JSON ` +
+        `the loader skipped (services/agent_runtime._discover_specs) and why.`,
     );
   }
   console.log(`[smoke] vysted-sidecar /agents roster OK (${agentsCount} agents).`);

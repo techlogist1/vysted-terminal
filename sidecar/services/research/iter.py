@@ -1,10 +1,9 @@
 """ITER / HEAVY deep research — IterResearch-style workspace reconstruction.
 
-Two upgraded entry points layered on the proven single-pass loop in
-:mod:`services.research.deep` (which stays UNTOUCHED as the guaranteed fallback):
+The ONE deep loop, built on the helpers in :mod:`services.research.deep`:
 
 ``run_iter_research`` — the IterResearch loop (adapted from Alibaba's
-Tongyi-DeepResearch). The single-pass loop re-injects the ENTIRE findings history
+Tongyi-DeepResearch). A single-pass loop re-injects the ENTIRE findings history
 into every plan/reflect/synthesis prompt; over many rounds that bloats the working
 context and degrades reasoning ("cognitive suffocation"). Instead this loop keeps
 ONE central evolving REPORT and, each round, reconstructs a minimal working context

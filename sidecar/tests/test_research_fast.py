@@ -12,6 +12,7 @@ section).
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import Any
 
 import pytest
@@ -160,10 +161,10 @@ def test_fast_pulls_four_legs_in_parallel() -> None:
     fake = _FakeToolCall(asset_class="equity", web_ok=True)
     asyncio.run(gather_fast("Apple", region="US", tool_call=fake))
 
-    # resolve, then four structured legs, then one web round.
+    # resolve, then four structured legs alongside one web round (R15-RESEARCH-027:
+    # the web round no longer waits for the fan-out, so no call order is pinned).
     assert fake.calls[0] == "resolve_symbol"
-    assert set(fake.calls[1:5]) == {"price_data", "fundamentals", "news", "sec_filings_list"}
-    assert fake.calls[-1] == "web_search"
+    assert {"price_data", "fundamentals", "news", "sec_filings_list"} <= set(fake.calls[1:])
     assert fake.calls.count("web_search") == 1
     # The four structured legs overlapped (a serial pull peaks at 1).
     assert fake.max_concurrent >= 2
@@ -853,3 +854,60 @@ def test_snapshot_special_dividend_research_output_is_unchanged(
     conflicts = [c for c in derived["conflicts"] if c["field"] == "dividend_per_share"]
     assert len(conflicts) == 1
     assert {s["value"] for s in conflicts[0]["sources"]} == {525.0, 656.0}
+
+
+class _SlowWebToolCall(_FakeToolCall):
+    """``web_search`` takes ``web_delay`` seconds and records when it started."""
+
+    def __init__(self, web_delay: float) -> None:
+        super().__init__()
+        self.web_delay = web_delay
+        self.web_started: float | None = None
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == "web_search":
+            self.web_started = time.perf_counter()
+            await asyncio.sleep(self.web_delay)
+        return await super().__call__(name, args)
+
+
+def test_fast_web_round_runs_alongside_a_time_boxed_fan_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-027: a witness leg that hangs is dropped at its time box and
+    named in a step with its latency; the web round starts before the fan-out
+    ends, so the bundle lands at max(fan-out, web), not their sum."""
+    from services import dividend_history
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.5)
+
+    async def hangs(_symbol: str) -> dividend_history.DividendTTM:
+        await asyncio.sleep(20)
+        raise AssertionError("the time box must cancel this leg")
+
+    monkeypatch.setattr(dividend_history, "get_dividend_ttm", hangs)
+    fake = _SlowWebToolCall(web_delay=0.4)
+    steps: list[tuple[float, Any]] = []
+
+    async def run() -> dict[str, Any]:
+        return await gather_fast(
+            "Apple",
+            region="US",
+            tool_call=fake,
+            on_step=lambda step: steps.append((time.perf_counter(), step)),
+        )
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(run())
+    elapsed = time.perf_counter() - t0
+
+    assert bundle["ok"] is True
+    assert elapsed < 0.5 + 0.4 - 0.1  # max(fan-out, web) + margin, never their sum
+    (timed_out,) = [s for _, s in steps if "timed out" in s.detail]
+    assert "dividend TTM" in timed_out.detail
+    assert timed_out.status == "error"
+    assert timed_out.latency_ms is not None and timed_out.latency_ms >= 500
+    fan_out_end = next(t for t, s in steps if s.detail.startswith("pulled "))
+    assert fake.web_started is not None and fake.web_started < fan_out_end
