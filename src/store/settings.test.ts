@@ -152,6 +152,50 @@ describe("settings store", () => {
     expect(useSettingsStore.getState().deepResearchBackend).toBe("native");
   });
 
+  // ---- chartDefaults (R15-UI-048) ----
+
+  it("seeds chartDefaults from the default bundle", () => {
+    const s = useSettingsStore.getState();
+    expect(s.chartDefaults).toEqual({ symbol: "SPY", timeframe: "1d", indicators: [] });
+  });
+
+  it("setChartDefaults updates state and round-trips through toBundle/setAll", () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "TCS.NS", timeframe: "5m", indicators: ["ema:9", "vwap"] });
+    expect(useSettingsStore.getState().chartDefaults).toEqual({
+      symbol: "TCS.NS",
+      timeframe: "5m",
+      indicators: ["ema:9", "vwap"],
+    });
+
+    const bundle = settingsBundle();
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setAll(bundle);
+    expect(useSettingsStore.getState().chartDefaults).toEqual({
+      symbol: "TCS.NS",
+      timeframe: "5m",
+      indicators: ["ema:9", "vwap"],
+    });
+  });
+
+  it("an older blob without chartDefaults gets the seed", () => {
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" });
+    expect(useSettingsStore.getState().chartDefaults).toEqual(DEFAULT_SETTINGS.chartDefaults);
+  });
+
+  it("a malformed chartDefaults in an import falls back to the CURRENT value, not the seed", () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "TCS.NS", timeframe: "5m", indicators: [] });
+    useSettingsStore.getState().setAll({ chartDefaults: { symbol: 42 } } as never);
+    expect(useSettingsStore.getState().chartDefaults).toEqual({
+      symbol: "TCS.NS",
+      timeframe: "5m",
+      indicators: [],
+    });
+  });
+
   it("toBundle / settingsBundle snapshot the current preferences", () => {
     useSettingsStore.getState().setDefaultAgentId("buffett");
     useSettingsStore.getState().setRegion("IN");

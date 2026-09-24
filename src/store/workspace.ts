@@ -31,12 +31,12 @@ export function isReservedLayoutName(name: string): boolean {
 const RAIL_PANEL_IDS = new Set(["watchlist", "news", "portfolio"]);
 
 /**
- * Placement position for a newly-opened panel (PRODUCT_DESIGN_DECISIONS §7): a
- * primary-content panel tabs `within` the main / centre group (anchored on the
- * chart or equity overview, else any open non-rail panel) so a wide panel never
- * lands in a cramped rail cell. Rail panels — and the case where no centre anchor
- * is open yet (the panel is the first to mount) — return `undefined` for
- * dockview's default placement.
+ * Placement position for a newly-opened panel: a primary-content panel tabs
+ * `within` the main / centre group (anchored on the chart or equity overview,
+ * else any open non-rail panel) so a wide panel never lands in a cramped rail
+ * cell. Rail panels — and the case where no centre anchor is open yet (the
+ * panel is the first to mount) — return `undefined` for dockview's default
+ * placement.
  */
 function mainGroupPosition(
   api: DockviewApi,
@@ -126,7 +126,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         height: spec.defaultSize.h * GRID_UNIT_PX,
       });
     };
-    // Panel-placement policy (PRODUCT_DESIGN_DECISIONS §7): a primary-content
+    // Panel-placement policy: a primary-content
     // panel (everything except the side-rail data panels) tabs INTO the main /
     // center group beside the chart instead of landing in dockview's last-focused
     // slot — which can be a cramped rail cell where a wide panel (Settings,

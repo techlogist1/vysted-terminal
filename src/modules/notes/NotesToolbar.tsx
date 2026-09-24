@@ -24,6 +24,7 @@ import {
   Code,
   List,
   ListOrdered,
+  ListChecks,
   Quote,
   SquareCode,
   Link as LinkIcon,
@@ -241,7 +242,23 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
   };
 
   const insertWikiLink = () => {
-    // Inserting `[[` triggers the existing WikiLink suggestion (char: "[[").
+    // R15-UI-024 repro e: this used to `insertContent("[[")` unconditionally,
+    // which — like any insert into a non-empty selection — REPLACED the
+    // selected text with the literal "[[" instead of linking it. Wrap a
+    // selection directly as the link target; only fall back to the "[["
+    // trigger (which opens the picker) when there is nothing selected.
+    const { from, to, empty } = editor.state.selection;
+    if (!empty) {
+      const symbol = editor.state.doc.textBetween(from, to, " ").trim().toUpperCase();
+      if (symbol) {
+        editor
+          .chain()
+          .focus()
+          .insertContentAt({ from, to }, { type: "wikiLinkNode", attrs: { symbol } })
+          .run();
+        return;
+      }
+    }
     editor.chain().focus().insertContent("[[").run();
   };
 
@@ -308,6 +325,12 @@ export function NotesToolbar({ editor }: { editor: Editor | null }) {
           label="Numbered list"
           active={editor.isActive("orderedList")}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        />
+        <ToolbarButton
+          icon={ListChecks}
+          label="Task list"
+          active={editor.isActive("taskList")}
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
         />
       </Group>
       <GroupRule />

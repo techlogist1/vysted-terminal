@@ -26,6 +26,7 @@ import {
   Link2,
   Lock,
   PenLine,
+  Star,
   Unlock,
 } from "lucide-react";
 
@@ -47,7 +48,6 @@ import { useContainerWidth } from "@/lib/use-container-width";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
 import {
-  DEFAULT_CHART_SYMBOL,
   DEFAULT_CHART_TIMEFRAME,
   drawingsFor,
   newDrawingId,
@@ -61,6 +61,7 @@ import {
   type VisibleRangeBroadcast,
 } from "@/store/chart-sync";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
 import { assetClassOf } from "@/store/symbols";
 import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import type { DrawingKind, DrawingPoint, DrawingSpec } from "../../../types/drawings";
@@ -270,15 +271,23 @@ function ChartPanel(props: ChartPanelProps = {}) {
 
   // --- form / data state --------------------------------------------------
   // A relaunch / workspace load reopens the panel's persisted view (R15-UI-020).
+  // Absent that, a FRESH panel opens on the user's chart default (R15-UI-048)
+  // instead of the hard-coded SPY/1d seed.
   const [restored] = useState(() => useChartDrawingsStore.getState().views[panelId]);
-  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
-  const [symbol, setSymbol] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
-  const [timeframe, setTimeframe] = useState<Timeframe>(() =>
-    restored && isTimeframe(restored.timeframe)
-      ? restored.timeframe
-      : (DEFAULT_CHART_TIMEFRAME as Timeframe),
+  const [chartDefaultsAtMount] = useState(() => useSettingsStore.getState().chartDefaults);
+  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+  const [symbol, setSymbol] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+  const [timeframe, setTimeframe] = useState<Timeframe>(() => {
+    if (restored && isTimeframe(restored.timeframe)) {
+      return restored.timeframe;
+    }
+    return isTimeframe(chartDefaultsAtMount.timeframe)
+      ? chartDefaultsAtMount.timeframe
+      : (DEFAULT_CHART_TIMEFRAME as Timeframe);
+  });
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(restored?.indicators ?? chartDefaultsAtMount.indicators),
   );
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(restored?.indicators));
 
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
@@ -420,10 +429,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
           candleDataRef.current = [];
           setProvider(series.provider);
           setFreshness(series.freshness ?? null);
+          // R15-LEAD-026: the sidecar can also return "unknown_symbol", not yet
+          // in the SeriesReason union (types/data.ts, W3-owned) — read as a
+          // plain string here until that mirror is widened.
+          const reason = series.reason as string | null | undefined;
           setPriceError(
-            series.reason === "in_eod_only"
+            reason === "in_eod_only"
               ? "No EOD data for this symbol. BSE/NSE serve end-of-day data only; intraday/realtime is not available for this listing."
-              : "No price data for this symbol",
+              : reason === "unknown_symbol"
+                ? "No such symbol"
+                : "No price data for this symbol",
           );
           setPriceState("error");
           return;
@@ -1276,6 +1291,20 @@ function ChartPanel(props: ChartPanelProps = {}) {
             ))}
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={() =>
+            useSettingsStore
+              .getState()
+              .setChartDefaults({ symbol, timeframe, indicators: selectedKeys })
+          }
+          aria-label="Make default"
+          title="Make this symbol, timeframe and indicators the chart's default"
+          className="rounded-control text-charcoal-400 hover:text-charcoal-100 flex h-7 w-7 shrink-0 items-center justify-center transition-colors"
+        >
+          <Star className={TOOLBAR_ICON_CLASS} />
+        </button>
 
         <span
           aria-hidden

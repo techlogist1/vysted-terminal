@@ -26,25 +26,56 @@ def _is_intraday(timeframe: str) -> bool:
     return ("m" in tf or "h" in tf) and "mo" not in tf
 
 
-def _empty_series_reason(symbol: str, timeframe: str) -> str | None:
+def _is_unknown_symbol(symbol: str) -> bool:
+    """True when ``symbol`` cannot be recognized as any instrument at all,
+    network-free (R15-LEAD-026).
+
+    A caret index (``^NSEI``) and any already exchange-suffixed symbol
+    (``.NS``/``.BO``/a foreign Yahoo suffix like ``.AX``) address a specific
+    market explicitly and are never "unknown" here — only a bare ticker absent
+    from every bundled equity master is. Crypto pairs (``BTC/USD``) are never
+    checked (see the ``asset_class`` guard in :func:`_empty_series_reason`) —
+    the equity/ETF masters have no opinion on them.
+    """
+    upper = symbol.strip().upper()
+    if upper.startswith("^"):
+        return False
+    if region_for_suffix(symbol) is not None:
+        return False
+    bare = symbol_resolver.strip_exchange_suffix(symbol)
+    if "." in bare:
+        return False  # a foreign exchange suffix we don't master-check
+    return not (
+        symbol_resolver.is_nse_symbol(symbol)
+        or symbol_resolver.is_bse_symbol(symbol)
+        or symbol_resolver.is_us_symbol(symbol)
+    )
+
+
+def _empty_series_reason(symbol: str, timeframe: str, asset_class: str = "equity") -> str | None:
     """A typed reason for an empty series the chart can state honestly.
 
     ``in_eod_only`` (keyless BSE/NSE serve end-of-day only, so no intraday lane
     exists) is true only for an INTRADAY timeframe on a KNOWN IN listing (a
-    ``.NS``/``.BO`` suffix or an NSE/BSE master member) in an IN context. An empty
-    daily series (a no-trade year), a caret index or an unknown symbol has some
-    other cause, so it gets ``None`` and the chart keeps its generic copy
-    (R15-DATA-064).
+    ``.NS``/``.BO`` suffix or an NSE/BSE master member) in an IN context.
+
+    ``unknown_symbol`` fires when the equity/ETF masters have never heard of the
+    symbol at all (any timeframe) — distinct from a resolvable symbol whose
+    range is genuinely empty (a no-trade year, a caret index), which keeps the
+    old ``None`` (R15-DATA-064's generic-copy case).
     """
-    if not _is_intraday(timeframe):
-        return None
     known_in = (
         region_for_suffix(symbol) == REGION_IN
         or symbol_resolver.is_nse_symbol(symbol)
         or symbol_resolver.is_bse_symbol(symbol)
     )
-    region = symbol_resolver.region_hint(symbol) or config.get_region()
-    return "in_eod_only" if known_in and region == REGION_IN else None
+    if _is_intraday(timeframe):
+        region = symbol_resolver.region_hint(symbol) or config.get_region()
+        if known_in and region == REGION_IN:
+            return "in_eod_only"
+    if asset_class in ("equity", "etf") and _is_unknown_symbol(symbol):
+        return "unknown_symbol"
+    return None
 
 
 def _period_as_of(bar_day: date, timeframe: str, region: str) -> date:
@@ -115,6 +146,6 @@ def get_history(
             timeframe=timeframe,
             bars=[],
             provider="none",
-            reason=_empty_series_reason(symbol, timeframe),
+            reason=_empty_series_reason(symbol, timeframe, asset_class),
         )
     return _label_series_freshness(series, asset_class, timeframe)

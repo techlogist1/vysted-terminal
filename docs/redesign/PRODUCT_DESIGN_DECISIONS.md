@@ -1,5 +1,18 @@
 # Vysted R4 — Product Design Decisions (the taste authority)
 
+> **SUPERSEDED (R15-DOCS-004):** §0–§7, §9, §10 describe the "Warm Graphite" palette
+> (warm near-black ramp, amber accent `#d89a4e`, Inter sans) and its specific sizing/hex
+> values. That palette was reversed twice — R6 "Pure Black" (pure-neutral ramp, OpenCode
+> peach accent `#fab283`) and R9 (Linear/Cursor-anchored scale, JetBrains Mono only) — and
+> neither reversal was recorded here. Those sections are **dead**; the current palette,
+> type, and scale authority is **`docs/redesign/VYSTED_DESIGN.md`** (colors, type, spacing
+> tokens) and **`docs/redesign/R9_DESIGN_SYSTEM.md`** (control/spacing scale). §8 and
+> §11–§16 are **still binding** — they describe structural/behavioral patterns (empty
+> states, the `DataTable`/editor/composer/palette patterns, the enforcement gate) through
+> token _names_, which the current palette still defines (see `styles/tokens.css`'s "names
+> are historical, not literal" note); only the _values_ changed. Do not cite §0–§7, §9, or
+> §10 from source code — `src/lib/design-doc-citations.test.ts` fails the build if you do.
+>
 > **Status:** RATIFIED for the R4 session-3 build. This is the single document every
 > teammate obeys so the result is ONE coherent look, not six interpretations.
 > **Ground truth:** the reference screenshots in `docs/redesign/references/`
