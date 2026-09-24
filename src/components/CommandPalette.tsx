@@ -512,7 +512,7 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
           {formatBinding(binding)}
         </kbd>
       )}
-      {isRecent && <span className="text-charcoal-600 text-caption shrink-0">recent</span>}
+      {isRecent && <span className="text-charcoal-500 text-caption shrink-0">recent</span>}
     </Command.Item>
   );
 }
