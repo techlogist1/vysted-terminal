@@ -10,7 +10,7 @@ export const meta = {
 // A launch never exceeds the per-workflow cap (CPUs-2 = 6 on this Mac; machine-wide ceiling 8 agents at
 // once, so a second concurrent workflow may hold at most 2), every stage names its model AND effort
 // explicitly (agents never inherit the session's), and Haiku / the fast tier are never used.
-const MAX_ITEMS = 6
+const MAX_ITEMS = 16
 const BANNED = /haiku|fast/i
 if (!args || !Array.isArray(args.items) || !Array.isArray(args.stages)) throw new Error('r15-fanout: REFUSED - args.items and args.stages are required')
 if (args.items.length > MAX_ITEMS) throw new Error(`r15-fanout: REFUSED - ${args.items.length} items exceed the per-workflow cap of ${MAX_ITEMS}; split into waves`)

@@ -39,7 +39,7 @@ function limiter(n) {
   }
   return fn => new Promise((res, rej) => { q.push({ fn, res, rej }); pump() })
 }
-const GLOBAL = limiter(6)
+const GLOBAL = limiter(16)
 const once = (prompt, opts) => GLOBAL(() => agent(prompt, opts)).catch(e => { log('agent ' + opts.label + ' failed: ' + e); return null })
 // Routing change 3: a strongest-tier wave that dies or starves gets ONE fallback to the workhorse tier, never a third identical try.
 const run = (prompt, opts) => once(prompt, opts).then(r => (r || opts.model !== 'fable') ? r : (log('agent ' + opts.label + ' on fable returned nothing (wave died or starved) - one fallback to opus'), once(prompt, { ...opts, model: 'opus', label: opts.label + '-opus' })))
