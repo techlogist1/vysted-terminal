@@ -45,6 +45,11 @@ export type DrawingKind =
 export interface DrawingPoint {
   /** UTC seconds; `null` for time-axis-independent drawings. */
   time: number | null;
+  /**
+   * Bar index for an anchor clicked past the last bar, where no bar time
+   * exists (`time` is then `null`). The renderer places it by logical index.
+   */
+  logical?: number;
   /** Price value; `null` for price-axis-independent drawings (vertical-line). */
   price: number | null;
 }

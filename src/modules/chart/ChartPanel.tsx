@@ -320,6 +320,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [activeTool, setActiveTool] = useState<DrawingKind | null>(null);
   const [draftPoints, setDraftPoints] = useState<DrawingPoint[]>([]);
   const [selectedDrawingId, setSelectedDrawingId] = useState<string | null>(null);
+  // A placed Text anchor awaiting its typed label (R15-UI-022).
+  const [pendingText, setPendingText] = useState<{ points: DrawingPoint[]; text: string } | null>(
+    null,
+  );
 
   // Drawings belong to the symbol/timeframe they were made on (R15-UI-020).
   const panelDrawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
@@ -666,6 +670,30 @@ function ChartPanel(props: ChartPanelProps = {}) {
   }, [drawings]);
 
   // --- drawings: click-to-create + delete-key handlers --------------------
+  const commitDrawing = useCallback(
+    (kind: DrawingKind, points: DrawingPoint[], kindOptions?: Record<string, unknown>) => {
+      addDrawing(panelId, {
+        id: newDrawingId(),
+        panelId,
+        symbol,
+        timeframe,
+        kind,
+        points,
+        style: { ...DEFAULT_DRAWING_STYLE },
+        createdAt: Date.now(),
+        kindOptions,
+      });
+    },
+    [addDrawing, panelId, symbol, timeframe],
+  );
+
+  const submitPendingText = useCallback(() => {
+    if (pendingText && pendingText.text.trim() !== "") {
+      commitDrawing("text", pendingText.points, { text: pendingText.text.trim(), fontSize: 12 });
+    }
+    setPendingText(null);
+  }, [commitDrawing, pendingText]);
+
   const handleChartClick = useCallback(
     (param: MouseEventParams<Time>) => {
       if (!activeTool) {
@@ -675,43 +703,31 @@ function ChartPanel(props: ChartPanelProps = {}) {
       if (!candleSeries) {
         return;
       }
-      // Resolve the click into a drawing point — `time` is whatever bar the
-      // crosshair is over (or null for V/H lines anchored only on price/time).
+      // The anchor is where the user clicked (R15-UI-022): the price at the
+      // clicked y (never the bar's close), the time of the bar under x, or —
+      // past the last bar, where no bar time exists — the logical index.
+      const price = param.point ? candleSeries.coordinateToPrice(param.point.y) : null;
       const time = typeof param.time === "number" ? (param.time as number) : null;
-      const seriesData = param.seriesData?.get(candleSeries);
-      let price: number | null = null;
-      if (seriesData && "close" in seriesData && typeof seriesData.close === "number") {
-        price = seriesData.close;
-      } else if (param.point && param.logical !== undefined) {
-        const coord = candleSeries.coordinateToPrice(param.point.y);
-        if (coord !== null) {
-          price = coord;
-        }
-      }
-      const point: DrawingPoint = { time, price };
+      const point: DrawingPoint =
+        time === null && param.logical !== undefined
+          ? { time, price, logical: param.logical as number }
+          : { time, price };
       const required = pointsRequired(activeTool);
       const next = [...draftPoints, point];
       if (next.length < required) {
         setDraftPoints(next);
         return;
       }
-      // Commit the drawing.
-      const spec: DrawingSpec = {
-        id: newDrawingId(),
-        panelId,
-        symbol,
-        timeframe,
-        kind: activeTool,
-        points: next,
-        style: { ...DEFAULT_DRAWING_STYLE },
-        createdAt: Date.now(),
-        kindOptions: activeTool === "text" ? { text: "label", fontSize: 12 } : undefined,
-      };
-      addDrawing(panelId, spec);
       setDraftPoints([]);
       setActiveTool(null);
+      if (activeTool === "text") {
+        // The label is typed in the inline prompt, then committed.
+        setPendingText({ points: next, text: "" });
+        return;
+      }
+      commitDrawing(activeTool, next);
     },
-    [activeTool, addDrawing, draftPoints, panelId, symbol, timeframe],
+    [activeTool, commitDrawing, draftPoints],
   );
 
   useEffect(() => {
@@ -1145,10 +1161,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
     [panelId, removeDrawing, selectedDrawingId],
   );
 
-  // Clears what this chart shows; other symbols' drawings stay.
+  // Clears what this chart shows; other symbols' drawings and locked ones stay.
   const onClearAllDrawings = useCallback(() => {
     for (const drawing of drawings) {
-      removeDrawing(panelId, drawing.id);
+      if (!drawing.locked) {
+        removeDrawing(panelId, drawing.id);
+      }
     }
     setSelectedDrawingId(null);
   }, [drawings, panelId, removeDrawing]);
@@ -1556,6 +1574,31 @@ function ChartPanel(props: ChartPanelProps = {}) {
       {/* Chart — the canvas gets every row the old indicator wall used to eat. */}
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" data-testid="chart-container" />
+        {pendingText ? (
+          <form
+            className="bg-charcoal-900 rounded-control absolute top-2 left-2 z-20 flex items-center gap-1 border p-1"
+            style={{ borderColor: "var(--hairline-strong)" }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitPendingText();
+            }}
+          >
+            <input
+              aria-label="Drawing text"
+              autoFocus
+              placeholder="Label text"
+              value={pendingText.text}
+              onChange={(event) => setPendingText({ ...pendingText, text: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setPendingText(null);
+              }}
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-7 w-44 px-2 font-mono outline-none"
+            />
+            <Button type="submit" size="sm" variant="outline">
+              Add
+            </Button>
+          </form>
+        ) : null}
         {priceState === "loading" ? (
           <div className="text-charcoal-400 bg-charcoal-950/80 text-body absolute inset-0 z-10 flex items-center justify-center font-mono">
             Loading {symbol}…
@@ -1629,7 +1672,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
                   <button
                     type="button"
                     onClick={() => onDeleteDrawing(drawing.id)}
-                    className="hover:text-negative px-1"
+                    disabled={!!drawing.locked}
+                    title={drawing.locked ? "Unlock to delete" : undefined}
+                    className="hover:text-negative px-1 disabled:pointer-events-none disabled:opacity-40"
                     aria-label="Delete drawing"
                   >
                     ×

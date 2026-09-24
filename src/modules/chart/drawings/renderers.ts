@@ -14,7 +14,7 @@
 
 import { ACCENT_CORAL } from "@/lib/chart-theme";
 
-import { DrawingRenderer, resolvePoint, type DrawingConverters } from "./base";
+import { DrawingRenderer, pointX, resolvePoint, type DrawingConverters } from "./base";
 import type { DrawingPoint, DrawingSpec } from "../../../../types/drawings";
 
 /** Standard fib retracement / extension levels. */
@@ -73,10 +73,10 @@ export class HorizontalLineRenderer extends DrawingRenderer {
 export class VerticalLineRenderer extends DrawingRenderer {
   protected paint(scope: PaintScope, spec: DrawingSpec, converters: DrawingConverters): void {
     const point = spec.points[0];
-    if (!point || point.time === null) {
+    if (!point) {
       return;
     }
-    const x = converters.timeToX(point.time);
+    const x = pointX(point, converters);
     if (x === null) {
       return;
     }
@@ -178,7 +178,7 @@ export class FibRetracementRenderer extends DrawingRenderer {
     if (yA === null || yB === null) {
       return;
     }
-    const xA = a.time === null ? 0 : (converters.timeToX(a.time) ?? 0);
+    const xA = pointX(a, converters) ?? 0;
     const { context, mediaSize } = scope;
     // R8 type floor: nothing renders below 11px — including canvas labels.
     context.font = "11px ui-monospace, monospace";
@@ -213,7 +213,7 @@ export class FibExtensionRenderer extends DrawingRenderer {
       return;
     }
     const swing = b.price - a.price;
-    const xC = c.time === null ? 0 : (converters.timeToX(c.time) ?? 0);
+    const xC = pointX(c, converters) ?? 0;
     const { context, mediaSize } = scope;
     // R8 type floor: nothing renders below 11px — including canvas labels.
     context.font = "11px ui-monospace, monospace";
@@ -283,7 +283,7 @@ export class TextRenderer extends DrawingRenderer {
     if (!point) {
       return;
     }
-    const x = point.time === null ? 8 : converters.timeToX(point.time);
+    const x = point.time === null && point.logical === undefined ? 8 : pointX(point, converters);
     const y = point.price === null ? 16 : converters.priceToY(point.price);
     if (x === null || y === null) {
       return;

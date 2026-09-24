@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
@@ -688,6 +688,63 @@ describe("ChartPanel", () => {
     const chip = screen.getByTestId("active-tool-chip");
     expect(chip).toHaveTextContent("Trend");
     expect(chip).toHaveTextContent("2 points left");
+  });
+
+  describe("drawing input (R15-UI-022)", () => {
+    type ClickHandler = (param: Record<string, unknown>) => void;
+    const click = (param: Record<string, unknown>) => {
+      const handler = chartApi.subscribeClick.mock.calls.at(-1)?.[0] as ClickHandler;
+      act(() => handler(param));
+    };
+    const arm = async (toolName: string) => {
+      render(<ChartPanel api={{ id: "chart-A" }} />);
+      await waitFor(() => expect(historyMock).toHaveBeenCalled());
+      openDraw();
+      fireEvent.click(screen.getByRole("button", { name: toolName }));
+    };
+    const stored = () => useChartDrawingsStore.getState().getDrawings("chart-A");
+
+    it("anchors at the clicked price, not the bar's close", async () => {
+      await arm("Horizontal line");
+      candleSeries.coordinateToPrice.mockReturnValueOnce(2.9);
+      click({
+        time: 1767225600,
+        logical: 0,
+        point: { x: 10, y: 40 },
+        seriesData: new Map([[candleSeries, { close: 1.5 }]]),
+      });
+      expect(candleSeries.coordinateToPrice).toHaveBeenCalledWith(40);
+      expect(stored()[0]?.points).toEqual([{ time: 1767225600, price: 2.9 }]);
+    });
+
+    it("keeps a click past the last bar placeable by its logical index", async () => {
+      await arm("Trendline");
+      click({ time: undefined, logical: 5, point: { x: 500, y: 40 } });
+      click({ time: undefined, logical: 8, point: { x: 560, y: 60 } });
+      expect(stored()[0]?.points).toEqual([
+        { time: null, price: 100, logical: 5 },
+        { time: null, price: 100, logical: 8 },
+      ]);
+    });
+
+    it("takes the Text label from the inline prompt", async () => {
+      await arm("Text label");
+      click({ time: 1767225600, logical: 0, point: { x: 10, y: 40 } });
+      expect(stored()).toHaveLength(0);
+      fireEvent.change(screen.getByLabelText("Drawing text"), { target: { value: "support" } });
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+      expect(stored()[0]?.kindOptions).toEqual({ text: "support", fontSize: 12 });
+      expect(screen.queryByLabelText("Drawing text")).toBeNull();
+    });
+
+    it("disables a locked drawing's delete control", async () => {
+      await arm("Horizontal line");
+      click({ time: 1767225600, logical: 0, point: { x: 10, y: 40 } });
+      fireEvent.click(screen.getByRole("button", { name: "Lock drawing" }));
+      expect(screen.getByRole("button", { name: "Delete drawing" })).toBeDisabled();
+      fireEvent.click(screen.getByRole("button", { name: /Clear drawings/ }));
+      expect(stored()).toHaveLength(1);
+    });
   });
 
   it("disarms the active tool from the chip's [x]", async () => {
