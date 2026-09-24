@@ -33,10 +33,6 @@ from collections.abc import Callable
 
 from .base import SearchBackend
 
-#: Known backend ids, in preference order (the local instance first, then the
-#: keyless multi-engine rotation, then the bare DuckDuckGo floor it grew out of).
-KNOWN_BACKENDS: tuple[str, ...] = ("searxng", "keyless", "ddg")
-
 
 def _build_searxng(
     *, searxng_url: str | None, region: str | None, **_: object
@@ -101,4 +97,4 @@ def resolve(
     return builder(searxng_url=searxng_url, region=region)
 
 
-__all__ = ["KNOWN_BACKENDS", "resolve"]
+__all__ = ["resolve"]

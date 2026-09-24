@@ -235,17 +235,22 @@ export const useKeybindingsStore = create<KeybindingsState>((set, get) => ({
     }),
   conflicts: () => {
     const { defaults, overrides } = get();
-    const byCombo = new Map<string, string[]>();
+    // Group by the RESOLVED physical chord (R15-UI-027 residual), not the raw
+    // string: "mod+p" and "meta+p" are the same key on macOS and must
+    // conflict there, while "shift+mod+p" and "mod+p" are genuinely distinct
+    // chords and must not.
+    const byChord = new Map<string, { keys: string; actionIds: string[] }>();
     for (const actionId of Object.keys(defaults)) {
       const keys = overrides[actionId] ?? defaults[actionId].keys;
-      const list = byCombo.get(keys) ?? [];
-      list.push(actionId);
-      byCombo.set(keys, list);
+      const chord = resolveChord(keys);
+      const entry = byChord.get(chord) ?? { keys, actionIds: [] };
+      entry.actionIds.push(actionId);
+      byChord.set(chord, entry);
     }
     const result: { keys: string; actionIds: string[] }[] = [];
-    for (const [keys, actionIds] of byCombo) {
-      if (actionIds.length > 1) {
-        result.push({ keys, actionIds });
+    for (const entry of byChord.values()) {
+      if (entry.actionIds.length > 1) {
+        result.push(entry);
       }
     }
     return result;
@@ -361,6 +366,25 @@ export function normalizeBinding(keys: string): string {
   return [...orderedMods, ...(key ? [key] : [])].join("+");
 }
 
+/**
+ * Resolve a combo to the concrete physical chord it produces on the CURRENT
+ * platform (R15-UI-027 residual): `"mod"` collapses to `"meta"` on macOS or
+ * `"ctrl"` elsewhere, so `"mod+p"` and `"meta+p"` compare equal on macOS
+ * (both are ⌘P) while `"mod+p"` and `"ctrl+p"` compare equal off macOS —
+ * `conflicts()` groups on this instead of the raw string.
+ */
+function resolveChord(keys: string): string {
+  const { modifiers, key } = parseBinding(keys);
+  const mac = isMacPlatform();
+  const resolved = new Set<string>();
+  for (const m of modifiers) {
+    resolved.add(m === "mod" ? (mac ? "meta" : "ctrl") : m);
+  }
+  const order = ["ctrl", "alt", "shift", "meta"] as const;
+  const ordered = order.filter((m) => resolved.has(m));
+  return [...ordered, ...(key ? [key] : [])].join("+");
+}
+
 /** True when running on macOS (so `mod`/`meta` render as ⌘). SSR/jsdom-safe. */
 export function isMacPlatform(): boolean {
   if (typeof navigator === "undefined") {
@@ -470,10 +494,15 @@ export function matchesEvent(keys: string, event: MatchableKeyEvent): boolean {
   if (event.altKey !== wantAlt) {
     return false;
   }
-  // Shift is only required if the combo asked for it; a Shift held for an
-  // uppercase letter (combos are lowercase) shouldn't break a no-shift combo,
-  // so only enforce when explicitly requested.
-  if (wantShift && !event.shiftKey) {
+  // Shift is STRICT for a plain letter key (R15-UI-027 residual): otherwise
+  // "mod+p" also matches a Shift+⌘+P keystroke, shadowing "shift+mod+p" (the
+  // first-match dispatcher always wins for the unshifted combo, so the
+  // shifted remap silently never fires). Symbol/digit keys stay lenient on a
+  // MISSING shift only — many of them (e.g. "?") are typed only by holding
+  // Shift, and the combo string encodes the produced character, not the
+  // physical shift state.
+  const isLetterKey = /^[a-z]$/.test(key);
+  if (isLetterKey ? event.shiftKey !== wantShift : wantShift && !event.shiftKey) {
     return false;
   }
 

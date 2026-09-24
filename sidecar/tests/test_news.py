@@ -208,6 +208,26 @@ def test_company_name_tags_a_bare_nse_ticker(
     assert [i["symbols"] for i in body] == [["SBIN"]]
 
 
+def test_btc_usdt_tags_a_bitcoin_headline(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-063 residual: news_provider._aliases used to yield only
+    ["BTC/USDT", "BTC"] with no company-name alias, so a headline that never
+    says the literal pair or bare base ("BTC") went untagged."""
+    item = _news_item("btc1", "Bitcoin options expiry looms as volatility spikes")
+    body = _news_for(client, monkeypatch, item, "BTC/USDT")
+    assert [i["symbols"] for i in body] == [["BTC/USDT"]]
+
+
+def test_eth_usdt_tags_an_ethereum_headline(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Class pin, not written against: the same residual on a different base."""
+    item = _news_item("eth1", "Ethereum upgrade activates on mainnet")
+    body = _news_for(client, monkeypatch, item, "ETH/USDT")
+    assert [i["symbols"] for i in body] == [["ETH/USDT"]]
+
+
 def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

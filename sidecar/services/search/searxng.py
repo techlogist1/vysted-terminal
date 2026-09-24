@@ -15,16 +15,11 @@ We map each result to the normalized :class:`~services.search.base.SearchResult`
 results to :class:`~services.search.base.Citation` chips via
 :func:`~services.search.base.normalize_results_to_citations`.
 
-:func:`detect_searxng` autodetects a running instance with the **capability probe**
-``/search?q=…&format=json`` — a 200 with JSON means the instance is up AND the JSON
-output the backend needs is enabled (it is OFF by default in SearXNG). A 403 means
-"up but JSON disabled" (the operator must add ``json`` to ``search.formats``); both
-non-usable cases return ``None`` so the registry only lights up Tier-3 when search
-will actually work. When no URL is configured it consults the one-click manager
-(:mod:`services.searxng_manager`) first — a READY managed instance routes here with
-zero extra config (R7 Component 2) — then probes the two conventional local ports,
-``8888`` (pip dev server) and ``8080`` (docker), so a default install on either is
-found.
+Production routing never probes the network to find an instance: a configured
+``searxng_url`` (custom or the one-click manager's) is resolved in-process via
+:func:`services.searxng_manager.manager.ready_base_url` /
+``ready_base_url_detected`` (:mod:`services.search.registry`), and this backend
+is only constructed once that URL is known.
 """
 
 from __future__ import annotations
@@ -45,18 +40,8 @@ from .base import (
 #: Default SearXNG location — the conventional local docker/host port.
 DEFAULT_BASE_URL = "http://localhost:8080"
 
-#: Conventional local ports probed (in order) when no URL is configured: the pip
-#: dev server binds ``8888``, the docker image binds ``8080``.
-_DEFAULT_PROBE_URLS: tuple[str, ...] = ("http://localhost:8888", "http://localhost:8080")
-
 #: Identifier this backend reports in :class:`SearchResponse.backend`.
 BACKEND_ID = "searxng"
-
-#: Timeout for the autodetect capability probe. A MISSING instance still fails
-#: fast (connection-refused returns immediately regardless of this value); the
-#: budget exists because a PRESENT instance's ``format=json`` query fans out to
-#: many upstream engines and can take a couple of seconds to aggregate.
-_DETECT_TIMEOUT_SECS = 6.0
 
 #: Per-request search timeout (a local instance is fast; cap a hung upstream).
 _SEARCH_TIMEOUT_SECS = 20.0
@@ -65,82 +50,6 @@ _SEARCH_TIMEOUT_SECS = 20.0
 def _normalize_base_url(base_url: str | None) -> str:
     """Resolve and tidy the configured base URL (strip a trailing slash)."""
     return (base_url or DEFAULT_BASE_URL).rstrip("/")
-
-
-def _managed_base_url() -> str | None:
-    """The one-click managed instance's URL when its manager reports READY.
-
-    Lazy, guarded import so the backend stays importable in a half-built tree;
-    a pure in-memory read otherwise (the capability probe re-verifies the URL,
-    so a stale READY can never yield a false positive).
-    """
-    try:
-        from services.searxng_manager import manager
-    except ImportError:
-        return None
-    return manager.ready_base_url()
-
-
-async def _json_capable(http: httpx.AsyncClient, base: str) -> bool:
-    """Capability probe: is a SearXNG at ``base`` up AND serving JSON search?
-
-    SearXNG has no ``/healthz`` (upstream issue #4026) and ``/config`` only proves
-    the instance is up, NOT that the JSON output format is enabled (it is OFF by
-    default — a search would then 403). So we probe the real thing: a tiny
-    ``/search?format=json``. Only a 200 with a parseable JSON body (a ``results``
-    list) counts as usable; a 403 (JSON disabled) or any error is "not usable".
-    """
-    try:
-        response = await http.get(f"{base}/search", params={"q": "ping", "format": "json"})
-    except httpx.HTTPError:
-        return False
-    if not response.is_success:
-        return False
-    try:
-        payload = response.json()
-    except (ValueError, httpx.HTTPError):
-        return False
-    return isinstance(payload, dict) and isinstance(payload.get("results"), list)
-
-
-async def detect_searxng(
-    base_url: str | None = None,
-    *,
-    client: httpx.AsyncClient | None = None,
-) -> str | None:
-    """Probe for a reachable, JSON-capable local SearXNG; return its base URL else ``None``.
-
-    Uses the capability probe (:func:`_json_capable`) so a "found" instance is one
-    that can actually answer ``format=json`` searches — never a false positive
-    from an up-but-JSON-disabled instance. With no ``base_url`` it tries the
-    one-click managed instance first (when its manager reports READY), then the
-    two conventional local ports (``8888`` pip, ``8080`` docker); with one given
-    it probes only that. Best-effort: never raises, so the registry silently skips
-    Tier-3 when no usable private instance is running.
-
-    Pass ``client`` to reuse a caller-owned :class:`httpx.AsyncClient`
-    (the test seam); otherwise a short-timeout client is created per call.
-    """
-    if base_url:
-        candidates = [_normalize_base_url(base_url)]
-    else:
-        candidates = []
-        managed = _managed_base_url()
-        if managed:
-            candidates.append(_normalize_base_url(managed))
-        candidates.extend(url for url in _DEFAULT_PROBE_URLS if url not in candidates)
-
-    async def _probe(http: httpx.AsyncClient) -> str | None:
-        for candidate in candidates:
-            if await _json_capable(http, candidate):
-                return candidate
-        return None
-
-    if client is not None:
-        return await _probe(client)
-
-    async with httpx.AsyncClient(timeout=_DETECT_TIMEOUT_SECS) as http:
-        return await _probe(http)
 
 
 class SearxngBackend(SearchBackend):
@@ -264,5 +173,4 @@ __all__ = [
     "DEFAULT_BASE_URL",
     "SearxngBackend",
     "SearxngSearchBackend",
-    "detect_searxng",
 ]

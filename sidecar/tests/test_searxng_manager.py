@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import json
 
-import httpx
 import pytest
 
 from services import searxng_manager
@@ -290,6 +289,32 @@ async def test_refresh_with_all_engines_captcha_blocked_reports_degraded(tmp_pat
 
 
 @pytest.mark.asyncio
+async def test_refresh_degrades_even_when_the_probe_has_results(tmp_path) -> None:
+    """R15-RESEARCH-028 residual: `_apply_quality` used to test `has_results`
+    BEFORE `unresponsive`, so a probe that comes back with a stray result
+    (e.g. the "test" query hitting an unrelated engine) while every real
+    search engine reports itself unresponsive on the SAME response read as
+    READY. Unresponsive now wins regardless of `has_results`."""
+
+    async def stray_result_all_unresponsive(_url: str) -> EngineProbe:
+        return EngineProbe(
+            has_results=True,
+            unresponsive=(
+                ("brave", "too many requests"),
+                ("duckduckgo", "CAPTCHA"),
+                ("startpage", "Suspended: CAPTCHA"),
+            ),
+        )
+
+    mgr = _manager(_running_fake(), tmp_path, quality_probe=stray_result_all_unresponsive)
+
+    status = await mgr.refresh()
+
+    assert status["state"] == STATE_DEGRADED
+    assert "CAPTCHA" in status["reason"]
+
+
+@pytest.mark.asyncio
 async def test_refresh_with_three_empty_probes_reports_degraded(tmp_path) -> None:
     """No engine names itself unresponsive, but three straight probes came
     back empty anyway — degrade rather than trust it forever."""
@@ -329,6 +354,46 @@ async def test_refresh_recovers_from_degraded_once_engines_answer(tmp_path) -> N
     recovered = await mgr.refresh()
     assert recovered["state"] == STATE_READY
     assert recovered["reason"] is None
+
+
+# ---------------------------------------------------------------------------
+# record_search_result — real-query outcomes feed the SAME degrade signal
+# (R15-RESEARCH-028 residual, C10). web_search.py calls this after every
+# SearXNG-served search.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_record_search_result_degrades_after_three_consecutive_empty_real_queries(
+    tmp_path,
+) -> None:
+    mgr = _manager(_running_fake(), tmp_path)
+    await mgr.refresh()  # STATE_READY via the default _quality_ok probe
+    assert mgr.state == STATE_READY
+
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_READY  # 1 empty: not yet confirmed
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_READY  # 2 empty: still not confirmed
+    mgr.record_search_result(False)
+
+    assert mgr.state == STATE_DEGRADED
+    assert mgr.reason == "no results from any engine across 3 real queries"
+
+
+@pytest.mark.asyncio
+async def test_record_search_result_with_results_heals_a_degraded_manager(tmp_path) -> None:
+    mgr = _manager(_running_fake(), tmp_path)
+    await mgr.refresh()
+    mgr.record_search_result(False)
+    mgr.record_search_result(False)
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_DEGRADED
+
+    mgr.record_search_result(True)
+
+    assert mgr.state == STATE_READY
+    assert mgr.reason is None
 
 
 # ---------------------------------------------------------------------------
@@ -699,52 +764,3 @@ def test_write_settings_is_idempotent_and_preserves_the_secret(tmp_path) -> None
     first = write_settings(tmp_path / "searxng").read_text(encoding="utf-8")
     second = write_settings(tmp_path / "searxng").read_text(encoding="utf-8")
     assert first == second  # the per-install secret key survives re-setup
-
-
-# ---------------------------------------------------------------------------
-# Routing: detect_searxng() prefers the managed instance when READY
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_detect_searxng_prefers_the_managed_ready_instance(monkeypatch, tmp_path) -> None:
-    from services.search.searxng import detect_searxng
-
-    ready = _manager(FakeDocker(), tmp_path)
-    ready.state = STATE_READY
-    ready.port = 9123
-    monkeypatch.setattr(searxng_manager, "manager", ready)
-
-    probed: list[str] = []
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        probed.append(f"{request.url.host}:{request.url.port}")
-        if request.url.port == 9123:
-            return httpx.Response(200, json={"results": []})
-        return httpx.Response(503)
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        found = await detect_searxng(client=client)
-
-    assert found == "http://127.0.0.1:9123"
-    assert probed[0] == "127.0.0.1:9123"  # managed URL probed FIRST
-
-
-@pytest.mark.asyncio
-async def test_detect_searxng_falls_back_to_conventional_ports_when_not_ready(
-    monkeypatch, tmp_path
-) -> None:
-    from services.search.searxng import detect_searxng
-
-    idle = _manager(FakeDocker(), tmp_path)  # state unknown → no managed URL
-    monkeypatch.setattr(searxng_manager, "manager", idle)
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.port == 8080:
-            return httpx.Response(200, json={"results": []})
-        return httpx.Response(503)
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        found = await detect_searxng(client=client)
-
-    assert found == "http://localhost:8080"

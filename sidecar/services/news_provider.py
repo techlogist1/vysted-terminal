@@ -493,12 +493,73 @@ def _normalize_symbol_for_aliases(symbol: str) -> str:
     return strip_exchange_suffix(upper)
 
 
+#: Base -> display name for the ``crypto_top50.json`` universe (R15-AGENT-063):
+#: the symbol master carries no names, and a headline says "Bitcoin", never
+#: the raw pair "BTC/USDT". Lower-case to match `_company_name`'s convention.
+_CRYPTO_NAMES: dict[str, str] = {
+    "BTC": "bitcoin",
+    "ETH": "ethereum",
+    "BNB": "bnb",
+    "SOL": "solana",
+    "XRP": "xrp",
+    "USDC": "usd coin",
+    "ADA": "cardano",
+    "DOGE": "dogecoin",
+    "AVAX": "avalanche",
+    "TRX": "tron",
+    "DOT": "polkadot",
+    "LINK": "chainlink",
+    "MATIC": "polygon",
+    "TON": "toncoin",
+    "SHIB": "shiba inu",
+    "LTC": "litecoin",
+    "BCH": "bitcoin cash",
+    "ATOM": "cosmos",
+    "ICP": "internet computer",
+    "UNI": "uniswap",
+    "ETC": "ethereum classic",
+    "XLM": "stellar",
+    "FIL": "filecoin",
+    "APT": "aptos",
+    "ARB": "arbitrum",
+    "NEAR": "near protocol",
+    "OP": "optimism",
+    "HBAR": "hedera",
+    "VET": "vechain",
+    "AAVE": "aave",
+    "ALGO": "algorand",
+    "EOS": "eos",
+    "GRT": "the graph",
+    "INJ": "injective",
+    "RUNE": "thorchain",
+    "SUI": "sui",
+    "FTM": "fantom",
+    "STX": "stacks",
+    "IMX": "immutable",
+    "RNDR": "render",
+    "SAND": "the sandbox",
+    "MANA": "decentraland",
+    "AXS": "axie infinity",
+    "FLOW": "flow",
+    "EGLD": "multiversx",
+    "THETA": "theta network",
+    "XTZ": "tezos",
+    "CHZ": "chiliz",
+    "KAVA": "kava",
+    "CAKE": "pancakeswap",
+}
+
+
 def _company_name(symbol: str) -> str | None:
     """The listing's company name without its corporate suffix, lower-case.
 
     The listing is the region-aware Yahoo form (``_yahoo_symbol``), so bare BDL
-    in an IN session is Bharat Dynamics, not Flanigan's.
+    in an IN session is Bharat Dynamics, not Flanigan's. A crypto pair
+    (``BTC/USDT``) resolves against `_CRYPTO_NAMES` instead — it has no
+    equity listing to look up.
     """
+    if "/" in symbol:
+        return _CRYPTO_NAMES.get(symbol.strip().upper().split("/", 1)[0])
     listing = _yahoo_symbol(symbol)
     bare = strip_exchange_suffix(listing)
     if listing.endswith(".NS"):

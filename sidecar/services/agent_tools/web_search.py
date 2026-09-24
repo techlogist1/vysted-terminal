@@ -146,6 +146,21 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 
     out = await _dispatch(backend, query, num_results, category, region)
 
+    # R15-RESEARCH-028 residual: feed this REAL query's outcome into the same
+    # consecutive-empty signal the periodic health probe uses — an actual
+    # finance-query miss is a stronger tell than the "test" probe, and three
+    # consecutive empty real answers should degrade the same as three empty
+    # probes. Only the APP-MANAGED instance's own health tracks this way (a
+    # user-pointed custom URL isn't what ``searxng_manager.manager``
+    # represents); ``label is None`` at this point ⟺ a searxng lane (custom or
+    # managed) was just dispatched, and an ``ok: True`` response is the only
+    # shape that tells us anything about the engines behind it (a dispatch
+    # error is a connectivity signal, not an empty-results signal).
+    if label is None and out.get("ok") is True and not config.get_searxng_url():
+        from services import searxng_manager
+
+        searxng_manager.manager.record_search_result(had_results=bool(out.get("results")))
+
     # A SearXNG instance that resolved but failed at SEARCH time (stopped
     # container / dead custom URL) degrades to the keyless floor instead of
     # surfacing an error state — same local privacy class, honest fallback id.
@@ -205,12 +220,7 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 async def _dispatch(
     backend: Any, query: str, num_results: int, category: str, region: str
 ) -> dict[str, Any]:
-    """Run the resolved backend and shape the tool result.
-
-    A backend that annotates its response has that annex passed through under
-    ``metadata`` so the caller can show honest provenance alongside the
-    results (C.1).
-    """
+    """Run the resolved backend and shape the tool result."""
     from services.search.base import SearchError, bare_host
 
     options = {"numResults": num_results, "category": category, "region": region}
@@ -260,9 +270,6 @@ async def _dispatch(
             for c in response.citations
         ],
     }
-    metadata = getattr(response, "metadata", None)
-    if isinstance(metadata, dict) and metadata:
-        out["metadata"] = metadata
     return out
 
 

@@ -432,7 +432,23 @@ class SearxngManager:
         what a container answers when every upstream engine is
         CAPTCHA-suspended, and the plain health probe cannot tell that apart
         from a genuinely-empty answer.
+
+        ``unresponsive`` is checked BEFORE ``has_results`` (residual fix): the
+        probe's own "test" query can come back with a stray result from an
+        unrelated engine while every REAL search engine on the SAME response
+        reports itself unresponsive — reading ``has_results`` first hid that
+        behind a false READY.
         """
+        if probe.unresponsive:
+            self._consecutive_empty_probes = (
+                0 if probe.has_results else (self._consecutive_empty_probes + 1)
+            )
+            self._set(
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=_format_unresponsive_reason(probe.unresponsive),
+            )
+            return
         if probe.has_results:
             self._consecutive_empty_probes = 0
             self._set(
@@ -441,24 +457,45 @@ class SearxngManager:
             )
             return
         self._consecutive_empty_probes += 1
-        if probe.unresponsive:
-            reason = _format_unresponsive_reason(probe.unresponsive)
-        elif self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
-            reason = f"no results from any engine across {self._consecutive_empty_probes} probes"
-        else:
-            # Not yet confirmed degraded — one empty probe can just be an
-            # unlucky query; stay READY until the threshold or an engine
-            # names itself unresponsive.
+        if self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
             self._set(
-                STATE_READY,
-                detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=f"no results from any engine across {self._consecutive_empty_probes} probes",
             )
             return
+        # Not yet confirmed degraded — one empty probe can just be an unlucky
+        # query; stay READY until the threshold.
         self._set(
-            STATE_DEGRADED,
-            detail="SearXNG is running but its search engines are blocked",
-            reason=reason,
+            STATE_READY,
+            detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
         )
+
+    def record_search_result(self, had_results: bool) -> None:
+        """Feed a REAL query's outcome into the same consecutive-empty signal
+        the periodic quality probe uses (R15-RESEARCH-028 residual, C10):
+        ``web_search`` calls this after every SearXNG-served search, since an
+        actual finance-query miss is a stronger tell than the periodic "test"
+        probe. Three consecutive empty real answers degrades the same as
+        three empty probes; a real answer WITH results heals a degraded state
+        back to READY (mirrors ``_apply_quality``'s own has_results branch).
+        """
+        if had_results:
+            self._consecutive_empty_probes = 0
+            if self.state == STATE_DEGRADED:
+                self._set(
+                    STATE_READY,
+                    detail=f"SearXNG serving JSON search at http://127.0.0.1:{self.port}",
+                )
+            return
+        self._consecutive_empty_probes += 1
+        if self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
+            n = self._consecutive_empty_probes
+            self._set(
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=f"no results from any engine across {n} real queries",
+            )
 
     def snapshot(self) -> dict[str, object]:
         """The status payload — the wire contract for the guided UI flow."""

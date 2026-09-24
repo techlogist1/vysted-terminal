@@ -112,21 +112,6 @@ def _set_manager_ready(monkeypatch: pytest.MonkeyPatch, ready: bool) -> None:
     )
 
 
-def _stub_detect(monkeypatch: pytest.MonkeyPatch, result: str | None) -> dict:
-    """Stub the network autodetect (services.search.searxng.detect_searxng) —
-    the R9 hot path must NEVER reach it (the manager read is in-process)."""
-    from services.search import searxng
-
-    seen: dict = {"called": False}
-
-    async def _fake_detect(base=None, *, client=None):  # noqa: ANN001, ANN202
-        seen["called"] = True
-        return result
-
-    monkeypatch.setattr(searxng, "detect_searxng", _fake_detect)
-    return seen
-
-
 # --- The R9 routing matrix ----------------------------------------------------
 #
 # Each cell: (r7 tier header, legacy tier header, openrouter key, custom
@@ -202,16 +187,15 @@ def test_routing_matrix(
 ) -> None:
     _stub_registry(monkeypatch)
     _set_manager_ready(monkeypatch, ready)
-    # No cell may reach the network autodetect; stub it dark so a cell that
-    # wrongly probes fails loudly below.
-    seen = _stub_detect(monkeypatch, None)
+    # No cell may reach a network autodetect — there is no such path anymore
+    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+    # the manager read below is in-process, so this is now true by construction.
 
     with _request(r7=r7, legacy=legacy, searxng_url=searxng_url, openrouter_key=or_key):
         out = _run(_web_search({"query": "nvidia earnings"}))
 
     assert out["ok"] is True, out
     assert out["backend"] == expected
-    assert seen["called"] is False
 
 
 def test_matrix_did_not_shrink_from_r8() -> None:
@@ -445,6 +429,101 @@ def test_searxng_with_results_never_consults_the_floor(
     assert out["ok"] is True
     assert out["backend"] == "searxng"
     assert "keyless" not in calls and "ddg" not in calls
+
+
+# --- Real-query outcomes feed the manager's empty-probe signal (R15-RESEARCH-028) --
+#
+# ``web_search`` is the only caller that knows what a REAL finance query got back
+# from the managed instance; it must feed that into ``searxng_manager.manager``'s
+# own consecutive-empty counter so three empty real answers degrades the same as
+# three empty periodic probes (the manager side of this is pinned separately in
+# ``test_searxng_manager.py``).
+
+
+def test_managed_searxng_empty_result_feeds_the_manager(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        if active_id == "keyless":
+            return _EmptyBackend("keyless")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == [False]
+
+
+def test_managed_searxng_with_results_feeds_the_manager_true(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _FakeBackend("searxng")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(r7="tier_a"):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == [True]
+
+
+def test_custom_searxng_url_never_feeds_the_managed_instance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A user-pointed custom instance isn't what ``searxng_manager.manager``
+    represents — its empty answers must never count against the app-managed
+    container's own health."""
+    from services import searxng_manager
+    from services.search import registry
+
+    def _resolve(active_id, **kw):  # noqa: ANN001, ANN003
+        if active_id == "searxng" and kw.get("searxng_url"):
+            return _EmptyBackend("searxng")
+        return None
+
+    monkeypatch.setattr(registry, "resolve", _resolve)
+    _set_manager_ready(monkeypatch, True)
+    recorded: list[bool] = []
+    monkeypatch.setattr(
+        searxng_manager.manager,
+        "record_search_result",
+        lambda had_results: recorded.append(had_results),
+    )
+
+    with _request(searxng_url=CUSTOM_URL):
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert recorded == []
 
 
 # --- Existing contract — unchanged behaviours ---------------------------------

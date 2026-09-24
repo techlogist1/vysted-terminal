@@ -45,6 +45,10 @@ export interface ChatMessage {
   modelId?: string | null;
   /** Token usage if the provider supplied it. */
   usage?: LLMUsage | null;
+  /** Estimated USD spend of the turn (R15-AGENT-082), parsed from the done
+   *  frame's `spend_usd`. `null`/absent means unknown (hidden in the footer);
+   *  `0` means the model is free (shown as "$0.00"). */
+  spendUsd?: number | null;
   /** The lane's token window on the final `done`, when it has one — the
    *  composer's context meter reads `usage` against it (R15-AGENT-040). */
   contextWindow?: number | null;
@@ -117,6 +121,7 @@ interface ChatHistoryState {
     id: string,
     usage?: LLMUsage | null,
     contextWindow?: number | null,
+    spendUsd?: number | null,
   ) => void;
   /** Finalize a stream the USER aborted (the composer's stop square): the
    *  partial content stands, marked ``stopped`` — distinct from an error. */
@@ -244,7 +249,7 @@ export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
         message.id === id ? { ..._markRoundBoundary(message), briefPublished: true } : message,
       ),
     })),
-  finalizeAssistantMessage: (id, usage, contextWindow) =>
+  finalizeAssistantMessage: (id, usage, contextWindow, spendUsd) =>
     set((state) => ({
       messages: state.messages.map((message) =>
         message.id === id
@@ -253,6 +258,7 @@ export const useChatHistoryStore = create<ChatHistoryState>((set, get) => ({
               pending: false,
               usage: usage ?? null,
               contextWindow: contextWindow ?? null,
+              spendUsd: spendUsd ?? null,
             }
           : message,
       ),

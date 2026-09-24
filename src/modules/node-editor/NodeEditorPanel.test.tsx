@@ -18,6 +18,21 @@ vi.mock("@/lib/sidecar-client", async () => {
   };
 });
 
+// R15-CODE-PLATFORM-017: spy on the mathjs evaluator while keeping every
+// other export (compileCodeExpression, the constants) real, so a run test
+// can assert it is NEVER called — the server is the only evaluator now.
+const evaluateCodeExpressionSpy = vi.fn();
+vi.mock("./code-node", async () => {
+  const actual = await vi.importActual<typeof import("./code-node")>("./code-node");
+  return {
+    ...actual,
+    evaluateCodeExpression: (...args: Parameters<typeof actual.evaluateCodeExpression>) => {
+      evaluateCodeExpressionSpy(...args);
+      return actual.evaluateCodeExpression(...args);
+    },
+  };
+});
+
 // react-flow renders an SVG canvas; jsdom doesn't implement layout APIs it
 // needs (`ResizeObserver`, `getBoundingClientRect` for the pane). We stub
 // just enough so the component mounts. The drop / connect interactions
@@ -37,6 +52,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
   fetchMock.mockImplementation(async () => new Response("{}", { status: 200 }));
+  evaluateCodeExpressionSpy.mockReset();
   usePluginsStore.setState({
     plugins: [],
     dataSources: [],
@@ -381,6 +397,68 @@ describe("NodeEditorPanel", () => {
       provider,
       model: useModelSelectionStore.getState().modelFor(provider),
     });
+  });
+
+  it("sends a code node in the FULL spec to /workflow/run and never evaluates it with mathjs (R15-CODE-PLATFORM-017)", async () => {
+    const codeSpec = {
+      id: "wf-code",
+      name: "Code target",
+      version: 1,
+      updatedAt: 10,
+      nodes: [
+        {
+          id: "c1",
+          type: "transform.code",
+          position: { x: 0, y: 0 },
+          config: { expression: "round(2.5)", inputs: [] },
+        },
+      ],
+      edges: [],
+    };
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input.toString();
+      if (url.endsWith("/workflow/saved")) {
+        return new Response(JSON.stringify({ workflows: [codeSpec], unreadable: [] }), {
+          status: 200,
+        });
+      }
+      if (url.endsWith("/workflow/saved/wf-code")) {
+        return new Response(JSON.stringify(codeSpec), { status: 200 });
+      }
+      if (url.endsWith("/workflow/run") && init?.method === "POST") {
+        // The server (Python ast, `code_node.py`) is the one that computes
+        // this — 3 (round-half-away-from-zero), never a locally-run mathjs
+        // value.
+        return sseResponse([
+          { kind: "run-start", runId: "run-c", startedAt: 1 },
+          {
+            kind: "node-output",
+            runId: "run-c",
+            nodeId: "c1",
+            outputs: { value: 3 },
+            durationMs: 1,
+          },
+          { kind: "run-complete", runId: "run-c", durationMs: 2 },
+        ]);
+      }
+      return new Response("{}", { status: 200 });
+    });
+
+    render(<NodeEditorPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    fireEvent.click(await screen.findByText("Code target"));
+    const runButton = screen.getByRole("button", { name: "Run" });
+    await waitFor(() => expect(runButton).toBeEnabled());
+    fireEvent.click(runButton);
+
+    await screen.findByTestId("run-status-ok");
+    const runCall = fetchMock.mock.calls.find(([input]) => String(input).endsWith("/workflow/run"));
+    const body = JSON.parse(String(runCall?.[1]?.body)) as {
+      spec?: { nodes?: Array<{ type: string }> };
+    };
+    const sentNodeTypes = (body.spec?.nodes ?? []).map((n) => n.type);
+    expect(sentNodeTypes).toContain("transform.code");
+    expect(evaluateCodeExpressionSpy).not.toHaveBeenCalled();
   });
 
   it("plugin-contributed nodes from usePluginsStore.nodes appear in the palette", async () => {

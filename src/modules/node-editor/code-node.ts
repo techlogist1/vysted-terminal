@@ -8,10 +8,18 @@
  *   { "expression": "a + b * 2", "inputs": ["a", "b"] }
  *
  * Each binding name in `inputs` is BOTH an input port on the canvas node
- * AND a variable in the expression scope. Evaluation happens CLIENT-side
- * (mathjs is a frontend dependency; the sidecar engine has no JS runtime)
- * — see `code-node-run.ts` for how the run lifecycle weaves code nodes
- * into the sidecar SSE run.
+ * AND a variable in the expression scope.
+ *
+ * R15-CODE-PLATFORM-017: a real run's value is computed SERVER-side, by the
+ * Python `ast` evaluator (`sidecar/services/workflow_nodes/code_node.py`) —
+ * the sidecar registry has carried a `transform.code` handler since
+ * v0.6.0, and it is now the ONE evaluator for every run path (editor or
+ * agent/MCP-triggered alike), so it can never silently disagree with a
+ * second, client-side answer. The mathjs sandbox below is used ONLY for the
+ * inline syntax check as you type (`compileCodeExpression`) and the
+ * inspector's live preview (`evaluateCodeExpression`) — never to produce a
+ * run's real output. See `code-node-run.ts` for the one thing still checked
+ * client-side before a run: a full-graph cycle.
  *
  * SECURITY — sandboxed per mathjs's own guidance
  * (https://mathjs.org/docs/expressions/security.html):

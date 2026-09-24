@@ -1,8 +1,8 @@
 """Tests for prompt-injection scrubbing (``services.search.scrub``).
 
-Port-parity checks against the odysseus (MIT) ``untrusted_context_message``
-behavior: guard markers, marker escape, label sanitization — plus the inline
-sanitizer the research synthesis source lists use.
+Port-parity checks against the odysseus (MIT) guard-marker behavior: guard
+markers, marker escape, label sanitization — plus the inline sanitizer the
+research synthesis source lists use.
 """
 
 from __future__ import annotations
@@ -14,7 +14,6 @@ from services.search.scrub import (
     escape_guard_markers,
     sanitize_inline,
     sanitize_label,
-    untrusted_context_message,
     wrap_untrusted,
 )
 
@@ -80,17 +79,6 @@ def test_none_content_fences_empty_body_not_the_string_none() -> None:
 def test_non_string_content_is_stringified() -> None:
     block = wrap_untrusted("web_search results", {"ok": True, "results": [{"url": "https://x"}]})
     assert "https://x" in block
-
-
-# --- untrusted_context_message (odysseus port) -------------------------------------
-
-
-def test_message_shape_and_metadata() -> None:
-    msg = untrusted_context_message("https://example.com", "content")
-    assert msg["role"] == "user"
-    assert msg["metadata"] == {"trusted": False, "source": "https://example.com"}
-    assert msg["content"].count(GUARD_OPEN) == 1
-    assert UNTRUSTED_CONTEXT_HEADER.splitlines()[0] in msg["content"]
 
 
 # --- sanitize_inline (source titles in synthesis prompts) ---------------------------

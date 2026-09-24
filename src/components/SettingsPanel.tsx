@@ -785,6 +785,11 @@ export function searxngChipMeta(state: string): { label: string; className: stri
       return { label: "Starting", className: "text-charcoal-200 border-charcoal-600" };
     case "ready":
       return { label: "Ready", className: "text-positive border-positive/40" };
+    case "degraded":
+      // R15-RESEARCH-028: the container answers but its engines are blocked
+      // (or empty across enough probes/real queries) — distinct from "error"
+      // (the container itself is down) and from "ready" (it just answers).
+      return { label: "Degraded — engines blocked", className: "text-warning border-warning/40" };
     case "error":
       return { label: "Error", className: "text-negative border-negative/40" };
     default:
@@ -887,6 +892,10 @@ function SearxngManagedFlow() {
     action = { label: "Stop", verb: "teardown" };
   } else if (status.state === "error") {
     action = { label: "Retry", verb: "setup" };
+  } else if (status.state === "degraded") {
+    // Still a running container (just blocked) — Stop is the same honest verb
+    // "ready" offers, not "Retry" (there is nothing to retry, it answered).
+    action = { label: "Stop", verb: "teardown" };
   }
 
   // The container-health line, honest per state.
@@ -938,6 +947,14 @@ function SearxngManagedFlow() {
       healthLine = (
         <span className="text-negative" role="alert">
           Setup failed: {status.reason ?? "unknown error"}
+        </span>
+      );
+      break;
+    case "degraded":
+      healthLine = (
+        <span className="text-warning" role="alert">
+          Degraded — engines blocked ({status.reason ?? "no results from any engine"}). Research is
+          using limited keyless search meanwhile.
         </span>
       );
       break;
@@ -1461,7 +1478,7 @@ function KeybindingsSection() {
       <SectionHeader
         id="settings-keybindings"
         title="Keybindings"
-        hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire."
+        hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — of two actions on one combo, only the first binding fires."
       />
 
       {conflictList.length > 0 && (

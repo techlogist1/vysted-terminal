@@ -132,16 +132,6 @@ def breaker_for(engine_id: str) -> CircuitBreaker:
     return breaker
 
 
-def breaker_status(engine_id: str) -> dict[str, object]:
-    """One engine's honest status row for the ``tier_status()`` surface."""
-    breaker = breaker_for(engine_id)
-    return {
-        "id": engine_id,
-        "state": breaker.state,
-        "cooldown_remaining_s": round(breaker.cooldown_remaining(), 1),
-    }
-
-
 def reset_breakers() -> None:
     """Drop every process-global breaker (test isolation only)."""
     _BREAKERS.clear()
@@ -155,6 +145,5 @@ __all__ = [
     "STATE_OPEN",
     "CircuitBreaker",
     "breaker_for",
-    "breaker_status",
     "reset_breakers",
 ]

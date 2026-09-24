@@ -62,6 +62,44 @@ describe("parseSlashCommand", () => {
     it("with no known-symbol set passed, every non-slash input stays raw (unchanged default)", () => {
       expect(parseSlashCommand("AAPL")).toEqual({ kind: "raw", prompt: "AAPL" });
     });
+
+    // R15-AGENT-088 residual: the 10-char cap dropped RELIANCE.NS/HDFCBANK.NS/
+    // BAJFINANCE.NS on the India-default watchlist, and a bare base
+    // ("RELIANCE") never resolved against a suffixed known symbol.
+    describe("India-suffixed symbols (residual)", () => {
+      const indiaSymbols = new Set(["RELIANCE.NS", "HDFCBANK.NS", "BAJFINANCE.NS"]);
+
+      it("a full suffixed symbol over the old 10-char cap resolves", () => {
+        expect(parseSlashCommand("RELIANCE.NS", indiaSymbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "RELIANCE.NS",
+        });
+      });
+
+      it("a bare base with one suffixed known match resolves to the suffixed symbol", () => {
+        expect(parseSlashCommand("RELIANCE", indiaSymbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "RELIANCE.NS",
+        });
+      });
+
+      it("class pin: M&M.NS and BAJAJ-AUTO.NS (ampersand/hyphen bases) resolve", () => {
+        const symbols = new Set(["M&M.NS", "BAJAJ-AUTO.NS"]);
+        expect(parseSlashCommand("M&M.NS", symbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "M&M.NS",
+        });
+        expect(parseSlashCommand("BAJAJ-AUTO.NS", symbols)).toEqual({
+          kind: "bare-ticker",
+          symbol: "BAJAJ-AUTO.NS",
+        });
+      });
+
+      it("an ambiguous bare base with two suffixed known matches stays raw", () => {
+        const symbols = new Set(["INFY.NS", "INFY.BO"]);
+        expect(parseSlashCommand("INFY", symbols)).toEqual({ kind: "raw", prompt: "INFY" });
+      });
+    });
   });
 
   it("parses /ask with a prompt", () => {

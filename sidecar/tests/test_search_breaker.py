@@ -8,7 +8,6 @@ from services.search.breaker import (
     STATE_OPEN,
     CircuitBreaker,
     breaker_for,
-    breaker_status,
     reset_breakers,
 )
 
@@ -111,16 +110,5 @@ def test_breaker_for_is_process_global_per_engine() -> None:
     try:
         assert breaker_for("ddg") is breaker_for("ddg")
         assert breaker_for("ddg") is not breaker_for("brave")
-    finally:
-        reset_breakers()
-
-
-def test_breaker_status_shape() -> None:
-    reset_breakers()
-    try:
-        status = breaker_status("mojeek")
-        assert status["id"] == "mojeek"
-        assert status["state"] == STATE_CLOSED
-        assert status["cooldown_remaining_s"] == 0.0
     finally:
         reset_breakers()
