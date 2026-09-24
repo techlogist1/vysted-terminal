@@ -1117,9 +1117,9 @@ export function describeIntent(intent: HostIntent): {
       }
       return {
         kind: "panel",
-        title: "Reset to the default layout",
+        title: "Reset the panel arrangement (drawings and modules kept)",
         before,
-        after: "Layout: the default cockpit (clears layout customisations)",
+        after: "Layout: the default panel arrangement (chart drawings and modules kept)",
       };
     }
     case "open_company_overview": {
@@ -1494,8 +1494,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
         return done(`Arranged the ${label} layout`);
       }
-      ws.resetToDefaultLayout();
-      return done("Reset to the default layout");
+      // The agent's default/unknown arrange is layout-only: a cosmetic tool must
+      // never delete drawings or re-enable modules (R15-AGENT-056); the factory
+      // reset stays the explicit Settings/menu action.
+      ws.resetLayout();
+      return done("Reset the panel arrangement to the default (drawings and modules kept)");
     }
     case "open_company_overview": {
       const { symbol, highlight } = intent;

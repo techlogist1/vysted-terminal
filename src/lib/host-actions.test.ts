@@ -36,6 +36,11 @@ import { useScreenerStore } from "@/store/screener";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
+import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { useModulesStore } from "@/store/modules";
+
+// The real layout-only reset; some fixtures below stub store actions.
+const realResetLayout = useWorkspaceStore.getState().resetLayout;
 
 describe("host-actions", () => {
   beforeEach(() => {
@@ -1371,7 +1376,7 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     useWorkspaceStore.setState({
       name: "My desk",
       openPanel: vi.fn(),
-      resetToDefaultLayout: vi.fn(),
+      resetLayout: vi.fn(),
       dockviewApi: {
         panels,
         getPanel: (id: string) => panels.find((p) => p.api.component === `${id}-panel`),
@@ -1403,7 +1408,12 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     // P7b: the alias resolves for the diff exactly as for the apply.
     ["close_panel", { panel: "screener" }, /Screener panel: closed/, /^Closed Screener$/],
     ["focus_panel", { panel: "chart" }, /Foreground: Chart/, /^Focused Chart$/],
-    ["arrange_layout", { pattern: "default" }, /default cockpit/, /default layout/],
+    [
+      "arrange_layout",
+      { pattern: "default" },
+      /default panel arrangement \(chart drawings and modules kept\)/,
+      /panel arrangement to the default \(drawings and modules kept\)/,
+    ],
     ["open_company_overview", { symbol: "AAPL" }, /Equity Overview: AAPL/, /AAPL's overview/],
     [
       "publish_brief",
@@ -1587,5 +1597,32 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     expect(useNotesStore.getState().noteFor("NVDA")).toBe("agent text");
     gate.undo(id);
     expect(useNotesStore.getState().noteFor("NVDA")).toBe("my own thesis");
+  });
+});
+
+describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () => {
+  afterEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
+    useModulesStore.getState().setEnabledMap({});
+    useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+  });
+
+  it.each([{}, { pattern: "bogus" }])("keeps drawings and module choices for %o", (input) => {
+    const clear = vi.fn();
+    const addPanel = vi.fn(() => ({ api: { setSize: vi.fn() } }));
+    useWorkspaceStore.setState({
+      resetLayout: realResetLayout,
+      dockviewApi: { clear, addPanel, width: 0, height: 0 },
+    } as never);
+    useModulesStore.getState().setEnabledMap({ news: false });
+    useChartDrawingsStore
+      .getState()
+      .replaceAll({ byPanel: { chart: [{ id: "d1", kind: "hline" }] } } as never);
+
+    expect(describeHostAction("arrange_layout", input).after).toMatch(/drawings and modules kept/);
+    expect(applyHostAction("arrange_layout", input)).toMatch(/drawings and modules kept/);
+    expect(clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({ news: false });
+    expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
   });
 });
