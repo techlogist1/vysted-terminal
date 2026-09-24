@@ -37,7 +37,13 @@ vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
   sidecarGet: vi.fn(),
 }));
 
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { sidecarGet } from "@/lib/sidecar-client";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import { EarningsCalendarPanel } from "./EarningsCalendarPanel";
@@ -117,6 +123,7 @@ const ESTIMATE_SAMPLE: EarningsEstimateDetail = {
 
 beforeEach(() => {
   useEarningsStore.getState().__resetForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.clearAllMocks();
 });
 
@@ -284,5 +291,29 @@ describe("EarningsCalendarPanel", () => {
         watchlist: "AAPL,MSFT,NVDA",
       });
     });
+  });
+
+  it("publishes the on-screen symbols + window to the panel context bus (R15-AGENT-053)", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(UPCOMING_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource.earnings).toBeDefined();
+    });
+    const payload = usePanelContextBus.getState().lastEventBySource.earnings!.payload as {
+      symbols: string[];
+      windowDays: number;
+    };
+    expect(payload.symbols).toEqual(expect.arrayContaining(["AAPL", "MSFT"]));
+  });
+
+  it("clicking a symbol loads it into the chart without triggering the row's expand", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(UPCOMING_SAMPLE);
+    render(<EarningsCalendarPanel />);
+    await waitFor(() => {
+      expect(screen.getByTestId("earnings-symbol-AAPL")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("earnings-symbol-AAPL"));
+    expect(loadSymbolIntoChart).toHaveBeenCalledWith("AAPL");
+    expect(screen.queryByTestId("eps-estimate-grid")).toBeNull();
   });
 });

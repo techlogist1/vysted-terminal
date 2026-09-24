@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Play, Square, AlertCircle, BookmarkPlus, BookmarkX, FolderOpen } from "lucide-react";
 
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Button } from "@/components/ui/button";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 
@@ -203,6 +204,31 @@ export function ScreenerPanel() {
     setSaveName("");
     setShowSaveInput(false);
   };
+
+  // R15-AGENT-053: publish the active universe + last result count so the
+  // copilot can see what's on screen. Symbols aren't individually clickable
+  // here — ScreenerResultsTable already routes a row click to the chart.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "screener",
+      kind: "snapshot",
+      payload: {
+        universe,
+        resultCount: lastResult?.rows.length ?? 0,
+        partial: lastResult?.partial ?? false,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, universe, lastResult]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("screener");
+    };
+  }, [unregisterPanelContext]);
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-hidden p-3">

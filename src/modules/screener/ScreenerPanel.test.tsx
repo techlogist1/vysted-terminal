@@ -17,6 +17,7 @@ vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
 
 import { sidecarGet } from "@/lib/sidecar-client";
 
+import { usePanelContextBus } from "@/store/panel-context";
 import { useScreenerStore } from "@/store/screener";
 
 import { ScreenerPanel } from "./ScreenerPanel";
@@ -129,6 +130,7 @@ function mockFetchFallback(result: ScreenerResult) {
 
 beforeEach(() => {
   useScreenerStore.getState().__resetForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.mocked(sidecarGet).mockResolvedValue(UNIVERSE_SAMPLE);
   mockFetchFallback(RESULT_SAMPLE);
 });
@@ -419,5 +421,21 @@ describe("ScreenerPanel", () => {
       expect(screen.queryByTestId("load-screen-My Value Screen")).not.toBeInTheDocument();
     });
     expect(useScreenerStore.getState().savedScreens).toHaveLength(0);
+  });
+
+  it("publishes the universe + result count to the panel context bus (R15-AGENT-053)", async () => {
+    render(<ScreenerPanel />);
+    fireEvent.click(screen.getByTestId("run-screener-button"));
+    await waitFor(() => {
+      const payload = usePanelContextBus.getState().lastEventBySource.screener?.payload as
+        | { universe: string; resultCount: number }
+        | undefined;
+      expect(payload?.resultCount).toBe(2);
+    });
+    const payload = usePanelContextBus.getState().lastEventBySource.screener!.payload as {
+      universe: string;
+      resultCount: number;
+    };
+    expect(payload.universe).toBe("sp500");
   });
 });

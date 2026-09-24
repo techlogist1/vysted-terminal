@@ -25,13 +25,14 @@
  * composed EmptyState whose CTA runs the price with the prefilled inputs.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Calculator } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useQuantStore } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 
@@ -379,6 +380,32 @@ export function OptionPricerPanel() {
   ]);
 
   const greeks = lastResult?.greeks ?? null;
+
+  // R15-AGENT-053: publish the active pricing setup + last result so the
+  // copilot can see what's on screen.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "option-pricer",
+      kind: "snapshot",
+      payload: {
+        method,
+        payoff,
+        exercise,
+        strike: Number(strike),
+        price: lastResult?.price ?? null,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, method, payoff, exercise, strike, lastResult]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("option-pricer");
+    };
+  }, [unregisterPanelContext]);
 
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">

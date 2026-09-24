@@ -6,9 +6,10 @@ const setSecretMock = vi.hoisted(() =>
 );
 const getSecretMock = vi.hoisted(() => vi.fn(async (): Promise<string | null> => null));
 const deleteSecretMock = vi.hoisted(() => vi.fn(async () => undefined));
-const sidecarGetMock = vi.hoisted(() =>
-  vi.fn(async (): Promise<{ newsapi: string }> => ({ newsapi: "ok" })),
-);
+// sidecarGet is generic (sidecarGet<T>) — this mock stands in for calls that
+// return different shapes (newsapi probe, /data-sources), so it's typed
+// `unknown` rather than pinned to one caller's response shape.
+const sidecarGetMock = vi.hoisted(() => vi.fn(async (): Promise<unknown> => ({ newsapi: "ok" })));
 
 vi.mock("@/lib/keychain", async () => {
   const actual = await vi.importActual<typeof import("@/lib/keychain")>("@/lib/keychain");

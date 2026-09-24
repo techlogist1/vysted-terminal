@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import { usePanelContextBus } from "@/store/panel-context";
 import { resetQuantStoreForTests } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 import { OptionPricerPanel } from "./OptionPricerPanel";
@@ -11,6 +12,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   // The display currency defaults to the session region's; pin it.
   useSettingsStore.setState({ region: "US" });
   vi.stubGlobal(
@@ -120,5 +122,17 @@ describe("OptionPricerPanel", () => {
     render(<OptionPricerPanel />);
     fireEvent.click(screen.getByTestId("price-option"));
     await screen.findByTestId("option-pricing-error");
+  });
+
+  it("publishes the active method/payoff/strike/price to the panel context bus (R15-AGENT-053)", async () => {
+    render(<OptionPricerPanel />);
+    expect(usePanelContextBus.getState().lastEventBySource["option-pricer"]).toMatchObject({
+      payload: { method: "black-scholes", payoff: "call", strike: 220, price: null },
+    });
+    fireEvent.click(screen.getByTestId("price-option"));
+    await screen.findByTestId("option-pricing-result");
+    expect(usePanelContextBus.getState().lastEventBySource["option-pricer"]).toMatchObject({
+      payload: { method: "black-scholes", payoff: "call", strike: 220, price: 8.42 },
+    });
   });
 });

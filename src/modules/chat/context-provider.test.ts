@@ -203,6 +203,68 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
   });
 });
 
+describe("captureTerminalState — otherPanels generic summary (R15-AGENT-053)", () => {
+  afterEach(() => {
+    usePanelContextBus.setState({
+      lastEventBySource: {},
+      focusedSource: null,
+      updatedAt: 0,
+    });
+  });
+
+  it("carries a backtest AND a news publish, each as a generic summary", () => {
+    usePanelContextBus.getState().publish({
+      source: "backtest",
+      kind: "snapshot",
+      payload: { symbol: "AAPL", strategy: "sma-cross", totalReturnPct: 12.4 },
+      emittedAt: Date.now(),
+    });
+    usePanelContextBus.getState().publish({
+      source: "news",
+      kind: "snapshot",
+      payload: { watchedSymbols: ["AAPL", "MSFT"], focusedArticleId: "a1" },
+      emittedAt: Date.now(),
+    });
+
+    const { otherPanels } = captureTerminalState();
+    const bySource = Object.fromEntries(otherPanels.map((p) => [p.source, p]));
+
+    expect(bySource.backtest).toMatchObject({ source: "backtest", symbol: "AAPL" });
+    expect(bySource.backtest.summary).toContain("strategy=sma-cross");
+    expect(bySource.news).toMatchObject({ source: "news" });
+    expect(bySource.news.symbol).toBeUndefined();
+    expect(bySource.news.summary).toContain("watchedSymbols=2 items");
+  });
+
+  it("caps a generic summary to 200 characters", () => {
+    usePanelContextBus.getState().publish({
+      source: "macro",
+      kind: "snapshot",
+      payload: { seriesId: "x".repeat(500) },
+      emittedAt: Date.now(),
+    });
+    const { otherPanels } = captureTerminalState();
+    expect(otherPanels[0]!.summary.length).toBeLessThanOrEqual(201); // 200 + the "…" marker
+  });
+
+  it("never duplicates chart/watchlist/portfolio sources into otherPanels", () => {
+    usePanelContextBus.getState().publish({
+      source: "watchlist",
+      kind: "snapshot",
+      payload: { symbols: ["SPY"], selectedSymbol: "SPY" },
+      emittedAt: Date.now(),
+    });
+    usePanelContextBus.getState().publish({
+      source: "chart-abc",
+      kind: "snapshot",
+      payload: { symbol: "SPY", timeframe: "1d", activeIndicators: [] },
+      emittedAt: Date.now(),
+    });
+    const { otherPanels } = captureTerminalState();
+    expect(otherPanels).toEqual([]);
+  });
+});
+
 describe("captureNotes — the __notes__ entry (R15-AGENT-020)", () => {
   afterEach(() => {
     useNotesStore.setState({ general: "", bySymbol: {} });
