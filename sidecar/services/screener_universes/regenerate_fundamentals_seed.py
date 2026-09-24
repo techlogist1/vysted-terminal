@@ -35,35 +35,13 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-_NUMERIC_FIELDS = (
-    "market_cap",
-    "pe_ratio",
-    "forward_pe",
-    "peg_ratio",
-    "price_to_book",
-    "price_to_sales",
-    "ev_to_ebitda",
-    "book_value",
-    "dividend_yield",
-    "eps",
-    "beta",
-    "roe",
-    "roa",
-    "gross_margin",
-    "operating_margin",
-    "profit_margin",
-    "debt_to_equity",
-    "current_ratio",
-    "quick_ratio",
-    "revenue_growth",
-    "earnings_growth",
-    "fifty_two_week_high",
-    "fifty_two_week_low",
-    "fifty_two_week_change",
-    "held_percent_insiders",
-    "held_percent_institutions",
-    "shares_outstanding",
-)
+# R15-DATA-095: was a hand-duplicated copy of fundamentals_store._NUMERIC_FIELDS
+# that had already drifted from it once. The store derives that tuple from
+# ScreenerNumericField (models/screener.py) — the one declaration of the
+# vocabulary — so this now reads the store's own tuple instead of re-declaring
+# it a third time.
+from services.fundamentals_store import _NUMERIC_FIELDS
+
 _IDENTITY_FIELDS = ("name", "currency", "sector", "industry", "sector_source")
 
 
