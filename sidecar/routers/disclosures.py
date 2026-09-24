@@ -25,7 +25,7 @@ import asyncio
 import logging
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from models.announcements import (
     AnnouncementsResponse,
@@ -35,7 +35,6 @@ from models.announcements import (
     ShareholdingResponse,
 )
 from services import corporate_disclosures, data_cache, sec_ownership
-from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +58,7 @@ async def get_announcements(
     ),
 ) -> AnnouncementsResponse:
     """Merged BSE+NSE corporate announcements for ``symbol``, newest first."""
-    try:
-        return await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
 
 
 @router.get("/results")
@@ -78,10 +74,7 @@ async def get_results(
             return ResultsCalendarResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_results_calendar, normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await asyncio.to_thread(corporate_disclosures.get_results_calendar, normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -100,11 +93,8 @@ async def get_shareholding(
             return ShareholdingResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_shareholding, normalized)
-        response = await sec_ownership.attach_major_shareholders(response)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await asyncio.to_thread(corporate_disclosures.get_shareholding, normalized)
+    response = await sec_ownership.attach_major_shareholders(response)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -122,10 +112,7 @@ async def get_corporate_actions(
             return CorporateActionsResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -147,10 +134,7 @@ async def get_deals(
             return ExchangeDealsResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_deals, normalized, kind)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await asyncio.to_thread(corporate_disclosures.get_deals, normalized, kind)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 

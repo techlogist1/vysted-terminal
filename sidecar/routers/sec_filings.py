@@ -37,7 +37,6 @@ from models.sec import (
     InsiderTransactionsResponse,
 )
 from services import sec_filings_provider
-from services.errors import ProviderError
 
 router = APIRouter(prefix="/sec", tags=["sec"])
 
@@ -78,10 +77,7 @@ async def search_companies(
 ) -> dict[str, list[dict[str, object]]]:
     """Search the EDGAR company index by name."""
     _require_available()
-    try:
-        results = await sec_filings_provider.search_companies(q, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    results = await sec_filings_provider.search_companies(q, limit=limit)
     # Wrap in a dict so the FastAPI response schema is stable and the
     # FastMCP-tool layer (if it ever proxies this) does not hit the
     # "bare list" CLAUDE.md gotcha.
@@ -105,10 +101,7 @@ async def list_filings(
     if not identifier:
         raise HTTPException(status_code=400, detail="either 'cik' or 'symbol' is required")
     _require_available()
-    try:
-        return await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
 
 
 @router.get("/filings/{accession}")
@@ -121,15 +114,11 @@ async def get_filing(
 
     ``form_type`` is the listed row's form — a lookup hint (R15-LEAD-010)."""
     _require_available()
-    try:
-        return await sec_filings_provider.get_filing(
-            accession, cik_or_symbol=identifier, form_type=form_type
-        )
-    except ProviderError as exc:
-        # R15-DATA-007: a genuine miss (accession outside the issuer's recent
-        # filings) is a 404, never the same 502 an upstream tool failure gets.
-        status_code = 404 if exc.kind == "not_found" else 502
-        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+    # R15-DATA-007: a genuine miss (accession outside the issuer's recent
+    # filings) raises kind="not_found", which the app handler maps to a 404.
+    return await sec_filings_provider.get_filing(
+        accession, cik_or_symbol=identifier, form_type=form_type
+    )
 
 
 @router.get("/filings/{accession}/sections")
@@ -139,13 +128,7 @@ async def get_filing_sections(
 ) -> dict[str, list[FilingSection]]:
     """Return the sections list for an accession."""
     _require_available()
-    try:
-        sections = await sec_filings_provider.get_filing_sections(
-            accession, cik_or_symbol=identifier
-        )
-    except ProviderError as exc:
-        status_code = 404 if exc.kind == "not_found" else 502
-        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+    sections = await sec_filings_provider.get_filing_sections(accession, cik_or_symbol=identifier)
     # Wrap to keep the schema dict-shaped (CLAUDE.md FastMCP-tool gotcha).
     return {"sections": sections}
 
@@ -163,9 +146,6 @@ async def list_insider_transactions(
 ) -> InsiderTransactionsResponse:
     """Recent insider transactions for an issuer."""
     _require_available()
-    try:
-        return await sec_filings_provider.list_insider_transactions(
-            identifier, form_type=form, limit=limit
-        )
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await sec_filings_provider.list_insider_transactions(
+        identifier, form_type=form, limit=limit
+    )

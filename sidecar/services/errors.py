@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
+
+ProviderErrorKind = Literal["rate_limited", "not_found", "network"]
 
 
 class ProviderError(RuntimeError):
@@ -32,12 +34,53 @@ class ProviderError(RuntimeError):
       - ``"rate_limited"`` — the upstream throttled the request (HTTP 429 /
         ``YFRateLimitError``). Callers should back off / consult the circuit
         breaker and report the skip as ``rate_limited``, never ``no_data``.
+      - ``"not_found"`` — the upstream answered and has no such instrument or
+        series.
+      - ``"network"`` — the upstream could not be reached (connection refused,
+        DNS failure, timeout).
       - ``None`` — unclassified (the pre-R11 behaviour, handled as before).
     """
 
-    def __init__(self, message: str, *, kind: str | None = None) -> None:
+    def __init__(self, message: str, *, kind: ProviderErrorKind | None = None) -> None:
         super().__init__(message)
         self.kind = kind
+
+
+#: The one ProviderError -> HTTP mapping (D-B8-10): per kind the status, the
+#: ``code``, the sentence the panel shows and the next step. A classified
+#: failure's raw upstream text goes to the sidecar log only; an unclassified one
+#: keeps the provider layer's own message (e.g. "FRED needs a free API key").
+_PROVIDER_ERROR_HTTP: dict[str | None, tuple[int, str, str | None, str]] = {
+    "rate_limited": (
+        429,
+        "rate_limited",
+        "The data provider is throttled right now — try again shortly.",
+        "Wait a minute, then retry.",
+    ),
+    "not_found": (
+        404,
+        "not_found",
+        "The data provider has no data for this symbol or series — check the symbol.",
+        "Check the symbol or series id.",
+    ),
+    "network": (
+        503,
+        "network",
+        "Could not reach the data provider — check your internet connection.",
+        "Retry once you are back online.",
+    ),
+    None: (502, "provider_error", None, "Retry, or try again later."),
+}
+
+
+def provider_error_response(exc: ProviderError) -> tuple[int, dict[str, str]]:
+    """``(status, body)`` for a data-route :class:`ProviderError` (C5).
+
+    ``body`` is ``{"detail": <sentence>, "code": <kind>, "action": <next step>}``;
+    ``detail`` stays a string so the frontend's ``SidecarError`` reads it as
+    before."""
+    status, code, sentence, action = _PROVIDER_ERROR_HTTP[exc.kind]
+    return status, {"detail": sentence or str(exc), "code": code, "action": action}
 
 
 # ---------------------------------------------------------------------------

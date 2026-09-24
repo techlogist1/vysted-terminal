@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from config import get_region
 from models.macro_extended import (
@@ -27,7 +27,6 @@ from models.macro_extended import (
 )
 from models.market import MacroSeries
 from services import provider_registry
-from services.errors import ProviderError
 from services.macro import macro_router as macro_dispatcher
 
 router = APIRouter(prefix="/macro", tags=["macro"])
@@ -50,10 +49,7 @@ async def search_macro_series(
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> list[MacroSearchResult]:
     """Search the dispatched provider's catalog. Phase 6."""
-    try:
-        return await macro_dispatcher.search(q, provider, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await macro_dispatcher.search(q, provider, limit=limit)
 
 
 @router.get("/catalog", response_model=MacroCatalog)
@@ -62,10 +58,7 @@ async def get_macro_catalog(
     limit: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> MacroCatalog:
     """Return the curated featured catalog for the dispatched provider. Phase 6."""
-    try:
-        return await macro_dispatcher.get_catalog(provider, limit=limit)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await macro_dispatcher.get_catalog(provider, limit=limit)
 
 
 @router.get("/{series_id}")
@@ -85,13 +78,7 @@ async def get_macro_series(
     compatibility with any caller still on the v0.5.x contract.
     """
     if provider and provider.lower() in _V0_6_0_PROVIDERS:
-        try:
-            return await macro_dispatcher.get_series(series_id, provider.lower())
-        except ProviderError as exc:
-            # 502 keeps shape parity with the global ProviderError handler;
-            # an explicit translate here lets the search/catalog endpoints
-            # use the same status code.
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        return await macro_dispatcher.get_series(series_id, provider.lower())
 
     # No explicit provider: pick a locale-sensible default (FR-060). US/GLOBAL
     # keep the legacy openbb-mcp/FRED path below (unchanged); an IN session
@@ -100,10 +87,7 @@ async def get_macro_series(
     if not provider:
         region_default = macro_dispatcher.default_provider_for_region(get_region())
         if region_default in _V0_6_0_PROVIDERS and region_default != "fred":
-            try:
-                return await macro_dispatcher.get_series(series_id, region_default)
-            except ProviderError as exc:
-                raise HTTPException(status_code=502, detail=str(exc)) from exc
+            return await macro_dispatcher.get_series(series_id, region_default)
 
     # Legacy path — Phase 1.A / Phase 3 openbb-mcp. A ProviderError here is an
     # upstream-gateway failure (openbb-mcp / FRED rejected the call — e.g. a
@@ -111,7 +95,4 @@ async def get_macro_series(
     # Implemented (the endpoint IS implemented). This unifies the status code
     # with the v0.6.0 dispatch path above and the search/catalog endpoints
     # (Phase 9.5 nit: FRED-no-key returned 501 instead of 502).
-    try:
-        return await provider_registry.get_macro_series(series_id, provider=provider)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await provider_registry.get_macro_series(series_id, provider=provider)

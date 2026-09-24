@@ -21,12 +21,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import create_app
 from config import DATA_DIR_ENV
 from models.sec import Filing, FilingsListResponse
-from routers import disclosures
 from services import (
     corporate_disclosures,
     data_cache,
@@ -69,9 +68,9 @@ def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
 
 @pytest.fixture
 def client() -> TestClient:
-    app = FastAPI()
-    app.include_router(disclosures.router)
-    return TestClient(app)
+    """The real app: its one ProviderError handler maps provider failures
+    (R15-DATA-061)."""
+    return TestClient(create_app())
 
 
 def _serve_board_meetings(monkeypatch: pytest.MonkeyPatch, by_code: dict[str, Any]) -> None:

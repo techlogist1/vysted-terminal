@@ -562,6 +562,7 @@ def test_30m_history_asks_within_yahoos_60_day_intraday_window(
 ) -> None:
     """R15-DATA-064: a 3mo lookback at 30m is past Yahoo's cap and comes back empty."""
     import pandas as pd
+    from yfinance.exceptions import YFPricesMissingError
 
     asked: list[tuple[str, str]] = []
 
@@ -569,13 +570,15 @@ def test_30m_history_asks_within_yahoos_60_day_intraday_window(
         def __init__(self, symbol: str) -> None:  # noqa: ARG002
             pass
 
-        def history(self, period: str, interval: str) -> object:
+        def history(self, period: str, interval: str, raise_errors: bool = False) -> object:
             asked.append((period, interval))
+            if raise_errors:  # the empty-frame re-ask (R15-DATA-061) asks the same window
+                raise YFPricesMissingError("SPY", "")
             return pd.DataFrame(columns=["Open", "High", "Low", "Close", "Volume"])
 
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
     yfinance_provider.get_history("SPY", "30m")
-    assert asked == [("1mo", "30m")]
+    assert asked == [("1mo", "30m"), ("1mo", "30m")]
 
 
 @pytest.mark.parametrize(
@@ -600,3 +603,69 @@ def test_a_successful_yahoo_call_closes_the_breaker(
     call()
     assert not provider_health.is_open(provider_health.YAHOO)
     provider_health.reset_for_tests()
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-061: a missing ticker is not_found, a dead network is network
+# ---------------------------------------------------------------------------
+
+
+def _failing_ticker(monkeypatch: pytest.MonkeyPatch, surfaced: Exception) -> None:
+    """A ticker as yfinance behaves when its fetch fails: ``fast_info`` raises
+    the library-internal AttributeError, ``history`` returns an empty frame, and
+    only a ``raise_errors`` call surfaces the real cause."""
+    import pandas as pd
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        @property
+        def fast_info(self) -> object:
+            raise AttributeError("'PriceHistory' object has no attribute '_dividends'")
+
+        def history(self, period: str, interval: str, raise_errors: bool = False) -> object:  # noqa: ARG002
+            if raise_errors:
+                raise surfaced
+            return pd.DataFrame()
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+
+
+def test_quote_of_a_missing_ticker_is_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    from yfinance.exceptions import YFPricesMissingError
+
+    from services.errors import ProviderError
+
+    _failing_ticker(monkeypatch, YFPricesMissingError("$ZZZZNOTREAL", ""))
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_quote("ZZZZNOTREAL")
+    assert info.value.kind == "not_found"
+
+
+def test_history_on_a_dead_network_is_network_not_an_empty_series(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from curl_cffi.requests.exceptions import ConnectionError as CurlConnectionError
+
+    from services.errors import ProviderError
+
+    _failing_ticker(monkeypatch, CurlConnectionError("curl: (7) Failed to connect"))
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_history("AAPL", "1d")
+    assert info.value.kind == "network"
+
+
+def test_quote_on_a_dead_network_is_network_not_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The class case: the internal AttributeError a missing ticker raises must
+    not read as not_found when the network is what failed."""
+    from curl_cffi.requests.exceptions import ConnectionError as CurlConnectionError
+
+    from services.errors import ProviderError
+
+    _failing_ticker(monkeypatch, CurlConnectionError("curl: (7) Could not connect to server"))
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_quote("AAPL")
+    assert info.value.kind == "network"
