@@ -51,7 +51,7 @@ function activeHoldings() {
 async function addHolding(symbol: string, quantity: string, costBasis: string) {
   fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: symbol } });
   fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: quantity } });
-  fireEvent.change(screen.getByLabelText("Cost basis"), { target: { value: costBasis } });
+  fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: costBasis } });
   await act(async () => {
     fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
   });
@@ -82,6 +82,15 @@ describe("PortfolioPanel", () => {
     expect(screen.getByRole("button", { name: /add your first holding/i })).toBeInTheDocument();
     // No fabricated value anywhere.
     expect(screen.queryByText(/107\.69/)).not.toBeInTheDocument();
+  });
+
+  it("the cost input and column say per share (R15-UI-037)", async () => {
+    render(<PortfolioPanel />);
+    expect(screen.getByText("Avg cost / share")).toBeInTheDocument();
+    expect(screen.getByLabelText("Avg cost / share")).toHaveAttribute("placeholder", "per share");
+    expect(screen.queryByText("Cost basis")).not.toBeInTheDocument();
+    await addHolding("aapl", "10", "150");
+    expect(screen.getByRole("columnheader", { name: "Avg cost" })).toBeInTheDocument();
   });
 
   it("adds a manually entered holding to the active portfolio", async () => {
@@ -394,7 +403,9 @@ describe("PortfolioPanel", () => {
     await act(async () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
-    expect(screen.getByText("Symbol, quantity, and cost basis are required")).toBeInTheDocument();
+    expect(
+      screen.getByText("Symbol, quantity, and avg cost per share are required"),
+    ).toBeInTheDocument();
     expect(activeHoldings()).toHaveLength(0);
   });
 

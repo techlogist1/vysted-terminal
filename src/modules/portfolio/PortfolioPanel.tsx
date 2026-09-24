@@ -347,7 +347,7 @@ export function PortfolioPanel() {
     const quantity = Number(form.quantity);
     const costBasis = Number(form.costBasis);
     if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
-      setError("Symbol, quantity, and cost basis are required");
+      setError("Symbol, quantity, and avg cost per share are required");
       return;
     }
     if (quantity <= 0) {
@@ -355,7 +355,7 @@ export function PortfolioPanel() {
       return;
     }
     if (costBasis < 0) {
-      setError("Cost basis cannot be negative");
+      setError("Avg cost cannot be negative");
       return;
     }
     const input: HoldingInput = {
@@ -444,7 +444,7 @@ export function PortfolioPanel() {
     if (showCost) {
       cols.push({
         key: "cost",
-        header: "Cost",
+        header: "Avg cost",
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.cost,
@@ -745,9 +745,10 @@ export function PortfolioPanel() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-micro">Cost basis</span>
+          <span className="text-charcoal-400 text-micro">Avg cost / share</span>
           <input
-            aria-label="Cost basis"
+            aria-label="Avg cost / share"
+            placeholder="per share"
             inputMode="decimal"
             value={form.costBasis}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
