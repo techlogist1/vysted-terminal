@@ -18,7 +18,7 @@ import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 import config
 from models.earnings import (
@@ -28,7 +28,6 @@ from models.earnings import (
     EarningsUpcomingResponse,
 )
 from services import data_cache, earnings_provider
-from services.errors import ProviderError
 from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
@@ -75,10 +74,7 @@ async def get_upcoming(
         except Exception:  # noqa: BLE001
             logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
 
-    try:
-        response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
 
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
@@ -95,10 +91,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
             return EarningsHistoryResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await earnings_provider.get_history(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -114,10 +107,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
             return EarningsSurprisesResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_surprises(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await earnings_provider.get_surprises(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -133,10 +123,7 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
             return EarningsEstimateDetail.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await earnings_provider.get_estimate_detail(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await earnings_provider.get_estimate_detail(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 

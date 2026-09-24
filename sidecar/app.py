@@ -63,7 +63,7 @@ from services import (
     workflow_scheduler,
 )
 from services import screener as screener_service
-from services.errors import ProviderError
+from services.errors import ProviderError, provider_error_response
 from services.quant import pool as quant_pool
 
 _ROUTERS = (
@@ -346,9 +346,13 @@ def create_app() -> FastAPI:
     app.add_middleware(_OriginGuardMiddleware)
 
     @app.exception_handler(ProviderError)
-    async def _provider_error_handler(_request: Request, exc: ProviderError) -> JSONResponse:
-        """Translate any upstream provider failure into a clean 502 response."""
-        return JSONResponse(status_code=502, content={"detail": str(exc)})
+    async def _provider_error_handler(request: Request, exc: ProviderError) -> JSONResponse:
+        """Translate any upstream provider failure through the one mapper
+        (:func:`services.errors.provider_error_response`); the raw upstream text
+        is logged here, never shown for a classified failure."""
+        status, body = provider_error_response(exc)
+        _log.warning("%s -> %d %s: %s", request.url.path, status, body["code"], exc)
+        return JSONResponse(status_code=status, content=body)
 
     for module in _ROUTERS:
         app.include_router(module.router)

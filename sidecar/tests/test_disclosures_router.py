@@ -1,12 +1,11 @@
 """Tests for the standalone /disclosures router (R7 Component 3).
 
-The router is exercised over a minimal local FastAPI app (TestClient +
-``include_router``) so the suite passes BEFORE the lead registers it in
-``app.py`` (registration instructions: ``docs/redesign/INTEGRATION_NOTES_R7.md``).
-The service layer is stubbed — no network; the service's own parsing/merging is
-covered in ``test_corporate_disclosures.py``. Asserted here: the wire shapes,
-the data_cache hit path (one upstream call per TTL window), the honest 502 on a
-total provider failure, and the FastAPI param validation (bad exchange → 422).
+The router is exercised over the real app, whose one ProviderError handler maps
+provider failures (R15-DATA-061). The service layer is stubbed — no network; the
+service's own parsing/merging is covered in ``test_corporate_disclosures.py``.
+Asserted here: the wire shapes, the data_cache hit path (one upstream call per
+TTL window), the honest 502 on a total provider failure, and the FastAPI param
+validation (bad exchange → 422).
 """
 
 from __future__ import annotations
@@ -15,9 +14,9 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import create_app
 from config import DATA_DIR_ENV
 from models.announcements import (
     Announcement,
@@ -29,7 +28,6 @@ from models.announcements import (
     ShareholdingPattern,
     ShareholdingResponse,
 )
-from routers import disclosures
 from services import corporate_disclosures, data_cache
 from services.errors import ProviderError
 
@@ -45,10 +43,9 @@ def isolated_cache(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> object:
 
 @pytest.fixture
 def client() -> TestClient:
-    """A TestClient over a minimal app: just the disclosures router."""
-    app = FastAPI()
-    app.include_router(disclosures.router)
-    return TestClient(app)
+    """A TestClient over the real app: a provider failure is mapped by its one
+    ProviderError handler, not by the route (R15-DATA-061)."""
+    return TestClient(create_app())
 
 
 def _announcement(exchange: str, headline: str) -> Announcement:

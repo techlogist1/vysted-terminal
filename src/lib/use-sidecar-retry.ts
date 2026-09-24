@@ -22,18 +22,28 @@
  *      sidecar came up still recovers when the app-level health probe succeeds.
  *
  * `loadFn` MUST return a promise that rejects on failure (resolves on success)
- * so the hook can tell a recoverable failure from a settled load. The store
- * actions these panels use swallow their own errors into store state, so each
- * panel passes a thin wrapper that re-throws on the error status — see the call
+ * with the ORIGINAL error, so the hook can tell a transient failure from a
+ * deterministic one: only an engine that is not up yet is retried (a raw fetch
+ * error, `SidecarError` status 0 or 503); any other answer (a keyless 502, a
+ * 404) settles after one attempt in the panel's error state (R15-UI-015). The
+ * store actions these panels use swallow their own errors into store state, so
+ * each panel passes a thin wrapper that re-throws the kept error — see the call
  * sites. SSR-safe: all timers/subscriptions live inside effects.
  */
 
 import { useEffect, useRef } from "react";
 
+import { SidecarError } from "@/lib/sidecar-client";
 import { useAppStore, type SidecarStatus } from "@/store/app";
 
 const MAX_ATTEMPTS = 12;
 const MAX_BACKOFF_MS = 5000;
+
+/** True for a failure a later retry can fix: the engine is unreachable or not
+ *  ready yet. Anything the engine actually answered is deterministic. */
+function isTransientSidecarFailure(err: unknown): boolean {
+  return !(err instanceof SidecarError) || err.status === 0 || err.status === 503;
+}
 
 /**
  * Run `loadFn` on mount and auto-retry it until it succeeds, re-arming on a
@@ -89,7 +99,7 @@ export function useRetryOnSidecarReady(
             succeededRef.current = true;
           }
         })
-        .catch(() => {
+        .catch((err: unknown) => {
           inFlight = false;
           if (cancelled || succeededRef.current) {
             return;
@@ -101,7 +111,7 @@ export function useRetryOnSidecarReady(
             attempt(0);
             return;
           }
-          if (n < MAX_ATTEMPTS) {
+          if (n < MAX_ATTEMPTS && isTransientSidecarFailure(err)) {
             timer = setTimeout(() => attempt(n + 1), Math.min(1000 * 2 ** n, MAX_BACKOFF_MS));
           }
           // After the backoff lapses we stop here and wait for a reconnect

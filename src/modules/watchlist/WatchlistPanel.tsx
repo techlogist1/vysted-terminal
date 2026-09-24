@@ -9,7 +9,7 @@ import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { EmptyState } from "@/components/EmptyState";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { formatPercent, formatPrice } from "@/lib/format";
-import { openCompanyOverview } from "@/lib/host-actions";
+import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useSymbolAutocompleteResult } from "@/lib/symbol-autocomplete";
@@ -538,7 +538,12 @@ export function WatchlistPanel() {
             isRowSelected={(row) => selectedSymbol === row.entry.symbol}
             onRowClick={(row) => {
               setSelectedSymbol(row.entry.symbol);
-              openCompanyOverview(row.entry.symbol);
+              // The equity overview has no crypto path: a pair opens its chart.
+              if (row.entry.assetClass === "crypto") {
+                loadSymbolIntoChart(row.entry.symbol);
+              } else {
+                openCompanyOverview(row.entry.symbol);
+              }
             }}
             className={cn(error !== null && "opacity-50")}
             data-testid="watchlist-table"

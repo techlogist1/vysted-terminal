@@ -10,14 +10,18 @@ import { Button } from "@/components/ui/button";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import {
   formatCompactMoney,
+  formatCompactNumber,
   formatMoney,
   formatPercent,
+  formatPrice,
   formatSignedMoney,
   formatUnit,
+  instrumentCurrency,
 } from "@/lib/format";
 import { useMarketSession } from "@/lib/market-session";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
+import { assetClassOf } from "@/store/symbols";
 import {
   type AssetClass,
   type Holding,
@@ -32,6 +36,32 @@ import { buildPortfolioSummary, type PositionRow } from "./metrics";
  *  {@link Holding} (for edit/delete) by order. */
 interface PortfolioTableRow extends PositionRow {
   holding: Holding | undefined;
+}
+
+/**
+ * Money in a lot's own currency. The shared formatters take ISO-4217 codes only
+ * and render anything else in the region currency, so a crypto pair's quote
+ * currency (USDT) is written after a bare amount instead — never as `₹`
+ * (R15-DATA-081).
+ */
+function lotMoney(
+  value: number,
+  currency: string | null | undefined,
+  style: "full" | "compact" | "signed" = "full",
+): string {
+  if (currency && instrumentCurrency(currency) === null && Number.isFinite(value)) {
+    const amount = style === "full" ? formatPrice(value) : formatCompactNumber(value);
+    return `${style === "signed" && value > 0 ? "+" : ""}${amount} ${currency.toUpperCase()}`;
+  }
+  if (style === "compact") return formatCompactMoney(value, currency);
+  if (style === "signed") return formatSignedMoney(value, true, currency);
+  return formatMoney(value, currency);
+}
+
+/** The currency a lot is priced in before any quote resolves: a crypto pair's
+ *  quote side (`BTC/USDT` → `USDT`); none for an equity (the region default). */
+function pairCurrency(symbol: string): string | undefined {
+  return assetClassOf(symbol) === "crypto" ? symbol.split("/")[1] : undefined;
 }
 
 /** Format a holding quantity — a precise count that still reads with a unit at
@@ -451,7 +481,8 @@ export function PortfolioPanel() {
         // D57: cost basis is entered in the instrument's LISTING currency, so
         // it renders with the quote's currency when one resolved; the region
         // default applies only while no quote has identified the instrument.
-        format: (r) => formatMoney(r.position.cost_basis, r.quote?.currency),
+        format: (r) =>
+          lotMoney(r.position.cost_basis, r.quote?.currency ?? pairCurrency(r.position.symbol)),
       });
     }
     if (showPrice) {
@@ -461,7 +492,7 @@ export function PortfolioPanel() {
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.price,
-        format: (r) => (r.quote !== null ? formatMoney(r.quote.price, r.quote.currency) : null),
+        format: (r) => (r.quote !== null ? lotMoney(r.quote.price, r.quote.currency) : null),
       });
     }
     cols.push(
@@ -471,7 +502,7 @@ export function PortfolioPanel() {
         numeric: true,
         width: HOLDING_TRACKS.marketValue,
         format: (r) =>
-          r.marketValue !== null ? formatCompactMoney(r.marketValue, r.quote?.currency) : null,
+          r.marketValue !== null ? lotMoney(r.marketValue, r.quote?.currency, "compact") : null,
       },
       {
         key: "pnl",
@@ -485,7 +516,7 @@ export function PortfolioPanel() {
                 r.pnl > 0 ? "text-positive" : r.pnl < 0 ? "text-negative" : "text-charcoal-200"
               }
             >
-              {`${formatSignedMoney(r.pnl, true, r.quote?.currency)} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
+              {`${lotMoney(r.pnl, r.quote?.currency, "signed")} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
             </span>
           ),
       },
@@ -827,10 +858,10 @@ export function PortfolioPanel() {
             <span className="text-charcoal-100">
               {summary.mixedCurrencies
                 ? summary.byCurrency
-                    .map((b) => formatCompactMoney(b.marketValue, b.currency))
+                    .map((b) => lotMoney(b.marketValue, b.currency, "compact"))
                     .join(" + ")
                 : hasLiveQuotes
-                  ? formatCompactMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency)
+                  ? lotMoney(summary.totalMarketValue, summary.byCurrency[0]?.currency, "compact")
                   : "— (no live quotes)"}
             </span>
           </span>
@@ -844,13 +875,13 @@ export function PortfolioPanel() {
                 <Fragment key={b.currency || "unknown"}>
                   {i > 0 && <span className="text-charcoal-400"> + </span>}
                   <span className={`whitespace-nowrap ${pnlTone(b.pnl)}`}>
-                    {formatSignedMoney(b.pnl, true, b.currency)} ({formatPercent(b.pnlPercent)})
+                    {lotMoney(b.pnl, b.currency, "signed")} ({formatPercent(b.pnlPercent)})
                   </span>
                 </Fragment>
               ))
             ) : hasLiveQuotes ? (
               <span className={`whitespace-nowrap ${pnlTone(summary.totalPnl)}`}>
-                {formatSignedMoney(summary.totalPnl, true, summary.byCurrency[0]?.currency)} (
+                {lotMoney(summary.totalPnl, summary.byCurrency[0]?.currency, "signed")} (
                 {formatPercent(summary.totalPnlPercent)})
               </span>
             ) : (

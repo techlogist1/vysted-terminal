@@ -17,6 +17,15 @@ export interface SymbolEntry {
   assetClass: "equity" | "crypto";
 }
 
+/**
+ * The asset class a bare symbol names: a slash pair (`BTC/USDT`) is the app's
+ * crypto notation, everything else an equity. The one place a symbol that
+ * crossed panels without its entry recovers its class (R15-DATA-081).
+ */
+export function assetClassOf(symbol: string): SymbolEntry["assetClass"] {
+  return symbol.includes("/") ? "crypto" : "equity";
+}
+
 /** The pre-loaded first-launch symbol list (BLUEPRINT §5.1). */
 export const DEFAULT_SYMBOLS: SymbolEntry[] = [
   { symbol: "SPY", assetClass: "equity" },

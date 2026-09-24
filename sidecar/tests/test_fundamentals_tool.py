@@ -103,6 +103,39 @@ def test_rate_limited_failure_is_classified(monkeypatch: pytest.MonkeyPatch) -> 
     assert out["reason"] == "rate_limited"
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        # yfinance's own not_found (no marker the substring guess knew)
+        ProviderError("Yahoo has no company record for 'KSE.NS'", kind="not_found"),
+        # the registry's not_found when every provider served an empty shell
+        ProviderError(
+            "no provider returned usable 'fundamentals' data for the request", kind="not_found"
+        ),
+    ],
+    ids=["yfinance", "registry"],
+)
+def test_provider_not_found_kind_is_reported_as_not_found(
+    monkeypatch: pytest.MonkeyPatch, error: ProviderError
+) -> None:
+    """R15-AGENT-061: the tool reads ProviderError.kind instead of re-deriving it
+    from the message, so a missing instrument is not 'our feed's gap'."""
+    _patch_backoff(monkeypatch)
+
+    async def missing(symbol: str):  # noqa: ANN202
+        raise error
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", missing)
+    monkeypatch.setattr(
+        fundamentals_tool,
+        "_canonicalize",
+        lambda _symbol: asyncio.sleep(0, fundamentals_tool._Canonicalization()),
+    )
+    out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "KSE.NS"}))
+    assert out["ok"] is False
+    assert out["reason"] == "not_found"
+
+
 def test_unexpected_exception_also_gets_the_retry(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch_backoff(monkeypatch)
     attempts = {"n": 0}
