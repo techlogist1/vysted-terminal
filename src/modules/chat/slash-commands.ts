@@ -40,16 +40,27 @@ export interface SlashParseError {
 export type SlashParseResult = SlashCommand | SlashParseError;
 
 /** A lone token shape a ticker can take: an optional `@`, then a letter
- *  followed by up to 9 more letters/digits/dots (covers `AAPL`, `BRK.B`,
- *  `RELIANCE.NS`). Anchored to the WHOLE trimmed input — anything with a
+ *  followed by up to 19 more letters/digits/dots/ampersands/hyphens (covers
+ *  `AAPL`, `BRK.B`, `RELIANCE.NS`, `M&M.NS`, `BAJAJ-AUTO.NS`,
+ *  `HDFCBANK.NS`). Anchored to the WHOLE trimmed input — anything with a
  *  space or other punctuation (a question, a sentence) never matches. */
-const BARE_TICKER_SHAPE = /^@?([A-Za-z][A-Za-z0-9.]{0,9})$/;
+const BARE_TICKER_SHAPE = /^@?([A-Za-z][A-Za-z0-9.&-]{0,19})$/;
+
+/** The part of a known symbol before its exchange suffix (`RELIANCE.NS` ->
+ *  `RELIANCE`; `AAPL` has none, so it is its own base). */
+function baseOf(symbol: string): string {
+  const dot = symbol.indexOf(".");
+  return dot === -1 ? symbol : symbol.slice(0, dot);
+}
 
 /**
  * A lone `@?TICKER` token resolved against the known symbol set (R15-AGENT-088
- * / FR-112). Returns `null` for anything multi-word, unresolved, or ambiguous
- * — those stay a raw LLM prompt, matching the spec's "ambiguous or unresolved
- * tokens still go to the LLM."
+ * / FR-112). An exact known match wins; otherwise a bare base (`RELIANCE`
+ * against a known `RELIANCE.NS`) resolves IF it names exactly one known
+ * symbol — two or more (`INFY` with both `INFY.NS` and `INFY.BO` known) is
+ * ambiguous. Returns `null` for anything multi-word, unresolved, or
+ * ambiguous — those stay a raw LLM prompt, matching the spec's "ambiguous or
+ * unresolved tokens still go to the LLM."
  */
 function matchBareTicker(trimmed: string, knownSymbols?: ReadonlySet<string>): string | null {
   if (!knownSymbols || knownSymbols.size === 0) {
@@ -60,7 +71,19 @@ function matchBareTicker(trimmed: string, knownSymbols?: ReadonlySet<string>): s
     return null;
   }
   const candidate = match[1].toUpperCase();
-  return knownSymbols.has(candidate) ? candidate : null;
+  if (knownSymbols.has(candidate)) {
+    return candidate;
+  }
+  let uniqueMatch: string | null = null;
+  for (const symbol of knownSymbols) {
+    if (baseOf(symbol).toUpperCase() === candidate) {
+      if (uniqueMatch !== null) {
+        return null;
+      }
+      uniqueMatch = symbol;
+    }
+  }
+  return uniqueMatch;
 }
 
 /**
