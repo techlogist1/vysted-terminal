@@ -27,7 +27,8 @@ import { yfinancePlugin } from "../../plugins/yfinance";
 import yfinanceManifest from "../../plugins/yfinance/manifest.json";
 
 import type { DiscoveredPlugin } from "@/lib/plugin-runtime";
-import type { MarketplaceEntry } from "../../types/marketplace";
+import { sidecarGet } from "@/lib/sidecar-client";
+import type { DataSourceDeclaration, MarketplaceEntry } from "../../types/marketplace";
 import type { PluginManifest } from "../../types/plugin-runtime";
 import type { VystedPlugin as Plugin } from "../../types/plugin";
 
@@ -69,8 +70,6 @@ export const CATALOG_ROWS: CatalogRow[] = [
       icon: "line-chart",
       preinstalled: true,
       secretNamespace: "plugin",
-      standardModelKeys: ["quote", "ohlcv", "fundamentals"],
-      preferenceRank: 50,
     },
     yfinanceManifest,
     yfinancePlugin,
@@ -86,8 +85,6 @@ export const CATALOG_ROWS: CatalogRow[] = [
       icon: "database",
       preinstalled: true,
       secretNamespace: "plugin",
-      standardModelKeys: ["fundamentals", "macro_series"],
-      preferenceRank: 10,
     },
     openbbMcpManifest,
     openbbMcpPlugin,
@@ -137,8 +134,6 @@ export const CATALOG_ROWS: CatalogRow[] = [
       website: "https://newsapi.org/register",
       instructions:
         "News works with no key over RSS. For NewsAPI breadth, register a free key at newsapi.org and paste it here.",
-      standardModelKeys: ["news"],
-      preferenceRank: 50,
     },
     newsManifest,
     newsPlugin,
@@ -166,3 +161,95 @@ export const CATALOG_BY_ID: Record<string, CatalogRow> = Object.fromEntries(
 
 /** Just the marketplace metadata (what the marketplace UI lists). */
 export const MARKETPLACE_CATALOG: MarketplaceEntry[] = CATALOG_ROWS.map((r) => r.entry);
+
+// ---------------------------------------------------------------------------
+// Live provider declarations (C19, R15-CODE-PLATFORM-072 / R15-DATA-077).
+//
+// A catalog row's `standardModelKeys`/`preferenceRank` used to be hand-written
+// literals that drifted from the resolver's own declaration table (yfinance
+// listed 3 keys, the resolver actually served 7) and were never even rendered.
+// They are gone from the rows above; the marketplace panel instead fetches
+// `GET /data-sources` at load and derives each provider's served keys from
+// THIS response — the same table `provider_registry` dispatches against — so
+// they can't drift again. A fetch failure (offline sidecar) yields an empty
+// map, never a stale hand row.
+// ---------------------------------------------------------------------------
+
+/**
+ * Maps a marketplace `pluginId` to the `provider_registry` declaration id it
+ * corresponds to. Only entries that are genuinely backed by a resolver
+ * provider are listed — `vysted-news` (RSS/NewsAPI) and `vysted-lenses`/
+ * `vysted-example` are not routed through `provider_registry` at all, so they
+ * have no live row to derive from.
+ */
+export const REGISTRY_PROVIDER_ID: Readonly<Record<string, string>> = {
+  "vysted-yfinance": "yfinance",
+  "openbb-mcp": "openbb-mcp",
+};
+
+/**
+ * The keyless India data lanes (nse_direct / nse / bse, FR-060/064) — always-on
+ * backend routing inside `provider_registry`, not installable plugins (no
+ * manifest/instance, nothing to enable/disable/remove). Rendered as
+ * informational marketplace rows once `GET /data-sources` confirms they
+ * exist, so their coverage is visible instead of silently absent from the
+ * catalog (R15-DATA-077).
+ */
+export interface DataLaneRow {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export const INDIA_DATA_LANES: readonly DataLaneRow[] = [
+  {
+    id: "nse_direct",
+    name: "NSE (direct)",
+    description: "Exchange-direct NSE equity quotes + EOD history. Keyless, region: IN.",
+  },
+  {
+    id: "nse",
+    name: "NSE (jugaad-data)",
+    description: "The keyless NSE/BSE equity + ETF EOD default when the direct lane is blocked.",
+  },
+  {
+    id: "bse",
+    name: "BSE (micro-cap EOD)",
+    description: "Keyless BSE-only micro-cap EOD coverage NSE never listed.",
+  },
+];
+
+/** Fetch every provider's live declaration, keyed by its `provider_registry` id. */
+export async function fetchDataSourceDeclarations(): Promise<
+  Record<string, DataSourceDeclaration>
+> {
+  try {
+    const res = await sidecarGet<{
+      providers: {
+        id: string;
+        keys: string[];
+        rank: number;
+        available: boolean;
+        asset_classes: string[];
+        region: string[];
+      }[];
+    }>("/data-sources");
+    return Object.fromEntries(
+      res.providers.map((p) => [
+        p.id,
+        {
+          id: p.id,
+          keys: p.keys,
+          rank: p.rank,
+          available: p.available,
+          assetClasses: p.asset_classes,
+          region: p.region,
+        } satisfies DataSourceDeclaration,
+      ]),
+    );
+  } catch {
+    // Offline sidecar / transient failure — an empty map renders no served-key
+    // line and no India-lane section rather than a stale hand-written one.
+    return {};
+  }
+}

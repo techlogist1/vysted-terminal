@@ -95,3 +95,58 @@ describe("MarketplacePanel — Remove is confirm-guarded (R15-UI-018)", () => {
     });
   });
 });
+
+describe("MarketplacePanel — India data lanes derive from live /data-sources (R15-CODE-PLATFORM-072/R15-DATA-077)", () => {
+  beforeEach(async () => {
+    resetMarketplaceStoreForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    usePluginsStore.setState({
+      plugins: [],
+      dataSources: [],
+      agents: [],
+      nodes: [],
+      runtime: null,
+    });
+    sidecarGetMock.mockClear();
+    attachFreshRuntime();
+    await useMarketplaceStore.getState().refresh();
+  });
+
+  afterEach(() => {
+    cleanup();
+    detach?.();
+    detach = null;
+  });
+
+  it("renders an India lane row from the /data-sources fixture", async () => {
+    sidecarGetMock.mockResolvedValue({
+      providers: [
+        {
+          id: "nse_direct",
+          keys: ["quote", "ohlcv"],
+          rank: 15,
+          available: true,
+          asset_classes: ["equity"],
+          region: ["IN"],
+        },
+      ],
+    });
+
+    render(<MarketplacePanel />);
+
+    const row = await screen.findByTestId("data-lane-nse_direct");
+    expect(row.textContent).toContain("NSE (direct)");
+    expect(row.textContent).toContain("Available");
+    expect(row.textContent).toContain("Serves: quote, ohlcv");
+    expect(row.textContent).toContain("region: IN");
+  });
+
+  it("renders no India-lanes section when the sidecar is offline", async () => {
+    sidecarGetMock.mockRejectedValue(new Error("offline"));
+
+    render(<MarketplacePanel />);
+
+    await waitFor(() => expect(sidecarGetMock).toHaveBeenCalled());
+    expect(screen.queryByLabelText("India data lanes")).toBeNull();
+  });
+});

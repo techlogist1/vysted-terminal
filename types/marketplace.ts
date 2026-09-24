@@ -62,6 +62,21 @@ export interface MarketplaceEntry {
   preferenceRank?: number;
 }
 
+/**
+ * One provider row from the sidecar's `GET /data-sources` (C19) — the live
+ * projection of `provider_registry`'s own declaration table. The marketplace
+ * derives each entry's served model-keys from this instead of hand-written
+ * metadata that drifts from the resolver (R15-CODE-PLATFORM-072/R15-DATA-077).
+ */
+export interface DataSourceDeclaration {
+  id: string;
+  keys: string[];
+  rank: number;
+  available: boolean;
+  assetClasses: string[];
+  region: string[];
+}
+
 /** Per-plugin marketplace state derived from persisted config + runtime state. */
 export interface MarketplacePluginState {
   pluginId: string;
