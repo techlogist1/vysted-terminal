@@ -145,3 +145,20 @@ def test_ratings_history_caches(
     client.get("/fundamentals/AAPL/ratings/history")
     client.get("/fundamentals/AAPL/ratings/history")
     assert call_count["n"] == 1
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["ratings/history", "ratings/price-target-history", "ratings/individual"],
+)
+def test_the_envelope_says_when_it_was_fetched_and_a_cache_hit_keeps_that_time(
+    client: TestClient, stub_provider: Any, path: str
+) -> None:
+    """R15-DATA-068 (C16): a fresh envelope's as_of is now; a later cache hit
+    reports the original fetch time, not the read time."""
+    from datetime import UTC, datetime
+
+    fresh = client.get(f"/fundamentals/AAPL/{path}").json()
+    fetched = datetime.fromisoformat(fresh["as_of"])
+    assert abs((datetime.now(UTC) - fetched).total_seconds()) < 5
+    assert client.get(f"/fundamentals/AAPL/{path}").json()["as_of"] == fresh["as_of"]

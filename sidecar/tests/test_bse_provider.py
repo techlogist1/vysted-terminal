@@ -157,6 +157,32 @@ def test_get_history_resamples_weekly(tmp_path, monkeypatch: pytest.MonkeyPatch)
     assert all(b.close > 0 for b in series.bars)
 
 
+def test_cold_capped_year_is_flagged_partial_with_its_coverage_start(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-071: a cold 1y request downloads 8 day files; the series says it is
+    partial and since when it is complete, instead of passing 8 bars off as a year."""
+    from datetime import timedelta
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "1y")
+    assert len(series.bars) == bse_provider._MAX_COLD_DOWNLOADS
+    assert series.partial is True
+    first = series.bars[0].timestamp.date()
+    assert first - timedelta(days=4) <= series.coverage_start <= first
+
+
+def test_cold_five_day_request_is_not_partial(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The same cold budget covers a 5-day range: no false partial flag.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "5d")
+    assert len(series.bars) >= 5
+    assert series.partial is False
+    assert series.coverage_start is None
+
+
 def test_get_history_intraday_rejected() -> None:
     with pytest.raises(ProviderError, match="intraday"):
         bse_provider.get_history("ICONIKSPEV", "1h")
@@ -194,13 +220,14 @@ def test_get_quote_from_scrip_header(monkeypatch: pytest.MonkeyPatch) -> None:
     # numeric scrip code (Scrip_Cd). The provider must stamp the REQUESTED bare
     # symbol, not parse one from the payload, or the registry's correctness gate
     # (which compares the requested ticker vs Quote.symbol) rejects every quote.
-    def fake_get(url: str) -> httpx.Response:
-        assert "getScripHeaderData" in url
-        assert "scripcode=511260" in url  # ICONIKSPEV's code from the regenerated master
+    def fake_api(path: str, params: dict[str, str]) -> object:
+        assert params["scripcode"] == "511260"  # ICONIKSPEV's code from the regenerated master
+        if path != "getScripHeaderData/w":
+            raise ProviderError(f"bse {path}: HTTP 403")
         header = {"Scrip_Cd": "511260", "LTP": "43.09", "PrevClose": "44.44", "Ason": _ason_now()}
-        return httpx.Response(200, json={"Header": [header]})
+        return {"Header": [header]}
 
-    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+    monkeypatch.setattr(bse_provider, "_api_json", fake_api)
     q = bse_provider.get_quote("ICONIKSPEV")
     assert q.provider == "bse"
     # Quote.symbol is the requested bare ticker, NEVER the numeric scrip code.
@@ -259,11 +286,13 @@ def test_stale_exchange_quote_is_served_labelled_stale(
     """Through the route: the 18-month-old BSE print is served with its true date
     and labelled stale — not rejected into a lane that would present it as fresh."""
 
-    def fake_get(url: str) -> httpx.Response:
-        assert "getScripHeaderData" in url and "scripcode=539681" in url
-        return httpx.Response(200, json=_DAL_HEADER)
+    def fake_api(path: str, params: dict[str, str]) -> object:
+        assert params["scripcode"] == "539681"
+        if path != "getScripHeaderData/w":
+            raise ProviderError(f"bse {path}: HTTP 403")
+        return _DAL_HEADER
 
-    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+    monkeypatch.setattr(bse_provider, "_api_json", fake_api)
     resp = client.get("/quotes/DAL", headers={"X-Vysted-Region": "IN"})
     assert resp.status_code == 200
     body = resp.json()
@@ -276,17 +305,63 @@ def test_stale_exchange_quote_is_served_labelled_stale(
 def test_get_quote_falls_back_to_bhavcopy(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
 
-    def fake_get(url: str) -> httpx.Response:
-        if "getScripHeaderData" in url:
-            return httpx.Response(500)  # header endpoint down → bhavcopy fallback
-        return _csv_response(_BHAVCOPY_CSV)
+    def header_down(path: str, _params: dict[str, str]) -> object:
+        raise ProviderError(f"bse {path}: HTTP 500")  # header endpoint down → bhavcopy
 
-    monkeypatch.setattr(bse_provider, "_http_get", fake_get)
+    monkeypatch.setattr(bse_provider, "_api_json", header_down)
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
     q = bse_provider.get_quote("ICONIKSPEV")
     assert q.provider == "bse"
     assert q.symbol == "ICONIKSPEV"
     assert q.currency == "INR"
     assert q.price == 43.09
+    # The bhavcopy quote carries the same session's volume and day range.
+    assert (q.volume, q.open, q.high, q.low) == (5757, 44.99, 44.99, 42.31)
+
+
+_FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _replay_quote(monkeypatch: pytest.MonkeyPatch, fixture: str, *, trading: bool) -> None:
+    recorded = json.loads((_FIXTURES / "bse" / fixture).read_text(encoding="utf-8"))
+
+    def play(path: str, _params: dict[str, str]) -> object:
+        if path == "StockTrading/w" and not trading:
+            raise ProviderError(f"bse {path}: HTTP 403")
+        return recorded[path]
+
+    monkeypatch.setattr(bse_provider, "_api_json", play)
+
+
+@pytest.mark.parametrize(
+    ("symbol", "fixture", "volume", "ohlc"),
+    [
+        ("AMAL", "quote_506597_amal_20260924.json", 5388, (701.30, 703.10, 684.60, 705.70)),
+        ("ICONIKSPEV", "quote_511260_iconikspev_20260924.json", 5967, None),
+    ],
+)
+def test_header_quote_carries_session_volume_and_day_range(
+    monkeypatch: pytest.MonkeyPatch, symbol: str, fixture: str, volume: float, ohlc: tuple | None
+) -> None:
+    """R15-DATA-053: the header has no traded quantity; the volume is StockTrading's
+    TTQ and the day range is the header's Open/High/Low/PrevClose (live 2026-09-24)."""
+    _replay_quote(monkeypatch, fixture, trading=True)
+    q = bse_provider.get_quote(symbol)
+    assert q.provider == "bse"
+    assert q.volume == volume
+    assert None not in (q.open, q.high, q.low, q.prev_close)
+    assert q.low <= q.price <= q.high
+    if ohlc:
+        assert (q.open, q.high, q.low, q.prev_close) == ohlc
+
+
+def test_header_quote_without_the_trading_call_has_no_volume_not_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _replay_quote(monkeypatch, "quote_506597_amal_20260924.json", trading=False)
+    q = bse_provider.get_quote("AMAL")
+    assert q.volume is None
+    assert q.open == 701.30
 
 
 # --- cache-dir race retry (mirrors india_provider) --------------------------

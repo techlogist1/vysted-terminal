@@ -8,16 +8,20 @@ awaits the resulting coroutine.
 Phase 6 (Teammate E) extends the surface with three additional ratings
 endpoints — history / price-target-history / individual — backed by
 :mod:`services.analyst_ratings_extended` and routed through the shared
-:mod:`services.data_cache` (TTL 6h).
+:mod:`services.data_cache` (TTL 6h). The statement and aggregate-rating
+routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Header
+from pydantic import BaseModel
 
 from config import get_region
 from models.analyst_extended import (
@@ -38,6 +42,7 @@ from services import (
     company_narrative,
     correctness_gate,
     data_cache,
+    exchange_financials,
     identity_crosscheck,
     provider_registry,
     resolution_policy,
@@ -50,6 +55,29 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
 
 _TTL_RATINGS = 6 * 60 * 60  # 6 hours
+
+
+async def _cached[M: BaseModel](
+    key: str, model: type[M], fetch: Callable[[], Awaitable[M]]
+) -> tuple[M, datetime]:
+    """Serve ``key`` from the data cache within the TTL, else fetch and store it.
+
+    Returns the response and when it was fetched (the cache row's write time on
+    a hit), so an envelope can say how old it is (R15-DATA-068)."""
+    hit = await data_cache.get_with_meta(key, _TTL_RATINGS)
+    if hit is not None and isinstance(hit[0], dict):
+        try:
+            return model.model_validate(hit[0]), datetime.fromtimestamp(hit[1], UTC)
+        except Exception:  # noqa: BLE001
+            logger.warning("fundamentals: cache deserialise failed for %s; refetching", key)
+    response = await fetch()
+    fetched_at = await data_cache.set(key, response.model_dump(mode="json"))
+    return response, datetime.fromtimestamp(fetched_at, UTC)
+
+
+def _listing_key(symbol: str, what: str) -> str:
+    """A cache key on the listing the symbol resolves to in the active region."""
+    return f"fundamentals:{_yahoo_symbol(symbol.strip().upper())}:{what}"
 
 
 async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
@@ -101,11 +129,13 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     R15: the served values then pass the network witnesses
     (:func:`correctness_gate.apply_witnesses`) — an Indian listing's ownership
     fractions are reconciled against the exchange shareholding filing and flagged
-    (never replaced) where they disagree.
+    (never replaced) where they disagree. ``basis`` is the company's filed
+    accounting basis (R15-DATA-054), ``None`` when no filing says.
     """
     fundamentals = await provider_registry.get_fundamentals(symbol)
     fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
+    fundamentals.basis = await exchange_financials.filed_basis(fundamentals.symbol)
     return fundamentals
 
 
@@ -171,7 +201,12 @@ async def get_income_statement(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_income_statement(symbol, period=period)
+    statement, _ = await _cached(
+        _listing_key(symbol, f"income:{period}"),
+        IncomeStatement,
+        lambda: provider_registry.get_income_statement(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/balance")
@@ -179,7 +214,12 @@ async def get_balance_sheet(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_balance_sheet(symbol, period=period)
+    statement, _ = await _cached(
+        _listing_key(symbol, f"balance:{period}"),
+        BalanceSheet,
+        lambda: provider_registry.get_balance_sheet(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/cashflow")
@@ -187,13 +227,23 @@ async def get_cash_flow(
     symbol: str, period: provider_registry.StatementPeriod = "annual"
 ) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
-    return await provider_registry.get_cash_flow(symbol, period=period)
+    statement, _ = await _cached(
+        _listing_key(symbol, f"cashflow:{period}"),
+        CashFlowStatement,
+        lambda: provider_registry.get_cash_flow(symbol, period=period),
+    )
+    return statement
 
 
 @router.get("/{symbol}/ratings")
 async def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
-    return await provider_registry.get_analyst_rating(symbol)
+    rating, _ = await _cached(
+        _listing_key(symbol, "ratings"),
+        AnalystRating,
+        lambda: provider_registry.get_analyst_rating(symbol),
+    )
+    return rating
 
 
 # ---------------------------------------------------------------------------
@@ -205,15 +255,12 @@ async def get_analyst_rating(symbol: str) -> AnalystRating:
 async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     """Return every recorded rating change for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return RatingsHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    response = await analyst_ratings_extended.get_ratings_history(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:history",  # the resolved listing
+        RatingsHistoryResponse,
+        lambda: analyst_ratings_extended.get_ratings_history(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -221,15 +268,12 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     """Return price-target changes for ``symbol`` (newest-first)."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{_yahoo_symbol(normalized)}:price-targets"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return PriceTargetHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    response = await analyst_ratings_extended.get_price_target_history(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:price-targets",  # the resolved listing
+        PriceTargetHistoryResponse,
+        lambda: analyst_ratings_extended.get_price_target_history(normalized),
+    )
+    response.as_of = as_of
     return response
 
 
@@ -237,13 +281,10 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     """Return per-firm currently-active forecasts for ``symbol``."""
     normalized = symbol.strip().upper()
-    cache_key = f"ratings:{_yahoo_symbol(normalized)}:individual"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_RATINGS)
-    if isinstance(cached, dict):
-        try:
-            return IndividualAnalystResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    response = await analyst_ratings_extended.get_individual_analysts(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response, as_of = await _cached(
+        f"ratings:{_yahoo_symbol(normalized)}:individual",  # the resolved listing
+        IndividualAnalystResponse,
+        lambda: analyst_ratings_extended.get_individual_analysts(normalized),
+    )
+    response.as_of = as_of
     return response

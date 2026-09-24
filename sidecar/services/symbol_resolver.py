@@ -425,6 +425,18 @@ def _face_values(filename: str) -> dict[str, float]:
 
 
 @lru_cache(maxsize=1)
+def _nse_listing_dates() -> dict[str, str]:
+    """``{SYMBOL: ISO date}`` from the NSE master's ``listing_dates`` map (the
+    exchange DATE OF LISTING; bundled, then the refreshed copy)."""
+    out: dict[str, str] = {}
+    for raw in _master_layers("nse_instruments.json"):
+        values = raw.get("listing_dates")
+        if isinstance(values, dict):
+            out.update({str(sym).strip().upper(): str(day) for sym, day in values.items()})
+    return out
+
+
+@lru_cache(maxsize=1)
 def _us_master() -> dict[str, str]:
     """``{TICKER: name}`` for US-listed companies (SEC snapshot)."""
     raw = _load_master("us_instruments.json")
@@ -522,6 +534,7 @@ def refresh_masters() -> None:
         _bse_scrip_index.cache_clear()
         _generic_tokens.cache_clear()
         _face_values.cache_clear()
+        _nse_listing_dates.cache_clear()
         _scan_names.cache_clear()
 
 
@@ -535,6 +548,7 @@ def reset_caches_for_tests() -> None:
     _india_sector_map.cache_clear()
     _generic_tokens.cache_clear()
     _face_values.cache_clear()
+    _nse_listing_dates.cache_clear()
     _scan_names.cache_clear()
     _reset_live_lookup_for_tests()
 
@@ -578,6 +592,12 @@ def bse_scrip_code(symbol: str) -> str | None:
     """Return the numeric BSE scrip code for ``symbol`` (the header endpoint key)."""
     entry = _bse_master().get(strip_exchange_suffix(symbol))
     return entry[2] if entry and entry[2] else None
+
+
+def nse_listing_date(symbol: str) -> str | None:
+    """The NSE DATE OF LISTING (ISO) of ``symbol``'s NSE listing, or ``None``
+    for a symbol the NSE master does not list (a BSE-only scrip)."""
+    return _nse_listing_dates().get(strip_exchange_suffix(symbol).removesuffix("-SM"))
 
 
 def dual_listed_bse_code(symbol: str) -> str | None:

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   LineSeries,
+  LineStyle,
   type IChartApi,
   type ISeriesApi,
   type LineData,
@@ -56,33 +57,45 @@ interface Props {
  *
  * Missing observations (`value === null`) are skipped — lightweight-charts
  * expects strictly-increasing time + non-null values per LineData point.
+ * Projected observations (`is_projection`, e.g. IMF WEO forecast years) are
+ * drawn as a dashed continuation of the actuals, with a legend note.
  */
 export function MacroChart({ series, defaultLogScale = false }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const projectedRef = useRef<ISeriesApi<"Line"> | null>(null);
   const [logScale, setLogScale] = useState<boolean>(defaultLogScale);
 
   // Convert observations to lightweight-charts LineData, dropping nulls
   // and sorting by time (the API requires strictly-ascending time).
-  const lineData: LineData[] = useMemo(() => {
-    const points: LineData[] = [];
+  const { lineData, projectedData, projectedCount } = useMemo(() => {
+    const points: (LineData & { projected: boolean })[] = [];
     for (const obs of series.observations) {
       if (obs.value === null) continue;
       const ts = Math.floor(new Date(obs.date).getTime() / 1000);
       if (!Number.isFinite(ts)) continue;
-      points.push({ time: ts as UTCTimestamp, value: obs.value });
+      points.push({ time: ts as UTCTimestamp, value: obs.value, projected: !!obs.is_projection });
     }
     points.sort((a, b) => (a.time as number) - (b.time as number));
     // De-duplicate any equal-time entries (some providers emit dup rows).
-    const deduped: LineData[] = [];
+    const actual: LineData[] = [];
+    const projected: LineData[] = [];
     let last: number | null = null;
-    for (const p of points) {
+    for (const { projected: isProjection, ...p } of points) {
       if (last !== null && (p.time as number) === last) continue;
-      deduped.push(p);
+      (isProjection ? projected : actual).push(p);
       last = p.time as number;
     }
-    return deduped;
+    // The dashed line starts from the last actual point so the two join.
+    const joint = projected.length
+      ? actual.filter((p) => (p.time as number) < (projected[0].time as number)).at(-1)
+      : undefined;
+    return {
+      lineData: actual,
+      projectedData: joint ? [joint, ...projected] : projected,
+      projectedCount: projected.length,
+    };
   }, [series.observations]);
 
   // Mount the chart once; tear it down on unmount.
@@ -98,12 +111,20 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
       lineWidth: 2,
       priceFormat: { type: "price", precision: 2, minMove: 0.01 },
     });
+    const projected = chart.addSeries(LineSeries, {
+      color: LINE_COLOR,
+      lineWidth: 2,
+      lineStyle: LineStyle.Dashed,
+      priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+    });
     chartRef.current = chart;
     seriesRef.current = line;
+    projectedRef.current = projected;
     return () => {
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      projectedRef.current = null;
     };
   }, []);
 
@@ -111,8 +132,9 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
   useEffect(() => {
     if (!seriesRef.current) return;
     seriesRef.current.setData(lineData);
+    projectedRef.current?.setData(projectedData);
     chartRef.current?.timeScale().fitContent();
-  }, [lineData]);
+  }, [lineData, projectedData]);
 
   // Toggle log scale on the right price scale when the prop changes.
   useEffect(() => {
@@ -142,7 +164,12 @@ export function MacroChart({ series, defaultLogScale = false }: Props) {
       </div>
       <div ref={containerRef} className="flex-1" data-testid="macro-chart-canvas" />
       <div className="border-charcoal-800 text-charcoal-500 text-micro border-t px-3 py-1 font-mono">
-        {lineData.length} observations
+        {lineData.length + projectedCount} observations
+        {projectedCount > 0 ? (
+          <span data-testid="macro-projected-note">
+            {` • dashed = projected (${projectedCount})`}
+          </span>
+        ) : null}
         {series.last_updated ? ` • updated ${formatDate(series.last_updated)}` : ""}
         {series.source_url ? (
           <>

@@ -78,6 +78,17 @@ _RANGE_DAYS = {
     "max": 3700,
 }
 _DEFAULT_RANGE_DAYS = 380
+# The span each range token names (calendar days), without the lookback padding
+# above: what "covered" is measured against (R15-DATA-071).
+_NOMINAL_RANGE_DAYS = {
+    "5d": 7,
+    "1mo": 30,
+    "3mo": 91,
+    "6mo": 182,
+    "1y": 365,
+    "2y": 730,
+    "5y": 1826,
+}
 
 # A cold cache must not attempt to backfill years of bhavcopies on the first
 # request (each missing day is a separate ~1 MB download). We download at most
@@ -92,9 +103,6 @@ _MAX_COLD_DOWNLOADS = 8
 _BHAVCOPY_URL = (
     "https://www.bseindia.com/download/BhavCopy/Equity/BhavCopy_BSE_CM_0_0_0_{ymd}_F_0000.CSV"
 )
-# Per-scrip latest-EOD header (close + prior close) — keyed by BSE scrip code.
-_SCRIP_HEADER_URL = "https://api.bseindia.com/BseIndiaAPI/api/getScripHeaderData/w"
-
 # BSE blocks an obvious bot; a real desktop UA + the bseindia.com Referer are
 # required for both the bhavcopy download and the JSON header endpoint.
 _USER_AGENT = (
@@ -490,15 +498,34 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     today = datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
     start = today - timedelta(days=days)
 
-    daily = _assemble_history(bare, code, start, today)
+    gaps: list[date] = []
+    daily = _assemble_history(bare, code, start, today, gaps)
     if not daily:
         raise ProviderError(f"bse: no EOD data for {bare!r}")
+    # R15-DATA-071: a day file missing inside the requested span (the cold
+    # download budget ran out) makes the series partial, complete only from the
+    # day after the newest missing file.
+    wanted_from = today - timedelta(days=_NOMINAL_RANGE_DAYS.get(range_ or "", days))
+    partial = bool(gaps) and gaps[0] >= wanted_from
     bars = _resample(daily, timeframe) if timeframe in {"1wk", "1mo"} else daily
-    return OHLCVSeries(symbol=bare, timeframe=timeframe, bars=bars, provider=PROVIDER)
+    return OHLCVSeries(
+        symbol=bare,
+        timeframe=timeframe,
+        bars=bars,
+        provider=PROVIDER,
+        partial=partial,
+        coverage_start=gaps[0] + timedelta(days=1) if partial else None,
+    )
 
 
-def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> list[OHLCVBar]:
+def _assemble_history(
+    ticker: str, code: str | None, start: date, end: date, gaps: list[date] | None = None
+) -> list[OHLCVBar]:
     """Walk trading days in ``[start, end]``, collecting this scrip's daily bar.
+
+    ``gaps`` (when given) receives, newest-first, each trading day whose day file
+    could not be read, counted from the newest day that could be (the days after
+    it are not published yet, not missing).
 
     Cached bhavcopies are read for the whole range; missing *recent* trading days
     are downloaded up to the cold-download budget (newest-first) so a cold cache
@@ -513,12 +540,18 @@ def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> 
     ]
     downloads_left = _MAX_COLD_DOWNLOADS
     bars: list[OHLCVBar] = []
+    read_any = False
     # Newest-first so the cold-download budget spends on the most recent days.
     for day in reversed(trading_days):
         text = _bhavcopy_for(day)
         if text is None and downloads_left > 0:
             text = _download_bhavcopy(day)
             downloads_left -= 1
+        if text is None:
+            if read_any and gaps is not None:
+                gaps.append(day)
+            continue
+        read_any = True
         row = _scrip_row(text, ticker, code) if text else None
         if row is None:
             continue
@@ -563,17 +596,31 @@ def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
     correctness gate, mirroring india_provider which always sets ``symbol=bare``).
     Best-effort — any transport/parse failure returns ``None`` so the caller can
     fall back to the bhavcopy-derived quote.
+
+    The header carries no traded quantity, so the session volume is read from
+    ``StockTrading`` (``TTQ``) for the same code (R15-DATA-053); when that call
+    fails the quote is served with volume null. Both go through ``_api_json``:
+    ``api.bseindia.com`` answers a plain httpx client with 403.
     """
-    url = f"{_SCRIP_HEADER_URL}?Debtflag=&scripcode={code}&seriesid="
     try:
-        resp = _http_get(url)
-        if resp.status_code != 200:
-            return None
-        payload = resp.json()
-    except Exception as exc:  # noqa: BLE001 - any header failure → bhavcopy fallback
+        payload = _api_json(
+            "getScripHeaderData/w", {"Debtflag": "", "scripcode": code, "seriesid": ""}
+        )
+    except ProviderError as exc:
         logger.debug("bse: scrip header fetch failed for %s: %s", code, exc)
         return None
-    return _quote_from_header(bare, payload)
+    quote = _quote_from_header(bare, payload)
+    if quote is None:
+        return None
+    try:
+        trading = _api_json(
+            "StockTrading/w", {"flag": "0", "quotetype": "EQ", "scripcode": code, "seriesid": ""}
+        )
+    except ProviderError as exc:
+        logger.debug("bse: StockTrading fetch failed for %s: %s", code, exc)
+        return quote
+    quote.volume = _num(trading.get("TTQ")) if isinstance(trading, dict) else None
+    return quote
 
 
 def _ason_trade_day(raw: object) -> date | None:
@@ -590,12 +637,13 @@ def _ason_trade_day(raw: object) -> date | None:
 def _quote_from_header(bare: str, payload: dict) -> Quote | None:
     """Build a Quote for ``bare`` from a ``getScripHeaderData`` payload, or ``None``.
 
-    The endpoint returns ``{"Header": [{"Scrip_Cd"/"ScripCode","LTP"/"CurrVal",
-    "PrevClose"/"Prev_Cls","Volume","Ason",...}]}`` — keyed by the numeric scrip
-    code, with NO ticker field. We read the latest close and the official prior
-    close defensively (BSE has renamed these fields over time) and stamp the
-    requested ``bare`` symbol (NOT the scrip code) so the registry's symbol-match
-    correctness gate accepts the quote, mirroring india_provider.
+    The endpoint returns ``{"Header": {"PrevClose","Open","High","Low","LTP",
+    "Ason",...}}`` — keyed by the numeric scrip code, with NO ticker field and
+    no traded quantity (the caller adds volume from ``StockTrading``). We read
+    the latest close and the official prior close defensively (BSE has renamed
+    these fields over time) and stamp the requested ``bare`` symbol (NOT the
+    scrip code) so the registry's symbol-match correctness gate accepts the
+    quote, mirroring india_provider.
 
     The quote is dated by the header's own ``Ason`` trade date (R15-DATA-006),
     never by today's session: an illiquid scrip's last print can be months old
@@ -623,7 +671,10 @@ def _quote_from_header(bare: str, payload: dict) -> Quote | None:
         price=close,
         change=change,
         change_percent=change_percent,
-        volume=_num(h.get("Volume") or h.get("TotalTradedQty")),
+        open=_num(h.get("Open")),
+        high=_num(h.get("High")),
+        low=_num(h.get("Low")),
+        prev_close=prev,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=_bar_timestamp(trade_day),
@@ -647,6 +698,10 @@ def _quote_from_bhavcopy(bare: str, code: str | None) -> Quote:
         change=change,
         change_percent=change_percent,
         volume=last.volume,
+        open=last.open,
+        high=last.high,
+        low=last.low,
+        prev_close=prev_close,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=last.timestamp,

@@ -8,8 +8,9 @@ Built from NSE's three public listing files:
   * ``eq_etfseclist.csv`` — the ETF list → type ``ETF``.
 
 Each list's face-value column lands in a ``face_values`` map (``{SYMBOL: face
-value}``) beside the rows. Rights-entitlement lines (``-RE`` tickers, ISIN
-security type ``20``) are dropped.
+value}``) beside the rows, and its DATE OF LISTING in a ``listing_dates`` map
+(``{SYMBOL: ISO date}``) — the exchange listing date (R15-DATA-055, D-B10-7).
+Rights-entitlement lines (``-RE`` tickers, ISIN security type ``20``) are dropped.
 Rows are ``[SYMBOL, NAME, TYPE]``, ordered by the BSE master's market-cap rank of
 the row's ISIN (prominence, so fuzzy ties break toward the well-known listing),
 with unranked rows after in file order.
@@ -78,6 +79,17 @@ def _rows(text: str) -> list[dict[str, str]]:
     return [dict(zip(header, (c.strip() for c in row), strict=False)) for row in reader if row]
 
 
+def listing_date(raw: str | None) -> str | None:
+    """A listing file's DATE OF LISTING as an ISO date: the main board writes
+    ``06-AUG-2026``, Emerge and the ETF list ``02-Sep-26``."""
+    for fmt in ("%d-%b-%Y", "%d-%b-%y"):
+        try:
+            return datetime.strptime((raw or "").strip().title(), fmt).date().isoformat()
+        except ValueError:
+            continue
+    return None
+
+
 def _bse_isin_rank() -> dict[str, int]:
     """ISIN → market-cap rank from the bundled BSE master (prominence order)."""
     raw = json.loads(
@@ -102,7 +114,7 @@ def build_master(
 ) -> dict:
     """Normalise the three listing files into the bundled-master document."""
     rank = isin_rank if isin_rank is not None else _bse_isin_rank()
-    found: list[tuple[str, str, str, str, float | None]] = []
+    found: list[tuple[str, str, str, str, float | None, str | None]] = []
     for text, typ, name_key in (
         (equity_csv, "EQ", "NAME_OF_COMPANY"),
         (sme_csv, "SM", "NAME_OF_COMPANY"),
@@ -112,18 +124,22 @@ def build_master(
             symbol = rec.get("SYMBOL", "").upper()
             isin = (rec.get("ISIN_NUMBER") or rec.get("ISINNUMBER") or "").upper()
             par = face_value(rec.get("FACE_VALUE") or rec.get("FACEVALUE"))
+            listed = listing_date(rec.get("DATE_OF_LISTING") or rec.get("DATEOFLISTING"))
             if symbol and not is_rights_entitlement(symbol, "", isin):
-                found.append((symbol, rec.get(name_key, "") or symbol, typ, isin, par))
+                found.append((symbol, rec.get(name_key, "") or symbol, typ, isin, par, listed))
     ordered = sorted(enumerate(found), key=lambda item: (rank.get(item[1][3], len(rank)), item[0]))
     rows: list[list[str]] = []
     face_values: dict[str, float] = {}
+    listing_dates: dict[str, str] = {}
     seen: set[str] = set()
-    for _i, (symbol, name, typ, _isin, par) in ordered:
+    for _i, (symbol, name, typ, _isin, par, listed) in ordered:
         if symbol not in seen:
             seen.add(symbol)
             rows.append([symbol, name, typ])
             if par is not None:
                 face_values[symbol] = par
+            if listed is not None:
+                listing_dates[symbol] = listed
     if len(rows) < min_rows:
         raise ValueError(
             f"regenerate_nse_master: only {len(rows)} rows parsed "
@@ -137,10 +153,12 @@ def build_master(
             "NSE master regenerated via regenerate_nse_master.py from the main-board, "
             "Emerge (type SM, Yahoo -SM.NS) and ETF lists. Rows are [SYMBOL, NAME, TYPE], "
             "BSE market-cap ordered; face_values maps SYMBOL to the listed face value "
-            "(INR). Do not hand-edit; rerun the script to refresh."
+            "(INR), listing_dates to the exchange DATE OF LISTING (ISO). Do not hand-edit; "
+            "rerun the script to refresh."
         ),
         "_types": dict(Counter(row[2] for row in rows).most_common()),
         "face_values": face_values,
+        "listing_dates": listing_dates,
         "instruments": rows,
     }
 
@@ -153,7 +171,8 @@ def fetch_master() -> dict:
 def dump_master(master: dict, fp: TextIO) -> None:
     """Emit the master with one instrument row per line (reviewable diffs)."""
     fp.write("{\n")
-    for key in ("exchange", "_generated", "_source", "_note", "_types", "face_values"):
+    keys = ("exchange", "_generated", "_source", "_note", "_types", "face_values", "listing_dates")
+    for key in keys:
         fp.write(f"  {json.dumps(key)}: {json.dumps(master[key], ensure_ascii=False)},\n")
     fp.write('  "instruments": [\n')
     lines = [json.dumps(row, ensure_ascii=False) for row in master["instruments"]]
