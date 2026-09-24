@@ -9,6 +9,8 @@ import { PortfolioPanel } from "./PortfolioPanel";
 
 vi.mock("./api", () => ({
   fetchPositionQuotes: vi.fn(),
+  fetchDailyCloses: vi.fn(),
+  benchmarkSymbolForCurrency: vi.fn(() => null),
 }));
 
 // Keep the real CSV builder; capture the download instead of touching the DOM.
@@ -19,6 +21,7 @@ vi.mock("@/lib/csv", async (importActual) => ({
 
 const api = await import("./api");
 const mockFetchQuotes = vi.mocked(api.fetchPositionQuotes);
+const mockFetchDailyCloses = vi.mocked(api.fetchDailyCloses);
 const csvModule = await import("@/lib/csv");
 const mockDownloadCsv = vi.mocked(csvModule.downloadCsv);
 
@@ -69,6 +72,9 @@ beforeEach(() => {
   useSettingsStore.setState({ region: "US" });
   mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 0 });
   mockDownloadCsv.mockResolvedValue({ path: "/tmp/exports/csv/out.csv", fellBack: false });
+  // No history by default — existing tests that don't exercise the Risk
+  // section see it settle to "insufficient" rather than hang.
+  mockFetchDailyCloses.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -550,5 +556,90 @@ describe("PortfolioPanel", () => {
     // Weight % (index 9) is blank — never a cross-currency ratio.
     expect(relianceRow[9]).toBe("");
     expect(aaplRow[9]).toBe("");
+  });
+
+  describe("risk section (R15-CODE-PLATFORM-023)", () => {
+    /** `n` daily closes from `start`, ascending, with enough day-to-day
+     *  variance for a non-zero stdev (never a flat, degenerate series). */
+    function closesFrom(start: string, n: number, base: number): Map<string, number> {
+      const closes = new Map<string, number>();
+      const date = new Date(`${start}T00:00:00Z`);
+      for (let i = 0; i < n; i++) {
+        closes.set(date.toISOString().slice(0, 10), base + (i % 2 === 0 ? i * 0.3 : -i * 0.1));
+        date.setUTCDate(date.getUTCDate() + 1);
+      }
+      return closes;
+    }
+
+    it("shows a loading state while daily closes are in flight", async () => {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+        failed: 0,
+      });
+      let resolveCloses: (v: Map<string, number> | null) => void = () => {};
+      mockFetchDailyCloses.mockReturnValue(
+        new Promise((resolve) => {
+          resolveCloses = resolve;
+        }),
+      );
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+
+      expect(await screen.findByText("Computing risk metrics…")).toBeInTheDocument();
+      await act(async () => {
+        resolveCloses(null);
+      });
+    });
+
+    it("shows an insufficient-history message under MIN_RISK_HISTORY_DAYS", async () => {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+        failed: 0,
+      });
+      mockFetchDailyCloses.mockResolvedValue(closesFrom("2026-01-01", 10, 100));
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+
+      expect(
+        await screen.findByText(/Not enough price history yet \(needs 30\+ overlapping days\)/),
+      ).toBeInTheDocument();
+    });
+
+    it("renders Sharpe/Sortino/maxDD/Calmar/VaR for a bucket with enough history", async () => {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+        failed: 0,
+      });
+      mockFetchDailyCloses.mockResolvedValue(closesFrom("2026-01-01", 40, 100));
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+
+      expect(await screen.findByText(/Sharpe:/)).toBeInTheDocument();
+      expect(screen.getByText(/Sortino:/)).toBeInTheDocument();
+      expect(screen.getByText(/Max DD:/)).toBeInTheDocument();
+      expect(screen.getByText(/Calmar:/)).toBeInTheDocument();
+      expect(screen.getByText(/VaR 95%/)).toBeInTheDocument();
+      expect(screen.getByText("39d history")).toBeInTheDocument();
+    });
+
+    it("renders one bucket per currency and a per-symbol correlation matrix", async () => {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([
+          ["AAPL", quote("AAPL", 200, "USD")],
+          ["MSFT", quote("MSFT", 300, "USD")],
+        ]),
+        failed: 0,
+      });
+      mockFetchDailyCloses.mockImplementation((symbol: string) =>
+        Promise.resolve(closesFrom("2026-01-01", 40, symbol === "AAPL" ? 100 : 250)),
+      );
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await addHolding("msft", "5", "280");
+
+      expect(await screen.findByText("39d history")).toBeInTheDocument();
+      expect(screen.getAllByText("AAPL").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("MSFT").length).toBeGreaterThan(0);
+    });
   });
 });

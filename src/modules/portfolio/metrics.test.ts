@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import type { Position, Quote } from "../../../types/data";
-import { buildPortfolioSummary } from "./metrics";
+import {
+  annualizedVolatility,
+  beta,
+  buildPortfolioSummary,
+  calmarRatio,
+  computeCurrencyRisk,
+  correlation,
+  dailyReturns,
+  historicalVaR95,
+  maxDrawdown,
+  MIN_RISK_HISTORY_DAYS,
+  sharpeRatio,
+  sortinoRatio,
+  type HoldingPriceHistory,
+} from "./metrics";
 
 function pos(symbol: string, quantity: number, cost: number): Position {
   return { symbol, quantity, cost_basis: cost, asset_class: "equity" } as Position;
@@ -140,5 +154,149 @@ describe("Gate 6 — INR portfolio scenario (R12)", () => {
     expect(s.byCurrency).toHaveLength(1);
     expect(s.byCurrency[0].currency).toBe("INR");
     expect(s.byCurrency[0].marketValue).toBeCloseTo(15328.0, 2);
+  });
+});
+
+// --- Risk analytics (R15-CODE-PLATFORM-023) ---------------------------------
+// Hand-computed fixture: a 5-close series with deliberately non-constant
+// returns (a flat-return series makes stdev = 0, which degenerates
+// Sharpe/Sortino to 0 and would hide a wrong formula). Expected values below
+// were computed independently in Python (float64, same formulas) and are
+// asserted to 1e-9.
+const RISK_CLOSES = [100, 110, 99, 108.9, 100.0];
+const RISK_RETURNS = dailyReturns(RISK_CLOSES);
+
+const RISK_BENCH_CLOSES = [50, 52, 49.4, 54.34, 51.0];
+const RISK_BENCH_RETURNS = dailyReturns(RISK_BENCH_CLOSES);
+
+describe("risk metric primitives (R15-CODE-PLATFORM-023)", () => {
+  it("dailyReturns: simple day-over-day pct change", () => {
+    expect(RISK_RETURNS).toHaveLength(4);
+    expect(RISK_RETURNS[0]).toBeCloseTo(0.1, 9);
+    expect(RISK_RETURNS[1]).toBeCloseTo(-0.1, 9);
+    expect(RISK_RETURNS[2]).toBeCloseTo(0.1, 9);
+    expect(RISK_RETURNS[3]).toBeCloseTo(-0.08172635445362719, 9);
+  });
+
+  it("annualizedVolatility: sample stdev x sqrt(252)", () => {
+    expect(annualizedVolatility(RISK_RETURNS)).toBeCloseTo(1.7532940713065994, 9);
+  });
+
+  it("sharpeRatio: rf = 0, annualized mean / annualized vol", () => {
+    expect(sharpeRatio(RISK_RETURNS)).toBeCloseTo(0.6566152753619742, 9);
+  });
+
+  it("sortinoRatio: MAR = 0, downside deviation over ALL observations", () => {
+    expect(sortinoRatio(RISK_RETURNS)).toBeCloseTo(1.123072781986583, 9);
+  });
+
+  it("maxDrawdown: peak-to-trough on the implied equity curve", () => {
+    expect(maxDrawdown(RISK_RETURNS)).toBeCloseTo(-0.09999999999999998, 9);
+  });
+
+  it("calmarRatio: annualized return / |max drawdown|", () => {
+    expect(calmarRatio(RISK_RETURNS)).toBeCloseTo(11.512396694214997, 9);
+  });
+
+  it("historicalVaR95: linear-interpolated 5th percentile, loss magnitude", () => {
+    expect(historicalVaR95(RISK_RETURNS)).toBeCloseTo(0.09725895316804406, 9);
+  });
+
+  it("correlation + beta: date-aligned pairwise stats", () => {
+    expect(correlation(RISK_RETURNS, RISK_BENCH_RETURNS)).toBeCloseTo(0.9394691703263957, 9);
+    expect(beta(RISK_RETURNS, RISK_BENCH_RETURNS)).toBeCloseTo(1.3518414354132757, 9);
+  });
+
+  it("a flat/zero-length series never divides by zero", () => {
+    expect(sharpeRatio([])).toBe(0);
+    expect(sortinoRatio([0, 0, 0])).toBe(0);
+    expect(calmarRatio([0, 0, 0])).toBe(0);
+    expect(beta([0.01, -0.01], [0, 0])).toBe(0);
+    expect(correlation([0.01, -0.01], [0, 0])).toBe(0);
+  });
+});
+
+/** Build a date-ascending closesByDate map from a start date + closes. */
+function pricesByDate(startISO: string, closes: readonly number[]): Map<string, number> {
+  const map = new Map<string, number>();
+  const start = new Date(startISO);
+  closes.forEach((close, i) => {
+    const d = new Date(start);
+    d.setUTCDate(d.getUTCDate() + i);
+    map.set(d.toISOString().slice(0, 10), close);
+  });
+  return map;
+}
+
+function longSeries(days: number, seed: number): number[] {
+  // A deterministic pseudo-random-looking walk — enough variance that
+  // stdev/beta/correlation are well-defined, never a flat line.
+  const closes = [100];
+  let x = seed;
+  for (let i = 1; i < days; i++) {
+    x = (x * 1103515245 + 12345) % 2147483648;
+    const pct = (x / 2147483648 - 0.5) * 0.04; // +/-2%
+    closes.push(closes[i - 1] * (1 + pct));
+  }
+  return closes;
+}
+
+describe("computeCurrencyRisk (R15-CODE-PLATFORM-023)", () => {
+  it("is null under MIN_RISK_HISTORY_DAYS overlapping days", () => {
+    const holdings: HoldingPriceHistory[] = [
+      { symbol: "AAPL", closesByDate: pricesByDate("2025-01-01", RISK_CLOSES), weight: 1 },
+    ];
+    expect(computeCurrencyRisk("USD", holdings, null)).toBeNull();
+    expect(RISK_CLOSES.length).toBeLessThan(MIN_RISK_HISTORY_DAYS + 1);
+  });
+
+  it("is null for an empty holdings list", () => {
+    expect(computeCurrencyRisk("USD", [], null)).toBeNull();
+  });
+
+  it("computes per-bucket metrics once >= MIN_RISK_HISTORY_DAYS days overlap, never a fabricated cross-currency blend", () => {
+    const usdHoldings: HoldingPriceHistory[] = [
+      { symbol: "AAPL", closesByDate: pricesByDate("2025-01-01", longSeries(35, 7)), weight: 0.6 },
+      { symbol: "MSFT", closesByDate: pricesByDate("2025-01-01", longSeries(35, 13)), weight: 0.4 },
+    ];
+    const inrHoldings: HoldingPriceHistory[] = [
+      { symbol: "TCS", closesByDate: pricesByDate("2025-01-01", longSeries(35, 21)), weight: 1 },
+    ];
+
+    const usd = computeCurrencyRisk(
+      "USD",
+      usdHoldings,
+      pricesByDate("2025-01-01", longSeries(35, 29)),
+    );
+    const inr = computeCurrencyRisk(
+      "INR",
+      inrHoldings,
+      pricesByDate("2025-01-01", longSeries(35, 31)),
+    );
+
+    expect(usd).not.toBeNull();
+    expect(inr).not.toBeNull();
+    expect(usd!.currency).toBe("USD");
+    expect(inr!.currency).toBe("INR");
+    expect(usd!.days).toBeGreaterThanOrEqual(MIN_RISK_HISTORY_DAYS);
+    expect(usd!.correlation.symbols).toEqual(["AAPL", "MSFT"]);
+    // Diagonal of a correlation matrix is always 1 (a series with itself).
+    expect(usd!.correlation.matrix[0][0]).toBeCloseTo(1, 9);
+    expect(usd!.correlation.matrix[1][1]).toBeCloseTo(1, 9);
+    expect(usd!.beta).not.toBeNull();
+    expect(Number.isFinite(usd!.sharpeRatio)).toBe(true);
+    expect(Number.isFinite(usd!.valueAtRisk95)).toBe(true);
+    // The two buckets are independent computations — no shared/blended state.
+    expect(usd!.correlation.symbols).not.toEqual(inr!.correlation.symbols);
+  });
+
+  it("beta is null when the benchmark's history doesn't cover enough overlapping days", () => {
+    const holdings: HoldingPriceHistory[] = [
+      { symbol: "AAPL", closesByDate: pricesByDate("2025-01-01", longSeries(35, 7)), weight: 1 },
+    ];
+    const sparseBenchmark = pricesByDate("2025-01-01", longSeries(10, 29)); // only 10 days
+    const result = computeCurrencyRisk("USD", holdings, sparseBenchmark);
+    expect(result).not.toBeNull();
+    expect(result!.beta).toBeNull();
   });
 });
