@@ -128,21 +128,30 @@ def test_empty_primary_but_fallback_results_serve() -> None:
 # --- breaker integration --------------------------------------------------------
 
 
-def test_two_failures_trip_breaker_and_next_run_skips_engine() -> None:
-    ddg = _Engine([SearchError("down"), SearchError("down")])
-    brave = _Engine(
-        [
-            _response("brave", [_result("https://b.com/1")]),
-            _response("brave", [_result("https://b.com/2")]),
-        ]
-    )
+def test_two_failed_searches_trip_breaker_and_next_run_skips_engine() -> None:
+    down = SearchError("down")
+    ddg = _Engine([down, down, down, down])
+    brave = _Engine([_response("brave", [_result(f"https://b.com/{i}")]) for i in range(3)])
     backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
 
-    _run(backend.search("q1"))  # spends ddg's 2 attempts → breaker OPEN
+    _run(backend.search("q1"))  # one failed search = one strike, still closed
+    assert breaker_for("ddg").state == "closed"
+    reset_queue()  # keep the pacing wait from eating q2's engine deadline
+    _run(backend.search("q2"))  # the second failed search → breaker OPEN
     assert breaker_for("ddg").state == "open"
 
-    _run(backend.search("q2"))  # OPEN breaker → ddg skipped without a call
-    assert ddg.calls == 2  # unchanged — no third network attempt
+    _run(backend.search("q3"))  # OPEN breaker → ddg skipped without a call
+    assert ddg.calls == 4  # unchanged — no fifth network attempt
+
+
+def test_one_search_failing_every_attempt_leaves_the_breaker_closed() -> None:
+    """R15-RESEARCH-038: the retries of ONE search count one failure, so a single
+    bad search no longer benches DuckDuckGo for the 45 s cooldown."""
+    ddg = _Engine([SearchError("down"), SearchError("down")])
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    _run(_backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])}).search("q"))
+    assert ddg.calls == 2
+    assert breaker_for("ddg").state == "closed"
 
 
 def test_open_breaker_engine_is_skipped_without_network_call() -> None:

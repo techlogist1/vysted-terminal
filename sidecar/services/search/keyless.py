@@ -7,7 +7,7 @@ Brave HTML, Mojeek HTML — with the hardening the single-engine floor lacked:
   * **Provider-chain rotation**: primary → fallbacks, in order. An engine
     whose circuit breaker is OPEN is SKIPPED without a network round-trip.
   * **Per-engine circuit breakers** (:mod:`services.search.breaker`): two
-    consecutive failures bench an engine for the cooldown; a half-open probe
+    consecutive failed searches bench an engine for the cooldown; a half-open probe
     re-admits it.
   * **Pacing + bounded retry** (:mod:`services.search.pacing`): every hit
     waits for the engine's process-global min-interval slot; a fast failure
@@ -216,8 +216,8 @@ class KeylessSearchBackend(SearchBackend):
                 engine_notes[engine_id] = "no results"
                 continue
 
-            # SearchError (already counted against the breaker per attempt) —
-            # note the typed reason and rotate.
+            # SearchError (already counted against the breaker, once) — note
+            # the typed reason and rotate.
             if outcome.reason == SEARCH_REASON_RATE_LIMITED:
                 any_rate_limited = True
                 engine_notes[engine_id] = "rate-limiting"
@@ -251,13 +251,12 @@ class KeylessSearchBackend(SearchBackend):
 
         Returns the response on success, or the LAST :class:`SearchError` after
         the retry budget — never raises (the caller folds the error into the
-        rotation accounting). EVERY failed attempt is counted against the
-        breaker, so two consecutive misses inside one search bench the engine
-        (fail_threshold=2); a benched-mid-retry engine stops being hammered
-        immediately (and a failed HALF_OPEN probe never gets a second attempt).
-        The whole engine turn runs under :data:`ENGINE_DEADLINE_SECS`: an
-        engine still silent at the deadline is abandoned (one failure, no
-        second attempt) and the chain rotates.
+        rotation accounting). A failed engine turn counts ONE failure against
+        the breaker however many attempts it spent, so the breaker benches an
+        engine after ``fail_threshold`` bad SEARCHES, not one search's retries;
+        a failed HALF_OPEN probe gets no second attempt. The whole engine turn
+        runs under :data:`ENGINE_DEADLINE_SECS`: an engine still silent at the
+        deadline is abandoned (no second attempt) and the chain rotates.
         """
         last_error = SearchError(f"{engine_id} produced no attempt")
         try:
@@ -270,17 +269,16 @@ class KeylessSearchBackend(SearchBackend):
                         last_error = exc
                     except Exception as exc:  # noqa: BLE001 — any engine crash is a soft miss
                         last_error = SearchError(f"{engine_id} engine failed: {exc}")
-                    breaker.record_failure()
                     if attempt + 1 < ATTEMPTS_PER_ENGINE:
-                        if breaker.state == "open":
-                            break  # benched mid-retry — rotate instead of hammering
+                        if breaker.state != "closed":
+                            break  # a failed probe, or benched meanwhile — rotate
                         await self._sleep(backoff_delay(attempt))
         except TimeoutError:
-            breaker.record_failure()
-            return SearchError(
+            last_error = SearchError(
                 f"{engine_id} did not answer within {ENGINE_DEADLINE_SECS:g}s",
                 reason=SEARCH_REASON_UNREACHABLE,
             )
+        breaker.record_failure()
         return last_error
 
 
