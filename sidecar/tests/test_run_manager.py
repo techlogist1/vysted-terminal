@@ -234,14 +234,15 @@ async def test_cancel_marks_cancelled(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch(monkeypatch, _SlowProvider())
     run_id = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk-test")
     await asyncio.sleep(0)  # let the task start and hit the sleep
-    assert run_manager.cancel_run(run_id) is True
+    run_manager.cancel_run(run_id)
     row = await _await_terminal(run_id)
     assert row is not None
     assert row.status == "cancelled"
 
 
-def test_cancel_unknown_returns_false(monkeypatch: pytest.MonkeyPatch) -> None:
-    assert run_manager.cancel_run("nope") is False
+def test_cancel_unknown_raises_not_found() -> None:
+    with pytest.raises(run_manager.RunNotFound):
+        run_manager.cancel_run("nope")
 
 
 def test_launch_unknown_agent_raises() -> None:
@@ -256,20 +257,26 @@ def test_launch_unknown_agent_raises() -> None:
 
 @pytest.mark.asyncio
 async def test_pause_answer_resumes_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch(monkeypatch, _OneShotProvider())
-    run_id = run_manager.launch_run(agent_id="copilot", prompt="research NVDA", api_key="sk-test")
-    await _await_terminal(run_id)  # run completes once, leaving a checkpoint
+    class _SlowProvider:
+        async def stream_chat(self, **_kwargs: Any) -> AsyncIterator[Any]:
+            await asyncio.sleep(5)
+            yield LLMDoneEvent()
 
-    # Operator pauses the run with a question.
-    assert run_manager.pause_run(run_id, "Approve buying NVDA?") is True
+    _patch(monkeypatch, _SlowProvider())
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="research NVDA", api_key="sk-test")
+    await asyncio.sleep(0)  # the run is live, mid-round
+
+    # The RUNNING run is paused with a question (a finished run cannot be).
+    run_manager.pause_run(run_id, "Which exchange?")
+    await _await_terminal(run_id)
     paused = runs_store.get_run(run_id)
     assert paused is not None
     assert paused.status == "paused"
-    assert paused.question == "Approve buying NVDA?"
+    assert paused.question == "Which exchange?"
 
-    # Human answers → run resumes from the checkpoint and completes again.
+    # Human answers → run resumes from the checkpoint and completes.
     _patch(monkeypatch, _OneShotProvider())
-    assert run_manager.answer_run(run_id, "Yes, proceed", api_key="sk-test") is True
+    run_manager.answer_run(run_id, "NSE", api_key="sk-test")
     row = await _await_terminal(run_id)
     assert row is not None
     assert row.status == "done"
@@ -289,19 +296,19 @@ async def test_resume_after_budget_breach_with_fresh_budget(
 
     # Resume with a one-shot provider so it can complete under fresh ceilings.
     _patch(monkeypatch, _OneShotProvider())
-    assert run_manager.resume_run(run_id, budget=RunBudget(max_tokens=1_000_000)) is True
+    run_manager.resume_run(run_id, budget=RunBudget(max_tokens=1_000_000))
     resumed = await _await_terminal(run_id)
     assert resumed is not None
     assert resumed.status == "done"
 
 
 def test_answer_unknown_run_raises() -> None:
-    with pytest.raises(run_manager.RunManagerError):
+    with pytest.raises(run_manager.RunNotFound):
         run_manager.answer_run("ghost", "hi")
 
 
 def test_resume_unknown_run_raises() -> None:
-    with pytest.raises(run_manager.RunManagerError):
+    with pytest.raises(run_manager.RunNotFound):
         run_manager.resume_run("ghost")
 
 
@@ -320,13 +327,15 @@ async def test_resume_rethreads_persisted_depth_and_region(
     resume, and assert the spawned driver sees both again."""
     import config
 
-    _patch(monkeypatch, _OneShotProvider())
+    # The launch breaches its ceiling so it ends resumable (a done run is final).
+    _patch(monkeypatch, _LoopingProvider(per_round=100_000))
     region_token = config.set_request_region("IN")
     try:
         run_id = run_manager.launch_run(
             agent_id="copilot",
             prompt="research NVDA deeply",
             api_key="sk-test",
+            budget=RunBudget(max_tokens=1000),
             options={"research_depth": "deep"},
         )
     finally:
@@ -351,7 +360,7 @@ async def test_resume_rethreads_persisted_depth_and_region(
         return _gen()
 
     monkeypatch.setattr(agent_runtime, "invoke_agent", _capture_invoke)
-    assert run_manager.resume_run(run_id, api_key="sk-test") is True
+    run_manager.resume_run(run_id, api_key="sk-test")
     row = await _await_terminal(run_id)
     assert row is not None and row.status == "done"
     assert captured["options"]["research_depth"] == "deep"

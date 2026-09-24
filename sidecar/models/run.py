@@ -25,15 +25,16 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .llm import LLMProviderId
 
-#: A run's lifecycle state.
+#: A run's lifecycle state (legal changes: ``runs_store.TRANSITIONS``).
+#: - ``planned``   — a compound task's plan waits for the user's Start/Discard.
 #: - ``running``   — the detached task is executing the agent loop.
-#: - ``paused``    — a human-in-the-loop question is outstanding (FR-028);
-#:                   the task is suspended on a future awaiting ``answer_run``.
+#: - ``paused``    — a human-in-the-loop question is outstanding (FR-028); no
+#:                   task runs until ``answer_run`` resumes from the checkpoint.
 #: - ``done``      — the agent completed naturally.
 #: - ``error``     — a BudgetGuard ceiling was breached (SC-008) or the agent
 #:                   raised; ``detail`` carries the stated reason.
 #: - ``cancelled`` — the user cancelled the run (``cancel_run``).
-RunStatus = Literal["running", "paused", "done", "error", "cancelled"]
+RunStatus = Literal["planned", "running", "paused", "done", "error", "cancelled"]
 
 
 class RunBudget(BaseModel):

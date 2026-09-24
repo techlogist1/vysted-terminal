@@ -18,7 +18,8 @@ Columns mirror the run lifecycle:
 - ``agent_id`` / ``agent_name`` — which agent the run drives.
 - ``mode`` — always ``"delegate"`` for a background run (kept as a column so a
   future foreground-runs surface can reuse the table).
-- ``status`` — ``running | paused | done | error | cancelled``.
+- ``status`` — ``planned | running | paused | done | error | cancelled``; every
+  change goes through :data:`TRANSITIONS` (R15-CODE-AGENT-010).
 - ``budget_json`` — the :class:`~models.run.RunBudget` ceilings (JSON).
 - ``cost_json`` — the :class:`~models.run.RunCost` running total (JSON).
 - ``detail`` — the abort/error reason or completion note (the breach reason
@@ -55,6 +56,27 @@ from config import get_data_dir
 from models.run import RunBudget, RunCost, RunDetail, RunStatus, RunSummary
 
 DB_FILENAME = "delegate_runs.db"
+
+#: The run lifecycle (R15-CODE-AGENT-010): each status maps to the statuses it
+#: may be entered FROM. ``done`` is terminal; ``error`` and ``cancelled`` are
+#: left only by a resume; ``planned`` and ``paused`` wait on the user.
+TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
+    "planned": frozenset({"running"}),
+    "running": frozenset({"planned", "paused", "error", "cancelled"}),
+    "paused": frozenset({"running"}),
+    "done": frozenset({"running"}),
+    "error": frozenset({"running"}),
+    "cancelled": frozenset({"planned", "running", "paused"}),
+}
+
+
+class RunNotFound(LookupError):
+    """No run with this id exists (404)."""
+
+
+class RunStateError(RuntimeError):
+    """The run exists but its status does not allow this change (409)."""
+
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -266,6 +288,7 @@ def update_run(
     run_id: str,
     *,
     status: RunStatus | None = None,
+    from_status: frozenset[RunStatus] | None = None,
     cost: RunCost | dict[str, Any] | None = None,
     detail: str | None = None,
     question: str | None = None,
@@ -273,17 +296,25 @@ def update_run(
     output: dict[str, Any] | None = None,
     clear_question: bool = False,
     now: int | None = None,
-) -> RunSummary | None:
-    """Patch the mutable fields on a run; return the updated row or ``None``.
+) -> RunDetail:
+    """Patch the mutable fields on a run and return the updated row.
 
     Only the explicitly-provided fields change — a ``None`` argument leaves the
     column untouched (so a cost update does not wipe a stored ``detail``). The
     one exception is ``question``: pass ``clear_question=True`` to null it out
     (resolving a human-in-the-loop pause), since ``None`` means "leave as-is".
+
+    A ``status`` change is applied only from a status :data:`TRANSITIONS`
+    allows (narrowed further by ``from_status``), as one conditional UPDATE, so
+    two racing writers cannot both win. Raises :class:`RunNotFound` for an
+    unknown id and :class:`RunStateError` for a disallowed change; the row is
+    then left untouched.
     """
     sets: list[str] = []
     params: list[Any] = []
+    allowed: frozenset[RunStatus] = frozenset()
     if status is not None:
+        allowed = TRANSITIONS[status] & (from_status or TRANSITIONS[status])
         sets.append("status = ?")
         params.append(status)
     if cost is not None:
@@ -308,15 +339,24 @@ def update_run(
     sets.append("updated_at = ?")
     params.append(now if now is not None else int(time.time()))
     params.append(run_id)
+    where = "id = ?"
+    if status is not None:
+        where += f" AND status IN ({', '.join('?' for _ in allowed)})"
+        params.extend(sorted(allowed))
 
     with _connect() as conn:
         cursor = conn.execute(
-            f"UPDATE runs SET {', '.join(sets)} WHERE id = ?",  # noqa: S608 — columns are literals
+            f"UPDATE runs SET {', '.join(sets)} WHERE {where}",  # noqa: S608 — literals only
             tuple(params),
         )
         if cursor.rowcount == 0:
-            return None
+            row = conn.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
+            if row is None:
+                raise RunNotFound(f"unknown run: {run_id!r}")
+            raise RunStateError(f"run {run_id!r} is {row['status']}; it cannot become {status}")
     stored = get_run(run_id)
+    if stored is None:  # pragma: no cover - the UPDATE just matched the row
+        raise RunNotFound(f"unknown run: {run_id!r}")
     return stored
 
 

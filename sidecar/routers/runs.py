@@ -25,6 +25,8 @@ database and never echoed back in any response (asserted in
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, status
@@ -33,6 +35,7 @@ from pydantic import BaseModel
 from models.run import RunAnswerRequest, RunLaunchRequest
 from services import run_manager, runs_store
 from services.run_manager import RunManagerError
+from services.runs_store import RunNotFound, RunStateError
 
 logger = logging.getLogger(__name__)
 
@@ -105,31 +108,34 @@ def get_run(run_id: str) -> dict[str, Any]:
 
 @router.post("/runs/{run_id}/cancel")
 async def cancel_run(run_id: str) -> dict[str, bool]:
-    """Cancel a run."""
-    if not run_manager.cancel_run(run_id):
-        raise HTTPException(status_code=404, detail=f"unknown run: {run_id!r}")
+    """Cancel a live (planned, running or paused) run."""
+    with _run_errors():
+        run_manager.cancel_run(run_id)
     return {"cancelled": True}
 
 
 @router.post("/runs/{run_id}/answer")
 async def answer_run(run_id: str, payload: RunAnswerRequest) -> dict[str, bool]:
     """Deliver a human-in-the-loop reply and resume the run (FR-028)."""
-    try:
-        resumed = run_manager.answer_run(run_id, payload.answer)
-    except RunManagerError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    if not resumed:
-        raise HTTPException(status_code=409, detail=f"run {run_id!r} is not awaiting an answer")
+    with _run_errors():
+        run_manager.answer_run(run_id, payload.answer)
     return {"resumed": True}
 
 
 @router.post("/runs/{run_id}/resume")
 async def resume_run(run_id: str) -> dict[str, bool]:
-    """Re-enter an aborted run from its checkpoint (FR-028)."""
+    """Re-enter an errored or cancelled run from its checkpoint (FR-028)."""
+    with _run_errors():
+        run_manager.resume_run(run_id)
+    return {"resumed": True}
+
+
+@contextmanager
+def _run_errors() -> Iterator[None]:
+    """Map the store's typed run errors: unknown run 404, illegal transition 409."""
     try:
-        resumed = run_manager.resume_run(run_id)
-    except RunManagerError as exc:
-        # "already running" is a conflict; "unknown run" / "no checkpoint" is 404.
-        code = 409 if "already running" in str(exc) else 404
-        raise HTTPException(status_code=code, detail=str(exc)) from exc
-    return {"resumed": resumed}
+        yield
+    except RunNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RunStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc

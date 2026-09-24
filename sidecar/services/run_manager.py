@@ -48,10 +48,11 @@ from typing import Any
 import config
 from models.agent import AgentContextSnapshot
 from models.llm import LLMMessage, LLMProviderId, LLMUsage
-from models.run import RunBudget, RunCost
+from models.run import RunBudget, RunCost, RunStatus
 from services import agent_runtime, runs_store
 from services.agent_tools.schemas import HOST_ACTION_TOOLS
 from services.budget_guard import BudgetGuard
+from services.runs_store import RunNotFound, RunStateError
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,11 @@ _TASKS: dict[str, asyncio.Task[None]] = {}
 
 
 class RunManagerError(RuntimeError):
-    """Raised on an invalid run-control operation (unknown run, bad state)."""
+    """Raised when a run cannot be launched (unknown agent).
+
+    Run-control errors are the store's typed :class:`RunNotFound` (404) and
+    :class:`RunStateError` (409).
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -320,38 +325,33 @@ def launch_run(
     return run_id
 
 
-def cancel_run(run_id: str) -> bool:
-    """Cancel a run's task and mark it ``cancelled``; return ``True`` if known.
+def cancel_run(run_id: str) -> None:
+    """Mark a live run ``cancelled`` and cancel its task.
 
-    Marks the store ``cancelled`` first (so the terminal state is durable even
-    if the task is already gone), then cancels the in-flight task.
+    Marks the store first (so the terminal state is durable even if the task
+    is already gone), then cancels the in-flight task. A finished run is never
+    rewritten: the store raises :class:`RunStateError`, an unknown id
+    :class:`RunNotFound`.
     """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        return False
     runs_store.update_run(run_id, status="cancelled", detail="cancelled by user")
     task = _TASKS.get(run_id)
     if task is not None and not task.done():
         task.cancel()
-    return True
 
 
-def pause_run(run_id: str, question: str) -> bool:
-    """Pause a run for a human-in-the-loop question (FR-028).
+def pause_run(run_id: str, question: str) -> None:
+    """Pause a RUNNING run for a human-in-the-loop question (FR-028).
 
-    Cancels the in-flight task (checkpointing the transcript on the way out) and
-    flips the run to ``paused`` with the question, so the foreground view shows
-    "needs input". The human answers via :func:`answer_run`, which resumes the
-    run from its checkpoint. Returns ``True`` if the run exists.
+    Flips the run to ``paused`` with the question (the store refuses any other
+    starting status), then cancels the in-flight task, which checkpoints the
+    transcript on the way out. The human answers via :func:`answer_run`.
     """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        return False
+    runs_store.update_run(
+        run_id, status="paused", from_status=frozenset({"running"}), question=question
+    )
     task = _TASKS.get(run_id)
     if task is not None and not task.done():
         task.cancel()
-    runs_store.update_run(run_id, status="paused", question=question)
-    return True
 
 
 def answer_run(
@@ -360,25 +360,14 @@ def answer_run(
     *,
     api_key: str | None = None,
     budget: RunBudget | None = None,
-) -> bool:
+) -> None:
     """Deliver a human reply to a paused run and resume it (FR-028).
 
     The answer is appended to the run's checkpoint as a new user turn, then the
-    agent loop is re-entered from that checkpoint — a genuine human-in-the-loop
-    continuation. Returns ``True`` on resume; raises :class:`RunManagerError` if
-    the run is unknown, and returns ``False`` if the run is not paused.
+    agent loop is re-entered from that checkpoint. Raises :class:`RunNotFound`
+    for an unknown run and :class:`RunStateError` when it is not paused.
     """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        raise RunManagerError(f"unknown run: {run_id!r}")
-    if run.status != "paused":
-        return False
-    # Append the human's answer to the checkpoint as a fresh user turn so the
-    # resumed loop continues the conversation with it.
-    checkpoint = runs_store.get_checkpoint(run_id)
-    checkpoint.append({"role": "user", "content": answer})
-    runs_store.update_run(run_id, checkpoint=checkpoint)
-    return resume_run(run_id, api_key=api_key, budget=budget)
+    _resume(run_id, frozenset({"paused"}), answer=answer, api_key=api_key, budget=budget)
 
 
 def resume_run(
@@ -386,24 +375,36 @@ def resume_run(
     *,
     api_key: str | None = None,
     budget: RunBudget | None = None,
-) -> bool:
-    """Re-enter a non-running run from its persisted checkpoint (FR-028).
+) -> None:
+    """Re-enter an ``error`` or ``cancelled`` run from its checkpoint (FR-028).
 
-    Used both for budget-breach recovery (status ``error`` → relaunch with fresh
-    ceilings) and as the resume half of the pause/answer handshake. The original
-    prompt is recovered from the checkpoint's first user turn; the remaining
-    user/assistant turns are replayed as bounded history so the resumed loop has
-    context. Returns ``True`` on relaunch; raises :class:`RunManagerError` if the
-    run is unknown, already running, or has no checkpoint.
+    Budget-breach recovery: relaunch with fresh ceilings. Raises
+    :class:`RunNotFound` for an unknown run and :class:`RunStateError` for any
+    other status (a finished run is never re-executed), a still-live task or a
+    missing checkpoint.
     """
+    _resume(run_id, frozenset({"error", "cancelled"}), api_key=api_key, budget=budget)
+
+
+def _resume(
+    run_id: str,
+    from_status: frozenset[RunStatus],
+    *,
+    answer: str | None = None,
+    api_key: str | None,
+    budget: RunBudget | None,
+) -> None:
+    """Move a run back to ``running`` from ``from_status`` and respawn its task."""
     run = runs_store.get_run(run_id)
     if run is None:
-        raise RunManagerError(f"unknown run: {run_id!r}")
+        raise RunNotFound(f"unknown run: {run_id!r}")
     existing = _TASKS.get(run_id)
     if existing is not None and not existing.done():
-        raise RunManagerError(f"run {run_id!r} is already running")
+        raise RunStateError(f"run {run_id!r} is still running")
 
     checkpoint = runs_store.get_checkpoint(run_id)
+    if answer is not None:
+        checkpoint.append({"role": "user", "content": answer})
     prompt = ""
     history: list[LLMMessage] = []
     for msg in checkpoint:
@@ -419,21 +420,21 @@ def resume_run(
         if role in ("user", "assistant"):
             history.append(LLMMessage(role=role, content=content))
     if not prompt:
-        raise RunManagerError(f"run {run_id!r} has no checkpoint to resume from")
+        raise RunStateError(f"run {run_id!r} has no checkpoint to resume from")
 
     resume_budget = budget or run.budget
     # R10: re-merge the persisted non-secret options (research_depth, region)
-    # so the depth ContextVar floor / locale re-thread into the resumed loop —
-    # previously a resume rebuilt options bare and the floor silently reset to
-    # NORMAL mid-conversation (E2's durable-run tail).
+    # so the depth ContextVar floor / locale re-thread into the resumed loop.
     options: dict[str, Any] = dict(runs_store.get_options(run_id))
     if history:
         options["history"] = [m.model_dump() for m in history]
     runs_store.update_run(
         run_id,
         status="running",
+        from_status=from_status,
         detail="resumed",
         clear_question=True,
+        checkpoint=checkpoint,
         cost=RunCost(),  # fresh ceilings → fresh running total
     )
     _spawn(
@@ -448,7 +449,6 @@ def resume_run(
         options=options,
         resume_messages=history,
     )
-    return True
 
 
 def active_run_ids() -> list[str]:
