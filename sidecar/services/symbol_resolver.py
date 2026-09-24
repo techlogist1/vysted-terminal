@@ -584,14 +584,31 @@ def is_us_symbol(symbol: str) -> bool:
 
 
 def is_bse_symbol(symbol: str) -> bool:
-    """True if the bare form of ``symbol`` is a known BSE equity (incl. micro-caps)."""
-    return strip_exchange_suffix(symbol) in _bse_master()
+    """True if the bare form of ``symbol`` is a known BSE equity (incl. micro-caps),
+    by ticker OR by its bare numeric scrip code (the header endpoint's native id;
+    same 5-6-digit band :func:`resolve` binds at band 1b)."""
+    bare = strip_exchange_suffix(symbol)
+    if bare.isdigit() and 5 <= len(bare) <= 6:
+        return bare in _bse_scrip_index()
+    return bare in _bse_master()
 
 
 def bse_scrip_code(symbol: str) -> str | None:
-    """Return the numeric BSE scrip code for ``symbol`` (the header endpoint key)."""
-    entry = _bse_master().get(strip_exchange_suffix(symbol))
+    """Return the numeric BSE scrip code for ``symbol`` (ticker or bare code
+    itself; the header endpoint key)."""
+    bare = strip_exchange_suffix(symbol)
+    if bare.isdigit() and 5 <= len(bare) <= 6:
+        return bare if bare in _bse_scrip_index() else None
+    entry = _bse_master().get(bare)
     return entry[2] if entry and entry[2] else None
+
+
+def bse_symbol_for_code(code: str) -> str | None:
+    """Return the canonical BSE ticker for a bare numeric scrip ``code``, or
+    ``None`` when the code is unknown — the resolver-side counterpart of
+    :func:`bse_scrip_code`, used by data-route callers to canonicalise a
+    code-addressed request (:func:`services.bse_provider._require_bse`)."""
+    return _bse_scrip_index().get(code)
 
 
 def nse_listing_date(symbol: str) -> str | None:
@@ -1488,6 +1505,7 @@ __all__ = [
     "Resolution",
     "autocomplete",
     "bse_scrip_code",
+    "bse_symbol_for_code",
     "dual_listed_bse_code",
     "instrument_payload",
     "is_bse_symbol",

@@ -120,6 +120,24 @@ def test_bare_bse_scrip_code_resolves(monkeypatch) -> None:  # noqa: ANN001
     assert r_bo.best is not None and r_bo.best.symbol == "BOMOXY-B1"
 
 
+def test_is_bse_symbol_and_scrip_code_accept_a_bare_code() -> None:
+    """R15-LEAD-028: ``is_bse_symbol``/``bse_scrip_code`` (the hot-path helpers
+    ``bse_provider._require_bse`` gates on) used to only key ``_bse_master()`` by
+    ticker, so a data route addressed by scrip code alone (never through
+    ``resolve()``) 404d even though the code was a known BSE listing. Both a
+    ticker and its bare code now resolve identically, for a SECOND listing than
+    the resolve()-path test above (KSE, 519421) so the fix isn't pinned to one row."""
+    assert symbol_resolver.is_bse_symbol("KSE")
+    assert symbol_resolver.is_bse_symbol("519421")
+    assert symbol_resolver.bse_scrip_code("KSE") == "519421"
+    assert symbol_resolver.bse_scrip_code("519421") == "519421"
+    assert symbol_resolver.bse_symbol_for_code("519421") == "KSE"
+    # An unknown code is a miss, not a false bind.
+    assert not symbol_resolver.is_bse_symbol("999999")
+    assert symbol_resolver.bse_scrip_code("999999") is None
+    assert symbol_resolver.bse_symbol_for_code("999999") is None
+
+
 def test_non_scrip_numeric_query_does_not_false_bind(monkeypatch) -> None:  # noqa: ANN001
     """A numeric query that matches no BSE scrip code stays unresolved — the lane
     binds only an EXACT code hit, never a nearest guess."""

@@ -452,14 +452,22 @@ def _write_cache(cache: str, path: str, text: str) -> None:
 
 
 def _require_bse(symbol: str) -> str:
-    """Return the bare BSE symbol, or raise so the registry falls through fast.
+    """Return the CANONICAL bare BSE ticker, or raise so the registry falls
+    through fast.
 
-    A non-BSE ticker is rejected without a network call — the registry then
-    resolves it via the next provider.
+    A non-BSE ticker (or code) is rejected without a network call — the
+    registry then resolves it via the next provider. A bare numeric scrip
+    code (e.g. the ``506597`` in ``506597.BO``) is mapped to its ticker so
+    every BSE data route (quote/history/shareholding) accepts either form and
+    always keys/labels its result by the one canonical ticker.
     """
     bare = locale.strip_exchange_suffix(symbol)
     if not symbol_resolver.is_bse_symbol(bare):
         raise ProviderError(f"bse: {symbol!r} is not a known BSE instrument")
+    if bare.isdigit():
+        canonical = symbol_resolver.bse_symbol_for_code(bare)
+        if canonical:
+            return canonical
     return bare
 
 
