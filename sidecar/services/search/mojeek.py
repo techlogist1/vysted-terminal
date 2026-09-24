@@ -26,6 +26,7 @@ from .base import (
     SearchResponse,
     SearchResult,
     normalize_results_to_citations,
+    result_limit,
 )
 from .transport import TransportError, httpx_fetch
 
@@ -40,7 +41,6 @@ _RATE_LIMIT_STATUSES = frozenset({403, 429})
 #: Mojeek region bias (``arc`` param) by Vysted region.
 _REGION_ARC = {"US": "us", "IN": "in"}
 
-_DEFAULT_MAX = 8
 
 _SKIP_HOSTS = ("mojeek.com",)
 
@@ -100,7 +100,7 @@ class MojeekSearchBackend(SearchBackend):
 
     async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
         opts = options or {}
-        limit = _coerce_limit(opts) or _DEFAULT_MAX
+        limit = result_limit(opts)
         params: dict[str, str] = {"q": query}
         arc = _REGION_ARC.get((self.region or "").strip().upper())
         if arc:
@@ -127,18 +127,6 @@ class MojeekSearchBackend(SearchBackend):
             backend=BACKEND_ID,
             query=query,
         )
-
-
-def _coerce_limit(opts: dict) -> int | None:
-    """Read an optional ``maxResults``/``numResults`` cap from ``options``."""
-    raw = opts.get("maxResults", opts.get("numResults"))
-    if raw is None:
-        return None
-    try:
-        limit = int(raw)
-    except (TypeError, ValueError):
-        return None
-    return limit if limit > 0 else None
 
 
 __all__ = ["BACKEND_ID", "MojeekSearchBackend"]

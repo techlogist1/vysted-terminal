@@ -135,6 +135,19 @@ class SearchBackend(Protocol):
 DEFAULT_CITATION_LIMIT = 8
 
 
+def result_limit(options: dict | None) -> int:
+    """The caller's result cap: ``maxResults`` (or ``numResults``, the key the
+    ``web_search`` tool sends) when it is a positive integer, else
+    :data:`DEFAULT_CITATION_LIMIT`. Every backend caps results AND citations
+    with this one rule."""
+    opts = options or {}
+    try:
+        limit = int(opts.get("maxResults", opts.get("numResults")))
+    except (TypeError, ValueError):
+        return DEFAULT_CITATION_LIMIT
+    return limit if limit > 0 else DEFAULT_CITATION_LIMIT
+
+
 def normalize_results_to_citations(
     results: list[SearchResult], *, limit: int = DEFAULT_CITATION_LIMIT
 ) -> list[Citation]:
@@ -211,4 +224,5 @@ __all__ = [
     "bare_host",
     "locale_domains",
     "normalize_results_to_citations",
+    "result_limit",
 ]

@@ -39,6 +39,7 @@ from .base import (
     SearchResponse,
     SearchResult,
     normalize_results_to_citations,
+    result_limit,
 )
 
 #: Default SearXNG location — the conventional local docker/host port.
@@ -168,7 +169,8 @@ class SearxngBackend(SearchBackend):
         """Resolve ``query`` against the local SearXNG instance.
 
         ``options`` is optional: ``categories`` (e.g. ``"news"``) narrows the
-        SearXNG category, and ``maxResults`` caps the promoted citations. On any
+        SearXNG category, and ``maxResults``/``numResults`` caps the results and
+        citations (:func:`~services.search.base.result_limit`). On any
         connection/transport failure a :class:`SearchError` is raised with a
         human, actionable message (the registry surfaces it so the user can
         start an instance or pick another search tier).
@@ -202,16 +204,11 @@ class SearxngBackend(SearchBackend):
                 f"no local SearXNG at {self.base_url} — start one or pick another search tier"
             ) from exc
 
-        results = _map_results(payload)
-        limit = _citation_limit(opts)
-        citations = (
-            normalize_results_to_citations(results, limit=limit)
-            if limit is not None
-            else normalize_results_to_citations(results)
-        )
+        limit = result_limit(opts)
+        results = _map_results(payload)[:limit]
         return SearchResponse(
             results=results,
-            citations=citations,
+            citations=normalize_results_to_citations(results, limit=limit),
             backend=BACKEND_ID,
             query=query,
         )
@@ -256,18 +253,6 @@ def _opt_str(value: Any) -> str | None:
         return None
     text = str(value).strip()
     return text or None
-
-
-def _citation_limit(opts: dict) -> int | None:
-    """Read an optional ``maxResults`` citation cap from ``options``."""
-    raw = opts.get("maxResults")
-    if raw is None:
-        return None
-    try:
-        limit = int(raw)
-    except (TypeError, ValueError):
-        return None
-    return limit if limit >= 0 else None
 
 
 #: Canonical name the search registry imports (parity with ExaSearchBackend);

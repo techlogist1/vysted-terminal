@@ -128,7 +128,7 @@ async def test_search_respects_max_results_citation_cap() -> None:
         backend = SearxngBackend(client=client)
         response = await backend.search("nvidia", options={"maxResults": 1})
 
-    assert len(response.results) == 2  # mapping is unaffected
+    assert len(response.results) == 1  # the cap applies to results too (R15-RESEARCH-020)
     assert len(response.citations) == 1  # citations capped
 
 
