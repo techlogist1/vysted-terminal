@@ -204,6 +204,17 @@ def most_recent_session(region: str, now: datetime | None = None) -> date:
     return day
 
 
+def last_closed_session(region: str, now: datetime | None = None) -> date:
+    """The most recent trading day whose cash session has CLOSED: today once
+    past the close, otherwise the session before. An EOD close dated this day
+    cannot change until the next session closes."""
+    local_now = (now or datetime.now(tz=UTC)).astimezone(market_timezone(region))
+    day = most_recent_session(region, local_now)
+    if day == local_now.date() and local_now.time() < market_session(region)[1]:
+        day = most_recent_session(region, local_now - timedelta(days=1))
+    return day
+
+
 def trading_sessions_between(earlier: date, later: date, region: str) -> int:
     """Count trading sessions strictly after ``earlier`` up to and incl. ``later``.
 

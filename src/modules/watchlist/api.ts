@@ -17,15 +17,19 @@ export const WATCHLIST_CRYPTO_EXCHANGE = "binance";
 /** A watchlist row: the tracked entry joined with its latest quote (if resolved). */
 export interface WatchlistRow {
   entry: SymbolEntry;
+  /** `null` is still loading, or `unavailable` once a refresh completed without it. */
   quote: Quote | null;
+  unavailable?: boolean;
 }
 
 /**
  * Fetch the latest quote for every tracked entry.
  *
- * Equity symbols go through one batched `/quotes` call; crypto symbols are
- * fetched individually. A symbol that fails to resolve comes back with a
- * `null` quote rather than failing the whole refresh.
+ * Equity symbols go through one batched `/quotes` call, which stamps each quote
+ * with the requested spelling (C14); crypto symbols are fetched individually. A
+ * symbol absent from the completed batch (or a failed crypto fetch) comes back
+ * with a `null` quote, which the panel shows as unavailable, rather than failing
+ * the whole refresh.
  */
 export async function fetchWatchlistQuotes(entries: SymbolEntry[]): Promise<WatchlistRow[]> {
   const equitySymbols = entries

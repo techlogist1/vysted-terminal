@@ -74,14 +74,19 @@ async def get_quotes(
     sequential skip-on-failure semantics — so one bad symbol never aborts the
     batch. ``return_exceptions=True`` keeps ``gather`` from short-circuiting on
     the first failure; non-``Quote`` results (exceptions) are filtered out.
+
+    Each quote's ``symbol`` is the REQUESTED spelling (C14): a lane may answer
+    ``RELIANCE`` for ``RELIANCE.NS``, and the client joins on what it asked for;
+    a requested symbol absent from the list is one that failed.
     """
-    parsed = [s.strip() for s in symbols.split(",")]
+    parsed = [s.strip() for s in symbols.split(",") if s.strip()]
     tasks = [
-        asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
-        for symbol in parsed
-        if symbol
+        asyncio.to_thread(provider_registry.get_quote, symbol, asset_class) for symbol in parsed
     ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    return [
-        _label_freshness(result, asset_class) for result in results if isinstance(result, Quote)
-    ]
+    quotes: list[Quote] = []
+    for requested, result in zip(parsed, results, strict=True):
+        if isinstance(result, Quote):
+            result.symbol = requested
+            quotes.append(_label_freshness(result, asset_class))
+    return quotes
