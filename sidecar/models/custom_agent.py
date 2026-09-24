@@ -24,7 +24,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field, field_validator
 
 from services import model_registry
-from services.agent_tools.catalog import agent_selectable_tool_ids
+from services.agent_tools.catalog import agent_selectable_tool_ids, resolve_tool_ids
 
 #: The closed set of tool ids the host currently resolves — derived from the
 #: single capability catalog (:mod:`services.agent_tools.catalog`) so the
@@ -55,21 +55,15 @@ class _BaseCustomAgent(BaseModel):
     @field_validator("tools", check_fields=False)
     @classmethod
     def _validate_tools(cls, tools: list[str]) -> list[str]:
-        """Reject any tool id that is not on the host's allow-list."""
-        unknown = [tool for tool in tools if tool not in KNOWN_TOOL_IDS]
+        """Resolve renamed ids to their capability, then reject any id that is
+        not on the host's allow-list. De-duplicated, in the user's order."""
+        resolved, unknown = resolve_tool_ids(tools)
+        unknown += [tool for tool in resolved if tool not in KNOWN_TOOL_IDS]
         if unknown:
             raise ValueError(
                 f"unknown tool ids: {sorted(unknown)!r}; allowed: {sorted(KNOWN_TOOL_IDS)!r}"
             )
-        # De-duplicate while preserving order — JSON serialization is more
-        # ergonomic if the order matches the user's chosen list.
-        seen: set[str] = set()
-        ordered: list[str] = []
-        for tool in tools:
-            if tool not in seen:
-                seen.add(tool)
-                ordered.append(tool)
-        return ordered
+        return resolved
 
     @field_validator("default_provider", check_fields=False)
     @classmethod

@@ -598,3 +598,75 @@ def test_research_tools_register() -> None:
     assert "research" in agent_tools.registered_tools()
     # The collapse removed the second tool: there is no ``deep_research`` handler.
     assert "deep_research" not in agent_tools.registered_tools()
+
+
+# ---------------------------------------------------------------------------
+# R15-CODE-AGENT-008 — the tool returns the brief (C6); the runtime publishes it
+# ---------------------------------------------------------------------------
+
+_ENGINE_SOURCE = {"url": "https://www.reuters.com/a", "title": "Reuters"}
+
+
+@pytest.mark.parametrize(
+    ("depth", "tier", "mode_depth"),
+    [
+        ("normal", "tier_a", ("fast", "quick")),
+        ("deep", "tier_a", ("deep", "deep")),
+        ("ultra", "tier_a", ("deep", "heavy")),
+        ("deep", "tier_b", ("deep", "deep")),
+    ],
+)
+def test_each_engine_publishes_its_brief_with_sources(
+    monkeypatch: pytest.MonkeyPatch, depth: str, tier: str, mode_depth: tuple[str, str]
+) -> None:
+    import json
+
+    from services import agent_runtime
+
+    async def _fast(query: str, **_: Any) -> dict[str, Any]:
+        # The web round's other spelling: ``results`` rows with a ``snippet``.
+        row = {"url": _ENGINE_SOURCE["url"], "title": "Reuters", "snippet": "NVDA rose"}
+        return {
+            "ok": True,
+            "query": query,
+            "symbol": "NVDA",
+            "execution_loop": "fast",
+            "structured": {"price": {"ok": True}},
+            "web": {"available": True, "results": [row]},
+        }
+
+    async def _deep(query: str, *, depth: str, **_: Any) -> dict[str, Any]:
+        loop = "heavy" if depth == "ultra" else "iter"
+        return {
+            "ok": True,
+            "query": query,
+            "markdown": "## B [1]",
+            "sources": [_ENGINE_SOURCE],
+            "execution_loop": loop,
+        }
+
+    async def _hosted(query: str, **_: Any) -> dict[str, Any]:
+        return {
+            "ok": True,
+            "query": query,
+            "markdown": "## H [1]",
+            "sources": [_ENGINE_SOURCE],
+            "execution_loop": "research-model",
+        }
+
+    monkeypatch.setattr("services.research.fast.gather_fast", _fast)
+    monkeypatch.setattr("services.agent_tools.deep_research.run_deep_brief", _deep)
+    monkeypatch.setattr("services.agent_tools.deep_research.run_research_model_brief", _hosted)
+    monkeypatch.setattr(config, "get_effective_research_tier", lambda: tier)
+
+    out = _run(_research({"query": "NVDA outlook", "depth": depth}))
+    brief = out["brief"]
+    assert brief["sources"] and brief["sources"][0]["url"] == _ENGINE_SOURCE["url"]
+    assert (brief["mode"], brief["depth"]) == mode_depth
+    assert brief["execution"] == out["execution"]
+
+    class _Call:
+        tool_call_id = "call_x"
+
+    event = agent_runtime._auto_publish_event(_Call(), json.dumps(out))
+    assert event is not None and event.input == brief

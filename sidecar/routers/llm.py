@@ -26,6 +26,7 @@ from fastapi.responses import StreamingResponse
 
 from models.llm import (
     LLMChatRequest,
+    LLMDoneEvent,
     LLMKeyValidationRequest,
     LLMKeyValidationResponse,
     LLMModelCatalog,
@@ -33,9 +34,9 @@ from models.llm import (
     LLMProviderId,
     LLMProviderInfo,
 )
-from services import model_registry
+from services import budget_guard, model_registry
 from services.errors import error_frame
-from services.llm import get_provider, list_provider_info
+from services.llm import get_provider, list_provider_info, scrub_adapter_options
 from services.llm.base import LLMStreamEvent
 
 logger = logging.getLogger(__name__)
@@ -145,15 +146,10 @@ async def chat_stream(payload: LLMChatRequest) -> StreamingResponse:
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    # Frontend CONTROL keys ride `options` but are not adapter kwargs — an
-    # OpenAI-shaped client raises TypeError on unknown kwargs (live repro:
-    # `research_depth` killed a DeepSeek stream). Strip them here; the agent
-    # path consumes them in agent_runtime.
-    adapter_options = {
-        k: v
-        for k, v in payload.options.items()
-        if k not in {"research_depth", "deepResearchBackend", "modelWebSearch", "history"}
-    }
+    # Only adapter kwargs reach the SDK: an OpenAI-shaped client raises
+    # TypeError on an unknown one (live repro: `research_depth` killed a
+    # DeepSeek stream). The same allowlist as the agent path.
+    adapter_options = scrub_adapter_options(payload.options)
 
     async def _generator() -> AsyncIterator[bytes]:
         try:
@@ -163,6 +159,10 @@ async def chat_stream(payload: LLMChatRequest) -> StreamingResponse:
                 api_key=payload.api_key,
                 **adapter_options,
             ):
+                if isinstance(event, LLMDoneEvent):
+                    event.spend_usd = budget_guard.spend_usd(
+                        payload.provider, payload.model, event.usage
+                    )
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard
             logger.exception("chat stream crashed: %s", exc)

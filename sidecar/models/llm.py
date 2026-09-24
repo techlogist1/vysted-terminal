@@ -134,6 +134,9 @@ class LLMUsage(BaseModel):
     output_tokens: int = 0
     cache_read_input_tokens: int | None = None
     cache_creation_input_tokens: int | None = None
+    #: Native server-side web searches the provider ran on this call, when the
+    #: request carried native search (R15-AGENT-049): priced and capped per run.
+    web_search_requests: int | None = None
 
 
 class LLMDeltaEvent(BaseModel):
@@ -232,6 +235,10 @@ class LLMDoneEvent(BaseModel):
     #: The token window the lane runs in, when it has one (Ollama's num_ctx):
     #: the composer's context meter reads ``usage`` against it (R15-AGENT-040).
     context_window: int | None = None
+    #: Estimated USD spend of the whole turn (C11, R15-AGENT-082), priced from
+    #: the one table in ``services.budget_guard``; ``None`` when the model has
+    #: no price or a round reported no usage (unknown, never zero).
+    spend_usd: float | None = None
 
 
 class LLMErrorEvent(BaseModel):

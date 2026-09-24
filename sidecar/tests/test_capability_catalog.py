@@ -25,6 +25,7 @@ from services.agent_tools.catalog import (
     agent_selectable_tool_ids,
     internal_tool_ids,
     read_handler_ids,
+    resolve_tool_ids,
 )
 from services.agent_tools.schemas import (
     HOST_ACTION_TOOLS,
@@ -240,3 +241,35 @@ def test_arrange_layout_describes_exactly_the_panels_each_template_places() -> N
     text = cap.description.lower() + CAPABILITY_CATALOG["compare_symbols"].description.lower()
     for promise in ("heatmap", "dual chart", "dual-chart", "stats"):
         assert promise not in text
+
+
+# --- Renamed ids resolve through aliases (R15-LIFECYCLE-025) ---
+
+
+def test_the_old_macro_id_resolves_to_macro_series() -> None:
+    assert resolve_tool_ids(["macro", "macro_series", "gone"]) == (["macro_series"], ["gone"])
+
+
+def test_an_alias_added_to_any_capability_resolves_the_same_way(monkeypatch) -> None:  # noqa: ANN001
+    """Class pin: an alias the fix was not written against (``quote`` on
+    ``price_data``, test catalog only) resolves at the validator and the
+    schema projection alike."""
+    from dataclasses import replace
+
+    from models.custom_agent import CustomAgentUpdate
+    from services.agent_tools import catalog, schemas
+
+    patched = dict(catalog.CAPABILITY_CATALOG)
+    patched["price_data"] = replace(patched["price_data"], aliases=("quote",))
+    monkeypatch.setattr(catalog, "CAPABILITY_CATALOG", patched)
+
+    assert resolve_tool_ids(["quote"]) == (["price_data"], [])
+    assert [t["name"] for t in schemas.anthropic_tools(["quote"])] == ["price_data"]
+    update = CustomAgentUpdate(
+        name="n",
+        philosophy="p",
+        system_prompt="s",
+        tools=["quote", "price_data"],
+        default_provider="anthropic",
+    )
+    assert update.tools == ["price_data"]

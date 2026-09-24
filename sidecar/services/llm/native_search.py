@@ -325,6 +325,21 @@ def _get(obj: Any, key: str, default: Any = None) -> Any:
     return getattr(obj, key, default)
 
 
+def openai_shaped_search_count(provider_id: str, usage: Any, cited: bool) -> int:
+    """Native searches one OpenAI-shaped round ran with native search on (R15-AGENT-049).
+
+    A reported ``usage.server_tool_use.web_search_requests`` wins. Otherwise an
+    OpenAI ``*-search-preview`` request searches once per call, and any other
+    broker (OpenRouter) counts one search when the round came back cited.
+    """
+    reported = _get(_get(usage, "server_tool_use"), "web_search_requests")
+    if isinstance(reported, int):
+        return reported
+    if provider_id == "openai":
+        return 1
+    return int(cited)
+
+
 def normalize_anthropic(blocks: Any) -> list[dict[str, str]]:
     """Normalize Anthropic ``web_search`` citations to ``{url, title, excerpt}``.
 
@@ -460,6 +475,7 @@ __all__ = [
     "normalize_openai",
     "normalize_xai",
     "openai_native_search_supported",
+    "openai_shaped_search_count",
     "openai_web_search_options",
     "openrouter_web_search_tool",
     "provider_supports_native_search",

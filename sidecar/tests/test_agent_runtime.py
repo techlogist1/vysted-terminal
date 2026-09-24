@@ -29,6 +29,7 @@ from models.llm import (
     LLMUsage,
 )
 from services import agent_runtime
+from services.agent_tools import research
 
 
 def _write_agent(directory: Path, agent_id: str, **overrides: Any) -> Path:
@@ -1126,6 +1127,13 @@ class _StubToolCall:
         self.tool_call_id = tool_call_id
 
 
+def _tool_result(bundle: dict[str, Any]) -> str:
+    """The research tool's serialised result: the engine bundle plus the brief
+    it attaches (C6), which the runtime publishes verbatim."""
+    brief = research.brief_for(bundle)
+    return json.dumps({**bundle, "brief": brief} if brief else bundle)
+
+
 def _execution(loop: str = "fast", requested: str = "normal") -> dict[str, Any]:
     """A well-formed R10 execution record — every auto-publishable payload
     must carry one (E2: no execution → no auto-publish)."""
@@ -1159,7 +1167,7 @@ def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
             ],
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast_bundle))
     assert event is not None
     assert event.name == "publish_brief"
     sources = event.input["sources"]
@@ -1190,7 +1198,7 @@ def test_auto_publish_fast_source_keeps_its_date_and_a_host_domain() -> None:
             ],
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast_bundle))
     assert event is not None
     first, second = event.input["sources"]
     assert first["domain"] == "www.reuters.com"
@@ -1211,7 +1219,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": True,
     }
-    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep_bundle))
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(deep_bundle))
     assert deep_event is not None
     assert deep_event.input["sources"] == deep_bundle["sources"]
     assert deep_event.input["web_available"] is True
@@ -1223,7 +1231,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": [], "note": "structured only"},
     }
-    no_web_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(no_web))
+    no_web_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(no_web))
     assert no_web_event is not None
     assert no_web_event.input["sources"] == []
     assert no_web_event.input["web_available"] is False
@@ -1249,7 +1257,7 @@ def test_auto_publish_forwards_transient_rate_limit_reason() -> None:
             "detail": "keyless web search is rate-limiting right now",
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(throttled))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(throttled))
     assert event is not None
     assert event.input["web_available"] is False  # zero sources → honest no-web
     assert event.input["web_reason"] == "rate_limited"
@@ -1271,7 +1279,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
         "web_available": False,
     }
     event = agent_runtime._auto_publish_event(
-        _StubToolCall(), json.dumps(sourced_but_flagged_no_web)
+        _StubToolCall(), _tool_result(sourced_but_flagged_no_web)
     )
     assert event is not None
     assert len(event.input["sources"]) == 1
@@ -1284,7 +1292,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": []},
     }
-    sourceless_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(sourceless))
+    sourceless_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(sourceless))
     assert sourceless_event is not None
     assert sourceless_event.input["sources"] == []
     assert sourceless_event.input["web_available"] is False  # honest no-web survives
@@ -1301,7 +1309,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "execution": _execution(loop="fast"),
         "structured": {"price": {"ok": True}},
     }
-    fast_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast))
+    fast_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast))
     assert fast_event is not None
     assert fast_event.input["depth"] == "quick"
     assert fast_event.input["mode"] == "fast"
@@ -1313,7 +1321,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "markdown": "x",
         "execution": _execution(loop="iter", requested="deep"),
     }
-    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep))
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(deep))
     assert deep_event is not None
     assert deep_event.input["depth"] == "deep"
     assert deep_event.input["mode"] == "deep"
@@ -1325,7 +1333,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "mode": "fast",  # contradicting payload mode — the loop's truth wins
         "execution": _execution(loop="heavy", requested="ultra"),
     }
-    heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
+    heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(heavy))
     assert heavy_event is not None
     assert heavy_event.input["depth"] == "heavy"
     assert heavy_event.input["mode"] == "deep"
@@ -1337,7 +1345,7 @@ def test_auto_publish_requires_an_execution_record() -> None:
     """R10 E2: a research payload WITHOUT an execution record is malformed and
     never auto-publishes — the depth stamp can no longer be guessed."""
     legacy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
-    assert agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(legacy)) is None
+    assert agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(legacy)) is None
 
 
 def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
@@ -1355,7 +1363,7 @@ def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
         "message": "Which Tata did you mean?",
         "execution": _execution(),
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(payload))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(payload))
     assert event is not None
     assert event.name == "publish_brief"
     assert set(event.input) == {"query", "disambiguation", "execution"}
@@ -1395,7 +1403,13 @@ class _PublishThenAnswerProvider:
         yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
 
 
-async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[Any]:
+async def _collect_auto_publish_events(
+    monkeypatch: pytest.MonkeyPatch, ack: str | None = None
+) -> list[Any]:
+    """Drive one publish turn; ``ack`` is the status the panel POSTs for the
+    streamed publish_brief id (the runtime mints it, so the ack keys on it)."""
+    from services import action_ledger
+
     agent_runtime.reload()
     _patch_provider(monkeypatch, _PublishThenAnswerProvider())
     monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
@@ -1407,6 +1421,8 @@ async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[
         mode="edit",
         autonomy="auto",
     ):
+        if ack and isinstance(event, LLMToolUseEvent) and event.name == "publish_brief":
+            action_ledger.record(event.tool_call_id, ack)
         events.append(event)
     return events
 
@@ -1446,8 +1462,7 @@ async def test_kept_previous_ack_yields_kept_notice(monkeypatch: pytest.MonkeyPa
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("pub-1", "kept_previous")
-    events = await _collect_auto_publish_events(monkeypatch)
+    events = await _collect_auto_publish_events(monkeypatch, ack="kept_previous")
     details = _notice_details(events)
     # R13 JARVIS 1c: the hardcoded "richer" wording is gone — the notice now
     # names the artifact ACTUALLY on screen (falls back to a bare phrase when the
@@ -1462,8 +1477,7 @@ async def test_applied_ack_yields_no_notice(monkeypatch: pytest.MonkeyPatch) -> 
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("pub-1", "applied")
-    events = await _collect_auto_publish_events(monkeypatch)
+    events = await _collect_auto_publish_events(monkeypatch, ack="applied")
     assert _notice_details(events) == []
     action_ledger.reset_for_tests()
 
@@ -1577,20 +1591,31 @@ def _tool_result_for(messages: list[LLMMessage], call_id: str) -> LLMMessage | N
 
 async def _run_host_action_readback(
     monkeypatch: pytest.MonkeyPatch,
-) -> _HostActionThenAnswerProvider:
+    ack: str | None = None,
+    detail: dict[str, Any] | None = None,
+    autonomy: str = "auto",
+) -> tuple[_HostActionThenAnswerProvider, str]:
+    """Drive one host-action turn and return the provider plus the streamed
+    (runtime-minted) call id; ``ack`` is what the panel POSTs for that id."""
+    from services import action_ledger
+
     agent_runtime.reload()
     provider = _HostActionThenAnswerProvider()
     _patch_provider(monkeypatch, provider)
     monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
-    async for _ in agent_runtime.invoke_agent(
+    call_id = ""
+    async for event in agent_runtime.invoke_agent(
         agent_id="copilot",
         prompt="load SPY",
         api_key="sk-test",
         mode="edit",
-        autonomy="auto",
+        autonomy=autonomy,
     ):
-        pass
-    return provider
+        if isinstance(event, LLMToolUseEvent):
+            call_id = event.tool_call_id
+            if ack:
+                action_ledger.record(call_id, ack, detail=detail)
+    return provider, call_id
 
 
 @pytest.mark.asyncio
@@ -1601,10 +1626,11 @@ async def test_failed_ack_grounds_host_action_tool_result(monkeypatch: pytest.Mo
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("hact-1", "failed", detail={"action": "set_chart_symbol", "symbol": "SPY"})
-    provider = await _run_host_action_readback(monkeypatch)
+    provider, call_id = await _run_host_action_readback(
+        monkeypatch, "failed", {"action": "set_chart_symbol", "symbol": "SPY"}
+    )
     assert len(provider.round_messages) == 2
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None, "the round-2 prompt must carry the grounded tool-result"
     payload = json.loads(msg.content)
     assert payload["ok"] is False
@@ -1624,8 +1650,8 @@ async def test_ackless_host_action_says_not_yet_confirmed(
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    provider = await _run_host_action_readback(monkeypatch)
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    provider, call_id = await _run_host_action_readback(monkeypatch)
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["status"] == "dispatched_unconfirmed"
@@ -1644,11 +1670,10 @@ async def test_applied_ack_grounds_host_action_as_done(monkeypatch: pytest.Monke
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record(
-        "hact-1", "applied", detail={"action": "set_chart_symbol", "symbol": "SPY"}
+    provider, call_id = await _run_host_action_readback(
+        monkeypatch, "applied", {"action": "set_chart_symbol", "symbol": "SPY"}
     )
-    provider = await _run_host_action_readback(monkeypatch)
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["ok"] is True
@@ -1666,19 +1691,8 @@ async def test_host_action_readback_skipped_outside_auto(
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    agent_runtime.reload()
-    provider = _HostActionThenAnswerProvider()
-    _patch_provider(monkeypatch, provider)
-    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
-    async for _ in agent_runtime.invoke_agent(
-        agent_id="copilot",
-        prompt="load SPY",
-        api_key="sk-test",
-        mode="edit",
-        autonomy="ask",
-    ):
-        pass
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    provider, call_id = await _run_host_action_readback(monkeypatch, autonomy="ask")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["status"] == "awaiting_user_review"
@@ -2144,12 +2158,59 @@ async def _backtest_events(monkeypatch: pytest.MonkeyPatch, result: str) -> list
 async def test_successful_custom_backtest_opens_its_run(monkeypatch: pytest.MonkeyPatch) -> None:
     events = await _backtest_events(monkeypatch, '{"ok": true, "runId": "bt-1"}')
     opens = [e for e in events if getattr(e, "name", None) == "open_panel"]
+    backtest = next(e for e in events if getattr(e, "name", None) == "run_custom_backtest")
     assert len(opens) == 1
     assert opens[0].input == {"panel": "backtest", "run_id": "bt-1"}
-    assert opens[0].tool_call_id == "auto-backtest-call-bt"
+    assert opens[0].tool_call_id == f"auto-backtest-{backtest.tool_call_id}"
 
 
 @pytest.mark.asyncio
 async def test_failed_custom_backtest_opens_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     events = await _backtest_events(monkeypatch, '{"ok": false, "error": "no bars"}')
     assert not [e for e in events if getattr(e, "name", None) == "open_panel"]
+
+
+@pytest.mark.asyncio
+async def test_the_final_done_carries_the_whole_turns_spend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-082 (C11): the invoke done frame prices EVERY round of the
+    turn, not only the last one; an unpriced model reports None."""
+
+    class _TwoRounds:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def stream_chat(self, messages: list[LLMMessage], **_: Any) -> AsyncIterator[Any]:
+            self.calls += 1
+            if self.calls == 1:
+                yield LLMToolUseEvent(tool_call_id="x", name="price_data", input={"symbol": "SPY"})
+                yield LLMDoneEvent(usage=LLMUsage(input_tokens=600, output_tokens=0))
+                return
+            yield LLMDeltaEvent(text="SPY is up.")
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=300, output_tokens=100))
+
+    async def _dispatch(_call: Any, _local: Any = None) -> AsyncIterator[Any]:
+        yield agent_runtime._ToolDone(json.dumps({"ok": True, "price": 1}))
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _dispatch)
+
+    async def _done(provider: str, model: str) -> LLMDoneEvent:
+        monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: _TwoRounds())
+        events = [
+            e
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="price of SPY",
+                provider=provider,
+                model=model,
+                api_key="k",
+                mode="edit",
+            )
+        ]
+        [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
+        return done
+
+    priced = await _done("deepseek", "deepseek-chat")  # 1,000 tokens at $0.9/1M
+    assert priced.spend_usd == pytest.approx(0.0009)
+    assert (await _done("xai", "mystery-1")).spend_usd is None

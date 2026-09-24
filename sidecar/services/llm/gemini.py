@@ -143,6 +143,8 @@ class GeminiProvider(LLMProvider):
             )
             usage: LLMUsage | None = None
             finish_reason: str | None = None
+            # Each grounded search query is one billed search (R15-AGENT-049).
+            search_queries: set[str] = set()
             # Function calls have no stable id in Gemini's protocol; synthesise a
             # stable one per call from the name + ordinal within the stream.
             tool_call_index = 0
@@ -150,6 +152,9 @@ class GeminiProvider(LLMProvider):
                 # Text deltas — Gemini packs them into candidates[i].content.parts.
                 candidates = getattr(response, "candidates", None) or []
                 for candidate in candidates:
+                    # Grounding can ride a content-less final chunk.
+                    grounding = getattr(candidate, "grounding_metadata", None)
+                    search_queries.update(getattr(grounding, "web_search_queries", None) or [])
                     content = getattr(candidate, "content", None)
                     if content is None:
                         continue
@@ -188,6 +193,10 @@ class GeminiProvider(LLMProvider):
                         output_tokens=(getattr(meta, "candidates_token_count", 0) or 0)
                         + (getattr(meta, "thoughts_token_count", 0) or 0),
                     )
+            if web_search:
+                usage = (usage or LLMUsage()).model_copy(
+                    update={"web_search_requests": len(search_queries)}
+                )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except genai_errors.APIError as exc:  # pragma: no cover — network path
             _h = humanize("gemini", exc)

@@ -84,9 +84,10 @@ _INDICATORS_BY_CLASS: dict[str, list[str]] = {
 }
 _DEFAULT_INDICATORS = _INDICATORS_BY_CLASS["equity"]
 
-#: Per-leg time box for the disclosure-only witness cross-checks (R15-RESEARCH-027):
-#: a slow leg is dropped like a failed one, so it never holds the NORMAL path
-#: past its FR-070 budget (<= 15 s).
+#: Per-leg time box for every structured leg — price, fundamentals, news,
+#: filings and the disclosure-only witness cross-checks (R15-RESEARCH-027): a
+#: slow leg is dropped like a failed one, so it never holds the NORMAL path past
+#: its FR-070 budget (<= 15 s).
 _WITNESS_LEG_TIMEOUT_S = 6.0
 
 
@@ -115,6 +116,24 @@ async def _safe_call(tool_call: ToolCall, name: str, args: dict[str, Any]) -> di
     if not isinstance(result, dict):
         return {"ok": False, "error": f"{name} returned a non-dict result"}
     return result
+
+
+async def _time_boxed(
+    name: str, leg: Awaitable[dict[str, Any]], on_step: OnStep | None
+) -> dict[str, Any]:
+    """Await one structured leg under :data:`_WITNESS_LEG_TIMEOUT_S`.
+
+    A leg that overruns (a throttled Yahoo) becomes an ``ok: False`` miss and a
+    timed-out step with its ``latency_ms``, so the gather never waits on it and
+    the brief publishes without it (R15-RESEARCH-027).
+    """
+    start = time.perf_counter()
+    try:
+        return await asyncio.wait_for(leg, _WITNESS_LEG_TIMEOUT_S)
+    except TimeoutError:
+        detail = f"{name} timed out after {_WITNESS_LEG_TIMEOUT_S:g}s — dropped"
+        await _emit(on_step, ResearchStep("tool", detail, _ms(start), status="error"))
+        return {"ok": False, "provider": None, "error": detail, "reason": "provider_error"}
 
 
 def _provider_of(result: dict[str, Any]) -> str | None:
@@ -286,8 +305,10 @@ async def snapshot_structured(
     from services.research.semantics import derive_semantics
 
     price_res, fund_res = await asyncio.gather(
-        _safe_call(tool_call, "price_data", {"symbol": symbol}),
-        _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
+        _time_boxed("price", _safe_call(tool_call, "price_data", {"symbol": symbol}), on_step),
+        _time_boxed(
+            "fundamentals", _safe_call(tool_call, "fundamentals", {"symbol": symbol}), on_step
+        ),
     )
     out = {
         "price": _structured_value(price_res, "quote"),
@@ -571,8 +592,8 @@ async def gather_fast(
         t1 = time.perf_counter()
         await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
         news_res, filings_value, snapshot = await asyncio.gather(
-            _safe_call(tool_call, "news", {"symbols": [symbol]}),
-            _filings_leg(tool_call, target),
+            _time_boxed("news", _safe_call(tool_call, "news", {"symbols": [symbol]}), on_step),
+            _time_boxed("filings", _filings_leg(tool_call, target), on_step),
             snapshot_structured(
                 tool_call, symbol, region=region, canonical_name=target.name, on_step=on_step
             ),
