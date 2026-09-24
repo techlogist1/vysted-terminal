@@ -135,6 +135,29 @@ def test_get_history_routes_by_scrip_code(tmp_path, monkeypatch: pytest.MonkeyPa
     assert all(b.close == 43.09 for b in series.bars)
 
 
+def test_get_history_by_bare_scrip_code_canonicalises_symbol(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LEAD-028: a data route addressed by the BARE numeric scrip code
+    (``511260``, e.g. the ``506597`` in ``506597.BO``) used to 404 — only the
+    ticker-string form resolved. ``_require_bse`` now maps the code through
+    the resolver to ICONIKSPEV's canonical ticker, so the series is labelled
+    by the ticker (not the code) exactly like a ticker-addressed request."""
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    series = bse_provider.get_history("511260", "1d", "1mo")
+    assert series.symbol == "ICONIKSPEV"
+    assert series.bars
+    # The explicit .BO-suffixed code form routes identically.
+    series_bo = bse_provider.get_history("511260.BO", "1d", "1mo")
+    assert series_bo.symbol == "ICONIKSPEV"
+
+
+def test_get_history_unknown_scrip_code_fails_fast_without_network() -> None:
+    with pytest.raises(ProviderError, match="not a known BSE instrument"):
+        bse_provider.get_history("999999", "1d")
+
+
 def test_get_history_ticker_fallback_without_code(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
