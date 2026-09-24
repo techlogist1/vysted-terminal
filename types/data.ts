@@ -68,6 +68,8 @@ export interface OHLCVSeries {
 export interface MacroObservation {
   date: string;
   value: number | null;
+  /** A forecast, not an outturn (e.g. an IMF WEO year at or after the vintage). */
+  is_projection?: boolean;
 }
 
 /** An economic/macro time series (FRED-style). */

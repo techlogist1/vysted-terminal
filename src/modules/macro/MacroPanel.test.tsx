@@ -15,6 +15,7 @@ const chartApi = {
 vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),
   LineSeries: "Line",
+  LineStyle: { Dashed: 2 },
 }));
 
 vi.mock("@/lib/sidecar-client", () => ({

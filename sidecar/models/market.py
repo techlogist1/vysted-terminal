@@ -74,6 +74,9 @@ class MacroObservation(BaseModel):
 
     date: datetime
     value: float | None
+    # A forecast, not an outturn (e.g. an IMF WEO year at or after the
+    # vintage) — R15-LEAD-024.
+    is_projection: bool = False
 
 
 class MacroSeries(BaseModel):

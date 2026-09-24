@@ -10,6 +10,8 @@ provider-specific id parsing where relevant.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -292,6 +294,38 @@ def test_imf_get_series_parses_a_recorded_sdmx3_message(fake_imf: list[tuple[str
     assert series.observations[1].value == pytest.approx(153.1344084418875)
     assert series.observations[2].value is None  # NaN -> None
     assert fake_imf == [("CPI", "USA.CPI._T.IX.M")]
+
+
+_IMF_FIXTURES = Path(__file__).parent / "fixtures" / "imf"
+
+
+@pytest.mark.parametrize(
+    ("series_id", "fixture", "last_actual"),
+    [
+        # Recorded live 2026-09-24: the October 2025 WEO vintage (update dates
+        # 9/30/2025 and 9/26/2025), running to 2031.
+        ("WEO/USA.NGDP_RPCH.A", "weo_usa_ngdp_rpch_a_20260924.json", 2024),
+        ("WEO/IND.PCPIPCH.A", "weo_ind_pcpipch_a_20260924.json", 2024),
+    ],
+)
+def test_weo_years_from_the_vintage_on_are_projections(
+    monkeypatch: pytest.MonkeyPatch, series_id: str, fixture: str, last_actual: int
+) -> None:
+    """R15-LEAD-024: a WEO series ran to 2031 with nothing marking the forecast
+    years; each year from the vintage year on is now a projection."""
+    message = json.loads((_IMF_FIXTURES / fixture).read_text(encoding="utf-8"))
+    monkeypatch.setattr(imf_provider, "_fetch", lambda _dataflow, _key: message)
+    observations = imf_provider.get_series(series_id).observations
+    by_year = {o.date.year: o.is_projection for o in observations}
+    assert by_year[last_actual] is False
+    assert by_year[last_actual + 1] is True
+    assert by_year[2031] is True
+    assert not any(p for y, p in by_year.items() if y <= last_actual)
+
+
+def test_a_non_weo_series_is_never_flagged_projected(fake_imf: list[tuple[str, str]]) -> None:
+    series = imf_provider.get_series("CPI/USA.CPI._T.IX.M")
+    assert not any(o.is_projection for o in series.observations)
 
 
 def test_imf_period_formats_parse() -> None:
