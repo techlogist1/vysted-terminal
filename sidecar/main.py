@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import multiprocessing
 import os
 import sys
 import threading
@@ -162,4 +163,7 @@ def main(argv: list[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
+    # The quant pricing pool spawns workers from this binary; in the frozen
+    # --onefile build a worker must stop here instead of re-running main().
+    multiprocessing.freeze_support()
     main()

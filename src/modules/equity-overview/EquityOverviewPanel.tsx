@@ -624,7 +624,10 @@ function StatementTable({
  * when every section fails, and a sparse-fundamentals note is shown honestly
  * rather than a wall of dashes.
  */
-export function EquityOverviewPanel() {
+export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
+  // The panel-context bus key is the dockview panel id PanelHost focuses
+  // (R15-AGENT-052); the module's singleton id when rendered outside dockview.
+  const busSource = props.api?.id ?? "equity-overview";
   const [draft, setDraft] = useState("");
   const [data, setData] = useState<EquityOverview | null>(null);
   const [loading, setLoading] = useState(false);
@@ -688,19 +691,19 @@ export function EquityOverviewPanel() {
 
   useEffect(() => {
     publishPanelContext({
-      source: "equity",
+      source: busSource,
       kind: "symbol",
       payload: { ticker: currentTicker, loadedSections },
       emittedAt: Date.now(),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [publishPanelContext, currentTicker, loadedKey]);
+  }, [publishPanelContext, busSource, currentTicker, loadedKey]);
 
   useEffect(() => {
     return () => {
-      unregisterPanelContext("equity");
+      unregisterPanelContext(busSource);
     };
-  }, [unregisterPanelContext]);
+  }, [busSource, unregisterPanelContext]);
 
   // Debounced autocomplete fetch — a fresh sequence id guards against
   // out-of-order responses overwriting a newer query's results. All state

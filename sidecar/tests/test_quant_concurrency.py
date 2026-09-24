@@ -1,6 +1,6 @@
 """QuantLib's evaluation date is process-global: overlapping pricings must not
-see each other's date, and the async quant lanes must wait for the QuantLib
-lock off the event loop (R15-CODE-PLATFORM-005)."""
+see each other's date (R15-CODE-PLATFORM-005), and a long pricing must not
+block the event loop (R15-CODE-PLATFORM-018)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from models.quant import (
     YieldCurveInstrument,
     YieldCurveRequest,
 )
-from services.quant import _common, bonds, options, yield_curve
+from services.quant import bonds, options, yield_curve
 from services.workflow_nodes import quant_nodes
 
 _RACE_SECONDS = 0.5
@@ -125,31 +125,25 @@ def test_overlapping_bond_and_curve_bootstrap_keep_their_own_dates() -> None:
 
 
 @pytest.mark.asyncio
-async def test_quant_node_waits_for_the_quantlib_lock_off_the_event_loop() -> None:
-    # Another pricing (a threadpool /quant route) holds the QuantLib lock.
-    held = threading.Event()
-    release = threading.Event()
-
-    def other_pricing() -> None:
-        with _common._QL_LOCK:
-            held.set()
-            release.wait(timeout=2)  # bounded, so a blocked loop fails instead of hanging
-
-    holder = threading.Thread(target=other_pricing)
-    holder.start()
-    held.wait()
-    config = _option(date(2026, 5, 16), date(2027, 5, 16)).model_dump(mode="json")
-    pricing = asyncio.create_task(quant_nodes.price_option({}, config))
+async def test_a_long_quant_node_does_not_block_the_event_loop() -> None:
+    # This test used to assert the node waited for the QuantLib lock in a worker
+    # thread. QuantLib holds the GIL while it prices, so that thread still froze
+    # the loop; the node now prices in the pool's worker process
+    # (R15-CODE-PLATFORM-018), so the loop's own gaps are what is measured.
+    cheap = _option(date(2026, 5, 16), date(2027, 5, 16)).model_dump(mode="json")
+    await quant_nodes.price_option({}, cheap)  # start the pool before timing
+    heavy = {**cheap, "exercise": "american", "method": "binomial", "binomial_steps": 8000}
+    pricing = asyncio.create_task(quant_nodes.price_option({}, heavy))
 
     loop = asyncio.get_running_loop()
-    started = loop.time()
-    for _ in range(20):
-        await asyncio.sleep(0.001)
-    # The loop kept turning while the node waited for the lock in a worker thread.
-    assert loop.time() - started < 1.0
-    assert not pricing.done()
-
-    release.set()
-    result = await asyncio.wait_for(pricing, timeout=5)
-    holder.join()
-    assert result["result"]["price"] > 0
+    longest_gap = 0.0
+    last = loop.time()
+    while not pricing.done():
+        await asyncio.sleep(0.005)
+        now = loop.time()
+        longest_gap = max(longest_gap, now - last)
+        last = now
+    # An 8000-step binomial takes ~1 s; priced in a thread (old path) the
+    # longest gap measured ~0.5 s.
+    assert longest_gap < 0.1
+    assert (await pricing)["result"]["price"] > 0
