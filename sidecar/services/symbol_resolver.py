@@ -199,6 +199,12 @@ _CORP_SUFFIXES = frozenset(
         "plc",
         "llc",
         "lp",
+        # R15-DATA-059: a private-to-public conversion ahead of an IPO renames
+        # "X Private Limited"/"X Pvt Ltd" to "X Limited" — the SAME company,
+        # so the class of query (the old Pvt-Ltd legal name) should bind the
+        # current listing generically, not one former-names row per company.
+        "private",
+        "pvt",
     }
 )
 
@@ -265,7 +271,8 @@ class Instrument:
     isin: str | None = None  # INE953E01022 (KSE Ltd) — BSE master / sector map
     bse_code: str | None = None  # numeric BSE scrip code (519421) when BSE-listed
     industry: str | None = None  # india_sector_map industry_raw (None for uncovered names)
-    former_name: str | None = None  # the retired symbol, when answered as its renamed form
+    former_name: str | None = None  # the retired SYMBOL (NSE ticker rename) or the
+    # retired legal NAME (R15-DATA-059 former-name scan match) this listing carried
     board: str | None = None  # "SME" (BSE M* group / NSE Emerge) | "mainboard"; None for US
     exchange_group: str | None = None  # the raw BSE group (A, B, X, M, MT, ...)
     face_value: float | None = None  # listed face value (INR), from the masters
@@ -458,6 +465,33 @@ def _marquee_aliases() -> dict[str, dict]:
     return aliases if isinstance(aliases, dict) else {}
 
 
+@lru_cache(maxsize=1)
+def _former_names() -> dict[str, dict[str, tuple[str, ...]]]:
+    """``{"us": {SYMBOL: (former_name, ...)}, "in": {SYMBOL: (former_name, ...)}}``
+    from the bundled ``former_names.json`` (R15-DATA-059, generated offline by
+    :mod:`services.resolver_masters.regenerate_former_names`).
+
+    Keyed by REGION rather than exchange because the US side is keyed by SEC
+    ticker (no NSE/BSE distinction) and the IN side by NSE symbol; a BSE-only
+    IN symbol (the manual-seed case) rides the same ``"in"`` bucket. Oldest→
+    newest per symbol; a missing/garbled master degrades to ``{}`` so
+    resolution never depends on it."""
+    raw = _load_master("former_names.json", fallback={"former_names": {}})
+    payload = raw.get("former_names")
+    out: dict[str, dict[str, tuple[str, ...]]] = {"us": {}, "in": {}}
+    if isinstance(payload, dict):
+        for region_key in ("us", "in"):
+            region_map = payload.get(region_key)
+            if not isinstance(region_map, dict):
+                continue
+            for sym, names in region_map.items():
+                if isinstance(names, list) and names:
+                    cleaned = tuple(str(n).strip() for n in names if str(n).strip())
+                    if cleaned:
+                        out[region_key][str(sym).strip().upper()] = cleaned
+    return out
+
+
 def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
     try:
         with (
@@ -545,6 +579,7 @@ def reset_caches_for_tests() -> None:
     _bse_scrip_index.cache_clear()
     _us_master.cache_clear()
     _marquee_aliases.cache_clear()
+    _former_names.cache_clear()
     _india_sector_map.cache_clear()
     _generic_tokens.cache_clear()
     _face_values.cache_clear()
@@ -946,7 +981,14 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     #     carries the old symbol, so a query for it misses (or only fuzzes below
     #     ACCEPT); the NSE symbol-change master still knows it — answer the
     #     current instrument, annotated, before any sub-accept guess or network.
-    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
+    #     Also runs below a full NAME-EXACT band (R15-DATA-059): the retired
+    #     TICKER (e.g. "ZOMATO") can coincide with the RENAMED company's own
+    #     former legal name ("Zomato Limited") scoring a merely first-word/
+    #     prefix former-name-scan hit — the explicit symbol-rename record wins
+    #     over that coincidence; a genuine exact-name match is left alone.
+    if (
+        not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD or ranked[0].band < BAND_NAME_EXACT
+    ) and suffix_exchange != "BSE":
         retired = _retired_symbol_instrument(upper) if " " not in upper else None
         if retired is not None:
             return Resolution(
@@ -1006,6 +1048,57 @@ def _scan_names(
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
     for sym, name in _us_master().items():
         _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
+
+    # 3a. Former-name match (R15-DATA-059): a query by a company's RETIRED
+    #     legal name ("BeiGene" for the listing now named ONC/BeOne Medicines,
+    #     "Infosys Technologies Limited" for INFY) scores against the bundled
+    #     former-name index the SAME way a current name does, and the resulting
+    #     candidate carries ``former_name`` so the match is explained, never
+    #     silently indistinguishable from a current-name hit. Iterated in the
+    #     MASTER's prominence order (not ``former_names.json``'s own dict
+    #     order, which is an arbitrary SEC-crawl/NSE-file order) so the same
+    #     "prominence breaks exact ties" invariant below also applies here —
+    #     otherwise a company with two US listings sharing one former legal
+    #     name (e.g. ONC's Nasdaq line and its BEIGF OTC line, both once
+    #     "BeiGene, Ltd.") could tie-break toward the obscure listing.
+    former = _former_names()
+    former_us = former.get("us", {})
+    for sym in _us_master():
+        names = former_us.get(sym)
+        if not names:
+            continue
+        for old_name in names:
+            band_score = _name_score(query_lc, old_name.lower(), n_words)
+            if band_score is None:
+                continue
+            band, s = band_score
+            inst = replace(_instrument_us(sym, s, band), former_name=old_name)
+            scored.append((band, _locale_rank(region, inst.region), s, inst))
+    former_in = former.get("in", {})
+    for sym in nse_symbols:
+        names = former_in.get(sym)
+        if not names:
+            continue
+        for old_name in names:
+            band_score = _name_score(query_lc, old_name.lower(), n_words)
+            if band_score is None:
+                continue
+            band, s = band_score
+            inst = replace(_instrument_nse(sym, s, band), former_name=old_name)
+            scored.append((band, _locale_rank(region, inst.region), s, inst))
+    for sym in _bse_master():
+        if sym in nse_symbols and suffix_exchange != "BSE":
+            continue  # same dual-listing rule as the current-name BSE loop above
+        names = former_in.get(sym)
+        if not names:
+            continue
+        for old_name in names:
+            band_score = _name_score(query_lc, old_name.lower(), n_words)
+            if band_score is None:
+                continue
+            band, s = band_score
+            inst = replace(_instrument_bse(sym, s, band), former_name=old_name)
+            scored.append((band, _locale_rank(region, inst.region), s, inst))
 
     # Band tie-break: (band, locale, score) — stable, so the prominence-ordered
     # masters break exact ties toward the well-known instrument. The locale
@@ -1303,14 +1396,19 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         raw_industry = record.get("industry_raw") or record.get("sector")
         industry = raw_industry if isinstance(raw_industry, str) and raw_industry else None
 
-    # The NSE rename lane governs NSE symbols: an NSE row (or the verified BSE
-    # dual listing of one) exposes the retired symbol it was renamed from.
+    # The NSE TICKER-rename lane governs NSE symbols (an NSE row, or the
+    # verified BSE dual listing of one, exposes the retired SYMBOL it was
+    # renamed from) and wins when it has an answer. Otherwise fall back to
+    # whatever ``inst.former_name`` already carries (R15-DATA-059): the
+    # former-COMPANY-NAME scan (:func:`_scan_names`) stamps it on a match by a
+    # retired legal name — the only source for a BSE-only IN row (TTC) or a US
+    # instrument (ONC/BeiGene), neither of which the ticker-rename lane covers.
     former_name = (
         nse_symbol_change.lookup_former(bare)
         if inst.exchange == "NSE"
         or (bse_code is not None and dual_listed_bse_code(bare) == bse_code)
         else None
-    )
+    ) or inst.former_name
 
     # Board + face value (R15-DATA-051): SME is a BSE M* group (M/MT/MS) or an NSE
     # Emerge listing (type SM). Unknown to the masters (a live-lookup row) → None.
