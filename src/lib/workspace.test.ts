@@ -1485,6 +1485,10 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
         () => useSettingsStore.getState().setDefaultAgentId("buffett"),
         () => useSettingsStore.getState().setRegion("US"),
         () => useSettingsStore.getState().setDeepResearchBackend("perplexity"),
+        () => useSettingsStore.getState().setProviderOrder(["groq", "anthropic"]),
+        () => useSettingsStore.getState().setStartLayout("Morning scan"),
+        () => useSettingsStore.getState().setPaletteShowRecents(false),
+        () => useSettingsStore.getState().setPaletteSymbolScope("watchlist"),
       ],
       searchSettings: [
         () => useSearchSettingsStore.getState().setResearchTier("tier_b"),

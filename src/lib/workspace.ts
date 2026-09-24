@@ -493,6 +493,10 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       (s) => s.defaultAgentId,
       (s) => s.region,
       (s) => s.deepResearchBackend,
+      (s) => s.providerOrder,
+      (s) => s.startLayout,
+      (s) => s.paletteShowRecents,
+      (s) => s.paletteSymbolScope,
     ),
   },
   {

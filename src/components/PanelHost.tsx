@@ -279,18 +279,6 @@ export function PanelHost() {
           api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
         }, 80);
         const subscription = api.onDidLayoutChange(() => autosaveLayout());
-        // The R15-UI-087 preferences move no layout and the workspace `settings`
-        // slice does not watch them, so they trigger their own autosave.
-        const settingsSub = useSettingsStore.subscribe((state, prev) => {
-          if (
-            state.providerOrder !== prev.providerOrder ||
-            state.startLayout !== prev.startLayout ||
-            state.paletteShowRecents !== prev.paletteShowRecents ||
-            state.paletteSymbolScope !== prev.paletteSymbolScope
-          ) {
-            autosaveLayout();
-          }
-        });
         // Track the focused panel into the shared context bus so the agent knows
         // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
         // resolves to the focused panel; hand focus updates the agent's next turn).
@@ -302,7 +290,6 @@ export function PanelHost() {
             clearTimeout(constraintTimer);
           }
           subscription.dispose();
-          settingsSub();
           focusSub.dispose();
           constraintsSub.dispose();
         };

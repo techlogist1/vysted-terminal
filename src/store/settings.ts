@@ -28,8 +28,7 @@
  * legacy names stay dropped — their written-never-read values carry no intent.)
  *
  * Persistence: the bundle rides the workspace blob; its autosave trigger is
- * the `settings` slice in `src/lib/workspace.ts` `PERSISTED_SLICES`, plus a
- * `PanelHost` subscription for the R15-UI-087 fields that slice does not watch.
+ * the `settings` slice in `src/lib/workspace.ts` `PERSISTED_SLICES`.
  *
  * SSR-safe: no `window`/`navigator` at module load.
  */
