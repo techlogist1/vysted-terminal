@@ -31,6 +31,7 @@ including the parallel angle exploration in Heavy mode.
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 import time
 from dataclasses import dataclass
@@ -94,6 +95,8 @@ _REPORT_CHAR_CAP = 6000
 #: panel at all, 3 the ceiling so the budget fan-out stays sane.
 _MIN_ANGLES = 2
 _MAX_ANGLES = 3
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -1054,6 +1057,16 @@ async def run_heavy_research(
     ]
     briefs = await asyncio.gather(*explorers, return_exceptions=True)
     good = [b for b in briefs if isinstance(b, ResearchBrief)]
+    for i, (angle, b) in enumerate(zip(angle_list, briefs, strict=True)):
+        if isinstance(b, BaseException):
+            _log.warning("heavy research explorer %d (%s) crashed", i + 1, angle, exc_info=b)
+            crash_step = ResearchStep(
+                "plan",
+                f"explorer angle {i + 1} ({angle[:48]}) failed: {type(b).__name__}: {b}",
+                status="error",
+            )
+            steps.append(crash_step)
+            await _emit(on_step, crash_step)
 
     if not good:
         # Every explorer failed (should not happen — iter never raises). Degrade to
