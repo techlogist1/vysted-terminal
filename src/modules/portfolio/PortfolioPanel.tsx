@@ -94,6 +94,8 @@ const DROP_WEIGHT_BELOW = 680;
 const DROP_COST_BELOW = 620;
 const DROP_PRICE_BELOW = 540;
 const DROP_QTY_BELOW = 460;
+/** Live-quote refresh cadence — the Watchlist's poll interval (5 s). */
+const QUOTE_REFRESH_MS = 5_000;
 
 interface FormState {
   symbol: string;
@@ -207,8 +209,24 @@ export function PortfolioPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotesKey, quotesNonce]);
 
+  // Prices refresh on the Watchlist's cadence (R15-UI-036) — a portfolio left
+  // open no longer shows its first-resolved values forever.
+  const hasHoldings = holdings.length > 0;
+  useEffect(() => {
+    if (!hasHoldings) {
+      return;
+    }
+    const timer = setInterval(() => setQuotesNonce((n) => n + 1), QUOTE_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [hasHoldings]);
+
   const summary = useMemo(() => buildPortfolioSummary(positions, quotes), [positions, quotes]);
   const mixedCurrencies = summary.mixedCurrencies;
+  // The totals are only as fresh as their OLDEST quote.
+  const quotesAsOf = summary.rows.reduce<string | null>((oldest, { quote }) => {
+    const at = quote?.timestamp;
+    return at && (oldest === null || Date.parse(at) < Date.parse(oldest)) ? at : oldest;
+  }, null);
 
   // Clear a save/validation error as soon as the user edits any field.
   const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
@@ -872,6 +890,24 @@ export function PortfolioPanel() {
               </span>
               <span className="text-charcoal-400 whitespace-nowrap">
                 {summary.unresolvedCount} without a live quote
+              </span>
+            </>
+          )}
+          {quotesAsOf !== null && (
+            <>
+              <span aria-hidden="true" className="text-charcoal-600">
+                ·
+              </span>
+              <span
+                className="text-charcoal-400 whitespace-nowrap"
+                title={`Oldest quote in these totals: ${quotesAsOf}`}
+                data-testid="portfolio-totals-as-of"
+              >
+                as of{" "}
+                {new Date(quotesAsOf).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </span>
             </>
           )}

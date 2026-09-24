@@ -195,6 +195,33 @@ describe("PortfolioPanel", () => {
     expect(payload.totalValueNote ?? null).toBeNull();
   });
 
+  it("refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)", async () => {
+    vi.useFakeTimers();
+    try {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([
+          ["AAPL", { ...quote("AAPL", 200), timestamp: "2026-05-15T14:30:00Z" }],
+          ["MSFT", { ...quote("MSFT", 400), timestamp: "2026-05-15T14:00:00Z" }],
+        ]),
+        failed: 0,
+      });
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await addHolding("msft", "1", "300");
+      await act(async () => {}); // settle the quote fetch
+      expect(screen.getByTestId("portfolio-totals-as-of").title).toBe(
+        "Oldest quote in these totals: 2026-05-15T14:00:00Z",
+      );
+      const calls = mockFetchQuotes.mock.calls.length;
+      await act(async () => {
+        vi.advanceTimersByTime(5_000);
+      });
+      expect(mockFetchQuotes.mock.calls.length).toBe(calls + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("R15-UI-090: an eod quote renders a staleness cue on its holding row", async () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),
