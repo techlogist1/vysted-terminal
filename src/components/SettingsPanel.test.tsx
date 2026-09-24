@@ -1,11 +1,13 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
+import { buildSettingsExport, searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
+import { useLLMProvidersStore } from "@/store/llm-providers";
 import { resetModelCatalogStoreForTests, useModelCatalogStore } from "@/store/model-catalog";
+import { resetModelSelectionStoreForTests, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import {
@@ -89,6 +91,8 @@ describe("SettingsPanel", () => {
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
     resetSearchSettingsStoreForTests();
+    resetModelSelectionStoreForTests();
+    useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
     useProviderKeysStore.setState({ status: {}, probed: false });
     // Default: the engine is up but refuses every request — the surfaces render
     // their honest "unavailable" fallbacks. Tier tests route real paths.
@@ -317,6 +321,101 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel />);
     const section = screen.getByRole("region", { name: "Export / Import" });
     expect(within(section).getByText(/never exported/i)).toBeInTheDocument();
+  });
+
+  // ---- Import gating + SettingsExport v2 (R15-UI-058) ----
+
+  function fileInput() {
+    return screen.getByLabelText("Import settings file") as HTMLInputElement;
+  }
+
+  function doImport(json: unknown) {
+    const file = new File([JSON.stringify(json)], "import.json", { type: "application/json" });
+    fireEvent.change(fileInput(), { target: { files: [file] } });
+  }
+
+  it("a file recognising nothing (an empty object) reports an error, not success", async () => {
+    render(<SettingsPanel />);
+    doImport({});
+    expect(await screen.findByText(/expected a Vysted export/i)).toBeInTheDocument();
+  });
+
+  it("another app's JSON ({theme:'dark'}) reports an error, not success", async () => {
+    render(<SettingsPanel />);
+    doImport({ theme: "dark" });
+    expect(await screen.findByText(/expected a Vysted export/i)).toBeInTheDocument();
+  });
+
+  it("a bundle lacking region preserves the CURRENT region instead of resetting it", async () => {
+    useSettingsStore.getState().setRegion("IN");
+    render(<SettingsPanel />);
+    doImport({ settings: { defaultAgentId: "munger" } }); // no `region` field at all
+    await screen.findByText(/Imported settings/i);
+    expect(useSettingsStore.getState().defaultAgentId).toBe("munger");
+    expect(useSettingsStore.getState().region).toBe("IN");
+  });
+
+  it("keybindingOverrides with a bogus action id merges instead of wiping the existing remap", async () => {
+    useKeybindingsStore.getState().setBinding("changes.acceptAll", "mod+shift+enter");
+    render(<SettingsPanel />);
+    doImport({
+      keybindingOverrides: { "no.such.action": "mod+z", "palette.open": 42 },
+    });
+    await screen.findByText(/Imported settings/i);
+    const overrides = useKeybindingsStore.getState().overrides;
+    expect(overrides["changes.acceptAll"]).toBe("mod+shift+enter"); // survives
+    expect(overrides["no.such.action"]).toBeUndefined(); // unknown action rejected
+    expect(overrides["palette.open"]).toBeUndefined(); // non-string value rejected
+  });
+
+  it("round-trips search settings, default provider/model and module toggles", async () => {
+    useSearchSettingsStore.getState().setSearxngUrl("https://searx.example.com");
+    useLLMProvidersStore.getState().setDefaultProviderId("openrouter");
+    useModelSelectionStore.getState().setModel("openrouter", "anthropic/claude-3.5-sonnet");
+    useModulesStore.getState().setModuleEnabled("chart", false);
+
+    const exported = buildSettingsExport();
+    expect(exported.searchSettings.searxngUrl).toBe("https://searx.example.com");
+    expect(exported.defaultProviderId).toBe("openrouter");
+    expect(exported.defaultModel).toBe("anthropic/claude-3.5-sonnet");
+    expect(exported.enabledModules.chart).toBe(false);
+
+    // Reset the live state so the import assertion proves restoration, not survival.
+    resetSearchSettingsStoreForTests();
+    resetModelSelectionStoreForTests();
+    useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
+    useModulesStore.getState().setModuleEnabled("chart", true);
+
+    render(<SettingsPanel />);
+    doImport(exported);
+    await screen.findByText(/Imported settings/i);
+
+    expect(useSearchSettingsStore.getState().searxngUrl).toBe("https://searx.example.com");
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("openrouter");
+    expect(useModelSelectionStore.getState().overrides.openrouter).toBe(
+      "anthropic/claude-3.5-sonnet",
+    );
+    expect(useModulesStore.getState().enabled.chart).toBe(false);
+  });
+
+  it("R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it", () => {
+    useSearchSettingsStore.getState().setSearxngUrl("https://searx.example.com");
+    // A partial re-import that only carries a research-model tweak must not
+    // silently reset the SearXNG URl back to "" (the same merge-over-seed
+    // class fixed for settings.ts region and keybindings.ts overrides).
+    useSearchSettingsStore.getState().setAll({
+      researchModels: { ...DEFAULT_RESEARCH_MODELS, normal: "perplexity/sonar-pro" },
+    });
+    const s = useSearchSettingsStore.getState();
+    expect(s.searxngUrl).toBe("https://searx.example.com");
+    expect(s.researchModels.normal).toBe("perplexity/sonar-pro");
+  });
+
+  it("an unrecognised defaultProviderId is rejected (no such provider)", async () => {
+    render(<SettingsPanel />);
+    doImport({ defaultProviderId: "not-a-real-provider", defaultModel: "x" });
+    expect(await screen.findByText(/expected a Vysted export/i)).toBeInTheDocument();
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("ollama");
   });
 
   it("Region & locale states the actual default and what region controls (R15-DATA-092)", () => {

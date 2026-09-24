@@ -131,6 +131,18 @@ describe("settings store", () => {
     }
   });
 
+  it("R15-UI-058: a field ABSENT from a later setAll preserves the CURRENT value, not the seed", () => {
+    useSettingsStore.getState().setRegion("IN");
+    useSettingsStore.getState().setDeepResearchBackend("perplexity");
+    // A later partial import (or an older blob) that omits region/backend
+    // must not silently reset them back to the seed defaults.
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" });
+    const s = useSettingsStore.getState();
+    expect(s.defaultAgentId).toBe("munger");
+    expect(s.region).toBe("IN");
+    expect(s.deepResearchBackend).toBe("perplexity");
+  });
+
   it("setAll coerces a garbled region and a legacy deep-research backend", () => {
     useSettingsStore.getState().setAll({
       region: "ATLANTIS",

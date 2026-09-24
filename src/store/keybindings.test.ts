@@ -81,6 +81,25 @@ describe("setOverrides", () => {
     // Empty string is dropped, so platform.save-workspace falls back to default.
     expect(useKeybindingsStore.getState().bindingFor("platform.save-workspace")).toBe("mod+s");
   });
+
+  it("R15-UI-058: merges over the CURRENT overrides instead of replacing them", () => {
+    useKeybindingsStore.getState().setBinding("changes.acceptAll", "mod+shift+enter");
+    useKeybindingsStore.getState().setOverrides({ "agent.mode.agent": "mod+p" });
+    const overrides = useKeybindingsStore.getState().overrides;
+    // The earlier remap survives a later setOverrides call that omits it.
+    expect(overrides["changes.acceptAll"]).toBe("mod+shift+enter");
+    expect(overrides["agent.mode.agent"]).toBe("mod+p");
+  });
+
+  it("R15-UI-058: rejects an unknown action id and a non-string value without touching existing overrides", () => {
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+shift+k");
+    useKeybindingsStore
+      .getState()
+      .setOverrides({ "no.such.action": "mod+z", "palette.open": 42 as unknown as string });
+    const overrides = useKeybindingsStore.getState().overrides;
+    expect(overrides["no.such.action"]).toBeUndefined();
+    expect(overrides["palette.open"]).toBe("mod+shift+k");
+  });
 });
 
 describe("conflicts", () => {

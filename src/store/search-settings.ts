@@ -345,11 +345,25 @@ export const useSearchSettingsStore = create<SearchSettingsState>((set, get) => 
   },
 
   setAll: (bundle) => {
-    // Fold ANY older blob into the R9 vocabulary first; migration returns a
-    // FULL validated bundle (merged over the seed), so a partial blob can't
-    // strip a field and a garbled value falls back to the default.
-    const { bundle: migrated, tierBNeedsKeyConfirmation } = migrateSearchSettings(bundle ?? {});
-    set(migrated);
+    // Fold ANY older blob into the R9 vocabulary first — migration always
+    // returns a FULL validated bundle, filling anything absent from the
+    // seed. That is correct for a boot restore (a fresh store IS the seed),
+    // but a mid-session partial/legacy IMPORT must not silently reset a
+    // field the user already set back to the default (R15-UI-058) — so a
+    // field genuinely absent from the raw input is re-merged over the
+    // CURRENT live state instead of the migrated default. `researchTier`
+    // keeps its legacy `tier`/`hostedEngine` migration path intact (only
+    // falls back to current when NEITHER the R9 nor the legacy field is
+    // present at all).
+    const raw = bundle ?? {};
+    const current = get();
+    const { bundle: migrated, tierBNeedsKeyConfirmation } = migrateSearchSettings(raw);
+    const hasTierInfo = "researchTier" in raw || "tier" in raw;
+    set({
+      researchTier: hasTierInfo ? migrated.researchTier : current.researchTier,
+      searxngUrl: "searxngUrl" in raw ? migrated.searxngUrl : current.searxngUrl,
+      researchModels: "researchModels" in raw ? migrated.researchModels : current.researchModels,
+    });
     if (tierBNeedsKeyConfirmation) {
       // A legacy hosted/Exa selection landed on tier_b provisionally — confirm
       // the OpenRouter key exists (async keychain read) and demote to tier_a

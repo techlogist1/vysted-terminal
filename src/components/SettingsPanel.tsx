@@ -47,7 +47,11 @@ import {
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { type CatalogEntry, useModelCatalog } from "@/store/model-catalog";
-import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
+import {
+  KNOWN_MODELS_BY_PROVIDER,
+  REGISTRY_PROVIDERS,
+  useModelSelectionStore,
+} from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
@@ -56,6 +60,8 @@ import { useContainerWidth } from "@/lib/use-container-width";
 import {
   RESEARCH_MODEL_OPTIONS,
   type ResearchStop,
+  type SearchSettingsBundle,
+  type SearchSettingsInput,
   useSearchSettingsStore,
 } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
@@ -1805,28 +1811,52 @@ function ModulesSection() {
 // Export / Import (FR-037 / FR-038)
 // ---------------------------------------------------------------------------
 
-/** The exported settings bundle shape. NEVER includes secrets (FR-036/SC-010). */
+/**
+ * The exported settings bundle shape. NEVER includes secrets (FR-036/SC-010).
+ *
+ * v2 (R15-UI-058): v1 exported only `settings` (defaultAgentId/region/
+ * deepResearchBackend) + `keybindingOverrides` — every OTHER preference a
+ * user can set in this panel (research tier/models, the SearXNG URL, the
+ * default provider/model, module toggles) silently did not round-trip.
+ */
 export interface SettingsExport {
   /** A small version tag so a future import can migrate older bundles. */
-  version: 1;
+  version: 2;
   /** Remappable-keybinding overrides, keyed by action id. */
   keybindingOverrides: Record<string, string>;
   /** The local preferences bundle. */
   settings: SettingsBundle;
+  /** Research tier, SearXNG URL and per-stop research models. */
+  searchSettings: SearchSettingsBundle;
+  /** The default provider the copilot uses when an agent has no preference. */
+  defaultProviderId: LLMProviderId;
+  /** The model selected for `defaultProviderId`. */
+  defaultModel: string;
+  /** Per-module enabled flags (Advanced → Modules). */
+  enabledModules: Record<string, boolean>;
 }
 
 /** Build the export bundle from the live stores. Pure of secrets by construction. */
 export function buildSettingsExport(): SettingsExport {
+  const defaultProviderId = useLLMProvidersStore.getState().defaultProviderId;
   return {
-    version: 1,
+    version: 2,
     keybindingOverrides: { ...useKeybindingsStore.getState().overrides },
     settings: useSettingsStore.getState().toBundle(),
+    searchSettings: useSearchSettingsStore.getState().toBundle(),
+    defaultProviderId,
+    defaultModel: useModelSelectionStore.getState().modelFor(defaultProviderId),
+    enabledModules: { ...useModulesStore.getState().enabled },
   };
 }
 
 function ExportImportSection() {
   const setOverrides = useKeybindingsStore((s) => s.setOverrides);
   const setAll = useSettingsStore((s) => s.setAll);
+  const setSearchSettingsAll = useSearchSettingsStore((s) => s.setAll);
+  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
+  const setModelOverrides = useModelSelectionStore((s) => s.setOverrides);
+  const setEnabledModules = useModulesStore((s) => s.setEnabledMap);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState<{ kind: "ok" | "error"; message: string } | null>(null);
 
@@ -1851,13 +1881,57 @@ function ExportImportSection() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as Partial<SettingsExport>;
+      // A file that recognises NOTHING (an empty object, another app's JSON,
+      // a bare `{theme:'dark'}`) must not report success — R15-UI-058: the
+      // old unconditional "Imported settings." told the user their file
+      // loaded when in fact nothing was applied. Each branch below only
+      // fires when its section is structurally the right shape.
+      let appliedAny = false;
+
       if (parsed.keybindingOverrides && typeof parsed.keybindingOverrides === "object") {
         setOverrides(parsed.keybindingOverrides);
+        appliedAny = true;
       }
       if (parsed.settings && typeof parsed.settings === "object") {
         setAll(parsed.settings);
+        appliedAny = true;
       }
-      setStatus({ kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." });
+      if (parsed.searchSettings && typeof parsed.searchSettings === "object") {
+        setSearchSettingsAll(parsed.searchSettings as SearchSettingsInput);
+        appliedAny = true;
+      }
+      if (
+        typeof parsed.defaultProviderId === "string" &&
+        REGISTRY_PROVIDERS.some((p) => p.id === parsed.defaultProviderId)
+      ) {
+        const providerId = parsed.defaultProviderId as LLMProviderId;
+        setDefaultProviderId(providerId);
+        if (typeof parsed.defaultModel === "string" && parsed.defaultModel.trim() !== "") {
+          const overrides = useModelSelectionStore.getState().overrides;
+          setModelOverrides(
+            { ...overrides, [providerId]: parsed.defaultModel.trim() },
+            { trusted: true },
+          );
+        }
+        appliedAny = true;
+      }
+      if (parsed.enabledModules && typeof parsed.enabledModules === "object") {
+        const known = new Set(useModulesStore.getState().modules.map((m) => m.id));
+        const next = { ...useModulesStore.getState().enabled };
+        for (const [id, value] of Object.entries(parsed.enabledModules)) {
+          if (known.has(id) && typeof value === "boolean") {
+            next[id] = value;
+          }
+        }
+        setEnabledModules(next);
+        appliedAny = true;
+      }
+
+      setStatus(
+        appliedAny
+          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+          : { kind: "error", message: "Could not read that file — expected a Vysted export." },
+      );
     } catch {
       setStatus({ kind: "error", message: "Could not read that file — expected a Vysted export." });
     }
@@ -1897,8 +1971,9 @@ function ExportImportSection() {
             />
           </div>
           <p className="text-charcoal-500 text-caption">
-            The export bundles your keybinding remaps and preferences (default agent, region,
-            research engine). API keys stay in your OS keychain and are never written to the file.
+            The export bundles your keybinding remaps and preferences (default agent/provider/
+            model, region, research tier and models, SearXNG URL, module toggles). API keys stay in
+            your OS keychain and are never written to the file.
           </p>
           {status && (
             <p

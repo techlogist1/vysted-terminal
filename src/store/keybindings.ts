@@ -215,11 +215,18 @@ export const useKeybindingsStore = create<KeybindingsState>((set, get) => ({
       return { overrides: next };
     }),
   setOverrides: (map) =>
-    set(() => {
-      // Normalise on the way in so a persisted blob can't seed a combo that
+    set((state) => {
+      // Merge over the CURRENT overrides (never a full replace) and reject
+      // any action id this build doesn't know about — otherwise a partial or
+      // garbled import (an unknown action id, a non-string value) wipes every
+      // remap the full replace used to silently drop (R15-UI-058). Normalise
+      // on the way in so a persisted blob can't seed a combo that
       // `matchesEvent` would never match (e.g. "K+Mod", uppercase, spaces).
-      const overrides: Record<string, string> = {};
+      const overrides = { ...state.overrides };
       for (const [actionId, keys] of Object.entries(map)) {
+        if (!(actionId in state.defaults)) {
+          continue;
+        }
         if (typeof keys === "string" && keys.trim() !== "") {
           overrides[actionId] = normalizeBinding(keys);
         }
