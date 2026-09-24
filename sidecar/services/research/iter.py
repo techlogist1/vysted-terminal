@@ -69,6 +69,7 @@ from services.research.deep import (
     remaining_wall,
     snapshot_context,
     structured_feeds_available,
+    visit_failure_step,
 )
 from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
@@ -529,12 +530,16 @@ async def run_iter_research(
             )
         )
         last_round_findings = []
-        for q, (finding, web_res, structured_pairs, visited_pages) in zip(
+        for q, (finding, web_res, structured_pairs, visited_pages, visit_failures) in zip(
             open_questions[:fan_out], results, strict=False
         ):
             last_round_findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
             findings.record_evidence(visited_pages)
+            for failed_url, reason in visit_failures:
+                vstep = visit_failure_step(failed_url, reason)
+                steps.append(vstep)
+                await _emit(on_step, vstep)
             for pair in structured_pairs:
                 _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(

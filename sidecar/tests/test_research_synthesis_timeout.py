@@ -74,8 +74,8 @@ async def _snapshot(tool_call: Any, symbol: str, **_: Any) -> dict[str, Any]:
 def local_run(monkeypatch: pytest.MonkeyPatch):
     """A DEEP run on the local lane whose every model call outlives the cap."""
 
-    async def _no_visit(url: str, **_: Any) -> str | None:
-        return None
+    async def _no_visit(url: str, **_: Any) -> extract.VisitResult:
+        return extract.VisitResult(None)
 
     seen: dict[str, Any] = {}
 

@@ -29,7 +29,8 @@ github.com/pewdiepie-archdaemon/odysseus, ``services/search/content.py``):
 
 Returns honest dicts, never raises: ``{"ok": True, url, title, content,
 truncated, chars}`` or ``{"ok": False, url, error}``. The research-shaped
-:func:`visit_for_research` narrows that to "scrubbed excerpt or None".
+:func:`visit_for_research` narrows that to a ``VisitResult`` (page text, or
+the reason there is none).
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ import io
 import ipaddress
 import re
 import socket
+from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlparse
 
@@ -703,11 +705,21 @@ async def fetch_page(
 RESEARCH_VISIT_MAX_CHARS = 1800
 
 
-async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CHARS) -> str | None:
-    """The research-shaped visit: extracted page text, or ``None`` on any miss.
+@dataclass(frozen=True, slots=True)
+class VisitResult:
+    """One research visit: the page ``text``, or the ``reason`` there is none."""
+
+    text: str | None
+    reason: str | None = None
+
+
+async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CHARS) -> VisitResult:
+    """The research-shaped visit: extracted page text, or why it could not be read.
 
     Soft by design — a researcher with no page text still has the SERP
-    snippets; a visit failure must never fail the round. The caller is
+    snippets; a visit failure must never fail the round, but its ``reason``
+    (``HTTP 403``, a blocked URL, an unsupported type) is returned so the loop
+    records it as a step instead of the filing silently vanishing. The caller is
     responsible for fencing the returned text with
     :func:`services.search.scrub.wrap_untrusted` before it enters a prompt.
 
@@ -726,20 +738,20 @@ async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CH
         budget = max(budget, PDF_EXCHANGE_MAX_CHARS)
     try:
         page = await fetch_page(url, max_chars=budget)
-    except Exception:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
-        return None
+    except Exception as exc:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
+        return VisitResult(None, f"fetch raised: {exc}")
     pages_empty = int(page.get("pages_empty") or 0)
     page_count = int(page.get("page_count") or 0)
     if not page.get("ok"):
         if pages_empty and page_count:
             # Fully scanned filing: the honest note IS the visit text, so the
             # researcher learns WHY there are no figures instead of a silent miss.
-            return scanned_pages_note(pages_empty, page_count)
-        return None
+            return VisitResult(scanned_pages_note(pages_empty, page_count))
+        return VisitResult(None, str(page.get("error") or "unreadable page"))
     content = str(page.get("content") or "")
     if content and pages_empty and page_count:
         content = content.rstrip() + "\n\n" + scanned_pages_note(pages_empty, page_count)
-    return content or None
+    return VisitResult(content) if content else VisitResult(None, "no readable content extracted")
 
 
 __all__ = [
@@ -748,6 +760,7 @@ __all__ = [
     "PDF_EXCHANGE_MAX_CHARS",
     "PDF_RESEARCH_MAX_CHARS",
     "SCANNED_NOTE_MARKER",
+    "VisitResult",
     "extract_pdf_text",
     "fetch_page",
     "has_scanned_pages_note",

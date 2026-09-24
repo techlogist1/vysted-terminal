@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 
 from services.search.extract import (
+    VisitResult,
     fetch_page,
     is_public_http_url,
     visit_for_research,
@@ -222,7 +223,7 @@ def test_visit_for_research_returns_content(monkeypatch) -> None:  # noqa: ANN00
         return {"ok": True, "content": "Readable page text.", "url": url}
 
     monkeypatch.setattr(extract_module, "fetch_page", _fake_fetch_page)
-    assert _run(visit_for_research("https://example.com/a")) == "Readable page text."
+    assert _run(visit_for_research("https://example.com/a")).text == "Readable page text."
 
 
 def test_visit_for_research_swallows_misses(monkeypatch) -> None:  # noqa: ANN001
@@ -232,13 +233,15 @@ def test_visit_for_research_swallows_misses(monkeypatch) -> None:  # noqa: ANN00
         return {"ok": False, "error": "HTTP 404", "url": url}
 
     monkeypatch.setattr(extract_module, "fetch_page", _fail)
-    assert _run(visit_for_research("https://example.com/a")) is None
+    assert _run(visit_for_research("https://example.com/a")) == VisitResult(None, "HTTP 404")
 
     async def _raise(url, *, max_chars):  # noqa: ANN001, ANN202
         raise RuntimeError("boom")
 
     monkeypatch.setattr(extract_module, "fetch_page", _raise)
-    assert _run(visit_for_research("https://example.com/a")) is None
+    missed = _run(visit_for_research("https://example.com/a"))
+    assert missed.text is None
+    assert "boom" in (missed.reason or "")
 
 
 # --- PDF extraction (R8) -------------------------------------------------------------
@@ -517,7 +520,7 @@ def test_visit_appends_scanned_note_for_partially_scanned_pdf(monkeypatch) -> No
         }
 
     monkeypatch.setattr(extract_module, "fetch_page", _partial)
-    text = _run(visit_for_research("https://nsearchives.nseindia.com/corporate/outcome.pdf"))
+    text = _run(visit_for_research("https://nsearchives.nseindia.com/corporate/outcome.pdf")).text
     assert text is not None
     assert text.startswith("Cover letter text")
     assert "15 of 27 pages" in text
@@ -540,7 +543,7 @@ def test_visit_returns_scanned_note_for_fully_scanned_pdf(monkeypatch) -> None: 
         }
 
     monkeypatch.setattr(extract_module, "fetch_page", _scanned)
-    text = _run(visit_for_research("https://example.com/scan.pdf"))
+    text = _run(visit_for_research("https://example.com/scan.pdf")).text
     assert text is not None
     assert "8 of 8 pages" in text
     assert extract_module.has_scanned_pages_note(text)
@@ -553,7 +556,7 @@ def test_visit_still_none_on_ordinary_misses(monkeypatch) -> None:  # noqa: ANN0
         return {"ok": False, "url": url, "error": "HTTP 404"}
 
     monkeypatch.setattr(extract_module, "fetch_page", _http_miss)
-    assert _run(visit_for_research("https://example.com/x.pdf")) is None
+    assert _run(visit_for_research("https://example.com/x.pdf")) == VisitResult(None, "HTTP 404")
 
 
 def test_is_digit_sparse_separates_letters_from_tables() -> None:
