@@ -53,7 +53,9 @@ import httpx
 
 from config import get_region
 from models.news import NewsItem
+from services import sentiment, symbol_resolver
 from services.errors import ProviderError
+from services.locale import strip_exchange_suffix
 from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
@@ -420,3 +422,109 @@ async def fetch_news(
     dated = [item for item in unique if item.published_at is not None]
     dated.sort(key=lambda item: item.published_at, reverse=True)
     return dated + [item for item in unique if item.published_at is None]
+
+
+# ---------------------------------------------------------------------------
+# Enrichment — sentiment scoring + symbol tagging (R15-AGENT-063)
+#
+# Moved here from ``routers/news.py`` so the agent-tool path (``news_tool``)
+# gets the SAME scoring/tagging/filtering the HTTP route does, instead of
+# returning raw unscored items. A symbol like ``BTC/USDT`` is normalised to
+# its base (``BTC``) before alias matching — a headline says "BTC", never the
+# literal pair — while the tag on the returned item still carries the symbol
+# exactly as requested.
+# ---------------------------------------------------------------------------
+
+
+def _normalize_symbol_for_aliases(symbol: str) -> str:
+    """Strip a crypto pair's quote leg or an NSE/BSE exchange suffix down to
+    the bare base a headline would actually mention (``BTC/USDT`` → ``BTC``,
+    ``RELIANCE.NS`` → ``RELIANCE``)."""
+    upper = symbol.strip().upper()
+    if "/" in upper:
+        upper = upper.split("/", 1)[0]
+    return strip_exchange_suffix(upper)
+
+
+def _company_name(symbol: str) -> str | None:
+    """The listing's company name without its corporate suffix, lower-case.
+
+    The listing is the region-aware Yahoo form (``_yahoo_symbol``), so bare BDL
+    in an IN session is Bharat Dynamics, not Flanigan's.
+    """
+    listing = _yahoo_symbol(symbol)
+    bare = strip_exchange_suffix(listing)
+    if listing.endswith(".NS"):
+        row = symbol_resolver._nse_master().get(bare)
+    elif listing.endswith(".BO"):
+        row = symbol_resolver._bse_master().get(bare)
+    else:
+        row = symbol_resolver._us_master().get(listing)
+    name = row[0] if isinstance(row, tuple) else row
+    return symbol_resolver._strip_corporate_suffix(name.lower()) if name else None
+
+
+def _aliases(symbol: str) -> list[str]:
+    """Text forms that mean ``symbol``: the ticker as requested, its bare
+    exchange/pair-stripped base (2+ characters only, so ``A`` never matches
+    the article "a"), and the company name (the only text alias a one-letter
+    ticker gets)."""
+    tickers = dict.fromkeys(
+        [symbol, strip_exchange_suffix(symbol), _normalize_symbol_for_aliases(symbol)]
+    )
+    aliases = [t for t in tickers if len(t) >= 2]
+    name = _company_name(symbol)
+    if name:
+        aliases.append(name)
+    return aliases
+
+
+def build_aliases(symbols: list[str]) -> dict[str, list[str]]:
+    """Build the ``{symbol: [alias, ...]}`` map :func:`enrich` tags against."""
+    return {symbol: _aliases(symbol) for symbol in symbols}
+
+
+def _tag_symbols(item: NewsItem, aliases: dict[str, list[str]]) -> list[str]:
+    """Return the symbols (keys of ``aliases``) the item is about.
+
+    An item from a symbol's own per-symbol feed is tagged by provenance
+    (``item.symbols``, set by the provider); otherwise any alias of the symbol
+    (:func:`_aliases`) must appear word-boundary-anchored in the title or
+    summary, so ``ETH`` does not match ``ethics``.
+    """
+    haystack = f"{item.title} {item.summary or ''}"
+    matched: list[str] = []
+    for symbol, forms in aliases.items():
+        if symbol in item.symbols or any(
+            re.search(rf"\b{re.escape(alias)}\b", haystack, flags=re.IGNORECASE) for alias in forms
+        ):
+            matched.append(symbol)
+    return matched
+
+
+def enrich(
+    items: list[NewsItem], symbols: list[str], aliases: dict[str, list[str]]
+) -> list[NewsItem]:
+    """Score every item's sentiment and tag it against ``aliases``.
+
+    ``aliases`` is typically :func:`build_aliases` output. When ``symbols`` is
+    non-empty (an explicit request), untagged items are dropped — the
+    requested-symbol relevance filter both the ``/news`` route and the
+    ``news`` agent tool need identically.
+    """
+    enriched: list[NewsItem] = []
+    for item in items:
+        result = sentiment.score_text(f"{item.title}. {item.summary or ''}")
+        tagged = _tag_symbols(item, aliases)
+        if symbols and not tagged:
+            continue
+        enriched.append(
+            item.model_copy(
+                update={
+                    "symbols": tagged,
+                    "sentiment": round(result.score, 4),
+                    "sentiment_label": result.label,
+                }
+            )
+        )
+    return enriched
