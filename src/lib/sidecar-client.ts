@@ -117,6 +117,7 @@ export function getSidecarBaseUrl(): Promise<string> {
   }
   readyPromise = resolveAndAwaitReady().catch((error: unknown) => {
     readyPromise = null; // re-armable: a later caller / manual Retry re-probes
+    reportReachability(false, error instanceof Error ? error.message : String(error));
     throw error;
   });
   return readyPromise;
@@ -165,9 +166,32 @@ export async function sidecarFetch(url: string, init?: RequestInit): Promise<Res
       throw err;
     }
     readyPromise = null;
+    reportReachability(false, SIDECAR_UNREACHABLE);
     throw new SidecarError(0, SIDECAR_UNREACHABLE);
   }
+  reportReachability(true);
   return response;
+}
+
+type ReachabilityListener = (reachable: boolean, reason?: string) => void;
+const reachabilityListeners = new Set<ReachabilityListener>();
+
+/**
+ * Hear every sidecar answer (`true`) and every connection-level failure
+ * (`false` + the reason) — how the app store keeps `sidecarStatus` current
+ * without this module importing the store. Returns the unsubscribe.
+ */
+export function onSidecarReachability(listener: ReachabilityListener): () => void {
+  reachabilityListeners.add(listener);
+  return () => {
+    reachabilityListeners.delete(listener);
+  };
+}
+
+function reportReachability(reachable: boolean, reason?: string): void {
+  for (const listener of reachabilityListeners) {
+    listener(reachable, reason);
+  }
 }
 
 export interface SidecarRequestOptions {
