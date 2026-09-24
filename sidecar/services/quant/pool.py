@@ -11,10 +11,25 @@ from __future__ import annotations
 
 import asyncio
 import multiprocessing
+import os
+import threading
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor
 
 _pool: ProcessPoolExecutor | None = None
+
+
+def _exit_with_parent() -> None:
+    """Pool initializer: the worker exits when the sidecar dies.
+
+    A SIGKILLed sidecar (Tauri's RunEvent::Exit) never runs :func:`shutdown`;
+    without this its workers reparent to PID 1 and live forever. The spawn
+    parent sentinel is the stdlib's parent-death signal (a pipe EOF on POSIX,
+    the parent's process handle on Windows).
+    """
+    parent = multiprocessing.parent_process()
+    if parent is not None:
+        threading.Thread(target=lambda: (parent.join(), os._exit(0)), daemon=True).start()
 
 
 def _get_pool() -> ProcessPoolExecutor:
@@ -22,7 +37,11 @@ def _get_pool() -> ProcessPoolExecutor:
     if _pool is None:
         # spawn, not fork: a forked child of a threaded asyncio server can
         # inherit held locks. The frozen binary needs freeze_support() (main.py).
-        _pool = ProcessPoolExecutor(max_workers=2, mp_context=multiprocessing.get_context("spawn"))
+        _pool = ProcessPoolExecutor(
+            max_workers=2,
+            mp_context=multiprocessing.get_context("spawn"),
+            initializer=_exit_with_parent,
+        )
     return _pool
 
 
@@ -35,11 +54,19 @@ async def run_quant[Req, Res](fn: Callable[[Req], Res], req: Req) -> Res:
 
 
 def shutdown() -> None:
-    """Stop the pool (app lifespan ``finally``); a later pricing recreates it."""
+    """Stop the pool now, even mid-pricing (lifespan ``finally`` and the stdin-EOF
+    watchdog before its ``os._exit``); a later pricing recreates it."""
     global _pool
-    if _pool is not None:
-        _pool.shutdown(wait=False, cancel_futures=True)
-        _pool = None
+    pool, _pool = _pool, None
+    if pool is None:
+        return
+    # ponytail: private _processes; Python 3.14's terminate_workers() replaces it.
+    workers = list(pool._processes.values())
+    pool.shutdown(wait=False, cancel_futures=True)
+    for worker in workers:
+        worker.terminate()
+    for worker in workers:
+        worker.join(timeout=2)
 
 
 __all__ = ["run_quant", "shutdown"]

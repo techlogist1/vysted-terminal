@@ -30,6 +30,7 @@ import uvicorn
 from app import app
 from config import DATA_DIR_ENV
 from services import agent_tools, backtest_strategies, mcp_server, workflow_nodes
+from services.quant import pool as quant_pool
 from services.workflow_nodes import registry_v0_6_0 as workflow_nodes_v0_6_0
 
 
@@ -65,7 +66,8 @@ def _exit_when_parent_closes_stdin() -> None:
     re-execs the real worker as a child. Killing the bootloader (what the Tauri
     core spawns) would otherwise orphan this worker. Watching stdin for EOF is a
     reliable, cross-platform shutdown signal: when the Tauri core exits it drops
-    its end of the stdin pipe, we read EOF, and we exit too.
+    its end of the stdin pipe, we read EOF, and we exit too. ``os._exit`` skips
+    the lifespan ``finally``, so the pricing pool is stopped here first.
     """
     if sys.stdin is None:
         return
@@ -74,7 +76,10 @@ def _exit_when_parent_closes_stdin() -> None:
     except Exception:
         # Any stdin failure means the parent is gone — nothing to recover.
         pass
-    os._exit(0)
+    try:
+        quant_pool.shutdown()
+    finally:
+        os._exit(0)
 
 
 def _build_parser() -> argparse.ArgumentParser:
