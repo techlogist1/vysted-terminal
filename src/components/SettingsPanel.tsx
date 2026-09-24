@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { formatModelLabel } from "@/components/StatusChrome";
 import { type Region, REGIONS } from "@/lib/region";
@@ -412,14 +413,20 @@ function ProvidersSection() {
   const refreshOne = useProviderKeysStore((s) => s.refreshOne);
 
   const [dialogProvider, setDialogProvider] = useState<LLMProviderId | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   async function handleRemove(id: LLMProviderId) {
-    await deleteSecret(KEYCHAIN_NAMESPACES.llmProvider(id));
-    await refreshOne(id);
+    setRemoveError(null);
+    try {
+      await deleteSecret(KEYCHAIN_NAMESPACES.llmProvider(id));
+      await refreshOne(id);
+    } catch (error) {
+      setRemoveError(error instanceof Error ? error.message : "Could not remove the key.");
+    }
   }
 
   return (
@@ -506,14 +513,16 @@ function ProvidersSection() {
                   </span>
                   <span className="flex w-8 justify-end">
                     {needsKey && configured && (
-                      <button
-                        type="button"
+                      <ConfirmButton
+                        variant="ghost"
+                        size="icon-xs"
                         aria-label={`Remove ${provider.label} key`}
-                        onClick={() => void handleRemove(provider.id)}
-                        className="text-charcoal-400 hover:text-negative rounded-control p-2"
+                        onConfirm={() => void handleRemove(provider.id)}
+                        armedLabel={<Trash2 className={ICON_14} aria-hidden="true" />}
+                        className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-2"
                       >
                         <Trash2 className={ICON_14} aria-hidden="true" />
-                      </button>
+                      </ConfirmButton>
                     )}
                   </span>
                 </div>
@@ -521,6 +530,7 @@ function ProvidersSection() {
             );
           })}
         </Card>
+        {removeError && <p className="text-negative text-caption">{removeError}</p>}
 
         <DefaultsGroup />
       </div>
@@ -1685,9 +1695,15 @@ function LayoutsSection() {
         <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
           Save
         </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => void resetLayout()}>
+        <ConfirmButton
+          size="sm"
+          variant="ghost"
+          aria-label="Reset layout to default"
+          armedLabel="Confirm reset?"
+          onConfirm={() => void resetLayout()}
+        >
           Reset to default
-        </Button>
+        </ConfirmButton>
       </form>
       {error && <p className="text-negative text-caption mb-2">{error}</p>}
       {names === null ? (
@@ -1714,19 +1730,21 @@ function LayoutsSection() {
                 >
                   Load
                 </button>
-                <button
-                  type="button"
+                <ConfirmButton
+                  variant="ghost"
+                  size="icon-xs"
                   aria-label={`Delete layout ${name}`}
-                  onClick={() =>
+                  onConfirm={() =>
                     void withBusy(async () => {
                       await deleteWorkspace(name);
                       await reload();
                     })
                   }
-                  className="text-charcoal-400 hover:text-negative rounded-control p-1"
+                  armedLabel={<X className={ICON_14} aria-hidden="true" />}
+                  className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-1"
                 >
                   <X className={ICON_14} aria-hidden="true" />
-                </button>
+                </ConfirmButton>
               </div>
             </div>
           ))}

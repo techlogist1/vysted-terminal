@@ -7,6 +7,7 @@ import { DataTable, type DataColumn } from "@/components/DataTable";
 import { StalenessBadge } from "@/components/DataBadges";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import {
   formatCompactMoney,
@@ -548,15 +549,15 @@ export function PortfolioPanel() {
           >
             <Pencil />
           </Button>
-          <Button
-            type="button"
+          <ConfirmButton
             size="icon-xs"
             variant="ghost"
             aria-label={`Delete ${r.position.symbol}`}
-            onClick={() => r.holding && handleDelete(r.holding.id)}
+            onConfirm={() => r.holding && handleDelete(r.holding.id)}
+            armedLabel={<Trash2 />}
           >
             <Trash2 />
-          </Button>
+          </ConfirmButton>
         </>
       ),
     });
@@ -736,16 +737,16 @@ export function PortfolioPanel() {
             >
               <Download />
             </Button>
-            <Button
-              type="button"
+            <ConfirmButton
               size="icon-sm"
               variant="ghost"
               aria-label="Delete portfolio"
               title="Delete portfolio"
-              onClick={() => deletePortfolio(active.id)}
+              onConfirm={() => deletePortfolio(active.id)}
+              armedLabel={<Trash2 />}
             >
               <Trash2 />
-            </Button>
+            </ConfirmButton>
           </>
         )}
       </div>
