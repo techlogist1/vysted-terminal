@@ -57,6 +57,7 @@ vi.mock("@/modules/watchlist/api", () => ({
 
 vi.mock("@/modules/news/api", () => ({
   fetchNews: vi.fn(async () => []),
+  fetchNewsSourcesStatus: vi.fn(async () => ({ newsapi: "absent" })),
 }));
 
 vi.mock("@/modules/equity-overview/api", () => ({
