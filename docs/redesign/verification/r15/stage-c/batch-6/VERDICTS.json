@@ -1,0 +1,45 @@
+{
+  "certified": [
+    "R15-DATA-017",
+    "R15-LEAD-012",
+    "R15-CODE-RESEARCH-002",
+    "R15-RESEARCH-017",
+    "R15-RESEARCH-018",
+    "R15-RESEARCH-012",
+    "R15-RESEARCH-016",
+    "R15-LEAD-014",
+    "R15-CODE-FRONTEND-012",
+    "R15-DATA-089",
+    "R15-CODE-PLATFORM-022",
+    "R15-DATA-088",
+    "R15-CODE-FRONTEND-011",
+    "R15-CODE-FRONTEND-007",
+    "R15-AGENT-042",
+    "R15-CODE-FRONTEND-009",
+    "R15-CODE-FRONTEND-010",
+    "R15-AGENT-052",
+    "R15-AGENT-051",
+    "R15-CODE-FRONTEND-015",
+    "R15-UI-021"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-CODE-PLATFORM-018",
+      "reason": "The freeze is fixed (20k-step binomial: /health max 33 ms over 82 polls, was 6.4 s; 60k steps: 54 s pricing, /health max 33 ms over 496 polls; the workflow node path 26 ms; the frozen --onefile binary prices through freeze_support). But the fix adds a new defect: the pool's worker and resource_tracker processes are orphaned on every sidecar exit. The stdin-EOF watchdog (main.py:61-77) calls os._exit(0), and Tauri's RunEvent::Exit kills the child, so the lifespan finally that calls quant_pool.shutdown() never runs. Reproduced twice: on the frozen binary built from the target (workers 27453/27454 reparented to PID 1, still alive a minute later) and on the source sidecar (25653/25654, PPID 1). Two workers from the W3 writer's worktree at 03:42 were still alive 9h40m later (PIDs 98721/98722). Every app session that prices anything leaks two processes. Fix: the watchdog shuts the pool down before os._exit, and each worker exits when its parent dies (for example, a pool initializer that watches os.getppid())."
+    },
+    {
+      "id": "R15-AGENT-046",
+      "reason": "The Ollama leg is fixed live. On llama3.1:8b the host actions carry distinct call_<uuid> ids, the POST /agents/actions/ack returns 200 (it returned 422 on ''), and the model confirms. Without acks it says 'pending'. The cross-run leg of the entry's own repro (b) still reproduces: 'any run within the 600 s TTL issues set_chart_symbol again -> same id -> finds the stale entry'. The runtime mints an id only when the provider's is empty or was already seen in THIS invocation (seen_call_ids starts empty per invoke_agent). Gemini's per-stream set_chart_symbol_0 therefore repeats across runs. A late ack from run 1 (after the 0.8 s grace, or accepted from the ASK queue, where readback is skipped and nothing is taken) falsely grounds run 2's new action as 'applied'. A scratch runtime harness shows it: turn 1 set_chart_symbol_0 dispatched_unconfirmed, a late 'applied' ack, then turn 2 set_chart_symbol_0 'applied' with no ack for turn 2. Fix: mint ids whose uniqueness holds across runs (always runtime-owned, or seeded from the ledger), not per turn."
+    },
+    {
+      "id": "R15-RESEARCH-024",
+      "reason": "Not claimed. Only the runtime half landed: _auto_publish_event forwards a host domain and published_at. W4's C4 half, where Citation and web rows carry domain and published_at, was not delivered, so FAST rows reach the mapping without dates. It stays open."
+    }
+  ],
+  "concur_not_defect": [
+    "R15-UI-041"
+  ],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-6-int@4c9f75168bc2bec141ca1d7e3c74710bf7070dc7"
+}
