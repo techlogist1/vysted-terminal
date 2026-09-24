@@ -356,8 +356,8 @@ preference-order fallthrough.
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
 - **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (full S&P 500 — 503 symbols, regenerated live from Wikipedia by
-  `regenerate_sp500.py`, R15-LEAD-013; was a stale "top 100" snapshot),
+  `sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that
+  has drifted from current membership, R15-LEAD-013 open),
   `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
   cache expiry — a live "refresh from ccxt" worker still does **not exist**),
   `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
