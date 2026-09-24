@@ -97,10 +97,21 @@ def get(tool_call_id: str) -> dict[str, Any] | None:
     return found[1] if found else None
 
 
+def take(tool_call_id: str) -> dict[str, Any] | None:
+    """Return and remove the ack for ``tool_call_id``: an ack grounds one result,
+    once, so it can never confirm a later call that reuses the id (R15-AGENT-046).
+    """
+    now = time.monotonic()
+    with _LOCK:
+        _prune_locked(now)
+        found = _LEDGER.pop(tool_call_id, None)
+    return found[1] if found else None
+
+
 def reset_for_tests() -> None:
     """Drop every entry (test isolation)."""
     with _LOCK:
         _LEDGER.clear()
 
 
-__all__ = ["KNOWN_STATUSES", "TTL_SECONDS", "get", "record", "reset_for_tests"]
+__all__ = ["KNOWN_STATUSES", "TTL_SECONDS", "get", "record", "reset_for_tests", "take"]
