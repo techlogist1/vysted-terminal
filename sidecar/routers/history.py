@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Query
 
 import config
 from models.market import OHLCVSeries
 from services import provider_registry, symbol_resolver
 from services.correctness_gate import EmptySeriesError
-from services.locale import REGION_IN, freshness_for, instrument_region, region_for_suffix
+from services.locale import (
+    REGION_IN,
+    freshness_for,
+    instrument_region,
+    most_recent_session,
+    region_for_suffix,
+)
 
 router = APIRouter(prefix="/history", tags=["history"])
 
@@ -39,6 +47,26 @@ def _empty_series_reason(symbol: str, timeframe: str) -> str | None:
     return "in_eod_only" if known_in and region == REGION_IN else None
 
 
+def _period_as_of(bar_day: date, timeframe: str, region: str) -> date:
+    """The date a 1wk/1mo bar is current as of (R15-DATA-065).
+
+    Such a bar is a whole calendar week (Mon-Sun) or month, stamped at its start
+    by yfinance and at its end by a pandas ``W``/``ME`` resample. Either stamp
+    lands inside the period, so the bar is current as of the most recent session
+    when its period holds that session, and as of its period's last day
+    otherwise. Any other timeframe is dated by its own bar.
+    """
+    if timeframe == "1wk":
+        start = bar_day - timedelta(days=bar_day.weekday())
+        end = start + timedelta(days=7)
+    elif timeframe == "1mo":
+        start = bar_day.replace(day=1)
+        end = (start + timedelta(days=32)).replace(day=1)
+    else:
+        return bar_day
+    return min(end - timedelta(days=1), most_recent_session(region))
+
+
 def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: str) -> OHLCVSeries:
     """Stamp the calendar-aware staleness of the LAST bar (FR-041 / SC-019).
 
@@ -56,9 +84,8 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
     intraday = _is_intraday(timeframe)
     try:
         region = instrument_region(series.symbol, series.provider)
-        series.freshness = freshness_for(
-            region, series.bars[-1].timestamp.date(), intraday=intraday
-        ).state
+        as_of = _period_as_of(series.bars[-1].timestamp.date(), timeframe, region)
+        series.freshness = freshness_for(region, as_of, intraday=intraday).state
     except Exception:  # noqa: BLE001 — a label failure must never drop the series
         series.freshness = None
     return series

@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { formatModelLabel, StatusChrome } from "@/components/StatusChrome";
 import { __resetProviderProbeCacheForTests } from "@/lib/provider-validation";
+import { sidecarGet } from "@/lib/sidecar-client";
 import { useAgentRunsStore } from "@/store/agent-runs";
+import { useAppStore } from "@/store/app";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { resetModelSelectionStoreForTests, useModelSelectionStore } from "@/store/model-selection";
 import { useProviderKeysStore } from "@/store/provider-keys";
@@ -233,5 +235,35 @@ describe("StatusChrome", () => {
     expect(chip.title).toContain("AI Researcher");
     expect(chip.title).not.toContain("Done run");
     expect(chip.textContent).toContain("2");
+  });
+
+  describe("NSE fall-through notice (R15-LIFECYCLE-021)", () => {
+    const row = (count: number, agoS: number) => ({
+      provider: "nse_direct",
+      model_key: "quote",
+      count,
+      last_error: "nse_direct: transport failure",
+      last_at: Date.now() / 1000 - agoS,
+    });
+
+    afterEach(() => useAppStore.setState({ sidecarStatus: "connecting" }));
+
+    it("shows one quiet notice at 3 recent consecutive fall-throughs", async () => {
+      vi.mocked(sidecarGet).mockResolvedValue({ fallthroughs: [row(3, 5)] });
+      useAppStore.setState({ sidecarStatus: "connected" });
+      render(<StatusChrome />);
+      expect(await screen.findByTestId("nse-unreachable")).toHaveTextContent(
+        "NSE data unreachable — serving fallback",
+      );
+      expect(sidecarGet).toHaveBeenCalledWith("/system/provider-health");
+    });
+
+    it("stays silent below the threshold or once the run is older than 10 minutes", async () => {
+      vi.mocked(sidecarGet).mockResolvedValue({ fallthroughs: [row(2, 5), row(7, 900)] });
+      useAppStore.setState({ sidecarStatus: "connected" });
+      render(<StatusChrome />);
+      await waitFor(() => expect(sidecarGet).toHaveBeenCalled());
+      expect(screen.queryByTestId("nse-unreachable")).toBeNull();
+    });
   });
 });

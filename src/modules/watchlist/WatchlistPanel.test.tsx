@@ -178,6 +178,8 @@ describe("WatchlistPanel", () => {
   describe("rows follow the live list, not a poll snapshot (R15-UI-026)", () => {
     const pollInFlight = async () => {
       vi.useFakeTimers();
+      // Live rows poll every 5 s; an all-EOD list waits 60 s (R15-DATA-066).
+      mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
       render(<WatchlistPanel />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -271,6 +273,7 @@ describe("WatchlistPanel", () => {
 
   it("polls for quote refreshes on an interval", async () => {
     vi.useFakeTimers();
+    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
     render(<WatchlistPanel />);
     // Flush the initial refresh.
     await act(async () => {
@@ -282,5 +285,37 @@ describe("WatchlistPanel", () => {
       await vi.advanceTimersByTimeAsync(5_000);
     });
     expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("an all-EOD list polls on the 60 s EOD cadence, not every 5 s (R15-DATA-066)", async () => {
+    vi.useFakeTimers();
+    render(<WatchlistPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("a symbol missing from a completed batch reads unavailable, not loading (R15-DATA-062)", async () => {
+    const entries = [
+      { symbol: "RELIANCE.NS", assetClass: "equity" as const },
+      { symbol: "ZZZZNOPE", assetClass: "equity" as const },
+    ];
+    useSymbolsStore.setState({ entries });
+    mockFetch.mockResolvedValue([
+      { entry: entries[0], quote: quote("RELIANCE.NS", 2950, 0.4) },
+      { entry: entries[1], quote: null },
+    ]);
+    render(<WatchlistPanel />);
+    expect(await screen.findByText("unavailable")).toBeInTheDocument();
+    expect(screen.getAllByText("unavailable")).toHaveLength(1);
+    expect(screen.getByText("RELIANCE.NS")).toBeInTheDocument();
   });
 });

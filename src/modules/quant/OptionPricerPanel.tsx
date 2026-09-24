@@ -30,15 +30,27 @@ import { Calculator } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { useQuantStore } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 
 import type {
+  Greeks,
   OptionExercise,
   OptionPayoff,
   OptionPricingMethod,
   OptionPricingRequest,
 } from "../../../types/quant";
+import { DISPLAY_CURRENCIES, formatOptionPrice, greekForDisplay } from "./units";
+
+const GREEK_CARDS: ReadonlyArray<{ key: keyof Greeks; label: string }> = [
+  { key: "delta", label: "Δ Delta" },
+  { key: "gamma", label: "Γ Gamma" },
+  { key: "vega", label: "ν Vega" },
+  { key: "theta", label: "Θ Theta" },
+  { key: "rho", label: "ρ Rho" },
+];
 
 const METHODS: ReadonlyArray<{ id: OptionPricingMethod; label: string }> = [
   { id: "black-scholes", label: "Black-Scholes" },
@@ -184,8 +196,19 @@ function SegmentedList<T extends string>({
   );
 }
 
-/** One result metric card — micro label over a section-size tabular value. */
-function MetricCard({ label, value, testId }: { label: string; value: string; testId?: string }) {
+/** One result metric card — micro label over a section-size tabular value,
+ *  with its unit beneath when it has one. */
+function MetricCard({
+  label,
+  value,
+  unit,
+  testId,
+}: {
+  label: string;
+  value: string;
+  unit?: string | null;
+  testId?: string;
+}) {
   return (
     <div
       className="border-charcoal-700 bg-charcoal-900 flex flex-col gap-2 rounded-none border p-6"
@@ -193,6 +216,7 @@ function MetricCard({ label, value, testId }: { label: string; value: string; te
     >
       <span className="text-charcoal-500 text-micro">{label}</span>
       <span className="text-charcoal-100 text-section tabular-nums">{value}</span>
+      {unit && <span className="text-charcoal-500 text-micro">{unit}</span>}
     </div>
   );
 }
@@ -237,6 +261,11 @@ export function OptionPricerPanel() {
   const [binomialSteps, setBinomialSteps] = useState("200");
   const [mcPaths, setMcPaths] = useState("50000");
   const [mcSeed, setMcSeed] = useState("42");
+
+  // Display currency, defaulting to the session region's (the Bond pricer's
+  // R15-DATA-100 select). Display only; the pricing request stays currency-free.
+  const region = useSettingsStore((s) => s.region);
+  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
 
   const isRunning = status === "loading";
 
@@ -348,6 +377,8 @@ export function OptionPricerPanel() {
     mcSeed,
     priceOption,
   ]);
+
+  const greeks = lastResult?.greeks ?? null;
 
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">
@@ -466,6 +497,22 @@ export function OptionPricerPanel() {
           </div>
         )}
 
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Display currency</span>
+          <select
+            value={displayCurrency}
+            onChange={(e) => setDisplayCurrency(e.target.value)}
+            data-testid="field-display-currency"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
+          >
+            {DISPLAY_CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </label>
+
         {validationError !== null && (
           <p className="text-negative text-caption" role="alert" data-testid="option-validation">
             {validationError}
@@ -522,7 +569,7 @@ export function OptionPricerPanel() {
                     className="text-overview text-charcoal-100 tabular-nums"
                     data-testid="option-price"
                   >
-                    ${lastResult.price.toFixed(4)}
+                    {formatOptionPrice(lastResult.price, displayCurrency)}
                   </span>
                   {lastResult.monte_carlo_std_error !== null && (
                     <span
@@ -552,13 +599,20 @@ export function OptionPricerPanel() {
             </div>
 
             {/* Per-greek metric grid — fills the panel width. */}
-            {lastResult.greeks && (
+            {greeks && (
               <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5">
-                <MetricCard label="Δ Delta" value={lastResult.greeks.delta.toFixed(4)} />
-                <MetricCard label="Γ Gamma" value={lastResult.greeks.gamma.toFixed(4)} />
-                <MetricCard label="ν Vega" value={lastResult.greeks.vega.toFixed(4)} />
-                <MetricCard label="Θ Theta" value={lastResult.greeks.theta.toFixed(4)} />
-                <MetricCard label="ρ Rho" value={lastResult.greeks.rho.toFixed(4)} />
+                {GREEK_CARDS.map(({ key, label }) => {
+                  const shown = greekForDisplay(greeks, key);
+                  return (
+                    <MetricCard
+                      key={key}
+                      label={label}
+                      value={shown.value.toFixed(4)}
+                      unit={shown.unit}
+                      testId={`option-greek-${key}`}
+                    />
+                  );
+                })}
               </div>
             )}
 

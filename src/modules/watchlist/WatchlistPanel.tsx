@@ -22,6 +22,9 @@ import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
+/** Poll interval when no row carries a live tick — an EOD close does not move
+ *  between polls, so re-asking every 5 s only loads the providers (R15-DATA-066). */
+const EOD_POLL_INTERVAL_MS = 60_000;
 /** Ceiling of the error backoff (the interval doubles per consecutive failure). */
 const POLL_MAX_BACKOFF_MS = 60_000;
 
@@ -102,7 +105,15 @@ function PriceCell({ row }: { row: WatchlistRow }) {
         flashClass(flash),
       )}
     >
-      {quote !== null ? formatPrice(quote.price) : "—"}
+      {quote !== null ? (
+        formatPrice(quote.price)
+      ) : row.unavailable ? (
+        <span className="text-charcoal-500 text-micro" title="No provider returned a quote">
+          unavailable
+        </span>
+      ) : (
+        "—"
+      )}
     </span>
   );
 }
@@ -155,10 +166,13 @@ export function WatchlistPanel() {
         : entries.map((entry) => ({
             entry,
             quote: quotes.get(entry.symbol.toUpperCase()) ?? null,
+            // A refresh completed without it (C14) — not still loading.
+            unavailable: quotes.get(entry.symbol.toUpperCase()) === null,
           })),
     [entries, quotes],
   );
   const failuresRef = useRef(0);
+  const noLiveRowRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   // R15-UI-009: the CSV export now writes a real file via the Rust atomic-write
   // path — this surfaces the saved path (or a write failure) since there is no
@@ -225,6 +239,7 @@ export function WatchlistPanel() {
         for (const row of next) merged.set(row.entry.symbol.toUpperCase(), row.quote);
         return merged;
       });
+      noLiveRowRef.current = next.every((row) => !isLiveQuote(row.quote?.freshness));
       setError(null);
       failuresRef.current = 0;
     } catch (err) {
@@ -247,7 +262,9 @@ export function WatchlistPanel() {
         await refresh();
       }
       if (!alive) return;
-      const delay = Math.min(POLL_INTERVAL_MS * 2 ** failuresRef.current, POLL_MAX_BACKOFF_MS);
+      const delay = noLiveRowRef.current
+        ? EOD_POLL_INTERVAL_MS
+        : Math.min(POLL_INTERVAL_MS * 2 ** failuresRef.current, POLL_MAX_BACKOFF_MS);
       clearTimeout(timer); // one pending poll, even if a visibility tick overlapped
       timer = setTimeout(() => void tick(), delay);
     };

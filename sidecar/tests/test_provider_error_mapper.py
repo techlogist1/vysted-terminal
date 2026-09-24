@@ -67,3 +67,81 @@ def test_macro_not_found_is_a_404_not_a_502(
     resp = client.get("/macro/NOPE", params={"provider": "fred"})
     assert resp.status_code == 404
     assert resp.json()["code"] == "not_found"
+
+
+def test_wrapped_http_404_is_a_404_not_a_502(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-061 (D-B9-1): an unclassified ProviderError is classified from its
+    ``__cause__`` (the IMF upstream 404 was reported as a 502)."""
+    import requests
+
+    from services.macro import imf_provider
+
+    def gone(_series_id: str) -> object:
+        resp = requests.Response()
+        resp.status_code = 404
+        try:
+            raise requests.HTTPError("404 Client Error: Not Found for url", response=resp)
+        except requests.HTTPError as exc:
+            raise ProviderError(f"IMF upstream error: {exc}") from exc
+
+    monkeypatch.setattr(imf_provider, "get_series", gone)
+    resp = client.get("/macro/DATA061.GONE", params={"provider": "imf"})
+    assert resp.status_code == 404
+    assert resp.json()["code"] == "not_found"
+    assert "Client Error" not in resp.text
+
+
+def test_wrapped_library_error_gets_a_generic_sentence(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A wrapped unclassified error never shows library text (the live
+    ``/history/XYZ%2FABC`` 'Response' object case)."""
+
+    def broken(*_a: object, **_k: object) -> object:
+        try:
+            raise AttributeError("'Response' object has no attribute 'get'")
+        except AttributeError as exc:
+            raise ProviderError(f"yfinance history failed for 'XYZ/ABC': {exc}") from exc
+
+    monkeypatch.setattr(provider_registry, "get_history", broken)
+    resp = client.get("/history/XYZ%2FABC")
+    assert resp.status_code == 502
+    body = resp.json()
+    assert body["code"] == "provider_error"
+    assert body["detail"] == "The data provider returned an unexpected response."
+    assert "'Response' object" not in resp.text
+
+
+def test_authored_message_without_a_cause_is_kept(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from services.macro import fred_provider
+
+    def keyless(_series_id: str) -> object:
+        raise ProviderError("FRED needs a free API key")
+
+    monkeypatch.setattr(fred_provider, "get_series", keyless)
+    resp = client.get("/macro/DATA061.KEYLESS", params={"provider": "fred"})
+    assert resp.status_code == 502
+    assert resp.json()["detail"] == "FRED needs a free API key"
+
+
+def test_fundamentals_wrapped_connection_error_is_a_503(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Class pin on a route the fix was not written against."""
+    import requests
+
+    async def offline(*_a: object, **_k: object) -> object:
+        try:
+            raise requests.ConnectionError("HTTPSConnectionPool: Max retries exceeded")
+        except requests.ConnectionError as exc:
+            raise ProviderError(f"openbb fundamentals failed: {exc}") from exc
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", offline)
+    resp = client.get("/fundamentals/AAPL")
+    assert resp.status_code == 503
+    assert resp.json()["code"] == "network"
+    assert "Max retries" not in resp.text

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { resetQuantStoreForTests } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 import { GreeksDashboard } from "./GreeksDashboard";
 
 vi.mock("@/lib/sidecar-client", () => ({
@@ -10,6 +11,8 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  // The display currency defaults to the session region's; pin it.
+  useSettingsStore.setState({ region: "US" });
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -53,10 +56,23 @@ describe("GreeksDashboard", () => {
     await screen.findByTestId("greeks-result");
     expect(screen.getByTestId("greek-delta").textContent).toContain("0.5500");
     expect(screen.getByTestId("greek-gamma").textContent).toContain("0.0200");
-    expect(screen.getByTestId("greek-vega").textContent).toContain("30.0000");
-    expect(screen.getByTestId("greek-theta").textContent).toContain("-5.0000");
+    // R15-UI-051: vega (per unit vol) and theta (per year) read in market units.
+    expect(screen.getByTestId("greek-vega").textContent).toContain("0.3000");
+    expect(screen.getByTestId("greek-vega").textContent).toContain("per 1 vol pt");
+    expect(screen.getByTestId("greek-theta").textContent).toContain("-0.0137");
+    expect(screen.getByTestId("greek-theta").textContent).toContain("per day");
     expect(screen.getByTestId("greek-rho").textContent).toContain("12.0000");
     expect(screen.getByTestId("greeks-price").textContent).toContain("$8.4200");
+  });
+
+  it("in region IN the price carries ₹, never a hard-coded $", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    render(<GreeksDashboard />);
+    fireEvent.click(screen.getByTestId("compute-greeks"));
+    await screen.findByTestId("greeks-result");
+    expect(screen.getByTestId("greeks-price").textContent).toContain("₹8.4200");
+    expect(screen.getByTestId("greeks-result").textContent).not.toContain("$");
+    expect(screen.getByTestId("greeks-sensitivity").textContent).toContain("0.3000 per 1 vol pt");
   });
 
   it("renders the sensitivity read table + the request echo with the result", async () => {

@@ -180,12 +180,14 @@ class _Throttle:
         self._lock = threading.Lock()
 
     def wait(self) -> None:
+        """Reserve the next slot under the lock, then sleep OUTSIDE it, so a
+        queued caller never holds the lock while it waits (R15-DATA-066)."""
         with self._lock:
             now = self._clock()
-            if now < self._next_at:
-                self._sleep(self._next_at - now)
-                now = self._next_at
-            self._next_at = now + self._min_interval + random.uniform(0.0, self._jitter)
+            slot = max(now, self._next_at)
+            self._next_at = slot + self._min_interval + random.uniform(0.0, self._jitter)
+        if slot > now:
+            self._sleep(slot - now)
 
 
 # ---------------------------------------------------------------------------
@@ -295,6 +297,7 @@ def reset_for_tests() -> None:
     global _throttle
     _holder.rotate()
     _breakers.clear()
+    _eod_quotes.clear()
     _throttle = _Throttle()
 
 
@@ -315,36 +318,35 @@ def _get_json(path: str, params: dict[str, str], referer: str) -> object:
             f"({remaining:.0f}s cooldown remaining)"
         )
     headers = dict(_API_HEADERS, Referer=referer)
-    with _lock:
-        last_status = 0
-        for attempt in (0, 1):
+    last_status = 0
+    for attempt in (0, 1):
+        _throttle.wait()  # paced before taking the session lock (R15-DATA-066)
+        with _lock:
             session = _holder.ensure()
-            _throttle.wait()
             try:
                 resp = session.get(_BASE + path, params=params, headers=headers, timeout=_TIMEOUT)
             except Exception as exc:
                 raise ProviderError(f"nse_direct: transport failure on {path}: {exc}") from exc
-            last_status = resp.status_code
             if resp.status_code in (401, 403):
                 _holder.rotate()  # cookie set is burned — dance again
-                if attempt == 0:
-                    logger.debug(
-                        "nse_direct: HTTP %s on %s — rotating session", resp.status_code, path
-                    )
-                    continue
-                break
-            if resp.status_code != 200:
-                raise ProviderError(f"nse_direct: HTTP {resp.status_code} for {path}")
-            try:
-                payload = resp.json()
-            except Exception as exc:
-                raise ProviderError(f"nse_direct: non-JSON body from {path}: {exc}") from exc
-            breaker.record_ok()
-            return payload
-        breaker.record_block()
-        raise ProviderError(
-            f"nse_direct: blocked (HTTP {last_status}) on {path} after session rotation"
-        )
+        last_status = resp.status_code
+        if resp.status_code in (401, 403):
+            if attempt == 0:
+                logger.debug("nse_direct: HTTP %s on %s — rotating session", resp.status_code, path)
+                continue
+            break
+        if resp.status_code != 200:
+            raise ProviderError(f"nse_direct: HTTP {resp.status_code} for {path}")
+        try:
+            payload = resp.json()
+        except Exception as exc:
+            raise ProviderError(f"nse_direct: non-JSON body from {path}: {exc}") from exc
+        breaker.record_ok()
+        return payload
+    breaker.record_block()
+    raise ProviderError(
+        f"nse_direct: blocked (HTTP {last_status}) on {path} after session rotation"
+    )
 
 
 def _quote_referer(symbol: str) -> str:
@@ -358,10 +360,13 @@ def _quote_referer(symbol: str) -> str:
 
 def _require_nse(symbol: str) -> str:
     """Return the bare NSE symbol, or raise so the registry falls through fast
-    (no network for a non-NSE ticker)."""
+    (no network for a non-NSE ticker). ``not_found``: a routing miss, never
+    counted as the lane failing (R15-LIFECYCLE-021)."""
     bare = locale.strip_exchange_suffix(symbol)
     if not symbol_resolver.is_nse_symbol(bare):
-        raise ProviderError(f"nse_direct: {symbol!r} is not a known NSE instrument")
+        raise ProviderError(
+            f"nse_direct: {symbol!r} is not a known NSE instrument", kind="not_found"
+        )
     return bare
 
 
@@ -490,7 +495,8 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
             f"nse_direct: intraday timeframe {timeframe!r} is not available keyless — "
-            "BSE/NSE serve end-of-day data only"
+            "BSE/NSE serve end-of-day data only",
+            kind="not_found",  # a routing miss, not the lane failing
         )
     bare = _require_nse(symbol)
     days = _RANGE_DAYS.get(range_ or "", _DEFAULT_RANGE_DAYS)
@@ -516,6 +522,9 @@ def get_quote(symbol: str) -> Quote:
     the lane useful wherever the edge ACL bites.
     """
     bare = _require_nse(symbol)
+    market_open = locale.is_market_open(locale.REGION_IN)
+    if not market_open and (cached := _cached_eod_quote(bare)) is not None:
+        return cached
     try:
         payload = _get_json(_QUOTE_PATH, {"symbol": bare}, _quote_referer(bare))
     except ProviderError as exc:
@@ -525,7 +534,28 @@ def get_quote(symbol: str) -> Quote:
         quote = _quote_from_payload(bare, payload)
         if quote is not None:
             return quote
-    return _quote_from_history(bare)
+    cached = _cached_eod_quote(bare)
+    if cached is not None:
+        return cached
+    quote = _quote_from_history(bare)
+    _eod_quotes[bare] = quote
+    return quote.model_copy()
+
+
+#: EOD quotes derived from historicalOR, per bare symbol (R15-DATA-066). A close
+#: dated the last CLOSED session cannot change until the next session closes, so
+#: it is served from here instead of re-asking NSE through the 1 req/s throttle.
+_eod_quotes: dict[str, Quote] = {}
+
+
+def _cached_eod_quote(bare: str) -> Quote | None:
+    """A copy of ``bare``'s cached EOD quote while it is still the latest close
+    (dated on or after the last closed session), else ``None``."""
+    quote = _eod_quotes.get(bare)
+    if quote is None or quote.timestamp.date() < locale.last_closed_session(locale.REGION_IN):
+        return None
+    state = "REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED"
+    return quote.model_copy(update={"market_state": state})
 
 
 def _quote_from_payload(bare: str, payload: dict) -> Quote | None:
@@ -742,10 +772,14 @@ def _data_rows(path: str, payload: object) -> list[dict]:
 
 
 def _resample(bars: list[OHLCVBar], timeframe: str) -> list[OHLCVBar]:
-    """Resample daily bars to weekly/monthly OHLCV (right-labelled)."""
+    """Resample daily bars to weekly (Mon-Sun) / monthly OHLCV, each stamped at
+    its period's START like yfinance's, so the current period never carries a
+    future date (R15-DATA-065)."""
     if not bars:
         return bars
-    rule = "W" if timeframe == "1wk" else "ME"
+    weekly = timeframe == "1wk"
+    rule = "W-MON" if weekly else "MS"
+    closed_label = {"closed": "left", "label": "left"} if weekly else {}
     frame = pd.DataFrame(
         {
             "timestamp": [b.timestamp for b in bars],
@@ -756,7 +790,7 @@ def _resample(bars: list[OHLCVBar], timeframe: str) -> list[OHLCVBar]:
             "volume": [b.volume for b in bars],
         }
     ).set_index("timestamp")
-    agg = frame.resample(rule).agg(
+    agg = frame.resample(rule, **closed_label).agg(
         {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
     )
     agg = agg.dropna(subset=["open", "close"])
