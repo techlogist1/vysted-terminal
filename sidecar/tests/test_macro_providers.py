@@ -364,6 +364,19 @@ def test_wb_get_series_wraps_upstream_errors(fake_wb: _FakeWbModule) -> None:
         world_bank_provider.get_series("FAIL")
 
 
+def test_wb_get_series_titles_with_the_indicator_name(
+    fake_wb: _FakeWbModule, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-085: wbgapi's ``series.info`` is a Featureset whose ``items`` is a
+    list of dicts; the ``callable(info.items)`` guard left every title a raw code."""
+    import wbgapi
+
+    info = wbgapi.Featureset([{"id": "NY.GDP.MKTP.CD", "value": "GDP (current US$)"}])
+    monkeypatch.setattr(fake_wb.series, "info", lambda indicator: info)
+    series = world_bank_provider.get_series("NY.GDP.MKTP.CD")
+    assert series.title == "GDP (current US$) — USA"
+
+
 def test_wb_search_falls_back_to_curated_catalog(fake_wb: _FakeWbModule) -> None:
     results = world_bank_provider.search("GDP")
     assert results

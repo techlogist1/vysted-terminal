@@ -14,8 +14,8 @@ Source of truth (idea-level; no GPL import — this only documents the URL shape
     MT 155, Z 67 + small P/MS/ZP/TS/IP/Y/R tails).
   * Each record carries ``SCRIP_CD`` (numeric scrip code), ``scrip_id`` (the
     ticker), ``Scrip_Name`` (display name), ``GROUP`` (liquidity tier),
-    ``ISIN_NUMBER``, ``Status`` and ``Mktcap`` (crores; used only for the
-    prominence ordering below).
+    ``ISIN_NUMBER``, ``Status``, ``FACE_VALUE`` and ``Mktcap`` (crores; used
+    only for the prominence ordering below).
 
 Hardening: the fetch goes through ``curl_cffi`` with Chrome TLS impersonation
 (BSE's WAF blocks plain-httpx clients intermittently) and retries with
@@ -27,6 +27,9 @@ the good committed file.
 Output row shape (matches what ``symbol_resolver._bse_master`` parses):
 
     [SCRIP_CODE, SYMBOL, NAME, GROUP, ISIN, STATUS]
+
+A ``face_values`` map (``{SYMBOL: face value}``) rides beside the rows, so the
+positional row contract every reader indexes stays unchanged.
 
 Rows are ordered by market cap (descending, unknown-cap tail last) so the
 prominence-ordered master breaks fuzzy-match ties toward the well-known
@@ -142,6 +145,15 @@ def is_rights_entitlement(symbol: str, group: str, isin: str) -> bool:
     )
 
 
+def face_value(text: object) -> float | None:
+    """A listing's face value (par, INR) from an exchange list cell, or ``None``."""
+    try:
+        value = float(str(text).strip())
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
 def _mktcap(record: dict) -> float:
     """Market cap for the prominence sort; unknown caps sort to the tail."""
     try:
@@ -159,6 +171,7 @@ def build_master(records: list[dict], *, min_rows: int = _MIN_ROWS) -> dict:
     blocked/truncated payload can never replace the good committed master.
     """
     rows: list[list[str]] = []
+    face_values: dict[str, float] = {}
     seen: set[str] = set()
     for rec in sorted(records, key=_mktcap, reverse=True):
         code = str(rec.get("SCRIP_CD") or rec.get("Scripcode") or "").strip()
@@ -173,6 +186,9 @@ def build_master(records: list[dict], *, min_rows: int = _MIN_ROWS) -> dict:
             continue
         seen.add(symbol)
         rows.append([code, symbol, name, group, isin, status])
+        par = face_value(rec.get("FACE_VALUE"))
+        if par is not None:
+            face_values[symbol] = par
     if len(rows) < min_rows:
         raise ValueError(
             f"regenerate_bse_master: only {len(rows)} rows parsed "
@@ -187,9 +203,11 @@ def build_master(records: list[dict], *, min_rows: int = _MIN_ROWS) -> dict:
             "Full BSE scrip master regenerated via regenerate_bse_master.py from the "
             "ListOfScripData endpoint (all equity groups incl. the SME M/MT tiers). "
             "Rows are [SCRIP_CODE, SYMBOL, NAME, GROUP, ISIN, STATUS], market-cap "
-            "ordered. Do not hand-edit; rerun the script to refresh."
+            "ordered; face_values maps SYMBOL to the listed face value (INR). "
+            "Do not hand-edit; rerun the script to refresh."
         ),
         "_groups": dict(groups.most_common()),
+        "face_values": face_values,
         "instruments": rows,
     }
 
@@ -205,6 +223,7 @@ def dump_master(master: dict, fp: TextIO) -> None:
     for key in ("exchange", "_generated", "_source", "_note"):
         fp.write(f"  {json.dumps(key)}: {json.dumps(master[key], ensure_ascii=False)},\n")
     fp.write(f"  {json.dumps('_groups')}: {json.dumps(master['_groups'])},\n")
+    fp.write(f'  "face_values": {json.dumps(master["face_values"])},\n')
     fp.write('  "instruments": [\n')
     lines = [json.dumps(row, ensure_ascii=False) for row in master["instruments"]]
     fp.write(",\n".join(f"    {line}" for line in lines))

@@ -24,36 +24,6 @@ from services import nse_symbol_change, resolution_policy, symbol_resolver
 router = APIRouter(prefix="/resolve", tags=["resolve"])
 
 
-def _instrument_payload(instrument: symbol_resolver.Instrument) -> dict[str, object]:
-    """Project an :class:`Instrument` to the wire shape the picker consumes."""
-    payload: dict[str, object] = {
-        "symbol": instrument.symbol,
-        "name": instrument.name,
-        "exchange": instrument.exchange,
-        "region": instrument.region,
-        "asset_class": instrument.asset_class,
-        "yahoo_symbol": instrument.yahoo_symbol,
-        "confidence": round(instrument.score, 4),
-        # R13 additive identity enrichment — read-only ISIN / scrip / industry
-        # join. Null when the bundled data does not carry it (US names, an
-        # uncovered micro-cap), never fabricated.
-        "isin": instrument.isin,
-        "bse_code": instrument.bse_code,
-        "industry": instrument.industry,
-        "former_name": instrument.former_name,
-    }
-    # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
-    # provenance — the picker can badge "renamed from …", never a silent swap.
-    if instrument.rename is not None:
-        payload["rename"] = {
-            "renamed_from": instrument.rename.renamed_from,
-            "renamed_to": instrument.rename.renamed_to,
-            "effective_date": instrument.rename.effective_date,
-            "note": instrument.rename.note,
-        }
-    return payload
-
-
 @router.get("")
 async def resolve_symbol(
     q: str = Query("", description="Free-text name or ticker to resolve."),
@@ -91,6 +61,9 @@ async def resolve_symbol(
     await nse_symbol_change.schedule_refresh()
 
     resolution = await asyncio.to_thread(symbol_resolver.resolve, query, active_region)
+    # R15-LIFECYCLE-019: with no rename map loaded a retired ticker answers its
+    # dead identity; say so instead of letting that read as current.
+    rename_lane = "available" if nse_symbol_change.rename_lane_available() else "unavailable"
 
     # ONE policy everywhere (R10, D37): the mention picker honors the SAME
     # acceptance decision as the research target binding and every agent tool —
@@ -106,7 +79,8 @@ async def resolve_symbol(
             "message": f"No instrument matched {query!r}.",
             "resolved": None,
             "needs_disambiguation": False,
-            "candidates": [_instrument_payload(c) for c in decision.candidates],
+            "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+            "rename_lane": rename_lane,
         }
 
     return {
@@ -114,12 +88,13 @@ async def resolve_symbol(
         "query": query,
         "region": active_region,
         "resolved": (
-            _instrument_payload(decision.instrument)
+            symbol_resolver.instrument_payload(decision.instrument)
             if decision.outcome == "bound" and decision.instrument is not None
             else None
         ),
         "needs_disambiguation": decision.outcome == "disambiguate",
-        "candidates": [_instrument_payload(c) for c in decision.candidates],
+        "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+        "rename_lane": rename_lane,
     }
 
 
@@ -142,5 +117,5 @@ async def autocomplete_symbols(
     return {
         "query": query,
         "region": active_region,
-        "candidates": [_instrument_payload(c) for c in candidates],
+        "candidates": [symbol_resolver.instrument_payload(c) for c in candidates],
     }

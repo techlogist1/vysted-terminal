@@ -266,6 +266,9 @@ class Instrument:
     bse_code: str | None = None  # numeric BSE scrip code (519421) when BSE-listed
     industry: str | None = None  # india_sector_map industry_raw (None for uncovered names)
     former_name: str | None = None  # the retired symbol, when answered as its renamed form
+    board: str | None = None  # "SME" (BSE M* group / NSE Emerge) | "mainboard"; None for US
+    exchange_group: str | None = None  # the raw BSE group (A, B, X, M, MT, ...)
+    face_value: float | None = None  # listed face value (INR), from the masters
 
 
 @dataclass(frozen=True)
@@ -285,6 +288,40 @@ class Resolution:
         # Delegates to the ONE policy so this surface and the agent tool can
         # never disagree (the pre-R10 two-truths defect).
         return self.best is not None and decide(self).outcome == "disambiguate"
+
+
+def instrument_payload(instrument: Instrument) -> dict[str, object]:
+    """The ONE wire shape of an :class:`Instrument` (the ``/resolve`` routes and
+    the ``resolve_symbol`` agent tool both project through it)."""
+    payload: dict[str, object] = {
+        "symbol": instrument.symbol,
+        "name": instrument.name,
+        "exchange": instrument.exchange,
+        "region": instrument.region,
+        "asset_class": instrument.asset_class,
+        "yahoo_symbol": instrument.yahoo_symbol,
+        "confidence": round(instrument.score, 4),
+        # R13 additive identity enrichment — read-only ISIN / scrip / industry
+        # join. Null when the bundled data does not carry it (US names, an
+        # uncovered micro-cap), never fabricated.
+        "isin": instrument.isin,
+        "bse_code": instrument.bse_code,
+        "industry": instrument.industry,
+        "former_name": instrument.former_name,
+        "board": instrument.board,
+        "exchange_group": instrument.exchange_group,
+        "face_value": instrument.face_value,
+    }
+    # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
+    # provenance — the picker can badge "renamed from …", never a silent swap.
+    if instrument.rename is not None:
+        payload["rename"] = {
+            "renamed_from": instrument.rename.renamed_from,
+            "renamed_to": instrument.rename.renamed_to,
+            "effective_date": instrument.rename.effective_date,
+            "note": instrument.rename.note,
+        }
+    return payload
 
 
 # ---------------------------------------------------------------------------
@@ -370,6 +407,20 @@ def _bse_scrip_index() -> dict[str, str]:
     for sym, (_name, _group, code, _isin) in _bse_master().items():
         if code and code not in out:
             out[code] = sym
+    return out
+
+
+@lru_cache(maxsize=2)
+def _face_values(filename: str) -> dict[str, float]:
+    """``{SYMBOL: face value}`` from a master's ``face_values`` map (bundled, then
+    the refreshed copy). A master generated before the map existed adds nothing."""
+    out: dict[str, float] = {}
+    for raw in _master_layers(filename):
+        values = raw.get("face_values")
+        if isinstance(values, dict):
+            for sym, value in values.items():
+                if isinstance(value, int | float):
+                    out[str(sym).strip().upper()] = float(value)
     return out
 
 
@@ -470,6 +521,8 @@ def refresh_masters() -> None:
         _bse_master.cache_clear()
         _bse_scrip_index.cache_clear()
         _generic_tokens.cache_clear()
+        _face_values.cache_clear()
+        _scan_names.cache_clear()
 
 
 def reset_caches_for_tests() -> None:
@@ -481,6 +534,8 @@ def reset_caches_for_tests() -> None:
     _marquee_aliases.cache_clear()
     _india_sector_map.cache_clear()
     _generic_tokens.cache_clear()
+    _face_values.cache_clear()
+    _scan_names.cache_clear()
     _reset_live_lookup_for_tests()
 
 
@@ -847,12 +902,55 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     if marquee is not None:
         return marquee
 
+    query_lc = cleaned.lower()
+    ranked = list(_scan_names(query_lc, len(tokens), region, suffix_exchange))
+
+    # 3b. A retired NSE ticker (R15-DATA-018). A refreshed master no longer
+    #     carries the old symbol, so a query for it misses (or only fuzzes below
+    #     ACCEPT); the NSE symbol-change master still knows it — answer the
+    #     current instrument, annotated, before any sub-accept guess or network.
+    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
+        retired = _retired_symbol_instrument(upper) if " " not in upper else None
+        if retired is not None:
+            return Resolution(
+                query=query, best=retired, candidates=[retired, *ranked][:_MAX_CANDIDATES]
+            )
+
+    if ranked and not _only_generic_overlap(ranked[0], query_lc):
+        return Resolution(query=query, best=ranked[0], candidates=_capped(ranked, ranked, region))
+
+    # 4. Live keyless fallback (best-effort; never blocks; never binds — every
+    #    row rides _DISAMBIGUATE_SCORE, which the policy maps to disambiguate).
+    #    Also run when the best master hit is a fuzzy match on generic words only
+    #    ("Sumax Engineering Limited" → six "… Engineering Ltd"): the live rows
+    #    join the candidates after the top master hits (R15-DATA-017).
+    live = _live_lookup(cleaned, region) or []
+    if ranked:
+        known = {i.symbol for i in ranked}
+        live = [i for i in live if i.symbol not in known]
+        merged = ranked[: _MAX_CANDIDATES // 2] + live + ranked[_MAX_CANDIDATES // 2 :]
+        return Resolution(query=query, best=ranked[0], candidates=_capped(merged, ranked, region))
+    if live:
+        return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
+
+    return Resolution(query=query, best=None, candidates=[])
+
+
+# ponytail: 256 entries bound the memo (a one-letter query ranks ~12.8k rows); raise it
+# if repeat-query hit rates show it evicting hot names.
+@lru_cache(maxsize=256)
+def _scan_names(
+    query_lc: str, n_words: int, region: str, suffix_exchange: str | None
+) -> tuple[Instrument, ...]:
+    """The banded, locale-ranked name scan over the masters (step 3 of
+    :func:`_resolve_masters`). Pure over the loaded masters, so it is memoized
+    (R15-CODE-DATA-002: ~17.9k ``SequenceMatcher`` scores per call) and cleared
+    whenever the masters change (:func:`refresh_masters`). The retired-symbol
+    step, the live lookup, rename and enrichment stay outside the memo."""
     # 3. Banded name match across the masters. One canonical row per
     #    instrument: a dual-listed symbol is represented by its NSE row only
     #    (the BSE scan skips symbols the NSE master already carries), so a name
     #    never surfaces twice with two spellings of the same company.
-    query_lc = cleaned.lower()
-    n_words = len(tokens)
     scored: list[tuple[int, int, float, Instrument]] = []
 
     def _append(band_score: tuple[int, float] | None, build, sym: str) -> None:
@@ -879,39 +977,30 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     # disambiguation list for "Reliance Q4 results" leads with RELIANCE (NSE),
     # never FRLCY/FLNCF (US OTC).
     scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
-    ranked = [t[3] for t in scored]
+    return tuple(t[3] for t in scored)
 
-    # 3b. A retired NSE ticker (R15-DATA-018). A refreshed master no longer
-    #     carries the old symbol, so a query for it misses (or only fuzzes below
-    #     ACCEPT); the NSE symbol-change master still knows it — answer the
-    #     current instrument, annotated, before any sub-accept guess or network.
-    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
-        retired = _retired_symbol_instrument(upper) if " " not in upper else None
-        if retired is not None:
-            return Resolution(
-                query=query, best=retired, candidates=[retired, *ranked][:_MAX_CANDIDATES]
-            )
 
-    if ranked and not _only_generic_overlap(ranked[0], query_lc):
-        return Resolution(query=query, best=ranked[0], candidates=ranked[:_MAX_CANDIDATES])
-
-    # 4. Live keyless fallback (best-effort; never blocks; never binds — every
-    #    row rides _DISAMBIGUATE_SCORE, which the policy maps to disambiguate).
-    #    Also run when the best master hit is a fuzzy match on generic words only
-    #    ("Sumax Engineering Limited" → six "… Engineering Ltd"): the live rows
-    #    join the candidates after the top master hits (R15-DATA-017).
-    live = _live_lookup(cleaned, region) or []
-    if ranked:
-        known = {i.symbol for i in ranked}
-        live = [i for i in live if i.symbol not in known]
-        candidates = (ranked[: _MAX_CANDIDATES // 2] + live + ranked[_MAX_CANDIDATES // 2 :])[
-            :_MAX_CANDIDATES
-        ]
-        return Resolution(query=query, best=ranked[0], candidates=candidates)
-    if live:
-        return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
-
-    return Resolution(query=query, best=None, candidates=[])
+def _capped(
+    candidates: list[Instrument], ranked: list[Instrument], region: str
+) -> list[Instrument]:
+    """``candidates`` cut to :data:`_MAX_CANDIDATES`, reserving the last slot for
+    the best cross-region row of ``ranked``'s top band when it outscores every
+    in-region row of that band and the cut would drop it (R15-DATA-058). The
+    locale-first order (D58c) and ``best`` are untouched: an IN session still
+    leads with IN rows, but a better US match ("Sify Technologies Ltd (ADR)")
+    is never truncated out of the chooser."""
+    capped = candidates[:_MAX_CANDIDATES]
+    if region == REGION_GLOBAL or not ranked:
+        return capped
+    top_band = [i for i in ranked if i.band == ranked[0].band]
+    in_region = [i.score for i in top_band if i.region == region]
+    foreign = [i for i in top_band if i.region != region]
+    if not in_region or not foreign:
+        return capped
+    best_foreign = max(foreign, key=lambda i: i.score)
+    if best_foreign.score <= max(in_region) or best_foreign in capped:
+        return capped
+    return [*capped[: _MAX_CANDIDATES - 1], best_foreign]
 
 
 @lru_cache(maxsize=1)
@@ -1186,14 +1275,34 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         else None
     )
 
-    if (
-        isin == inst.isin
-        and bse_code == inst.bse_code
-        and industry == inst.industry
-        and former_name == inst.former_name
-    ):
+    # Board + face value (R15-DATA-051): SME is a BSE M* group (M/MT/MS) or an NSE
+    # Emerge listing (type SM). Unknown to the masters (a live-lookup row) → None.
+    exchange_group = bse_entry[1] if bse_entry and bse_entry[1] else None
+    nse_entry = _nse_master().get(bare) if inst.exchange == "NSE" else None
+    board: str | None = None
+    face_value: float | None = None
+    if nse_entry is not None or bse_entry is not None:
+        sme = (nse_entry is not None and nse_entry[1] == "SM") or (exchange_group or "").startswith(
+            "M"
+        )
+        board = "SME" if sme else "mainboard"
+        if nse_entry is not None:
+            face_value = _face_values("nse_instruments.json").get(bare)
+        if face_value is None and bse_entry is not None:
+            face_value = _face_values("bse_instruments.json").get(bare)
+
+    enriched = {
+        "isin": isin,
+        "bse_code": bse_code,
+        "industry": industry,
+        "former_name": former_name,
+        "board": board,
+        "exchange_group": exchange_group,
+        "face_value": face_value,
+    }
+    if all(getattr(inst, key) == value for key, value in enriched.items()):
         return inst
-    return replace(inst, isin=isin, bse_code=bse_code, industry=industry, former_name=former_name)
+    return replace(inst, **enriched)
 
 
 def _enrich_resolution(resolution: Resolution) -> Resolution:
@@ -1265,7 +1374,18 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     out.sort(key=lambda i: (i.score, _locale_rank(region, i.region)), reverse=True)
     if retired is not None:
         out.insert(0, retired)
-    return out[:limit]
+    # The same identity stages as :func:`resolve` (enrichment, then the rename
+    # lane), deduped the same way, so a row never lists a retired ticker bare or
+    # promises identity fields it never filled (R15-UI-039).
+    listed: list[Instrument] = []
+    for inst in out:
+        cand = _rename_instrument(_enrich_instrument(inst))
+        if any(c.exchange == cand.exchange and same_instrument(c, cand) for c in listed):
+            continue
+        listed.append(cand)
+        if len(listed) == limit:
+            break
+    return listed
 
 
 def _live_lookup(query: str, region: str) -> list[Instrument]:
@@ -1349,6 +1469,7 @@ __all__ = [
     "autocomplete",
     "bse_scrip_code",
     "dual_listed_bse_code",
+    "instrument_payload",
     "is_bse_symbol",
     "is_nse_emerge",
     "is_nse_symbol",

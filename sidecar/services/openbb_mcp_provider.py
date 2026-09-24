@@ -277,6 +277,12 @@ def _normalize_symbol(symbol: str) -> str:
     return yfinance_provider._yahoo_symbol(symbol)
 
 
+def _first_present(row: dict[str, Any], *keys: str) -> Any:
+    """The first of ``keys`` whose value is not ``None``. A real ``0`` (a ZIRP-era
+    policy rate, a halted day's volume) is data, never a miss (R15-DATA-084)."""
+    return next((row[key] for key in keys if row.get(key) is not None), None)
+
+
 def _coerce_float(value: Any) -> float | None:
     if value is None:
         return None
@@ -333,7 +339,7 @@ async def get_quote(symbol: str) -> Quote:
         price=price,
         change=change or 0.0,
         change_percent=change_percent or 0.0,
-        volume=_coerce_float(row.get("volume") or row.get("exchange_volume")),
+        volume=_coerce_float(_first_present(row, "volume", "exchange_volume")),
         currency=str(row.get("currency") or "USD"),
         timestamp=_ensure_datetime(row.get("last_timestamp") or row.get("date")),
         provider=PROVIDER,
@@ -547,7 +553,7 @@ async def get_macro_series(series_id: str, provider: str | None = None) -> Macro
     observations: list[MacroObservation] = []
     for row in rows:
         date = row.get("date")
-        value = _coerce_float(row.get("value") or row.get(series_id))
+        value = _coerce_float(_first_present(row, "value", series_id))
         if date is None:
             continue
         observations.append(MacroObservation(date=_ensure_datetime(date), value=value))

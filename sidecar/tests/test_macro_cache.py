@@ -105,6 +105,30 @@ async def test_search_caches_results(_fred_stubs: dict[str, int]) -> None:
 
 
 @pytest.mark.asyncio
+async def test_a_failed_world_bank_search_raises_and_caches_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-086: a network failure became the curated rows (scored like
+    hits) and was cached for 6 h under the query's key."""
+    import requests
+
+    from services.errors import ProviderError
+    from services.macro import world_bank_provider
+
+    class _Down:
+        class series:  # noqa: N801 - mirrors the wbgapi attribute
+            @staticmethod
+            def list(q: str = "") -> list[dict[str, str]]:
+                raise requests.ConnectionError("network is unreachable")
+
+    monkeypatch.setattr(world_bank_provider, "_make_client", lambda: _Down)
+    with pytest.raises(ProviderError) as raised:
+        await macro_dispatcher.search("unemployment", "world-bank")
+    assert raised.value.kind == "network"
+    assert await data_cache.get("macro:world-bank:search:unemployment:25", 3600.0) is None
+
+
+@pytest.mark.asyncio
 async def test_catalog_caches_results(_fred_stubs: dict[str, int]) -> None:
     await macro_dispatcher.get_catalog("fred")
     await macro_dispatcher.get_catalog("fred")

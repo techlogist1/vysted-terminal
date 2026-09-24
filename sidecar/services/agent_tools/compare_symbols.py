@@ -229,7 +229,8 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
     ``None`` when fewer than two are comparable). Each symbol carries ``bars``,
     ``window_start`` and ``window_end``.
     Symbols that fail entirely are still listed with an ``error`` field. When
-    fewer than two symbols resolve, returns ``{"ok": False, "message": ...}``.
+    fewer than two symbols resolve, returns ``{"ok": False, "symbols": [...],
+    "message": ...}`` with each failed input's own reason in the message.
     """
     symbols = args.get("symbols")
     if not isinstance(symbols, list) or not all(isinstance(s, str) and s for s in symbols):
@@ -251,11 +252,16 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
 
     resolved = [r for r in results if "error" not in r]
     if len(resolved) < 2:
+        # Each failed input keeps its own reason (unresolved name, ambiguous name
+        # with its candidates, or no quote) so the model never reads a wrong
+        # ticker as a data gap (R15-AGENT-045).
+        reasons = "; ".join(f"{r['symbol']}: {r['error']}" for r in results if "error" in r)
         return {
             "ok": False,
+            "symbols": results,
             "message": (
                 "fewer than two symbols resolved — "
-                f"{len(resolved)} of {len(symbols)} returned a quote"
+                f"{len(resolved)} of {len(symbols)} returned a quote. {reasons}"
             ),
         }
 

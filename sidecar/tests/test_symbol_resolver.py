@@ -710,3 +710,63 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert nse.isin != bse.isin
     assert nse.bse_code is None and nse.industry is None
     assert res.needs_disambiguation
+
+
+@pytest.mark.parametrize(
+    ("query", "lead", "listed"),
+    [
+        ("Sify Technologies Ltd (ADR)", None, ("SIFY", "US")),
+        # Not written against: the IN lead survives; a better US ADR stays listed.
+        ("Infosys Ltd ADR", ("INFY", "NSE"), ("INFY", "US")),
+        ("Wipro ADR", ("WIPRO", "NSE"), ("WIT", "US")),
+    ],
+)
+def test_a_better_cross_region_fuzzy_match_keeps_the_last_slot(
+    monkeypatch: pytest.MonkeyPatch,
+    query: str,
+    lead: tuple[str, str] | None,
+    listed: tuple[str, str],
+) -> None:
+    """R15-DATA-058: under IN every IN fuzzy row sorts above a better US row
+    (D58c), and the cap cut SIFY (0.91) out behind six weaker IN rows."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    res = symbol_resolver.resolve(query, "IN")
+    rows = [(c.symbol, c.exchange) for c in res.candidates]
+    assert listed in rows
+    assert res.candidates[0].region == "IN"
+    if lead is not None:
+        assert rows[0] == lead
+
+
+def test_a_repeat_resolve_reuses_the_name_scan_until_the_masters_refresh(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: object
+) -> None:
+    """R15-CODE-DATA-002: the banded name scan (~17.9k scores) ran on every
+    resolve. A repeat query scores nothing; a master refresh re-arms the scan."""
+    import config
+
+    symbol_resolver.reset_caches_for_tests()
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    real_score = symbol_resolver._name_score
+    calls: list[int] = []
+
+    def counting(*args: object) -> object:
+        calls.append(1)
+        return real_score(*args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(symbol_resolver, "_name_score", counting)
+    first = symbol_resolver.resolve("Tata Steel", "IN")
+    scanned = len(calls)
+    assert scanned > 10_000
+    assert symbol_resolver.resolve("Tata Steel", "IN") == first
+    assert len(calls) == scanned
+
+    monkeypatch.setenv(config.DATA_DIR_ENV, str(tmp_path))
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_REFRESH_FETCHERS",
+        {"nse_instruments.json": lambda: symbol_resolver._load_master("nse_instruments.json")},
+    )
+    symbol_resolver.refresh_masters()
+    assert symbol_resolver.resolve("Tata Steel", "IN") == first
+    assert len(calls) == 2 * scanned
