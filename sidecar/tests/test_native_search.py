@@ -754,3 +754,164 @@ async def test_native_search_oneshot_never_raises(monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(llm_pkg, "get_provider", lambda *_a, **_k: provider)
     out = await native_search_oneshot("openai", "gpt-4o-search-preview", "sk", "q")
     assert out["ok"] is False and out["reason"] == "empty"
+
+
+# ---------------------------------------------------------------------------
+# Native searches are counted, priced and capped per run (R15-AGENT-049)
+# ---------------------------------------------------------------------------
+
+
+def _chunk(*, delta: Any = None, finish: str | None = None, usage: Any = None) -> Any:
+    from types import SimpleNamespace
+
+    choices = [SimpleNamespace(delta=delta, finish_reason=finish)] if delta or finish else []
+    return SimpleNamespace(choices=choices, usage=usage)
+
+
+def _usage(searches: int | None = None) -> Any:
+    from types import SimpleNamespace
+
+    server = {"web_search_requests": searches} if searches is not None else None
+    return SimpleNamespace(prompt_tokens=100, completion_tokens=10, server_tool_use=server)
+
+
+async def _aiter(items: list[Any]) -> AsyncIterator[Any]:
+    for item in items:
+        yield item
+
+
+class _ScriptedCompletions:
+    """Each ``create`` call streams the next scripted round; records its kwargs."""
+
+    def __init__(self, rounds: list[list[Any]]) -> None:
+        self.rounds = rounds
+        self.calls: list[dict[str, Any]] = []
+
+    async def create(self, **kwargs: Any) -> AsyncIterator[Any]:
+        self.calls.append(kwargs)
+        return _aiter(self.rounds[len(self.calls) - 1])
+
+
+def _tool_round(searches: int) -> list[Any]:
+    from types import SimpleNamespace
+
+    call = SimpleNamespace(
+        index=0,
+        id="c",
+        function=SimpleNamespace(name="price_data", arguments='{"symbol": "SPY"}'),
+    )
+    return [
+        _chunk(delta=SimpleNamespace(content=None, tool_calls=[call]), finish="tool_calls"),
+        _chunk(usage=_usage(searches)),
+    ]
+
+
+def _answer_round() -> list[Any]:
+    from types import SimpleNamespace
+
+    return [
+        _chunk(delta=SimpleNamespace(content="SPY is up."), finish="stop"),
+        _chunk(usage=_usage(0)),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_openrouter_native_searches_are_capped_and_priced_per_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (the count was authored on the OpenAI provider): OpenRouter
+    rounds reporting 3 + 3 native searches reach the run cap of 5, so the next
+    round carries no native search, and the turn's spend prices the 6."""
+    from types import SimpleNamespace
+
+    from models.llm import LLMDoneEvent, LLMUsage
+    from services import agent_runtime, budget_guard
+
+    completions = _ScriptedCompletions([_tool_round(3), _tool_round(3), _answer_round()])
+    client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    monkeypatch.setattr(openai, "AsyncOpenAI", lambda **_: client)
+    provider = OpenAIProvider(base_url="https://openrouter.ai/api/v1", provider_id="openrouter")
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _dispatch(_call: Any, _local: Any = None) -> AsyncIterator[Any]:
+        yield agent_runtime._ToolDone('{"ok": true, "price": 1}')
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _dispatch)
+    agent_runtime.reload()
+    model = "anthropic/claude-opus-4-8"
+    events = [
+        e
+        async for e in agent_runtime.invoke_agent(
+            agent_id="copilot",
+            prompt="what is SPY doing today",
+            provider="openrouter",
+            model=model,
+            api_key="sk-test",
+            mode="edit",
+            options={"modelWebSearch": "native"},
+        )
+    ]
+
+    native = [{"type": "openrouter:web_search"} in c.get("tools", []) for c in completions.calls]
+    assert native == [True, True, False]
+    assert all("web_search_max_uses" not in c for c in completions.calls)
+    [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
+    rounds = [LLMUsage(input_tokens=100, output_tokens=10, web_search_requests=n) for n in (3, 3)]
+    rounds.append(LLMUsage(input_tokens=100, output_tokens=10))
+    expected = sum(budget_guard.spend_usd("openrouter", model, u) or 0.0 for u in rounds)
+    assert done.spend_usd == pytest.approx(expected)
+    assert expected > 330 / 1e6 * budget_guard.price_per_million("openrouter", model)
+
+
+@pytest.mark.asyncio
+async def test_an_openai_search_preview_round_counts_one_search(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """OpenAI reports no search count; a search-preview request is one search."""
+    from types import SimpleNamespace
+
+    from models.llm import LLMDoneEvent
+
+    completions = _ScriptedCompletions([_answer_round()])
+    completions.rounds[0][1] = _chunk(usage=_usage(None))
+    client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    monkeypatch.setattr(openai, "AsyncOpenAI", lambda **_: client)
+    events = [
+        e
+        async for e in OpenAIProvider(provider_id="openai").stream_chat(
+            messages=[LLMMessage(role="user", content="news")],
+            model="gpt-4o-search-preview",
+            api_key="sk-test",
+            web_search=True,
+        )
+    ]
+    [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
+    assert done.usage is not None and done.usage.web_search_requests == 1
+
+
+@pytest.mark.asyncio
+async def test_a_gemini_round_counts_its_grounded_queries(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    from models.llm import LLMDoneEvent
+
+    grounding = SimpleNamespace(web_search_queries=["spy news", "spy price", "spy news"])
+    candidate = SimpleNamespace(content=None, grounding_metadata=grounding, finish_reason="STOP")
+    client = _patch_gemini(monkeypatch)
+
+    async def _stream(**kwargs: Any) -> AsyncIterator[Any]:
+        client.aio.models.last_call = kwargs
+        return _aiter([SimpleNamespace(candidates=[candidate], usage_metadata=None)])
+
+    monkeypatch.setattr(client.aio.models, "generate_content_stream", _stream)
+    events = [
+        e
+        async for e in GeminiProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="news")],
+            model="gemini-3-pro",
+            api_key="sk-test",
+            web_search=True,
+        )
+    ]
+    [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
+    assert done.usage is not None and done.usage.web_search_requests == 2

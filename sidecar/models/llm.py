@@ -134,6 +134,9 @@ class LLMUsage(BaseModel):
     output_tokens: int = 0
     cache_read_input_tokens: int | None = None
     cache_creation_input_tokens: int | None = None
+    #: Native server-side web searches the provider ran on this call, when the
+    #: request carried native search (R15-AGENT-049): priced and capped per run.
+    web_search_requests: int | None = None
 
 
 class LLMDeltaEvent(BaseModel):

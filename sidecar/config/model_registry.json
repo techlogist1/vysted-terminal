@@ -113,6 +113,27 @@
         "deepseek": 0.9,
         "": 2.0
       }
+    },
+    "search_usd_per_1k": {
+      "_comment": "$ per 1,000 native server-side web searches, an ESTIMATE matched like by_provider (R15-AGENT-049). Folded into the same spend as the token rate (the Delegate ceiling and the done frame's spend_usd); default covers an unlisted provider/model.",
+      "default": 10.0,
+      "by_provider": {
+        "anthropic": {
+          "": 10.0
+        },
+        "openai": {
+          "search-preview": 30.0
+        },
+        "gemini": {
+          "": 14.0
+        },
+        "groq": {
+          "compound": 5.0
+        },
+        "openrouter": {
+          "": 10.0
+        }
+      }
     }
   }
 }

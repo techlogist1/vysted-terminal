@@ -90,6 +90,17 @@ for _prov, _models in (_PRICES.get("by_provider") or {}).items():
         _PRICE_TABLE[(str(_prov), str(_sub))] = float(_rate)
 
 
+#: ``prices.search_usd_per_1k`` flattened the same way: $ per 1,000 native
+#: server-side searches (R15-AGENT-049), matched like the token table.
+_SEARCH_PRICES: dict[str, Any] = _PRICES.get("search_usd_per_1k") or {}
+_DEFAULT_SEARCH_USD_PER_1K: float = float(_SEARCH_PRICES.get("default", 10.0))
+_SEARCH_PRICE_TABLE: dict[tuple[str, str], float] = {
+    (str(_prov), str(_sub)): float(_rate)
+    for _prov, _models in (_SEARCH_PRICES.get("by_provider") or {}).items()
+    for _sub, _rate in _models.items()
+}
+
+
 # ---------------------------------------------------------------------------
 # Public accessors
 # ---------------------------------------------------------------------------
@@ -137,11 +148,23 @@ def default_rate_per_million() -> float:
     return _DEFAULT_RATE_PER_M
 
 
+def search_price_table() -> dict[tuple[str, str], float]:
+    """Return the flattened ``(provider, model_substring) -> $/1k native searches``."""
+    return dict(_SEARCH_PRICE_TABLE)
+
+
+def default_search_usd_per_1k() -> float:
+    """Return the fallback $/1k native-search rate for unknown provider/model pairs."""
+    return _DEFAULT_SEARCH_USD_PER_1K
+
+
 __all__ = [
     "default_model_for",
     "default_rate_per_million",
+    "default_search_usd_per_1k",
     "known_models_for",
     "price_table",
     "provider_ids",
     "provider_rows",
+    "search_price_table",
 ]

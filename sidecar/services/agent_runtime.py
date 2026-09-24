@@ -678,9 +678,11 @@ _CAPPED_ROUND_CLOSE = (
     "Ask me to continue, or narrow the request."
 )
 #: Per-run web-search cap (FR-081) — bounds per-search billing during a multi-round
-#: research run, for BOTH the native tier (passed as the provider's max_uses) and
-#: the BYOK/local `web_search` tool (counted in the loop; further calls return a
-#: cap-reached message instead of dispatching).
+#: research run, for BOTH the native tier (the searches each round's usage
+#: reports are counted; the provider gets the remaining budget as max_uses and
+#: no native search once it is spent, R15-AGENT-049) and the BYOK/local
+#: `web_search` tool (counted in the loop; further calls return a cap-reached
+#: message instead of dispatching).
 _WEB_SEARCH_CAP = 5
 
 
@@ -1868,6 +1870,7 @@ async def invoke_agent(
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    native_searches = 0  # native server-side searches run this turn (R15-AGENT-049)
     # The turn's spend over every round (C11): None once any round is unpriced.
     turn_spend: float | None = 0.0
     # R10 (E2): the latest research execution record of THIS invoke. When the
@@ -1896,6 +1899,12 @@ async def invoke_agent(
             messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
         if window:
             _fit_to_window(messages, tool_ids, window)
+        if opts.get("web_search"):
+            if native_searches >= _WEB_SEARCH_CAP:
+                opts.pop("web_search")
+                opts.pop("web_search_max_uses", None)
+            else:
+                opts["web_search_max_uses"] = _WEB_SEARCH_CAP - native_searches
         streamed_text = False
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -1952,6 +1961,8 @@ async def invoke_agent(
                 continue
             if isinstance(event, LLMDoneEvent):
                 seen_done = True
+                if event.usage is not None:
+                    native_searches += event.usage.web_search_requests or 0
                 round_spend = budget_guard.spend_usd(provider_id, resolved_model, event.usage)
                 turn_spend = (
                     None if round_spend is None or turn_spend is None else turn_spend + round_spend
