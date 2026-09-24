@@ -200,14 +200,10 @@ def get_series(series_id: str, region: str | None = None) -> MacroSeriesExtended
 
     title = indicator
     try:
-        # series.info returns an InfoStream; .table() / .items() may be available.
-        info = client.series.info(indicator)
-        if hasattr(info, "items") and callable(info.items):
-            items = list(info.items)
-            if items:
-                first = items[0]
-                # InfoRow shape: (id, name, ...). Prefer name when populated.
-                title = getattr(first, "value", indicator) or indicator
+        # series.info returns a Featureset whose ``items`` is a LIST of
+        # ``{"id", "value"}`` dicts (R15-DATA-085: the old ``callable`` guard
+        # never let this run); ``value`` is the human indicator name.
+        title = client.series.info(indicator).items[0].get("value") or indicator
     except Exception as exc:  # noqa: BLE001 — title fallback is benign
         _log.debug("wbgapi.series.info failed for %s: %s", indicator, exc)
 
