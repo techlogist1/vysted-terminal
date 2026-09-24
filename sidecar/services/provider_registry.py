@@ -26,6 +26,7 @@ declaration table and the same preference-order fallthrough.
 
 from __future__ import annotations
 
+import asyncio
 import calendar
 import inspect
 import logging
@@ -429,9 +430,12 @@ async def _resolve_async(
     fallback_ok: Acceptor | None = None,
 ) -> Any:
     """Walk providers for ``model_key`` in preference order, awaiting async
-    accessors and calling sync ones inline (these resolvers back fundamentals/
-    statements/analyst/macro — openbb-mcp async first, yfinance sync fallback).
-    The correctness gate is applied to each result before acceptance.
+    accessors and running sync ones on a worker thread (these resolvers back
+    fundamentals/statements/analyst/macro — openbb-mcp async first, yfinance
+    sync fallback). A sync yfinance fetch is network plus pandas parsing, and
+    run inline it held the event loop for every request and every deep-crawl
+    fetch (R15-LIFECYCLE-026). The correctness gate is applied to each result
+    before acceptance.
 
     ``accept`` (optional) gates COMPLETENESS, not correctness: when a result is
     valid but ``accept`` returns False (e.g. openbb fundamentals missing every
@@ -455,8 +459,10 @@ async def _resolve_async(
     have_incomplete = False
     for provider in candidates:
         try:
-            fn = provider.serves[model_key]
-            result = fn(*args)
+            # Every accessor is a lambda, so whether it is sync is only known by
+            # calling it: an async provider just builds its coroutine on the
+            # thread, which is then awaited here on the loop.
+            result = await asyncio.to_thread(provider.serves[model_key], *args)
             resolved = await result if inspect.isawaitable(result) else result
             validated = validate(resolved) if validate is not None else resolved
         except ProviderError as exc:
