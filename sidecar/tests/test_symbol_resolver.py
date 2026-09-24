@@ -710,3 +710,29 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert nse.isin != bse.isin
     assert nse.bse_code is None and nse.industry is None
     assert res.needs_disambiguation
+
+
+@pytest.mark.parametrize(
+    ("query", "lead", "listed"),
+    [
+        ("Sify Technologies Ltd (ADR)", None, ("SIFY", "US")),
+        # Not written against: the IN lead survives; a better US ADR stays listed.
+        ("Infosys Ltd ADR", ("INFY", "NSE"), ("INFY", "US")),
+        ("Wipro ADR", ("WIPRO", "NSE"), ("WIT", "US")),
+    ],
+)
+def test_a_better_cross_region_fuzzy_match_keeps_the_last_slot(
+    monkeypatch: pytest.MonkeyPatch,
+    query: str,
+    lead: tuple[str, str] | None,
+    listed: tuple[str, str],
+) -> None:
+    """R15-DATA-058: under IN every IN fuzzy row sorts above a better US row
+    (D58c), and the cap cut SIFY (0.91) out behind six weaker IN rows."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    res = symbol_resolver.resolve(query, "IN")
+    rows = [(c.symbol, c.exchange) for c in res.candidates]
+    assert listed in rows
+    assert res.candidates[0].region == "IN"
+    if lead is not None:
+        assert rows[0] == lead

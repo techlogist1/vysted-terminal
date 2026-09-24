@@ -946,7 +946,7 @@ def _resolve_masters(query: str, region: str) -> Resolution:
             )
 
     if ranked and not _only_generic_overlap(ranked[0], query_lc):
-        return Resolution(query=query, best=ranked[0], candidates=ranked[:_MAX_CANDIDATES])
+        return Resolution(query=query, best=ranked[0], candidates=_capped(ranked, ranked, region))
 
     # 4. Live keyless fallback (best-effort; never blocks; never binds — every
     #    row rides _DISAMBIGUATE_SCORE, which the policy maps to disambiguate).
@@ -957,14 +957,35 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     if ranked:
         known = {i.symbol for i in ranked}
         live = [i for i in live if i.symbol not in known]
-        candidates = (ranked[: _MAX_CANDIDATES // 2] + live + ranked[_MAX_CANDIDATES // 2 :])[
-            :_MAX_CANDIDATES
-        ]
-        return Resolution(query=query, best=ranked[0], candidates=candidates)
+        merged = ranked[: _MAX_CANDIDATES // 2] + live + ranked[_MAX_CANDIDATES // 2 :]
+        return Resolution(query=query, best=ranked[0], candidates=_capped(merged, ranked, region))
     if live:
         return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
 
     return Resolution(query=query, best=None, candidates=[])
+
+
+def _capped(
+    candidates: list[Instrument], ranked: list[Instrument], region: str
+) -> list[Instrument]:
+    """``candidates`` cut to :data:`_MAX_CANDIDATES`, reserving the last slot for
+    the best cross-region row of ``ranked``'s top band when it outscores every
+    in-region row of that band and the cut would drop it (R15-DATA-058). The
+    locale-first order (D58c) and ``best`` are untouched: an IN session still
+    leads with IN rows, but a better US match ("Sify Technologies Ltd (ADR)")
+    is never truncated out of the chooser."""
+    capped = candidates[:_MAX_CANDIDATES]
+    if region == REGION_GLOBAL or not ranked:
+        return capped
+    top_band = [i for i in ranked if i.band == ranked[0].band]
+    in_region = [i.score for i in top_band if i.region == region]
+    foreign = [i for i in top_band if i.region != region]
+    if not in_region or not foreign:
+        return capped
+    best_foreign = max(foreign, key=lambda i: i.score)
+    if best_foreign.score <= max(in_region) or best_foreign in capped:
+        return capped
+    return [*capped[: _MAX_CANDIDATES - 1], best_foreign]
 
 
 @lru_cache(maxsize=1)
