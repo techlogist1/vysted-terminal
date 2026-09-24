@@ -21,6 +21,7 @@ window long enough to trigger both legs.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import pytest
 
@@ -38,7 +39,8 @@ from services.backtest_strategies import (
 
 
 @pytest.fixture(autouse=True)
-def isolated_registries() -> None:
+def isolated_registries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
     backtest_engine.reset_registry_for_tests()
     backtest_store.reset_for_tests()
     yield

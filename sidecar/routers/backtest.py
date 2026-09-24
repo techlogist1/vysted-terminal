@@ -173,13 +173,13 @@ def validate_custom_strategy(definition: CustomDefinition) -> CustomValidateResp
 
 @router.get("/runs")
 def list_runs() -> dict[str, list[str]]:
-    """List run ids currently in the in-memory cache (newest first)."""
+    """List every stored run id, newest first."""
     return {"runs": [r.run_id for r in backtest_store.list_runs()]}
 
 
 @router.get("/runs/{run_id}")
 def get_run(run_id: str) -> BacktestResult:
-    """Return the cached BacktestResult for ``run_id``."""
+    """Return the stored BacktestResult for ``run_id``."""
     result = backtest_store.get(run_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"unknown run_id {run_id!r}")

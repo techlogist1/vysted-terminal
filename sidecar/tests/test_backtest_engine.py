@@ -7,6 +7,8 @@ end-to-end.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from models.backtest import BacktestFeeModel, BacktestRequest
@@ -22,7 +24,8 @@ from services.backtest_engine import (
 
 
 @pytest.fixture(autouse=True)
-def isolated_registries() -> None:
+def isolated_registries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
     backtest_engine.reset_registry_for_tests()
     backtest_store.reset_for_tests()
     yield
