@@ -272,6 +272,23 @@ def test_all_results_blocked_rotates_onward() -> None:
     assert resp.backend == "keyless:brave"
 
 
+def test_a_200_challenge_page_counts_as_a_failure_not_an_answer() -> None:
+    """R15-RESEARCH-022: a block page is not a healthy empty answer — it strikes
+    the breaker once, and an all-blocked chain raises rate-limited."""
+    wall = _result(
+        "https://duckduckgo.com/",
+        title="Unusual traffic from your computer network",
+        snippet="Please verify you are a human",
+    )
+    engines = {eid: _Engine([_response(eid, [wall])]) for eid in ENGINE_CHAIN}
+    with pytest.raises(SearchError) as err:
+        _run(_backend(engines).search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "blocked (challenge page)" in str(err.value)
+    assert breaker_for("ddg")._failures == 1
+    assert breaker_for("ddg").state == "closed"
+
+
 # --- tier status surface ---------------------------------------------------------
 
 

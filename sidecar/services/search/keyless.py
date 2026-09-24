@@ -21,7 +21,8 @@ Brave HTML, Mojeek HTML — with the hardening the single-engine floor lacked:
   * **URL dedup per run**: a result URL already returned by an earlier engine
     in THIS search is dropped.
   * **Block-page filter**: results whose visible text is an anti-bot
-    interstitial are dropped. Consent/footer
+    interstitial are dropped, and an engine that answers ONLY with those is
+    counted as a failure (a block), never as "found nothing". Consent/footer
     boilerplate is filtered per page paragraph in :mod:`.extract`, not here
     (markers list adapted from odysseus (MIT)
     github.com/pewdiepie-archdaemon/odysseus).
@@ -114,17 +115,25 @@ def is_low_quality(text: str) -> bool:
     return _has_marker(text, LOW_QUALITY_MARKERS)
 
 
-def _filter_results(results: list[SearchResult], seen_urls: set[str]) -> list[SearchResult]:
-    """Apply the per-run URL dedup + the interstitial (block-page) filter."""
+def _filter_results(
+    results: list[SearchResult], seen_urls: set[str]
+) -> tuple[list[SearchResult], int]:
+    """Apply the per-run URL dedup + the interstitial (block-page) filter.
+
+    Returns ``(kept, blocked)`` where ``blocked`` counts rows dropped as a
+    challenge page — the caller treats an all-blocked answer as a failure.
+    """
     out: list[SearchResult] = []
+    blocked = 0
     for result in results:
         if result.url in seen_urls:
             continue
         if _has_marker(f"{result.title} {result.snippet}", INTERSTITIAL_MARKERS):
+            blocked += 1
             continue
         seen_urls.add(result.url)
         out.append(result)
-    return out
+    return out, blocked
 
 
 def _build_engines(region: str | None) -> dict[str, SearchBackend]:
@@ -185,9 +194,16 @@ class KeylessSearchBackend(SearchBackend):
 
             outcome = await self._try_engine(engine_id, engine, breaker, query, options)
             if isinstance(outcome, SearchResponse):
+                results, blocked = _filter_results(outcome.results, seen_urls)
+                if blocked and not results:
+                    # A 200 challenge page is a block, not an answer: count it
+                    # against the breaker and never report it as "found nothing".
+                    breaker.record_failure()
+                    any_rate_limited = True
+                    engine_notes[engine_id] = "blocked (challenge page)"
+                    continue
                 breaker.record_success()
                 any_engine_answered = True
-                results = _filter_results(outcome.results, seen_urls)
                 if results:
                     return SearchResponse(
                         results=results,
