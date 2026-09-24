@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Maximize2, RotateCcw, Send, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { answerDelegateRun, resumeDelegateRun } from "@/lib/delegate-runs";
+import {
+  adoptSidecarRuns,
+  answerDelegateRun,
+  cancelDelegateRun,
+  resumeDelegateRun,
+} from "@/lib/delegate-runs";
 import { useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
 
 import { agentModeMeta } from "../../../types/agent-modes";
@@ -28,6 +33,12 @@ export function AgentsRail({
   const runs = useAgentRunsStore((state) => state.runs);
   const cancelRun = useAgentRunsStore((state) => state.cancelRun);
   const removeRun = useAgentRunsStore((state) => state.removeRun);
+
+  // The sidecar decides which Delegate runs exist: adopt the live ones a
+  // webview reload dropped from the store (R15-UI-040).
+  useEffect(() => {
+    void adoptSidecarRuns();
+  }, []);
 
   const active = useMemo(
     () =>
@@ -82,6 +93,7 @@ function RunRow({
   const [answerError, setAnswerError] = useState<string | null>(null);
   const [resumeBusy, setResumeBusy] = useState(false);
   const [resumeError, setResumeError] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const failed = run.status === "error";
   const cost = run.cost;
   const budget = run.budget;
@@ -158,13 +170,27 @@ function RunRow({
           <button
             type="button"
             aria-label={failed ? `Dismiss ${run.agentName}` : `Cancel ${run.agentName}`}
-            onClick={onCancel}
+            onClick={() => {
+              if (failed || !run.sidecarRunId) {
+                onCancel();
+                return;
+              }
+              setCancelError(null);
+              void cancelDelegateRun(run.sidecarRunId).then((r) => {
+                if (!r.ok) setCancelError(r.error ?? "Cancel failed — retry.");
+              });
+            }}
             className="text-charcoal-500 hover:text-negative"
           >
             <X size={11} aria-hidden />
           </button>
         </span>
       </div>
+      {cancelError && run.status === "running" && (
+        <span className="text-negative text-micro" role="alert">
+          {cancelError}
+        </span>
+      )}
       {failed && (run.detail || resumeError) && (
         <span className="text-negative text-micro truncate" role="alert" title={run.detail}>
           {resumeError ?? run.detail}

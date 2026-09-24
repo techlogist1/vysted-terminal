@@ -47,7 +47,7 @@ describe("AgentsRail", () => {
     await waitFor(() =>
       expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("running"),
     );
-    const [url, init] = fetchMock.mock.calls[0];
+    const [url, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/resume"))!;
     expect(String(url)).toBe("http://127.0.0.1:51763/runs/run-5/resume");
     expect(init.method).toBe("POST");
     expect(init.headers).toEqual({ "X-LLM-Api-Key": "sk-or-test" });
