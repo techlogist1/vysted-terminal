@@ -770,3 +770,15 @@ def test_a_repeat_resolve_reuses_the_name_scan_until_the_masters_refresh(
     symbol_resolver.refresh_masters()
     assert symbol_resolver.resolve("Tata Steel", "IN") == first
     assert len(calls) == 2 * scanned
+
+
+def test_nse_listing_date_is_the_exchange_date_of_listing() -> None:
+    """R15-DATA-055: the NSE lists' DATE OF LISTING (three spellings across the
+    main board, Emerge and ETF files) lands in the master; a BSE-only scrip has
+    none."""
+    from services.resolver_masters import regenerate_nse_master
+
+    parsed = [regenerate_nse_master.listing_date(v) for v in ("17-AUG-2026", "02-Sep-26", "")]
+    assert parsed == ["2026-08-17", "2026-09-02", None]
+    assert symbol_resolver.nse_listing_date("DHOOTTRANS.NS") == "2026-08-17"
+    assert symbol_resolver.nse_listing_date("NAPEROL") is None

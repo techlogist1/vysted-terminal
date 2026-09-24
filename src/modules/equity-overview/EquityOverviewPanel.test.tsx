@@ -649,4 +649,25 @@ describe("EquityOverviewPanel — batch-10 fundamentals labels (R15-DATA-048/054
     await loadSymbol();
     expect(screen.queryByTestId("basis-chip")).toBeNull();
   });
+
+  it("labels a 38-day-old listing's range 'since listing' and drops its 1Y change", async () => {
+    const listed = new Date(Date.now() - 38 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ listing_date: listed }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    const header = screen.getByTestId("equity-header").textContent ?? "";
+    expect(header).toContain("since listing");
+    expect(header).not.toContain("52w");
+    expect(screen.queryByTitle("1Y change")).toBeNull();
+    cleanup();
+
+    // An older listing (and a listing with no exchange date) keeps "52w" + 1Y.
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ listing_date: "1995-11-29" }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByTestId("equity-header").textContent).toContain("52w");
+    expect(screen.getByTitle("1Y change")).toBeInTheDocument();
+  });
 });

@@ -127,12 +127,15 @@ export interface Fundamentals {
   fifty_two_week_high_date?: string | null;
   fifty_two_week_low_date?: string | null;
   /**
-   * ISO date the listing first traded. A listing younger than 52 weeks still
+   * ISO exchange listing date (R15-DATA-055): the NSE master's DATE OF LISTING
+   * for an NSE listing, else `null`. A listing younger than 52 weeks still
    * reports a `fifty_two_week_*` pair (Yahoo backfills from the shorter
-   * history it has) — a non-null date here means the panel should label that
-   * range "since listing" instead of "52w".
+   * history it has) — the panel labels that range "since listing" instead of
+   * "52w" and hides the "1Y change".
    */
   listing_date?: string | null;
+  /** ISO date of the first bar Yahoo holds — the start of its data, not the listing. */
+  first_trade_date?: string | null;
   /**
    * ISO date of the fiscal year end `forward_pe` targets (Yahoo
    * `nextFiscalYearEnd`). `null`/absent when Yahoo names no forward estimate

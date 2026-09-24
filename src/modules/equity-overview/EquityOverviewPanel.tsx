@@ -221,6 +221,13 @@ function fundamentalsAsOf(fundamentals: Fundamentals | null): string | null {
   return null;
 }
 
+/** A listing whose exchange listing date is under 52 weeks old (R15-DATA-055):
+ *  its "52w" range only spans the time since listing and it has no 1Y change. */
+function listedUnderAYear(fundamentals: Fundamentals | null): boolean {
+  const listed = fundamentals?.listing_date;
+  return listed != null && Date.now() - Date.parse(listed) < 364 * 24 * 60 * 60 * 1000;
+}
+
 /** ISO timestamp → the bare date ("2026-07-10") — dense, unambiguous, and
  *  consistent with how the rest of the app states raw ISO dates (e.g. the
  *  brief's declared-dividend record dates) rather than a locale-formatted one. */
@@ -833,8 +840,12 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
     if (fundamentals === null) {
       return [];
     }
+    const young = listedUnderAYear(fundamentals);
     return FIELD_GROUPS.map((group) => {
-      const rows: FundamentalRow[] = group.fields.map((f) => ({
+      const fields = young
+        ? group.fields.filter((f) => f.key !== "fifty_two_week_change")
+        : group.fields;
+      const rows: FundamentalRow[] = fields.map((f) => ({
         key: f.key,
         label: f.label,
         value: formatField(
@@ -1060,7 +1071,8 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                   (fundamentals.fifty_two_week_low != null ||
                     fundamentals.fifty_two_week_high != null) && (
                     <span className="text-charcoal-500 tabular-nums">
-                      52w {fmtPriceField(fundamentals.fifty_two_week_low) ?? "—"} –{" "}
+                      {listedUnderAYear(fundamentals) ? "since listing" : "52w"}{" "}
+                      {fmtPriceField(fundamentals.fifty_two_week_low) ?? "—"} –{" "}
                       {fmtPriceField(fundamentals.fifty_two_week_high) ?? "—"}
                     </span>
                   )}

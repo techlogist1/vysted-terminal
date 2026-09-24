@@ -111,11 +111,15 @@ class Fundamentals(BaseModel):
     #: scalar ``fiftyTwoWeekHigh``/``Low`` carry no date of their own.
     fifty_two_week_high_date: str | None = None
     fifty_two_week_low_date: str | None = None
-    #: ISO date the listing first traded (Yahoo ``firstTradeDateMilliseconds``).
-    #: A listing younger than 52 weeks still reports a ``fifty_two_week_*``
-    #: pair (Yahoo backfills it from the shorter history it has); this field
-    #: lets the panel relabel that range "since listing" instead of "52w".
+    #: ISO exchange listing date (R15-DATA-055, D-B10-7): the NSE master's DATE
+    #: OF LISTING for an NSE listing, else ``None``. A listing younger than 52
+    #: weeks still reports a ``fifty_two_week_*`` pair (Yahoo backfills it from
+    #: the shorter history it has); this field lets the panel relabel that
+    #: range "since listing" instead of "52w".
     listing_date: str | None = None
+    #: ISO date of the first bar Yahoo holds (``firstTradeDateMilliseconds``) —
+    #: the start of its data, not the listing (NAPEROL: 2002-07-01).
+    first_trade_date: str | None = None
     #: ISO date of the fiscal year end the ``forward_pe`` estimate targets
     #: (Yahoo ``nextFiscalYearEnd``), when Yahoo names one alongside a
     #: forward P/E. ``None`` when Yahoo supplies no forward estimate or no

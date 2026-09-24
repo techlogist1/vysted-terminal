@@ -836,12 +836,13 @@ def get_fundamentals(symbol: str) -> Fundamentals:
 
     sector, industry, sector_source = _resolve_sector(yahoo, info)
 
-    # R15-DATA-055: the listing's first-trade date, for the "since listing"
-    # 52w-range relabel on a listing younger than a year.
-    listing_ms = info.get("firstTradeDateMilliseconds")
-    listing_date = (
-        datetime.fromtimestamp(listing_ms / 1000.0, tz=UTC).date().isoformat()
-        if isinstance(listing_ms, (int, float))
+    # R15-DATA-055: the exchange listing date comes from the NSE master; Yahoo's
+    # first-trade date is only where its data starts (NAPEROL: 2002-07-01).
+    listing_date = symbol_resolver.nse_listing_date(yahoo) if yahoo.endswith(".NS") else None
+    first_ms = info.get("firstTradeDateMilliseconds")
+    first_trade_date = (
+        datetime.fromtimestamp(first_ms / 1000.0, tz=UTC).date().isoformat()
+        if isinstance(first_ms, (int, float))
         else None
     )
     # The fiscal year end the forward-PE estimate targets, when Yahoo names one.
@@ -859,6 +860,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         industry=industry,
         sector_source=sector_source,
         listing_date=listing_date,
+        first_trade_date=first_trade_date,
         forward_pe_fiscal_year=forward_pe_fiscal_year,
         currency=info.get("currency") or info.get("financialCurrency"),
         financial_currency=_financial_currency(info),
