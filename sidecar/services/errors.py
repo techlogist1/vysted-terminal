@@ -370,26 +370,16 @@ def humanize(
         )
 
     # -----------------------------------------------------------------------
-    # Exception class / message heuristics (no HTTP status available)
+    # Exception class heuristics (no HTTP status available). Class names only:
+    # a message that merely mentions "connection" or "parse" is not evidence
+    # the provider failed (R15-AGENT-030).
     # -----------------------------------------------------------------------
 
     if exc is not None:
         cls_name = type(exc).__name__.lower()
-        exc_str = str(exc).lower()
 
         # Timeout / connection errors
-        if any(
-            kw in cls_name or kw in exc_str
-            for kw in (
-                "timeout",
-                "timedout",
-                "connection",
-                "connect",
-                "connectionerror",
-                "connecttimeout",
-                "connecterror",
-            )
-        ):
+        if any(kw in cls_name for kw in ("timeout", "timedout", "connect")):
             return HumanError(
                 message=f"Could not reach {label} — check your network.",
                 action="Check your internet connection and try again.",
@@ -398,7 +388,7 @@ def humanize(
             )
 
         # SSL errors
-        if any(kw in cls_name or kw in exc_str for kw in ("ssl", "certificate", "sslerror")):
+        if any(kw in cls_name for kw in ("ssl", "certificate")):
             return HumanError(
                 message=f"A TLS/SSL error occurred connecting to {label}.",
                 action="Check your network or try a different connection.",
@@ -406,17 +396,8 @@ def humanize(
                 code="network",
             )
 
-        # JSON / parse errors.
-        # For json.JSONDecodeError (and jsonparse): class name match alone is
-        # sufficient — the stdlib exception message ("Expecting value: line 1
-        # column 1 (char 0)") contains none of "json/parse/decode", so the
-        # AND condition would silently fall through to "unknown".
-        # For the broad ValueError: keep the AND to stay precise.
-        _json_class = any(kw in cls_name for kw in ("jsondecode", "jsonparse"))
-        _value_error_json = cls_name == "valueerror" and any(
-            kw in exc_str for kw in ("json", "parse", "decode")
-        )
-        if _json_class or _value_error_json:
+        # JSON / parse errors (json.JSONDecodeError and the like).
+        if any(kw in cls_name for kw in ("jsondecode", "jsonparse")):
             return HumanError(
                 message=f"{label} returned an unreadable response.",
                 action="Try again; if the problem persists, check the provider's status page.",
@@ -474,22 +455,20 @@ def humanize(
     )
 
 
-def error_frame(exc: BaseException, *, provider_id: str | None = None) -> dict[str, Any]:
-    """An SSE-ready ``{kind:"error", message, action, detail, code}`` frame.
+def error_frame(exc: BaseException) -> dict[str, Any]:
+    """The SSE ``{kind:"error", message, action, detail, code:"internal"}`` frame
+    both SSE routers' last-resort guards emit.
 
-    The single home for turning a crash into the wire error frame both SSE
-    routers emit, so the chat renders plain language + a next step with the raw
-    text behind a toggle — never a naked provider blob. Never raises; degrades
-    to ``str(exc)`` as the message if humanization itself fails.
+    The adapters humanize their own provider failures into error events, so an
+    exception reaching a router guard is the terminal's own fault (runtime,
+    tool, store) — never blamed on the provider or the user's network
+    (R15-AGENT-030). The raw ``type: message`` rides ``detail`` behind the UI's
+    "Show details" toggle.
     """
-    try:
-        h = humanize(provider_id, exc)
-        return {
-            "kind": "error",
-            "message": h.message,
-            "action": h.action,
-            "detail": h.detail,
-            "code": h.code,
-        }
-    except Exception:  # noqa: BLE001 — the guard must never raise
-        return {"kind": "error", "message": str(exc)}
+    return {
+        "kind": "error",
+        "message": "The terminal hit an internal error.",
+        "action": "Try again; if it keeps happening, restart Vysted.",
+        "detail": f"{type(exc).__name__}: {exc}",
+        "code": "internal",
+    }
