@@ -126,7 +126,7 @@ def test_web_search_floor_records_run_telemetry(monkeypatch) -> None:
         pass
 
     async def fake_resolve(region: str) -> Any:
-        return _Backend(), web_search.KEYLESS_FALLBACK_BACKEND_ID
+        return _Backend(), web_search.KEYLESS_FALLBACK_BACKEND_ID, None
 
     async def fake_dispatch(*args: Any, **kwargs: Any) -> dict[str, Any]:
         return {"ok": True, "results": [], "citations": []}
