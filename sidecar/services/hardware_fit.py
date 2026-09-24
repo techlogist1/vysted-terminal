@@ -26,6 +26,7 @@ on first):
 
 from __future__ import annotations
 
+import ctypes
 import platform
 import re
 import subprocess
@@ -85,6 +86,10 @@ class DeviceProfile:
     os_name: str
     os_version: str
     reserve_bytes: int = _RESERVE_BYTES
+    #: True when ``ram_bytes`` is the generic 8 GiB guess (R15-CROSS-PLATFORM-003)
+    #: rather than a measured value — an unrecognised OS, or a Windows host where
+    #: ``GlobalMemoryStatusEx`` was unreachable.
+    estimated: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -100,6 +105,7 @@ class DeviceProfile:
             "osName": self.os_name,
             "osVersion": self.os_version,
             "reserveBytes": self.reserve_bytes,
+            "estimated": self.estimated,
         }
 
 
@@ -194,6 +200,55 @@ def _detect_fallback() -> DeviceProfile:
         chip=platform.processor() or "unknown",
         os_name=platform.system() or "unknown",
         os_version=platform.release(),
+        estimated=True,
+    )
+
+
+class _MemoryStatusEx(ctypes.Structure):
+    """Mirrors Win32's ``MEMORYSTATUSEX`` — only ``ullTotalPhys`` is read."""
+
+    _fields_ = [
+        ("dwLength", ctypes.c_ulong),
+        ("dwMemoryLoad", ctypes.c_ulong),
+        ("ullTotalPhys", ctypes.c_ulonglong),
+        ("ullAvailPhys", ctypes.c_ulonglong),
+        ("ullTotalPageFile", ctypes.c_ulonglong),
+        ("ullAvailPageFile", ctypes.c_ulonglong),
+        ("ullTotalVirtual", ctypes.c_ulonglong),
+        ("ullAvailVirtual", ctypes.c_ulonglong),
+        ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+    ]
+
+
+def _detect_windows() -> DeviceProfile:
+    """Real RAM via ``kernel32!GlobalMemoryStatusEx`` (ctypes, no new
+    dependency — every Windows host ships it). ``_detect_fallback`` (8 GiB,
+    ``estimated=True``) covers the rare host where ``ctypes.windll`` itself is
+    unreachable (R15-CROSS-PLATFORM-003); dedicated VRAM detection stays
+    out of scope here, same as the macOS/Linux paths."""
+    import os
+
+    try:
+        stat = _MemoryStatusEx()
+        stat.dwLength = ctypes.sizeof(_MemoryStatusEx)
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+            return _detect_fallback()
+        ram = int(stat.ullTotalPhys)
+    except (OSError, AttributeError, ValueError):
+        return _detect_fallback()
+    total = os.cpu_count() or 4
+    return DeviceProfile(
+        ram_bytes=ram,
+        gpu_budget_bytes=_gpu_budget(ram, is_apple_silicon=False),
+        total_cores=total,
+        perf_cores=total,
+        is_apple_silicon=False,
+        arch=platform.machine() or "unknown",
+        chip=platform.processor() or "unknown",
+        os_name="Windows",
+        os_version=platform.release(),
+        estimated=False,
     )
 
 
@@ -211,6 +266,8 @@ def detect_device(*, force: bool = False) -> DeviceProfile:
             profile = _detect_macos()
         elif system == "Linux":
             profile = _detect_linux()
+        elif system == "Windows":
+            profile = _detect_windows()
         else:
             profile = _detect_fallback()
     except Exception:  # noqa: BLE001 — detection must never crash the sidecar

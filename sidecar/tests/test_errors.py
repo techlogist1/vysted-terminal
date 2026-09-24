@@ -8,7 +8,13 @@ from __future__ import annotations
 
 import pytest
 
-from services.errors import HumanError, ProviderError, error_frame, humanize
+from services.errors import (
+    HumanError,
+    ProviderError,
+    error_frame,
+    humanize,
+    provider_error_response,
+)
 
 # ---------------------------------------------------------------------------
 # ProviderError smoke test
@@ -479,3 +485,52 @@ def test_humanize_ignores_network_words_in_a_non_network_message() -> None:
     """The class case the fix was not written against: a ValueError whose text
     mentions a connection pool timeout is not a network failure."""
     assert humanize("openai", ValueError("connection pool timeout")).code != "network"
+
+
+# ---------------------------------------------------------------------------
+# provider_error_response — R15-DATA-061: a cause-less ProviderError is not
+# authored just because it has no __cause__; only .authored() reaches the user.
+# ---------------------------------------------------------------------------
+
+
+def test_unauthored_cause_less_error_hides_raw_upstream_text() -> None:
+    """A plain ``ProviderError(str(exc))`` with no cause — e.g. an MCP tool's
+    raw error content wrapped with no ``from`` — used to read as "authored"
+    just because __cause__ was None, and leaked verbatim."""
+    exc = ProviderError("World Bank upstream: APIError: JSON decoding error (https://a...)")
+    status, body = provider_error_response(exc)
+    assert status == 502
+    assert "APIError" not in body["detail"]
+    assert body["detail"] == "The data provider returned an unexpected response."
+
+
+def test_authored_cause_less_error_keeps_its_sentence() -> None:
+    exc = ProviderError.authored("FRED needs a free API key for macro data.")
+    status, body = provider_error_response(exc)
+    assert status == 502
+    assert body["detail"] == "FRED needs a free API key for macro data."
+
+
+def test_authored_not_found_keeps_its_sentence() -> None:
+    """An authored error paired with a classified kind still shows its own
+    text, not the kind's generic sentence."""
+    exc = ProviderError.authored("No such watchlist symbol.", kind="not_found")
+    status, body = provider_error_response(exc)
+    assert status == 404
+    assert body["detail"] == "No such watchlist symbol."
+
+
+def test_unauthored_classified_kind_also_hides_raw_text() -> None:
+    """Class pin, not written against: an unauthored cause-less error carrying
+    a classified kind (the openbb-mcp 422 shape — raw tool-error content, no
+    ``from``) still gets the kind's generic sentence, never the raw body."""
+    exc = ProviderError(
+        "openbb-mcp tool 'equity.price.quote' reported error: 422 Unprocessable", kind="not_found"
+    )
+    status, body = provider_error_response(exc)
+    assert status == 404
+    assert "Unprocessable" not in body["detail"]
+    assert (
+        body["detail"]
+        == "The data provider has no data for this symbol or series — check the symbol."
+    )

@@ -3,13 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Settings2, Trash2, Power, Loader2 } from "lucide-react";
 
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Button } from "@/components/ui/button";
-import { MARKETPLACE_CATALOG } from "@/lib/marketplace";
+import {
+  fetchDataSourceDeclarations,
+  INDIA_DATA_LANES,
+  MARKETPLACE_CATALOG,
+  REGISTRY_PROVIDER_ID,
+} from "@/lib/marketplace";
 import { cn } from "@/lib/utils";
 import { useMarketplaceStore } from "@/store/marketplace";
 import { usePluginsStore } from "@/store/plugins";
 
-import type { MarketplaceCategory, MarketplaceEntry } from "../../../types/marketplace";
+import type {
+  DataSourceDeclaration,
+  MarketplaceCategory,
+  MarketplaceEntry,
+} from "../../../types/marketplace";
 
 const CATEGORY_ORDER: { id: MarketplaceCategory; label: string; blurb: string }[] = [
   {
@@ -34,10 +44,19 @@ export function MarketplacePanel() {
   const refresh = useMarketplaceStore((s) => s.refresh);
   const refreshing = useMarketplaceStore((s) => s.refreshing);
   const flags = useMarketplaceStore((s) => s.flags);
+  // R15-CODE-PLATFORM-072/R15-DATA-077: served model-keys come from the live
+  // provider registry (C19), never hand-written catalog metadata. An offline
+  // sidecar leaves this empty — no served-keys line, no India-lanes section,
+  // never a stale hand row.
+  const [declarations, setDeclarations] = useState<Record<string, DataSourceDeclaration>>({});
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    void fetchDataSourceDeclarations().then(setDeclarations);
+  }, []);
 
   const byCategory = useMemo(() => {
     const map = new Map<MarketplaceCategory, MarketplaceEntry[]>();
@@ -79,19 +98,84 @@ export function MarketplacePanel() {
                 </div>
                 <ul className="flex flex-col gap-2">
                   {entries.map((entry) => (
-                    <MarketplaceCard key={entry.pluginId} entry={entry} />
+                    <MarketplaceCard
+                      key={entry.pluginId}
+                      entry={entry}
+                      declarations={declarations}
+                    />
                   ))}
                 </ul>
               </section>
             );
           })}
+          <IndiaDataLanesSection declarations={declarations} />
         </div>
       )}
     </div>
   );
 }
 
-function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
+/**
+ * The keyless India data lanes (nse_direct/nse/bse) — always-on backend
+ * routing, not installable plugins, so this is an informational list with no
+ * install/enable/remove affordance. Renders only once the live fetch confirms
+ * at least one lane exists (never against a stale/absent hand row).
+ */
+function IndiaDataLanesSection({
+  declarations,
+}: {
+  declarations: Record<string, DataSourceDeclaration>;
+}) {
+  const rows = INDIA_DATA_LANES.map((lane) => ({ lane, live: declarations[lane.id] })).filter(
+    (r) => r.live !== undefined,
+  );
+  if (rows.length === 0) return null;
+  return (
+    <section aria-label="India data lanes">
+      <div className="mb-2">
+        <h3 className="hud-label">India data lanes</h3>
+        <p className="text-charcoal-500 text-caption mt-1">
+          Keyless NSE/BSE routing built into the sidecar — always on, nothing to install.
+        </p>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {rows.map(({ lane, live }) => (
+          <li
+            key={lane.id}
+            className="border-charcoal-700 bg-charcoal-900 rounded-none border px-3 py-2"
+            data-testid={`data-lane-${lane.id}`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-charcoal-100 text-body truncate font-medium">{lane.name}</span>
+              <span
+                className={cn(
+                  "rounded-control text-micro border px-1 py-0.5",
+                  live!.available
+                    ? "text-positive border-positive/40"
+                    : "text-charcoal-500 border-charcoal-700",
+                )}
+              >
+                {live!.available ? "Available" : "Unavailable"}
+              </span>
+            </div>
+            <p className="text-charcoal-400 text-caption mt-1">{lane.description}</p>
+            <p className="text-charcoal-500 text-caption mt-1">
+              Serves: {live!.keys.join(", ")} · region: {live!.region.join(", ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function MarketplaceCard({
+  entry,
+  declarations,
+}: {
+  entry: MarketplaceEntry;
+  declarations: Record<string, DataSourceDeclaration>;
+}) {
   // Subscribe to the reactive slices so the card re-renders on a transition.
   const flags = useMarketplaceStore((s) => s.flags[entry.pluginId]);
   const configured = useMarketplaceStore((s) => s.configured[entry.pluginId] ?? false);
@@ -111,6 +195,10 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
     errorMessage: record?.errorMessage,
   };
   const hasCreds = (entry.credentialFields?.length ?? 0) > 0;
+  // R15-CODE-PLATFORM-072: served keys come from the live registry, not a
+  // hand-written literal — absent for plugins that don't route through
+  // provider_registry (news, agent packs), which is correct: they have none.
+  const servedKeys = declarations[REGISTRY_PROVIDER_ID[entry.pluginId] ?? ""]?.keys;
 
   return (
     <li className="border-charcoal-700 bg-charcoal-900 rounded-none border px-3 py-2">
@@ -121,6 +209,14 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
             <StateBadge state={state} preinstalled={entry.preinstalled} hasCreds={hasCreds} />
           </div>
           <p className="text-charcoal-400 text-caption mt-1">{entry.description}</p>
+          {servedKeys && servedKeys.length > 0 && (
+            <p
+              className="text-charcoal-500 text-caption mt-1"
+              data-testid="marketplace-served-keys"
+            >
+              Serves: {servedKeys.join(", ")}
+            </p>
+          )}
           {state.errorMessage && (
             <div className="border-negative/30 bg-negative/10 mt-1 flex items-start justify-between gap-2 rounded-none border px-2 py-1">
               <p className="text-negative text-caption">{state.errorMessage}</p>
@@ -183,15 +279,16 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
             </Button>
           )}
           {state.installed && !entry.preinstalled && (
-            <Button
+            <ConfirmButton
               size="icon-sm"
               variant="ghost"
               disabled={busy}
               aria-label={`Remove ${entry.name}`}
-              onClick={() => void remove(entry.pluginId)}
+              onConfirm={() => void remove(entry.pluginId)}
+              armedLabel={<Trash2 className="text-negative" aria-hidden="true" />}
             >
               {busy ? <Loader2 className="animate-spin" /> : <Trash2 />}
-            </Button>
+            </ConfirmButton>
           )}
         </div>
       </div>

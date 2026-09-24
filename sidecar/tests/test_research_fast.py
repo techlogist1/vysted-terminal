@@ -20,7 +20,7 @@ import pytest
 from services import dividend_actions, ownership_check
 from services.dividend_actions import DeclaredDividend
 from services.ownership_check import ExchangeOwnership
-from services.research.fast import gather_fast, snapshot_structured
+from services.research.fast import _suggested_indicators, gather_fast, snapshot_structured
 
 
 def _instrument(symbol: str, name: str, asset_class: str) -> dict[str, Any]:
@@ -179,9 +179,27 @@ def test_fast_indicators_per_asset_class() -> None:
         gather_fast("BTC", region="US", tool_call=_FakeToolCall(asset_class="crypto"))
     )
 
+    # gather_fast has no timeframe concept (the cockpit opens on the daily
+    # read), so equity/etf keep their DAILY set. Crypto is timeframe-agnostic
+    # (FR-092) and now carries the real EMA50/200 + week-VWAP combo — it used
+    # to ship a single generic-period EMA and a non-week VWAP (R15-UI-091).
     assert equity["suggested_indicators"] == ["ma", "volume", "rsi", "macd"]
     assert etf["suggested_indicators"] == ["ma", "volume", "rsi"]
-    assert crypto["suggested_indicators"] == ["ema", "vwap", "rsi", "volume"]
+    assert crypto["suggested_indicators"] == ["ema:50", "ema:200", "vwap:week", "rsi"]
+
+
+def test_suggested_indicators_fr092_combos() -> None:
+    """R15-UI-091 acceptance: the FR-092 named multi-period combos, not a
+    generic single-period EMA/VWAP."""
+    assert _suggested_indicators("5m", "equity") == ["ema:9", "ema:21", "vwap", "rsi"]
+    assert _suggested_indicators("1d", "crypto") == ["ema:50", "ema:200", "vwap:week", "rsi"]
+    # Class pin: (equity, 1d) keeps the daily set — the EMA9/21 crossover is
+    # an intraday-only read, never shown on a daily chart.
+    assert _suggested_indicators("1d", "equity") == ["ma", "volume", "rsi", "macd"]
+    # Crypto ignores the timeframe entirely (24/7, no session boundary).
+    assert _suggested_indicators("5m", "crypto") == _suggested_indicators("1d", "crypto")
+    # An unrecognized asset class falls back to the equity table.
+    assert _suggested_indicators("1d", "bond") == _suggested_indicators("1d", "equity")
 
 
 def test_fast_web_unavailable_is_honest() -> None:

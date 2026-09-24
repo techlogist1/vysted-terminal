@@ -30,6 +30,7 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
+import { TaskList, TaskItem } from "@tiptap/extension-list";
 import { Markdown } from "@tiptap/markdown";
 
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ import { saveTextArtifact, savePngArtifact, savePdfArtifact } from "@/lib/export
 import { NotesToolbar } from "./NotesToolbar";
 import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExtension";
 import { WikiLinkExtension, type WikiLinkItem, type WikiLinkMenuDetail } from "./WikiLinkExtension";
+import { WikiLinkNode } from "./WikiLinkNode";
 import { persistNoteMd } from "./notes-persistence";
 
 /** How long a burst of typing coalesces before it is written to the store. */
@@ -87,29 +89,31 @@ function ScopeChip({
 
 export function NotesPanel() {
   const notesStore = useNotesStore();
-  const symbolEntries = useSymbolsStore((s) => s.entries);
 
   // The current note scope: undefined = general, string = symbol.
   const scope = notesStore.focusSymbol;
 
   // --- Slash menu state ---
   const [slashMenu, setSlashMenu] = useState<SlashMenuDetail | null>(null);
-  const [slashActiveIdx, setSlashActiveIdx] = useState(0);
 
   // --- WikiLink menu state ---
   const [wikiMenu, setWikiMenu] = useState<WikiLinkMenuDetail | null>(null);
-  const [wikiActiveIdx, setWikiActiveIdx] = useState(0);
 
   // Ref to the editor container for PNG export.
   const editorContainerRef = useRef<HTMLDivElement>(null);
 
-  // Build wikilink symbol list from watchlist + symbols-with-notes.
+  // Build wikilink symbol list from watchlist + symbols-with-notes. Reads
+  // live store state via `getState()` rather than closing over the
+  // `notesStore`/`symbolEntries` render values — `useEditor`'s extensions are
+  // captured once at mount, so a closure over render-time values would stay
+  // frozen at whatever the watchlist/notes were when the editor first
+  // mounted (R15-UI-024 repro d: a symbol added later never showed).
   const getWikiSymbols = useCallback((): WikiLinkItem[] => {
-    const withNotes = new Set(notesStore.symbolsWithNotes());
-    const allSymbols = symbolEntries.map((e) => e.symbol.toUpperCase());
+    const withNotes = new Set(useNotesStore.getState().symbolsWithNotes());
+    const allSymbols = useSymbolsStore.getState().entries.map((e) => e.symbol.toUpperCase());
     const merged = Array.from(new Set([...Array.from(withNotes), ...allSymbols]));
     return merged.map((sym) => ({ symbol: sym, hasNote: withNotes.has(sym) }));
-  }, [notesStore, symbolEntries]);
+  }, []);
 
   // Tiptap editor — `immediatelyRender: false` required for static export SSR-safety.
   const editor = useEditor({
@@ -122,9 +126,12 @@ export function NotesPanel() {
       TableRow,
       TableCell,
       TableHeader,
+      TaskList,
+      TaskItem.configure({ nested: true }),
       Markdown,
       SlashCommandExtension,
       WikiLinkExtension.configure({ getSymbols: getWikiSymbols }),
+      WikiLinkNode,
     ],
     content: "",
     editorProps: {
@@ -208,7 +215,6 @@ export function NotesPanel() {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<SlashMenuDetail | null>).detail;
       setSlashMenu(detail);
-      setSlashActiveIdx(0);
     };
     document.addEventListener("notes:slash-menu", handler);
     return () => document.removeEventListener("notes:slash-menu", handler);
@@ -219,7 +225,6 @@ export function NotesPanel() {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<WikiLinkMenuDetail | null>).detail;
       setWikiMenu(detail);
-      setWikiActiveIdx(0);
     };
     document.addEventListener("notes:wikilink-menu", handler);
     return () => document.removeEventListener("notes:wikilink-menu", handler);
@@ -388,11 +393,11 @@ export function NotesPanel() {
               type="button"
               className={cn(
                 "flex min-h-8 w-full flex-col items-start justify-center px-3 py-1 text-left transition-colors",
-                i === slashActiveIdx
+                i === slashMenu.activeIndex
                   ? "bg-charcoal-800 text-charcoal-100"
                   : "text-charcoal-300 hover:bg-charcoal-800",
               )}
-              onMouseEnter={() => setSlashActiveIdx(i)}
+              onMouseEnter={() => slashMenu.setActiveIndex(i)}
               onClick={() => {
                 slashMenu.command(item);
                 setSlashMenu(null);
@@ -425,11 +430,11 @@ export function NotesPanel() {
               type="button"
               className={cn(
                 "flex h-8 w-full items-center gap-2 px-3 text-left transition-colors",
-                i === wikiActiveIdx
+                i === wikiMenu.activeIndex
                   ? "bg-charcoal-800 text-charcoal-100"
                   : "text-charcoal-300 hover:bg-charcoal-800",
               )}
-              onMouseEnter={() => setWikiActiveIdx(i)}
+              onMouseEnter={() => wikiMenu.setActiveIndex(i)}
               onClick={() => {
                 wikiMenu.command(item);
                 setWikiMenu(null);

@@ -306,7 +306,8 @@ async def _run_single_slice(
     """
     portfolio = SimPortfolio(cash=initial_capital)
     trades: list[BacktestTrade] = []
-    closed_lookup: dict[str, BacktestTrade] = {}
+    # Open position trade id -> its row in ``trades``.
+    trade_index: dict[str, int] = {}
     equity_curve: list[EquityCurvePoint] = []
     skipped_buys = 0
     worst_shortfall = 0.0
@@ -349,7 +350,6 @@ async def _run_single_slice(
             cost = abs(intent.quantity) * fill_price
 
             if side == "buy":
-                # New long position OR add to existing.
                 if portfolio.cash < cost:
                     # Skip the order, but log it — a silent skip looked like a
                     # filled order in the curve with no trace of why (Phase 9.5).
@@ -366,6 +366,20 @@ async def _run_single_slice(
                     )
                     continue
                 portfolio.cash -= cost
+                position = portfolio.positions.get(intent.symbol)
+                if position is not None:
+                    # Add to the open long: one position at the weighted-average
+                    # entry (fees ride the fill price, so they sum with it).
+                    held = position.quantity + intent.quantity
+                    position.entry_price = (
+                        position.entry_price * position.quantity + fill_price * intent.quantity
+                    ) / held
+                    position.quantity = held
+                    at = trade_index[position.trade_id]
+                    trades[at] = trades[at].model_copy(
+                        update={"entry_price": position.entry_price, "quantity": held}
+                    )
+                    continue
                 trade_id = str(uuid.uuid4())
                 portfolio.positions[intent.symbol] = _OpenPosition(
                     trade_id=trade_id,
@@ -374,6 +388,7 @@ async def _run_single_slice(
                     entry_price=fill_price,
                     entered_at=bar.timestamp,
                 )
+                trade_index[trade_id] = len(trades)
                 trades.append(
                     BacktestTrade(
                         id=trade_id,
@@ -385,39 +400,38 @@ async def _run_single_slice(
                     )
                 )
             else:
-                # Sell — close an existing long, if any.
+                # Sell — close (part of) an existing long, never more than held.
                 position = portfolio.positions.get(intent.symbol)
                 if position is None:
                     continue
-                portfolio.cash += abs(intent.quantity) * fill_price
-                # P&L on the quantity actually sold (matches the cash credit
-                # above), not the original entry quantity — Phase 9.5. (Full
-                # close is the engine's assumed case where these are equal; the
-                # position is popped below, so partial-close size reduction
-                # remains a separate, documented limitation.)
-                pnl = (fill_price - position.entry_price) * abs(intent.quantity)
-                # Update the entering trade record with exit details.
-                for t in trades:
-                    if t.id == position.trade_id:
-                        closed = t.model_copy(
-                            update={
-                                "exited_at": bar.timestamp,
-                                "exit_price": fill_price,
-                                "pnl": pnl,
-                                "close_reason": intent.reason or "strategy",
-                            }
+                sold = min(abs(intent.quantity), position.quantity)
+                portfolio.cash += sold * fill_price
+                exit_fields = {
+                    "exited_at": bar.timestamp,
+                    "exit_price": fill_price,
+                    "pnl": (fill_price - position.entry_price) * sold,
+                    "close_reason": intent.reason or "strategy",
+                }
+                at = trade_index[position.trade_id]
+                if sold < position.quantity:
+                    # A partial close is its own closed trade; the rest stays
+                    # open at the same average entry.
+                    position.quantity -= sold
+                    trades[at] = trades[at].model_copy(update={"quantity": position.quantity})
+                    trades.append(
+                        trades[at].model_copy(
+                            update={"id": str(uuid.uuid4()), "quantity": sold, **exit_fields}
                         )
-                        closed_lookup[t.id] = closed
-                        break
-                portfolio.positions.pop(intent.symbol, None)
+                    )
+                else:
+                    trades[at] = trades[at].model_copy(update=exit_fields)
+                    portfolio.positions.pop(intent.symbol)
 
     # Mark to market the final timestamp's bars (the loop above only marks
     # on a timestamp *boundary*, so the last timestamp needs its own point).
     if pending_timestamp is not None:
         _mark_to_market(pending_timestamp)
 
-    # Replace closed-trade records with their updated versions.
-    trades = [closed_lookup.get(t.id, t) for t in trades]
     return trades, equity_curve, skipped_buys, worst_shortfall
 
 

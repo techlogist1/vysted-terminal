@@ -168,12 +168,25 @@ describe("PluginRuntime — lifecycle", () => {
     expect(saved[0].enabled).toBe(true);
   });
 
-  it("loadPlugin is idempotent — re-loading an active plugin is a no-op", async () => {
+  // R15-CODE-PLATFORM-014: this test used to stop at the idempotent second
+  // loadPlugin, which locked configure()'s "reload" as a no-op (stale secrets).
+  // loadPlugin stays idempotent; reloadPlugin is the restart that re-runs
+  // initialize() with the newly granted secrets.
+  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {
     const initialize = vi.fn();
-    const plugin = fakePlugin("a", { initialize });
-    await runtime.loadPlugin(discovered(plugin));
-    await runtime.loadPlugin(discovered(plugin));
+    const reloading = new PluginRuntime({
+      resolveSecrets: async (ids) => Object.fromEntries(ids.map((id) => [id, `v-${id}`])),
+    });
+    const plugin = discovered(fakePlugin("a", { initialize }));
+    await reloading.loadPlugin(plugin);
+    await reloading.loadPlugin(plugin);
     expect(initialize).toHaveBeenCalledOnce();
+
+    await reloading.updateConfig("a", { grantedSecretIds: ["api-key"] });
+    const snapshot = await reloading.reloadPlugin(plugin);
+    expect(snapshot.state).toBe("active");
+    expect(initialize).toHaveBeenCalledTimes(2);
+    expect(initialize.mock.calls[1][0].secrets).toEqual({ "api-key": "v-api-key" });
   });
 
   it("unloadPlugin runs shutdown and transitions to `stopped`", async () => {
@@ -554,5 +567,45 @@ describe("hostSatisfies (semver host-compat check)", () => {
   it("ignores pre-release / build metadata", () => {
     expect(hostSatisfies("0.8.0-beta.1", "0.8.0")).toBe(true);
     expect(hostSatisfies("0.8.0+build5", "0.8.0")).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Lifecycle owner (R15-CODE-PLATFORM-012): enable/disable persist AND bridge
+// ---------------------------------------------------------------------------
+
+describe("PluginRuntime — enable/disable own persistence and the host bridge", () => {
+  function hostSpy() {
+    return {
+      attach: vi.fn(async (_id: string) => {}),
+      detach: vi.fn(async (_id: string) => {}),
+    };
+  }
+
+  it("disablePlugin persists enabled:false and detaches the plugin's contributions", async () => {
+    const host = hostSpy();
+    const runtime = new PluginRuntime({ host });
+    await runtime.enablePlugin(discovered(fakePlugin("a")));
+    expect(host.attach).toHaveBeenCalledWith("a");
+
+    await runtime.disablePlugin("a");
+    expect((await runtime.readConfig("a"))?.enabled).toBe(false);
+    expect(runtime.getPlugin("a")?.state).toBe("stopped");
+    expect(host.detach).toHaveBeenCalledWith("a");
+  });
+});
+
+describe("PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013)", () => {
+  it("a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true", async () => {
+    const initialize = vi.fn();
+    const runtime = new PluginRuntime({ defaultEnabled: () => false });
+    expect(await runtime.readConfig("p")).toMatchObject({ installed: false, enabled: false });
+
+    // configure() grants a secret to a plugin the user never enabled; it stays off.
+    await runtime.updateConfig("p", { grantedSecretIds: ["k"], installed: true });
+    expect((await runtime.readConfig("p")).enabled).toBe(false);
+    const snapshot = await runtime.loadPlugin(discovered(fakePlugin("p", { initialize })));
+    expect(snapshot.state).toBe("stopped");
+    expect(initialize).not.toHaveBeenCalled();
   });
 });

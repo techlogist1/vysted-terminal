@@ -7,7 +7,9 @@ import { Calendar, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/EmptyState";
 import { currencyAffix, formatPrice } from "@/lib/format";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import type { EarningsEvent } from "../../../types/earnings";
@@ -114,6 +116,11 @@ export function EarningsCalendarPanel() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [expandedSymbol, setExpandedSymbol] = useState<string | null>(null);
 
+  // R15-AGENT-053: publish the current window so the copilot can see which
+  // symbols are on screen and which row is drilled into.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
   // Once the user applies a window / watchlist, the auto-retry default loader
   // goes inert so it never overwrites an explicit query on a reconnect re-fire.
   const userInteractedRef = useRef(false);
@@ -163,6 +170,23 @@ export function EarningsCalendarPanel() {
     events.sort((a, b) => compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection));
     return events;
   }, [upcoming, sortKey, sortDirection]);
+
+  const eventSymbols = useMemo(() => sortedEvents.map((e) => e.symbol), [sortedEvents]);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "earnings",
+      kind: "snapshot",
+      payload: { symbols: eventSymbols, windowDays: lastDays, expandedSymbol },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, eventSymbols, lastDays, expandedSymbol]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("earnings");
+    };
+  }, [unregisterPanelContext]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -376,7 +400,20 @@ export function EarningsCalendarPanel() {
                           <ChevronRight className="size-3" />
                         )}
                       </td>
-                      <td className="text-charcoal-100 px-3 py-1 font-medium">{event.symbol}</td>
+                      <td className="text-charcoal-100 px-3 py-1 font-medium">
+                        <button
+                          type="button"
+                          className="text-charcoal-100 hover:underline"
+                          title={`Load ${event.symbol} into the chart`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            loadSymbolIntoChart(event.symbol);
+                          }}
+                          data-testid={`earnings-symbol-${event.symbol}`}
+                        >
+                          {event.symbol}
+                        </button>
+                      </td>
                       <td className="text-charcoal-100 px-3 py-1">
                         {fmtDate(event.scheduled_date)}
                       </td>

@@ -155,7 +155,9 @@ async def test_stream_chat_emits_text_deltas(monkeypatch: pytest.MonkeyPatch) ->
     # The system message must be lifted into the top-level system slot.
     assert fake.messages is not None
     assert fake.messages.last_kwargs is not None
-    assert fake.messages.last_kwargs["system"] == "be brief"
+    assert fake.messages.last_kwargs["system"] == [
+        {"type": "text", "text": "be brief", "cache_control": {"type": "ephemeral"}}
+    ]
     assert fake.messages.last_kwargs["messages"] == [{"role": "user", "content": "hi"}]
 
 
@@ -368,3 +370,80 @@ async def test_stream_chat_defaults_max_tokens_to_the_model_ceiling(
         pass
     assert fake.messages is not None and fake.messages.last_kwargs is not None
     assert fake.messages.last_kwargs["max_tokens"] == ceiling
+
+
+async def _captured_request(
+    monkeypatch: pytest.MonkeyPatch, messages: list[LLMMessage]
+) -> dict[str, Any]:
+    fake = _patch_client(monkeypatch, stream=_FakeStream([], _FakeFinalMessage()))
+    async for _ in AnthropicProvider().stream_chat(
+        messages=messages, model="claude-sonnet-4-6", api_key="sk-test", tool_ids=["price_data"]
+    ):
+        pass
+    assert fake.messages is not None and fake.messages.last_kwargs is not None
+    return fake.messages.last_kwargs
+
+
+def _tool_round(call_id: str) -> list[LLMMessage]:
+    return [
+        LLMMessage(
+            role="assistant",
+            content="",
+            metadata={"tool_calls": [{"id": call_id, "name": "price_data", "input": {}}]},
+        ),
+        LLMMessage(role="tool", content=f"result {call_id}", tool_call_id=call_id),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_request_carries_the_cache_breakpoints(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-050: the stable persona block and the last tool result of the
+    round are cache breakpoints; the per-turn preamble and older results are not."""
+    request = await _captured_request(
+        monkeypatch,
+        [
+            LLMMessage(role="system", content="persona"),
+            LLMMessage(role="system", content="Current date: 2026-09-24"),
+            LLMMessage(role="system", content=""),
+            LLMMessage(role="user", content="price AAPL then MSFT"),
+            *_tool_round("c1"),
+            *_tool_round("c2"),
+        ],
+    )
+
+    system = request["system"]
+    assert [b["text"] for b in system] == ["persona", "Current date: 2026-09-24"]
+    assert system[0]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in system[1]
+    marked = [
+        block["tool_use_id"]
+        for message in request["messages"]
+        if isinstance(message["content"], list)
+        for block in message["content"]
+        if "cache_control" in block
+    ]
+    assert marked == ["c2"]
+
+
+@pytest.mark.asyncio
+async def test_cached_system_block_is_stable_across_turns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Two turns with different terminal preambles send a byte-identical block 0."""
+    from models.agent import AgentContextSnapshot
+    from services import agent_runtime
+
+    agent_runtime.reload()
+    spec = agent_runtime.get_agent("buffett")
+    assert spec is not None
+    systems = []
+    for symbol in ("AAPL", "RELIANCE.NS"):
+        snapshot = AgentContextSnapshot(
+            focused_source="chart-1", by_source={"chart-1": {"symbol": symbol}}
+        )
+        messages = agent_runtime._compose_messages(spec, "is it cheap?", snapshot)
+        systems.append((await _captured_request(monkeypatch, messages))["system"])
+
+    assert json.dumps(systems[0][0]) == json.dumps(systems[1][0])
+    assert systems[0][0]["cache_control"] == {"type": "ephemeral"}
+    assert systems[0] != systems[1]  # the preamble changed, uncached after block 0

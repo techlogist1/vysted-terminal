@@ -37,9 +37,9 @@ module level — tests never need docker or the network. The docker CLI here is 
 short-lived external command (the container itself is owned by dockerd, not by
 the sidecar process), so the Tauri-sidecar spawn rule does not apply.
 
-Routing: :func:`services.search.searxng.detect_searxng` consults
-:meth:`SearxngManager.ready_base_url` first, so the moment the managed instance
-is READY the existing SearXNG backend resolves to it with zero extra config.
+Routing: :func:`services.search.registry.resolve` consults
+:meth:`SearxngManager.ready_base_url` (in-process, no probe), so the moment the
+managed instance is READY the SearXNG backend resolves to it with zero extra config.
 """
 
 from __future__ import annotations
@@ -432,7 +432,23 @@ class SearxngManager:
         what a container answers when every upstream engine is
         CAPTCHA-suspended, and the plain health probe cannot tell that apart
         from a genuinely-empty answer.
+
+        ``unresponsive`` is checked BEFORE ``has_results`` (residual fix): the
+        probe's own "test" query can come back with a stray result from an
+        unrelated engine while every REAL search engine on the SAME response
+        reports itself unresponsive — reading ``has_results`` first hid that
+        behind a false READY.
         """
+        if probe.unresponsive:
+            self._consecutive_empty_probes = (
+                0 if probe.has_results else (self._consecutive_empty_probes + 1)
+            )
+            self._set(
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=_format_unresponsive_reason(probe.unresponsive),
+            )
+            return
         if probe.has_results:
             self._consecutive_empty_probes = 0
             self._set(
@@ -441,24 +457,45 @@ class SearxngManager:
             )
             return
         self._consecutive_empty_probes += 1
-        if probe.unresponsive:
-            reason = _format_unresponsive_reason(probe.unresponsive)
-        elif self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
-            reason = f"no results from any engine across {self._consecutive_empty_probes} probes"
-        else:
-            # Not yet confirmed degraded — one empty probe can just be an
-            # unlucky query; stay READY until the threshold or an engine
-            # names itself unresponsive.
+        if self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
             self._set(
-                STATE_READY,
-                detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=f"no results from any engine across {self._consecutive_empty_probes} probes",
             )
             return
+        # Not yet confirmed degraded — one empty probe can just be an unlucky
+        # query; stay READY until the threshold.
         self._set(
-            STATE_DEGRADED,
-            detail="SearXNG is running but its search engines are blocked",
-            reason=reason,
+            STATE_READY,
+            detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
         )
+
+    def record_search_result(self, had_results: bool) -> None:
+        """Feed a REAL query's outcome into the same consecutive-empty signal
+        the periodic quality probe uses (R15-RESEARCH-028 residual, C10):
+        ``web_search`` calls this after every SearXNG-served search, since an
+        actual finance-query miss is a stronger tell than the periodic "test"
+        probe. Three consecutive empty real answers degrades the same as
+        three empty probes; a real answer WITH results heals a degraded state
+        back to READY (mirrors ``_apply_quality``'s own has_results branch).
+        """
+        if had_results:
+            self._consecutive_empty_probes = 0
+            if self.state == STATE_DEGRADED:
+                self._set(
+                    STATE_READY,
+                    detail=f"SearXNG serving JSON search at http://127.0.0.1:{self.port}",
+                )
+            return
+        self._consecutive_empty_probes += 1
+        if self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
+            n = self._consecutive_empty_probes
+            self._set(
+                STATE_DEGRADED,
+                detail="SearXNG is running but its search engines are blocked",
+                reason=f"no results from any engine across {n} real queries",
+            )
 
     def snapshot(self) -> dict[str, object]:
         """The status payload — the wire contract for the guided UI flow."""
@@ -485,9 +522,9 @@ class SearxngManager:
     def ready_base_url(self) -> str | None:
         """The managed instance's base URL when READY, else ``None``.
 
-        Pure in-memory read (no I/O) — :func:`services.search.searxng.detect_searxng`
-        calls this on every autodetect, and the capability probe re-verifies the
-        URL anyway, so a stale READY can never produce a false positive.
+        Pure in-memory read (no I/O) — :func:`services.search.registry.resolve`
+        reads this on every search-backend resolution; the health probe that
+        gates READY is what keeps a stale URL from being handed out.
         """
         if self.state == STATE_READY and self.port:
             return f"http://127.0.0.1:{self.port}"

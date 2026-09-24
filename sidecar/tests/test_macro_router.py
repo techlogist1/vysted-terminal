@@ -201,7 +201,11 @@ def test_get_series_returns_502_on_provider_error(
     from services.macro import fred_provider
 
     def boom(_sid: str) -> MacroSeriesExtended:
-        raise ProviderError("no API key")
+        # R15-DATA-061: a cause-less ProviderError is no longer treated as
+        # authored just because __cause__ is None — "no API key" is a message
+        # meant for the user, so it must be built via .authored() to survive
+        # provider_error_response's mapping.
+        raise ProviderError.authored("no API key")
 
     monkeypatch.setattr(fred_provider, "get_series", boom)
     res = client.get("/macro/X", params={"provider": "fred"})
@@ -209,17 +213,34 @@ def test_get_series_returns_502_on_provider_error(
     assert "no API key" in res.json()["detail"]
 
 
-def test_get_series_legacy_path_when_provider_not_v0_6_0(
+def test_get_series_hides_a_cause_less_world_bank_error(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """No provider param → legacy Phase-1/3 path returns 502 on upstream error.
+    """R15-DATA-061: the raw upstream text (wbgapi's own "APIError: JSON
+    decoding error (https://...)") never reaches the response, cause or no
+    cause — only .authored() text does."""
+    from services.macro import world_bank_provider
 
-    A ProviderError from the openbb-mcp/FRED upstream (e.g. a missing FRED
-    credential in the test build) is an upstream-gateway failure → 502, unified
-    with the v0.6.0 dispatch path (Phase 9.5 nit fix: was 501).
-    """
-    res = client.get("/macro/DGS10")
+    def boom(_sid: str, region: str | None = None) -> MacroSeriesExtended:
+        raise ProviderError(
+            "World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://a...)"
+        )
+
+    monkeypatch.setattr(world_bank_provider, "get_series", boom)
+    res = client.get("/macro/GDP", params={"provider": "world-bank"})
     assert res.status_code == 502
+    assert "APIError" not in res.json()["detail"]
+
+
+def test_get_series_requires_a_provider(client: TestClient) -> None:
+    """R15-DATA-087 / D-B10-2: a series fetch's id namespace is provider-
+    specific (FRED's DGS10 means nothing to World Bank), so a missing
+    provider is a 422, never a silent region-based reinterpretation."""
+    res = client.get("/macro/DGS10")
+    assert res.status_code == 422
+    assert "provider" in res.json()["detail"]
+    # With provider=fred → routed (already covered by
+    # test_get_series_dispatches_to_fred above).
 
 
 # ---------------------------------------------------------------------------

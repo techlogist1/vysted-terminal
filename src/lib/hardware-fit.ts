@@ -20,6 +20,9 @@ export interface DeviceProfile {
   chip: string;
   osName: string;
   osVersion: string;
+  /** True when `ramGib` is the generic 8 GiB guess (R15-CROSS-PLATFORM-003)
+   *  rather than a measured value. */
+  estimated: boolean;
 }
 
 export interface ScoredModel {

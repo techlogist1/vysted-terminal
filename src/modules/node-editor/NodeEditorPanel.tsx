@@ -67,7 +67,7 @@ import type {
 } from "../../../types/workflow";
 import { CODE_NODE_ID, codeNodeBindings } from "./code-node";
 import { CodeNodeInspector } from "./code-node-inspector";
-import { evaluateCodeNodes, partitionWorkflow } from "./code-node-run";
+import { validateWorkflow } from "./code-node-run";
 import {
   coerceConfigValue,
   createFlowNode,
@@ -372,11 +372,13 @@ function NodeEditorPanelInner() {
   );
 
   // --- Run ------------------------------------------------------------------
-  // HYBRID execution (R7 hackability): server nodes run in the sidecar
-  // (`POST /workflow/run` SSE, services/workflow_engine.py); code nodes
-  // (`transform.code`) evaluate CLIENT-side in the mathjs sandbox after the
-  // server stream ends, fed by the streamed `node-output` outputs. See
-  // `code-node-run.ts` for the partition + topological evaluation.
+  // R15-CODE-PLATFORM-017: every node — code nodes (`transform.code`)
+  // included — runs in ONE sidecar pass (`POST /workflow/run` SSE,
+  // services/workflow_engine.py, which folds any node failure into its own
+  // terminal `run-error` honestly); the editor's mathjs sandbox is used only
+  // for the inline syntax check and the inspector's live preview, never to
+  // compute a run's real output (see `code-node-run.ts`'s pre-run
+  // `validateWorkflow`, the one check still worth doing client-side).
   const handleRun = useCallback(async () => {
     // Cancel any in-flight stream so a second click doesn't double-subscribe.
     if (runAbortRef.current !== null) {
@@ -396,96 +398,25 @@ function NodeEditorPanelInner() {
       nodes,
       edges,
     });
-    const partition = partitionWorkflow(spec);
-    if (partition.error !== undefined) {
-      setRunState({ runId: null, status: "error", message: partition.error, nodes: seededRows });
+    const validation = validateWorkflow(spec);
+    if (validation.error !== undefined) {
+      setRunState({ runId: null, status: "error", message: validation.error, nodes: seededRows });
       return;
     }
     setRunState({ runId: null, status: "running", nodes: seededRows });
-    const startedMark = performance.now();
-    const outputsByNode = new Map<string, Record<string, unknown>>();
-    const failedServerIds: string[] = [];
-    const skippedServerIds = new Set<string>();
     // The store is the one client for this wire: every server event lands in
     // `useWorkflowStore` (so a notify_desktop intent reaches the desktop
     // bridge) and is handed back here for the overlay. It rejects when the
     // stream ends or breaks without a terminal frame (e.g. the engine
     // rejected the spec before run-start), so that is never a green run.
-    let serverErrorMessage: string | null = null;
-    let runId = generateId("local");
     try {
-      if (partition.server.nodes.length > 0) {
-        await useWorkflowStore.getState().runWorkflow(partition.server, undefined, {
-          ...(await resolveRunCreds()),
-          signal: controller.signal,
-          onEvent: (event) => {
-            switch (event.kind) {
-              case "run-start":
-                // Adopt the server's run id WITHOUT the reducer's node-list
-                // reset, so the code-node rows stay visible as pending while
-                // the server wave runs.
-                runId = event.runId;
-                setRunState((prev) => ({
-                  ...prev,
-                  runId: event.runId,
-                  status: "running",
-                  startedAt: event.startedAt,
-                }));
-                return;
-              case "node-output":
-                outputsByNode.set(event.nodeId, event.outputs);
-                break;
-              case "node-error":
-                failedServerIds.push(event.nodeId);
-                break;
-              case "node-skipped":
-                skippedServerIds.add(event.nodeId);
-                break;
-              case "run-complete":
-                // Held — the run isn't over until the code nodes evaluated;
-                // server-side failures are folded into the final event below.
-                return;
-              case "run-error":
-                // Held like run-complete, but keep the engine's message so an
-                // engine-level failure that produced no node-error frames
-                // still surfaces instead of folding into a fake success.
-                serverErrorMessage = event.message;
-                return;
-              default:
-                break;
-            }
-            setRunState((prev) => applyEvent(prev, event));
-          },
-        });
-        if (controller.signal.aborted) {
-          return;
-        }
-      } else {
-        // Pure-code workflow — no sidecar round-trip at all.
-        setRunState((prev) => ({ ...prev, runId, startedAt: Date.now() }));
-      }
-      const { failedNodeIds } = evaluateCodeNodes(
-        spec,
-        partition.codeOrder,
-        outputsByNode,
-        runId,
-        (event) => setRunState((prev) => applyEvent(prev, event)),
-        skippedServerIds,
-      );
-      const durationMs = performance.now() - startedMark;
-      const allFailed = [...failedServerIds, ...failedNodeIds];
-      const failureMessage =
-        allFailed.length > 0
-          ? `failures in nodes: ${JSON.stringify([...allFailed].sort())}`
-          : serverErrorMessage;
-      setRunState((prev) =>
-        applyEvent(
-          prev,
-          failureMessage !== null
-            ? { kind: "run-error", runId, message: failureMessage, durationMs }
-            : { kind: "run-complete", runId, durationMs },
-        ),
-      );
+      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+        ...(await resolveRunCreds()),
+        signal: controller.signal,
+        onEvent: (event) => {
+          setRunState((prev) => applyEvent(prev, event));
+        },
+      });
     } catch (error: unknown) {
       if (controller.signal.aborted) {
         return;

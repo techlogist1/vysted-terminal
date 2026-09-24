@@ -57,9 +57,21 @@ export interface MarketplaceEntry {
   /** Where-to-get-credentials link + instructions (FR-034 "needs no key" surface). */
   website?: string;
   instructions?: string;
-  /** Data slice (FR-053): standard-model keys served + provider preference rank. */
-  standardModelKeys?: string[];
-  preferenceRank?: number;
+}
+
+/**
+ * One provider row from the sidecar's `GET /data-sources` (C19) — the live
+ * projection of `provider_registry`'s own declaration table. The marketplace
+ * derives each entry's served model-keys from this instead of hand-written
+ * metadata that drifts from the resolver (R15-CODE-PLATFORM-072/R15-DATA-077).
+ */
+export interface DataSourceDeclaration {
+  id: string;
+  keys: string[];
+  rank: number;
+  available: boolean;
+  assetClasses: string[];
+  region: string[];
 }
 
 /** Per-plugin marketplace state derived from persisted config + runtime state. */

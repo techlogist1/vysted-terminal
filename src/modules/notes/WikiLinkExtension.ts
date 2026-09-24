@@ -2,21 +2,24 @@
  * Tiptap extension — `[[wikilink]]` symbol linking.
  *
  * Typing `[[` opens a suggestion popup that filters symbols-with-notes and
- * all watchlist symbols. Selecting an item inserts an inline `[[SYMBOL]]`
- * mark that, when clicked, fires `loadSymbolIntoChart` (the shared
- * chart-command bus) — reusing the same always-consumed channel the research
- * brief uses (CLAUDE.md: "a chip → loadSymbolIntoChart").
+ * all watchlist symbols. Selecting an item inserts a `wikiLinkNode` (see
+ * `WikiLinkNode.ts`) — a real inline node, not escaped text — that, when
+ * clicked, fires `loadSymbolIntoChart` (the shared chart-command bus).
  *
  * The suggestion triggers on `[[` (two chars) — Tiptap suggestion supports
- * multi-character `char` values. The closing `]]` is appended automatically.
+ * multi-character `char` values.
+ *
+ * ArrowUp/ArrowDown/Enter navigate and pick a row (R15-UI-024 repro b) via
+ * the shared `createKeyboardNav` helper.
  *
  * Like the slash-command extension, rendering is done by the parent React
  * component via a `notes:wikilink-menu` DOM custom event.
  */
-
-import { Extension, type Range } from "@tiptap/core";
+import { Extension } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { Suggestion } from "@tiptap/suggestion";
+
+import { createKeyboardNav } from "./suggestion-keyboard-nav";
 
 export interface WikiLinkItem {
   symbol: string;
@@ -27,6 +30,8 @@ export interface WikiLinkMenuDetail {
   items: WikiLinkItem[];
   rect: DOMRect | null;
   query: string;
+  activeIndex: number;
+  setActiveIndex: (index: number) => void;
   command: (item: WikiLinkItem) => void;
 }
 
@@ -36,15 +41,6 @@ function dispatch(detail: WikiLinkMenuDetail | null): void {
       detail,
     }),
   );
-}
-
-/** Insert `[[SYMBOL]]` at `range` then close the suggestion. */
-function insertWikiLink(
-  editor: Parameters<typeof Suggestion>[0]["editor"],
-  range: Range,
-  symbol: string,
-): void {
-  editor.chain().focus().deleteRange(range).insertContent(`[[${symbol}]]`).run();
 }
 
 export const WikiLinkExtension = Extension.create<{
@@ -69,7 +65,13 @@ export const WikiLinkExtension = Extension.create<{
         editor: this.editor,
         char: "[[",
         command: ({ editor, range, props }) => {
-          insertWikiLink(editor, range, (props as WikiLinkItem).symbol);
+          const symbol = (props as WikiLinkItem).symbol;
+          editor
+            .chain()
+            .focus()
+            .deleteRange(range)
+            .insertContent({ type: "wikiLinkNode", attrs: { symbol } })
+            .run();
         },
         items: ({ query }: { query: string }) => {
           const q = query.toUpperCase().trim();
@@ -77,38 +79,69 @@ export const WikiLinkExtension = Extension.create<{
           if (!q) return all;
           return all.filter((s) => s.symbol.includes(q));
         },
-        render: () => ({
-          onStart(props) {
+        render: () => {
+          const nav = createKeyboardNav<WikiLinkItem>();
+          let currentCommand: ((props: WikiLinkItem) => void) | null = null;
+          // `onKeyDown`'s props (SuggestionKeyDownProps) carry only
+          // {view, event, range} — no clientRect/query — so the last-seen
+          // rect/query from onStart/onUpdate is cached here for re-emitting
+          // after an arrow-key move.
+          let latestRect: DOMRect | null = null;
+          let latestQuery = "";
+
+          const emit = () => {
             dispatch({
-              items: props.items as WikiLinkItem[],
-              rect: props.clientRect ? props.clientRect() : null,
-              query: props.query,
+              items: nav.getItems(),
+              rect: latestRect,
+              query: latestQuery,
+              activeIndex: nav.activeIndex,
+              setActiveIndex: (i: number) => {
+                nav.setActiveIndex(i);
+                emit();
+              },
               command: (item: WikiLinkItem) => {
-                props.command(item);
+                currentCommand?.(item);
               },
             });
-          },
-          onUpdate(props) {
-            dispatch({
-              items: props.items as WikiLinkItem[],
-              rect: props.clientRect ? props.clientRect() : null,
-              query: props.query,
-              command: (item: WikiLinkItem) => {
-                props.command(item);
-              },
-            });
-          },
-          onKeyDown(props) {
-            if (props.event.key === "Escape") {
+          };
+
+          return {
+            onStart(props) {
+              currentCommand = props.command;
+              latestRect = props.clientRect ? props.clientRect() : null;
+              latestQuery = props.query;
+              nav.reset();
+              nav.setItems(props.items as WikiLinkItem[]);
+              emit();
+            },
+            onUpdate(props) {
+              currentCommand = props.command;
+              latestRect = props.clientRect ? props.clientRect() : null;
+              latestQuery = props.query;
+              nav.setItems(props.items as WikiLinkItem[]);
+              emit();
+            },
+            onKeyDown(props) {
+              if (props.event.key === "Escape") {
+                dispatch(null);
+                return true;
+              }
+              const handled = nav.handleKey(props.event.key, (item) => {
+                currentCommand?.(item);
+              });
+              if (handled) {
+                if (props.event.key !== "Enter") {
+                  emit();
+                }
+                return true;
+              }
+              return false;
+            },
+            onExit() {
               dispatch(null);
-              return true;
-            }
-            return false;
-          },
-          onExit() {
-            dispatch(null);
-          },
-        }),
+            },
+          };
+        },
       }),
     ];
   },

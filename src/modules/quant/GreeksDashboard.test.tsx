@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import { usePanelContextBus } from "@/store/panel-context";
 import { resetQuantStoreForTests } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 import { GreeksDashboard } from "./GreeksDashboard";
@@ -11,6 +12,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   // The display currency defaults to the session region's; pin it.
   useSettingsStore.setState({ region: "US" });
   vi.stubGlobal(
@@ -61,7 +63,9 @@ describe("GreeksDashboard", () => {
     expect(screen.getByTestId("greek-vega").textContent).toContain("per 1 vol pt");
     expect(screen.getByTestId("greek-theta").textContent).toContain("-0.0137");
     expect(screen.getByTestId("greek-theta").textContent).toContain("per day");
-    expect(screen.getByTestId("greek-rho").textContent).toContain("12.0000");
+    // R15-UI-028 residual: rho (per unit rate) reads in market units too.
+    expect(screen.getByTestId("greek-rho").textContent).toContain("0.1200");
+    expect(screen.getByTestId("greek-rho").textContent).toContain("per 1%");
     expect(screen.getByTestId("greeks-price").textContent).toContain("$8.4200");
   });
 
@@ -99,5 +103,17 @@ describe("GreeksDashboard", () => {
     fireEvent.change(screen.getByTestId("greeks-spot"), { target: { value: "220" } });
     expect(screen.queryByTestId("greeks-validation")).toBeNull();
     expect(screen.getByTestId("compute-greeks")).toHaveProperty("disabled", false);
+  });
+
+  it("publishes the active payoff/strike/price to the panel context bus (R15-AGENT-053)", async () => {
+    render(<GreeksDashboard />);
+    expect(usePanelContextBus.getState().lastEventBySource["greeks-dashboard"]).toMatchObject({
+      payload: { payoff: "call", strike: 220, price: null },
+    });
+    fireEvent.click(screen.getByTestId("compute-greeks"));
+    await screen.findByTestId("greeks-result");
+    expect(usePanelContextBus.getState().lastEventBySource["greeks-dashboard"]).toMatchObject({
+      payload: { payoff: "call", strike: 220, price: 8.42 },
+    });
   });
 });

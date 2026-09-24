@@ -71,7 +71,7 @@ describe("streaming — options wire mapping (research_depth)", () => {
 // ── R10: research:begin lifecycle feed + structured error frames ────────────
 
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
-import { errorFrameOf } from "./streaming";
+import { doneFrameOf, errorFrameOf } from "./streaming";
 
 function sseFrames(payloads: Record<string, unknown>[]): Response {
   const body = payloads.map((p) => `data: ${JSON.stringify(p)}\n\n`).join("");
@@ -198,6 +198,48 @@ describe("streaming — structured error frames (R10 D43)", () => {
     await streamAgentInvocation("copilot", { prompt: "hi" }, { onEvent: (e) => events.push(e) });
     expect(events).toEqual([{ kind: "error", message: "boom" }]);
     expect(errorFrameOf(events[0] as never)).toBeNull();
+  });
+});
+
+describe("streaming — spend_usd on the done frame (R15-AGENT-082, C11)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    fetchMock.mockClear();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  it("parses a priced model's spend_usd into doneFrameOf", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([
+        { kind: "done", usage: { input_tokens: 500, output_tokens: 20 }, spend_usd: 0.0042 },
+      ]),
+    );
+    const events: unknown[] = [];
+    await streamAgentInvocation("copilot", { prompt: "hi" }, { onEvent: (e) => events.push(e) });
+    expect(events).toHaveLength(1);
+    expect(doneFrameOf(events[0] as never)).toBe(0.0042);
+  });
+
+  it("a free model's spend_usd of 0 is a real zero, not dropped", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "done", usage: { input_tokens: 10, output_tokens: 2 }, spend_usd: 0 }]),
+    );
+    const events: unknown[] = [];
+    await streamAgentInvocation("copilot", { prompt: "hi" }, { onEvent: (e) => events.push(e) });
+    expect(doneFrameOf(events[0] as never)).toBe(0);
+  });
+
+  it("an unpriced model's done frame (no spend_usd) yields undefined, not 0", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "done", usage: { input_tokens: 10, output_tokens: 2 } }]),
+    );
+    const events: unknown[] = [];
+    await streamAgentInvocation("copilot", { prompt: "hi" }, { onEvent: (e) => events.push(e) });
+    expect(doneFrameOf(events[0] as never)).toBeUndefined();
+  });
+
+  it("doneFrameOf returns undefined for a non-done event", () => {
+    expect(doneFrameOf({ kind: "delta", text: "x" } as never)).toBeUndefined();
   });
 });
 

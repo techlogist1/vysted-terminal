@@ -68,6 +68,17 @@ export interface PluginPersistenceAdapter {
   save(config: PluginPersistedConfig): Promise<void>;
 }
 
+/**
+ * Host glue the runtime drives so a plugin's contributions (dockview panels,
+ * cmd+K commands, custom agents) follow its lifecycle: `attach` runs whenever
+ * the plugin becomes active, `detach` when it is disabled or removed. A
+ * rejection marks the plugin errored with the reason.
+ */
+export interface PluginHostBridge {
+  attach(pluginId: string): Promise<void>;
+  detach(pluginId: string): Promise<void>;
+}
+
 /** Optional clock + id resolver — exists so tests can pin time and the dataDir. */
 export interface PluginRuntimeContext {
   /** Returns the current time in epoch ms; defaults to `Date.now`. */
@@ -82,6 +93,11 @@ export interface PluginRuntimeContext {
   persistence?: PluginPersistenceAdapter;
   /** Resolves granted secret ids to actual values; defaults to a no-op (empty map). */
   resolveSecrets?: (ids: string[]) => Promise<Record<string, string>>;
+  /** Surfaces/withdraws plugin contributions; defaults to a no-op. */
+  host?: PluginHostBridge;
+  /** Whether a never-persisted plugin is installed + enabled. The host passes
+   *  the catalog's `enabledByDefault`; a bare runtime (tests) defaults to on. */
+  defaultEnabled?: (pluginId: string) => boolean;
 }
 
 interface RuntimeListener {
@@ -107,6 +123,8 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
     hostVersion: context?.hostVersion ?? "0.0.0",
     persistence: context?.persistence ?? new InMemoryPersistence(),
     resolveSecrets: context?.resolveSecrets ?? (async () => ({})),
+    host: context?.host ?? { attach: async () => {}, detach: async () => {} },
+    defaultEnabled: context?.defaultEnabled ?? (() => true),
   };
 }
 
@@ -218,13 +236,7 @@ export class PluginRuntime {
     let persisted: PluginPersistedConfig;
     try {
       const stored = await this.context.persistence.load(plugin.manifest.id);
-      persisted = stored ?? {
-        pluginId: plugin.manifest.id,
-        installed: true,
-        enabled: true,
-        settings: {},
-        grantedSecretIds: [],
-      };
+      persisted = stored ?? this.defaultConfig(plugin.manifest.id);
       // Persist the default the first time we see this plugin so a second
       // launch finds an explicit row (not falling back through the default).
       if (!stored) {
@@ -267,7 +279,13 @@ export class PluginRuntime {
       return this.transitionToError(plugin.manifest.id, error, "initialize");
     }
 
-    return this.transition(plugin.manifest.id, "active", "loaded");
+    const active = this.transition(plugin.manifest.id, "active", "loaded");
+    try {
+      await this.context.host.attach(plugin.manifest.id);
+    } catch (error) {
+      return this.transitionToError(plugin.manifest.id, error, "attach");
+    }
+    return active;
   }
 
   /**
@@ -294,26 +312,30 @@ export class PluginRuntime {
     return this.transition(pluginId, "stopped", "stopped");
   }
 
+  /**
+   * Restart a plugin (shutdown, then a fresh `initialize()`) so it picks up
+   * changed settings or newly granted secrets. A disabled plugin stays stopped.
+   */
+  async reloadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.unloadPlugin(plugin.manifest.id);
+    return this.loadPlugin(plugin);
+  }
+
   // ----- Marketplace lifecycle (FR-050) -----
 
-  /**
-   * Load (or update) the per-plugin persisted config, merging `patch`. The
-   * default for a never-seen plugin is installed+enabled — but the marketplace
-   * always passes an explicit `installed`/`enabled`, and the boot path only
-   * loads catalog entries it decided are installed, so a not-installed plugin
-   * never auto-installs.
-   */
+  /** The config of a never-persisted plugin — the one shared default. */
+  private defaultConfig(pluginId: string): PluginPersistedConfig {
+    const on = this.context.defaultEnabled(pluginId);
+    return { pluginId, installed: on, enabled: on, settings: {}, grantedSecretIds: [] };
+  }
+
+  /** Load (or update) the per-plugin persisted config, merging `patch` over
+   *  the stored row or, for a never-seen plugin, the shared default. */
   private async patchConfig(
     pluginId: string,
     patch: Partial<PluginPersistedConfig>,
   ): Promise<void> {
-    const current = (await this.context.persistence.load(pluginId)) ?? {
-      pluginId,
-      installed: true,
-      enabled: true,
-      settings: {},
-      grantedSecretIds: [],
-    };
+    const current = (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
     await this.context.persistence.save({ ...current, ...patch, pluginId });
   }
 
@@ -323,9 +345,9 @@ export class PluginRuntime {
     await this.patchConfig(pluginId, patch);
   }
 
-  /** Read the plugin's persisted config (or null if never persisted). */
-  async readConfig(pluginId: string): Promise<PluginPersistedConfig | null> {
-    return this.context.persistence.load(pluginId);
+  /** Read the plugin's persisted config (the shared default if never persisted). */
+  async readConfig(pluginId: string): Promise<PluginPersistedConfig> {
+    return (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
   }
 
   /** Install a plugin via the marketplace: persist installed+enabled, then load. */
@@ -341,16 +363,31 @@ export class PluginRuntime {
     return this.loadPlugin(plugin);
   }
 
-  /** Disable a plugin: persist enabled:false, then unload it (stays installed). */
+  /** Disable a plugin: persist enabled:false, unload it and withdraw its
+   *  contributions (it stays installed). */
   async disablePlugin(pluginId: string): Promise<void> {
     await this.patchConfig(pluginId, { enabled: false });
     await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
   }
 
-  /** Remove a plugin entirely: persist installed:false + enabled:false, then unload. */
+  /** Remove a plugin entirely: persist installed:false + enabled:false, unload
+   *  it and withdraw its contributions. */
   async removePlugin(pluginId: string): Promise<void> {
     await this.patchConfig(pluginId, { installed: false, enabled: false });
     await this.unloadPlugin(pluginId);
+    await this.detach(pluginId);
+  }
+
+  private async detach(pluginId: string): Promise<void> {
+    try {
+      await this.context.host.detach(pluginId);
+    } catch (error) {
+      // A not-yet-discovered id (boot still discovering) has no record to mark.
+      if (this.plugins.has(pluginId)) {
+        this.transitionToError(pluginId, error, "detach");
+      }
+    }
   }
 
   /**

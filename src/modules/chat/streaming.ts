@@ -58,6 +58,30 @@ export function errorFrameOf(
   return { action: frame.action, detail: frame.detail, code: frame.code };
 }
 
+/**
+ * The extra field a `done` frame carries beside the base union member (C11,
+ * R15-AGENT-082): the sidecar's estimated spend for the turn. Same
+ * excess-property trick as {@link StreamErrorFrame} — the chat surface reads
+ * it via {@link doneFrameOf}.
+ */
+interface StreamDoneFrame {
+  kind: "done";
+  usage?: { inputTokens: number; outputTokens: number };
+  finishReason?: string;
+  contextWindow?: number;
+  /** Estimated USD spend of the whole turn, or `undefined` when the model has
+   *  no price or the round reported no usage — never a fabricated zero. */
+  spendUsd?: number;
+}
+
+/** The estimated spend on a `done` event, or `undefined` when absent/unpriced. */
+export function doneFrameOf(event: LLMStreamEvent): number | undefined {
+  if (event.kind !== "done") {
+    return undefined;
+  }
+  return (event as unknown as StreamDoneFrame).spendUsd;
+}
+
 /** The runtime's `research:begin {run_id} depth={depth} query={…}` engine step
  *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it. */
 const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=(.*))?$/;
@@ -428,13 +452,18 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
           outputTokens: Number(rawUsage.output_tokens ?? 0),
         }
       : undefined;
-    return {
+    // Typed as a variable (not returned as a literal) so the extra
+    // `spendUsd` field (C11, R15-AGENT-082) skips the excess-property check —
+    // same trick as the error frame below. Read via {@link doneFrameOf}.
+    const doneFrame: StreamDoneFrame = {
       kind: "done",
       usage,
       finishReason: typeof payload.finish_reason === "string" ? payload.finish_reason : undefined,
       contextWindow:
         typeof payload.context_window === "number" ? payload.context_window : undefined,
+      spendUsd: typeof payload.spend_usd === "number" ? payload.spend_usd : undefined,
     };
+    return doneFrame;
   }
   if (kind === "error") {
     // Structured frames (R10 D43) carry action/detail/code; a legacy frame's

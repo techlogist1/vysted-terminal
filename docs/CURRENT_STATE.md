@@ -75,7 +75,7 @@
 >   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
 >   primary surface alongside the hand-driven cockpit. **Every agent-proposed
 >   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
->   — the write surface is the catalog's 18 host actions (`open_panel`/
+>   — the write surface is the catalog's 19 host actions (`open_panel`/
 >   `set_chart_symbol`/`add_to_watchlist`/the tracked-portfolio, note, screen and
 >   layout writers/`set_region`; no order action exists, D81) — none auto-apply
 >   under ASK autonomy (SC-003). Offer-both onboarding preserves the keyboard
@@ -317,11 +317,17 @@ asymmetry). Caching is per-router, not centralized.
 
 ### 3.3 Market-data & analytics services
 
-All under `sidecar/services/`. `provider_registry.py` is the single dispatch
-point (routing by `asset_class`): crypto → ccxt (`DEFAULT_CRYPTO_EXCHANGE =
-"binance"`, hardcoded), equity → yfinance; fundamentals/statements/ratings →
-openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
-`ProviderError`. `get_quote`/`get_history` are **synchronous** here.
+All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
+installed providers in **preference order** until one succeeds — `asset_class`
+is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
+`ProviderDeclaration` table — id, model-keys served, preference rank,
+credential/availability gate — is the single source of truth, and
+`active_providers()` at `/health` derives from it rather than being
+hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
+— two resolvers (sync/async) share one declaration table and the same
+preference-order fallthrough.
 
 - **`yfinance_provider.py`** — no-key default for equities. Load-bearing
   details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
@@ -350,9 +356,13 @@ openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
 - **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (**only top 100**, label admits it), `nifty50` (50), `crypto-top50`
-  (50, "refresh from ccxt" worker does **not exist**), `custom`. AND-only
-  criteria; OR-grouping reserved.
+  `sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that
+  has drifted from current membership, R15-LEAD-013 open),
+  `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
+  cache expiry — a live "refresh from ccxt" worker still does **not exist**),
+  `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
+  (`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer
+  reserved/unimplemented.
 - **`services/macro/`** — four in-process providers (FRED requires
   `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
   full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
@@ -422,7 +432,7 @@ deleted, not merely unreachable.
 The execution-safety layer this section used to describe (the eight
 BLUEPRINT §6.5 order non-negotiables, `test_safety_end_to_end.py`) existed
 only to gate broker order placement and was removed with the feature. What
-remains — the proposed-changes trust gate over the 18 surviving host actions
+remains — the proposed-changes trust gate over the 19 surviving host actions
 — is documented in `docs/SAFETY_ARCHITECTURE.md`, current as of this
 removal. `sidecar/tests/test_no_trading_surface.py` pins that no order,
 broker or simulated-account path exists anywhere.
@@ -554,9 +564,13 @@ none use `localStorage`. Notable surfaces:
 - **Chat sidebar** (`ChatSidebar.tsx`) — the most cross-cutting surface (6+
   stores). Default agent `copilot`; bare text routes to it; clickable persona
   chip roster; `/ask` raw escape hatch. `executeHostAction` maps copilot tool
-  calls to live store mutations (`set_chart_symbol`/`open_panel`/`add_to_watchlist`
-  and the rest of the 18 host actions), staged through the review bar (§5) —
-  there is no order kind any more (D81). BYOK key resolved from the **agent's**
+  calls to `ProposedChange` entries (`set_chart_symbol`/`open_panel`/
+  `add_to_watchlist` and the rest of `HOST_ACTION_NAMES`, `src/lib/
+host-actions.ts` — 19 host actions total), staged through the diff/accept
+  review bar (§5); the `panel`/`chart`/`watchlist` kinds apply without a
+  per-action confirmation under AUTO autonomy (`AUTO_APPLIED_KINDS`,
+  `types/proposed-change.ts`) — `data-write`/`settings` always wait — there is
+  no order kind any more (D81). BYOK key resolved from the **agent's**
   `defaultProvider` (not the UI default), read from keychain on demand.
   `defaultModelFor` **hard-codes one model per provider** (may drift).
 - **Integrations** (`ConnectCard.tsx`) — no `index.ts`, rendered inside
@@ -651,13 +665,16 @@ terse system preamble (`_render_terminal_preamble`, with the deixis line —
 `get_portfolio`).
 
 **Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
-`add_to_watchlist` and the rest of the catalog's 18 host actions are
-per-invocation closures that return a _synthetic_ success — the **real UI
-work happens frontend-side** in `ChatSidebar.executeHostAction`, dispatched
-off the streamed `tool_use` event, not the synthetic result (the
-`host_action` payload on the wire is effectively dead today). There is no
-order host action any more — no broker connection exists to place one
-against (D81).
+`add_to_watchlist` and the rest of `HOST_ACTION_NAMES` (`src/lib/
+host-actions.ts` — 19 host actions total) are per-invocation closures that
+return a _synthetic_ success — the **real UI work happens frontend-side** in
+`ChatSidebar.executeHostAction`, dispatched off the streamed `tool_use` event
+as a staged `ProposedChange` (not the synthetic result; the `host_action`
+payload on the wire is effectively dead today). The change waits in the
+diff/accept review bar (§5) unless its kind is one of `AUTO_APPLIED_KINDS`
+(`panel`/`chart`/`watchlist`, `types/proposed-change.ts`) under AUTO
+autonomy — `data-write`/`settings` always wait. There is no order host action
+any more — no broker connection exists to place one against (D81).
 
 **Personas.** 13 first-party agents (§3.11). `copilot` is the terminal-aware
 default whose allow-list is the broadest (14 tool ids incl. all host actions).
@@ -684,7 +701,7 @@ catalog.py`, the single source of truth per §0). No `broker_portfolio` or
 | `analyst_history`                                                                                                                                                                                                              | rating-change history                                                | yes                                                         |
 | `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
 | `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
-| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (18 total)                                              | yes (runtime-resolved)                                      |
+| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (19 total)                                              | yes (runtime-resolved)                                      |
 | `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
 
 **Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
@@ -836,7 +853,7 @@ the surface and the agent-centrality.
   data-cache, the SSE convention. This is the data brain; it works and is broadly
   tested. The redesign consumes it, it does not replace it.
 - **The agent-write safety model, intact.** Tier-1 LOCKED. The proposed-changes
-  trust gate over the 18 host actions is the most trustworthy asset — preserve
+  trust gate over the 19 host actions is the most trustworthy asset — preserve
   it and run `test_no_trading_surface.py` as a hard gate on any touch (§5).
   There is no broker connectivity, order placement or simulated account to
   preserve — that layer was removed permanently (D81, 23 Sep 2026).

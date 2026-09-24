@@ -40,6 +40,8 @@ import re
 from datetime import date
 from typing import Any
 
+import httpx
+
 from models.sec import (
     Filing,
     FilingDetail,
@@ -74,6 +76,17 @@ _last_error: str | None = None
 _FILINGS_INDEX_TTL = 3600.0  # 1h
 _FILING_CONTENT_TTL = 86400.0  # 24h
 _INSIDER_TTL = 3600.0  # 1h
+
+# R15-UI-032: sec-edgar-mcp 1.0.8's ``search_companies`` tool swallows every
+# ``edgar.search()`` exception into an empty list (core/client.py), so the
+# panel's symbol field never finds a company by name. SEC EDGAR itself
+# publishes a full ticker/CIK/name index; reading that directly is a working
+# local path that doesn't depend on the MCP subprocess at all.
+_COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+_COMPANY_TICKERS_CACHE_KEY = "sec:company_tickers"
+_COMPANY_TICKERS_TTL = 86400.0  # 24h — SEC ships this file roughly daily.
+# SEC fair-access guidance wants a contact UA (mirrors services.sec_ownership).
+_SEC_USER_AGENT = "Vysted Terminal (contact: support@vysted.com)"
 
 # ---------------------------------------------------------------------------
 # Port + availability discovery
@@ -683,55 +696,70 @@ async def list_insider_transactions(
     return response
 
 
+async def _load_company_tickers() -> dict[str, dict[str, Any]]:
+    """The SEC's full ticker/CIK/name index, cached 24h.
+
+    ``company_tickers.json`` is a ``{"0": {"cik_str": ..., "ticker": ...,
+    "title": ...}, "1": {...}, ...}`` map, refreshed by SEC roughly daily and
+    reachable without the sec-edgar-mcp subprocess.
+    """
+    cached = await data_cache.get(_COMPANY_TICKERS_CACHE_KEY, _COMPANY_TICKERS_TTL)
+    if isinstance(cached, dict) and cached:
+        return cached
+    try:
+        async with httpx.AsyncClient(
+            headers={"User-Agent": _SEC_USER_AGENT}, timeout=30.0, follow_redirects=True
+        ) as client:
+            resp = await client.get(_COMPANY_TICKERS_URL)
+        resp.raise_for_status()
+        payload = resp.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise ProviderError(f"sec company_tickers.json fetch failed: {exc}") from exc
+    if not isinstance(payload, dict) or not payload:
+        raise ProviderError("sec company_tickers.json returned an unexpected shape")
+    await data_cache.set(_COMPANY_TICKERS_CACHE_KEY, payload)
+    return payload
+
+
+def _company_ticker_row(raw: dict[str, Any]) -> dict[str, Any]:
+    cik = str(raw.get("cik_str") or raw.get("cik") or "")
+    if cik.isdigit():
+        cik = cik.zfill(10)
+    ticker = _coerce_str(raw.get("ticker"))
+    return {"cik": cik, "name": str(raw.get("title") or ""), "ticker": ticker}
+
+
 async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
     """Search the EDGAR company index — used by the panel's symbol field.
 
-    sec-edgar-mcp exposes a ``search_companies`` tool; pass-through is
-    fine because results are advisory only (the panel displays them
-    in a dropdown). Returns a list of ``{cik, name, ticker}`` rows.
-
-    R15-UI-032: the live tool answers ``{"success": True, "companies": [...],
-    "count": N}`` with each row carrying ``tickers`` (a LIST — a dual-listed
-    company can have more than one), never a singular ``ticker``/``symbol``
-    key. An empty result (a query that matched nothing) is never cached — the
-    original TTL-blind cache turned a transient miss (or a query typed one
-    keystroke at a time) into a dead end for the rest of the TTL window.
+    R15-UI-032: sec-edgar-mcp 1.0.8's ``search_companies`` tool swallows
+    every ``edgar.search()`` exception into ``[]`` (its ``core/client.py``),
+    so it never actually finds a company. This reads SEC's own
+    ``company_tickers.json`` index instead — a working local path that needs
+    no MCP round-trip. Matching is a case-insensitive substring over both the
+    ticker and the company name; an exact ticker match is returned first.
+    Returns a list of ``{cik, name, ticker}`` rows, capped at ``limit``.
     """
-    if not query or not query.strip():
+    q = query.strip().lower()
+    if not q:
         return []
-    cache_key = f"sec:search:{query.strip().lower()}:{limit}"
-    cached = await data_cache.get(cache_key, _FILINGS_INDEX_TTL)
-    if isinstance(cached, list) and cached:
-        return cached  # type: ignore[return-value]
-    payload = await _call_tool("search_companies", {"query": query.strip(), "limit": int(limit)})
-    rows: list[dict[str, Any]] = []
-    raw_list: list[Any] = []
-    if isinstance(payload, dict):
-        raw_list = payload.get("companies") or payload.get("results") or []  # type: ignore[assignment]
-    elif isinstance(payload, list):
-        raw_list = payload
-    for row in raw_list:
-        if not isinstance(row, dict):
+    tickers = await _load_company_tickers()
+    exact: list[dict[str, Any]] = []
+    partial: list[dict[str, Any]] = []
+    for raw in tickers.values():
+        if not isinstance(raw, dict):
             continue
-        cik = str(row.get("cik") or row.get("CIK") or "")
-        if cik.isdigit():
-            cik = cik.zfill(10)
-        tickers = row.get("tickers")
-        ticker = (
-            _coerce_str(tickers[0])
-            if isinstance(tickers, list) and tickers
-            else _coerce_str(row.get("ticker") or row.get("symbol"))
-        )
-        rows.append(
-            {
-                "cik": cik,
-                "name": str(row.get("name") or row.get("company_name") or ""),
-                "ticker": ticker,
-            }
-        )
-    if rows:
-        await data_cache.set(cache_key, rows)
-    return rows
+        ticker = str(raw.get("ticker") or "").lower()
+        title = str(raw.get("title") or "").lower()
+        if not ticker and not title:
+            continue
+        if ticker == q:
+            exact.append(_company_ticker_row(raw))
+        elif q in ticker or q in title:
+            partial.append(_company_ticker_row(raw))
+        if len(exact) >= limit:
+            break
+    return (exact + partial)[:limit]
 
 
 # ---------------------------------------------------------------------------

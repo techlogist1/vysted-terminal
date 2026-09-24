@@ -118,6 +118,36 @@ describe("conflicts", () => {
     // palette.open (mod+k) is unique; assert it is not flagged.
     expect(conflicts.some((c) => c.actionIds.includes("palette.open"))).toBe(false);
   });
+
+  // R15-UI-027 residual: conflicts() must group on the RESOLVED chord, not
+  // the raw combo string.
+  it("mod+p and meta+p conflict on macOS (same resolved chord)", () => {
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+p");
+    useKeybindingsStore.getState().setBinding("agent.mode.agent", "meta+p");
+    const conflicts = useKeybindingsStore.getState().conflicts();
+    const collision = conflicts.find((c) => c.actionIds.includes("palette.open"));
+    expect(collision?.actionIds).toContain("agent.mode.agent");
+  });
+
+  it("shift+mod+p beside mod+p does NOT conflict (distinct resolved chords)", () => {
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+p");
+    useKeybindingsStore.getState().setBinding("agent.mode.agent", "shift+mod+p");
+    const conflicts = useKeybindingsStore.getState().conflicts();
+    expect(conflicts.some((c) => c.actionIds.includes("palette.open"))).toBe(false);
+    expect(conflicts.some((c) => c.actionIds.includes("agent.mode.agent"))).toBe(false);
+  });
+
+  // Class pin, not written against: the same distinct-resolved-chord case on
+  // a different letter key.
+  it("class pin: shift+mod+k beside mod+k does NOT conflict", () => {
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+    useKeybindingsStore.getState().setBinding("agent.mode.agent", "mod+k");
+    useKeybindingsStore.getState().setBinding("chart.open", "shift+mod+k");
+    const conflicts = useKeybindingsStore.getState().conflicts();
+    expect(conflicts.some((c) => c.actionIds.includes("chart.open"))).toBe(false);
+  });
 });
 
 describe("normalizeBinding", () => {
@@ -194,6 +224,38 @@ describe("matchesEvent", () => {
     vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
     expect(matchesEvent("mod+enter", keyEvent("Enter", { ctrlKey: true }))).toBe(true);
     expect(matchesEvent("mod+backspace", keyEvent("Backspace", { ctrlKey: true }))).toBe(true);
+  });
+
+  // R15-UI-027 residual: shift must be STRICT for a letter key, both ways —
+  // otherwise "mod+p" also matches a Shift+⌘+P keystroke and silently
+  // shadows "shift+mod+p" (the first-registered action always wins).
+  describe("shift strictness (R15-UI-027 residual)", () => {
+    it("a no-shift letter combo does NOT match when shift is also held", () => {
+      vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+      expect(matchesEvent("mod+p", keyEvent("p", { metaKey: true, shiftKey: true }))).toBe(false);
+    });
+
+    it("a shift+letter combo does NOT match when shift is absent", () => {
+      vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+      expect(matchesEvent("shift+mod+p", keyEvent("p", { metaKey: true }))).toBe(false);
+    });
+
+    it("shift+mod+p and mod+p each match only their own keystroke", () => {
+      vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+      const plain = keyEvent("p", { metaKey: true });
+      const shifted = keyEvent("p", { metaKey: true, shiftKey: true });
+      expect(matchesEvent("mod+p", plain)).toBe(true);
+      expect(matchesEvent("mod+p", shifted)).toBe(false);
+      expect(matchesEvent("shift+mod+p", plain)).toBe(false);
+      expect(matchesEvent("shift+mod+p", shifted)).toBe(true);
+    });
+
+    it("a symbol key combo stays shift-lenient (character already implies shift)", () => {
+      vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
+      // "?" is typed as Shift+/ — the combo has no explicit "shift" token but
+      // the physical keystroke always carries shiftKey=true.
+      expect(matchesEvent("mod+?", keyEvent("?", { ctrlKey: true, shiftKey: true }))).toBe(true);
+    });
   });
 });
 

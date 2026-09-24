@@ -111,6 +111,7 @@ vi.mock("./api", () => ({
 
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useChartSyncBus } from "@/store/chart-sync";
+import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 
 import ChartPanel from "./ChartPanel";
 import { CATEGORY_LABELS, INDICATOR_CATALOG } from "./indicators";
@@ -195,6 +196,7 @@ beforeEach(() => {
   historyMock.mockResolvedValue(makeSeries("SPY"));
   fetchIndicatorsMock.mockResolvedValue(makeIndicatorResponse());
   useChartDrawingsStore.setState({ byPanel: {}, views: {} });
+  resetSettingsStoreForTests();
   useChartSyncBus.setState({
     crosshair: null,
     visibleRange: null,
@@ -214,6 +216,44 @@ describe("ChartPanel", () => {
       expect(historyMock).toHaveBeenCalledWith("SPY", "1d", undefined, "equity");
     });
     expect(await screen.findByText(/via yfinance/)).toBeInTheDocument();
+  });
+
+  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "TCS.NS", timeframe: "1h", indicators: ["ema"] });
+    historyMock.mockResolvedValue(makeSeries("TCS.NS"));
+    render(<ChartPanel />);
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1h", undefined, "equity");
+    });
+  });
+
+  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "TCS.NS", timeframe: "1h", indicators: [] });
+    useChartDrawingsStore.getState().setView("chart-A", {
+      symbol: "RELIANCE.NS",
+      timeframe: "1wk",
+      indicators: [],
+      compare: null,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("RELIANCE.NS", "1wk", undefined, "equity");
+    });
+  });
+
+  it('"Make default" persists the current symbol/timeframe/indicators to settings', async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Make default" }));
+    expect(useSettingsStore.getState().chartDefaults).toEqual({
+      symbol: "SPY",
+      timeframe: "1d",
+      indicators: [],
+    });
   });
 
   it("does not request indicators until one is selected", async () => {

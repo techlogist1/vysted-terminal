@@ -182,7 +182,7 @@ def test_a_results_transport_failure_is_still_a_502(
 
     resp = client.get("/disclosures/results", params={"symbol": "JONJUA"})
     assert resp.status_code == 502
-    assert "every results source failed" in resp.json()["detail"]
+    assert resp.json()["detail"] == "The data provider returned an unexpected response."
 
 
 # ---------------------------------------------------------------------------

@@ -966,16 +966,17 @@ def test_get_fundamentals_empty_yahoo_sector_is_not_served(
     assert fund.sector_source is None
 
 
-def test_get_fundamentals_basis_is_consolidated_for_an_indian_listing(
+def test_get_fundamentals_never_defaults_a_basis(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """CREST (R15-DATA-054): Yahoo serves the CONSOLIDATED statement set for an
-    Indian listing, so ``basis`` is stamped; a non-Indian listing has no such
-    guarantee and stays unstamped."""
+    """R15-DATA-054: ``info`` does not say which accounting basis Yahoo used, so
+    the provider stamps none for any listing (a hard-coded "consolidated" was
+    false for standalone filers like SMR); the route derives it from the
+    exchange filings (``test_fundamentals_basis.py``)."""
     info = {"longName": "Crest Ventures Ltd", "currency": "INR", "marketCap": 5_000_000_000}
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
     fund = yfinance_provider.get_fundamentals("CREST.BO")
-    assert fund.basis == "consolidated"
+    assert fund.basis is None
 
     monkeypatch.setattr(config, "get_region", lambda: "US")
     us_info = {"longName": "Example Corp", "currency": "USD", "marketCap": 1_000_000}
@@ -987,8 +988,9 @@ def test_get_fundamentals_basis_is_consolidated_for_an_indian_listing(
 def test_get_fundamentals_listing_date_and_52week_leg_dates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """R15-DATA-055: ``listing_date`` comes from ``firstTradeDateMilliseconds``,
-    the 52-week high/low dates come from the 1y history's argmax/argmin, and
+    """R15-DATA-055: ``listing_date`` is the NSE master's DATE OF LISTING and
+    Yahoo's ``firstTradeDateMilliseconds`` rides ``first_trade_date``, the
+    52-week high/low dates come from the 1y history's argmax/argmin, and
     ``forward_pe_fiscal_year`` is set only when Yahoo names a forward-PE
     horizon."""
     from datetime import UTC, datetime
@@ -1009,11 +1011,28 @@ def test_get_fundamentals_listing_date_and_52week_leg_dates(
     index = pd.to_datetime(["2026-01-06", "2026-06-15", "2026-09-01"])
     history = pd.DataFrame({"High": [100.0, 120.0, 110.0], "Low": [95.0, 100.0, 80.0]}, index=index)
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _fund_ticker(info, history=history))
-    fund = yfinance_provider.get_fundamentals("FRESH.NS")
-    assert fund.listing_date == "2026-01-05"
+    fund = yfinance_provider.get_fundamentals("DHOOTTRANS.NS")
+    assert fund.listing_date == "2026-08-17"  # NSE EQUITY_L DATE OF LISTING
+    assert fund.first_trade_date == "2026-01-05"
     assert fund.fifty_two_week_high_date == "2026-06-15"
     assert fund.fifty_two_week_low_date == "2026-09-01"
     assert fund.forward_pe_fiscal_year == "2027-03-31"
+
+
+def test_a_bse_only_listing_has_no_listing_date_only_a_first_trade_date(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-055: NAPEROL (BSE-only) — Yahoo's 2002-07-01 is where its data
+    starts, not the listing; the NSE master does not list it, so no listing date."""
+    from datetime import UTC, datetime
+
+    first_ms = int(datetime(2002, 7, 1, tzinfo=UTC).timestamp() * 1000)
+    info = {"longName": "Naperol Investments Ltd", "currency": "INR"}
+    info["firstTradeDateMilliseconds"] = first_ms
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("NAPEROL.BO")
+    assert fund.listing_date is None
+    assert fund.first_trade_date == "2002-07-01"
 
 
 def test_get_fundamentals_no_forward_pe_leaves_fiscal_year_unset(

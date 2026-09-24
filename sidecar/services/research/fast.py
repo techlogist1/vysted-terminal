@@ -74,15 +74,29 @@ _NO_WEB_NOTE = "No web-search backend configured — structured data only"
 #: tells a keyless user "no backend" when the floor was merely throttled.
 _RATE_LIMITED_NOTE = "Web search was rate-limited — retry in a moment"
 
-#: Per-asset-class indicator presets the research-cockpit layout opens with.
-#: Equities get trend + momentum (MA/RSI/MACD); ETFs drop MACD (basket, less
-#: single-name momentum signal); crypto leans on EMA + VWAP (24/7, intraday).
-_INDICATORS_BY_CLASS: dict[str, list[str]] = {
+#: Per-asset-class DAILY indicator presets (FR-092): equities get trend +
+#: momentum (MA/RSI/MACD); ETFs drop MACD (basket, less single-name momentum
+#: signal); crypto is timeframe-agnostic (24/7, no session boundary) so it
+#: gets the same EMA50/200 + week-VWAP + RSI set at every timeframe.
+_INDICATORS_DAILY_BY_CLASS: dict[str, list[str]] = {
     "equity": ["ma", "volume", "rsi", "macd"],
     "etf": ["ma", "volume", "rsi"],
-    "crypto": ["ema", "vwap", "rsi", "volume"],
+    "crypto": ["ema:50", "ema:200", "vwap:week", "rsi"],
 }
-_DEFAULT_INDICATORS = _INDICATORS_BY_CLASS["equity"]
+#: Per-asset-class INTRADAY indicator presets (FR-092): the EMA9/21 crossover
+#: + session VWAP replaces the daily MA trio (faster-reacting, single-line
+#: trend read). Crypto is unaffected by timeframe (see above).
+_INDICATORS_INTRADAY_BY_CLASS: dict[str, list[str]] = {
+    "equity": ["ema:9", "ema:21", "vwap", "rsi"],
+    "etf": ["ema:9", "ema:21", "vwap", "rsi"],
+    "crypto": _INDICATORS_DAILY_BY_CLASS["crypto"],
+}
+_DEFAULT_CLASS = "equity"
+#: Timeframes treated as intraday (1h and below); everything else is daily.
+#: This module is now the ONE source for the FR-092 default-indicator combos
+#: (R15-UI-091) — `src/lib/indicator-presets.ts`, a second, unwired copy with
+#: no production consumer, was deleted rather than kept in sync by hand.
+_INTRADAY_TIMEFRAMES: frozenset[str] = frozenset({"1m", "5m", "15m", "30m", "1h"})
 
 #: Per-leg time box for every structured leg — price, fundamentals, news,
 #: filings and the disclosure-only witness cross-checks (R15-RESEARCH-027): a
@@ -91,14 +105,28 @@ _DEFAULT_INDICATORS = _INDICATORS_BY_CLASS["equity"]
 _WITNESS_LEG_TIMEOUT_S = 6.0
 
 
-def _suggested_indicators(asset_class: str | None) -> list[str]:
-    """Map an instrument's asset class to the cockpit's opening indicator set."""
+def _suggested_indicators(timeframe: str = "1d", asset_class: str | None = None) -> list[str]:
+    """Map an instrument's asset class + timeframe to the cockpit's opening
+    indicator set (FR-092). The research cockpit itself has no timeframe
+    concept (it opens on the daily read); ``timeframe`` defaults to ``"1d"``
+    for its two call sites and exists so a timeframe-aware caller (a chart
+    panel) can ask the same table for an intraday combo."""
     key = (asset_class or "").strip().lower()
     if key in ("crypto", "cryptocurrency"):
         key = "crypto"
     elif key in ("etf", "fund"):
         key = "etf"
-    return list(_INDICATORS_BY_CLASS.get(key, _DEFAULT_INDICATORS))
+    elif key != _DEFAULT_CLASS:
+        key = _DEFAULT_CLASS
+    if key == "crypto":
+        # Crypto is timeframe-agnostic (24/7, no session boundary) — FR-092.
+        return list(_INDICATORS_DAILY_BY_CLASS["crypto"])
+    table = (
+        _INDICATORS_INTRADAY_BY_CLASS
+        if timeframe.strip().lower() in _INTRADAY_TIMEFRAMES
+        else _INDICATORS_DAILY_BY_CLASS
+    )
+    return list(table.get(key, table[_DEFAULT_CLASS]))
 
 
 async def _safe_call(tool_call: ToolCall, name: str, args: dict[str, Any]) -> dict[str, Any]:
@@ -566,7 +594,7 @@ async def gather_fast(
             "web": web,
             "note": NO_INSTRUMENT_NOTE,
             "suggested_layout": "research-cockpit",
-            "suggested_indicators": _suggested_indicators(None),
+            "suggested_indicators": _suggested_indicators(asset_class=None),
             "execution_loop": "fast",
         }
 
@@ -657,7 +685,7 @@ async def gather_fast(
         "structured": structured,
         "web": web,
         "suggested_layout": "research-cockpit",
-        "suggested_indicators": _suggested_indicators(asset_class),
+        "suggested_indicators": _suggested_indicators(asset_class=asset_class),
         "execution_loop": "fast",
     }
 

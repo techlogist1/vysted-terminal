@@ -6,6 +6,31 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+@pytest.fixture(autouse=True)
+def _no_network_filed_basis(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the route's filed-basis read (R15-DATA-054) off the network; its
+    own cases live in ``test_fundamentals_basis.py``."""
+    from services import exchange_financials
+
+    async def _stub(_listing: str) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_data_cache(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ANN001
+    """The statement and rating routes are cached (R15-DATA-096): each test gets
+    its own cache file, so one test's fake never serves the next."""
+    from config import DATA_DIR_ENV
+    from services import data_cache
+
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
+    data_cache.reset_for_tests()
+    yield
+    data_cache.reset_for_tests()
+
+
 def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL").json()
     assert body["symbol"] == "AAPL"
@@ -26,6 +51,38 @@ def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     assert body["identity_note"] is None
 
 
+def test_filed_basis_stamps_its_own_field_meta(
+    client: TestClient, mock_yfinance: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-054: ``basis`` comes from the exchange filings, so its
+    ``field_meta`` names that leg — never the provider's "unavailable" stamp
+    beside a served value."""
+    from services import exchange_financials
+
+    async def _consolidated(_listing: str) -> str:
+        return "consolidated"
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", _consolidated)
+    body = client.get("/fundamentals/RELIANCE.NS").json()
+    assert body["basis"] == "consolidated"
+    meta = body["field_meta"]["basis"]
+    assert meta["status"] == "ok"
+    assert meta["provider"] == "exchange-filings"
+    assert meta["as_of"]
+
+
+def test_no_filed_basis_is_unavailable_with_a_reason(
+    client: TestClient, mock_yfinance: object
+) -> None:
+    """No filing (the autouse stub) -> ``basis`` null and its meta says why."""
+    body = client.get("/fundamentals/AAPL").json()
+    assert body["basis"] is None
+    meta = body["field_meta"]["basis"]
+    assert meta["status"] == "unavailable"
+    assert meta["provider"] == "exchange-filings"
+    assert "filing" in meta["reason"]
+
+
 def test_get_fundamentals_provider_error_is_502(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -39,7 +96,7 @@ def test_get_fundamentals_provider_error_is_502(
     monkeypatch.setattr(provider_registry, "get_fundamentals", boom)
     resp = client.get("/fundamentals/AAPL")
     assert resp.status_code == 502
-    assert "upstream 500" in resp.json()["detail"]
+    assert resp.json()["detail"] == "The data provider returned an unexpected response."
 
 
 def test_get_fundamentals_rate_limited_is_429(
@@ -97,6 +154,52 @@ def test_get_balance_sheet(client: TestClient, mock_yfinance: object) -> None:
 def test_get_cash_flow(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL/cashflow").json()
     assert len(body["lines"]) == 2
+
+
+def test_a_second_statement_call_is_served_from_the_cache(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-096: /income (and its siblings) went to the provider on every
+    call; a repeat within the TTL is now a cache hit."""
+    from models.fundamentals import IncomeStatement, StatementLine
+    from services import provider_registry
+
+    calls: list[tuple[str, str]] = []
+
+    async def income(symbol: str, period: str = "annual") -> IncomeStatement:
+        calls.append((symbol, period))
+        return IncomeStatement(
+            symbol="AAPL",
+            periods=["2025-09-30"],
+            lines=[StatementLine(label="Total Revenue", values={"2025-09-30": 1.0})],
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_income_statement", income)
+    first = client.get("/fundamentals/AAPL/income").json()
+    assert client.get("/fundamentals/AAPL/income").json() == first
+    assert calls == [("AAPL", "annual")]
+    # The period is part of the key: quarters are their own fetch.
+    client.get("/fundamentals/AAPL/income?period=quarterly")
+    assert calls == [("AAPL", "annual"), ("AAPL", "quarterly")]
+
+
+def test_a_second_ratings_call_is_served_from_the_cache(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from models.fundamentals import AnalystRating
+    from services import provider_registry
+
+    calls: list[str] = []
+
+    async def rating(symbol: str) -> AnalystRating:
+        calls.append(symbol)
+        return AnalystRating(symbol="MSFT", provider="yfinance")
+
+    monkeypatch.setattr(provider_registry, "get_analyst_rating", rating)
+    client.get("/fundamentals/MSFT/ratings")
+    client.get("/fundamentals/MSFT/ratings")
+    assert calls == ["MSFT"]
 
 
 def _dhanbank_ticker() -> type:

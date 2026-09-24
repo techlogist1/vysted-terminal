@@ -910,6 +910,60 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     );
   });
 
+  // R15-AGENT-082: the done frame's spend_usd (parsed camelCase by streaming.ts
+  // as spendUsd) reaches the finished message's own footer, distinct from the
+  // composer-wide context meter above.
+  it("a finished message's footer shows tokens and estimated spend (R15-AGENT-082)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "delta", text: "AAPL closed at $214." });
+        handlers.onEvent({
+          kind: "done",
+          usage: { inputTokens: 500, outputTokens: 20 },
+          spendUsd: 0.0042,
+        });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "AAPL?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText("520 tok · ~$0.00")).toBeInTheDocument());
+  });
+
+  it("a free model's finished message shows ~$0.00, not a hidden spend (R15-AGENT-082)", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "delta", text: "ok" });
+        handlers.onEvent({
+          kind: "done",
+          usage: { inputTokens: 10, outputTokens: 2 },
+          spendUsd: 0,
+        });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "hi" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText("12 tok · ~$0.00")).toBeInTheDocument());
+  });
+
+  it("a message with no spend_usd (unpriced model) shows tokens with no spend segment", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "delta", text: "ok" });
+        handlers.onEvent({ kind: "done", usage: { inputTokens: 10, outputTokens: 2 } });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "hi" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText("12 tok")).toBeInTheDocument());
+    expect(screen.queryByText(/\$/)).toBeNull();
+  });
+
   // R15-AGENT-031 / R15-UI-054: this used to feed the regex's own stale copy on
   // the engine kind; the chip now keys on the notice kind, so the runtime's
   // current wording (which the old regex never matched) renders as a chip.

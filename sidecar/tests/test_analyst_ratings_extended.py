@@ -136,6 +136,24 @@ async def test_get_ratings_history(mock_yf_ratings: type[_FakeRatingsTicker]) ->
 
 
 @pytest.mark.asyncio
+async def test_an_uncached_envelope_is_stamped_with_its_fetch_time(
+    mock_yf_ratings: type[_FakeRatingsTicker],
+) -> None:
+    """The agent tools read the service directly (no route cache): the envelope
+    still says when it was fetched (R15-DATA-068)."""
+    from datetime import UTC, datetime
+
+    for fetch in (
+        analyst_ratings_extended.get_ratings_history,
+        analyst_ratings_extended.get_price_target_history,
+        analyst_ratings_extended.get_individual_analysts,
+    ):
+        response = await fetch("AAPL")
+        assert response.as_of is not None
+        assert abs((datetime.now(UTC) - response.as_of).total_seconds()) < 5
+
+
+@pytest.mark.asyncio
 async def test_get_price_target_history(mock_yf_ratings: type[_FakeRatingsTicker]) -> None:
     response = await analyst_ratings_extended.get_price_target_history("AAPL")
     assert response.symbol == "AAPL"

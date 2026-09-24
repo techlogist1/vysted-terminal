@@ -15,9 +15,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { cn } from "@/lib/utils";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectFilings, useSecStore } from "@/store/sec";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import type { Filing, FilingFormType } from "../../../types/sec";
 
@@ -157,6 +159,31 @@ export function SecFilingsPanel() {
 
   const hasOpenFiling = activeAccession !== null;
 
+  // R15-AGENT-053: publish the active identifier + tab so the copilot can
+  // see what's on screen; the identifier is also clickable → the chart.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "sec-filings",
+      kind: "snapshot",
+      payload: {
+        identifier: activeIdentifier,
+        formFilter,
+        tab,
+        filingCount: filings.filings.length,
+      },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, activeIdentifier, formFilter, tab, filings.filings.length]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("sec-filings");
+    };
+  }, [unregisterPanelContext]);
+
   return (
     <div
       data-testid="sec-filings-panel"
@@ -237,7 +264,19 @@ export function SecFilingsPanel() {
         </nav>
 
         <span className="text-charcoal-400 text-micro ml-2">
-          {filings.company_name || activeIdentifier || ""}
+          {activeIdentifier ? (
+            <button
+              type="button"
+              className="text-charcoal-400 hover:text-charcoal-100 hover:underline"
+              title={`Load ${activeIdentifier} into the chart`}
+              onClick={() => loadSymbolIntoChart(activeIdentifier)}
+              data-testid={`sec-symbol-${activeIdentifier}`}
+            >
+              {filings.company_name || activeIdentifier}
+            </button>
+          ) : (
+            ""
+          )}
           {filings.filings.length > 0 && <> · {filings.filings.length} filings</>}
         </span>
       </header>

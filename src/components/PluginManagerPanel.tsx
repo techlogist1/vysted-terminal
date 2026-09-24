@@ -6,6 +6,7 @@ import { Blocks } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useMarketplaceStore } from "@/store/marketplace";
 import { usePluginsStore } from "@/store/plugins";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { LoadedPlugin, LoadedPluginState } from "../../types/plugin-runtime";
@@ -16,9 +17,9 @@ import type { LoadedPlugin, LoadedPluginState } from "../../types/plugin-runtime
  *
  * The data flows from `usePluginsStore`, which the page-level bootstrap
  * subscribes to a `PluginRuntime` instance via `attachRuntime()`. Toggling a
- * plugin calls `runtime.loadPlugin` / `runtime.unloadPlugin` directly so the
- * store re-syncs on the runtime's emitted events; persistence is handled by
- * the runtime's adapter (sidecar `/plugins/{id}/config`), not here.
+ * plugin goes through the marketplace store's `enable` / `disable`, the same
+ * lifecycle the Marketplace panel drives: the runtime persists the flag and
+ * attaches or detaches the plugin's panels, commands and agents.
  *
  * Wired into the plugin-manager module as `panelComponents["plugin-manager-panel"]`.
  */
@@ -174,11 +175,8 @@ function PluginRow({ plugin, runtimeReady }: PluginRowProps) {
     }
     setPending(true);
     try {
-      if (nextEnabled) {
-        await runtime.loadPlugin({ manifest: plugin.manifest, instance: plugin.instance });
-      } else {
-        await runtime.unloadPlugin(plugin.manifest.id);
-      }
+      const marketplace = useMarketplaceStore.getState();
+      await (nextEnabled ? marketplace.enable : marketplace.disable)(plugin.manifest.id);
     } finally {
       setPending(false);
     }

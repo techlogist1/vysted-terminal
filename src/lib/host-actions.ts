@@ -36,10 +36,12 @@ import { METRIC_LABELS, resolveMetric } from "@/modules/equity-overview/metrics"
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
+import { DEFAULT_DRAWING_STYLE, pointsRequired } from "@/modules/chart/drawings/factory";
 import { useBacktestStore } from "@/store/backtest";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useChartCommandStore } from "@/store/chart-command";
+import { drawingsFor, newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
 import { useEquityCommandStore } from "@/store/equity-command";
 import {
   usePortfoliosStore,
@@ -60,6 +62,7 @@ import type {
   BriefStructured,
   ResearchBriefData,
 } from "../../types/brief";
+import type { ChartView, DrawingPoint } from "../../types/drawings";
 import type { ProposedChangeKind } from "../../types/proposed-change";
 import type { CriterionGroup, ScreenerCriterion, ScreenerUniverseId } from "../../types/screener";
 
@@ -75,6 +78,7 @@ export const HOST_ACTION_NAMES = new Set([
   "arrange_layout",
   "set_chart_symbol",
   "set_chart_indicators",
+  "add_chart_drawing",
   "add_to_watchlist",
   "remove_from_watchlist",
   "publish_brief",
@@ -88,6 +92,53 @@ export const HOST_ACTION_NAMES = new Set([
   "save_screen",
   "set_region",
 ]);
+
+/**
+ * Every cockpit action a user can take by hand, mapped to the host action that
+ * lets the agent do it too, or to why the agent deliberately cannot
+ * (R15-AGENT-084). `hand-action-inventory.test.ts` holds it two-way against
+ * {@link HOST_ACTION_NAMES}: a new host action needs a row here, and a row
+ * must name a real host action or carry its exclusion reason.
+ */
+export const HAND_ACTION_INVENTORY: Record<string, string | { excluded: string }> = {
+  "Load a symbol into the chart": "set_chart_symbol",
+  "Change the chart's indicators": "set_chart_indicators",
+  "Draw a horizontal line or trendline": "add_chart_drawing",
+  "Draw a ray, rectangle, ellipse, fib, channel, vertical line or text": {
+    excluded: "click-placed shapes with no agent use yet; the two price-level kinds cover it",
+  },
+  "Move or delete a chart drawing": {
+    excluded: "the agent adds, never edits or erases the user's own marks",
+  },
+  "Open a panel": "open_panel",
+  "Close a panel": "close_panel",
+  "Focus a panel": "focus_panel",
+  "Rearrange the layout": "arrange_layout",
+  "Save the layout": "save_layout",
+  "Open a company's overview": "open_company_overview",
+  "Show a research brief": "publish_brief",
+  "Add a symbol to the watchlist": "add_to_watchlist",
+  "Remove a symbol from the watchlist": "remove_from_watchlist",
+  "Set screener filters": "write_screener_filters",
+  "Save a screen": "save_screen",
+  "Add a portfolio position": "portfolio_add_position",
+  "Edit a portfolio position": "portfolio_update_position",
+  "Remove a portfolio position": "portfolio_delete_position",
+  "Write a note": "write_note",
+  "Change the region": "set_region",
+  "Enter or remove an API key": {
+    excluded: "BYOK secrets live in the OS keychain and only the user types them",
+  },
+  "Change the model provider or research engine": {
+    excluded: "set_region is the one Settings action the agent may drive (D45)",
+  },
+  "Switch between review and auto-apply": {
+    excluded: "the agent never loosens its own review gate",
+  },
+  "Accept or reject a proposed change": {
+    excluded: "the review gate is the user's; self-accepting would bypass it",
+  },
+};
 
 /** Tier order for {@link BriefDepth}: quick < deep < heavy. Drives the MAX-tier
  *  pick when a re-publish carries an explicit depth, and the "is there an explicit
@@ -760,6 +811,14 @@ export type HostIntent =
   | { name: "set_chart_symbol"; symbol: string; timeframe: string }
   | { name: "set_chart_indicators"; symbol: string; known: string[]; dropped: string[] }
   | {
+      name: "add_chart_drawing";
+      kind: ChartDrawingKind | null;
+      panelId: string;
+      view: ChartView | null;
+      points: DrawingPoint[];
+      problem: string;
+    }
+  | {
       name: "open_panel";
       panel: string;
       target: PanelTarget | null;
@@ -889,6 +948,8 @@ export function parseHostAction(name: string, input: Record<string, unknown>): H
       return { name, symbol, timeframe: str(input, "timeframe") };
     case "set_chart_indicators":
       return { name, symbol, ...splitIndicatorKeys(input) };
+    case "add_chart_drawing":
+      return parseChartDrawing(input);
     case "open_panel": {
       const panel = str(input, "panel");
       const symbolTarget = symbolAwarePanelTarget(panel);
@@ -1003,6 +1064,66 @@ export function parseHostAction(name: string, input: Record<string, unknown>): H
 
 const CANT_APPLY = "can't apply";
 
+/** The drawing kinds the agent may add (`add_chart_drawing`); every other kind
+ *  stays a hand gesture (see {@link HAND_ACTION_INVENTORY}). */
+type ChartDrawingKind = "horizontal-line" | "trendline";
+const AGENT_DRAWING_KINDS: readonly string[] = ["horizontal-line", "trendline"];
+
+/** Bar time in UTC seconds, as the chart keys its bars (`toChartTime`). */
+function drawingTime(raw: unknown): number | null {
+  const ms = typeof raw === "string" ? Date.parse(raw) : NaN;
+  return Number.isFinite(ms) ? Math.floor(ms / 1000) : null;
+}
+
+/**
+ * Bind an `add_chart_drawing` to the open chart panel and the view it shows at
+ * enqueue, so the drawing lands on the symbol/timeframe the diff named. A
+ * horizontal-line is one price (its time is ignored); a trendline is two
+ * timed points.
+ */
+function parseChartDrawing(input: Record<string, unknown>): HostIntent {
+  const rawKind = str(input, "kind");
+  const kind = AGENT_DRAWING_KINDS.includes(rawKind) ? (rawKind as ChartDrawingKind) : null;
+  const panelId =
+    str(input, "panelId") || findOpenPanel({ id: "chart", component: "chart-panel" })?.id || "";
+  const view = (panelId && useChartDrawingsStore.getState().views[panelId]) || null;
+  const raw = Array.isArray(input.points) ? input.points : [];
+  const points: DrawingPoint[] = raw.map((p) => {
+    const point = typeof p === "object" && p !== null ? (p as Record<string, unknown>) : {};
+    const price =
+      typeof point.price === "number" && Number.isFinite(point.price) ? point.price : null;
+    return { time: kind === "horizontal-line" ? null : drawingTime(point.time), price };
+  });
+  const problem = !kind
+    ? `"${rawKind}" is not a drawing the agent can add`
+    : !view
+      ? "no chart is open"
+      : points.length !== pointsRequired(kind)
+        ? `a ${kind} takes ${pointsRequired(kind)} point(s)`
+        : points.some((p) => p.price === null)
+          ? "every point needs a price"
+          : kind === "trendline" && points.some((p) => p.time === null)
+            ? "every trendline point needs a bar time"
+            : "";
+  return { name: "add_chart_drawing", kind, panelId, view, points, problem };
+}
+
+/** "a horizontal line at ₹1,450" / "a trendline". */
+function chartDrawingLabel(intent: Extract<HostIntent, { name: "add_chart_drawing" }>): string {
+  const price = intent.points[0]?.price;
+  if (intent.kind === "horizontal-line") {
+    // The chart's symbol may quote in another currency than the region's, so no sign.
+    return typeof price === "number" ? `a horizontal line at ${price}` : "a horizontal line";
+  }
+  return intent.kind === "trendline" ? "a trendline" : "a drawing";
+}
+
+/** Drawings a panel already shows for its current view. */
+function chartDrawingCount(panelId: string, view: ChartView): number {
+  const list = useChartDrawingsStore.getState().getDrawings(panelId);
+  return drawingsFor(list, view.symbol, view.timeframe).length;
+}
+
 /** "1 criterion" / "3 criteria". */
 function criteriaText(count: number): string {
   return `${count} criteri${count === 1 ? "on" : "a"}`;
@@ -1042,6 +1163,19 @@ export function describeIntent(intent: HostIntent): {
           known.length === 0 && dropped.length > 0
             ? `Indicators: unchanged — ${CANT_APPLY}${droppedNote(dropped)}`
             : `Indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
+      };
+    }
+    case "add_chart_drawing": {
+      const { view, problem } = intent;
+      const onChart = view ? ` on ${view.symbol} ${view.timeframe}` : "";
+      const count = view ? chartDrawingCount(intent.panelId, view) : 0;
+      return {
+        kind: "chart",
+        title: `Draw ${chartDrawingLabel(intent)}${onChart}`,
+        before: `Drawings${onChart}: ${count}`,
+        after: problem
+          ? `Drawings: unchanged — ${CANT_APPLY} — ${problem}`
+          : `Drawings${onChart}: ${count + 1} (+${chartDrawingLabel(intent)})`,
       };
     }
     case "open_panel": {
@@ -1357,6 +1491,23 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       return done(
         `Set indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
       );
+    }
+    case "add_chart_drawing": {
+      const { kind, panelId, view, points, problem } = intent;
+      if (problem || !kind || !view) {
+        return fail(problem);
+      }
+      useChartDrawingsStore.getState().addDrawing(panelId, {
+        id: newDrawingId(),
+        panelId,
+        symbol: view.symbol,
+        timeframe: view.timeframe,
+        kind,
+        points,
+        style: { ...DEFAULT_DRAWING_STYLE },
+        createdAt: Date.now(),
+      });
+      return done(`Drew ${chartDrawingLabel(intent)} on ${view.symbol} ${view.timeframe}`);
     }
     case "open_panel": {
       const { panel, target, symbolTarget, symbol } = intent;

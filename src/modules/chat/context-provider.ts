@@ -99,6 +99,21 @@ export interface TerminalBrief {
   depth?: BriefDepth;
 }
 
+/**
+ * A generic per-panel summary for every bus source that isn't one of the
+ * hand-modelled fields (chart/watchlist/portfolio) — news, backtest,
+ * earnings, analyst ratings, SEC filings, screener, macro, quant, etc.
+ * (R15-AGENT-053). `summary` is a compact `key=value` projection of the
+ * published payload, capped to `MAX_OTHER_PANEL_SUMMARY_CHARS`, so a new
+ * panel is visible to the copilot the moment it publishes — with zero
+ * per-panel wiring here.
+ */
+export interface TerminalPanelSummary {
+  source: string;
+  symbol?: string;
+  summary: string;
+}
+
 /** Structured snapshot the copilot reasons over (serialisable). */
 export interface TerminalState {
   focusedPanel: string | null;
@@ -109,6 +124,10 @@ export interface TerminalState {
   portfolio: TerminalPortfolio | null;
   /** The brief panel's lifecycle truth (phase + run/artifact identity). */
   brief: TerminalBrief;
+  /** Every other published source's generic summary (R15-AGENT-053) — news,
+   *  backtest, earnings, analyst ratings, SEC filings, screener, macro,
+   *  quant, and any future panel that publishes to the bus. */
+  otherPanels: TerminalPanelSummary[];
   openPanels: string[];
   /** The active research space + its prior-research memory (S-19). Present iff
    *  the active workspace is a research space. */
@@ -232,6 +251,39 @@ export function focusedSymbolFromBus(
   return asString(payload.symbol) ?? asString(payload.ticker);
 }
 
+/** A generic per-source summary's cap (R15-AGENT-053) — compact enough that
+ *  N un-modelled panels never bloat the snapshot. */
+export const MAX_OTHER_PANEL_SUMMARY_CHARS = 200;
+
+/**
+ * Compactly project an arbitrary published payload into one `key=value, …`
+ * line, capped to {@link MAX_OTHER_PANEL_SUMMARY_CHARS}. Works for ANY panel's
+ * payload shape with zero per-panel code (R15-AGENT-053) — a new publisher is
+ * visible to the copilot the moment it starts publishing. Arrays collapse to
+ * a count, nested objects to `…`, so the line stays terse.
+ */
+export function genericPanelSummary(payload: Record<string, unknown>): string {
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+    let rendered: string;
+    if (Array.isArray(value)) {
+      rendered = `${value.length} item${value.length === 1 ? "" : "s"}`;
+    } else if (typeof value === "object") {
+      rendered = "…";
+    } else {
+      rendered = String(value);
+    }
+    parts.push(`${key}=${rendered}`);
+  }
+  const joined = parts.join(", ");
+  return joined.length > MAX_OTHER_PANEL_SUMMARY_CHARS
+    ? joined.slice(0, MAX_OTHER_PANEL_SUMMARY_CHARS) + "…"
+    : joined;
+}
+
 /** Each note rides the request capped at this many characters (C2). */
 export const NOTE_CHAR_CAP = 4_000;
 export const NOTE_TRUNCATION_MARKER =
@@ -282,6 +334,7 @@ export function captureTerminalState(): TerminalState {
   const charts: TerminalChart[] = [];
   let watchlist: { symbols: string[]; selected: string | null } = { symbols: [], selected: null };
   let portfolio: TerminalPortfolio | null = null;
+  const otherPanels: TerminalPanelSummary[] = [];
 
   for (const [source, event] of Object.entries(bySource)) {
     const payload = asRecord(event?.payload);
@@ -317,6 +370,16 @@ export function captureTerminalState(): TerminalState {
         ...(activePortfolioName !== null ? { activePortfolioName } : {}),
         holdings: extractHoldings(payload.holdings),
       };
+    } else {
+      // R15-AGENT-053: every other publisher (news, backtest, earnings,
+      // analyst ratings, SEC filings, screener, macro, quant, …) gets a
+      // generic summary instead of silently vanishing from the snapshot.
+      const symbol = asString(payload.symbol) ?? asString(payload.ticker);
+      otherPanels.push({
+        source,
+        ...(symbol !== null ? { symbol } : {}),
+        summary: genericPanelSummary(payload),
+      });
     }
   }
 
@@ -389,6 +452,7 @@ export function captureTerminalState(): TerminalState {
     watchlist,
     portfolio,
     brief: briefStateForSnapshot(),
+    otherPanels,
     openPanels,
     ...(researchSpace ? { researchSpace } : {}),
     ...(viewport ? { viewport } : {}),

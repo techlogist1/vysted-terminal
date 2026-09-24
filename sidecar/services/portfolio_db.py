@@ -2,7 +2,8 @@
 
 Holdings are owned by the workspace blob (the frontend portfolios store); this
 ledger is where they lived before the move, and the app reads it once to import
-them (R15-LIFECYCLE-009). No app surface writes it. The database lives at
+them (R15-LIFECYCLE-009). No app surface writes it, so it has no writers
+(R15-CODE-PLATFORM-021). The database lives at
 ``config.get_data_dir() / "portfolio.db"``; the schema is created lazily and
 idempotently on every access, which keeps a fresh data directory (or a test
 ``tmp_path``) working with no migration step.
@@ -16,7 +17,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 from config import get_data_dir
-from models.portfolio import Position, PositionInput
+from models.portfolio import Position
 
 DB_FILENAME = "portfolio.db"
 
@@ -80,67 +81,3 @@ def list_positions() -> list[Position]:
     with _connect() as conn:
         rows = conn.execute("SELECT * FROM positions ORDER BY id").fetchall()
     return [_row_to_position(row) for row in rows]
-
-
-def get_position(position_id: int) -> Position | None:
-    """Return one position by id, or ``None`` if it does not exist."""
-    with _connect() as conn:
-        row = conn.execute("SELECT * FROM positions WHERE id = ?", (position_id,)).fetchone()
-    return _row_to_position(row) if row else None
-
-
-def create_position(payload: PositionInput) -> Position:
-    """Insert a new position and return the stored record with its assigned id."""
-    opened_at = payload.opened_at.isoformat() if payload.opened_at else None
-    with _connect() as conn:
-        cursor = conn.execute(
-            """
-            INSERT INTO positions (symbol, quantity, cost_basis, asset_class, opened_at, note)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            (
-                payload.symbol,
-                payload.quantity,
-                payload.cost_basis,
-                payload.asset_class,
-                opened_at,
-                payload.note,
-            ),
-        )
-        new_id = cursor.lastrowid
-    created = get_position(int(new_id)) if new_id is not None else None
-    if created is None:  # pragma: no cover - insert always yields a row
-        raise RuntimeError("position insert did not return a row")
-    return created
-
-
-def update_position(position_id: int, payload: PositionInput) -> Position | None:
-    """Overwrite a position's fields; return the updated record or ``None``."""
-    opened_at = payload.opened_at.isoformat() if payload.opened_at else None
-    with _connect() as conn:
-        cursor = conn.execute(
-            """
-            UPDATE positions
-            SET symbol = ?, quantity = ?, cost_basis = ?, asset_class = ?, opened_at = ?, note = ?
-            WHERE id = ?
-            """,
-            (
-                payload.symbol,
-                payload.quantity,
-                payload.cost_basis,
-                payload.asset_class,
-                opened_at,
-                payload.note,
-                position_id,
-            ),
-        )
-        if cursor.rowcount == 0:
-            return None
-    return get_position(position_id)
-
-
-def delete_position(position_id: int) -> bool:
-    """Delete a position by id; return ``True`` if a row was removed."""
-    with _connect() as conn:
-        cursor = conn.execute("DELETE FROM positions WHERE id = ?", (position_id,))
-        return cursor.rowcount > 0

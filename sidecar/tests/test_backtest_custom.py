@@ -10,6 +10,7 @@ agent tool authors + runs + caches a result ``backtest_summary`` can resolve.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -29,7 +30,8 @@ from services.backtest_engine import Bar
 
 
 @pytest.fixture(autouse=True)
-def isolated_registries() -> None:
+def isolated_registries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
     backtest_engine.reset_registry_for_tests()
     backtest_store.reset_for_tests()
     yield

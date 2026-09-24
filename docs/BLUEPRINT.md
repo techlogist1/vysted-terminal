@@ -17,7 +17,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 
 **Positioning:** An open, extensible alternative to closed financial terminals — Bloomberg-level coverage and AI-native research, with a plugin architecture as the core differentiator.
 
-**v1.0 scope:** ~37 modules, 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
+**v1.0 scope:** 20 modules shipped in 0.9 (see §4 for the full ~37-module v1.0 roadmap), 12 AI agents, full plugin architecture, MCP server, node editor for workflow automation, backtest engine. Trading (broker connectivity, order placement, simulated accounts) was removed permanently (D81, 23 Sep 2026).
 
 **Launch budget: $0.** Upgrade path defined for when revenue/business interest justifies it.
 
@@ -74,7 +74,11 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 
 **Rust layer (Tauri 2.x core):**
 - Desktop shell (windowing, system tray, OS integration)
-- File system access
+- File system access — custom atomic-write commands (`write_text_atomic`,
+  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+  no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
+  persistence and CSV/PNG/PDF exports both write real files through these commands, a
+  webview Blob download is only the non-Tauri dev fallback)
 - Secure key storage (OS keychain integration on each platform)
 - Auto-updater (built into Tauri 2.x)
 - Code signing pipeline integration (SignPath for Win, ad-hoc for Mac)
@@ -231,7 +235,11 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 
 ---
 
-## 4. Module Catalog (~37 modules in v1.0)
+## 4. Module Catalog (20 shipped in 0.9.0; the full list below is the v1.0 roadmap, ~37 modules)
+
+R15-DOCS-005: this catalog was written as a v1.0 target list, not a shipped-vs-planned
+breakdown — `src/modules/index.ts`'s `vystedModules[]` currently registers 20 of the ~37
+listed below; the rest remain roadmap, not scope creep.
 
 ### Foundation (8)
 1. Tauri 2.x desktop shell (Win/Mac/Linux)
@@ -255,7 +263,8 @@ Adding agents = adding JSON configs. Plugins can contribute agents. Custom Agent
 ### Data Layer (5)
 16. OpenBB ODP wrap (bundled Python sidecar) — 100+ providers
 17. ccxt unified crypto WebSocket (Bybit, Binance, Kraken, Coinbase)
-18. yfinance + alpha_vantage fallbacks (no API key needed for basic use)
+18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was
+    never built and is dropped from this list, not just unimplemented)
 19. News intelligence (RSS + NewsAPI + AI sentiment scoring)
 20. Macro / economic data (FRED + ECB + IMF + World Bank via ODP)
 

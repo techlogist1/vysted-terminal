@@ -8,8 +8,12 @@ it to local with NO code change (FINDINGS §2.5 / §4.2).
 
 from __future__ import annotations
 
+import ctypes
 from dataclasses import replace
 
+import pytest
+
+from services import hardware_fit
 from services.hardware_fit import (
     VERDICT_GREEN,
     VERDICT_MARGINAL,
@@ -22,6 +26,15 @@ from services.hardware_fit import (
 )
 
 _GIB = 1024**3
+
+
+@pytest.fixture(autouse=True)
+def _reset_device_cache() -> None:
+    """``detect_device`` caches module-globally; isolate this file's
+    ``force=True`` probes from every other test that calls it un-forced."""
+    hardware_fit._cached_device = None
+    yield
+    hardware_fit._cached_device = None
 
 
 def _m1_16gb() -> DeviceProfile:
@@ -127,3 +140,46 @@ def test_detect_device_returns_a_sane_profile_on_this_host() -> None:
     assert dev.total_cores >= 1
     d = dev.to_dict()
     assert d["ramGib"] > 0 and d["gpuBudgetGib"] > 0
+    assert d["estimated"] is False
+
+
+def test_detect_windows_uses_real_ram_via_ctypes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-CROSS-PLATFORM-003: Windows RAM comes from GlobalMemoryStatusEx
+    (kernel32, via ctypes — no new dependency), not the generic 8 GiB guess."""
+    monkeypatch.setattr(hardware_fit.platform, "system", lambda: "Windows")
+
+    class _FakeKernel32:
+        @staticmethod
+        def GlobalMemoryStatusEx(ptr: object) -> int:
+            struct = ctypes.cast(ptr, ctypes.POINTER(hardware_fit._MemoryStatusEx)).contents
+            struct.ullTotalPhys = 32 * _GIB
+            return 1
+
+    class _FakeWindll:
+        kernel32 = _FakeKernel32()
+
+    monkeypatch.setattr(ctypes, "windll", _FakeWindll(), raising=False)
+    dev = detect_device(force=True)
+    assert dev.os_name == "Windows"
+    assert dev.ram_bytes == 32 * _GIB
+    assert dev.estimated is False
+
+
+def test_detect_windows_falls_back_when_the_api_call_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin, not written against: GlobalMemoryStatusEx unreachable (no
+    ``ctypes.windll``, e.g. a non-Windows host or an odd sandbox) degrades to
+    the generic guess, flagged ``estimated``, rather than crashing detection."""
+    monkeypatch.setattr(hardware_fit.platform, "system", lambda: "Windows")
+    monkeypatch.delattr(ctypes, "windll", raising=False)
+    dev = detect_device(force=True)
+    assert dev.ram_bytes == 8 * _GIB
+    assert dev.estimated is True
+
+
+def test_detect_unknown_os_is_estimated(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(hardware_fit.platform, "system", lambda: "SomeOtherOS")
+    dev = detect_device(force=True)
+    assert dev.ram_bytes == 8 * _GIB
+    assert dev.estimated is True

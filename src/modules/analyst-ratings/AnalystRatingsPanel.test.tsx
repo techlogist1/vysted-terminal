@@ -33,8 +33,14 @@ vi.mock("@/lib/sidecar-client", () => ({
   sidecarGet: vi.fn(),
 }));
 
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { sidecarGet } from "@/lib/sidecar-client";
 import { useAnalystRatingsStore } from "@/store/analyst-ratings";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import { AnalystRatingsPanel } from "./AnalystRatingsPanel";
 
@@ -114,6 +120,7 @@ const INDIVIDUAL: IndividualAnalystResponse = {
 
 beforeEach(() => {
   useAnalystRatingsStore.getState().__resetForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.clearAllMocks();
 });
 
@@ -178,6 +185,20 @@ describe("AnalystRatingsPanel", () => {
     });
   });
 
+  it("R15-DATA-068: the as-of chip prefers the server as_of over the client fetch clock", async () => {
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce({ ...HISTORY, as_of: "2026-05-02T00:00:00.000Z" })
+      .mockResolvedValueOnce(TARGETS)
+      .mockResolvedValueOnce(INDIVIDUAL);
+    render(<AnalystRatingsPanel />);
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "AAPL" } });
+    fireEvent.click(screen.getByRole("button", { name: /load/i }));
+    await waitFor(() => {
+      const chip = screen.getByTestId("analyst-as-of-chip");
+      expect(chip).toHaveTextContent(new Date("2026-05-02T00:00:00.000Z").toLocaleString());
+    });
+  });
+
   it("renders a table-shaped skeleton during the fetch window, never pulsing prose", () => {
     // Never-resolving fetches hold the loading window open.
     vi.mocked(sidecarGet).mockImplementation(() => new Promise(() => {}));
@@ -209,5 +230,23 @@ describe("AnalystRatingsPanel", () => {
     await waitFor(() => {
       expect(screen.getByText(/Morgan Stanley/i)).toBeInTheDocument();
     });
+  });
+
+  it("publishes the loaded symbol + active tab to the panel context bus (R15-AGENT-053)", async () => {
+    render(<AnalystRatingsPanel />);
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource["analyst-ratings"]).toBeDefined();
+    });
+    const payload = usePanelContextBus.getState().lastEventBySource["analyst-ratings"]!.payload as {
+      symbol: string;
+      tab: string;
+    };
+    expect(payload).toEqual({ symbol: "AAPL", tab: "history" });
+  });
+
+  it("clicking the symbol header loads it into the chart (R15-AGENT-053)", async () => {
+    render(<AnalystRatingsPanel />);
+    fireEvent.click(await screen.findByTestId("analyst-symbol-AAPL"));
+    expect(loadSymbolIntoChart).toHaveBeenCalledWith("AAPL");
   });
 });

@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TrendingUp } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { selectSeriesStatus, useMacroStore } from "@/store/macro";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import type { MacroProvider } from "../../../types/macro";
 import { MacroChart } from "./MacroChart";
@@ -76,6 +77,26 @@ export function MacroPanel() {
   };
   const onProviderChange = (nextProvider: MacroProvider) =>
     onSelect(nextProvider, TAB_DEFAULT_SERIES[nextProvider]);
+
+  // R15-AGENT-053: publish the active provider + series id so the copilot
+  // can see what's on screen.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "macro",
+      kind: "snapshot",
+      payload: { provider, seriesId },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, provider, seriesId]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("macro");
+    };
+  }, [unregisterPanelContext]);
 
   return (
     <div

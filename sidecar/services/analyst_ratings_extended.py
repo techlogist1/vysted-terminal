@@ -250,7 +250,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
                 )
             )
     entries.sort(key=lambda entry: entry.date, reverse=True)
-    return RatingsHistoryResponse(symbol=normalized, history=entries)
+    return RatingsHistoryResponse(symbol=normalized, history=entries, as_of=datetime.now(UTC))
 
 
 async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
@@ -336,7 +336,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
                     provider=PROVIDER,
                 )
             )
-    return PriceTargetHistoryResponse(symbol=normalized, history=entries)
+    return PriceTargetHistoryResponse(symbol=normalized, history=entries, as_of=datetime.now(UTC))
 
 
 async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
@@ -391,7 +391,7 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
                     provider=PROVIDER,
                 )
             )
-    return IndividualAnalystResponse(symbol=normalized, analysts=forecasts)
+    return IndividualAnalystResponse(symbol=normalized, analysts=forecasts, as_of=datetime.now(UTC))
 
 
 __all__ = [

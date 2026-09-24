@@ -605,3 +605,69 @@ describe("EquityOverviewPanel — batch-2 contract renders (C1, C2)", () => {
     expect(screen.queryByText("$14.0B")).toBeNull();
   });
 });
+
+describe("EquityOverviewPanel — batch-10 fundamentals labels (R15-DATA-048/054/055)", () => {
+  /** The Value cell of the fundamentals row labelled `label`. */
+  function valueCell(label: string): HTMLElement {
+    const row = screen.getByTitle(label).closest("tr");
+    return row!.querySelectorAll("td")[1] as HTMLElement;
+  }
+
+  it("renders the derived ROCE row, and an honest 'unavailable' when ROCE is null", async () => {
+    const meta: Record<string, FieldMeta> = {
+      roce: { status: "ok", provider: "derived", basis_note: "annual EBIT / capital employed" },
+    };
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ roce: 0.233, field_meta: meta }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(valueCell("ROCE").textContent).toBe("+23.30%");
+    expect(valueCell("ROCE").getAttribute("title")).toBe("derived");
+    cleanup();
+
+    const missing: Record<string, FieldMeta> = {
+      roce: { status: "unavailable", provider: "derived" },
+    };
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ roce: null, field_meta: missing }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(valueCell("ROCE").textContent).toContain("unavailable");
+  });
+
+  it("shows the filed basis chip only when the sidecar derived one", async () => {
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ basis: "standalone" }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByTestId("basis-chip").textContent).toBe("standalone");
+    cleanup();
+
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ basis: null }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.queryByTestId("basis-chip")).toBeNull();
+  });
+
+  it("labels a 38-day-old listing's range 'since listing' and drops its 1Y change", async () => {
+    const listed = new Date(Date.now() - 38 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ listing_date: listed }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    const header = screen.getByTestId("equity-header").textContent ?? "";
+    expect(header).toContain("since listing");
+    expect(header).not.toContain("52w");
+    expect(screen.queryByTitle("1Y change")).toBeNull();
+    cleanup();
+
+    // An older listing (and a listing with no exchange date) keeps "52w" + 1Y.
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ listing_date: "1995-11-29" }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByTestId("equity-header").textContent).toContain("52w");
+    expect(screen.getByTitle("1Y change")).toBeInTheDocument();
+  });
+});

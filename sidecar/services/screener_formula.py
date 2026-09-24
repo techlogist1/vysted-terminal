@@ -285,39 +285,53 @@ class _Parser:
     def parse(self) -> Node:
         if not self.tokens:
             raise FormulaError("empty formula", position=0)
-        node = self._or_expr()
+        node, _is_bool = self._or_expr()
         trailing = self._peek()
         if trailing is not None:
             raise FormulaError(f"unexpected {trailing.text!r}", trailing.position)
         return node
 
-    def _or_expr(self) -> Node:
-        values = [self._and_expr()]
+    # Each production below returns ``(node, is_bool)`` — whether it produced a
+    # BOOLEAN value (a comparison, `and`/`or`, or `not`) rather than a numeric
+    # one. A boolean operand reaching arithmetic (`+ - * /`, unary `-`) or an
+    # `abs`/`min`/`max` argument is a positioned :class:`FormulaError`
+    # (R15-RESEARCH-025) instead of Python's own silent ``float(True) == 1.0``
+    # coercion. Ports the TS twin's boolean-tracking (`src/lib/screener-expr.ts`)
+    # the rest of the way: enforced, not just tracked.
+
+    def _or_expr(self) -> tuple[Node, bool]:
+        node, is_bool = self._and_expr()
+        values = [node]
         while self._accept_keyword("or") is not None:
-            values.append(self._and_expr())
-        return values[0] if len(values) == 1 else BoolOp(op="or", values=tuple(values))
+            operand, _ = self._and_expr()
+            values.append(operand)
+            is_bool = True
+        return (values[0] if len(values) == 1 else BoolOp(op="or", values=tuple(values))), is_bool
 
-    def _and_expr(self) -> Node:
-        values = [self._not_expr()]
+    def _and_expr(self) -> tuple[Node, bool]:
+        node, is_bool = self._not_expr()
+        values = [node]
         while self._accept_keyword("and") is not None:
-            values.append(self._not_expr())
-        return values[0] if len(values) == 1 else BoolOp(op="and", values=tuple(values))
+            operand, _ = self._not_expr()
+            values.append(operand)
+            is_bool = True
+        return (values[0] if len(values) == 1 else BoolOp(op="and", values=tuple(values))), is_bool
 
-    def _not_expr(self) -> Node:
+    def _not_expr(self) -> tuple[Node, bool]:
         token = self._accept_keyword("not")
         if token is not None:
             self._enter_nesting(token.position)
-            operand = self._not_expr()
+            operand, _ = self._not_expr()
             self._depth -= 1
-            return NotOp(operand=operand)
+            return NotOp(operand=operand), True
         return self._comparison()
 
-    def _comparison(self) -> Node:
-        left = self._sum()
+    def _comparison(self) -> tuple[Node, bool]:
+        left, left_is_bool = self._sum()
         token = self._accept_op(*_CMP_OPS)
         if token is None:
-            return left
-        right = self._sum()
+            return left, left_is_bool
+        right, _right_is_bool = self._sum()
         # Chained comparisons (a < b < c) read ambiguously in a filter —
         # reject with a clear message rather than silently misparse.
         chained = self._peek()
@@ -326,55 +340,89 @@ class _Parser:
                 "chained comparisons are not supported — combine with 'and'",
                 chained.position,
             )
-        return Compare(op=token.text, left=left, right=right)
+        return Compare(op=token.text, left=left, right=right), True
 
-    def _sum(self) -> Node:
-        node = self._term()
+    def _sum(self) -> tuple[Node, bool]:
+        node, is_bool = self._term()
         while True:
             token = self._accept_op("+", "-")
             if token is None:
-                return node
-            node = BinOp(op=token.text, left=node, right=self._term())
+                return node, is_bool
+            if is_bool:
+                raise FormulaError(
+                    "a boolean expression can't be used in arithmetic — wrap the "
+                    "comparison on its own, or combine with 'and'/'or'",
+                    token.position,
+                )
+            right, right_is_bool = self._term()
+            if right_is_bool:
+                raise FormulaError(
+                    "a boolean expression can't be used in arithmetic — wrap the "
+                    "comparison on its own, or combine with 'and'/'or'",
+                    token.position,
+                )
+            node = BinOp(op=token.text, left=node, right=right)
+            is_bool = False
 
-    def _term(self) -> Node:
-        node = self._factor()
+    def _term(self) -> tuple[Node, bool]:
+        node, is_bool = self._factor()
         while True:
             token = self._accept_op("*", "/")
             if token is None:
-                return node
-            node = BinOp(op=token.text, left=node, right=self._factor())
+                return node, is_bool
+            if is_bool:
+                raise FormulaError(
+                    "a boolean expression can't be used in arithmetic — wrap the "
+                    "comparison on its own, or combine with 'and'/'or'",
+                    token.position,
+                )
+            right, right_is_bool = self._factor()
+            if right_is_bool:
+                raise FormulaError(
+                    "a boolean expression can't be used in arithmetic — wrap the "
+                    "comparison on its own, or combine with 'and'/'or'",
+                    token.position,
+                )
+            node = BinOp(op=token.text, left=node, right=right)
+            is_bool = False
 
-    def _factor(self) -> Node:
+    def _factor(self) -> tuple[Node, bool]:
         token = self._accept_op("-")
         if token is not None:
             self._enter_nesting(token.position)
-            operand = self._factor()
+            operand, operand_is_bool = self._factor()
             self._depth -= 1
-            return Neg(operand=operand)
+            if operand_is_bool:
+                raise FormulaError(
+                    "a boolean expression can't be negated numerically — wrap the "
+                    "comparison on its own, or use 'not'",
+                    token.position,
+                )
+            return Neg(operand=operand), False
         return self._primary()
 
-    def _primary(self) -> Node:
+    def _primary(self) -> tuple[Node, bool]:
         token = self._next()
         if token.kind == "num":
             value = float(token.text)
             if math.isnan(value) or math.isinf(value):
                 raise FormulaError("number literal too large", token.position)
-            return Num(value=value)
+            return Num(value=value), False
         if token.kind == "op" and token.text == "(":
             self._enter_nesting(token.position)
-            node = self._or_expr()
+            node, is_bool = self._or_expr()
             self._depth -= 1
             self._expect_op(")", "to close the parenthesis")
-            return node
+            return node, is_bool
         if token.kind == "ident":
             name = token.text.lower()
             if name in KEYWORDS:
                 raise FormulaError(f"unexpected keyword {name!r}", token.position)
             if name in FUNCTIONS:
-                return self._call(name, token)
+                return self._call(name, token), False
             field = _FIELD_LOOKUP.get(name)
             if field is not None:
-                return FieldRef(name=field)
+                return FieldRef(name=field), False
             raise FormulaError(
                 f"unknown field {token.text!r} — fields: "
                 f"{', '.join(NUMERIC_FIELDS)}; functions: {', '.join(sorted(FUNCTIONS))}",
@@ -385,9 +433,20 @@ class _Parser:
     def _call(self, name: str, name_token: _Token) -> Call:
         open_paren = self._expect_op("(", f"after {name!r}")
         self._enter_nesting(open_paren.position)
-        args = [self._or_expr()]
+
+        def _arg() -> Node:
+            node, is_bool = self._or_expr()
+            if is_bool:
+                raise FormulaError(
+                    f"{name}() needs a numeric argument, not a boolean expression — "
+                    "wrap the comparison on its own, or combine with 'and'/'or'",
+                    open_paren.position,
+                )
+            return node
+
+        args = [_arg()]
         while self._accept_op(",") is not None:
-            args.append(self._or_expr())
+            args.append(_arg())
             if len(args) > MAX_VARIADIC_ARGS:
                 raise FormulaError(
                     f"{name}() takes at most {MAX_VARIADIC_ARGS} arguments",

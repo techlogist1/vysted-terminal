@@ -139,9 +139,31 @@ def _parse_period(period: str) -> datetime | None:
         return None
 
 
-def _parse_observations(message: dict[str, Any]) -> list[MacroObservation]:
+def _vintage_year(structure: dict[str, Any], series: dict[str, Any]) -> int | None:
+    """The year of the series' ``COUNTRY_UPDATE_DATE`` attribute (``9/30/2025``),
+    the vintage a WEO series was published in, or ``None``."""
+    ids = [a.get("id") for a in structure.get("attributes", {}).get("series") or []]
+    values = series.get("attributes") or []
+    if "COUNTRY_UPDATE_DATE" not in ids:
+        return None
+    i = ids.index("COUNTRY_UPDATE_DATE")
+    try:
+        return datetime.strptime(str(values[i]), "%m/%d/%Y").year
+    except (IndexError, ValueError):
+        return None
+
+
+def _parse_observations(
+    message: dict[str, Any], *, forecasts: bool = False
+) -> list[MacroObservation]:
     """Flatten the first series of an SDMX-JSON 2.0 message (a fully specified
-    key returns exactly one). An unknown key answers 200 with no series."""
+    key returns exactly one). An unknown key answers 200 with no series.
+
+    ``forecasts`` (the WEO dataflow) marks each year from the vintage year on as
+    a projection (R15-LEAD-024): the message carries no per-point estimate
+    marker (its ``PRECISION``/``DERIVATION_TYPE`` observation attributes come
+    without values), and a WEO vintage publishes its own year as a forecast.
+    """
     data = message.get("data") or {}
     datasets = data.get("dataSets") or []
     structures = data.get("structures") or []
@@ -151,6 +173,7 @@ def _parse_observations(message: dict[str, Any]) -> list[MacroObservation]:
     time_dims = structures[0].get("dimensions", {}).get("observation") or []
     periods = [v.get("value") or v.get("id") for v in time_dims[0].get("values", [])]
     first = next(iter(series.values()))
+    cutoff = _vintage_year(structures[0], first) if forecasts else None
     observations: list[MacroObservation] = []
     for idx, obs in sorted((first.get("observations") or {}).items(), key=lambda kv: int(kv[0])):
         i = int(idx)
@@ -163,7 +186,13 @@ def _parse_observations(message: dict[str, Any]) -> list[MacroObservation]:
             value = None
         if value is not None and value != value:
             value = None
-        observations.append(MacroObservation(date=date, value=value))
+        observations.append(
+            MacroObservation(
+                date=date,
+                value=value,
+                is_projection=cutoff is not None and date.year >= cutoff,
+            )
+        )
     return observations
 
 
@@ -188,7 +217,7 @@ def get_series(series_id: str) -> MacroSeriesExtended:
     except ValueError as exc:  # a non-JSON body
         raise ProviderError(f"IMF upstream error for {series_id!r}: {exc}") from exc
 
-    observations = _parse_observations(message)
+    observations = _parse_observations(message, forecasts=dataflow == "WEO")
     if not observations:
         raise ProviderError(f"IMF has no data for {series_id!r}", kind="not_found")
 

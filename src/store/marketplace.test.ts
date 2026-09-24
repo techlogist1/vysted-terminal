@@ -30,6 +30,8 @@ vi.mock("@/lib/sidecar-client", async () => {
   return { ...actual, sidecarGet: sidecarGetMock };
 });
 
+import { CATALOG_BY_ID } from "@/lib/marketplace";
+import { pluginHost } from "@/lib/plugin-bootstrap";
 import { PluginRuntime } from "@/lib/plugin-runtime";
 import { resetMarketplaceStoreForTests, useMarketplaceStore } from "@/store/marketplace";
 import { useModulesStore } from "@/store/modules";
@@ -39,8 +41,9 @@ let detach: (() => void) | null = null;
 
 function attachFreshRuntime(): void {
   // Default in-memory persistence; host version matches HOST_VERSION so every
-  // catalog plugin satisfies requiredHostVersion.
-  const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+  // catalog plugin satisfies requiredHostVersion. The production host bridge,
+  // since the runtime (not this store) bridges panels/commands/agents.
+  const runtime = new PluginRuntime({ hostVersion: "0.8.0", host: pluginHost });
   detach = usePluginsStore.getState().attachRuntime(runtime);
 }
 
@@ -114,6 +117,18 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
       "plugin-secret:vysted-news:newsapi_key",
       "my-secret",
     );
+  });
+
+  it("configure() restarts an active plugin so initialize() sees the new grant (R15-CODE-PLATFORM-014)", async () => {
+    await useMarketplaceStore.getState().install("vysted-news");
+    const initialize = vi.spyOn(CATALOG_BY_ID["vysted-news"].discovered.instance, "initialize");
+    try {
+      await useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "k" });
+      expect(initialize).toHaveBeenCalledOnce();
+      expect(useMarketplaceStore.getState().stateFor("vysted-news").runtimeState).toBe("active");
+    } finally {
+      initialize.mockRestore();
+    }
   });
 
   it("configure() rejects a NewsAPI key the sidecar reports unauthorized (R15-DATA-094)", async () => {

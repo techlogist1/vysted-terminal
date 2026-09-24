@@ -32,7 +32,7 @@ import sqlite3
 import time
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 from config import get_data_dir
 from models.fundamentals import Fundamentals
@@ -41,12 +41,24 @@ from models.screener import (
     NumericBetweenCriterion,
     NumericThresholdCriterion,
     ScreenerCriterion,
+    ScreenerNumericField,
     SetInCriterion,
     StringEqCriterion,
 )
 from services import fundamentals_seed
 
 DB_FILENAME = "fundamentals_cache.db"
+
+#: Criterion field -> store column, for the trio that rides the live quote
+#: rather than its own column. Defined here (ahead of ``_NUMERIC_FIELDS``) so
+#: both that derivation and ``_field_column`` (prefilter section, below) read
+#: the same set — a field can only be "quote-derived" in one place.
+_QUOTE_FIELD_COLUMNS: dict[str, str] = {
+    "price": "quote_price",
+    "change_percent_1d": "quote_change_percent",
+    "volume": "quote_volume",
+}
+_QUOTE_DERIVED_FIELDS: frozenset[str] = frozenset(_QUOTE_FIELD_COLUMNS)
 
 # --- Per-tier TTLs (D40) --------------------------------------------------------
 #: Quote tier on the full-market universes (nse-all / bse-all / india-all).
@@ -63,36 +75,24 @@ TTL_INFO_SECONDS = 7 * 24 * 60 * 60.0
 #: the same batch every cycle.
 TTL_INFO_RETRY_SECONDS = 24 * 60 * 60.0
 
+#: A handful of store columns are NOT (yet) screener criteria — kept minimal
+#: and explicit rather than silently inventing new ``ScreenerNumericField``
+#: members (which would ripple into the formula grammar, the criteria-builder
+#: UI and every ``Record<ScreenerNumericField, …>`` in ``screener-expr.ts``).
+_STORE_ONLY_NUMERIC_FIELDS: tuple[str, ...] = ("shares_outstanding",)
+
 #: Numeric ``Fundamentals`` fields stored 1:1 as columns (the screener's full
-#: numeric vocabulary minus the quote-derived trio, which rides ``quote_*``).
+#: numeric vocabulary minus the quote-derived trio, which rides ``quote_*``,
+#: plus the store-only extras above). ``ScreenerNumericField``
+#: (``models/screener.py``) is the ONE declaration of the criteria vocabulary
+#: — this derives from it rather than hand-duplicating it, so a field added
+#: there can never again drift out of sync with the store's own column list
+#: (R15-DATA-095: ``shares_outstanding`` was hand-added here but not to
+#: ``_migrate``, so a DB created before that stayed forever without the
+#: column — see ``_migrate``, which now ALTERs from the same list).
 _NUMERIC_FIELDS: tuple[str, ...] = (
-    "market_cap",
-    "pe_ratio",
-    "forward_pe",
-    "peg_ratio",
-    "price_to_book",
-    "price_to_sales",
-    "ev_to_ebitda",
-    "book_value",
-    "dividend_yield",
-    "eps",
-    "beta",
-    "roe",
-    "roa",
-    "gross_margin",
-    "operating_margin",
-    "profit_margin",
-    "debt_to_equity",
-    "current_ratio",
-    "quick_ratio",
-    "revenue_growth",
-    "earnings_growth",
-    "fifty_two_week_high",
-    "fifty_two_week_low",
-    "fifty_two_week_change",
-    "held_percent_insiders",
-    "held_percent_institutions",
-    "shares_outstanding",
+    tuple(f for f in get_args(ScreenerNumericField) if f not in _QUOTE_DERIVED_FIELDS)
+    + _STORE_ONLY_NUMERIC_FIELDS
 )
 
 #: The v7 batch tier's numeric coverage — exactly the fields
@@ -119,34 +119,59 @@ _INFO_ONLY_NUMERIC_FIELDS: tuple[str, ...] = tuple(
     f for f in _NUMERIC_FIELDS if f not in _V7_NUMERIC_FIELDS
 )
 
+#: Every non-``symbol`` column this table has (identity + the numeric
+#: vocabulary + quote/tier-freshness/meta), each with its SQL type. The ONE
+#: list both ``_SCHEMA``'s ``CREATE TABLE`` and ``_migrate``'s ALTER-if-missing
+#: build from, so a column can never again be declared in one and silently
+#: absent from the other (R15-DATA-095: ``_NUMERIC_FIELDS`` gained
+#: ``shares_outstanding`` with no matching ``_migrate`` entry, so a DB created
+#: before that addition stayed forever without the column).
+_ALL_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("name", "TEXT"),
+    ("exchange", "TEXT"),
+    ("isin", "TEXT"),
+    ("scrip_code", "TEXT"),
+    ("bse_group", "TEXT"),
+    ("sector", "TEXT"),
+    ("industry", "TEXT"),
+    ("sector_source", "TEXT"),
+    ("currency", "TEXT"),
+    *((f, "REAL") for f in _NUMERIC_FIELDS),
+    ("quote_price", "REAL"),
+    ("quote_change", "REAL"),
+    ("quote_change_percent", "REAL"),
+    ("quote_volume", "REAL"),
+    ("quote_currency", "TEXT"),
+    ("quote_market_state", "TEXT"),
+    ("quote_timestamp", "TEXT"),
+    ("quote_updated_at", "REAL"),
+    ("v7_updated_at", "REAL"),
+    ("info_updated_at", "REAL"),
+    ("info_failed_at", "REAL"),
+    ("seed_updated_at", "REAL"),
+    ("eod_updated_at", "REAL"),
+    ("provider", "TEXT"),
+)
+
+#: Every SQL identifier ``_criterion_fails_sql`` is allowed to interpolate —
+#: asserted there so an unrecognised field can never reach raw SQL, even if a
+#: ``ScreenerCriterion`` bypassing Pydantic validation ever reached this far.
+_KNOWN_COLUMNS: frozenset[str] = frozenset({"symbol", *(name for name, _ in _ALL_COLUMNS)})
+
+_column_defs = ",\n    ".join(f"{name} {decl}" for name, decl in _ALL_COLUMNS)
 _SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS fundamentals (
     symbol TEXT PRIMARY KEY,
-    name TEXT,
-    exchange TEXT,
-    isin TEXT,
-    scrip_code TEXT,
-    bse_group TEXT,
-    sector TEXT,
-    industry TEXT,
-    sector_source TEXT,
-    currency TEXT,
-    {", ".join(f"{f} REAL" for f in _NUMERIC_FIELDS)},
-    quote_price REAL,
-    quote_change REAL,
-    quote_change_percent REAL,
-    quote_volume REAL,
-    quote_currency TEXT,
-    quote_market_state TEXT,
-    quote_timestamp TEXT,
-    quote_updated_at REAL,
-    v7_updated_at REAL,
-    info_updated_at REAL,
-    info_failed_at REAL,
-    seed_updated_at REAL,
-    eod_updated_at REAL,
-    provider TEXT
+    {_column_defs}
 );
+"""
+# Indexes reference columns _migrate may still need to ALTER in on an old DB
+# (sector/market_cap/info_updated_at were always part of the base schema in
+# practice, but _migrate is now general enough to backfill a DB missing them
+# too) — created in a separate step AFTER _migrate runs, never in the same
+# executescript as CREATE TABLE, so they never reference a not-yet-added
+# column.
+_INDEX_SCHEMA = """
 CREATE INDEX IF NOT EXISTS idx_fundamentals_sector ON fundamentals(sector);
 CREATE INDEX IF NOT EXISTS idx_fundamentals_mcap ON fundamentals(market_cap DESC);
 CREATE INDEX IF NOT EXISTS idx_fundamentals_info_at ON fundamentals(info_updated_at);
@@ -167,18 +192,19 @@ def _connect() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     _migrate(conn)
+    conn.executescript(_INDEX_SCHEMA)
     return conn
 
 
 def _migrate(conn: sqlite3.Connection) -> None:
     """Additive column migration — ``CREATE TABLE IF NOT EXISTS`` never alters
-    an existing table, so a DB created before a column landed gets it here."""
+    an existing table, so a DB created before a column landed gets it here.
+    ALTERs every column in ``_ALL_COLUMNS`` that ``PRAGMA table_info`` doesn't
+    already report — not a hand-picked subset, so a future addition to
+    ``_NUMERIC_FIELDS`` (or any other column) migrates existing DBs without
+    a matching ``_migrate`` edit (R15-DATA-095)."""
     have = {row[1] for row in conn.execute("PRAGMA table_info(fundamentals)")}
-    for column, decl in (
-        ("info_failed_at", "REAL"),
-        ("seed_updated_at", "REAL"),
-        ("eod_updated_at", "REAL"),
-    ):
+    for column, decl in _ALL_COLUMNS:
         if column not in have:
             conn.execute(f"ALTER TABLE fundamentals ADD COLUMN {column} {decl}")
 
@@ -647,16 +673,17 @@ async def stale_symbols(
 # Prefilter — cheap-criteria SQL translation (prune phase).
 # ---------------------------------------------------------------------------
 
-#: Criterion field → store column for the quote-derived trio.
-_QUOTE_FIELD_COLUMNS = {
-    "price": "quote_price",
-    "change_percent_1d": "quote_change_percent",
-    "volume": "quote_volume",
-}
-
 
 def _field_column(field: str) -> str:
-    return _QUOTE_FIELD_COLUMNS.get(field, field)
+    """Resolve a criterion field to its store column, asserting it is a known
+    one — the only guard between a criterion's ``field`` and an interpolated
+    SQL identifier (R15-DATA-095). ``ScreenerCriterion.field`` is already a
+    Pydantic ``Literal`` at every real call site (the API boundary rejects
+    anything else); this is defense-in-depth, not the primary gate."""
+    column = _QUOTE_FIELD_COLUMNS.get(field, field)
+    if column not in _KNOWN_COLUMNS:
+        raise ValueError(f"unknown fundamentals field {field!r}")
+    return column
 
 
 def _criterion_fails_sql(
@@ -685,7 +712,7 @@ def _criterion_fails_sql(
     if isinstance(criterion, StringEqCriterion):
         if criterion.field == "currency":
             return None  # rides the quote, locale-shaped — evaluate in phase F
-        col = criterion.field
+        col = _field_column(criterion.field)
         return f"({col} IS NOT NULL AND {col} COLLATE NOCASE != ?)", [criterion.value]
     if isinstance(criterion, SetInCriterion):
         if not criterion.value:
@@ -696,7 +723,7 @@ def _criterion_fails_sql(
                 f"(symbol COLLATE NOCASE NOT IN ({marks}))",
                 [v.upper() for v in criterion.value],
             )
-        col = criterion.field
+        col = _field_column(criterion.field)
         return (
             f"({col} IS NOT NULL AND {col} COLLATE NOCASE NOT IN ({marks}))",
             list(criterion.value),

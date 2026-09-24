@@ -24,7 +24,7 @@
  * Greeks are closed-form for a European vanilla).
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Gauge } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useQuantStore } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 
@@ -245,6 +246,26 @@ export function GreeksDashboard() {
         read: g.read,
       }))
     : [];
+
+  // R15-AGENT-053: publish the active setup + last result so the copilot
+  // can see what's on screen.
+  const publishPanelContext = usePanelContextBus((s) => s.publish);
+  const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
+
+  useEffect(() => {
+    publishPanelContext({
+      source: "greeks-dashboard",
+      kind: "snapshot",
+      payload: { payoff, strike: Number(strike), price: lastResult?.price ?? null },
+      emittedAt: Date.now(),
+    });
+  }, [publishPanelContext, payoff, strike, lastResult]);
+
+  useEffect(() => {
+    return () => {
+      unregisterPanelContext("greeks-dashboard");
+    };
+  }, [unregisterPanelContext]);
 
   return (
     <div className="bg-charcoal-900 flex h-full min-h-0 w-full">

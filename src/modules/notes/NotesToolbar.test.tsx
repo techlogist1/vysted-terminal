@@ -69,3 +69,47 @@ describe("NotesToolbar — Link", () => {
     expect(editorOf().isActive("link")).toBe(false);
   });
 });
+
+describe("NotesToolbar — R15-UI-024", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  afterEach(() => {
+    cleanup();
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  it("the Task list button toggles a task list (extension is registered)", async () => {
+    await renderPanel();
+    act(() => {
+      editorOf().commands.insertContent("Buy milk");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Task list" }));
+
+    expect(editorOf().isActive("taskList")).toBe(true);
+  });
+
+  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+    await renderPanel();
+    act(() => {
+      editorOf().commands.insertContent("alpha beta gamma");
+      editorOf().commands.setTextSelection({ from: 1, to: 6 }); // "alpha"
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+
+    const md = (editorOf() as unknown as { getMarkdown: () => string }).getMarkdown();
+    expect(md).toContain("[[ALPHA]]");
+    expect(md).toContain("beta gamma");
+  });
+
+  it("Insert [[wikilink]] with no selection still opens the picker (falls back to '[[')", async () => {
+    await renderPanel();
+    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+
+    expect(editorOf().getText()).toBe("[[");
+  });
+});

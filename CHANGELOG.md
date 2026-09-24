@@ -4,6 +4,69 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 10: runtime and backtest integrity, catalog and host actions, fundamentals truth, screener and state docs, chat and search, chart defaults and notes, marketplace and panels, plugin lifecycle (2026-09-25)
+
+**Scope:** 56 entries planned in `docs/redesign/verification/r15/stage-c/batch-10/PLAN.md`; the eight writers
+delivered 50 commits reporting all 56 (DATA-068 split W3 sidecar + W7 UI). Merged `--no-ff` in plan order
+W3 → W4 → W1 → W2 → W8 → W7 → W6 → W5 on `worktree-agent-batch-10-int` (base `6b91b8f`), no file conflicts.
+
+- **Dropped at integration:** LEAD-013 (`fde0ad3c` + `ccd5b0da` reverted). The regenerated `sp500.json` (503 names)
+  was not shipped with a matching `us_fundamentals_seed.json.gz`: 40 names had no seed row, so a throttled cold
+  sp500 run skipped 8% (over SC-034's <5% bar) and the US pack was no longer a subset of the universe. The universe
+  and the seed pack have to be regenerated together, which needs a live re-crawl. The entry returns to open.
+- **Open leg:** DATA-071. A cold BSE range is flagged `partial` with `coverage_start`, but D-B10-8's under-50%
+  fall-through needs `provider_registry.py` to serve the last lane's partial result.
+- **Follow-up (DATA-061):** only `fred_provider` moved to `ProviderError.authored()`. Other messages written for the
+  user with no kind now also read the generic sentence until they migrate. An example is the BSE/NSE/india
+  "intraday timeframe … is not available keyless" error.
+- **Integrator edits (no assertion weakened):**
+  - Six route tests still expected a plain `ProviderError`'s text in `detail`, which was the D-B9-1 contract that
+    DATA-061 retires. They now assert the generic sentence, and the FRED mapper test builds its stub with
+    `.authored()`.
+  - The SearXNG status-route test now stubs the engine-quality probe; it had been querying a live :8888.
+  - LEAD-018's fixture read takes `encoding="utf-8"`.
+  - D-B10-1..11 are recorded in `DECISIONS.md`. W7's D-B10-6 row was a malformed three-column row that also
+    clipped D-B9-10; it is folded back into the table.
+  - CURRENT_STATE's sp500 line matches the reverted pack.
+
+- **W1 agent runtime and backtest:** `invoke_agent`'s tool-surface, native-search and planner pre-pass are
+  extracted (CODE-AGENT-009); the Anthropic system block is stable and each round carries a cache breakpoint, with
+  sent tool results immutable (AGENT-050); chain-of-thought in `content` routes to thinking events (LEAD-018);
+  buys merge at a weighted-average entry and sells cap at the held quantity (CODE-PLATFORM-029/030); results persist
+  as JSON, newest first (LIFECYCLE-015); strategy params are bounded in the form and rejected server-side (UI-010);
+  Stop aborts a running backtest (UI-011).
+- **W2 catalog and host actions:** the catalog derives the internal/MCP projections and drops dead knobs
+  (CODE-AGENT-013); the 0.9 external MCP surface is stated read-only (AGENT-083, D-B10-1); an
+  `earnings_call_transcript` read capability (RESEARCH-030); an `add_chart_drawing` host action and a hand-action
+  inventory (AGENT-084); the dead portfolio ledger write routes and writers are deleted (CODE-PLATFORM-021).
+- **W3 fundamentals, BSE and cache:** the ROCE row renders (DATA-048); the accounting basis derives from the exchange
+  filings (DATA-054); `listing_date` is the NSE date of listing (DATA-055, D-B10-7); the BSE header quote carries
+  volume and day range (DATA-053); a cold BSE range is flagged partial (DATA-071, one leg); statements and ratings
+  are cached and the data cache is bounded (DATA-096); analyst envelopes carry their fetch time (DATA-068); IMF WEO
+  forecast years are marked and drawn dashed (LEAD-024).
+- **W4 screener, routes and state docs:** cause-less `ProviderError`s no longer leak upstream text and a macro series
+  fetch requires `provider` (DATA-061, DATA-087, D-B10-2); boolean operands are rejected in screener arithmetic
+  (RESEARCH-025); Windows RAM is detected via ctypes and estimates are flagged (CROSS-PLATFORM-003); one numeric vocabulary in the fundamentals store (DATA-095);
+  CURRENT_STATE quotes derived facts instead of hand-snapshots (DOCS-016/017/018).
+- **W5 chat, search and workflow:** the chat footer renders `spend_usd` (AGENT-082); unique bare tickers resolve to
+  their suffixed symbol (AGENT-088); keybinding conflicts group on resolved chords (UI-027); SearXNG degrades on
+  all-unresponsive engines or empty real queries (RESEARCH-028); crypto pairs tag by their base coin's name
+  (AGENT-063); the server `transform.code` evaluator is canonical (CODE-PLATFORM-017, D-B10-3); dead search
+  scaffolding is deleted and docstrings fixed (CODE-RESEARCH-004).
+- **W6 chart, notes and blueprint:** a typed `unknown_symbol` empty-series reason (LEAD-026); per-user chart
+  defaults read at mount (UI-048); FR-092 timeframe/asset-class indicator combos (UI-091); the notes
+  wikilink/slash editor contract (UI-024); the PDD SUPERSEDED banner and BLUEPRINT drift fixes (DOCS-004/005,
+  DATA-078, CODE-PLATFORM-024, D-B10-4/5/11).
+- **W7 panels and marketplace:** SEC company search resolves off the ticker index (UI-032); the analyst as-of chip
+  prefers server freshness (DATA-068, UI leg); rho is labelled per 1% rate move (UI-028); screener and marketplace
+  deletes are confirm-guarded (UI-018); marketplace provider rows derive from the live registry, with the India
+  lanes as informational rows (CODE-PLATFORM-072, DATA-077, D-B10-6); per-source agent-context panel summaries
+  (AGENT-053).
+- **W8 plugins and dock:** runtime enable/disable owns persist, bridge and agent sync (CODE-PLATFORM-012); configure
+  reloads the plugin so `initialize()` sees new secrets (CODE-PLATFORM-014); `plugin:*` module flags derive from the
+  runtime (CODE-PLATFORM-013); `syncPluginAgents` checks each response and PUTs on a 409 (AGENT-057); the agent dock
+  maximize takes the full cockpit and restores the prior width (UI-084).
+
 ## R15 Stage C — batch 9: tool-call identity, research brief contract, search degradation, fundamentals and earnings truth, market lanes and error honesty, keyboard shell (2026-09-24)
 
 **Scope:** 45 entries planned in `docs/redesign/verification/r15/stage-c/batch-9/PLAN.md`; the five writers

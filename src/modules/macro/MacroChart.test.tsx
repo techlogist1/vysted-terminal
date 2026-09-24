@@ -15,6 +15,7 @@ const chartApi = {
 vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),
   LineSeries: "Line",
+  LineStyle: { Dashed: 2 },
 }));
 
 import { MacroChart } from "./MacroChart";
@@ -44,7 +45,37 @@ afterEach(() => {
   cleanup();
 });
 
+const WEO_SERIES: MacroSeriesExtended = {
+  ...SAMPLE_SERIES,
+  series_id: "WEO/USA.NGDP_RPCH.A",
+  title: "Real GDP growth, annual, United States",
+  provider: "imf",
+  frequency: "annual",
+  observations: [
+    { date: "2023-01-01T00:00:00Z", value: 2.93, is_projection: false },
+    { date: "2024-01-01T00:00:00Z", value: 2.79, is_projection: false },
+    { date: "2025-01-01T00:00:00Z", value: 2.12, is_projection: true },
+    { date: "2026-01-01T00:00:00Z", value: 2.32, is_projection: true },
+  ],
+};
+
 describe("MacroChart", () => {
+  it("draws projected years as a dashed line joined to the last actual, with a note", () => {
+    render(<MacroChart series={WEO_SERIES} />);
+    const [[actual], [projected]] = lineSeries.setData.mock.calls;
+    expect(actual.map((p: { value: number }) => p.value)).toEqual([2.93, 2.79]);
+    // The dashed series starts at the last actual point so the lines meet.
+    expect(projected.map((p: { value: number }) => p.value)).toEqual([2.79, 2.12, 2.32]);
+    expect((chartApi.addSeries.mock.calls[1] as unknown[])[1]).toMatchObject({ lineStyle: 2 });
+    expect(screen.getByTestId("macro-projected-note")).toHaveTextContent("projected (2)");
+    expect(screen.getByText(/4 observations/)).toBeInTheDocument();
+  });
+
+  it("shows no projection note for a series of outturns only", () => {
+    render(<MacroChart series={SAMPLE_SERIES} />);
+    expect(screen.queryByTestId("macro-projected-note")).not.toBeInTheDocument();
+  });
+
   it("renders the series title and metadata", () => {
     render(<MacroChart series={SAMPLE_SERIES} />);
     expect(screen.getByText("10-Year Treasury")).toBeInTheDocument();

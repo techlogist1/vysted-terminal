@@ -28,8 +28,8 @@ import {
 } from "@/lib/chart-theme";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
-import { useBacktestStore, type BacktestRunState } from "@/store/backtest";
-import type { BacktestTrade } from "../../../types/backtest";
+import type { BacktestRunState } from "@/store/backtest";
+import type { BacktestRequest, BacktestTrade } from "../../../types/backtest";
 
 // ---------------------------------------------------------------------------
 // Chart theming — reused from ChartPanel for visual continuity
@@ -404,14 +404,15 @@ interface BacktestResultViewProps {
   run: BacktestRunState | null;
   /** Invoked when the user clicks "Open in Strategy Critic". */
   onOpenInCritic?: (runId: string) => void;
+  /** Re-run a failed or stopped request; the panel owns its AbortController. */
+  onRetry: (request: BacktestRequest) => void;
 }
 
 // The bus key is the backtest's dockview panel id (a singleton), the id
 // PanelHost focuses (R15-AGENT-052).
 const BUS_SOURCE = "backtest";
 
-export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewProps) {
-  const startRun = useBacktestStore((s) => s.startRun);
+export function BacktestResultView({ run, onOpenInCritic, onRetry }: BacktestResultViewProps) {
   // Publish a context snapshot so the chat sidebar's Strategy Critic
   // invocation can pick up the focused run id.
   const publishPanelContext = usePanelContextBus((state) => state.publish);
@@ -471,6 +472,11 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
             </span>
           )}
           {run.status === "pending" && <span className="text-charcoal-300">starting…</span>}
+          {run.status === "idle" && (
+            <span className="text-charcoal-300" data-testid="run-note">
+              {run.note}
+            </span>
+          )}
           {run.status === "error" && (
             <span className="text-negative" data-testid="run-error">
               error: {run.error}
@@ -534,10 +540,17 @@ export function BacktestResultView({ run, onOpenInCritic }: BacktestResultViewPr
       {/* Equity curve + drawdown */}
       {run.result ? (
         <EquityChart equityCurve={run.result.equityCurve} />
-      ) : run.status === "error" ? (
+      ) : run.status === "error" || run.status === "idle" ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="text-negative text-caption font-mono">{run.error}</p>
-          <Button size="sm" variant="outline" onClick={() => void startRun(run.request)}>
+          <p
+            className={cn(
+              "text-caption font-mono",
+              run.status === "error" ? "text-negative" : "text-charcoal-300",
+            )}
+          >
+            {run.status === "error" ? run.error : run.note}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => onRetry(run.request)}>
             Retry
           </Button>
         </div>

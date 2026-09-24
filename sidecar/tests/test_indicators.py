@@ -272,6 +272,83 @@ def test_vwap_cumulative_for_daily(series: OHLCVSeries) -> None:
     assert last == pytest.approx(expected_last)
 
 
+def _daily_ten_day_series_from_monday() -> OHLCVSeries:
+    """A deterministic 10-daily-bar series starting Monday 2026-01-05, so bar
+    index 5 (Saturday) — actually the next Monday — pins a clean week reset.
+    Bars are calendar-DAILY (one per day, weekends included) so the boundary
+    lands on a known index regardless of trading-day gaps."""
+    base = datetime(2026, 1, 5, 0, 0, 0)  # a Monday (R15-UI-091 pin)
+    bars: list[OHLCVBar] = []
+    for index in range(10):
+        close = 100.0 + index
+        bars.append(
+            OHLCVBar(
+                timestamp=base + timedelta(days=index),
+                open=close - 0.5,
+                high=close + 0.5,
+                low=close - 1.0,
+                close=close,
+                volume=1_000.0 + index,
+            )
+        )
+    return OHLCVSeries(symbol="WEEKLY", timeframe="1d", bars=bars, provider="test")
+
+
+def test_vwap_week_anchor_resets_on_monday() -> None:
+    """R15-UI-091: anchor='week' restarts the cumulative sums at each ISO week
+    boundary (Monday), distinct from the default whole-series cumulative."""
+    weekly = _daily_ten_day_series_from_monday()
+    df = indicator_service._frame(weekly)
+    times = list(df.index)
+    result = indicator_service.compute_vwap(df, times, anchor="week")
+    assert result.lines[0].label == "VWAP (week)"
+    values = [p.value for p in result.lines[0].points]
+
+    # Index 7 is the second Monday (base + 7 days) — the first sample of week
+    # 2, so its VWAP equals its own typical price (no carry-over from week 1).
+    week2_first = weekly.bars[7]
+    typical = (week2_first.high + week2_first.low + week2_first.close) / 3.0
+    assert values[7] == pytest.approx(typical)
+
+    # The whole-series (non-week) cumulative VWAP at the same bar differs —
+    # it carries every prior day's volume, proving the reset actually fired.
+    whole_series = indicator_service.compute_vwap(df, times, anchor="auto")
+    assert values[7] != pytest.approx(whole_series.lines[0].points[7].value)
+
+
+def test_compute_ema_period_spec(series: OHLCVSeries) -> None:
+    """R15-UI-091: 'ema:9' computes a period-9 EMA, distinct from the
+    period-20 default, and 'ema:9' + 'ema:21' both compute (not deduped as
+    the same base key)."""
+    response = indicator_service.compute(series, ["ema:9", "ema:21"])
+    labels = [ind.lines[0].label for ind in response.indicators]
+    assert labels == ["EMA(9)", "EMA(21)"]
+
+
+def test_compute_vwap_week_spec(series: OHLCVSeries) -> None:
+    """R15-UI-091: 'vwap:week' dispatches through compute()'s spec parsing."""
+    response = indicator_service.compute(series, ["vwap:week"])
+    assert response.indicators[0].lines[0].label == "VWAP (week)"
+
+
+def test_compute_dedupes_identical_specs_not_distinct_params(series: OHLCVSeries) -> None:
+    """A duplicate (key, param) pair dedupes; distinct params on the same key
+    do not (the R15-UI-091 acceptance case)."""
+    response = indicator_service.compute(series, ["ema:9", "ema:9", "ema:21"])
+    labels = [ind.lines[0].label for ind in response.indicators]
+    assert labels == ["EMA(9)", "EMA(21)"]
+
+
+def test_parse_spec_splits_key_and_param() -> None:
+    assert indicator_service.parse_spec("ema:9") == ("ema", "9")
+    assert indicator_service.parse_spec("VWAP:Week") == ("vwap", "week")
+    assert indicator_service.parse_spec("rsi") == ("rsi", None)
+    assert indicator_service.parse_spec("not-real") is None
+    # A key that doesn't accept a param still normalizes — compute() just
+    # ignores a param it has no use for.
+    assert indicator_service.parse_spec("rsi:14") == ("rsi", "14")
+
+
 def test_parabolic_sar_defined_from_second_bar(series: OHLCVSeries) -> None:
     """Parabolic SAR seeds on bar two and stays finite thereafter."""
     result = indicator_service.compute_parabolic_sar(
@@ -439,6 +516,21 @@ def test_indicators_endpoint_panel_classification(
     body = response.json()
     panels = {ind["name"]: ind["panel"] for ind in body["indicators"]}
     assert panels == {"sma": "price", "rsi": "separate"}
+
+
+def test_indicators_endpoint_accepts_parametrized_specs(
+    client: TestClient, mock_history: OHLCVSeries
+) -> None:
+    """R15-UI-091 acceptance: 'ema:9,ema:21,vwap:week' round-trips through the
+    router — both EMA periods compute, and the week-anchored VWAP."""
+    response = client.get(
+        "/indicators/SPY",
+        params={"indicators": "ema:9,ema:21,vwap:week"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    labels = [ind["lines"][0]["label"] for ind in body["indicators"]]
+    assert labels == ["EMA(9)", "EMA(21)", "VWAP (week)"]
 
 
 def test_indicators_endpoint_rejects_unknown(client: TestClient, mock_history: OHLCVSeries) -> None:

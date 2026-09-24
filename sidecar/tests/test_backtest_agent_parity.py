@@ -11,6 +11,7 @@ loader is a fixture in both lanes.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -51,7 +52,8 @@ async def _fixed_loader(_symbols: list[str], _start: str, _end: str) -> list[Bar
 
 
 @pytest.fixture(autouse=True)
-def _isolated() -> Any:
+def _isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
     backtest_engine.reset_registry_for_tests()
     backtest_store.reset_for_tests()
     backtest_strategies.register_all()

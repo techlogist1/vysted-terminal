@@ -253,6 +253,41 @@ def test_active_providers_marks_macro_unavailable_without_openbb(
 
 
 # ---------------------------------------------------------------------------
+# declarations() (C19 — R15-CODE-PLATFORM-072 / R15-DATA-077)
+# ---------------------------------------------------------------------------
+
+
+def test_declarations_yfinance_serves_all_seven_keys() -> None:
+    """The hand-written marketplace catalog only ever listed 3 keys for
+    yfinance; the registry's own declaration is the truth (7 keys) — this
+    pins the parity the frontend now derives its row from."""
+    rows = {row["id"]: row for row in provider_registry.declarations()}
+    assert set(rows["yfinance"]["keys"]) == {
+        "quote",
+        "ohlcv",
+        "fundamentals",
+        "income_statement",
+        "balance_sheet",
+        "cash_flow",
+        "analyst_rating",
+    }
+
+
+def test_declarations_include_the_india_keyless_lanes_with_region_scope() -> None:
+    rows = {row["id"]: row for row in provider_registry.declarations()}
+    for provider_id in ("nse_direct", "nse", "bse"):
+        assert rows[provider_id]["region"] == ["IN"]
+        assert set(rows[provider_id]["keys"]) == {"quote", "ohlcv"}
+
+
+def test_declarations_every_provider_has_exactly_one_row() -> None:
+    """Parity guard: one row per declared provider, id-unique."""
+    ids = [row["id"] for row in provider_registry.declarations()]
+    assert len(ids) == len(set(ids))
+    assert set(ids) == {p.id for p in provider_registry._PROVIDERS}  # noqa: SLF001
+
+
+# ---------------------------------------------------------------------------
 # fixtures
 # ---------------------------------------------------------------------------
 

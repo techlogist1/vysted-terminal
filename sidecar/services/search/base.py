@@ -18,10 +18,6 @@ The shapes here are the normalized wire contract:
     :func:`normalize_results_to_citations`.
   * :class:`SearchResponse` — what a backend returns: the results, the
     derived citations, the backend id that served them, and the query.
-
-Locale-native search (C.2): Exa/Tavily-style domain allow-lists are sourced
-from :func:`locale_domains`, which returns the US/IN preferred-domain profile
-so a region-scoped research run stays on region-native sources.
 """
 
 from __future__ import annotations
@@ -73,21 +69,12 @@ def bare_host(url: str) -> str | None:
 
 @dataclass
 class SearchResponse:
-    """A backend's reply: results, derived citations, the backend id + query.
-
-    ``metadata`` is an optional backend-specific annex (R7 Component 3): the
-    hosted tier uses it to surface the per-search COST ESTIMATE + engine/model
-    provenance (``{"tier", "engine", "model", "search_cost_estimate_usd",
-    "estimate": True, "cost_basis"}``) so the caller can show honest cost before
-    or alongside results. ``None`` for backends with nothing to annotate —
-    every existing constructor keeps working unchanged.
-    """
+    """A backend's reply: results, derived citations, the backend id + query."""
 
     results: list[SearchResult]
     citations: list[Citation]
     backend: str
     query: str
-    metadata: dict | None = None
 
 
 #: Typed reasons a :class:`SearchError` can carry, so a caller can distinguish a
@@ -169,60 +156,16 @@ def normalize_results_to_citations(
     ]
 
 
-# --- Locale-native domain profiles (C.2) ------------------------------------
-
-REGION_US = "US"
-REGION_IN = "IN"
-
-#: US research-native preferred domains (allow-list seed for Exa/Tavily etc.).
-US_DOMAINS: tuple[str, ...] = (
-    "finance.yahoo.com",
-    "sec.gov",
-    "bloomberg.com",
-    "reuters.com",
-    "wsj.com",
-)
-
-#: IN research-native preferred domains.
-IN_DOMAINS: tuple[str, ...] = (
-    "nseindia.com",
-    "bseindia.com",
-    "moneycontrol.com",
-    "economictimes.indiatimes.com",
-    "sebi.gov.in",
-)
-
-_DOMAINS_BY_REGION: dict[str, tuple[str, ...]] = {
-    REGION_US: US_DOMAINS,
-    REGION_IN: IN_DOMAINS,
-}
-
-
-def locale_domains(region: str) -> list[str]:
-    """Return the preferred-domain allow-list for ``region`` (C.2).
-
-    ``"IN"`` → NSE/BSE/Moneycontrol/ET/SEBI; ``"US"`` → Yahoo Finance/SEC/
-    Bloomberg/Reuters/WSJ; an unknown region → the US profile (the global
-    default sources). Case-insensitive on the region code.
-    """
-    return list(_DOMAINS_BY_REGION.get((region or "").strip().upper(), US_DOMAINS))
-
-
 __all__ = [
     "Citation",
     "DEFAULT_CITATION_LIMIT",
-    "IN_DOMAINS",
-    "REGION_IN",
-    "REGION_US",
     "SEARCH_REASON_RATE_LIMITED",
     "SEARCH_REASON_UNREACHABLE",
     "SearchBackend",
     "SearchError",
     "SearchResponse",
     "SearchResult",
-    "US_DOMAINS",
     "bare_host",
-    "locale_domains",
     "normalize_results_to_citations",
     "result_limit",
 ]

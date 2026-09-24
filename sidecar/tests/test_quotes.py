@@ -163,7 +163,7 @@ def test_get_quote_provider_error(client: TestClient, monkeypatch: pytest.Monkey
     monkeypatch.setattr(provider_registry, "get_quote", boom)
     response = client.get("/quotes/AAPL")
     assert response.status_code == 502
-    assert "upstream down" in response.json()["detail"]
+    assert response.json()["detail"] == "The data provider returned an unexpected response."
 
 
 #: 2026-09-23 10:30 IST: NSE is open, the US session is closed (01:00 ET).

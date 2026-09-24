@@ -22,8 +22,12 @@ export function pluginAgentId(pluginId: string, agentId: string): string {
 
 /**
  * Register (or remove) an agent-plugin's agents in the sidecar custom-agent
- * store so they are invokable. No-op for non-agent plugins. Best-effort per
- * agent (a 409 on re-register is fine — idempotent); refreshes the roster after.
+ * store so they are invokable. No-op for non-agent plugins. A 409 on register
+ * means an earlier registration exists, so the agent is updated in place (PUT)
+ * to the plugin's current spec; a 404 on remove means it is already gone. Every
+ * agent is attempted and the roster refreshed; then any other failure (e.g. a
+ * 422 for an unknown tool id) rejects with the details, which the plugin
+ * runtime surfaces as the plugin's error.
  */
 export async function syncPluginAgents(pluginId: string, register: boolean): Promise<void> {
   const row = CATALOG_BY_ID[pluginId];
@@ -40,31 +44,49 @@ export async function syncPluginAgents(pluginId: string, register: boolean): Pro
     return; // outside the Tauri shell — nothing to register against
   }
 
+  const failures: string[] = [];
   for (const agent of agents) {
     const id = pluginAgentId(pluginId, agent.id);
+    const itemUrl = new URL(`/custom-agents/${encodeURIComponent(id)}`, base).toString();
     try {
+      let response: Response;
       if (register) {
-        await fetch(new URL("/custom-agents", base).toString(), {
+        const spec = {
+          name: agent.name,
+          philosophy: agent.philosophy,
+          system_prompt: agent.systemPrompt,
+          tools: agent.tools,
+          default_provider: agent.defaultProvider,
+          icon: agent.icon,
+        };
+        response = await fetch(new URL("/custom-agents", base).toString(), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id,
-            name: agent.name,
-            philosophy: agent.philosophy,
-            system_prompt: agent.systemPrompt,
-            tools: agent.tools,
-            default_provider: agent.defaultProvider,
-            icon: agent.icon,
-          }),
+          body: JSON.stringify({ id, ...spec }),
         });
+        if (response.status === 409) {
+          response = await fetch(itemUrl, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(spec),
+          });
+        }
       } else {
-        await fetch(new URL(`/custom-agents/${encodeURIComponent(id)}`, base).toString(), {
-          method: "DELETE",
-        });
+        response = await fetch(itemUrl, { method: "DELETE" });
+        if (response.status === 404) continue;
       }
-    } catch {
-      // Best-effort: a 409 (already registered) or transient error is non-fatal.
+      if (!response.ok) {
+        const detail = await response.text().catch(() => "");
+        failures.push(`${id}: HTTP ${response.status} ${detail}`.trim());
+      }
+    } catch (error) {
+      failures.push(`${id}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   await useAgentsStore.getState().refresh();
+  if (failures.length > 0) {
+    throw new Error(
+      `agent ${register ? "registration" : "removal"} failed — ${failures.join("; ")}`,
+    );
+  }
 }

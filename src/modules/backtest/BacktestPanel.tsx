@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, Play } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Play, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -114,6 +114,19 @@ export function BacktestPanel() {
   const isRunning = activeRun?.status === "pending" || activeRun?.status === "streaming";
   const canRun = !!selectedSpec && !isRunning && (!isCustom || customValid);
 
+  // One controller per run, shared by Run and Retry, so Stop can abort
+  // whichever stream is live (R15-UI-011).
+  const controllerRef = useRef<AbortController | null>(null);
+  const launch = useCallback(
+    async (request: BacktestRequest) => {
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      await startRun(request, { signal: controller.signal });
+    },
+    [startRun],
+  );
+  const handleStop = useCallback(() => controllerRef.current?.abort(), []);
+
   const handleRun = useCallback(async () => {
     if (!selectedSpec) {
       return;
@@ -130,8 +143,8 @@ export function BacktestPanel() {
       initialCapital: capital,
       walkForwardSlices,
     };
-    await startRun(request);
-  }, [selectedSpec, params, symbols, startDate, endDate, capital, walkForwardSlices, startRun]);
+    await launch(request);
+  }, [selectedSpec, params, symbols, startDate, endDate, capital, walkForwardSlices, launch]);
 
   const handleOpenInCritic = useCallback(
     (runId: string) => {
@@ -260,24 +273,42 @@ export function BacktestPanel() {
         {/* Sticky footer — Run button always visible */}
         <div className="border-charcoal-700 shrink-0 border-t p-3">
           {/* Form rung (R9 §3): Run joins the rail's sibling h-8 inputs. */}
-          <Button
-            type="button"
-            onClick={handleRun}
-            disabled={!canRun}
-            variant="default"
-            aria-label="Run backtest"
-            className={cn("w-full", !canRun && "cursor-not-allowed")}
-            data-testid="run-backtest"
-          >
-            {isRunning ? <Loader2 className="animate-spin" /> : <Play />}
-            {isRunning ? "Running…" : "Run backtest"}
-          </Button>
+          {isRunning ? (
+            <Button
+              type="button"
+              onClick={handleStop}
+              variant="outline"
+              aria-label="Stop backtest"
+              className="w-full"
+              data-testid="stop-backtest"
+            >
+              <Square />
+              Stop
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleRun}
+              disabled={!canRun}
+              variant="default"
+              aria-label="Run backtest"
+              className={cn("w-full", !canRun && "cursor-not-allowed")}
+              data-testid="run-backtest"
+            >
+              <Play />
+              Run backtest
+            </Button>
+          )}
         </div>
       </aside>
 
       {/* Main column — result view */}
       <section className="flex min-h-0 flex-1 flex-col">
-        <BacktestResultView run={activeRun} onOpenInCritic={handleOpenInCritic} />
+        <BacktestResultView
+          run={activeRun}
+          onOpenInCritic={handleOpenInCritic}
+          onRetry={(request) => void launch(request)}
+        />
       </section>
     </div>
   );
