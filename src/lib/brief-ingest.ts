@@ -246,16 +246,20 @@ export function isAcceptableBriefMode(value: unknown): boolean {
 
 // ── source-type derivation + dedup ──────────────────────────────────────────
 
-/** Bare-host classifier inputs for {@link deriveSourceType}. */
+/** Bare-host classifier input for {@link deriveSourceType}: a web URL's own
+ *  host wins (a `domain` label can carry provenance text such as
+ *  "sec.gov (via Perplexity Sonar)"); `domain` is the fallback for a URL with
+ *  no web host (the internal `vysted://` scheme, an unparseable string). */
 function hostOf(source: BriefSource): string {
-  if (source.domain) {
-    return source.domain.toLowerCase().replace(/^www\./, "");
-  }
   try {
-    return new URL(source.url).hostname.toLowerCase().replace(/^www\./, "");
+    const url = new URL(source.url);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.hostname.toLowerCase().replace(/^www\./, "");
+    }
   } catch {
-    return source.url.toLowerCase();
+    // not a URL: fall through to the domain label
   }
+  return (source.domain ?? source.url).toLowerCase().replace(/^www\./, "");
 }
 
 /** Filing hosts — regulators + filing aggregators. */

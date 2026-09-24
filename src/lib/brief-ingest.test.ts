@@ -153,8 +153,17 @@ describe("deriveSourceType", () => {
     expect(deriveSourceType(at("https://finance.yahoo.com/x"))).toBe("news");
   });
 
-  it("uses the domain field when present, falling back to URL parse", () => {
+  it("uses the domain field when the URL has no web host", () => {
     expect(deriveSourceType(at("vysted://x", { domain: "sec.gov" }))).toBe("filing");
+  });
+
+  it("prefers the URL host over a provenance-labelled domain (R15-UI-038)", () => {
+    const sonar = at("https://www.sec.gov/Archives/x", {
+      domain: "sec.gov (via Perplexity Sonar)",
+    });
+    expect(deriveSourceType(sonar)).toBe("filing");
+    const wire = at("https://www.reuters.com/x", { domain: "reuters.com (via Perplexity Sonar)" });
+    expect(deriveSourceType(wire)).toBe("news");
   });
 
   it("defaults an unknown host to web (never a fabricated authority)", () => {

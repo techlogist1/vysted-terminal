@@ -150,9 +150,9 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
     Perplexity returns a top-level ``citations`` list of url strings; some
     responses additionally carry ``search_results`` (objects with ``url`` and
     often a ``title``/``snippet``). Both are merged, de-duplicated by url, and
-    order-preserved so no source is dropped and none is listed twice. Every
-    source carries the ``"via Perplexity Sonar"`` provenance in its ``domain``
-    label alongside the host (FR-073).
+    order-preserved so no source is dropped and none is listed twice. ``domain``
+    is the bare host; the ``"via Perplexity Sonar"`` provenance rides
+    ``provider`` (FR-073).
     """
     sources: list[ResearchSource] = []
     seen: set[str] = set()
@@ -176,13 +176,13 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
         title = info.get("title") if isinstance(info.get("title"), str) else None
         excerpt = info.get("snippet") if isinstance(info.get("snippet"), str) else None
         host = _domain_of(url)
-        domain = f"{host} ({PROVENANCE_NOTE})" if host else PROVENANCE_NOTE
         sources.append(
             ResearchSource(
                 url=url,
                 title=(title or host or url).strip(),
                 excerpt=(excerpt or "").strip(),
-                domain=domain,
+                domain=host,
+                provider=PROVENANCE_NOTE,
             )
         )
 

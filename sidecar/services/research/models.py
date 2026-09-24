@@ -70,6 +70,9 @@ class ResearchSource:
     #: when the pipeline didn't classify it — the frontend then derives the
     #: badge client-side from the domain.
     source_type: str | None = None
+    #: Which lane gathered it (e.g. "via Perplexity Sonar") — provenance lives
+    #: here, never folded into ``domain``.
+    provider: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -78,6 +81,7 @@ class ResearchSource:
             "excerpt": self.excerpt,
             "domain": self.domain,
             "source_type": self.source_type,
+            "provider": self.provider,
         }
 
 

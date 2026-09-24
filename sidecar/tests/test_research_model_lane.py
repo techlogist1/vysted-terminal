@@ -251,7 +251,8 @@ def test_citations_from_annotations_become_sources(stub_openrouter) -> None:
     assert urls == ["https://nvidia.com/ir", "https://reuters.com/nvda"]
     assert out["source_count"] == 2
     assert out["web_available"] is True
-    assert all("OpenRouter" in (s["domain"] or "") for s in out["sources"])
+    assert all("OpenRouter" in (s["provider"] or "") for s in out["sources"])
+    assert [s["domain"] for s in out["sources"]] == ["nvidia.com", "reuters.com"]
 
 
 def test_http_error_becomes_human_message(stub_openrouter) -> None:

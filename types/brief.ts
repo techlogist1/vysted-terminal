@@ -254,6 +254,9 @@ export interface BriefSource {
    * Optional — when absent the panel derives it from {@link url}.
    */
   domain?: string;
+  /** The lane that gathered the source (wire `provider`, e.g. "via Perplexity
+   *  Sonar") — provenance, never part of {@link domain}. */
+  provider?: string;
   /**
    * The source's category (news / research / filing / web), shown as a small
    * quiet badge in the sources rail. Optional — when absent the panel derives
