@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_PROVIDERS, useLLMProvidersStore } from "@/store/llm-providers";
+import { DEFAULT_PROVIDERS, orderedProviders, useLLMProvidersStore } from "@/store/llm-providers";
 
 const probeMock = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/provider-validation", () => ({ probeReadiness: probeMock }));
@@ -36,5 +36,15 @@ describe("promoteKeyedProvider (R15-UI-049)", () => {
     );
     expect(useLLMProvidersStore.getState().defaultProviderId).toBe("anthropic");
     expect(probeMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("orderedProviders (R15-UI-087)", () => {
+  it("puts the preference order first and keeps unnamed providers in catalog order", () => {
+    const ids = orderedProviders(DEFAULT_PROVIDERS, ["groq", "anthropic"]).map((p) => p.id);
+    const rest = DEFAULT_PROVIDERS.map((p) => p.id).filter(
+      (id) => id !== "groq" && id !== "anthropic",
+    );
+    expect(ids).toEqual(["groq", "anthropic", ...rest]);
   });
 });

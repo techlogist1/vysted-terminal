@@ -44,6 +44,23 @@ export const DEFAULT_PROVIDERS: LLMProviderInfo[] = REGISTRY_PROVIDERS.map((row)
   knownModels: row.known_models,
 }));
 
+/**
+ * `providers` in the user's preference order (FR-038, the Settings list): the
+ * ids in `order` first, in that order, then any provider the order does not
+ * name (a provider added since the order was saved) in catalog order.
+ */
+export function orderedProviders(
+  providers: LLMProviderInfo[],
+  order: readonly LLMProviderId[],
+): LLMProviderInfo[] {
+  const rank = (id: LLMProviderId) => {
+    const at = order.indexOf(id);
+    return at === -1 ? order.length : at;
+  };
+  // Array.prototype.sort is stable, so unranked providers keep catalog order.
+  return [...providers].sort((a, b) => rank(a.id) - rank(b.id));
+}
+
 interface SidecarProviderRow {
   id: LLMProviderId;
   label: string;

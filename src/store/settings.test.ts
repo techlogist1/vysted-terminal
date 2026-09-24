@@ -196,6 +196,36 @@ describe("settings store", () => {
     });
   });
 
+  it("R15-UI-087: provider order, start layout and palette options round-trip; garbled values keep the current ones", () => {
+    const store = useSettingsStore.getState();
+    store.setProviderOrder(["groq", "anthropic"]);
+    store.setStartLayout("Morning scan");
+    store.setPaletteShowRecents(false);
+    store.setPaletteSymbolScope("watchlist");
+    const bundle = settingsBundle();
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setAll(bundle);
+    let s = useSettingsStore.getState();
+    expect(s.providerOrder).toEqual(["groq", "anthropic"]);
+    expect(s.startLayout).toBe("Morning scan");
+    expect(s.paletteShowRecents).toBe(false);
+    expect(s.paletteSymbolScope).toBe("watchlist");
+
+    // Unknown ids are dropped (and duplicates collapse); an unusable value
+    // keeps the current preference rather than resetting it.
+    useSettingsStore.getState().setAll({
+      providerOrder: ["nope", "openai", "openai"],
+      startLayout: 7,
+      paletteSymbolScope: "everything",
+    } as never);
+    s = useSettingsStore.getState();
+    expect(s.providerOrder).toEqual(["openai"]);
+    expect(s.startLayout).toBe("Morning scan");
+    expect(s.paletteSymbolScope).toBe("watchlist");
+    useSettingsStore.getState().setAll({ providerOrder: "groq" } as never);
+    expect(useSettingsStore.getState().providerOrder).toEqual(["openai"]);
+  });
+
   it("toBundle / settingsBundle snapshot the current preferences", () => {
     useSettingsStore.getState().setDefaultAgentId("buffett");
     useSettingsStore.getState().setRegion("IN");

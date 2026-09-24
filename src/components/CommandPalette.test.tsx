@@ -12,9 +12,28 @@ import {
   useKeybindingsStore,
 } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
+import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { CommandSpec } from "../../types/plugin";
+
+// The live resolver answers any query with one instrument the watchlist lacks.
+vi.mock("@/lib/symbol-autocomplete", () => ({
+  useSymbolAutocomplete: (query: string) =>
+    query.trim()
+      ? [
+          {
+            symbol: "ROUTE",
+            name: "Route Mobile",
+            exchange: "NSE",
+            region: "IN",
+            asset_class: "equity",
+            yahoo_symbol: "ROUTE.NS",
+            confidence: 1,
+          },
+        ]
+      : [],
+}));
 
 // cmdk-powered palette (FR-120 / SC-031). The corpus/ranking LOGIC is unit-tested
 // in store/command-palette.test.ts; here we assert the COMPONENT contract that is
@@ -57,6 +76,7 @@ function seedStores() {
     customSummaries: [],
   });
   resetKeybindingsStoreForTests();
+  resetSettingsStoreForTests();
   useCommandPalette.setState({ commands });
 }
 
@@ -136,6 +156,37 @@ describe("CommandPalette (cmdk)", () => {
     const remappedRow = screen.getByText("Save Workspace").closest("[cmdk-item]") as HTMLElement;
     // formatBinding's fixed render order is ctrl, alt, shift, mod — ⇧⌘S.
     expect(within(remappedRow).getByText("⇧⌘S")).toBeInTheDocument();
+  });
+
+  // R15-UI-087 (FR-038): the two palette preferences change what it shows.
+  it("paletteShowRecents: on, a recent pick leads the empty palette; off, the Recent group is gone", () => {
+    useCommandPalette.setState({ open: true, recents: ["panel:test-panel"] });
+    render(<CommandPalette />);
+    expect(screen.getByText("Recent")).toBeInTheDocument();
+    expect(document.querySelector("[cmdk-item]")?.textContent).toContain("Reportable Panel");
+
+    cleanup();
+    useSettingsStore.getState().setPaletteShowRecents(false);
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    expect(screen.queryByText("Recent")).not.toBeInTheDocument();
+    expect(document.querySelector("[cmdk-item]")?.textContent).not.toContain("Reportable Panel");
+  });
+
+  it("paletteSymbolScope: all adds resolver tickers; watchlist searches the watchlist only", () => {
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "route" } });
+    expect(screen.getByText("Tickers")).toBeInTheDocument();
+    expect(screen.getByText("Route Mobile")).toBeInTheDocument();
+
+    cleanup();
+    useSettingsStore.getState().setPaletteSymbolScope("watchlist");
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "route" } });
+    expect(screen.queryByText("Tickers")).not.toBeInTheDocument();
+    expect(screen.queryByText("Route Mobile")).not.toBeInTheDocument();
   });
 
   it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {

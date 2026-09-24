@@ -13,6 +13,11 @@
  * Empty-query state: shows "Recent" (last-used commands) + "Suggested" (curated
  * shortcuts) instead of the full corpus dump.
  *
+ * Settings → Command palette (FR-038, R15-UI-087): `paletteShowRecents` turns
+ * the recents-first empty state (and the "recent" row tags) off, and
+ * `paletteSymbolScope: "watchlist"` limits instrument search to the watchlist
+ * (no live resolver "Tickers" group).
+ *
  * Cross-group ranking: a custom `paletteFilter` adds per-group score offsets so
  * agents always outrank actions which outrank panels which outrank symbols,
  * while cmdk fuzzy-ranks within each group normally.
@@ -61,6 +66,7 @@ import {
   type PaletteItem,
 } from "@/store/command-palette";
 import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
+import { useSettingsStore } from "@/store/settings";
 import { useWorkspaceStore } from "@/store/workspace";
 
 // ---------------------------------------------------------------------------
@@ -107,7 +113,13 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { recordSelection } = useCommandPalette();
-  const recents = useCommandPalette((state) => state.recents);
+  const showRecents = useSettingsStore((state) => state.paletteShowRecents);
+  const searchAllInstruments = useSettingsStore((state) => state.paletteSymbolScope === "all");
+  const recordedRecents = useCommandPalette((state) => state.recents);
+  const recents = useMemo(
+    () => (showRecents ? recordedRecents : []),
+    [showRecents, recordedRecents],
+  );
 
   // Live corpus — rebuilt on each render from live Zustand stores.
   const corpus = useMemo(() => buildPaletteCorpus(), []);
@@ -134,7 +146,8 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
   // Live resolver candidates (R7): the corpus only knows watchlist/known
   // symbols, so a company-name query ("Route Mobile") found nothing. The fast
   // masters-only autocomplete fills the gap; corpus rows win on dedupe.
-  const liveCandidates = useSymbolAutocomplete(query, 6);
+  // Watchlist scope skips the resolver entirely (an empty query never fetches).
+  const liveCandidates = useSymbolAutocomplete(searchAllInstruments ? query : "", 6);
   const liveSymbolRows = useMemo(() => {
     const known = new Set(symbols.map((i) => i.symbolEntry?.symbol.toUpperCase()).filter(Boolean));
     return liveCandidates.filter((c) => !known.has(c.symbol.toUpperCase()));
