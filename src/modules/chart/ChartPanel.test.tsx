@@ -286,6 +286,47 @@ describe("ChartPanel", () => {
     expect(screen.getByRole("button", { name: "Retry indicators" })).toBeInTheDocument();
   });
 
+  it("a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023)", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() =>
+      expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(2),
+    );
+    const drawn = chartApi.addSeries.mock.results
+      .filter((_, i) => chartApi.addSeries.mock.calls[i]?.[0] === "Line")
+      .map((r) => r.value as unknown);
+
+    fetchIndicatorsMock.mockRejectedValueOnce(new SidecarError(502, "indicators down"));
+    historyMock.mockResolvedValueOnce(makeSeries("RELIANCE.NS"));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "RELIANCE.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+
+    expect(await screen.findByText(/indicators down \(502\)/)).toBeInTheDocument();
+    const removed = chartApi.removeSeries.mock.calls.map(([s]) => s as unknown);
+    for (const series of drawn) expect(removed).toContain(series);
+  });
+
+  it("does not draw indicators before their own symbol's candles land (R15-UI-023)", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
+    let resolveHistory: (series: OHLCVSeries) => void = () => {};
+    historyMock.mockReturnValueOnce(new Promise((resolve) => (resolveHistory = resolve)));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "TCS.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1d"));
+
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() => expect(fetchIndicatorsMock).toHaveBeenCalledWith("TCS.NS", ["rsi"], "1d"));
+    await Promise.resolve();
+    expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(0);
+
+    resolveHistory(makeSeries("TCS.NS"));
+    await waitFor(() =>
+      expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(2),
+    );
+  });
+
   it("clears all selected indicators from the chip row's Clear all control", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());

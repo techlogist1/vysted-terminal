@@ -292,6 +292,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // Bumped to force an indicator re-fetch (Retry) without deselecting+reselecting.
   const [indicatorRetryNonce, setIndicatorRetryNonce] = useState(0);
   const [provider, setProvider] = useState<string | null>(null);
+  // `symbol|timeframe` of the candle set on the chart (null while none is
+  // committed), and the indicator response with the key it was fetched for:
+  // indicators render only against their own candles (R15-UI-023).
+  const [candlesKey, setCandlesKey] = useState<string | null>(null);
+  const [indicatorResult, setIndicatorResult] = useState<{
+    key: string;
+    response: IndicatorResponse;
+  } | null>(null);
   // Calendar-aware staleness of the series' last bar (FR-041 / SC-019).
   const [freshness, setFreshness] = useState<Freshness | null>(null);
 
@@ -373,6 +381,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     const loadHistory = async () => {
       setPriceState("loading");
       setPriceError(null);
+      setCandlesKey(null);
       try {
         const series = await sidecarApi.history(symbol, timeframe);
         if (cancelled) {
@@ -401,6 +410,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           candleSeries.setData(candleData);
           candleDataRef.current = candleData;
           chartRef.current?.timeScale().fitContent();
+          setCandlesKey(`${symbol}|${timeframe}`);
         }
         setProvider(series.provider);
         setFreshness(series.freshness ?? null);
@@ -566,8 +576,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
     // Inner function so every setState is a callback, never a synchronous call
     // in the effect body — including the no-selection reset path.
     const loadIndicators = async () => {
+      // The previous symbol/selection's overlays never outlive this load.
+      clearIndicatorSeries();
+      setIndicatorResult(null);
       if (selectedKeys.length === 0) {
-        clearIndicatorSeries();
         setIndicatorState("idle");
         setIndicatorError(null);
         return;
@@ -579,12 +591,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
         if (cancelled) {
           return;
         }
-        renderIndicators(response);
+        setIndicatorResult({ key: `${symbol}|${timeframe}`, response });
         setIndicatorState("ready");
       } catch (error: unknown) {
         if (cancelled) {
           return;
         }
+        clearIndicatorSeries();
         setIndicatorError(
           error instanceof SidecarError
             ? `${error.message} (${error.status})`
@@ -597,14 +610,15 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [
-    symbol,
-    timeframe,
-    selectedKeys,
-    renderIndicators,
-    clearIndicatorSeries,
-    indicatorRetryNonce,
-  ]);
+  }, [symbol, timeframe, selectedKeys, clearIndicatorSeries, indicatorRetryNonce]);
+
+  // Draw an indicator response only once the candles it was computed for are
+  // the committed set (Parabolic SAR reads their closes).
+  useEffect(() => {
+    if (indicatorResult && indicatorResult.key === candlesKey) {
+      renderIndicators(indicatorResult.response);
+    }
+  }, [indicatorResult, candlesKey, renderIndicators]);
 
   // --- drawings: reconcile store → primitives -----------------------------
   useEffect(() => {
