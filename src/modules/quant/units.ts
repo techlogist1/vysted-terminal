@@ -11,22 +11,24 @@ export interface MarketGreek {
   unit: string | null;
 }
 
-/** QuantLib returns vega per unit of volatility (1.00 = 100 vol points) and
- *  theta per year. A desk reads vega per 1 vol point and theta per calendar day
- *  (R15-UI-028, R15-UI-051). */
-export function toMarketUnits({ vega, theta }: Pick<Greeks, "vega" | "theta">): {
+/** QuantLib returns vega and rho per unit rate (1.00 = a full 100-point move)
+ *  and theta per year. A desk reads vega/rho per 1-point move and theta per
+ *  calendar day (R15-UI-028, R15-UI-051). */
+export function toMarketUnits({ vega, theta, rho }: Pick<Greeks, "vega" | "theta" | "rho">): {
   vega: MarketGreek;
   theta: MarketGreek;
+  rho: MarketGreek;
 } {
   return {
     vega: { value: vega / 100, unit: "per 1 vol pt" },
     theta: { value: theta / 365, unit: "per day" },
+    rho: { value: rho / 100, unit: "per 1%" },
   };
 }
 
-/** One greek as a panel shows it: vega and theta in market units, the rest as served. */
+/** One greek as a panel shows it: vega/theta/rho in market units, the rest as served. */
 export function greekForDisplay(greeks: Greeks, key: keyof Greeks): MarketGreek {
-  if (key === "vega" || key === "theta") return toMarketUnits(greeks)[key];
+  if (key === "vega" || key === "theta" || key === "rho") return toMarketUnits(greeks)[key];
   return { value: greeks[key], unit: null };
 }
 

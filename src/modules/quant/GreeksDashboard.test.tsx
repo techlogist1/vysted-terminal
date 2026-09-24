@@ -61,7 +61,9 @@ describe("GreeksDashboard", () => {
     expect(screen.getByTestId("greek-vega").textContent).toContain("per 1 vol pt");
     expect(screen.getByTestId("greek-theta").textContent).toContain("-0.0137");
     expect(screen.getByTestId("greek-theta").textContent).toContain("per day");
-    expect(screen.getByTestId("greek-rho").textContent).toContain("12.0000");
+    // R15-UI-028 residual: rho (per unit rate) reads in market units too.
+    expect(screen.getByTestId("greek-rho").textContent).toContain("0.1200");
+    expect(screen.getByTestId("greek-rho").textContent).toContain("per 1%");
     expect(screen.getByTestId("greeks-price").textContent).toContain("$8.4200");
   });
 
