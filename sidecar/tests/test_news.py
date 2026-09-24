@@ -167,7 +167,7 @@ def test_get_news_provider_error_is_502(
     monkeypatch.setattr(news_provider, "fetch_news", boom)
     response = client.get("/news")
     assert response.status_code == 502
-    assert "all news sources failed" in response.json()["detail"]
+    assert response.json()["detail"] == "The data provider returned an unexpected response."
 
 
 # --------------------------------------------------------------------------

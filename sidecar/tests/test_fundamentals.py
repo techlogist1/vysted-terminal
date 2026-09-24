@@ -64,7 +64,7 @@ def test_get_fundamentals_provider_error_is_502(
     monkeypatch.setattr(provider_registry, "get_fundamentals", boom)
     resp = client.get("/fundamentals/AAPL")
     assert resp.status_code == 502
-    assert "upstream 500" in resp.json()["detail"]
+    assert resp.json()["detail"] == "The data provider returned an unexpected response."
 
 
 def test_get_fundamentals_rate_limited_is_429(

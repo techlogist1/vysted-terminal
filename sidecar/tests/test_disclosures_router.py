@@ -140,7 +140,7 @@ def test_announcements_total_failure_is_a_502(
     monkeypatch.setattr(corporate_disclosures, "get_announcements", boom)
     resp = client.get("/disclosures/announcements", params={"symbol": "RELIANCE"})
     assert resp.status_code == 502
-    assert "every announcement source failed" in resp.json()["detail"]
+    assert resp.json()["detail"] == "The data provider returned an unexpected response."
 
 
 def test_announcements_validates_params(client: TestClient) -> None:
@@ -201,7 +201,7 @@ def test_results_provider_error_is_a_502(
     monkeypatch.setattr(corporate_disclosures, "get_results_calendar", boom)
     resp = client.get("/disclosures/results", params={"symbol": "ZZZ"})
     assert resp.status_code == 502
-    assert "not a known NSE instrument" in resp.json()["detail"]
+    assert resp.json()["detail"] == "The data provider returned an unexpected response."
 
 
 # ---------------------------------------------------------------------------

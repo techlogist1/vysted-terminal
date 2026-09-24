@@ -129,7 +129,7 @@ def test_authored_message_without_a_cause_is_kept(
     from services.macro import fred_provider
 
     def keyless(_series_id: str) -> object:
-        raise ProviderError("FRED needs a free API key")
+        raise ProviderError.authored("FRED needs a free API key")
 
     monkeypatch.setattr(fred_provider, "get_series", keyless)
     resp = client.get("/macro/DATA061.KEYLESS", params={"provider": "fred"})
