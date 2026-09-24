@@ -1,0 +1,1561 @@
+{
+  "sha": "f444479031d7d493b7955b9af041d18e7c7a40cc",
+  "sha7": "f4444790",
+  "mode": "draft",
+  "previous_sha": "",
+  "versions": {
+    "package_json": {
+      "value": "0.8.0",
+      "path": "package.json:3"
+    },
+    "cargo_toml": {
+      "value": "0.8.0",
+      "path": "src-tauri/Cargo.toml:3"
+    },
+    "tauri_conf_json": {
+      "value": "0.8.0",
+      "path": "src-tauri/tauri.conf.json:4"
+    },
+    "sidecar_app_py": {
+      "value": "0.8.0",
+      "path": "sidecar/app.py:327"
+    },
+    "host_version": {
+      "value": "0.8.0",
+      "path": "src/lib/plugin-bootstrap.ts:37"
+    },
+    "cargo_lock_vysted_terminal": {
+      "value": "0.8.0",
+      "path": "src-tauri/Cargo.lock:5487 (name block starts :5486)"
+    },
+    "version_consistent": true,
+    "already_has_090_string": true,
+    "090_note": "0.9.0 already appears in docs/redesign/verification/r15/census/** (PROMISE_LEDGER.md, code/plugins.md, intent/ledger-*.json) as the target public-release version being discussed, and in plugins/*/manifest.json requiredHostVersion comparisons per code/plugins.md:305-306 discussing a future '<0.9.0' example. No source-of-truth version file is 0.9.0 yet at this sha."
+  },
+  "version_occurrences": [
+    {
+      "path": "BLOCKERS.md",
+      "line": 3,
+      "class": "prose"
+    },
+    {
+      "path": "BLOCKERS.md",
+      "line": 45,
+      "class": "prose"
+    },
+    {
+      "path": "BLOCKERS.md",
+      "line": 212,
+      "class": "prose"
+    },
+    {
+      "path": "BLOCKERS.md",
+      "line": 262,
+      "class": "prose"
+    },
+    {
+      "path": "BLOCKERS.md",
+      "line": 278,
+      "class": "prose"
+    },
+    {
+      "path": "README.md",
+      "line": 15,
+      "class": "prose"
+    },
+    {
+      "path": "README.md",
+      "line": 53,
+      "class": "prose"
+    },
+    {
+      "path": "README.md",
+      "line": 66,
+      "class": "prose"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "line": 151,
+      "class": "prose"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "line": 262,
+      "class": "prose"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "line": 609,
+      "class": "prose"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "line": 785,
+      "class": "prose"
+    },
+    {
+      "path": "docs/CURRENT_STATE.md",
+      "line": 815,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/AGENT_TOOLUSE_PLAN.md",
+      "line": 5,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/AGENT_TOOLUSE_PLAN.md",
+      "line": 82,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/AGENT_TOOLUSE_PLAN.md",
+      "line": 241,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/DECISIONS.md",
+      "line": 120,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/DECISIONS.md",
+      "line": 131,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/DECISIONS_FOR_OPERATOR.md",
+      "line": 146,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/HANDOFF_VERIFIED.md",
+      "line": 22,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT.md",
+      "line": 4,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 3,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 70,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 79,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 157,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 235,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/OVERNIGHT_BUILD_REPORT_R4S3.md",
+      "line": 280,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/R4_BUILD_SEQUENCE.md",
+      "line": 9,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/R4_BUILD_SEQUENCE.md",
+      "line": 187,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/R4_DESIGN_LANGUAGE.md",
+      "line": 367,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/R9_TRACK_LOOP_REPORT.md",
+      "line": 5,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 3,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 17,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 108,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 130,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 174,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 239,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_REPORT.md",
+      "line": 301,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_SPEC.md",
+      "line": 72,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_SPEC.md",
+      "line": 745,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_SPEC.md",
+      "line": 850,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R3_SPEC.md",
+      "line": 854,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R4_REPORT.md",
+      "line": 9,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R4_REPORT.md",
+      "line": 124,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R4_SESSION2_REPORT.md",
+      "line": 4,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R4_SESSION2_REPORT.md",
+      "line": 149,
+      "class": "prose"
+    },
+    {
+      "path": "docs/redesign/REBUILD_R4_SPEC.md",
+      "line": 10,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/blueprint-bugfix.md",
+      "line": 3,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/blueprint-customizability.md",
+      "line": 5,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/blueprint-customizability.md",
+      "line": 552,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/hunt-error-surfaces.md",
+      "line": 409,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/hunt-rust-tauri.md",
+      "line": 26,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/hunt-rust-tauri.md",
+      "line": 401,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/map-ai-copilot.md",
+      "line": 173,
+      "class": "prose"
+    },
+    {
+      "path": "docs/research/phase-10/map-extensibility.md",
+      "line": 8,
+      "class": "prose"
+    },
+    {
+      "path": "package.json",
+      "line": 3,
+      "class": "load_bearing",
+      "note": "\"version\": \"0.8.0\""
+    },
+    {
+      "path": "package.json",
+      "line": 76,
+      "class": "load_bearing",
+      "note": "unrelated dep prettier-plugin-tailwindcss pinned to 0.8.0, not the app version"
+    },
+    {
+      "path": "plugins/vysted-lenses/manifest.json",
+      "line": 6,
+      "class": "load_bearing",
+      "note": "requiredHostVersion"
+    },
+    {
+      "path": "plugins/vysted-news/manifest.json",
+      "line": 6,
+      "class": "load_bearing",
+      "note": "requiredHostVersion"
+    },
+    {
+      "path": "plugins/yfinance/manifest.json",
+      "line": 6,
+      "class": "load_bearing",
+      "note": "requiredHostVersion"
+    },
+    {
+      "path": "sidecar/app.py",
+      "line": 327,
+      "class": "load_bearing",
+      "note": "FastAPI(version=...)"
+    },
+    {
+      "path": "sidecar/tests/test_data_cache.py",
+      "line": 131,
+      "class": "load_bearing",
+      "note": "test assertion, uses 0.8.0 as an arbitrary cache-build-tag literal, not the app version"
+    },
+    {
+      "path": "sidecar/tests/test_data_cache.py",
+      "line": 133,
+      "class": "load_bearing"
+    },
+    {
+      "path": "sidecar/tests/test_data_cache.py",
+      "line": 141,
+      "class": "load_bearing"
+    },
+    {
+      "path": "sidecar/tests/test_data_cache.py",
+      "line": 142,
+      "class": "load_bearing"
+    },
+    {
+      "path": "sidecar/tests/test_data_cache.py",
+      "line": 150,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 281,
+      "class": "load_bearing",
+      "note": "unrelated crate version, not vysted-terminal"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 290,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 758,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 2426,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 2443,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 3351,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 3368,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/Cargo.lock",
+      "line": 5487,
+      "class": "load_bearing",
+      "note": "vysted-terminal entry itself"
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "line": 3,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "line": 4,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src/components/SettingsPanel.test.tsx",
+      "line": 831,
+      "class": "load_bearing",
+      "note": "test fixture asserting /system/diagnostics version echo"
+    },
+    {
+      "path": "src/lib/plugin-bootstrap.ts",
+      "line": 37,
+      "class": "load_bearing",
+      "note": "HOST_VERSION const"
+    },
+    {
+      "path": "src/lib/plugin-runtime.test.ts",
+      "line": 498,
+      "class": "load_bearing"
+    },
+    {
+      "path": "src/lib/plugin-runtime.test.ts",
+      "line": 508,
+      "class": "load_bearing"
+    }
+  ],
+  "sidecars": {
+    "externalBin": [
+      "binaries/vysted-sidecar",
+      "binaries/vysted-openbb-mcp-sidecar",
+      "binaries/vysted-sec-edgar-mcp-sidecar"
+    ],
+    "path": "src-tauri/tauri.conf.json:40-44",
+    "entries": [
+      {
+        "external_bin_name": "binaries/vysted-sidecar",
+        "ensure_script": "scripts/ensure-sidecar.mjs",
+        "pyinstaller_name": "vysted-sidecar",
+        "entry_script": "sidecar/main.py",
+        "venv_dir": "sidecar/.venv",
+        "requirements_file": "sidecar/requirements-dev.txt",
+        "spawn_file": "src-tauri/src/lib.rs",
+        "spawn_detail": "start_main_sidecar() at lib.rs:269, app.shell().sidecar(\"vysted-sidecar\") at lib.rs:276"
+      },
+      {
+        "external_bin_name": "binaries/vysted-openbb-mcp-sidecar",
+        "ensure_script": "scripts/ensure-openbb-mcp-sidecar.mjs",
+        "pyinstaller_name": "vysted-openbb-mcp-sidecar",
+        "entry_script": "sidecar/openbb_mcp_subprocess/main.py",
+        "venv_dir": "sidecar/openbb_mcp_subprocess/.venv",
+        "requirements_file": "sidecar/openbb_mcp_subprocess/requirements.txt",
+        "spawn_file": "src-tauri/src/openbb_mcp.rs"
+      },
+      {
+        "external_bin_name": "binaries/vysted-sec-edgar-mcp-sidecar",
+        "ensure_script": "scripts/ensure-sec-edgar-mcp-sidecar.mjs",
+        "pyinstaller_name": "vysted-sec-edgar-mcp-sidecar",
+        "entry_script": "sidecar/sec_edgar_mcp_subprocess/main.py",
+        "venv_dir": "sidecar/sec_edgar_mcp_subprocess/.venv",
+        "requirements_file": "sidecar/sec_edgar_mcp_subprocess/requirements.txt",
+        "spawn_file": "src-tauri/src/sec_edgar_mcp.rs"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "sidecar:build": "node scripts/ensure-sidecar.mjs --force",
+    "openbb-mcp-sidecar:build": "node scripts/ensure-openbb-mcp-sidecar.mjs --force",
+    "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
+    "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
+    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
+    "tauri": "tauri",
+    "tauri:mcp": "tauri dev --features dev-tools",
+    "tauri:dev": "pnpm tauri:mcp"
+  },
+  "ci": [
+    {
+      "file": ".github/workflows/build.yml",
+      "name": "build",
+      "on": {
+        "push": {
+          "branches": [
+            "main"
+          ]
+        },
+        "pull_request": {}
+      },
+      "jobs": [
+        "build"
+      ],
+      "os_matrix": [
+        "windows-latest",
+        "macos-latest",
+        "ubuntu-latest"
+      ]
+    },
+    {
+      "file": ".github/workflows/lint.yml",
+      "name": "lint",
+      "on": {
+        "push": {
+          "branches": [
+            "main"
+          ]
+        },
+        "pull_request": {}
+      },
+      "jobs": [
+        "lint"
+      ],
+      "os_matrix": [
+        "windows-latest",
+        "macos-latest",
+        "ubuntu-latest"
+      ]
+    },
+    {
+      "file": ".github/workflows/test.yml",
+      "name": "test",
+      "on": {
+        "push": {
+          "branches": [
+            "main"
+          ]
+        },
+        "pull_request": {}
+      },
+      "jobs": [
+        "test"
+      ],
+      "os_matrix": [
+        "windows-latest",
+        "macos-latest",
+        "ubuntu-latest"
+      ]
+    }
+  ],
+  "plugins": [
+    {
+      "id": "vysted-yfinance",
+      "dir": "plugins/yfinance",
+      "in_bundled_plugins_equivalent": true,
+      "in_plugin_companions_equivalent": null,
+      "note": "This sha has replaced BUNDLED_PLUGINS/PLUGIN_COMPANIONS (as CLAUDE.md describes) with a single CATALOG_ROWS registry in src/lib/marketplace.ts (row() helper carries entry + discovered plugin + optional panelComponents in one object); all 5 plugins are catalog rows with preinstalled:true.",
+      "license_field_in_manifest": null
+    },
+    {
+      "id": "openbb-mcp",
+      "dir": "plugins/openbb-mcp",
+      "preinstalled": true,
+      "license_field_in_manifest": null
+    },
+    {
+      "id": "vysted-lenses",
+      "dir": "plugins/vysted-lenses",
+      "preinstalled": true,
+      "license_field_in_manifest": null
+    },
+    {
+      "id": "vysted-news",
+      "dir": "plugins/vysted-news",
+      "preinstalled": true,
+      "license_field_in_manifest": null
+    },
+    {
+      "id": "vysted-example",
+      "dir": "plugins/example",
+      "preinstalled": true,
+      "license_field_in_manifest": null,
+      "note": "plugins/example/index.ts:1-2 carries an SPDX header: 'SPDX-License-Identifier: Apache-2.0' / 'Copyright (c) 2026 Lokavya Singh', matching CLAUDE.md's stated example-plugin Apache-2.0 licensing. No plugins/*/manifest.json has a license field."
+    }
+  ],
+  "agents": {
+    "first_party_json_count": 13,
+    "ids": [
+      "buffett",
+      "copilot",
+      "dalio",
+      "druckenmiller",
+      "graham",
+      "klarman",
+      "lynch",
+      "marks",
+      "munger",
+      "portfolio_advisor",
+      "researcher",
+      "soros",
+      "strategy_critic"
+    ],
+    "dir": "sidecar/agents/ (excludes README.md and _schema.json)",
+    "roster_count_assertion": {
+      "path": "sidecar/tests/test_agent_runtime.py:213",
+      "text": "assert len(json_files) == 13  # the roster \u2014 keep in sync with the count tests"
+    }
+  },
+  "panels": {
+    "note": "each src/modules/<name>/index.ts defines a VystedModule with panel id/title pairs; safety has no index.ts panel registration at this sha.",
+    "modules": {
+      "agent-builder": [
+        {
+          "id": "agent-builder",
+          "title": "Agent Builder"
+        }
+      ],
+      "analyst-ratings": [
+        {
+          "id": "analyst-ratings",
+          "title": "Analyst Ratings"
+        }
+      ],
+      "backtest": [
+        {
+          "id": "backtest",
+          "title": "Backtest"
+        }
+      ],
+      "chart": [
+        {
+          "id": "chart",
+          "title": "Chart"
+        }
+      ],
+      "chat": [
+        {
+          "id": "chat",
+          "title": "AI Assistant (module id/title only, no panel id found at grep depth used)"
+        }
+      ],
+      "earnings": [
+        {
+          "id": "earnings-calendar",
+          "title": "Earnings Calendar"
+        }
+      ],
+      "equity-overview": [
+        {
+          "id": "equity-overview",
+          "title": "Equity Overview"
+        }
+      ],
+      "macro": [
+        {
+          "id": "macro",
+          "title": "Macro"
+        }
+      ],
+      "marketplace": [
+        {
+          "id": "marketplace",
+          "title": "Marketplace"
+        }
+      ],
+      "news": [
+        {
+          "id": "news",
+          "title": "News"
+        }
+      ],
+      "node-editor": [
+        {
+          "id": "node-editor",
+          "title": "Node Editor"
+        }
+      ],
+      "notes": [
+        {
+          "id": "notes",
+          "title": "Notes"
+        }
+      ],
+      "platform": [
+        {
+          "id": "settings",
+          "title": "Settings"
+        }
+      ],
+      "plugin-manager": [
+        {
+          "id": "plugin-manager",
+          "title": "Plugins"
+        }
+      ],
+      "portfolio": [
+        {
+          "id": "portfolio",
+          "title": "Portfolio"
+        }
+      ],
+      "quant": [
+        {
+          "id": "option-pricer",
+          "title": "Option Pricer"
+        },
+        {
+          "id": "greeks-dashboard",
+          "title": "Greeks Dashboard"
+        },
+        {
+          "id": "bond-pricer",
+          "title": "Bond Pricer"
+        },
+        {
+          "id": "yield-curve",
+          "title": "Yield Curve"
+        }
+      ],
+      "research": [
+        {
+          "id": "brief",
+          "title": "Brief"
+        }
+      ],
+      "screener": [
+        {
+          "id": "screener-panel",
+          "title": "Screener"
+        }
+      ],
+      "sec": [
+        {
+          "id": "sec-filings",
+          "title": "SEC Filings"
+        }
+      ],
+      "watchlist": [
+        {
+          "id": "watchlist",
+          "title": "Watchlist"
+        }
+      ]
+    },
+    "no_panels_found": [
+      "safety"
+    ]
+  },
+  "register": {
+    "counts": {
+      "raw": 887,
+      "entries": 626,
+      "rejections": 76,
+      "critical": 16,
+      "high": 112,
+      "medium": 279,
+      "low": 219
+    },
+    "severity_x_status": {
+      "critical": {
+        "fixed": 16
+      },
+      "high": {
+        "fixed": 100,
+        "open": 3,
+        "needs_gui": 4,
+        "removed_with_feature": 1,
+        "blocked_tier4": 4
+      },
+      "medium": {
+        "fixed": 153,
+        "open": 114,
+        "removed_with_feature": 9,
+        "needs_gui": 2,
+        "not_a_defect": 1
+      },
+      "low": {
+        "open": 205,
+        "fixed": 10,
+        "removed_with_feature": 4
+      }
+    },
+    "open_high": [
+      {
+        "id": "R15-AGENT-007",
+        "subsystem": "agent-runtime"
+      },
+      {
+        "id": "R15-AGENT-017",
+        "subsystem": "llm-adapters"
+      },
+      {
+        "id": "R15-LEAD-022",
+        "subsystem": "resolver"
+      }
+    ],
+    "open_medium": [
+      {
+        "id": "R15-AGENT-046",
+        "subsystem": "agent-tools-catalog-ledger"
+      },
+      {
+        "id": "R15-AGENT-049",
+        "subsystem": "agent-runtime"
+      },
+      {
+        "id": "R15-AGENT-050",
+        "subsystem": "llm-adapters"
+      },
+      {
+        "id": "R15-AGENT-053",
+        "subsystem": "frontend-panels-agent-shell"
+      },
+      {
+        "id": "R15-AGENT-057",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-AGENT-063",
+        "subsystem": "research-extraction-synthesis"
+      },
+      {
+        "id": "R15-AGENT-064",
+        "subsystem": "mcp-servers"
+      },
+      {
+        "id": "R15-AGENT-082",
+        "subsystem": "frontend-panels-agent-shell"
+      },
+      {
+        "id": "R15-AGENT-083",
+        "subsystem": "agent-tools-catalog-ledger"
+      },
+      {
+        "id": "R15-AGENT-084",
+        "subsystem": "host-actions-proposed-changes"
+      },
+      {
+        "id": "R15-AGENT-088",
+        "subsystem": "frontend-panels-agent-shell"
+      },
+      {
+        "id": "R15-CODE-AGENT-005",
+        "subsystem": "llm-adapters"
+      },
+      {
+        "id": "R15-CODE-AGENT-008",
+        "subsystem": "agent-runtime"
+      },
+      {
+        "id": "R15-CODE-AGENT-009",
+        "subsystem": "agent-runtime"
+      },
+      {
+        "id": "R15-CODE-AGENT-013",
+        "subsystem": "agent-tools-catalog-ledger"
+      },
+      {
+        "id": "R15-CODE-FRONTEND-013",
+        "subsystem": "safety-audit"
+      },
+      {
+        "id": "R15-CODE-FRONTEND-016",
+        "subsystem": "frontend-stores"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-010",
+        "subsystem": "rust-core"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-012",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-013",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-014",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-015",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-017",
+        "subsystem": "workflow-engine"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-021",
+        "subsystem": "portfolio"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-023",
+        "subsystem": "portfolio"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-024",
+        "subsystem": "rust-core"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-025",
+        "subsystem": "rust-core"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-026",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-027",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-028",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-029",
+        "subsystem": "backtest"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-030",
+        "subsystem": "backtest"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-071",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-072",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-CODE-PLATFORM-073",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-CODE-RESEARCH-004",
+        "subsystem": "research-retrieval-relevance"
+      },
+      {
+        "id": "R15-CROSS-PLATFORM-001",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-CROSS-PLATFORM-002",
+        "subsystem": "research-extraction-synthesis"
+      },
+      {
+        "id": "R15-CROSS-PLATFORM-003",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-CROSS-PLATFORM-004",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-DATA-048",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DATA-052",
+        "subsystem": "resolver"
+      },
+      {
+        "id": "R15-DATA-053",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-054",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DATA-055",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DATA-059",
+        "subsystem": "resolver"
+      },
+      {
+        "id": "R15-DATA-061",
+        "subsystem": "error-layer"
+      },
+      {
+        "id": "R15-DATA-062",
+        "subsystem": "market-data-providers-2"
+      },
+      {
+        "id": "R15-DATA-065",
+        "subsystem": "market-data-providers-2"
+      },
+      {
+        "id": "R15-DATA-066",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-068",
+        "subsystem": "market-data-providers-3"
+      },
+      {
+        "id": "R15-DATA-069",
+        "subsystem": "market-data-providers-3"
+      },
+      {
+        "id": "R15-DATA-071",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-073",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-077",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-078",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-079",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-DATA-080",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DATA-087",
+        "subsystem": "macro-quant"
+      },
+      {
+        "id": "R15-DATA-092",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-DATA-094",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-DATA-095",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DATA-096",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-DOCS-002",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-DOCS-003",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-DOCS-004",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-DOCS-005",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-DOCS-015",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-DOCS-016",
+        "subsystem": "host-actions-proposed-changes"
+      },
+      {
+        "id": "R15-DOCS-017",
+        "subsystem": "screener"
+      },
+      {
+        "id": "R15-DOCS-018",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-LEAD-013",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-LEAD-016",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-LEAD-018",
+        "subsystem": "llm-adapters-and-errors"
+      },
+      {
+        "id": "R15-LEAD-023",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-LIFECYCLE-015",
+        "subsystem": "backtest"
+      },
+      {
+        "id": "R15-LIFECYCLE-018",
+        "subsystem": "research-retrieval-relevance"
+      },
+      {
+        "id": "R15-LIFECYCLE-021",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-LIFECYCLE-024",
+        "subsystem": "workspace-layout"
+      },
+      {
+        "id": "R15-LIFECYCLE-025",
+        "subsystem": "agent-runtime"
+      },
+      {
+        "id": "R15-LIFECYCLE-026",
+        "subsystem": "market-data-providers-1"
+      },
+      {
+        "id": "R15-RELEASE-005",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-RELEASE-006",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-RELEASE-007",
+        "subsystem": "scripts-build"
+      },
+      {
+        "id": "R15-RESEARCH-025",
+        "subsystem": "screener"
+      },
+      {
+        "id": "R15-RESEARCH-027",
+        "subsystem": "research-depth-iter-deep"
+      },
+      {
+        "id": "R15-RESEARCH-028",
+        "subsystem": "research-retrieval-relevance"
+      },
+      {
+        "id": "R15-RESEARCH-030",
+        "subsystem": "disclosures-witnesses"
+      },
+      {
+        "id": "R15-UI-010",
+        "subsystem": "backtest"
+      },
+      {
+        "id": "R15-UI-011",
+        "subsystem": "backtest"
+      },
+      {
+        "id": "R15-UI-015",
+        "subsystem": "error-layer"
+      },
+      {
+        "id": "R15-UI-016",
+        "subsystem": "frontend-stores"
+      },
+      {
+        "id": "R15-UI-018",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-024",
+        "subsystem": "frontend-panels-data-surfaces"
+      },
+      {
+        "id": "R15-UI-027",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-028",
+        "subsystem": "macro-quant"
+      },
+      {
+        "id": "R15-UI-032",
+        "subsystem": "market-data-providers-3"
+      },
+      {
+        "id": "R15-UI-033",
+        "subsystem": "plugins"
+      },
+      {
+        "id": "R15-UI-044",
+        "subsystem": "safety-audit"
+      },
+      {
+        "id": "R15-UI-047",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-048",
+        "subsystem": "frontend-stores"
+      },
+      {
+        "id": "R15-UI-050",
+        "subsystem": "frontend-panels-data-surfaces"
+      },
+      {
+        "id": "R15-UI-051",
+        "subsystem": "macro-quant"
+      },
+      {
+        "id": "R15-UI-052",
+        "subsystem": "frontend-panels-agent-shell"
+      },
+      {
+        "id": "R15-UI-053",
+        "subsystem": "macro-quant"
+      },
+      {
+        "id": "R15-UI-058",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-059",
+        "subsystem": "fundamentals-profile"
+      },
+      {
+        "id": "R15-UI-083",
+        "subsystem": "frontend-panels-data-surfaces"
+      },
+      {
+        "id": "R15-UI-084",
+        "subsystem": "frontend-panels-agent-shell"
+      },
+      {
+        "id": "R15-UI-085",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-086",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-087",
+        "subsystem": "frontend-panels-shell-chrome"
+      },
+      {
+        "id": "R15-UI-088",
+        "subsystem": "workspace-layout"
+      },
+      {
+        "id": "R15-UI-091",
+        "subsystem": "frontend-panels-data-surfaces"
+      }
+    ],
+    "needs_gui": [
+      "R15-CODE-AGENT-001",
+      "R15-LIFECYCLE-001",
+      "R15-LIFECYCLE-008",
+      "R15-UI-009",
+      "R15-UI-022",
+      "R15-UI-025"
+    ],
+    "blocked_tier4": [
+      "R15-RELEASE-001",
+      "R15-RELEASE-002",
+      "R15-RELEASE-003",
+      "R15-RELEASE-004"
+    ]
+  },
+  "register_source": "docs/redesign/verification/vysted-r15-register.json",
+  "decisions": {
+    "source": "docs/redesign/DECISIONS_FOR_OPERATOR.md",
+    "items": [
+      {
+        "number": "1.1",
+        "title": "The \"sacred\" enrich_nse_sectors.py edit is now committed (7a1cd8f)",
+        "closed": false,
+        "tier4": true,
+        "unblock": "git revert 7a1cd8f"
+      },
+      {
+        "number": "1.2",
+        "title": "SUPERSEDED (D81) \u2014 kill-switch-benchmark.json baseline dirtying pytest",
+        "closed": true,
+        "tier4": true,
+        "unblock": "nothing to undo; deleted with the trading-removal feature"
+      },
+      {
+        "number": "1.3",
+        "title": "Five local, never-pushed commits were rewritten once (the brief said \"no history rewrite\")",
+        "closed": false,
+        "tier4": true,
+        "unblock": "nothing to undo on origin; to publish the brief, remove its line from .gitignore and commit it"
+      },
+      {
+        "number": "1.4",
+        "title": "Relicensed to PolyForm Strict 1.0.0 (your decision, given 23 Sep 2026)",
+        "closed": false,
+        "tier4": true,
+        "unblock": "git revert <relicense commit> (subject: 'chore(license): relicense core to PolyForm Strict 1.0.0')"
+      },
+      {
+        "number": "2.1",
+        "title": "Your default provider lanes are unfunded \u2014 the app cannot answer on them",
+        "closed": false,
+        "tier4": true,
+        "unblock": "top up OpenRouter (negative paid balance) or fund DeepSeek-direct ($0); restart the dev stack to pick up 043850c's gpt-5.x tool-calling fix"
+      },
+      {
+        "number": "2.2",
+        "title": "Docker/OrbStack is not running, so SearXNG is down and research silently uses the keyless scraper",
+        "closed": false,
+        "tier4": true,
+        "unblock": "start OrbStack before judging research depth"
+      },
+      {
+        "number": "2.3",
+        "title": "CLOSED: removed with the feature (D81, 23 Sep 2026) \u2014 kill switch had no subscribers left once orders were removed",
+        "closed": true,
+        "tier4": true,
+        "unblock": "revert the D81 removal commits (restores the whole trading layer)"
+      },
+      {
+        "number": "2.4",
+        "title": "CLOSED: removed with the feature (D81) \u2014 paper/live mode switch deleted",
+        "closed": true,
+        "tier4": true,
+        "unblock": "revert the D81 removal commits"
+      },
+      {
+        "number": "2.5",
+        "title": "CLOSED: removed with the feature (D81) \u2014 PositionLimits deleted, nothing left to limit",
+        "closed": true,
+        "tier4": true,
+        "unblock": "revert the D81 removal commits"
+      },
+      {
+        "number": "2.6",
+        "title": "CI has never run on 004, and the last main run failed",
+        "closed": false,
+        "tier4": true,
+        "unblock": "open a PR against main / fix the red main lint run so CI's push+pull_request triggers actually fire"
+      },
+      {
+        "number": "2.7",
+        "title": "GUI rig: input-idle time is not proof you are away",
+        "closed": false,
+        "tier4": true,
+        "unblock": "add an away-sentinel file (~/.vysted-rig-away, with expiry) required in addition to idle time \u2014 not added because it would make unattended runs refuse until the operator knows about it"
+      },
+      {
+        "number": "2.8",
+        "title": "R15-RELEASE-001 \u2014 unsigned desktop bundles (Gatekeeper/SmartScreen block every install)",
+        "closed": false,
+        "tier4": true,
+        "unblock": "at minimum set bundle.macOS.signingIdentity: \"-\" in tauri.conf.json for an ad-hoc seal (still needs operator sign-off, Tier-1 file); full fix needs a paid Apple Developer ID + notarization and a Windows code-signing cert"
+      },
+      {
+        "number": "2.9",
+        "title": "R15-RELEASE-002 \u2014 no GitHub release pipeline (tags v0.6.0..v0.8.0 have zero installable builds)",
+        "closed": false,
+        "tier4": true,
+        "unblock": "approve adding .github/workflows/release.yml (3-OS matrix via tauri-apps/tauri-action, createUpdaterArtifacts:true, TAURI_SIGNING_PRIVATE_KEY wired); also unblocks 2.10"
+      },
+      {
+        "number": "2.10",
+        "title": "R15-RELEASE-003 \u2014 auto-updater is dead end-to-end",
+        "closed": false,
+        "tier4": true,
+        "unblock": "approve 2.9 first (produces latest.json/.sig), then set createUpdaterArtifacts:true in tauri.conf.json; the consumer-side app.updater()?.check() call is not Tier-4 and can ship independently"
+      },
+      {
+        "number": "2.11",
+        "title": "R15-RELEASE-004 \u2014 CI has never run on 004-r4-experience-rebuild",
+        "closed": false,
+        "tier4": true,
+        "unblock": "open a draft PR for 004-r4-experience-rebuild (no workflow edit needed) so the existing pull_request trigger runs the 3-OS matrix; fix the red main lint run first so the signal is meaningful"
+      },
+      {
+        "number": "3.1",
+        "title": "UNSURE-1 \u2014 user-side leftovers after upgrade (no code reads any of it; nothing purged)",
+        "closed": false,
+        "tier4": false,
+        "unblock": "approve a one-time 'remove leftover broker credentials' purge step plus a CHANGELOG note on manually deleting audit_log.db and the keychain entries"
+      },
+      {
+        "number": "3.2",
+        "title": "First-launch terms rewrite (was on the \u00a76.5 surface, includes licence wording)",
+        "closed": false,
+        "tier4": false,
+        "unblock": "review the exact copy in src/modules/safety/DisclaimerFlow.tsx before it ships (flagged Tier-4 by R15-UI-041)"
+      },
+      {
+        "number": "3.3",
+        "title": "Accepted agent-write safety gaps (stated in docs/SAFETY_ARCHITECTURE.md, not silently dropped)",
+        "closed": false,
+        "tier4": false,
+        "unblock": "tracked as R15-CODE-FRONTEND-013 (no durable audit trail beyond action_ledger's 10-min TTL) and R15-CODE-FRONTEND-008 (no stop control for AUTO beyond reject/run-cancel); no unblock proposed, accepted gaps"
+      },
+      {
+        "number": "3.4",
+        "title": "BLOCKED-FOR-OPERATOR (Tier-1): no edit made, your call",
+        "closed": false,
+        "tier4": true,
+        "unblock": "decide whether to keep the 'trading-bot' PluginType literal + JSDoc examples in types/plugin.ts as historical precedent or remove them (contract-breaking either way); apply the queued CLAUDE.md edits in docs/redesign/CLAUDE_MD_PROPOSAL.md when convenient; COMMERCIAL_LICENSE.md:36-48 broker clause left as-is, no change required"
+      },
+      {
+        "number": "3.5",
+        "title": "D-B3-1 \u2014 AUTO scope tightened back to SC-025 (Stage C batch 3; done, revertable)",
+        "closed": true,
+        "tier4": false,
+        "unblock": "flip the autoApplies predicate in types/proposed-change.ts if AUTO should apply data-write kinds again"
+      },
+      {
+        "number": "3.6",
+        "title": "D-B4-1 \u2014 context admission on window-bound lanes (Stage C batch 4; done, revertable)",
+        "closed": true,
+        "tier4": false,
+        "unblock": "have LLMProvider.context_window return None for Ollama to restore silent head truncation"
+      }
+    ],
+    "note": "closed = CLOSED/SUPERSEDED marker present in the heading, or the item is explicitly done-and-revertable (\u00a73.5/3.6); tier4 = the item sits in DECISIONS_FOR_OPERATOR.md \u00a71 (reversals) or \u00a72 (Tier-4 blocked/open) sections, or is explicitly framed BLOCKED-FOR-OPERATOR (3.4); \u00a73.1-3.3/3.5-3.6 are non-Tier-4 (autonomous Tier-3 record or accepted-gap notes). All one-line unblocks read verbatim from docs/redesign/DECISIONS_FOR_OPERATOR.md."
+  },
+  "git": {
+    "base_tag": "r13-bedrock",
+    "base_tag_note": "no r15-* tag exists yet as an ancestor of this sha; r13-bedrock is the newest r13-/r15- tag that is (git tag --merged f4444790 --sort=-creatordate, filtered to ^r13-|^r15-).",
+    "commits_since_base_total": 468,
+    "commits_since_base_first_parent": 76,
+    "first_parent_merge_subjects_since_base": [
+      "6b702305 merge(r15): Stage C batch 9 - 29 certified live (agent runtime identity + budget, research/search/news, fundamentals identity + earnings, market lanes + errors + quant, frontend shell)",
+      "68bb7aa4 merge(r15): Stage C batch 8 - 39 certified live (sidecar lifecycle + transport, provider readiness, data error honesty, resolver + exchange lanes, agent runtime + research)",
+      "e81c9e7c fix(r15): Stage C batch 7 - 55 high/medium entries (50 certified live, 1 needs GUI, 4 open)",
+      "5e147317 fix(r15): Stage C batch 6 - 22 delivered high/medium entries (21 certified live, 3 open) + quant-pool leak fix",
+      "1574ed8e fix(r15): Stage C batch 5 - 58 high/medium entries (48 certified live, 2 need GUI, 6 open) + LEAD-010 regression fix",
+      "dcbe7bae fix(r15): Stage C batch 4 - 52 high entries (45 certified live, 2 need GUI, 3 open)",
+      "c81d879b fix(r15): Stage C batch 3 - 40 critical/high entries (38 certified live, 2 open)",
+      "806a90ca fix(r15): Stage C batch 2 - 40 critical/high entries (37 certified live, 3 reopened)",
+      "a122dbf6 feat(d81): remove trading from the product (Stage C batch 1)",
+      "0290aaa0 Merge worktree-agent-rig into 004-r4-experience-rebuild (R15: durable GUI rig, presence safety)",
+      "2d99cdab Merge worktree-agent-pushguard into 004-r4-experience-rebuild (R15: pre-push secrets + stray-capture guard)"
+    ],
+    "note_merge_list_truncated": "git log --first-parent --merges shown to depth 11 above (head -30 returned only 11 matches for this range); this is the full list within the sampled window, not necessarily every first-parent merge back to r13-bedrock.",
+    "stage_c_dirs": {
+      "path": "docs/redesign/verification/r15/stage-c/",
+      "batches": {
+        "batch-2": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "Certified 37 | Not certified 3 (R15-DATA-005, R15-DATA-014, R15-AGENT-001) | needs_gui 0"
+        },
+        "batch-3": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "Certified 38 | Not certified 2 (R15-DATA-020, R15-RESEARCH-005)"
+        },
+        "batch-4": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "Certified 45 | needs_gui 2 | open 3 (per CHANGELOG/merge subject; VERDICTS.md line 20 shows Certified 45)"
+        },
+        "batch-5": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "Certified 48 | Not certified 6 (R15-LEAD-010, R15-DATA-017, R15-CODE-PLATFORM-018, R15-AGENT-052, R15-AGENT-051, R15-CODE-FRONTEND-015) | needs_gui 2 (R15-CODE-AGENT-001, R15-LIFECYCLE-008)"
+        },
+        "batch-6": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "Certified (21) per VERDICTS.md:64 heading"
+        },
+        "batch-7": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "52 claimed (51 delivered + CODE-PLATFORM-018 verify-only); 50 certified, 1 needs GUI (UI-022), 1 not certified (AGENT-045); LEAD-005, AGENT-046, CODE-PLATFORM-021 not delivered, stay open"
+        },
+        "batch-8": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "47 planned; 39 certified, 1 needs GUI (LIFECYCLE-001), 7 not certified (3 real residuals DATA-061/UI-053/RESEARCH-027, 1 partial UI-015, 3 not delivered AGENT-046/CODE-AGENT-008/CODE-PLATFORM-021)"
+        },
+        "batch-9": {
+          "plan_md": true,
+          "verdicts_md": true,
+          "tally": "45 planned; 29 certified, 2 need GUI (UI-083, UI-050), 14 not certified"
+        },
+        "lows-triage": {
+          "plan_md": false,
+          "verdicts_md": false,
+          "note": "no PLAN.md/VERDICTS.md present; directory holds different content"
+        }
+      },
+      "other_files": [
+        "LEAD_FOUND.applied-batch-3.json",
+        "LEAD_FOUND.applied-batch-6.json",
+        "REMOVAL_PLAN.md"
+      ]
+    },
+    "changelog_headings_newer_than_base": [
+      "R15 Stage C \u2014 batch 2: critical + high data/research/workspace fixes (2026-09-23)",
+      "R15 Stage C \u2014 batch 3: agent runtime, AUTO gate, LLM adapters, research depth, India witnesses (2026-09-23)",
+      "R15 Stage C \u2014 batch 4: context admission, Gemini/xAI lanes, workflows, Delegate output, market-data gate, panels (2026-09-23)",
+      "R15 Stage C \u2014 batch 5: India exchange lanes, resolver masters, runtime liveness and memory, workflow control flow, sidecar boundary, screener and earnings (2026-09-24)",
+      "R15 Stage C \u2014 batch 6: India Emerge lanes, runtime tool-call identity, research funnel, host-action intents, quant pool, panel bus keys (2026-09-24)",
+      "R15 Stage C \u2014 batch 7: exchange-filed India fundamentals, durable delegate runs, unattended workflows, chart/workspace integrity, research funnel, agent-write Undo (2026-09-24)",
+      "R15 Stage C \u2014 batch 8: sidecar lifecycle and transport, provider readiness, data-error honesty, resolver and exchange lanes, research runtime (2026-09-24)",
+      "R15 Stage C \u2014 batch 9: tool-call identity, research brief contract, search degradation, fundamentals and earnings truth, market lanes and error honesty, keyboard shell (2026-09-24)",
+      "R15 Stage C \u2014 trading removed (D81, 2026-09-23)"
+    ],
+    "decisions_md_d_numbers_added_since_base": [
+      "D81",
+      "D82",
+      "D83",
+      "D84",
+      "D85",
+      "D86",
+      "D87",
+      "D88",
+      "D89",
+      "D90",
+      "D91",
+      "D92"
+    ]
+  },
+  "licence": {
+    "LICENSE_first_heading": "# PolyForm Strict License 1.0.0",
+    "LICENSE_url_line": "https://polyformproject.org/licenses/strict/1.0.0",
+    "LICENSE_APACHE_present": true,
+    "LICENSING_md_present": true,
+    "package_json_license_field": "SEE LICENSE IN LICENSE",
+    "cargo_toml_license_file": "../LICENSE",
+    "cargo_toml_path": "src-tauri/Cargo.toml:8 (license-file, not a license= string)"
+  },
+  "tools": {
+    "gitleaks": "absent",
+    "trufflehog": "absent",
+    "cargo-license": "absent",
+    "pip-licenses": "absent",
+    "pnpm_version": "10.32.1",
+    "cargo_version": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "venvs_present": {
+      "sidecar/.venv": true,
+      "sidecar/openbb_mcp_subprocess/.venv": true,
+      "sidecar/sec_edgar_mcp_subprocess/.venv": true
+    }
+  }
+}

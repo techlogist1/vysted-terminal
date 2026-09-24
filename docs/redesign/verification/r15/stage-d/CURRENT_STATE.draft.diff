@@ -1,0 +1,210 @@
+--- a/docs/CURRENT_STATE.md
++++ b/docs/CURRENT_STATE.md
+@@ -1,4 +1,4 @@
+-# Vysted Terminal — Current State (as of 2026-05-30, pre-redesign baseline)
++# Vysted Terminal — Current State (as of f4444790, 0.9.0 candidate)
+ 
+ > An honest inventory of what exists today, written to anchor the "Cursor for
+ > finance" redesign. It records the working foundation worth keeping and, just
+@@ -7,10 +7,97 @@
+ > subsystem read of the live code at `main` HEAD `3123e7c` (Phase 10 handoff),
+ > the Phase-10 handoff report, and `BLOCKERS.md`. The standing honesty caveat:
+ > the codebase is **green on every machine-checkable gate** (`pnpm ci-local`
+-> exit 0, 619 vitest, 942 pytest, §6.5 9/9) and **unproven on most
+-> human-checkable ones** — live UX, populated visuals, and any BYOK/live-broker
++> exit 0, 619 vitest, 942 pytest, §6.5 9/9 — **stale, pre-R15; see §0.0**)
++> and **unproven on most
++> human-checkable ones** — live UX, populated visuals, and any BYOK
+ > round-trip are unverified because the harness cannot drive the WKWebView with
+ > real data and macOS screen capture failed mid-Phase-10.
++> **This description of the codebase is itself pre-R15.** §0.0 immediately
++> below is the current top-of-file truth (R15: trading removed, relicensed,
++> Stage C register remediation); §0, §0.5 and §0.x further down stay as
++> labelled history of the redesign's earlier windows. Any specific claim in
++> the body below §0.0 that conflicts with §0.0 is superseded by it.
++
++---
++
++## 0.0 R15 state (as of f4444790, 0.9.0 candidate)
++
++> This section is the current top-of-file truth. §0, §0.5 and §0.x below are
++> kept as historical record of the pre-R15 redesign lineage and are not
++> rewritten here.
++
++**Version.** This candidate targets **0.9.0**. The version-of-truth files
++(`package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`,
++`sidecar/app.py` `FastAPI(version=...)`, `HOST_VERSION` in
++`src/lib/plugin-bootstrap.ts`) are still literally `0.8.0` at this sha and
++mutually consistent with each other — the bump to `0.9.0` has not been made
++yet; it is an open pre-tag item (see `BLOCKERS.md` "R15 open items").
++
++**Trading removed permanently (D81, `a122dbf6`, 23 Sep 2026).** No broker
++connectivity, order placement, simulated/paper account, kill switch or
++append-only order-audit log exists anywhere in the product — surfaces, agent
++tools, routes or docs. Confirmed at this sha: no broker/Kite service code
++remains under `sidecar/` or `src/` (only incidental instrument-name string
++matches in the resolver master data and a stray display-label entry), no
++`autobahn` dependency anywhere, and the safety UI components
++(`KillSwitchToolbar`, `OrderConfirmationDialog`, `AuditLogViewer`,
++`BrokerConnectPanel`) no longer exist in the tree — only the DisclaimerFlow
++module (`DisclaimerFlow.tsx`, its test and `index.ts`) remains under
++`src/modules/safety/`, covering first-launch terms, not order safety. The user's own tracked
++portfolio (manual holdings, cost bases, P&L on real prices, CSV export,
++notes, watchlists) is unaffected and stays, riding the same proposed-changes
++trust gate as before. Full detail: §0.x below and
++`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`.
++
++**Relicensed.** The core is now **PolyForm Strict 1.0.0** (`LICENSE`, first
++heading `# PolyForm Strict License 1.0.0`) plus a commercial license
++(`COMMERCIAL_LICENSE.md`) for dual-licensing; `package.json`'s `license`
++field reads `SEE LICENSE IN LICENSE`. The plugin contract
++(`types/plugin.ts`, `types/plugin-runtime.ts`) and the example plugin
++(`plugins/example/*`, including `example.test.ts` and `manifest.json`) are
++carved out under **Apache-2.0** (`LICENSE-APACHE`, present at this sha; see
++`LICENSING.md`) so third-party plugin
++authors are not bound by the strict core license.
++
++**Frontend is Vite 8 + React 19** since `8c2f9ab9` (2026-06-10, "migrate
++Next.js -> Vite 8 + React 19 (WS1)"); there is no `next` dependency or
++binary at this sha (`package.json` `"dev": "vite"`, `"build": "vite build"`).
++Next.js references below §0.0 are pre-migration history.
++
++**R15 Stage C remediation (batches 2–9, after the D81 batch-1 trading
++removal).** A census-driven register
++(`docs/redesign/verification/vysted-r15-register.json`) recorded 887 raw
++findings → 626 register entries (76 rejected) across critical/high/medium/low
++severity. At this sha:
++
++| Severity | Entries | Fixed | Open | Needs GUI | Removed w/ feature | Blocked Tier-4 | Other          |
++| -------- | ------- | ----- | ---- | --------- | ------------------ | -------------- | -------------- |
++| critical | 16      | 16    | 0    | —         | —                  | —              | —              |
++| high     | 112     | 100   | 3    | 4         | 1                  | 4              | —              |
++| medium   | 279     | 153   | 114  | 2         | 9                  | —              | 1 not_a_defect |
++| low      | 219     | 10    | 205  | —         | 4                  | —              | —              |
++
++All 16 critical entries are fixed. The 3 remaining open high entries are
++`R15-AGENT-007` (agent-runtime), `R15-AGENT-017` (llm-adapters) and
++`R15-LEAD-022` (resolver). Per-batch plans and certified verdicts live under
++`docs/redesign/verification/r15/stage-c/batch-2` through `batch-9` (each a
++`PLAN.md` + `VERDICTS.md` pair); batch merge commits are listed in
++`CHANGELOG.md` under the "R15 Stage C" headings (batches 2 through 9, all
++dated 2026-09-23/24). The batch-1 removal-plan riders are D85–D92 (D83
++records the relicense); per-batch decisions from batch 3 on carry
++`D-B<n>-<k>` ids in `docs/redesign/DECISIONS.md`.
++Full open-item detail (grouped by subsystem, plus the open Tier-4 operator
++decisions) is in `BLOCKERS.md` "R15 open items".
++
++**Test-count claims elsewhere in this document are stale.** §1's "619
++vitest, 942 pytest, §6.5 9/9" and the matching §7 row predate the D81 removal
++(which deleted the §6.5 order-safety tests, `test_safety_end_to_end.py` and
++`test_safety_router.py`, along with the feature) and Stage C batches 2–9
++(which changed others). This Stage D wave did not run the
++heavy test lanes (`pnpm ci-local`, `pytest`, `vitest`) against this sha, so
++current pass counts are unverified here.
++
++<!-- VERIFY: current vitest/pytest/cargo-test pass counts at f4444790 — run `pnpm ci-local` (or `pnpm test` / `cd sidecar && pytest`) and update §1 + §7 with the real numbers -->
+ 
+ ---
+ 
+@@ -149,6 +236,8 @@
+   REST routes; as a _server_ it re-exposes 11 of its own endpoints as MCP tools
+   for external clients (Claude Desktop / Code).
+ - **Ships unsigned, no release pipeline, version strings stuck at `0.8.0`**
++  (still true at this sha — targets `0.9.0`; see §0.0 and `BLOCKERS.md`
++  "R15 open items" for the open release-pipeline decisions)
+   despite Phase 8/9/9.5/10 merged to `main`. The auto-updater is configured but
+   produces no artifacts. Distribution today is "download the CI artifact."
+ 
+@@ -608,7 +697,8 @@
+ **no release/publish workflow exists** (CI only runs on push/PR + uploads
+ ephemeral artifacts). **Version sources stuck at `0.8.0`** (`package.json`,
+ `Cargo.toml`, `tauri.conf.json`, `app.py`, `HOST_VERSION`) despite Phase
+-8/9/9.5/10 merged — unverified whether intentional (no release cut) or oversight.
++8/9/9.5/10 merged, D81 and Stage C batches 2-9 — this R15 candidate targets
++`0.9.0` (§0.0); the bump has not been made as of this sha.
+ 
+ ### 3.13 Persistence & BYOK (see §6 for the consolidated model)
+ 
+@@ -782,44 +872,50 @@
+ 
+ ## 7. Consolidated status — works / buggy / deferred
+ 
+-Reference HEAD `3123e7c` (Phase 10). **Last release tag `v0.8.0`; Phase
++Reference HEAD `3123e7c` (Phase 10); superseded at this sha (`f4444790`,
++0.9.0 candidate — see §0.0 for the R15 delta this table does not yet fully
++reflect subsystem-by-subsystem). **Last release tag `v0.8.0`; Phase
+ 8/9/9.5/10 sit on `main` unreleased/untagged.** "Works" below almost always means
+ "automated gates pass against mocks," **not** "live/visually validated by a
+ human."
+ 
+-| Item                                                                                   | Status                                                                                                        | Source                           |
+-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+-| `pnpm ci-local` (full CI parity)                                                       | **Works** — exit 0: 619 vitest, 6 cargo, 942 pytest                                                           | PHASE_10_HANDOFF §"Gate results" |
+-| Agent-write safety model (§6.5)                                                        | **Works** — Gate 8 no-trading test green; see §0.x, SAFETY_ARCHITECTURE                                       | SAFETY_ARCHITECTURE              |
+-| All 3 sidecar binaries spawn + bind                                                    | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe)                                         | PHASE_10_HANDOFF                 |
+-| Static-export build                                                                    | **Works** — `next build` compiles (Fraunces + plugin-shell resolve)                                           | PHASE_10_HANDOFF                 |
+-| Copilot agentic tool loop                                                              | **Works against a mocked provider** (`test_tool_loop_e2e.py`); live answers unverified                        | PHASE_10_HANDOFF §2; CLAUDE.md   |
+-| 5 core data panels + 50 indicators + dockview + workspace save/load                    | **Works** (mature, prior tags) — but reskinned in Phase 10, so visuals re-verify                              | §15; CHANGELOG                   |
+-| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant)                    | **Works** (tests); backend liveness unverified from frontend                                                  | §11                              |
+-| Persisted watchlist + defaultProviderId                                                | **Works** — ride the workspace blob, survive relaunch                                                         | PHASE_10_HANDOFF §5              |
+-| "Claude after dark" reskin                                                             | **Builds**; every panel's rendered appearance is operator-eyeball                                             | PHASE_10_HANDOFF §4              |
+-| MCP cold-bind latency                                                                  | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash | BLOCKERS Phase 9.5 UC1           |
+-| openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                               | BLOCKERS carry-forward #7        |
+-| Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                        | BLOCKERS S2 #8                   |
+-| `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                           | §8                               |
+-| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                   | §4                               |
+-| Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                            | §8                               |
+-| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                           | §11                              |
+-| Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                             | §0.x; SAFETY_ARCHITECTURE        |
+-| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                  | BLOCKERS Phase-10 #5             |
+-| Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                            | BLOCKERS Phase-10 #6             |
+-| `--onedir` MCP packaging (true cold-bind fix)                                          | **Deferred** — needs `tauri build`-verifiable change ci-local can't check                                     | BLOCKERS Phase 9.5               |
+-| Light theme                                                                            | **Deferred to v1.1** — dark-only ships                                                                        | BLOCKERS S2 #10                  |
+-| Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open)                                                                    | BLOCKERS v0.7.0→Phase 10         |
+-| `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                  | §1, §14                          |
+-| Version strings (`0.8.0` everywhere)                                                   | **Stale** — Phase 8/9/9.5/10 unbumped; intent unverified                                                      | §14                              |
+-| mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                        | BLOCKERS                         |
++| Item                                                                                   | Status                                                                                                          | Source                                                                         |
++| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
++| `pnpm ci-local` (full CI parity)                                                       | **Stale figures** — pre-R15 (619 vitest, 6 cargo, 942 pytest); not re-run at this sha, see §0.0                 | PHASE_10_HANDOFF §"Gate results"; <!-- VERIFY: re-run ci-local at f4444790 --> |
++| Agent-write safety model (§6.5)                                                        | **Works** — Gate 8 no-trading test green; see §0.x, SAFETY_ARCHITECTURE                                         | SAFETY_ARCHITECTURE                                                            |
++| All 3 sidecar binaries spawn + bind                                                    | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe)                                           | PHASE_10_HANDOFF                                                               |
++| Static-export build                                                                    | **Works** — `pnpm build` (`vite build`) per prior tags; not re-run at this sha                                  | PHASE_10_HANDOFF                                                               |
++| Copilot agentic tool loop                                                              | **Works against a mocked provider** (`test_tool_loop_e2e.py`); live answers unverified                          | PHASE_10_HANDOFF §2; CLAUDE.md                                                 |
++| 5 core data panels + 50 indicators + dockview + workspace save/load                    | **Works** (mature, prior tags) — but reskinned in Phase 10, so visuals re-verify                                | §15; CHANGELOG                                                                 |
++| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant)                    | **Works** (tests); backend liveness unverified from frontend                                                    | §11                                                                            |
++| Persisted watchlist + defaultProviderId                                                | **Works** — ride the workspace blob, survive relaunch                                                           | PHASE_10_HANDOFF §5                                                            |
++| "Claude after dark" reskin                                                             | **Builds**; every panel's rendered appearance is operator-eyeball                                               | PHASE_10_HANDOFF §4                                                            |
++| MCP cold-bind latency                                                                  | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash   | BLOCKERS Phase 9.5 UC1                                                         |
++| openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                                 | BLOCKERS carry-forward #7                                                      |
++| Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                          | BLOCKERS S2 #8                                                                 |
++| `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                             | §8                                                                             |
++| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                     | §4                                                                             |
++| Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                              | §8                                                                             |
++| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                             | §11                                                                            |
++| Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                               | §0.x; SAFETY_ARCHITECTURE                                                      |
++| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                    | BLOCKERS Phase-10 #5                                                           |
++| Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                              | BLOCKERS Phase-10 #6                                                           |
++| `--onedir` MCP packaging (true cold-bind fix)                                          | **Deferred** — needs `tauri build`-verifiable change ci-local can't check                                       | BLOCKERS Phase 9.5                                                             |
++| Light theme                                                                            | **Deferred to v1.1** — dark-only ships                                                                          | BLOCKERS S2 #10                                                                |
++| Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open)                                                                      | BLOCKERS v0.7.0→Phase 10                                                       |
++| `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                    | §1, §14                                                                        |
++| Version strings (`0.8.0` everywhere)                                                   | **Stale, open** — 0.9.0 candidate target (§0.0); files still 0.8.0, bump not yet made                           | §3.12; §0.0                                                                    |
++| mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                          | BLOCKERS                                                                       |
++| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 100/112 high; 153/279 medium; 10/219 low** — 3 open high, 114 open medium, 205 open low | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
++| Licence (PolyForm Strict 1.0.0 core + Apache-2.0 plugin contract + commercial)         | **Works** — `LICENSE`/`LICENSE-APACHE`/`COMMERCIAL_LICENSE.md` present at this sha                              | §0.0                                                                           |
+ 
+-**Bottom line:** green on every machine-checkable gate, unproven on every
+-human-checkable one. The agent-write safety model (§6.5) over the tracked
+-portfolio and the rest of the write surface is the trustworthy core. The
++**Bottom line:** green on every machine-checkable gate as of the stale
++pre-R15 run cited above (re-run pending, §0.0), unproven on every
++human-checkable one. The §6.5 order-execution layer no longer exists (D81);
++§6.5 now names the agent-write safety model, i.e. the proposed-changes trust gate
++(§5) over the 18 surviving host actions, including the tracked portfolio. The
+ standing fragility to watch is MCP cold-bind contention (worked around, not
+-root-fixed).
++root-fixed); R15 Stage C register remediation is summarized in §0.0.
+ 
+ ---
+ 

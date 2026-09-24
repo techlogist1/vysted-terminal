@@ -1,0 +1,63 @@
+<!-- SCAN at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave -->
+
+# Licence consistency check — f4444790
+
+## Intended state (operator decision, DECISIONS_FOR_OPERATOR.md §1.4)
+
+Core under **PolyForm Strict 1.0.0** (public, noncommercial-use) + a **commercial licence**
+as the only other path. The plugin contract (`types/plugin.ts`, `types/plugin-runtime.ts`)
+and the example plugin (`plugins/example/*`) are carved out under **Apache-2.0**. Every
+commit **before** the relicensing commit (subject `chore(license): relicense core to
+PolyForm Strict 1.0.0`, per DECISIONS.md D83 landed as `0c63d46`) remains AGPL-3.0 — that is
+historical fact, not a current claim. `LICENSE` text sha256 recorded by the operator decision:
+`e2361f52ad5be22b937a6e983c824a534c5cffa454b6c34af2f8ce0c2cdf7c1a` — **verified**: `git show
+f4444790:LICENSE | shasum -a 256` at this sha reproduces that exact hash, so the network fetch
+against polyformproject.org was skipped as redundant.
+
+## Mismatch table
+
+| file | line | exact text quoted | one-line fix | tier |
+|---|---|---|---|---|
+| CLAUDE.md | 57–58 | "1. **Locked** — `docs/BLUEPRINT.md` §2. Never reopen unilaterally. (Stack; AGPL-3.0 + commercial dual license; MCP server in v1.0.)" | Replace with the PolyForm Strict 1.0.0 wording already drafted in `docs/redesign/CLAUDE_MD_PROPOSAL.md:76` ("Stack; PolyForm Strict 1.0.0 + commercial license (relicensed 23 Sep 2026); MCP server...") | **Tier-1: operator** |
+
+Only one mismatch found. It is already known and queued, not a fresh discovery: DECISIONS_FOR_OPERATOR.md §3.4 states "apply the queued CLAUDE.md edits in docs/redesign/CLAUDE_MD_PROPOSAL.md when convenient," and CLAUDE_MD_PROPOSAL.md:72–83 carries the exact before/after diff for this line, already reasoned through (operator relicensed 23 Sep 2026; CLAUDE.md's Tier-1 "Locked" line was never updated in the same commit). CLAUDE.md is itself a Tier-1 file per this wave's brief, so it is listed, not edited.
+
+## Consistent hits (compact)
+
+- `LICENSE` — text verified byte-identical to the operator-recorded sha256 (see above).
+- `LICENSE-APACHE` — present, standard Apache-2.0 text.
+- `LICENSING.md` — PolyForm Strict grant, commercial-licence trigger list, Apache-2.0 plugin carve-out (lines 12, 25, 40–54) all match intended state.
+- `COMMERCIAL_LICENSE.md:11,13,18,23,46,70` — PolyForm Strict + commercial path, Apache-2.0 carve-out reference, matches.
+- `package.json:4` — `"license": "SEE LICENSE IN LICENSE"` (no SPDX id exists for PolyForm Strict; DECISIONS.md D83 records this as the deliberate choice) — consistent.
+- `src-tauri/Cargo.toml:8` — `license-file = "../LICENSE"`, points at the PolyForm Strict text — consistent.
+- `src-tauri/tauri.conf.json` — no `copyright`/licence field present at this sha; nothing to be inconsistent with.
+- `plugins/{yfinance,openbb-mcp,vysted-lenses,vysted-news,example}/manifest.json` — none carry a `license` field (JSON can't carry a header comment; LICENSING.md:44–48 explicitly documents this for the example manifest) — consistent by design, not an omission.
+- `types/plugin.ts:1–2`, `types/plugin-runtime.ts:1–2`, `plugins/example/index.ts:1–2`, `plugins/example/example.test.ts:1–2` — `SPDX-License-Identifier: Apache-2.0` / `Copyright (c) 2026 Lokavya Singh`. This is the complete set of files carrying the SPDX header repo-wide (`git grep -lI "SPDX-License-Identifier"` returns exactly these 4) — matches the Apache-2.0 carve-out exactly, no more, no less.
+- sidecar metadata — no `pyproject.toml`/`setup.py`/`setup.cfg` exist under `sidecar/`; `sidecar/app.py` and package `__init__.py` files carry no licence string — nothing to check, consistent by absence.
+- `sidecar/services/bse_provider.py:31–32` — docstring: "under the project's license (PolyForm Strict 1.0.0 + commercial; AGPL-3.0 on commits before the 23 Sep 2026 relicense)" — correctly current + correctly historical in the same sentence.
+- `src/modules/safety/DisclaimerFlow.tsx:35` — "source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md." — matches.
+- `README.md:169–177` — License section: PolyForm Strict grant, commercial-licence trigger, Apache-2.0 carve-out — matches.
+- `docs/BLUEPRINT.md:8,58,288,296,332–338,388` §2/§6.1 — fully updated to PolyForm Strict 1.0.0 + commercial, relicensed 23 Sep 2026 — matches (this is the file CLAUDE.md's stale line 57 points to as authoritative, sharpening the mismatch above).
+- `CONTRIBUTING.md:88–98` — PolyForm Strict + commercial + Apache-2.0 carve-out, CLA language — matches.
+- `.specify/memory/constitution.md:123` — "PolyForm Strict 1.0.0 +..." — matches.
+- `docs/redesign/DECISIONS.md:143` (D83) and `docs/redesign/DECISIONS_FOR_OPERATOR.md:48–66,200` — both correctly narrate the relicense as an already-done, dated decision — consistent.
+- `docs/redesign/CLAUDE_MD_PROPOSAL.md:72–83` — quotes the *old* AGPL-3.0 CLAUDE.md line (:72) alongside the *proposed* PolyForm Strict replacement (:76) as an explicit before/after diff — this is the fix already drafted for the mismatch above, not itself a mismatch.
+- `docs/PLUGIN_DEVELOPMENT.md`, `docs/README.md` — no licence mentions at this sha; nothing to check.
+- `.github/workflows/*.yml` — no licence mentions.
+
+### Historical (correctly past tense, or pre-relicense point-in-time records)
+
+- `LICENSING.md:28–33`, `COMMERCIAL_LICENSE.md:21`, `README.md:175` — "every commit before the relicensing commit stays/remains AGPL-3.0" — correct, deliberate historical carve-out.
+- `docs/redesign/AGENT_TOOLUSE_PLAN.md:47,53,59,63–64,67,73,77,89,164,224,230,259` — a research/planning doc recording licensing analysis and an "Operator decisions locked (2026-06-09)" note, i.e. dated **before** the 23 Sep 2026 relicense (D83). It analyzes the pre-relicense AGPL-3.0 + commercial regime to justify reimplementing the BSE provider rather than importing GPL-3.0 code. DECISIONS.md D83 explicitly lists which files were swept for "current-fact" language (CLAUDE.md queued, CHANGELOG/docs/archive left untouched) and does not name this file — treated as a dated decision record, not a live current-state claim. Flagged as an open question below rather than a hard mismatch.
+
+### Third-party (a dependency's or reference project's own licence, not Vysted's)
+
+- `docs/BLUEPRINT.md:668–669,672` — Fincept Terminal (AGPL-3.0 + commercial) and OpenBB (AGPL-3.0), cited as research references.
+- `docs/redesign/REBUILD_R3_SPEC.md:478,636,644` — mathjs library, Apache-2.0.
+- `docs/research/phase-10/study-fincept.md:272` — Fincept's own AGPL+commercial licensing.
+- `src/lib/markdown-stream.ts:17` — attribution comment for logic ported from `vercel/streamdown` (Apache-2.0), describing that project's licence, not Vysted's.
+
+## Open questions
+
+- `docs/redesign/AGENT_TOOLUSE_PLAN.md` reads AGPL-3.0 as the live licence throughout (it predates the 23 Sep relicense and was not in D83's sweep scope). It sits under `docs/redesign/` (not `docs/archive/`), so a reader skimming only this file — without DECISIONS.md's dating context — could believe the project is still AGPL-3.0. Worth a one-line "superseded by the 23 Sep 2026 relicense, see LICENSING.md" note if this wave's lead wants it addressed; not treated as a hard mismatch here because it is a dated decision record, not a current-state doc.
+- No `LICENSE`/`COMMERCIAL_LICENSE.md`/`types/plugin.ts` edits were needed — this run's only actionable item is the single CLAUDE.md line, already drafted in CLAUDE_MD_PROPOSAL.md and already tracked as an open Tier-4 item (DECISIONS_FOR_OPERATOR.md §3.4).

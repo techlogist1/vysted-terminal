@@ -1,0 +1,1009 @@
+<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->
+# Vysted Terminal — Current State (as of f4444790, 0.9.0 candidate)
+
+> An honest inventory of what exists today, written to anchor the "Cursor for
+> finance" redesign. It records the working foundation worth keeping and, just
+> as deliberately, the scaffolding, dead wiring, and unverified surfaces that
+> the redesign should not mistake for done. Sourced from a subsystem-by-
+> subsystem read of the live code at `main` HEAD `3123e7c` (Phase 10 handoff),
+> the Phase-10 handoff report, and `BLOCKERS.md`. The standing honesty caveat:
+> the codebase is **green on every machine-checkable gate** (`pnpm ci-local`
+> exit 0, 619 vitest, 942 pytest, §6.5 9/9 — **stale, pre-R15; see §0.0**)
+> and **unproven on most
+> human-checkable ones** — live UX, populated visuals, and any BYOK
+> round-trip are unverified because the harness cannot drive the WKWebView with
+> real data and macOS screen capture failed mid-Phase-10.
+> **This description of the codebase is itself pre-R15.** §0.0 immediately
+> below is the current top-of-file truth (R15: trading removed, relicensed,
+> Stage C register remediation); §0, §0.5 and §0.x further down stay as
+> labelled history of the redesign's earlier windows. Any specific claim in
+> the body below §0.0 that conflicts with §0.0 is superseded by it.
+
+---
+
+## 0.0 R15 state (as of f4444790, 0.9.0 candidate)
+
+> This section is the current top-of-file truth. §0, §0.5 and §0.x below are
+> kept as historical record of the pre-R15 redesign lineage and are not
+> rewritten here.
+
+**Version.** This candidate targets **0.9.0**. The version-of-truth files
+(`package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`,
+`sidecar/app.py` `FastAPI(version=...)`, `HOST_VERSION` in
+`src/lib/plugin-bootstrap.ts`) are still literally `0.8.0` at this sha and
+mutually consistent with each other — the bump to `0.9.0` has not been made
+yet; it is an open pre-tag item (see `BLOCKERS.md` "R15 open items").
+
+**Trading removed permanently (D81, `a122dbf6`, 23 Sep 2026).** No broker
+connectivity, order placement, simulated/paper account, kill switch or
+append-only order-audit log exists anywhere in the product — surfaces, agent
+tools, routes or docs. Confirmed at this sha: no broker/Kite service code
+remains under `sidecar/` or `src/` (only incidental instrument-name string
+matches in the resolver master data and a stray display-label entry), no
+`autobahn` dependency anywhere, and the safety UI components
+(`KillSwitchToolbar`, `OrderConfirmationDialog`, `AuditLogViewer`,
+`BrokerConnectPanel`) no longer exist in the tree — only the DisclaimerFlow
+module (`DisclaimerFlow.tsx`, its test and `index.ts`) remains under
+`src/modules/safety/`, covering first-launch terms, not order safety. The user's own tracked
+portfolio (manual holdings, cost bases, P&L on real prices, CSV export,
+notes, watchlists) is unaffected and stays, riding the same proposed-changes
+trust gate as before. Full detail: §0.x below and
+`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`.
+
+**Relicensed.** The core is now **PolyForm Strict 1.0.0** (`LICENSE`, first
+heading `# PolyForm Strict License 1.0.0`) plus a commercial license
+(`COMMERCIAL_LICENSE.md`) for dual-licensing; `package.json`'s `license`
+field reads `SEE LICENSE IN LICENSE`. The plugin contract
+(`types/plugin.ts`, `types/plugin-runtime.ts`) and the example plugin
+(`plugins/example/*`, including `example.test.ts` and `manifest.json`) are
+carved out under **Apache-2.0** (`LICENSE-APACHE`, present at this sha; see
+`LICENSING.md`) so third-party plugin
+authors are not bound by the strict core license.
+
+**Frontend is Vite 8 + React 19** since `8c2f9ab9` (2026-06-10, "migrate
+Next.js -> Vite 8 + React 19 (WS1)"); there is no `next` dependency or
+binary at this sha (`package.json` `"dev": "vite"`, `"build": "vite build"`).
+Next.js references below §0.0 are pre-migration history.
+
+**R15 Stage C remediation (batches 2–9, after the D81 batch-1 trading
+removal).** A census-driven register
+(`docs/redesign/verification/vysted-r15-register.json`) recorded 887 raw
+findings → 626 register entries (76 rejected) across critical/high/medium/low
+severity. At this sha:
+
+| Severity | Entries | Fixed | Open | Needs GUI | Removed w/ feature | Blocked Tier-4 | Other          |
+| -------- | ------- | ----- | ---- | --------- | ------------------ | -------------- | -------------- |
+| critical | 16      | 16    | 0    | —         | —                  | —              | —              |
+| high     | 112     | 100   | 3    | 4         | 1                  | 4              | —              |
+| medium   | 279     | 153   | 114  | 2         | 9                  | —              | 1 not_a_defect |
+| low      | 219     | 10    | 205  | —         | 4                  | —              | —              |
+
+All 16 critical entries are fixed. The 3 remaining open high entries are
+`R15-AGENT-007` (agent-runtime), `R15-AGENT-017` (llm-adapters) and
+`R15-LEAD-022` (resolver). Per-batch plans and certified verdicts live under
+`docs/redesign/verification/r15/stage-c/batch-2` through `batch-9` (each a
+`PLAN.md` + `VERDICTS.md` pair); batch merge commits are listed in
+`CHANGELOG.md` under the "R15 Stage C" headings (batches 2 through 9, all
+dated 2026-09-23/24). The batch-1 removal-plan riders are D85–D92 (D83
+records the relicense); per-batch decisions from batch 3 on carry
+`D-B<n>-<k>` ids in `docs/redesign/DECISIONS.md`.
+Full open-item detail (grouped by subsystem, plus the open Tier-4 operator
+decisions) is in `BLOCKERS.md` "R15 open items".
+
+**Test-count claims elsewhere in this document are stale.** §1's "619
+vitest, 942 pytest, §6.5 9/9" and the matching §7 row predate the D81 removal
+(which deleted the §6.5 order-safety tests, `test_safety_end_to_end.py` and
+`test_safety_router.py`, along with the feature) and Stage C batches 2–9
+(which changed others). This Stage D wave did not run the
+heavy test lanes (`pnpm ci-local`, `pytest`, `vitest`) against this sha, so
+current pass counts are unverified here.
+
+<!-- VERIFY: current vitest/pytest/cargo-test pass counts at f4444790 — run `pnpm ci-local` (or `pnpm test` / `cd sidecar && pytest`) and update §1 + §7 with the real numbers -->
+
+---
+
+## 0.x Trading removed (D81, 23 Sep 2026)
+
+> **Everything below this notice that describes brokers, orders, the kill
+> switch, or the append-only audit log is historical — it describes a
+> capability that no longer exists.** D81 (operator Tier-4 sign-off, 23 Sep 2026) removed trading from the product permanently: no broker
+> connectivity, order placement or simulated account exists anywhere —
+> surfaces, agent tools, routes or docs. The kill switch and the append-only
+> audit log went with it (their only purpose was gating and recording order
+> placement). What survives untouched: the user's own tracked portfolio
+> (manual holdings, cost bases, P&L on real prices, CSV export, notes,
+> watchlists) and everything the agent does with it, riding the same
+> proposed-changes gate as before. Full inventory, evidence and rationale:
+> `docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`. Current-state
+> model for what remains: `docs/SAFETY_ARCHITECTURE.md`.
+
+## 0. Foundation update (2026-05-31, branch `001-agent-native-redesign`)
+
+> The body below is the **pre-redesign baseline** (2026-05-30). The redesign's
+> **foundation window** has since landed on `001-agent-native-redesign` (not on
+> `main`). It does **not** build the user-facing P1/P2/P3 phases, but it closes
+> the documented copilot/catalog/runtime gaps the baseline records. Full detail +
+> gate results: **`docs/redesign/FOUNDATION_BUILD_REPORT.md`**. Deltas that
+> supersede statements below:
+>
+> - **Single capability catalog** (`sidecar/services/agent_tools/catalog.py`) is
+>   now the one source of truth; `TOOL_SCHEMAS`, the custom-agent allow-list, and
+>   the external MCP surface all derive from it (Constitution Principle II).
+> - **§4 "~11 registered handlers unreachable" → CLOSED.** Every registered,
+>   agent-intended handler has a schema (SC-006); 27 internal capabilities.
+> - **§4 "Gemini multi-round likely broken" → FIXED** (tool name threaded onto
+>   the tool-result message; SC-005).
+> - **§11/§4 "custom-agent allow-list stale" → RECONCILED** to the catalog
+>   (`KNOWN_TOOL_IDS` is derived; 0 unresolvable tools).
+> - **§3.7 MCP "11 hand-maintained tools" → PROJECTED from the catalog** (26
+>   tools; same names/schemas as the internal copilot; `readOnlyHint` from
+>   `read_only`; standing SC-004 parity audit). A `news` tool now serves both
+>   surfaces.
+> - **§3.4 "manifest↔instance + `requiredHostVersion` checks documented but not
+>   implemented" → IMPLEMENTED** (rejected at load, surfaced); **`PluginConfig`
+>   secret resolution** is now keychain-backed (FR-054/SC-015).
+> - **§1 "`shell:allow-open` probably denied" → GRANTED.**
+> - **§2 boot-path `.expect()` panics → HARDENED** (port-0 sentinel + temp-dir
+>   fallback; the app no longer panics with no window).
+> - **§4 "shipped default routes to absent Ollama" → GATED**: a keyless provider
+>   must be reachable before the first agent call (no silent failure).
+>
+> §6.5 LOCKED files + `types/plugin.ts` are **byte-for-byte untouched**; the §6.5
+> audit stays 9/9.
+
+---
+
+## 0.5 Agent-native redesign — P1–P3 shipped (2026-05-31, branch `001-agent-native-redesign`)
+
+> The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
+> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+> Deltas that supersede the baseline below:
+>
+> - **P1 — agent-centric experience (US1–US4).** A four-mode agent spine
+>   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
+>   primary surface alongside the hand-driven cockpit. **Every agent-proposed
+>   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
+>   — the write surface is the catalog's 18 host actions (`open_panel`/
+>   `set_chart_symbol`/`add_to_watchlist`/the tracked-portfolio, note, screen and
+>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+>   under ASK autonomy (SC-003). Offer-both onboarding preserves the keyboard
+>   cockpit.
+> - **P2 — framework + visual + marketplace (US5–US7, US10).** Minimal-dark
+>   "cold-instrument" shell (re-valued tokens; `chart-theme.ts` mirrors them),
+>   teaching command palette + status chrome (FR-033). The **plugin marketplace
+>   is the primary extensibility model**: data, panels, agents are all
+>   install/enable/configure/remove entries (`src/lib/marketplace.ts`). First-party
+>   pre-installed (yfinance + news keyless); the broker entries that shipped here
+>   were removed with trading (D81). MCP-as-framework for external
+>   tools (FR-025; static-import compiled-in plugins are governed here, genuinely-
+>   external load is the stdio-MCP path).
+> - **P3 — data + durable agents (US8/US9, FR-033–042).** The **provider-shaped
+>   data registry** (`provider_registry.py`) resolves by standard model key +
+>   preference order (not the asset-class chain); every result carries its serving
+>   provider as provenance (FR-035/040). A **BYOK credentials hub** is the
+>   marketplace config form rendered generically from each entry's
+>   `credentialFields` (SC-007: 0 per-source UI) — news is now a first-party data
+>   plugin (`plugins/vysted-news`) with an OPTIONAL NewsAPI key sent as the
+>   `X-Vysted-Newsapi-Key` header from the keychain (FR-036). The granular
+>   broker reads that shipped here (FR-042/SC-012) were removed with trading (D81).
+>   **Durable Delegate runs** (`run_manager.py` + `runs_store.py` + `budget_guard.py`,
+>   `routers/runs.py`) run detached, survive the launching connection, and are
+>   bounded by a **BudgetGuard** (tokens/spend/wall/steps) whose first breach
+>   aborts the run with a stated reason + resumable checkpoint (SC-008); the agents
+>   rail shows live cost-so-far. **Cursor-grade settings + remappable keybindings**
+>   (`src/store/settings.ts` + `keybindings.ts`) persist in the workspace blob
+>   (FR-038/039/SC-011).
+>
+> `types/plugin.ts` remained **byte-for-byte untouched**. (The safety/broker models
+> and the §6.5 order audit this window also left untouched were removed later with
+> trading, D81.)
+
+---
+
+## 1. Executive summary — what the app IS today
+
+- A **Tauri 2.x desktop terminal** (Rust core + Next.js 16 static-export
+  frontend + Python 3.13 FastAPI sidecar + two bundled MCP subprocesses) that is
+  **local-first and bring-your-own-keys**: no Vysted backend, no account, no
+  telemetry. Everything lives under the OS app-data dir + the OS keychain.
+- A **multi-panel cockpit** (dockview layout engine) with ~18 first-party
+  modules: Chart (50 server-computed indicators + 10 drawing tools),
+  Watchlist, News (RSS + optional NewsAPI, VADER sentiment), Portfolio (manual,
+  SQLite), Equity Overview, plus Phase-6 analysis panels — Macro, SEC Filings,
+  Earnings, Analyst Ratings, Screener, Quant (QuantLib) — and Phase-4/5
+  Backtest, Node Editor (workflow), Agent Builder.
+- A **real agentic AI copilot** (Phase 10): the tool-use loop in the sidecar is
+  now live — adapters send provider-native `tools=` schemas, the model calls
+  read/host-action tools, and the loop iterates up to 6 rounds. 13 first-party
+  agents (a terminal-aware `copilot` router + 12 investor personas) plus
+  user-authored custom agents.
+- **BYOK across 7 LLM providers** (Anthropic, OpenAI, Gemini, Groq, Ollama,
+  DeepSeek, xAI — five adapters; DeepSeek/xAI ride the OpenAI adapter via
+  base-url override). Keys never persist; they ride the request and are read
+  from the OS keychain on demand.
+- **No broker layer.** Trading — broker connectivity, order placement, the
+  simulated paper account, the kill switch, the append-only order audit log —
+  was removed permanently (D81, 23 Sep 2026). See §0.x above. The prose below
+  the removal notice describes the broker layer as it existed before D81;
+  none of it is reachable today.
+- A **plugin platform**: one serializable Tier-1 contract (`types/plugin.ts`,
+  six capabilities) + a pure-TS runtime. Three plugins are actually loaded
+  (`example`, `openbb-mcp`, `tradesa-v2` — a read-only external bot mirror,
+  unaffected by D81 since it never placed an order through Vysted); the seven
+  broker plugins that used to exist in the tree are gone (D81), not merely
+  unwired. No filesystem/marketplace loader yet.
+- **Vysted speaks MCP on both sides**: as a _client_ it proxies two bundled MCP
+  subprocesses (openbb-mcp fundamentals/macro, sec-edgar-mcp filings) into plain
+  REST routes; as a _server_ it re-exposes 11 of its own endpoints as MCP tools
+  for external clients (Claude Desktop / Code).
+- **Ships unsigned, no release pipeline, version strings stuck at `0.8.0`**
+  (still true at this sha — targets `0.9.0`; see §0.0 and `BLOCKERS.md`
+  "R15 open items" for the open release-pipeline decisions)
+  despite Phase 8/9/9.5/10 merged to `main`. The auto-updater is configured but
+  produces no artifacts. Distribution today is "download the CI artifact."
+
+---
+
+## 2. Architecture at a glance
+
+Three processes, one machine, loopback only. The Tauri Rust core owns the OS
+surface (windowing, keychain, sidecar lifecycle, dynamic port assignment —
+there is no kill-switch shortcut any more, D81). The Next.js frontend is a
+static export served as files by the core — there is **no Node server at
+runtime**. The Python FastAPI sidecar is the data + AI compute brain; it
+binds `127.0.0.1` on an OS-assigned port. Two MCP subprocesses are separate
+PyInstaller binaries the core spawns and supervises.
+
+```
+                       ┌──────────────────────────────────────────────┐
+                       │  Tauri Rust core  (src-tauri/src/lib.rs)       │
+   OS keychain ◀──────▶│  • keychain_set/get/delete                     │
+   (keyring v3)        │  • pick_free_port → SidecarPort(u16)           │
+                       │  • spawns + reaps 3 sidecars  • auto-updater   │
+                       └───┬───────────────┬───────────────────┬────────┘
+        get_sidecar_port,  │ Rust Command  │ Rust Command      │ shell.sidecar
+        keychain_*,        │ (env handoff) │ (env handoff)     │ (--port,--data-dir)
+        get_*_mcp_port     │               │                   │
+   (Tauri IPC invoke)      ▼               ▼                   ▼
+ ┌──────────────────┐  ┌──────────┐   ┌──────────────┐   ┌─────────────────────────┐
+ │ Next.js frontend │  │ openbb-  │   │ sec-edgar-   │   │  Python FastAPI sidecar │
+ │ (static export,  │  │ mcp      │   │ mcp          │   │  (sidecar/app.py)       │
+ │  WKWebView)      │  │ subproc  │   │ subproc      │   │  ~107 HTTP routes,      │
+ │  Zustand stores  │  │ :PORT    │   │ :PORT        │   │  1 WS, 1 MCP mount      │
+ │  dockview panels │  └────▲─────┘   └──────▲───────┘   │                         │
+ │  ChatSidebar     │       │ Streamable-HTTP│ (MCP)     │  binds 127.0.0.1:<port> │
+ └────────┬─────────┘       └────────────────┴───────────┤  CORS *  (loopback)     │
+          │  HTTP/SSE/WS over 127.0.0.1:<sidecar-port>    │                         │
+          └──────────────────────────────────────────────▶  /quotes /history ...   │
+                                                           │  /agents /llm/chat ... │
+                                          external MCP ───▶│  /mcp  (FastMCP, 11    │
+                                          (Claude Code)    │        tools, ASGI)    │
+                                                           └─────────────────────────┘
+```
+
+**Layer model.** Frontend → sidecar HTTP only (no panel reads a provider API or
+the keychain directly). Sidecar routers → `services/` providers (routers never
+import a concrete provider; they go through `provider_registry` or a domain
+module). Secrets cross the boundary **renderer-reads-keychain → secret in
+request → sidecar holds in memory for the request only** — the sidecar
+**cannot** read the OS keychain; only Rust can.
+
+**Port assignment + handoff.** `pick_free_port()` binds `127.0.0.1:0`, reads
+the OS-chosen port, releases it (a narrow unguarded TOCTTOU window), and stores
+`SidecarPort(u16)`. The two MCP subprocesses are spawned first **on parallel
+threads** and `join`ed before the main sidecar spawns, so their
+`VYSTED_*_MCP_PORT` env vars are settled — the _entire_ MCP handshake is an env
+var, no IPC negotiation. The frontend learns the sidecar port via
+`get_sidecar_port` and `/health`-probes with backoff (120s deadline) before
+declaring connected.
+
+**Fragility flags at the boundary.** The main-sidecar spawn + `app_data_dir`
+resolve + `create_dir_all` all `.expect()` → any failure **panics the app at
+boot with no UI**. The MCP children, by contrast, never panic — they
+`register_unavailable` (port 0) and degrade gracefully (openbb→yfinance,
+sec→501). The `wait_for_port` main-sidecar readiness check is fire-and-forget
+logging; nothing blocks the UI on readiness, so the frontend tolerates a
+not-yet-up sidecar.
+
+---
+
+## 3. Subsystems
+
+### 3.1 Desktop core & lifecycle (Tauri / Rust)
+
+`src-tauri/src/main.rs` is a 5-line shim into `lib.rs` + three modules
+(`keychain.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`) — `kill_switch.rs` was
+deleted with trading (D81); no global-shortcut plugin is registered any more.
+Three Tauri plugins registered: `shell`, `updater`, `notification`. Single
+window: 1280×832, dark theme, `dragDropEnabled: false` (load-bearing —
+`true` installs an OS drag-drop handler that swallows in-webview HTML5 drag
+events, which broke dockview tab reorder + node-editor palette drop on
+macOS WKWebView too). `security.csp` is `null`.
+
+**Keychain (`keychain.rs`).** Three async commands — `keychain_set` / `get`
+(`NoEntry`→`Ok(None)`) / `delete` (idempotent) — service name
+`"vysted-terminal"`, account = namespaced secret id. `keyring` v3 platform
+features `["apple-native","windows-native","sync-secret-service","crypto-rust"]`
+are load-bearing (default-features build silently no-ops `set_password`). The
+roundtrip unit test **skips silently** with no usable credential store, so
+headless-runner keychain behaviour is unverified by CI.
+
+**Auto-updater — plumbed at config only, non-functional end-to-end.** Registered
+in Rust, endpoint + minisign pubkey in `tauri.conf.json`, but
+`createUpdaterArtifacts: false` and **no frontend code calls the updater** (zero
+`.check()`/`downloadAndInstall` usages in `src/`). Flag as incomplete.
+
+Rust commands exposed: `get_sidecar_port`, `keychain_set/get/delete`,
+`get_openbb_mcp_port`, `get_sec_edgar_mcp_port` (0 = unavailable).
+`RunEvent::Exit` reaps the main sidecar + both MCP children via `child.kill()`
+— but PyInstaller `--onefile` re-execs a worker, so `kill()` on the
+bootloader **may orphan the worker** (documented for Node smoke scripts;
+unverified for the Rust path).
+
+### 3.2 Sidecar app & endpoints (FastAPI)
+
+One app built by `create_app()` in `sidecar/app.py`. 24 router modules,
+~107 HTTP routes + 1 WebSocket + 1 mounted MCP sub-app. CORS fully permissive
+(`*`) — justified because the sidecar binds loopback only (but **the bind itself
+is `main.py`/uvicorn's job, not enforced in `app.py`**). A single
+`ProviderError → HTTP 502` exception handler; SSE (`text/event-stream`,
+`data: {json}\n\n`) is the streaming convention for `/llm/chat`,
+`/agents/{id}/invoke`, `/backtest/run`, `/workflow/run` (the encode helpers are
+**duplicated verbatim** across four routers, two unused). `version="0.8.0"` is a
+hardcoded literal at `app.py:161` — a separate source of truth that has drifted
+before (`/health` now derives from `request.app.version`).
+
+The v0.6.0/v0.6.5 runtime-extension aggregators (`app.py:131,145`) are called at
+build time but are **live no-op stubs** per their own docstrings — dead
+scaffolding kept for per-release-stamp parity. Quotes/crypto are thread-offloaded
+(`asyncio.to_thread`); **`/history/{symbol}` is NOT** — it calls the blocking
+provider synchronously on the request thread (a real event-loop-blocking
+asymmetry). Caching is per-router, not centralized.
+
+**Full endpoint inventory** (full mounted paths; "Service" = delegate):
+
+| Method              | Path                                                                                       | Purpose                                          | Service / notes                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------- |
+| GET                 | `/health`                                                                                  | Liveness (Tauri polls on launch)                 | `provider_registry.active_providers()`; version from `request.app.version` |
+| GET                 | `/quotes/{symbol}`                                                                         | Single latest quote                              | `provider_registry.get_quote` via `asyncio.to_thread`                      |
+| GET                 | `/quotes`                                                                                  | Batch quotes (`?symbols=`)                       | fan-out `asyncio.gather`; failed symbols silently skipped                  |
+| GET                 | `/history/{symbol}`                                                                        | OHLCV (`?timeframe=&range=&asset_class=`)        | `provider_registry.get_history` — **NOT thread-offloaded**                 |
+| GET                 | `/crypto/exchanges`                                                                        | Supported ccxt exchanges                         | `ccxt_provider.SUPPORTED_EXCHANGES`                                        |
+| GET                 | `/crypto/ticker`                                                                           | REST ticker (`?exchange=&symbol=`)               | `ccxt_provider.get_ticker` via thread                                      |
+| GET                 | `/crypto/history`                                                                          | OHLCV (`?exchange=&symbol=&timeframe=`)          | `ccxt_provider.get_ohlcv` via thread                                       |
+| WS                  | `/crypto/stream`                                                                           | Live ticker WebSocket                            | `ccxt_provider.watch_ticker` (ccxt.pro)                                    |
+| GET                 | `/indicators`                                                                              | List supported indicator keys                    | declared before `/{symbol}` so it matches first                            |
+| GET                 | `/indicators/{symbol}`                                                                     | Compute indicators (`?indicators=`)              | `indicators.compute`; unknown key → 400                                    |
+| GET                 | `/fundamentals/{symbol}`                                                                   | Valuation ratios + profile                       | `provider_registry.get_fundamentals`                                       |
+| GET                 | `/fundamentals/{symbol}/income` `/balance` `/cashflow`                                     | Financial statements                             | `provider_registry.get_*_statement`                                        |
+| GET                 | `/fundamentals/{symbol}/ratings`                                                           | Aggregated analyst rating                        | `provider_registry.get_analyst_rating`                                     |
+| GET                 | `/fundamentals/{symbol}/ratings/history` `/price-target-history` `/individual`             | Extended ratings                                 | `analyst_ratings_extended` + `data_cache` (TTL 6h)                         |
+| GET                 | `/news`                                                                                    | RSS+NewsAPI news, VADER sentiment, symbol-tagged | `news_provider.fetch_news` + `sentiment.score_text`                        |
+| GET                 | `/macro/search` `/catalog`                                                                 | Catalog search / featured                        | `macro_router` (FRED/ECB/IMF/world-bank)                                   |
+| GET                 | `/macro/{series_id}`                                                                       | Macro series (`?provider=`)                      | new dispatcher (`MacroSeriesExtended`) or legacy openbb-mcp path           |
+| GET                 | `/sec/status`                                                                              | sec-edgar-mcp readiness                          | only `/sec` route that works when subprocess down                          |
+| GET                 | `/sec/filings/search` `/filings` `/filings/{accession}[/sections]` `/insider/{identifier}` | EDGAR filings + insider                          | `sec_filings_provider`; **501** when subprocess unbound                    |
+| GET                 | `/earnings/upcoming` `/{symbol}/history` `/surprises` `/estimates`                         | Earnings calendar/history                        | `earnings_provider` + `data_cache` (6h/24h TTLs)                           |
+| POST                | `/screener/run`                                                                            | Run screener (`ScreenerRequest`)                 | `screener.run_screener`; universe failure → 502, unknown → 400             |
+| GET                 | `/screener/universe`                                                                       | Resolve universe (`?id=`)                        | `screener.resolve_universe`; `custom` → 400                                |
+| GET/POST/PUT/DELETE | `/portfolio/positions[/{id}]`                                                              | Manual positions CRUD                            | `portfolio_db` (SQLite); 201/204/404                                       |
+| POST                | `/quant/option/price` `/option/greeks` `/bond/price` `/yield-curve`                        | QuantLib pricing                                 | `services.quant.*`; `ValueError` → 400                                     |
+| POST                | `/backtest/run`                                                                            | SSE `BacktestRunEvent`                           | `backtest_engine.run_backtest` + `bar_loader`; cached                      |
+| GET                 | `/backtest/strategies` `/runs` `/runs/{id}`                                                | Strategy + run catalog                           | in-memory `backtest_store`                                                 |
+| POST                | `/workflow/run`                                                                            | SSE `WorkflowRunEvent`                           | `workflow_engine.run_workflow`                                             |
+| POST/GET/DELETE     | `/workflow/save` `/saved[/{id}]`                                                           | Workflow persistence                             | `workflow_store`                                                           |
+| GET                 | `/agents`                                                                                  | List first-party agents                          | `agent_runtime.list_agents()` (custom NOT merged)                          |
+| POST                | `/agents/{agent_id}/invoke`                                                                | SSE `LLMStreamEvent`                             | `agent_runtime.invoke_agent`; 404 if unknown                               |
+| GET/POST/PUT/DELETE | `/custom-agents[/{id:path}]`                                                               | Custom-agent CRUD                                | `agents_store` (SQLite); 409 collision; `custom:` prefix enforced          |
+| GET                 | `/llm/providers`                                                                           | BYOK provider catalog                            | `services.llm.list_provider_info`                                          |
+| POST                | `/llm/keys/validate`                                                                       | Probe a key                                      | transport error → `{ok:false}` (never raises)                              |
+| POST                | `/llm/chat`                                                                                | SSE `LLMStreamEvent`                             | `adapter.stream_chat`; unknown provider → 400                              |
+| —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
+| GET                 | `/tradesa-v2/*` (14 routes)                                                                | Read-only Tradesa bot mirror                     | `TradesaV2Provider`; GET-only by audit invariant; creds in headers         |
+| GET/POST/DELETE     | `/plugins[/{id}/config]`                                                                   | Persisted plugin configs                         | `plugins_store` (SQLite)                                                   |
+| GET/POST/DELETE     | `/workspace[/{name}]`                                                                      | Workspace blob persistence                       | `workspace_store`; opaque JSON                                             |
+| GET                 | `/mcp/status` `/openbb-mcp/status`                                                         | Vysted MCP + openbb-mcp readiness                | `mcp_server.tool_count()` / `openbb_mcp_provider.status()`                 |
+| (JSON-RPC)          | `/mcp/`                                                                                    | FastMCP Streamable-HTTP transport                | mounted sub-app for external MCP clients                                   |
+
+### 3.3 Market-data & analytics services
+
+All under `sidecar/services/`. `provider_registry.py` is the single dispatch
+point (routing by `asset_class`): crypto → ccxt (`DEFAULT_CRYPTO_EXCHANGE =
+"binance"`, hardcoded), equity → yfinance; fundamentals/statements/ratings →
+openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
+`ProviderError`. `get_quote`/`get_history` are **synchronous** here.
+
+- **`yfinance_provider.py`** — no-key default for equities. Load-bearing
+  details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
+  1.3.0 returns a percentage, the contract wants a fraction — a silent corruption
+  risk if upstream changes); aggregate rating reads only the single most-recent
+  recommendation row.
+- **`ccxt_provider.py`** — ccxt (sync REST) + ccxt.pro (async WS). Exchanges:
+  bybit, binance, kraken, coinbase. Backs `/crypto/*`.
+- **`openbb_mcp_provider.py`** (conditional) — richer fundamentals/macro via the
+  openbb-mcp subprocess over Streamable-HTTP. Port 0/unset → `is_available()`
+  False → registry falls back. **Whether the binary ships in a given build is
+  unverified from service code alone.**
+- **`news_provider.py`** — RSS (Yahoo, MarketWatch, per-symbol Yahoo; always on)
+  - NewsAPI (BYOK `NEWSAPI_KEY` only). Shared pooled `httpx.AsyncClient` (the
+    cold-start TLS-cascade fix). No caching — re-fetches live every request.
+- **`sentiment.py`** — VADER lexicon (a deliberate Tier-3 choice: FinBERT would
+  drag `torch` into the bundle). Coarse, "at a glance," **not finance-grade** —
+  flagged honestly in the docstring.
+- **`earnings_provider.py`** — yfinance calendar/estimates/surprises. Fiscal
+  period **inferred from calendar month** (best-effort, UI-only); EPS stddev is
+  an approximation `(high−low)/4`. Router-side caching.
+- **`analyst_ratings_extended.py`** — yfinance has **no individual-analyst
+  names** (firm used as label), **no real price-target timeline** (often a single
+  synthetic "Consensus" anchor row). Honest degeneracy baked in.
+- **`sec_filings_provider.py`** (conditional) — sec-edgar-mcp subprocess. Narrow
+  form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
+  against upstream shape drift. Caches via `data_cache`.
+- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
+  `sp500` (**only top 100**, label admits it), `nifty50` (50), `crypto-top50`
+  (50, "refresh from ccxt" worker does **not exist**), `custom`. AND-only
+  criteria; OR-grouping reserved.
+- **`services/macro/`** — four in-process providers (FRED requires
+  `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
+  full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
+  pivoted to in-process `fredapi`.
+- **`services/quant/`** — in-process QuantLib (Tier-3: quality over bundle size).
+  Options (BS/binomial/MC; **MC Greeks not computed**), Greeks, bonds, yield
+  curve (synthetic `VYSTED-IBOR`, not SOFR/ESTR). `monte_carlo.py`
+  (Asian/barrier) is **not wired to any endpoint**.
+- **`indicators.py`** — pure pandas/numpy, **49 indicators + volume_profile**
+  (50). Frontend never computes an indicator; the sidecar does.
+- **`data_cache.py`** — generic SQLite TTL cache, **TTL-per-`get`**, stale rows
+  **not auto-evicted**. Notably uncached: news, quotes/history/equity-fundamentals
+  through the registry, all quant pricing.
+- **`bar_loader.py`** — daily-bar loader for the backtest engine; per-symbol
+  `ProviderError` degrades to empty series.
+
+**Documented-but-unimplemented "richer later" hooks:** openbb-mcp
+earnings/analyst enrichment, ccxt crypto-top50 refresh, individual analyst
+names/accuracy, real price-target timelines, full SEC form coverage, full macro
+catalog, surface vol/yield curves, HTTP wiring for path-dependent MC.
+
+### 3.4 Plugin system
+
+`types/plugin.ts` (**Tier-1, highest blast radius**) — a deliberately
+framework-free serializable contract: four fixed sections (identity, lifecycle,
+six-boolean `capabilities`, optional getters) + six capabilities
+(`contributesData/Panels/Commands/Agents/Nodes`, `supportsControlPlane`).
+`PanelSpec.component` is a **string id** resolved host-side (keeps the contract
+serializable). Negotiation checks the _flag_, not the method.
+
+`PluginRuntime` (`src/lib/plugin-runtime.ts`, pure TS): discover → loadPlugin
+(honors persisted `enabled:false`) → collect contributions through
+`callIfFlagged` (a buggy getter emits `errored`, returns `[]`) → 30s health
+poll. **Honesty flag:** `PLUGIN_DEVELOPMENT.md` claims the runtime asserts
+manifest↔instance id/version match + checks `requiredHostVersion` — **none of
+those checks exist** in the code. Aspirational doc.
+
+`bootstrapPlugins()` runs once from `page.tsx`. `BUNDLED_PLUGINS` = exactly
+three (`example`, `openbb-mcp`, `tradesa-v2`). Because the contract is
+serializable, React components ride the **static `PLUGIN_COMPANIONS` map**
+(only `tradesa-v2` ships panels). Per-plugin config persists sidecar-side
+(SQLite `plugin_configs`), never browser storage. Plugin secret resolution via
+`PluginConfig.secrets` is **effectively a no-op** (default `resolveSecrets`
+returns `{}`); plugins fetch creds out-of-band.
+
+| Bundled plugin   | Type        | Capabilities (true)                              | Status                                                                                                                         |
+| ---------------- | ----------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `vysted-example` | data-source | data, commands, control-plane                    | Pedagogical; proves contract end-to-end. Working.                                                                              |
+| `openbb-mcp`     | data-source | data only                                        | Declares 3 DataSources; `healthCheck` probes `/openbb-mcp/status`. Data actually flows through sidecar routes, not the plugin. |
+| `tradesa-v2`     | trading-bot | data, panels, commands (control-plane **false**) | Read-only wrapper, **7 panels** + 7 cmd+K commands; the only bundled plugin exercising panels + the companion map.             |
+
+**One real gap between narrative and wiring:** `contributesAgents` /
+`contributesNodes` paths are **unexercised** by any bundled plugin (empty in
+practice; first-party AI agents load via a separate sidecar JSON path). (The
+seven broker plugins this section used to describe as dead-wired test
+fixtures are gone outright, D81 — not merely unwired.)
+
+### 3.5 Broker layer — removed (D81, 23 Sep 2026)
+
+No broker layer exists. See §0.x. The Kite Connect OAuth read-only path,
+the paper-mode synthetic account, the granular reads (`positions`/`holdings`/
+`margins`), and the Kite static-IP UX this section used to describe are all
+deleted, not merely unreachable.
+
+### 3.6 Safety architecture — now the agent-write model (D81, 23 Sep 2026)
+
+The execution-safety layer this section used to describe (the eight
+BLUEPRINT §6.5 order non-negotiables, `test_safety_end_to_end.py`) existed
+only to gate broker order placement and was removed with the feature. What
+remains — the proposed-changes trust gate over the 18 surviving host actions
+— is documented in `docs/SAFETY_ARCHITECTURE.md`, current as of this
+removal. `sidecar/tests/test_no_trading_surface.py` pins that no order,
+broker or simulated-account path exists anywhere.
+
+### 3.7 MCP integration (both sides, both real)
+
+**As client:** two MCP subprocesses (`openbb-mcp-server==1.4.0` + 6 OpenBB
+extensions; `sec-edgar-mcp==1.0.8`), each its own PyInstaller binary with a
+**separate venv** (openbb-core strict-pins `fastapi<0.129`/`uvicorn<0.41`,
+incompatible with the main sidecar's 0.136/0.46), spawned by Rust
+`app.shell().sidecar(...)` (NOT `subprocess.Popen` — the v0.4.0 fix for a Windows
+`_MEIPASS`+anyio+handle-inheritance deadlock). Each `main.py` is a thin launcher:
+parse `--port`, start a raw-`os.read` stdin-EOF watchdog, rewrite `sys.argv` to
+`--transport streamable-http`, delegate to the upstream `main()`. The provider
+seam is a **REST proxy, not MCP passthrough** — `openbb_mcp_provider` /
+`sec_filings_provider` expose the same surface a yfinance provider would, so the
+registry swap is one line. `mcp_client.py` (lazy session, reconnect-on-error,
+generation-counter race guard) supports http + stdio, but **only http has a real
+consumer** (stdio is dead code reserved for filesystem plugins).
+
+**As server:** `mcp_server.py` is a real FastMCP 3.x server mounted at `/mcp`
+over Streamable-HTTP. **11 tools** (`get_quote/history/fundamentals/news/
+macro_series`, `list_agents`, `invoke_agent` — collapses the SSE stream into one
+unary string, `list_workspaces`, `get_workspace`, `run_workflow`,
+`list_workflows`). **Architecture: protocol adapter, zero logic duplication** —
+each tool is a thin shim calling the sidecar's own HTTP endpoint via an
+in-process `httpx.ASGITransport` bound by `bind_app(app)`. Every tool returns a
+`dict` (FastMCP rejects bare lists). A subtle lifespan invariant:
+`get_streamable_http_app()` is cached because the SAME instance must drive both
+the mount and the parent lifespan, or every request raises "Task group is not
+initialized." No authentication (loopback only, by design); external-client
+config is a manual copy-paste flow (Claude Desktop needs `mcp-remote`).
+
+**Fragilities:** subprocess cold-bind is the dominant one — ~34s isolated on
+M1, worse under concurrent `_MEI*` extraction disk-I/O contention; budget raised
+to `MCP_PORT_WAIT_SECS=45 × 2 = 90s`; the true fix (`--onedir`) is deferred. Doc
+drift: protocol version (`2025-06-18` code vs `2025-11-25` in `types/mcp.ts`),
+tool count (`MCP_INTEGRATION.md` says 9, code ships 11). No `/sec-edgar-mcp/status`
+route (asymmetric with openbb). The smoke-test gate now TCP-probes bind but does
+**not** verify endpoint data (`/agents` count > 0).
+
+### 3.8 Frontend shell, layout & state
+
+Next.js 16 App Router **static export** (`output:"export"`), served as files by
+the core — no Node server. SSR-safety rests on one invariant: **`PanelHost`
+returns a loading placeholder until modules register** (dockview is not
+SSR-safe; module registration runs in a `page.tsx` `useEffect` that never fires
+during prerender). **Dark theme only** — `<html className="dark">` hard-coded, no
+toggle (light theme is a Tier-4 BLOCKER until v1.1).
+
+**dockview** is the chosen layout engine (Tier-3). A `VystedModule` bundles
+`panels`/`commands`/`panelComponents`/`commandHandlers`; `useModulesStore` holds
+modules + an `enabled` map; `PanelHost` builds the `componentId → Component` map
+and mounts `DockviewReact`. **`collectPanelComponents` does a flat
+`Object.assign` — two modules with the same component id silently collide
+(last wins), no guard.** Default layout: Chart over Equity Overview (left),
+Watchlist/News/Portfolio stacking right, AI Assistant far-right column.
+
+**18 first-party modules** hard-listed in `src/modules/index.ts` (edit-once-
+per-phase so parallel work doesn't contend). Plugins bridge into the _same_
+registry via `moduleForPlugin` (id `plugin:<id>`) — no second registry.
+
+**Workspace blob persistence:** `SerializedWorkspace` round-trips layout +
+`enabledModules` + `chartDrawings?` + `defaultProviderId?` + `watchlist?`
+through `/workspace` as one opaque blob (sidecar stores it verbatim, never
+validates). Open index signature → new fields need no sidecar change but
+**require editing four call-sites** (interface, `serializeWorkspace`,
+`deserializeWorkspace` with an older-blob guard, `autosaveLayout`) — duplicated
+payload assembly, kept in lockstep by hand. Restore is defensive: an
+unknown-component guard skips to default rather than letting `fromJSON` throw;
+`enabled` map rolls back on a throwing restore; disposed-api guards for
+StrictMode/HMR. Autosave debounced 1500ms; **failures silently swallowed**.
+
+**Theme tokens — names are historical, not literal:** `amber-*` renders CORAL
+(`#d97757`), `charcoal-*` renders ESPRESSO, `brass-*`/`sage-*` are warm
+NEUTRALS. Names kept so 80+ files reskin by re-valuing `tokens.css` alone.
+**Canvas can't read CSS vars** → the chart palette is hand-mirrored in
+`src/lib/chart-theme.ts`; a reskin must change **both** or canvas drifts (3
+values, incl. a forbidden cyan, had silently drifted pre-Phase-10).
+
+**Zustand stores:** workspace, modules, app (sidecar URL+status —
+**computed but not surfaced** in the header), symbols (watchlist, single source
+of truth, default 6 symbols SPY/QQQ/BTC-USDT/ETH-USDT/NVDA/AAPL — differs from
+the canonical 7-symbol visual protocol), command-palette, panel-context
+(pub/sub bus feeding the chat sidebar). cmd+K is substring match only — no
+fuzzy, no ranking, no recents.
+
+### 3.9 Panels — market (Chart / Equity Overview / Watchlist / News / Portfolio / Screener)
+
+| Module          | Panel                          | Singleton        | Endpoints                                                       |
+| --------------- | ------------------------------ | ---------------- | --------------------------------------------------------------- |
+| chart           | `ChartPanel.tsx` (~1150 lines) | no (multi-chart) | `/history/{symbol}`, `/indicators/{symbol}`                     |
+| equity-overview | `EquityOverviewPanel.tsx`      | yes              | `/quotes`, `/fundamentals` + `/income/balance/cashflow/ratings` |
+| watchlist       | `WatchlistPanel.tsx`           | yes              | `/quotes` (batch), `/crypto/ticker` (per crypto)                |
+| news            | `NewsFeedPanel.tsx`            | yes              | `/news`                                                         |
+| portfolio       | `PortfolioPanel.tsx`           | yes              | `/portfolio/positions` CRUD, `/quotes/{symbol}`                 |
+| screener        | `ScreenerPanel.tsx`            | yes              | `/screener/run`, `/screener/universe`                           |
+
+**Chart** is the heaviest panel: `lightweight-charts` candlesticks, 8-step
+timeframe, 50-indicator multi-select (server-computed; frontend never computes
+one), 10 drawing tools (`ISeriesPrimitive`, click-to-create, serializable
+`DrawingSpec` per-panel store), comparison overlay (failures silently swallowed),
+three cross-chart sync slices (crosshair/range/symbol). **isTrusted limitation:**
+drawing/pan/zoom gestures are gated by lightweight-charts on trusted events —
+chrome-devtools MCP synthesised events are rejected, so canvas-interactive
+features **cannot be visually regression-tested** (only data models + toolbar
+wiring). Equity Overview fans out 6 parallel calls with graceful partial
+failure. Watchlist polls 5s. News auto-retries with exponential backoff
+(self-heals the ~30s cold-boot sidecar bind). Portfolio computes P&L
+client-side; honest edge cases (`null` for zero-cost-basis, divides by
+resolved-cost). Screener: client-side sort with null-last pinning.
+
+### 3.10 Panels — analysis (Macro / SEC / Earnings / Analyst / Quant / Backtest / Node Editor / Agent Builder / Chat / Integrations)
+
+All data stores call `sidecarGet` (GET) or a `fetch`-based POST/SSE consumer;
+none use `localStorage`. Notable surfaces:
+
+- **Backtest** — schema-driven params form from `GET /backtest/strategies`; SSE
+  run stream; "Open in Strategy Critic" drops a `/agent strategy_critic` line
+  into the chat composer (BLUEPRINT Use Case 2, end-to-end unverified).
+- **Node Editor** — `@xyflow/react` 12.x; HTML5 DnD palette→canvas (why
+  `dragDropEnabled:false` is required); 10 built-in nodes unioned with plugin
+  nodes; config schema lives host-side (NodeSpec stays locked/serializable). A
+  **second workflow consumer** (`store/workflow.ts`) exists with a
+  desktop-notification-intent slice that has **no found dispatcher** — treat as
+  unwired.
+- **Agent Builder** — sidecar-backed custom-agent CRUD; `custom:` prefix
+  enforced.
+- **Chat sidebar** (`ChatSidebar.tsx`) — the most cross-cutting surface (6+
+  stores). Default agent `copilot`; bare text routes to it; clickable persona
+  chip roster; `/ask` raw escape hatch. `executeHostAction` maps copilot tool
+  calls to live store mutations (`set_chart_symbol`/`open_panel`/`add_to_watchlist`
+  and the rest of the 18 host actions), staged through the review bar (§5) —
+  there is no order kind any more (D81). BYOK key resolved from the **agent's**
+  `defaultProvider` (not the UI default), read from keychain on demand.
+  `defaultModelFor` **hard-codes one model per provider** (may drift).
+- **Integrations** (`ConnectCard.tsx`) — no `index.ts`, rendered inside
+  `SettingsPanel`; one dialog drives any `IntegrationSpec`. There is no broker
+  integration any more (D81); the surviving entries are data/agent plugins.
+
+### 3.11 Agent personas
+
+13 first-party agents under `sidecar/agents/*.json` (read-only, discovered at
+import, validated against `_schema.json` draft-07, count hard-asserted by three
+tests). 12 investor personas (Buffett, Graham, Lynch, Munger, Marks, Klarman,
+Dalio, Druckenmiller, Soros, Researcher, Portfolio Advisor, Strategy Critic) +
+the Phase-10 `copilot` router. Each persona's prompt is 1.5–4 KB; only `copilot`
+(ollama/`qwen2.5:7b`) and `researcher` (openai) deviate from anthropic default.
+The `sidecar/agents/` dir is bundled via an explicit `--add-data` (it has no
+`__init__.py`; was silently dropped for 3 releases — Phase 8 finding).
+
+**Custom agents:** CRUD'd via `/custom-agents`, SQLite store, `custom:` prefix
+required. **Caveat — the custom-agent tool allow-list is stale + out of sync:**
+`KNOWN_TOOL_IDS` lists only 5 tools (`price_data, fundamentals, news,
+backtest_summary, macro`), but first-party agents bypass the allow-list and
+legitimately use tools (`screener_run`, `set_chart_symbol`) that **a custom
+agent cannot select** (`broker_portfolio`, this section's third example, is
+gone — D81). Worse, `news`/`macro` pass custom validation but **are not keys
+in `TOOL_SCHEMAS`** — so a custom agent allow-listing them never resolves
+the tool. A real, unfixed inconsistency.
+
+### 3.12 Build, CI & distribution
+
+Three PyInstaller `--onefile` sidecars built from a clean checkout (no binary
+committed): `vysted-sidecar` (89 MB), `vysted-openbb-mcp-sidecar` (49 MB),
+`vysted-sec-edgar-mcp-sidecar` (81 MB). Bundle-inclusion flags
+(`--hidden-import` / `--copy-metadata` / `--collect-all` / `--collect-data` /
+`--add-data`) are load-bearing — each maps to a real shipped-and-crashed
+regression. Ensure scripts are **staleness-aware** (binary older than its source
+auto-rebuilds; editing the build recipe invalidates the binary).
+
+**Two standing pre-tag gates:** `pnpm ci-local` (mirrors CI byte-for-byte:
+install → ensure-all-sidecars → eslint → prettier → tsc → cargo fmt → clippy -D
+→ ruff 0.15.12 → vitest → cargo test → pytest) **and**
+`scripts/smoke-test-sidecars.mjs` (spawns each built binary, polls `/health`,
+TCP-probes MCP bind, tree-kills on exit — catches the `PackageNotFoundError`-at-
+startup class that `cargo test` can't, since it never runs the binary).
+`ci-local` does **not** run the smoke test or `tauri build`.
+
+**Distribution is partly stubbed:** bundles built **unsigned** (no signing/
+notarization anywhere → Gatekeeper/SmartScreen will trip); auto-updater
+configured but `createUpdaterArtifacts:false` → no signed artifacts/`latest.json`;
+**no release/publish workflow exists** (CI only runs on push/PR + uploads
+ephemeral artifacts). **Version sources stuck at `0.8.0`** (`package.json`,
+`Cargo.toml`, `tauri.conf.json`, `app.py`, `HOST_VERSION`) despite Phase
+8/9/9.5/10 merged, D81 and Stage C batches 2-9 — this R15 candidate targets
+`0.9.0` (§0.0); the bump has not been made as of this sha.
+
+### 3.13 Persistence & BYOK (see §6 for the consolidated model)
+
+---
+
+## 4. The copilot today (load-bearing for the redesign)
+
+The copilot is an **agentic tool-use loop running entirely in the sidecar**,
+invoked over SSE. This is the Phase-10 unlock: the loop in
+`agent_runtime.invoke_agent` already existed but was **dead** — no adapter ever
+sent a `tools=` schema, so no model ever called a tool. Phase 10 made it live.
+
+**The loop (`agent_runtime.py:341`).** Resolve spec → resolve provider/model
+(override → agent default → hardcoded per-provider fallback table) → coerce
+history (last 10 turns) → `tool_ids = list(spec.tools)` → build per-invocation
+local tools → compose `[system, context preamble, …history, user]` → `while
+True`: stream from `adapter.stream_chat(messages, model, api_key,
+tool_ids=tool_ids)`; yield `tool_use` events to the UI; on `done` with tools
+fired and `rounds < 6` swallow the terminator and loop; reconstruct the
+assistant tool-call turn, dispatch every pending tool, append one `role="tool"`
+result per call, increment, loop. **Hard cap `_MAX_TOOL_ROUNDS = 6.`** Errors
+never crash the stream — a structured "tool not available" surfaces and the
+model recovers.
+
+**The keystone — `agent_tools/schemas.py`.** `TOOL_SCHEMAS` is one
+provider-neutral `{tool_id: {description, input_schema}}` catalog. Three
+serialisers project it natively: `anthropic_tools`, `openai_tools` (also Groq /
+Ollama / DeepSeek / xAI), `gemini_tools`. **Every adapter MUST
+`kwargs.pop("tool_ids")`** — forwarding it to the SDK breaks the call (confirmed
+all five pop it). **To add a tool you need all three:** a registered handler, a
+`TOOL_SCHEMAS` entry, and the id in some agent's allow-list — or it is invisible
+to every model.
+
+**Context injection (terminal awareness).** The frontend captures a structured
+`__terminal__` snapshot (focused symbol/timeframe/indicators, watchlist,
+portfolio, open panels) and sends it on agent calls. Two paths surface it: a
+terse system preamble (`_render_terminal_preamble`, with the deixis line —
+"when the user says 'this'/'it', they mean {focusedSymbol}… never invent figures
+— call a tool") and two on-demand pull tools (`get_terminal_state`,
+`get_portfolio`).
+
+**Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
+`add_to_watchlist` and the rest of the catalog's 18 host actions are
+per-invocation closures that return a _synthetic_ success — the **real UI
+work happens frontend-side** in `ChatSidebar.executeHostAction`, dispatched
+off the streamed `tool_use` event, not the synthetic result (the
+`host_action` payload on the wire is effectively dead today). There is no
+order host action any more — no broker connection exists to place one
+against (D81).
+
+**Personas.** 13 first-party agents (§3.11). `copilot` is the terminal-aware
+default whose allow-list is the broadest (14 tool ids incl. all host actions).
+
+**Provider/model (BYOK).** `get_provider` is a synchronous stateless factory; 7
+provider ids → 5 adapters (DeepSeek/xAI ride OpenAI via base-url override). Keys
+never held on the adapter — passed per call, read frontend-side from the
+keychain.
+
+**The `TOOL_SCHEMAS` catalog — but only ~10 of the ~40+ registered
+capabilities are reachable this way** (the current catalog size and the
+27-tool reachability figure are tracked in `sidecar/services/agent_tools/
+catalog.py`, the single source of truth per §0). No `broker_portfolio` or
+`propose_order` tool exists any more (D81):
+
+| Tool id                                                                                                                                                                                                                        | What it does                                                         | Reachable by an agent?                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `price_data`                                                                                                                                                                                                                   | ≤90 OHLCV bars + latest quote                                        | yes                                                         |
+| `fundamentals`                                                                                                                                                                                                                 | valuation ratios + profile                                           | yes                                                         |
+| `backtest_summary`                                                                                                                                                                                                             | digest a cached BacktestResult                                       | yes                                                         |
+| `screener_run`                                                                                                                                                                                                                 | run the screener                                                     | yes                                                         |
+| `macro_series`                                                                                                                                                                                                                 | one macro series (schema omits required `provider`; handler rejects) | yes                                                         |
+| `earnings_history`                                                                                                                                                                                                             | past earnings (≤12 quarters)                                         | yes                                                         |
+| `analyst_history`                                                                                                                                                                                                              | rating-change history                                                | yes                                                         |
+| `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
+| `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
+| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (18 total)                                              | yes (runtime-resolved)                                      |
+| `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
+
+**Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
+extended earnings/analyst/SEC tools, macro search) have no schema entry and are
+**unreachable through the LLM loop** — the schema is the only thing that produces
+a `tool_use` block.
+
+**Honest copilot caveats:**
+
+- **Shipped default routes to Ollama `qwen2.5:7b`** — a local model that may not
+  be installed; without a running daemon the default agent fails at first call
+  unless the user overrides. It is also the agent doing the most tool
+  orchestration, on the smallest model.
+- **Gemini multi-round tool use is likely broken** — Gemini keys
+  `function_response` by tool _name_ read from `metadata["name"]`, but the runtime
+  appends tool-result messages with only `tool_call_id` and no `name` → every
+  result serialises `name=""`. Single-text Gemini calls are fine. OpenAI-family +
+  Anthropic key by id and are correct.
+- **Live answers are proven only against a mocked provider**
+  (`test_tool_loop_e2e.py`). A real answer needs a BYOK key. Anthropic/OpenAI/Groq
+  are higher confidence; Gemini/Ollama are confidence-6-7.
+
+---
+
+## 5. Safety & Tier-1 locks — what must NOT break in the redesign
+
+The BLUEPRINT §6.5 execution-safety layer this section used to describe was
+removed permanently with trading (D81, 23 Sep 2026) — see §0.x and
+`docs/SAFETY_ARCHITECTURE.md`. What remains as Tier-1 and must not break:
+
+1. **`types/plugin.ts`** — the serializable plugin contract. Any change is Tier-4
+   (blocks to operator). It has held through all six capabilities without a
+   change; the `"trading-bot"` `PluginType` literal and its Tradesa-shaped
+   JSDoc examples are BLOCKED-FOR-OPERATOR, not reopened by D81.
+2. **The proposed-changes trust gate** (`src/store/proposed-changes.ts`,
+   `src/lib/host-actions.ts`) — every agent-proposed mutation over the 18
+   surviving host actions stages through the same diff/accept flow the
+   removed order kind used to ride.
+3. **The renderer-reads-keychain → secret-in-request invariant** — the sidecar
+   cannot read the OS keychain; only Rust can. Never log/echo/persist a secret.
+4. **Read-only-wrapper enforcement for data-source plugins** (e.g. Tradesa V2)
+   — three independent layers: no write methods on the provider surface
+   (audit-tested), no non-GET routes (audit-tested), `supportsControlPlane:
+false`.
+5. **No order, broker or simulated-account path exists anywhere** — pinned by
+   `sidecar/tests/test_no_trading_surface.py` (D81's Gate 8).
+
+---
+
+## 6. Persistence & local-first model
+
+**No cloud, no account, no sync, no telemetry.** State lives in exactly three
+places with a clean ownership split. `get_data_dir()` reads `VYSTED_DATA_DIR`
+(set by the core via `--data-dir`), falling back to `~/.vysted-terminal` outside
+Tauri.
+
+| Surface                                                                        | Owner      | Backing store                  | Location                                       |
+| ------------------------------------------------------------------------------ | ---------- | ------------------------------ | ---------------------------------------------- |
+| Workspace blob (layout, modules, drawings, default provider, watchlist)        | Sidecar    | `<name>.vysted-workspace` JSON | `get_data_dir()/workspaces/`                   |
+| BYOK secrets (LLM keys, MCP endpoints, plugin secrets, first-launch-terms ack) | Tauri Rust | OS credential store            | macOS Keychain / Win Cred Mgr / Secret Service |
+| Portfolio positions (manually tracked — no broker connection)                  | Sidecar    | SQLite `positions`             | `get_data_dir()/portfolio.db`                  |
+| Upstream-data TTL cache                                                        | Sidecar    | SQLite `cache` (WAL)           | `get_data_dir()/data_cache.db`                 |
+
+There is no order audit log any more (D81); the append-only `audit_orders`
+table and `audit_log.db` existed only to record order placement. A user who
+upgraded from a pre-D81 install may still have a stale `audit_log.db` on
+disk — nothing reads it — see the UNSURE item in
+`docs/redesign/DECISIONS_FOR_OPERATOR.md`.
+
+**The sidecar owns all filesystem persistence so the frontend never needs file
+access** — it reaches persistence only through `/workspace`, `/portfolio`
+over loopback. The workspace blob is **opaque JSON** the sidecar stores
+verbatim (never validates); name safety is a `^[A-Za-z0-9 _-]+$` regex. An
+`__autosave__` slot holds the last session; restore skips cleanly to the
+bundled default on an unknown-component reference rather than corrupting the
+grid.
+
+**BYOK invariant:** secrets never touch disk/`localStorage`/cookies. The only
+frontend path is `src/lib/keychain.ts` (`setSecret`/`getSecret`/`deleteSecret`
+→ Tauri `invoke`). Namespaces: `llm-provider:<id>`, `mcp-server:<id>`,
+`plugin-secret:<pluginId>:<key>`, first-launch-terms ack (there is no
+per-broker namespace any more, D81). The `provider-keys` store tracks
+**presence only** (`configured|missing|unknown`), never the value. **BYOK is
+effectively Tauri-only** — outside the shell `getSecret` rejects →
+`"unknown"`, no localStorage fallback by design.
+
+**Honest gaps:** **no DB migrations anywhere** (all three SQLite stores use
+`CREATE TABLE IF NOT EXISTS` — adding a column to an existing install would not
+migrate); workspace blobs are server-unvalidated (corruption caught only at
+`fromJSON` on the client); autosave is best-effort (a transient failure silently
+fails to persist until the next layout change); `data_cache` stale rows are never
+auto-evicted.
+
+---
+
+## 7. Consolidated status — works / buggy / deferred
+
+Reference HEAD `3123e7c` (Phase 10); superseded at this sha (`f4444790`,
+0.9.0 candidate — see §0.0 for the R15 delta this table does not yet fully
+reflect subsystem-by-subsystem). **Last release tag `v0.8.0`; Phase
+8/9/9.5/10 sit on `main` unreleased/untagged.** "Works" below almost always means
+"automated gates pass against mocks," **not** "live/visually validated by a
+human."
+
+| Item                                                                                   | Status                                                                                                          | Source                                                                         |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `pnpm ci-local` (full CI parity)                                                       | **Stale figures** — pre-R15 (619 vitest, 6 cargo, 942 pytest); not re-run at this sha, see §0.0                 | PHASE_10_HANDOFF §"Gate results"; <!-- VERIFY: re-run ci-local at f4444790 --> |
+| Agent-write safety model (§6.5)                                                        | **Works** — Gate 8 no-trading test green; see §0.x, SAFETY_ARCHITECTURE                                         | SAFETY_ARCHITECTURE                                                            |
+| All 3 sidecar binaries spawn + bind                                                    | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe)                                           | PHASE_10_HANDOFF                                                               |
+| Static-export build                                                                    | **Works** — `pnpm build` (`vite build`) per prior tags; not re-run at this sha                                  | PHASE_10_HANDOFF                                                               |
+| Copilot agentic tool loop                                                              | **Works against a mocked provider** (`test_tool_loop_e2e.py`); live answers unverified                          | PHASE_10_HANDOFF §2; CLAUDE.md                                                 |
+| 5 core data panels + 50 indicators + dockview + workspace save/load                    | **Works** (mature, prior tags) — but reskinned in Phase 10, so visuals re-verify                                | §15; CHANGELOG                                                                 |
+| Phase-6 analysis panels (macro/SEC/earnings/analyst/screener/quant)                    | **Works** (tests); backend liveness unverified from frontend                                                    | §11                                                                            |
+| Persisted watchlist + defaultProviderId                                                | **Works** — ride the workspace blob, survive relaunch                                                           | PHASE_10_HANDOFF §5                                                            |
+| "Claude after dark" reskin                                                             | **Builds**; every panel's rendered appearance is operator-eyeball                                               | PHASE_10_HANDOFF §4                                                            |
+| MCP cold-bind latency                                                                  | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash   | BLOCKERS Phase 9.5 UC1                                                         |
+| openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                                 | BLOCKERS carry-forward #7                                                      |
+| Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                          | BLOCKERS S2 #8                                                                 |
+| `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                             | §8                                                                             |
+| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                     | §4                                                                             |
+| Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                              | §8                                                                             |
+| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                             | §11                                                                            |
+| Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                               | §0.x; SAFETY_ARCHITECTURE                                                      |
+| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                    | BLOCKERS Phase-10 #5                                                           |
+| Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                              | BLOCKERS Phase-10 #6                                                           |
+| `--onedir` MCP packaging (true cold-bind fix)                                          | **Deferred** — needs `tauri build`-verifiable change ci-local can't check                                       | BLOCKERS Phase 9.5                                                             |
+| Light theme                                                                            | **Deferred to v1.1** — dark-only ships                                                                          | BLOCKERS S2 #10                                                                |
+| Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open)                                                                      | BLOCKERS v0.7.0→Phase 10                                                       |
+| `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                    | §1, §14                                                                        |
+| Version strings (`0.8.0` everywhere)                                                   | **Stale, open** — 0.9.0 candidate target (§0.0); files still 0.8.0, bump not yet made                           | §3.12; §0.0                                                                    |
+| mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                          | BLOCKERS                                                                       |
+| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 100/112 high; 153/279 medium; 10/219 low** — 3 open high, 114 open medium, 205 open low | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
+| Licence (PolyForm Strict 1.0.0 core + Apache-2.0 plugin contract + commercial)         | **Works** — `LICENSE`/`LICENSE-APACHE`/`COMMERCIAL_LICENSE.md` present at this sha                              | §0.0                                                                           |
+
+**Bottom line:** green on every machine-checkable gate as of the stale
+pre-R15 run cited above (re-run pending, §0.0), unproven on every
+human-checkable one. The §6.5 order-execution layer no longer exists (D81);
+§6.5 now names the agent-write safety model, i.e. the proposed-changes trust gate
+(§5) over the 18 surviving host actions, including the tracked portfolio. The
+standing fragility to watch is MCP cold-bind contention (worked around, not
+root-fixed); R15 Stage C register remediation is summarized in §0.0.
+
+---
+
+## 8. What the redesign keeps vs rebuilds
+
+The "Cursor for finance" redesign should treat this codebase as a **strong
+foundation with a thin, dated experience layer** — keep the substrate, rebuild
+the surface and the agent-centrality.
+
+### KEEP (the working foundation — do not rebuild)
+
+- **The sidecar + data layer.** ~94 REST routes (post-D81), the `provider_registry`
+  dispatch seam, yfinance/ccxt/news/VADER/macro/QuantLib/49-indicators, the
+  data-cache, the SSE convention. This is the data brain; it works and is broadly
+  tested. The redesign consumes it, it does not replace it.
+- **The agent-write safety model, intact.** Tier-1 LOCKED. The proposed-changes
+  trust gate over the 18 host actions is the most trustworthy asset — preserve
+  it and run `test_no_trading_surface.py` as a hard gate on any touch (§5).
+  There is no broker connectivity, order placement or simulated account to
+  preserve — that layer was removed permanently (D81, 23 Sep 2026).
+- **dockview panels + the workspace-blob persistence model.** The layout engine,
+  the module registry, the opaque-blob round-trip, the unknown-component restore
+  guard, the local-first ownership split (sidecar files + OS keychain). The
+  _arrangement_ may change; the persistence + SSR-safe mounting mechanics are
+  hard-won and should survive.
+- **The manually tracked portfolio.** Local holdings, cost bases, P&L on real
+  prices, CSV export, notes and watchlists, and everything the agent does with
+  them (staged through the same trust gate). There is no broker connection
+  behind it and never will be again (D81) — keep the ledger, do not reopen
+  execution.
+- **The copilot tool loop + tool-schema contract.** The `invoke_agent` loop,
+  `TOOL_SCHEMAS` + per-provider serialisers, the `tool_ids`-pop contract, the
+  metadata-carried assistant tool-call turn, host-action execution, and
+  terminal-state context injection. This is the spine of the agent experience —
+  built once, working, and load-bearing. Keep the mechanism; expand the catalog.
+- **BYOK + MCP-on-both-sides plumbing.** The keychain-mediated secret flow and
+  the dual MCP role (proxy-in + serve-out) are real and reusable.
+
+### REBUILD (the experience + agent-centrality + MCP-as-framework)
+
+- **The experience / UI.** The shell is "a data viewer with a raw LLM chat
+  bolted on" (Phase-10's own framing). The dark-only, header-less, command-
+  palette-as-substring-match shell with no connection indicator and no light
+  theme is the surface to rethink for an agent-first, "Cursor for finance"
+  posture. Keep dockview as an engine; rebuild the chrome, the entry points, and
+  the information hierarchy around the copilot.
+- **Agent-centrality.** Today the copilot is one panel among 18. The redesign
+  should promote it to the primary interaction model — but first **close the
+  catalog gap** (~11 registered tools are invisible to every model for lack of a
+  `TOOL_SCHEMAS` entry), **fix the Gemini multi-round break**, **reconcile the
+  custom-agent allow-list** with the real catalog, and **resolve the default
+  agent** (the shipped `copilot` defaults to an Ollama model that may not exist).
+  The deferred roster depth (`/agents/roster`, 3-pane panel,
+  `delegate_to_persona`) is the natural first build.
+- **MCP-as-framework.** Today MCP is plumbing (two proxied subprocesses + a
+  serve-out surface with a manual copy-paste external-client flow). A
+  "Cursor for finance" thesis likely wants MCP as the _extension framework_ —
+  the inert DataSource/connector registry, the dead stdio transport reserved for
+  filesystem plugins, and the missing marketplace/signing/loader are where this
+  becomes real. The contract supports it; the wiring does not exist yet.
+- **The plugin runtime's missing guarantees.** Before leaning on plugins as the
+  extension story, implement the manifest↔instance + `requiredHostVersion`
+  checks the docs already claim, and wire `PluginConfig.secrets`. The
+  read-only-wrapper rule stays as the contract for future data-source plugins
+  (§5); there are no broker plugins left to decide the fate of (D81).
+- **Distribution.** Unsigned, no release pipeline, stale version strings, a
+  non-functional updater. A shippable product needs signing/notarization, the
+  updater wired (`createUpdaterArtifacts:true` + a publish workflow), and the
+  version-of-truth drift closed.
+
+**One-line redesign thesis:** keep the sidecar, the agent-write safety model,
+the panels, the persistence model, the tracked portfolio, and the copilot tool
+loop; rebuild the shell into an agent-first experience, promote MCP from
+plumbing to extension framework, and close the copilot's catalog/provider gaps
+that quietly cap what the agent can do today. Trading is not part of this
+product any more (D81) — nothing here should reopen it.
+<!-- critic-footer -->
+## Critic findings applied
+
+1. applied
+2. applied
+3. applied
+4. n/a — targets BLOCKERS.draft.md, see its footer
+5. n/a — targets BLOCKERS.draft.md, see its footer
+6. applied
+7. applied
+8. applied
+9. applied
+10. applied
+11. applied
