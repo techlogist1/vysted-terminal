@@ -17,7 +17,7 @@ import { basename, join, resolve } from "node:path";
 import { platform } from "node:os";
 
 import { ensureBuildVenv } from "./build-python.mjs";
-import { isStale } from "./sidecar-staleness.mjs";
+import { assertFresh, isStale } from "./sidecar-staleness.mjs";
 import { signDevBinary } from "./macos-dev-sign.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -190,6 +190,17 @@ export function targetTriple() {
 
 export function binaryPath(name, triple) {
   return join(BINARIES_DIR, `${name}-${triple}${ext}`);
+}
+
+/**
+ * CI gate: throw when any bundled binary predates its source. Reads the same
+ * `spec.stale` the builder uses, so the gate cannot certify a different source
+ * set than the build (R15-RELEASE-006).
+ */
+export function assertAllFresh(triple = targetTriple()) {
+  for (const spec of SIDECAR_SPECS) {
+    assertFresh(binaryPath(spec.name, triple), spec.stale.dirs, spec.stale.opts);
+  }
 }
 
 const venvBin = (spec) => join(spec.sourceDir, ".venv", isWin ? "Scripts" : "bin");

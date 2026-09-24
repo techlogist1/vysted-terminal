@@ -77,8 +77,7 @@ import { tmpdir, platform } from "node:os";
 import { mkdtemp, rm } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { assertFresh } from "./sidecar-staleness.mjs";
-import { binaryPath, targetTriple } from "./sidecar-specs.mjs";
+import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SIDECAR_DIR = join(ROOT, "sidecar");
@@ -856,33 +855,7 @@ async function _smokeTestMcpSidecar(name, triple) {
  * Phase 9.5 re-audit.
  */
 function _assertAllFresh(triple) {
-  const staleness = join(ROOT, "scripts", "sidecar-staleness.mjs");
-  const checks = [
-    {
-      name: "vysted-sidecar",
-      dirs: SIDECAR_DIR,
-      opts: {
-        excludeDirs: [
-          join(SIDECAR_DIR, "openbb_mcp_subprocess"),
-          join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
-        ],
-        extraFiles: [join(ROOT, "scripts", "ensure-sidecar.mjs"), staleness],
-      },
-    },
-    {
-      name: "vysted-openbb-mcp-sidecar",
-      dirs: join(SIDECAR_DIR, "openbb_mcp_subprocess"),
-      opts: { extraFiles: [join(ROOT, "scripts", "ensure-openbb-mcp-sidecar.mjs"), staleness] },
-    },
-    {
-      name: "vysted-sec-edgar-mcp-sidecar",
-      dirs: join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
-      opts: { extraFiles: [join(ROOT, "scripts", "ensure-sec-edgar-mcp-sidecar.mjs"), staleness] },
-    },
-  ];
-  for (const c of checks) {
-    assertFresh(binaryPath(c.name, triple), c.dirs, c.opts);
-  }
+  assertAllFresh(triple);
   console.log("[smoke] freshness gate: all bundled sidecar binaries are newer than their source.");
 }
 
@@ -900,13 +873,10 @@ async function main() {
   _assertAllFresh(triple);
   const failures = [];
 
-  for (const fn of [
-    () => _smokeTestMainSidecar(triple),
-    () => _smokeTestMcpSidecar("vysted-openbb-mcp-sidecar", triple),
-    () => _smokeTestMcpSidecar("vysted-sec-edgar-mcp-sidecar", triple),
-  ]) {
+  for (const spec of SIDECAR_SPECS) {
     try {
-      await fn();
+      if (spec.kind === "main") await _smokeTestMainSidecar(triple);
+      else await _smokeTestMcpSidecar(spec.name, triple);
     } catch (err) {
       failures.push(err instanceof Error ? err.message : String(err));
     }
