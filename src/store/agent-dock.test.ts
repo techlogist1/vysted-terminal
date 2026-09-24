@@ -31,4 +31,12 @@ describe("agent-dock store (FR-001)", () => {
     useAgentDockStore.getState().setWidth(600);
     expect(useAgentDockStore.getState().width).toBe(600);
   });
+
+  it("maximize takes the full cockpit and restore returns the prior width (R15-UI-084)", () => {
+    useAgentDockStore.getState().setWidth(640);
+    useAgentDockStore.getState().toggleMaximized();
+    expect(useAgentDockStore.getState().maximized).toBe(true);
+    useAgentDockStore.getState().toggleMaximized();
+    expect(useAgentDockStore.getState()).toMatchObject({ maximized: false, width: 640 });
+  });
 });

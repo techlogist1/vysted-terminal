@@ -96,10 +96,11 @@ export interface SerializedWorkspace {
    */
   autonomyMode?: AgentAutonomy;
   /**
-   * The agent dominant-column geometry (collapsed + width in px) so the
-   * agent-first layout (FR-001) survives a relaunch. Optional for older blobs.
+   * The agent dominant-column geometry (collapsed + width in px + maximized to
+   * the full cockpit) so the agent-first layout (FR-001) survives a relaunch.
+   * Optional for older blobs; `maximized` is absent before R15-UI-084.
    */
-  agentDock?: { collapsed: boolean; width: number };
+  agentDock?: { collapsed: boolean; width: number; maximized?: boolean };
   /**
    * Per-provider model overrides (FR-004). Optional for older blobs; the
    * per-provider defaults apply when absent.
@@ -384,6 +385,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       agentDock: {
         collapsed: useAgentDockStore.getState().collapsed,
         width: useAgentDockStore.getState().width,
+        maximized: useAgentDockStore.getState().maximized,
       },
     }),
     restore: (workspace) => {
@@ -392,12 +394,15 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
         if (typeof workspace.agentDock.width === "number") {
           useAgentDockStore.getState().setWidth(workspace.agentDock.width);
         }
+        // A blob from before maximize existed restores un-maximized.
+        useAgentDockStore.getState().setMaximized(workspace.agentDock.maximized === true);
       }
     },
     subscribe: onChange(
       useAgentDockStore,
       (s) => s.collapsed,
       (s) => s.width,
+      (s) => s.maximized,
     ),
   },
   {

@@ -100,7 +100,11 @@ describe("workspace serialization", () => {
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
     useAgentModeStore.setState({ mode: "agent" });
     useAgentAutonomyStore.setState({ autonomy: "ask" });
-    useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
+    useAgentDockStore.setState({
+      collapsed: false,
+      width: AGENT_DOCK_DEFAULT_WIDTH,
+      maximized: false,
+    });
     useModelSelectionStore.setState({ overrides: {} });
     useResearchSpacesStore.setState({ byName: {} });
     useChatHistoryStore.getState().clear();
@@ -134,7 +138,7 @@ describe("workspace serialization", () => {
       },
       agentMode: "agent",
       autonomyMode: "ask",
-      agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
+      agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH, maximized: false },
       modelOverrides: {},
       modelOverridesV: 3,
       keybindingOverrides: {},
@@ -281,6 +285,26 @@ describe("workspace serialization", () => {
     expect(useAgentDockStore.getState().collapsed).toBe(true);
     expect(useAgentDockStore.getState().width).toBe(520);
     expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-6");
+  });
+
+  it("round-trips a maximized agent dock with its restore width; an older blob restores un-maximized (R15-UI-084)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useAgentDockStore.setState({ width: 640, maximized: true });
+    const saved = serializeWorkspace("max");
+    expect(saved.agentDock).toEqual({ collapsed: false, width: 640, maximized: true });
+
+    useAgentDockStore.setState({ width: AGENT_DOCK_DEFAULT_WIDTH, maximized: false });
+    deserializeWorkspace(saved);
+    expect(useAgentDockStore.getState()).toMatchObject({ width: 640, maximized: true });
+
+    deserializeWorkspace({
+      name: "older",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      agentDock: { collapsed: false, width: 520 },
+    });
+    expect(useAgentDockStore.getState()).toMatchObject({ width: 520, maximized: false });
   });
 
   it("keeps a current-blob live-catalog model override the static list can't know", () => {
