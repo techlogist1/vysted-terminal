@@ -287,6 +287,37 @@ class Resolution:
         return self.best is not None and decide(self).outcome == "disambiguate"
 
 
+def instrument_payload(instrument: Instrument) -> dict[str, object]:
+    """The ONE wire shape of an :class:`Instrument` (the ``/resolve`` routes and
+    the ``resolve_symbol`` agent tool both project through it)."""
+    payload: dict[str, object] = {
+        "symbol": instrument.symbol,
+        "name": instrument.name,
+        "exchange": instrument.exchange,
+        "region": instrument.region,
+        "asset_class": instrument.asset_class,
+        "yahoo_symbol": instrument.yahoo_symbol,
+        "confidence": round(instrument.score, 4),
+        # R13 additive identity enrichment — read-only ISIN / scrip / industry
+        # join. Null when the bundled data does not carry it (US names, an
+        # uncovered micro-cap), never fabricated.
+        "isin": instrument.isin,
+        "bse_code": instrument.bse_code,
+        "industry": instrument.industry,
+        "former_name": instrument.former_name,
+    }
+    # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
+    # provenance — the picker can badge "renamed from …", never a silent swap.
+    if instrument.rename is not None:
+        payload["rename"] = {
+            "renamed_from": instrument.rename.renamed_from,
+            "renamed_to": instrument.rename.renamed_to,
+            "effective_date": instrument.rename.effective_date,
+            "note": instrument.rename.note,
+        }
+    return payload
+
+
 # ---------------------------------------------------------------------------
 # Master loading (bundled JSON, cached in-process).
 # ---------------------------------------------------------------------------
@@ -1349,6 +1380,7 @@ __all__ = [
     "autocomplete",
     "bse_scrip_code",
     "dual_listed_bse_code",
+    "instrument_payload",
     "is_bse_symbol",
     "is_nse_emerge",
     "is_nse_symbol",
