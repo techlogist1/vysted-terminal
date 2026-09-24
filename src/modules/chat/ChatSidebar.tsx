@@ -95,6 +95,7 @@ import {
 } from "./slash-commands";
 import { SlashCommandPicker } from "./SlashCommandPicker";
 import {
+  doneFrameOf,
   errorFrameOf,
   isLengthFinish,
   LENGTH_NOTICE,
@@ -961,7 +962,7 @@ export function ChatSidebar() {
             endRun(runId, "error", message);
           }
         },
-        onDone: (usage, finishReason, contextWindow) => {
+        onDone: (usage, finishReason, contextWindow, spendUsd) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
           }
@@ -970,10 +971,14 @@ export function ChatSidebar() {
           if (!agentForCall && isLengthFinish(finishReason)) {
             useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
           }
-          finalize(assistantId, usage, contextWindow);
+          finalize(assistantId, usage, contextWindow, spendUsd);
           if (usage) {
             updateRun(runId, {
-              cost: { tokens: usage.inputTokens + usage.outputTokens, spendUsd: 0, steps: 0 },
+              cost: {
+                tokens: usage.inputTokens + usage.outputTokens,
+                spendUsd: spendUsd ?? 0,
+                steps: 0,
+              },
             });
           }
           endRun(runId, "done");
@@ -1290,6 +1295,7 @@ export function ChatSidebar() {
                   briefPublished={message.briefPublished}
                 />
                 <MessageNotices messageId={message.id} />
+                <MessageCostFooter message={message} />
                 {message.stopped && (
                   <div className="text-charcoal-500 text-caption mt-1">stopped</div>
                 )}
@@ -1502,6 +1508,22 @@ function ContextMeter() {
       {text}
     </div>
   );
+}
+
+/** A finished assistant message's token + spend footer (R15-AGENT-082):
+ *  "N tok · ~$X". Spend is omitted when unknown (`spendUsd` absent/null) and
+ *  shown as "~$0.00" when the model is free — the two read differently. */
+function MessageCostFooter({ message }: { message: ChatMessage }) {
+  if (message.role !== "assistant" || message.pending || !message.usage) {
+    return null;
+  }
+  const tokens = message.usage.inputTokens + message.usage.outputTokens;
+  const spendUsd = message.spendUsd;
+  const text =
+    typeof spendUsd === "number"
+      ? `${tokens.toLocaleString()} tok · ~$${spendUsd.toFixed(2)}`
+      : `${tokens.toLocaleString()} tok`;
+  return <div className="text-charcoal-500 text-micro mt-1 font-mono">{text}</div>;
 }
 
 /** The runtime's notices (C9) — quiet system chips under the message body:
@@ -2099,6 +2121,7 @@ interface InternalHandlers {
     usage: { inputTokens: number; outputTokens: number } | null,
     finishReason?: string,
     contextWindow?: number,
+    spendUsd?: number,
   ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView, tool: string) => void;
@@ -2141,6 +2164,7 @@ function makeHandlers(internal: InternalHandlers): {
             : null,
           event.finishReason,
           event.contextWindow,
+          doneFrameOf(event),
         );
       }
     },

@@ -131,8 +131,7 @@ function RunRow({
           <span className="text-charcoal-500">{agentModeMeta(run.mode).label}</span>
           {cost && cost.tokens > 0 && (
             <span className="text-charcoal-500">
-              {cost.tokens.toLocaleString()} tok
-              {cost.spendUsd > 0 ? ` · $${cost.spendUsd.toFixed(4)}` : ""}
+              {cost.tokens.toLocaleString()} tok · ${cost.spendUsd.toFixed(4)}
             </span>
           )}
         </span>
