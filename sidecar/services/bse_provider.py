@@ -78,6 +78,17 @@ _RANGE_DAYS = {
     "max": 3700,
 }
 _DEFAULT_RANGE_DAYS = 380
+# The span each range token names (calendar days), without the lookback padding
+# above: what "covered" is measured against (R15-DATA-071).
+_NOMINAL_RANGE_DAYS = {
+    "5d": 7,
+    "1mo": 30,
+    "3mo": 91,
+    "6mo": 182,
+    "1y": 365,
+    "2y": 730,
+    "5y": 1826,
+}
 
 # A cold cache must not attempt to backfill years of bhavcopies on the first
 # request (each missing day is a separate ~1 MB download). We download at most
@@ -487,15 +498,34 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     today = datetime.now(tz=UTC).astimezone(locale.market_timezone(locale.REGION_IN)).date()
     start = today - timedelta(days=days)
 
-    daily = _assemble_history(bare, code, start, today)
+    gaps: list[date] = []
+    daily = _assemble_history(bare, code, start, today, gaps)
     if not daily:
         raise ProviderError(f"bse: no EOD data for {bare!r}")
+    # R15-DATA-071: a day file missing inside the requested span (the cold
+    # download budget ran out) makes the series partial, complete only from the
+    # day after the newest missing file.
+    wanted_from = today - timedelta(days=_NOMINAL_RANGE_DAYS.get(range_ or "", days))
+    partial = bool(gaps) and gaps[0] >= wanted_from
     bars = _resample(daily, timeframe) if timeframe in {"1wk", "1mo"} else daily
-    return OHLCVSeries(symbol=bare, timeframe=timeframe, bars=bars, provider=PROVIDER)
+    return OHLCVSeries(
+        symbol=bare,
+        timeframe=timeframe,
+        bars=bars,
+        provider=PROVIDER,
+        partial=partial,
+        coverage_start=gaps[0] + timedelta(days=1) if partial else None,
+    )
 
 
-def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> list[OHLCVBar]:
+def _assemble_history(
+    ticker: str, code: str | None, start: date, end: date, gaps: list[date] | None = None
+) -> list[OHLCVBar]:
     """Walk trading days in ``[start, end]``, collecting this scrip's daily bar.
+
+    ``gaps`` (when given) receives, newest-first, each trading day whose day file
+    could not be read, counted from the newest day that could be (the days after
+    it are not published yet, not missing).
 
     Cached bhavcopies are read for the whole range; missing *recent* trading days
     are downloaded up to the cold-download budget (newest-first) so a cold cache
@@ -510,12 +540,18 @@ def _assemble_history(ticker: str, code: str | None, start: date, end: date) -> 
     ]
     downloads_left = _MAX_COLD_DOWNLOADS
     bars: list[OHLCVBar] = []
+    read_any = False
     # Newest-first so the cold-download budget spends on the most recent days.
     for day in reversed(trading_days):
         text = _bhavcopy_for(day)
         if text is None and downloads_left > 0:
             text = _download_bhavcopy(day)
             downloads_left -= 1
+        if text is None:
+            if read_any and gaps is not None:
+                gaps.append(day)
+            continue
+        read_any = True
         row = _scrip_row(text, ticker, code) if text else None
         if row is None:
             continue

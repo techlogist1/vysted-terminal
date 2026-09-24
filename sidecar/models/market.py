@@ -6,7 +6,7 @@ These shapes are mirrored by hand in ``types/data.ts``; keep the two in sync
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -63,6 +63,10 @@ class OHLCVSeries(BaseModel):
     # in_eod_only = BSE/NSE serve end-of-day data only; no intraday/realtime lane exists for this listing  # noqa: E501
     # None for a populated series or a non-region-specific empty.
     reason: str | None = None
+    # True when day files are missing inside the requested range; the series is
+    # complete from ``coverage_start`` on (R15-DATA-071).
+    partial: bool = False
+    coverage_start: date | None = None
 
 
 class MacroObservation(BaseModel):

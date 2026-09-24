@@ -59,6 +59,9 @@ export interface OHLCVSeries {
   freshness?: Freshness | null;
   /** Typed reason for an empty series, set by the history router (WS6 Step 4). */
   reason?: SeriesReason | null;
+  /** True when part of the requested range is missing; complete from `coverage_start` (ISO date). */
+  partial?: boolean;
+  coverage_start?: string | null;
 }
 
 /** One dated observation within a macro series. */

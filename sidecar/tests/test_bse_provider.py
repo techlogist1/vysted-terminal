@@ -157,6 +157,32 @@ def test_get_history_resamples_weekly(tmp_path, monkeypatch: pytest.MonkeyPatch)
     assert all(b.close > 0 for b in series.bars)
 
 
+def test_cold_capped_year_is_flagged_partial_with_its_coverage_start(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-071: a cold 1y request downloads 8 day files; the series says it is
+    partial and since when it is complete, instead of passing 8 bars off as a year."""
+    from datetime import timedelta
+
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "1y")
+    assert len(series.bars) == bse_provider._MAX_COLD_DOWNLOADS
+    assert series.partial is True
+    first = series.bars[0].timestamp.date()
+    assert first - timedelta(days=4) <= series.coverage_start <= first
+
+
+def test_cold_five_day_request_is_not_partial(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The same cold budget covers a 5-day range: no false partial flag.
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_http_get", lambda url: _csv_response(_BHAVCOPY_CSV))
+    series = bse_provider.get_history("ICONIKSPEV", "1d", "5d")
+    assert len(series.bars) >= 5
+    assert series.partial is False
+    assert series.coverage_start is None
+
+
 def test_get_history_intraday_rejected() -> None:
     with pytest.raises(ProviderError, match="intraday"):
         bse_provider.get_history("ICONIKSPEV", "1h")
