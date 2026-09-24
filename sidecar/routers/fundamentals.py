@@ -34,6 +34,7 @@ from models.fundamentals import (
     BalanceSheet,
     CashFlowStatement,
     CompanyNarrative,
+    FieldMeta,
     Fundamentals,
     IncomeStatement,
 )
@@ -136,6 +137,15 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
     fundamentals.basis = await exchange_financials.filed_basis(fundamentals.symbol)
+    if fundamentals.field_meta is not None:
+        # The provider stamped ``basis`` "unavailable" (it never publishes one);
+        # the exchange filings read above are its real provenance (R15-DATA-054).
+        fundamentals.field_meta["basis"] = FieldMeta(
+            status="ok" if fundamentals.basis else "unavailable",
+            provider="exchange-filings",
+            as_of=datetime.now(UTC).isoformat(),
+            reason=None if fundamentals.basis else "no NSE/BSE filing states a basis",
+        )
     return fundamentals
 
 

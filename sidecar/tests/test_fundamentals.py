@@ -51,6 +51,38 @@ def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     assert body["identity_note"] is None
 
 
+def test_filed_basis_stamps_its_own_field_meta(
+    client: TestClient, mock_yfinance: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-054: ``basis`` comes from the exchange filings, so its
+    ``field_meta`` names that leg — never the provider's "unavailable" stamp
+    beside a served value."""
+    from services import exchange_financials
+
+    async def _consolidated(_listing: str) -> str:
+        return "consolidated"
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", _consolidated)
+    body = client.get("/fundamentals/RELIANCE.NS").json()
+    assert body["basis"] == "consolidated"
+    meta = body["field_meta"]["basis"]
+    assert meta["status"] == "ok"
+    assert meta["provider"] == "exchange-filings"
+    assert meta["as_of"]
+
+
+def test_no_filed_basis_is_unavailable_with_a_reason(
+    client: TestClient, mock_yfinance: object
+) -> None:
+    """No filing (the autouse stub) -> ``basis`` null and its meta says why."""
+    body = client.get("/fundamentals/AAPL").json()
+    assert body["basis"] is None
+    meta = body["field_meta"]["basis"]
+    assert meta["status"] == "unavailable"
+    assert meta["provider"] == "exchange-filings"
+    assert "filing" in meta["reason"]
+
+
 def test_get_fundamentals_provider_error_is_502(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
