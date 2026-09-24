@@ -75,7 +75,7 @@
 >   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
 >   primary surface alongside the hand-driven cockpit. **Every agent-proposed
 >   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
->   — the write surface is the catalog's 18 host actions (`open_panel`/
+>   — the write surface is the catalog's 19 host actions (`open_panel`/
 >   `set_chart_symbol`/`add_to_watchlist`/the tracked-portfolio, note, screen and
 >   layout writers/`set_region`; no order action exists, D81) — none auto-apply
 >   under ASK autonomy (SC-003). Offer-both onboarding preserves the keyboard
@@ -432,7 +432,7 @@ deleted, not merely unreachable.
 The execution-safety layer this section used to describe (the eight
 BLUEPRINT §6.5 order non-negotiables, `test_safety_end_to_end.py`) existed
 only to gate broker order placement and was removed with the feature. What
-remains — the proposed-changes trust gate over the 18 surviving host actions
+remains — the proposed-changes trust gate over the 19 surviving host actions
 — is documented in `docs/SAFETY_ARCHITECTURE.md`, current as of this
 removal. `sidecar/tests/test_no_trading_surface.py` pins that no order,
 broker or simulated-account path exists anywhere.
@@ -566,7 +566,7 @@ none use `localStorage`. Notable surfaces:
   chip roster; `/ask` raw escape hatch. `executeHostAction` maps copilot tool
   calls to `ProposedChange` entries (`set_chart_symbol`/`open_panel`/
   `add_to_watchlist` and the rest of `HOST_ACTION_NAMES`, `src/lib/
-host-actions.ts` — 18 host actions total), staged through the diff/accept
+host-actions.ts` — 19 host actions total), staged through the diff/accept
   review bar (§5); the `panel`/`chart`/`watchlist` kinds apply without a
   per-action confirmation under AUTO autonomy (`AUTO_APPLIED_KINDS`,
   `types/proposed-change.ts`) — `data-write`/`settings` always wait — there is
@@ -666,7 +666,7 @@ terse system preamble (`_render_terminal_preamble`, with the deixis line —
 
 **Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
 `add_to_watchlist` and the rest of `HOST_ACTION_NAMES` (`src/lib/
-host-actions.ts` — 18 host actions total) are per-invocation closures that
+host-actions.ts` — 19 host actions total) are per-invocation closures that
 return a _synthetic_ success — the **real UI work happens frontend-side** in
 `ChatSidebar.executeHostAction`, dispatched off the streamed `tool_use` event
 as a staged `ProposedChange` (not the synthetic result; the `host_action`
@@ -701,7 +701,7 @@ catalog.py`, the single source of truth per §0). No `broker_portfolio` or
 | `analyst_history`                                                                                                                                                                                                              | rating-change history                                                | yes                                                         |
 | `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
 | `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
-| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (18 total)                                              | yes (runtime-resolved)                                      |
+| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (19 total)                                              | yes (runtime-resolved)                                      |
 | `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
 
 **Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
@@ -853,7 +853,7 @@ the surface and the agent-centrality.
   data-cache, the SSE convention. This is the data brain; it works and is broadly
   tested. The redesign consumes it, it does not replace it.
 - **The agent-write safety model, intact.** Tier-1 LOCKED. The proposed-changes
-  trust gate over the 18 host actions is the most trustworthy asset — preserve
+  trust gate over the 19 host actions is the most trustworthy asset — preserve
   it and run `test_no_trading_surface.py` as a hard gate on any touch (§5).
   There is no broker connectivity, order placement or simulated account to
   preserve — that layer was removed permanently (D81, 23 Sep 2026).

@@ -46,8 +46,9 @@ export interface OHLCVBar {
  * every provider returned no data so the chart can show a region-aware message
  * (WS6 Step 4); absent for a populated series.
  * in_eod_only = BSE/NSE serve end-of-day data only; no intraday/realtime lane exists for this listing
+ * unknown_symbol = no bundled equity/ETF master knows the symbol at all (R15-LEAD-026)
  */
-export type SeriesReason = "in_eod_only";
+export type SeriesReason = "in_eod_only" | "unknown_symbol";
 
 /** An ordered series of OHLCV bars for one symbol and timeframe. */
 export interface OHLCVSeries {

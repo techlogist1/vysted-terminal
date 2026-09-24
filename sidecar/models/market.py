@@ -61,6 +61,7 @@ class OHLCVSeries(BaseModel):
     # provider returned no data, so the chart shows a region-aware honest message
     # instead of the generic "No price data" (WS6 Step 4).
     # in_eod_only = BSE/NSE serve end-of-day data only; no intraday/realtime lane exists for this listing  # noqa: E501
+    # unknown_symbol = no bundled equity/ETF master knows the symbol at all (R15-LEAD-026)
     # None for a populated series or a non-region-specific empty.
     reason: str | None = None
     # True when day files are missing inside the requested range; the series is

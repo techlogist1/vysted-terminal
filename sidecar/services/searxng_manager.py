@@ -37,9 +37,9 @@ module level — tests never need docker or the network. The docker CLI here is 
 short-lived external command (the container itself is owned by dockerd, not by
 the sidecar process), so the Tauri-sidecar spawn rule does not apply.
 
-Routing: :func:`services.search.searxng.detect_searxng` consults
-:meth:`SearxngManager.ready_base_url` first, so the moment the managed instance
-is READY the existing SearXNG backend resolves to it with zero extra config.
+Routing: :func:`services.search.registry.resolve` consults
+:meth:`SearxngManager.ready_base_url` (in-process, no probe), so the moment the
+managed instance is READY the SearXNG backend resolves to it with zero extra config.
 """
 
 from __future__ import annotations
@@ -522,9 +522,9 @@ class SearxngManager:
     def ready_base_url(self) -> str | None:
         """The managed instance's base URL when READY, else ``None``.
 
-        Pure in-memory read (no I/O) — :func:`services.search.searxng.detect_searxng`
-        calls this on every autodetect, and the capability probe re-verifies the
-        URL anyway, so a stale READY can never produce a false positive.
+        Pure in-memory read (no I/O) — :func:`services.search.registry.resolve`
+        reads this on every search-backend resolution; the health probe that
+        gates READY is what keeps a stale URL from being handed out.
         """
         if self.state == STATE_READY and self.port:
             return f"http://127.0.0.1:{self.port}"

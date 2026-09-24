@@ -57,9 +57,6 @@ export interface MarketplaceEntry {
   /** Where-to-get-credentials link + instructions (FR-034 "needs no key" surface). */
   website?: string;
   instructions?: string;
-  /** Data slice (FR-053): standard-model keys served + provider preference rank. */
-  standardModelKeys?: string[];
-  preferenceRank?: number;
 }
 
 /**

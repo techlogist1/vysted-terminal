@@ -13,14 +13,11 @@ editor's math notation (mathjs-flavoured, e.g. ``a + b^2``, ``a > b ? a :
 b``) — this module accepts that surface directly rather than Python's own
 spelling of power/ternary:
 
-- ``^`` parses as Python's ``BitXor`` token but is evaluated as POWER (the
-  only sane reading of ``^`` in a math-expression UI); ``ponytail:`` this
-  remap does NOT fix Python's ``^`` operator precedence (lower than ``+``/
-  ``*``, unlike mathjs's tight-binding power) — a bare ``a + b^2`` mixed
-  with other operators can silently group differently than mathjs would;
-  parenthesize ``a + (b^2)`` when in doubt. Upgrade path: a real Pratt
-  parser for the math-notation subset, if compound ``^`` expressions turn
-  out to matter.
+- ``^`` is rewritten to Python's ``**`` (:data:`_CARET_RE`, string
+  literals left alone) BEFORE ``ast.parse``, so power keeps mathjs's tight,
+  right-associative binding: ``a + b^2`` is ``a + (b**2)`` and ``2^3^2`` is
+  ``512``. Remapping ``ast.BitXor`` after the parse would inherit Python's
+  XOR precedence (below ``+``/``*``) and silently regroup ``a + b^2``.
 - ``cond ? a : b`` is rewritten (:func:`_translate_ternary`, paren-depth
   aware) into Python's own ``(a) if (cond) else (b)`` before ``ast.parse``,
   which lets :func:`_eval` handle it as a plain ``IfExp``. ``ponytail:``
@@ -38,6 +35,7 @@ from __future__ import annotations
 import ast
 import math
 import operator
+import re
 from typing import Any
 
 from services import workflow_engine
@@ -49,10 +47,6 @@ _BIN_OPS = {
     ast.Div: operator.truediv,
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
-    # The editor's math notation spells power as ``^`` (mathjs), which
-    # Python's own grammar reads as bitwise XOR — remapped to power, see the
-    # module docstring for the precedence caveat this does NOT fix.
-    ast.BitXor: operator.pow,
 }
 _CMP_OPS = {
     ast.Gt: operator.gt,
@@ -82,6 +76,17 @@ _FUNCS: dict[str, Any] = {
     "floor": lambda x: float(int(x // 1)),
     "ceil": lambda x: float(-int(-x // 1)),
 }
+
+
+#: A string literal (kept verbatim) or a bare ``^`` (rewritten to ``**``).
+_CARET_RE = re.compile(r"""("[^"]*"|'[^']*')|\^""")
+
+
+def _caret_to_pow(expr: str) -> str:
+    """Rewrite mathjs's ``^`` power operator to Python's ``**``, skipping
+    string literals, so the parse inherits ``**``'s precedence (see module
+    docstring)."""
+    return _CARET_RE.sub(lambda m: m.group(1) if m.group(1) is not None else "**", expr)
 
 
 def _translate_ternary(expr: str) -> str:
@@ -172,7 +177,7 @@ async def evaluate_code(inputs: dict[str, Any], config: dict[str, Any]) -> dict[
     scope = {name: inputs.get(name) for name in bindings if isinstance(name, str)}
     scope = {k: v for k, v in scope.items() if v is not None}
     try:
-        tree = ast.parse(_translate_ternary(expression.strip()), mode="eval")
+        tree = ast.parse(_translate_ternary(_caret_to_pow(expression.strip())), mode="eval")
     except SyntaxError as exc:
         raise ValueError(f"transform.code: parse error: {exc.msg}") from exc
     return {"value": _eval(tree, scope)}

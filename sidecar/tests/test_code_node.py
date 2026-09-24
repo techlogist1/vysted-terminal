@@ -37,6 +37,12 @@ class TestParityFixture:
     def test_caret_is_power_not_bitwise_xor(self) -> None:
         assert _run("2^3")["value"] == 8
 
+    def test_caret_binds_tighter_than_addition_like_mathjs(self) -> None:
+        # ast.BitXor precedence would have grouped this as (a + b)^2 == 25.
+        assert _run("a + b^2", {"a": 2, "b": 3})["value"] == 11
+        assert _run("2^3^2")["value"] == 512
+        assert _run("-2^2")["value"] == -4
+
     def test_ternary(self) -> None:
         assert _run("a > b ? a : b", {"a": 5, "b": 2})["value"] == 5
         assert _run("a > b ? a : b", {"a": 1, "b": 2})["value"] == 2
