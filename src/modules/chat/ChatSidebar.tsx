@@ -19,7 +19,7 @@ import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
 import { normalizePipeTables, stripTableRows } from "./chat-markdown";
 import { DUR, tween, tweenExit } from "@/lib/motion";
-import { validateProvider } from "@/lib/sidecar-client";
+import { validateProvider } from "@/lib/provider-validation";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
@@ -801,17 +801,33 @@ export function ChatSidebar() {
           setComposer((current) => current || rawInput);
           return;
         }
-      } else if (!(await validateProvider(provider))) {
-        // The keyless default (local Ollama) isn't set up yet — this is the
-        // zero-setup first impression. Open the guided setup (add a key or run a
-        // local model) rather than dead-ending; the data tools work meanwhile.
-        setStatusLine(
-          "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
-            "research already work without one.)",
-        );
-        setComposer((current) => current || rawInput);
-        useOnboardingStore.getState().open();
-        return;
+      } else {
+        // A keyless lane (local Ollama) is ready only when its daemon answers AND
+        // the model is pulled. Route on WHY it is not (R15-UI-013): only a lane
+        // that is not set up, or whose model is not downloaded, opens the guided
+        // setup; an unreachable daemon or data engine says so and keeps the prompt.
+        const readiness = await validateProvider(provider, { model });
+        if (!readiness.ok) {
+          setComposer((current) => current || rawInput);
+          if (readiness.reason === "model_not_pulled") {
+            setStatusLine(
+              `${model} is not downloaded yet — opening setup to download it. (Quotes, ` +
+                "charts, news and web research already work without a model.)",
+            );
+            useOnboardingStore.getState().open("local");
+          } else if (readiness.reason === "not_configured") {
+            setStatusLine(
+              "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
+                "research already work without one.)",
+            );
+            useOnboardingStore.getState().open();
+          } else {
+            setStatusLine(
+              `${providerLabel} isn't ready: ${readiness.detail ?? "it did not answer."}`,
+            );
+          }
+          return;
+        }
       }
 
       // Auto-title the space from its first prompt (Perplexity-style) so the space

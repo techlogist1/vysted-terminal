@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { validateProvider } from "@/lib/provider-validation";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import type { LLMProviderId } from "../../types/ai";
 
@@ -32,11 +32,6 @@ export interface KeyEntryDialogProps {
   onSaved?: (providerId: LLMProviderId) => void;
 }
 
-interface ValidationResponse {
-  ok: boolean;
-  detail?: string | null;
-}
-
 type Status = "idle" | "validating" | "valid" | "invalid" | "save-error";
 
 export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyEntryDialogProps) {
@@ -44,6 +39,8 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
   const [key, setKey] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  // The in-flight validation, so Cancel (or closing) abandons it.
+  const inFlight = useRef<AbortController | null>(null);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -52,6 +49,8 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
     // calls only fire on a transition (when ``open`` flips to ``false``),
     // not on every render, so there is no cascade risk in practice.
     if (!open) {
+      inFlight.current?.abort();
+      inFlight.current = null;
       setKey("");
       setStatus("idle");
       setErrorDetail(null);
@@ -62,28 +61,41 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
   const provider = providers.find((p) => p.id === providerId) ?? null;
 
   async function handleSave() {
-    if (!providerId) {
+    // A pasted key often carries a trailing space/newline; it is not part of
+    // the key (R15-UI-057) — the same trim onboarding applies.
+    const secret = key.trim();
+    if (!providerId || !secret) {
       return;
     }
     setStatus("validating");
     setErrorDetail(null);
+    const controller = new AbortController();
+    inFlight.current = controller;
     try {
-      // Validate via the sidecar — cheap probe against the provider's
-      // models endpoint. ``POST /llm/keys/validate`` returns ok/detail.
-      const validation = await postValidate(providerId, key);
+      const validation = await validateProvider(providerId, {
+        apiKey: secret,
+        signal: controller.signal,
+      });
       if (!validation.ok) {
         setStatus("invalid");
         setErrorDetail(validation.detail ?? "Key was not accepted by the provider.");
         return;
       }
-      await setSecret(KEYCHAIN_NAMESPACES.llmProvider(providerId), key);
+      await setSecret(KEYCHAIN_NAMESPACES.llmProvider(providerId), secret);
       setStatus("valid");
       onSaved?.(providerId);
       // Close after a short pause so the user sees the success state.
       setTimeout(() => onOpenChange(false), 500);
     } catch (err) {
+      if (controller.signal.aborted) {
+        return; // Cancelled — the dialog is closing.
+      }
       setStatus("save-error");
       setErrorDetail(err instanceof Error ? err.message : "Failed to save key.");
+    } finally {
+      if (inFlight.current === controller) {
+        inFlight.current = null;
+      }
     }
   }
 
@@ -153,16 +165,10 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
           )}
           {status === "valid" && <p className="text-positive text-caption font-mono">Saved.</p>}
           <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              disabled={status === "validating"}
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={status === "validating" || !key}>
+            <Button type="submit" size="sm" disabled={status === "validating" || !key.trim()}>
               {status === "validating" ? "Validating…" : "Save"}
             </Button>
           </div>
@@ -170,20 +176,4 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
       </DialogContent>
     </Dialog>
   );
-}
-
-async function postValidate(provider: LLMProviderId, apiKey: string): Promise<ValidationResponse> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/llm/keys/validate", base);
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, api_key: apiKey }),
-  });
-  if (!response.ok) {
-    return { ok: false, detail: `sidecar returned ${response.status}` };
-  }
-  // Mirror the sidecar wire shape.
-  const body = (await response.json()) as { ok: boolean; detail?: string | null };
-  return { ok: body.ok, detail: body.detail ?? null };
 }

@@ -46,7 +46,7 @@ import {
 } from "@/lib/hardware-fit";
 import { KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { tween } from "@/lib/motion";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { validateProvider } from "@/lib/provider-validation";
 import { cn } from "@/lib/utils";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -70,24 +70,6 @@ async function openExternal(url: string): Promise<void> {
   }
 }
 
-async function validateKey(provider: string, apiKey: string): Promise<boolean> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL("/llm/keys/validate", base).toString(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, api_key: apiKey }),
-    });
-    if (!resp.ok) {
-      return false;
-    }
-    const body = (await resp.json()) as { ok: boolean };
-    return Boolean(body.ok);
-  } catch {
-    return false;
-  }
-}
-
 function formatBytes(n: number | null | undefined): string {
   if (!n || n <= 0) {
     return "";
@@ -103,6 +85,7 @@ export function OnboardingFlow() {
   const tosAcked = useSafetyStore((s) => s.firstLaunchTosAcked);
   const seen = useOnboardingStore((s) => s.seen);
   const forceOpen = useOnboardingStore((s) => s.forceOpen);
+  const forceStep = useOnboardingStore((s) => s.forceStep);
   const refresh = useOnboardingStore((s) => s.refresh);
   const markSeen = useOnboardingStore((s) => s.markSeen);
   const closeForce = useOnboardingStore((s) => s.close);
@@ -129,6 +112,14 @@ export function OnboardingFlow() {
       setOpen(true);
     }
   }, [shouldOpen]);
+  // A CTA that knows the fix (the selected local model is not downloaded,
+  // R15-AGENT-028) lands straight on the local-model download step.
+  useEffect(() => {
+    if (forceOpen && forceStep === "local") {
+      setChosen("local");
+      setStep("local");
+    }
+  }, [forceOpen, forceStep]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const finish = useCallback(
@@ -337,16 +328,22 @@ function PathCard({
 function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void }) {
   const refreshOne = useProviderKeysStore((s) => s.refreshOne);
   const [key, setKey] = useState("");
-  const [status, setStatus] = useState<"idle" | "validating" | "invalid" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "validating" | "invalid" | "unreachable" | "error">(
+    "idle",
+  );
+  const [detail, setDetail] = useState<string | null>(null);
 
   async function save() {
     if (!key.trim()) {
       return;
     }
     setStatus("validating");
-    const ok = await validateKey("openrouter", key.trim());
-    if (!ok) {
-      setStatus("invalid");
+    const result = await validateProvider("openrouter", { apiKey: key.trim() });
+    if (!result.ok) {
+      // Only a key OpenRouter rejected is "not accepted"; an unreachable
+      // provider or data engine says that instead (R15-UI-013).
+      setDetail(result.detail);
+      setStatus(result.reason === "unreachable" ? "unreachable" : "invalid");
       return;
     }
     try {
@@ -406,6 +403,12 @@ function CloudStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
         {status === "invalid" && (
           <p className="text-negative text-caption font-mono">
             That key wasn&apos;t accepted by OpenRouter. Check it and try again.
+          </p>
+        )}
+        {status === "unreachable" && (
+          <p className="text-negative text-caption font-mono">
+            Couldn&apos;t check the key — {detail ?? "OpenRouter did not answer."} Your key was not
+            rejected; try again in a moment.
           </p>
         )}
         {status === "error" && (

@@ -22,12 +22,14 @@ interface OnboardingState {
   seen: boolean | null;
   /** Force the flow open from a CTA, regardless of `seen`. */
   forceOpen: boolean;
+  /** The step a forced open lands on (`local` = the model download step). */
+  forceStep: "local" | null;
   /** Probe the keychain for the completion marker (call once on boot). */
   refresh: () => Promise<void>;
   /** Persist completion (durable) + close. `choice` records the path taken. */
   markSeen: (choice: string) => Promise<void>;
-  /** Re-open the flow on demand (CTA). */
-  open: () => void;
+  /** Re-open the flow on demand (CTA), optionally at the local-model step. */
+  open: (step?: "local") => void;
   /** Close without marking seen (used internally; markSeen is the real exit). */
   close: () => void;
 }
@@ -35,6 +37,7 @@ interface OnboardingState {
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   seen: null,
   forceOpen: false,
+  forceStep: null,
   refresh: async () => {
     try {
       const value = await getSecret(ONBOARDING_ACCOUNT);
@@ -51,8 +54,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     } catch {
       // Non-Tauri / keychain unavailable — still close for the session.
     }
-    set({ seen: true, forceOpen: false });
+    set({ seen: true, forceOpen: false, forceStep: null });
   },
-  open: () => set({ forceOpen: true }),
-  close: () => set({ forceOpen: false }),
+  open: (step) => set({ forceOpen: true, forceStep: step ?? null }),
+  close: () => set({ forceOpen: false, forceStep: null }),
 }));

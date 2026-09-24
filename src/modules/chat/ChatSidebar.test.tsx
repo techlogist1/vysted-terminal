@@ -62,17 +62,15 @@ vi.mock("@/lib/keychain", async () => {
   };
 });
 
-// Deterministic provider-readiness probe (no real network in jsdom). Defaults to
-// "not reachable" so the Ollama-readiness gate is exercised; tests that need a
-// reachable provider use a key-requiring provider (which skips this probe).
-const validateProviderMock = vi.hoisted(() => vi.fn(async () => false));
-
+// The provider-readiness probe (`@/lib/provider-validation`) runs for real; the
+// tests that exercise the keyless gate answer its `fetch` themselves. Tests that
+// need a reachable provider use a key-requiring provider (which skips the probe).
 vi.mock("@/lib/sidecar-client", async () => {
   const actual =
     await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
   return {
     ...actual,
-    validateProvider: validateProviderMock,
+    getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:9000"),
   };
 });
 
@@ -222,6 +220,7 @@ describe("ChatSidebar", () => {
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
   });
 
   it("offers every first-party agent (by display name) in the plus menu's persona drill", () => {
@@ -615,19 +614,56 @@ describe("ChatSidebar", () => {
     expect(input.value).toBe("how is NVDA doing?");
   });
 
-  it("gates a keyless provider (Ollama) that isn't reachable by opening guided setup", async () => {
-    // The ratified onboarding rule: a keyless local provider must be reachable
-    // before the call fires. When it isn't (validateProvider false — no daemon in
-    // jsdom), the send surfaces an honest status AND opens the first-run setup
-    // flow (Track 2) rather than dead-ending; the data tools still work meanwhile.
-    useOnboardingStore.setState({ forceOpen: false });
+  it("a keyless provider whose model is not pulled opens setup at the download step (R15-AGENT-028)", async () => {
+    // The ratified onboarding rule: a keyless local provider must be usable
+    // before the call fires. Ollama is up but the model is not downloaded, so the
+    // send opens the guided setup at its local-model download step.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              ok: false,
+              reason: "model_not_pulled",
+              detail: "qwen2.5:7b is not downloaded in Ollama (local) yet.",
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+      ),
+    );
+    useOnboardingStore.setState({ forceOpen: false, forceStep: null });
     useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
     render(<ChatSidebar />);
     const input = screen.getByLabelText("Chat input") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "/ask hi" } });
     fireEvent.submit(input.closest("form")!);
-    await waitFor(() => expect(screen.getByText(/set up yet/i)).toBeInTheDocument());
-    expect(useOnboardingStore.getState().forceOpen).toBe(true);
+    await waitFor(() => expect(screen.getByText(/not downloaded yet/i)).toBeInTheDocument());
+    expect(useOnboardingStore.getState()).toMatchObject({ forceOpen: true, forceStep: "local" });
+    expect(streamChatMock).not.toHaveBeenCalled();
+  });
+
+  it("a data engine that does not answer the probe is not 'no model set up' (R15-UI-013)", async () => {
+    // The validate request itself fails (sidecar down): that is not a missing
+    // model, so setup must NOT open; the status says the engine is not responding
+    // and the prompt stays in the composer.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Load failed");
+      }),
+    );
+    useOnboardingStore.setState({ forceOpen: false, forceStep: null });
+    useLLMProvidersStore.setState({ defaultProviderId: "ollama" });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/ask hello there" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText(/data engine is not responding/i)).toBeInTheDocument(),
+    );
+    expect(useOnboardingStore.getState().forceOpen).toBe(false);
+    expect(input.value).toBe("/ask hello there");
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 

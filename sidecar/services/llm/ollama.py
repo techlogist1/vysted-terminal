@@ -267,15 +267,14 @@ class OllamaProvider(LLMProvider):
             )
 
     async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
-        """Ollama needs no key — a successful ``list`` proves the daemon is reachable."""
-        try:
-            client = self._client()
-            await client.list()
-            return True
-        except ollama.ResponseError:
-            return False
-        except Exception:  # pragma: no cover — connection refused, etc.
-            return False
+        """Ollama needs no key — a successful ``list`` proves the daemon is reachable.
+
+        A stopped daemon (connection refused) or one answering with an error
+        raises, so the router reports ``unreachable`` rather than a bad key;
+        there is no key to reject, so this never returns ``False``.
+        """
+        await self._client().list()
+        return True
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:  # noqa: ARG002
         """Live catalog = whatever the user has actually pulled locally.

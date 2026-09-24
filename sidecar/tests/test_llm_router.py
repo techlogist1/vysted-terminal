@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Any
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -37,7 +38,8 @@ class _FakeProvider:
         yield LLMDeltaEvent(text=" two")
         yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2), finish_reason="stop")
 
-    async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+    async def validate_key(self, api_key: str | None = None) -> bool:
+        self.last_api_key = api_key
         return self._validate_returns
 
 
@@ -105,7 +107,59 @@ def test_validate_key_unauthorized(
         "/llm/keys/validate",
         json={"provider": "anthropic", "api_key": "sk-bad"},
     )
-    assert response.json() == {"ok": False, "detail": "unauthorized or no key supplied"}
+    # C4 (R15-UI-013): a rejected key says so by reason, not a bare boolean.
+    assert response.json() == {
+        "ok": False,
+        "reason": "invalid",
+        "detail": "Anthropic rejected this key.",
+    }
+
+
+def test_validate_key_strips_pasted_whitespace(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-UI-057: a trailing newline/space is not part of the key."""
+    fake = _FakeProvider(True)
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+    response = client.post(
+        "/llm/keys/validate",
+        json={"provider": "openai", "api_key": "sk-test \n"},
+    )
+    assert response.json()["ok"] is True
+    assert fake.last_api_key == "sk-test"
+
+
+def test_validate_key_blank_key_is_not_configured(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A keyed provider with no (or a whitespace-only) key is not set up, not invalid."""
+    fake = _FakeProvider(True)
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+    response = client.post("/llm/keys/validate", json={"provider": "openrouter", "api_key": "  "})
+    body = response.json()
+    assert body["ok"] is False
+    assert body["reason"] == "not_configured"
+    assert fake.last_api_key is None  # the provider is never probed
+
+
+def test_validate_key_connect_error_is_unreachable(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An SDK transport failure means the provider is unreachable, never a bad key."""
+
+    class _ConnectFailing(_FakeProvider):
+        async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
+            raise httpx.ConnectError("connection refused")
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _ConnectFailing())
+    response = client.post("/llm/keys/validate", json={"provider": "openai", "api_key": "sk-test"})
+    body = response.json()
+    assert body["ok"] is False
+    assert body["reason"] == "unreachable"
+    assert "ConnectError" in body["detail"]
 
 
 def test_validate_key_transport_error_surfaces_detail(
@@ -127,6 +181,7 @@ def test_validate_key_transport_error_surfaces_detail(
     )
     body = response.json()
     assert body["ok"] is False
+    assert body["reason"] == "unreachable"
     assert "network down" in body["detail"]
 
 
