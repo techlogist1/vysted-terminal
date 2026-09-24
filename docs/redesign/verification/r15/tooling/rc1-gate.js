@@ -1,0 +1,327 @@
+export const meta = {
+  name: 'r15-rc1-gate',
+  description: 'R15 rc1 gate: preflight + clean build at the candidate, Gate 8 proof (no trading path, tracked portfolio intact), regression suite in lanes (ci-local, smoke, agent scenarios, owner-drives, fixed-name battery, data packs), bounded fix loop, GUI round for needs_gui when the operator is away, fresh adversarial verifier writes R15_GATE_RC1.md',
+  whenToUse: 'Once the R15 Stage C fix batches are merged on 004-r4-experience-rebuild; args {sha, max_fix_rounds, skip_gui}',
+  phases: [
+    { title: 'Preflight', detail: 'git, shared stack, clean sidecar build at the candidate' },
+    { title: 'Gate 8', detail: 'no order/broker/simulated-account path; tracked portfolio e2e' },
+    { title: 'Regression', detail: 'ci-local + smoke, scenarios, owner-drives, battery, data packs' },
+    { title: 'Fix', detail: 'triage, Opus writers, Opus integrator, recheck (bounded rounds)' },
+    { title: 'GUI', detail: 'needs_gui entries, only while the operator is away' },
+    { title: 'Verify', detail: 'fresh adversarial verifier, gate sheet, tag sha' },
+  ],
+}
+
+const A = args || {}
+const REPO = '/Users/lokavyasingh/Documents/dev/vysted-terminal'
+const SCRATCH = A.scratch || '/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad'
+const MAX_ROUNDS = A.max_fix_rounds === undefined ? 2 : A.max_fix_rounds
+const SKIP_GUI = !!A.skip_gui
+const GUI_WAIT_MIN = A.gui_wait_min || 60
+const EV = REPO + '/docs/redesign/verification/r15/rc1'
+const ISO = SCRATCH + '/vysted-iso'
+const CAND = SCRATCH + '/rc1-cand'
+const SEED = SCRATCH + '/rc1-seed-data'
+const FIXWT = SCRATCH + '/rc1-fix-int'
+const DRIVE_GROUPS = A.drive_groups || ['composer-chat', 'research-briefs', 'screener', 'panels-layouts', 'portfolio-notes', 'settings-plugins', 'onboarding-stranger', 'failure-inducer']
+const IDLE_CMD = "ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'"
+const FRONT_CMD = 'lsappinfo info -only name $(lsappinfo front)'
+
+// Pacing law: at most 6 agents at once, whatever the machine's CPU count.
+function limiter(n) {
+  let active = 0
+  const q = []
+  const pump = () => {
+    while (active < n && q.length) {
+      const t = q.shift()
+      active++
+      t.fn().then(t.res, t.rej).finally(() => { active--; pump() })
+    }
+  }
+  return fn => new Promise((res, rej) => { q.push({ fn, res, rej }); pump() })
+}
+const GLOBAL = limiter(6)
+const run = (prompt, opts) => GLOBAL(() => agent(prompt, opts)).catch(e => { log('agent ' + opts.label + ' failed: ' + e); return null })
+
+const COMMON = `Repo: ${REPO}, integration branch 004-r4-experience-rebuild. The operator is away; never ask, decide and record. Before any pnpm/node/cargo command: export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH. Never print or copy a secret; never read docs/redesign/verification/R15_BRIEF*.md or r15/local/. No GUI. Do not edit CLAUDE.md, src-tauri/tauri.conf.json, .github/, LICENSE*, types/plugin.ts, r15-fanout.js. Trading is out of the product (D81, merged as the newest 'feat(d81)' merge commit on 004) — never re-add any of it. Tests are state: never delete, skip or weaken a test to get green; if a test is wrong, fix it and log why; never special-case code to satisfy a test. Never speculate about code you have not opened. Fix root causes, not symptoms; where a defect class shows up twice, fix the class and pin it with a test on a case the fix was not written against. Deliver what the register entry asks at the scope intended — no refactoring beyond it, no abstractions, flags or defensive code for cases that cannot happen; pre-existing oddities outside the entry go to issues[], not into the diff. Commit tests only where the repo keeps them (sidecar/tests, src/**/*.test.ts(x), src-tauri tests), one focused test per pinned behaviour; scratch scripts never become permanent tests. The register: docs/redesign/verification/vysted-r15-register.json (entries with id, title, severity, tags/operator_areas, subsystem, repro, evidence, raw_ids, status). HARNESS STALL RULE (a 3-minute no-progress watchdog kills the agent and restarts it from scratch; batch 6 lost 9 hours to it): NO single tool call may run longer than ~120 s. Anything longer (pnpm ci-local, full pytest/vitest, cargo, PyInstaller/sidecar builds, sidecar boots, soak waits, curl loops) MUST be started detached — 'nohup <cmd> > <log> 2>&1 &' or the Bash tool's run_in_background — and then polled with SEPARATE short calls ('sleep 60; tail -n 5 <log>'), never an 'until … sleep' loop inside one call, never a foreground pytest of the whole suite. Keep emitting a tool call at least every 2 minutes. If you find files, branches or a worktree from a previous attempt of your own role (a restart), read them and CONTINUE from them instead of redoing the work. Your final text IS the return value: return only the structured object.`
+
+const facts = (sha, wt) => `RC1 GATE FACTS. Candidate sha ${sha}; its scratch worktree ${wt} (sidecars freshly built, sidecar/.venv present). It is READ-ONLY for you unless your role says otherwise: boot sidecars from its source, never edit, install or build in it. Seed data ${SEED} (keyless isolated-profile snapshot): cp -R it to ${SCRATCH}/rc1-data-<your label> and boot your own sidecar on that copy. The operator's ~/Library/Application Support/com.vysted.terminal and his running app are never touched. Shared stack: main :52152 (candidate source) + openbb-mcp :52153 + sec-edgar-mcp :52154 — shared READ-ONLY (GETs and read-only agent runs; never restart it, never write through it). Own sidecar: the 'Main sidecar, from source' block of docs/redesign/verification/r15/stage0/ISO_STACK.md with cwd <worktree>/sidecar, your port and your data dir, started detached; record its sleep pid; poll /health in separate calls; stop it by killing ITS sleep pid only — never a blanket kill, never another owner's port. Models: local llama3.1:8b via Ollama first (python3 scripts/r15/vy.py invoke copilot '<prompt>' --port <p> --provider ollama --model llama3.1:8b); one free OpenRouter slug second; OpenAI-direct ONLY through vy.py under its spend guard (it refuses at $7.50 of the $8.00 cap; read r15/spend-ledger.jsonl first). Evidence root ${EV} (mkdir -p as needed). Write your working log to ${EV}/logs/<your label>.md and EVERY finding to ${EV}/findings/<your label>.json as a JSON array of {key, kind, severity, register_id, title, repro, evidence_file, suspected_files}: key '<your label>:<n>'; kind regression (a fixed/certified behaviour no longer holds), new_defect (real, not in the register), chain (a ci-local/smoke failure), gate8 (a trading path, or a broken tracked-portfolio step), environment (an upstream outage proven by a direct probe; not a product defect). Never tag, merge to main, push main, open a PR or force-push.`
+
+const S = (props, req) => ({ type: 'object', properties: props, required: req || Object.keys(props) })
+const STR = { type: 'string' }
+const NUM = { type: 'number' }
+const BOOL = { type: 'boolean' }
+const STRS = { type: 'array', items: STR }
+const OBJ = { type: 'object' }
+const FINDING = S({ key: STR, kind: { type: 'string', enum: ['regression', 'new_defect', 'chain', 'gate8', 'environment'] }, severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] }, register_id: STR, title: STR, evidence_file: STR }, ['key', 'kind', 'severity', 'title', 'evidence_file'])
+const KEYED = { type: 'array', items: S({ key: STR, reason: STR }) }
+
+const PRE = S({ model: STR, status: { type: 'string', enum: ['ready', 'blocked'] }, sha: STR, build_log: STR, stack_ok: BOOL, ollama_llama31: BOOL, searxng: STR, disk_free_gb: NUM, idle_s: NUM, frontmost: STR, status_counts: OBJ, open_chm: STRS, needs_gui: STRS, blocked_tier4: STRS, blockers: STRS, notes: STRS, summary: STR })
+const LANE = S({ model: STR, lane: STR, status: { type: 'string', enum: ['pass', 'fail', 'partial', 'blocked'] }, evidence_files: STRS, counts: OBJ, findings: { type: 'array', items: FINDING }, notes: STRS, summary: STR })
+const INDEX = S({ model: STR, sets: { type: 'array', items: S({ set: STR, entries: STRS }) }, unplanned_fixed: NUM, index_file: STR, summary: STR })
+const COLLATE = S({ model: STR, files_written: STRS, missing: STRS, summary: STR })
+const TRIAGE = S({ model: STR, plan_file: STR, writers: { type: 'array', items: S({ name: STR, keys: STRS, files: STRS, brief: STR }) }, rejected: KEYED, deferred: KEYED, summary: STR })
+const WRITE = S({ model: STR, branch: STR, head_sha: STR, pushed: BOOL, items: { type: 'array', items: S({ key: STR, outcome: { type: 'string', enum: ['fixed', 'could_not'] }, commit: STR, test: STR, note: STR }, ['key', 'outcome', 'note']) }, focused_tests: STR, issues: STRS, summary: STR })
+const INT = S({ model: STR, branch: STR, head_sha: STR, pushed: BOOL, chain: { type: 'string', enum: ['pass', 'fail'] }, counts: OBJ, fixes_applied: STRS, dropped_commits: STRS, failures: STRS, summary: STR })
+const RECHECK = S({ model: STR, fixed: STRS, still_failing: KEYED, evidence_file: STR, summary: STR })
+const PRESENCE = S({ model: STR, away: BOOL, idle_s: NUM, frontmost: STR, waited_min: NUM, note: STR })
+const GUI = S({ model: STR, status: { type: 'string', enum: ['done', 'partial', 'deferred', 'blocked'] }, per_entry: { type: 'array', items: S({ id: STR, verdict: { type: 'string', enum: ['certified', 'failed', 'deferred'] }, evidence: STR }) }, deferred: STRS, idle_rule: STR, stops: STRS, summary: STR })
+const VSHARD = S({ model: STR, shard: STR, checked: { type: 'array', items: S({ id: STR, verdict: { type: 'string', enum: ['holds', 'refuted', 'inconclusive'] }, evidence: STR }) }, evidence_file: STR, summary: STR })
+const VERDICT = S({ model: STR, verdict: { type: 'string', enum: ['PASS', 'FAIL'] }, gate_items: { type: 'array', items: S({ item: STR, result: { type: 'string', enum: ['PASS', 'FAIL', 'DEFERRED'] }, evidence: STR }) }, gate8_refuted: BOOL, refuted_entries: STRS, blockers: STRS, needs_gui: STRS, tag_sha: STR, sheet_file: STR, summary: STR })
+
+const fixable = f => ['regression', 'chain', 'gate8'].includes(f.kind) || (f.kind === 'new_defect' && f.severity !== 'low')
+
+// ---------------------------------------------------------------- 1. Preflight
+phase('Preflight')
+const pre = await run(`${COMMON}
+
+${facts(A.sha || '(to resolve)', CAND)}
+
+ROLE: PREFLIGHT (Sonnet, mechanical; label rc1-preflight). You alone may build in the candidate worktree and restart the shared stack. Record each fact with its command in ${EV}/PREFLIGHT.md.
+(1) Git: fetch; candidate = ${A.sha ? A.sha : 'git rev-parse 004-r4-experience-rebuild (no sha given)'} as a full sha; it must be 004-r4-experience-rebuild or an ancestor; record origin/004's relation, worktree list, 'worktree-agent-rc1-*' branches, newest r15-* tag.
+(2) Clean build: git worktree add --detach <worktree> <sha> (if that path exists at another sha, remove only it first); there, detached, logs in ${EV}/logs/: pnpm install --frozen-lockfile; node scripts/ensure-all-sidecars.mjs --force (Python 3.13 venv + all three binaries). A failure that survives one clean retry → status 'blocked' with the step and log tail.
+(3) Seed ${SEED} from ${ISO}/data: sqlite3 '.backup' per .db, the non-sqlite files ISO_STACK.md copies, a fresh keyless dev-keystore.json, no audit_log.db.
+(4) Shared stack: kill only the sleep pids ${ISO}/pids.json lists (each must be 'sleep 86400'); boot :52153/:52154 from the worktree's src-tauri/binaries and :52152 from its sidecar/ on ${ISO}/data per ISO_STACK.md; new pids → pids.json; /health ok with openbb-mcp available. A port held by an unlisted process: never kill it → 'blocked'.
+(5) Env: llama3.1:8b in ollama list; /search/status + /search/searxng/status on :52152 (never start Docker); df -h (block < 10 GB, warn < 25 GB); idle: ${IDLE_CMD}; frontmost: ${FRONT_CMD}.
+(6) Register: register.py status; counts by status; OPEN critical/high/medium ids; needs_gui ids; blocked_tier4 ids.
+Return model, status, sha, build_log, stack_ok, ollama_llama31, searxng, disk_free_gb, idle_s, frontmost, status_counts, open_chm, needs_gui, blocked_tier4, blockers, notes, summary ≤120 words.`, { label: 'rc1-preflight', phase: 'Preflight', model: 'sonnet', effort: 'medium', schema: PRE })
+
+if (!pre || pre.status !== 'ready') {
+  log('preflight blocked — the gate does not run: ' + JSON.stringify(pre ? pre.blockers : ['preflight agent died']))
+  return { gate8: null, regression: null, scenarios: null, drives: null, battery: null, gui: null, verifier: null, tag_sha: null, blockers: pre ? pre.blockers : ['preflight agent died'], deferred_needs_gui: pre ? pre.needs_gui : [] }
+}
+const SHA = pre.sha
+const blockers = [...pre.blockers]
+if (pre.open_chm.length) {
+  blockers.push('register: ' + pre.open_chm.length + ' critical/high/medium entries still open: ' + pre.open_chm.join(', '))
+  log('register criterion already failing: ' + pre.open_chm.length + ' open c/h/m entries (the gate still runs and records them)')
+}
+log('preflight ready @ ' + SHA.slice(0, 7) + '; needs_gui ' + JSON.stringify(pre.needs_gui) + '; idle ' + pre.idle_s + ' s; disk ' + pre.disk_free_gb + ' GB')
+const F0 = facts(SHA, CAND)
+
+// ---------------------------------------------------------------- 2. Gate 8
+phase('Gate 8')
+const g8 = await run(`${COMMON}
+
+${F0}
+
+ROLE: GATE 8 PROVER (Opus; label rc1-gate8). Law (D81): prove NO order, broker or simulated-account path exists anywhere in the product AND the tracked portfolio works end to end. Evidence, not assertion: every raw list and output goes under ${EV}/gate8/. Your sidecar: :52310.
+(a) Routes: GET /openapi.json → every method+path to openapi-paths.txt; grep -iE 'order|broker|kill|audit|margin|paper|simulat|safety|static.?ip|disclaimer|holding|position'; explain each hit (/portfolio/positions is the tracked portfolio; order/broker/kill-switch/audit-order = FAIL).
+(b) Tools: dump CAPABILITY_CATALOG, TOOL_SCHEMAS, KNOWN_TOOL_IDS, registered tools and MCP list_tools names (worktree venv, as sidecar/tests/test_no_trading_surface.py does) to tools-*.txt, plus your sidecar's live MCP surface if served; explain every hit.
+(c) pytest sidecar/tests/test_no_trading_surface.py (that file only) → counts.
+(d) rg -n -i over src/, sidecar/, src-tauri/, plugins/, docs/ (skip node_modules, .venv, target, out, .next, binaries) for broker, place.?order, propose_order, 'order (entry|ticket|book|placement)', paper.?trad, simulat, 'live.?(trading|mode)', kill.?switch, audit_orders, margin, demat. One hit file per root; classify EVERY hit: product surface (UI, tool, route, setting, terms, user-facing doc offering trading → FAIL), historical record (CHANGELOG, docs/archive, verification evidence, a doc saying it was removed → OK, say why), false positive. Quote what Settings and the first-launch terms say about trading.
+(e) Portfolio e2e on :52310: add 3 manual holdings with cost bases (NSE, US, one with a note), read back; recompute P&L from /quote prices you fetch and compare; update, delete, read back; CSV export via the panel's code path, run headless (scratch code never committed): columns vs holdings; notes CRUD; watchlist CRUD; the agent on llama3.1:8b: get_portfolio matches the ledger, then a GATED write: portfolio_add_position under --autonomy ask is proposed and the ledger is unchanged until applied; apply it as the frontend does, read back.
+Write ${EV}/GATE8.md (per item: command, excerpt, verdict) and ${EV}/gate8.json {pass, routes, tools, mcp, grep:{<root>:{total, product, historical, false_positive}}, portfolio:{steps}, failures}. Each product-surface hit or portfolio break → finding kind gate8. Stop your sidecar. Return model, lane 'gate8', status, evidence_files, counts, findings, notes, summary ≤150 words.`, { label: 'rc1-gate8', phase: 'Gate 8', model: 'opus', effort: 'high', schema: LANE })
+if (!g8) blockers.push('Gate 8 agent died: no proof')
+log('gate 8: ' + (g8 ? g8.status + ', ' + g8.findings.length + ' findings' : 'no result'))
+
+// ---------------------------------------------------------------- 3. Regression suite
+phase('Regression')
+const DRIVE = limiter(3)
+const BATT = limiter(2)
+
+const heavyLane = () => run(`${COMMON}
+
+${F0}
+
+ROLE: HEAVY-LANE OWNER (Sonnet; label rc1-heavy). You are the only process building or testing now; you may run the chain inside ${CAND}. (1) cd ${CAND} && nohup sh -c 'PATH="$PWD/sidecar/.venv/bin:$PATH" pnpm ci-local; echo EXIT=$?' > ${EV}/logs/ci-local.log 2>&1 & — exactly the package.json script, no flags, no --force (the venv PATH is how its bare 'python' resolves in a non-interactive shell); poll with separate short calls (30-60 min). (2) Then node scripts/smoke-test-sidecars.mjs the same way into ${EV}/logs/smoke.log. A failing command is re-run ONCE to tell a flake from a failure; record both runs. Never fix anything. Write ${EV}/REGRESSION.md: the sha, per ci-local stage (install, ensure-all-sidecars, lint, format:check, typecheck, cargo fmt, clippy, ruff check, ruff format, vitest, cargo test, pytest) exit and real counts copied from the log, the smoke per-sidecar lines, both EXIT codes. Every failure → finding kind chain (test id, log excerpt, suspected files). Return model, lane 'ci-smoke', status, evidence_files, counts, findings, notes, summary ≤120 words.`, { label: 'rc1-heavy', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: LANE })
+
+const scenarioLane = () => run(`${COMMON}
+
+${F0}
+
+ROLE: AGENT SCENARIO HARNESS (Opus; label rc1-scenarios). Your own sidecar: :52311. Probe three properties of the agent on the candidate. (1) READ-BACK BEFORE CLAIM: every agent write (watchlist add, note write, portfolio add/update through the proposed-changes gate, screen author, layout arrange, publish_brief) is claimed done only after its ack or read-back; a tool result or answer that claims success without an ack, or states a value it never read, fails. (2) SKEPTICISM: conflicting or implausible data is flagged, not smoothed — AMAL (BSE) vs AMAL (NASDAQ), SMR, DAL vs Delta, ELCIDIN's five-figure price, SIFY's 1 ADR = 6 shares, BGNE→ONC; no fabricated metric; unresolvable → says so. (3) SELF-CONSISTENCY: the same question asked twice fresh and once inside a multi-turn thread gives the same numbers and the same resolution. Read sidecar/services/agent_runtime.py (tool rounds, ack/read-back) and the proposed-changes gate first, then the census evidence in r15/surface/composer-chat/ and the seat transcripts: reuse prompts that failed before so results compare. At least 4 scenarios per property on llama3.1:8b; the same set once on ONE free OpenRouter slug; OpenAI-direct via vy.py only where both fail for model-capability reasons and the ledger has headroom (stop at the guard). Separate model weakness (the 8b narrates without calling tools) from product defects (a tool claims success without an ack, the runtime drops a result, a gate bypass); only product defects are findings (regression if a certified entry covered it, else new_defect). Save each run as .jsonl under ${EV}/scenarios/ and write ${EV}/SCENARIOS.md: scenario × model matrix, pass/fail with the evidence line. Stop your sidecar. Return model, lane 'scenarios', status, evidence_files, counts, findings, notes, summary ≤150 words.`, { label: 'rc1-scenarios', phase: 'Regression', model: 'opus', effort: 'high', schema: LANE })
+
+const driveLane = () => pipeline(DRIVE_GROUPS, (_, g, i) => DRIVE(() => run(`${COMMON}
+
+${F0}
+
+ROLE: OWNER-DRIVE '${g}' (Sonnet; label rc1-drive-${g}). Re-drive your surface group against the candidate the way the census did: method and group scope in docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md (section OWNER-DRIVE, your group), census evidence in docs/redesign/verification/r15/surface/${g}/ (what was driven, with which requests, what broke). Read the group's panel code and api.ts first. Reads go to the shared :52152; any write (portfolio, notes, watchlist, settings, agent host actions, delegate runs, inducers) goes to YOUR sidecar on :${52320 + i}.${g === 'onboarding-stranger' ? ' Boot it on a CLEAN empty data dir (only dev-keystore.json seeded as {"secrets": {}, "migrated": true}), not the seed copy.' : ''} Drive every control and state the census drove, with the same requests or prompts where they exist, read back before claim, and score each interaction ok / partial / broken / NEEDS-GUI with its evidence line. Census broken → now ok: cite the fixing register id if you can find it. Census ok → now not ok: finding kind regression. A fresh real defect: new_defect, severity by user impact (fails every time = high; wrong or stale value = medium; cosmetic = low). Evidence under docs/redesign/verification/r15/surface/${g}/rc1/ (never overwrite census files) plus ${EV}/drives/${g}.md with the scored table and the census→rc1 deltas. Stop your sidecar. Return model, lane 'drive:${g}', status, evidence_files, counts, findings, notes, summary ≤120 words.`, { label: 'rc1-drive-' + g, phase: 'Regression', model: 'sonnet', effort: 'high', schema: LANE })))
+
+let batteryIndex = null
+const batteryLane = async () => {
+  batteryIndex = await run(`${COMMON}
+
+${F0}
+
+ROLE: BATTERY INDEXER (Sonnet; label rc1-battery-index). Build the regression battery's work list; no re-runs. For every docs/redesign/verification/r15/stage-c/batch-*/PLAN.md read the per-writer sections (headings like '### W1: name (…)') and the batch's VERDICTS.json certified list: a writer set = {set: 'batch-N/W<k>-<name>', entries: the certified ids listed in that writer's section whose register status is now 'fixed'}. Register entries with status 'fixed' that no set covers → sets 'unplanned-<n>' of ≤12 ids grouped by subsystem. Skip needs_gui and removed_with_feature. Write ${EV}/battery/INDEX.json and INDEX.md (set → ids, counts). Return model, sets[{set, entries}], unplanned_fixed (count), index_file, summary ≤80 words.`, { label: 'rc1-battery-index', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: INDEX })
+  if (!batteryIndex || !batteryIndex.sets.length) { log('battery index empty or failed — the fixed-name battery did not run'); return [] }
+  log('battery: ' + batteryIndex.sets.length + ' writer sets, ' + batteryIndex.sets.reduce((n, s) => n + s.entries.length, 0) + ' fixed entries')
+  return pipeline(batteryIndex.sets, (_, s, i) => BATT(() => run(`${COMMON}
+
+${F0}
+
+ROLE: REGRESSION BATTERY '${s.set}' (Sonnet; label rc1-battery-${i}). Re-run the ORIGINAL repro of each register entry ${JSON.stringify(s.entries)} against the freshly built candidate — never judge from the diff. Your own sidecar: :${52340 + i}. For each id read the register entry (repro, evidence) and how the batch verifier certified it (that batch's VERDICTS.md, 'Per-entry evidence'), then re-run that repro: curl, vy.py, or an in-process python call with the candidate's venv; where the certification used the outside world (screener.in, NSE/BSE, SEC EDGAR), re-check against it. Never run vitest or pytest suites (the heavy lane owns them): an entry certified only through a pinned test → verdict ci_pinned naming the test. Verdicts: holds / regressed / ci_pinned / needs_gui / blocked_env (an upstream outage proven by a direct probe), each with a one-line evidence excerpt. Regressed → finding kind regression with register_id. Write ${EV}/battery/set-${i}.md (header: the set name; table id | repro run | observed | verdict). Stop your sidecar. Return model, lane 'battery:${s.set}', status, evidence_files, counts (holds, regressed, ci_pinned, needs_gui, blocked_env), findings, notes, summary ≤80 words.`, { label: 'rc1-battery-' + i, phase: 'Regression', model: 'sonnet', effort: 'high', schema: LANE })))
+}
+
+const packLane = () => run(`${COMMON}
+
+${F0}
+
+ROLE: DATA-PACK RE-COLLECTION (Sonnet; label rc1-datapack). The 24 battery names (docs/redesign/verification/r15/battery/manifest.json) were collected by the census into r15/battery/collected/ and diffed against pack truth in r15/battery/diffs/ and r15/BATTERY_DIFFS.json/.md (match, mismatch, app blank, no source truth, definitional, as-of skew). Your own sidecar: :52313. Make a minimal copy tree ${SCRATCH}/rc1-pack holding scripts/r15/collect_battery.py and docs/redesign/verification/r15/battery/manifest.json (copied from ${CAND}) and run the collector FROM THAT COPY (--port 52313 --force, detached, polled) so it never overwrites the census baseline; copy its output JSONs to ${EV}/battery/collected/. Fields to re-diff: every field a fixed register entry touched (fixed entries whose repro/evidence names a battery symbol or a BATTERY_DIFFS field — list them with ids) using BATTERY_DIFFS.md's rules against the census pack truth; also scan all 24 names for any field that was 'match' in the census and is not now. Prices move: price-like drift is as-of skew, not a regression. Write ${EV}/DATAPACK.md (per slot: fields re-diffed, census status → rc1 status, fixing register id) and ${EV}/datapack.json. A match that became a mismatch or blank → finding kind regression. Stop your sidecar. Return model, lane 'datapack', status, evidence_files, counts, findings, notes, summary ≤100 words.`, { label: 'rc1-datapack', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: LANE })
+
+// Barrier: the fix loop needs every lane's findings.
+const [heavy, scen, driveRes, battRes, pack] = await parallel([heavyLane, scenarioLane, driveLane, batteryLane, packLane])
+const drives = (driveRes || []).filter(Boolean)
+const battery = (battRes || []).filter(Boolean)
+const expectedSets = batteryIndex ? batteryIndex.sets.map(s => s.set) : []
+if (drives.length < DRIVE_GROUPS.length) log('owner-drives missing: ' + DRIVE_GROUPS.filter(g => !drives.some(d => d.lane === 'drive:' + g)).join(', '))
+if (battery.length < expectedSets.length) log('battery sets missing: ' + (expectedSets.length - battery.length) + ' of ' + expectedSets.length)
+log('regression lanes: ci/smoke ' + (heavy ? heavy.status : 'none') + '; scenarios ' + (scen ? scen.status : 'none') + '; drives ' + drives.map(d => d.lane.slice(6) + '=' + d.status).join(' ') + '; battery ' + battery.length + ' sets; datapack ' + (pack ? pack.status : 'none'))
+
+const collate = await run(`${COMMON}
+
+${F0}
+
+ROLE: COLLATOR (Sonnet, mechanical; label rc1-collate). Write index files from the per-agent evidence already on disk — no new judgement, no re-runs. ${EV}/OWNER_DRIVE.md: one row per group from ${EV}/drives/*.md (interactions driven; ok/partial/broken/NEEDS-GUI counts; census→rc1 deltas; finding keys; evidence dir). ${EV}/BATTERY.md: one row per set from ${EV}/battery/set-*.md (ids; holds/regressed/ci_pinned/needs_gui/blocked_env counts), then a data-pack section from ${EV}/DATAPACK.md. Merge every ${EV}/findings/*.json into ${EV}/FINDINGS.json (sorted by kind then severity) and a FINDINGS.md table. Expected groups: ${JSON.stringify(DRIVE_GROUPS)}; expected sets: ${expectedSets.length} (${EV}/battery/INDEX.json). Anything expected with no file → listed as MISSING in the index file and in your return. Return model, files_written, missing, summary ≤80 words.`, { label: 'rc1-collate', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: COLLATE })
+if (collate && collate.missing.length) log('collator: missing evidence ' + collate.missing.join(', '))
+
+const allFindings = [g8, heavy, scen, pack, ...drives, ...battery].filter(Boolean).flatMap(r => r.findings)
+const lows = allFindings.filter(f => f.kind === 'new_defect' && f.severity === 'low')
+const env = allFindings.filter(f => f.kind === 'environment')
+if (lows.length) log(lows.length + ' low new defects recorded for rc2, not fixed here: ' + lows.map(f => f.key).join(', '))
+if (env.length) log(env.length + ' environment findings (upstream outages), not fixed: ' + env.map(f => f.key).join(', '))
+
+// ---------------------------------------------------------------- 4. Fix loop
+phase('Fix')
+let open = allFindings.filter(fixable)
+let tagSha = SHA
+let tagWt = CAND
+const rounds = []
+const rejectedAll = []
+const deferredAll = []
+if (!open.length) log('no regressions or c/h/m new defects — fix loop skipped')
+else if (MAX_ROUNDS < 1) log('max_fix_rounds is 0 — ' + open.length + ' findings left open')
+for (let r = 1; r <= MAX_ROUNDS && open.length; r++) {
+  const base = tagSha
+  const keys = open.map(f => f.key)
+  log('fix round ' + r + ': ' + keys.length + ' findings on ' + base.slice(0, 7))
+  const triage = await run(`${COMMON}
+
+${facts(base, tagWt)}
+
+ROLE: FIX TRIAGE round ${r} (Opus; label rc1-fix-r${r}-triage). Findings to close: ${JSON.stringify(keys)} — their records are in ${EV}/findings/*.json with the evidence files they cite. Base ${base}. For each: open the code it implicates and, if the record is not conclusive, reproduce it minimally on your own sidecar (:${52330 + r}). Decide: real (root cause located; which files) / not reproducible or environment (evidence) → rejected with the reason (the final verifier must concur) / fixable only in a Tier-1 file or by reversing a locked decision → deferred (and a numbered item in docs/redesign/DECISIONS_FOR_OPERATOR.md, then pnpm exec prettier --write that file: it is format-checked). Partition the real ones into ≤4 DISJOINT writer sets by file ownership (a file belongs to exactly one writer), each with a brief ≤120 words: mechanism → fix → pinning test → files. Write ${EV}/fix-r${r}/PLAN.md. Stop your sidecar. Return model, plan_file, writers[{name, keys, files, brief}], rejected[{key, reason}], deferred[{key, reason}], summary ≤120 words.`, { label: 'rc1-fix-r' + r + '-triage', phase: 'Fix', model: 'opus', effort: 'high', schema: TRIAGE })
+  if (!triage) { log('fix round ' + r + ': triage died — stopping the loop'); break }
+  rejectedAll.push(...triage.rejected)
+  deferredAll.push(...triage.deferred)
+  const dropped = new Set([...triage.rejected, ...triage.deferred].map(x => x.key))
+  const sets = triage.writers.slice(0, 4)
+  if (triage.writers.length > 4) log('fix round ' + r + ': ' + (triage.writers.length - 4) + ' writer sets over the cap of 4 — their findings carry to the next round')
+  if (!sets.length) { open = open.filter(f => !dropped.has(f.key)); log('fix round ' + r + ': no writer sets'); break }
+  // Barrier: the integrator merges every writer branch together.
+  const writes = (await parallel(sets.map(w => () => run(`${COMMON}
+
+ROLE: RC1 FIX WRITER '${w.name}' round ${r} (Opus; label rc1-fix-r${r}-${w.name}). You run inside your OWN git worktree (pwd must be under .claude/worktrees; never touch ${REPO} itself or any other branch). FIRST: git fetch origin; git checkout -B worktree-agent-rc1-fix-r${r}-${w.name} ${base}; git reset --hard ${base}; confirm HEAD is ${base}. Read ${EV}/fix-r${r}/PLAN.md (your section) and the finding records ${JSON.stringify(w.keys)} in ${EV}/findings/*.json. Brief: ${w.brief}. Files you own: ${JSON.stringify(w.files)} — touch nothing else (a fix that needs another file → outcome could_not, name the file). Per finding: the root-cause fix, the pinning test in the repo's test location, the focused tests for your files once (real counts), the linters for your files (ruff format + check; pnpm eslint + prettier --check; cargo fmt/clippy if rust), then COMMIT that finding alone ('fix(rc1): <what> (<register id or finding key>)', no emojis, Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>) and PUSH the branch (git push -u origin worktree-agent-rc1-fix-r${r}-${w.name}). Certification is not your job: no full chain, no agents. Return model, branch, head_sha, pushed, items[{key, outcome, commit, test (path::name), note ≤40 words}], focused_tests, issues, summary ≤120 words.`, { label: 'rc1-fix-r' + r + '-' + w.name, phase: 'Fix', model: 'opus', effort: 'high', isolation: 'worktree', schema: WRITE })))).filter(Boolean)
+  const integ = await run(`${COMMON}
+
+ROLE: RC1 FIX INTEGRATOR round ${r} (Opus; label rc1-fix-r${r}-int) — heavy-lane owner now; nobody else builds. Writer reports: ${JSON.stringify(writes.map(x => ({ branch: x.branch, head: x.head_sha, pushed: x.pushed, items: x.items.map(i => ({ key: i.key, outcome: i.outcome, commit: i.commit })) })))}. NEVER work in ${REPO} itself or move its HEAD. Worktree ${FIXWT} on branch worktree-agent-rc1-fix-int: ${r === 1 ? 'git fetch origin; git worktree add ' + FIXWT + ' -b worktree-agent-rc1-fix-int ' + base + ' (if the branch exists: add the worktree on it and reset it hard to ' + base + ')' : 'it exists at ' + base + ' from round ' + (r - 1) + '; git fetch origin and continue from it'}; confirm pwd is under ${SCRATCH}; pnpm install there. Merge each origin/worktree-agent-rc1-fix-r${r}-* branch in ${EV}/fix-r${r}/PLAN.md order. Run PATH="$PWD/sidecar/.venv/bin:$PATH" pnpm ci-local detached with a log under ${EV}/fix-r${r}/ (its ensure step rebuilds the sidecars that changed, clean in this worktree). On failure bisect: an integration artefact → fix minimally; a wrong writer fix → git revert it and list it in dropped_commits (its finding stays open). Never weaken a test. Finish with one more full green ci-local and node scripts/smoke-test-sidecars.mjs; write ${EV}/fix-r${r}/INTEGRATION.md with the real counts and EXIT codes. Push worktree-agent-rc1-fix-int. Leave the worktree in place. chain 'pass' only if the final ci-local AND smoke exited 0 at head_sha. Return model, branch, head_sha, pushed, chain, counts, fixes_applied, dropped_commits, failures, summary ≤150 words.`, { label: 'rc1-fix-r' + r + '-int', phase: 'Fix', model: 'opus', effort: 'high', schema: INT })
+  if (!integ || !integ.pushed || integ.chain !== 'pass') {
+    log('fix round ' + r + ': integration ' + (integ ? integ.chain + ' @ ' + (integ.head_sha || '').slice(0, 7) : 'died') + ' — the candidate stays ' + tagSha.slice(0, 7))
+    rounds.push({ round: r, integ: integ ? integ.chain : 'died', fixed: [] })
+    break
+  }
+  tagSha = integ.head_sha
+  tagWt = FIXWT
+  const toCheck = open.filter(f => !dropped.has(f.key) && sets.some(w => w.keys.includes(f.key))).map(f => f.key)
+  const recheck = await run(`${COMMON}
+
+${facts(tagSha, FIXWT)}
+
+ROLE: RC1 RECHECK round ${r} (Opus, fresh — certify from the running app, never from the diff; label rc1-fix-r${r}-recheck). Findings: ${JSON.stringify(toCheck)} (records in ${EV}/findings/*.json). Your own sidecar from ${FIXWT} (read-only, at ${tagSha}) on :${52335 + r}. Re-run each finding's exact repro and, for a regression, the register entry's original repro too; one fresh variant where the fix pins a class. A chain finding is fixed when ${EV}/fix-r${r}/INTEGRATION.md and its ci log show that stage green at ${tagSha}. fixed = no longer reproduces and nothing adjacent broke. Write ${EV}/fix-r${r}/RECHECK.md (key | repro | observed | verdict). Stop your sidecar. Return model, fixed, still_failing[{key, reason}], evidence_file, summary ≤100 words.`, { label: 'rc1-fix-r' + r + '-recheck', phase: 'Fix', model: 'opus', effort: 'high', schema: RECHECK })
+  const fixedKeys = new Set(recheck ? recheck.fixed : [])
+  rounds.push({ round: r, head: tagSha, fixed: [...fixedKeys], still: recheck ? recheck.still_failing.map(x => x.key) : toCheck })
+  open = open.filter(f => !fixedKeys.has(f.key) && !dropped.has(f.key))
+  log('fix round ' + r + ': ' + fixedKeys.size + ' fixed @ ' + tagSha.slice(0, 7) + ', ' + open.length + ' still open')
+}
+if (open.length) {
+  log('fix loop could not close: ' + open.map(f => f.key).join(', '))
+  blockers.push('unfixed findings: ' + open.map(f => f.key + ' (' + f.kind + ', ' + f.severity + ')').join('; '))
+}
+if (deferredAll.length) blockers.push('Tier-4 deferred findings: ' + deferredAll.map(x => x.key).join(', '))
+
+// ---------------------------------------------------------------- 5. GUI round
+phase('GUI')
+let gui = null
+const idleRule = 'HIDIdleTime >= 1500 s (' + IDLE_CMD + ') immediately before every click/type/capture batch; a frontmost-window surprise is a hard stop'
+if (!pre.needs_gui.length) {
+  log('GUI round skipped: no register entry has status needs_gui')
+  gui = { status: 'done', per_entry: [], deferred: [], idle_rule: idleRule, stops: [], summary: 'nothing needs the GUI' }
+} else if (SKIP_GUI) {
+  log('GUI round skipped by args.skip_gui — deferred: ' + pre.needs_gui.join(', '))
+  gui = { status: 'deferred', per_entry: [], deferred: pre.needs_gui, idle_rule: idleRule, stops: ['skip_gui'], summary: 'skipped by args' }
+} else {
+  const presence = await run(`${COMMON}
+
+ROLE: PRESENCE GATE (Sonnet; label rc1-gui-presence). Decide whether the GUI round may start; touch nothing. Every ~2 minutes, for up to ${GUI_WAIT_MIN} minutes, take one reading in its own call — idle seconds: ${IDLE_CMD}; frontmost app: ${FRONT_CMD} — with 'sleep 100' as a separate call between readings (never a loop inside one call). Append each reading to ${EV}/logs/rc1-gui-presence.md. Return away=true at the first reading with idle ≥ 1500; else away=false after the window. Return model, away, idle_s, frontmost, waited_min, note.`, { label: 'rc1-gui-presence', phase: 'GUI', model: 'sonnet', effort: 'medium', schema: PRESENCE })
+  if (!presence || !presence.away) {
+    log('GUI round deferred: operator present (last idle ' + (presence ? presence.idle_s : '?') + ' s < 1500 s over ' + GUI_WAIT_MIN + ' min) — needs_gui stays: ' + pre.needs_gui.join(', '))
+    gui = { status: 'deferred', per_entry: [], deferred: pre.needs_gui, idle_rule: idleRule, stops: ['operator present for the whole ' + GUI_WAIT_MIN + '-minute window'], summary: 'deferred: operator present' }
+  } else {
+    gui = await run(`${COMMON}
+
+${facts(tagSha, tagWt)}
+
+ROLE: GUI ROUND (Opus; label rc1-gui). You are the ONLY GUI owner and the heavy-lane owner now; COMMON's 'No GUI' is lifted for you alone, under these rules. PRESENCE, immediately before EVERY click/type/capture batch: ${IDLE_CMD} must be ≥ 1500, and ${FRONT_CMD} must be your app or the one you last raised. A frontmost surprise = hard stop: delete that batch's captures, record it. Idle < 1500 → stop; re-check with separate 'sleep 100' calls for up to 20 min, else defer the rest. Log every check (time, idle, frontmost) in ${EV}/GUI_ROUND.md. APP: in ${tagWt} run pnpm tauri build --debug (detached, polled): static frontend, the three sidecars, the packaged tauri:// origin R15-CODE-AGENT-001 needs. Seed <home>/Library/Application Support/com.vysted.terminal from the seed, home = ${SCRATCH}/rc1-gui-home; launch the BUILT binary with HOME=<home> (r15/stage0/ISOLATION_MAP.md §1.2: on the binary, never the toolchain). Prove isolation before any interaction: the app's data dir and diag log are under <home>, the operator's real data dir mtime is unchanged. Never touch the operator's own Vysted instance: match windows by YOUR pid. RIG: tauri-mcp and playwright are NOT connected. Use computer-use (ToolSearch 'computer-use'; list_granted_applications first: if your app is not already granted, never request access while he is away; defer the round) and the Quartz capture /tmp/rigcap.py (re-create if missing; only sidecar/.venv/bin/python has pyobjc; match kCGWindowOwnerPID = your pid). ENTRIES: every register entry with status needs_gui (preflight saw ${JSON.stringify(pre.needs_gui)}); its note holds the verifier's GUI check: run exactly that. Populate first (watchlist AAPL, MSFT, NVDA, SPY, QQQ, BTC/USDT, ETH/USDT; portfolio ≥1 position with P&L; a note). Proof shots: POPULATED panels, dark theme, launched size recorded, saved under docs/screenshots/vr15-rc1/, never overwriting. Per entry: certified (on screen + read-back), failed (also a finding kind regression), or deferred (presence or rig reason). Quit your app by its pid; nothing else. Return model, status, per_entry[{id, verdict, evidence}], deferred, idle_rule, stops, summary ≤150 words.`, { label: 'rc1-gui', phase: 'GUI', model: 'opus', effort: 'high', schema: GUI })
+    if (!gui) gui = { status: 'blocked', per_entry: [], deferred: pre.needs_gui, idle_rule: idleRule, stops: ['GUI agent died'], summary: 'GUI agent died' }
+    const failed = gui.per_entry.filter(e => e.verdict === 'failed').map(e => e.id)
+    if (failed.length) blockers.push('GUI round failed (after the fix loop — the lead opens a fix batch): ' + failed.join(', '))
+    if (gui.deferred.length) log('GUI round deferred: ' + gui.deferred.join(', ') + ' — ' + gui.stops.join('; '))
+  }
+}
+
+// ---------------------------------------------------------------- 6. Fresh adversarial verifier
+phase('Verify')
+// Three certified entries per writer set, picked by index (deterministic, varies across sets).
+const sample = (batteryIndex ? batteryIndex.sets : []).map((s, i) => {
+  const n = s.entries.length
+  const start = (i * 7 + 3) % Math.max(n, 1)
+  const picks = [...new Set([0, 1, 2].map(k => s.entries[(start + k) % n]))].filter(Boolean)
+  return { set: s.set, picks }
+}).filter(x => x.picks.length)
+if (!sample.length) log('no writer sets indexed — the final verifier samples 3 fixed entries per batch itself')
+const SHARD = 8
+const shards = []
+for (let k = 0; k * SHARD < sample.length; k++) shards.push(sample.slice(k * SHARD, (k + 1) * SHARD))
+log('adversarial sample: ' + sample.reduce((n, x) => n + x.picks.length, 0) + ' entries over ' + sample.length + ' sets in ' + shards.length + ' shards')
+const shardRes = (await parallel(shards.map((sh, k) => () => run(`${COMMON}
+
+${facts(tagSha, tagWt)}
+
+ROLE: ADVERSARIAL SAMPLE VERIFIER shard ${k} (Opus, fresh context; label rc1-vshard-${k}). Try to REFUTE that these certified entries are fixed at ${tagSha}: ${JSON.stringify(sh)}. Your inputs are the register entries (repro, evidence), the running app and the outside world — do NOT read anything under ${EV} or any VERDICTS.md conclusion. Your own sidecar from ${tagWt} (read-only) on :${52600 + k}. For each id: re-run the ORIGINAL repro (curl, vy.py on llama3.1:8b, in-process python with the worktree venv; screener.in, NSE/BSE, SEC EDGAR where the entry is data), then one fresh variant the fix was not written against. holds / refuted / inconclusive (say what blocked you), each with an evidence excerpt. Write ${EV}/verifier/shard-${k}.md. Stop your sidecar. Return model, shard '${k}', checked[{id, verdict, evidence}], evidence_file, summary ≤80 words.`, { label: 'rc1-vshard-' + k, phase: 'Verify', model: 'opus', effort: 'xhigh', schema: VSHARD })))).filter(Boolean)
+const refuted = shardRes.flatMap(s => s.checked.filter(c => c.verdict === 'refuted').map(c => c.id))
+if (shardRes.length < shards.length) log('verifier shards missing: ' + (shards.length - shardRes.length))
+
+const verifier = await run(`${COMMON}
+
+${facts(tagSha, tagWt)}
+
+ROLE: FRESH ADVERSARIAL GATE VERIFIER (Opus, xhigh; label rc1-verifier). You decide whether rc1 may be tagged at ${tagSha}. Default to FAIL where the evidence does not carry the claim. Treat every PASS written by another agent as a claim to refute.
+
+INPUTS. You may open the RAW evidence other agents saved — ${EV}/gate8/*, ${EV}/logs/ci-local.log and smoke.log, ${EV}/fix-r*/ (ci logs, INTEGRATION.md counts), ${EV}/scenarios/*.jsonl, docs/redesign/verification/r15/surface/*/rc1/*, ${EV}/battery/collected/*, docs/screenshots/vr15-rc1/, your own shards ${EV}/verifier/shard-*.md — plus the register, the running app and the outside world. Do NOT read their verdict prose (GATE8.md, gate8.json, REGRESSION.md, SCENARIOS.md, OWNER_DRIVE.md, drives/*.md, BATTERY.md, battery/set-*.md, DATAPACK.md, FINDINGS.md, GUI_ROUND.md verdict lines, logs/*.md) until your own verdict for that item is written; afterwards read them only to list disagreements. Your own sidecar from ${tagWt} (read-only) on :52312 with a seed copy.
+
+WORK.
+1. Gate 8, refute independently: your own GET /openapi.json path list; your own catalog + MCP tool lists (python with the worktree venv); your own rg sweeps over src/, sidecar/, src-tauri/, plugins/, docs/ with terms the test's token list does not cover ('place order', 'buy now', 'execute trade', 'paper trading', 'simulated account', 'live mode', 'broker', 'demat', 'leverage', 'margin'), classifying every hit as product surface / historical record / false positive; read the Settings sections and the first-launch terms text; then one tracked-portfolio round trip (add with cost basis, P&L vs a live quote, CSV export path, delete) and one gated agent write on llama3.1:8b (--autonomy ask: proposed, ledger unchanged until applied), read back.
+2. Register criterion: every critical/high/medium entry is fixed (certified in a stage-c VERDICTS.json or the rc1 evidence), blocked_tier4 (with its item in docs/redesign/DECISIONS_FOR_OPERATOR.md), needs_gui (fixed in code; GUI proof may be deferred), or not_a_defect/out_of_scope with a rationale — entries in the four named areas (ui-panels, agent-chat, research-search, data-smallcaps) need a recorded fresh concurrence (a VERDICTS.json concur_not_defect); where one is missing, give yours now or refuse. Any open c/h/m → FAIL. Lows may stay open (rc2).
+3. Fix-loop rejections the triage made — concur or refuse each, with evidence: ${JSON.stringify(rejectedAll)}. Unclosed: ${JSON.stringify(open.map(f => f.key))}. Tier-4 deferred: ${JSON.stringify(deferredAll.map(x => x.key))}.
+4. Regression suite: ci-local EXIT=0 from a clean sidecar build AT ${tagSha} (${tagSha === SHA ? 'the heavy lane ran it in ' + CAND : 'the last fix round ran it in ' + FIXWT}; read the raw log tail and the per-stage counts yourself); smoke EXIT=0; the scenario transcripts; the owner-drive raw evidence for all ${DRIVE_GROUPS.length} groups; the battery and data-pack raw output. Spot-check at least two drives yourself on your sidecar.
+5. Your shards refuted: ${JSON.stringify(refuted)}${sample.length ? '' : ' (no shards ran: pick 3 fixed entries per stage-c batch by position and re-run their original repros yourself)'}. A refuted certified entry is a blocker unless you re-run it and it holds.
+6. GUI round: status ${gui.status}; deferred ${JSON.stringify(gui.deferred)}; rule: ${gui.idle_rule}. The brief allows deferring the GUI proof, not the fix: a deferred entry stays needs_gui and the item reads DEFERRED, not FAIL.
+
+WRITE docs/redesign/verification/R15_GATE_RC1.md — the sheet the lead reads: one PASS/FAIL/DEFERRED line per gate item (register criterion; Gate 8 no trading path; Gate 8 tracked portfolio; ci-local; smoke; agent scenarios; owner-drives; fixed-name battery; data packs; fix loop closed; GUI round; adversarial sample) with the evidence path for each; the blockers; the exact ids still needs_gui; the sha to tag (${tagSha}${tagSha === SHA ? '' : ': the head of worktree-agent-rc1-fix-int, a fast-forward of ' + SHA + '; the lead fast-forwards 004 to it'}; if 004 has moved past it, say the tagged tree must be this sha or the gate re-runs). Then ${EV}/VERDICT.md with the evidence excerpt behind every line and the disagreements with the other agents' prose. Overall PASS only if every item is PASS or an allowed DEFERRED. Stop your sidecar. Return model, verdict, gate_items[{item, result, evidence}], gate8_refuted, refuted_entries, blockers, needs_gui, tag_sha, sheet_file, summary ≤200 words.`, { label: 'rc1-verifier', phase: 'Verify', model: 'opus', effort: 'xhigh', schema: VERDICT })
+if (!verifier) blockers.push('final verifier died: no gate sheet')
+else blockers.push(...verifier.blockers)
+log('verifier: ' + (verifier ? verifier.verdict + ' — tag ' + (verifier.tag_sha || '').slice(0, 7) : 'no result'))
+
+return {
+  gate8: g8 ? { status: g8.status, findings: g8.findings.length, summary: g8.summary } : null,
+  regression: heavy ? { status: heavy.status, counts: heavy.counts, fix_rounds: rounds } : { status: 'missing', fix_rounds: rounds },
+  scenarios: scen ? { status: scen.status, counts: scen.counts } : null,
+  drives: drives.map(d => ({ lane: d.lane, status: d.status, findings: d.findings.length })),
+  battery: { sets: battery.length, of: expectedSets.length, regressed: battery.flatMap(b => b.findings).filter(f => f.kind === 'regression').length, datapack: pack ? pack.status : null },
+  gui: { status: gui.status, per_entry: gui.per_entry, deferred: gui.deferred },
+  verifier: verifier ? { verdict: verifier.verdict, gate_items: verifier.gate_items, sheet: verifier.sheet_file, gate8_refuted: verifier.gate8_refuted, refuted_entries: verifier.refuted_entries } : null,
+  tag_sha: verifier && verifier.verdict === 'PASS' ? verifier.tag_sha : null,
+  candidate_sha: tagSha,
+  blockers: [...new Set(blockers)],
+  deferred_needs_gui: verifier ? verifier.needs_gui : gui.deferred,
+}
