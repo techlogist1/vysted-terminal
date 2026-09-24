@@ -604,6 +604,17 @@ describe("ChatSidebar", () => {
     expect(streamChatMock).not.toHaveBeenCalled();
   });
 
+  it("a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017)", async () => {
+    getSecretMock.mockResolvedValue(null as unknown as string);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "how is NVDA doing?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+    expect(useChatHistoryStore.getState().messages).toEqual([]);
+    expect(input.value).toBe("how is NVDA doing?");
+  });
+
   it("gates a keyless provider (Ollama) that isn't reachable by opening guided setup", async () => {
     // The ratified onboarding rule: a keyless local provider must be reachable
     // before the call fires. When it isn't (validateProvider false — no daemon in
@@ -706,15 +717,49 @@ describe("ChatSidebar", () => {
       fireEvent.submit(input.closest("form")!);
       await waitFor(() => expect(useProposedChangesStore.getState().changes.length).toBe(1));
       expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
-      const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
-      const steps = assistant?.toolSteps ?? [];
-      expect(steps.some((s) => s.startsWith("Proposed: Remove RELIANCE"))).toBe(true);
-      expect(steps.some((s) => s.startsWith("Applied:"))).toBe(false);
+      // The line is written once the gate resolves the change (staged here).
+      await waitFor(() =>
+        expect(assistantSteps().some((s) => s.startsWith("Proposed: Remove RELIANCE"))).toBe(true),
+      );
+      expect(assistantSteps().some((s) => s.startsWith("Applied:"))).toBe(false);
+    } finally {
+      resetAgentAutonomyStoreForTests();
+    }
+  });
+
+  it("under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)", async () => {
+    useAgentAutonomyStore.setState({ autonomy: "auto" });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({
+          kind: "tool_use",
+          name: "open_panel",
+          input: { panel: "flux-capacitor" },
+          toolCallId: "tc-open",
+        });
+        handlers.onEvent({ kind: "done" });
+      },
+    );
+    try {
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+      fireEvent.change(input, { target: { value: "open the flux capacitor" } });
+      fireEvent.submit(input.closest("form")!);
+      await waitFor(() =>
+        expect(assistantSteps().some((s) => s.startsWith("Couldn't apply: Open Flux"))).toBe(true),
+      );
+      expect(assistantSteps().some((s) => s.startsWith("Applied:"))).toBe(false);
+      expect(useProposedChangesStore.getState().changes[0].status).toBe("pending");
     } finally {
       resetAgentAutonomyStoreForTests();
     }
   });
 });
+
+function assistantSteps(): string[] {
+  const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant");
+  return assistant?.toolSteps ?? [];
+}
 
 // ── R10: refresh depth override, structured errors, divergence chips, E10 ───
 

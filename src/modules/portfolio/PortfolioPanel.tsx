@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
@@ -94,6 +94,8 @@ const DROP_WEIGHT_BELOW = 680;
 const DROP_COST_BELOW = 620;
 const DROP_PRICE_BELOW = 540;
 const DROP_QTY_BELOW = 460;
+/** Live-quote refresh cadence — the Watchlist's poll interval (5 s). */
+const QUOTE_REFRESH_MS = 5_000;
 
 interface FormState {
   symbol: string;
@@ -134,6 +136,15 @@ export function PortfolioPanel() {
   const [form, setForm] = useState<FormState>(emptyForm());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // An edit targets a holding of the portfolio it started in: switching (or
+  // deleting) the active portfolio ends it and clears the form, so Save can
+  // never aim one portfolio's holding id at another (R15-UI-034).
+  const [formPortfolioId, setFormPortfolioId] = useState(active.id);
+  if (formPortfolioId !== active.id) {
+    setFormPortfolioId(active.id);
+    setForm(emptyForm());
+    setEditingId(null);
+  }
   const [quotes, setQuotes] = useState<Map<string, Quote>>(new Map());
   // Distinct from the form-validation `error`: a failed live-quote fetch must not
   // silently leave every Price/Mkt-val/P&L cell at "—" forever (A6 — failure is
@@ -198,8 +209,24 @@ export function PortfolioPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotesKey, quotesNonce]);
 
+  // Prices refresh on the Watchlist's cadence (R15-UI-036) — a portfolio left
+  // open no longer shows its first-resolved values forever.
+  const hasHoldings = holdings.length > 0;
+  useEffect(() => {
+    if (!hasHoldings) {
+      return;
+    }
+    const timer = setInterval(() => setQuotesNonce((n) => n + 1), QUOTE_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [hasHoldings]);
+
   const summary = useMemo(() => buildPortfolioSummary(positions, quotes), [positions, quotes]);
   const mixedCurrencies = summary.mixedCurrencies;
+  // The totals are only as fresh as their OLDEST quote.
+  const quotesAsOf = summary.rows.reduce<string | null>((oldest, { quote }) => {
+    const at = quote?.timestamp;
+    return at && (oldest === null || Date.parse(at) < Date.parse(oldest)) ? at : oldest;
+  }, null);
 
   // Clear a save/validation error as soon as the user edits any field.
   const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
@@ -320,7 +347,7 @@ export function PortfolioPanel() {
     const quantity = Number(form.quantity);
     const costBasis = Number(form.costBasis);
     if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
-      setError("Symbol, quantity, and cost basis are required");
+      setError("Symbol, quantity, and avg cost per share are required");
       return;
     }
     if (quantity <= 0) {
@@ -328,7 +355,7 @@ export function PortfolioPanel() {
       return;
     }
     if (costBasis < 0) {
-      setError("Cost basis cannot be negative");
+      setError("Avg cost cannot be negative");
       return;
     }
     const input: HoldingInput = {
@@ -339,7 +366,12 @@ export function PortfolioPanel() {
       note: form.note.trim() === "" ? undefined : form.note.trim(),
     };
     if (editingId !== null) {
-      updateHolding(active.id, editingId, input);
+      if (!updateHolding(active.id, editingId, input)) {
+        // The holding left this portfolio mid-edit (e.g. an agent removed it):
+        // say so and keep the form, never reset as if it saved.
+        setError("That holding is no longer in this portfolio — nothing was saved");
+        return;
+      }
     } else {
       addHolding(active.id, input);
     }
@@ -347,7 +379,7 @@ export function PortfolioPanel() {
     resetForm();
   };
 
-  const handleEdit = (holding: Holding) => {
+  const handleEdit = useCallback((holding: Holding) => {
     setForm({
       symbol: holding.symbol,
       quantity: String(holding.quantity),
@@ -356,14 +388,20 @@ export function PortfolioPanel() {
       note: holding.note ?? "",
     });
     setEditingId(holding.id);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
-    if (editingId === id) {
-      resetForm();
-    }
-    removeHolding(active.id, id);
-  };
+  // A real dependency of the memoised columns below (R15-UI-035): the row's
+  // Delete must remove from the portfolio active NOW, not the one at mount.
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (editingId === id) {
+        setForm(emptyForm());
+        setEditingId(null);
+      }
+      removeHolding(active.id, id);
+    },
+    [editingId, removeHolding, active.id],
+  );
 
   // Join each computed metrics row to its source holding (by order) so the
   // action column can edit/delete; rebuilt only when the metrics or holdings move.
@@ -406,7 +444,7 @@ export function PortfolioPanel() {
     if (showCost) {
       cols.push({
         key: "cost",
-        header: "Cost",
+        header: "Avg cost",
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.cost,
@@ -492,10 +530,7 @@ export function PortfolioPanel() {
       ),
     });
     return cols;
-    // handleEdit/handleDelete are stable enough across renders; the table only
-    // rebuilds when the drop ladder or the mixed-currency state moves.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies]);
+  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies, handleEdit, handleDelete]);
 
   const submitPfName = () => {
     const name = pfName.trim();
@@ -710,9 +745,10 @@ export function PortfolioPanel() {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-charcoal-400 text-micro">Cost basis</span>
+          <span className="text-charcoal-400 text-micro">Avg cost / share</span>
           <input
-            aria-label="Cost basis"
+            aria-label="Avg cost / share"
+            placeholder="per share"
             inputMode="decimal"
             value={form.costBasis}
             onChange={(event) => setForm((prev) => ({ ...prev, costBasis: event.target.value }))}
@@ -855,6 +891,24 @@ export function PortfolioPanel() {
               </span>
               <span className="text-charcoal-400 whitespace-nowrap">
                 {summary.unresolvedCount} without a live quote
+              </span>
+            </>
+          )}
+          {quotesAsOf !== null && (
+            <>
+              <span aria-hidden="true" className="text-charcoal-600">
+                ·
+              </span>
+              <span
+                className="text-charcoal-400 whitespace-nowrap"
+                title={`Oldest quote in these totals: ${quotesAsOf}`}
+                data-testid="portfolio-totals-as-of"
+              >
+                as of{" "}
+                {new Date(quotesAsOf).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </span>
             </>
           )}

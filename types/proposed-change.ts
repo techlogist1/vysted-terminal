@@ -9,7 +9,7 @@
  * spine (Constitution / spec US4).
  */
 
-import type { HostIntent } from "../src/lib/host-actions";
+import type { HostIntent, PreImage } from "../src/lib/host-actions";
 
 /**
  * The host-action families the gate governs (all `read_only=false` in the
@@ -36,7 +36,8 @@ export function autoApplies(kind: ProposedChangeKind): boolean {
   return kind === "panel" || kind === "chart" || kind === "watchlist";
 }
 
-export type ProposedChangeStatus = "pending" | "accepted" | "rejected";
+/** `undone`: an applied data write the user reverted from the review (session Undo). */
+export type ProposedChangeStatus = "pending" | "accepted" | "rejected" | "undone";
 
 export interface ProposedChange {
   /** Stable id for this proposed change. */
@@ -56,8 +57,11 @@ export interface ProposedChange {
   /** New-state summary (what the change would make it). */
   after: string;
   status: ProposedChangeStatus;
-  /** Failure detail when an accepted change could not apply (re-pended for retry). */
+  /** Failure detail when an accepted change could not apply (re-pended for retry),
+   *  or why its Undo could not restore the pre-image. */
   detail?: string;
+  /** What the applied write replaced — set on apply for an undoable data write. */
+  preImage?: PreImage;
   /** Groups changes from a single agent turn for bulk accept/reject. */
   batchId: string;
   /** Agent that proposed it (provenance for the diff header). */
