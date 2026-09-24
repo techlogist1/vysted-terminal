@@ -113,8 +113,8 @@ interface SidecarBootStatus {
  * Resolve (and cache) the sidecar base URL, gated on a real `/health` probe so
  * the first successful resolution implies the sidecar is actually listening.
  *
- * Rust announces the port *number* before the sidecar binds (the main sidecar
- * spawns only after a tens-of-seconds MCP-supervisor join on cold boot), and a
+ * Rust announces the port *number* before the sidecar binds (a cold
+ * PyInstaller boot takes tens of seconds to extract and import), and a
  * bare-port URL with no probe makes single-shot panels (News, Portfolio) fire
  * into a dead socket and latch a permanent error. Cold boot can be tens of
  * seconds, so budget generously with exponential backoff. Shared promise:

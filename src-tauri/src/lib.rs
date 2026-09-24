@@ -344,6 +344,28 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
     });
 }
 
+/// Run the boot on one background thread and return at once: start both MCP
+/// children (each `start_*` returns its bind-wait step), then the main
+/// sidecar, then both bind waits concurrently.
+fn spawn_boot<A, SA, B, SB, M>(start_a: A, start_b: B, start_main: M) -> thread::JoinHandle<()>
+where
+    A: FnOnce() -> SA + Send + 'static,
+    SA: FnOnce() + Send,
+    B: FnOnce() -> SB + Send + 'static,
+    SB: FnOnce() + Send,
+    M: FnOnce() + Send + 'static,
+{
+    thread::spawn(move || {
+        let supervise_a = start_a();
+        let supervise_b = start_b();
+        start_main();
+        thread::scope(|scope| {
+            scope.spawn(supervise_a);
+            supervise_b();
+        });
+    })
+}
+
 /// Expose the sidecar's port and lifecycle (`{port, state, reason}`) to the
 /// frontend so it can issue HTTP and WebSocket requests to the Python data
 /// layer — and, when `state` is `failed`, show `reason` instead of probing.
@@ -514,52 +536,36 @@ pub fn run() {
             let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarStatus::new(port));
 
-            // Spawn the openbb-mcp + sec-edgar-mcp subprocesses BEFORE the
-            // main sidecar so the ``VYSTED_*_MCP_PORT`` env vars are settled
-            // (a bound port, or removed-on-failure) by the time the Python
-            // sidecar imports ``services.openbb_mcp_provider`` /
-            // ``services.sec_filings_provider``. Each helper picks its own
-            // free port immediately before its own ``Command::spawn``,
-            // supervises the child, and tolerates a missing binary by
-            // registering port=0 (openbb → yfinance fallback; sec → 501).
-            //
-            // Phase-9 UC1 fix: run the two spawns IN PARALLEL so their cold
-            // PyInstaller ``--onefile`` ``_MEI*`` extractions overlap instead
-            // of serializing. Previously each ``spawn`` blocked the setup
-            // thread for its full port-wait budget back to back (~30s+
-            // worst-case serial); overlapping them roughly halves the cold
-            // worst case. Each spawn is independently non-fatal: a single
-            // MCP failure registers port=0 and degrades gracefully without
-            // failing app startup. We join both before spawning the main
-            // sidecar so the env vars are fully settled first.
-            //
-            // Note: the two threads each call ``app.manage(...)`` for their
-            // OWN distinct state types (OpenbbMcp* vs SecEdgarMcp*), so there
-            // is no shared-state contention between them.
-            let openbb_handle = app.handle().clone();
-            let sec_handle = app.handle().clone();
-            let openbb_thread = thread::spawn(move || {
-                if let Err(err) = openbb_mcp::spawn(&openbb_handle) {
-                    diag_eprintln!("[openbb-mcp] spawn supervisor errored: {err}");
-                }
-            });
-            let sec_thread = thread::spawn(move || {
-                if let Err(err) = sec_edgar_mcp::spawn(&sec_handle) {
-                    diag_eprintln!("[sec-edgar-mcp] spawn supervisor errored: {err}");
-                }
-            });
-            // Join both before the main sidecar spawn — the env vars must be
-            // settled (bound port or removed) before the sidecar reads them.
-            let _ = openbb_thread.join();
-            let _ = sec_thread.join();
-
-            // Spawn + supervise the main Python sidecar. This NEVER panics: a
-            // data-dir or spawn failure logs and leaves the UI to start in a
-            // disconnected state and retry (the boot path previously
-            // `.expect()`-panicked here with no window). The sidecar owns the
-            // portfolio SQLite database + saved-workspace files beneath the
-            // data directory. See `start_main_sidecar` / `resolve_data_dir`.
-            start_main_sidecar(app.handle(), port);
+            // Boot the three children off the main thread so the window paints
+            // at once (R15-LIFECYCLE-001): the MCP starts pick their ports and
+            // set the ``VYSTED_*_MCP_PORT`` env vars the main sidecar inherits,
+            // the main sidecar spawns straight after, and only then do the two
+            // MCP bind waits run (concurrently). Every step is non-fatal (an
+            // MCP registers port=0; the main sidecar records Failed(reason)).
+            let (openbb, sec, main) = (
+                app.handle().clone(),
+                app.handle().clone(),
+                app.handle().clone(),
+            );
+            spawn_boot(
+                move || {
+                    let port = openbb_mcp::start(&openbb);
+                    move || {
+                        if let Some(port) = port {
+                            openbb_mcp::supervise(&openbb, port);
+                        }
+                    }
+                },
+                move || {
+                    let port = sec_edgar_mcp::start(&sec);
+                    move || {
+                        if let Some(port) = port {
+                            sec_edgar_mcp::supervise(&sec, port);
+                        }
+                    }
+                },
+                move || start_main_sidecar(&main, port),
+            );
 
             // macOS modes-as-tools menu (Layout → Fundamental / Technical / Macro /
             // Compare / Reset). Non-fatal; macOS-only.
@@ -598,6 +604,53 @@ mod tests {
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::time::Instant;
+
+    #[test]
+    fn boot_returns_at_once_and_spawns_the_sidecar_before_any_mcp_bind_wait_ends() {
+        // R15-LIFECYCLE-001: setup() must not block on the MCP bind waits, and
+        // the main sidecar must not wait for them either.
+        use std::sync::{Arc, Mutex};
+        use std::time::Duration;
+
+        let log = Arc::new(Mutex::new(Vec::<&str>::new()));
+        let step = |name: &'static str, sleep_ms: u64| {
+            let log = Arc::clone(&log);
+            move || {
+                std::thread::sleep(Duration::from_millis(sleep_ms));
+                log.lock().unwrap().push(name);
+            }
+        };
+        let (sup_a, sup_b) = (step("supervise_a", 2_000), step("supervise_b", 2_000));
+        let (start_a, start_b) = (step("start_a", 0), step("start_b", 0));
+        let main = step("main", 0);
+
+        let began = Instant::now();
+        let boot = super::spawn_boot(
+            move || {
+                start_a();
+                sup_a
+            },
+            move || {
+                start_b();
+                sup_b
+            },
+            main,
+        );
+        assert!(
+            began.elapsed().as_millis() < 200,
+            "spawn_boot blocked the caller for {:?}",
+            began.elapsed()
+        );
+        boot.join().unwrap();
+        assert!(
+            began.elapsed().as_millis() < 3_500,
+            "the two bind waits ran back to back: {:?}",
+            began.elapsed()
+        );
+        let order = log.lock().unwrap().clone();
+        assert_eq!(&order[..3], ["start_a", "start_b", "main"]);
+        assert_eq!(order.len(), 5);
+    }
 
     #[test]
     fn a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason() {

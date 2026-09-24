@@ -14,11 +14,13 @@
 //!
 //! This module owns the child process lifecycle:
 //!
-//! - :fn:`spawn` is called from ``lib.rs`` ``setup``. It picks a free port,
-//!   spawns the bundled binary, drains the child's stdout/stderr so its
-//!   pipes never block, manages a ``CommandChild`` in Tauri state, and sets
-//!   the ``VYSTED_OPENBB_MCP_PORT`` env var so the Python sidecar's
-//!   ``openbb_mcp_provider`` learns the port without an explicit handshake.
+//! - :fn:`start` is called from ``lib.rs``'s boot thread. It picks a free
+//!   port, sets the ``VYSTED_OPENBB_MCP_PORT`` env var so the Python
+//!   sidecar's ``openbb_mcp_provider`` learns the port without an explicit
+//!   handshake, spawns the bundled binary, drains the child's stdout/stderr
+//!   so its pipes never block, and manages the ``CommandChild`` in Tauri
+//!   state. :fn:`supervise` then waits for the bind (after the main sidecar
+//!   has been spawned).
 //! - :fn:`get_openbb_mcp_port` exposes the port to the frontend, in case any
 //!   future UI needs to address the child directly (the plugin manager UI's
 //!   "OpenBB MCP" chip might want to link to it).
@@ -62,21 +64,19 @@ fn register_unavailable(app: &AppHandle) {
     app.manage(OpenbbMcpProcess(Mutex::new(None)));
 }
 
-/// Spawn the openbb-mcp subprocess and register its handle + port in Tauri state.
-///
-/// Called from ``lib.rs`` ``setup`` exactly once (on its own thread so its
-/// cold-boot port-wait overlaps the sec-edgar-mcp one). The function never
-/// panics — when the bundled binary is missing (a dev build that skipped
-/// ``pnpm openbb-mcp-sidecar:build``) it logs and registers a zero port so
-/// the main sidecar falls back to yfinance for OpenBB-backed routes.
+/// Start the openbb-mcp subprocess: pick its port, publish it in the env var,
+/// spawn it and keep its handle in Tauri state. Fast — no bind wait (that is
+/// :fn:`supervise`), so the main sidecar can spawn right after with the env
+/// var already set (R15-LIFECYCLE-001). Returns the port to supervise, or
+/// ``None`` once registered unavailable. Never panics — when the bundled
+/// binary is missing (a dev build that skipped ``pnpm
+/// openbb-mcp-sidecar:build``) the main sidecar falls back to yfinance for
+/// OpenBB-backed routes.
 ///
 /// Phase-9 UC1 fix: the port is picked IMMEDIATELY before ``Command::spawn``
 /// (first line, no late pick) to keep the bind-vs-spawn TOCTTOU window
-/// minimal, and the post-spawn bind wait uses the longer
-/// ``MCP_PORT_WAIT_SECS`` budget with a bounded retry
-/// (``wait_for_port_with_retries``) to tolerate a slow cold PyInstaller
-/// ``--onefile`` extraction under Windows file-lock contention.
-pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
+/// minimal.
+pub fn start(app: &AppHandle) -> Option<u16> {
     let port = match pick_free_port() {
         Some(port) => port,
         None => {
@@ -85,13 +85,13 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
                  falling back to yfinance for OpenBB-backed routes."
             );
             register_unavailable(app);
-            return Ok(());
+            return None;
         }
     };
 
-    // Hand the port to the Python sidecar via env var. The sidecar spawn in
-    // ``lib.rs`` runs AFTER both MCP supervisors join, so the env var is in
-    // place by the time the sidecar imports ``services.openbb_mcp_provider``.
+    // Hand the port to the Python sidecar via env var, set before the main
+    // sidecar spawn so it is inherited by the time the sidecar imports
+    // ``services.openbb_mcp_provider``.
     std::env::set_var("VYSTED_OPENBB_MCP_PORT", port.to_string());
     std::env::set_var("VYSTED_OPENBB_MCP_HOST", "127.0.0.1");
 
@@ -107,7 +107,7 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
                  falling back to yfinance for OpenBB-backed routes."
             );
             register_unavailable(app);
-            return Ok(());
+            return None;
         }
     };
 
@@ -118,9 +118,11 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
                 "[openbb-mcp] failed to spawn subprocess: {err}; falling back to yfinance."
             );
             register_unavailable(app);
-            return Ok(());
+            return None;
         }
     };
+    // Managed at once so an app exit during the bind wait still reaps it.
+    app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
 
     // Drain the child's stdout/stderr so its pipes never block. Mirrors the
     // main sidecar's drain. Spawn the drain BEFORE the port-bind probe so
@@ -138,7 +140,14 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
             }
         }
     });
+    Some(port)
+}
 
+/// Wait for the child :fn:`start` spawned to bind ``port``; on a timeout kill
+/// it and register openbb-mcp unavailable. Runs after the main sidecar spawn:
+/// until the bind, a sidecar call fails fast and marks the provider down until
+/// its next successful call.
+pub fn supervise(app: &AppHandle, port: u16) {
     // Probe the claimed port — `Command::spawn` returns success the moment
     // the OS creates the process, NOT when the child actually binds. The
     // openbb-mcp-server bootstrap can take several seconds (loading
@@ -169,16 +178,14 @@ pub fn spawn(app: &AppHandle) -> tauri::Result<()> {
              finding UC1-openbb-mcp-not-listening; Phase 9 residual: cold-boot \
              bind latency — see BLOCKERS.md)."
         );
-        let _ = child.kill();
+        kill(app);
         register_unavailable(app);
-        return Ok(());
+        return;
     }
 
     app.manage(OpenbbMcpPort(port));
-    app.manage(OpenbbMcpProcess(Mutex::new(Some(child))));
 
     diag_println!("[openbb-mcp] subprocess healthy on 127.0.0.1:{port}");
-    Ok(())
 }
 
 /// Kill the openbb-mcp subprocess if it is still running. Idempotent.
