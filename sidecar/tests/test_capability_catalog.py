@@ -17,6 +17,8 @@ and the documented ``macro_series`` provider-field regression.
 
 from __future__ import annotations
 
+import pytest
+
 from models.custom_agent import KNOWN_TOOL_IDS
 from services import agent_tools
 from services.agent_tools.catalog import (
@@ -273,3 +275,25 @@ def test_an_alias_added_to_any_capability_resolves_the_same_way(monkeypatch) -> 
         default_provider="anthropic",
     )
     assert update.tools == ["price_data"]
+
+
+# --- R15-CODE-AGENT-013: the MCP/internal projections are derived, never set ---
+
+
+def test_capability_projection_flags_cannot_be_set_per_entry() -> None:
+    from services.agent_tools.catalog import Capability
+
+    base = {
+        "id": "x",
+        "description": "d",
+        "input_schema": {"type": "object"},
+        "domain": "quotes",
+        "read_only": True,
+        "kind": "read_handler",
+    }
+    with pytest.raises(TypeError):
+        Capability(**base, mcp=False)
+    with pytest.raises(TypeError):
+        Capability(**base, internal=False)
+    assert Capability(**base).mcp is True
+    assert Capability(**{**base, "id": "backtest_summary"}).mcp is False

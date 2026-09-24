@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterable
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from services import model_registry
@@ -170,10 +170,6 @@ class Capability:
     domain: Domain
     read_only: bool
     kind: ToolKind
-    #: Projected to the internal copilot/persona adapters.
-    internal: bool = True
-    #: Projected to the external MCP server (wired in F5).
-    mcp: bool = False
     #: Former ids of this capability. A stored agent's tool list still names a
     #: renamed tool by its old id; :func:`resolve_tool_ids` maps it here
     #: (R15-LIFECYCLE-025).
@@ -194,36 +190,29 @@ class Capability:
     #: instructions read as data, never as the user's request (R15-AGENT-021).
     untrusted_text: bool = False
 
+    @property
+    def internal(self) -> bool:
+        """Projected to the internal copilot/persona adapters (every kind but ``mcp_endpoint``)."""
+        return self.kind != "mcp_endpoint"
 
-def _cap(
-    id: str,
-    *,
-    description: str,
-    input_schema: dict[str, Any],
-    domain: Domain,
-    read_only: bool,
-    kind: ToolKind,
-    internal: bool = True,
-    mcp: bool = False,
-    aliases: tuple[str, ...] = (),
-    default_grant: bool = True,
-    timeout_seconds: float | None = None,
-    untrusted_text: bool = False,
-) -> tuple[str, Capability]:
-    return id, Capability(
-        id=id,
-        description=description,
-        input_schema=input_schema,
-        domain=domain,
-        read_only=read_only,
-        kind=kind,
-        internal=internal,
-        mcp=mcp,
-        aliases=aliases,
-        default_grant=default_grant,
-        timeout_seconds=timeout_seconds,
-        untrusted_text=untrusted_text,
-    )
+    @property
+    def mcp(self) -> bool:
+        """Projected to the external MCP server — derived from the ONE rule below, never set."""
+        return self.kind == "read_handler" and self.id not in _MCP_INTERNAL_ONLY
+
+
+# MCP projection rule (FR-020/022, R15-AGENT-083): the external MCP surface is
+# READ-ONLY in 0.9. Every handler-backed read capability is exposed — EXCEPT
+# those that need local-only context (a backtest run_id lives only in this
+# session). Per-invocation reads are request-scoped and host actions mutate the
+# cockpit behind the in-app proposed-changes gate, so neither is projected.
+# Exposing writes through a host-side queue is a future operator decision.
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
+
+
+def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
+    """``(id, Capability)`` — an entry passes only what it sets; defaults live on the class."""
+    return id, Capability(id=id, **fields)
 
 
 # ---------------------------------------------------------------------------
@@ -1644,20 +1633,6 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
     ]
 )
 
-# MCP projection rule (FR-020/022): every handler-backed READ capability is
-# exposed to the external MCP surface — EXCEPT those that need local-only
-# context (a backtest run_id lives only in this session). Per-invocation reads
-# and host actions are inherently local (terminal/request scope) and are never
-# projected. Driving `mcp` from this ONE rule keeps the internal copilot surface
-# and the external MCP surface a single source of truth (the SC-004 parity audit
-# locks it).
-_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
-
-CAPABILITY_CATALOG = {
-    cid: replace(cap, mcp=(cap.kind == "read_handler" and cid not in _MCP_INTERNAL_ONLY))
-    for cid, cap in CAPABILITY_CATALOG.items()
-}
-
 
 # ---------------------------------------------------------------------------
 # Projections — the only sanctioned way consumers read the catalog.
@@ -1681,9 +1656,10 @@ def internal_tool_ids() -> list[str]:
 def mcp_capabilities() -> list[Capability]:
     """Capabilities projected to the external MCP server (FR-020/022).
 
-    The same capabilities the internal copilot uses, by the SAME name — so an
-    external agent builds on Vysted with no divergence. Read-only is honoured
-    via each capability's ``read_only`` flag (the MCP ``readOnlyHint``).
+    The same read capabilities the internal copilot uses, by the SAME name — so
+    an external agent builds on Vysted with no divergence. The surface is
+    read-only in 0.9 (R15-AGENT-083): no host action or mutating capability is
+    projected; those stay in-app behind the proposed-changes gate.
     """
     return [c for c in CAPABILITY_CATALOG.values() if c.mcp]
 
@@ -1703,12 +1679,12 @@ def read_handler_ids() -> list[str]:
 
 
 def agent_selectable_tool_ids() -> frozenset[str]:
-    """The Custom Agent Builder allow-list — every agent-selectable internal id.
+    """The Custom Agent Builder allow-list — equal to :func:`internal_tool_ids` by design.
 
-    A custom agent may select any tool the first-party copilot can use; each id
-    resolves at the host (registry handler, per-invocation closure, or host
-    action). Safety is host-enforced regardless of selection; no trading tool
-    exists (D81).
+    A custom agent may select any tool the first-party copilot can use, so no
+    internal capability is withheld from the builder; each id resolves at the
+    host (registry handler, per-invocation closure, or host action). Safety is
+    host-enforced regardless of selection; no trading tool exists (D81).
     """
     return frozenset(internal_tool_ids())
 
