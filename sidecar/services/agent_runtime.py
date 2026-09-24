@@ -1630,6 +1630,91 @@ async def _compound_plan(
     return None
 
 
+def _resolve_tool_surface(
+    spec: AgentSpec, mode: str, prompt: str
+) -> tuple[list[str], bool, list[str]]:
+    """The turn's allow-list, whether it is read-only, and the retired tool ids.
+
+    The allow-list is finally sent to the provider. A stored agent may still
+    name a renamed tool by its old id (resolved) or a removed one (dropped, and
+    returned so the caller says it once) (R15-LIFECYCLE-025).
+    """
+    tool_ids, retired_tools = catalog.resolve_tool_ids(spec.tools)
+    # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
+    # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
+    # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
+    # the old "Ask" mode did, so the §6.5-adjacent read-only line survives the
+    # mode-collapse. Legacy "ask" stays read-only for back-compat; everything else
+    # (agent-with-edit/build intent, delegate, legacy edit/build) keeps the full set.
+    inferred_intent: str | None = None
+    if mode == "agent":
+        intent = classify_intent(prompt)
+        inferred_intent = intent.intent
+        # Strip writes only on a POSITIVE read cue (D-B3-3): classify_intent
+        # defaults cue-less text ("I bought 10 INFY at 1500", "Remember that…")
+        # to read, which removed the exact write tool the user asked for. A
+        # cue-less prompt keeps the full set; data writes still stage for review.
+        read_only = inferred_intent == "read" and bool(intent.signals)
+    else:
+        read_only = mode == "ask"
+    if read_only:
+        # Strip every mutating capability SERVER-SIDE so a read turn can never drive
+        # the host or write the user's data — enforced here, not in the adapter, so an
+        # external MCP client can't bypass it.
+        #
+        # Decision 4 (pre-approved): on an INFERRED read intent under the collapsed
+        # "agent" mode, RETAIN a small read-safe panel allow-list (open_panel /
+        # set_chart_symbol / set_chart_indicators / arrange_layout / add_to_watchlist)
+        # so a read question can still GROUND itself by pulling up the relevant chart
+        # / index (e.g. "how's the market" -> set_chart_symbol on SPY). Data-write
+        # actions STAY stripped on a read intent (§6.5); data/search read tools were never
+        # stripped (read_only=True). The legacy "ask" mode keeps the STRICT gate
+        # (full strip) for back-compat — only the inferred-read path is loosened.
+        keep_panel_actions = inferred_intent == "read"
+        tool_ids = [
+            t
+            for t in tool_ids
+            if catalog.is_read_only(t) is True
+            or (keep_panel_actions and t in _READ_SAFE_PANEL_ACTIONS)
+        ]
+    return tool_ids, read_only, retired_tools
+
+
+def _select_native_search(provider_id: str, model: str, model_web_search: str | None) -> bool:
+    """Whether this turn rides the model's native server-side search.
+
+    R9 (two-tier truth): on tier_a the model's native search COMPOUNDS with the
+    local retrieval lane (Team B's loop cross-verifies between the channels),
+    so a native-capable model rides its own search. tier_b ignores chat-model
+    native search ENTIRELY — the hosted research model owns research and the
+    local web_search tool stays for plain retrieval, so the chat model's
+    server-side search never double-runs (or double-bills) a tier_b session.
+    """
+    return config.get_effective_research_tier() != config.SEARCH_TIER_B and (
+        _native_search_enabled(provider_id, model_web_search, model)
+    )
+
+
+async def _plan_prepass(
+    provider_id: str,
+    mode: str,
+    read_only: bool,
+    model: str,
+    api_key: str | None,
+    prompt: str,
+    context_snapshot: AgentContextSnapshot | None,
+) -> LLMAgentPlanEvent | None:
+    """The visible plan for this turn, or ``None`` (Track 6 #2).
+
+    Only a non-read-only agent-mode turn on a planner-capable provider plans; a
+    weak local model is skipped entirely (the loop's preamble-driven path
+    stands). The plan's host-action steps come back flagged ``staged``.
+    """
+    if read_only or not _planner_enabled(provider_id, mode):
+        return None
+    return await _compound_plan(provider_id, model, api_key, prompt, context_snapshot)
+
+
 async def plan_delegate_run(
     agent_id: str,
     prompt: str,
@@ -1706,47 +1791,7 @@ async def invoke_agent(
     resolved_model = _resolve_model(spec, model)
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
-    # The allow-list — finally sent to the provider. A stored agent may still
-    # name a renamed tool by its old id (resolved) or a removed one (dropped,
-    # and said once below) (R15-LIFECYCLE-025).
-    tool_ids, retired_tools = catalog.resolve_tool_ids(spec.tools)
-    # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
-    # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
-    # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
-    # the old "Ask" mode did, so the §6.5-adjacent read-only line survives the
-    # mode-collapse. Legacy "ask" stays read-only for back-compat; everything else
-    # (agent-with-edit/build intent, delegate, legacy edit/build) keeps the full set.
-    inferred_intent: str | None = None
-    if mode == "agent":
-        intent = classify_intent(prompt)
-        inferred_intent = intent.intent
-        # Strip writes only on a POSITIVE read cue (D-B3-3): classify_intent
-        # defaults cue-less text ("I bought 10 INFY at 1500", "Remember that…")
-        # to read, which removed the exact write tool the user asked for. A
-        # cue-less prompt keeps the full set; data writes still stage for review.
-        read_only = inferred_intent == "read" and bool(intent.signals)
-    else:
-        read_only = mode == "ask"
-    if read_only:
-        # Strip every mutating capability SERVER-SIDE so a read turn can never drive
-        # the host or write the user's data — enforced here, not in the adapter, so an
-        # external MCP client can't bypass it.
-        #
-        # Decision 4 (pre-approved): on an INFERRED read intent under the collapsed
-        # "agent" mode, RETAIN a small read-safe panel allow-list (open_panel /
-        # set_chart_symbol / set_chart_indicators / arrange_layout / add_to_watchlist)
-        # so a read question can still GROUND itself by pulling up the relevant chart
-        # / index (e.g. "how's the market" -> set_chart_symbol on SPY). Data-write
-        # actions STAY stripped on a read intent (§6.5); data/search read tools were never
-        # stripped (read_only=True). The legacy "ask" mode keeps the STRICT gate
-        # (full strip) for back-compat — only the inferred-read path is loosened.
-        keep_panel_actions = inferred_intent == "read"
-        tool_ids = [
-            t
-            for t in tool_ids
-            if catalog.is_read_only(t) is True
-            or (keep_panel_actions and t in _READ_SAFE_PANEL_ACTIONS)
-        ]
+    tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
 
     # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
     # model's own server-side search when THIS model supports it (the adapter
@@ -1771,15 +1816,7 @@ async def invoke_agent(
     # Publish for the run so the tier_a deep-research lane can gate the B4
     # dual-channel cross-verify on the SAME capability truth (task-local).
     config.set_request_model_web_search(model_web_search)
-    # R9 (two-tier truth): on tier_a the model's native search COMPOUNDS with the
-    # local retrieval lane (Team B's loop cross-verifies between the channels),
-    # so a native-capable model rides its own search. tier_b ignores chat-model
-    # native search ENTIRELY — the hosted research model owns research and the
-    # local web_search tool stays for plain retrieval, so the chat model's
-    # server-side search never double-runs (or double-bills) a tier_b session.
-    if config.get_effective_research_tier() != config.SEARCH_TIER_B and _native_search_enabled(
-        provider_id, model_web_search, resolved_model
-    ):
+    if _select_native_search(provider_id, resolved_model, model_web_search):
         opts["web_search"] = True
         opts["web_search_max_uses"] = _WEB_SEARCH_CAP
         tool_ids = [t for t in tool_ids if t != "web_search"]
@@ -1860,12 +1897,11 @@ async def invoke_agent(
     # the host-action steps into the diff/accept gate. ADVISORY only: the tool loop
     # below still drives execution; this never blocks, never raises, and on a weak
     # local model it is skipped entirely (the loop's preamble-driven path stands).
-    if not read_only and _planner_enabled(provider_id, mode):
-        plan_event = await _compound_plan(
-            provider_id, resolved_model, api_key, prompt, context_snapshot
-        )
-        if plan_event is not None:
-            yield plan_event
+    plan_event = await _plan_prepass(
+        provider_id, mode, read_only, resolved_model, api_key, prompt, context_snapshot
+    )
+    if plan_event is not None:
+        yield plan_event
 
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
