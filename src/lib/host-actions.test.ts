@@ -1411,13 +1411,13 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetAgentAutonomyStoreForTests();
     twoPortfolios();
     const gate = useProposedChangesStore.getState();
-    const update = gate.enqueue({
+    const { id: update } = gate.enqueue({
       toolCallId: "tc-up",
       name: "portfolio_update_position",
       input: { position_id: "h-a", symbol: "TCS", quantity: 12 },
       batchId: "b",
     });
-    const add = gate.enqueue({
+    const { id: add } = gate.enqueue({
       toolCallId: "tc-add",
       name: "portfolio_add_position",
       input: { symbol: "INFY", quantity: 1, cost_basis: 1500 },
@@ -1437,7 +1437,7 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetProposedChangesStoreForTests();
     resetAgentAutonomyStoreForTests();
     const gate = useProposedChangesStore.getState();
-    const id = gate.enqueue({
+    const { id } = gate.enqueue({
       toolCallId: "tc-del",
       name: "portfolio_delete_position",
       input: { position_id: "h-a" },
@@ -1459,7 +1459,7 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetProposedChangesStoreForTests();
     resetAgentAutonomyStoreForTests();
     const gate = useProposedChangesStore.getState();
-    const id = gate.enqueue({
+    const { id } = gate.enqueue({
       toolCallId: "tc-del",
       name: "portfolio_delete_position",
       input: { position_id: "h-a" },
@@ -1486,7 +1486,7 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetAgentAutonomyStoreForTests();
     useNotesStore.getState().setSymbolNote("NVDA", "my own thesis");
     const gate = useProposedChangesStore.getState();
-    const id = gate.enqueue({
+    const { id } = gate.enqueue({
       toolCallId: "tc-note",
       name: "write_note",
       input: { scope: "NVDA", text: "agent text", mode: "replace" },
