@@ -36,5 +36,5 @@ def test_an_openrouter_agent_json_loads(tmp_path: Path, monkeypatch: pytest.Monk
         "defaultProvider": "openrouter",
     }
     (tmp_path / "router.json").write_text(json.dumps(payload), encoding="utf-8")
-    specs = agent_runtime._discover_specs(tmp_path)
+    specs, _ = agent_runtime._discover_specs(tmp_path)
     assert specs["router"].default_provider == "openrouter"

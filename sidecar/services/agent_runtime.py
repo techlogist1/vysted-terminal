@@ -245,19 +245,25 @@ def _load_schema() -> dict[str, Any]:
     return schema
 
 
-def _discover_specs(agents_dir: Path = AGENTS_DIR) -> dict[str, AgentSpec]:
+def _discover_specs(
+    agents_dir: Path = AGENTS_DIR,
+) -> tuple[dict[str, AgentSpec], list[dict[str, str]]]:
     """Enumerate the agents directory and return validated :class:`AgentSpec`s.
 
     Malformed files log a warning and are skipped — they MUST NOT block the
     rest of the roster from loading. Tests rely on partial-load resilience.
+    Every skipped file (or a missing directory/schema) is also returned as
+    ``{file, reason}`` so ``/health`` can name a shrunken roster (R15-LIFECYCLE-014).
     """
+    degraded: list[dict[str, str]] = []
     if not agents_dir.exists():
-        return {}
+        logger.error("agents directory not found at %s; no agents will load", agents_dir)
+        return {}, [{"file": agents_dir.name, "reason": "agents directory not found"}]
     try:
         schema = _load_schema()
     except FileNotFoundError:
         logger.error("agent schema not found at %s; no agents will load", SCHEMA_PATH)
-        return {}
+        return {}, [{"file": SCHEMA_PATH.name, "reason": "agent schema not found"}]
     validator = jsonschema.Draft7Validator(schema)
     specs: dict[str, AgentSpec] = {}
     for path in sorted(agents_dir.glob("*.json")):
@@ -268,6 +274,7 @@ def _discover_specs(agents_dir: Path = AGENTS_DIR) -> dict[str, AgentSpec]:
                 payload = json.load(handle)
         except (OSError, json.JSONDecodeError) as exc:
             logger.warning("agent %s: failed to read JSON (%s)", path.name, exc)
+            degraded.append({"file": path.name, "reason": f"failed to read JSON: {exc}"})
             continue
         errors = sorted(validator.iter_errors(payload), key=lambda e: e.path)
         if errors:
@@ -278,25 +285,34 @@ def _discover_specs(agents_dir: Path = AGENTS_DIR) -> dict[str, AgentSpec]:
                     list(err.path) or "<root>",
                     err.message,
                 )
+            reason = "; ".join(f"{list(e.path) or '<root>'}: {e.message}" for e in errors)
+            degraded.append({"file": path.name, "reason": f"schema violation: {reason}"})
             continue
         try:
             spec = AgentSpec.model_validate(payload)
         except Exception as exc:  # pragma: no cover — schema covers this
             logger.warning("agent %s: pydantic validation failed (%s)", path.name, exc)
+            degraded.append({"file": path.name, "reason": f"validation failed: {exc}"})
             continue
         if spec.id in specs:
             logger.warning("agent %s: duplicate id %r; keeping first", path.name, spec.id)
+            degraded.append({"file": path.name, "reason": f"duplicate id {spec.id!r}"})
             continue
         # D21 loader-level parity: every first-party agent gets the copilot's
         # host actions + research, derived from the catalog — the JSON stays
         # the persona's voice/specialty. Custom agents (the agents_store
         # fallback in get_agent) are NOT unioned; their authors pick tools.
         specs[spec.id] = _grant_first_party_hands(spec)
-    return specs
+    return specs, degraded
 
 
 # Cached at module import — refreshes on a deliberate :func:`reload` call.
-_specs: dict[str, AgentSpec] = _discover_specs()
+_specs, _degraded = _discover_specs()
+
+
+def degraded_agents() -> list[dict[str, str]]:
+    """The agent files the last load skipped, as ``{file, reason}`` (``[]`` when whole)."""
+    return list(_degraded)
 
 
 def list_agents() -> list[AgentSpec]:
@@ -336,8 +352,8 @@ def get_agent(agent_id: str) -> AgentSpec | None:
 
 def reload(agents_dir: Path = AGENTS_DIR) -> None:
     """Refresh the agent registry from disk; primarily for tests."""
-    global _specs
-    _specs = _discover_specs(agents_dir)
+    global _specs, _degraded
+    _specs, _degraded = _discover_specs(agents_dir)
 
 
 # ---------------------------------------------------------------------------
