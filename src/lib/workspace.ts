@@ -248,6 +248,13 @@ function onChange<S>(
     });
 }
 
+/** The plugin-module (`plugin:<id>`) flags of `enabled`, or every other flag. */
+function moduleFlags(enabled: Record<string, boolean>, plugin: boolean): Record<string, boolean> {
+  return Object.fromEntries(
+    Object.entries(enabled).filter(([id]) => id.startsWith("plugin:") === plugin),
+  );
+}
+
 /**
  * Every persisted slice. The launch restore applies the global slices before
  * the layout slices, so the per-space memory archive is in place before the
@@ -257,10 +264,17 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // Restored before the layout so the panel components a layout references
     // resolve against the module set that was active when it was saved.
+    // A plugin's `plugin:<id>` flag is NOT persisted here: the plugin runtime
+    // derives it (attach/detach) from plugins.db `enabled`, its one source, so a
+    // blob never re-hides a plugin enabled since it was saved (R15-CODE-PLATFORM-013).
     key: "enabledModules",
     scope: "layout",
-    read: () => ({ enabledModules: useModulesStore.getState().enabled }),
-    restore: (workspace) => useModulesStore.getState().setEnabledMap(workspace.enabledModules),
+    read: () => ({ enabledModules: moduleFlags(useModulesStore.getState().enabled, false) }),
+    restore: (workspace) =>
+      useModulesStore.getState().setEnabledMap({
+        ...moduleFlags(workspace.enabledModules, false),
+        ...moduleFlags(useModulesStore.getState().enabled, true),
+      }),
     subscribe: onChange(useModulesStore, (s) => s.enabled),
   },
   {

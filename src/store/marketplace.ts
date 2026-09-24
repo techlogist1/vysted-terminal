@@ -17,6 +17,7 @@
 import { create } from "zustand";
 
 import { CATALOG_BY_ID } from "@/lib/marketplace";
+import { enabledByDefault } from "@/lib/plugin-bootstrap";
 import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { sidecarGet } from "@/lib/sidecar-client";
 import { usePluginsStore } from "@/store/plugins";
@@ -105,18 +106,12 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       await Promise.all(
         rows.map(async (row) => {
           const id = row.entry.pluginId;
-          let persisted = null;
-          if (runtime) {
-            try {
-              persisted = await runtime.readConfig(id);
-            } catch {
-              persisted = null;
-            }
-          }
-          flags[id] = {
-            installed: persisted?.installed ?? row.entry.preinstalled,
-            enabled: persisted?.enabled ?? row.entry.preinstalled,
+          const on = enabledByDefault(id);
+          const config = (await runtime?.readConfig(id).catch(() => null)) ?? {
+            installed: on,
+            enabled: on,
           };
+          flags[id] = { installed: config.installed, enabled: config.enabled };
           configured[id] = await isConfigured(row.entry);
         }),
       );
@@ -127,11 +122,8 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
 
   stateFor: (pluginId) => {
-    const row = CATALOG_BY_ID[pluginId];
-    const flags = get().flags[pluginId] ?? {
-      installed: row?.entry.preinstalled ?? false,
-      enabled: row?.entry.preinstalled ?? false,
-    };
+    const on = enabledByDefault(pluginId);
+    const flags = get().flags[pluginId] ?? { installed: on, enabled: on };
     const record = usePluginsStore.getState().plugins.find((p) => p.manifest.id === pluginId);
     return {
       pluginId,
@@ -206,7 +198,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       // MERGE with the existing grants — a partial re-configure (submitting only
       // some fields) must not wipe previously-stored secrets (FR-036).
       const current = await runtime.readConfig(pluginId);
-      const granted = new Set(current?.grantedSecretIds ?? []);
+      const granted = new Set(current.grantedSecretIds);
       try {
         for (const field of row.entry.credentialFields ?? []) {
           const account = secretAccount(row.entry, field.key);
@@ -235,11 +227,9 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
           installed: true,
         });
       }
-      const enabled = get().flags[pluginId]?.enabled ?? row.entry.preinstalled;
-      if (enabled) {
-        // Restart so initialize() receives the new secrets via PluginConfig.secrets.
-        await runtime.reloadPlugin(row.discovered);
-      }
+      // Restart so initialize() receives the new secrets via PluginConfig.secrets
+      // (a disabled plugin stays stopped — loadPlugin honours the persisted flag).
+      await runtime.reloadPlugin(row.discovered);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {

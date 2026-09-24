@@ -372,6 +372,24 @@ describe("workspace serialization", () => {
     expect(useWorkspaceStore.getState().name).toBe("research");
   });
 
+  it("never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true, "plugin:vysted-news": true } });
+    expect(serializeWorkspace("now").enabledModules).toEqual({ chart: true });
+
+    // An older blob saved while the plugin was off, restored after re-enabling it.
+    deserializeWorkspace({
+      name: "older",
+      layout: LAYOUT_A,
+      enabledModules: { chart: false, "plugin:vysted-news": false },
+    });
+    expect(useModulesStore.getState().enabled).toEqual({
+      chart: false,
+      "plugin:vysted-news": true,
+    });
+  });
+
   it("serializeWorkspace throws when the dockview layout is not ready", () => {
     expect(() => serializeWorkspace("research")).toThrow(/not ready/);
   });

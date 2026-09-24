@@ -95,6 +95,9 @@ export interface PluginRuntimeContext {
   resolveSecrets?: (ids: string[]) => Promise<Record<string, string>>;
   /** Surfaces/withdraws plugin contributions; defaults to a no-op. */
   host?: PluginHostBridge;
+  /** Whether a never-persisted plugin is installed + enabled. The host passes
+   *  the catalog's `enabledByDefault`; a bare runtime (tests) defaults to on. */
+  defaultEnabled?: (pluginId: string) => boolean;
 }
 
 interface RuntimeListener {
@@ -121,6 +124,7 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
     persistence: context?.persistence ?? new InMemoryPersistence(),
     resolveSecrets: context?.resolveSecrets ?? (async () => ({})),
     host: context?.host ?? { attach: async () => {}, detach: async () => {} },
+    defaultEnabled: context?.defaultEnabled ?? (() => true),
   };
 }
 
@@ -232,13 +236,7 @@ export class PluginRuntime {
     let persisted: PluginPersistedConfig;
     try {
       const stored = await this.context.persistence.load(plugin.manifest.id);
-      persisted = stored ?? {
-        pluginId: plugin.manifest.id,
-        installed: true,
-        enabled: true,
-        settings: {},
-        grantedSecretIds: [],
-      };
+      persisted = stored ?? this.defaultConfig(plugin.manifest.id);
       // Persist the default the first time we see this plugin so a second
       // launch finds an explicit row (not falling back through the default).
       if (!stored) {
@@ -325,24 +323,19 @@ export class PluginRuntime {
 
   // ----- Marketplace lifecycle (FR-050) -----
 
-  /**
-   * Load (or update) the per-plugin persisted config, merging `patch`. The
-   * default for a never-seen plugin is installed+enabled — but the marketplace
-   * always passes an explicit `installed`/`enabled`, and the boot path only
-   * loads catalog entries it decided are installed, so a not-installed plugin
-   * never auto-installs.
-   */
+  /** The config of a never-persisted plugin — the one shared default. */
+  private defaultConfig(pluginId: string): PluginPersistedConfig {
+    const on = this.context.defaultEnabled(pluginId);
+    return { pluginId, installed: on, enabled: on, settings: {}, grantedSecretIds: [] };
+  }
+
+  /** Load (or update) the per-plugin persisted config, merging `patch` over
+   *  the stored row or, for a never-seen plugin, the shared default. */
   private async patchConfig(
     pluginId: string,
     patch: Partial<PluginPersistedConfig>,
   ): Promise<void> {
-    const current = (await this.context.persistence.load(pluginId)) ?? {
-      pluginId,
-      installed: true,
-      enabled: true,
-      settings: {},
-      grantedSecretIds: [],
-    };
+    const current = (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
     await this.context.persistence.save({ ...current, ...patch, pluginId });
   }
 
@@ -352,9 +345,9 @@ export class PluginRuntime {
     await this.patchConfig(pluginId, patch);
   }
 
-  /** Read the plugin's persisted config (or null if never persisted). */
-  async readConfig(pluginId: string): Promise<PluginPersistedConfig | null> {
-    return this.context.persistence.load(pluginId);
+  /** Read the plugin's persisted config (the shared default if never persisted). */
+  async readConfig(pluginId: string): Promise<PluginPersistedConfig> {
+    return (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
   }
 
   /** Install a plugin via the marketplace: persist installed+enabled, then load. */

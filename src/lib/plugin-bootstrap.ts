@@ -210,6 +210,13 @@ function unbridgePluginModule(pluginId: string): void {
   }
 }
 
+/** Whether a never-persisted plugin is installed + enabled: the catalog's
+ *  `preinstalled` flag. The one default the runtime, boot and the marketplace
+ *  store share (R15-CODE-PLATFORM-013). */
+export function enabledByDefault(pluginId: string): boolean {
+  return CATALOG_BY_ID[pluginId]?.entry.preinstalled ?? false;
+}
+
 /** The runtime's host glue: an active plugin's panels, commands and agents
  *  appear; a disabled or removed plugin's go. */
 export const pluginHost: PluginHostBridge = {
@@ -244,6 +251,7 @@ export async function bootstrapPlugins(): Promise<() => void> {
     hostVersion: HOST_VERSION,
     persistence,
     host: pluginHost,
+    defaultEnabled: enabledByDefault,
     // FR-054/SC-015: resolve a plugin's granted secret ids from the OS keychain
     // at load. Best-effort per id (skip on a keychain miss outside Tauri).
     resolveSecrets: async (ids) => {
@@ -266,15 +274,11 @@ export async function bootstrapPlugins(): Promise<() => void> {
     const plugin: DiscoveredPlugin = row.discovered;
     // Always discover so the plugin is loadable + appears in the marketplace.
     runtime.discover(plugin);
-    let persisted: PluginPersistedConfig | null = null;
-    try {
-      persisted = await persistence.load(plugin.manifest.id);
-    } catch {
-      persisted = null;
-    }
-    const installed = persisted?.installed ?? row.entry.preinstalled;
-    const enabled = persisted?.enabled ?? row.entry.preinstalled;
-    if (installed && enabled) {
+    const on = await runtime.readConfig(plugin.manifest.id).then(
+      (config) => config.installed && config.enabled,
+      () => enabledByDefault(plugin.manifest.id),
+    );
+    if (on) {
       // Loading attaches its panels, commands and agents via `pluginHost`.
       await runtime.loadPlugin(plugin);
     }

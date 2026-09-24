@@ -594,3 +594,18 @@ describe("PluginRuntime — enable/disable own persistence and the host bridge",
     expect(host.detach).toHaveBeenCalledWith("a");
   });
 });
+
+describe("PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013)", () => {
+  it("a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true", async () => {
+    const initialize = vi.fn();
+    const runtime = new PluginRuntime({ defaultEnabled: () => false });
+    expect(await runtime.readConfig("p")).toMatchObject({ installed: false, enabled: false });
+
+    // configure() grants a secret to a plugin the user never enabled; it stays off.
+    await runtime.updateConfig("p", { grantedSecretIds: ["k"], installed: true });
+    expect((await runtime.readConfig("p")).enabled).toBe(false);
+    const snapshot = await runtime.loadPlugin(discovered(fakePlugin("p", { initialize })));
+    expect(snapshot.state).toBe("stopped");
+    expect(initialize).not.toHaveBeenCalled();
+  });
+});
