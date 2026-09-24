@@ -4,6 +4,36 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 7: exchange-filed India fundamentals, durable delegate runs, unattended workflows, chart/workspace integrity, research funnel, agent-write Undo (2026-09-24)
+
+**Scope:** 55 entries planned in `docs/redesign/verification/r15/stage-c/batch-7/PLAN.md`; the five writers
+delivered 43 commits covering 51 of them (CODE-PLATFORM-018, the 52nd, needs no code and certifies on base `831d52b`). Merged `--no-ff` in plan
+order W1 → W4 → W2 → W5 → W3 on `worktree-agent-batch-7-int` (base `1a19d26`), no file conflicts. LEAD-005,
+AGENT-046 and CODE-PLATFORM-021 were not delivered and stay open.
+
+- **W1 India exchange data:** exchange-filed results overlay TTM revenue/profit, EPS and growth for IN listings at
+  the two single-name seams (DATA-014/027/076); the TTM cadence label comes from the filed periods (LEAD-004);
+  out-of-coverage disclosures answer 200 with `coverage` + `note`, BSE results join NSE, an ADR's holders come
+  from its 20-F (DATA-050/060); statement periods are ISO period-end labels with explicit gap rows (LEAD-015).
+- **W4 research funnel:** failed visits and crashed ULTRA explorers are error steps (RESEARCH-019/033); BSE PDFs
+  retry and fall back to AttachHis (DATA-075); a 200 challenge page strikes the breaker, once per engine per
+  search, and footer markers are paragraph-only (RESEARCH-022/023/038); one `result_limit` rule (RESEARCH-020);
+  sources carry a bare host and `published_at` (RESEARCH-024, UI-038); a ticker plus a number is not a foreign
+  index (RESEARCH-021); broken citation markers are flagged (UI-092); brief metrics use `lib/format` (RESEARCH-026).
+- **W2 delegate runs:** store-enforced lifecycle, four ceilings on every run, a breach stops before tool dispatch,
+  `{prompt, turns}` checkpoints, resume on the launch provider/model/key, orphan reconciliation
+  (CODE-AGENT-010, AGENT-034..038/074, LIFECYCLE-012/013); the rail adopts sidecar runs (UI-040); `ask_user`
+  pauses a delegate run (CODE-AGENT-011); a compound task is planned before it runs (AGENT-039).
+- **W5 agent writes and portfolio:** typed pre-image with session Undo (AGENT-041); the transcript writes the
+  gate's resolved outcome (AGENT-032) and the provider/key gate runs before the user turn (UI-017); dropped
+  screener criteria are reported (AGENT-043); watchlist/compare symbols go through the one resolver
+  (AGENT-044/045); portfolio edit, handler, refresh and cost-label fixes (UI-034..037).
+- **W3 unattended, chart, workspace:** a sidecar scheduler and a keychain-held webhook action (AGENT-023);
+  indicator overlays per load, drawings keyed by `{symbol, timeframe}` and anchored where clicked (UI-023/020/022);
+  only the newest load commits (UI-031, CODE-FRONTEND-017); watchlist joins quotes to the live list (UI-026);
+  autosave failures surface, corrupt workspaces are quarantined, reserved names hidden (CODE-FRONTEND-019,
+  DATA-090, UI-046).
+
 ## R15 Stage C — batch 6: India Emerge lanes, runtime tool-call identity, research funnel, host-action intents, quant pool, panel bus keys (2026-09-24)
 
 **Scope:** 60 entries planned in `docs/redesign/verification/r15/stage-c/batch-6/PLAN.md`; the five writers
