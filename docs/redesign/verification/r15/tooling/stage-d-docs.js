@@ -95,7 +95,7 @@ ROLE: FACTS (Fable, mechanical; label stage-d-facts). You assemble the facts eve
 - licence: LICENSE first heading, LICENSE-APACHE and LICENSING.md present, package.json license, src-tauri/Cargo.toml license / license-file.
 - tools: which gitleaks trufflehog cargo-license pip-licenses (present or absent), pnpm --version, cargo --version; the three venvs present or absent.
 Write ${EV}/FACTS.json as {sha, sha7, mode, previous_sha, versions, version_occurrences, sidecars, scripts, ci, plugins, agents, panels, register, decisions, git, licence, tools} and ${EV}/FACTS.md (line 1 '<!-- FACTS at <sha> by the Stage D docs wave -->', then one section per key, each fact with its source), section by section as you go.
-Return model, status, sha (full), previous_sha, version (package.json), version_consistent, facts_md, facts_json (repo-relative paths), blockers, summary ≤80 words.`, { label: 'stage-d-facts', phase: 'Facts', model: 'fable', effort: 'medium', schema: FACTS })
+Return model, status, sha (full), previous_sha, version (package.json), version_consistent, facts_md, facts_json (repo-relative paths), blockers, summary ≤80 words.`, { label: 'stage-d-facts', phase: 'Facts', model: 'fable', effort: 'low', schema: FACTS })
 
 if (!factsRes || factsRes.status !== 'ready') {
   const why = factsRes ? (factsRes.blockers.length ? factsRes.blockers : ['facts status ' + factsRes.status]) : ['facts agent died']
@@ -241,7 +241,7 @@ const draftChain = async d => {
     log(d.name + ': critic PASS (' + c.findings + ' findings)')
     return row
   }
-  const v = await run(revisePrompt(d, c), { label: 'stage-d-revise-' + d.key, phase: 'Critic', model: 'fable', effort: 'high', schema: REVISE })
+  const v = await run(revisePrompt(d, c), { label: 'stage-d-revise-' + d.key, phase: 'Critic', model: 'fable', effort: 'low', schema: REVISE })
   if (!v) {
     row.note = 'critic REVISE, reviser returned nothing; findings in critic/' + d.name + '.md are unapplied'
     log(d.name + ': critic REVISE (' + c.findings + ') but the reviser returned nothing - FAILED')
@@ -256,7 +256,7 @@ const draftChain = async d => {
 
 const scanChain = async s => {
   const row = { name: s.name, key: s.key, kind: 'scan', files: s.files.map(f => EVR + '/' + f), status: 'FAILED', critic: null, findings: 0, by_kind: null, open_questions: [], note: '' }
-  const r = await run(scanPrompt(s), { label: 'stage-d-scan-' + s.key, phase: 'Scans', model: 'fable', effort: 'high', schema: SCAN })
+  const r = await run(scanPrompt(s), { label: 'stage-d-scan-' + s.key, phase: 'Scans', model: 'fable', effort: 'low', schema: SCAN })
   if (!r) {
     row.note = 'scanner returned nothing'
     log(s.name + ': scanner returned nothing - FAILED')
@@ -296,7 +296,7 @@ THE SCRIPT'S TALLY (authoritative for what ran; status PASS / REVISED / UNREVIEW
 (3) Write ${EV}/STAGE_D_INDEX.md: a header (sha, mode, cap, the UTC time from 'date -u'); one row per output FILE: file | lane | status | critic findings (count, by kind, link to critic/<name>.md) | open questions for the lead (short); then 'How to promote at rc2': run this workflow with mode 'refresh' first; strip line 1 and everything from the line '${FOOT}' down; target paths (README.md, docs/RELEASE_RUNBOOK.md, docs/redesign/OPERATOR_BRIEFING.md, the GitHub release body + the CHANGELOG.md v0.9.0 section, docs/CURRENT_STATE.md + BLOCKERS.md); the state diffs apply with patch -p1 from the repo root.
 (4) Write ${EV}/OPEN_QUESTIONS.md with only what the OPERATOR alone can answer: the open Tier-4 items (DECISIONS_FOR_OPERATOR numbers and smallest unblocks, from ${EV}/FACTS.md); the copyleft question if ${EV}/DEPS_LICENCES.md flags any bundled AGPL / GPL / LGPL / SSPL package (package, scope, linkage: facts, never a legal conclusion); LICENCE_CHECK mismatches in Tier-1 files; Windows (nothing verified); secrets hits classed real_or_unknown, pushed ones first (location + rule only); and draft open questions that need his decision. Everything the lead can answer stays in the index's open-questions column.
 (5) Commit ONLY the output dir, on 004, never pushed. git -C ${REPO} rev-parse --abbrev-ref HEAD must print 004-r4-experience-rebuild; if not, do not commit (commit '' and the reason in summary), never checkout. Write the message to ${WORK}/commit.msg: subject 'docs(r15): stage-d docs ${verb} at ${SHA.slice(0, 7)} - <n> drafts, <m> scans' (n = draft rows PASS / REVISED / UNREVIEWED after your checks, m = scan rows DONE; the script counted ${nDrafts} and ${nScans}), a blank line, then 'Co-Authored-By: Claude <the model you run as> <noreply@anthropic.com>' and 'Claude-Session: https://claude.ai/code/session_01HJVZfFSmtgR7p7eW5tKNCg'. Then, in ONE shell call so nothing else can commit between them: git -C ${REPO} add -A -- ${EVR} && git -C ${REPO} -c core.hooksPath=/dev/null commit --only -F ${WORK}/commit.msg -- ${EVR} (the pathspec with --only keeps anything another agent staged out of this commit). If ${REPO}/.git/index.lock exists, wait 20 s in a separate call and retry, at most 5 times. Afterwards git -C ${REPO} show --stat --format= HEAD must list only files under ${EVR}; say so.
-Return model, sha, rows [{file, status, findings}] as written in the index, open_questions (count in OPEN_QUESTIONS.md), redacted, files (repo-relative, committed), commit (the full sha, or ''), summary ≤80 words.`, { label: 'stage-d-collate', phase: 'Collate', model: 'fable', effort: 'medium', schema: COLLATE })
+Return model, sha, rows [{file, status, findings}] as written in the index, open_questions (count in OPEN_QUESTIONS.md), redacted, files (repo-relative, committed), commit (the full sha, or ''), summary ≤80 words.`, { label: 'stage-d-collate', phase: 'Collate', model: 'fable', effort: 'low', schema: COLLATE })
 
 const out = rows.map(r => ({ name: r.name, kind: r.kind, status: r.status, files: r.files, critic: r.critic, findings: r.findings, flagged: r.flagged ? r.flagged.length : null, open_questions: r.open_questions.length, note: r.note }))
 if (!col) {
