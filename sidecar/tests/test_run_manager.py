@@ -168,7 +168,8 @@ async def test_wall_clock_breach_aborts_mid_round(monkeypatch: pytest.MonkeyPatc
 
 @pytest.mark.asyncio
 async def test_step_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch(monkeypatch, _LoopingProvider(per_round=1))
+    provider = _LoopingProvider(per_round=1)
+    _patch(monkeypatch, provider)
     run_id = run_manager.launch_run(
         agent_id="copilot",
         prompt="loop",
@@ -179,6 +180,64 @@ async def test_step_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert row is not None
     assert row.status == "error"
     assert "step ceiling 2" in (row.detail or "")
+    assert provider.calls == 2  # N steps = exactly N provider rounds
+
+
+@pytest.mark.asyncio
+async def test_breach_stops_before_the_rounds_tools_and_the_next_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-037: the flag used to be only a flag — the round's tools ran and
+    the next (unmetered) request went out after the breach."""
+    provider = _LoopingProvider(per_round=100_000)
+    _patch(monkeypatch, provider)
+    dispatched: list[str] = []
+
+    async def _no_dispatch(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        dispatched.append(tool_call.name)
+        return "{}"
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _no_dispatch)
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_tokens=1000)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert (row.status, row.detail) == ("error", "token ceiling 1000 reached (100000 used)")
+    assert provider.calls == 1
+    assert dispatched == []
+    assert row.cost.tokens == 100_000
+
+
+@pytest.mark.asyncio
+async def test_a_final_answer_on_the_ceiling_round_is_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-038: a one-shot answer under max_steps=1 finished; it is not an error."""
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_steps=1)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert row.status == "done"
+    assert row.detail == "completed (step ceiling 1 reached (1 taken) on the final round)"
+    assert row.answer == "Analysis complete: NVDA looks rich."
+
+
+@pytest.mark.asyncio
+async def test_a_provider_less_run_is_priced_at_the_resolved_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-074: buffett defaults to anthropic/opus; an omitted provider was
+    priced at the $5/M fallback instead of the opus rate."""
+    from services.budget_guard import estimate_spend_usd
+
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(agent_id="buffett", prompt="x", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert row.cost.spend_usd == round(estimate_spend_usd("anthropic", "claude-opus-4-8", 70), 6)
 
 
 @pytest.mark.asyncio
@@ -198,6 +257,33 @@ async def test_spend_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert row.status == "error"
     assert "spend ceiling" in (row.detail or "")
     assert row.cost.spend_usd > 0
+
+
+@pytest.mark.asyncio
+async def test_omitted_ceilings_take_the_server_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-034: an empty budget never means "no ceiling"."""
+    from models.run import DEFAULT_RUN_BUDGET
+    from services.budget_guard import BudgetGuard
+
+    guards: list[BudgetGuard] = []
+
+    class _CapturingGuard(BudgetGuard):
+        def __init__(self, **kwargs: Any) -> None:
+            super().__init__(**kwargs)
+            guards.append(self)
+
+    monkeypatch.setattr(run_manager, "BudgetGuard", _CapturingGuard)
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="x", budget=RunBudget())
+    row = await _await_terminal(run_id)
+    assert row is not None and row.budget == DEFAULT_RUN_BUDGET
+    (guard,) = guards
+    assert (guard.max_tokens, guard.max_spend_usd, guard.max_wall_seconds, guard.max_steps) == (
+        120_000,
+        1.0,
+        600,
+        12,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -234,14 +320,15 @@ async def test_cancel_marks_cancelled(monkeypatch: pytest.MonkeyPatch) -> None:
     _patch(monkeypatch, _SlowProvider())
     run_id = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk-test")
     await asyncio.sleep(0)  # let the task start and hit the sleep
-    assert run_manager.cancel_run(run_id) is True
+    run_manager.cancel_run(run_id)
     row = await _await_terminal(run_id)
     assert row is not None
     assert row.status == "cancelled"
 
 
-def test_cancel_unknown_returns_false(monkeypatch: pytest.MonkeyPatch) -> None:
-    assert run_manager.cancel_run("nope") is False
+def test_cancel_unknown_raises_not_found() -> None:
+    with pytest.raises(run_manager.RunNotFound):
+        run_manager.cancel_run("nope")
 
 
 def test_launch_unknown_agent_raises() -> None:
@@ -252,28 +339,6 @@ def test_launch_unknown_agent_raises() -> None:
 # ---------------------------------------------------------------------------
 # HITL pause / answer / resume (FR-028)
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_pause_answer_resumes_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch(monkeypatch, _OneShotProvider())
-    run_id = run_manager.launch_run(agent_id="copilot", prompt="research NVDA", api_key="sk-test")
-    await _await_terminal(run_id)  # run completes once, leaving a checkpoint
-
-    # Operator pauses the run with a question.
-    assert run_manager.pause_run(run_id, "Approve buying NVDA?") is True
-    paused = runs_store.get_run(run_id)
-    assert paused is not None
-    assert paused.status == "paused"
-    assert paused.question == "Approve buying NVDA?"
-
-    # Human answers → run resumes from the checkpoint and completes again.
-    _patch(monkeypatch, _OneShotProvider())
-    assert run_manager.answer_run(run_id, "Yes, proceed", api_key="sk-test") is True
-    row = await _await_terminal(run_id)
-    assert row is not None
-    assert row.status == "done"
-    assert row.question is None
 
 
 @pytest.mark.asyncio
@@ -289,19 +354,262 @@ async def test_resume_after_budget_breach_with_fresh_budget(
 
     # Resume with a one-shot provider so it can complete under fresh ceilings.
     _patch(monkeypatch, _OneShotProvider())
-    assert run_manager.resume_run(run_id, budget=RunBudget(max_tokens=1_000_000)) is True
+    run_manager.resume_run(run_id, budget=RunBudget(max_tokens=1_000_000))
     resumed = await _await_terminal(run_id)
     assert resumed is not None
     assert resumed.status == "done"
 
 
+class _PausingConversationProvider:
+    """Records every request; a round either answers, calls a tool, or stalls
+    (so the test can pause the run mid-round)."""
+
+    def __init__(self, script: list[list[Any]]) -> None:
+        self.script = script
+        self.requests: list[list[tuple[str, str]]] = []
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        self.requests.append([(m.role, m.content) for m in messages if m.role != "system"])
+        for item in self.script[len(self.requests) - 1]:
+            if item == "stall":
+                await asyncio.sleep(30)
+            yield item
+
+
+def _ask(question: str) -> LLMToolUseEvent:
+    return LLMToolUseEvent(tool_call_id="", name="ask_user", input={"question": question})
+
+
+@pytest.mark.asyncio
+async def test_ask_user_pauses_the_run_and_the_answer_resumes_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-011: pause_run had no production caller, so paused, the
+    question and the answer route could never fire. A delegate round that calls
+    ask_user now parks the run with the question; none of that round's tools run."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="Checking."),
+                _ask("Which exchange, NSE or BSE?"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            [LLMDeltaEvent(text="Using NSE."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+    dispatched: list[str] = []
+
+    async def _tool(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        dispatched.append(tool_call.name)
+        return "{}"
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="research RELIANCE", api_key="sk")
+    paused = await _await_terminal(run_id)
+    assert paused is not None
+    assert (paused.status, paused.question) == ("paused", "Which exchange, NSE or BSE?")
+    assert dispatched == []
+    assert len(provider.requests) == 1
+
+    run_manager.answer_run(run_id, "NSE", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert (row.status, row.question) == ("done", None)
+    assert provider.requests[1][-3:] == [
+        ("assistant", "Checking."),
+        ("assistant", "[ask_user → Which exchange, NSE or BSE?]"),
+        ("user", "NSE"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-036: the checkpoint is {prompt, turns}; each answer is the new
+    prompt after the original prompt and every turn so far, tool steps included.
+    Before, the prompt was replayed after the answer and a second answer became
+    the prompt."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="A1"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            [_ask("Q1?"), done],
+            [LLMDeltaEvent(text="A2"), _ask("Q2?"), done],
+            [LLMDeltaEvent(text="Final."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return '{"ok": true, "close": 101}'
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="ORIGINAL", api_key="sk")
+    await _await_terminal(run_id)
+    run_manager.answer_run(run_id, "ANSWER ONE", api_key="sk")
+    await _await_terminal(run_id)
+    run_manager.answer_run(run_id, "ANSWER TWO", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+
+    tool_turn = ("assistant", '[price_data → {"ok": true, "close": 101}]')
+    assert provider.requests[2] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        tool_turn,
+        ("assistant", "[ask_user → Q1?]"),
+        ("user", "ANSWER ONE"),
+    ]
+    assert provider.requests[3] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        tool_turn,
+        ("assistant", "[ask_user → Q1?]"),
+        ("user", "ANSWER ONE"),
+        ("assistant", "A2"),
+        ("assistant", "[ask_user → Q2?]"),
+        ("user", "ANSWER TWO"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_a_run_killed_mid_round_resumes_from_its_last_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-012: the checkpoint was written only at exit, so a killed
+    process left a running row with no checkpoint that could not be resumed."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="A1"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            ["stall"],
+            [LLMDeltaEvent(text="Final."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return '{"ok": true, "close": 101}'
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="ORIGINAL", api_key="sk")
+    while len(provider.requests) < 2:
+        await asyncio.sleep(0.01)
+
+    tool_turn = {"role": "assistant", "content": '[price_data → {"ok": true, "close": 101}]'}
+    expected = {"prompt": "ORIGINAL", "turns": [{"role": "assistant", "content": "A1"}, tool_turn]}
+    assert runs_store.get_checkpoint(run_id) == expected  # persisted mid-run
+
+    # The process dies: its task is gone, the row still says running.
+    task = run_manager._TASKS[run_id]
+    task.cancel()
+    await _await_terminal(run_id)
+    runs_store._RECONCILED.clear()
+    row = runs_store.get_run(run_id)
+    assert row is not None
+    assert (row.status, row.detail) == ("error", "interrupted by sidecar restart")
+
+    run_manager.resume_run(run_id, api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert provider.requests[2] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        (tool_turn["role"], tool_turn["content"]),
+        ("user", "Continue the task from where you stopped."),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_a_compound_launch_waits_for_start_with_its_plan(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-039: the planner was gated to foreground turns, so an unattended
+    run started a compound task with no plan to approve."""
+    from services.planner import Plan, PlanStep
+
+    async def _decompose(_prompt: str, **_k: Any) -> Plan:
+        return Plan(
+            goal="Set up the cockpit and research NVDA",
+            steps=[
+                PlanStep(action="open_panel", rationale="Open the chart"),
+                PlanStep(action="research", rationale="Research NVDA"),
+            ],
+        )
+
+    monkeypatch.setattr(agent_runtime, "decompose", _decompose)
+    provider = _PausingConversationProvider([[LLMDeltaEvent(text="Done."), LLMDoneEvent()]])
+    _patch(monkeypatch, provider)
+    prompt = "open the chart, the watchlist and news, then research NVDA"
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt=prompt, provider="openai", model="gpt-4.1-mini", api_key="sk"
+    )
+    planned = await _await_terminal(run_id)
+    assert planned is not None and planned.status == "planned"
+    assert planned.plan is not None
+    assert planned.plan.goal == "Set up the cockpit and research NVDA"
+    assert [s["rationale"] for s in planned.plan.steps] == ["Open the chart", "Research NVDA"]
+    assert provider.requests == []  # nothing ran before the user's Start
+
+    run_manager.start_run(run_id, api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and (row.status, row.answer) == ("done", "Done.")
+    assert provider.requests[0][-1] == ("user", prompt)
+
+
+@pytest.mark.asyncio
+async def test_get_run_lists_the_runs_tool_steps(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-039: the driver flattened every tool step to "[tool_use name]"
+    and the run wire carried no activity."""
+    from routers import runs as runs_router
+
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}), done],
+            [LLMToolUseEvent(tool_call_id="c2", name="web_search", input={}), done],
+            [LLMDeltaEvent(text="Summary."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+    results = {
+        "price_data": '{"ok": true, "close": 101}',
+        "web_search": '{"ok": false, "error": "search rate-limited"}',
+    }
+
+    async def _tool(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        return results[tool_call.name]
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk")
+    await _await_terminal(run_id)
+
+    assert runs_router.get_run(run_id)["activity"] == [
+        {"tool": "price_data", "status": "ok", "summary": '{"ok": true, "close": 101}'},
+        {"tool": "web_search", "status": "error", "summary": "search rate-limited"},
+    ]
+
+
 def test_answer_unknown_run_raises() -> None:
-    with pytest.raises(run_manager.RunManagerError):
+    with pytest.raises(run_manager.RunNotFound):
         run_manager.answer_run("ghost", "hi")
 
 
 def test_resume_unknown_run_raises() -> None:
-    with pytest.raises(run_manager.RunManagerError):
+    with pytest.raises(run_manager.RunNotFound):
         run_manager.resume_run("ghost")
 
 
@@ -320,13 +628,15 @@ async def test_resume_rethreads_persisted_depth_and_region(
     resume, and assert the spawned driver sees both again."""
     import config
 
-    _patch(monkeypatch, _OneShotProvider())
+    # The launch breaches its ceiling so it ends resumable (a done run is final).
+    _patch(monkeypatch, _LoopingProvider(per_round=100_000))
     region_token = config.set_request_region("IN")
     try:
         run_id = run_manager.launch_run(
             agent_id="copilot",
             prompt="research NVDA deeply",
             api_key="sk-test",
+            budget=RunBudget(max_tokens=1000),
             options={"research_depth": "deep"},
         )
     finally:
@@ -351,13 +661,55 @@ async def test_resume_rethreads_persisted_depth_and_region(
         return _gen()
 
     monkeypatch.setattr(agent_runtime, "invoke_agent", _capture_invoke)
-    assert run_manager.resume_run(run_id, api_key="sk-test") is True
+    run_manager.resume_run(run_id, api_key="sk-test")
     row = await _await_terminal(run_id)
     assert row is not None and row.status == "done"
     assert captured["options"]["research_depth"] == "deep"
     # region rides the ContextVar, never an adapter kwarg (popped in the task).
     assert "region" not in captured["options"]
     assert captured["region_at_invoke"] == "IN"
+
+
+@pytest.mark.asyncio
+async def test_resume_reuses_the_launch_provider_model_and_adds_to_the_cost(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-035 / R15-LIFECYCLE-013: a resume ran on the agent default with
+    no key (live: Ollama swapped llama3.1:8b for Qwen) and zeroed the cost."""
+    _patch(monkeypatch, _LoopingProvider(per_round=100_000))
+    run_id = run_manager.launch_run(
+        agent_id="copilot",
+        prompt="big task",
+        provider="ollama",
+        model="llama3.1:8b",
+        api_key="sk-launch-secret",
+        budget=RunBudget(max_tokens=1000),
+    )
+    before = await _await_terminal(run_id)
+    assert before is not None and before.status == "error"
+
+    captured: dict[str, Any] = {}
+
+    def _capture_invoke(**kwargs: Any) -> Any:
+        async def _gen() -> Any:
+            captured.update(kwargs)
+            kwargs["on_round_usage"](LLMUsage(input_tokens=10, output_tokens=0), "m", "ollama")
+            yield LLMDeltaEvent(text="done now")
+            yield LLMDoneEvent()
+
+        return _gen()
+
+    monkeypatch.setattr(agent_runtime, "invoke_agent", _capture_invoke)
+    run_manager.resume_run(run_id, api_key="sk-resume-secret")
+    after = await _await_terminal(run_id)
+    assert after is not None and after.status == "done"
+    assert (captured["provider"], captured["model"]) == ("ollama", "llama3.1:8b")
+    assert captured["api_key"] == "sk-resume-secret"
+    assert (after.cost.tokens, after.cost.steps) == (100_010, before.cost.steps + 1)
+    from config import get_data_dir
+
+    stored = (get_data_dir() / runs_store.DB_FILENAME).read_bytes()
+    assert b"sk-launch-secret" not in stored and b"sk-resume-secret" not in stored
 
 
 # ---------------------------------------------------------------------------

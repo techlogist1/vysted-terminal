@@ -21,7 +21,7 @@ Cost model
   the sidecar holds no provider invoice. Unknown models fall back to a sane
   default rate so an estimate is always available rather than silently zero.
 - **wall_seconds** — ``time.monotonic()`` delta from construction.
-- **steps** — incremented once per round (one provider turn that fired tools).
+- **steps** — incremented once per provider round.
 """
 
 from __future__ import annotations
@@ -159,8 +159,11 @@ class BudgetGuard:
 
         Checked in a stable order (tokens → spend → wall-clock → steps) so the
         reason is deterministic for a given accumulated state. A ``None`` ceiling
-        is never breached. The returned string is the human-readable abort reason
-        persisted as the run's ``detail`` (SC-008 demands a STATED reason).
+        is never breached. ``max_steps=N`` breaches once N rounds are done: the
+        runtime then stops before dispatching round N's tools, so a run makes at
+        most N provider rounds, and a round N that answers still ends ``done``.
+        The returned string is the human-readable abort reason persisted as the
+        run's ``detail`` (SC-008 demands a STATED reason).
         """
         if self.max_tokens is not None and self._tokens >= self.max_tokens:
             return f"token ceiling {self.max_tokens} reached ({self._tokens} used)"

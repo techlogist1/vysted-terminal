@@ -116,7 +116,11 @@ def test_checkpoint_round_trip_and_transcript_digest() -> None:
         {"role": "assistant", "content": "Looking into it."},
     ]
     runs_store.update_run("run-1", checkpoint=messages)
-    assert runs_store.get_checkpoint("run-1") == messages
+    # A legacy flat list reads as {prompt, turns} (first user turn = prompt).
+    assert runs_store.get_checkpoint("run-1") == {
+        "prompt": "research NVDA",
+        "turns": [{"role": "assistant", "content": "Looking into it."}],
+    }
 
     detail = runs_store.get_run("run-1")
     assert detail is not None
@@ -126,8 +130,41 @@ def test_checkpoint_round_trip_and_transcript_digest() -> None:
     assert roles == ["user", "assistant"]
 
 
-def test_update_unknown_returns_none() -> None:
-    assert runs_store.update_run("ghost", status="done") is None
+def test_update_unknown_raises_not_found() -> None:
+    with pytest.raises(runs_store.RunNotFound):
+        runs_store.update_run("ghost", status="done")
+
+
+def test_terminal_run_refuses_every_status_change() -> None:
+    """R15-CODE-AGENT-010: a done run is terminal; the conditional UPDATE leaves it."""
+    runs_store.create_run(
+        run_id="run-1", agent_id="x", agent_name="X", budget=RunBudget(), now=1000
+    )
+    runs_store.update_run("run-1", status="done", detail="completed", now=1100)
+    for status in ("running", "paused", "cancelled", "error"):
+        with pytest.raises(runs_store.RunStateError):
+            runs_store.update_run("run-1", status=status, detail="rewritten", now=1200)
+    row = runs_store.get_run("run-1")
+    assert row is not None
+    assert (row.status, row.detail, row.updated_at) == ("done", "completed", 1100)
+
+
+def test_first_connection_marks_orphaned_running_rows_interrupted() -> None:
+    """R15-LIFECYCLE-012: a running row outlived its process forever."""
+    for run_id in ("run-live", "run-asked"):
+        runs_store.create_run(
+            run_id=run_id, agent_id="x", agent_name="X", budget=RunBudget(), now=1000
+        )
+    runs_store.update_run("run-asked", status="paused", question="Which exchange?")
+
+    runs_store._RECONCILED.clear()  # a new sidecar process opens the store
+
+    orphan = runs_store.get_run("run-live")
+    assert orphan is not None
+    assert (orphan.status, orphan.detail) == ("error", "interrupted by sidecar restart")
+    asked = runs_store.get_run("run-asked")
+    assert asked is not None
+    assert (asked.status, asked.question) == ("paused", "Which exchange?")
 
 
 def test_reset_for_tests_clears_rows() -> None:

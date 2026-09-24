@@ -1107,6 +1107,27 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="per_invocation",
         ),
+        _cap(
+            "ask_user",
+            description=(
+                "Pause this background run and ask the user ONE question you "
+                "cannot answer yourself: a missing choice, an ambiguity, or an "
+                "approval. The run stops here and resumes with their answer as the "
+                "next message. Ask only when you are blocked; otherwise decide, and "
+                "say what you assumed."
+            ),
+            input_schema=_obj(
+                {"question": {"type": "string", "description": "The one question, in full."}},
+                ["question"],
+            ),
+            domain="agents",
+            read_only=True,
+            # The runtime offers it to every Delegate run and to nothing else, so
+            # it is no agent's grant; a per-invocation capability, so never
+            # projected to MCP (FR-028).
+            kind="per_invocation",
+            default_grant=False,
+        ),
         # --- host actions that DRIVE the terminal (mutations -> diff gate) ----
         _cap(
             "open_panel",

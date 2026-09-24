@@ -14,7 +14,27 @@ import { create } from "zustand";
 
 import type { AgentMode } from "../../types/agent-modes";
 
-export type AgentRunStatus = "running" | "done" | "error" | "cancelled" | "paused";
+export type AgentRunStatus = "planned" | "running" | "done" | "error" | "cancelled" | "paused";
+
+/** A run still in play: working, or waiting on the user (a plan to Start, a
+ *  question to answer). */
+export function isLiveRun(status: AgentRunStatus): boolean {
+  return status === "running" || status === "paused" || status === "planned";
+}
+
+/** The plan a compound Delegate run waits on before it starts (R15-AGENT-039). */
+export interface AgentRunPlan {
+  goal: string;
+  steps: { action: string; rationale?: string }[];
+  note?: string | null;
+}
+
+/** One tool step a Delegate run took (R15-AGENT-039). */
+export interface AgentRunActivity {
+  tool: string;
+  status: "ok" | "error";
+  summary: string;
+}
 
 /** Hard ceilings for a Delegate run — the first breach aborts it (FR-026). */
 export interface AgentRunBudget {
@@ -47,8 +67,16 @@ export interface AgentRun {
   budget?: AgentRunBudget;
   /** Sidecar run id for a DURABLE (Delegate) run — links to `/runs/{id}`. */
   sidecarRunId?: string;
+  /** The provider a Delegate run was launched on — a resume reads its key. */
+  provider?: string;
+  /** The chat thread a Delegate run delivers its answer to. */
+  threadId?: string;
   /** A human-in-the-loop question the run is paused on (FR-028). */
   question?: string;
+  /** The plan a `planned` run waits on for Start. */
+  plan?: AgentRunPlan;
+  /** The run's latest tool steps, oldest first. */
+  activity?: AgentRunActivity[];
   /** Abort the run (foreground: aborts the stream; durable: cancels via the rail). */
   abort?: () => void;
 }
@@ -93,7 +121,7 @@ export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
       // (cancelRun) and the abort-driven onError->endRun don't double-write;
       // the first terminal write wins.
       runs: state.runs.map((r) =>
-        r.id === id && (r.status === "running" || r.status === "paused")
+        r.id === id && isLiveRun(r.status)
           ? { ...r, status, detail: detail ?? r.detail, endedAt: Date.now() }
           : r,
       ),
@@ -104,18 +132,17 @@ export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
     run?.abort?.();
     set((state) => ({
       runs: state.runs.map((r) =>
-        r.id === id && (r.status === "running" || r.status === "paused")
-          ? { ...r, status: "cancelled", endedAt: Date.now() }
-          : r,
+        r.id === id && isLiveRun(r.status) ? { ...r, status: "cancelled", endedAt: Date.now() } : r,
       ),
     }));
   },
 
   removeRun: (id) => set((state) => ({ runs: state.runs.filter((r) => r.id !== id) })),
 
-  clearFinished: () => set((state) => ({ runs: state.runs.filter((r) => r.status === "running") })),
+  // A paused or planned run waits on the user: it is not finished (R15-CODE-AGENT-011).
+  clearFinished: () => set((state) => ({ runs: state.runs.filter((r) => isLiveRun(r.status)) })),
 
-  activeRuns: () => get().runs.filter((r) => r.status === "running" || r.status === "paused"),
+  activeRuns: () => get().runs.filter((r) => isLiveRun(r.status)),
 
   bySidecarId: (sidecarRunId) => get().runs.find((r) => r.sidecarRunId === sidecarRunId),
 }));
