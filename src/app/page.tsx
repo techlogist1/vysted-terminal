@@ -9,6 +9,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
+import { executeCommand } from "@/lib/commands";
 import { getSecret, KEYCHAIN_NAMESPACES, migrateDevKeystore } from "@/lib/keychain";
 import { initMenuBridge } from "@/lib/menu-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
@@ -24,6 +25,7 @@ import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
+import { getRegisteredAction, resolveKeyboardAction } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { registerSavedWebhooks } from "@/store/workflow";
@@ -121,6 +123,45 @@ export default function Page() {
       disposeMenu();
       teardown?.();
     };
+  }, []);
+
+  // The one keydown dispatcher (R15-UI-016 / R15-CODE-FRONTEND-016):
+  // `resolveKeyboardAction` picks the `DEFAULT_KEYBINDINGS` id whose EFFECTIVE
+  // (remap-aware) binding matches the event; this then fires either a
+  // registered shell-action handler (`registerAction` — `palette.open`,
+  // `agent.mode.*`, `agent.toggle`, `changes.*`, each owned by its component)
+  // or, for a module command id (`chart.open`, `platform.save-workspace`, …),
+  // the module's own command handler via `executeCommand` — the same path the
+  // palette uses. A default with neither is a dead entry and is silently
+  // skipped (there are none after this migration).
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        !!target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+
+      const resolved = resolveKeyboardAction(event, typing);
+      if (!resolved) {
+        return;
+      }
+      const registered = getRegisteredAction(resolved.actionId);
+      if (registered) {
+        event.preventDefault();
+        registered();
+        return;
+      }
+      const command = useModulesStore
+        .getState()
+        .enabledCommands()
+        .find((c) => c.id === resolved.actionId);
+      if (command) {
+        event.preventDefault();
+        executeCommand(command);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const openPalette = useCommandPalette((state) => state.setOpen);

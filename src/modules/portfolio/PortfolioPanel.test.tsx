@@ -383,8 +383,15 @@ describe("PortfolioPanel", () => {
     });
     await addHolding("tcs.ns", "2", "3900");
     await screen.findByText("TCS.NS");
+    // Two-step confirm (R15-UI-018): same button, second click acts — each
+    // click needs its own act() flush so the second click's handler closure
+    // sees the just-armed state.
+    const deleteButton = screen.getByLabelText("Delete TCS.NS");
     await act(async () => {
-      fireEvent.click(screen.getByLabelText("Delete TCS.NS"));
+      fireEvent.click(deleteButton);
+    });
+    await act(async () => {
+      fireEvent.click(deleteButton);
     });
     expect(activeHoldings()).toEqual([]);
     expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
@@ -417,8 +424,14 @@ describe("PortfolioPanel", () => {
     await addHolding("aapl", "10", "150");
     await screen.findByText("AAPL");
 
+    // Two-step confirm (R15-UI-018): a single click only arms it.
+    const deleteButton = screen.getByLabelText("Delete AAPL");
     await act(async () => {
-      fireEvent.click(screen.getByLabelText("Delete AAPL"));
+      fireEvent.click(deleteButton);
+    });
+    expect(activeHoldings()).toHaveLength(1);
+    await act(async () => {
+      fireEvent.click(deleteButton);
     });
     expect(activeHoldings()).toHaveLength(0);
     expect(screen.getByText("This portfolio is empty")).toBeInTheDocument();
@@ -462,8 +475,12 @@ describe("PortfolioPanel", () => {
 
   it("never drops below one portfolio when deleting the last", async () => {
     render(<PortfolioPanel />);
+    const deleteButton = screen.getByLabelText("Delete portfolio");
     await act(async () => {
-      fireEvent.click(screen.getByLabelText("Delete portfolio"));
+      fireEvent.click(deleteButton);
+    });
+    await act(async () => {
+      fireEvent.click(deleteButton);
     });
     expect(usePortfoliosStore.getState().portfolios).toHaveLength(1);
   });

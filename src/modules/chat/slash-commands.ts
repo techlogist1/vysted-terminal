@@ -26,7 +26,11 @@ export type SlashCommand =
   /** Show the inline help cheat-sheet. */
   | { kind: "help" }
   /** Plain prompt continuation; the composer routes it per the current agent. */
-  | { kind: "raw"; prompt: string };
+  | { kind: "raw"; prompt: string }
+  /** A lone `@?TICKER` token that resolves against the known symbol set — the
+   *  FR-112 LLM-free fast path (R15-AGENT-088): load it into the chart
+   *  instantly instead of paying a model round-trip. */
+  | { kind: "bare-ticker"; symbol: string };
 
 export interface SlashParseError {
   kind: "error";
@@ -35,13 +39,49 @@ export interface SlashParseError {
 
 export type SlashParseResult = SlashCommand | SlashParseError;
 
-/** Parse a single composer input line into a typed command. */
-export function parseSlashCommand(input: string): SlashParseResult {
+/** A lone token shape a ticker can take: an optional `@`, then a letter
+ *  followed by up to 9 more letters/digits/dots (covers `AAPL`, `BRK.B`,
+ *  `RELIANCE.NS`). Anchored to the WHOLE trimmed input — anything with a
+ *  space or other punctuation (a question, a sentence) never matches. */
+const BARE_TICKER_SHAPE = /^@?([A-Za-z][A-Za-z0-9.]{0,9})$/;
+
+/**
+ * A lone `@?TICKER` token resolved against the known symbol set (R15-AGENT-088
+ * / FR-112). Returns `null` for anything multi-word, unresolved, or ambiguous
+ * — those stay a raw LLM prompt, matching the spec's "ambiguous or unresolved
+ * tokens still go to the LLM."
+ */
+function matchBareTicker(trimmed: string, knownSymbols?: ReadonlySet<string>): string | null {
+  if (!knownSymbols || knownSymbols.size === 0) {
+    return null;
+  }
+  const match = BARE_TICKER_SHAPE.exec(trimmed);
+  if (!match) {
+    return null;
+  }
+  const candidate = match[1].toUpperCase();
+  return knownSymbols.has(candidate) ? candidate : null;
+}
+
+/**
+ * Parse a single composer input line into a typed command. `knownSymbols` (the
+ * resolver/watchlist-backed set the composer already tracks) enables the
+ * bare-ticker fast path — omit it and every non-slash input stays a raw
+ * prompt, as before.
+ */
+export function parseSlashCommand(
+  input: string,
+  knownSymbols?: ReadonlySet<string>,
+): SlashParseResult {
   const trimmed = input.trim();
   if (trimmed.length === 0) {
     return { kind: "error", message: "empty input" };
   }
   if (!trimmed.startsWith("/")) {
+    const bareTicker = matchBareTicker(trimmed, knownSymbols);
+    if (bareTicker) {
+      return { kind: "bare-ticker", symbol: bareTicker };
+    }
     return { kind: "raw", prompt: trimmed };
   }
   const [head, ...rest] = trimmed.slice(1).split(/\s+/);

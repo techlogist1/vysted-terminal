@@ -26,6 +26,7 @@ import { useAgentCommandStore } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useBriefStore } from "@/store/brief";
 import { useChatPendingStore } from "@/store/chat-pending";
+import { registerAction } from "@/store/keybindings";
 import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
@@ -417,6 +418,13 @@ export function ChatSidebar() {
   const providers = useLLMProvidersStore((state) => state.providers);
   const defaultProviderId = useLLMProvidersStore((state) => state.defaultProviderId);
   const setDefaultProviderId = useLLMProvidersStore((state) => state.setDefaultProviderId);
+  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+  // FR-112): a lone resolved symbol loads the chart instantly, LLM-free.
+  const composerKnownSymbols = useSymbolsStore((state) => state.entries);
+  const composerKnownSymbolSet = useMemo(
+    () => new Set(composerKnownSymbols.map((e) => e.symbol.toUpperCase())),
+    [composerKnownSymbols],
+  );
   const refreshProviders = useLLMProvidersStore((state) => state.refresh);
 
   const keyStatuses = useProviderKeysStore((state) => state.status);
@@ -554,36 +562,35 @@ export function ChatSidebar() {
     return map;
   }, [firstPartyAgents, customAgents]);
 
-  // Global hotkeys for the agent surface: ⌥1–⌥4 switch mode (FR-003); when
-  // changes are pending, ⌘↵ accepts all and ⌘⌫ rejects all (FR-010 keyboard).
+  // Register the agent-surface hotkeys' handlers (FR-003 mode switch, FR-010
+  // bulk accept/reject); the app-level dispatcher (`page.tsx`) resolves each
+  // action's (possibly remapped) binding and calls these. `changes.acceptAll`/
+  // `changes.rejectAll` are non-global (the dispatcher already skips them
+  // while typing — ⌘⌫ is the macOS "delete to line start" the composer
+  // needs), and each handler still no-ops with nothing pending.
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.altKey && !event.metaKey && !event.ctrlKey) {
-        const found = AGENT_MODES.find((m) => event.code === `Digit${m.hotkeyDigit}`);
-        if (found) {
-          event.preventDefault();
-          setMode(found.id);
-          return;
-        }
+    const unregisters = AGENT_MODES.map((m) =>
+      registerAction(`agent.mode.${m.id}`, () => setMode(m.id)),
+    );
+    return () => unregisters.forEach((unregister) => unregister());
+  }, [setMode]);
+
+  useEffect(() => {
+    const unregisterAccept = registerAction("changes.acceptAll", () => {
+      if (pendingChangeCount > 0) {
+        void acceptAllChanges();
       }
-      // Bulk accept/reject (⌘↵ / ⌘⌫) — but NOT while the user is typing in a
-      // field: ⌘⌫ is the macOS "delete to line start" the composer needs.
-      const el = event.target as HTMLElement | null;
-      const typing =
-        !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
-      if ((event.metaKey || event.ctrlKey) && pendingChangeCount > 0 && !typing) {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          void acceptAllChanges();
-        } else if (event.key === "Backspace") {
-          event.preventDefault();
-          rejectAllChanges();
-        }
+    });
+    const unregisterReject = registerAction("changes.rejectAll", () => {
+      if (pendingChangeCount > 0) {
+        rejectAllChanges();
       }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [setMode, pendingChangeCount, acceptAllChanges, rejectAllChanges]);
+    });
+    return () => {
+      unregisterAccept();
+      unregisterReject();
+    };
+  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
   // Stage a curated-slash action through the SAME diff/accept gate the agent uses
   // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in
@@ -714,10 +721,16 @@ export function ChatSidebar() {
         }
         result = { kind: "raw", prompt: invocation.cmd.dispatch.template(invocation.args) };
       } else {
-        result = parseSlashCommand(rawInput);
+        result = parseSlashCommand(rawInput, composerKnownSymbolSet);
       }
       if (result.kind === "error") {
         setStatusLine(result.message);
+        return;
+      }
+      if (result.kind === "bare-ticker") {
+        // FR-112 fast path: a lone resolved ticker loads the chart instantly,
+        // no LLM round-trip — the same gate/dispatch `/chart` uses.
+        dispatchSlashAction("chart", result.symbol);
         return;
       }
       if (result.kind === "help") {
@@ -812,13 +825,13 @@ export function ChatSidebar() {
           if (readiness.reason === "model_not_pulled") {
             setStatusLine(
               `${model} is not downloaded yet — opening setup to download it. (Quotes, ` +
-                "charts, news and web research already work without a model.)",
+                "charts, news and screeners already work without a model.)",
             );
             useOnboardingStore.getState().open("local");
           } else if (readiness.reason === "not_configured") {
             setStatusLine(
-              "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
-                "research already work without one.)",
+              "No AI model is set up yet — opening setup. (Quotes, charts, news and " +
+                "screeners already work without one.)",
             );
             useOnboardingStore.getState().open();
           } else {
@@ -1090,6 +1103,7 @@ export function ChatSidebar() {
       agentNameById,
       beginAssistant,
       clearHistory,
+      composerKnownSymbolSet,
       customAgents,
       defaultProviderId,
       delegateBudget,

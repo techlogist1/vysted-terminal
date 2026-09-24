@@ -240,10 +240,17 @@ describe("search-settings store (R9 two-tier)", () => {
     expect(s.searxngUrl).toBe("");
   });
 
-  it("setAll with fields absent entirely keeps the seed values", () => {
+  it("R15-UI-058: setAll with fields absent entirely preserves the CURRENT state, not the seed", () => {
+    // Was "...keeps the seed values" / asserted a reset to "tier_a" — that
+    // pinned the exact defect this entry fixes: a bundle missing a field
+    // (a partial import, or setAll called mid-session) must not silently
+    // reset an already-set preference back to its default (the same
+    // merge-over-seed class fixed for settings.ts `region` and
+    // keybindings.ts overrides). A boot restore is unaffected — the store's
+    // CURRENT state at that point already IS the seed.
     useSearchSettingsStore.getState().setResearchTier("tier_b");
     useSearchSettingsStore.getState().setAll({});
-    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_a");
+    expect(useSearchSettingsStore.getState().researchTier).toBe("tier_b");
   });
 
   it("toBundle / searchSettingsBundle snapshot the persistence shape", () => {

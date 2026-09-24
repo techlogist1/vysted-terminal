@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import {
   extractSidecarDetail,
   getSidecarBaseUrl,
@@ -539,14 +540,15 @@ export function AgentBuilderPanel() {
                     {agent.id}
                   </span>
                 </button>
-                <button
-                  type="button"
+                <ConfirmButton
+                  variant="ghost"
                   aria-label={`Delete ${agent.name}`}
-                  onClick={() => handleDelete(agent.id)}
-                  className="text-charcoal-400 hover:text-negative text-micro font-mono"
+                  onConfirm={() => handleDelete(agent.id)}
+                  armedLabel="Confirm?"
+                  className="text-charcoal-400 hover:text-negative text-micro h-auto p-0 font-mono"
                 >
                   ×
-                </button>
+                </ConfirmButton>
               </li>
             ))}
           </ul>

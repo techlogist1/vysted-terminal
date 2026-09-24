@@ -20,6 +20,50 @@ describe("parseSlashCommand", () => {
     });
   });
 
+  // R15-AGENT-088 / FR-112: a lone resolved ticker is an LLM-free fast path.
+  describe("bare-ticker fast path", () => {
+    const knownSymbols = new Set(["AAPL", "RELIANCE"]);
+
+    it("a lone known ticker resolves to the chart action", () => {
+      expect(parseSlashCommand("AAPL", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "AAPL",
+      });
+    });
+
+    it("an @-prefixed known ticker resolves the same way", () => {
+      expect(parseSlashCommand("@RELIANCE", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "RELIANCE",
+      });
+    });
+
+    it("is case-insensitive against the known set", () => {
+      expect(parseSlashCommand("aapl", knownSymbols)).toEqual({
+        kind: "bare-ticker",
+        symbol: "AAPL",
+      });
+    });
+
+    it("a multi-word input stays a raw prompt even if it starts with a known ticker", () => {
+      expect(parseSlashCommand("AAPL earnings?", knownSymbols)).toEqual({
+        kind: "raw",
+        prompt: "AAPL earnings?",
+      });
+    });
+
+    it("an unresolved lone token stays a raw prompt", () => {
+      expect(parseSlashCommand("ZZZZ", knownSymbols)).toEqual({
+        kind: "raw",
+        prompt: "ZZZZ",
+      });
+    });
+
+    it("with no known-symbol set passed, every non-slash input stays raw (unchanged default)", () => {
+      expect(parseSlashCommand("AAPL")).toEqual({ kind: "raw", prompt: "AAPL" });
+    });
+  });
+
   it("parses /ask with a prompt", () => {
     expect(parseSlashCommand("/ask is AAPL cheap?")).toEqual({
       kind: "ask",
