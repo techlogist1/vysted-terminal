@@ -20,7 +20,7 @@
  */
 
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
-import { getSidecarBaseUrl, sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
+import { sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import {
   type AgentRun,
@@ -382,23 +382,16 @@ export async function answerDelegateRun(
 export async function startDelegateRun(run: AgentRun): Promise<RunActionResult> {
   const sidecarRunId = run.sidecarRunId;
   if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to start." };
-  // ponytail: start/resume stay on a hand-rolled fetch until AgentsRail.test.tsx
-  // stops mocking getSidecarBaseUrl (it pins these exact request headers).
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/start`, base).toString(),
-      { method: "POST", headers: await providerKeyHeader(run.provider) },
-    );
-    if (!response.ok) {
-      return { ok: false, error: `Couldn't start the run (HTTP ${response.status}).` };
-    }
-    useAgentRunsStore.getState().updateRun(run.id, { status: "running", detail: "started" });
-    ensurePolling();
-    return { ok: true };
+    await sidecarRequest("POST", `/runs/${encodeURIComponent(sidecarRunId)}/start`, {
+      headers: await providerKeyHeader(run.provider),
+    });
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Couldn't start the run." };
+    return { ok: false, error: `Couldn't start the run (${reasonOf(err)}).` };
   }
+  useAgentRunsStore.getState().updateRun(run.id, { status: "running", detail: "started" });
+  ensurePolling();
+  return { ok: true };
 }
 
 /** Resume an errored run from its checkpoint on its launch provider/model
@@ -407,28 +400,23 @@ export async function resumeDelegateRun(run: AgentRun): Promise<RunActionResult>
   const sidecarRunId = run.sidecarRunId;
   if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to resume." };
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/resume`, base).toString(),
-      { method: "POST", headers: await providerKeyHeader(run.provider) },
-    );
-    if (!response.ok) {
-      return { ok: false, error: `Couldn't resume the run (HTTP ${response.status}).` };
-    }
-    useAgentRunsStore
-      .getState()
-      .updateRun(run.id, { status: "running", endedAt: undefined, detail: "resumed" });
-    origins.set(sidecarRunId, {
-      threadId: run.threadId,
-      agentId: run.agentId ?? "",
-      agentName: run.agentName,
-      messageId: `delegate-${sidecarRunId}-${Date.now()}`,
+    await sidecarRequest("POST", `/runs/${encodeURIComponent(sidecarRunId)}/resume`, {
+      headers: await providerKeyHeader(run.provider),
     });
-    ensurePolling();
-    return { ok: true };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Couldn't resume the run." };
+    return { ok: false, error: `Couldn't resume the run (${reasonOf(err)}).` };
   }
+  useAgentRunsStore
+    .getState()
+    .updateRun(run.id, { status: "running", endedAt: undefined, detail: "resumed" });
+  origins.set(sidecarRunId, {
+    threadId: run.threadId,
+    agentId: run.agentId ?? "",
+    agentName: run.agentName,
+    messageId: `delegate-${sidecarRunId}-${Date.now()}`,
+  });
+  ensurePolling();
+  return { ok: true };
 }
 
 /** Test helper: stop the poll timer. */
