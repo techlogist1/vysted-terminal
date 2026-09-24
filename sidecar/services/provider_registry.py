@@ -53,6 +53,7 @@ from services import (
     india_provider,
     nse_provider,
     openbb_mcp_provider,
+    provider_health,
     symbol_resolver,
     yfinance_provider,
 )
@@ -378,14 +379,24 @@ def _resolve_sync(
     for provider in candidates:
         try:
             result = provider.serves[model_key](*args)
-            return validate(result) if validate is not None else result
+            validated = validate(result) if validate is not None else result
         except ProviderError as exc:
             last_exc = exc
-            _log.warning(
-                "provider %s failed for %s, falling through: %s", provider.id, model_key, exc
-            )
+            _fell_through(provider.id, model_key, exc)
+            continue
+        provider_health.record_served(provider.id, model_key)
+        return validated
     assert last_exc is not None
     raise last_exc
+
+
+def _fell_through(provider_id: str, model_key: str, exc: ProviderError) -> None:
+    """Log and count a fall-through (R15-LIFECYCLE-021). A ``not_found`` — the
+    provider answered that it does not list this instrument or series — is a
+    routing miss, not a failing upstream, so it is not counted."""
+    _log.warning("provider %s failed for %s, falling through: %s", provider_id, model_key, exc)
+    if exc.kind != "not_found":
+        provider_health.record_fallthrough(provider_id, model_key, str(exc))
 
 
 async def _resolve_async(
@@ -431,10 +442,9 @@ async def _resolve_async(
             validated = validate(resolved) if validate is not None else resolved
         except ProviderError as exc:
             last_exc = exc
-            _log.warning(
-                "provider %s failed for %s, falling through: %s", provider.id, model_key, exc
-            )
+            _fell_through(provider.id, model_key, exc)
             continue
+        provider_health.record_served(provider.id, model_key)
         if accept is None or accept(validated):
             return validated
         # Valid but INCOMPLETE for this model-key — remember the highest-ranked
@@ -677,18 +687,23 @@ def active_providers() -> dict[str, str]:
     """Report which provider currently backs each model-key, derived from the
     declaration table + each provider's current availability. The first
     (preferred + available) provider per model-key is named; a lower-ranked
-    available fallback is noted; an unavailable-only key reports 'unavailable'."""
+    available fallback is noted; an unavailable-only key reports 'unavailable'.
+    A provider whose recent calls keep falling through is named as failing, not
+    as primary (R15-LIFECYCLE-021): availability is importability, not liveness."""
     report: dict[str, str] = {}
     model_keys = sorted({k for p in _PROVIDERS for k in p.serves})
     for model_key in model_keys:
         ranked = sorted((p for p in _PROVIDERS if model_key in p.serves), key=lambda p: p.rank)
-        available = [p for p in ranked if p.available()]
+        available = [p.id for p in ranked if p.available()]
         if not available:
             report[model_key] = "unavailable"
             continue
-        primary = available[0].id
-        fallbacks = [p.id for p in available[1:]]
-        report[model_key] = f"{primary} ({', '.join(fallbacks)} fallback)" if fallbacks else primary
+        failing = [p for p in available if provider_health.is_failing(p, model_key)]
+        healthy = [p for p in available if p not in failing] or available
+        notes = [f"{', '.join(healthy[1:])} fallback"] if healthy[1:] else []
+        if failing and healthy is not available:
+            notes.append(f"{', '.join(failing)} failing")
+        report[model_key] = f"{healthy[0]} ({'; '.join(notes)})" if notes else healthy[0]
     # Keep the openbb-mcp availability line the existing /health consumers read.
     report["openbb-mcp"] = "available" if openbb_mcp_provider.is_available() else "unavailable"
     return report

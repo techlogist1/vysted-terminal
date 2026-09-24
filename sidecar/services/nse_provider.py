@@ -360,10 +360,13 @@ def _quote_referer(symbol: str) -> str:
 
 def _require_nse(symbol: str) -> str:
     """Return the bare NSE symbol, or raise so the registry falls through fast
-    (no network for a non-NSE ticker)."""
+    (no network for a non-NSE ticker). ``not_found``: a routing miss, never
+    counted as the lane failing (R15-LIFECYCLE-021)."""
     bare = locale.strip_exchange_suffix(symbol)
     if not symbol_resolver.is_nse_symbol(bare):
-        raise ProviderError(f"nse_direct: {symbol!r} is not a known NSE instrument")
+        raise ProviderError(
+            f"nse_direct: {symbol!r} is not a known NSE instrument", kind="not_found"
+        )
     return bare
 
 
@@ -492,7 +495,8 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     if timeframe not in _EOD_TIMEFRAMES:
         raise ProviderError(
             f"nse_direct: intraday timeframe {timeframe!r} is not available keyless — "
-            "BSE/NSE serve end-of-day data only"
+            "BSE/NSE serve end-of-day data only",
+            kind="not_found",  # a routing miss, not the lane failing
         )
     bare = _require_nse(symbol)
     days = _RANGE_DAYS.get(range_ or "", _DEFAULT_RANGE_DAYS)

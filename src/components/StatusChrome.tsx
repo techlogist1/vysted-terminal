@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useKeylessReadiness } from "@/lib/provider-validation";
+import { sidecarGet } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { useAgentRunsStore } from "@/store/agent-runs";
 import { useAppStore } from "@/store/app";
@@ -70,6 +71,57 @@ function useProviderNotReady(
   return keyless && !keyless.ok ? { reason: keyless.reason ?? "unreachable" } : null;
 }
 
+/** One run of registry fall-throughs (`/system/provider-health`, C14). */
+interface Fallthrough {
+  provider: string;
+  model_key: string;
+  count: number;
+  last_error: string;
+  last_at: number;
+}
+
+/** A lane is shown as unreachable at this many consecutive fall-throughs, the
+ *  latest within the window (mirrors `provider_health.FAILING_*`). */
+const FALLTHROUGH_NOTICE_COUNT = 3;
+const FALLTHROUGH_WINDOW_S = 600;
+const PROVIDER_HEALTH_POLL_MS = 60_000;
+
+/**
+ * R15-LIFECYCLE-021: true while the NSE exchange-direct lane keeps falling
+ * through, so the chrome can say the IN data is coming from a fallback source.
+ */
+function useNseUnreachable(connected: boolean): boolean {
+  const [unreachable, setUnreachable] = useState(false);
+  useEffect(() => {
+    if (!connected) {
+      return;
+    }
+    let alive = true;
+    const poll = async () => {
+      try {
+        const health = await sidecarGet<{ fallthroughs: Fallthrough[] }>("/system/provider-health");
+        const now = Date.now() / 1000;
+        const down = health.fallthroughs.some(
+          (row) =>
+            row.provider === "nse_direct" &&
+            row.count >= FALLTHROUGH_NOTICE_COUNT &&
+            now - row.last_at < FALLTHROUGH_WINDOW_S,
+        );
+        if (alive) setUnreachable(down);
+      } catch {
+        // The sidecar dot already reports an unreachable sidecar.
+      }
+    };
+    void poll();
+    const timer = setInterval(() => void poll(), PROVIDER_HEALTH_POLL_MS);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [connected]);
+  return connected && unreachable;
+}
+
 /**
  * Designed short form for a model id (law §3.1): "deepseek-v4-flash" →
  * "DeepSeek V4 Flash". The org prefix ("minimax/minimax-m3") drops, tokens get
@@ -132,6 +184,7 @@ export function StatusChrome() {
   const model = useModelForProvider(provider);
   const runs = useAgentRunsStore((state) => state.runs);
   const autosaveError = useWorkspaceStore((state) => state.lastAutosaveError);
+  const nseUnreachable = useNseUnreachable(status === "connected");
 
   const providerMeta = provider ? providers.find((p) => p.id === provider) : undefined;
   // D60: probe the default lane's actual readiness instead of asserting it.
@@ -231,6 +284,20 @@ export function StatusChrome() {
           >
             <span className="size-2 shrink-0 rounded-full bg-current" aria-hidden />
             Not saving
+          </span>
+        </>
+      )}
+      {nseUnreachable && (
+        <>
+          <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
+          {/* R15-LIFECYCLE-021: quiet (muted, no alarm colour) — the data still
+              flows, from the next lane; each panel's provider chip names it. */}
+          <span
+            className="whitespace-nowrap"
+            data-testid="nse-unreachable"
+            title="The NSE exchange-direct feed keeps failing; Indian quotes and charts are served by the next source (each panel's provider chip names it)."
+          >
+            NSE data unreachable — serving fallback
           </span>
         </>
       )}
