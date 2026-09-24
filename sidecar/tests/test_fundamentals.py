@@ -490,13 +490,36 @@ def test_revenue_diverging_from_the_annual_statement_is_flagged(
     assert "15,131,300,000" in meta["reason"]
 
 
-def test_revenue_divergence_on_a_second_listing_is_flagged(
+def test_revenue_the_provider_statements_agree_with_is_served_from_the_filings(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A case the fix was not written against: DAL's 2.76cr against 9.97cr."""
+    """DAL: Yahoo's 2.76cr TTM sits beside its own FY 2.07cr annual (within the
+    band) and a matching margin, so no Yahoo witness can see it; the BSE-filed
+    quarters (9.97cr, screener 9.97cr) are served instead (R15-DATA-014)."""
+    from datetime import date
+
+    from services import exchange_financials
+    from services.exchange_financials import FiledPeriod, FiledPeriods
+
+    quarters = [
+        (date(2026, 4, 1), date(2026, 6, 30), 72_600_000.0),
+        (date(2026, 1, 1), date(2026, 3, 31), 100_000.0),
+        (date(2025, 10, 1), date(2025, 12, 31), 25_800_000.0),
+        (date(2025, 7, 1), date(2025, 9, 30), 1_200_000.0),
+    ]
+    filed = FiledPeriods(
+        "bse", "standalone", tuple(FiledPeriod(s, e, rev, None, None) for s, e, rev in quarters)
+    )
+
+    async def filed_periods(listing: str) -> FiledPeriods:
+        assert listing == "DAL.BO"
+        return filed
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", filed_periods)
     fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
-    body = _revenue_route(client, monkeypatch, "DAL.BO", fields, 99_700_000, _QUARTERLY)
-    assert body["field_meta"]["revenue_ttm"]["status"] == "flagged"
+    body = _revenue_route(client, monkeypatch, "DAL.BO", fields, 20_668_000, _QUARTERLY)
+    assert body["revenue_ttm"] == pytest.approx(99_700_000)
+    assert body["field_meta"]["revenue_ttm"]["provider"] == "bse"
 
 
 def test_half_yearly_filer_ttm_is_labelled_annual(

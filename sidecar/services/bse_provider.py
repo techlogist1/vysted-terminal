@@ -1099,6 +1099,86 @@ def _xml_local(tag: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Filed financial results — raw rows (R15-DATA-014).
+# ---------------------------------------------------------------------------
+#
+# Shapes OBSERVED LIVE (probe 2026-09-24, DAL 539681 / JONJUA 542446 / FUSION
+# 543652; fixtures under ``tests/fixtures/bse/``). Figures are INR MILLION on
+# both result endpoints (JONJUA Q1 FY27 43.52 = the summary's 4.35 Cr).
+#
+#   * ``TabResults/w?scripcode=&tabtype=RESULTS`` → a JSON *string* holding
+#     ``{col2 "Jun-26", resultinCr/resultinM [...], resultinS [{LLQ, LSQ, LFY}]}``
+#     whose ``LLQ`` link names the latest quarter's result page and id: the
+#     ``results.aspx`` format carries a decimal id (``qtr=130.00``, one step of
+#     1.00 per quarter, ``.50`` the fiscal year); ``NBFC.aspx`` an integer id
+#     (``qtr=374``, four steps per quarter: 374 Jun-26, 370 Mar-26, 366 Dec-25).
+#   * ``Corp_detailedResult_Transpose_ng/w?Scrip_cd=&Qtr=130.00`` → ``{table1:
+#     [{fld_desc, Value}]}`` with ``Date Begin``/``Date End`` ("01-Apr-26"),
+#     ``Net Sales/Revenue From Operations``, ``Net Profit``, ``Basic EPS for
+#     continuing operation``; an id with no filing answers blank dates.
+#   * ``Corp_NBFC_PROFIT_LOSS_ng/w?scrip_code=&Fld_QuaterId=374`` → ``{table:
+#     [{HeaderName, CurrentValue, PrevValue, CurYear "Jun-26", PrevYear
+#     "Mar-26"}]}`` — the quarter and the one before it.
+
+_API_BASE = "https://api.bseindia.com/BseIndiaAPI/api/"
+
+
+def _api_json(path: str, params: dict[str, str]) -> object:
+    """One throttled, Chrome-impersonated BSE API GET returning parsed JSON (the
+    result endpoints 403 a plain httpx client); a JSON-encoded string body
+    (``TabResults``) is decoded once more."""
+    from curl_cffi import requests as curl_requests
+
+    _bucket.take()
+    try:
+        with curl_requests.Session(impersonate="chrome") as session:
+            resp = session.get(
+                _API_BASE + path,
+                params=params,
+                headers={"Referer": _HEADERS["Referer"], "Accept": "application/json"},
+                timeout=_READ_TIMEOUT,
+            )
+    except Exception as exc:  # noqa: BLE001 - surfaced as a lane error
+        raise ProviderError(f"bse {path}: transport failure: {exc}") from exc
+    if resp.status_code != 200:
+        raise ProviderError(f"bse {path}: HTTP {resp.status_code}")
+    try:
+        payload = resp.json()
+        return json.loads(payload) if isinstance(payload, str) else payload
+    except Exception as exc:  # noqa: BLE001 - a non-JSON body is a lane error
+        raise ProviderError(f"bse {path}: non-JSON body: {exc}") from exc
+
+
+def _table(payload: object, key: str, path: str) -> list[dict]:
+    rows = payload.get(key) if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        raise ProviderError(f"bse {path}: malformed payload")
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def get_results_summary(code: str) -> dict:
+    """The ``TabResults`` summary for scrip ``code`` (latest quarter links)."""
+    payload = _api_json("TabResults/w", {"scripcode": code, "tabtype": "RESULTS"})
+    if not isinstance(payload, dict):
+        raise ProviderError("bse TabResults/w: malformed payload")
+    return payload
+
+
+def get_result_detail(code: str, qtr: str) -> list[dict]:
+    """The ``results.aspx``-format result rows for scrip ``code`` at id ``qtr``."""
+    path = "Corp_detailedResult_Transpose_ng/w"
+    return _table(_api_json(path, {"Scrip_cd": code, "Qtr": qtr}), "table1", path)
+
+
+def get_nbfc_profit_loss(code: str, qtr_id: int) -> list[dict]:
+    """The ``NBFC.aspx``-format profit-and-loss rows for scrip ``code`` at id
+    ``qtr_id`` (that quarter and the one before it)."""
+    path = "Corp_NBFC_PROFIT_LOSS_ng/w"
+    params = {"scrip_code": code, "Fld_QuaterId": str(qtr_id)}
+    return _table(_api_json(path, params), "table", path)
+
+
+# ---------------------------------------------------------------------------
 # Resample + small numeric helpers (mirror india_provider).
 # ---------------------------------------------------------------------------
 
@@ -1167,7 +1247,10 @@ def _num(value: object) -> float | None:
 __all__ = [
     "PROVIDER",
     "get_history",
+    "get_nbfc_profit_loss",
     "get_quote",
+    "get_result_detail",
+    "get_results_summary",
     "get_shareholding",
     "is_available",
     "parse_bhavcopy",

@@ -29,6 +29,8 @@ from services.errors import ProviderError
 
 
 class _FakeFundamentals:
+    symbol = "AAPL"  # the served listing, as on the real Fundamentals
+
     def model_dump(self, **_kw: Any) -> dict[str, Any]:
         return {"symbol": "AAPL", "pe_ratio": 31.2}
 

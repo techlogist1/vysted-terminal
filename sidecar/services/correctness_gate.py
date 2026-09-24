@@ -29,6 +29,7 @@ import asyncio
 import logging
 import math
 import re
+import statistics
 import time
 from collections.abc import Awaitable, Callable
 from datetime import UTC, date, datetime
@@ -38,6 +39,7 @@ from models.fundamentals import FieldMeta, Fundamentals, IncomeStatement
 from models.market import OHLCVSeries, Quote
 from services import (
     dividend_history,
+    exchange_financials,
     fundamentals_store,
     locale,
     ownership_check,
@@ -45,7 +47,11 @@ from services import (
 )
 from services.errors import ProviderError
 from services.research import range_check
-from services.research.semantics import _RANGE_TOLERANCE
+from services.research.semantics import (
+    _GROWTH_ABSOLUTE_TOLERANCE,
+    _GROWTH_RELATIVE_TOLERANCE,
+    _RANGE_TOLERANCE,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -534,6 +540,10 @@ _MARGIN_GAP = 0.02
 #: A trailing-12-month size needs four filed quarters inside a year; a period end
 #: less than this many days before the latest one falls inside that year.
 _TTM_WINDOW_DAYS = 330
+#: A median gap between Yahoo's period ends above this many days is a
+#: half-yearly cadence (a quarterly one sits near 91, a half-yearly near 182).
+_HALF_YEAR_GAP_DAYS = 135
+_HALF_YEARLY_BASIS = "annual, not trailing-4Q; kept, flagged"
 
 
 def _latest_annual(statement: IncomeStatement, label: str) -> tuple[str, float] | None:
@@ -548,10 +558,44 @@ def _latest_annual(statement: IncomeStatement, label: str) -> tuple[str, float] 
     return None
 
 
+def _ttm_basis(quarter_ends: list[date] | None, cadence: str | None) -> str | None:
+    """The TTM-basis label for the trailing sizes, or ``None`` when four
+    quarters back them (R15-LEAD-004, D-B7-2).
+
+    The cadence comes from the exchange-filed periods when that lane answered,
+    else from the median gap between Yahoo's period ends — never from a count
+    of Yahoo's columns, whose Indian frames skip quarters: a quarterly filer
+    with a missing Yahoo column spans a provider gap, it is not half-yearly.
+    """
+    if cadence == "half-yearly":
+        return (
+            "TTM basis: the exchange filings do not cover the trailing year in four "
+            f"quarters (a half-yearly filer) — {_HALF_YEARLY_BASIS}"
+        )
+    if not quarter_ends:  # an empty frame says nothing about the filing cadence
+        return None
+    ends = sorted(set(quarter_ends), reverse=True)
+    filed = [d for d in ends if (ends[0] - d).days < _TTM_WINDOW_DAYS]
+    if len(filed) >= 4:
+        return None
+    gaps = [(newer - older).days for newer, older in zip(ends, ends[1:], strict=False)]
+    if cadence is None and gaps and statistics.median(gaps) > _HALF_YEAR_GAP_DAYS:
+        return (
+            f"TTM basis: only {len(filed)} filed period(s) in the trailing year "
+            f"(a half-yearly filer) — {_HALF_YEARLY_BASIS}"
+        )
+    return (
+        f"TTM basis: the provider's quarterly statements show only {len(filed)} "
+        "quarter(s) in the trailing year — the trailing figure spans a provider gap; "
+        "kept, flagged"
+    )
+
+
 def reconcile_revenue(
     f: Fundamentals,
     annual: IncomeStatement | None,
     quarter_ends: list[date] | None,
+    cadence: str | None = None,
 ) -> Fundamentals:
     """Flag a ``revenue_ttm`` its own provider's statements do not bear out
     (R15-DATA-014), never substituting one.
@@ -560,8 +604,9 @@ def reconcile_revenue(
         :data:`_REVENUE_STATEMENT_DIVERGENCE`;
       * net income / revenue against the provider's own ``profit_margin``,
         beyond :data:`_MARGIN_GAP`;
-      * fewer than four filed quarters in the trailing year (a half-yearly filer)
-        → the trailing sizes are labelled "annual, not trailing-4Q".
+      * a trailing year not backed by four quarters → the trailing sizes carry
+        the :func:`_ttm_basis` label (``cadence`` is the exchange-filed cadence,
+        ``None`` when that lane did not answer).
 
     A witness that could not be fetched (``None``, or an empty quarterly
     frame) contributes nothing.
@@ -592,19 +637,104 @@ def reconcile_revenue(
     flagged: dict[str, str] = {}
     if reasons:
         flagged["revenue_ttm"] = "; ".join(reasons) + "; kept, flagged"
-    if quarter_ends:  # an empty frame says nothing about the filing cadence
-        newest = max(quarter_ends)
-        filed = [d for d in quarter_ends if (newest - d).days < _TTM_WINDOW_DAYS]
-        if len(filed) < 4:
-            basis = (
-                f"TTM basis: only {len(filed)} filed quarter(s) in the trailing year "
-                "(e.g. a half-yearly filer) — annual, not trailing-4Q; kept, flagged"
-            )
-            for field_name in ("revenue_ttm", "net_income_ttm"):
-                if getattr(f, field_name) is not None:
-                    prior = flagged.get(field_name)
-                    flagged[field_name] = f"{prior}; {basis}" if prior else basis
+    basis = _ttm_basis(quarter_ends, cadence)
+    if basis is not None:
+        for field_name in ("revenue_ttm", "net_income_ttm"):
+            if getattr(f, field_name) is not None:
+                prior = flagged.get(field_name)
+                flagged[field_name] = f"{prior}; {basis}" if prior else basis
     return _merge_meta(f, {}, flagged)
+
+
+#: The filed-period sums the exchange overlay serves: (field, period attribute).
+_FILED_SIZES = (("revenue_ttm", "revenue"), ("net_income_ttm", "net_profit"), ("eps", "eps"))
+_FILED_GROWTH = (("revenue_growth", "revenue"), ("earnings_growth", "net_profit"))
+
+
+def _growth_disagrees(served: float, filed: float) -> bool:
+    """The research leg's growth tolerance (relative, with an absolute floor)."""
+    band = max(
+        _GROWTH_RELATIVE_TOLERANCE * max(abs(served), abs(filed)), _GROWTH_ABSOLUTE_TOLERANCE
+    )
+    return abs(served - filed) > band
+
+
+def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPeriods) -> Fundamentals:
+    """Serve the exchange-filed figures over the provider's (D-B7-1).
+
+      * ``revenue_ttm`` / ``net_income_ttm`` / ``eps`` — the sum of the filed
+        periods covering the trailing 12 months (four quarters, or two halves);
+        nothing when the filings leave a hole in that year;
+      * ``revenue_growth`` / ``earnings_growth`` — the newest filed period
+        against the same-length period a year earlier (MRQ-YoY), when filed.
+
+    ``field_meta`` names the venue, the basis and the latest period end; a
+    provider figure beyond the witness band (30% for sizes, the research
+    growth tolerance for growth) is disclosed in the reason. Every other field
+    stays the provider's.
+    """
+    latest = filed.periods[0]
+    as_of = latest.end.isoformat()
+    meta = dict(f.field_meta or {})
+    updates: dict[str, Any] = {}
+
+    def serve(name: str, value: float, label: str, disagrees: bool) -> None:
+        served = getattr(f, name)
+        reason = None
+        if served is not None and disagrees:
+            shown = (
+                f"{served:.1%}"
+                if name.endswith("_growth")
+                else f"{served:,.2f}"
+                if name == "eps"
+                else f"{served:,.0f}"
+            )
+            reason = (
+                f"exchange-filed ({filed.venue.upper()}) figure served; the provider's "
+                f"{shown} disagrees with it — not served"
+            )
+        updates[name] = value
+        meta[name] = FieldMeta(
+            status="ok", provider=filed.venue, as_of=as_of, reason=reason, label=label
+        )
+
+    trail = filed.trailing()
+    if trail is not None:
+        kind = "quarters" if all(p.months == 3 for p in trail) else "half-years"
+        label = f"{filed.basis}, sum of {len(trail)} filed {kind} to {as_of}"
+        for name, attr in _FILED_SIZES:
+            values = [getattr(p, attr) for p in trail]
+            if any(v is None for v in values):
+                continue
+            total = sum(values)
+            served = getattr(f, name)
+            off = served is not None and (
+                _relative_divergence(served, total) > _REVENUE_STATEMENT_DIVERGENCE
+            )
+            serve(name, total, label, off)
+    prior = filed.year_ago(latest)
+    if prior is not None and f.growth_basis == "mrq_yoy":
+        label = f"{filed.basis}, period to {as_of} vs the same period to {prior.end.isoformat()}"
+        for name, attr in _FILED_GROWTH:
+            now, then = getattr(latest, attr), getattr(prior, attr)
+            if now is None or not then:
+                continue
+            growth = (now - then) / abs(then)
+            served = getattr(f, name)
+            serve(name, growth, label, served is not None and _growth_disagrees(served, growth))
+    if not updates:
+        return f
+    updates["field_meta"] = meta
+    return f.model_copy(update=updates)
+
+
+async def apply_exchange_financials(f: Fundamentals) -> Fundamentals:
+    """The exchange-filed overlay for one Indian listing's fundamentals
+    (:func:`overlay_filed_periods`). A non-Indian listing, or a lane that
+    returns nothing, leaves ``f`` unchanged; never raises. Called by the agent
+    ``fundamentals`` tool; :func:`apply_witnesses` runs the same overlay."""
+    filed = await exchange_financials.get_filed_periods(f.symbol)
+    return overlay_filed_periods(f, filed) if filed is not None else f
 
 
 #: Relative gap between a served per-share book field and the same figure
@@ -799,10 +929,14 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         paid → :func:`services.dividend_history.apply_dividend_ttm`, the same leg
         the research snapshot runs (R15-DATA-047/049);
       * for a yfinance-served 52-week range on an Indian listing, a year of
-        NSE + BSE daily bars → :func:`reconcile_52w_range` (R15-DATA-015/016).
+        NSE + BSE daily bars → :func:`reconcile_52w_range` (R15-DATA-015/016);
+      * for an Indian listing, the exchange-filed results →
+        :func:`overlay_filed_periods` (D-B7-1). A trailing revenue served from
+        the filings is not reconciled against Yahoo's statements; one left as
+        Yahoo's takes its cadence label from the filings (R15-LEAD-004).
 
-    Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`;
-    the reconcile functions run on every call.
+    Each fetched input is reused per listing for :data:`_WITNESS_TTL_SECONDS`
+    (the filed results for a day); the reconcile functions run on every call.
     """
     yfinance_served = f.provider == yfinance_provider.PROVIDER
     has_ownership = f.held_percent_insiders is not None or f.held_percent_institutions is not None
@@ -836,18 +970,24 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
             "range52w", f.symbol, lambda: range_check.get_venue_history(f.symbol)
         )
 
-    exchange, annual, quarter_ends, equity, paid, venues = await asyncio.gather(
+    exchange, annual, quarter_ends, equity, paid, venues, filed = await asyncio.gather(
         ownership(),
         statement("income", yfinance_provider.get_income_statement, check_revenue),
         statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
         statement("equity", yfinance_provider.get_newest_equity, check_book),
         dividends(),
         venue_history(),
+        exchange_financials.get_filed_periods(f.symbol),
     )
     if check_ownership:
         f = reconcile_ownership(f, exchange)
-    if check_revenue:
-        f = reconcile_revenue(f, annual, quarter_ends)
+    if filed is not None:
+        f = overlay_filed_periods(f, filed)
+    revenue_meta = (f.field_meta or {}).get("revenue_ttm")
+    exchange_revenue = filed is not None and revenue_meta is not None
+    exchange_revenue = exchange_revenue and revenue_meta.provider == filed.venue
+    if check_revenue and not exchange_revenue:
+        f = reconcile_revenue(f, annual, quarter_ends, filed.cadence() if filed else None)
     if check_book:
         f = reconcile_book_value(f, equity)
     if yfinance_served:
@@ -861,7 +1001,9 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
 
 __all__ = [
     "CorrectnessError",
+    "apply_exchange_financials",
     "apply_witnesses",
+    "overlay_filed_periods",
     "reconcile_52w_range",
     "reconcile_book_value",
     "reconcile_ownership",

@@ -94,6 +94,9 @@ _SHAREHOLDING_PATH = "/api/corporate-share-holdings-master"
 _CORPORATE_ACTIONS_PATH = "/api/corporates-corporateActions"
 _BULK_BLOCK_PATH = "/api/historicalOR/bulk-block-short-deals"
 _SAST_PATH = "/api/corporate-sast-reg29"
+_FINANCIAL_FILINGS_PATH = "/api/integrated-filing-results"
+_FINANCIALS_TYPE = "Integrated Filing- Financials"
+_ARCHIVE_BASE = "https://nsearchives.nseindia.com/"
 
 # Browser headers for the API hits. TLS fingerprint, User-Agent and the
 # sec-ch-ua family come from curl_cffi's ``impersonate="chrome"``; these are the
@@ -688,6 +691,43 @@ def get_sast_disclosures(symbol: str) -> list[dict]:
     return _data_rows(_SAST_PATH, _get_json(_SAST_PATH, params, _quote_referer(bare)))
 
 
+def get_financial_filings(symbol: str) -> list[dict]:
+    """Raw SEBI Integrated Filing (Financials) rows for ``symbol``, newest first.
+
+    Observed item shape (live probe 2026-09-24, FUSION / DHANBANK): ``{qe_Date
+    "30-JUN-2026", type "Integrated Filing- Financials", consolidated
+    "Standalone"|"Consolidated", type_Sub "Original"|"Revision", creation_Date
+    "11-Aug-2026 15:26:59", broadcast_Date, audited, xbrl <nsearchives URL>,
+    ...}`` under ``{"data": [...], "totalCount": n}``. The figures live in the
+    XBRL (:func:`get_archive_text`). Integrated filings begin with the Dec-2024
+    quarter; the older ``corporates-financial-results`` feed stops there
+    (FUSION's newest row on it is Dec-2024).
+    """
+    bare = _require_nse(symbol)
+    params = {"index": _corporate_index(bare), "symbol": bare, "type": _FINANCIALS_TYPE}
+    payload = _get_json(_FINANCIAL_FILINGS_PATH, params, _quote_referer(bare))
+    return _data_rows(_FINANCIAL_FILINGS_PATH, payload)
+
+
+def get_archive_text(url: str) -> str:
+    """One throttled GET of an NSE archive document (a results XBRL) on the
+    cookie-danced session. Only ``nsearchives.nseindia.com`` URLs are fetched."""
+    if not url.startswith(_ARCHIVE_BASE):
+        raise ProviderError(f"nse_direct: not an NSE archive URL: {url!r}")
+    with _lock:
+        session = _holder.ensure()
+        _throttle.wait()
+        try:
+            resp = session.get(
+                url, headers=dict(_API_HEADERS, Referer=_BASE + "/"), timeout=_TIMEOUT
+            )
+        except Exception as exc:
+            raise ProviderError(f"nse_direct: transport failure on archive: {exc}") from exc
+    if resp.status_code != 200:
+        raise ProviderError(f"nse_direct: HTTP {resp.status_code} for archive {url}")
+    return resp.text
+
+
 def _data_rows(path: str, payload: object) -> list[dict]:
     """The ``data`` list of a ``{"data": [...]}`` payload."""
     rows = payload.get("data") if isinstance(payload, dict) else None
@@ -753,7 +793,9 @@ def _num(value: object) -> float | None:
 __all__ = [
     "PROVIDER",
     "get_corporate_actions",
+    "get_archive_text",
     "get_corporate_announcements",
+    "get_financial_filings",
     "get_history",
     "get_quote",
     "get_results_calendar",
