@@ -701,10 +701,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
       if ((event.key === "Delete" || event.key === "Backspace") && selectedDrawingId) {
         // Panel-scoped: a key typed elsewhere (the agent composer) or into a
         // field never deletes, and a locked drawing refuses it (R15-UI-021).
+        // Nothing focused (body) still counts: WebKit does not focus a clicked
+        // button, so after selecting a drawing's chip the key targets body.
         const target = event.target instanceof Element ? event.target : null;
         if (
           !target ||
-          !rootRef.current?.contains(target) ||
+          (target !== document.body && !rootRef.current?.contains(target)) ||
           target.closest(TEXT_ENTRY_SELECTOR) ||
           drawings.find((d) => d.id === selectedDrawingId)?.locked
         ) {

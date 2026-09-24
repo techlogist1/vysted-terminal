@@ -737,6 +737,26 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
   });
 
+  it("Delete with nothing focused still deletes (WebKit leaves a clicked chip unfocused; R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-1",
+      panelId: "chart-A",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Select trendline" }));
+
+    fireEvent.keyDown(document.body, { key: "Delete" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
   it("clears every drawing through the inspector's Clear drawings control", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
