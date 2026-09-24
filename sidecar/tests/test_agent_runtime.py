@@ -960,12 +960,12 @@ async def test_default_mode_is_ask_and_read_only(monkeypatch: pytest.MonkeyPatch
 @pytest.mark.parametrize("mode", ["edit", "build", "delegate"])
 async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
     """edit/build/delegate pass the agent's tool set UNCHANGED — host actions and
-    portfolio writes are present (the staging distinction is a frontend concern)
-    — except ask_user, which only a delegate run is offered (R15-CODE-AGENT-011)."""
+    portfolio writes are present (the staging distinction is a frontend concern);
+    a delegate run is also offered ask_user (R15-CODE-AGENT-011)."""
     tool_ids = await _capture_tool_ids(monkeypatch, mode=mode)
     spec = agent_runtime.get_agent("copilot")
     assert spec is not None
-    assert tool_ids == [t for t in spec.tools if mode == "delegate" or t != "ask_user"]
+    assert tool_ids == list(spec.tools) + (["ask_user"] if mode == "delegate" else [])
     assert _COPILOT_MUTATORS.issubset(set(tool_ids))
 
 

@@ -1122,9 +1122,11 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             ),
             domain="agents",
             read_only=True,
-            # Offered only to a Delegate run (the runtime strips it elsewhere); a
-            # per-invocation capability, so never projected to MCP (FR-028).
+            # The runtime offers it to every Delegate run and to nothing else, so
+            # it is no agent's grant; a per-invocation capability, so never
+            # projected to MCP (FR-028).
             kind="per_invocation",
+            default_grant=False,
         ),
         # --- host actions that DRIVE the terminal (mutations -> diff gate) ----
         _cap(
