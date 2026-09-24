@@ -1054,7 +1054,7 @@ export function PortfolioPanel() {
           className="border-charcoal-700 border-b px-3 py-2"
           data-testid="portfolio-risk-section"
         >
-          <h3 className="text-charcoal-400 text-caption mb-1.5 font-medium tracking-wide uppercase">
+          <h3 className="text-charcoal-400 text-caption mb-2 font-medium tracking-wide uppercase">
             Risk
           </h3>
           <div className="flex flex-col gap-2">
@@ -1130,7 +1130,7 @@ export function PortfolioPanel() {
                                   {metrics.correlation.symbols.map((s) => (
                                     <th
                                       key={s}
-                                      className="text-charcoal-400 px-1.5 py-0.5 text-right font-mono font-normal"
+                                      className="text-charcoal-400 px-2 py-0.5 text-right font-mono font-normal"
                                     >
                                       {s}
                                     </th>
@@ -1146,7 +1146,7 @@ export function PortfolioPanel() {
                                     {metrics.correlation.matrix[i].map((v, j) => (
                                       <td
                                         key={j}
-                                        className="text-charcoal-100 px-1.5 py-0.5 text-right font-mono tabular-nums"
+                                        className="text-charcoal-100 px-2 py-0.5 text-right font-mono tabular-nums"
                                       >
                                         {v.toFixed(2)}
                                       </td>
