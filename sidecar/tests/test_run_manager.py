@@ -200,6 +200,33 @@ async def test_spend_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert row.cost.spend_usd > 0
 
 
+@pytest.mark.asyncio
+async def test_omitted_ceilings_take_the_server_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-034: an empty budget never means "no ceiling"."""
+    from models.run import DEFAULT_RUN_BUDGET
+    from services.budget_guard import BudgetGuard
+
+    guards: list[BudgetGuard] = []
+
+    class _CapturingGuard(BudgetGuard):
+        def __init__(self, **kwargs: Any) -> None:
+            super().__init__(**kwargs)
+            guards.append(self)
+
+    monkeypatch.setattr(run_manager, "BudgetGuard", _CapturingGuard)
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="x", budget=RunBudget())
+    row = await _await_terminal(run_id)
+    assert row is not None and row.budget == DEFAULT_RUN_BUDGET
+    (guard,) = guards
+    assert (guard.max_tokens, guard.max_spend_usd, guard.max_wall_seconds, guard.max_steps) == (
+        120_000,
+        1.0,
+        600,
+        12,
+    )
+
+
 # ---------------------------------------------------------------------------
 # api_key is never persisted
 # ---------------------------------------------------------------------------

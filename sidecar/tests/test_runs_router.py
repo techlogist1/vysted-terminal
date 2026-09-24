@@ -99,6 +99,15 @@ def test_launch_unknown_agent_404(client: TestClient, monkeypatch: pytest.Monkey
     assert resp.status_code == 404
 
 
+def test_launch_rejects_a_non_positive_ceiling(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-034: 0 is not a ceiling (it aborted instantly); it is a 422."""
+    monkeypatch.setattr(run_manager, "launch_run", lambda **_k: "run-1")
+    resp = client.post("/agents/copilot/runs", json={"prompt": "x", "budget": {"max_steps": 0}})
+    assert resp.status_code == 422
+
+
 def test_launch_accepts_snake_case_run_budget(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

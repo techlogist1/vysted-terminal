@@ -48,7 +48,7 @@ from typing import Any
 import config
 from models.agent import AgentContextSnapshot
 from models.llm import LLMMessage, LLMProviderId, LLMUsage
-from models.run import RunBudget, RunCost, RunStatus
+from models.run import DEFAULT_RUN_BUDGET, RunBudget, RunCost, RunStatus
 from services import agent_runtime, runs_store
 from services.agent_tools.schemas import HOST_ACTION_TOOLS
 from services.budget_guard import BudgetGuard
@@ -265,6 +265,12 @@ async def _drive_run(
         _TASKS.pop(run_id, None)
 
 
+def _with_floor(budget: RunBudget | None) -> RunBudget:
+    """Fill every omitted ceiling from the server default (R15-AGENT-034)."""
+    given = budget.model_dump(exclude_none=True) if budget else {}
+    return DEFAULT_RUN_BUDGET.model_copy(update=given)
+
+
 def _spawn(run_id: str, **kwargs: Any) -> asyncio.Task[None]:
     """Create and register the detached driver task for ``run_id``."""
     task = asyncio.create_task(_drive_run(run_id=run_id, **kwargs))
@@ -298,7 +304,7 @@ def launch_run(
     if spec is None:
         raise RunManagerError(f"unknown agent: {agent_id!r}")
 
-    run_budget = budget or RunBudget()
+    run_budget = _with_floor(budget)
     run_id = uuid.uuid4().hex
     # R10: persist the NON-SECRET options a resume must re-thread — the
     # caller's research_depth plus the LAUNCH request's active region (the
@@ -422,7 +428,7 @@ def _resume(
     if not prompt:
         raise RunStateError(f"run {run_id!r} has no checkpoint to resume from")
 
-    resume_budget = budget or run.budget
+    resume_budget = _with_floor(budget or run.budget)
     # R10: re-merge the persisted non-secret options (research_depth, region)
     # so the depth ContextVar floor / locale re-thread into the resumed loop.
     options: dict[str, Any] = dict(runs_store.get_options(run_id))

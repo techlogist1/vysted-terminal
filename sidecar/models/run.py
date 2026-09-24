@@ -40,7 +40,9 @@ RunStatus = Literal["planned", "running", "paused", "done", "error", "cancelled"
 class RunBudget(BaseModel):
     """The hard spend ceilings for a Delegate run (US9 / FR-026).
 
-    All four ceilings are optional — a run may bound any subset. The
+    A request may omit any ceiling; ``run_manager`` fills every omitted one from
+    :data:`DEFAULT_RUN_BUDGET` before the run starts, so a run is never
+    unbounded (R15-AGENT-034). A given ceiling must be positive. The
     :class:`~services.budget_guard.BudgetGuard` aborts the run on the FIRST
     breach with a stated reason (SC-008: a breach aborts 100% of the time).
     The guard governs SPEND only; a Delegate run uses the same agent loop, in
@@ -50,13 +52,20 @@ class RunBudget(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     #: Hard cap on total tokens (input + output, summed across rounds).
-    max_tokens: int | None = Field(default=None, alias="maxTokens")
+    max_tokens: int | None = Field(default=None, gt=0, alias="maxTokens")
     #: Hard cap on estimated USD spend (see ``budget_guard.PRICE_TABLE``).
-    max_spend_usd: float | None = Field(default=None, alias="maxSpendUsd")
+    max_spend_usd: float | None = Field(default=None, gt=0, alias="maxSpendUsd")
     #: Hard cap on wall-clock seconds from run start (monotonic).
-    max_wall_seconds: float | None = Field(default=None, alias="maxWallSeconds")
-    #: Hard cap on tool-call rounds (also bounded by ``_MAX_TOOL_ROUNDS``).
-    max_steps: int | None = Field(default=None, alias="maxSteps")
+    max_wall_seconds: float | None = Field(default=None, gt=0, alias="maxWallSeconds")
+    #: Hard cap on provider rounds (also bounded by ``_MAX_TOOL_ROUNDS``).
+    max_steps: int | None = Field(default=None, gt=0, alias="maxSteps")
+
+
+#: The server floor for an omitted ceiling. Equal to the composer's
+#: ``DEFAULT_DELEGATE_BUDGET`` (``src/modules/chat/BudgetConfig.tsx``).
+DEFAULT_RUN_BUDGET = RunBudget(
+    max_tokens=120_000, max_spend_usd=1.0, max_wall_seconds=600, max_steps=12
+)
 
 
 class RunCost(BaseModel):

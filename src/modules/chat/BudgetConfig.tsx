@@ -42,6 +42,13 @@ export function BudgetConfig({
           const n = e.target.value === "" ? undefined : Number(e.target.value);
           onChange({ ...budget, [key]: Number.isFinite(n) ? n : undefined });
         }}
+        // An empty or non-positive box is never sent as "no ceiling": leaving
+        // it restores the default (the sidecar applies the same floor).
+        onBlur={() => {
+          if (!(value !== undefined && value > 0)) {
+            onChange({ ...budget, [key]: DEFAULT_DELEGATE_BUDGET[key] });
+          }
+        }}
         className="bg-charcoal-850 text-charcoal-100 text-caption rounded-control focus:ring-charcoal-500 h-8 w-16 px-2 text-right outline-none focus:ring-1"
       />
     </label>
