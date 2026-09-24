@@ -136,6 +136,10 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         asyncio.ensure_future(nse_symbol_change.schedule_refresh())
         # Unattended workflow schedules (R15-AGENT-023): fire while the app is open.
         workflow_scheduler.start()
+        # R15-LIFECYCLE-018: derive the managed SearXNG's world state at boot
+        # instead of lazily on the first research request — fire-and-forget,
+        # cancelled in the searxng_manager.shutdown() call below.
+        searxng_manager.manager.warm_detect()
         try:
             yield
         finally:

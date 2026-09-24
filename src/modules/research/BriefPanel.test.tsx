@@ -64,6 +64,25 @@ describe("BriefPanel keyless-fallback nudge (R9 gate 2)", () => {
     }
   });
 
+  it("R15-RESEARCH-028: reads the running-but-blocked copy when webReason is searxng_degraded", () => {
+    useBriefStore.setState({
+      brief: fixtureBrief({ backend: "keyless-fallback", webReason: "searxng_degraded" }),
+    });
+    render(<BriefPanel />);
+    expect(screen.getByText(/running but its search engines are blocked/i)).toBeInTheDocument();
+    // The degraded copy names no setup step — it's already set up.
+    expect(screen.queryByRole("button", { name: /set up unlimited local research/i })).toBeNull();
+  });
+
+  it("keeps the plain setup copy when webReason is anything other than searxng_degraded", () => {
+    useBriefStore.setState({
+      brief: fixtureBrief({ backend: "keyless-fallback", webReason: "rate_limited" }),
+    });
+    render(<BriefPanel />);
+    expect(screen.getByText(NUDGE_TEXT)).toBeInTheDocument();
+    expect(screen.queryByText(/running but its search engines are blocked/i)).toBeNull();
+  });
+
   it("is dismissible per-brief: dismissed stays gone for THIS brief, a new brief re-shows it", () => {
     useBriefStore.setState({
       brief: fixtureBrief({ backend: "keyless-fallback", createdAt: 1_000 }),

@@ -249,6 +249,43 @@ def test_custom_url_wins_over_the_managed_instance(
     assert searxng_calls[0]["searxng_url"] == CUSTOM_URL
 
 
+def test_degraded_searxng_skips_straight_to_keyless_with_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """C10: a managed instance the health-poll already knows is DEGRADED (every
+    engine blocked) is never dispatched to — the tool routes straight to the
+    keyless floor and carries ``reason: "searxng_degraded"`` so the brief can
+    say WHY, not just that it fell back."""
+    from services import searxng_manager
+
+    calls = _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, False)
+    monkeypatch.setattr(searxng_manager.manager, "state", searxng_manager.STATE_DEGRADED)
+
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True
+    assert out["backend"] == KEYLESS_FALLBACK_BACKEND_ID
+    assert out["reason"] == "searxng_degraded"
+    assert not any(c["id"] == "searxng" for c in calls)
+
+
+def test_ready_searxng_never_carries_the_degraded_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A plain READY SearXNG result must never carry ``reason`` — it is set
+    ONLY on the pre-emptive degraded route, never on a normal searxng serve."""
+    _stub_registry(monkeypatch)
+    _set_manager_ready(monkeypatch, True)
+
+    with _request():
+        out = _run(_web_search({"query": "x"}))
+
+    assert out["ok"] is True and out["backend"] == "searxng"
+    assert "reason" not in out
+
+
 def test_searxng_search_time_failure_degrades_to_keyless_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
