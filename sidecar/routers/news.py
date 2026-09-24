@@ -16,16 +16,13 @@ vetted inside the PyInstaller ``--onefile`` bundle, whereas VADER is a pure
 
 from __future__ import annotations
 
-import re
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Header, Query, Request
+from fastapi import APIRouter, Header, Query, Request, Response
 
 from models.news import NewsItem
-from services import news_provider, sentiment, symbol_resolver
-from services.locale import strip_exchange_suffix
-from services.yfinance_provider import _yahoo_symbol
+from services import news_provider
 
 router = APIRouter(prefix="/news", tags=["news"])
 
@@ -61,54 +58,6 @@ def _parse_symbols(symbols: str | None) -> list[str]:
     return parsed
 
 
-def _company_name(symbol: str) -> str | None:
-    """The listing's company name without its corporate suffix, lower-case.
-
-    The listing is the region-aware Yahoo form (``_yahoo_symbol``), so bare BDL
-    in an IN session is Bharat Dynamics, not Flanigan's.
-    """
-    listing = _yahoo_symbol(symbol)
-    bare = strip_exchange_suffix(listing)
-    if listing.endswith(".NS"):
-        row = symbol_resolver._nse_master().get(bare)
-    elif listing.endswith(".BO"):
-        row = symbol_resolver._bse_master().get(bare)
-    else:
-        row = symbol_resolver._us_master().get(listing)
-    name = row[0] if isinstance(row, tuple) else row
-    return symbol_resolver._strip_corporate_suffix(name.lower()) if name else None
-
-
-def _aliases(symbol: str) -> list[str]:
-    """Text forms that mean ``symbol``: the ticker as requested and bare (2+
-    characters only, so ``A`` never matches the article "a") and the company
-    name (the only text alias a one-letter ticker gets)."""
-    tickers = dict.fromkeys([symbol, strip_exchange_suffix(symbol)])
-    aliases = [t for t in tickers if len(t) >= 2]
-    name = _company_name(symbol)
-    if name:
-        aliases.append(name)
-    return aliases
-
-
-def _tag_symbols(item: NewsItem, aliases: dict[str, list[str]]) -> list[str]:
-    """Return the symbols (keys of ``aliases``) the item is about.
-
-    An item from a symbol's own per-symbol feed is tagged by provenance
-    (``item.symbols``, set by the provider); otherwise any alias of the symbol
-    (:func:`_aliases`) must appear word-boundary-anchored in the title or
-    summary, so ``ETH`` does not match ``ethics``.
-    """
-    haystack = f"{item.title} {item.summary or ''}"
-    matched: list[str] = []
-    for symbol, forms in aliases.items():
-        if symbol in item.symbols or any(
-            re.search(rf"\b{re.escape(alias)}\b", haystack, flags=re.IGNORECASE) for alias in forms
-        ):
-            matched.append(symbol)
-    return matched
-
-
 def _httpx_client(request: Request) -> httpx.AsyncClient:
     """Return the shared pooled ``httpx.AsyncClient`` created in the lifespan."""
     return request.app.state.httpx_client
@@ -117,6 +66,7 @@ def _httpx_client(request: Request) -> httpx.AsyncClient:
 @router.get("")
 async def get_news(
     request: Request,
+    response: Response,
     symbols: str | None = Query(
         default=None,
         description="Comma-separated watchlist symbols to tag/filter by",
@@ -139,29 +89,46 @@ async def get_news(
     The shared pooled ``httpx.AsyncClient`` (created in the app lifespan) is
     handed to the provider so sources are fetched concurrently over reused
     connections — fixing the cold-first-fetch 502 cascade (#38).
+
+    R15-DATA-094: the response carries ``X-News-Sources: rss=ok;newsapi=<state>``
+    (``ok``/``unauthorized``/``error``/``absent``) — RSS is keyless and always
+    attempted, so it is reported ``ok`` whenever this handler returns at all;
+    NewsAPI's state is whatever :func:`news_provider.fetch_news` observed on
+    this request, so a rejected BYOK key is visible without a separate probe.
     """
     requested = _parse_symbols(symbols)
-    aliases = {symbol: _aliases(symbol) for symbol in requested or _DEFAULT_SYMBOLS}
+    aliases = news_provider.build_aliases(requested or list(_DEFAULT_SYMBOLS))
 
+    source_status: dict[str, str] = {}
     raw_items = await news_provider.fetch_news(
-        _httpx_client(request), requested, limit, newsapi_key=newsapi_key
+        _httpx_client(request),
+        requested,
+        limit,
+        newsapi_key=newsapi_key,
+        source_status=source_status,
     )
 
-    scored: list[NewsItem] = []
-    for item in raw_items:
-        result = sentiment.score_text(f"{item.title}. {item.summary or ''}")
-        tagged = _tag_symbols(item, aliases)
-        # Drop general items when the caller explicitly asked for symbols.
-        if requested and not tagged:
-            continue
-        scored.append(
-            item.model_copy(
-                update={
-                    "symbols": tagged,
-                    "sentiment": round(result.score, 4),
-                    "sentiment_label": result.label,
-                }
-            )
-        )
-
+    scored = news_provider.enrich(raw_items, requested, aliases)
+    response.headers["X-News-Sources"] = f"rss=ok;newsapi={source_status.get('newsapi', 'absent')}"
     return scored[:limit]
+
+
+@router.get("/sources/status")
+async def get_news_sources_status(
+    request: Request,
+    newsapi_key: NewsApiKeyHeader = None,
+) -> dict[str, str]:
+    """Probe a BYOK NewsAPI key's validity without fetching a full feed.
+
+    R15-DATA-094: used by the marketplace ``configure()`` flow to reject a bad
+    NewsAPI key at save time ("NewsAPI rejected this key") instead of only
+    discovering the 401 on the next ``/news`` fetch, and by NewsFeedPanel to
+    badge an already-saved key that has gone bad. RSS needs no key and is not
+    probed here. The key is read from the same header as ``/news`` and is never
+    echoed in the response.
+    """
+    key = (newsapi_key or "").strip()
+    if not key:
+        return {"newsapi": "absent"}
+    status = await news_provider.probe_newsapi_key(_httpx_client(request), key)
+    return {"newsapi": status}

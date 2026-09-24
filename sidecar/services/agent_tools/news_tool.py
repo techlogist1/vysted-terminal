@@ -49,10 +49,16 @@ async def _news(args: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001 — surface failures to the model
         return {"ok": False, "error": f"news fetch failed: {exc}"}
 
+    # R15-AGENT-063: the tool used to return raw, unscored items — score and
+    # tag them the same way the /news route does, so a model calling this
+    # tool sees sentiment + symbol tags, not just headlines.
+    aliases = news_provider.build_aliases(symbols)
+    enriched = news_provider.enrich(items, symbols, aliases)
+
     return {
         "ok": True,
-        "count": len(items),
-        "news": [item.model_dump(mode="json") for item in items],
+        "count": len(enriched),
+        "news": [item.model_dump(mode="json") for item in enriched],
     }
 
 

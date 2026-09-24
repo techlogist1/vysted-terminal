@@ -134,7 +134,9 @@ def test_bse_only_listing_gets_the_declared_dividend(monkeypatch: pytest.MonkeyP
     """R15-DATA-025: the merged lane serves a BSE-only name (JONJUA's Rs 0.10
     final, record 2025-09-20, live BSE feed 2026-09-24) the NSE lane never had."""
     fixture = Path(__file__).parent / "fixtures" / "bse"
-    payload = json.loads((fixture / "corporate_action_542446_jonjua_20260924.json").read_text())
+    payload = json.loads(
+        (fixture / "corporate_action_542446_jonjua_20260924.json").read_text(encoding="utf-8")
+    )
     monkeypatch.setattr(corporate_disclosures, "_bse_get_json", lambda url, params: payload)
     monkeypatch.setattr(dividend_actions, "_ist_today", lambda: date(2025, 9, 1))
 

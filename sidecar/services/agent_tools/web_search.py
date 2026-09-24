@@ -61,15 +61,17 @@ _NO_BACKEND_MESSAGE = (
 )
 
 
-async def _resolve_backend(region: str) -> tuple[Any, str | None]:
+async def _resolve_backend(region: str) -> tuple[Any, str | None, str | None]:
     """The ONE retrieval-resolution path (R9 Track A).
 
-    Returns ``(backend, label)``: ``label`` is the honest backend id override
-    (:data:`KEYLESS_FALLBACK_BACKEND_ID`) when the keyless floor serves in
-    fallback position, else ``None`` (the backend's own id stands). ``backend``
-    is ``None`` only on the defensive everything-failed-to-import path — never
-    because SearXNG is down (rule 1: a stopped SearXNG NEVER yields "no web
-    backend").
+    Returns ``(backend, label, reason)``: ``label`` is the honest backend id
+    override (:data:`KEYLESS_FALLBACK_BACKEND_ID`) when the keyless floor
+    serves in fallback position, else ``None`` (the backend's own id stands).
+    ``reason`` is set only for the C10 degraded route (``"searxng_degraded"``)
+    so the frontend can say WHY it's on the floor, not just that it is.
+    ``backend`` is ``None`` only on the defensive everything-failed-to-import
+    path — never because SearXNG is down (rule 1: a stopped SearXNG NEVER
+    yields "no web backend").
     """
     import config
     from services.search import registry
@@ -79,7 +81,7 @@ async def _resolve_backend(region: str) -> tuple[Any, str | None]:
     if searxng_url:
         backend = registry.resolve("searxng", searxng_url=searxng_url, region=region)
         if backend is not None:
-            return backend, None
+            return backend, None, None
 
     # (b) The managed instance, when READY — an instant in-process read (no
     # network probe on the hot path); a green SearXNG is never bypassed.
@@ -89,14 +91,25 @@ async def _resolve_backend(region: str) -> tuple[Any, str | None]:
     if managed_url:
         backend = registry.resolve("searxng", searxng_url=managed_url, region=region)
         if backend is not None:
-            return backend, None
+            return backend, None, None
 
-    # (c) The keyless rotation floor (DDG → Brave → Mojeek) — needs no key/URL
+    # (c) DEGRADED: the managed instance answers but every engine behind it is
+    # blocked (or a run of empty probes never recovered) — R15-RESEARCH-028.
+    # Route straight to the keyless floor rather than dispatching a search the
+    # manager already knows will come back empty, and carry the honest reason
+    # so the brief can say "running but blocked" instead of "not set up".
+    if searxng_manager.manager.state == searxng_manager.STATE_DEGRADED:
+        backend = registry.resolve("keyless", region=region) or registry.resolve(
+            "ddg", region=region
+        )
+        return backend, KEYLESS_FALLBACK_BACKEND_ID, "searxng_degraded"
+
+    # (d) The keyless rotation floor (DDG → Brave → Mojeek) — needs no key/URL
     # and ALWAYS resolves, stamped with the honest fallback id. The bare
     # single-engine ddg floor stays as the defensive fallback should the
     # keyless module ever fail to import.
     backend = registry.resolve("keyless", region=region) or registry.resolve("ddg", region=region)
-    return backend, KEYLESS_FALLBACK_BACKEND_ID
+    return backend, KEYLESS_FALLBACK_BACKEND_ID, None
 
 
 async def _keyless_floor(region: str) -> Any:
@@ -127,7 +140,7 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
     import config
 
     region = config.get_region()
-    backend, label = await _resolve_backend(region)
+    backend, label, resolve_reason = await _resolve_backend(region)
     if backend is None:
         return {"ok": False, "query": query, "message": _NO_BACKEND_MESSAGE}
 
@@ -172,6 +185,11 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
             telemetry["searxng_searches"] = telemetry.get("searxng_searches", 0) + 1
     if out.get("ok") is True and label is not None:
         out["backend"] = label
+        if resolve_reason:
+            # C10: the pre-emptive degraded route (never the per-request
+            # unreachable/empty-cross-check degrades above, which carry no
+            # resolve_reason) — the frontend's nudge reads this to say WHY.
+            out["reason"] = resolve_reason
         # R9 gate 2: record the floor hit on the run's shared telemetry (when a
         # research parent opened one) so the published brief can carry the
         # honest keyless-fallback id even though researchers run in child tasks.

@@ -49,11 +49,11 @@ _SIFY_DOC = "https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/
 
 
 def _json(name: str) -> Any:
-    return json.loads((_FIXTURES / name).read_text())
+    return json.loads((_FIXTURES / name).read_text(encoding="utf-8"))
 
 
 def _item7a(name: str) -> str:
-    return (_FIXTURES / "sec" / f"20f_item7a_{name}_20260924.txt").read_text()
+    return (_FIXTURES / "sec" / f"20f_item7a_{name}_20260924.txt").read_text(encoding="utf-8")
 
 
 @pytest.fixture(autouse=True)
@@ -276,7 +276,7 @@ def _serve_sify_20f(monkeypatch: pytest.MonkeyPatch, document: str | Exception) 
     async def fetch(url: str) -> str:
         fetched.append(url)
         if url.endswith("-index.htm"):
-            return (_FIXTURES / "sec" / "20f_index_sify_20260924.htm").read_text()
+            return (_FIXTURES / "sec" / "20f_index_sify_20260924.htm").read_text(encoding="utf-8")
         if isinstance(document, Exception):
             raise document
         return document

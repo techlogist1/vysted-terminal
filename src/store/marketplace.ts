@@ -17,12 +17,38 @@ import { CATALOG_BY_ID } from "@/lib/marketplace";
 import { bridgePluginModule, unbridgePluginModule } from "@/lib/plugin-bootstrap";
 import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { syncPluginAgents } from "@/lib/plugin-agents";
+import { sidecarGet } from "@/lib/sidecar-client";
 import { usePluginsStore } from "@/store/plugins";
 
 import type { MarketplaceEntry, MarketplacePluginState } from "../../types/marketplace";
 
 function secretAccount(entry: MarketplaceEntry, fieldKey: string): string {
   return KEYCHAIN_NAMESPACES.pluginSecret(entry.pluginId, fieldKey);
+}
+
+/**
+ * R15-DATA-094: NewsAPI silently swallowed a 401 and the key still read as
+ * "configured" — probe the key against the sidecar before it is saved so a
+ * bad key is rejected at save time instead of three fetches later. Scoped to
+ * this one field (the only credential the marketplace currently BYOKs against
+ * a probe-able endpoint) rather than a generic per-field probe mechanism
+ * nothing else needs yet.
+ */
+async function probeNewsApiKeyOrThrow(key: string): Promise<void> {
+  try {
+    const status = await sidecarGet<{ newsapi: string }>("/news/sources/status", undefined, {
+      "X-Vysted-Newsapi-Key": key,
+    });
+    if (status.newsapi === "unauthorized") {
+      throw new Error("NewsAPI rejected this key");
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message === "NewsAPI rejected this key") {
+      throw err;
+    }
+    // ponytail: a probe that can't reach the sidecar (offline, cold boot) fails
+    // open — only an explicit 401 blocks the save, never a transport hiccup.
+  }
 }
 
 interface PersistedFlags {
@@ -194,23 +220,34 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       // some fields) must not wipe previously-stored secrets (FR-036).
       const current = await runtime.readConfig(pluginId);
       const granted = new Set(current?.grantedSecretIds ?? []);
-      for (const field of row.entry.credentialFields ?? []) {
-        const account = secretAccount(row.entry, field.key);
-        const value = values[field.key];
-        if (value && value.length > 0) {
-          await setSecret(account, value);
-          granted.add(account);
-        } else if (!field.required) {
-          // An explicitly-emptied optional field clears its secret + grant.
-          await deleteSecret(account).catch(() => undefined);
-          granted.delete(account);
+      try {
+        for (const field of row.entry.credentialFields ?? []) {
+          const account = secretAccount(row.entry, field.key);
+          const value = values[field.key];
+          if (value && value.length > 0) {
+            if (pluginId === "vysted-news" && field.key === "newsapi_key") {
+              await probeNewsApiKeyOrThrow(value);
+            }
+            await setSecret(account, value);
+            granted.add(account);
+          } else if (!field.required) {
+            // An explicitly-emptied optional field clears its secret + grant.
+            await deleteSecret(account).catch(() => undefined);
+            granted.delete(account);
+          }
+          // A required field left blank keeps its existing secret + grant untouched.
         }
-        // A required field left blank keeps its existing secret + grant untouched.
+      } finally {
+        // R15-DATA-094: persist whatever grants succeeded even if a later
+        // field's probe/write threw — a partial failure must not un-grant
+        // secrets that were already written to the keychain. The `finally`
+        // re-throws (JS never swallows on a bare `finally`), so the caller
+        // still sees the error and skips the enable/reload below.
+        await runtime.updateConfig(pluginId, {
+          grantedSecretIds: [...granted],
+          installed: true,
+        });
       }
-      await runtime.updateConfig(pluginId, {
-        grantedSecretIds: [...granted],
-        installed: true,
-      });
       const enabled = get().flags[pluginId]?.enabled ?? row.entry.preinstalled;
       if (enabled) {
         // Reload so the plugin resolves the new secrets via PluginConfig.secrets.

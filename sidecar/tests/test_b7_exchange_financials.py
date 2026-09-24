@@ -43,7 +43,7 @@ def _replay(monkeypatch: pytest.MonkeyPatch, *fixtures: str) -> list[str]:
     Any accessor with no recording raises (a lane never reaches the network)."""
     recorded: dict[str, dict] = {}
     for name in fixtures:
-        for accessor, calls in json.loads((_FIXTURES / name).read_text()).items():
+        for accessor, calls in json.loads((_FIXTURES / name).read_text(encoding="utf-8")).items():
             recorded.setdefault(accessor, {}).update(calls)
     log: list[str] = []
 

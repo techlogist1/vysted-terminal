@@ -348,7 +348,7 @@ def test_marker_written_on_its_own_day_is_refetched(tmp_path, monkeypatch) -> No
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     day = date(2026, 9, 22)
     marker = tmp_path / f"{day.isoformat()}.csv"
-    marker.write_text("")
+    marker.write_text("", encoding="utf-8")
     import os
 
     os.utime(marker, (_ist_epoch(day, 11), _ist_epoch(day, 11)))
@@ -361,7 +361,7 @@ def test_marker_written_on_its_own_day_is_refetched(tmp_path, monkeypatch) -> No
     # A marker written after its day (a holiday BSE never published) is honoured.
     holiday = date(2026, 9, 21)
     marker = tmp_path / f"{holiday.isoformat()}.csv"
-    marker.write_text("")
+    marker.write_text("", encoding="utf-8")
     os.utime(marker, (_ist_epoch(date(2026, 9, 22), 9), _ist_epoch(date(2026, 9, 22), 9)))
     assert bse_provider._bhavcopy_for(holiday) == ""
 
@@ -403,7 +403,7 @@ def test_year_of_cached_whole_market_files_assembles_one_scrip_fast(
     days = _trading_days_back(date(2026, 9, 18), 250)
     for n, day in enumerate(days):
         target = f"{day.isoformat()},511260,ICONIKSPEV,X,40.0,45.0,39.0,{40 + n / 100:.2f},57\n"
-        (tmp_path / f"{day.isoformat()}.csv").write_text(header + market + target)
+        (tmp_path / f"{day.isoformat()}.csv").write_text(header + market + target, encoding="utf-8")
 
     started = time.perf_counter()
     bars = bse_provider._assemble_history("ICONIKSPEV", "511260", days[0], days[-1])
@@ -433,7 +433,7 @@ def test_bhavcopy_quote_path_reads_the_same_bars_as_a_full_parse(
             f"{day},511260,ICONIKOLD,EQ,40.0,45.0,39.0,{41 + n}.0,57\n"
             f"{day},511261,ICONIKSPEV,EQ,1.0,1.0,1.0,1.0,1\n"
         )
-        (tmp_path / f"{day.isoformat()}.csv").write_text(text)
+        (tmp_path / f"{day.isoformat()}.csv").write_text(text, encoding="utf-8")
         full = bse_provider.parse_bhavcopy(text)
         rows = full[full["code"] == "511260"].to_dict("records")
         expected.append(bse_provider._pick_equity_row(rows)["close"])
@@ -467,7 +467,9 @@ def test_renamed_ohlv_column_is_a_parse_failure(
 def test_cached_day_with_renamed_column_is_a_parse_failure(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     day = date(2026, 6, 9)
-    (tmp_path / f"{day.isoformat()}.csv").write_text(_BHAVCOPY_CSV.replace(",LwPric,", ",Low,"))
+    (tmp_path / f"{day.isoformat()}.csv").write_text(
+        _BHAVCOPY_CSV.replace(",LwPric,", ",Low,"), encoding="utf-8"
+    )
     with pytest.raises(ProviderError, match="low"):
         bse_provider._assemble_history("ICONIKSPEV", "511260", day, day)
 
@@ -511,8 +513,8 @@ def test_token_bucket_allows_burst_then_throttles() -> None:
 # yfinance's overstated 8.455% institutions.
 
 _BSE_FIXTURES = Path(__file__).parent / "fixtures" / "bse"
-_SHP_INDEX = json.loads((_BSE_FIXTURES / "shp_quarters_509470.json").read_text())
-_SHP_XBRL = (_BSE_FIXTURES / "shp_xbrl_509470_jun2026.xml").read_text()
+_SHP_INDEX = json.loads((_BSE_FIXTURES / "shp_quarters_509470.json").read_text(encoding="utf-8"))
+_SHP_XBRL = (_BSE_FIXTURES / "shp_xbrl_509470_jun2026.xml").read_text(encoding="utf-8")
 
 
 def _shp_http_stub(index=None, xbrl=None):
@@ -760,7 +762,7 @@ def test_shareholding_both_legs_missing_under_a_nonzero_total_stay_none(
 
 
 def _bse_fixture(name: str) -> str:
-    return (_BSE_FIXTURES / name).read_text()
+    return (_BSE_FIXTURES / name).read_text(encoding="utf-8")
 
 
 def test_parse_shp_xbrl_reads_the_promoter_pledge() -> None:

@@ -14,7 +14,7 @@ import { useSettingsStore } from "@/store/settings";
 import { toNewsSymbol, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
-import { fetchNews } from "./api";
+import { fetchNews, fetchNewsSourcesStatus } from "./api";
 
 type LoadState =
   | { status: "loading" }
@@ -179,6 +179,13 @@ export function NewsFeedPanel() {
   const region = useSettingsStore((s) => s.region);
 
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  // R15-DATA-094: a saved NewsAPI key can go bad (revoked, quota reset) without
+  // the feed itself erroring — RSS keeps the panel populated, so the only sign
+  // is this badge. `null` = not yet checked or the check itself failed; never
+  // blocks the feed, it is purely informational.
+  const [newsApiStatus, setNewsApiStatus] = useState<
+    "ok" | "unauthorized" | "error" | "absent" | null
+  >(null);
   // Tracks the article the user last hovered/focused on; `null` when nothing
   // is focused. Surfaced through the panel-context bus so the chat sidebar
   // can mention the focused headline in the agent's preamble.
@@ -237,6 +244,22 @@ export function NewsFeedPanel() {
   }, [newsSymbols]);
   useRetryOnSidecarReady(loadFeed, [newsSymbols, region, refreshNonce]);
 
+  // A lightweight, independent probe (R15-DATA-094) — never blocks/affects the
+  // feed load above; a rejection just leaves the badge unset.
+  useEffect(() => {
+    let cancelled = false;
+    fetchNewsSourcesStatus()
+      .then((status) => {
+        if (!cancelled) setNewsApiStatus(status.newsapi);
+      })
+      .catch(() => {
+        if (!cancelled) setNewsApiStatus(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshNonce]);
+
   // Manual refresh / retry — surface the loading state, then re-run the effect.
   const refresh = useCallback(() => {
     setState({ status: "loading" });
@@ -246,7 +269,18 @@ export function NewsFeedPanel() {
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col">
       <header className="border-charcoal-700 flex items-center justify-between border-b px-4 py-2">
-        <h2 className="text-charcoal-200 text-micro">News Feed</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-charcoal-200 text-micro">News Feed</h2>
+          {(newsApiStatus === "unauthorized" || newsApiStatus === "error") && (
+            <span
+              className="text-negative text-micro"
+              data-testid="newsapi-status-badge"
+              title="Your saved NewsAPI key is no longer working — check it in Settings → Marketplace"
+            >
+              NewsAPI key rejected
+            </span>
+          )}
+        </div>
         <Button
           type="button"
           size="xs"

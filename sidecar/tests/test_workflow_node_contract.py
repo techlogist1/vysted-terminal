@@ -44,7 +44,7 @@ def _palette_spec(nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> W
 
 
 def test_fixture_is_the_declared_builtin_contract() -> None:
-    assert json.loads(FIXTURE.read_text()) == workflow_nodes.BUILTIN_NODE_SPECS
+    assert json.loads(FIXTURE.read_text(encoding="utf-8")) == workflow_nodes.BUILTIN_NODE_SPECS
 
 
 @pytest.mark.asyncio

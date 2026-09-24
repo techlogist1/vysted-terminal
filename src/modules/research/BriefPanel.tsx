@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useReducedMotion } from "framer-motion";
 import {
   Archive,
   ChevronDown,
   ChevronRight,
-  ClipboardCopy,
+  Download,
   ExternalLink,
   FlaskConical,
   Globe,
@@ -27,6 +28,7 @@ import {
   bodyCitesWeb,
   briefCostUnknown,
   briefDepthTier,
+  briefSlug,
   composeBriefMarkdown,
   countBrokenCitations,
   dedupeSources,
@@ -34,13 +36,16 @@ import {
   formatBriefSpend,
   formatBriefTokens,
   nextBriefDepth,
+  sanitizeCitationMarkers,
 } from "@/lib/brief-ingest";
+import { saveTextArtifact, savePdfArtifact, savePngArtifact } from "@/lib/export-artifact";
+import { DUR, STAGGER } from "@/lib/motion";
 import { formatElapsed, ResearchActivity } from "@/modules/chat/ResearchActivity";
 import { researchDepthPrompt, useAgentCommandStore } from "@/store/agent-command";
 import { useBriefStore, type BriefPanelState } from "@/store/brief";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { ResearchStepView } from "@/store/chat-history";
-import { BriefBody } from "./brief-blocks";
+import { BriefBody, deriveMetrics, parseBodyBlocks } from "./brief-blocks";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -375,8 +380,19 @@ function Tray({
  * links to Settings → Research. Never rendered for the searxng /
  * research-model backends; dismissible per-brief (the parent keys dismissal
  * on the brief identity, so the next run's banner re-appears honestly).
+ *
+ * R15-RESEARCH-028 (C10): `webReason === "searxng_degraded"` means the
+ * managed container IS running — its engines are the problem (CAPTCHA'd,
+ * timing out), not a missing setup — so the copy and the CTA both change:
+ * no "set up" link (it's already set up), just the honest state.
  */
-function KeylessFallbackNudge({ onDismiss }: { onDismiss: () => void }) {
+function KeylessFallbackNudge({
+  degraded,
+  onDismiss,
+}: {
+  degraded: boolean;
+  onDismiss: () => void;
+}) {
   const openSettings = useCallback(() => {
     useWorkspaceStore.getState().openPanel("settings");
   }, []);
@@ -384,16 +400,22 @@ function KeylessFallbackNudge({ onDismiss }: { onDismiss: () => void }) {
     <div className="border-charcoal-700 bg-charcoal-925 mx-3 mt-3 flex items-start gap-2 rounded-none border px-3 py-2">
       <Globe className="text-charcoal-400 mt-0.5 size-3 shrink-0" aria-hidden />
       <p className="text-charcoal-300 text-caption min-w-0 flex-1 leading-relaxed">
-        Limited keyless search —{" "}
-        <button
-          type="button"
-          onClick={openSettings}
-          className="text-charcoal-100 hover:text-lume cursor-pointer underline underline-offset-2 transition-colors"
-          title="Open Settings → Research"
-        >
-          set up Unlimited local research
-        </button>{" "}
-        for full capability.
+        {degraded ? (
+          "SearXNG is running but its search engines are blocked — falling back to limited keyless search."
+        ) : (
+          <>
+            Limited keyless search —{" "}
+            <button
+              type="button"
+              onClick={openSettings}
+              className="text-charcoal-100 hover:text-lume cursor-pointer underline underline-offset-2 transition-colors"
+              title="Open Settings → Research"
+            >
+              set up Unlimited local research
+            </button>{" "}
+            for full capability.
+          </>
+        )}
       </p>
       <button
         type="button"
@@ -596,38 +618,81 @@ export function BriefPanel() {
   // re-shows the honest notice.
   const [nudgeDismissedFor, setNudgeDismissedFor] = useState<number | null>(null);
 
-  // Export is Copy-markdown (Decision 7 default): `composeBriefMarkdown` is pure +
-  // reliable (it includes the "## Sources" appendix) and the clipboard write needs
-  // no Rust round-trip, no raster, no path to surface — it just copies, and a
-  // transient "Copied" flash confirms it.
+  // R15-UI-083: restore file export (Save .md/PDF/PNG). `composeBriefMarkdown`
+  // is a pure string transform (no raster) so the .md button never waits. PDF/PNG
+  // rasterize the rendered body via `briefBodyRef` — the historical "BRIEF-2" bug
+  // was rasterizing mid-stagger-reveal, producing a garbled/incomplete capture,
+  // which is why those two buttons stay disabled until `bodySettled` below.
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const flashStatus = useCallback((msg: string) => {
     setExportStatus(msg);
     window.setTimeout(() => setExportStatus(null), 4500);
   }, []);
-
-  const handleCopyMarkdown = useCallback(async () => {
-    if (!brief) return;
-    const md = composeBriefMarkdown(brief);
-    // `navigator.clipboard` is undefined outside a secure context — the Tauri
-    // webview is secure, but guard it defensively so a non-secure context flashes
-    // a useful message instead of throwing.
-    const clip = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
-    if (!clip?.writeText) {
-      flashStatus("Clipboard unavailable in this context");
-      return;
-    }
-    try {
-      await clip.writeText(md);
-      flashStatus("Copied");
-    } catch (e) {
-      flashStatus(`Copy failed: ${e instanceof Error ? e.message : String(e)}`);
-    }
-  }, [brief, flashStatus]);
+  const briefBodyRef = useRef<HTMLDivElement>(null);
 
   // De-duplicate the cited sources by URL before rendering the rail — a repeat
   // citation shows once. (The markdown's [n] markers point at the first.)
   const sources = useMemo(() => (brief ? dedupeSources(brief.sources) : []), [brief]);
+
+  // `bodySettled` tracks the SAME stagger math `BriefBody`/`MarkdownBody` actually
+  // animate with (staggerChildren delay per item + the child's own tween) rather
+  // than guessing a fixed delay — a longer brief gets a longer gate, a short one
+  // unlocks fast. Reduced-motion briefs render instantly (no cascade to wait on).
+  const metrics = useMemo(() => (brief ? deriveMetrics(brief.structured) : null), [brief]);
+  const sanitizedBody = useMemo(
+    () => (brief ? sanitizeCitationMarkers(brief.markdown, sources.length) : ""),
+    [brief, sources.length],
+  );
+  const blockCount = useMemo(() => parseBodyBlocks(sanitizedBody).length, [sanitizedBody]);
+  const staggeredItemCount = (metrics ? 1 : 0) + blockCount;
+  const reducedMotion = useReducedMotion();
+  // `settledKey` names the brief identity the settle timer has fired for; the
+  // boolean is DERIVED (never stored) by comparing it to the current brief, so
+  // a new brief reads as unsettled the instant its identity changes — no
+  // separate "reset to false" setState call needed (and none run synchronously
+  // in the effect body below, only inside the deferred timeout callback).
+  const [settledKey, setSettledKey] = useState<number | null>(null);
+  const bodySettled = reducedMotion === true || settledKey === (brief?.createdAt ?? null);
+  useEffect(() => {
+    if (reducedMotion || brief?.createdAt === undefined) return;
+    const identity = brief.createdAt;
+    const ms = Math.round((staggeredItemCount * STAGGER + DUR.fast) * 1000) + 60;
+    const timer = window.setTimeout(() => setSettledKey(identity), ms);
+    return () => window.clearTimeout(timer);
+  }, [brief?.createdAt, reducedMotion, staggeredItemCount]);
+
+  const handleExportMd = useCallback(async () => {
+    if (!brief) return;
+    try {
+      const md = composeBriefMarkdown(brief);
+      const r = await saveTextArtifact("research", `${briefSlug(brief)}.md`, md);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .md");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [brief, flashStatus]);
+
+  const handleExportPdf = useCallback(async () => {
+    const el = briefBodyRef.current;
+    if (!brief || !el) return;
+    try {
+      const r = await savePdfArtifact("research", `${briefSlug(brief)}.pdf`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .pdf");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [brief, flashStatus]);
+
+  const handleExportPng = useCallback(async () => {
+    const el = briefBodyRef.current;
+    if (!brief || !el) return;
+    try {
+      const r = await savePngArtifact("research", `${briefSlug(brief)}.png`, el);
+      flashStatus(r.path ? `Saved ${r.path}` : "Downloaded .png");
+    } catch (e) {
+      flashStatus(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }, [brief, flashStatus]);
 
   const registerSourceRef = useCallback((n: number, el: HTMLLIElement | null) => {
     if (el) {
@@ -692,23 +757,50 @@ export function BriefPanel() {
     // `@container` makes the PANEL the query container so the brief body can
     // downshift prose(16px)→body(13px) below 420px of panel width (R8 §1).
     <div className="bg-charcoal-900 @container flex h-full w-full flex-col">
-      {/* Export toolbar — one "Copy markdown" button (Decision 7 default).
-          `composeBriefMarkdown` is pure + reliable and already appends the
-          "## Sources" appendix, so the copy needs no raster, no Rust round-trip,
-          no path to surface — it just writes the markdown to the clipboard. */}
+      {/* Export toolbar (R15-UI-083): Save .md / Save PDF / Save PNG, each writing
+          a real file via the Rust atomic-write commands (the WKWebView blocks
+          browser downloads). MD is a pure string compose and is always enabled;
+          PDF/PNG rasterize `briefBodyRef` and stay disabled until `bodySettled`
+          so a raster can never land mid-stagger-reveal (the "BRIEF-2" bug). */}
       <div className="border-charcoal-700 flex items-center justify-end gap-1 border-b px-3 py-1">
         <button
           type="button"
-          title="Copy the brief as Markdown (with a Sources appendix)"
-          onClick={handleCopyMarkdown}
+          title="Save the brief as Markdown (with a Sources appendix)"
+          onClick={handleExportMd}
           className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1 px-2 py-1 transition-colors"
         >
-          <ClipboardCopy className="size-3" /> Copy markdown
+          <Download className="size-3" /> Save .md
+        </button>
+        <button
+          type="button"
+          title={
+            bodySettled
+              ? "Save the brief as a PDF"
+              : "Waiting for the brief to finish revealing before rendering a PDF"
+          }
+          onClick={handleExportPdf}
+          disabled={!bodySettled}
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1 px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          <Download className="size-3" /> Save PDF
+        </button>
+        <button
+          type="button"
+          title={
+            bodySettled
+              ? "Save the brief as a PNG"
+              : "Waiting for the brief to finish revealing before rendering a PNG"
+          }
+          onClick={handleExportPng}
+          disabled={!bodySettled}
+          className="text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100 rounded-control text-caption flex items-center gap-1 px-2 py-1 transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          <Download className="size-3" /> Save PNG
         </button>
       </div>
 
-      {/* Transient copy status — flashes "Copied" so the user sees it landed
-          (the same affordance pattern as the Notes panel). */}
+      {/* Transient export status — confirms the saved path so the user sees it
+          landed (the same affordance pattern as the Notes panel). */}
       {exportStatus ? (
         <div
           className="text-charcoal-400 border-charcoal-800 bg-charcoal-925 text-micro truncate border-b px-3 py-1 font-mono"
@@ -719,14 +811,17 @@ export function BriefPanel() {
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="bg-charcoal-900 flex flex-col">
+        <div ref={briefBodyRef} className="bg-charcoal-900 flex flex-col">
           <MetaHeader brief={brief} />
 
           {/* ARCHIVED strip (D39): provenance eyebrow + the Refresh re-run. */}
           {archived && <ArchivedBanner brief={brief} />}
 
           {showKeylessNudge && (
-            <KeylessFallbackNudge onDismiss={() => setNudgeDismissedFor(brief.createdAt)} />
+            <KeylessFallbackNudge
+              degraded={brief.webReason === "searxng_degraded"}
+              onDismiss={() => setNudgeDismissedFor(brief.createdAt)}
+            />
           )}
 
           {/* Honest no-web state: NOT an error, NOT empty — a prominent banner.
