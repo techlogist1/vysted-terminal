@@ -1,17 +1,42 @@
-"""transform.code — restricted expression evaluator (mathjs-frontend parity).
+"""transform.code — restricted expression evaluator (THE canonical evaluator,
+R15-CODE-PLATFORM-017).
 
-The R7 hackability track ships the code node with CLIENT-side mathjs execution
-(the node editor partitions the spec); this Python lane gives AGENT/MCP-run
-workflows the same node server-side. Safe by construction: stdlib ``ast`` parse
-+ a node whitelist; NO eval/exec, no attribute access beyond dict-member reads.
-Keep agent-authored expressions to arithmetic / comparison / boolean /
-``abs|min|max|round|sum|sqrt|floor|ceil`` for cross-lane parity (mathjs-only
-sugar — ``^`` as power, matrices, units — is not in this subset).
+Runs every ``transform.code`` node server-side, agent/MCP-triggered or edited
+in the node editor alike — the node editor's mathjs sandbox
+(``code-node.ts``) is kept ONLY for the inline syntax check as you type
+(``compileCodeExpression``) and the inspector's live preview; the value a
+run actually produces always comes from here, so there is exactly one
+evaluator, never two disagreeing on the same expression. Safe by
+construction: stdlib ``ast`` parse + a node whitelist; NO eval/exec, no
+attribute access beyond dict-member reads. Expressions are written in the
+editor's math notation (mathjs-flavoured, e.g. ``a + b^2``, ``a > b ? a :
+b``) — this module accepts that surface directly rather than Python's own
+spelling of power/ternary:
+
+- ``^`` parses as Python's ``BitXor`` token but is evaluated as POWER (the
+  only sane reading of ``^`` in a math-expression UI); ``ponytail:`` this
+  remap does NOT fix Python's ``^`` operator precedence (lower than ``+``/
+  ``*``, unlike mathjs's tight-binding power) — a bare ``a + b^2`` mixed
+  with other operators can silently group differently than mathjs would;
+  parenthesize ``a + (b^2)`` when in doubt. Upgrade path: a real Pratt
+  parser for the math-notation subset, if compound ``^`` expressions turn
+  out to matter.
+- ``cond ? a : b`` is rewritten (:func:`_translate_ternary`, paren-depth
+  aware) into Python's own ``(a) if (cond) else (b)`` before ``ast.parse``,
+  which lets :func:`_eval` handle it as a plain ``IfExp``. ``ponytail:``
+  handles exactly ONE top-level ternary (the documented, tested shape) —
+  a nested ternary in the false-branch is out of scope.
+- ``round(x[, n])`` rounds HALF AWAY FROM ZERO (mathjs's convention, and the
+  expected-since-school convention) rather than Python's builtin
+  round-half-to-even (``round(2.5)`` is ``3``, never the banker's-rounding
+  ``2``) — the two evaluators disagreeing here was exactly what this
+  residual fixed; canonical now means canonical, not "whichever ran last".
 """
 
 from __future__ import annotations
 
 import ast
+import math
 import operator
 from typing import Any
 
@@ -24,6 +49,10 @@ _BIN_OPS = {
     ast.Div: operator.truediv,
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
+    # The editor's math notation spells power as ``^`` (mathjs), which
+    # Python's own grammar reads as bitwise XOR — remapped to power, see the
+    # module docstring for the precedence caveat this does NOT fix.
+    ast.BitXor: operator.pow,
 }
 _CMP_OPS = {
     ast.Gt: operator.gt,
@@ -33,16 +62,63 @@ _CMP_OPS = {
     ast.Eq: operator.eq,
     ast.NotEq: operator.ne,
 }
+
+
+def _round(x: Any, ndigits: Any = 0) -> float:
+    """Round-half-AWAY-from-zero to ``ndigits`` decimals — see module docstring."""
+    shift = 10 ** int(ndigits)
+    shifted = float(x) * shift
+    rounded = math.floor(shifted + 0.5) if shifted >= 0 else math.ceil(shifted - 0.5)
+    return rounded / shift
+
+
 _FUNCS: dict[str, Any] = {
     "abs": abs,
     "min": min,
     "max": max,
-    "round": round,
+    "round": _round,
     "sum": sum,
     "sqrt": lambda x: float(x) ** 0.5,
     "floor": lambda x: float(int(x // 1)),
     "ceil": lambda x: float(-int(-x // 1)),
 }
+
+
+def _translate_ternary(expr: str) -> str:
+    """Rewrite ONE top-level mathjs ternary (``cond ? a : b``) into Python's
+    ``(a) if (cond) else (b)`` so :func:`ast.parse` can read it — Python has
+    no ``?:`` token. Paren/bracket-depth aware so a ``?``/``:`` inside a
+    nested call or a nested ternary is left alone; a bare expression with no
+    top-level ``?`` is returned unchanged."""
+    depth = 0
+    q_pos = -1
+    for i, ch in enumerate(expr):
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        elif ch == "?" and depth == 0:
+            q_pos = i
+            break
+    if q_pos == -1:
+        return expr
+    depth = 0
+    c_pos = -1
+    for i in range(q_pos + 1, len(expr)):
+        ch = expr[i]
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        elif ch == ":" and depth == 0:
+            c_pos = i
+            break
+    if c_pos == -1:
+        return expr
+    cond = expr[:q_pos].strip()
+    true_expr = expr[q_pos + 1 : c_pos].strip()
+    false_expr = expr[c_pos + 1 :].strip()
+    return f"({true_expr}) if ({cond}) else ({false_expr})"
 
 
 def _eval(node: ast.AST, scope: dict[str, Any]) -> Any:
@@ -83,6 +159,8 @@ def _eval(node: ast.AST, scope: dict[str, Any]) -> Any:
         return _FUNCS[node.func.id](*[_eval(a, scope) for a in node.args])
     if isinstance(node, ast.List):
         return [_eval(e, scope) for e in node.elts]
+    if isinstance(node, ast.IfExp):  # the translated ``cond ? a : b`` ternary
+        return _eval(node.body, scope) if _eval(node.test, scope) else _eval(node.orelse, scope)
     raise ValueError(f"disallowed syntax: {type(node).__name__}")
 
 
@@ -94,7 +172,7 @@ async def evaluate_code(inputs: dict[str, Any], config: dict[str, Any]) -> dict[
     scope = {name: inputs.get(name) for name in bindings if isinstance(name, str)}
     scope = {k: v for k, v in scope.items() if v is not None}
     try:
-        tree = ast.parse(expression.strip(), mode="eval")
+        tree = ast.parse(_translate_ternary(expression.strip()), mode="eval")
     except SyntaxError as exc:
         raise ValueError(f"transform.code: parse error: {exc.msg}") from exc
     return {"value": _eval(tree, scope)}
