@@ -161,6 +161,50 @@ class TestErrors:
         with pytest.raises(FormulaError, match="comparison or boolean"):
             compile_formula("pe_ratio + 1")
 
+    def test_boolean_in_min_arg_rejected_with_position(self) -> None:
+        # R15-RESEARCH-025: `pe < 5` silently coerced to 1.0/0.0 inside min() —
+        # a boolean operand in a numeric-only call is now a positioned error.
+        src = "min(pe < 5, roe) > 0.5"
+        with pytest.raises(FormulaError) as exc_info:
+            compile_formula(src)
+        assert "boolean expression" in str(exc_info.value)
+        assert exc_info.value.position == src.index("(", src.index("min"))
+
+    def test_boolean_in_abs_arg_rejected_with_position(self) -> None:
+        src = "abs(pe_ratio > 3) > 0.5"
+        with pytest.raises(FormulaError) as exc_info:
+            compile_formula(src)
+        assert "boolean expression" in str(exc_info.value)
+        assert exc_info.value.position == src.index("(", src.index("abs"))
+
+    def test_boolean_in_arithmetic_rejected_with_position(self) -> None:
+        src = "(pe_ratio < 15) + 1 > 1.5"
+        with pytest.raises(FormulaError) as exc_info:
+            compile_formula(src)
+        assert "boolean expression" in str(exc_info.value)
+        assert exc_info.value.position == src.index("+")
+
+    def test_boolean_plus_arithmetic_class_pin(self) -> None:
+        # Class pin (not written against a specific repro): abs() wrapping a
+        # comparison, then used in arithmetic — both illegal uses chained.
+        src = "abs(roe > 1) + 1"
+        with pytest.raises(FormulaError) as exc_info:
+            compile_formula(src)
+        assert "boolean expression" in str(exc_info.value)
+        assert exc_info.value.position is not None
+
+    def test_negating_a_comparison_numerically_rejected(self) -> None:
+        src = "-(pe_ratio < 15) > 1"
+        with pytest.raises(FormulaError) as exc_info:
+            compile_formula(src)
+        assert "boolean expression" in str(exc_info.value)
+        assert exc_info.value.position == src.index("-")
+
+    def test_and_or_not_of_comparisons_still_allowed(self) -> None:
+        # Composing booleans with and/or/not is the legitimate use — unaffected.
+        compile_formula("pe_ratio < 15 and roe > 0.1")
+        compile_formula("pe_ratio < 15 or not (roe > 0.1)")
+
     def test_chained_comparison_rejected(self) -> None:
         src = "1 < pe < 15"
         with pytest.raises(FormulaError) as exc_info:
