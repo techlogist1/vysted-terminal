@@ -168,7 +168,8 @@ async def test_wall_clock_breach_aborts_mid_round(monkeypatch: pytest.MonkeyPatc
 
 @pytest.mark.asyncio
 async def test_step_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch(monkeypatch, _LoopingProvider(per_round=1))
+    provider = _LoopingProvider(per_round=1)
+    _patch(monkeypatch, provider)
     run_id = run_manager.launch_run(
         agent_id="copilot",
         prompt="loop",
@@ -179,6 +180,64 @@ async def test_step_breach_aborts(monkeypatch: pytest.MonkeyPatch) -> None:
     assert row is not None
     assert row.status == "error"
     assert "step ceiling 2" in (row.detail or "")
+    assert provider.calls == 2  # N steps = exactly N provider rounds
+
+
+@pytest.mark.asyncio
+async def test_breach_stops_before_the_rounds_tools_and_the_next_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-037: the flag used to be only a flag — the round's tools ran and
+    the next (unmetered) request went out after the breach."""
+    provider = _LoopingProvider(per_round=100_000)
+    _patch(monkeypatch, provider)
+    dispatched: list[str] = []
+
+    async def _no_dispatch(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        dispatched.append(tool_call.name)
+        return "{}"
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _no_dispatch)
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_tokens=1000)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert (row.status, row.detail) == ("error", "token ceiling 1000 reached (100000 used)")
+    assert provider.calls == 1
+    assert dispatched == []
+    assert row.cost.tokens == 100_000
+
+
+@pytest.mark.asyncio
+async def test_a_final_answer_on_the_ceiling_round_is_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-038: a one-shot answer under max_steps=1 finished; it is not an error."""
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_steps=1)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert row.status == "done"
+    assert row.detail == "completed (step ceiling 1 reached (1 taken) on the final round)"
+    assert row.answer == "Analysis complete: NVDA looks rich."
+
+
+@pytest.mark.asyncio
+async def test_a_provider_less_run_is_priced_at_the_resolved_provider(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-074: buffett defaults to anthropic/opus; an omitted provider was
+    priced at the $5/M fallback instead of the opus rate."""
+    from services.budget_guard import estimate_spend_usd
+
+    _patch(monkeypatch, _OneShotProvider())
+    run_id = run_manager.launch_run(agent_id="buffett", prompt="x", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert row.cost.spend_usd == round(estimate_spend_usd("anthropic", "claude-opus-4-8", 70), 6)
 
 
 @pytest.mark.asyncio

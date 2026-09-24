@@ -1356,6 +1356,9 @@ def _empty_response_error(model: str) -> LLMErrorEvent:
 #: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
 #: chat branches on it, so notice copy can change without breaking the chip.
 NOTICE_STEP_KIND = "notice"
+#: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
+#: round: the round's tool calls were NOT dispatched (R15-AGENT-037).
+HALT_NOTICE_TOOL = "run_halt"
 
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
@@ -1731,7 +1734,7 @@ async def invoke_agent(
     options: dict[str, Any] | None = None,
     mode: str = "ask",
     autonomy: str | None = None,
-    on_round_usage: Callable[[LLMUsage, str], None] | None = None,
+    on_round_usage: Callable[[LLMUsage, str, str], bool] | None = None,
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
@@ -1751,10 +1754,13 @@ async def invoke_agent(
     ``on_round_usage`` is an optional per-round cost signal (P3 / FR-026): the
     loop normally SWALLOWS each mid-run round's ``done`` usage while it loops on
     tools, so a budget guard could otherwise only see the FINAL usage. When set,
-    it is called with ``(usage, model)`` at EVERY round's ``done`` (the swallowed
-    mid-run terminators AND the final one), so a detached Delegate-run executor
-    can enforce token/spend ceilings MID-run. It does not change the event stream
-    — the SSE consumer sees the same frames whether or not the callback is set.
+    it is called with ``(usage, model, provider)`` — the RESOLVED model and
+    provider, so a provider-less launch is priced at its real rate
+    (R15-AGENT-074) — at EVERY round's ``done``, and returns whether the loop may
+    continue. ``False`` on a round with tool calls stops the turn BEFORE they are
+    dispatched: a :data:`HALT_NOTICE_TOOL` notice and the round's terminator are
+    yielded and nothing else is sent (R15-AGENT-037). A round that ended with a
+    final answer finishes normally whatever it returns.
     """
     spec = get_agent(agent_id)
     if spec is None:
@@ -2023,8 +2029,21 @@ async def invoke_agent(
                 # Per-round cost signal (FR-026): fire BEFORE we either swallow
                 # this terminator (mid-run) or yield it (final), so the budget
                 # guard sees every round's usage, not just the last one.
-                if on_round_usage is not None:
-                    on_round_usage(event.usage or LLMUsage(), resolved_model)
+                may_continue = (
+                    on_round_usage(event.usage or LLMUsage(), resolved_model, provider_id)
+                    if on_round_usage is not None
+                    else True
+                )
+                if pending_tools and not may_continue:
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool=HALT_NOTICE_TOOL,
+                        step_kind=NOTICE_STEP_KIND,
+                        detail=f"Stopped before running {len(pending_tools)} tool call(s).",
+                        status="error",
+                    )
+                    yield event
+                    return
                 # If tools fired this round and we have budget left,
                 # swallow the per-round terminator and loop. Otherwise
                 # this is the final terminator and the SSE consumer

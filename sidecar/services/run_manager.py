@@ -119,7 +119,6 @@ async def _drive_run(
         max_wall_seconds=budget.max_wall_seconds,
         max_steps=budget.max_steps,
     )
-    provider_str = str(provider or "")
     options = dict(options)
     # R10: a resumed run re-threads its persisted region INSIDE the detached
     # task (the resume HTTP request's middleware set a region for the WRONG
@@ -133,7 +132,12 @@ async def _drive_run(
     if resume_messages:
         transcript.extend(m.model_dump() for m in resume_messages)
     transcript.append({"role": "user", "content": prompt})
+    # A ceiling the guard reported, and an error the agent loop reported: two
+    # different facts (R15-AGENT-038). ``halted`` — the runtime stopped before
+    # dispatching a round's tools because the guard refused another round.
     breach_reason: str | None = None
+    agent_error: str | None = None
+    halted = False
     delta_buffer: list[str] = []
     # The run's collectable output (R15-AGENT-013): the last brief it published
     # and the host actions it proposed, delivered once to the originating chat
@@ -148,14 +152,16 @@ async def _drive_run(
             "host_actions": list(host_actions),
         }
 
-    def _on_round_usage(usage: LLMUsage, used_model: str) -> None:
-        # Fold the round's usage into the guard, then persist the running cost so
-        # GET /runs reflects spend-so-far even before the run finishes.
-        guard.record(usage, used_model, provider_str)
+    def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
+        # Fold the round's usage into the guard at the RESOLVED provider's rate
+        # (R15-AGENT-074), persist the running cost so GET /runs reflects
+        # spend-so-far, and refuse the next round on a breach: invoke_agent then
+        # stops before dispatching this round's tools (R15-AGENT-037).
+        guard.record(usage, used_model, used_provider)
         runs_store.update_run(run_id, cost=RunCost.model_validate(guard.cost()))
         nonlocal breach_reason
-        if breach_reason is None:
-            breach_reason = guard.breach()
+        breach_reason = breach_reason or guard.breach()
+        return breach_reason is None
 
     try:
         # The round-boundary breach() check below covers tokens/spend/steps (which
@@ -179,10 +185,6 @@ async def _drive_run(
                 mode="delegate",
                 on_round_usage=_on_round_usage,
             ):
-                # A round's terminator may have flagged a breach; stop before
-                # anything of the next round lands in the output.
-                if breach_reason is not None:
-                    break
                 kind = getattr(event, "kind", None)
                 if kind == "delta":
                     delta_buffer.append(getattr(event, "text", ""))
@@ -203,27 +205,34 @@ async def _drive_run(
                                 "input": dict(event.input),
                             }
                         )
+                elif kind == "research_step" and event.tool == agent_runtime.HALT_NOTICE_TOOL:
+                    halted = True
                 elif kind == "error":
-                    breach_reason = breach_reason or getattr(event, "message", "agent error")
+                    agent_error = agent_error or getattr(event, "message", "agent error")
 
         if delta_buffer:
             transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
 
-        if breach_reason is not None:
+        failure = breach_reason if halted else agent_error
+        if failure is not None:
             # SC-008 — abort with the stated reason + a resumable checkpoint.
             runs_store.update_run(
                 run_id,
                 status="error",
-                detail=breach_reason,
+                detail=failure,
                 checkpoint=list(transcript),
                 output=_output(),
             )
             return
 
+        # A turn that ended with its final answer is done, even when that last
+        # round touched a ceiling (R15-AGENT-038); the detail says so.
         runs_store.update_run(
             run_id,
             status="done",
-            detail="completed",
+            detail=f"completed ({breach_reason} on the final round)"
+            if breach_reason
+            else "completed",
             checkpoint=list(transcript),
             output=_output(),
         )
