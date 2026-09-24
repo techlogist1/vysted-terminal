@@ -33,7 +33,7 @@ delivered; UI-015 landed partially (earnings/screener still flatten the error) a
 - **W1 sidecar lifecycle and transport:** `sidecarRequest` and `SidecarError(0)` for a dead engine (UI-014); SSE
   failures reach `onError` as sentences (UI-012); `sidecarStatus` follows reachability both ways (LIFECYCLE-011);
   spawn failures and exits are named at once (LIFECYCLE-010); `setup()` returns at once (LIFECYCLE-001); delegate
-  runs and the agent builder use the shared error layer, start/resume excepted (CODE-PLATFORM-011); SearXNG and
+  runs (start/resume migrated at review) and the agent builder use the shared error layer (CODE-PLATFORM-011); SearXNG and
   hardware name their failure and re-read (RESEARCH-032); per-panel error boundaries (LIFECYCLE-023).
 
 ## R15 Stage C — batch 7: exchange-filed India fundamentals, durable delegate runs, unattended workflows, chart/workspace integrity, research funnel, agent-write Undo (2026-09-24)
