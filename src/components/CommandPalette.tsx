@@ -17,9 +17,9 @@
  * agents always outrank actions which outrank panels which outrank symbols,
  * while cmdk fuzzy-ranks within each group normally.
  *
- * Keybinding: `mod+k` via a global `keydown` listener that resolves the
- * `palette.open` binding — falls back to `meta+k` / `ctrl+k` directly if the
- * keybindings store is unavailable.
+ * Keybinding: `palette.open` (default `mod+k`) registers its handler with the
+ * keybindings store; the one app-level dispatcher (`page.tsx`) resolves the
+ * remap-aware binding and fires it.
  *
  * AI-ask routing: selecting the Ask AI row reveals the agent dock (the single
  * agent surface — FR-001) and pushes the query onto the agent-command bus, which
@@ -60,6 +60,7 @@ import {
   useCommandPalette,
   type PaletteItem,
 } from "@/store/command-palette";
+import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
 import { useWorkspaceStore } from "@/store/workspace";
 
 // ---------------------------------------------------------------------------
@@ -69,19 +70,9 @@ import { useWorkspaceStore } from "@/store/workspace";
 export function CommandPalette() {
   const { open, setOpen, toggle } = useCommandPalette();
 
-  // Keybinding: resolve `mod+k` from the global keydown listener.
-  // We do a direct meta/ctrl check here for reliability — the keybindings store
-  // may not have loaded yet at the point this listener fires.
-  useEffect(() => {
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        toggle();
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggle]);
+  // Register `palette.open`'s handler; the app-level dispatcher (`page.tsx`)
+  // resolves the (possibly remapped) binding and calls this.
+  useEffect(() => registerAction("palette.open", toggle), [toggle]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -184,7 +175,9 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
           useAgentDockStore.getState().setCollapsed(false);
           break;
         case "action":
-          if (item.commandSpec) {
+          if (item.action) {
+            item.action();
+          } else if (item.commandSpec) {
             executeCommand(item.commandSpec);
           }
           break;
@@ -482,6 +475,11 @@ interface PaletteItemRowProps {
 }
 
 function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps) {
+  // Resolved (remap-aware) binding for an action row's own command id — never
+  // a fabricated combo, so a row only ever shows a chord that actually fires.
+  const binding = useKeybindingsStore((state) =>
+    item.commandSpec ? state.bindingFor(item.commandSpec.id) : "",
+  );
   return (
     <Command.Item
       value={item.id}
@@ -496,6 +494,11 @@ function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps)
           <div className="text-charcoal-500 text-caption truncate">{item.description}</div>
         )}
       </div>
+      {binding && (
+        <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control shrink-0 border px-1 py-0.5">
+          {formatBinding(binding)}
+        </kbd>
+      )}
       {isRecent && <span className="text-charcoal-600 text-caption shrink-0">recent</span>}
     </Command.Item>
   );

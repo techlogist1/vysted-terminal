@@ -170,20 +170,47 @@ describe("SettingsPanel", () => {
     }
   });
 
-  it("recording a key remaps the binding via setBinding", () => {
+  it("recording a key remaps the binding via setBinding, collapsing the platform-primary modifier to mod", () => {
     render(<SettingsPanel />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Record binding for Open command palette" }),
     );
 
-    // The button enters recording mode and captures the next keydown.
+    // The button enters recording mode and captures the next keydown. jsdom's
+    // default navigator resolves non-mac here, so Ctrl IS the platform-primary
+    // modifier and must collapse to "mod" (R15-UI-027) — literal "ctrl" is
+    // reserved for a genuinely non-primary Control press (see the mac-only
+    // "mod" case in the isMacPlatform-stubbed test below).
     const recordBtn = screen.getByRole("button", {
       name: "Record binding for Open command palette",
     });
     fireEvent.keyDown(recordBtn, { key: "p", ctrlKey: true, shiftKey: true });
 
-    expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("ctrl+shift+p");
+    expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
+  });
+
+  it("recording Cmd+K on macOS records mod+k and is caught as a real conflict with the mod+k default (R15-UI-027)", () => {
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+    render(<SettingsPanel />);
+
+    // Record Cmd+K (metaKey) onto "Toggle agent panel" — the SAME physical
+    // chord as "Open command palette"'s mod+k default. Pre-fix, the recorder
+    // emitted a platform-literal "meta+k", which `conflicts()` (grouping by
+    // resolved combo string) would never match against "mod+k" — a real
+    // macOS collision went undetected. Cmd is the mac platform-primary
+    // modifier, so the fixed recorder must emit "mod", not "meta".
+    fireEvent.click(screen.getByRole("button", { name: "Record binding for Toggle agent panel" }));
+    fireEvent.keyDown(
+      screen.getByRole("button", { name: "Record binding for Toggle agent panel" }),
+      { key: "k", metaKey: true },
+    );
+    expect(useKeybindingsStore.getState().bindingFor("agent.toggle")).toBe("mod+k");
+
+    const conflicts = useKeybindingsStore.getState().conflicts();
+    const collision = conflicts.find((c) => c.keys === "mod+k");
+    expect(collision?.actionIds).toContain("palette.open");
+    expect(collision?.actionIds).toContain("agent.toggle");
   });
 
   it("surfaces a user-created conflict when two actions share a combo", () => {

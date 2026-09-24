@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_KEYBINDINGS,
   formatBinding,
+  getRegisteredAction,
   matchesEvent,
   normalizeBinding,
+  registerAction,
   resetKeybindingsStoreForTests,
+  resolveKeyboardAction,
   useKeybindingsStore,
 } from "./keybindings";
 
@@ -172,5 +175,65 @@ describe("matchesEvent", () => {
     vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
     expect(matchesEvent("mod+enter", keyEvent("Enter", { ctrlKey: true }))).toBe(true);
     expect(matchesEvent("mod+backspace", keyEvent("Backspace", { ctrlKey: true }))).toBe(true);
+  });
+});
+
+describe("registerAction / getRegisteredAction", () => {
+  it("registers, calls and unregisters a handler", () => {
+    const handler = vi.fn();
+    const unregister = registerAction("palette.open", handler);
+    expect(getRegisteredAction("palette.open")).toBe(handler);
+    unregister();
+    expect(getRegisteredAction("palette.open")).toBeUndefined();
+  });
+
+  it("a stale unregister (from a re-registered handler) is a no-op", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const unregisterFirst = registerAction("agent.toggle", first);
+    registerAction("agent.toggle", second);
+    unregisterFirst();
+    // The second registration must survive an out-of-order cleanup from the
+    // first (a component re-render replacing its own handler).
+    expect(getRegisteredAction("agent.toggle")).toBe(second);
+  });
+});
+
+describe("resolveKeyboardAction — the one dispatcher's resolution (R15-UI-016 / R15-CODE-FRONTEND-016)", () => {
+  it("resolves EVERY DEFAULT_KEYBINDINGS id on its own default chord (class pin: no dead defaults)", () => {
+    vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
+    for (const [actionId, def] of Object.entries(DEFAULT_KEYBINDINGS)) {
+      const parts = def.keys.split("+");
+      const key = parts[parts.length - 1];
+      const event = keyEvent(key, {
+        ctrlKey: parts.includes("mod") || parts.includes("ctrl"),
+        altKey: parts.includes("alt"),
+        shiftKey: parts.includes("shift"),
+        metaKey: parts.includes("meta"),
+      });
+      const resolved = resolveKeyboardAction(event, /* typing */ false);
+      expect(resolved?.actionId, `default chord "${def.keys}" for ${actionId}`).toBe(actionId);
+    }
+  });
+
+  it("a remapped palette.open fires only on the new chord, never the old default", () => {
+    vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
+    useKeybindingsStore.getState().setBinding("palette.open", "mod+p");
+    expect(resolveKeyboardAction(keyEvent("p", { ctrlKey: true }), false)?.actionId).toBe(
+      "palette.open",
+    );
+    expect(resolveKeyboardAction(keyEvent("k", { ctrlKey: true }), false)).toBeUndefined();
+  });
+
+  it("skips a non-global action while typing, but still fires a global one", () => {
+    vi.stubGlobal("navigator", { platform: "Win32", userAgent: "Windows NT" });
+    // changes.acceptAll (mod+enter) is not global — skipped while typing.
+    expect(
+      resolveKeyboardAction(keyEvent("enter", { ctrlKey: true }), /* typing */ true),
+    ).toBeUndefined();
+    // palette.open (mod+k) is global — still fires while typing.
+    expect(
+      resolveKeyboardAction(keyEvent("k", { ctrlKey: true }), /* typing */ true)?.actionId,
+    ).toBe("palette.open");
   });
 });

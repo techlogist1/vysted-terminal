@@ -6,7 +6,11 @@ import type { VystedModule } from "@/lib/module-registry";
 import { useAgentsStore } from "@/store/agents";
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useCommandPalette } from "@/store/command-palette";
-import { resetKeybindingsStoreForTests } from "@/store/keybindings";
+import {
+  getRegisteredAction,
+  resetKeybindingsStoreForTests,
+  useKeybindingsStore,
+} from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -68,11 +72,16 @@ afterEach(() => {
 });
 
 describe("CommandPalette (cmdk)", () => {
-  it("⌘K toggles the palette open via the global keydown listener", () => {
+  // The app-level keydown dispatcher (R15-UI-016) lives in `page.tsx`, not
+  // here — it resolves `palette.open`'s (possibly remapped) binding and calls
+  // whatever handler is registered. This component's contract is registering
+  // that handler; the dispatcher's own chord-resolution is pinned in
+  // `keybindings.test.ts` (`resolveKeyboardAction`).
+  it("registers a palette.open handler that toggles the store", () => {
     useCommandPalette.setState({ open: false });
     render(<CommandPalette />);
     expect(useCommandPalette.getState().open).toBe(false);
-    fireEvent.keyDown(window, { key: "k", metaKey: true });
+    getRegisteredAction("palette.open")?.();
     expect(useCommandPalette.getState().open).toBe(true);
   });
 
@@ -111,6 +120,22 @@ describe("CommandPalette (cmdk)", () => {
     expect(screen.getByText("Symbols")).toBeInTheDocument();
     const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
     expect(within(symbolsGroup).getByText("NVDA")).toBeInTheDocument();
+  });
+
+  it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)", () => {
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    // "Save Workspace" -> "platform.save-workspace", default mod+s -> ⌘S on mac.
+    const saveRow = screen.getByText("Save Workspace").closest("[cmdk-item]") as HTMLElement;
+    expect(within(saveRow).getByText("⌘S")).toBeInTheDocument();
+
+    cleanup();
+    useKeybindingsStore.getState().setBinding("platform.save-workspace", "mod+shift+s");
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    const remappedRow = screen.getByText("Save Workspace").closest("[cmdk-item]") as HTMLElement;
+    // formatBinding's fixed render order is ctrl, alt, shift, mod — ⇧⌘S.
+    expect(within(remappedRow).getByText("⇧⌘S")).toBeInTheDocument();
   });
 
   it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {

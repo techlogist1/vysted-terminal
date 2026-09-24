@@ -26,6 +26,7 @@ import { useAgentCommandStore } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
 import { useBriefStore } from "@/store/brief";
 import { useChatPendingStore } from "@/store/chat-pending";
+import { registerAction } from "@/store/keybindings";
 import { type ResearchDepth, useResearchDepthStore } from "@/store/research-depth";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
@@ -554,36 +555,35 @@ export function ChatSidebar() {
     return map;
   }, [firstPartyAgents, customAgents]);
 
-  // Global hotkeys for the agent surface: ⌥1–⌥4 switch mode (FR-003); when
-  // changes are pending, ⌘↵ accepts all and ⌘⌫ rejects all (FR-010 keyboard).
+  // Register the agent-surface hotkeys' handlers (FR-003 mode switch, FR-010
+  // bulk accept/reject); the app-level dispatcher (`page.tsx`) resolves each
+  // action's (possibly remapped) binding and calls these. `changes.acceptAll`/
+  // `changes.rejectAll` are non-global (the dispatcher already skips them
+  // while typing — ⌘⌫ is the macOS "delete to line start" the composer
+  // needs), and each handler still no-ops with nothing pending.
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.altKey && !event.metaKey && !event.ctrlKey) {
-        const found = AGENT_MODES.find((m) => event.code === `Digit${m.hotkeyDigit}`);
-        if (found) {
-          event.preventDefault();
-          setMode(found.id);
-          return;
-        }
+    const unregisters = AGENT_MODES.map((m) =>
+      registerAction(`agent.mode.${m.id}`, () => setMode(m.id)),
+    );
+    return () => unregisters.forEach((unregister) => unregister());
+  }, [setMode]);
+
+  useEffect(() => {
+    const unregisterAccept = registerAction("changes.acceptAll", () => {
+      if (pendingChangeCount > 0) {
+        void acceptAllChanges();
       }
-      // Bulk accept/reject (⌘↵ / ⌘⌫) — but NOT while the user is typing in a
-      // field: ⌘⌫ is the macOS "delete to line start" the composer needs.
-      const el = event.target as HTMLElement | null;
-      const typing =
-        !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
-      if ((event.metaKey || event.ctrlKey) && pendingChangeCount > 0 && !typing) {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          void acceptAllChanges();
-        } else if (event.key === "Backspace") {
-          event.preventDefault();
-          rejectAllChanges();
-        }
+    });
+    const unregisterReject = registerAction("changes.rejectAll", () => {
+      if (pendingChangeCount > 0) {
+        rejectAllChanges();
       }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [setMode, pendingChangeCount, acceptAllChanges, rejectAllChanges]);
+    });
+    return () => {
+      unregisterAccept();
+      unregisterReject();
+    };
+  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
   // Stage a curated-slash action through the SAME diff/accept gate the agent uses
   // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in

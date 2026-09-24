@@ -37,8 +37,10 @@ import {
 import {
   DEFAULT_KEYBINDINGS,
   formatBinding,
+  isMacPlatform,
   type KeybindingCategory,
   type KeybindingDef,
+  normalizeBinding,
   useKeybindingsStore,
 } from "@/store/keybindings";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
@@ -1361,24 +1363,34 @@ const CATEGORY_ORDER: { id: KeybindingCategory; label: string }[] = [
 /**
  * Build a binding-grammar combo string from a keydown event. Modifiers first
  * (in the store's canonical order), the key last. `mod` is emitted for the
- * platform-primary modifier so it renders ⌘/Ctrl correctly. A bare modifier
- * press (e.g. just Shift) yields `""` so we keep listening for the real key.
+ * platform-primary modifier (⌘ on macOS, Ctrl elsewhere) so a recorded combo
+ * matches `DEFAULT_KEYBINDINGS`' grammar and `conflicts()` — which compares
+ * resolved chords — actually catches a collision with a `mod+…` default
+ * instead of leaving it as a platform-literal `meta+…`/`ctrl+…` string no
+ * default ever uses. A bare modifier press (e.g. just Shift) yields `""` so
+ * we keep listening for the real key.
  */
 function comboFromEvent(event: React.KeyboardEvent): string {
   const key = event.key.toLowerCase();
   if (["control", "shift", "alt", "meta", "os", "hyper"].includes(key)) {
     return "";
   }
+  const mac = isMacPlatform();
   const parts: string[] = [];
-  // `metaKey`→⌘ and `ctrlKey`→Ctrl; collapse the platform-primary one to `mod`
-  // so the binding matches the store's grammar regardless of OS.
-  if (event.ctrlKey) parts.push("ctrl");
+  if (mac) {
+    // On macOS, mod = ⌘ (metaKey); Control is a distinct, explicit modifier.
+    if (event.ctrlKey) parts.push("ctrl");
+    if (event.metaKey) parts.push("mod");
+  } else {
+    // Elsewhere, mod = Ctrl; metaKey is the (rare) literal Windows/Super key.
+    if (event.ctrlKey) parts.push("mod");
+    if (event.metaKey) parts.push("meta");
+  }
   if (event.altKey) parts.push("alt");
   if (event.shiftKey) parts.push("shift");
-  if (event.metaKey) parts.push("meta");
   const normalizedKey = key === " " ? "space" : key === "esc" ? "escape" : key;
   parts.push(normalizedKey);
-  return parts.join("+");
+  return normalizeBinding(parts.join("+"));
 }
 
 function KeybindingsSection() {
