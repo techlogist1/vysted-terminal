@@ -1,0 +1,90 @@
+{
+  "certified": [
+    "R15-AGENT-050",
+    "R15-LEAD-018",
+    "R15-CODE-PLATFORM-029",
+    "R15-CODE-PLATFORM-030",
+    "R15-LIFECYCLE-015",
+    "R15-UI-010",
+    "R15-UI-011",
+    "R15-CODE-AGENT-013",
+    "R15-RESEARCH-030",
+    "R15-AGENT-084",
+    "R15-CODE-PLATFORM-021",
+    "R15-DATA-048",
+    "R15-DATA-054",
+    "R15-DATA-055",
+    "R15-DATA-053",
+    "R15-DATA-096",
+    "R15-DATA-068",
+    "R15-LEAD-024",
+    "R15-DATA-061",
+    "R15-DATA-087",
+    "R15-RESEARCH-025",
+    "R15-CROSS-PLATFORM-003",
+    "R15-DATA-095",
+    "R15-DOCS-016",
+    "R15-DOCS-017",
+    "R15-DOCS-018",
+    "R15-AGENT-082",
+    "R15-AGENT-088",
+    "R15-UI-027",
+    "R15-RESEARCH-028",
+    "R15-AGENT-063",
+    "R15-CODE-PLATFORM-017",
+    "R15-CODE-RESEARCH-004",
+    "R15-LEAD-026",
+    "R15-UI-048",
+    "R15-UI-024",
+    "R15-DOCS-004",
+    "R15-DOCS-005",
+    "R15-DATA-078",
+    "R15-CODE-PLATFORM-024",
+    "R15-AGENT-053",
+    "R15-UI-032",
+    "R15-UI-028",
+    "R15-UI-018",
+    "R15-CODE-PLATFORM-072",
+    "R15-DATA-077",
+    "R15-CODE-PLATFORM-012",
+    "R15-CODE-PLATFORM-013",
+    "R15-CODE-PLATFORM-014",
+    "R15-AGENT-057"
+  ],
+  "needs_gui": [
+    "R15-UI-084"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-CODE-AGENT-009",
+      "reason": "invoke_agent is still a 488-line function (537 on the batch base, ~400 at census); the tool-surface, native-search and planner pre-pass extractions (test_runtime_prepass.py) are real but the entry's defect - a single function owning the defect-bearing branches - still reproduces."
+    },
+    {
+      "id": "R15-UI-091",
+      "reason": "Sidecar side is done (_suggested_indicators is timeframe/asset-aware, indicators.py parses ema:9 / vwap:week) but the chart never sees it: research/fast.py's two call sites pass no timeframe (default 1d), no frontend consumer of suggested_indicators exists, the chart catalog has only a fixed 'ema'/'vwap' key, and host-actions.ts:574 drops 'ema:9' as an unknown indicator. The entry's repro (open an intraday equity chart -> no EMA9/21; no request can yield EMA9/21 on the chart) still holds."
+    },
+    {
+      "id": "R15-DATA-071",
+      "reason": "Left open by the writers (D-B10-8, one leg): the registry fall-through is not delivered. Observed: cold 1y BSE-only history (ICONIKSPEV.BO) served 246 bars, partial false - the \u22648-bar case did not reproduce today, but nothing certifies the flagged fall-through."
+    },
+    {
+      "id": "R15-LEAD-013",
+      "reason": "Reverted out of batch 10 (d5370601); register status stays open, CURRENT_STATE says so."
+    }
+  ],
+  "concur_not_defect": [
+    "R15-AGENT-083"
+  ],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-10-int@f4ef5673",
+  "fixes_applied": [
+    "R15-DATA-054: f4ef5673 - basis field_meta stamps the filings leg instead of the provider's 'unavailable' beside a served value (routers/fundamentals.py + two tests)"
+  ],
+  "verifier": "Fable 5.1",
+  "chain": {
+    "pytest": "3054 passed, 1 skipped at 6c5b49d3 (b10v-pytest.log); re-run at f4ef5673 in b10v-pytest-final.log",
+    "vitest": "1753 passed at 6c5b49d3; 30 batch files 590 passed re-run",
+    "prettier": "clean",
+    "ruff": "format + check clean at f4ef5673"
+  }
+}
