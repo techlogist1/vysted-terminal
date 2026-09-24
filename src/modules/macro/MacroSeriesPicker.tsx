@@ -5,7 +5,12 @@ import { SearchX } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { selectCatalog, selectSearchResults, useMacroStore } from "@/store/macro";
+import {
+  selectCatalog,
+  selectCatalogError,
+  selectSearchResults,
+  useMacroStore,
+} from "@/store/macro";
 
 import type { MacroProvider } from "../../../types/macro";
 
@@ -37,29 +42,18 @@ interface Props {
  */
 export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Props) {
   const [query, setQuery] = useState("");
-  const [catalogError, setCatalogError] = useState<string | null>(null);
   const search = useMacroStore((s) => s.search);
   const loadCatalog = useMacroStore((s) => s.loadCatalog);
   const results = useMacroStore((s) => selectSearchResults(s, provider, query));
   const catalog = useMacroStore((s) => selectCatalog(s, provider));
+  // The store records a failed catalog load (it never rejects), so the error +
+  // Retry below is reachable instead of a skeleton that pulses forever.
+  const catalogError = useMacroStore((s) => selectCatalogError(s, provider));
 
   // Pull the catalog whenever the active provider changes (cached after
-  // first load). All setState calls are inside async callbacks — never
-  // synchronously in the effect body, avoiding the set-state-in-effect lint.
+  // first load).
   useEffect(() => {
-    if (catalog) return; // already cached — nothing to do
-    let cancelled = false;
-    loadCatalog(provider)
-      .then(() => {
-        if (!cancelled) setCatalogError(null);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled)
-          setCatalogError(err instanceof Error ? err.message : "Failed to load featured series");
-      });
-    return () => {
-      cancelled = true;
-    };
+    if (!catalog) void loadCatalog(provider);
   }, [provider, loadCatalog, catalog]);
 
   // Debounce the search so we do not fire one request per keystroke.
@@ -146,14 +140,7 @@ export function MacroSeriesPicker({ provider, onProviderChange, onSelect }: Prop
                 type="button"
                 size="xs"
                 variant="ghost"
-                onClick={() => {
-                  setCatalogError(null);
-                  loadCatalog(provider).catch((err: unknown) => {
-                    setCatalogError(
-                      err instanceof Error ? err.message : "Failed to load featured series",
-                    );
-                  });
-                }}
+                onClick={() => void loadCatalog(provider)}
               >
                 Retry
               </Button>
