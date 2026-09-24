@@ -1,24 +1,36 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  __resetProviderProbeCacheForTests,
-  formatModelLabel,
-  StatusChrome,
-} from "@/components/StatusChrome";
+import { formatModelLabel, StatusChrome } from "@/components/StatusChrome";
+import { __resetProviderProbeCacheForTests } from "@/lib/provider-validation";
 import { useAgentRunsStore } from "@/store/agent-runs";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { resetModelSelectionStoreForTests, useModelSelectionStore } from "@/store/model-selection";
 import { useProviderKeysStore } from "@/store/provider-keys";
 
-vi.mock("@/lib/sidecar-client", () => ({
-  validateProvider: vi.fn().mockResolvedValue(true),
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
 }));
 
-const sidecarClient = await import("@/lib/sidecar-client");
-const mockValidateProvider = vi.mocked(sidecarClient.validateProvider);
+// The C4 probe is exercised for real down to the wire: `fetch` answers
+// `POST /llm/keys/validate` with the body each test sets.
+const fetchMock = vi.fn();
+function answerValidate(body: { ok: boolean; reason: string | null; detail: string | null }) {
+  fetchMock.mockImplementation(
+    async () =>
+      new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+  );
+}
+const NOT_RUNNING = { ok: false, reason: "unreachable", detail: "Could not reach Ollama." };
+const READY = { ok: true, reason: null, detail: null };
+function validateBodies(): Array<{ provider: string; model: string | null }> {
+  return fetchMock.mock.calls.map(([, init]) => JSON.parse((init as RequestInit).body as string));
+}
 
 describe("formatModelLabel", () => {
   it("brand-cases and spaces a hyphenated id (the operator's defect case)", () => {
@@ -55,13 +67,16 @@ describe("formatModelLabel", () => {
 describe("StatusChrome", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockValidateProvider.mockResolvedValue(true);
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+    answerValidate(READY);
     __resetProviderProbeCacheForTests();
     useProviderKeysStore.setState({ status: {}, probed: false });
   });
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
     useAgentRunsStore.setState({ runs: [] });
     resetModelSelectionStoreForTests();
   });
@@ -80,7 +95,7 @@ describe("StatusChrome", () => {
   });
 
   it("an unreachable keyless default renders the honest muted state (D60)", async () => {
-    mockValidateProvider.mockResolvedValue(false);
+    answerValidate(NOT_RUNNING);
     useLLMProvidersStore.setState({
       providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
       defaultProviderId: "ollama",
@@ -95,11 +110,29 @@ describe("StatusChrome", () => {
     expect(chip.title).toContain("isn't ready");
     // The model claim the app cannot back disappears with it.
     expect(screen.queryByText(/Qwen2\.5 7B/)).not.toBeInTheDocument();
-    expect(mockValidateProvider).toHaveBeenCalledWith("ollama");
+    expect(validateBodies()[0]).toMatchObject({ provider: "ollama", model: "qwen2.5:7b" });
+  });
+
+  it("a running daemon without the selected model says the model is not downloaded (R15-AGENT-028)", async () => {
+    answerValidate({
+      ok: false,
+      reason: "model_not_pulled",
+      detail: "qwen2.5:7b is not downloaded in Ollama (local) yet.",
+    });
+    useLLMProvidersStore.setState({
+      providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
+      defaultProviderId: "ollama",
+    });
+    useModelSelectionStore.setState({ overrides: { ollama: "qwen2.5:7b" } });
+    render(<StatusChrome />);
+
+    const chip = await screen.findByTestId("provider-not-ready");
+    expect(chip).toHaveTextContent("Ollama (local) · model not downloaded — set up in Settings");
+    expect(chip.title).toContain("qwen2.5:7b is not downloaded");
   });
 
   it("a reachable keyless default keeps exactly today's confident chip (D60)", async () => {
-    mockValidateProvider.mockResolvedValue(true);
+    answerValidate(READY);
     useLLMProvidersStore.setState({
       providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
       defaultProviderId: "ollama",
@@ -108,7 +141,7 @@ describe("StatusChrome", () => {
     render(<StatusChrome />);
 
     await waitFor(() => {
-      expect(mockValidateProvider).toHaveBeenCalledWith("ollama");
+      expect(validateBodies()[0]).toMatchObject({ provider: "ollama" });
     });
     expect(screen.getByText("Ollama (local) · Qwen2.5 7B")).toBeInTheDocument();
     expect(screen.queryByTestId("provider-not-ready")).not.toBeInTheDocument();
@@ -126,7 +159,7 @@ describe("StatusChrome", () => {
     expect(chip).toHaveTextContent("DeepSeek · no API key — set up in Settings");
     // BYOK keys live in the OS keychain the probe cannot read — probing would
     // false-negative a configured provider, so it must not fire.
-    expect(mockValidateProvider).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("a BYOK default with UNKNOWN key status never raises a false alarm (D60)", () => {
@@ -142,11 +175,11 @@ describe("StatusChrome", () => {
 
     expect(screen.getByText("DeepSeek V4 Flash")).toBeInTheDocument();
     expect(screen.queryByTestId("provider-not-ready")).not.toBeInTheDocument();
-    expect(mockValidateProvider).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("the probe result is cached — a re-mount does not re-probe (D60)", async () => {
-    mockValidateProvider.mockResolvedValue(false);
+    answerValidate(NOT_RUNNING);
     useLLMProvidersStore.setState({
       providers: [{ id: "ollama", label: "Ollama (local)", requiresKey: false }],
       defaultProviderId: "ollama",
@@ -158,7 +191,7 @@ describe("StatusChrome", () => {
     render(<StatusChrome />);
     expect(await screen.findByTestId("provider-not-ready")).toBeInTheDocument();
     // One live probe total — the second mount served from the module cache.
-    expect(mockValidateProvider).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("the active-runs chip names the runs it counts (the '+N' tooltip)", () => {

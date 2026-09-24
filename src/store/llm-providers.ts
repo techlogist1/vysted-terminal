@@ -6,15 +6,16 @@
  * the provider dropdown and to gate model selection; the Key Entry Dialog
  * reads ``requiresKey`` to decide whether to demand a credential.
  *
- * The list is fetched once at app startup (``refresh()``) and cached.
- * Phase 3 ships the list statically too — it matches the sidecar's
- * ``PROVIDER_INFO`` tuple — so even if the sidecar is unreachable the
- * dropdown still renders the right set.
+ * The list is fetched once at app startup (``refresh()``) and cached. Until
+ * then (or when the sidecar is unreachable) it is the registry JSON itself, so
+ * the dropdown always renders the right set.
  */
 
 import { create } from "zustand";
 
+import { probeReadiness } from "@/lib/provider-validation";
 import { sidecarGet } from "@/lib/sidecar-client";
+import { modelForProvider, REGISTRY_PROVIDERS } from "@/store/model-selection";
 import type { LLMProviderId } from "../../types/ai";
 
 /** One row of provider metadata; mirrors the sidecar Pydantic model. */
@@ -31,86 +32,17 @@ export interface LLMProviderInfo {
   knownModels?: string[];
 }
 
-/**
- * Default static catalog — an OFFLINE FALLBACK that mirrors the sidecar's
- * `model_registry.json`. The real source of truth is that JSON, served live via
- * `refresh()` → `GET /llm/providers`; this list only renders when the sidecar is
- * unreachable at launch. Keep it in lockstep with the JSON when models change.
- */
-export const DEFAULT_PROVIDERS: LLMProviderInfo[] = [
-  {
-    id: "anthropic",
-    label: "Anthropic",
-    requiresKey: true,
-    defaultModel: "claude-opus-4-8",
-    knownModels: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
-  },
-  {
-    id: "openai",
-    label: "OpenAI",
-    requiresKey: true,
-    defaultModel: "gpt-4.1-mini",
-    knownModels: ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
-  },
-  {
-    id: "gemini",
-    label: "Google Gemini",
-    requiresKey: true,
-    defaultModel: "gemini-2.5-pro",
-    knownModels: ["gemini-2.5-pro", "gemini-2.5-flash"],
-  },
-  {
-    id: "groq",
-    label: "Groq",
-    requiresKey: true,
-    defaultModel: "llama-3.3-70b-versatile",
-    knownModels: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-  },
-  {
-    id: "ollama",
-    label: "Ollama (local)",
-    requiresKey: false,
-    defaultBaseUrl: "http://127.0.0.1:11434",
-    defaultModel: "qwen2.5:7b",
-    knownModels: ["qwen2.5:7b", "llama3.1:8b"],
-  },
-  {
-    id: "deepseek",
-    label: "DeepSeek",
-    requiresKey: true,
-    defaultBaseUrl: "https://api.deepseek.com",
-    defaultModel: "deepseek-chat",
-    knownModels: ["deepseek-chat", "deepseek-reasoner"],
-  },
-  {
-    id: "xai",
-    label: "xAI",
-    requiresKey: true,
-    defaultBaseUrl: "https://api.x.ai/v1",
-    defaultModel: "grok-4",
-    knownModels: ["grok-4", "grok-3"],
-  },
-  {
-    id: "openrouter",
-    // Plain "OpenRouter" — it is a model-routing aggregator, and "(broker)" in
-    // a finance terminal reads as a stock broker (R7 walkthrough defect).
-    label: "OpenRouter",
-    requiresKey: true,
-    defaultBaseUrl: "https://openrouter.ai/api/v1",
-    defaultModel: "deepseek/deepseek-v4-flash",
-    knownModels: [
-      "minimax/minimax-m3",
-      "deepseek/deepseek-v4-flash",
-      "moonshotai/kimi-k2.6",
-      "deepseek/deepseek-v4-pro",
-      "qwen/qwen3.7-max",
-      "qwen/qwen3.7-plus",
-      "z-ai/glm-5.1",
-      "qwen/qwen3.6-flash",
-      "openrouter/auto",
-    ],
-  },
-];
+/** The provider catalog, projected from `sidecar/config/model_registry.json`
+ *  (the same file `GET /llm/providers` serves; `refresh()` replaces it with the
+ *  live rows). Never a hand copy (R15-CODE-AGENT-006). */
+export const DEFAULT_PROVIDERS: LLMProviderInfo[] = REGISTRY_PROVIDERS.map((row) => ({
+  id: row.id,
+  label: row.label,
+  requiresKey: row.requires_key,
+  defaultBaseUrl: row.default_base_url,
+  defaultModel: row.default_model,
+  knownModels: row.known_models,
+}));
 
 interface SidecarProviderRow {
   id: LLMProviderId;
@@ -126,14 +58,34 @@ interface LLMProvidersState {
   /** Provider id the chat sidebar uses when the user picks "default". */
   defaultProviderId: LLMProviderId;
   setDefaultProviderId: (id: LLMProviderId) => void;
+  /**
+   * After a key is saved for `id`, make it the default when the current default
+   * is a keyless lane that is not ready (R15-UI-049) — never over a keyed
+   * default the user chose. Resolves `true` when the default moved.
+   */
+  promoteKeyedProvider: (id: LLMProviderId) => Promise<boolean>;
   /** Refresh from the sidecar (no-op fallback to defaults on error). */
   refresh: () => Promise<void>;
 }
 
-export const useLLMProvidersStore = create<LLMProvidersState>((set) => ({
+export const useLLMProvidersStore = create<LLMProvidersState>((set, get) => ({
   providers: DEFAULT_PROVIDERS,
   defaultProviderId: "ollama",
   setDefaultProviderId: (id) => set({ defaultProviderId: id }),
+  promoteKeyedProvider: async (id) => {
+    const { defaultProviderId, providers } = get();
+    const current = providers.find((p) => p.id === defaultProviderId);
+    if (id === defaultProviderId || current?.requiresKey !== false) {
+      return false;
+    }
+    const readiness = await probeReadiness(defaultProviderId, modelForProvider(defaultProviderId));
+    // Re-read: the user may have picked a default while the probe ran.
+    if (readiness.ok || get().defaultProviderId !== defaultProviderId) {
+      return false;
+    }
+    set({ defaultProviderId: id });
+    return true;
+  },
   refresh: async () => {
     try {
       const rows = await sidecarGet<SidecarProviderRow[]>("/llm/providers");

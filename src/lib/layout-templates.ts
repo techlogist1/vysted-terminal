@@ -1,5 +1,7 @@
 import type { DockviewApi, Direction } from "dockview";
 
+import templateCatalog from "../../sidecar/config/layout_templates.json";
+
 /**
  * Named dockview layout templates — the "taste" behind the agent's
  * `arrange_layout` host-action (PASS_B_RESEARCH.md §D.2, FR-091). The agent
@@ -18,6 +20,21 @@ import type { DockviewApi, Direction } from "dockview";
  *     crash), then applies focus/maximize.
  */
 export type LayoutTemplate = "single-focus" | "research-cockpit" | "compare" | "macro-scan";
+
+/** One agent template in `sidecar/config/layout_templates.json` (contract C8). */
+interface TemplateEntry {
+  panels: string[];
+  summary: string;
+}
+
+/** The agent templates and the panel roles each places — the same file the
+ *  sidecar's `arrange_layout` description is built from (R15-AGENT-055). */
+export const TEMPLATE_PANELS = Object.fromEntries(
+  Object.entries(templateCatalog).filter(([id]) => !id.startsWith("_")),
+) as Record<LayoutTemplate, TemplateEntry>;
+
+/** The agent's named `arrange_layout` template ids. */
+export const LAYOUT_TEMPLATE_IDS: ReadonlySet<string> = new Set(Object.keys(TEMPLATE_PANELS));
 
 /**
  * Every arrangeable panel, by canonical id (matches `default-layout.ts` + the
@@ -150,104 +167,75 @@ export interface LayoutPlanOptions {
 }
 
 // Panel id ↔ component id are NOT interchangeable: the dockview panel `id` is the
-// short module name (`"chart"`, `"equity-overview"`, `"news"`, `"macro"`,
-// `"screener"`) — matching the default layout (`src/config/default-layout.ts`)
-// and the module specs — while the `component` is the registered React component
-// id (the `-panel` suffix). Centralised here so the two never drift.
+// short module name (`"chart"`, `"equity-overview"`, `"news"`, `"macro"`) —
+// matching the default layout (`src/config/default-layout.ts`) and the module
+// specs — while the `component` is the registered React component id (the
+// `-panel` suffix). Centralised here so the two never drift.
 const PANEL = {
   chart: { id: "chart", component: "chart-panel" },
   equityOverview: { id: "equity-overview", component: "equity-overview-panel" },
-  news: { id: "news", component: "news-panel" },
-  macro: { id: "macro", component: "macro-panel" },
-  // Registered module id (see ARRANGEABLE note) — never bare "screener".
-  screener: { id: "screener-panel", component: "screener-panel" },
   brief: { id: "brief", component: "brief-panel" },
   notes: { id: "notes", component: "notes-panel" },
 } as const;
 
+/** Where each agent template puts its panels (by role), and what it focuses.
+ *  WHICH panels a template places is `TEMPLATE_PANELS` (the JSON); a role with
+ *  no position here is the anchor (or lands wherever dockview puts it). */
+const TEMPLATE_PLACEMENT: Record<
+  LayoutTemplate,
+  { positions: Record<string, PlannedPanelPosition>; focus: string; maximize?: string }
+> = {
+  // The quick "show me AAPL": the chart, maximized.
+  "single-focus": { positions: {}, focus: "chart", maximize: "chart" },
+  // FLAGSHIP ("research NVDA"): chart anchors the left; the right column stacks
+  // the equity overview, the synthesised brief and news — so the cited brief
+  // docks BESIDE the chart, never as a tab in the chart group.
+  "research-cockpit": {
+    positions: {
+      "equity-overview": { referencePanel: "chart", direction: "right" },
+      brief: { referencePanel: "equity-overview", direction: "below" },
+      news: { referencePanel: "brief", direction: "below" },
+    },
+    focus: "brief",
+  },
+  // "NVDA vs AMD": one maximized chart; the second symbol is an OVERLAY pushed
+  // through the chart-command channel, never a second chart panel.
+  compare: { positions: {}, focus: "chart", maximize: "chart" },
+  // "what's leading today": macro anchors; chart to its right; screener below.
+  "macro-scan": {
+    positions: {
+      chart: { referencePanel: "macro", direction: "right" },
+      screener: { referencePanel: "macro", direction: "below" },
+    },
+    focus: "macro",
+  },
+};
+
 /**
  * PURE planner: map a template name to its `LayoutPlan`. No dockview, no side
- * effects — fully unit-testable. `opts` is reserved for the chart-command channel
- * (symbol/symbols); the layout shape itself is symbol-agnostic.
+ * effects — fully unit-testable. The panel set is the template's JSON entry;
+ * `opts` is reserved for the chart-command channel (symbol/symbols); the layout
+ * shape itself is symbol-agnostic.
  */
 export function planLayout(template: LayoutTemplate, opts?: LayoutPlanOptions): LayoutPlan {
   // `opts` (symbol/symbols) is part of the host-action signature for parity, but
   // the layout SHAPE is symbol-agnostic — symbols ride the chart-command channel,
   // not the tiling. Referenced here so the contract param stays without lint noise.
   void opts;
-  switch (template) {
-    case "single-focus":
-      // Just the chart, maximized — the quick "show me AAPL".
-      return {
-        panels: [{ id: PANEL.chart.id, component: PANEL.chart.component }],
-        focus: PANEL.chart.id,
-        maximize: PANEL.chart.id,
-      };
-
-    case "research-cockpit":
-      // FLAGSHIP ("research NVDA"): chart anchors the left; the right column
-      // stacks equity-overview (top), the BriefPanel (the B+A synthesized brief),
-      // and news (bottom) — so the cited brief docks BESIDE the chart, never as a
-      // tab in the chart group. The agent populates the brief via publish_brief.
-      return {
-        panels: [
-          { id: PANEL.chart.id, component: PANEL.chart.component },
-          {
-            id: PANEL.equityOverview.id,
-            component: PANEL.equityOverview.component,
-            position: { referencePanel: PANEL.chart.id, direction: "right" },
-          },
-          {
-            id: PANEL.brief.id,
-            component: PANEL.brief.component,
-            position: { referencePanel: PANEL.equityOverview.id, direction: "below" },
-          },
-          {
-            id: PANEL.news.id,
-            component: PANEL.news.component,
-            position: { referencePanel: PANEL.brief.id, direction: "below" },
-          },
-        ],
-        focus: PANEL.brief.id,
-      };
-
-    case "compare":
-      // "NVDA vs AMD". The DUAL-SYMBOL OVERLAY is driven separately by the
-      // lead's host-action via the chart-command channel (it pushes the second
-      // symbol as an overlay onto the chart) — this template's ONLY job is the
-      // chart-focused layout: a single maximized chart for the comparison to
-      // render into. Do NOT add a second chart panel here; the overlay is not a
-      // second panel.
-      return {
-        panels: [{ id: PANEL.chart.id, component: PANEL.chart.component }],
-        focus: PANEL.chart.id,
-        maximize: PANEL.chart.id,
-      };
-
-    case "macro-scan":
-      // "what's leading today": macro anchors; chart to its right; screener below.
-      //
-      // NOTE: §D.2 envisions a sector-heatmap + rotation-quadrant here, but no
-      // dedicated heatmap panel id exists yet — the macro panel stands in as the
-      // market-overview anchor until one ships. Swap `PANEL.macro` for the
-      // heatmap entry when it lands.
-      return {
-        panels: [
-          { id: PANEL.macro.id, component: PANEL.macro.component },
-          {
-            id: PANEL.chart.id,
-            component: PANEL.chart.component,
-            position: { referencePanel: PANEL.macro.id, direction: "right" },
-          },
-          {
-            id: PANEL.screener.id,
-            component: PANEL.screener.component,
-            position: { referencePanel: PANEL.macro.id, direction: "below" },
-          },
-        ],
-        focus: PANEL.macro.id,
-      };
-  }
+  const placement = TEMPLATE_PLACEMENT[template];
+  const idOf = (role: string) => ARRANGEABLE[role].id;
+  const panels = TEMPLATE_PANELS[template].panels.map((role) => {
+    const { id, component } = ARRANGEABLE[role];
+    const at = placement.positions[role];
+    return at?.referencePanel
+      ? { id, component, position: { ...at, referencePanel: idOf(at.referencePanel) } }
+      : { id, component };
+  });
+  return {
+    panels,
+    focus: idOf(placement.focus),
+    ...(placement.maximize ? { maximize: idOf(placement.maximize) } : {}),
+  };
 }
 
 /**
@@ -365,10 +353,10 @@ export interface FitResult {
   downgraded: boolean;
 }
 
-/** The 2-panel ESSENTIALS research layout: chart anchors the left, the brief
- *  docks beside it — the small-screen fallback for the research-cockpit so the
- *  cited brief (the star of a research turn) is never hidden. */
-function essentialsResearchPlan(): LayoutPlan {
+/** The research-cockpit's small-screen FIT-DOWNGRADE (not a template): chart
+ *  anchors the left, the brief docks beside it, so the cited brief (the star of
+ *  a research turn) is never hidden. */
+function researchCockpitFitDowngrade(): LayoutPlan {
   return {
     panels: [
       { id: PANEL.chart.id, component: PANEL.chart.component },
@@ -398,7 +386,7 @@ export function fitLayoutTemplate(
   const width = typeof api.width === "number" && api.width > 0 ? api.width : DEFAULT_FIT_WIDTH;
 
   if (template === "research-cockpit" && width < RESEARCH_COCKPIT_MIN_WIDTH) {
-    const plan = essentialsResearchPlan();
+    const plan = researchCockpitFitDowngrade();
     const run = () => applyPlan(api, plan);
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(run);
@@ -619,15 +607,14 @@ export function applyContentAwareLayout(
 // --- macOS Window→Layout MENU modes (the finance cockpits) ------------------
 //
 // The native menu (`lib.rs` install_layout_menu) labels these Fundamental /
-// Technical / Macro / Compare / Reset and emits a payload id the menu-bridge maps
-// here. UNLIKE the agent's ADDITIVE `arrange_layout` (which reuses open panels and
-// is viewport-fit-downgraded), a menu mode is a DETERMINISTIC "switch to this
-// cockpit": it CLEARS the grid first, then tiles exactly the mode's panel set — so
-// a click always opens that mode's FULL multi-panel layout regardless of what was
-// open before, and never fit-downgrades to a single panel (Bug-4: "Fundamental"
-// was showing just the brief). The payload ids are historical fossils
-// (research-cockpit / single-focus / macro-scan / compare) — read the role, not
-// the literal id.
+// Technical / Macro / Compare / Reset. UNLIKE the agent's ADDITIVE
+// `arrange_layout` (which reuses open panels and is viewport-fit-downgraded), a
+// menu mode is a DETERMINISTIC "switch to this cockpit": it CLEARS the grid first,
+// then tiles exactly the mode's panel set — so a click always opens that mode's
+// FULL multi-panel layout and never fit-downgrades (Bug-4). The modes have their
+// OWN role ids, distinct from the agent templates (R15-AGENT-055: one id, one
+// layout); the Rust payload still carries historical template ids, mapped once
+// in `MENU_PAYLOAD_TO_MODE`.
 
 /** Build a planned panel from an ARRANGEABLE id, optionally placed beside/below a ref. */
 function modePanel(key: string, position?: PlannedPanelPosition): PlannedPanel {
@@ -635,11 +622,13 @@ function modePanel(key: string, position?: PlannedPanelPosition): PlannedPanel {
   return { id: p.id, component: p.component, position };
 }
 
-const MODE_PLANS: Record<string, LayoutPlan> = {
+export type LayoutMode = "fundamental" | "technical" | "macro" | "compare-desk";
+
+const MODE_PLANS: Record<LayoutMode, LayoutPlan> = {
   // FUNDAMENTAL ANALYSIS — the single-company deep-dive: chart (price) anchors the
   // left; the equity-overview (the fundamentals / ratios / financials panel) and
   // the synthesised research brief stack on the right.
-  "research-cockpit": {
+  fundamental: {
     panels: [
       modePanel("chart"),
       modePanel("equity-overview", { referencePanel: "chart", direction: "right" }),
@@ -649,7 +638,7 @@ const MODE_PLANS: Record<string, LayoutPlan> = {
   },
   // TECHNICAL ANALYSIS — chart-dominant (indicators ride the chart) with a
   // watchlist to flip symbols and news for catalysts.
-  "single-focus": {
+  technical: {
     panels: [
       modePanel("chart"),
       modePanel("watchlist", { referencePanel: "chart", direction: "right" }),
@@ -657,8 +646,8 @@ const MODE_PLANS: Record<string, LayoutPlan> = {
     ],
     focus: "chart",
   },
-  // MACRO SCAN — the macro desk: macro anchor + chart + screener.
-  "macro-scan": {
+  // MACRO — the macro desk: macro anchor + chart + screener.
+  macro: {
     panels: [
       modePanel("macro"),
       modePanel("chart", { referencePanel: "macro", direction: "right" }),
@@ -666,9 +655,9 @@ const MODE_PLANS: Record<string, LayoutPlan> = {
     ],
     focus: "macro",
   },
-  // COMPARE — side-by-side: the chart (carrying the dual-symbol overlay pushed via
-  // the chart-command channel) beside the equity overview for the focused name.
-  compare: {
+  // COMPARE DESK — the chart (carrying the dual-symbol overlay pushed via the
+  // chart-command channel) beside the equity overview for the focused name.
+  "compare-desk": {
     panels: [
       modePanel("chart"),
       modePanel("equity-overview", { referencePanel: "chart", direction: "right" }),
@@ -677,25 +666,25 @@ const MODE_PLANS: Record<string, LayoutPlan> = {
   },
 };
 
-/** Menu-mode payload ids `applyLayoutMode` handles (excludes "default", which the
- *  bridge routes to `resetToDefaultLayout`). */
-export const LAYOUT_MODE_IDS: ReadonlySet<string> = new Set(Object.keys(MODE_PLANS));
+/** The native menu's payload ids (historical template names, `lib.rs`) → the
+ *  mode each one means. "default" is not here: the bridge routes it to the
+ *  factory reset. */
+export const MENU_PAYLOAD_TO_MODE: Readonly<Record<string, LayoutMode>> = {
+  "research-cockpit": "fundamental",
+  "single-focus": "technical",
+  "macro-scan": "macro",
+  compare: "compare-desk",
+};
 
 /**
- * Apply a macOS Layout-MENU mode: CLEAR the cockpit, then tile exactly the mode's
+ * Apply a Layout-MENU mode: CLEAR the cockpit, then tile exactly the mode's
  * panel set (deterministic — the mode IS its panels, never layered onto the prior
  * state and never fit-downgraded). Synchronous (no rAF — which throttles to a halt
- * on an occluded WKWebView). Returns true if applied, false for an unknown id
- * (e.g. "default", handled by the caller via `resetToDefaultLayout`).
+ * on an occluded WKWebView).
  */
-export function applyLayoutMode(api: DockviewApi, modeId: string): boolean {
-  const plan = MODE_PLANS[modeId];
-  if (!plan) {
-    return false;
-  }
+export function applyLayoutMode(api: DockviewApi, mode: LayoutMode): void {
   api.clear();
-  applyPlan(api, plan);
-  return true;
+  applyPlan(api, MODE_PLANS[mode]);
 }
 
 // --- per-stock research SPACE (003 workspace OS) ----------------------------

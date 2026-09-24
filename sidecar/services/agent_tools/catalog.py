@@ -28,11 +28,36 @@ registry the ``set_chart_indicators`` enum derives from (C10).
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
+from services import model_registry
 from services.indicators import SUPPORTED_INDICATORS
 from services.research.depth import DEPTH_DEEP, DEPTH_ULTRA, PROFILES
+
+#: The agent's arrange_layout templates and the panels each places (contract C8,
+#: R15-AGENT-055): the same file the frontend planner builds its plans from, so
+#: the tool description never promises a panel the host does not place. It sits
+#: beside model_registry.json in ``config/`` (bundled whole by the sidecar build).
+LAYOUT_TEMPLATES: dict[str, dict[str, Any]] = {
+    template_id: entry
+    for template_id, entry in json.loads(
+        (model_registry._registry_path().parent / "layout_templates.json").read_text(
+            encoding="utf-8"
+        )
+    ).items()
+    if not template_id.startswith("_")
+}
+
+
+def _layout_templates_prose() -> str:
+    """One clause per template: its id, what it is for, the panels it places."""
+    return "; ".join(
+        f"'{template_id}' ({entry['summary']}; places {' + '.join(entry['panels'])})"
+        for template_id, entry in LAYOUT_TEMPLATES.items()
+    )
+
 
 # Domains a capability can belong to. Used for grouping in the catalog and for
 # the domain tag projected to the MCP surface (FR-021).
@@ -268,7 +293,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "Compare 2-4 instruments side by side — latest quote, valuation "
                 "(P/E, market cap, margins), and recent relative performance. Use "
                 "when the user asks to compare names (e.g. 'NVDA vs AMD'). Pair it "
-                "with arrange_layout(pattern='compare') to build the dual-chart cockpit."
+                "with arrange_layout(pattern='compare') to chart the pair together."
             ),
             input_schema=_obj(
                 {
@@ -1281,11 +1306,9 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "published brief gets the dominant column, the chart gets width, the "
                 "watchlist parks in a side rail; pick 'auto' whenever the user asks to "
                 "arrange/organise/tidy their windows without naming a layout. "
-                "Templates: 'single-focus' (full-width chart + stats — a quick look); "
-                "'research-cockpit' (chart + fundamentals + news/filings + brief — the "
-                "flagship deep dive); 'compare' (dual charts side by side, pass two "
-                "tickers as `symbols`); 'macro-scan' (heatmap + chart + screener). "
-                "'default' resets the layout; 'focus' maximises one panel (pass `panel`); "
+                f"Templates: {_layout_templates_prose()}. "
+                "'default' resets the panel arrangement (chart drawings and module "
+                "choices are kept); 'focus' maximises one panel (pass `panel`); "
                 "'custom' places exactly the panels you name in `panels` ('put the chart "
                 "here and news there') — use it for an ad-hoc arrangement no template fits. "
                 "When the user says 'set me up to research X' pick 'research-cockpit'; "
@@ -1296,16 +1319,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 {
                     "pattern": {
                         "type": "string",
-                        "enum": [
-                            "auto",
-                            "default",
-                            "focus",
-                            "single-focus",
-                            "research-cockpit",
-                            "compare",
-                            "macro-scan",
-                            "custom",
-                        ],
+                        "enum": ["auto", "default", "focus", *LAYOUT_TEMPLATES, "custom"],
                         "default": "default",
                     },
                     "panel": {"type": "string", "description": "Required when pattern='focus'."},

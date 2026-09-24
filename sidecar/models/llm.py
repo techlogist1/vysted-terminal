@@ -284,10 +284,18 @@ class LLMKeyValidationRequest(BaseModel):
     provider: LLMProviderId
     api_key: str | None = None
     base_url: str | None = None
+    #: The model the caller is about to use. A keyless local provider (Ollama)
+    #: is ready only when this model is pulled, not merely when the daemon is up.
+    model: str | None = None
+
+
+#: Why a provider is not usable (R15-UI-013): the frontend routes on it.
+LLMValidationReason = Literal["invalid", "not_configured", "unreachable", "model_not_pulled"]
 
 
 class LLMKeyValidationResponse(BaseModel):
     """Validation result — sidecar performs a cheap GET against the provider."""
 
     ok: bool
+    reason: LLMValidationReason | None = None
     detail: str | None = None

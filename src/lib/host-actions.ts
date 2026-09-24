@@ -26,11 +26,13 @@ import {
   applyContentAwareLayout,
   applyCustomLayout,
   fitLayoutTemplate,
+  LAYOUT_TEMPLATE_IDS,
   resolvePanelToken,
   type CustomPanelSpec,
   type LayoutTemplate,
 } from "@/lib/layout-templates";
 import { regionConfig, isRegion, type Region } from "@/lib/region";
+import { METRIC_LABELS, resolveMetric } from "@/modules/equity-overview/metrics";
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
@@ -296,13 +298,24 @@ export function openCompanyOverview(
   useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric, region);
 }
 
-/** The named arrange_layout templates (beyond the legacy default/focus patterns). */
-const LAYOUT_TEMPLATES: ReadonlySet<string> = new Set([
-  "single-focus",
-  "research-cockpit",
-  "compare",
-  "macro-scan",
-]);
+/** The label of the overview row a highlight names, or `null` when it names none. */
+function spotlightLabel(highlight: string): string | null {
+  const key = resolveMetric(highlight);
+  return key ? (METRIC_LABELS.get(key) ?? null) : null;
+}
+
+/** What an `open_company_overview` highlight did, composed from the panel's own
+ *  metric list — never from the raw input (R15-AGENT-081): a known metric is
+ *  spotlit; an unknown one is said to be absent. */
+function spotlightNote(highlight: string): string {
+  if (!highlight) {
+    return "";
+  }
+  const label = spotlightLabel(highlight);
+  return label
+    ? ` — spotlighting ${label}`
+    : ` — "${highlight}" is not a metric on that panel, so nothing is spotlit`;
+}
 
 /** A host-action mutation the diff gate must intercept rather than auto-apply. */
 export function isHostActionMutation(name: string): boolean {
@@ -1097,7 +1110,7 @@ export function describeIntent(intent: HostIntent): {
           after: names ? `Layout: ${names}` : "Layout: a custom arrangement",
         };
       }
-      if (LAYOUT_TEMPLATES.has(pattern)) {
+      if (LAYOUT_TEMPLATE_IDS.has(pattern)) {
         const label =
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
         const scope =
@@ -1117,20 +1130,20 @@ export function describeIntent(intent: HostIntent): {
       }
       return {
         kind: "panel",
-        title: "Reset to the default layout",
+        title: "Reset the panel arrangement (drawings and modules kept)",
         before,
-        after: "Layout: the default cockpit (clears layout customisations)",
+        after: "Layout: the default panel arrangement (chart drawings and modules kept)",
       };
     }
     case "open_company_overview": {
       const sym = intent.symbol || "the company";
-      const metric = intent.highlight.replace(/_/g, " ");
+      const metric = spotlightLabel(intent.highlight);
       return {
         kind: "panel",
         title: metric ? `Show ${sym}'s ${metric} in the overview` : `Open ${sym}'s overview`,
         before: "Equity Overview: previous company (if any)",
         after: intent.symbol
-          ? `Equity Overview: ${sym}${metric ? ` · ${metric} spotlighted` : ""}`
+          ? `Equity Overview: ${sym}${spotlightNote(intent.highlight)}`
           : `Equity Overview: no symbol given — ${CANT_APPLY}`,
       };
     }
@@ -1461,7 +1474,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         const names = customPanels.map((p) => p.panel).join(" + ");
         return done(names ? `Arranged ${names}` : "Arranged your panels");
       }
-      if (LAYOUT_TEMPLATES.has(pattern)) {
+      if (LAYOUT_TEMPLATE_IDS.has(pattern)) {
         const api = ws.dockviewApi;
         if (!api) {
           return fail("the layout has not mounted");
@@ -1494,20 +1507,19 @@ export function applyIntent(intent: HostIntent): ApplyResult {
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
         return done(`Arranged the ${label} layout`);
       }
-      ws.resetToDefaultLayout();
-      return done("Reset to the default layout");
+      // The agent's default/unknown arrange is layout-only: a cosmetic tool must
+      // never delete drawings or re-enable modules (R15-AGENT-056); the factory
+      // reset stays the explicit Settings/menu action.
+      ws.resetLayout();
+      return done("Reset the panel arrangement to the default (drawings and modules kept)");
     }
     case "open_company_overview": {
       const { symbol, highlight } = intent;
       if (!symbol) {
         return fail("no symbol given");
       }
-      openCompanyOverview(symbol, highlight || undefined);
-      return done(
-        highlight
-          ? `Opened ${symbol}'s overview — spotlighting ${highlight.replace(/_/g, " ")}`
-          : `Opened ${symbol}'s overview`,
-      );
+      openCompanyOverview(symbol, resolveMetric(highlight) ?? undefined);
+      return done(`Opened ${symbol}'s overview${spotlightNote(highlight)}`);
     }
     case "publish_brief": {
       const brief = briefFromInput(intent.input);

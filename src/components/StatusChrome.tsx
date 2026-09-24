@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { validateProvider } from "@/lib/sidecar-client";
+import { useKeylessReadiness } from "@/lib/provider-validation";
 import { cn } from "@/lib/utils";
 import { useAgentRunsStore } from "@/store/agent-runs";
 import { useAppStore } from "@/store/app";
@@ -43,76 +43,31 @@ const BRAND_WORDS: Record<string, string> = {
 /** Middle-trim budget: beyond this the formatter drops MIDDLE segments. */
 const MODEL_LABEL_MAX = 24;
 
-// --- D60: provider-readiness probe cache -------------------------------------
-// The chip used to claim "Ollama (local) · qwen2.5:7b" with full confidence
-// without ever checking the daemon exists. The probe result is cached at module
-// level so re-mounts / re-renders never hammer the sidecar: a positive holds
-// for 5 minutes, a negative re-probes after 30 s (so starting Ollama heals the
-// chip without a restart).
-const PROBE_TTL_OK_MS = 300_000;
-const PROBE_TTL_FAIL_MS = 30_000;
-const probeCache = new Map<string, { ok: boolean; at: number }>();
-
-/** Test seam — clears the module-level probe cache between tests. */
-export function __resetProviderProbeCacheForTests(): void {
-  probeCache.clear();
-}
-
-/** A cache entry that is still within its TTL (positives live longer). */
-function freshCacheEntry(provider: string): { ok: boolean; at: number } | undefined {
-  const cached = probeCache.get(provider);
-  if (!cached) {
-    return undefined;
-  }
-  const ttl = cached.ok ? PROBE_TTL_OK_MS : PROBE_TTL_FAIL_MS;
-  return Date.now() - cached.at < ttl ? cached : undefined;
-}
-
 /**
  * Reachability of the active default lane (D60), probed fire-and-forget so the
  * chip renders instantly and downgrades only on a CONFIRMED failure:
- *   - keyless providers (Ollama) → `validateProvider` (true only when the
- *     local daemon answers) — the exact check ChatSidebar gates sends with;
+ *   - keyless providers (Ollama) → the shared C4 probe for the selected model
+ *     (the daemon answers AND the model is pulled) — the check ChatSidebar gates
+ *     sends with;
  *   - BYOK providers → the keychain key-status store ("missing" = not set up;
  *     "unknown" — e.g. outside the Tauri shell — never raises a false alarm).
- * Returns `true`/`null` for "render today's confident chip", `false` for the
- * honest muted state. The truth lives in the module cache; state only forces a
- * re-render when an async probe lands (no synchronous setState in the effect).
+ * Returns `null` for "render today's confident chip", or the failed validation
+ * for the honest muted state.
  */
-function useProviderReady(
+function useProviderNotReady(
   provider: LLMProviderId | null | undefined,
+  model: string,
   requiresKey: boolean,
-): boolean | null {
-  const sidecarStatus = useAppStore((state) => state.sidecarStatus);
+): { reason: string } | null {
   const keyStatus = useProviderKeysStore((s) => (provider ? s.status[provider] : undefined));
-  const [, setProbeTick] = useState(0);
-
-  useEffect(() => {
-    if (!provider || requiresKey || freshCacheEntry(provider)) {
-      return;
-    }
-    let cancelled = false;
-    // Fire-and-forget: never blocks render; validateProvider never throws.
-    void validateProvider(provider).then((ok) => {
-      probeCache.set(provider, { ok, at: Date.now() });
-      if (!cancelled) {
-        setProbeTick((t) => t + 1);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-    // sidecarStatus is a deliberate dep: a probe that failed while the sidecar
-    // was still binding re-runs once it connects (self-healing, TTL-bounded).
-  }, [provider, requiresKey, sidecarStatus]);
-
+  const keyless = useKeylessReadiness(provider, model, !requiresKey);
   if (!provider) {
     return null;
   }
   if (requiresKey) {
-    return keyStatus === "missing" ? false : null;
+    return keyStatus === "missing" ? { reason: "not_configured" } : null;
   }
-  return freshCacheEntry(provider)?.ok ?? null;
+  return keyless && !keyless.ok ? { reason: keyless.reason ?? "unreachable" } : null;
 }
 
 /**
@@ -180,7 +135,19 @@ export function StatusChrome() {
 
   const providerMeta = provider ? providers.find((p) => p.id === provider) : undefined;
   // D60: probe the default lane's actual readiness instead of asserting it.
-  const providerReady = useProviderReady(provider, providerMeta?.requiresKey ?? true);
+  const notReady = useProviderNotReady(provider, model, providerMeta?.requiresKey ?? true);
+  const notReadyShort =
+    notReady?.reason === "not_configured"
+      ? "no API key"
+      : notReady?.reason === "model_not_pulled"
+        ? "model not downloaded"
+        : "not running";
+  const notReadyWhy =
+    notReady?.reason === "not_configured"
+      ? "no API key is stored. Add one in Settings → AI Providers."
+      : notReady?.reason === "model_not_pulled"
+        ? `${model} is not downloaded yet. Download it, or pick a provider in Settings → AI Providers.`
+        : "the local daemon isn't reachable. Start it or pick a provider in Settings → AI Providers.";
 
   // Human label for the active provider (e.g. "OpenAI"), not its raw id.
   const providerLabel = provider ? (providerMeta?.label ?? provider) : "";
@@ -220,7 +187,7 @@ export function StatusChrome() {
         <span className={cn("size-2 rounded-full", dotClass)} aria-hidden />
         {connLabel}
       </span>
-      {providerModel && providerReady === false && (
+      {providerModel && notReady && (
         <>
           <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
           {/* D60: the default lane is CONFIRMED not ready — the chip says so,
@@ -230,21 +197,16 @@ export function StatusChrome() {
           <span
             className="flex items-center gap-2"
             data-testid="provider-not-ready"
-            title={`${providerLabel} is the default AI lane but it isn't ready — ${
-              providerMeta?.requiresKey
-                ? "no API key is stored. Add one in Settings → AI Providers."
-                : "the local daemon isn't reachable. Start it or pick a provider in Settings → AI Providers."
-            }`}
+            title={`${providerLabel} is the default AI lane but it isn't ready — ${notReadyWhy}`}
           >
             <span className="bg-charcoal-600 size-2 shrink-0 rounded-full" aria-hidden />
             <span className="hidden whitespace-nowrap min-[880px]:inline">
-              {providerLabel} · {providerMeta?.requiresKey ? "no API key" : "not running"} — set up
-              in Settings
+              {providerLabel} · {notReadyShort} — set up in Settings
             </span>
           </span>
         </>
       )}
-      {providerModel && providerReady !== false && (
+      {providerModel && !notReady && (
         <>
           <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
           {/* Provider dot + designed short model. Below 880px window width the

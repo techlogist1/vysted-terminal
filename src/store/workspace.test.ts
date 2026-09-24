@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { chartModule } from "@/modules/chart";
+import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
@@ -62,5 +63,35 @@ describe("openPanel chart dedup (singleton)", () => {
     expect(api.addPanel.mock.calls[0][0].id).toBe("chart");
     expect(api.panels).toHaveLength(1);
     expect(api.panels[0].id).toBe("chart");
+  });
+});
+
+describe("the two resets stay distinct (R15-AGENT-056)", () => {
+  function seed() {
+    const api = { ...fakeDockviewApi(), clear: vi.fn(), width: 0, height: 0 };
+    useWorkspaceStore.setState({ dockviewApi: api as never, name: "My desk" });
+    useModulesStore.getState().setEnabledMap({ news: false });
+    useChartDrawingsStore
+      .getState()
+      .replaceAll({ byPanel: { chart: [{ id: "d1", kind: "hline" }] } } as never);
+    return api;
+  }
+
+  it("resetToDefaultLayout (Settings / menu) is the factory reset: drawings and module choices go", () => {
+    const api = seed();
+    useWorkspaceStore.getState().resetToDefaultLayout();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({});
+    expect(useChartDrawingsStore.getState().byPanel).toEqual({});
+    expect(useWorkspaceStore.getState().name).toBe("default");
+  });
+
+  it("resetLayout only re-arranges the panels", () => {
+    const api = seed();
+    useWorkspaceStore.getState().resetLayout();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    expect(useModulesStore.getState().enabled).toEqual({ news: false });
+    expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
+    expect(useWorkspaceStore.getState().name).toBe("My desk");
   });
 });

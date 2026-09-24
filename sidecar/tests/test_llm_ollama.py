@@ -12,6 +12,7 @@ from typing import Any
 
 import ollama
 import pytest
+from fastapi.testclient import TestClient
 
 from models.llm import LLMMessage
 from services.llm.ollama import OllamaProvider
@@ -36,7 +37,9 @@ class _FakeAsyncClient:
     async def list(self) -> Any:
         if self._list_raises is not None:
             raise self._list_raises
-        return {"models": []}
+        return {"models": [{"model": name} for name in self.pulled]}
+
+    pulled: tuple[str, ...] = ()
 
 
 def _patch(
@@ -120,10 +123,47 @@ async def test_validate_key_true_when_daemon_reachable(monkeypatch: pytest.Monke
 
 
 @pytest.mark.asyncio
-async def test_validate_key_false_when_daemon_unreachable(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch(monkeypatch, list_raises=RuntimeError("connection refused"))
+async def test_validate_key_raises_when_daemon_unreachable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A stopped daemon is not "no key": it raises so the route says unreachable
+    (R15-UI-013; this test used to pin the old ``False`` that erased why)."""
+    _patch(monkeypatch, list_raises=ConnectionError("connection refused"))
     provider = OllamaProvider()
-    assert await provider.validate_key(None) is False
+    with pytest.raises(ConnectionError):
+        await provider.validate_key(None)
+
+
+def test_validate_route_daemon_down_is_unreachable(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _patch(monkeypatch, list_raises=ConnectionError("connection refused"))
+    body = client.post(
+        "/llm/keys/validate", json={"provider": "ollama", "model": "qwen2.5:7b"}
+    ).json()
+    assert body["ok"] is False
+    assert body["reason"] == "unreachable"
+
+
+def test_validate_route_model_not_pulled(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-028: a running daemon with the selected model absent is not ready."""
+    _patch(monkeypatch)  # daemon up, nothing pulled
+    body = client.post(
+        "/llm/keys/validate", json={"provider": "ollama", "model": "qwen2.5:7b"}
+    ).json()
+    assert body["ok"] is False
+    assert body["reason"] == "model_not_pulled"
+    assert "qwen2.5:7b" in body["detail"]
+
+
+def test_validate_route_model_pulled_is_ok(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = _patch(monkeypatch)
+    fake.pulled = ("qwen2.5:7b", "llama3.1:latest")
+    for model in ("qwen2.5:7b", "llama3.1"):
+        body = client.post("/llm/keys/validate", json={"provider": "ollama", "model": model}).json()
+        assert body == {"ok": True, "reason": None, "detail": None}
 
 
 @pytest.mark.asyncio

@@ -98,17 +98,43 @@ async def get_models(
 
 @router.post("/keys/validate")
 async def validate_key(payload: LLMKeyValidationRequest) -> LLMKeyValidationResponse:
-    """Probe the provider with the supplied key; return a binary OK / not-OK."""
+    """Say whether the provider is usable now and, when not, why.
+
+    ``reason`` tells apart a missing key (``not_configured``), a rejected key
+    (``invalid``), a provider or daemon that cannot be reached (``unreachable``)
+    and a local model that is not pulled (``model_not_pulled``). The key is
+    stripped here: a pasted trailing newline is not a different key.
+    """
+    api_key = (payload.api_key or "").strip() or None
+    info = next(p for p in list_provider_info() if p.id == payload.provider)
+    if info.requires_key and api_key is None:
+        return LLMKeyValidationResponse(
+            ok=False, reason="not_configured", detail=f"No API key is set for {info.label}."
+        )
     adapter = get_provider(payload.provider, base_url=payload.base_url)
     try:
-        ok = await adapter.validate_key(payload.api_key)
-    except Exception as exc:  # noqa: BLE001 — surface any transport failure
+        ok = await adapter.validate_key(api_key)
+    except Exception as exc:  # noqa: BLE001 — any transport failure means unreachable
         logger.warning("provider %s validation transport error: %s", payload.provider, exc)
-        return LLMKeyValidationResponse(ok=False, detail=f"transport error: {exc}")
-    return LLMKeyValidationResponse(
-        ok=ok,
-        detail=None if ok else "unauthorized or no key supplied",
-    )
+        return LLMKeyValidationResponse(
+            ok=False,
+            reason="unreachable",
+            detail=f"Could not reach {info.label} ({type(exc).__name__}: {exc}).",
+        )
+    if not ok:
+        return LLMKeyValidationResponse(
+            ok=False, reason="invalid", detail=f"{info.label} rejected this key."
+        )
+    if not info.requires_key and payload.model:
+        # A keyless provider's live catalog is what is installed locally.
+        pulled = {m.id for m in await adapter.list_models(None)}
+        if payload.model not in pulled and f"{payload.model}:latest" not in pulled:
+            return LLMKeyValidationResponse(
+                ok=False,
+                reason="model_not_pulled",
+                detail=f"{payload.model} is not downloaded in {info.label} yet.",
+            )
+    return LLMKeyValidationResponse(ok=True)
 
 
 @router.post("/chat")
