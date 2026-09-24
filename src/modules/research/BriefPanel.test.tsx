@@ -12,6 +12,32 @@ vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(async () => null),
 }));
 
+// R15-UI-083: the export toolbar writes files through these helpers — mocked so
+// the test never touches the filesystem/html-to-image/jsPDF.
+const saveTextArtifactMock = vi.hoisted(() =>
+  vi.fn(async (_subdir: string, _filename: string, _text: string) => ({
+    path: "/tmp/brief.md",
+    fellBack: false,
+  })),
+);
+const savePdfArtifactMock = vi.hoisted(() =>
+  vi.fn(async (_subdir: string, _filename: string, _el: HTMLElement, _pixelRatio?: number) => ({
+    path: "/tmp/brief.pdf",
+    fellBack: false,
+  })),
+);
+const savePngArtifactMock = vi.hoisted(() =>
+  vi.fn(async (_subdir: string, _filename: string, _el: HTMLElement, _pixelRatio?: number) => ({
+    path: "/tmp/brief.png",
+    fellBack: false,
+  })),
+);
+vi.mock("@/lib/export-artifact", () => ({
+  saveTextArtifact: saveTextArtifactMock,
+  savePdfArtifact: savePdfArtifactMock,
+  savePngArtifact: savePngArtifactMock,
+}));
+
 /** A minimal sourced brief fixture — `backend` varies per test (gate 2: Team A
  *  guarantees the id on the published brief; the panel renders off it). */
 function fixtureBrief(overrides: Partial<ResearchBriefData> = {}): ResearchBriefData {
@@ -249,5 +275,68 @@ describe("BriefPanel research cost (R15-RESEARCH-009)", () => {
     render(<BriefPanel />);
     expect(screen.getByText(/\$0\.21/)).toBeInTheDocument();
     expect(screen.queryByText(/cost unknown/)).toBeNull();
+  });
+});
+
+describe("BriefPanel export toolbar (R15-UI-083)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    saveTextArtifactMock.mockClear();
+    savePdfArtifactMock.mockClear();
+    savePngArtifactMock.mockClear();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it("all three export actions exist; Save PDF/PNG stay disabled and never rasterize while the brief is still revealing", async () => {
+    useBriefStore.setState({ brief: fixtureBrief() });
+
+    vi.useFakeTimers();
+    render(<BriefPanel />);
+
+    const mdButton = screen.getByRole("button", { name: /save \.md/i });
+    const pdfButton = screen.getByRole("button", { name: /save pdf/i });
+    const pngButton = screen.getByRole("button", { name: /save png/i });
+
+    // Still revealing (stagger not yet elapsed): the raster actions are gated,
+    // Save .md (a pure compose, no raster) is not.
+    expect(mdButton).not.toBeDisabled();
+    expect(pdfButton).toBeDisabled();
+    expect(pngButton).toBeDisabled();
+
+    // A click against a disabled control must never reach the raster call.
+    fireEvent.click(pdfButton);
+    fireEvent.click(pngButton);
+    expect(savePdfArtifactMock).not.toHaveBeenCalled();
+    expect(savePngArtifactMock).not.toHaveBeenCalled();
+
+    // Let the reveal settle — an advance well past any realistic stagger total.
+    await act(async () => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(pdfButton).not.toBeDisabled();
+    expect(pngButton).not.toBeDisabled();
+
+    fireEvent.click(pdfButton);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(savePdfArtifactMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("Save .md composes and writes markdown immediately, without waiting for the reveal", async () => {
+    useBriefStore.setState({ brief: fixtureBrief() });
+    render(<BriefPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: /save \.md/i }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(saveTextArtifactMock).toHaveBeenCalledTimes(1);
+    expect(saveTextArtifactMock.mock.calls[0]?.[0]).toBe("research");
   });
 });
