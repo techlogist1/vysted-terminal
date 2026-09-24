@@ -342,34 +342,6 @@ def test_launch_unknown_agent_raises() -> None:
 
 
 @pytest.mark.asyncio
-async def test_pause_answer_resumes_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    class _SlowProvider:
-        async def stream_chat(self, **_kwargs: Any) -> AsyncIterator[Any]:
-            await asyncio.sleep(5)
-            yield LLMDoneEvent()
-
-    _patch(monkeypatch, _SlowProvider())
-    run_id = run_manager.launch_run(agent_id="copilot", prompt="research NVDA", api_key="sk-test")
-    await asyncio.sleep(0)  # the run is live, mid-round
-
-    # The RUNNING run is paused with a question (a finished run cannot be).
-    run_manager.pause_run(run_id, "Which exchange?")
-    await _await_terminal(run_id)
-    paused = runs_store.get_run(run_id)
-    assert paused is not None
-    assert paused.status == "paused"
-    assert paused.question == "Which exchange?"
-
-    # Human answers → run resumes from the checkpoint and completes.
-    _patch(monkeypatch, _OneShotProvider())
-    run_manager.answer_run(run_id, "NSE", api_key="sk-test")
-    row = await _await_terminal(run_id)
-    assert row is not None
-    assert row.status == "done"
-    assert row.question is None
-
-
-@pytest.mark.asyncio
 async def test_resume_after_budget_breach_with_fresh_budget(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -406,6 +378,55 @@ class _PausingConversationProvider:
             yield item
 
 
+def _ask(question: str) -> LLMToolUseEvent:
+    return LLMToolUseEvent(tool_call_id="", name="ask_user", input={"question": question})
+
+
+@pytest.mark.asyncio
+async def test_ask_user_pauses_the_run_and_the_answer_resumes_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-011: pause_run had no production caller, so paused, the
+    question and the answer route could never fire. A delegate round that calls
+    ask_user now parks the run with the question; none of that round's tools run."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="Checking."),
+                _ask("Which exchange, NSE or BSE?"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            [LLMDeltaEvent(text="Using NSE."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+    dispatched: list[str] = []
+
+    async def _tool(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        dispatched.append(tool_call.name)
+        return "{}"
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="research RELIANCE", api_key="sk")
+    paused = await _await_terminal(run_id)
+    assert paused is not None
+    assert (paused.status, paused.question) == ("paused", "Which exchange, NSE or BSE?")
+    assert dispatched == []
+    assert len(provider.requests) == 1
+
+    run_manager.answer_run(run_id, "NSE", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None
+    assert (row.status, row.question) == ("done", None)
+    assert provider.requests[1][-3:] == [
+        ("assistant", "Checking."),
+        ("assistant", "[ask_user → Which exchange, NSE or BSE?]"),
+        ("user", "NSE"),
+    ]
+
+
 @pytest.mark.asyncio
 async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.MonkeyPatch) -> None:
     """R15-AGENT-036: the checkpoint is {prompt, turns}; each answer is the new
@@ -420,8 +441,8 @@ async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.Monk
                 LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
                 done,
             ],
-            ["stall"],
-            [LLMDeltaEvent(text="A2"), "stall"],
+            [_ask("Q1?"), done],
+            [LLMDeltaEvent(text="A2"), _ask("Q2?"), done],
             [LLMDeltaEvent(text="Final."), done],
         ]
     )
@@ -432,16 +453,10 @@ async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.Monk
 
     monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
 
-    async def _pause_when_stalled(expected_requests: int) -> None:
-        while len(provider.requests) < expected_requests:
-            await asyncio.sleep(0.01)
-        run_manager.pause_run(run_id, "Which exchange?")
-        await _await_terminal(run_id)
-
     run_id = run_manager.launch_run(agent_id="copilot", prompt="ORIGINAL", api_key="sk")
-    await _pause_when_stalled(2)
+    await _await_terminal(run_id)
     run_manager.answer_run(run_id, "ANSWER ONE", api_key="sk")
-    await _pause_when_stalled(3)
+    await _await_terminal(run_id)
     run_manager.answer_run(run_id, "ANSWER TWO", api_key="sk")
     row = await _await_terminal(run_id)
     assert row is not None and row.status == "done"
@@ -451,14 +466,17 @@ async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.Monk
         ("user", "ORIGINAL"),
         ("assistant", "A1"),
         tool_turn,
+        ("assistant", "[ask_user → Q1?]"),
         ("user", "ANSWER ONE"),
     ]
     assert provider.requests[3] == [
         ("user", "ORIGINAL"),
         ("assistant", "A1"),
         tool_turn,
+        ("assistant", "[ask_user → Q1?]"),
         ("user", "ANSWER ONE"),
         ("assistant", "A2"),
+        ("assistant", "[ask_user → Q2?]"),
         ("user", "ANSWER TWO"),
     ]
 

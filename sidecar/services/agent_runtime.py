@@ -1356,6 +1356,9 @@ def _empty_response_error(model: str) -> LLMErrorEvent:
 #: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
 #: chat branches on it, so notice copy can change without breaking the chip.
 NOTICE_STEP_KIND = "notice"
+#: The Delegate-only pause capability (FR-028): ``run_manager`` stops the turn
+#: on it and parks the run ``paused`` with the question.
+ASK_USER_TOOL = "ask_user"
 #: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
 #: round: the round's tool calls were NOT dispatched (R15-AGENT-037).
 HALT_NOTICE_TOOL = "run_halt"
@@ -1776,6 +1779,11 @@ async def invoke_agent(
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
     tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
+    if mode != "delegate":
+        # Only a Delegate run can pause for the user (R15-CODE-AGENT-011): its
+        # driver turns an ask_user call into a paused run; a live turn simply
+        # asks in prose.
+        tool_ids = [t for t in tool_ids if t != ASK_USER_TOOL]
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
     # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as

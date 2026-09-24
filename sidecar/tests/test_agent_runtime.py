@@ -538,6 +538,28 @@ def test_native_search_enabled_provider_level() -> None:
 
 
 @pytest.mark.asyncio
+async def test_ask_user_is_offered_only_to_a_delegate_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-CODE-AGENT-011: ask_user pauses a durable run; a live turn asks in prose."""
+    from services.agent_tools import catalog
+
+    agent_runtime.reload()
+    offered: dict[str, list[str]] = {}
+    for mode in ("delegate", "agent", "ask"):
+        provider = _FakeProvider()
+        _patch_provider(monkeypatch, provider)
+        async for _ in agent_runtime.invoke_agent(
+            agent_id="buffett", prompt="compare the two", api_key="sk", mode=mode
+        ):
+            pass
+        assert provider.captured_kwargs is not None
+        offered[mode] = list(provider.captured_kwargs.get("tool_ids") or [])
+    assert "ask_user" in offered["delegate"]
+    assert "ask_user" not in offered["agent"]
+    assert "ask_user" not in offered["ask"]
+    assert "ask_user" not in catalog.mcp_tool_ids()
+
+
+@pytest.mark.asyncio
 async def test_xai_turn_keeps_the_local_web_search_tool(monkeypatch: pytest.MonkeyPatch) -> None:
     # R15-LEAD-008: xAI's Live Search is retired (410), so an xAI turn gets no
     # native-search opt-in and keeps the local web_search tool to search with.
@@ -938,11 +960,12 @@ async def test_default_mode_is_ask_and_read_only(monkeypatch: pytest.MonkeyPatch
 @pytest.mark.parametrize("mode", ["edit", "build", "delegate"])
 async def test_action_modes_keep_full_tool_set(monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
     """edit/build/delegate pass the agent's tool set UNCHANGED — host actions and
-    portfolio writes are present (the staging distinction is a frontend concern)."""
+    portfolio writes are present (the staging distinction is a frontend concern)
+    — except ask_user, which only a delegate run is offered (R15-CODE-AGENT-011)."""
     tool_ids = await _capture_tool_ids(monkeypatch, mode=mode)
     spec = agent_runtime.get_agent("copilot")
     assert spec is not None
-    assert tool_ids == list(spec.tools)
+    assert tool_ids == [t for t in spec.tools if mode == "delegate" or t != "ask_user"]
     assert _COPILOT_MUTATORS.issubset(set(tool_ids))
 
 

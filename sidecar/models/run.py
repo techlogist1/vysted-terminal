@@ -101,18 +101,6 @@ class RunLaunchRequest(BaseModel):
     options: dict[str, Any] = Field(default_factory=dict)
 
 
-class RunLaunchResponse(BaseModel):
-    """``POST /agents/{agent_id}/runs`` 201 response.
-
-    Emits BOTH ``runId`` (camelCase, the alias the frontend reads) and accepts
-    ``run_id`` on the way in via ``populate_by_name``.
-    """
-
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
-
-    run_id: str = Field(alias="runId")
-
-
 class RunSummary(BaseModel):
     """One row in ``GET /runs`` — the run-tray list shape.
 

@@ -21,17 +21,13 @@ autonomous background agent task:
   marks the run ``cancelled``. ``GET /runs/{id}`` returns the transcript digest
   so the user can bring the background run into the foreground.
 
-- **Human-in-the-loop (FR-028 — scoped).** A run can be PAUSED for a human
-  question (:func:`pause_run`). :func:`answer_run` records the human's reply and
-  RESUMES the run by re-entering the agent loop from the persisted checkpoint
-  with the answer appended as a new user turn — a genuine human-in-the-loop
-  handshake. :func:`resume_run` re-enters an aborted run from its checkpoint with
-  fresh ceilings (budget-breach recovery). **Scope note:** the pause is an
-  EXPLICIT signal (operator/host-driven), not an autonomous in-loop ``ask_user``
-  tool call — wiring the agent loop to self-pause would require a new catalog
-  capability + the §6.5/parity audits to cover it, which is deferred. The
-  pause/answer/resume control plane is fully implemented and durable; only the
-  autonomous self-pause trigger is out of scope here.
+- **Human-in-the-loop (FR-028).** A Delegate run is offered the ``ask_user``
+  capability. When the model calls it, the driver stops the turn before any of
+  that round's tools run, checkpoints, and parks the run ``paused`` with the
+  question (R15-CODE-AGENT-011). :func:`answer_run` resumes it from the
+  checkpoint with the human's answer as the next user turn. :func:`resume_run`
+  re-enters an aborted run from its checkpoint with fresh ceilings
+  (budget-breach recovery).
 
 The BYOK ``api_key`` lives ONLY on the in-memory task closure — never persisted
 to ``runs_store``, never logged. The guard governs SPEND only; no trading
@@ -162,6 +158,8 @@ async def _drive_run(
     breach_reason: str | None = None
     agent_error: str | None = None
     halted = False
+    # The model's ask_user question (R15-CODE-AGENT-011): the run pauses on it.
+    question: str | None = None
     delta_buffer: list[str] = []
     # The run's collectable output (R15-AGENT-013): the last brief it published
     # and the host actions it proposed, delivered once to the originating chat
@@ -212,7 +210,7 @@ async def _drive_run(
         )
         nonlocal breach_reason
         breach_reason = breach_reason or guard.breach()
-        return breach_reason is None
+        return breach_reason is None and question is None
 
     try:
         # The round-boundary breach() check below covers tokens/spend/steps (which
@@ -243,6 +241,12 @@ async def _drive_run(
                 elif kind == "tool_use":
                     name = getattr(event, "name", "?")
                     _flush_text()
+                    asked = (
+                        event.input.get("question") if name == agent_runtime.ASK_USER_TOOL else None
+                    )
+                    if isinstance(asked, str) and asked.strip() and question is None:
+                        question = asked.strip()
+                        turns.append({"role": "assistant", "content": f"[ask_user → {question}]"})
                     # A tool round ends the model's paragraph; the next round's
                     # text starts a new one instead of running on.
                     if delta_buffer and delta_buffer[-1] != "\n\n":
@@ -261,6 +265,18 @@ async def _drive_run(
                     halted = True
                 elif kind == "error":
                     agent_error = agent_error or getattr(event, "message", "agent error")
+
+        if halted and question is not None:
+            # The model asked the user: park the run until answer_run.
+            runs_store.update_run(
+                run_id,
+                status="paused",
+                detail="waiting for your answer",
+                question=question,
+                checkpoint=_checkpoint(),
+                output=_output(),
+            )
+            return
 
         failure = breach_reason if halted else agent_error
         if failure is not None:
@@ -404,21 +420,6 @@ def cancel_run(run_id: str) -> None:
         task.cancel()
 
 
-def pause_run(run_id: str, question: str) -> None:
-    """Pause a RUNNING run for a human-in-the-loop question (FR-028).
-
-    Flips the run to ``paused`` with the question (the store refuses any other
-    starting status), then cancels the in-flight task, which checkpoints the
-    transcript on the way out. The human answers via :func:`answer_run`.
-    """
-    runs_store.update_run(
-        run_id, status="paused", from_status=frozenset({"running"}), question=question
-    )
-    task = _TASKS.get(run_id)
-    if task is not None and not task.done():
-        task.cancel()
-
-
 def answer_run(
     run_id: str,
     answer: str,
@@ -426,7 +427,7 @@ def answer_run(
     api_key: str | None = None,
     budget: RunBudget | None = None,
 ) -> None:
-    """Deliver a human reply to a paused run and resume it (FR-028).
+    """Deliver a human reply to a run paused on ``ask_user`` and resume it (FR-028).
 
     The answer is appended to the run's checkpoint as a new user turn, then the
     agent loop is re-entered from that checkpoint. Raises :class:`RunNotFound`
@@ -508,11 +509,6 @@ def _resume(
         checkpoint=checkpoint,
         prior_cost=run.cost,
     )
-
-
-def active_run_ids() -> list[str]:
-    """Return the ids of runs whose task is still in flight (for diagnostics)."""
-    return [rid for rid, task in _TASKS.items() if not task.done()]
 
 
 async def shutdown() -> None:

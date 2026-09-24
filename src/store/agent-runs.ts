@@ -117,7 +117,11 @@ export const useAgentRunsStore = create<AgentRunsState>((set, get) => ({
 
   removeRun: (id) => set((state) => ({ runs: state.runs.filter((r) => r.id !== id) })),
 
-  clearFinished: () => set((state) => ({ runs: state.runs.filter((r) => r.status === "running") })),
+  // A paused run waits on the user's answer: it is not finished (R15-CODE-AGENT-011).
+  clearFinished: () =>
+    set((state) => ({
+      runs: state.runs.filter((r) => r.status === "running" || r.status === "paused"),
+    })),
 
   activeRuns: () => get().runs.filter((r) => r.status === "running" || r.status === "paused"),
 
