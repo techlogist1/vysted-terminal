@@ -418,6 +418,13 @@ export function ChatSidebar() {
   const providers = useLLMProvidersStore((state) => state.providers);
   const defaultProviderId = useLLMProvidersStore((state) => state.defaultProviderId);
   const setDefaultProviderId = useLLMProvidersStore((state) => state.setDefaultProviderId);
+  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+  // FR-112): a lone resolved symbol loads the chart instantly, LLM-free.
+  const composerKnownSymbols = useSymbolsStore((state) => state.entries);
+  const composerKnownSymbolSet = useMemo(
+    () => new Set(composerKnownSymbols.map((e) => e.symbol.toUpperCase())),
+    [composerKnownSymbols],
+  );
   const refreshProviders = useLLMProvidersStore((state) => state.refresh);
 
   const keyStatuses = useProviderKeysStore((state) => state.status);
@@ -714,10 +721,16 @@ export function ChatSidebar() {
         }
         result = { kind: "raw", prompt: invocation.cmd.dispatch.template(invocation.args) };
       } else {
-        result = parseSlashCommand(rawInput);
+        result = parseSlashCommand(rawInput, composerKnownSymbolSet);
       }
       if (result.kind === "error") {
         setStatusLine(result.message);
+        return;
+      }
+      if (result.kind === "bare-ticker") {
+        // FR-112 fast path: a lone resolved ticker loads the chart instantly,
+        // no LLM round-trip — the same gate/dispatch `/chart` uses.
+        dispatchSlashAction("chart", result.symbol);
         return;
       }
       if (result.kind === "help") {
@@ -1090,6 +1103,7 @@ export function ChatSidebar() {
       agentNameById,
       beginAssistant,
       clearHistory,
+      composerKnownSymbolSet,
       customAgents,
       defaultProviderId,
       delegateBudget,
