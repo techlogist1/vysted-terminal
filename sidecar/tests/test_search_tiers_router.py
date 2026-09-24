@@ -91,6 +91,12 @@ def test_status_route_reports_ready_with_url(monkeypatch) -> None:
         return True
 
     monkeypatch.setattr(searxng_manager, "_probe_health", healthy)
+
+    async def engines_ok(_url: str) -> searxng_manager.EngineProbe:
+        return searxng_manager.EngineProbe(has_results=True)
+
+    # The quality probe would otherwise query whatever SearXNG really listens on :8888.
+    monkeypatch.setattr(searxng_manager, "_probe_engines", engines_ok)
     client = TestClient(create_app())
 
     body = client.get("/search/searxng/status").json()

@@ -1078,7 +1078,7 @@ async def test_nemotron_reasoning_echo_stays_out_of_the_answer(
     fixture = Path(__file__).parent / "fixtures" / "llm" / "nemotron_cot.jsonl"
     chunks = [
         ChatCompletionChunk.model_validate(json.loads(line))
-        for line in fixture.read_text().splitlines()
+        for line in fixture.read_text(encoding="utf-8").splitlines()
     ]
     reasoning = "".join(
         getattr(choice.delta, "reasoning", None) or "" for c in chunks for choice in c.choices
