@@ -187,21 +187,30 @@ def _nse_day(value: object) -> date | None:
     return None
 
 
-def _nse_periods(bare: str) -> FiledPeriods | None:
-    rows = [
+def _nse_rows(bare: str) -> list[dict]:
+    return [
         r
         for r in nse_provider.get_financial_filings(bare)
         if r.get("consolidated") in ("Standalone", "Consolidated")
         and str(r.get("xbrl") or "").endswith(".xml")
         and _nse_day(r.get("qe_Date"))
     ]
-    if not rows:
-        return None
+
+
+def _nse_basis(rows: list[dict]) -> str:
+    """``Consolidated`` when the newest filed quarter has a consolidated filing."""
     newest = max(_nse_day(r["qe_Date"]) for r in rows)
     has_consolidated = any(
         r["consolidated"] == "Consolidated" and _nse_day(r["qe_Date"]) == newest for r in rows
     )
-    basis = "Consolidated" if has_consolidated else "Standalone"
+    return "Consolidated" if has_consolidated else "Standalone"
+
+
+def _nse_periods(bare: str) -> FiledPeriods | None:
+    rows = _nse_rows(bare)
+    if not rows:
+        return None
+    basis = _nse_basis(rows)
     # A revision supersedes the original filing for the same quarter.
     latest: dict[date, dict] = {}
     for row in sorted(rows, key=lambda r: _nse_day(r.get("creation_Date")) or date.min):
@@ -334,10 +343,12 @@ def _assemble(venue: str, basis: str, periods: Iterable[FiledPeriod]) -> FiledPe
 # --- entry point ---------------------------------------------------------------
 
 _cache: dict[str, tuple[float, FiledPeriods]] = {}
+_basis_cache: dict[str, tuple[float, str | None]] = {}
 
 
 def reset_for_tests() -> None:
     _cache.clear()
+    _basis_cache.clear()
 
 
 def _fetch(listing: str) -> FiledPeriods | None:
@@ -367,9 +378,51 @@ async def get_filed_periods(listing: str) -> FiledPeriods | None:
     return filed
 
 
+def _fetch_basis(listing: str) -> str | None:
+    bare = locale.strip_exchange_suffix(listing).removesuffix("-SM")
+    if listing.endswith(".NS") or symbol_resolver.dual_listed_bse_code(bare):
+        rows = _nse_rows(bare)
+        return _nse_basis(rows).lower() if rows else None
+    code = symbol_resolver.bse_scrip_code(bare)
+    if not code:
+        return None
+    links = (bse_provider.get_results_summary(code).get("resultinS") or [{}])[0]
+    # BSE's result pages publish the standalone result only.
+    return "standalone" if any(links.get(k) for k in ("LLQ", "LSQ", "LFY")) else None
+
+
+async def filed_basis(listing: str) -> str | None:
+    """The accounting basis an NSE/BSE ``listing`` files its results on
+    (R15-DATA-054), which is the basis a provider serving the company's
+    primary statements (Yahoo) uses: ``"consolidated"`` when the newest
+    NSE-filed quarter carries a consolidated filing, else ``"standalone"``. A
+    listing the company also has on NSE (a dual-listed ``.BO``) reads the NSE
+    index; a BSE-only listing is ``"standalone"`` when BSE holds a result for
+    it. ``None`` for any other listing, no filing, or any failure — never a
+    default. Never raises; cached for a day."""
+    if not is_india_listing(listing):
+        return None
+    key = listing.strip().upper()
+    hit = _basis_cache.get(key)
+    if hit is not None and time.monotonic() - hit[0] < _TTL_SECONDS:
+        return hit[1]
+    filed = _cache.get(key)
+    fresh = filed is not None and time.monotonic() - filed[0] < _TTL_SECONDS
+    if fresh and filed[1].venue == VENUE_NSE:
+        return filed[1].basis  # the NSE lane already read the same index today
+    try:
+        basis = await asyncio.to_thread(_fetch_basis, key)
+    except Exception as exc:  # noqa: BLE001 — a label must never break the payload
+        logger.debug("filed basis unavailable for %s: %s", listing, exc)
+        return None
+    _basis_cache[key] = (time.monotonic(), basis)
+    return basis
+
+
 __all__ = [
     "FiledPeriod",
     "FiledPeriods",
+    "filed_basis",
     "get_filed_periods",
     "parse_nse_xbrl",
     "reset_for_tests",

@@ -157,9 +157,10 @@ export interface Fundamentals {
    */
   roce?: number | null;
   /**
-   * Accounting basis of the served statement-derived figures (R15-DATA-054):
-   * `"consolidated"` for an Indian listing, `null` for every other listing
-   * (not independently knowable from `info`).
+   * Accounting basis the company files its results on (R15-DATA-054), derived
+   * from the exchange filings: `"consolidated"` when it files a consolidated
+   * result, else `"standalone"`. `null` for a non-Indian listing or when no
+   * filing could be read — never a default.
    */
   basis?: "consolidated" | "standalone" | null;
   // Size & growth

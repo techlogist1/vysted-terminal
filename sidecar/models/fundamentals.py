@@ -136,11 +136,11 @@ class Fundamentals(BaseModel):
     #: so this is ALWAYS derived from the statements when they carry the
     #: ingredients (R15-DATA-048); ``None`` when they don't.
     roce: float | None = None
-    #: The accounting basis the served statement-derived figures use
-    #: (R15-DATA-054): ``"consolidated"`` for an Indian listing (Yahoo serves
-    #: the consolidated set for NSE/BSE names), ``None`` for every other
-    #: listing (Yahoo's basis is not independently knowable from ``info``).
-    #: Never ``"standalone"`` today — no provider path yields it.
+    #: The accounting basis the company files its results on (R15-DATA-054),
+    #: derived from the exchange filings (:func:`services.exchange_financials.
+    #: filed_basis`): ``"consolidated"`` when it files a consolidated result,
+    #: else ``"standalone"``. ``None`` for a non-Indian listing or when no
+    #: filing could be read — never a default.
     basis: Literal["consolidated", "standalone"] | None = None
     # --- Size & growth ---
     revenue_ttm: float | None = None

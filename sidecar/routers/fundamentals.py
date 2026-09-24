@@ -38,6 +38,7 @@ from services import (
     company_narrative,
     correctness_gate,
     data_cache,
+    exchange_financials,
     identity_crosscheck,
     provider_registry,
     resolution_policy,
@@ -101,11 +102,13 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     R15: the served values then pass the network witnesses
     (:func:`correctness_gate.apply_witnesses`) — an Indian listing's ownership
     fractions are reconciled against the exchange shareholding filing and flagged
-    (never replaced) where they disagree.
+    (never replaced) where they disagree. ``basis`` is the company's filed
+    accounting basis (R15-DATA-054), ``None`` when no filing says.
     """
     fundamentals = await provider_registry.get_fundamentals(symbol)
     fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
+    fundamentals.basis = await exchange_financials.filed_basis(fundamentals.symbol)
     return fundamentals
 
 

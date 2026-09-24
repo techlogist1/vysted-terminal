@@ -636,4 +636,17 @@ describe("EquityOverviewPanel — batch-10 fundamentals labels (R15-DATA-048/054
     await loadSymbol();
     expect(valueCell("ROCE").textContent).toContain("unavailable");
   });
+
+  it("shows the filed basis chip only when the sidecar derived one", async () => {
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ basis: "standalone" }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByTestId("basis-chip").textContent).toBe("standalone");
+    cleanup();
+
+    mockLoad.mockResolvedValue(overview({ fundamentals: fundamentals({ basis: null }) }));
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.queryByTestId("basis-chip")).toBeNull();
+  });
 });

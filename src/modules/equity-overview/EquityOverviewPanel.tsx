@@ -1047,6 +1047,15 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                     {fundamentals.industry != null ? ` · ${fundamentals.industry}` : ""}
                   </span>
                 )}
+                {fundamentals?.basis != null && (
+                  <span
+                    className="text-micro text-charcoal-400 border-charcoal-700 rounded-control border px-1 py-px tracking-wide uppercase"
+                    title="Accounting basis of the company's exchange-filed results"
+                    data-testid="basis-chip"
+                  >
+                    {fundamentals.basis}
+                  </span>
+                )}
                 {fundamentals != null &&
                   (fundamentals.fifty_two_week_low != null ||
                     fundamentals.fifty_two_week_high != null) && (

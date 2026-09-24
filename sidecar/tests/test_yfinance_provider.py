@@ -966,16 +966,17 @@ def test_get_fundamentals_empty_yahoo_sector_is_not_served(
     assert fund.sector_source is None
 
 
-def test_get_fundamentals_basis_is_consolidated_for_an_indian_listing(
+def test_get_fundamentals_never_defaults_a_basis(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """CREST (R15-DATA-054): Yahoo serves the CONSOLIDATED statement set for an
-    Indian listing, so ``basis`` is stamped; a non-Indian listing has no such
-    guarantee and stays unstamped."""
+    """R15-DATA-054: ``info`` does not say which accounting basis Yahoo used, so
+    the provider stamps none for any listing (a hard-coded "consolidated" was
+    false for standalone filers like SMR); the route derives it from the
+    exchange filings (``test_fundamentals_basis.py``)."""
     info = {"longName": "Crest Ventures Ltd", "currency": "INR", "marketCap": 5_000_000_000}
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
     fund = yfinance_provider.get_fundamentals("CREST.BO")
-    assert fund.basis == "consolidated"
+    assert fund.basis is None
 
     monkeypatch.setattr(config, "get_region", lambda: "US")
     us_info = {"longName": "Example Corp", "currency": "USD", "marketCap": 1_000_000}

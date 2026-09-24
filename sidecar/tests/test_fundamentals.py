@@ -6,6 +6,18 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+@pytest.fixture(autouse=True)
+def _no_network_filed_basis(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the route's filed-basis read (R15-DATA-054) off the network; its
+    own cases live in ``test_fundamentals_basis.py``."""
+    from services import exchange_financials
+
+    async def _stub(_listing: str) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", _stub)
+
+
 def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL").json()
     assert body["symbol"] == "AAPL"
