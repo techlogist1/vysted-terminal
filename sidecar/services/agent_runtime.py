@@ -234,9 +234,15 @@ def _grant_first_party_hands(spec: AgentSpec) -> AgentSpec:
 
 
 def _load_schema() -> dict[str, Any]:
-    """Read the AgentSpec JSON Schema; raise loudly if missing or malformed."""
+    """Read the AgentSpec JSON Schema; raise loudly if missing or malformed.
+
+    The ``defaultProvider`` enum is filled from the model registry here — the
+    JSON carries none, so it can never go stale (R15-CODE-AGENT-016).
+    """
     with SCHEMA_PATH.open(encoding="utf-8") as handle:
-        return json.load(handle)
+        schema = json.load(handle)
+    schema["properties"]["defaultProvider"]["enum"] = list(model_registry.provider_ids())
+    return schema
 
 
 def _discover_specs(agents_dir: Path = AGENTS_DIR) -> dict[str, AgentSpec]:
