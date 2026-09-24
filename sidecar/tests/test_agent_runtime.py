@@ -2214,3 +2214,63 @@ async def test_the_final_done_carries_the_whole_turns_spend(
     priced = await _done("deepseek", "deepseek-chat")  # 1,000 tokens at $0.9/1M
     assert priced.spend_usd == pytest.approx(0.0009)
     assert (await _done("xai", "mystery-1")).spend_usd is None
+
+
+class _RecordingRoundsProvider:
+    """Scripted rounds; records a deep copy of every request's messages."""
+
+    def __init__(self, rounds: list[list[Any]]) -> None:
+        self._rounds = rounds
+        self.requests: list[list[dict[str, Any]]] = []
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **_: Any
+    ) -> AsyncIterator[Any]:
+        self.requests.append([m.model_dump() for m in messages])
+        for event in self._rounds[len(self.requests) - 1]:
+            yield event
+
+
+@pytest.mark.asyncio
+async def test_sent_tool_results_are_never_rewritten(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-050 / D-B10-10: a round only appends, so the Anthropic cache
+    prefix survives. Round 2 truncates a long result and round 1 carried an
+    AUTO host action whose result is grounded from the ack ledger; every
+    message a round sent is byte-identical in the next round's request."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _RecordingRoundsProvider(
+        [
+            [
+                LLMToolUseEvent(tool_call_id="a", name="set_chart_symbol", input={"symbol": "TCS"}),
+                LLMToolUseEvent(tool_call_id="b", name="price_data", input={"symbol": "TCS"}),
+                done,
+            ],
+            [LLMToolUseEvent(tool_call_id="c", name="price_data", input={"symbol": "INFY"}), done],
+            [LLMDeltaEvent(text="Done."), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
+
+    async def _tool(tool_call: LLMToolUseEvent, *_a: Any, **_k: Any) -> str:
+        return json.dumps({"ok": True, "rows": "x" * 70_000, "symbol": tool_call.input})
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+
+    async for _ in agent_runtime.invoke_agent(
+        agent_id="copilot",
+        prompt="chart TCS and show me TCS then INFY prices",
+        provider="anthropic",
+        model="claude-sonnet-4-6",
+        api_key="sk-test",
+        mode="agent",
+        autonomy="auto",
+    ):
+        pass
+
+    assert len(provider.requests) == 3
+    assert "dispatched_unconfirmed" in provider.requests[1][-2]["content"]  # grounded
+    assert "chars elided" in provider.requests[2][-1]["content"]  # round 2 truncated
+    for earlier, later in zip(provider.requests, provider.requests[1:], strict=False):
+        assert later[: len(earlier)] == earlier

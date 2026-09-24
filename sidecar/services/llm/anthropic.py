@@ -7,8 +7,8 @@ discriminated ``type`` field; we translate them into the host's neutral
 
 Anthropic uses a separate top-level ``system`` parameter rather than a
 ``"system"`` role in the messages array, so the adapter splits ``messages``
-into the system string and the remaining user/assistant turns at the call
-site.
+into system blocks (with prompt-cache breakpoints) and the remaining
+user/assistant turns at the call site.
 """
 
 from __future__ import annotations
@@ -62,21 +62,28 @@ def max_output_tokens(model: str) -> int:
     return _OUTPUT_CEILINGS[max(prefixes, key=len)] if prefixes else _FALLBACK_OUTPUT_CEILING
 
 
+#: A prompt-cache breakpoint (R15-AGENT-050): everything before it is cached.
+_CACHE_BREAKPOINT = {"type": "ephemeral"}
+
+
 def _split_system_and_messages(
     messages: list[LLMMessage],
-) -> tuple[str | None, list[dict[str, Any]]]:
-    """Pull leading system messages out and convert the rest to API shape.
+) -> tuple[list[dict[str, Any]] | None, list[dict[str, Any]]]:
+    """Pull system messages out as ``system`` blocks and convert the rest.
 
     Anthropic uses a top-level ``system`` parameter, not a ``"system"`` role
-    inside the messages list. Multiple system messages concatenate with
-    newlines so the agent runtime's "system prompt + context preamble"
-    composition still works.
+    inside the messages list. Each system message is its own text block so
+    the stable first one (the agent's persona and capabilities) carries a
+    cache breakpoint and the per-turn date and terminal preamble after it
+    never invalidate it (R15-AGENT-050). A second breakpoint sits on the last
+    tool result, so each tool round reads the previous rounds from cache.
     """
-    system_chunks: list[str] = []
+    system_blocks: list[dict[str, Any]] = []
     rest: list[dict[str, Any]] = []
     for message in messages:
         if message.role == "system":
-            system_chunks.append(message.content)
+            if message.content:  # the API rejects an empty text block
+                system_blocks.append({"type": "text", "text": message.content})
             continue
         if message.role == "tool":
             # Anthropic tool results are a content block, not a top-level role.
@@ -112,8 +119,20 @@ def _split_system_and_messages(
             rest.append({"role": "assistant", "content": blocks})
             continue
         rest.append({"role": message.role, "content": message.content})
-    system = "\n\n".join(system_chunks) if system_chunks else None
-    return system, rest
+    if system_blocks:
+        system_blocks[0]["cache_control"] = _CACHE_BREAKPOINT
+    last_result = next(
+        (m["content"][-1] for m in reversed(rest) if _is_tool_result_turn(m)),
+        None,
+    )
+    if last_result is not None:
+        last_result["cache_control"] = _CACHE_BREAKPOINT
+    return system_blocks or None, rest
+
+
+def _is_tool_result_turn(message: dict[str, Any]) -> bool:
+    content = message["content"]
+    return isinstance(content, list) and content[-1].get("type") == "tool_result"
 
 
 class AnthropicProvider(LLMProvider):
