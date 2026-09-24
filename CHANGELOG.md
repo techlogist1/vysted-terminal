@@ -4,6 +4,38 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 6: India Emerge lanes, runtime tool-call identity, research funnel, host-action intents, quant pool, panel bus keys (2026-09-24)
+
+**Scope:** 60 entries planned in `docs/redesign/verification/r15/stage-c/batch-6/PLAN.md`; the five writers
+delivered 18 commits covering 22 of them plus RESEARCH-024's runtime half. Merged in plan order W1 → W4 → W2 → W5 → W3 on
+`worktree-agent-batch-6-int` (base `bc03be5`), no file conflicts. Every undelivered entry stays open.
+
+- **W1 India exchange data:** NSE Emerge corporates use `index=sme` and historicalOR the SM series, chosen
+  once from the master's SM type (DATA-017 SME leg). DATA-014/027/050/060/076 and the rest of W1 were not
+  delivered.
+- **W4 research funnel:** snapshot cross-check legs are isolated; ULTRA's heavy loop falls back like DEEP;
+  India filings sub-questions never query EDGAR; the disclosures floor ranks the results filing first and
+  every ULTRA explorer cites it (CODE-RESEARCH-002, RESEARCH-017/018/012/016). C4's row fields
+  (`domain`, `published_at`) were not delivered.
+- **W2 delegate runs and runtime:** tool-arg repair rejects a schema echo; the runtime mints a tool-call id
+  for an empty or repeated provider id and acks are consumed once; the FAST auto-publish forwards a host
+  domain and `published_at` (LEAD-014, AGENT-046, RESEARCH-024 runtime half). RESEARCH-024 does not
+  certify until W4's C4 half lands. The durable-runs entries were not delivered.
+- **W5 host actions and portfolio:** agent writes no longer sync to the sidecar positions ledger (the
+  ledger keeps only its read-once GET, C9); `normalizeHolding` rejects non-positive quantity and negative
+  cost; host actions parse once into a bound intent that describe and apply share; holdings publish ids
+  and an ambiguous lot refuses; `save_screen` saves the agent's recipe and `run: true` runs
+  (CODE-FRONTEND-012/011/007/009/010, CODE-PLATFORM-022, DATA-088, AGENT-042).
+- **W3 unattended, platform, chart:** build venvs are pinned to Python 3.13 via `scripts/build-python.mjs`
+  (LEAD-012); QuantLib pricing runs in a 2-worker spawn process pool with `freeze_support()` in `main.py`
+  and the pool shut down in the lifespan `finally` (CODE-PLATFORM-018); panel-context bus keys are the
+  dockview panel ids (AGENT-052, with AGENT-051 and CODE-FRONTEND-015); drawing delete keys are scoped to
+  the chart and a locked drawing refuses them (UI-021). AGENT-023 (scheduler) was not delivered.
+- **Packaging note (CODE-PLATFORM-018):** the frozen `--onefile` binary spawns pool workers from itself;
+  `multiprocessing.freeze_support()` must stay the first statement under `__main__` in `sidecar/main.py`.
+- **Runbook (LEAD-012):** a sidecar build needs Python 3.13 on PATH as `python3.13` (or `py -3.13`), or
+  `VYSTED_PYTHON` pointing at one; a build venv on any other minor version is recreated.
+
 ## R15 Stage C — batch 5: India exchange lanes, resolver masters, runtime liveness and memory, workflow control flow, sidecar boundary, screener and earnings (2026-09-24)
 
 **Scope:** 56 register entries (19 highs plus 37 mediums in the four named areas), planned in
