@@ -39,6 +39,9 @@ function searchKey(provider: MacroProvider, query: string): string {
 interface SeriesLoadStatus {
   status: "loading" | "ready" | "error";
   error?: string;
+  /** The original failure (a `SidecarError` keeps its status), so a retry
+   *  policy can tell a not-ready engine from a deterministic answer. */
+  cause?: unknown;
   series?: MacroSeriesExtended;
 }
 
@@ -96,7 +99,7 @@ export const useMacroStore = create<MacroState>((set, get) => ({
       set((state) => ({
         seriesStatus: {
           ...state.seriesStatus,
-          [key]: { status: "error", error: errorMessage(err) },
+          [key]: { status: "error", error: errorMessage(err), cause: err },
         },
       }));
     }

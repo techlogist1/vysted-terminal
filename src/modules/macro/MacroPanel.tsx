@@ -34,14 +34,14 @@ export function MacroPanel() {
   // picker's onSelect callback. The load auto-retries on a cold-boot sidecar
   // bind (and re-arms on reconnect) so a panel mounted before the sidecar was
   // ready self-heals instead of latching a permanent error. `loadSeries`
-  // swallows its error into store state, so re-throw on the error status to
-  // signal the retry hook.
+  // swallows its error into store state, so re-throw the kept original error:
+  // the hook retries only a not-ready engine, never a keyless 502.
   const loadDefault = useCallback(async () => {
     select(provider, seriesId);
     await loadSeries(provider, seriesId);
     const status = selectSeriesStatus(useMacroStore.getState(), provider, seriesId);
     if (status?.status === "error") {
-      throw new Error(status.error ?? "macro load failed");
+      throw status.cause;
     }
   }, [provider, seriesId, loadSeries, select]);
   useRetryOnSidecarReady(loadDefault, [provider, seriesId]);

@@ -77,6 +77,8 @@ interface SecState {
   filingsByIdentifier: Record<string, FilingsListResponse>;
   filingsStatus: SecLoadStatus;
   filingsError: string | null;
+  /** The original filings failure (a `SidecarError` keeps its status). */
+  filingsCause: unknown;
 
   /** Map accession -> full filing detail. */
   filingDetailByAccession: Record<string, FilingDetail>;
@@ -130,6 +132,7 @@ export const useSecStore = create<SecState>((set, get) => ({
   filingsByIdentifier: {},
   filingsStatus: "idle",
   filingsError: null,
+  filingsCause: null,
 
   filingDetailByAccession: {},
   filingDetailStatus: "idle",
@@ -153,7 +156,7 @@ export const useSecStore = create<SecState>((set, get) => ({
     // caller owns `activeIdentifier`, so a late response for the previous
     // symbol can no longer revert the panel to it.
     const generation = ++filingsGeneration;
-    set({ filingsStatus: "loading", filingsError: null });
+    set({ filingsStatus: "loading", filingsError: null, filingsCause: null });
     try {
       const params: Record<string, string | number | undefined> = {
         limit: 40,
@@ -178,7 +181,7 @@ export const useSecStore = create<SecState>((set, get) => ({
     } catch (err: unknown) {
       if (generation !== filingsGeneration) return;
       const message = err instanceof Error ? err.message : "filings fetch failed";
-      set({ filingsStatus: "error", filingsError: message });
+      set({ filingsStatus: "error", filingsError: message, filingsCause: err });
     }
   },
 
@@ -266,6 +269,7 @@ export const useSecStore = create<SecState>((set, get) => ({
       filingsByIdentifier: {},
       filingsStatus: "idle",
       filingsError: null,
+      filingsCause: null,
       filingDetailByAccession: {},
       filingDetailStatus: "idle",
       filingDetailError: null,

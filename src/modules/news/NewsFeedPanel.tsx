@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Newspaper } from "lucide-react";
 
@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { STAGGER, tween } from "@/lib/motion";
 import { SidecarError } from "@/lib/sidecar-client";
+import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useSettingsStore } from "@/store/settings";
 import { toNewsSymbol, useSymbolsStore } from "@/store/symbols";
@@ -213,45 +214,28 @@ export function NewsFeedPanel() {
   // (not a ref) so the effect that owns the fetch lifecycle reacts to it.
   const [refreshNonce, setRefreshNonce] = useState(0);
 
-  // Fetch the feed on mount, whenever the projected symbol list changes, and on
-  // a manual refresh. A failed load auto-retries with backoff (1s, 2s, 4s, then
-  // capped at 5s for ~12 attempts ≈ 50s) so a cold-boot sidecar bind — the
-  // PyInstaller `_MEI` re-exec can take ~30s — self-heals before the terminal
-  // error block shows, matching Watchlist's poll-based resilience. The per-run
-  // `cancelled` flag drops a superseded/unmounted run's result, and the local
-  // `timer` is cleared on cleanup — no setState-after-unmount, no leak.
-  useEffect(() => {
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const attempt = (n: number) => {
-      fetchNews(newsSymbols)
-        .then((items) => {
-          if (!cancelled) {
-            setState({ status: "ready", items });
-          }
-        })
-        .catch((error: unknown) => {
-          if (cancelled) {
-            return;
-          }
-          if (n < 12) {
-            timer = setTimeout(() => attempt(n + 1), Math.min(1000 * 2 ** n, 5000));
-            return;
-          }
-          setState({ status: "error", message: errorMessage(error) });
-        });
-    };
-    attempt(0);
-    return () => {
-      cancelled = true;
-      if (timer) {
-        clearTimeout(timer);
+  // Fetch the feed on mount, whenever the projected symbol list changes, on a
+  // region switch (region-first feed) and on a manual refresh. The shared
+  // cold-boot hook retries only while the engine is not up yet; an answer it
+  // gave (a 502 from every news source) settles at once in the error state
+  // (R15-UI-015). Only the newest load commits, so a superseded symbol list's
+  // late response never overwrites the current feed.
+  const loadGenerationRef = useRef(0);
+  const loadFeed = useCallback(async () => {
+    const generation = ++loadGenerationRef.current;
+    try {
+      const items = await fetchNews(newsSymbols);
+      if (generation === loadGenerationRef.current) {
+        setState({ status: "ready", items });
       }
-    };
-    // `newsSymbols` is memoised per symbol list; `refreshNonce` re-triggers a
-    // manual refresh; `region` re-fetches on a region switch (region-first feed).
-    // (setState lives in async callbacks, never synchronously.)
-  }, [newsSymbols, region, refreshNonce]);
+    } catch (error: unknown) {
+      if (generation === loadGenerationRef.current) {
+        setState({ status: "error", message: errorMessage(error) });
+      }
+      throw error;
+    }
+  }, [newsSymbols]);
+  useRetryOnSidecarReady(loadFeed, [newsSymbols, region, refreshNonce]);
 
   // Manual refresh / retry — surface the loading state, then re-run the effect.
   const refresh = useCallback(() => {
