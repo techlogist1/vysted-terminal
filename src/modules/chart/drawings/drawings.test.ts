@@ -34,6 +34,8 @@ function makeSpec(kind: DrawingKind, points: DrawingSpec["points"]): DrawingSpec
   return {
     id: `test-${kind}`,
     panelId: "p",
+    symbol: "SPY",
+    timeframe: "1d",
     kind,
     points,
     style: { ...DEFAULT_DRAWING_STYLE },
@@ -87,6 +89,7 @@ function makeDrawTarget(ctx: MockCtx): Parameters<TrendlineRenderer["draw"]>[0] 
 
 const converters = {
   timeToX: (time: number) => time / 1_000_000,
+  logicalToX: (logical: number) => logical * 10,
   priceToY: (price: number) => 1000 - price,
   paneSize: () => ({ width: 800, height: 600 }),
 };
@@ -135,6 +138,21 @@ describe("trendline renderer", () => {
     const lineTo = ctx.__calls.find((c) => c.method === "lineTo");
     expect(moveTo).toBeDefined();
     expect(lineTo).toBeDefined();
+  });
+
+  it("places anchors clicked past the last bar by their logical index (R15-UI-022)", () => {
+    const ctx = makeMockContext();
+    const renderer = new TrendlineRenderer();
+    renderer.setSpec(
+      makeSpec("trendline", [
+        { time: null, price: 100, logical: 50 },
+        { time: null, price: 110, logical: 60 },
+      ]),
+    );
+    renderer.setConverters(converters);
+    renderer.draw(makeDrawTarget(ctx));
+    expect(ctx.__calls.find((c) => c.method === "moveTo")?.args).toEqual([500, 900]);
+    expect(ctx.__calls.find((c) => c.method === "lineTo")?.args).toEqual([600, 890]);
   });
 });
 
@@ -283,6 +301,8 @@ describe("text renderer", () => {
     renderer.setSpec({
       id: "t",
       panelId: "p",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "text",
       points: [{ time: 5_000_000, price: 200 }],
       style: { ...DEFAULT_DRAWING_STYLE },

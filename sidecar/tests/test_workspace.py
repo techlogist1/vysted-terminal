@@ -185,3 +185,57 @@ def test_save_is_atomic_under_concurrency(client: TestClient) -> None:
     # No stray temp files leaked.
     leftover = list(get_workspaces_dir().glob("*.tmp"))
     assert leftover == []
+
+
+def test_corrupt_workspace_is_quarantined_and_served_from_bak(client: TestClient) -> None:
+    """R15-DATA-090: a corrupt file is kept as ``.corrupt-*``, the last good
+    ``.bak`` is served and restored, and the next save leaves ``.bak`` parseable."""
+    import json
+
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    good = _sample_workspace("research")
+    client.post("/workspace", json={"name": "research", "workspace": good})
+    client.post("/workspace", json={"name": "research", "workspace": {**good, "v": 2}})
+    path = get_workspaces_dir() / f"research{WORKSPACE_SUFFIX}"
+    path.write_text('{"trunc', encoding="utf-8")
+
+    response = client.get("/workspace/research")
+    assert response.status_code == 200
+    assert response.json() == good
+    quarantined = list(get_workspaces_dir().glob(f"research{WORKSPACE_SUFFIX}.corrupt-*"))
+    assert [p.read_text(encoding="utf-8") for p in quarantined] == ['{"trunc']
+
+    path.write_text("[]", encoding="utf-8")  # valid JSON, not an object: corrupt too
+    client.post("/workspace", json={"name": "research", "workspace": {**good, "v": 3}})
+    bak = get_workspaces_dir() / f"research{WORKSPACE_SUFFIX}.bak"
+    assert json.loads(bak.read_text(encoding="utf-8")) == good
+    assert client.get("/workspace").json() == ["research"]
+
+
+def test_non_object_workspace_without_backup_is_404_not_500(client: TestClient) -> None:
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    path = get_workspaces_dir() / f"notes{WORKSPACE_SUFFIX}"
+    path.write_text("[1, 2]", encoding="utf-8")
+
+    assert client.get("/workspace/notes").status_code == 404
+    assert client.get("/workspace").json() == []
+
+
+def test_a_disk_failure_on_save_is_a_detailed_507(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CODE-FRONTEND-019: an OSError is not a bare 500 without CORS headers."""
+    from services import workspace_store
+
+    def _read_only(*_args: object) -> None:
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr(workspace_store, "save_workspace", _read_only)
+    response = client.post("/workspace", json={"name": "x", "workspace": _sample_workspace()})
+
+    assert response.status_code == 507
+    assert response.json()["detail"] == "Could not write the workspace: Permission denied"

@@ -94,7 +94,33 @@ describe("useSecStore.loadFilings", () => {
       form_type: "10-K",
     });
     expect(useSecStore.getState().filingsStatus).toBe("ready");
-    expect(useSecStore.getState().activeIdentifier).toBe("AAPL");
+    // The caller owns the active identifier (the panel sets it before loading).
+    expect(useSecStore.getState().activeIdentifier).toBeNull();
+  });
+
+  it("a slower response for the previous symbol never overwrites the newer one (R15-CODE-FRONTEND-017)", async () => {
+    let resolveAapl: (value: FilingsListResponse) => void = () => {};
+    let rejectAapl: (reason: Error) => void = () => {};
+    (sidecarGet as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(
+        new Promise((resolve, reject) => {
+          resolveAapl = resolve;
+          rejectAapl = reject;
+        }),
+      )
+      .mockResolvedValueOnce({ ...FILINGS_FIXTURE, symbol: "MSFT" });
+    const { loadFilings, setActiveIdentifier } = useSecStore.getState();
+    setActiveIdentifier("AAPL");
+    const aapl = loadFilings("AAPL");
+    setActiveIdentifier("MSFT");
+    await loadFilings("MSFT");
+
+    rejectAapl(new Error("late AAPL failure"));
+    await aapl;
+    expect(useSecStore.getState().activeIdentifier).toBe("MSFT");
+    expect(useSecStore.getState().filingsStatus).toBe("ready");
+    expect(useSecStore.getState().filingsError).toBeNull();
+    void resolveAapl;
   });
 
   it("hits /sec/filings with cik= for a numeric identifier", async () => {

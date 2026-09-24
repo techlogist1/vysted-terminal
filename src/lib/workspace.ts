@@ -28,7 +28,11 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
 import { type NotesBundle, useNotesStore } from "@/store/notes";
 import { type AgentAutonomy, isAgentAutonomy, useAgentAutonomyStore } from "@/store/agent-autonomy";
-import { useChartDrawingsStore } from "@/store/chart-drawings";
+import {
+  DEFAULT_CHART_SYMBOL,
+  DEFAULT_CHART_TIMEFRAME,
+  useChartDrawingsStore,
+} from "@/store/chart-drawings";
 import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -39,10 +43,10 @@ import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/s
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
-import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
-import type { WorkspaceDrawings } from "../../types/drawings";
+import type { ChartView, WorkspaceDrawings } from "../../types/drawings";
 import type { WorkspaceResearchSpaces } from "../../types/research-space";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -58,6 +62,8 @@ export interface SerializedWorkspace {
    * compatibility with workspaces saved before drawings shipped.
    */
   chartDrawings?: WorkspaceDrawings;
+  /** Per-chart-panel symbol/timeframe/indicators/compare (R15-UI-020). */
+  chartViews?: Record<string, ChartView>;
   /**
    * The default AI provider the chat sidebar uses. Persisted here so the
    * Settings "Set default" choice survives a relaunch (it was in-memory-only
@@ -201,6 +207,34 @@ export interface PersistedSlice {
   subscribe: (onChange: () => void) => () => void;
 }
 
+/** The blob's valid chart views; a malformed entry is dropped. */
+function chartViewsOf(workspace: SerializedWorkspace): Record<string, ChartView> {
+  const out: Record<string, ChartView> = {};
+  const raw: unknown = workspace.chartViews;
+  if (!raw || typeof raw !== "object") {
+    return out;
+  }
+  for (const [panelId, value] of Object.entries(raw)) {
+    const view = value as Partial<ChartView> | null;
+    if (
+      view &&
+      typeof view.symbol === "string" &&
+      view.symbol &&
+      typeof view.timeframe === "string"
+    ) {
+      out[panelId] = {
+        symbol: view.symbol,
+        timeframe: view.timeframe,
+        indicators: Array.isArray(view.indicators)
+          ? view.indicators.filter((key): key is string => typeof key === "string")
+          : [],
+        compare: typeof view.compare === "string" ? view.compare : null,
+      };
+    }
+  }
+  return out;
+}
+
 /** A `subscribe` that fires when any of the picked store fields changes identity. */
 function onChange<S>(
   store: { subscribe: (listener: (state: S, previous: S) => void) => () => void },
@@ -230,11 +264,33 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useModulesStore, (s) => s.enabled),
   },
   {
+    // What each chart panel shows (R15-UI-020); older blobs lack it and the
+    // chart opens on its defaults. A malformed entry is dropped, not guessed.
+    key: "chartViews",
+    scope: "layout",
+    read: () => ({ chartViews: useChartDrawingsStore.getState().views }),
+    restore: (workspace) => useChartDrawingsStore.getState().replaceViews(chartViewsOf(workspace)),
+    subscribe: onChange(useChartDrawingsStore, (s) => s.views),
+  },
+  {
+    // A drawing from a blob that predates `symbol`/`timeframe` is adopted by
+    // its panel's restored view (or the chart defaults).
     key: "chartDrawings",
     scope: "layout",
     read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
-    restore: (workspace) =>
-      useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings ?? { byPanel: {} }),
+    restore: (workspace) => {
+      const views = chartViewsOf(workspace);
+      const byPanel: WorkspaceDrawings["byPanel"] = {};
+      for (const [panelId, list] of Object.entries(workspace.chartDrawings?.byPanel ?? {})) {
+        const view = views[panelId];
+        byPanel[panelId] = list.map((d) => ({
+          ...d,
+          symbol: d.symbol ?? view?.symbol ?? DEFAULT_CHART_SYMBOL,
+          timeframe: d.timeframe ?? view?.timeframe ?? DEFAULT_CHART_TIMEFRAME,
+        }));
+      }
+      useChartDrawingsStore.getState().replaceAll({ byPanel });
+    },
     subscribe: onChange(useChartDrawingsStore, (s) => s.byPanel),
   },
   {
@@ -608,11 +664,26 @@ export async function listWorkspaces(): Promise<string[]> {
   if (!response.ok) {
     throw await sidecarFailure("Could not list workspaces", response);
   }
+  let names: string[];
   try {
-    return (await response.json()) as string[];
+    names = (await response.json()) as string[];
   } catch {
     throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
   }
+  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+  return names.filter((name) => !isReservedLayoutName(name));
+}
+
+/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+function userWorkspaceName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new WorkspaceError("A workspace name is required.");
+  }
+  if (isReservedLayoutName(trimmed)) {
+    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+  }
+  return trimmed;
 }
 
 /**
@@ -620,10 +691,7 @@ export async function listWorkspaces(): Promise<string[]> {
  * overwriting any existing workspace with the same name.
  */
 export async function saveWorkspace(name: string): Promise<void> {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    throw new WorkspaceError("A workspace name is required.");
-  }
+  const trimmed = userWorkspaceName(name);
   const workspace = serializeWorkspace(trimmed);
   const response = await fetch(await workspaceUrl(), {
     method: "POST",
@@ -897,6 +965,9 @@ let restoreSettled = false;
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 let autosaveInFlight = false;
 let autosaveQueued = false;
+/** Consecutive failed autosaves; the "not saving" badge shows from the third. */
+let autosaveFailures = 0;
+const AUTOSAVE_FAILURES_BEFORE_BADGE = 3;
 
 /**
  * Schedule a save of the current cockpit to the reserved autosave slot. A
@@ -930,13 +1001,25 @@ async function flushAutosave(): Promise<void> {
   autosaveInFlight = true;
   try {
     const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
-    await fetch(await workspaceUrl(), {
+    const response = await fetch(await workspaceUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
     });
-  } catch {
-    // Best-effort autosave; ignore transient failures.
+    if (!response.ok) {
+      throw await sidecarFailure("Autosave failed", response);
+    }
+    autosaveFailures = 0;
+    useWorkspaceStore.getState().setLastAutosaveError(null);
+  } catch (error: unknown) {
+    // A transient failure retries on the next change; a run of them is shown
+    // (R15-CODE-FRONTEND-019) so the session never fails to save silently.
+    autosaveFailures += 1;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[workspace] autosave failed (${autosaveFailures} in a row): ${message}`);
+    if (autosaveFailures >= AUTOSAVE_FAILURES_BEFORE_BADGE) {
+      useWorkspaceStore.getState().setLastAutosaveError(message);
+    }
   } finally {
     autosaveInFlight = false;
     if (autosaveQueued) {
@@ -964,6 +1047,7 @@ export function resetWorkspacePersistenceForTests(): void {
   restoreSettled = false;
   autosaveInFlight = false;
   autosaveQueued = false;
+  autosaveFailures = 0;
 }
 
 /** Prefix every per-stock research space's name carries, so they're recognisable
@@ -1076,10 +1160,7 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
 
 /** Delete a saved workspace from the sidecar. */
 export async function deleteWorkspace(name: string): Promise<void> {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    throw new WorkspaceError("A workspace name is required.");
-  }
+  const trimmed = userWorkspaceName(name);
   const response = await fetch(await workspaceUrl(trimmed), { method: "DELETE" });
   if (!response.ok) {
     throw await sidecarFailure(`Could not delete workspace "${trimmed}"`, response);

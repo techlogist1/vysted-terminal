@@ -9,7 +9,7 @@ import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { PanelHost } from "@/components/PanelHost";
 import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
 import { initDevMcpBridge } from "@/lib/dev-mcp-bridge";
-import { migrateDevKeystore } from "@/lib/keychain";
+import { getSecret, KEYCHAIN_NAMESPACES, migrateDevKeystore } from "@/lib/keychain";
 import { initMenuBridge } from "@/lib/menu-bridge";
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
 import { wireAutosaveTriggers } from "@/lib/workspace";
@@ -26,6 +26,7 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import { registerSavedWebhooks } from "@/store/workflow";
 import { useWorkspaceStore } from "@/store/workspace";
 import { StatusChrome } from "@/components/StatusChrome";
 
@@ -51,6 +52,12 @@ export default function Page() {
     // show immediately. Best-effort: never throws into boot.
     void migrateDevKeystore().then(() => {
       void useProviderKeysStore.getState().refresh();
+      // Hand every saved workflow's keychain-held webhook URL to the sidecar's
+      // process memory so a scheduled fire can deliver (R15-AGENT-023).
+      // Best-effort: a missing URL leaves that node to error honestly.
+      registerSavedWebhooks((ref) => getSecret(KEYCHAIN_NAMESPACES.workflowWebhook(ref))).catch(
+        (error: unknown) => console.warn("[workflow] webhook registration failed", error),
+      );
     });
 
     // Warm the default provider's LIVE model catalog up front so the model pickers

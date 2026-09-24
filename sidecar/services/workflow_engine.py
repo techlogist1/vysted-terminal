@@ -28,6 +28,7 @@ import logging
 import time
 import uuid
 from collections.abc import Awaitable, Callable
+from contextvars import ContextVar
 from typing import Any
 
 from models.workflow import (
@@ -52,6 +53,11 @@ EventCallback = Callable[[WorkflowRunEvent], Awaitable[None]]
 #: Handler bound when a node's config sets no ``timeout_seconds``. Above
 #: ``flow.sleep``'s 300 s cap and a deep-research agent's wall budget.
 DEFAULT_NODE_TIMEOUT_SECONDS = 600.0
+
+#: ``(workflow name, node id)`` of the handler running in this task — each node
+#: runs in its own task, so this is per node. ``action.webhook`` labels its
+#: payload with it.
+CURRENT_NODE: ContextVar[tuple[str, str] | None] = ContextVar("workflow_current_node", default=None)
 
 
 class _Skip:
@@ -297,7 +303,9 @@ async def run_workflow(
                     if in_edges
                     else dict(workflow_inputs)
                 )
-                task = asyncio.create_task(_run_one_node(node, node_inputs, run_id, on_event))
+                task = asyncio.create_task(
+                    _run_one_node(node, node_inputs, run_id, on_event, spec.name)
+                )
                 running[task] = node_id
 
         if not running:
@@ -370,6 +378,7 @@ async def _run_one_node(
     inputs: dict[str, Any],
     run_id: str,
     on_event: EventCallback | None,
+    workflow_name: str,
 ) -> tuple[NodeRunResult, dict[str, Any]]:
     """Run one node's handler under its timeout.
 
@@ -378,6 +387,7 @@ async def _run_one_node(
     """
     started_at = int(time.time() * 1000)
     started_ns = time.perf_counter_ns()
+    CURRENT_NODE.set((workflow_name, node.id))
 
     await _emit(
         on_event,

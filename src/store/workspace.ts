@@ -64,6 +64,12 @@ interface WorkspaceState {
   researchSymbol: string | null;
   /** The dockview layout API, set by `PanelHost` once the layout mounts. */
   dockviewApi: DockviewApi | null;
+  /**
+   * Why autosave is failing, set after 3 consecutive failures and cleared by
+   * the next success; `StatusChrome` shows it as a "not saving" badge.
+   */
+  lastAutosaveError: string | null;
+  setLastAutosaveError: (error: string | null) => void;
   setName: (name: string) => void;
   /** Set (or clear, with `null`) the active research space's symbol. */
   setResearchSymbol: (symbol: string | null) => void;
@@ -86,6 +92,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   name: "default",
   researchSymbol: null,
   dockviewApi: null,
+  lastAutosaveError: null,
+  setLastAutosaveError: (lastAutosaveError) => set({ lastAutosaveError }),
   setName: (name) => set({ name }),
   setResearchSymbol: (researchSymbol) => set({ researchSymbol }),
   setDockviewApi: (dockviewApi) => set({ dockviewApi }),
@@ -153,6 +161,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     // drop stale chart drawings (regression-95 BUG-2).
     useModulesStore.getState().setEnabledMap({});
     useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+    useChartDrawingsStore.getState().replaceViews({});
     api.clear();
     const enabledPanelIds = new Set(
       useModulesStore

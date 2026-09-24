@@ -46,7 +46,13 @@ import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
-import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
+import {
+  DEFAULT_CHART_SYMBOL,
+  DEFAULT_CHART_TIMEFRAME,
+  drawingsFor,
+  newDrawingId,
+  useChartDrawingsStore,
+} from "@/store/chart-drawings";
 import {
   selectSubscriptions,
   useChartSyncBus,
@@ -77,8 +83,9 @@ import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 const TIMEFRAMES = ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] as const;
 type Timeframe = (typeof TIMEFRAMES)[number];
 
-const DEFAULT_SYMBOL = "SPY";
-const DEFAULT_TIMEFRAME: Timeframe = "1d";
+function isTimeframe(value: string): value is Timeframe {
+  return (TIMEFRAMES as readonly string[]).includes(value);
+}
 
 /**
  * R8 §3.4 / R9 §3 — the toolbar row's declared collapse ladder, in measured
@@ -261,10 +268,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
   } | null>(null);
 
   // --- form / data state --------------------------------------------------
-  const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
-  const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
-  const [timeframe, setTimeframe] = useState<Timeframe>(DEFAULT_TIMEFRAME);
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  // A relaunch / workspace load reopens the panel's persisted view (R15-UI-020).
+  const [restored] = useState(() => useChartDrawingsStore.getState().views[panelId]);
+  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
+  const [symbol, setSymbol] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
+  const [timeframe, setTimeframe] = useState<Timeframe>(() =>
+    restored && isTimeframe(restored.timeframe)
+      ? restored.timeframe
+      : (DEFAULT_CHART_TIMEFRAME as Timeframe),
+  );
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(restored?.indicators));
 
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
@@ -292,6 +305,14 @@ function ChartPanel(props: ChartPanelProps = {}) {
   // Bumped to force an indicator re-fetch (Retry) without deselecting+reselecting.
   const [indicatorRetryNonce, setIndicatorRetryNonce] = useState(0);
   const [provider, setProvider] = useState<string | null>(null);
+  // `symbol|timeframe` of the candle set on the chart (null while none is
+  // committed), and the indicator response with the key it was fetched for:
+  // indicators render only against their own candles (R15-UI-023).
+  const [candlesKey, setCandlesKey] = useState<string | null>(null);
+  const [indicatorResult, setIndicatorResult] = useState<{
+    key: string;
+    response: IndicatorResponse;
+  } | null>(null);
   // Calendar-aware staleness of the series' last bar (FR-041 / SC-019).
   const [freshness, setFreshness] = useState<Freshness | null>(null);
 
@@ -299,16 +320,25 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [activeTool, setActiveTool] = useState<DrawingKind | null>(null);
   const [draftPoints, setDraftPoints] = useState<DrawingPoint[]>([]);
   const [selectedDrawingId, setSelectedDrawingId] = useState<string | null>(null);
+  // A placed Text anchor awaiting its typed label (R15-UI-022).
+  const [pendingText, setPendingText] = useState<{ points: DrawingPoint[]; text: string } | null>(
+    null,
+  );
 
-  const drawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
+  // Drawings belong to the symbol/timeframe they were made on (R15-UI-020).
+  const panelDrawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
+  const drawings = useMemo(
+    () => drawingsFor(panelDrawings, symbol, timeframe),
+    [panelDrawings, symbol, timeframe],
+  );
   const addDrawing = useChartDrawingsStore((state) => state.addDrawing);
   const removeDrawing = useChartDrawingsStore((state) => state.removeDrawing);
   const updateDrawing = useChartDrawingsStore((state) => state.updateDrawing);
-  const clearPanelDrawings = useChartDrawingsStore((state) => state.clearPanel);
+  const setChartView = useChartDrawingsStore((state) => state.setView);
 
   // --- comparison overlay state ------------------------------------------
-  const [compareInput, setCompareInput] = useState("");
-  const [compareSymbol, setCompareSymbol] = useState<string | null>(null);
+  const [compareInput, setCompareInput] = useState(restored?.compare ?? "");
+  const [compareSymbol, setCompareSymbol] = useState<string | null>(restored?.compare ?? null);
   const [compareNormalize, setCompareNormalize] = useState(true);
   // Tracks whether the active overlay actually rendered points. A fetch that
   // rejects or returns an empty series flips this to "error" so the compare
@@ -373,6 +403,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     const loadHistory = async () => {
       setPriceState("loading");
       setPriceError(null);
+      setCandlesKey(null);
       try {
         const series = await sidecarApi.history(symbol, timeframe);
         if (cancelled) {
@@ -401,6 +432,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           candleSeries.setData(candleData);
           candleDataRef.current = candleData;
           chartRef.current?.timeScale().fitContent();
+          setCandlesKey(`${symbol}|${timeframe}`);
         }
         setProvider(series.provider);
         setFreshness(series.freshness ?? null);
@@ -566,8 +598,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
     // Inner function so every setState is a callback, never a synchronous call
     // in the effect body — including the no-selection reset path.
     const loadIndicators = async () => {
+      // The previous symbol/selection's overlays never outlive this load.
+      clearIndicatorSeries();
+      setIndicatorResult(null);
       if (selectedKeys.length === 0) {
-        clearIndicatorSeries();
         setIndicatorState("idle");
         setIndicatorError(null);
         return;
@@ -579,12 +613,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
         if (cancelled) {
           return;
         }
-        renderIndicators(response);
+        setIndicatorResult({ key: `${symbol}|${timeframe}`, response });
         setIndicatorState("ready");
       } catch (error: unknown) {
         if (cancelled) {
           return;
         }
+        clearIndicatorSeries();
         setIndicatorError(
           error instanceof SidecarError
             ? `${error.message} (${error.status})`
@@ -597,14 +632,15 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [
-    symbol,
-    timeframe,
-    selectedKeys,
-    renderIndicators,
-    clearIndicatorSeries,
-    indicatorRetryNonce,
-  ]);
+  }, [symbol, timeframe, selectedKeys, clearIndicatorSeries, indicatorRetryNonce]);
+
+  // Draw an indicator response only once the candles it was computed for are
+  // the committed set (Parabolic SAR reads their closes).
+  useEffect(() => {
+    if (indicatorResult && indicatorResult.key === candlesKey) {
+      renderIndicators(indicatorResult.response);
+    }
+  }, [indicatorResult, candlesKey, renderIndicators]);
 
   // --- drawings: reconcile store → primitives -----------------------------
   useEffect(() => {
@@ -634,6 +670,30 @@ function ChartPanel(props: ChartPanelProps = {}) {
   }, [drawings]);
 
   // --- drawings: click-to-create + delete-key handlers --------------------
+  const commitDrawing = useCallback(
+    (kind: DrawingKind, points: DrawingPoint[], kindOptions?: Record<string, unknown>) => {
+      addDrawing(panelId, {
+        id: newDrawingId(),
+        panelId,
+        symbol,
+        timeframe,
+        kind,
+        points,
+        style: { ...DEFAULT_DRAWING_STYLE },
+        createdAt: Date.now(),
+        kindOptions,
+      });
+    },
+    [addDrawing, panelId, symbol, timeframe],
+  );
+
+  const submitPendingText = useCallback(() => {
+    if (pendingText && pendingText.text.trim() !== "") {
+      commitDrawing("text", pendingText.points, { text: pendingText.text.trim(), fontSize: 12 });
+    }
+    setPendingText(null);
+  }, [commitDrawing, pendingText]);
+
   const handleChartClick = useCallback(
     (param: MouseEventParams<Time>) => {
       if (!activeTool) {
@@ -643,41 +703,31 @@ function ChartPanel(props: ChartPanelProps = {}) {
       if (!candleSeries) {
         return;
       }
-      // Resolve the click into a drawing point — `time` is whatever bar the
-      // crosshair is over (or null for V/H lines anchored only on price/time).
+      // The anchor is where the user clicked (R15-UI-022): the price at the
+      // clicked y (never the bar's close), the time of the bar under x, or —
+      // past the last bar, where no bar time exists — the logical index.
+      const price = param.point ? candleSeries.coordinateToPrice(param.point.y) : null;
       const time = typeof param.time === "number" ? (param.time as number) : null;
-      const seriesData = param.seriesData?.get(candleSeries);
-      let price: number | null = null;
-      if (seriesData && "close" in seriesData && typeof seriesData.close === "number") {
-        price = seriesData.close;
-      } else if (param.point && param.logical !== undefined) {
-        const coord = candleSeries.coordinateToPrice(param.point.y);
-        if (coord !== null) {
-          price = coord;
-        }
-      }
-      const point: DrawingPoint = { time, price };
+      const point: DrawingPoint =
+        time === null && param.logical !== undefined
+          ? { time, price, logical: param.logical as number }
+          : { time, price };
       const required = pointsRequired(activeTool);
       const next = [...draftPoints, point];
       if (next.length < required) {
         setDraftPoints(next);
         return;
       }
-      // Commit the drawing.
-      const spec: DrawingSpec = {
-        id: newDrawingId(),
-        panelId,
-        kind: activeTool,
-        points: next,
-        style: { ...DEFAULT_DRAWING_STYLE },
-        createdAt: Date.now(),
-        kindOptions: activeTool === "text" ? { text: "label", fontSize: 12 } : undefined,
-      };
-      addDrawing(panelId, spec);
       setDraftPoints([]);
       setActiveTool(null);
+      if (activeTool === "text") {
+        // The label is typed in the inline prompt, then committed.
+        setPendingText({ points: next, text: "" });
+        return;
+      }
+      commitDrawing(activeTool, next);
     },
-    [activeTool, addDrawing, draftPoints, panelId],
+    [activeTool, commitDrawing, draftPoints],
   );
 
   useEffect(() => {
@@ -809,6 +859,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
       applyCommand(chartCommand);
     }
   }, [chartCommand]);
+
+  // Persist what the chart shows (workspace blob, `chartViews` slice).
+  useEffect(() => {
+    setChartView(panelId, { symbol, timeframe, indicators: selectedKeys, compare: compareSymbol });
+  }, [setChartView, panelId, symbol, timeframe, selectedKeys, compareSymbol]);
 
   // Report the displayed symbol so the diff gate's "before" reflects the real
   // chart state (not the stale sync-bus value).
@@ -1106,10 +1161,15 @@ function ChartPanel(props: ChartPanelProps = {}) {
     [panelId, removeDrawing, selectedDrawingId],
   );
 
+  // Clears what this chart shows; other symbols' drawings and locked ones stay.
   const onClearAllDrawings = useCallback(() => {
-    clearPanelDrawings(panelId);
+    for (const drawing of drawings) {
+      if (!drawing.locked) {
+        removeDrawing(panelId, drawing.id);
+      }
+    }
     setSelectedDrawingId(null);
-  }, [clearPanelDrawings, panelId]);
+  }, [drawings, panelId, removeDrawing]);
 
   const remainingPoints = activeTool ? pointsRequired(activeTool) - draftPoints.length : 0;
   const syncCount =
@@ -1514,6 +1574,31 @@ function ChartPanel(props: ChartPanelProps = {}) {
       {/* Chart — the canvas gets every row the old indicator wall used to eat. */}
       <div className="relative min-h-0 flex-1">
         <div ref={containerRef} className="absolute inset-0" data-testid="chart-container" />
+        {pendingText ? (
+          <form
+            className="bg-charcoal-900 rounded-control absolute top-2 left-2 z-20 flex items-center gap-1 border p-1"
+            style={{ borderColor: "var(--hairline-strong)" }}
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitPendingText();
+            }}
+          >
+            <input
+              aria-label="Drawing text"
+              autoFocus
+              placeholder="Label text"
+              value={pendingText.text}
+              onChange={(event) => setPendingText({ ...pendingText, text: event.target.value })}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setPendingText(null);
+              }}
+              className="bg-charcoal-800 text-charcoal-100 rounded-control text-caption h-7 w-44 px-2 font-mono outline-none"
+            />
+            <Button type="submit" size="sm" variant="outline">
+              Add
+            </Button>
+          </form>
+        ) : null}
         {priceState === "loading" ? (
           <div className="text-charcoal-400 bg-charcoal-950/80 text-body absolute inset-0 z-10 flex items-center justify-center font-mono">
             Loading {symbol}…
@@ -1587,7 +1672,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
                   <button
                     type="button"
                     onClick={() => onDeleteDrawing(drawing.id)}
-                    className="hover:text-negative px-1"
+                    disabled={!!drawing.locked}
+                    title={drawing.locked ? "Unlock to delete" : undefined}
+                    className="hover:text-negative px-1 disabled:pointer-events-none disabled:opacity-40"
                     aria-label="Delete drawing"
                   >
                     ×

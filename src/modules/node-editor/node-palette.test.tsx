@@ -67,7 +67,7 @@ describe("NodePalette", () => {
     expect(screen.getByTestId("palette-card-data.fetch_macro_series")).toBeInTheDocument();
     expect(screen.getByTestId("palette-card-quant.price_option")).toBeInTheDocument();
     expect(screen.getByTestId("palette-card-analysis.screener_query")).toBeInTheDocument();
-    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("23");
+    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("24");
   });
 
   it("shows the search input once the registry exceeds 12 kinds", () => {
@@ -89,7 +89,7 @@ describe("NodePalette", () => {
     expect(screen.getByTestId("palette-card-data.fetch_earnings_calendar")).toBeInTheDocument();
     expect(screen.getByTestId("palette-card-data.fetch_earnings_history")).toBeInTheDocument();
     expect(screen.queryByTestId("palette-card-data.fetch_quote")).not.toBeInTheDocument();
-    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("2/23");
+    expect(screen.getByTestId("node-palette-count")).toHaveTextContent("2/24");
   });
 
   it("matches the code node by description keywords", () => {

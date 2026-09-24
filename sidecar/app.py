@@ -60,6 +60,7 @@ from services import (
     nse_symbol_change,
     run_manager,
     searxng_manager,
+    workflow_scheduler,
 )
 from services import screener as screener_service
 from services.errors import ProviderError
@@ -133,9 +134,15 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         # (GUJGASLTD → GUJENERGY) resolves to its CURRENT identity on every path,
         # not just after the first /resolve. Fire-and-forget; never blocks boot.
         asyncio.ensure_future(nse_symbol_change.schedule_refresh())
+        # Unattended workflow schedules (R15-AGENT-023): fire while the app is open.
+        workflow_scheduler.start()
         try:
             yield
         finally:
+            try:
+                await workflow_scheduler.stop()
+            except Exception as exc:  # noqa: BLE001 — shutdown best-effort
+                _log.debug("workflow_scheduler.stop raised on shutdown: %s", exc)
             # Cancel + await the warm-precompute task and close the batch provider's
             # shared httpx client FIRST so neither a detached task nor an open socket
             # outlives the event loop.

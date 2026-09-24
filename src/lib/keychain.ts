@@ -40,6 +40,13 @@ export const KEYCHAIN_NAMESPACES = {
    * ack uses the keychain). Carries no secret; the stored value is a timestamp/choice tag.
    */
   appMeta: (key: string): string => `app-meta:${key}`,
+
+  /**
+   * An `action.webhook` node's destination URL (a BYOK secret: it often embeds
+   * a token). The node config carries only the ref; the renderer registers the
+   * URL with the sidecar's process memory at boot and when it is set.
+   */
+  workflowWebhook: (ref: string): string => `workflow-webhook:${ref}`,
 } as const;
 
 /** Persist a secret to the OS keychain under `account`. Overwrites any prior value. */

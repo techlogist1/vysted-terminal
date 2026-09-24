@@ -64,6 +64,7 @@ export const BUILT_IN_NODE_IDS = [
   "logic.compare",
   "action.log",
   "action.notify_desktop",
+  "action.webhook",
   "transform.json_path",
   "flow.sleep",
 ] as const;
@@ -151,6 +152,14 @@ export const BUILT_IN_NODE_SPECS: Readonly<Record<BuiltInNodeId, NodeSpec>> = {
     description: "Show a native desktop notification.",
     inputs: [PORT("value", "Value", "any")],
     outputs: [PORT("notified", "Notified", "signal")],
+  },
+  "action.webhook": {
+    id: "action.webhook",
+    label: "Webhook",
+    category: "action",
+    description: "POST the value as JSON to a URL kept in the OS keychain.",
+    inputs: [PORT("value", "Value", "any")],
+    outputs: [PORT("status_code", "Status", "number")],
   },
   "transform.json_path": {
     id: "transform.json_path",
@@ -500,6 +509,9 @@ export const BUILT_IN_NODE_CONFIG_FIELDS: Readonly<Record<BuiltInNodeId, readonl
         defaultValue: "{value}",
       },
     ],
+    // The URL is a secret: `WebhookUrlEditor` stores it in the keychain and the
+    // config carries only `secret_ref`.
+    "action.webhook": [],
     "transform.json_path": [
       {
         key: "path",

@@ -12,6 +12,13 @@ vi.mock("./api", () => ({
   fetchWatchlistQuotes: vi.fn(),
 }));
 
+const autocompleteMock = vi.fn();
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarGet: (...args: unknown[]) => autocompleteMock(...args) };
+});
+
 const { fetchWatchlistQuotes } = await import("./api");
 const mockFetch = vi.mocked(fetchWatchlistQuotes);
 
@@ -146,6 +153,100 @@ describe("WatchlistPanel", () => {
       fireEvent.click(screen.getByLabelText("Remove NVDA"));
     });
     expect(useSymbolsStore.getState().entries.some((entry) => entry.symbol === "NVDA")).toBe(false);
+  });
+
+  describe("rows follow the live list, not a poll snapshot (R15-UI-026)", () => {
+    const pollInFlight = async () => {
+      vi.useFakeTimers();
+      render(<WatchlistPanel />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      let resolvePoll: (rows: WatchlistRow[]) => void = () => {};
+      mockFetch.mockReturnValueOnce(new Promise((resolve) => (resolvePoll = resolve)));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      return (rows: WatchlistRow[]) => act(async () => resolvePoll(rows));
+    };
+
+    it("an added symbol shows at once while a poll is in flight", async () => {
+      await pollInFlight();
+      act(() => useSymbolsStore.getState().addSymbol("TSLA", "equity"));
+      expect(screen.getByText("TSLA")).toBeInTheDocument();
+    });
+
+    it("a removed symbol does not come back when the in-flight poll lands", async () => {
+      const land = await pollInFlight();
+      act(() => {
+        fireEvent.click(screen.getByLabelText("Remove NVDA"));
+      });
+      await land(rowsFor());
+      expect(screen.queryByText("NVDA")).toBeNull();
+    });
+  });
+
+  it("Enter adds the typed ticker when the candidates are still the previous query's (R15-UI-026)", async () => {
+    autocompleteMock.mockImplementation(async (_path: string, params: { q: string }) =>
+      params.q === "TC"
+        ? {
+            query: "TC",
+            region: "IN",
+            candidates: [
+              {
+                symbol: "TC",
+                name: "Token Cat",
+                exchange: "NASDAQ",
+                region: "US",
+                asset_class: "equity",
+                yahoo_symbol: "TC",
+                confidence: 0.9,
+              },
+            ],
+          }
+        : new Promise(() => {}),
+    );
+    render(<WatchlistPanel />);
+    const input = screen.getByLabelText("Add symbol");
+    fireEvent.change(input, { target: { value: "TC" } });
+    expect(await screen.findByRole("option", { name: /Token Cat/ })).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: "TCS" } });
+    fireEvent.submit(input.closest("form")!);
+    const symbols = useSymbolsStore.getState().entries.map((e) => e.symbol);
+    expect(symbols).toContain("TCS");
+    expect(symbols).not.toContain("TC");
+  });
+
+  it("backs off after a failed poll and pauses while the document is hidden", async () => {
+    vi.useFakeTimers();
+    mockFetch.mockRejectedValueOnce(new SidecarError(502, "down"));
+    render(<WatchlistPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1); // backed off to 10 s
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    hidden.mockReturnValue(false);
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    hidden.mockRestore();
   });
 
   it("polls for quote refreshes on an interval", async () => {
