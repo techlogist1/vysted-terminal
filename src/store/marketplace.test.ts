@@ -30,6 +30,7 @@ vi.mock("@/lib/sidecar-client", async () => {
   return { ...actual, sidecarGet: sidecarGetMock };
 });
 
+import { pluginHost } from "@/lib/plugin-bootstrap";
 import { PluginRuntime } from "@/lib/plugin-runtime";
 import { resetMarketplaceStoreForTests, useMarketplaceStore } from "@/store/marketplace";
 import { useModulesStore } from "@/store/modules";
@@ -39,8 +40,9 @@ let detach: (() => void) | null = null;
 
 function attachFreshRuntime(): void {
   // Default in-memory persistence; host version matches HOST_VERSION so every
-  // catalog plugin satisfies requiredHostVersion.
-  const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+  // catalog plugin satisfies requiredHostVersion. The production host bridge,
+  // since the runtime (not this store) bridges panels/commands/agents.
+  const runtime = new PluginRuntime({ hostVersion: "0.8.0", host: pluginHost });
   detach = usePluginsStore.getState().attachRuntime(runtime);
 }
 

@@ -18,6 +18,7 @@ import { CATALOG_ROWS, CATALOG_BY_ID, type CatalogRow } from "@/lib/marketplace"
 import type { VystedModule } from "@/lib/module-registry";
 import {
   type DiscoveredPlugin,
+  type PluginHostBridge,
   type PluginPersistenceAdapter,
   PluginRuntime,
 } from "@/lib/plugin-runtime";
@@ -174,11 +175,9 @@ export function moduleForPlugin(row: CatalogRow): VystedModule | null {
 
 /**
  * Bridge a loaded plugin's panels/commands into the module registry + enable
- * them. Idempotent (`appendModules` de-dupes); used by the boot loop AND the
- * marketplace store on enable/install so a freshly-enabled plugin's panels +
- * commands appear immediately.
+ * them. Idempotent (`appendModules` de-dupes), so a reload re-attaches safely.
  */
-export function bridgePluginModule(pluginId: string): void {
+function bridgePluginModule(pluginId: string): void {
   const row = CATALOG_BY_ID[pluginId];
   if (!row) return;
   const mod = moduleForPlugin(row);
@@ -190,7 +189,7 @@ export function bridgePluginModule(pluginId: string): void {
 /** Drop a plugin's panels/commands from the registry projections AND close any
  *  of its open dockview panels, so its capabilities disappear cleanly on
  *  disable/remove (US10 AS2). */
-export function unbridgePluginModule(pluginId: string): void {
+function unbridgePluginModule(pluginId: string): void {
   useModulesStore.getState().setModuleEnabled(`plugin:${pluginId}`, false);
   const row = CATALOG_BY_ID[pluginId];
   const api = useWorkspaceStore.getState().dockviewApi;
@@ -210,6 +209,19 @@ export function unbridgePluginModule(pluginId: string): void {
     }
   }
 }
+
+/** The runtime's host glue: an active plugin's panels, commands and agents
+ *  appear; a disabled or removed plugin's go. */
+export const pluginHost: PluginHostBridge = {
+  async attach(pluginId) {
+    bridgePluginModule(pluginId);
+    await syncPluginAgents(pluginId, true);
+  },
+  async detach(pluginId) {
+    unbridgePluginModule(pluginId);
+    await syncPluginAgents(pluginId, false);
+  },
+};
 
 /**
  * Bootstrap the plugin runtime: build the runtime, attach it to
@@ -231,6 +243,7 @@ export async function bootstrapPlugins(): Promise<() => void> {
     sidecarBaseUrl,
     hostVersion: HOST_VERSION,
     persistence,
+    host: pluginHost,
     // FR-054/SC-015: resolve a plugin's granted secret ids from the OS keychain
     // at load. Best-effort per id (skip on a keychain miss outside Tauri).
     resolveSecrets: async (ids) => {
@@ -262,20 +275,8 @@ export async function bootstrapPlugins(): Promise<() => void> {
     const installed = persisted?.installed ?? row.entry.preinstalled;
     const enabled = persisted?.enabled ?? row.entry.preinstalled;
     if (installed && enabled) {
-      const snap = await runtime.loadPlugin(plugin);
-      const pluginModule = moduleForPlugin(row);
-      if (pluginModule) {
-        useModulesStore.getState().appendModules([pluginModule]);
-      }
-      // Register its agents in the sidecar custom-agent store, as Marketplace
-      // enable does — otherwise a pre-installed agent pack never reaches the
-      // roster. Fire-and-forget (a no-op for plugins without agents), so boot
-      // never waits on the sidecar.
-      if (snap.state === "active") {
-        void syncPluginAgents(plugin.manifest.id, true).catch((err: unknown) => {
-          console.warn(`[plugin-bootstrap] could not register ${plugin.manifest.id} agents`, err);
-        });
-      }
+      // Loading attaches its panels, commands and agents via `pluginHost`.
+      await runtime.loadPlugin(plugin);
     }
   }
 

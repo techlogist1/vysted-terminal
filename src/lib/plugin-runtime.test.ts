@@ -556,3 +556,28 @@ describe("hostSatisfies (semver host-compat check)", () => {
     expect(hostSatisfies("0.8.0+build5", "0.8.0")).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Lifecycle owner (R15-CODE-PLATFORM-012): enable/disable persist AND bridge
+// ---------------------------------------------------------------------------
+
+describe("PluginRuntime — enable/disable own persistence and the host bridge", () => {
+  function hostSpy() {
+    return {
+      attach: vi.fn(async (_id: string) => {}),
+      detach: vi.fn(async (_id: string) => {}),
+    };
+  }
+
+  it("disablePlugin persists enabled:false and detaches the plugin's contributions", async () => {
+    const host = hostSpy();
+    const runtime = new PluginRuntime({ host });
+    await runtime.enablePlugin(discovered(fakePlugin("a")));
+    expect(host.attach).toHaveBeenCalledWith("a");
+
+    await runtime.disablePlugin("a");
+    expect((await runtime.readConfig("a"))?.enabled).toBe(false);
+    expect(runtime.getPlugin("a")?.state).toBe("stopped");
+    expect(host.detach).toHaveBeenCalledWith("a");
+  });
+});
