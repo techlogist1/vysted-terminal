@@ -61,7 +61,10 @@ async def get_macro_catalog(
     return await macro_dispatcher.get_catalog(provider, limit=limit)
 
 
-@router.get("/{series_id}")
+# ``:path`` because IMF ids carry ``/`` (``IFS/A.US.NGDP_R_K_IX``) and Starlette
+# decodes ``%2F`` before matching; declared after /search and /catalog so those
+# still route (R15-UI-053).
+@router.get("/{series_id:path}")
 async def get_macro_series(
     series_id: str,
     provider: str | None = Query(default=None, description="Upstream macro provider id"),

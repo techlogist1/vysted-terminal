@@ -116,6 +116,20 @@ def test_get_series_dispatches_to_imf(client: TestClient, patch_all_providers: N
     assert res.json()["provider"] == "imf"
 
 
+def test_get_series_routes_an_imf_id_with_a_slash(
+    client: TestClient, patch_all_providers: None
+) -> None:
+    """R15-UI-053: every IMF catalog id carries ``/`` and the panel sends it
+    percent-encoded; Starlette decodes ``%2F`` before matching, so the route
+    must take a path parameter. The discovery routes declared before it still
+    route."""
+    res = client.get("/macro/IFS%2FA.US.NGDP_R_K_IX", params={"provider": "imf"})
+    assert res.status_code == 200
+    assert res.json()["series_id"] == "IFS/A.US.NGDP_R_K_IX"
+    assert client.get("/macro/search", params={"q": "gdp", "provider": "imf"}).status_code == 200
+    assert client.get("/macro/catalog", params={"provider": "imf"}).status_code == 200
+
+
 def test_get_series_dispatches_to_world_bank(client: TestClient, patch_all_providers: None) -> None:
     res = client.get("/macro/NY.GDP.PCAP.CD", params={"provider": "world-bank"})
     assert res.status_code == 200
