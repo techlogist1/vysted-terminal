@@ -1735,6 +1735,7 @@ async def invoke_agent(
     mode: str = "ask",
     autonomy: str | None = None,
     on_round_usage: Callable[[LLMUsage, str, str], bool] | None = None,
+    on_tool_result: Callable[[LLMToolUseEvent, str], None] | None = None,
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
@@ -1761,6 +1762,9 @@ async def invoke_agent(
     dispatched: a :data:`HALT_NOTICE_TOOL` notice and the round's terminator are
     yielded and nothing else is sent (R15-AGENT-037). A round that ended with a
     final answer finishes normally whatever it returns.
+
+    ``on_tool_result`` is called with ``(tool_call, result_str)`` after each
+    dispatched tool, so a Delegate run can checkpoint the step.
     """
     spec = get_agent(agent_id)
     if spec is None:
@@ -2195,6 +2199,8 @@ async def invoke_agent(
                 metadata={"name": tool_call.name},
             )
             messages.append(tool_result_msg)
+            if on_tool_result is not None:
+                on_tool_result(tool_call, result_str)
             if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
                 staged_actions.append(tool_call)
             # Queue a host action dispatched under AUTO for the grounded

@@ -25,8 +25,11 @@ Columns mirror the run lifecycle:
 - ``detail`` — the abort/error reason or completion note (the breach reason
   lands here on a BudgetGuard breach — SC-008's stated reason).
 - ``question`` — an outstanding human-in-the-loop question (FR-028) or NULL.
-- ``checkpoint_json`` — the accumulated messages list at the last checkpoint, so
-  a paused/aborted run can be resumed (FR-028).
+- ``checkpoint_json`` — ``{prompt, turns[]}``: the original prompt and every
+  turn after it in order (the model's text, ``[tool → result]`` steps, the
+  human's answers), so a paused/aborted run resumes the same conversation
+  (FR-028, R15-AGENT-036). Older rows hold a flat message list; they are read
+  as legacy (first user turn = prompt).
 - ``options_json`` — the NON-SECRET launch options that must survive a resume
   (R10, E2 tail: ``research_depth`` + ``region``). Resume re-merges them into
   the spawned driver so the depth ContextVar floor / region are re-threaded
@@ -183,11 +186,17 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
     )
 
 
+def _checkpoint_messages(raw: Any) -> list[Any]:
+    """The checkpoint as one flat message list (the prompt, then its turns)."""
+    if isinstance(raw, dict):
+        return [{"role": "user", "content": raw.get("prompt", "")}, *(raw.get("turns") or [])]
+    return raw if isinstance(raw, list) else []
+
+
 def _row_to_detail(row: sqlite3.Row) -> RunDetail:
     """Map a row to ``RunDetail`` — a summary plus a transcript digest."""
     summary = _row_to_summary(row)
-    checkpoint_raw: Any = json.loads(row["checkpoint_json"] or "[]")
-    messages = checkpoint_raw if isinstance(checkpoint_raw, list) else []
+    messages = _checkpoint_messages(json.loads(row["checkpoint_json"] or "[]"))
     output: Any = json.loads(row["output_json"] or "{}")
     return RunDetail(
         **summary.model_dump(),
@@ -292,7 +301,7 @@ def update_run(
     cost: RunCost | dict[str, Any] | None = None,
     detail: str | None = None,
     question: str | None = None,
-    checkpoint: list[Any] | None = None,
+    checkpoint: dict[str, Any] | list[Any] | None = None,
     output: dict[str, Any] | None = None,
     clear_question: bool = False,
     now: int | None = None,
@@ -360,14 +369,29 @@ def update_run(
     return stored
 
 
-def get_checkpoint(run_id: str) -> list[Any]:
-    """Return the persisted checkpoint message list for a run (``[]`` if none)."""
+def get_checkpoint(run_id: str) -> dict[str, Any]:
+    """Return a run's checkpoint as ``{prompt, turns}`` (empty prompt if none).
+
+    ``turns`` holds only well-formed user/assistant text turns. A legacy flat
+    list is read with its first user turn as the prompt.
+    """
     with _connect() as conn:
         row = conn.execute("SELECT checkpoint_json FROM runs WHERE id = ?", (run_id,)).fetchone()
-    if row is None or not row["checkpoint_json"]:
-        return []
-    decoded = json.loads(row["checkpoint_json"])
-    return decoded if isinstance(decoded, list) else []
+    raw: Any = json.loads(row["checkpoint_json"]) if row and row["checkpoint_json"] else None
+    messages = [
+        {"role": m["role"], "content": m["content"]}
+        for m in _checkpoint_messages(raw)
+        if isinstance(m, dict)
+        and m.get("role") in ("user", "assistant")
+        and isinstance(m.get("content"), str)
+        and m["content"]
+    ]
+    if not messages or messages[0]["role"] != "user":
+        first_user = next((i for i, m in enumerate(messages) if m["role"] == "user"), None)
+        if first_user is None:
+            return {"prompt": "", "turns": []}
+        messages = messages[first_user:]
+    return {"prompt": messages[0]["content"], "turns": messages[1:]}
 
 
 def get_options(run_id: str) -> dict[str, str]:

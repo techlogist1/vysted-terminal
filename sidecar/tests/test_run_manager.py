@@ -388,6 +388,81 @@ async def test_resume_after_budget_breach_with_fresh_budget(
     assert resumed.status == "done"
 
 
+class _PausingConversationProvider:
+    """Records every request; a round either answers, calls a tool, or stalls
+    (so the test can pause the run mid-round)."""
+
+    def __init__(self, script: list[list[Any]]) -> None:
+        self.script = script
+        self.requests: list[list[tuple[str, str]]] = []
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        self.requests.append([(m.role, m.content) for m in messages if m.role != "system"])
+        for item in self.script[len(self.requests) - 1]:
+            if item == "stall":
+                await asyncio.sleep(30)
+            yield item
+
+
+@pytest.mark.asyncio
+async def test_answers_resume_the_conversation_in_order(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-036: the checkpoint is {prompt, turns}; each answer is the new
+    prompt after the original prompt and every turn so far, tool steps included.
+    Before, the prompt was replayed after the answer and a second answer became
+    the prompt."""
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [
+                LLMDeltaEvent(text="A1"),
+                LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}),
+                done,
+            ],
+            ["stall"],
+            [LLMDeltaEvent(text="A2"), "stall"],
+            [LLMDeltaEvent(text="Final."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return '{"ok": true, "close": 101}'
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+
+    async def _pause_when_stalled(expected_requests: int) -> None:
+        while len(provider.requests) < expected_requests:
+            await asyncio.sleep(0.01)
+        run_manager.pause_run(run_id, "Which exchange?")
+        await _await_terminal(run_id)
+
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="ORIGINAL", api_key="sk")
+    await _pause_when_stalled(2)
+    run_manager.answer_run(run_id, "ANSWER ONE", api_key="sk")
+    await _pause_when_stalled(3)
+    run_manager.answer_run(run_id, "ANSWER TWO", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+
+    tool_turn = ("assistant", '[price_data → {"ok": true, "close": 101}]')
+    assert provider.requests[2] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        tool_turn,
+        ("user", "ANSWER ONE"),
+    ]
+    assert provider.requests[3] == [
+        ("user", "ORIGINAL"),
+        ("assistant", "A1"),
+        tool_turn,
+        ("user", "ANSWER ONE"),
+        ("assistant", "A2"),
+        ("user", "ANSWER TWO"),
+    ]
+
+
 def test_answer_unknown_run_raises() -> None:
     with pytest.raises(run_manager.RunNotFound):
         run_manager.answer_run("ghost", "hi")

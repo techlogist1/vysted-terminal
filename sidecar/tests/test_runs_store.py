@@ -116,7 +116,11 @@ def test_checkpoint_round_trip_and_transcript_digest() -> None:
         {"role": "assistant", "content": "Looking into it."},
     ]
     runs_store.update_run("run-1", checkpoint=messages)
-    assert runs_store.get_checkpoint("run-1") == messages
+    # A legacy flat list reads as {prompt, turns} (first user turn = prompt).
+    assert runs_store.get_checkpoint("run-1") == {
+        "prompt": "research NVDA",
+        "turns": [{"role": "assistant", "content": "Looking into it."}],
+    }
 
     detail = runs_store.get_run("run-1")
     assert detail is not None
