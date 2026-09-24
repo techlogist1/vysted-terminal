@@ -255,12 +255,14 @@ def test_resume_and_answer_take_the_key_from_a_header(
     monkeypatch.setattr(
         run_manager, "answer_run", lambda _rid, _a, **k: captured.append(k["api_key"])
     )
+    monkeypatch.setattr(run_manager, "start_run", lambda _rid, **k: captured.append(k["api_key"]))
     headers = {"X-LLM-Api-Key": secret}
     resume = client.post("/runs/run-1/resume", headers=headers)
     answer = client.post("/runs/run-1/answer", json={"answer": "NSE"}, headers=headers)
-    assert (resume.status_code, answer.status_code) == (200, 200)
-    assert captured == [secret, secret]
-    assert secret not in resume.text + answer.text
+    start = client.post("/runs/run-1/start", headers=headers)
+    assert (resume.status_code, answer.status_code, start.status_code) == (200, 200, 200)
+    assert captured == [secret, secret, secret]
+    assert secret not in resume.text + answer.text + start.text
 
 
 def test_resume_already_running_409(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

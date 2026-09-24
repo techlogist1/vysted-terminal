@@ -533,6 +533,76 @@ async def test_a_run_killed_mid_round_resumes_from_its_last_step(
     ]
 
 
+@pytest.mark.asyncio
+async def test_a_compound_launch_waits_for_start_with_its_plan(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-039: the planner was gated to foreground turns, so an unattended
+    run started a compound task with no plan to approve."""
+    from services.planner import Plan, PlanStep
+
+    async def _decompose(_prompt: str, **_k: Any) -> Plan:
+        return Plan(
+            goal="Set up the cockpit and research NVDA",
+            steps=[
+                PlanStep(action="open_panel", rationale="Open the chart"),
+                PlanStep(action="research", rationale="Research NVDA"),
+            ],
+        )
+
+    monkeypatch.setattr(agent_runtime, "decompose", _decompose)
+    provider = _PausingConversationProvider([[LLMDeltaEvent(text="Done."), LLMDoneEvent()]])
+    _patch(monkeypatch, provider)
+    prompt = "open the chart, the watchlist and news, then research NVDA"
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt=prompt, provider="openai", model="gpt-4.1-mini", api_key="sk"
+    )
+    planned = await _await_terminal(run_id)
+    assert planned is not None and planned.status == "planned"
+    assert planned.plan is not None
+    assert planned.plan.goal == "Set up the cockpit and research NVDA"
+    assert [s["rationale"] for s in planned.plan.steps] == ["Open the chart", "Research NVDA"]
+    assert provider.requests == []  # nothing ran before the user's Start
+
+    run_manager.start_run(run_id, api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and (row.status, row.answer) == ("done", "Done.")
+    assert provider.requests[0][-1] == ("user", prompt)
+
+
+@pytest.mark.asyncio
+async def test_get_run_lists_the_runs_tool_steps(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-039: the driver flattened every tool step to "[tool_use name]"
+    and the run wire carried no activity."""
+    from routers import runs as runs_router
+
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _PausingConversationProvider(
+        [
+            [LLMToolUseEvent(tool_call_id="c1", name="price_data", input={}), done],
+            [LLMToolUseEvent(tool_call_id="c2", name="web_search", input={}), done],
+            [LLMDeltaEvent(text="Summary."), done],
+        ]
+    )
+    _patch(monkeypatch, provider)
+    results = {
+        "price_data": '{"ok": true, "close": 101}',
+        "web_search": '{"ok": false, "error": "search rate-limited"}',
+    }
+
+    async def _tool(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        return results[tool_call.name]
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk")
+    await _await_terminal(run_id)
+
+    assert runs_router.get_run(run_id)["activity"] == [
+        {"tool": "price_data", "status": "ok", "summary": '{"ok": true, "close": 101}'},
+        {"tool": "web_search", "status": "error", "summary": "search rate-limited"},
+    ]
+
+
 def test_answer_unknown_run_raises() -> None:
     with pytest.raises(run_manager.RunNotFound):
         run_manager.answer_run("ghost", "hi")

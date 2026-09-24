@@ -13,7 +13,8 @@ mounts):
 - ``POST /agents/{agent_id}/runs``  — launch a detached run → 201 ``{runId}``.
 - ``GET  /runs``                    — list runs, newest first.
 - ``GET  /runs/{run_id}``           — one run + its transcript digest.
-- ``POST /runs/{run_id}/cancel``    — cancel a run.
+- ``POST /runs/{run_id}/cancel``    — cancel a run (Discard for a planned one).
+- ``POST /runs/{run_id}/start``     — start a planned run (its plan approved).
 - ``POST /runs/{run_id}/answer``    — deliver a human-in-the-loop reply (FR-028).
 - ``POST /runs/{run_id}/resume``    — re-enter an aborted run from its checkpoint.
 
@@ -120,6 +121,14 @@ async def cancel_run(run_id: str) -> dict[str, bool]:
 #: The BYOK provider key for a resumed segment: a header, never the body; held
 #: in memory for the run only, never persisted or echoed (R15-AGENT-035).
 _API_KEY_HEADER = Header(default=None, alias="X-LLM-Api-Key")
+
+
+@router.post("/runs/{run_id}/start")
+async def start_run(run_id: str, api_key: str | None = _API_KEY_HEADER) -> dict[str, bool]:
+    """Start a planned run: the user approved its plan (R15-AGENT-039)."""
+    with _run_errors():
+        run_manager.start_run(run_id, api_key=api_key)
+    return {"started": True}
 
 
 @router.post("/runs/{run_id}/answer")

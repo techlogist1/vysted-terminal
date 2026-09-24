@@ -40,6 +40,9 @@ Columns mirror the run lifecycle:
   keys only — NEVER an api key.
 - ``provider`` / ``model`` — the provider and model the run was launched with
   (NULL = the agent default), re-used by every resume (R15-AGENT-035).
+- ``plan_json`` — the plan a compound launch waits on (``planned``); and
+  ``activity_json`` — the latest tool steps ``{tool, status, summary}``, capped
+  (R15-AGENT-039).
 - ``output_json`` — the run's collectable output, written when it ends
   (R15-AGENT-013): ``answer`` (the full final text, untruncated), ``brief``
   (the last ``publish_brief`` input) and ``host_actions`` (the host-action
@@ -61,7 +64,7 @@ from contextlib import contextmanager
 from typing import Any
 
 from config import get_data_dir
-from models.run import RunBudget, RunCost, RunDetail, RunStatus, RunSummary
+from models.run import RunActivity, RunBudget, RunCost, RunDetail, RunPlan, RunStatus, RunSummary
 
 DB_FILENAME = "delegate_runs.db"
 
@@ -109,6 +112,8 @@ CREATE TABLE IF NOT EXISTS runs (
     output_json TEXT,
     provider TEXT,
     model TEXT,
+    plan_json TEXT,
+    activity_json TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 )
@@ -138,13 +143,21 @@ def _db_path() -> str:
 
 def _ensure_added_columns(conn: sqlite3.Connection) -> None:
     """Additive migration: older databases predate ``options_json`` (R10),
-    ``output_json`` (R15-AGENT-013) and ``provider``/``model`` (R15-AGENT-035).
+    ``output_json`` (R15-AGENT-013), ``provider``/``model`` (R15-AGENT-035) and
+    ``plan_json``/``activity_json`` (R15-AGENT-039).
 
     ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
     the ALTER guard. PRAGMA is cheap enough to run per-connection.
     """
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    for column in ("options_json", "output_json", "provider", "model"):
+    for column in (
+        "options_json",
+        "output_json",
+        "provider",
+        "model",
+        "plan_json",
+        "activity_json",
+    ):
         if column not in columns:
             conn.execute(f"ALTER TABLE runs ADD COLUMN {column} TEXT")
 
@@ -197,6 +210,7 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
     """Map a database row to the ``RunSummary`` model (cost/budget decoded)."""
     cost_raw: Any = json.loads(row["cost_json"] or "{}")
     budget_raw: Any = json.loads(row["budget_json"] or "{}")
+    plan_raw: Any = json.loads(row["plan_json"] or "null")
     return RunSummary(
         id=row["id"],
         agent_id=row["agent_id"],
@@ -207,6 +221,8 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
         budget=RunBudget.model_validate(budget_raw if isinstance(budget_raw, dict) else {}),
         provider=row["provider"],
         model=row["model"],
+        plan=RunPlan.model_validate(plan_raw) if isinstance(plan_raw, dict) else None,
+        activity=[RunActivity.model_validate(a) for a in json.loads(row["activity_json"] or "[]")],
         detail=row["detail"],
         question=row["question"],
         created_at=int(row["created_at"]),
@@ -336,6 +352,8 @@ def update_run(
     question: str | None = None,
     checkpoint: dict[str, Any] | list[Any] | None = None,
     output: dict[str, Any] | None = None,
+    plan: dict[str, Any] | None = None,
+    activity: list[dict[str, str]] | None = None,
     clear_question: bool = False,
     now: int | None = None,
 ) -> RunDetail:
@@ -378,6 +396,12 @@ def update_run(
     if output is not None:
         sets.append("output_json = ?")
         params.append(json.dumps(output, default=str))
+    if plan is not None:
+        sets.append("plan_json = ?")
+        params.append(json.dumps(plan, default=str))
+    if activity is not None:
+        sets.append("activity_json = ?")
+        params.append(json.dumps(activity))
     sets.append("updated_at = ?")
     params.append(now if now is not None else int(time.time()))
     params.append(run_id)

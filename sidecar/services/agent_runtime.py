@@ -1727,6 +1727,72 @@ def _build_local_tools(
     return local
 
 
+async def _compound_plan(
+    provider_id: str,
+    resolved_model: str,
+    api_key: str | None,
+    prompt: str,
+    context_snapshot: AgentContextSnapshot | None,
+) -> LLMAgentPlanEvent | None:
+    """The ordered plan for a COMPOUND request, or ``None`` (Track 6 #2).
+
+    Best-effort: a single-step request, a planner failure or a timeout returns
+    ``None`` and never raises.
+    """
+    if not classify_intent(prompt).compound:
+        return None
+    try:
+
+        async def _plan_llm_call(p: str) -> str:
+            return await oneshot.complete(
+                provider_id,
+                resolved_model,
+                api_key,
+                [{"role": "user", "content": p}],
+                timeout=_PLANNER_TIMEOUT_SECONDS,
+            )
+
+        plan = await decompose(
+            prompt,
+            llm_call=_plan_llm_call,
+            context=_planner_context(context_snapshot),
+        )
+        if plan.ok and len(plan.steps) > 1:
+            steps = [
+                {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
+                for step in plan.steps
+            ]
+            return LLMAgentPlanEvent(goal=plan.goal, steps=steps, note=plan.note)
+    except Exception:  # noqa: BLE001 — the plan is best-effort; never break a turn
+        logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
+    return None
+
+
+async def plan_delegate_run(
+    agent_id: str,
+    prompt: str,
+    *,
+    provider: LLMProviderId | None,
+    model: str | None,
+    api_key: str | None,
+    context_snapshot: AgentContextSnapshot | None,
+) -> LLMAgentPlanEvent | None:
+    """The plan a Delegate launch waits on for the user's Start (R15-AGENT-039).
+
+    The same pre-pass a foreground turn shows, on the same capable models; a
+    weak local model or a single-step request gets ``None`` and starts directly.
+    """
+    spec = get_agent(agent_id)
+    if spec is None:
+        return None
+    provider_id = _resolve_provider_id(spec, provider)
+    if provider_id not in _PLANNER_PROVIDERS:
+        return None
+    return await _compound_plan(
+        provider_id, _resolve_model(spec, model), api_key, prompt, context_snapshot
+    )
+
+
 async def invoke_agent(
     agent_id: str,
     prompt: str,
@@ -1925,31 +1991,12 @@ async def invoke_agent(
     # the host-action steps into the diff/accept gate. ADVISORY only: the tool loop
     # below still drives execution; this never blocks, never raises, and on a weak
     # local model it is skipped entirely (the loop's preamble-driven path stands).
-    if not read_only and _planner_enabled(provider_id, mode) and classify_intent(prompt).compound:
-        try:
-
-            async def _plan_llm_call(p: str) -> str:
-                return await oneshot.complete(
-                    provider_id,
-                    resolved_model,
-                    api_key,
-                    [{"role": "user", "content": p}],
-                    timeout=_PLANNER_TIMEOUT_SECONDS,
-                )
-
-            plan = await decompose(
-                prompt,
-                llm_call=_plan_llm_call,
-                context=_planner_context(context_snapshot),
-            )
-            if plan.ok and len(plan.steps) > 1:
-                steps = [
-                    {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
-                    for step in plan.steps
-                ]
-                yield LLMAgentPlanEvent(goal=plan.goal, steps=steps, note=plan.note)
-        except Exception:  # noqa: BLE001 — the plan is best-effort; never break a turn
-            logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
+    if not read_only and _planner_enabled(provider_id, mode):
+        plan_event = await _compound_plan(
+            provider_id, resolved_model, api_key, prompt, context_snapshot
+        )
+        if plan_event is not None:
+            yield plan_event
 
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S

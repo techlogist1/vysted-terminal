@@ -61,6 +61,12 @@ _TASKS: dict[str, asyncio.Task[None]] = {}
 _CONTINUE_PROMPT = "Continue the task from where you stopped."
 #: Width of a checkpointed tool-result line.
 _RESULT_LINE_CHARS = 200
+#: How many tool steps a run row keeps for the rail (R15-AGENT-039).
+_ACTIVITY_CAP = 20
+
+# run_id -> the launch's snapshot and options while its plan waits for Start
+# (process memory: the context snapshot and chat history are not persisted).
+_PARKED: dict[str, dict[str, Any]] = {}
 
 
 class RunManagerError(RuntimeError):
@@ -121,6 +127,8 @@ async def _drive_run(
     options: dict[str, Any],
     checkpoint: dict[str, Any],
     prior_cost: RunCost | None = None,
+    activity: list[dict[str, str]] | None = None,
+    plan_first: bool = False,
 ) -> None:
     """Drive one agent invocation to completion under a BudgetGuard.
 
@@ -131,7 +139,9 @@ async def _drive_run(
     one ``[tool name → result]`` turn per dispatched tool — so a resume replays
     the conversation exactly. ``prior_cost`` is what earlier segments of a
     resumed run already spent: the ceilings apply to this segment, the recorded
-    cost is the run's total (R15-AGENT-035). Every exit writes a terminal status
+    cost is the run's total (R15-AGENT-035). With ``plan_first`` (a fresh
+    launch) a compound prompt is planned first and the run parks ``planned``
+    until the user starts it (R15-AGENT-039). Every exit writes a terminal status
     to the store.
     """
     prior = prior_cost or RunCost()
@@ -142,6 +152,8 @@ async def _drive_run(
         max_steps=budget.max_steps,
     )
     options = dict(options)
+    launch_options = dict(options)
+    steps: list[dict[str, str]] = list(activity or [])
     # R10: a resumed run re-threads its persisted region INSIDE the detached
     # task (the resume HTTP request's middleware set a region for the WRONG
     # request scope). Popped here so an unknown kwarg never leaks into the
@@ -185,12 +197,15 @@ async def _drive_run(
         return {"prompt": checkpoint["prompt"], "turns": list(turns)}
 
     def _on_tool_result(tool_call: Any, result_str: str) -> None:
-        _status, line = _result_line(result_str)
+        status, line = _result_line(result_str)
         _flush_text()
         turns.append({"role": "assistant", "content": f"[{tool_call.name} → {line}]"})
+        steps.append({"tool": tool_call.name, "status": status, "summary": line})
+        del steps[:-_ACTIVITY_CAP]
         # Checkpoint every step, not only at exit, so a killed process leaves a
-        # run that resumes without re-paying its tools (R15-LIFECYCLE-012).
-        runs_store.update_run(run_id, checkpoint=_checkpoint())
+        # run that resumes without re-paying its tools (R15-LIFECYCLE-012); the
+        # rail reads the step from the same write (R15-AGENT-039).
+        runs_store.update_run(run_id, checkpoint=_checkpoint(), activity=steps)
 
     def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
         # Fold the round's usage into the guard at the RESOLVED provider's rate
@@ -222,6 +237,29 @@ async def _drive_run(
         # asyncio.timeout makes the wall ceiling a HARD ceiling regardless of round
         # boundaries (SC-008).
         async with asyncio.timeout(budget.max_wall_seconds):
+            plan = (
+                await agent_runtime.plan_delegate_run(
+                    agent_id,
+                    prompt,
+                    provider=provider,
+                    model=model,
+                    api_key=api_key,
+                    context_snapshot=snapshot,
+                )
+                if plan_first
+                else None
+            )
+            if plan is not None:
+                # A compound task waits for the user's Start (or Discard).
+                _PARKED[run_id] = {"snapshot": snapshot, "options": launch_options}
+                runs_store.update_run(
+                    run_id,
+                    status="planned",
+                    detail="plan ready: start or discard it",
+                    plan={"goal": plan.goal, "steps": plan.steps, "note": plan.note},
+                    checkpoint=_checkpoint(),
+                )
+                return
             async for event in agent_runtime.invoke_agent(
                 agent_id=agent_id,
                 prompt=prompt,
@@ -402,6 +440,7 @@ def launch_run(
         budget=run_budget,
         options=dict(options or {}),
         checkpoint={"prompt": prompt, "turns": []},
+        plan_first=True,
     )
     return run_id
 
@@ -415,6 +454,7 @@ def cancel_run(run_id: str) -> None:
     :class:`RunNotFound`.
     """
     runs_store.update_run(run_id, status="cancelled", detail="cancelled by user")
+    _PARKED.pop(run_id, None)
     task = _TASKS.get(run_id)
     if task is not None and not task.done():
         task.cancel()
@@ -434,6 +474,15 @@ def answer_run(
     for an unknown run and :class:`RunStateError` when it is not paused.
     """
     _resume(run_id, frozenset({"paused"}), answer=answer, api_key=api_key, budget=budget)
+
+
+def start_run(run_id: str, *, api_key: str | None = None) -> None:
+    """Start a ``planned`` run: the user approved its plan (R15-AGENT-039).
+
+    Runs the launch prompt on the launch's provider/model with the key from
+    this request; raises :class:`RunStateError` unless the run is planned.
+    """
+    _resume(run_id, frozenset({"planned"}), api_key=api_key, budget=None, detail="started")
 
 
 def resume_run(
@@ -459,6 +508,7 @@ def _resume(
     answer: str | None = None,
     api_key: str | None,
     budget: RunBudget | None,
+    detail: str = "resumed",
 ) -> None:
     """Move a run back to ``running`` from ``from_status`` and respawn its task."""
     run = runs_store.get_run(run_id)
@@ -483,24 +533,26 @@ def _resume(
     resume_budget = _with_floor(budget or run.budget)
     # R10: re-merge the persisted non-secret options (research_depth, region)
     # so the depth ContextVar floor / locale re-thread into the resumed loop.
-    options: dict[str, Any] = dict(runs_store.get_options(run_id))
+    parked = _PARKED.get(run_id, {})
+    options: dict[str, Any] = {**parked.get("options", {}), **runs_store.get_options(run_id)}
     if len(conversation) > 1:
         options["history"] = conversation[:-1]
     runs_store.update_run(
         run_id,
         status="running",
         from_status=from_status,
-        detail="resumed",
+        detail=detail,
         clear_question=True,
         checkpoint=checkpoint,
     )
+    _PARKED.pop(run_id, None)
     # The launch's provider and model, never the agent default (R15-AGENT-035);
     # the key crosses with the resume/answer request only, like the launch's.
     _spawn(
         run_id,
         agent_id=run.agent_id,
         prompt=conversation[-1]["content"],
-        snapshot=None,
+        snapshot=parked.get("snapshot"),
         provider=run.provider,
         model=run.model,
         api_key=api_key,
@@ -508,6 +560,7 @@ def _resume(
         options=options,
         checkpoint=checkpoint,
         prior_cost=run.cost,
+        activity=[a.model_dump() for a in run.activity],
     )
 
 
@@ -537,3 +590,4 @@ def reset_for_tests() -> None:
         if not task.done():
             task.cancel()
     _TASKS.clear()
+    _PARKED.clear()

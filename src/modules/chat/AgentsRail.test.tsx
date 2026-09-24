@@ -53,4 +53,48 @@ describe("AgentsRail", () => {
     expect(init.headers).toEqual({ "X-LLM-Api-Key": "sk-or-test" });
     expect(init.body).toBeUndefined();
   });
+
+  it("shows a planned run's plan and its latest steps, and Start runs it (R15-AGENT-039)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
+    vi.stubGlobal("fetch", fetchMock);
+    const store = useAgentRunsStore.getState();
+    const id = store.startRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      mode: "delegate",
+      provider: "openrouter",
+      sidecarRunId: "run-6",
+    });
+    store.updateRun(id, {
+      status: "planned",
+      plan: {
+        goal: "Set up the cockpit and research NVDA",
+        steps: [
+          { action: "open_panel", rationale: "Open the chart" },
+          { action: "research", rationale: "Research NVDA" },
+        ],
+      },
+      activity: [{ tool: "web_search", status: "error", summary: "search rate-limited" }],
+    });
+    render(<AgentsRail />);
+
+    const plan = screen.getByLabelText("Plan for Copilot");
+    expect(plan.textContent).toContain("Set up the cockpit and research NVDA");
+    expect(Array.from(plan.querySelectorAll("li")).map((li) => li.textContent)).toEqual([
+      "Open the chart",
+      "Research NVDA",
+    ]);
+    expect(screen.getByLabelText("Recent steps of Copilot").textContent).toContain(
+      "search rate-limited",
+    );
+    expect(screen.getByRole("button", { name: "Discard Copilot" })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Start Copilot" }));
+    await waitFor(() =>
+      expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("running"),
+    );
+    const [url, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/start"))!;
+    expect(String(url)).toBe("http://127.0.0.1:51763/runs/run-6/start");
+    expect(init.headers).toEqual({ "X-LLM-Api-Key": "sk-or-test" });
+  });
 });

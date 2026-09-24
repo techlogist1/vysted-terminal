@@ -24,8 +24,11 @@ import { extractSidecarDetail, getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import {
   type AgentRun,
+  type AgentRunActivity,
   type AgentRunBudget,
+  type AgentRunPlan,
   type AgentRunStatus,
+  isLiveRun,
   useAgentRunsStore,
 } from "@/store/agent-runs";
 import { useProposedChangesStore } from "@/store/proposed-changes";
@@ -76,6 +79,8 @@ interface RunWire {
   status: AgentRunStatus;
   cost?: { tokens?: number; spend_usd?: number; steps?: number };
   provider?: string | null;
+  plan?: AgentRunPlan | null;
+  activity?: AgentRunActivity[];
   detail?: string;
   question?: string;
 }
@@ -112,7 +117,7 @@ const POLL_FAIL_THRESHOLD = 5;
 function markRunsStale(): void {
   const store = useAgentRunsStore.getState();
   for (const run of store.runs) {
-    if (run.sidecarRunId && (run.status === "running" || run.status === "paused")) {
+    if (run.sidecarRunId && isLiveRun(run.status)) {
       store.updateRun(run.id, {
         detail: "Lost contact with the run — the sidecar may be down. Status may be stale.",
       });
@@ -202,7 +207,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
 export async function pollDelegateRuns(): Promise<void> {
   const active = useAgentRunsStore
     .getState()
-    .runs.some((r) => r.sidecarRunId && (r.status === "running" || r.status === "paused"));
+    .runs.some((r) => r.sidecarRunId && isLiveRun(r.status));
   if (!active) {
     // No active runs — clear any residual failure count so a NEW run can't
     // inherit a near-threshold count and badge stale on its very first dropped
@@ -228,10 +233,19 @@ export async function pollDelegateRuns(): Promise<void> {
     const local = store.bySidecarId(w.id);
     if (!local) continue;
     const cost = w.cost ? costOf(w) : local.cost;
-    if (w.status === "running" || w.status === "paused") {
-      store.updateRun(local.id, { status: w.status, cost, detail: w.detail, question: w.question });
+    const plan = w.plan ?? undefined;
+    const activity = w.activity ?? local.activity;
+    if (w.status === "running" || w.status === "paused" || w.status === "planned") {
+      store.updateRun(local.id, {
+        status: w.status,
+        cost,
+        detail: w.detail,
+        question: w.question,
+        plan,
+        activity,
+      });
     } else {
-      store.updateRun(local.id, { cost, detail: w.detail });
+      store.updateRun(local.id, { cost, detail: w.detail, activity });
       store.endRun(local.id, w.status, w.detail);
       if (w.status === "done" || w.status === "error") {
         await deliverRunOutput(w.id, w.status, w.detail);
@@ -313,7 +327,7 @@ export async function adoptSidecarRuns(): Promise<void> {
   }
   const store = useAgentRunsStore.getState();
   for (const w of runs) {
-    if ((w.status !== "running" && w.status !== "paused") || store.bySidecarId(w.id)) continue;
+    if (!isLiveRun(w.status) || store.bySidecarId(w.id)) continue;
     const id = store.startRun({
       agentId: w.agent_id,
       agentName: w.agent_name ?? w.agent_id ?? "Agent",
@@ -322,7 +336,13 @@ export async function adoptSidecarRuns(): Promise<void> {
       sidecarRunId: w.id,
       provider: w.provider ?? undefined,
     });
-    store.updateRun(id, { status: w.status, detail: w.detail, question: w.question });
+    store.updateRun(id, {
+      status: w.status,
+      detail: w.detail,
+      question: w.question,
+      plan: w.plan ?? undefined,
+      activity: w.activity,
+    });
     origins.set(w.id, {
       agentId: w.agent_id ?? "",
       agentName: w.agent_name ?? w.agent_id ?? "Agent",
@@ -395,6 +415,28 @@ export async function answerDelegateRun(
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Couldn't send your answer." };
+  }
+}
+
+/** Start a `planned` run: the user approved its plan (R15-AGENT-039). The
+ *  provider key crosses in a header, like a resume's. */
+export async function startDelegateRun(run: AgentRun): Promise<RunActionResult> {
+  const sidecarRunId = run.sidecarRunId;
+  if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to start." };
+  try {
+    const base = await getSidecarBaseUrl();
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/start`, base).toString(),
+      { method: "POST", headers: await providerKeyHeader(run.provider) },
+    );
+    if (!response.ok) {
+      return { ok: false, error: `Couldn't start the run (HTTP ${response.status}).` };
+    }
+    useAgentRunsStore.getState().updateRun(run.id, { status: "running", detail: "started" });
+    ensurePolling();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't start the run." };
   }
 }
 

@@ -101,6 +101,30 @@ class RunLaunchRequest(BaseModel):
     options: dict[str, Any] = Field(default_factory=dict)
 
 
+class RunPlan(BaseModel):
+    """The plan a compound Delegate launch waits on (``planned``, R15-AGENT-039).
+
+    ``steps`` are the planner's ``{action, args, rationale, staged}``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    goal: str
+    steps: list[dict[str, Any]] = Field(default_factory=list)
+    note: str | None = None
+
+
+class RunActivity(BaseModel):
+    """One tool step a Delegate run took, as the rail shows it (R15-AGENT-039)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tool: str
+    status: Literal["ok", "error"]
+    #: The result on one line (the error reason when it failed).
+    summary: str
+
+
 class RunSummary(BaseModel):
     """One row in ``GET /runs`` — the run-tray list shape.
 
@@ -121,6 +145,10 @@ class RunSummary(BaseModel):
     #: re-uses them (R15-AGENT-035).
     provider: str | None = None
     model: str | None = None
+    #: The plan a ``planned`` run waits on; kept once it starts.
+    plan: RunPlan | None = None
+    #: The run's latest tool steps, oldest first (capped).
+    activity: list[RunActivity] = Field(default_factory=list)
     detail: str | None = None
     question: str | None = None
     created_at: int = Field(alias="createdAt")
