@@ -32,6 +32,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 import { sidecarGet } from "@/lib/sidecar-client";
 
 import { useMacroStore } from "@/store/macro";
+import { usePanelContextBus } from "@/store/panel-context";
 
 import { MacroPanel } from "./MacroPanel";
 
@@ -64,6 +65,7 @@ const SAMPLE_CATALOG: MacroCatalog = {
 
 beforeEach(() => {
   useMacroStore.getState().reset();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   vi.clearAllMocks();
 });
 
@@ -137,5 +139,20 @@ describe("MacroPanel", () => {
     ]);
     expect(screen.getByTestId("macro-error")).toBeInTheDocument();
     vi.useRealTimers();
+  });
+
+  it("publishes the active provider + series id to the panel context bus (R15-AGENT-053)", async () => {
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      return null;
+    });
+    render(<MacroPanel />);
+    await waitFor(() => {
+      const payload = usePanelContextBus.getState().lastEventBySource.macro?.payload as
+        | { provider: string; seriesId: string }
+        | undefined;
+      expect(payload).toEqual({ provider: "fred", seriesId: "DGS10" });
+    });
   });
 });

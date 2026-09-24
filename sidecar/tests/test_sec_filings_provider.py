@@ -113,9 +113,14 @@ async def test_is_error_payload_marks_the_provider_down(
     recorder: _RecordingClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """An ``isError`` tool result is a failed call: the health flags record it and
-    status reports unavailable until the next success (R15-DATA-083)."""
-    recorder.respond("search_companies", {"results": []})
-    await sec_filings_provider.search_companies("apple")
+    status reports unavailable until the next success (R15-DATA-083).
+
+    R15-UI-032 moved ``search_companies`` off the MCP tool (sec-edgar-mcp's
+    own tool of that name silently swallows every failure into ``[]``, so it
+    can never surface an ``isError``) — pin this mechanism against a route
+    that still goes through ``_call_tool``, ``get_insider_transactions``."""
+    recorder.respond("get_insider_transactions", {"cik": "320193", "transactions": []})
+    await sec_filings_provider.list_insider_transactions("AAPL")
     assert (await sec_filings_provider.status())["lastToolCallOk"] is True
 
     async def _is_error(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -123,7 +128,7 @@ async def test_is_error_payload_marks_the_provider_down(
 
     monkeypatch.setattr(recorder, "call_tool", _is_error)
     with pytest.raises(ProviderError, match="upstream 500"):
-        await sec_filings_provider.search_companies("nvidia")
+        await sec_filings_provider.list_insider_transactions("NVDA")
     status = await sec_filings_provider.status()
     assert status["lastToolCallOk"] is False
     assert "upstream 500" in status["lastError"]
@@ -355,66 +360,117 @@ async def test_list_insider_transactions(recorder: _RecordingClient) -> None:
     assert maestri.direction == "acquired"
 
 
-@pytest.mark.asyncio
-async def test_search_companies_wraps_results(recorder: _RecordingClient) -> None:
-    recorder.respond(
-        "search_companies",
-        {
-            "results": [
-                {"cik": "320193", "name": "Apple Inc.", "ticker": "AAPL"},
-                {"cik": "789019", "name": "Microsoft Corporation", "ticker": "MSFT"},
-            ]
-        },
-    )
-    rows = await sec_filings_provider.search_companies("apple", limit=5)
-    assert len(rows) == 2
-    assert rows[0]["cik"] == "0000320193"
-    assert rows[0]["ticker"] == "AAPL"
+# ---------------------------------------------------------------------------
+# search_companies (R15-UI-032) — reads SEC's own company_tickers.json, no
+# MCP round-trip: sec-edgar-mcp 1.0.8's own ``search_companies`` tool
+# swallows every ``edgar.search()`` exception into ``[]`` (core/client.py),
+# so it can never be made to work through the MCP surface.
+# ---------------------------------------------------------------------------
+
+_COMPANY_TICKERS_FIXTURE = {
+    "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."},
+    "1": {"cik_str": 1045810, "ticker": "NVDA", "title": "NVIDIA CORP"},
+    "2": {"cik_str": 1321655, "ticker": "PLTR", "title": "Palantir Technologies Inc."},
+    "3": {"cik_str": 789019, "ticker": "MSFT", "title": "MICROSOFT CORP"},
+}
+
+
+class _TickersResp:
+    def __init__(self, payload: Any) -> None:
+        self._payload = payload
+
+    def raise_for_status(self) -> None:
+        return None
+
+    def json(self) -> Any:
+        return self._payload
+
+
+class _TickersClient:
+    """Fake ``httpx.AsyncClient`` serving the company_tickers.json fixture."""
+
+    calls: list[str] = []
+
+    def __init__(self, *a: Any, **k: Any) -> None:
+        pass
+
+    async def __aenter__(self) -> _TickersClient:
+        return self
+
+    async def __aexit__(self, *a: Any) -> None:
+        return None
+
+    async def get(self, url: str) -> _TickersResp:
+        _TickersClient.calls.append(url)
+        return _TickersResp(_COMPANY_TICKERS_FIXTURE)
+
+
+@pytest.fixture
+def tickers_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> type[_TickersClient]:
+    _TickersClient.calls = []
+    monkeypatch.setattr(sec_filings_provider.httpx, "AsyncClient", _TickersClient)
+    sec_filings_provider._reset_for_tests()
+    data_cache.reset_for_tests(tmp_path / "test_cache.db")
+    yield _TickersClient
+    data_cache.reset_for_tests(None)
 
 
 @pytest.mark.asyncio
-async def test_search_companies_empty_query_returns_no_call(
-    recorder: _RecordingClient,
-) -> None:
-    rows = await sec_filings_provider.search_companies("  ", limit=5)
-    assert rows == []
-    assert not any(c["name"] == "search_companies" for c in recorder.calls)
-
-
-@pytest.mark.asyncio
-async def test_search_companies_decodes_the_live_tool_shape(recorder: _RecordingClient) -> None:
-    """R15-UI-032: the real sec-edgar-mcp tool answers
-    ``{"success": True, "companies": [...], "count": N}`` with a plural
-    ``tickers`` LIST per row (dual-listed companies can carry more than
-    one) — not the singular ``ticker``/``symbol`` key the old decode read."""
-    recorder.respond(
-        "search_companies",
-        {
-            "success": True,
-            "companies": [{"cik": "320193", "name": "Apple Inc.", "tickers": ["AAPL"]}],
-            "count": 1,
-        },
-    )
+async def test_search_companies_matches_by_name(tickers_client: type[_TickersClient]) -> None:
     rows = await sec_filings_provider.search_companies("Apple", limit=5)
     assert rows == [{"cik": "0000320193", "name": "Apple Inc.", "ticker": "AAPL"}]
 
 
 @pytest.mark.asyncio
-async def test_search_companies_empty_result_is_not_cached(recorder: _RecordingClient) -> None:
-    """A query that matches nothing (e.g. a search-as-you-type prefix) must
-    not poison the cache for the rest of the TTL window — the next keystroke
-    that DOES match has to re-hit the tool, not replay a cached []."""
-    recorder.respond("search_companies", {"success": True, "companies": [], "count": 0})
-    first = await sec_filings_provider.search_companies("zzz", limit=5)
-    assert first == []
+async def test_search_companies_matches_case_insensitively(
+    tickers_client: type[_TickersClient],
+) -> None:
+    rows = await sec_filings_provider.search_companies("nvidia", limit=5)
+    assert rows == [{"cik": "0001045810", "name": "NVIDIA CORP", "ticker": "NVDA"}]
 
-    recorder.respond(
-        "search_companies",
-        {"success": True, "companies": [{"cik": "1", "name": "Zzz Corp", "tickers": ["ZZZ"]}]},
-    )
-    second = await sec_filings_provider.search_companies("zzz", limit=5)
-    assert second == [{"cik": "0000000001", "name": "Zzz Corp", "ticker": "ZZZ"}]
-    assert len([c for c in recorder.calls if c["name"] == "search_companies"]) == 2
+
+@pytest.mark.asyncio
+async def test_search_companies_matches_by_name_substring(
+    tickers_client: type[_TickersClient],
+) -> None:
+    """Class pin: a name search that isn't Apple/NVIDIA (R15-UI-032)."""
+    rows = await sec_filings_provider.search_companies("Palantir", limit=5)
+    assert rows == [{"cik": "0001321655", "name": "Palantir Technologies Inc.", "ticker": "PLTR"}]
+
+
+@pytest.mark.asyncio
+async def test_search_companies_exact_ticker_ranks_first(
+    tickers_client: type[_TickersClient],
+) -> None:
+    rows = await sec_filings_provider.search_companies("AAPL", limit=5)
+    assert rows[0] == {"cik": "0000320193", "name": "Apple Inc.", "ticker": "AAPL"}
+
+
+@pytest.mark.asyncio
+async def test_search_companies_empty_query_returns_no_fetch(
+    tickers_client: type[_TickersClient],
+) -> None:
+    rows = await sec_filings_provider.search_companies("  ", limit=5)
+    assert rows == []
+    assert tickers_client.calls == []
+
+
+@pytest.mark.asyncio
+async def test_search_companies_caches_the_ticker_index(
+    tickers_client: type[_TickersClient],
+) -> None:
+    """The index itself is cached 24h — a second query must not re-fetch."""
+    await sec_filings_provider.search_companies("Apple", limit=5)
+    await sec_filings_provider.search_companies("Microsoft", limit=5)
+    assert len(tickers_client.calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_search_companies_no_match_returns_empty(
+    tickers_client: type[_TickersClient],
+) -> None:
+    rows = await sec_filings_provider.search_companies("zzz-no-such-company", limit=5)
+    assert rows == []
 
 
 # ---------------------------------------------------------------------------

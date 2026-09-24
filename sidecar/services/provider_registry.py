@@ -679,6 +679,32 @@ def _statement_validator(symbol: str) -> Validator:
 
 
 # ---------------------------------------------------------------------------
+# /data-sources (C19) — DERIVED from the declarations, same as /health below.
+# ---------------------------------------------------------------------------
+
+
+def declarations() -> list[dict[str, Any]]:
+    """Serialize every provider declaration for the ``GET /data-sources``
+    contract (C19). Additive — the resolver's own dispatch above is untouched.
+
+    This is the SAME table :func:`active_providers` and the resolver read, so
+    the frontend marketplace can derive each provider's served model-keys +
+    preference rank from here instead of hand-maintained catalog metadata that
+    drifts from it (R15-CODE-PLATFORM-072 / R15-DATA-077)."""
+    return [
+        {
+            "id": p.id,
+            "keys": sorted(p.serves),
+            "rank": p.rank,
+            "available": p.available(),
+            "asset_classes": sorted(p.asset_classes),
+            "region": sorted(p.region),
+        }
+        for p in _PROVIDERS
+    ]
+
+
+# ---------------------------------------------------------------------------
 # /health — DERIVED from the declarations (FR-053), never a hand-kept dict.
 # ---------------------------------------------------------------------------
 
@@ -714,6 +740,7 @@ __all__ = [
     "ModelKey",
     "ProviderDeclaration",
     "active_providers",
+    "declarations",
     "get_analyst_rating",
     "get_balance_sheet",
     "get_cash_flow",

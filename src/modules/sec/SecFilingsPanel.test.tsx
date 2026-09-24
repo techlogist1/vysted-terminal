@@ -8,7 +8,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import * as sidecarClient from "@/lib/sidecar-client";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useSecStore } from "@/store/sec";
 
 import type { FilingsListResponse } from "../../../types/sec";
@@ -47,6 +53,8 @@ beforeEach(() => {
   vi.spyOn(sidecarClient, "getSidecarBaseUrl").mockResolvedValue("http://127.0.0.1:9999");
   vi.spyOn(sidecarClient, "sidecarGet").mockResolvedValue(AAPL_FILINGS);
   useSecStore.getState().__resetForTests();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+  vi.mocked(loadSymbolIntoChart).mockClear();
 });
 
 afterEach(() => {
@@ -155,5 +163,23 @@ describe("SecFilingsPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId("filing-viewer")).toBeInTheDocument();
     });
+  });
+
+  it("publishes the active identifier + tab to the panel context bus (R15-AGENT-053)", async () => {
+    render(<SecFilingsPanel />);
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource["sec-filings"]).toBeDefined();
+    });
+    const payload = usePanelContextBus.getState().lastEventBySource["sec-filings"]!.payload as {
+      identifier: string | null;
+      tab: string;
+    };
+    expect(payload).toMatchObject({ identifier: "AAPL", tab: "filings" });
+  });
+
+  it("clicking the company name/identifier loads it into the chart (R15-AGENT-053)", async () => {
+    render(<SecFilingsPanel />);
+    fireEvent.click(await screen.findByTestId("sec-symbol-AAPL"));
+    expect(loadSymbolIntoChart).toHaveBeenCalledWith("AAPL");
   });
 });
