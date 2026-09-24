@@ -639,7 +639,9 @@ def _derive_fundamentals(fund: Fundamentals, ticker: Any, fetched_at: str) -> No
     total_assets = _newest_statement_value(bs_frames, _TOTAL_ASSETS_LABELS)
     current_liabilities = _newest_statement_value(bs_frames, _CURRENT_LIABILITIES_LABELS)
     total_debt = _newest_statement_value(bs_frames, _TOTAL_DEBT_LABELS)
-    ebit = _newest_statement_value(is_frames, _EBIT_LABELS)
+    # Annual EBIT only: a newest-quarter EBIT over a period-end balance sheet
+    # understates ROCE ~4x.
+    ebit = _newest_statement_value(is_frames[-1:], _EBIT_LABELS)
 
     def _derive(field_name: str, value: float, note: str) -> None:
         setattr(fund, field_name, value)
@@ -658,7 +660,7 @@ def _derive_fundamentals(fund: Fundamentals, ticker: Any, fetched_at: str) -> No
         if denom != 0:
             roce_value = ebit[1] / denom
     if roce_value is not None:
-        _derive("roce", roce_value, "EBIT / (total assets - current liabilities)")
+        _derive("roce", roce_value, "annual EBIT / (total assets - current liabilities)")
     else:
         meta["roce"] = FieldMeta(
             status="unavailable",

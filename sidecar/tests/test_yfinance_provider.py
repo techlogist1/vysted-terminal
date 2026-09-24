@@ -900,6 +900,37 @@ def test_get_fundamentals_derives_roce_for_a_us_name_too(
     assert fund.basis is None
 
 
+def test_get_fundamentals_roce_uses_annual_ebit_not_the_newest_quarter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-048 review pin: a quarterly income statement with a NEWER, smaller
+    EBIT must not replace the annual EBIT in ROCE (that understates it ~4x)."""
+    import pandas as pd
+
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    info = {"longName": "Quarterly Filer Inc", "currency": "USD"}
+    annual = pd.to_datetime(["2025-12-31"])
+    quarter = pd.to_datetime(["2026-06-30"])
+    balance_sheet = pd.DataFrame(
+        {annual[0]: [100_000_000.0, 20_000_000.0]},
+        index=["Total Assets", "Current Liabilities"],
+    )
+    income_stmt = pd.DataFrame({annual[0]: [16_000_000.0]}, index=["EBIT"])
+    quarterly_income_stmt = pd.DataFrame({quarter[0]: [4_000_000.0]}, index=["EBIT"])
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _fund_ticker(
+            info,
+            balance_sheet=balance_sheet,
+            income_stmt=income_stmt,
+            quarterly_income_stmt=quarterly_income_stmt,
+        ),
+    )
+    fund = yfinance_provider.get_fundamentals("QTRLY")
+    assert fund.roce == pytest.approx(16_000_000.0 / (100_000_000.0 - 20_000_000.0))
+
+
 def test_get_fundamentals_naperol_reads_financial_services_from_the_map(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
