@@ -19,6 +19,8 @@ writers reported 19 fixed and 1 could-not (RELEASE-007). Merged `--no-ff` in pla
   - Seven text-mode `read_text()`/`write_text()` calls in three writers' new tests failed the Windows encoding
     guard (`test_tests_encoding.py`); they name `encoding="utf-8"`, and so do the agent-eval runner and the sp500
     regenerator (same class).
+  - W8's new Risk section added three off-grid `1.5` spacing steps the token audit flags; they take the `2` step.
+    The audit's four remaining hits are pre-existing, which is why RELEASE-007 could not wire it into lint.
   - W3's 32 spend-ledger rows (ollama agent-eval, $0) are held out of the merge: the ledger is lead-owned.
   - D-B11-1..10 are recorded in `DECISIONS.md`; the D-B10-8 row says D-B11-3 supersedes its mechanism.
 
