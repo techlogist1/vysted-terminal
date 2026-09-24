@@ -6,7 +6,9 @@ Trading was removed from the product permanently (operator Tier-4 sign-off,
 audit. It pins the removal at every layer the agent or the user can reach:
 mounted routes, the capability catalog and its projections, the MCP surface,
 importable modules, the files on disk, and the identifiers in source. The last
-test proves the surviving half: the tracked-portfolio ledger still round-trips.
+test proves the surviving half: holdings saved in the legacy ledger still import
+(the ledger is read-only since R15-CODE-PLATFORM-021; holdings live in the
+workspace blob).
 """
 
 from __future__ import annotations
@@ -185,8 +187,9 @@ def test_no_trading_routes_mounted() -> None:
         methods.setdefault(path, set()).update(getattr(route, "methods", None) or set())
     trading = sorted(p for p in methods if _TRADING_ROUTE.search(p))
     assert trading == [], f"trading routes still mounted: {trading}"
-    assert {"GET", "POST"} <= methods["/portfolio/positions"]
-    assert {"PUT", "DELETE"} <= methods["/portfolio/positions/{position_id}"]
+    # R15-CODE-PLATFORM-021: the legacy ledger is read once for import, never written.
+    assert methods["/portfolio/positions"] == {"GET"}
+    assert "/portfolio/positions/{position_id}" not in methods
 
 
 def test_no_trading_capability_in_catalog_or_registry() -> None:
@@ -265,20 +268,26 @@ def test_proposed_change_kind_has_no_order() -> None:
     assert {"panel", "chart", "watchlist", "data-write", "settings"} <= kinds
 
 
-def test_tracked_portfolio_roundtrip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_tracked_portfolio_legacy_ledger_still_imports(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Converted from the CRUD round-trip (R15-CODE-PLATFORM-021): a v0.8 row
+    still reads back for the one-time import, and nothing can write the ledger."""
+    from services import portfolio_db
+
     monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
     client = TestClient(create_app())
-    body = {"symbol": "AAPL", "quantity": 10, "cost_basis": 150}
+    with portfolio_db._connect() as conn:
+        conn.execute(
+            "INSERT INTO positions (symbol, quantity, cost_basis) VALUES ('AAPL', 10, 150)"
+        )
 
-    created = client.post("/portfolio/positions", json=body)
-    assert created.status_code == 201
-    position_id = created.json()["id"]
     listed = client.get("/portfolio/positions").json()
-    assert [p["id"] for p in listed] == [position_id]
+    assert [(p["symbol"], p["quantity"], p["cost_basis"]) for p in listed] == [("AAPL", 10, 150)]
 
-    updated = client.put(f"/portfolio/positions/{position_id}", json={**body, "quantity": 12})
-    assert updated.status_code == 200
-    assert updated.json()["quantity"] == 12
-
-    assert client.delete(f"/portfolio/positions/{position_id}").status_code == 204
-    assert client.get("/portfolio/positions").json() == []
+    body = {"symbol": "AAPL", "quantity": 12, "cost_basis": 150}
+    assert client.post("/portfolio/positions", json=body).status_code == 405
+    position_id = listed[0]["id"]
+    assert client.put(f"/portfolio/positions/{position_id}", json=body).status_code == 404
+    assert client.delete(f"/portfolio/positions/{position_id}").status_code == 404
+    assert client.get("/portfolio/positions").json() == listed

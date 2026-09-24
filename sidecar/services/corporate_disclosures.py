@@ -251,7 +251,7 @@ def _bse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
     )
     # HEADLINE is the body text NSE's attchmntText carries; NEWSSUB is a subject.
     item._body = _clean(row.get("HEADLINE"))
-    item._kind = _canonical_kind(row.get("SUBCATNAME")) or _canonical_kind(row.get("CATEGORYNAME"))
+    item._kind = _announcement_kind(item, row.get("SUBCATNAME"), row.get("CATEGORYNAME"))
     return item
 
 
@@ -305,7 +305,7 @@ def _nse_row_to_announcement(bare: str, row: dict) -> Announcement | None:
         attachment_url=_clean(row.get("attchmntFile")) or None,
         ts=_parse_nse_ts(row),
     )
-    item._kind = _canonical_kind(row.get("desc"))
+    item._kind = _announcement_kind(item, row.get("desc"))
     return item
 
 
@@ -359,7 +359,6 @@ _CANONICAL_KIND = {
     "analysts/institutional investor meet/con. call updates": "analyst_meet",
     "investor presentation": "analyst_meet",
     "analyst / investor meet": "analyst_meet",
-    "earnings call transcript": "analyst_meet",
     "credit rating": "credit_rating",
     "press release": "press_release",
     "press release / media release": "press_release",
@@ -432,6 +431,27 @@ def _canonical_kind(label: object) -> str | None:
     """An exchange category label's canonical kind (:data:`_CANONICAL_KIND`)."""
     text = _clean(label)
     return _CANONICAL_KIND.get(text.casefold()) if text else None
+
+
+#: An earnings-call transcript's own kind (R15-RESEARCH-030). The exchanges file
+#: one under an analyst-meet label (NSE "Analysts/Institutional Investor
+#: Meet/Con. Call Updates", BSE "Analyst / Investor Meet") or their own (BSE
+#: "Earnings Call Transcript"), so the text decides, on both feeds alike.
+EARNINGS_CALL_TRANSCRIPT = "earnings_call_transcript"
+_TRANSCRIPT_RE = re.compile(r"(?i)\btranscripts?\b")
+
+
+def is_earnings_call_transcript(*texts: object) -> bool:
+    """Does any of ``texts`` (headline, category, body) name a call transcript?"""
+    return any(isinstance(text, str) and _TRANSCRIPT_RE.search(text) for text in texts)
+
+
+def _announcement_kind(item: Announcement, *labels: object) -> str | None:
+    """``item``'s canonical kind: a transcript by its text or label, else the
+    first of ``labels`` :data:`_CANONICAL_KIND` knows."""
+    if is_earnings_call_transcript(item.headline, item._body, *labels):
+        return EARNINGS_CALL_TRANSCRIPT
+    return next((kind for kind in map(_canonical_kind, labels) if kind), None)
 
 
 def _pair_cross_feed(items: list[Announcement]) -> list[Announcement]:

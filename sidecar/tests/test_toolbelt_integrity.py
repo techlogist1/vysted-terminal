@@ -47,6 +47,7 @@ FINAL_HOST_ACTION_IDS = frozenset(
         "arrange_layout",
         "set_chart_symbol",
         "set_chart_indicators",
+        "add_chart_drawing",
         "add_to_watchlist",
         "publish_brief",
         "write_screener_filters",

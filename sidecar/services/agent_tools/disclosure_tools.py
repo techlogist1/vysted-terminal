@@ -14,6 +14,9 @@ research run on an Indian name can pull real filings:
   buybacks from both exchanges with ex/record/payment dates.
 * ``exchange_deals(symbol, kind=None)`` — bulk/block deals and SAST (Reg 29)
   disclosures, newest first.
+* ``earnings_call_transcript(symbol, quarter=None)`` — the newest (or the
+  requested quarter's) earnings-call transcript filed on NSE/BSE, its PDF read
+  to text (R15-RESEARCH-030).
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
 the agent surfaces the failure verbatim instead of crashing the run. A symbol
@@ -25,16 +28,21 @@ the Indian exchanges do not cover answers ``ok: True`` with ``coverage`` and a
 from __future__ import annotations
 
 import asyncio
+from datetime import date, timedelta
 from typing import Any
 
 from services import corporate_disclosures, sec_ownership
 from services.agent_tools import register_tool
 from services.errors import ProviderError
+from services.search import extract
 
 _DEFAULT_LIMIT = 20
 _MAX_LIMIT = 100
 # Compact context: at most this many quarters of shareholding history.
 _MAX_QUARTERS = 12
+#: A quarter's call transcript is filed within weeks of its results, well inside
+#: the following quarter.
+_TRANSCRIPT_FILING_WINDOW = timedelta(days=92)
 
 
 def _coverage(response: Any) -> dict[str, Any]:
@@ -157,17 +165,80 @@ async def _exchange_deals(args: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+async def _earnings_call_transcript(args: dict[str, Any]) -> dict[str, Any]:
+    """The newest (or ``quarter``'s) earnings-call transcript for ``symbol``, as text."""
+    symbol = args.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        return {"ok": False, "error": "missing or non-string symbol"}
+    quarter: date | None = None
+    if args.get("quarter") is not None:
+        try:
+            quarter = date.fromisoformat(str(args["quarter"]))
+        except ValueError:
+            return {"ok": False, "error": "quarter must be the quarter-end date, YYYY-MM-DD"}
+    try:
+        response = await corporate_disclosures.get_announcements_cached(
+            symbol, None, corporate_disclosures.MAX_LIMIT
+        )
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": f"unexpected error: {exc}"}
+    if response.coverage != "covered":
+        return {"ok": True, "symbol": response.symbol, "available": False, "reason": response.note}
+    transcripts = [
+        item
+        for item in response.announcements
+        if item.attachment_url
+        and corporate_disclosures.is_earnings_call_transcript(item.headline, item.category)
+        and (
+            quarter is None
+            or (item.ts and quarter < item.ts.date() <= quarter + _TRANSCRIPT_FILING_WINDOW)
+        )
+    ]
+    if not transcripts:
+        which = f"for the quarter ended {quarter} " if quarter else ""
+        return {
+            "ok": True,
+            "symbol": response.symbol,
+            "available": False,
+            "reason": (
+                f"no earnings-call transcript {which}among {response.symbol}'s "
+                f"{response.count} newest NSE/BSE announcements"
+            ),
+        }
+    filing = transcripts[0]  # the feed is newest first
+    found = {
+        "symbol": response.symbol,
+        "filing_date": filing.ts.date().isoformat() if filing.ts else None,
+        "url": filing.attachment_url,
+        "source": filing.exchange,
+    }
+    page = await extract.fetch_page(filing.attachment_url, max_chars=extract.PDF_EXCHANGE_MAX_CHARS)
+    if not page.get("ok"):
+        return {"ok": False, **found, "error": f"transcript PDF unreadable: {page.get('error')}"}
+    return {
+        "ok": True,
+        "available": True,
+        **found,
+        "text": page["content"],
+        "truncated": bool(page.get("truncated")),
+    }
+
+
 def register() -> None:
     """Register the disclosure family with the agent-tool registry."""
     register_tool("corporate_announcements", _corporate_announcements)
     register_tool("shareholding_pattern", _shareholding_pattern)
     register_tool("corporate_actions", _corporate_actions)
     register_tool("exchange_deals", _exchange_deals)
+    register_tool("earnings_call_transcript", _earnings_call_transcript)
 
 
 __all__ = [
     "_corporate_actions",
     "_corporate_announcements",
+    "_earnings_call_transcript",
     "_exchange_deals",
     "_shareholding_pattern",
     "register",

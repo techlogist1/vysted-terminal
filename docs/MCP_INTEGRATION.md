@@ -118,6 +118,16 @@ Catalog-projected data + analysis tools (each under its catalog id):
 `price_bond`, `yield_curve_value`. No broker tool exists — Vysted has no
 brokerage connection (D81, 23 Sep 2026).
 
+**The catalog-projected surface is read-only in 0.9** (R15-AGENT-083).
+Only handler-backed read capabilities are projected. The catalog's host
+actions (portfolio edits, notes, watchlist, layout, saved screens,
+region, chart drawings) are not listed. They stay in-app behind the
+proposed-changes gate, where the user confirms each one. Calling one by
+name fails with the MCP "Unknown tool" error. Exposing mutations to external clients through a
+host-side queue is a future operator decision.
+`sidecar/tests/test_mcp_catalog_parity.py` asserts this over the live
+catalog.
+
 Hand-written agent / workspace / workflow tools:
 
 | Tool              | Args                         | Returns                                                |
