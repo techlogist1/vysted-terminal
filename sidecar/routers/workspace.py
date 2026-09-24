@@ -21,6 +21,14 @@ from services.workspace_store import WorkspaceNameError, WorkspaceNotFoundError
 router = APIRouter(prefix="/workspace", tags=["workspace"])
 
 
+def _storage_failure(action: str, exc: OSError) -> HTTPException:
+    """A disk failure (read-only dir, disk full) as a 507 naming the cause, so the
+    frontend can show why nothing is being saved (R15-CODE-FRONTEND-019)."""
+    return HTTPException(
+        status_code=507, detail=f"Could not {action} the workspace: {exc.strerror or exc}"
+    )
+
+
 class SaveWorkspaceRequest(BaseModel):
     """Body for ``POST /workspace``: a name plus the opaque workspace JSON.
 
@@ -44,6 +52,8 @@ def get_workspace(name: str) -> dict[str, Any]:
     """Return the stored JSON for one workspace."""
     try:
         return workspace_store.load_workspace(name)
+    except OSError as exc:
+        raise _storage_failure("read", exc) from exc
     except WorkspaceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Workspace {name!r} not found.") from exc
     except WorkspaceNameError as exc:
@@ -55,6 +65,8 @@ def save_workspace(request: SaveWorkspaceRequest) -> dict[str, str]:
     """Persist a workspace, overwriting any existing one with the same name."""
     try:
         workspace_store.save_workspace(request.name, request.workspace)
+    except OSError as exc:
+        raise _storage_failure("write", exc) from exc
     except WorkspaceNameError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"status": "saved", "name": request.name.strip()}
@@ -65,6 +77,8 @@ def delete_workspace(name: str) -> None:
     """Delete a saved workspace."""
     try:
         workspace_store.delete_workspace(name)
+    except OSError as exc:
+        raise _storage_failure("delete", exc) from exc
     except WorkspaceNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"Workspace {name!r} not found.") from exc
     except WorkspaceNameError as exc:

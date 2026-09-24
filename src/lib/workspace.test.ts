@@ -43,9 +43,12 @@ vi.mock("@/lib/keychain", async (importActual) => {
 });
 
 import {
+  autosaveLayout,
   createResearchSpace,
+  deleteWorkspace,
   deserializeWorkspace,
   isResearchSpace,
+  listWorkspaces,
   loadWorkspace,
   PERSISTED_SLICES,
   researchSpaceName,
@@ -1236,6 +1239,60 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  it("shows a not-saving error after 3 failed autosaves in a row and clears it on success (R15-CODE-FRONTEND-019)", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never, lastAutosaveError: null });
+    stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    let ok = false;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        ok
+          ? ({ ok: true, status: 200, json: async () => ({}) } as unknown as Response)
+          : ({
+              ok: false,
+              status: 507,
+              json: async () => ({ detail: "Could not write the workspace: Disk full" }),
+            } as unknown as Response),
+      ),
+    );
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const failOnce = async () => {
+      autosaveLayout();
+      await vi.advanceTimersByTimeAsync(600);
+    };
+
+    await failOnce();
+    await failOnce();
+    expect(useWorkspaceStore.getState().lastAutosaveError).toBeNull();
+    await failOnce();
+    expect(useWorkspaceStore.getState().lastAutosaveError).toBe(
+      "Autosave failed (HTTP 507: Could not write the workspace: Disk full).",
+    );
+
+    ok = true;
+    await failOnce();
+    expect(useWorkspaceStore.getState().lastAutosaveError).toBeNull();
+  });
+
+  it("hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046)", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ["__autosave__", "Research: NVDA", "swing"],
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await listWorkspaces()).toEqual(["Research: NVDA", "swing"]);
+    fetchMock.mockClear();
+    await expect(saveWorkspace("__mine")).rejects.toThrow(/reserved/);
+    await expect(deleteWorkspace("__autosave__")).rejects.toThrow(/reserved/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("autosaves nothing during the launch restore; the first save after it carries the research space", async () => {

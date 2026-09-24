@@ -43,7 +43,7 @@ import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/s
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
 import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
-import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
 import type { ChartView, WorkspaceDrawings } from "../../types/drawings";
@@ -664,11 +664,26 @@ export async function listWorkspaces(): Promise<string[]> {
   if (!response.ok) {
     throw await sidecarFailure("Could not list workspaces", response);
   }
+  let names: string[];
   try {
-    return (await response.json()) as string[];
+    names = (await response.json()) as string[];
   } catch {
     throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
   }
+  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+  return names.filter((name) => !isReservedLayoutName(name));
+}
+
+/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+function userWorkspaceName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new WorkspaceError("A workspace name is required.");
+  }
+  if (isReservedLayoutName(trimmed)) {
+    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+  }
+  return trimmed;
 }
 
 /**
@@ -676,10 +691,7 @@ export async function listWorkspaces(): Promise<string[]> {
  * overwriting any existing workspace with the same name.
  */
 export async function saveWorkspace(name: string): Promise<void> {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    throw new WorkspaceError("A workspace name is required.");
-  }
+  const trimmed = userWorkspaceName(name);
   const workspace = serializeWorkspace(trimmed);
   const response = await fetch(await workspaceUrl(), {
     method: "POST",
@@ -953,6 +965,9 @@ let restoreSettled = false;
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 let autosaveInFlight = false;
 let autosaveQueued = false;
+/** Consecutive failed autosaves; the "not saving" badge shows from the third. */
+let autosaveFailures = 0;
+const AUTOSAVE_FAILURES_BEFORE_BADGE = 3;
 
 /**
  * Schedule a save of the current cockpit to the reserved autosave slot. A
@@ -986,13 +1001,25 @@ async function flushAutosave(): Promise<void> {
   autosaveInFlight = true;
   try {
     const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
-    await fetch(await workspaceUrl(), {
+    const response = await fetch(await workspaceUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
     });
-  } catch {
-    // Best-effort autosave; ignore transient failures.
+    if (!response.ok) {
+      throw await sidecarFailure("Autosave failed", response);
+    }
+    autosaveFailures = 0;
+    useWorkspaceStore.getState().setLastAutosaveError(null);
+  } catch (error: unknown) {
+    // A transient failure retries on the next change; a run of them is shown
+    // (R15-CODE-FRONTEND-019) so the session never fails to save silently.
+    autosaveFailures += 1;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[workspace] autosave failed (${autosaveFailures} in a row): ${message}`);
+    if (autosaveFailures >= AUTOSAVE_FAILURES_BEFORE_BADGE) {
+      useWorkspaceStore.getState().setLastAutosaveError(message);
+    }
   } finally {
     autosaveInFlight = false;
     if (autosaveQueued) {
@@ -1020,6 +1047,7 @@ export function resetWorkspacePersistenceForTests(): void {
   restoreSettled = false;
   autosaveInFlight = false;
   autosaveQueued = false;
+  autosaveFailures = 0;
 }
 
 /** Prefix every per-stock research space's name carries, so they're recognisable
@@ -1132,10 +1160,7 @@ export async function createResearchSpace(rawSymbol: string): Promise<string> {
 
 /** Delete a saved workspace from the sidecar. */
 export async function deleteWorkspace(name: string): Promise<void> {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    throw new WorkspaceError("A workspace name is required.");
-  }
+  const trimmed = userWorkspaceName(name);
   const response = await fetch(await workspaceUrl(trimmed), { method: "DELETE" });
   if (!response.ok) {
     throw await sidecarFailure(`Could not delete workspace "${trimmed}"`, response);
