@@ -632,6 +632,7 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
   const [data, setData] = useState<EquityOverview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadSeqRef = useRef(0);
   // The last load, with the region of the listing it was for — so Retry
   // reloads the SAME company, not whatever the bare ticker means in the session.
   const submittedRef = useRef<{ symbol: string; region?: string } | null>(null);
@@ -797,8 +798,13 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
       setNarrative(null);
       setNarrativeLoading(false);
       setAcOpen(false);
+      // Only the newest load commits: an older response settling later (a
+      // host command opened another company mid-load) is dropped, and its
+      // `finally` leaves the newer load's spinner alone (R15-UI-031).
+      const seq = ++loadSeqRef.current;
       try {
         const overview = await loadEquityOverview(symbol, region);
+        if (seq !== loadSeqRef.current) return;
         if (overview.allFailed) {
           setData(null);
           setError(`No data available for ${symbol}`);
@@ -807,10 +813,11 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
           void fetchNarrative(symbol, region);
         }
       } catch (err) {
+        if (seq !== loadSeqRef.current) return;
         setData(null);
         setError(err instanceof SidecarError ? err.message : `Failed to load ${symbol}`);
       } finally {
-        setLoading(false);
+        if (seq === loadSeqRef.current) setLoading(false);
       }
     },
     [fetchNarrative],
