@@ -55,9 +55,7 @@ async def _invoke(
             autonomy="auto",
         )
     ]
-    msg = next(
-        m for m in provider.round_messages[1] if m.role == "tool" and m.tool_call_id == "c-1"
-    )
+    msg = next(m for m in provider.round_messages[1] if m.role == "tool")
     return events, json.loads(msg.content)
 
 

@@ -1395,7 +1395,13 @@ class _PublishThenAnswerProvider:
         yield LLMDoneEvent(usage=LLMUsage(input_tokens=3, output_tokens=2))
 
 
-async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[Any]:
+async def _collect_auto_publish_events(
+    monkeypatch: pytest.MonkeyPatch, ack: str | None = None
+) -> list[Any]:
+    """Drive one publish turn; ``ack`` is the status the panel POSTs for the
+    streamed publish_brief id (the runtime mints it, so the ack keys on it)."""
+    from services import action_ledger
+
     agent_runtime.reload()
     _patch_provider(monkeypatch, _PublishThenAnswerProvider())
     monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
@@ -1407,6 +1413,8 @@ async def _collect_auto_publish_events(monkeypatch: pytest.MonkeyPatch) -> list[
         mode="edit",
         autonomy="auto",
     ):
+        if ack and isinstance(event, LLMToolUseEvent) and event.name == "publish_brief":
+            action_ledger.record(event.tool_call_id, ack)
         events.append(event)
     return events
 
@@ -1446,8 +1454,7 @@ async def test_kept_previous_ack_yields_kept_notice(monkeypatch: pytest.MonkeyPa
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("pub-1", "kept_previous")
-    events = await _collect_auto_publish_events(monkeypatch)
+    events = await _collect_auto_publish_events(monkeypatch, ack="kept_previous")
     details = _notice_details(events)
     # R13 JARVIS 1c: the hardcoded "richer" wording is gone — the notice now
     # names the artifact ACTUALLY on screen (falls back to a bare phrase when the
@@ -1462,8 +1469,7 @@ async def test_applied_ack_yields_no_notice(monkeypatch: pytest.MonkeyPatch) -> 
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("pub-1", "applied")
-    events = await _collect_auto_publish_events(monkeypatch)
+    events = await _collect_auto_publish_events(monkeypatch, ack="applied")
     assert _notice_details(events) == []
     action_ledger.reset_for_tests()
 
@@ -1577,20 +1583,31 @@ def _tool_result_for(messages: list[LLMMessage], call_id: str) -> LLMMessage | N
 
 async def _run_host_action_readback(
     monkeypatch: pytest.MonkeyPatch,
-) -> _HostActionThenAnswerProvider:
+    ack: str | None = None,
+    detail: dict[str, Any] | None = None,
+    autonomy: str = "auto",
+) -> tuple[_HostActionThenAnswerProvider, str]:
+    """Drive one host-action turn and return the provider plus the streamed
+    (runtime-minted) call id; ``ack`` is what the panel POSTs for that id."""
+    from services import action_ledger
+
     agent_runtime.reload()
     provider = _HostActionThenAnswerProvider()
     _patch_provider(monkeypatch, provider)
     monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)  # no grace wait in tests
-    async for _ in agent_runtime.invoke_agent(
+    call_id = ""
+    async for event in agent_runtime.invoke_agent(
         agent_id="copilot",
         prompt="load SPY",
         api_key="sk-test",
         mode="edit",
-        autonomy="auto",
+        autonomy=autonomy,
     ):
-        pass
-    return provider
+        if isinstance(event, LLMToolUseEvent):
+            call_id = event.tool_call_id
+            if ack:
+                action_ledger.record(call_id, ack, detail=detail)
+    return provider, call_id
 
 
 @pytest.mark.asyncio
@@ -1601,10 +1618,11 @@ async def test_failed_ack_grounds_host_action_tool_result(monkeypatch: pytest.Mo
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record("hact-1", "failed", detail={"action": "set_chart_symbol", "symbol": "SPY"})
-    provider = await _run_host_action_readback(monkeypatch)
+    provider, call_id = await _run_host_action_readback(
+        monkeypatch, "failed", {"action": "set_chart_symbol", "symbol": "SPY"}
+    )
     assert len(provider.round_messages) == 2
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None, "the round-2 prompt must carry the grounded tool-result"
     payload = json.loads(msg.content)
     assert payload["ok"] is False
@@ -1624,8 +1642,8 @@ async def test_ackless_host_action_says_not_yet_confirmed(
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    provider = await _run_host_action_readback(monkeypatch)
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    provider, call_id = await _run_host_action_readback(monkeypatch)
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["status"] == "dispatched_unconfirmed"
@@ -1644,11 +1662,10 @@ async def test_applied_ack_grounds_host_action_as_done(monkeypatch: pytest.Monke
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    action_ledger.record(
-        "hact-1", "applied", detail={"action": "set_chart_symbol", "symbol": "SPY"}
+    provider, call_id = await _run_host_action_readback(
+        monkeypatch, "applied", {"action": "set_chart_symbol", "symbol": "SPY"}
     )
-    provider = await _run_host_action_readback(monkeypatch)
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["ok"] is True
@@ -1666,19 +1683,8 @@ async def test_host_action_readback_skipped_outside_auto(
     from services import action_ledger
 
     action_ledger.reset_for_tests()
-    agent_runtime.reload()
-    provider = _HostActionThenAnswerProvider()
-    _patch_provider(monkeypatch, provider)
-    monkeypatch.setattr(agent_runtime, "_ACK_GRACE_SECONDS", 0.0)
-    async for _ in agent_runtime.invoke_agent(
-        agent_id="copilot",
-        prompt="load SPY",
-        api_key="sk-test",
-        mode="edit",
-        autonomy="ask",
-    ):
-        pass
-    msg = _tool_result_for(provider.round_messages[1], "hact-1")
+    provider, call_id = await _run_host_action_readback(monkeypatch, autonomy="ask")
+    msg = _tool_result_for(provider.round_messages[1], call_id)
     assert msg is not None
     payload = json.loads(msg.content)
     assert payload["status"] == "awaiting_user_review"
@@ -2144,9 +2150,10 @@ async def _backtest_events(monkeypatch: pytest.MonkeyPatch, result: str) -> list
 async def test_successful_custom_backtest_opens_its_run(monkeypatch: pytest.MonkeyPatch) -> None:
     events = await _backtest_events(monkeypatch, '{"ok": true, "runId": "bt-1"}')
     opens = [e for e in events if getattr(e, "name", None) == "open_panel"]
+    backtest = next(e for e in events if getattr(e, "name", None) == "run_custom_backtest")
     assert len(opens) == 1
     assert opens[0].input == {"panel": "backtest", "run_id": "bt-1"}
-    assert opens[0].tool_call_id == "auto-backtest-call-bt"
+    assert opens[0].tool_call_id == f"auto-backtest-{backtest.tool_call_id}"
 
 
 @pytest.mark.asyncio

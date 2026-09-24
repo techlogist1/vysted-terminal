@@ -91,9 +91,7 @@ async def _run(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> tupl
             agent_id="copilot", prompt="research it", api_key="k", mode="edit"
         )
     ]
-    tool_msg = next(
-        m for m in provider.round_messages[1] if m.role == "tool" and m.tool_call_id == "r-1"
-    )
+    tool_msg = next(m for m in provider.round_messages[1] if m.role == "tool")
     # Research text is third-party, so the message is fenced (R15-AGENT-021);
     # the JSON body sits inside the guard after its "Source:" line.
     body = tool_msg.content.split(GUARD_OPEN, 1)[1].split(GUARD_CLOSE, 1)[0]

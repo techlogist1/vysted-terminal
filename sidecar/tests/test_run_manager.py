@@ -754,9 +754,12 @@ async def test_run_output_is_returned_untruncated_by_get_run(
     assert "Round 1:" in answer and "Round 3:" in answer
     assert "\n\nRound 2:" in answer  # each round is its own paragraph
     assert wire["brief"] == {"symbol": "NVDA", "title": "NVDA", "markdown": "## Thesis"}
+    # The runtime mints every tool-call id (R15-AGENT-046), never "c-note".
+    [action] = wire["hostActions"]
+    assert action["tool_call_id"].startswith("call_")
     assert wire["hostActions"] == [
         {
-            "tool_call_id": "c-note",
+            "tool_call_id": action["tool_call_id"],
             "name": "write_note",
             "input": {"scope": "NVDA", "text": "Watch the margin"},
         }

@@ -185,8 +185,10 @@ def test_research_steps_stream_live_during_a_tool_round(monkeypatch) -> None:
     assert [s.step_kind for s in steps] == ["plan", "search", "synthesize"]
     assert [s.index for s in steps] == [1, 2, 3]
     assert steps[1].latency_ms == 42
-    # (2) each carries the originating tool + tool_call_id (UI grouping).
-    assert all(s.tool == "research" and s.tool_call_id == "tc1" for s in steps)
+    # (2) each carries the originating tool + the streamed (runtime-minted)
+    # tool_call_id (UI grouping).
+    call_id = next(e.tool_call_id for e in events if isinstance(e, LLMToolUseEvent))
+    assert all(s.tool == "research" and s.tool_call_id == call_id for s in steps)
     # (3) they interleave BEFORE the terminal done (not after the run finishes).
     kinds = [type(e).__name__ for e in events]
     assert kinds.index("LLMResearchStepEvent") < kinds.index("LLMDoneEvent")

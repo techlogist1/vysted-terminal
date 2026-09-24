@@ -2040,7 +2040,6 @@ async def invoke_agent(
     # Any prose streamed this turn (every round): a turn that ends with none
     # is an empty answer, never a silent success (R15-AGENT-026).
     turn_text = False
-    seen_call_ids: set[str] = set()
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -2078,13 +2077,12 @@ async def invoke_agent(
             if isinstance(event, LLMToolUseEvent):
                 if capped:
                     continue
-                # The runtime owns tool-call identity (R15-AGENT-046): Ollama sends
-                # '' and Gemini `name_index` per stream, so an empty id or one seen
-                # this turn is replaced before the tool-use turn, the tool result
-                # or any derived id uses it; acks are consumed once when read.
-                if not event.tool_call_id or event.tool_call_id in seen_call_ids:
-                    event.tool_call_id = f"call_{uuid.uuid4().hex}"
-                seen_call_ids.add(event.tool_call_id)
+                # The runtime owns tool-call identity (R15-AGENT-046, D-B9-5):
+                # provider ids are never trusted (Ollama sends '', Gemini reuses
+                # `name_index` in every stream, so a late ack from an earlier turn
+                # would ground this one). Every call gets a fresh id before the
+                # tool-use turn, the tool result or any derived id uses it.
+                event.tool_call_id = f"call_{uuid.uuid4().hex}"
                 _normalise_tool_args(event)
                 if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
                     # Never hand the UI a host action with invalid args (it would
