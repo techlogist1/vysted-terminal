@@ -239,41 +239,54 @@ def compute_keltner(
     )
 
 
-def compute_vwap(df: pd.DataFrame, times: list[str]) -> IndicatorSeries:
+def _vwap_is_intraday_cadence(parsed_times: pd.DatetimeIndex) -> bool:
+    """True when the series' median bar-to-bar gap is below ~20 hours."""
+    if len(parsed_times) < 2:
+        return False
+    gaps = parsed_times[1:] - parsed_times[:-1]
+    median_gap = pd.Series(gaps).median()
+    return bool(pd.notna(median_gap) and median_gap < pd.Timedelta(hours=20))
+
+
+def compute_vwap(df: pd.DataFrame, times: list[str], anchor: str = "auto") -> IndicatorSeries:
     """Volume-weighted average price.
 
-    Intraday timeframes (median bar-to-bar gap below ~20 hours) reset the
-    cumulative numerator and denominator at each calendar-date boundary so the
-    line traces the canonical *session* VWAP. Daily-or-coarser series keep the
-    whole-series running cumulative — the correct behaviour at those scales,
-    where each bar already represents a full session.
+    ``anchor`` (R15-UI-091):
+      * ``"auto"`` (default) — intraday timeframes (median bar-to-bar gap below
+        ~20 hours) reset at each calendar-date boundary (the canonical
+        *session* VWAP); daily-or-coarser series keep the whole-series running
+        cumulative, since each bar already represents a full session.
+      * ``"session"`` — force the calendar-date reset regardless of cadence.
+      * ``"week"`` — reset at each ISO week boundary (Monday), FR-092's
+        crypto default — crypto trades 24/7 with no daily session to anchor
+        to, so a week is the natural period.
     """
     typical = _typical_price(df)
     volume = df["volume"]
     # ``df.index`` carries the ISO-8601 timestamp strings the frame was built
-    # from; reparse to datetimes to measure cadence and group by date.
+    # from; reparse to datetimes to measure cadence and group by date/week.
     parsed_times = pd.to_datetime(df.index, errors="coerce", utc=True)
-    is_intraday = False
-    if len(parsed_times) >= 2:
-        gaps = parsed_times[1:] - parsed_times[:-1]
-        median_gap = pd.Series(gaps).median()
-        if pd.notna(median_gap) and median_gap < pd.Timedelta(hours=20):
-            is_intraday = True
-
     pv = typical * volume
-    if is_intraday:
-        # Group by calendar date — each group restarts the running sums, which
-        # is the standard session-VWAP construction. ``transform('cumsum')``
-        # preserves the original index order across groups.
-        session = parsed_times.normalize()
-        session_series = pd.Series(session, index=df.index)
-        cumulative_pv = pv.groupby(session_series, sort=False).cumsum()
-        cumulative_volume = volume.groupby(session_series, sort=False).cumsum()
+
+    if anchor == "week":
+        week_start = parsed_times.normalize() - pd.to_timedelta(parsed_times.dayofweek, unit="D")
+        period_series = pd.Series(week_start, index=df.index)
+        label = "VWAP (week)"
+    elif anchor == "session" or (anchor == "auto" and _vwap_is_intraday_cadence(parsed_times)):
+        period_series = pd.Series(parsed_times.normalize(), index=df.index)
         label = "VWAP (session)"
+    else:
+        period_series = None
+        label = "VWAP"
+
+    if period_series is not None:
+        # Group by the anchor period — each group restarts the running sums.
+        # ``groupby(...).cumsum()`` preserves the original index order.
+        cumulative_pv = pv.groupby(period_series, sort=False).cumsum()
+        cumulative_volume = volume.groupby(period_series, sort=False).cumsum()
     else:
         cumulative_pv = pv.cumsum()
         cumulative_volume = volume.cumsum()
-        label = "VWAP"
     safe_volume = cumulative_volume.replace(0.0, np.nan)
     vwap = cumulative_pv / safe_volume
     return IndicatorSeries(
@@ -1313,36 +1326,67 @@ _ALIASES: dict[str, str] = {
 }
 
 
+#: Accepted ``vwap:<anchor>`` values (R15-UI-091) — everything else falls
+#: through to :func:`compute_vwap`'s ``"auto"`` default.
+_VWAP_ANCHORS = frozenset({"session", "week"})
+
+
+def parse_spec(raw: str) -> tuple[str, str | None] | None:
+    """Split a request token into its canonical key and optional ``:param``.
+
+    ``"ema:9"`` -> ``("ema", "9")``; ``"vwap:week"`` -> ``("vwap", "week")``;
+    ``"rsi"`` -> ``("rsi", None)``. Returns ``None`` when the base key (before
+    any ``:``) is unrecognized. A key that doesn't accept a param (only
+    ``ema``/``vwap`` do) still normalizes fine — :func:`compute` just ignores
+    a param it has no use for — so the router's "unknown indicator" error
+    always names the base key, not a param it never validates.
+    """
+    token = raw.strip().lower().replace(" ", "_")
+    base, sep, param = token.partition(":")
+    key = base if base in _BUILDERS or base == _VOLUME_PROFILE_KEY else _ALIASES.get(base)
+    if key is None:
+        return None
+    return key, (param if sep else None)
+
+
 def normalize_key(raw: str) -> str | None:
-    """Map a user-supplied indicator token to a canonical key, or ``None``."""
-    key = raw.strip().lower().replace(" ", "_")
-    if key in _BUILDERS or key == _VOLUME_PROFILE_KEY:
-        return key
-    return _ALIASES.get(key)
+    """Map a user-supplied indicator token — optionally carrying a ``:param``
+    spec, e.g. ``"ema:9"``, ``"vwap:week"`` — to its canonical BASE key, or
+    ``None`` when unrecognized (see :func:`parse_spec`)."""
+    spec = parse_spec(raw)
+    return spec[0] if spec else None
 
 
 def compute(series: OHLCVSeries, keys: list[str]) -> IndicatorResponse:
     """Compute every requested indicator over ``series``.
 
     Unknown keys are skipped silently — the router validates and surfaces them
-    before calling here. Duplicate keys are computed once, in request order.
-    ``volume_profile`` is routed into the response's dedicated
-    ``volume_profile`` field rather than the ``indicators`` list.
+    before calling here. A duplicate (key, param) pair is computed once, in
+    request order — ``ema:9`` and ``ema:21`` are DISTINCT and both compute
+    (R15-UI-091); ``ema:9`` requested twice computes once. ``volume_profile``
+    is routed into the response's dedicated ``volume_profile`` field rather
+    than the ``indicators`` list.
     """
     df = _frame(series)
     times = list(df.index)
-    seen: set[str] = set()
+    seen: set[tuple[str, str | None]] = set()
     results: list[IndicatorSeries] = []
     volume_profile: VolumeProfile | None = None
     for raw in keys:
-        key = normalize_key(raw)
-        if key is None or key in seen:
+        spec = parse_spec(raw)
+        if spec is None or spec in seen:
             continue
-        seen.add(key)
+        seen.add(spec)
+        key, param = spec
         if key == _VOLUME_PROFILE_KEY:
             volume_profile = compute_volume_profile(df)
             continue
-        results.append(_BUILDERS[key](df, times))
+        if key == "ema" and param is not None and param.isdigit() and int(param) > 0:
+            results.append(compute_ema(df, times, period=int(param)))
+        elif key == "vwap" and param in _VWAP_ANCHORS:
+            results.append(compute_vwap(df, times, anchor=param))
+        else:
+            results.append(_BUILDERS[key](df, times))
     return IndicatorResponse(
         symbol=series.symbol,
         timeframe=series.timeframe,
