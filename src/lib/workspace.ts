@@ -96,10 +96,11 @@ export interface SerializedWorkspace {
    */
   autonomyMode?: AgentAutonomy;
   /**
-   * The agent dominant-column geometry (collapsed + width in px) so the
-   * agent-first layout (FR-001) survives a relaunch. Optional for older blobs.
+   * The agent dominant-column geometry (collapsed + width in px + maximized to
+   * the full cockpit) so the agent-first layout (FR-001) survives a relaunch.
+   * Optional for older blobs; `maximized` is absent before R15-UI-084.
    */
-  agentDock?: { collapsed: boolean; width: number };
+  agentDock?: { collapsed: boolean; width: number; maximized?: boolean };
   /**
    * Per-provider model overrides (FR-004). Optional for older blobs; the
    * per-provider defaults apply when absent.
@@ -248,6 +249,13 @@ function onChange<S>(
     });
 }
 
+/** The plugin-module (`plugin:<id>`) flags of `enabled`, or every other flag. */
+function moduleFlags(enabled: Record<string, boolean>, plugin: boolean): Record<string, boolean> {
+  return Object.fromEntries(
+    Object.entries(enabled).filter(([id]) => id.startsWith("plugin:") === plugin),
+  );
+}
+
 /**
  * Every persisted slice. The launch restore applies the global slices before
  * the layout slices, so the per-space memory archive is in place before the
@@ -257,10 +265,17 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
   {
     // Restored before the layout so the panel components a layout references
     // resolve against the module set that was active when it was saved.
+    // A plugin's `plugin:<id>` flag is NOT persisted here: the plugin runtime
+    // derives it (attach/detach) from plugins.db `enabled`, its one source, so a
+    // blob never re-hides a plugin enabled since it was saved (R15-CODE-PLATFORM-013).
     key: "enabledModules",
     scope: "layout",
-    read: () => ({ enabledModules: useModulesStore.getState().enabled }),
-    restore: (workspace) => useModulesStore.getState().setEnabledMap(workspace.enabledModules),
+    read: () => ({ enabledModules: moduleFlags(useModulesStore.getState().enabled, false) }),
+    restore: (workspace) =>
+      useModulesStore.getState().setEnabledMap({
+        ...moduleFlags(workspace.enabledModules, false),
+        ...moduleFlags(useModulesStore.getState().enabled, true),
+      }),
     subscribe: onChange(useModulesStore, (s) => s.enabled),
   },
   {
@@ -370,6 +385,7 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       agentDock: {
         collapsed: useAgentDockStore.getState().collapsed,
         width: useAgentDockStore.getState().width,
+        maximized: useAgentDockStore.getState().maximized,
       },
     }),
     restore: (workspace) => {
@@ -378,12 +394,15 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
         if (typeof workspace.agentDock.width === "number") {
           useAgentDockStore.getState().setWidth(workspace.agentDock.width);
         }
+        // A blob from before maximize existed restores un-maximized.
+        useAgentDockStore.getState().setMaximized(workspace.agentDock.maximized === true);
       }
     },
     subscribe: onChange(
       useAgentDockStore,
       (s) => s.collapsed,
       (s) => s.width,
+      (s) => s.maximized,
     ),
   },
   {

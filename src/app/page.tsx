@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { MotionConfig } from "framer-motion";
-import { LayoutGrid, PanelLeftClose, PanelLeftOpen, Save, Settings2 } from "lucide-react";
+import {
+  LayoutGrid,
+  Maximize2,
+  Minimize2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Save,
+  Settings2,
+} from "lucide-react";
 
 import { AgentDock } from "@/components/AgentDock";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -169,6 +177,8 @@ export default function Page() {
   const openSaveLayout = useWorkspaceDialog((state) => state.openSave);
   const toggleAgent = useAgentDockStore((state) => state.toggleCollapsed);
   const agentCollapsed = useAgentDockStore((state) => state.collapsed);
+  const agentMaximized = useAgentDockStore((state) => state.maximized);
+  const toggleAgentMaximized = useAgentDockStore((state) => state.toggleMaximized);
 
   return (
     <MotionConfig reducedMotion="user" transition={{ ease: EASE_INSTRUMENT }}>
@@ -205,6 +215,22 @@ export default function Page() {
             )}
             Agent
           </button>
+          {agentCollapsed ? null : (
+            <button
+              type="button"
+              onClick={toggleAgentMaximized}
+              aria-pressed={agentMaximized}
+              className="text-charcoal-400 hover:text-lume transition-colors"
+              aria-label={agentMaximized ? "Restore the cockpit" : "Maximize the agent"}
+              title={agentMaximized ? "Restore the cockpit" : "Maximize the agent"}
+            >
+              {agentMaximized ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => openPalette(true)}

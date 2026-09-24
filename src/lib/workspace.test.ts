@@ -100,7 +100,11 @@ describe("workspace serialization", () => {
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
     useAgentModeStore.setState({ mode: "agent" });
     useAgentAutonomyStore.setState({ autonomy: "ask" });
-    useAgentDockStore.setState({ collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH });
+    useAgentDockStore.setState({
+      collapsed: false,
+      width: AGENT_DOCK_DEFAULT_WIDTH,
+      maximized: false,
+    });
     useModelSelectionStore.setState({ overrides: {} });
     useResearchSpacesStore.setState({ byName: {} });
     useChatHistoryStore.getState().clear();
@@ -134,7 +138,7 @@ describe("workspace serialization", () => {
       },
       agentMode: "agent",
       autonomyMode: "ask",
-      agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH },
+      agentDock: { collapsed: false, width: AGENT_DOCK_DEFAULT_WIDTH, maximized: false },
       modelOverrides: {},
       modelOverridesV: 3,
       keybindingOverrides: {},
@@ -283,6 +287,26 @@ describe("workspace serialization", () => {
     expect(useModelSelectionStore.getState().overrides.anthropic).toBe("claude-sonnet-4-6");
   });
 
+  it("round-trips a maximized agent dock with its restore width; an older blob restores un-maximized (R15-UI-084)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useAgentDockStore.setState({ width: 640, maximized: true });
+    const saved = serializeWorkspace("max");
+    expect(saved.agentDock).toEqual({ collapsed: false, width: 640, maximized: true });
+
+    useAgentDockStore.setState({ width: AGENT_DOCK_DEFAULT_WIDTH, maximized: false });
+    deserializeWorkspace(saved);
+    expect(useAgentDockStore.getState()).toMatchObject({ width: 640, maximized: true });
+
+    deserializeWorkspace({
+      name: "older",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      agentDock: { collapsed: false, width: 520 },
+    });
+    expect(useAgentDockStore.getState()).toMatchObject({ width: 520, maximized: false });
+  });
+
   it("keeps a current-blob live-catalog model override the static list can't know", () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
@@ -370,6 +394,24 @@ describe("workspace serialization", () => {
     expect(fakeApi.current).toEqual(LAYOUT_A);
     expect(useModulesStore.getState().enabled).toEqual(saved.enabledModules);
     expect(useWorkspaceStore.getState().name).toBe("research");
+  });
+
+  it("never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true, "plugin:vysted-news": true } });
+    expect(serializeWorkspace("now").enabledModules).toEqual({ chart: true });
+
+    // An older blob saved while the plugin was off, restored after re-enabling it.
+    deserializeWorkspace({
+      name: "older",
+      layout: LAYOUT_A,
+      enabledModules: { chart: false, "plugin:vysted-news": false },
+    });
+    expect(useModulesStore.getState().enabled).toEqual({
+      chart: false,
+      "plugin:vysted-news": true,
+    });
   });
 
   it("serializeWorkspace throws when the dockview layout is not ready", () => {

@@ -2,9 +2,12 @@
  * Marketplace store — the install/enable/configure/remove lifecycle over the
  * plugin runtime (FR-050, US10). It reads each catalog plugin's persisted
  * install/enable state + runtime lifecycle state, and drives transitions:
- *   - install/enable → runtime loads the plugin + bridges its panels/commands
- *   - disable        → runtime unloads it + its panels/commands drop
- *   - remove         → runtime unloads + marks not-installed
+ *   - install/enable → runtime persists + loads the plugin + attaches its
+ *                      panels/commands/agents
+ *   - disable        → runtime persists, unloads it + detaches them
+ *   - remove         → the same, and marks it not-installed
+ * The runtime owns persistence, bridging and agent sync (`pluginHost`); every
+ * caller — this store, the Plugin Manager toggle — stays thin.
  *   - configure      → writes BYOK creds to the OS keychain (FR-034/FR-036),
  *                      grants them, and reloads so secrets resolve at use
  * Safety is host-enforced regardless of any plugin (FR-055) — the §6.5 gate
@@ -14,9 +17,8 @@
 import { create } from "zustand";
 
 import { CATALOG_BY_ID } from "@/lib/marketplace";
-import { bridgePluginModule, unbridgePluginModule } from "@/lib/plugin-bootstrap";
+import { enabledByDefault } from "@/lib/plugin-bootstrap";
 import { deleteSecret, getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
-import { syncPluginAgents } from "@/lib/plugin-agents";
 import { sidecarGet } from "@/lib/sidecar-client";
 import { usePluginsStore } from "@/store/plugins";
 
@@ -104,18 +106,12 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       await Promise.all(
         rows.map(async (row) => {
           const id = row.entry.pluginId;
-          let persisted = null;
-          if (runtime) {
-            try {
-              persisted = await runtime.readConfig(id);
-            } catch {
-              persisted = null;
-            }
-          }
-          flags[id] = {
-            installed: persisted?.installed ?? row.entry.preinstalled,
-            enabled: persisted?.enabled ?? row.entry.preinstalled,
+          const on = enabledByDefault(id);
+          const config = (await runtime?.readConfig(id).catch(() => null)) ?? {
+            installed: on,
+            enabled: on,
           };
+          flags[id] = { installed: config.installed, enabled: config.enabled };
           configured[id] = await isConfigured(row.entry);
         }),
       );
@@ -126,11 +122,8 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
   },
 
   stateFor: (pluginId) => {
-    const row = CATALOG_BY_ID[pluginId];
-    const flags = get().flags[pluginId] ?? {
-      installed: row?.entry.preinstalled ?? false,
-      enabled: row?.entry.preinstalled ?? false,
-    };
+    const on = enabledByDefault(pluginId);
+    const flags = get().flags[pluginId] ?? { installed: on, enabled: on };
     const record = usePluginsStore.getState().plugins.find((p) => p.manifest.id === pluginId);
     return {
       pluginId,
@@ -148,13 +141,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
     if (!row || !runtime) return;
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
     try {
-      const snap = await runtime.installPlugin(row.discovered);
-      // Only bridge panels/commands if the plugin actually loaded — a compat
-      // rejection (FR-054) leaves it in `error`/`stopped` and contributes nothing.
-      if (snap.state === "active") {
-        bridgePluginModule(pluginId);
-        await syncPluginAgents(pluginId, true);
-      }
+      await runtime.installPlugin(row.discovered);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
@@ -168,11 +155,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
     if (!row || !runtime) return;
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
     try {
-      const snap = await runtime.enablePlugin(row.discovered);
-      if (snap.state === "active") {
-        bridgePluginModule(pluginId);
-        await syncPluginAgents(pluginId, true);
-      }
+      await runtime.enablePlugin(row.discovered);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
@@ -186,8 +169,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
     try {
       await runtime.disablePlugin(pluginId);
-      unbridgePluginModule(pluginId);
-      await syncPluginAgents(pluginId, false);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
@@ -201,8 +182,6 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
     try {
       await runtime.removePlugin(pluginId);
-      unbridgePluginModule(pluginId);
-      await syncPluginAgents(pluginId, false);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
@@ -219,7 +198,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       // MERGE with the existing grants — a partial re-configure (submitting only
       // some fields) must not wipe previously-stored secrets (FR-036).
       const current = await runtime.readConfig(pluginId);
-      const granted = new Set(current?.grantedSecretIds ?? []);
+      const granted = new Set(current.grantedSecretIds);
       try {
         for (const field of row.entry.credentialFields ?? []) {
           const account = secretAccount(row.entry, field.key);
@@ -248,14 +227,9 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
           installed: true,
         });
       }
-      const enabled = get().flags[pluginId]?.enabled ?? row.entry.preinstalled;
-      if (enabled) {
-        // Reload so the plugin resolves the new secrets via PluginConfig.secrets.
-        const snap = await runtime.enablePlugin(row.discovered);
-        if (snap.state === "active") {
-          bridgePluginModule(pluginId);
-        }
-      }
+      // Restart so initialize() receives the new secrets via PluginConfig.secrets
+      // (a disabled plugin stays stopped — loadPlugin honours the persisted flag).
+      await runtime.reloadPlugin(row.discovered);
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
