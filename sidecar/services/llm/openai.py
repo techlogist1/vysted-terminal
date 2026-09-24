@@ -34,7 +34,6 @@ from models.llm import (
     LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
-    LLMThinkingEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -55,6 +54,7 @@ from .native_search import (
     openai_web_search_options,
     openrouter_web_search_tool,
 )
+from .reasoning_split import ReasoningSplitter
 from .tool_call_rescue import rescue_leaked_tool_call
 
 logger = logging.getLogger(__name__)
@@ -671,6 +671,10 @@ class OpenAIProvider(LLMProvider):
             # surface it as a thinking event so the runtime can echo it on the
             # reconstructed tool-use turn for a well-formed multi-round reasoner.
             emitted_tool_events = False
+            # Chain-of-thought never reaches the answer (R15-LEAD-018): a
+            # separate reasoning field, <think> spans and a reasoning echo in
+            # content all come out as thinking events.
+            splitter = ReasoningSplitter()
             async for chunk in stream:
                 # Some providers (DeepSeek, occasionally OpenAI) emit a
                 # terminal chunk with no choices but populated usage. Guard
@@ -682,14 +686,16 @@ class OpenAIProvider(LLMProvider):
                         reasoning = getattr(delta, "reasoning_content", None) or getattr(
                             delta, "reasoning", None
                         )
-                        if reasoning:
-                            yield LLMThinkingEvent(text=reasoning)
+                        split = splitter.reasoning(reasoning) if reasoning else []
                         if getattr(delta, "annotations", None):
                             cited = True
                         content = getattr(delta, "content", None)
                         if content:
-                            content_parts.append(content)
-                            yield LLMDeltaEvent(text=content)
+                            split += splitter.content(content)
+                        for event in split:
+                            if isinstance(event, LLMDeltaEvent):
+                                content_parts.append(event.text)
+                            yield event
                         tool_calls = getattr(delta, "tool_calls", None) or []
                         for tool_call in tool_calls:
                             index = getattr(tool_call, "index", 0) or 0
@@ -724,6 +730,10 @@ class OpenAIProvider(LLMProvider):
                         input_tokens=getattr(chunk_usage, "prompt_tokens", 0) or 0,
                         output_tokens=getattr(chunk_usage, "completion_tokens", 0) or 0,
                     )
+            for event in splitter.flush():
+                if isinstance(event, LLMDeltaEvent):
+                    content_parts.append(event.text)
+                yield event
             # Stream ended with buffers still pending (no explicit
             # ``tool_calls`` finish_reason from this provider) — flush them so
             # the call is never dropped.

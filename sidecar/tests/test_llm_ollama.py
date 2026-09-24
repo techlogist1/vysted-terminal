@@ -284,3 +284,28 @@ async def test_leaked_json_for_a_tool_not_offered_stays_text(
         monkeypatch, '{"name": "screener_run", "parameters": {"sector": "Defence"}}'
     )
     assert [e.kind for e in out] == ["delta", "delta", "done"]
+
+
+@pytest.mark.asyncio
+async def test_think_span_split_across_three_chunks_is_folded_out(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-018 class pin: a qwen3-style ``<think>`` block in content, its
+    tags cut across three chunks, reaches the UI as thinking, not as the answer."""
+    _patch(
+        monkeypatch,
+        chunks=[
+            {"message": {"content": "<thi"}, "done": False},
+            {"message": {"content": "nk>The user wants the P/E.</thi"}, "done": False},
+            {"message": {"content": "nk>\n\nThe P/E is 30."}, "done": False},
+            {"message": {"content": ""}, "done": True, "done_reason": "stop"},
+        ],
+    )
+    out = [
+        event
+        async for event in OllamaProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="P/E?")], model="qwen3:8b"
+        )
+    ]
+    assert "".join(e.text for e in out if e.kind == "delta") == "\n\nThe P/E is 30."
+    assert "".join(e.text for e in out if e.kind == "thinking") == "The user wants the P/E."

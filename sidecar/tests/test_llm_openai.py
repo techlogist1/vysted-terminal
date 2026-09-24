@@ -1062,3 +1062,39 @@ def test_retry_after_http_date_is_honoured() -> None:
     )
     # An unparseable Retry-After → None.
     assert _retry_after_seconds(_err(429, "not-a-date")) is None
+
+
+@pytest.mark.asyncio
+async def test_nemotron_reasoning_echo_stays_out_of_the_answer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-018, live capture (OpenRouter free nemotron, max_tokens=60): the
+    reasoning streams in ``delta.reasoning``, then on the ``length`` cut the whole
+    of it arrives again as one ``content`` chunk. The chat must not render it."""
+    from pathlib import Path
+
+    from openai.types.chat import ChatCompletionChunk
+
+    fixture = Path(__file__).parent / "fixtures" / "llm" / "nemotron_cot.jsonl"
+    chunks = [
+        ChatCompletionChunk.model_validate(json.loads(line))
+        for line in fixture.read_text().splitlines()
+    ]
+    reasoning = "".join(
+        getattr(choice.delta, "reasoning", None) or "" for c in chunks for choice in c.choices
+    )
+    assert any(choice.delta.content == reasoning for c in chunks for choice in c.choices)
+    _patch_client(monkeypatch, chunks=chunks)
+
+    out = [
+        event
+        async for event in get_provider("openrouter").stream_chat(
+            messages=[LLMMessage(role="user", content="Explain how P/E is used.")],
+            model="nvidia/nemotron-3-super-120b-a12b:free",
+            api_key="sk-test",
+        )
+    ]
+
+    assert [e for e in out if e.kind == "delta"] == []
+    assert "".join(e.text for e in out if e.kind == "thinking") == reasoning
+    assert out[-1].kind == "done" and out[-1].finish_reason == "length"

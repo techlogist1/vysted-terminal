@@ -37,6 +37,7 @@ from .base import (
     client_timeout,
     invalid_tool_args,
 )
+from .reasoning_split import ReasoningSplitter
 from .tool_call_rescue import rescue_leaked_tool_call
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
@@ -214,13 +215,16 @@ class OllamaProvider(LLMProvider):
             finish_reason: str | None = None
             content_parts: list[str] = []
             emitted_tool_call = False
+            # <think> spans in content come out as thinking (R15-LEAD-018).
+            splitter = ReasoningSplitter()
             async for chunk in stream:
                 message = _attr(chunk, "message")
                 if message is not None:
                     content = _attr(message, "content", "") or ""
-                    if content:
-                        content_parts.append(content)
-                        yield LLMDeltaEvent(text=content)
+                    for event in splitter.content(content) if content else []:
+                        if isinstance(event, LLMDeltaEvent):
+                            content_parts.append(event.text)
+                        yield event
                     # Ollama returns tool calls on the (non-streamed) assistant
                     # message rather than as token deltas: emit one tool_use
                     # event per call so the runtime can resolve them before the
@@ -247,6 +251,10 @@ class OllamaProvider(LLMProvider):
                         input_tokens=int(prompt_eval),
                         output_tokens=int(eval_count),
                     )
+            for event in splitter.flush():
+                if isinstance(event, LLMDeltaEvent):
+                    content_parts.append(event.text)
+                yield event
             # Local models often write the call as JSON text instead of using
             # tool_calls (llama3.1:8b: ``{"name": "write_note", "parameters":
             # {...}}``). Rescue it so the call runs instead of rendering as prose.
