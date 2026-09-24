@@ -95,6 +95,11 @@ vi.mock("./ichimoku-cloud-primitive", () => {
 // --- sidecar-client / api mocks --------------------------------------------
 const historyMock = vi.fn();
 const fetchIndicatorsMock = vi.fn();
+// R15-UI-091: the untouched-chart indicator-seeding effect hits this — default
+// to an empty suggested set so a freshly rendered `<ChartPanel />` in an
+// existing test keeps its prior (empty) starting selection unless a test
+// overrides the resolved value itself.
+const suggestedIndicatorsMock = vi.fn().mockResolvedValue({ indicators: [] });
 
 vi.mock("@/lib/sidecar-client", async () => {
   const actual =
@@ -102,6 +107,7 @@ vi.mock("@/lib/sidecar-client", async () => {
   return {
     ...actual,
     sidecarApi: { history: (...args: unknown[]) => historyMock(...args) },
+    sidecarGet: (...args: unknown[]) => suggestedIndicatorsMock(...args),
   };
 });
 
@@ -195,6 +201,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   historyMock.mockResolvedValue(makeSeries("SPY"));
   fetchIndicatorsMock.mockResolvedValue(makeIndicatorResponse());
+  // Untouched by default — most existing tests exercise a manual toggle and
+  // must not have the R15-UI-091 seed silently pre-populate `selected`.
+  suggestedIndicatorsMock.mockResolvedValue({ indicators: [] });
   useChartDrawingsStore.setState({ byPanel: {}, views: {} });
   resetSettingsStoreForTests();
   useChartSyncBus.setState({
@@ -216,6 +225,51 @@ describe("ChartPanel", () => {
       expect(historyMock).toHaveBeenCalledWith("SPY", "1d", undefined, "equity");
     });
     expect(await screen.findByText(/via yfinance/)).toBeInTheDocument();
+  });
+
+  it("an untouched fresh panel seeds the suggested indicator set for its (asset class, timeframe) (R15-UI-091)", async () => {
+    suggestedIndicatorsMock.mockResolvedValue({ indicators: ["ema:9", "ema:21", "vwap", "rsi"] });
+    render(<ChartPanel />);
+    await waitFor(() => {
+      expect(suggestedIndicatorsMock).toHaveBeenCalledWith("/indicators/suggested", {
+        timeframe: "1d",
+        asset_class: "equity",
+      });
+    });
+    await waitFor(() => {
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith(
+        "SPY",
+        expect.arrayContaining(["ema:9", "ema:21", "vwap", "rsi"]),
+        "1d",
+        "equity",
+      );
+    });
+  });
+
+  it("re-seeds the suggested set on a timeframe change while untouched, but stops once the user edits", async () => {
+    suggestedIndicatorsMock.mockResolvedValueOnce({ indicators: ["ma", "volume", "rsi", "macd"] });
+    render(<ChartPanel />);
+    await waitFor(() => expect(suggestedIndicatorsMock).toHaveBeenCalledTimes(1));
+
+    // A user edit (toggle) turns off further auto-seeding.
+    toggleIndicatorByName("Relative Strength Index");
+    suggestedIndicatorsMock.mockClear();
+
+    fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("SPY", "1h", undefined, "equity");
+    });
+    // The touched chart's timeframe change never re-fetches the suggested set.
+    expect(suggestedIndicatorsMock).not.toHaveBeenCalled();
+  });
+
+  it("a saved chart default (already touched) never fetches the suggested set", async () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "SPY", timeframe: "1d", indicators: ["ma"] });
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    expect(suggestedIndicatorsMock).not.toHaveBeenCalled();
   });
 
   it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
