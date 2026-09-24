@@ -365,7 +365,14 @@ export async function consumeBacktestStream(
     signal,
   });
   if (!response.ok || !response.body) {
-    throw new Error(`Backtest stream failed (${response.status})`);
+    // A 422 names the offending param (R15-UI-010); keep that over the bare status.
+    const detail = await response
+      .json()
+      .then((body: { detail?: unknown }) => body.detail)
+      .catch(() => undefined);
+    throw new Error(
+      typeof detail === "string" ? detail : `Backtest stream failed (${response.status})`,
+    );
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");

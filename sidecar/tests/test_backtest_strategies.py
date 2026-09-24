@@ -24,6 +24,7 @@ import math
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 
 from models.backtest import BacktestRequest
 from services import backtest_engine, backtest_store
@@ -35,6 +36,7 @@ from services.backtest_strategies import (
     TrendFollowingStrategy,
     list_strategy_specs,
     register_all,
+    validate_params,
 )
 
 
@@ -398,3 +400,33 @@ async def test_regime_aware_runs_end_to_end_through_engine() -> None:
     )
     result = await backtest_engine.run_backtest(request, bar_loader=loader)
     assert len(result.equity_curve) == len(bars)
+
+
+# ---------------------------------------------------------------------------
+# R15-UI-010 — params are checked against paramsSchema before a run starts
+# ---------------------------------------------------------------------------
+
+
+def _run_body(strategy_id: str, params: dict[str, object]) -> dict[str, object]:
+    return {
+        "strategyId": strategy_id,
+        "params": params,
+        "symbols": ["SPY"],
+        "startDate": "2024-01-01",
+        "endDate": "2024-12-31",
+    }
+
+
+def test_out_of_range_param_is_a_422_naming_the_field(client: TestClient) -> None:
+    response = client.post("/backtest/run", json=_run_body("trend_following", {"short_window": 0}))
+    assert response.status_code == 422
+    assert response.json()["detail"] == "`short_window` must be between 2 and 200"
+
+
+def test_a_number_param_given_text_is_a_422_and_defaults_pass(client: TestClient) -> None:
+    response = client.post("/backtest/run", json=_run_body("mean_reversion", {"entry_z": "-2x"}))
+    assert response.status_code == 422
+    assert response.json()["detail"] == "`entry_z` must be a number"
+    for spec in STRATEGY_SPECS:
+        defaults = {k: v["default"] for k, v in spec["paramsSchema"]["properties"].items()}
+        validate_params(spec["id"], defaults)

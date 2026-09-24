@@ -444,3 +444,35 @@ describe("BacktestPanel warnings (D65)", () => {
     });
   });
 });
+
+describe("BacktestPanel params bounds (R15-UI-010)", () => {
+  const BOUNDED: BacktestStrategySpec[] = [
+    {
+      id: "trend_following",
+      name: "Trend Following",
+      description: "golden cross",
+      paramsSchema: {
+        type: "object",
+        properties: {
+          short_window: { type: "integer", default: 50, minimum: 2, maximum: 200 },
+        },
+      },
+    },
+  ];
+
+  it("clamps an out-of-range entry to the bound and a cleared one to the default on blur", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: BOUNDED });
+    render(<BacktestPanel />);
+    const input = await waitFor(() => screen.getByLabelText("short_window"));
+    expect(input).toHaveAttribute("min", "2");
+    expect(input).toHaveAttribute("max", "200");
+
+    fireEvent.change(input, { target: { value: "0" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(2));
+
+    fireEvent.change(input, { target: { value: "" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(input).toHaveValue(50));
+  });
+});

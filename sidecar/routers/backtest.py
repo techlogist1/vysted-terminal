@@ -26,7 +26,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from models.backtest import BacktestRequest, BacktestResult, BacktestRunEvent
 from services import backtest_dsl, backtest_engine, backtest_store
-from services.backtest_strategies import list_strategy_specs
+from services.backtest_strategies import list_strategy_specs, validate_params
 from services.bar_loader import load_bars
 
 logger = logging.getLogger(__name__)
@@ -42,6 +42,10 @@ router = APIRouter(prefix="/backtest", tags=["backtest"])
 @router.post("/run")
 async def run_backtest(request: BacktestRequest) -> StreamingResponse:
     """Open an SSE stream of BacktestRunEvent JSON frames."""
+    try:
+        validate_params(request.strategy_id, request.params)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     async def _generator() -> AsyncIterator[bytes]:
         import asyncio
