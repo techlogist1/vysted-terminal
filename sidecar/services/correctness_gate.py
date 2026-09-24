@@ -622,7 +622,7 @@ def reconcile_revenue(
         if gap > _REVENUE_STATEMENT_DIVERGENCE:
             reasons.append(
                 f"revenue_ttm {revenue:,.0f} diverges {gap:.0%} from the provider's own "
-                f"latest annual Total Revenue ({annual_revenue:,.0f}, FY {period}) — the "
+                f"latest annual Total Revenue ({annual_revenue:,.0f}, FY ending {period}) — the "
                 "trailing figure may be mis-scoped"
             )
     margin, net_income = f.profit_margin, f.net_income_ttm

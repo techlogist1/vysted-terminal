@@ -26,10 +26,14 @@ declaration table and the same preference-order fallthrough.
 
 from __future__ import annotations
 
+import calendar
 import inspect
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
+from itertools import pairwise
+from statistics import median_low
 from typing import Any, Literal
 
 import config
@@ -37,6 +41,7 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    FinancialStatement,
     Fundamentals,
     IncomeStatement,
 )
@@ -70,8 +75,8 @@ ModelKey = Literal[
     "macro_series",
 ]
 
-# Statement depth (R15-DATA-026): quarterly periods are ISO period-end dates,
-# annual ones the fiscal year.
+# Statement depth (R15-DATA-026). Periods are ISO period-end dates for annual and
+# quarterly alike, missing expected periods marked by :func:`_mark_gaps` (R15-LEAD-015).
 StatementPeriod = Literal["annual", "quarterly"]
 
 
@@ -512,17 +517,66 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
     )
 
 
+#: A period end this close to the expected one is that period (fiscal calendars
+#: that end on a weekday, not a month end, land a few days off).
+_GAP_TOLERANCE_DAYS = 45
+
+
+def _months_back(end: date, months: int) -> date:
+    """The month end ``months`` before ``end``'s month."""
+    year, month = divmod(end.year * 12 + end.month - 1 - months, 12)
+    return date(year, month + 1, calendar.monthrange(year, month + 1)[1])
+
+
+def _mark_gaps[S: FinancialStatement](statement: S) -> S:
+    """Insert an explicit gap period wherever an expected period is missing
+    between two served ones (R15-LEAD-015).
+
+    The expected step is the statement's own cadence (the smaller median gap
+    between period ends: 3 months quarterly, 6 half-yearly, 12 annual), so a
+    half-yearly filer's missing quarters are not gaps. Each gap is listed in
+    ``periods`` and ``gaps`` with a null value in every line; a statement
+    whose labels are not ISO dates, or with too few periods to show a
+    cadence, is returned unchanged."""
+    try:
+        ends = sorted({date.fromisoformat(p) for p in statement.periods}, reverse=True)
+    except ValueError:
+        return statement
+    if len(ends) < 3:
+        return statement
+    step = max(1, round(median_low((a - b).days for a, b in pairwise(ends)) / 30.44))
+    gaps: list[date] = []
+    for newer, older in pairwise(ends):
+        expected = _months_back(newer, step)
+        while (expected - older).days > _GAP_TOLERANCE_DAYS:
+            gaps.append(expected)
+            expected = _months_back(expected, step)
+    if not gaps:
+        return statement
+    labels = [d.isoformat() for d in gaps]
+    periods = sorted([*statement.periods, *labels], reverse=True)
+    lines = [
+        line.model_copy(update={"values": {**line.values, **dict.fromkeys(labels)}})
+        for line in statement.lines
+    ]
+    return statement.model_copy(
+        update={"periods": periods, "lines": lines, "gaps": sorted(labels, reverse=True)}
+    )
+
+
 async def get_income_statement(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return await _resolve_async(
-        "income_statement",
-        "equity",
-        _effective_region(symbol, region),
-        _statement_validator(symbol),
-        symbol,
-        period,
+    return _mark_gaps(
+        await _resolve_async(
+            "income_statement",
+            "equity",
+            _effective_region(symbol, region),
+            _statement_validator(symbol),
+            symbol,
+            period,
+        )
     )
 
 
@@ -530,13 +584,15 @@ async def get_balance_sheet(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return await _resolve_async(
-        "balance_sheet",
-        "equity",
-        _effective_region(symbol, region),
-        _statement_validator(symbol),
-        symbol,
-        period,
+    return _mark_gaps(
+        await _resolve_async(
+            "balance_sheet",
+            "equity",
+            _effective_region(symbol, region),
+            _statement_validator(symbol),
+            symbol,
+            period,
+        )
     )
 
 
@@ -544,13 +600,15 @@ async def get_cash_flow(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return await _resolve_async(
-        "cash_flow",
-        "equity",
-        _effective_region(symbol, region),
-        _statement_validator(symbol),
-        symbol,
-        period,
+    return _mark_gaps(
+        await _resolve_async(
+            "cash_flow",
+            "equity",
+            _effective_region(symbol, region),
+            _statement_validator(symbol),
+            symbol,
+            period,
+        )
     )
 
 

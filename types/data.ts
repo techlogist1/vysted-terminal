@@ -207,9 +207,12 @@ export interface StatementLine {
 /** Shared shape for the three financial statements. */
 export interface FinancialStatement {
   symbol: string;
+  /** ISO period-end dates, newest first (annual and quarterly alike). */
   periods: string[];
   lines: StatementLine[];
   provider: string;
+  /** Expected periods the provider did not serve: listed in `periods`, null in every line. */
+  gaps?: string[];
 }
 
 /** Income statement excerpt. */
