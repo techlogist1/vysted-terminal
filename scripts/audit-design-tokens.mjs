@@ -18,9 +18,11 @@
  *   --report  print violations but exit 0 (inventory mode for the sweep team)
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+// import.meta.dirname, not URL.pathname: the latter is "/C:/..." on Windows, which
+// resolves nowhere, so the audit walked zero files and printed clean (R15-CODE-PLATFORM-027).
+const ROOT = resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
 const reportOnly = args.includes("--report");
 const targets = args.filter((a) => !a.startsWith("--"));
@@ -72,16 +74,18 @@ function* walk(dir) {
 }
 
 const violations = [];
+let scanned = 0;
 for (const scanRoot of SCAN) {
-  let abs = join(ROOT, scanRoot);
+  const abs = resolve(ROOT, scanRoot);
   try {
     statSync(abs);
   } catch {
     continue;
   }
   for (const file of walk(abs)) {
-    const rel = relative(ROOT, file);
+    const rel = relative(ROOT, file).split(sep).join("/");
     if (SKIP_FILES.has(rel)) continue;
+    scanned++;
     const lines = readFileSync(file, "utf8").split("\n");
     lines.forEach((line, i) => {
       if (line.includes("tokens-ok:")) return; // justified exception
@@ -104,6 +108,13 @@ for (const scanRoot of SCAN) {
   }
 }
 
+if (scanned === 0) {
+  console.error(
+    `design-token audit scanned 0 files under ${SCAN.join(", ")}; refusing to report clean`,
+  );
+  process.exit(1);
+}
+
 if (violations.length) {
   const byFile = {};
   for (const v of violations) {
@@ -118,4 +129,4 @@ if (violations.length) {
   console.log(`\n${violations.length} violation(s) of R9_DESIGN_SYSTEM.md`);
   process.exit(reportOnly ? 0 : 1);
 }
-console.log("design-token audit clean");
+console.log(`design-token audit clean (${scanned} files)`);
