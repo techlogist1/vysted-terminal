@@ -1140,25 +1140,40 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(useSettingsStore.getState().region).toBe("IN");
   });
 
-  it("save_screen delegates to the screener store's saveScreen when it ships", () => {
-    const saveScreen = vi.fn();
-    useScreenerStore.setState({ saveScreen } as never);
-    const label = applyHostAction("save_screen", {
+  it("save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)", () => {
+    // The real store at its defaults: pe<20 + mcap + sector on screen.
+    useScreenerStore.getState().__resetForTests();
+    useScreenerStore.getState().setFormula("roe > 0.1");
+    const input = {
       name: "IT value",
       criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
       universe: "nse-all",
-    });
-    expect(label).toBe('Saved the screen as "IT value"');
-    expect(saveScreen).toHaveBeenCalledWith("IT value", {
-      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
-      universe: "nse-all",
-    });
-    expect(describeHostAction("save_screen", { name: "IT value" }).kind).toBe("data-write");
-  });
-
-  it("save_screen is an honest null until the saved-screens API lands", () => {
-    useScreenerStore.setState({ saveScreen: undefined } as never);
-    expect(applyHostAction("save_screen", { name: "IT value" })).toBeNull();
+    };
+    expect(describeHostAction("save_screen", input).after).toBe(
+      'Saved screens: +"IT value" (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", input)).toBe('Saved the screen as "IT value"');
+    expect(useScreenerStore.getState().savedScreens).toEqual([
+      {
+        name: "IT value",
+        universe: "nse-all",
+        criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+        group: null,
+        formula: undefined,
+        combinator: "and",
+      },
+    ]);
+    // Same name again: the diff and the label say "replaced"; one screen remains.
+    const again = { name: "IT value", criteria: [{ field: "roe", operator: "gt", value: 0.2 }] };
+    expect(describeHostAction("save_screen", again).after).toBe(
+      'Saved screens: "IT value" replaced (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", again)).toBe('Replaced the saved screen "IT value"');
+    const saved = useScreenerStore.getState().savedScreens;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].criteria).toEqual([{ field: "roe", operator: "gt", value: 0.2 }]);
+    expect(applyHostAction("save_screen", { name: " " })).toBeNull();
+    useScreenerStore.getState().__resetForTests();
   });
 
   it("save_layout is an honest null when the layout has not mounted", async () => {
@@ -1167,25 +1182,26 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(await applyHostActionAsync("save_layout", { name: "My desk" })).toBeNull();
   });
 
-  it("write_screener_filters passes formula + run through to applyFilters", () => {
+  it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
     useScreenerStore.getState().__resetForTests();
-    const applyFilters = vi.fn();
-    useScreenerStore.setState({ applyFilters } as never);
+    // Only the network-backed run is stubbed; applyFilters is the real store's.
+    const runScreener = vi.fn(async () => null);
+    useScreenerStore.setState({ runScreener });
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
-    const label = applyHostAction("write_screener_filters", {
+    const input = {
       criteria: [{ field: "roe", operator: "gt", value: 0.18 }],
       universe: "india-all",
       formula: "roe > 0.18 and pe_ratio < 30",
-      run: true,
-    });
-    expect(label).toMatch(/running/);
-    expect(applyFilters).toHaveBeenCalledWith(
-      expect.objectContaining({
-        universe: "india-all",
-        formula: "roe > 0.18 and pe_ratio < 30",
-        run: true,
-      }),
-    );
+    };
+    expect(applyHostAction("write_screener_filters", input)).toMatch(/review and Run$/);
+    expect(runScreener).not.toHaveBeenCalled();
+    const label = applyHostAction("write_screener_filters", { ...input, run: true });
+    expect(label).toMatch(/running$/);
+    expect(runScreener).toHaveBeenCalledTimes(1);
+    const s = useScreenerStore.getState();
+    expect(s.criteria).toEqual([{ field: "roe", operator: "gt", value: 0.18 }]);
+    expect(s.universe).toBe("india-all");
+    expect(s.formula).toBe("roe > 0.18 and pe_ratio < 30");
     useScreenerStore.getState().__resetForTests();
   });
 });
@@ -1244,13 +1260,11 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
   };
   const chartPanel = { api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() } };
-  const { saveScreen } = useScreenerStore.getState();
 
   function setup() {
     resetSettingsStoreForTests();
     resetBriefStoreForTests();
     useScreenerStore.getState().__resetForTests();
-    useScreenerStore.setState({ saveScreen });
     useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
     useSymbolsStore.setState({ entries: [{ symbol: "TSLA", assetClass: "equity" }] });
     usePortfoliosStore.getState().setAll([

@@ -1131,12 +1131,20 @@ export function describeIntent(intent: HostIntent): {
       };
     }
     case "save_screen": {
-      const screenName = intent.screenName || "Agent screen";
+      const { screenName, recipe, count } = intent;
+      const replaces = useScreenerStore.getState().savedScreens.some((s) => s.name === screenName);
+      const what = count
+        ? criteriaText(count)
+        : recipe.formula
+          ? "a formula"
+          : "the current filters";
       return {
         kind: "data-write",
-        title: `Save the screen as "${screenName}"`,
-        before: "Saved screens: unchanged",
-        after: `Saved screens: +"${screenName}"${intent.count ? ` (${criteriaText(intent.count)})` : " (current filters)"}`,
+        title: `Save the screen as "${screenName || "?"}"`,
+        before: replaces ? `Saved screens: "${screenName}" exists` : "Saved screens: unchanged",
+        after: !screenName
+          ? `Saved screens: no name given — ${CANT_APPLY}`
+          : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})`,
       };
     }
     case "portfolio_add_position": {
@@ -1515,20 +1523,19 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       if (count === 0 && !recipe.formula) {
         return fail("no well-formed screener criteria");
       }
-      const screener = useScreenerStore.getState();
-      // `formula`/`run` pass through to the store's applyFilters (R10 — Team
-      // FRONTEND-DATA extends the input type in the same wave; the cast keeps
-      // the two branches integrable without a cross-team type dependency).
-      screener.applyFilters({
+      // A formula-less write keeps the user's own formula (applyFilters' rule).
+      useScreenerStore.getState().applyFilters({
         criteria: recipe.criteria,
         group: recipe.group,
         universe: recipe.universe,
         ...(recipe.formula ? { formula: recipe.formula } : {}),
-        ...(run ? { run: true } : {}),
-      } as Parameters<typeof screener.applyFilters>[0]);
-      // Stage the panel so the proposed filters are on screen for the user to Run.
-      // The screener module REGISTERS id "screener-panel" — the bare "screener"
-      // id silently no-opped here (same drift class as the arrange map).
+      });
+      if (run) {
+        void useScreenerStore.getState().runScreener();
+      }
+      // Stage the panel so the proposed filters are on screen (running, or for
+      // the user to Run). The screener module REGISTERS id "screener-panel" —
+      // the bare "screener" id silently no-opped (same drift class as arrange).
       useWorkspaceStore.getState().openPanel("screener-panel");
       const what = count
         ? `${count} screener ${count === 1 ? "criterion" : "criteria"}${recipe.formula ? " + a formula" : ""}`
@@ -1556,23 +1563,27 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       if (!screenName) {
         return fail("no screen name given");
       }
-      // Delegate to the screener store's saved-screens API (Team FRONTEND-DATA
-      // ships `saveScreen` in the same wave). The duck-typed seam keeps the two
-      // branches independently green; until the API lands the action returns
-      // an honest null (re-pends) instead of narrating a save that never was.
-      const screener = useScreenerStore.getState() as unknown as {
-        saveScreen?: (name: string, payload: Record<string, unknown>) => unknown;
-      };
-      if (typeof screener.saveScreen !== "function") {
-        return fail("saved screens are unavailable");
+      // The store saves its current draft, so the agent's recipe is written
+      // into the draft first — the saved screen is the recipe, formula and all
+      // (none given = none). No recipe saves the current filters, as the diff says.
+      const screener = useScreenerStore.getState();
+      if (intent.count > 0 || recipe.formula) {
+        screener.applyFilters({
+          criteria: recipe.criteria,
+          group: recipe.group,
+          universe: recipe.universe,
+          formula: recipe.formula,
+        });
+      } else if (recipe.universe) {
+        screener.setUniverse(recipe.universe);
       }
-      screener.saveScreen(screenName, {
-        ...(recipe.criteria.length && !recipe.group ? { criteria: recipe.criteria } : {}),
-        ...(recipe.group ? { group: recipe.group } : {}),
-        ...(recipe.formula ? { formula: recipe.formula } : {}),
-        ...(recipe.universe ? { universe: recipe.universe } : {}),
-      });
-      return done(`Saved the screen as "${screenName}"`);
+      const replaces = screener.savedScreens.some((s) => s.name === screenName);
+      useScreenerStore.getState().saveScreen(screenName);
+      return done(
+        replaces
+          ? `Replaced the saved screen "${screenName}"`
+          : `Saved the screen as "${screenName}"`,
+      );
     }
     case "set_region":
       if (!intent.region) {
