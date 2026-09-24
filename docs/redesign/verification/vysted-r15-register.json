@@ -2617,8 +2617,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "source": "verifier batch-8"
+   "status": "fixed",
+   "source": "verifier batch-8",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-LIFECYCLE-001",
@@ -3503,7 +3504,8 @@
     "ui-panels"
    ],
    "status": "fixed",
-   "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
+   "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4",
+   "note": "Batch-9 verifier (6b70230) fresh-case residual on the fixed class: BHP.AX still reads 'live' while the ASX is closed, and AAPL's daily bar still reads 'eod' intraday. Status left 'fixed' per the batch-4 closure; flag for a follow-up verifier pass."
   },
   {
    "id": "R15-AGENT-025",
@@ -4112,8 +4114,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open",
-   "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case. || Batch-6 (5e14731) not certified: the Ollama leg is fixed live (distinct call_<uuid> ids, 200 ack, model confirms). The cross-run leg still reproduces: a scratch pytest case simulating Gemini-style per-stream ids (set_chart_symbol_0) reused across two invoke_agent turns showed a late ack from turn 1 falsely grounding turn 2's action as 'applied' (seen_call_ids starts empty per invocation). Needs ids whose uniqueness holds across runs, not just per turn. | Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-8). Stays open. | Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Stays open."
+   "status": "fixed",
+   "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case. || Batch-6 (5e14731) not certified: the Ollama leg is fixed live (distinct call_<uuid> ids, 200 ack, model confirms). The cross-run leg still reproduces: a scratch pytest case simulating Gemini-style per-stream ids (set_chart_symbol_0) reused across two invoke_agent turns showed a late ack from turn 1 falsely grounding turn 2's action as 'applied' (seen_call_ids starts empty per invocation). Needs ids whose uniqueness holds across runs, not just per turn. | Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-8). Stays open. | Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Stays open.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-AGENT-047",
@@ -4195,7 +4198,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: no live native-search lane could be exercised under the guard: the OpenAI gpt-4o(-mini)-search-preview models the per-model gate targets now 404 model_not_found ('deprecated') upstream, the OpenRouter paid lane is unfunded, and no Gemini/Anthropic key is reachable. Only the focused unit tests ran (58 passed); nothing reached the product boundary."
   },
   {
    "id": "R15-AGENT-050",
@@ -4565,7 +4569,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: tool-path scoring/tagging now hold (AAPL: 18 items, all scored/tagged), but the plan's own crypto case still fails: symbols=BTC/USDT returns 0 items although the live feed carries a Bitcoin options-expiry story -- news_provider._aliases yields ['BTC/USDT','BTC'] with no 'Bitcoin'."
   },
   {
    "id": "R15-AGENT-064",
@@ -4643,7 +4648,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: integrator-partial. The sidecar leg holds (done frame carries spend_usd). The footer leg is undelivered: ChatSidebar.tsx still hard-codes spendUsd: 0, and streaming.ts does not parse spend_usd."
   },
   {
    "id": "R15-AGENT-083",
@@ -4721,7 +4727,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: fast path works for short symbols (AAPL, @AAPL, SPY, TCS.NS, INFY.NS, BRK.B), but BARE_TICKER_SHAPE caps a symbol at 10 characters, so RELIANCE.NS/HDFCBANK.NS/BAJFINANCE.NS on the India-default watchlist still pay the LLM round-trip although a code comment claims RELIANCE.NS is covered. A bare 'RELIANCE' with RELIANCE.NS watched also stays raw."
   },
   {
    "id": "R15-CODE-AGENT-002",
@@ -4828,7 +4835,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-CODE-AGENT-006",
@@ -4906,8 +4914,9 @@
     "research-search",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Live, the research tool result still carries no 'brief' key (C6). Stays open."
+   "status": "fixed",
+   "note": "Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Live, the research tool result still carries no 'brief' key (C6). Stays open.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-CODE-AGENT-009",
@@ -5444,7 +5453,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-CODE-FRONTEND-017",
@@ -6402,7 +6412,8 @@
     "HYG-2"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-CROSS-PLATFORM-003",
@@ -6452,7 +6463,8 @@
     "HYG-4"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-048",
@@ -6503,7 +6515,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: ROCE is in the contract and derived (matches screener within tolerance across CREST/NAPEROL/DHOOTTRANS/ICON), but metrics.ts has no roce row so the panel never renders it — the plan's panel leg is undelivered. Lead repro ELCIDIN is still unavailable (no share count or equity)."
   },
   {
    "id": "R15-DATA-049",
@@ -6649,7 +6662,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9",
+   "note": "Batch-9 verifier minor: field_meta.sector.provider still says yfinance although the sector value now comes from the resolver."
   },
   {
    "id": "R15-DATA-053",
@@ -6704,7 +6719,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: basis is hard-coded 'consolidated' for every .NS/.BO (yfinance_provider). This is false live for SMR (standalone, BSE intimation 'Audited STANDALONE') and single-entity ICON. No basis chip renders in the panel — a new mislabel, not a derived basis."
   },
   {
    "id": "R15-DATA-055",
@@ -6736,7 +6752,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: wire fields hold for DHOOTTRANS/SMR/forward_pe_fiscal_year, but NAPEROL listing_date 2002-07-01 is Yahoo's first-trade date (data start), not the listing date. The plan's EquityOverviewPanel since-listing leg was not delivered: the panel still shows '52w'/'1Y change' for a 38-day-old listing."
   },
   {
    "id": "R15-DATA-056",
@@ -6908,7 +6925,7 @@
    ],
    "tier4": false,
    "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open."
+   "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open. || Batch-9 (6b70230) not certified: entry repros are fixed (/macro/GDP generic sentence, /quotes/ZZZZNOTREAL 404 not_found), but a fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail (an openbb ProviderError with no __cause__ is treated as authored, and the series route passes an unvalidated provider value upstream)."
   },
   {
    "id": "R15-DATA-062",
@@ -6934,7 +6951,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-063",
@@ -7009,7 +7027,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-066",
@@ -7035,7 +7054,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9",
+   "note": "Batch-9 verifier caveat: one contended SPY quote took 8.6s during a cold batch (worth watching during market hours)."
   },
   {
    "id": "R15-DATA-067",
@@ -7088,7 +7109,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none."
   },
   {
    "id": "R15-DATA-069",
@@ -7112,7 +7134,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-070",
@@ -7210,7 +7233,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-074",
@@ -7691,7 +7715,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-093",
@@ -7742,7 +7767,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-DATA-095",
@@ -8211,8 +8237,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "source: verifier batch-5"
+   "status": "fixed",
+   "note": "source: verifier batch-5",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-LEAD-018",
@@ -8275,8 +8302,52 @@
    "operator_areas": [
     "data-smallcaps"
    ],
+   "status": "fixed",
+   "source": "verifier batch-8",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
+  },
+  {
+   "id": "R15-LEAD-024",
+   "title": "IMF WEO catalog series run past the current year into the IMF's projection horizon with no projection label, so a forecast value (e.g. 2031 GDP growth) renders identically to an observed one",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "macro-quant",
+   "files": [
+    "sidecar/services/macro/imf_provider.py",
+    "src/modules/macro/MacroChart.tsx"
+   ],
+   "repro": "IMF WEO: projections through 2031 are unlabelled as projections (batch-9 verifier, live api.imf.org WEO/IND.NGDP_RPCH.A series). The provider's own code comment (imf_provider.py:61) already notes 'WEO annual rows run into the IMF's projection years', but neither MacroObservation/MacroSeriesExtended nor MacroChart.tsx carries or renders an is_projection/is_forecast flag -- every point in the series is presented the same way.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-9/VERDICTS.md 'Issues seen outside the entries' (batch-9 verifier, live api.imf.org check for R15-UI-053); sidecar/services/macro/imf_provider.py:60-63 (comment acknowledging the projection horizon with no code consequence); src/modules/macro/MacroChart.tsx (renders MacroObservation points with no historical/projected distinction).",
+   "fix_shape": "Carry an is_projection bool (or a projection cutoff year) on MacroObservation for WEO series, set it from the IMF SDMX response's own vintage/forecast markers where available (else a curated cutoff year per series), and render projected points with a distinct style + a 'projected' legend note in MacroChart. Pin with a test asserting a known-future WEO point is flagged.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ],
    "status": "open",
-   "source": "verifier batch-8"
+   "source": "verifier batch-9"
+  },
+  {
+   "id": "R15-LEAD-026",
+   "title": "GET /history/<unknown-symbol> returns 200 with an empty series and reason: null instead of a typed empty-series reason, so the chart's generic empty-state copy cannot distinguish 'no such symbol' from any other empty case",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "error-layer",
+   "files": [
+    "sidecar/routers/history.py"
+   ],
+   "repro": "GET /history/ZZZZNOTREAL returns 200, empty, with reason: null (batch-9 verifier). history.py's _empty_series_reason() only returns a typed reason (in_eod_only) for an INTRADAY timeframe on a KNOWN IN listing; every other empty case -- including an unresolvable/unknown symbol -- falls through to None, and the chart keeps its generic copy per the function's own docstring (R15-DATA-064).",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-9/VERDICTS.md 'Issues seen outside the entries' (batch-9 verifier); sidecar/routers/history.py _empty_series_reason() (only branch returns 'in_eod_only'; every other path returns None, including an unknown symbol).",
+   "fix_shape": "Give _empty_series_reason (or its caller) an 'unknown_symbol' reason when symbol_resolver cannot resolve the symbol at all, distinct from a resolvable symbol with a genuinely empty range. Pin with a test asserting /history/<garbage-symbol> carries a non-null typed reason.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "ui-panels"
+   ],
+   "status": "open",
+   "source": "verifier batch-9"
   },
   {
    "id": "R15-LIFECYCLE-010",
@@ -8512,7 +8583,8 @@
     "research-search",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-LIFECYCLE-019",
@@ -8592,7 +8664,8 @@
     "data-smallcaps",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-LIFECYCLE-022",
@@ -8699,7 +8772,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-LIFECYCLE-026",
@@ -9222,8 +9296,9 @@
     "research-search",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: Much improved but short of the target. Per-leg latency_ms is stamped, the witness time-box works live ('52-week range cross-check timed out after 6s - dropped'), the web round runs alongside the fan-out. NORMAL wall fell from 33-38 s to 7.7-19.7 s. But 2 of 5 cold live runs still miss the <=15 s FR-070 target: KSE via the agent took 16.1 s ('pulled 4/4 data sources' 15,401 ms), Fusion Finance took 19.7 s over MCP. The price/fundamentals legs ahead of the witnesses are not time-boxed, and Yahoo was throttling (429) during the window. Stays open."
+   "status": "fixed",
+   "note": "Batch-8 (68bb7aa4) not certified: Much improved but short of the target. Per-leg latency_ms is stamped, the witness time-box works live ('52-week range cross-check timed out after 6s - dropped'), the web round runs alongside the fan-out. NORMAL wall fell from 33-38 s to 7.7-19.7 s. But 2 of 5 cold live runs still miss the <=15 s FR-070 target: KSE via the agent took 16.1 s ('pulled 4/4 data sources' 15,401 ms), Fusion Finance took 19.7 s over MCP. The price/fundamentals legs ahead of the witnesses are not time-boxed, and Yahoo was throttling (429) during the window. Stays open.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-RESEARCH-028",
@@ -9250,7 +9325,8 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: integrator marked it partial (Settings SearXNG row has no 'degraded'); the sidecar leg also fails live: /search/searxng/status reads 'ready' while the container returns 0 results for three real queries with unresponsive_engines brave/duckduckgo/startpage, because _apply_quality checks has_results before unresponsive_engines. The live research brief got keyless-fallback with web_reason None, never 'searxng_degraded'."
   },
   {
    "id": "R15-RESEARCH-029",
@@ -9471,8 +9547,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: Not claimed: the integrator recorded it as a partial landing that stays open (earnings/screener still flatten the error). Its macro leg holds live: keyless FRED DGS10 502 loaded exactly once, with no 12-retry storm. Stays open."
+   "status": "fixed",
+   "note": "Batch-8 (68bb7aa4) not certified: Not claimed: the integrator recorded it as a partial landing that stays open (earnings/screener still flatten the error). Its macro leg holds live: keyless FRED DGS10 502 loaded exactly once, with no 12-retry storm. Stays open.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-016",
@@ -9500,7 +9577,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-017",
@@ -9555,7 +9633,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: every site the register names now uses ConfirmButton (Agent Builder, workspace dialog, both portfolio sites, Settings key removal/reset/layouts), but the fresh class case fails: ScreenerPanel's 'Delete saved screen' and Marketplace 'Remove' still act on one unconfirmed click."
   },
   {
    "id": "R15-UI-019",
@@ -9788,7 +9867,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: recorder half holds (Cmd+K on macOS records mod+k), but conflicts() still groups raw combo strings -- the plan's 'compares resolved chords' leg was not delivered. Fresh case: remapping chart.open to shift+mod+p beside palette.open=mod+p gives conflicts()=[] although Cmd+Shift+P resolves to palette.open (silently dead remap); same for Cmd+Shift+K vs mod+k, and mod+p vs meta+p. Batch-9 verifier also notes the Settings copy claims 'two actions on one combo both fire' while the dispatcher (matchesEvent/resolveKeyboardAction) only fires the first match -- the hint text and the behaviour disagree."
   },
   {
    "id": "R15-UI-028",
@@ -9814,7 +9894,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: vega/theta are now correct and labelled (independent Black-Scholes check matches), but Rho 13.5565 is still shown unlabelled in QuantLib per-unit-rate units (market convention per 1% is 0.1356) -- same unit-honesty defect, same panel."
   },
   {
    "id": "R15-UI-029",
@@ -9916,7 +9997,8 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: still dead end to end. Live GET /sec/filings/search?q=Apple (also Tesla, Palantir, AAPL, Microsoft) returns {\"results\": []}: installed sec-edgar-mcp 1.0.8 search_companies returns empty for every query because core/client.py swallows every edgar.search() exception to []. get_cik_by_ticker works and SEC company_tickers.json is reachable, so a working local path exists."
   },
   {
    "id": "R15-UI-033",
@@ -9940,8 +10022,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "The broker-credential path this finding also covered is gone with the broker plugins (a122dbf6 feat(d81)); per the refuter, the surviving surface is the single NewsAPI key. Missing .catch on marketplace.ts setSecret (silent failure, form stays open, grant unpersisted) stays open there and for any future BYOK data-plugin credential."
+   "status": "fixed",
+   "note": "The broker-credential path this finding also covered is gone with the broker plugins (a122dbf6 feat(d81)); per the refuter, the surviving surface is the single NewsAPI key. Missing .catch on marketplace.ts setSecret (silent failure, form stays open, grant unpersisted) stays open there and for any future BYOK data-plugin credential.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-034",
@@ -10389,7 +10472,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "needs_gui",
+   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (slash rows are now min-h-8 ... py-1, NotesPanel.tsx:390). GUI check: whether a two-line row still clips is visual."
   },
   {
    "id": "R15-UI-051",
@@ -10414,7 +10498,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-052",
@@ -10442,7 +10527,8 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-053",
@@ -10468,8 +10554,9 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: The route fix is real: /macro/IFS%2FA.US.NGDP_R_K_IX?provider=imf now reaches the IMF provider instead of Starlette's 404. The entry's outcome still holds from the outside world though: the Macro panel's IMF provider is 100% dead. All 8 catalog ids, including IFS/A.IN.NGDP_R_K_IX, now return 502 \"IMF upstream error ... 404 Client Error: Not Found for url: https://api.imf.org/external/sdmx/2.1/data/IFS/...\". api.imf.org's SDMX 2.1 IFS dataflow answers 204 empty, while the SDMX 3.0 dataflows (e.g. CPI) answer 200. The catalog needs live IMF ids. Stays open."
+   "status": "fixed",
+   "note": "Batch-8 (68bb7aa4) not certified: The route fix is real: /macro/IFS%2FA.US.NGDP_R_K_IX?provider=imf now reaches the IMF provider instead of Starlette's 404. The entry's outcome still holds from the outside world though: the Macro panel's IMF provider is 100% dead. All 8 catalog ids, including IFS/A.IN.NGDP_R_K_IX, now return 502 \"IMF upstream error ... 404 Client Error: Not Found for url: https://api.imf.org/external/sdmx/2.1/data/IFS/...\". api.imf.org's SDMX 2.1 IFS dataflow answers 204 empty, while the SDMX 3.0 dataflows (e.g. CPI) answer 200. The catalog needs live IMF ids. Stays open.",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-054",
@@ -10601,7 +10688,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9",
+   "note": "Batch-9 verifier minor: a settings file whose only content is unknown action ids still reports 'Imported settings.'"
   },
   {
    "id": "R15-UI-059",
@@ -10653,7 +10742,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "needs_gui",
+   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (Save .md/PDF/PNG buttons exist, gated on bodySettled, route through saveTextArtifact/savePdfArtifact/savePngArtifact; chain vitest passes). GUI check: whether the PDF/PNG raster of a settled brief renders correctly needs the WKWebView."
   },
   {
    "id": "R15-UI-084",
@@ -10729,7 +10819,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "6b70230 merge(r15): Stage C batch 9"
   },
   {
    "id": "R15-UI-087",
@@ -10857,7 +10948,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: not_a_defect_proposed, confidence 3, Code facts unchanged at the sha (nothing built). A documented, deliberately deferred build is a roadmap item, not a defect; if the adjudicator keeps deferred-build entries open, treat as still_reproduces ..., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-065"
   },
   {
    "id": "R15-AGENT-066",
@@ -10881,7 +10973,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one catalog flag + a parity assertion; backtest is simulated, not trading, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-066"
   },
   {
    "id": "R15-AGENT-067",
@@ -10906,7 +10999,7 @@
     "agent-chat"
    ],
    "status": "open",
-   "note": "Batch-9 register adjudication: the repro's broker_portfolio example is gone post-removal (a122dbf6 feat(d81)) -- services.agent_tools.broker_portfolio no longer exists (asserted absent by sidecar/tests/test_no_trading_surface.py). The entry's core defect still reproduces via its other examples (web_search and research are still projected to the external MCP surface purely by tool kind, spending the user's BYOK Exa/Perplexity credits). Stays open, narrowed."
+   "note": "Batch-9 register adjudication: the repro's broker_portfolio example is gone post-removal (a122dbf6 feat(d81)) -- services.agent_tools.broker_portfolio no longer exists (asserted absent by sidecar/tests/test_no_trading_surface.py). The entry's core defect still reproduces via its other examples (web_search and research are still projected to the external MCP surface purely by tool kind, spending the user's BYOK Exa/Perplexity credits). Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, broker_portfolio half already left with D81; the remaining change is catalog-internal, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-067"
   },
   {
    "id": "R15-AGENT-068",
@@ -10932,7 +11025,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, envelope extraction touches read-only data tools only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-068"
   },
   {
    "id": "R15-AGENT-069",
@@ -10956,7 +11050,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two-line change per tool plus a mapping, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-069/"
   },
   {
    "id": "R15-AGENT-070",
@@ -10981,7 +11076,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, runtime + catalog field only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-070"
   },
   {
    "id": "R15-AGENT-071",
@@ -11005,7 +11101,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, prompt generation from catalog touches every persona prompt, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-071"
   },
   {
    "id": "R15-AGENT-072",
@@ -11030,7 +11127,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, doc/field rename only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-072"
   },
   {
    "id": "R15-AGENT-073",
@@ -11053,7 +11151,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pass the resolved provider into _resolve_model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-073"
   },
   {
    "id": "R15-AGENT-074",
@@ -11104,7 +11203,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, new optional field across the sidecar/TS mirror plus the price lookup, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-075/"
   },
   {
    "id": "R15-AGENT-076",
@@ -11127,7 +11227,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, narrow one except clause and add a log line; no logger exists in ollama.py today, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-076/"
   },
   {
    "id": "R15-AGENT-077",
@@ -11152,7 +11253,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, add a base_url kwarg to oneshot.complete/complete_with_usage and thread self._base_url from openai.py:540, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-077/"
   },
   {
    "id": "R15-AGENT-078",
@@ -11177,7 +11279,7 @@
     "agent-chat"
    ],
    "status": "open",
-   "note": "Verifier batch-8: same class as this entry's rAF-vs-synchronous-success gap, fresh instance -- arrange_layout's default (reset) path reports \"Reset the panel arrangement…\" as success even when dockviewApi is null and resetLayout is a no-op."
+   "note": "Verifier batch-8: same class as this entry's rAF-vs-synchronous-success gap, fresh instance -- arrange_layout's default (reset) path reports \"Reset the panel arrangement…\" as success even when dockviewApi is null and resetLayout is a no-op. || triage@e032be7: still_reproduces, confidence 4, delete four rAF wrappers, call applyPlan directly (applyLayoutMode already does); guard the reset path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-078"
   },
   {
    "id": "R15-AGENT-079",
@@ -11201,7 +11303,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one .lower() at backtest_dsl.py:237; no commit in range touched the file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-079"
   },
   {
    "id": "R15-AGENT-085",
@@ -11227,7 +11330,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, needs the per-turn tool provenance threaded from the runtime to the message, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-085"
   },
   {
    "id": "R15-AGENT-086",
@@ -11252,7 +11356,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: already_fixed, confidence 5, Fixed under a different id (CODE-AGENT-011) in batch 7; pause_run as a named function is gone, the driver sets 'paused' inline., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-086/"
   },
   {
    "id": "R15-AGENT-087",
@@ -11278,7 +11383,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prose edits only, no behaviour change, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-087"
   },
   {
    "id": "R15-AGENT-089",
@@ -11303,7 +11409,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, add two ids to two constants, or derive both from the catalog, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-089"
   },
   {
    "id": "R15-CODE-AGENT-014",
@@ -11327,7 +11434,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, refactor of the registry seam only; no trading path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-014"
   },
   {
    "id": "R15-CODE-AGENT-015",
@@ -11351,7 +11459,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, read-only tool arg hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-015"
   },
   {
    "id": "R15-CODE-AGENT-016",
@@ -11400,7 +11509,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, try/except around _row_to_read in list_agents, mirroring _discover_specs, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-017"
   },
   {
    "id": "R15-CODE-AGENT-018",
@@ -11423,7 +11533,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment + one assertion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-018"
   },
   {
    "id": "R15-CODE-AGENT-019",
@@ -11448,7 +11559,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 3, one route, humanize() already exists in services/errors.py:269, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-019/"
   },
   {
    "id": "R15-CODE-AGENT-020",
@@ -11471,7 +11583,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, constructor arg + two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-020/"
   },
   {
    "id": "R15-CODE-AGENT-021",
@@ -11494,7 +11607,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three routes + frontend client + base.py docstring must move together, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-021/"
   },
   {
    "id": "R15-CODE-AGENT-022",
@@ -11516,7 +11630,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace one constant with the SDK's; the existing test (:43) only asserts truthiness, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-022/"
   },
   {
    "id": "R15-CODE-AGENT-023",
@@ -11538,7 +11653,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, raise ToolError in _make_catalog_tool instead of returning {ok:False}; keep the message text, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-023/"
   },
   {
    "id": "R15-CODE-AGENT-024",
@@ -11561,7 +11677,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, refactor across three modules; behaviour-preserving but touches every MCP call path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-024/"
   },
   {
    "id": "R15-CODE-AGENT-025",
@@ -11583,7 +11700,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one dict key pass-through plus the TS mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-025/"
   },
   {
    "id": "R15-CODE-AGENT-026",
@@ -11604,7 +11722,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, dead enum member; no runtime behaviour today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-026"
   },
   {
    "id": "R15-CODE-AGENT-027",
@@ -11626,7 +11745,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, test-plumbing + constant reuse only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-027"
   },
   {
    "id": "R15-CODE-AGENT-028",
@@ -11650,7 +11770,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, cosmetic pass-through only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-028"
   },
   {
    "id": "R15-CODE-AGENT-029",
@@ -11677,7 +11798,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure deletion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-029"
   },
   {
    "id": "R15-CODE-AGENT-030",
@@ -11701,7 +11823,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete four no-op clauses, move anthropic's comment to the base docstring, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-030/"
   },
   {
    "id": "R15-CODE-AGENT-031",
@@ -11727,7 +11850,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete _dual_case, fix docstring, add docs section, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-031/"
   },
   {
    "id": "R15-CODE-AGENT-032",
@@ -11752,7 +11876,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, four small independent changes across store, driver and poller, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-032/"
   },
   {
    "id": "R15-CODE-DATA-007",
@@ -11776,7 +11901,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two except clauses widen to Exception (noqa BLE001), reason already recorded into errors, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-007/"
   },
   {
    "id": "R15-CODE-DATA-008",
@@ -11799,7 +11925,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, widen the two except clauses, keep the provider-id log, re-raise only when no candidate remains, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-008"
   },
   {
    "id": "R15-CODE-DATA-009",
@@ -11825,7 +11952,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one predicate, five imports, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-009"
   },
   {
    "id": "R15-CODE-DATA-010",
@@ -11846,7 +11974,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one DELETE on the stale-read branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-010"
   },
   {
    "id": "R15-CODE-DATA-011",
@@ -11867,7 +11996,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedupe of three 12-line blocks into one _cached helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-011"
   },
   {
    "id": "R15-CODE-DATA-012",
@@ -11888,7 +12018,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure refactor of four GET handlers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-012/"
   },
   {
    "id": "R15-CODE-DATA-013",
@@ -11910,7 +12041,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete the pass-through route + function (no caller) or make the docstring true, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-013"
   },
   {
    "id": "R15-CODE-DATA-014",
@@ -11935,7 +12067,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace three getState() helpers with per-call-site useSecStore selectors using the existing frozen empties, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-014/"
   },
   {
    "id": "R15-CODE-DATA-015",
@@ -11958,7 +12091,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, hoist seven literals to one array, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-015/"
   },
   {
    "id": "R15-CODE-DATA-016",
@@ -11985,7 +12119,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, dedupe helpers; delete dead branches; fix one comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-016/"
   },
   {
    "id": "R15-CODE-DATA-017",
@@ -12006,7 +12141,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, drop three `= BAND_FUZZY` defaults; make autocomplete pass its band, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-017/"
   },
   {
    "id": "R15-CODE-DATA-018",
@@ -12029,7 +12165,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, residual is the property only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-018/"
   },
   {
    "id": "R15-CODE-DATA-019",
@@ -12052,7 +12189,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete the field on both sides of the wire in one commit (types/data-mirror rule), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-019"
   },
   {
    "id": "R15-CODE-DATA-020",
@@ -12073,7 +12211,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, narrow except ValueError -> except FormulaError, rewrite the comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-020"
   },
   {
    "id": "R15-CODE-DATA-021",
@@ -12096,7 +12235,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one list of (ts, bar) pairs, both values derived from it, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-021/"
   },
   {
    "id": "R15-CODE-DATA-022",
@@ -12120,7 +12260,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-line Literal on a model no other batch touched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-022"
   },
   {
    "id": "R15-CODE-FRONTEND-021",
@@ -12143,7 +12284,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, describeContext returns a discriminated union and the render branches on kind; ~10 lines, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-021"
   },
   {
    "id": "R15-CODE-FRONTEND-022",
@@ -12167,7 +12309,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-line change in the switch case; agentSummary already rides the PaletteItem (command-palette.ts:225), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-022"
   },
   {
    "id": "R15-CODE-FRONTEND-023",
@@ -12191,7 +12334,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, move the two consumer effects onto useChartSyncBus.subscribe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-023"
   },
   {
    "id": "R15-CODE-FRONTEND-024",
@@ -12217,7 +12361,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete or one wiring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-024"
   },
   {
    "id": "R15-CODE-FRONTEND-025",
@@ -12243,7 +12388,7 @@
     "ui-panels"
    ],
    "status": "open",
-   "note": "Batch-9 register adjudication: the repro's dead PANEL_MIN_SIZE key 'broker-order-entry' is gone from src/components/PanelHost.tsx post-removal (a122dbf6 feat(d81)) and no longer reproduces; the 'chat-sidebar' dead key is also gone. The entry's core defect still reproduces: PANEL_MIN_SIZE still misses brief-panel/notes-panel and constraints are still enforced only on boot restore (enforceConstraintsAfterRestore runs only in PanelHost's boot finally), not on loadWorkspace. Stays open, narrowed."
+   "note": "Batch-9 register adjudication: the repro's dead PANEL_MIN_SIZE key 'broker-order-entry' is gone from src/components/PanelHost.tsx post-removal (a122dbf6 feat(d81)) and no longer reproduces; the 'chat-sidebar' dead key is also gone. The entry's core defect still reproduces: PANEL_MIN_SIZE still misses brief-panel/notes-panel and constraints are still enforced only on boot restore (enforceConstraintsAfterRestore runs only in PanelHost's boot finally), not on loadWorkspace. Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, move the table to src/lib/panel-sizing.ts and call the grow sweep from the load path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-025"
   },
   {
    "id": "R15-CODE-FRONTEND-026",
@@ -12267,7 +12412,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace drainNotifications() with takeNotifications() (atomic take before send) or drain(ids); two small call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-026/"
   },
   {
    "id": "R15-CODE-FRONTEND-027",
@@ -12296,7 +12442,7 @@
     "agent-chat"
    ],
    "status": "open",
-   "note": "The broker/orders fetch-site examples are moot: removed with trading (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: the surviving hand-rolled fetch sites (agents.ts, quant.ts, workflow.ts, safety.ts) still carry divergent error policies with no shared sidecarPost/timeout helper."
+   "note": "The broker/orders fetch-site examples are moot: removed with trading (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: the surviving hand-rolled fetch sites (agents.ts, quant.ts, workflow.ts, safety.ts) still carry divergent error policies with no shared sidecarPost/timeout helper. || triage@e032be7: still_reproduces, confidence 5, sidecarRequest exists (sidecar-client.ts:225) so a sidecarPost wrapper is small; the four store sites are mechanical swaps, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-027"
   },
   {
    "id": "R15-CODE-FRONTEND-028",
@@ -12323,7 +12469,8 @@
     "research-search",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, adds optional status to ResearchSpaceTurn and threads it through capture/restore; agent-space persistence is a larger follow-up, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-028"
   },
   {
    "id": "R15-CODE-FRONTEND-029",
@@ -12350,7 +12497,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, deletions plus replacing the [] memo with a selector over the live stores, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-029"
   },
   {
    "id": "R15-CODE-FRONTEND-030",
@@ -12374,7 +12522,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, setAll(bundle,{applyDefaultAgent}) passed only from the boot restore (workspace.ts:433); delete the module latch at settings.ts:126, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-030/"
   },
   {
    "id": "R15-CODE-FRONTEND-031",
@@ -12398,7 +12547,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: already_fixed, confidence 5, The duplicated auto-apply predicate the fix_shape named is gone too: no autoApplies import remains in ChatSidebar.tsx., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-031/"
   },
   {
    "id": "R15-CODE-FRONTEND-032",
@@ -12422,7 +12572,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, call rejectAll() from both /clear handlers (ChatSidebar.tsx:650-652, 727-731) and on space/tab switch; prune in acceptBatch/rejectBatch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-032"
   },
   {
    "id": "R15-CODE-FRONTEND-033",
@@ -12446,7 +12597,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: already_fixed, confidence 5, Residual: no test in host-actions.test.ts pins the alias case (lines 102/113 use 'chart' whose alias equals its id); the P7 pin is still worth adding., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-033/"
   },
   {
    "id": "R15-CODE-FRONTEND-034",
@@ -12470,7 +12622,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, ApplyResult already carries {label, reason}; add status to done()/fail() for the two Kept sites (host-actions.ts:1556,1564) and read it in accept(), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-034/"
   },
   {
    "id": "R15-CODE-FRONTEND-035",
@@ -12495,7 +12648,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, the notes half is a 4-line swap to the existing seams; the portfolio half is already on addHolding/updateHolding/removeHolding, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-035"
   },
   {
    "id": "R15-CODE-FRONTEND-036",
@@ -12521,7 +12675,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one parity test plus exporting one RAIL constant, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-036"
   },
   {
    "id": "R15-CODE-FRONTEND-037",
@@ -12544,7 +12699,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, drop the length > 0 half of the guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-037"
   },
   {
    "id": "R15-CODE-PLATFORM-031",
@@ -12643,7 +12799,8 @@
     "COD-backtest-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one comparison at :497; _slice_dates stays, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-034"
   },
   {
    "id": "R15-CODE-PLATFORM-035",
@@ -12666,7 +12823,8 @@
     "COD-backtest-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, deletion only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-035"
   },
   {
    "id": "R15-CODE-PLATFORM-036",
@@ -12687,7 +12845,8 @@
     "COD-backtest-14"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, validate_definition can return its compiled dict (or a private _validate returns (report, compiled)), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-036"
   },
   {
    "id": "R15-CODE-PLATFORM-037",
@@ -12743,7 +12902,8 @@
     "COD-error-layer-13"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, HumanError.to_event() collapses 12 re-spellings; ErrorRow needs frame.code, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-038"
   },
   {
    "id": "R15-CODE-PLATFORM-039",
@@ -12767,7 +12927,8 @@
     "COD-error-layer-15"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, drop buildSearchHeaders from sidecarRequest's default path (streaming.ts:274 keeps its own call); fix the Exa comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-039"
   },
   {
    "id": "R15-CODE-PLATFORM-040",
@@ -12788,7 +12949,8 @@
     "COD-macro-quant-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, 'monte_carlo' string matches elsewhere are the OptionPricingMethod 'monte-carlo' enum (options.py price_european_mc), not this module., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-040"
   },
   {
    "id": "R15-CODE-PLATFORM-041",
@@ -12813,7 +12975,8 @@
     "COD-macro-quant-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-041/"
   },
   {
    "id": "R15-CODE-PLATFORM-042",
@@ -12835,7 +12998,8 @@
     "COD-macro-quant-15"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-042"
   },
   {
    "id": "R15-CODE-PLATFORM-043",
@@ -12859,7 +13023,8 @@
     "INT-deferred-0-5"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, world_bank_provider.py line moved 37->38 (R15-DATA-085/086 fixes); entry otherwise exact., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-043"
   },
   {
    "id": "R15-CODE-PLATFORM-044",
@@ -12880,7 +13045,8 @@
     "INT-deferred-0-4"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-word annotation change; no runtime behaviour, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-044/"
   },
   {
    "id": "R15-CODE-PLATFORM-045",
@@ -12901,7 +13067,8 @@
     "COD-plugins-5"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-045/"
   },
   {
    "id": "R15-CODE-PLATFORM-046",
@@ -12923,7 +13090,8 @@
     "COD-plugins-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-046"
   },
   {
    "id": "R15-CODE-PLATFORM-047",
@@ -12944,7 +13112,8 @@
     "COD-plugins-10"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-047"
   },
   {
    "id": "R15-CODE-PLATFORM-048",
@@ -12965,7 +13134,8 @@
     "COD-plugins-14"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-048/"
   },
   {
    "id": "R15-CODE-PLATFORM-049",
@@ -12987,7 +13157,8 @@
     "INT-deferred-84-5"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-049"
   },
   {
    "id": "R15-CODE-PLATFORM-050",
@@ -13010,7 +13181,8 @@
     "COD-portfolio-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, frontend-only refactor, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-050"
   },
   {
    "id": "R15-CODE-PLATFORM-051",
@@ -13031,7 +13203,8 @@
     "COD-portfolio-13"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, cosmetic dedupe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-051"
   },
   {
    "id": "R15-CODE-PLATFORM-052",
@@ -13052,7 +13225,8 @@
     "COD-portfolio-14"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, doc-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-052"
   },
   {
    "id": "R15-CODE-PLATFORM-053",
@@ -13095,7 +13269,8 @@
     "COD-rust-core-7"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, f.sync_all()? before rename plus a parent-dir sync on unix, in the shared helper 055 introduces, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-054/"
   },
   {
    "id": "R15-CODE-PLATFORM-055",
@@ -13116,7 +13291,8 @@
     "COD-rust-core-14"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-055/"
   },
   {
    "id": "R15-CODE-PLATFORM-056",
@@ -13137,7 +13313,8 @@
     "COD-rust-core-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only path, contained in one file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-056/"
   },
   {
    "id": "R15-CODE-PLATFORM-057",
@@ -13158,7 +13335,8 @@
     "COD-rust-core-13"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only; one callback + one event, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-057/"
   },
   {
    "id": "R15-CODE-PLATFORM-058",
@@ -13180,7 +13358,8 @@
     "COD-rust-core-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-058/"
   },
   {
    "id": "R15-CODE-PLATFORM-059",
@@ -13203,7 +13382,8 @@
     "INT-deferred-0-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three-line mechanical change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-059/"
   },
   {
    "id": "R15-CODE-PLATFORM-060",
@@ -13225,7 +13405,8 @@
     "INT-blueprint-0-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, promise-unbuilt; the spec does not ask for one, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-060/"
   },
   {
    "id": "R15-CODE-PLATFORM-061",
@@ -13246,7 +13427,8 @@
     "COD-scripts-build-9"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one-line guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-061/"
   },
   {
    "id": "R15-CODE-PLATFORM-062",
@@ -13267,7 +13449,8 @@
     "COD-scripts-build-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, script-local change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-062/"
   },
   {
    "id": "R15-CODE-PLATFORM-063",
@@ -13289,7 +13472,8 @@
     "COD-scripts-build-12"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4 only for the lint.yml half; ci-local half is package.json, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-063/"
   },
   {
    "id": "R15-CODE-PLATFORM-064",
@@ -13311,7 +13495,8 @@
     "COD-scripts-build-13"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, dead v0.6.0 tooling; deletion is the fix, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-064/"
   },
   {
    "id": "R15-CODE-PLATFORM-065",
@@ -13337,7 +13522,8 @@
     "COD-workflow-engine-4"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, except WorkflowEngineError: yield run-error(str(exc)); client guess text can then go, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-065/"
   },
   {
    "id": "R15-CODE-PLATFORM-066",
@@ -13358,7 +13544,8 @@
     "COD-workflow-engine-7"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, exponent/size guard in _eval plus to_thread wrapper, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-066/"
   },
   {
    "id": "R15-CODE-PLATFORM-067",
@@ -13384,7 +13571,8 @@
     "COD-workflow-engine-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete one set, add one resolve() helper; design-level, no wrong output today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-067"
   },
   {
    "id": "R15-CODE-PLATFORM-068",
@@ -13411,7 +13599,8 @@
     "COD-workflow-engine-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one register_all() called from create_app; delete dead else, _encode_event_dict and the resume-from fields, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-068"
   },
   {
    "id": "R15-CODE-PLATFORM-069",
@@ -13435,7 +13624,8 @@
     "COD-workflow-engine-13"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, latent (no bundled plugin sets contributesNodes) but needs a GET /workflow/node-types route that does not exist at the sha, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-069/"
   },
   {
    "id": "R15-CODE-PLATFORM-070",
@@ -13458,7 +13648,8 @@
     "INT-pdd-readme-45-8"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, mechanical re-value of dead fallback literals; zero runtime effect since tokens.css is imported unconditionally at globals.css:7, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-070"
   },
   {
    "id": "R15-CODE-PLATFORM-074",
@@ -13480,7 +13671,8 @@
     "INT-pdd-readme-315-3"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: duplicate_of, confidence 5, duplicate of R15-LIFECYCLE-037; Residual carried into 037's fix_shape: correct the doc sentence at docs/MCP_INTEGRATION.md:53-54 in the same commit., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-074/"
   },
   {
    "id": "R15-CODE-PLATFORM-075",
@@ -13503,7 +13695,8 @@
     "INT-deferred-42-5"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete two fields or add one guard; no engine work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-075/"
   },
   {
    "id": "R15-CODE-PLATFORM-076",
@@ -13526,7 +13719,8 @@
     "INT-pdd-readme-270-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prompt trimming needs a behaviour re-check on the small local model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-076"
   },
   {
    "id": "R15-CODE-RESEARCH-005",
@@ -13551,7 +13745,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, rename/move only; no behavior change; the dead loop is already gone (9703eee7) so deep.py is now purely a helper module, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-005/"
   },
   {
    "id": "R15-CODE-RESEARCH-006",
@@ -13576,7 +13771,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one constant + one property; no contract or API change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-006/"
   },
   {
    "id": "R15-CODE-RESEARCH-007",
@@ -13601,7 +13797,8 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-007"
   },
   {
    "id": "R15-CODE-RESEARCH-008",
@@ -13625,7 +13822,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-008"
   },
   {
    "id": "R15-CODE-RESEARCH-009",
@@ -13651,7 +13849,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers drifted (keyless 220->265, ddg 384/391->363/370) after RESEARCH-008/038 fixes; structure identical., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-009"
   },
   {
    "id": "R15-CODE-RESEARCH-010",
@@ -13675,7 +13874,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, RESEARCH-022/023 fixes (d13bfb53, 2a933700) touched keyless.py, not a shared scraper base., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-010/"
   },
   {
    "id": "R15-CODE-RESEARCH-011",
@@ -13699,7 +13899,8 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-011"
   },
   {
    "id": "R15-CODE-RESEARCH-012",
@@ -13723,7 +13924,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, finance.py line moved 122->138 since the raw finding., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-012"
   },
   {
    "id": "R15-CROSS-PLATFORM-005",
@@ -13771,7 +13973,8 @@
     "HYG-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one shared helper, two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-006"
   },
   {
    "id": "R15-CROSS-PLATFORM-007",
@@ -13796,7 +13999,8 @@
     "HYG-7"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, 3-5 retries with ~50 ms backoff in save_workspace; one shared Rust atomic-write helper that removes the temp on rename error, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-007/"
   },
   {
    "id": "R15-CROSS-PLATFORM-008",
@@ -13820,7 +14024,7 @@
    ],
    "tier4": false,
    "status": "open",
-   "note": "Verifier batch-8: confirmed live in the batch-8 boot-order change -- openbb_mcp::start/sec_edgar_mcp::start now call std::env::set_var while the main event loop is live (previously the main thread was blocked in join). setenv/getenv are not thread-safe on macOS; low-probability but present since the LIFECYCLE-001 boot-order fix."
+   "note": "Verifier batch-8: confirmed live in the batch-8 boot-order change -- openbb_mcp::start/sec_edgar_mcp::start now call std::env::set_var while the main event loop is live (previously the main thread was blocked in join). setenv/getenv are not thread-safe on macOS; low-probability but present since the LIFECYCLE-001 boot-order fix. || triage@e032be7: still_reproduces, confidence 5, changes the port hand-off channel in the Rust boot path; needs a cargo build the triage lanes cannot run, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-008/"
   },
   {
    "id": "R15-CROSS-PLATFORM-009",
@@ -13846,7 +14050,8 @@
     "HYG-9"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, five label sites; helper already exists at keybindings.ts:328, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-009"
   },
   {
    "id": "R15-CROSS-PLATFORM-010",
@@ -13870,7 +14075,8 @@
     "HYG-10"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, package.json only; build-python.mjs already exports resolveBuildPython, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-010/"
   },
   {
    "id": "R15-CROSS-PLATFORM-011",
@@ -13896,7 +14102,8 @@
     "HYG-11"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, moves non-secret flags out of the secret store; touches three layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-011/"
   },
   {
    "id": "R15-CROSS-PLATFORM-012",
@@ -13919,7 +14126,8 @@
     "HYG-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, new CLI arg + env var threaded to the two SQLite caches and searxng; user state stays put, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-012/"
   },
   {
    "id": "R15-DATA-098",
@@ -13942,7 +14150,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Edge case only when step_days floors to 1 (total_days < 2*(sample_count-1)), as the register's refuter note says., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-098/"
   },
   {
    "id": "R15-DATA-099",
@@ -13965,7 +14174,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-099/"
   },
   {
    "id": "R15-DATA-100",
@@ -14013,7 +14223,8 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, payload-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-101"
   },
   {
    "id": "R15-DATA-102",
@@ -14037,7 +14248,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, provenance default lives in the model; producers each need to state it, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-102"
   },
   {
    "id": "R15-DATA-103",
@@ -14059,7 +14271,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three `or` coercions at :566-569; Quote.change may need to become Optional in models/market.py + types/data.ts mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-103"
   },
   {
    "id": "R15-DATA-104",
@@ -14080,7 +14293,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Semaphore(8) around _one plus an is_open short-circuit, mirroring bar_loader, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-104"
   },
   {
    "id": "R15-DATA-105",
@@ -14105,7 +14319,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, adds one enum value and a badge branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-105/"
   },
   {
    "id": "R15-DATA-106",
@@ -14126,7 +14341,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, producer script only; shipped artifact already clean, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-106/"
   },
   {
    "id": "R15-DATA-107",
@@ -14147,7 +14363,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, NamedTuple return from _bse_lookup, field access by name in india_symbol_meta, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-107"
   },
   {
    "id": "R15-DATA-108",
@@ -14168,7 +14385,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, @lru_cache on _load_master plus cache_clear in the existing reset hook, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-108"
   },
   {
    "id": "R15-DATA-109",
@@ -14193,7 +14411,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, wiring a socket into the watchlist needs lifecycle handling; deletion is S, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-109"
   },
   {
    "id": "R15-DATA-111",
@@ -14219,7 +14438,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Residual is the empty-success accounting + fixture-only pinning; the CAPTCHA half is closed by R15-RESEARCH-022., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-111"
   },
   {
    "id": "R15-DOCS-006",
@@ -14245,7 +14465,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment-only edits, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-006"
   },
   {
    "id": "R15-DOCS-007",
@@ -14270,7 +14491,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure doc back-port of the dark-only/zinc decisions; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-007"
   },
   {
    "id": "R15-DOCS-008",
@@ -14291,7 +14513,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, §2 Locked table wording; describes an already-made v0.4.0 decision, so a doc correction not a reversal, but the operator should sign the §2 edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-008/"
   },
   {
    "id": "R15-DOCS-009",
@@ -14315,7 +14538,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prose edit only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-009"
   },
   {
    "id": "R15-DOCS-010",
@@ -14339,7 +14563,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two comment edits plus one class, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-010"
   },
   {
    "id": "R15-DOCS-011",
@@ -14361,7 +14586,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: touches CI workflows + licensing, operator sign-off, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-011/"
   },
   {
    "id": "R15-DOCS-012",
@@ -14387,7 +14613,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, doc hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-012/"
   },
   {
    "id": "R15-DOCS-013",
@@ -14410,7 +14637,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one docstring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-013/"
   },
   {
    "id": "R15-DOCS-014",
@@ -14434,7 +14662,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, write-up of existing r15 drive timestamps, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-014/"
   },
   {
    "id": "R15-DOCS-019",
@@ -14459,7 +14688,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-019/"
   },
   {
    "id": "R15-DOCS-020",
@@ -14482,7 +14712,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-paragraph doc correction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-020/"
   },
   {
    "id": "R15-DOCS-021",
@@ -14503,7 +14734,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-021/"
   },
   {
    "id": "R15-DOCS-022",
@@ -14526,7 +14758,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-022"
   },
   {
    "id": "R15-DOCS-023",
@@ -14548,7 +14781,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-023/"
   },
   {
    "id": "R15-DOCS-024",
@@ -14571,7 +14805,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, doc + one manual GUI session, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-024/"
   },
   {
    "id": "R15-LEAD-006",
@@ -14589,7 +14824,8 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "source": "lead-found batch-3"
+   "source": "lead-found batch-3",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedup of a 17-line pandas helper; no contract, no trading, no redesign surface, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-006/"
   },
   {
    "id": "R15-LEAD-017",
@@ -14609,7 +14845,7 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "note": "source: verifier batch-5"
+   "note": "source: verifier batch-5 || triage@e032be7: still_reproduces, confidence 3, pure dedupe at the lane boundary, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-017/"
   },
   {
    "id": "R15-LEAD-020",
@@ -14629,7 +14865,8 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "source": "verifier batch-7"
+   "source": "verifier batch-7",
+   "note": "triage@e032be7: still_reproduces, confidence 4, cache a short-TTL negative marker at :363-366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-020"
   },
   {
    "id": "R15-LEAD-021",
@@ -14649,7 +14886,51 @@
     "ui-panels"
    ],
    "status": "open",
-   "source": "verifier batch-8"
+   "source": "verifier batch-8",
+   "note": "triage@e032be7: still_reproduces, confidence 4, read state.sidecarError next to state.sidecarStatus (:129) and append it to connLabel/title, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-021"
+  },
+  {
+   "id": "R15-LEAD-025",
+   "title": "The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "fundamentals-profile",
+   "files": [
+    "sidecar/services/fundamentals_warm.py",
+    "sidecar/services/screener.py",
+    "sidecar/services/provider_registry.py"
+   ],
+   "repro": "Fundamentals warmer: it hits openbb-mcp hard at boot (batch-9 verifier, one-line observation, no further detail given). provider_registry.get_fundamentals prefers openbb_mcp_provider for the default/non-IN universe (provider_registry.py ~line 143); the boot-time warm/seed paths in fundamentals_warm.py and screener.py's start_warm_precompute run with no rate-limit callout to openbb-mcp specifically (fundamentals_warm.py's India deep crawler is Semaphore(4)-limited against yfinance, not openbb).",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-9/VERDICTS.md 'Issues seen outside the entries' (batch-9 verifier). No file:line was given in the source note; the files above are the boot-warm code paths a follow-up should instrument first.",
+   "fix_shape": "Not root-caused yet -- the verifier note is one line with no reproduction detail. A follow-up should first measure boot-time openbb-mcp request volume/latency (e.g. log request counts during the first N seconds after lifespan start), then apply the same concurrency/backoff discipline the India deep crawler already uses (Semaphore + jittered sleep) to whichever boot path is found to be the source.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "source": "verifier batch-9"
+  },
+  {
+   "id": "R15-LEAD-027",
+   "title": "The command palette's empty-query starter row 'Open Chart' duplicates the chart.open command row and shows no keyboard chord, unlike every other row",
+   "severity": "low",
+   "area": "ui",
+   "subsystem": "frontend-panels-shell-chrome",
+   "files": [
+    "src/store/command-palette.ts",
+    "src/modules/chart/index.ts"
+   ],
+   "repro": "Palette: the starter 'Open Chart' row duplicates the command row and shows no chord (batch-9 verifier). SUGGESTED_ITEMS's 'suggested:chart' entry (command-palette.ts, label 'Open Chart') renders alongside the chartModule command 'chart.open' (chart/index.ts, title 'Open Chart', bound to the ⌘1 chord) -- an empty palette query shows both, and only the command row carries the chord.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-9/VERDICTS.md 'Issues seen outside the entries' (batch-9 verifier); src/store/command-palette.ts SUGGESTED_ITEMS 'suggested:chart'; src/modules/chart/index.ts commands[0] 'chart.open'.",
+   "fix_shape": "Drop the redundant SUGGESTED_ITEMS starter row for anything that already has a registered command with the same target panel (or give the starter row the same chord), so the empty-query palette shows one 'Open Chart' entry. Pin with a palette-corpus test asserting no two empty-query rows share a panelId without one being a de-duped alias.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels"
+   ],
+   "status": "open",
+   "source": "verifier batch-9"
   },
   {
    "id": "R15-LIFECYCLE-027",
@@ -14676,7 +14957,7 @@
     "ui-panels"
    ],
    "status": "open",
-   "note": "Verifier batch-8: live-confirmed the same mechanism from the outside -- after a transport failure sidecarFetch nulls readyPromise, so the *next* call re-runs the full 120 s /health probe before failing: call 1 took 3 ms, call 2 took 120,238 ms. Inside Tauri a crash now short-circuits this via Terminated (LIFECYCLE-010/UI-014), but a hung-not-exited engine still hits the full 120 s wait every time."
+   "note": "Verifier batch-8: live-confirmed the same mechanism from the outside -- after a transport failure sidecarFetch nulls readyPromise, so the *next* call re-runs the full 120 s /health probe before failing: call 1 took 3 ms, call 2 took 120,238 ms. Inside Tauri a crash now short-circuits this via Terminated (LIFECYCLE-010/UI-014), but a hung-not-exited engine still hits the full 120 s wait every time. || triage@e032be7: still_reproduces, confidence 4, health probe needs signal: AbortSignal.timeout; a default timeout on sidecarRequest; pass persisted into loadPlugin, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-027"
   },
   {
    "id": "R15-LIFECYCLE-028",
@@ -14700,7 +14981,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, expose flushAutosave and call it from pagehide/Tauri onCloseRequested and the PanelHost cleanup, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-028"
   },
   {
    "id": "R15-LIFECYCLE-029",
@@ -14725,7 +15007,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, latent until a plugin sets contributesPanels:true; every bundled plugin at the sha sets false, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-029"
   },
   {
    "id": "R15-LIFECYCLE-030",
@@ -14748,7 +15031,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete the `seeded` flag + seed call at :197-207; :418-424 keeps ownership, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-030"
   },
   {
    "id": "R15-LIFECYCLE-031",
@@ -14772,7 +15056,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, store as _seed_task, add to the cancel list at :436, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-031"
   },
   {
    "id": "R15-LIFECYCLE-032",
@@ -14795,7 +15080,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, move :362 upsert inside the try at :344; gather(..., return_exceptions=True) at :366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-032"
   },
   {
    "id": "R15-LIFECYCLE-033",
@@ -14818,7 +15104,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one env check around two routes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-033/"
   },
   {
    "id": "R15-LIFECYCLE-034",
@@ -14841,7 +15128,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers shifted (logger 62->63, setup 483->515) after RESEARCH-008/LIFECYCLE-007 fixes., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-034"
   },
   {
    "id": "R15-LIFECYCLE-035",
@@ -14864,7 +15152,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Documented intent, not an accident; still the behaviour the entry describes. Retry CTA exists (SettingsPanel)., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-035"
   },
   {
    "id": "R15-LIFECYCLE-036",
@@ -14888,7 +15177,8 @@
     "data-smallcaps",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, widen the except at :457 to (FileNotFoundError, ModuleNotFoundError, ValueError, OSError), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-036/"
   },
   {
    "id": "R15-LIFECYCLE-037",
@@ -14909,7 +15199,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two remove_file(..).ok() calls plus one doc sentence, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-037/"
   },
   {
    "id": "R15-LIFECYCLE-038",
@@ -14931,7 +15222,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, hand-rolled HTTP over std TcpStream to avoid a new crate; only the main sidecar changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-038/"
   },
   {
    "id": "R15-LIFECYCLE-039",
@@ -14952,7 +15244,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, script-local; needs an owner-pid field and a glob, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-039/"
   },
   {
    "id": "R15-LIFECYCLE-040",
@@ -14974,7 +15267,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, documentation of a manual gate; touches no code, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-040/"
   },
   {
    "id": "R15-RELEASE-008",
@@ -14996,7 +15290,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no workflow edit needed, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-008/"
   },
   {
    "id": "R15-RELEASE-009",
@@ -15018,7 +15313,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, test-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-009/"
   },
   {
    "id": "R15-RELEASE-010",
@@ -15041,7 +15337,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only or out-of-repo web work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-010/"
   },
   {
    "id": "R15-RELEASE-011",
@@ -15063,7 +15360,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, local gate only, no workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-011/"
   },
   {
    "id": "R15-RELEASE-012",
@@ -15086,7 +15384,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: CI workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-012/"
   },
   {
    "id": "R15-RESEARCH-031",
@@ -15111,7 +15410,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, minimum `(.*)` -> `([\\s\\S]*)`; better: typed run_id/depth/query fields on the step event, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-031"
   },
   {
    "id": "R15-RESEARCH-032",
@@ -15209,7 +15509,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, local change inside _Report.render; only over-cap bodies change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RESEARCH-035/"
   },
   {
    "id": "R15-RESEARCH-036",
@@ -15233,7 +15534,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-036"
   },
   {
    "id": "R15-RESEARCH-037",
@@ -15308,7 +15610,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Code-read only; a stubbed 403-then-429 test would make it 5. Not exercised by test_ddg_backend.py at the sha., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-039"
   },
   {
    "id": "R15-RESEARCH-040",
@@ -15336,7 +15639,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-040"
   },
   {
    "id": "R15-RESEARCH-041",
@@ -15363,7 +15667,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, four derivation sites must agree on 'web-search origin' provenance; source rows already carry provider/domain after 22215e27, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-041"
   },
   {
    "id": "R15-RESEARCH-042",
@@ -15388,7 +15693,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-042"
   },
   {
    "id": "R15-UI-060",
@@ -15415,7 +15721,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, either emit progress every K bars in the bar loop (:497 area) or delete the two kinds in five layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-060"
   },
   {
    "id": "R15-UI-061",
@@ -15438,7 +15745,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, label change only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-061"
   },
   {
    "id": "R15-UI-062",
@@ -15461,7 +15769,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace two literals with a mount-time derivation (reuse whatever quant panels use for date defaults), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-062"
   },
   {
    "id": "R15-UI-063",
@@ -15487,7 +15796,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, BondPricerPanel lines moved 107-109 -> 118-120 after R15-DATA-100 (235e0138) added the currency select; literals untouched., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-063"
   },
   {
    "id": "R15-UI-064",
@@ -15511,7 +15821,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one shared toSeriesPoints + a running colour index + leftPriceScale visible, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-064"
   },
   {
    "id": "R15-UI-065",
@@ -15537,7 +15848,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-065"
   },
   {
    "id": "R15-UI-066",
@@ -15563,7 +15875,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one prop on the primitive plus three call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-066"
   },
   {
    "id": "R15-UI-067",
@@ -15593,7 +15906,7 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "note": "The BrokerReadsSection fork is moot: deleted whole (a122dbf6 feat(d81)). The other forks this finding names — EquityOverview shadowing the shared ProvenanceBadge, Watchlist/Chart's bare 'EOD' with no date, and the UTC off-by-a-day as-of date — are on surviving surfaces and stay open."
+   "note": "The BrokerReadsSection fork is moot: deleted whole (a122dbf6 feat(d81)). The other forks this finding names — EquityOverview shadowing the shared ProvenanceBadge, Watchlist/Chart's bare 'EOD' with no date, and the UTC off-by-a-day as-of date — are on surviving surfaces and stay open. || triage@e032be7: still_reproduces, confidence 4, surviving surfaces only; BrokerReadsSection fork already gone with D81, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-067"
   },
   {
    "id": "R15-UI-068",
@@ -15623,7 +15936,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, primitive API extension plus porting four hand-rolled tables, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-068"
   },
   {
    "id": "R15-UI-069",
@@ -15646,7 +15960,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, three useMemo over lastResult, render the memoised string, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-069"
   },
   {
    "id": "R15-UI-070",
@@ -15671,7 +15986,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, two buttons on the existing dialog reusing the write_text_atomic export path plus a file picker, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-070"
   },
   {
    "id": "R15-UI-071",
@@ -15697,7 +16013,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, tooling addition plus a mechanical labelling pass; no product surface changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-071"
   },
   {
    "id": "R15-UI-072",
@@ -15720,7 +16037,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one ChevronDown import + one element beside the label, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-072"
   },
   {
    "id": "R15-UI-073",
@@ -15748,7 +16066,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, token split plus ~30 call-site re-classes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-073"
   },
   {
    "id": "R15-UI-074",
@@ -15773,7 +16092,8 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one utility class on two containers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-074"
   },
   {
    "id": "R15-UI-075",
@@ -15797,7 +16117,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment/code contradiction, single edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-075"
   },
   {
    "id": "R15-UI-076",
@@ -15824,7 +16145,8 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, seed from a per-region table keyed by DEFAULT_REGION, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-076"
   },
   {
    "id": "R15-UI-077",
@@ -15848,7 +16170,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, No Stage C commit touched the route's except clause; quant pool commits (bdc7f0e5) re-raise the same exception type., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-077/"
   },
   {
    "id": "R15-UI-078",
@@ -15874,7 +16197,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three writers still hold separate rule sets, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-078"
   },
   {
    "id": "R15-UI-079",
@@ -15898,7 +16222,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one regex + prefix in a shared helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-079"
   },
   {
    "id": "R15-UI-080",
@@ -15922,7 +16247,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-080"
   },
   {
    "id": "R15-UI-081",
@@ -15951,7 +16277,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, openPanel resolves through the enabled map; the chat module is a panel-less registry entry, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-081"
   },
   {
    "id": "R15-UI-082",
@@ -15976,7 +16303,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: already_fixed, confidence 5, Residual polish, not the original defect: the 200-byte encoded-stem cap rejects a 33-char Devanagari name as 'too long' (9 bytes per char), and the Settings input has no maxLength/rule text., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-082/"
   },
   {
    "id": "R15-UI-089",
@@ -16001,7 +16329,7 @@
     "ui-panels"
    ],
    "status": "open",
-   "note": "The broker-credential comparison is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) marketplace.ts's only credential entry is NewsAPI. Core finding stays open: Marketplace CredentialForm still saves the NewsAPI key with no validation, unlike KeyEntryDialog's live probe for LLM keys."
+   "note": "The broker-credential comparison is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) marketplace.ts's only credential entry is NewsAPI. Core finding stays open: Marketplace CredentialForm still saves the NewsAPI key with no validation, unlike KeyEntryDialog's live probe for LLM keys. || triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-089"
   },
   {
    "id": "R15-UI-093",
@@ -16026,7 +16354,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, needs a debounced quote fetch for the visible rows plus a row description change; the resolver contract stays untouched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-093"
   },
   {
    "id": "R15-UI-094",
@@ -16052,7 +16381,8 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094"
   }
  ],
  "rejections": [
@@ -16363,11 +16693,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 626,
+  "entries": 630,
   "rejections": 76,
   "critical": 16,
   "high": 112,
-  "medium": 279,
-  "low": 219
+  "medium": 281,
+  "low": 221
  }
 }
