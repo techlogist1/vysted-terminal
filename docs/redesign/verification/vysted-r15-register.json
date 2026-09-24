@@ -1067,7 +1067,9 @@
         "agent-chat",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A saved workflow (fetch_quote -> webhook) scheduled `interval` every 5 min fired unattended twice, never in between, and the local receiver got the typed payload each time; `lastStatus` \"ok\"; `everyMinutes: 1` returns 422; the URL never appears in `workflows.db` or the sidecar log."
     },
     {
       "id": "R15-AGENT-024",
@@ -1508,8 +1510,9 @@
         "ui-panels"
       ],
       "tier4": false,
-      "status": "open",
-      "note": "Batch-2 fix reopened (806a90c): FUSION flagged and JONJUA labelled live, but the DAL leg still reproduces: GET /fundamentals/DAL serves revenue_ttm 27,600,000 status ok while screener.in (fetched 2026-09-23) shows TTM revenue 9.97 Cr. The witness is the provider's own statement, and Yahoo's DAL.BO FY2026 Total Revenue is 20,668,000 (within the 30% band) with a matching profit margin, so it cannot see this. The committed 'case the fix was not written against' test (test_fundamentals.py:455-457) stubs an annual of 99,700,000 that the provider does not have."
+      "status": "fixed",
+      "note": "Batch-7 (e81c9e7) certified: `GET /fundamentals/DAL` returns `revenue_ttm` 99,700,000 (9.97 Cr), which equals screener.in's \"Revenue: 9.97 Cr\". The field has provider `bse` and label \"standalone, sum of 4 filed quarters to 2026-06-30\", and the reason states the provider's 27,600,000 disagrees with it (not served). The case the fix was not written against is FUSION: 1,714.42 Cr from NSE's filed `RevenueFromOperations`, with Yahoo's 858 Cr disclosed as not served; screener.in shows 1,699 Cr. `net_income_ttm` is 168.51 Cr against screener's 169. JONJUA (half-yearly SME filer) is flagged \"annual, not trailing-4Q\".",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7"
     },
     {
       "id": "R15-DATA-015",
@@ -1887,7 +1890,9 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The agent `fundamentals` tool over MCP returns 9.97 Cr for DAL.BO with provider `bse`; AAPL stays yfinance, so the lane is not tried outside India. Fresh case TCS: provider nse, consolidated, sum of 4 filed quarters, Q1 FY26 revenue 63,437 Cr (TCS's public figure)."
     },
     {
       "id": "R15-DATA-028",
@@ -2481,6 +2486,116 @@
       "status": "fixed",
       "source": "lead-found batch-3",
       "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
+    },
+    {
+      "id": "R15-LEAD-007",
+      "title": "Every Gemini agent turn fails client-side before the API call with 8 validation errors for GenerateContentConfig (non-string enum values in coupons_per_year, and panels.items.type ['string','object'])",
+      "severity": "high",
+      "area": "agent",
+      "subsystem": "llm-adapters",
+      "files": [],
+      "repro": "Live agent turn on a Gemini model (checked at base 56e12b2 too, so not a batch-3 regression): in-process types.GenerateContentConfig(tools=gemini_tools(all 48)) raises '8 validation errors for GenerateContentConfig' -- caused by coupons_per_year.enum carrying non-string enum values and panels.items.type declaring ['string','object']. Every Gemini agent turn fails before the request is even sent.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 1 (verifier batch-3, checked live and at base 56e12b2)",
+      "root_cause": "The Gemini tool-schema projection emits enum/type shapes the google-genai SDK's GenerateContentConfig validator rejects.",
+      "fix_shape": "Coerce enum values to strings and collapse panels.items.type to a single JSON-schema type in the Gemini tool projection; pin with a schema-validation test over the full 48-tool catalog against google-genai's GenerateContentConfig.",
+      "defect_class": "schema-projection-mismatch",
+      "raw_ids": [],
+      "operator_areas": [
+        "agent-llm"
+      ],
+      "tier4": false,
+      "status": "fixed",
+      "note": "source: verifier batch-3",
+      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
+    },
+    {
+      "id": "R15-LEAD-008",
+      "title": "The xAI agent lane is dead when provider-level native search is on: a live invoke returns 410 'Live search is deprecated. Please switch to the Agent Tools API'",
+      "severity": "high",
+      "area": "agent",
+      "subsystem": "llm-adapters",
+      "files": [],
+      "repro": "Live xAI agent invoke with native search enabled returns HTTP 410: 'Live search is deprecated. Please switch to the Agent Tools API'. Every xAI agent turn with native search on fails this way.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 2 (verifier batch-3, live-verified; refuter had marked the xAI half of AGENT-005 unverified)",
+      "root_cause": "xAI deprecated the Live Search API the adapter still calls; native search must move to the xAI Agent Tools API.",
+      "fix_shape": "Migrate the xAI native-search call to the Agent Tools API, or gate xAI native search off (same per-model gating pattern as native_search_available for Groq/Gemini) until migrated. Pin with a live-shaped xAI adapter test asserting no 410.",
+      "defect_class": "deprecated-provider-api",
+      "raw_ids": [],
+      "operator_areas": [
+        "agent-llm"
+      ],
+      "tier4": false,
+      "status": "fixed",
+      "note": "source: verifier batch-3",
+      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
+    },
+    {
+      "id": "R15-LEAD-010",
+      "title": "SEC filing viewer 404s a 10-K it just listed: get_filing resolves metadata from only the last 40 filings with no form_type filter, so a heavy Form-4/144 filer's annual reports fall outside the window",
+      "severity": "high",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [
+        "sidecar/services/sec_filings_provider.py"
+      ],
+      "repro": "AAPL's 10-Ks (accessions ...-25-000079, ...-24-000123, listed via form_type=10-K in the filings list) 404 'filing metadata unavailable' when opened. get_filing calls get_recent_filings with limit=40 and no form_type filter, then matches the accession against that unfiltered window; a heavy Form-4/144 filer pushes every annual report out of the 40-filing window before the match ever happens.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 3 (verifier batch-4); sidecar/services/sec_filings_provider.py:585-591 (get_recent_filings called with limit=40, no form_type) and :591-592 (match = next(...) over that unfiltered window).",
+      "root_cause": "get_filing's metadata lookup re-lists only the issuer's last 40 filings across all form types (not the form_type-filtered list the panel showed), so any filing outside that raw recency window is unreachable regardless of what the user clicked.",
+      "fix_shape": "Pass the target form_type (or widen/paginate the recent-filings lookup) so a filing visible in a form-filtered list is always resolvable by accession; pin with a test using an issuer whose 10-K falls outside the unfiltered 40-most-recent window.",
+      "defect_class": "windowed-lookup-ignores-filter",
+      "raw_ids": [],
+      "operator_areas": [
+        "research-search",
+        "ui-panels"
+      ],
+      "tier4": false,
+      "status": "fixed",
+      "note": "Batch-5 (1574ed8) verifier found this a REGRESSION (not_certified): the no-hint get_filing lookup widened to a 1,000-row unfiltered window that sec-edgar-mcp cannot serve (limit >=200 times out or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed), so sec_filing_content now fails for every filing outside a 40-recent window (AAPL Form 4, MSFT 10-Q both broke). Fixed before the batch-5 merge closed: 7ae5117 forwards form_type from sec_tools.py and tries a small window first; 7ae5117 is an ancestor of the batch-5 merge commit 1574ed8, so the regression never shipped on 004.",
+      "closure_evidence": "7ae5117 fix(sec): forward the form hint and try a small filing window first (R15-LEAD-010)"
+    },
+    {
+      "id": "R15-LEAD-011",
+      "title": "^NSEI (Nifty 50) and other caret-prefixed Yahoo index symbols get wrongly suffixed .NS by _yahoo_symbol's IN bare-ticker path, so index history returns 0 bars",
+      "severity": "high",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [
+        "sidecar/services/yfinance_provider.py"
+      ],
+      "repro": "GET /history/%5ENSEI in an IN session -> 0 bars, reason in_eod_only. _yahoo_symbol('^NSEI'): s='^NSEI' does not end .NS/.BO; region IN and no dot in s, so is_nse_symbol/is_bse_symbol both return False for the index and the function falls through to return f'{s}.NS' = '^NSEI.NS', which Yahoo does not serve -- the real Yahoo symbol is '^NSEI' unchanged. The same in_eod_only reason string also mislabels DAL's no-trade year as an EOD-only cause.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 6 (verifier batch-4); sidecar/services/yfinance_provider.py:97-131 (_yahoo_symbol's IN bare-ticker branch has no exemption for a caret-prefixed index symbol); sidecar/routers/history.py:21,28 (in_eod_only reason).",
+      "root_cause": "_yahoo_symbol treats any dot-free symbol in an IN session as a bare equity ticker and appends .NS, with no case for a Yahoo index symbol (^NSEI, ^BSESN, etc.), which Yahoo serves unsuffixed.",
+      "fix_shape": "Exempt a leading '^' from the IN bare-ticker suffix branch in _yahoo_symbol (return the symbol unchanged); pin with a test that _yahoo_symbol('^NSEI') under region IN returns '^NSEI', not '^NSEI.NS'.",
+      "defect_class": "symbol-normalization-mismatch",
+      "raw_ids": [],
+      "operator_areas": [
+        "ui-panels",
+        "data-smallcaps"
+      ],
+      "tier4": false,
+      "status": "fixed",
+      "note": "source: verifier batch-4",
+      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
+    },
+    {
+      "id": "R15-LEAD-012",
+      "title": "Sidecar and MCP build venvs are created with whatever python3 is on PATH; Homebrew moved python3 to 3.14 mid-run (batch 5 built on 3.14, batch 4 on 3.13) so the shipped binaries' interpreter is not pinned to the 3.13 the stack declares",
+      "severity": "high",
+      "area": "release",
+      "subsystem": "release/build",
+      "files": [],
+      "repro": "python3 --version on the build machine -> 3.14; node scripts/ensure-all-sidecars.mjs --force builds every sidecar with it; nothing in scripts/ or CI asserts the interpreter version.",
+      "evidence": "batch-5 integrator environment note (r15/stage-c/batch-5 integ.failures)",
+      "fix_shape": "Resolve the interpreter explicitly in scripts/ensure-*.mjs and sidecar-staleness (prefer python3.13, else fail with a named message; env override VYSTED_PYTHON); assert sys.version_info[:2] == (3, 13) at build time; document in the release runbook; prove with a clean build in the next verifier.",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "release"
+      ],
+      "status": "fixed",
+      "source": "lead-found batch-6",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: scripts/build-python.mjs resolveBuildPython()/ensureBuildVenv() force the sidecar build venv onto 3.13 regardless of bare python3's resolution. Live: with python3->3.14.5 (Homebrew) on PATH, a full clean ensure-sidecar.mjs --force build used python3.13, PyInstaller banner confirmed 3.13.13, build succeeded, frozen binary ran live."
     },
     {
       "id": "R15-LIFECYCLE-001",
@@ -3582,7 +3697,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Under AUTO, a failing auto-apply writes \"Couldn't apply: ...\" and no \"Applied:\" line, and the change stays pending."
     },
     {
       "id": "R15-AGENT-033",
@@ -3633,7 +3750,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `budget: {}` is stored as 120000 tokens / $1.0 / 600s / 12 steps; `maxSteps: 0` returns 422."
     },
     {
       "id": "R15-AGENT-035",
@@ -3659,7 +3778,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Resuming a breached run keeps `provider: ollama`, `model: llama3.1:8b` (matches Ollama `/api/ps`); cost accumulates from 7,259 to 14,526 tokens over 2 steps; a dummy `X-LLM-Api-Key` sent on answer appears in no log line, DB column or `GET /runs` body."
     },
     {
       "id": "R15-AGENT-036",
@@ -3683,7 +3804,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Checkpoints are `{prompt, turns}` in order; for the ask_user run, the prompt is followed by `[ask_user -> ...]` then the user turn."
     },
     {
       "id": "R15-AGENT-037",
@@ -3707,7 +3830,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `maxTokens: 1000` with a tool-heavy prompt ends after 1 step with no tool activity, `error` \"token ceiling 1000 reached (7259 used)\", checkpoint `turns: []`."
     },
     {
       "id": "R15-AGENT-038",
@@ -3731,7 +3856,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A one-shot answer under `maxSteps: 1` ends `done` \"completed (step ceiling 1 reached (1 taken) on the final round)\"."
     },
     {
       "id": "R15-AGENT-039",
@@ -3759,7 +3886,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: On `nemotron-3-super:free`, a compound launch parks `planned` with 5 steps; `POST /runs/{id}/start` runs it to `done` with typed activity rows (compare_symbols ok, add_to_watchlist staged, set_chart_symbol staged); the activity half also ran live on Ollama."
     },
     {
       "id": "R15-AGENT-040",
@@ -3813,7 +3942,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `portfolio_delete_position` accepted, then holdings are `[]`; Undo brings back the same id, status `undone`. `remove_from_watchlist` followed by Undo restores the original list at the original index."
     },
     {
       "id": "R15-AGENT-042",
@@ -3865,8 +3996,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open",
-      "note": "Verifier batch-3: confirmed live-adjacent against the original AGENT-024 capture, which applies 2 of 3 criteria (the roe {min,max} leaf is dropped) labelled 'Wrote 2 screener criteria'. Still open."
+      "status": "fixed",
+      "note": "Batch-7 (e81c9e7) certified: A fresh malformed screener leaf gives \"Wrote 1 of 2 screener criteria; dropped pe_ratio: value must be a number - review and Run\", with a matching `dropped` array in the ack.",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7"
     },
     {
       "id": "R15-AGENT-044",
@@ -3892,7 +4024,9 @@
         "agent-chat",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Live `/resolve` through `applyHostActionAsync`: a fuzzy company name adds the resolved symbol to the watchlist with an ack naming the resolution; an unresolvable name fails and adds no row."
     },
     {
       "id": "R15-AGENT-045",
@@ -3916,7 +4050,8 @@
         "agent-chat",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "Batch-7 (e81c9e7) not certified: The entry's exact repro still reads as a quote failure. MCP compare_symbols with a 2-symbol call (one resolvable, one not) returns {ok:false, \"fewer than two symbols resolved - 1 of 2 returned a quote\"}; _compare_one builds the correct \"unresolved name\" entry (it shows with 3 symbols), but _compare_symbols drops every per-symbol error when fewer than two resolve, which is exactly this entry's two-symbol case. The writer's test called _compare_one only. Fix: carry the per-symbol error/candidates into the ok:false payload; pin with the two-symbol call."
     },
     {
       "id": "R15-AGENT-046",
@@ -3950,7 +4085,7 @@
         "research-search"
       ],
       "status": "open",
-      "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case. || Batch-6 (5e14731) not certified: the Ollama leg is fixed live (distinct call_<uuid> ids, 200 ack, model confirms). The cross-run leg still reproduces: a scratch pytest case simulating Gemini-style per-stream ids (set_chart_symbol_0) reused across two invoke_agent turns showed a late ack from turn 1 falsely grounding turn 2's action as 'applied' (seen_call_ids starts empty per invocation). Needs ids whose uniqueness holds across runs, not just per turn."
+      "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case. || Batch-6 (5e14731) not certified: the Ollama leg is fixed live (distinct call_<uuid> ids, 200 ack, model confirms). The cross-run leg still reproduces: a scratch pytest case simulating Gemini-style per-stream ids (set_chart_symbol_0) reused across two invoke_agent turns showed a late ack from turn 1 falsely grounding turn 2's action as 'applied' (seen_call_ids starts empty per invocation). Needs ids whose uniqueness holds across runs, not just per turn. | Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-8). Stays open."
     },
     {
       "id": "R15-AGENT-047",
@@ -4502,7 +4637,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "propose_order is moot: out of scope after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: no mutating capability (portfolio/notes/watchlist host actions) reaches the external MCP surface, contradicting the one-catalog-parity promise."
     },
     {
       "id": "R15-AGENT-084",
@@ -4785,7 +4921,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: On a done run, `cancel`/`resume`/`start`/`answer` each return 409 \"run '...' is done; it cannot become ...\"; an unknown run returns 404."
     },
     {
       "id": "R15-CODE-AGENT-011",
@@ -4814,7 +4952,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A delegate run told to ask pauses with a `question`; `POST /answer` resumes it through `resolve_symbol` -> `price_data` -> `done`."
     },
     {
       "id": "R15-CODE-AGENT-012",
@@ -5292,7 +5432,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The census's original proof P1, replayed at the target, leaves `activeIdentifier` correct after a late error following a ready symbol; the earnings 7-day/30-day case is pinned."
     },
     {
       "id": "R15-CODE-FRONTEND-018",
@@ -5342,7 +5484,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The live sidecar with its workspaces dir set read-only answers 507 \"Could not write the workspace: Permission denied\"; real `autosaveLayout()` gives no error after 2 failures, an error message after 3, and `null` after recovery."
     },
     {
       "id": "R15-CODE-FRONTEND-020",
@@ -5514,7 +5658,8 @@
         "COD-error-layer-3"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "open",
+      "note": "Two of the three cited sites (host-actions.ts order-proposal POST, BrokerOrderEntry.tsx) are trading surfaces deleted by the removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: delegate-runs.ts and AgentBuilderPanel still hand-roll error parsing (a 422 renders 'Could not start: [object Object]') across the wider GET-only sidecar-client gap (39 files)."
     },
     {
       "id": "R15-CODE-PLATFORM-012",
@@ -5690,8 +5835,9 @@
         "COD-workflow-engine-8"
       ],
       "tier4": false,
-      "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- not fixed in effect. The quant nodes/tools now call asyncio.to_thread, but QuantLib's SWIG calls hold the GIL, so the event loop still freezes: a quant.price_option workflow node (binomial, 20,000 steps) blocked GET /health for 6.4s (60,000 steps: 54s); the sync /quant route blocks the same way (6.4s). Base: 9.1s. Needs a process pool (or a GIL-releasing build). A prior commit (a2dbe32) claimed this landed; the fresh-context verifier found it still broken -- CHANGELOG corrected. || Batch-6 (5e14731) not certified: the event-loop freeze is fixed (health-poll maxima stayed under ~35ms regardless of pricing duration, live 20k/60k-step probes on both source and frozen --onefile sidecar). But the fix adds a new defect: pool workers and resource_tracker processes are orphaned on every sidecar exit (the stdin-EOF watchdog calls os._exit(0) before the lifespan finally's quant_pool.shutdown() can run); reproduced twice, with two workers from an earlier worktree still alive 9h40m later. Fixed separately at 831d52b (shut the pricing pool down on every exit path, workers watch os.getppid()) per the batch-6 merge commit's own subject."
+      "status": "fixed",
+      "note": "Batch-7 (e81c9e7) certified: Frozen batch-7 binary: a 20k-step American binomial prices while `/health` stays fast (worst 0.224s under EOF, 0.014s under TERM); stdin EOF exits 0 and SIGTERM exits -15 with 4 processes before and 0 leftover after both. Source sidecar: pool workers gone 6s after stdin EOF and after SIGTERM; no `multiprocessing` process was left running.",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7"
     },
     {
       "id": "R15-CODE-PLATFORM-019",
@@ -5769,7 +5915,8 @@
         "COD-portfolio-3"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "open",
+      "note": "Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-13). Stays open."
     },
     {
       "id": "R15-CODE-PLATFORM-022",
@@ -6031,7 +6178,8 @@
         "INT-spec-180-187"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "open",
+      "note": "The broker-credential side is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) the only plugin credential is the optional NewsAPI key. Core finding stays open: marketplace.ts's hand-maintained data-source description is still disconnected from provider_registry.py and drifts (adding a source still needs host edits in two languages)."
     },
     {
       "id": "R15-CODE-PLATFORM-073",
@@ -6394,7 +6542,9 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `/disclosures/results` answers 200 with BSE events for JONJUA, DAL and ELCIDIN. The fresh case CHTR (BSE SME) also answers 200 with 4 events. All four returned 502 before."
     },
     {
       "id": "R15-DATA-051",
@@ -6673,7 +6823,9 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: SIFY `shareholding`/`announcements`/`results` and AAPL `shareholding` answer 200 `coverage: \"not_applicable\"` with a note; the agent tools answer `ok: true` with the same fields. The SEC 20-F lane: the route could not list filings because sec-edgar-mcp `get_recent_filings` timed out on SEC's 503ing `browse-edgar` for the whole verification session (data.sec.gov itself answered 200), and the route said so honestly in `note`. In-process with only the listing step replaced by `data.sec.gov/submissions`, `attach_major_shareholders` returned `coverage: \"covered\"`, `provider: \"sec-20f\"` and SIFY's four holders summing to 83.78% (register's figure). Fresh case WIT matches Item 7.A exactly. Residual (verifier issue #3): the 20-F lane's dependency on the single `browse-edgar` listing path is a single point of failure when SEC's directory endpoint is down; `data.sec.gov/submissions` is the resilient path and isn't used as a fallback. Residual (verifier issue #4): `sec_ownership` returns nested beneficial-ownership rows as filed (WIT: Premji 72.62% includes the Hasham/Prazim/Zash sub-rows); a consumer summing the rows over-counts — no note flags the nesting."
     },
     {
       "id": "R15-DATA-061",
@@ -7063,7 +7215,9 @@
         "research-search"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A real BSE attachment that answers 404 on `AttachLive` (curl) and 200 on `AttachHis`: `fetch_page(<AttachLive url>)` returns `ok` with the PDF text."
     },
     {
       "id": "R15-DATA-076",
@@ -7087,7 +7241,9 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: DAL `revenue_growth` is 0.452 from `bse` (\"period to 2026-06-30 vs the same period to 2025-06-30\"), matching screener's 7.26/5.00-1. For FUSION, Yahoo's 128.1% is disclosed as \"not served\" against the filed 5.46%."
     },
     {
       "id": "R15-DATA-077",
@@ -7436,7 +7592,9 @@
         "ui-panels"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Truncating a workspace file and then GETting serves the `.bak` and moves the corrupt file aside; the next save leaves `.bak` parseable; a non-dict body returns 422."
     },
     {
       "id": "R15-DATA-091",
@@ -7872,8 +8030,10 @@
       "operator_areas": [
         "data-smallcaps"
       ],
-      "status": "open",
-      "source": "lead-found batch-3"
+      "status": "fixed",
+      "source": "lead-found batch-3",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: With no lane, TCS's TTM reason reads \"the provider's quarterly statements show only 3 quarter(s)... spans a provider gap\", not \"half-yearly\". JONJUA keeps \"half-yearly\" from its filed periods; DHANBANK (quarterly filer) sums 4 filed quarters."
     },
     {
       "id": "R15-LEAD-005",
@@ -7891,7 +8051,160 @@
         "data-smallcaps"
       ],
       "status": "open",
-      "source": "lead-found batch-3"
+      "source": "lead-found batch-3",
+      "note": "Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-8 area unaddressed). Stays open. | Batch-7 verifier residual #5: frozen-binary checks and webhook-payload quote timestamps reconfirm Quote.timestamp is still stamped at fetch time, not the provider's quote time; still open, not delivered this batch."
+    },
+    {
+      "id": "R15-LEAD-009",
+      "title": "Earnings/ratings cache keys are not region-aware: a region switch inside the TTL serves the other region's listing data for the same bare symbol",
+      "severity": "medium",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [
+        "sidecar/routers/earnings.py",
+        "sidecar/routers/fundamentals.py"
+      ],
+      "repro": "The cache key is the raw bare symbol (earnings:INFY:estimates), while R15-DATA-029 made the underlying resolution region-dependent (IN: INFY.NS; US: the ADR). A region switch inside the TTL (6h history/surprises, 24h estimates) serves the other listing's cached response. A related upgrade transient: pre-fix cached empties persist until TTL (earnings:RELIANCE.NS:history \"RELIANCE-NS\" [], 24h; sec:filing:* empty sections, 24h).",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 1 (verifier batch-4); sidecar/routers/earnings.py:88,107,126 (cache_key = f'earnings:{normalized}:...' has no region component).",
+      "root_cause": "The earnings/ratings cache key is the raw bare symbol with no region component, while DATA-029 made the underlying resolution region-dependent.",
+      "fix_shape": "Fold the active region into the cache key (e.g. f'earnings:{normalized}:{region}:history') across earnings.py and the fundamentals.py ratings route; pin with a test that switches region within TTL and asserts the response differs.",
+      "defect_class": "region-unaware-cache-key",
+      "raw_ids": [],
+      "operator_areas": [
+        "ui-panels",
+        "data-smallcaps"
+      ],
+      "tier4": false,
+      "status": "fixed",
+      "note": "source: verifier batch-4",
+      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
+    },
+    {
+      "id": "R15-LEAD-013",
+      "title": "The bundled sp500 screener universe pack carries about 15 delisted names (rate_limited noise) and is missing at least 3 current constituents (BXP, NVR, UDR)",
+      "severity": "medium",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [],
+      "repro": "Run the sp500 screen: about 15 delisted names (MMC, FI, ANSS, CTLT, DAY, DFS, HES, HOLX, IPG, JNPR, K, MRO, WBA, CTRA, ...) are still in the universe pack and the screener labels them rate_limited instead of dropping them; BXP, NVR and UDR are missing from the pack entirely.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #6 (verifier batch-5)",
+      "root_cause": "The static sp500 universe list bundled with the screener has drifted from the live index membership.",
+      "fix_shape": "Regenerate the sp500 universe pack from a current constituents source, drop delisted tickers instead of rate-limit-labelling them, and add a staleness check (age of the pack vs a max TTL) so the next drift is caught before it reaches a release; pin with a test asserting the known-missing tickers are present and no known-delisted ticker remains.",
+      "defect_class": "stale-static-reference-data",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "note": "source: verifier batch-5"
+    },
+    {
+      "id": "R15-LEAD-014",
+      "title": "Tool-arg repair accepts a JSON-schema echo from the model as valid tool args instead of retrying",
+      "severity": "medium",
+      "area": "agent",
+      "subsystem": "agent-tools-catalog-ledger",
+      "files": [
+        "sidecar/services/agent_runtime.py"
+      ],
+      "repro": "During the tool-arg repair round (the retry path that runs when a model's tool call has invalid JSON args), a model response that merely echoes the tool's JSON schema back (rather than filling in real argument values) was accepted as if it were valid args, instead of being rejected and retried or surfaced as a failed call.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #9 (verifier batch-5)",
+      "root_cause": "The repair round's args validator checks JSON-shape validity but not whether the payload is the tool's own schema echoed back rather than a filled instance.",
+      "fix_shape": "Reject a repair response whose payload structurally matches the tool's input schema (keys are the schema's property names mapped to type-name placeholders, not real values) and retry or fall back to the invalid-args sentinel used elsewhere in the repair path; pin with a test that feeds the repair round a schema-echo response and asserts it is rejected, not executed.",
+      "defect_class": "unvalidated-repair-output",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "status": "fixed",
+      "note": "Batch-6 (5e14731) certified: services/llm/openai.py OpenAIProvider._repair_tool_args/_validate_tool_args now reject a repair reply that is the JSON Schema itself echoed back (plain, fenced, or prose-wrapped). Live: 8/8 vulnerable no-required-key tools now reject the echo (0 accepted post-fix); legit args still pass. Closes the hole batch-5's verifier flagged as issue #9.",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
+    },
+    {
+      "id": "R15-LEAD-015",
+      "title": "Quarterly financial statements silently skip a quarter (DHANBANK 2025-09-30 missing with no gap marker) and annual period labels differ by provider (openbb ISO dates vs yfinance years)",
+      "severity": "medium",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [
+        "sidecar/routers/fundamentals.py"
+      ],
+      "repro": "GET the quarterly income/balance/cash-flow statement (?period=quarterly) for DHANBANK: the 2025-09-30 quarter is missing from the series with nothing marking the gap. Separately, annual period labels are inconsistent across providers on the same route: openbb returns ISO dates, yfinance returns bare years, so the same statement's periods do not line up when a symbol's provider changes.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #10 (verifier batch-5)",
+      "root_cause": "The quarterly statement assembly does not mark a provider-side gap, and annual period labels are passed through in each provider's native format instead of being normalized.",
+      "fix_shape": "Mark a missing expected quarter explicitly (e.g. a null row with a gap flag) rather than silently omitting it, and normalize annual period labels to one date format across providers before they reach the response; pin with a test on a symbol/provider pair known to skip a quarter and one that mixes providers across periods.",
+      "defect_class": "silent-data-gap",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "fixed",
+      "note": "Batch-7 (e81c9e7) certified: `GET /fundamentals/DHANBANK/income?period=quarterly` returns `gaps: [\"2025-09-30\"]` and a null value on every line for that period. Annual labels are ISO on both openbb and yfinance.",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7"
+    },
+    {
+      "id": "R15-LEAD-016",
+      "title": "Earnings history's reported_date field carries the fiscal quarter's end date, not the actual report/announcement date",
+      "severity": "medium",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [],
+      "repro": "Read reported_date on any row of the earnings-history route: it holds the quarter-end date (e.g. the period the results cover) rather than the date the company actually reported/announced those results, so anything sorting or displaying by report date is silently wrong.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #12 (verifier batch-5)",
+      "root_cause": "The earnings-history field is populated from the provider's fiscal-period-end value with no separate actual-report-date field.",
+      "fix_shape": "Carry the provider's actual announcement/report date separately from the fiscal period end and rename or split the field so reported_date means what it says; pin with a test asserting reported_date differs from the period-end date on a fixture where the provider supplies both.",
+      "defect_class": "mislabeled-field",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "note": "source: verifier batch-5"
+    },
+    {
+      "id": "R15-LEAD-018",
+      "title": "nemotron's chain-of-thought reasoning leaks into the visible chat content on the OpenRouter free lane",
+      "severity": "medium",
+      "area": "agent",
+      "subsystem": "llm-adapters-and-errors",
+      "files": [],
+      "repro": "Run an agent turn through nvidia/nemotron-3-super-120b-a12b:free on OpenRouter: the model's internal reasoning text is not separated out and leaks into the content field the chat renders, so the user sees raw chain-of-thought instead of (or ahead of) the intended answer.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #15 (verifier batch-5)",
+      "root_cause": "The OpenRouter adapter does not split a reasoning/thinking field out of the response for this model, so it is concatenated into content along with the answer.",
+      "fix_shape": "Detect and strip (or route to a separate reasoning field the UI can fold) nemotron's chain-of-thought segment in the OpenRouter adapter's response parsing, matching how other reasoning-capable models are handled; pin with a test on a captured nemotron response containing a reasoning preamble.",
+      "defect_class": "unfiltered-model-output",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "status": "open",
+      "note": "source: verifier batch-5"
+    },
+    {
+      "id": "R15-LEAD-019",
+      "title": "The Delegate BudgetGuard prices an unlisted model (every OpenRouter :free slug included) at the DEFAULT_RATE_PER_M, recording phantom spend against a real ceiling on a free model",
+      "severity": "medium",
+      "area": "agent",
+      "subsystem": "runs-durable-delegate",
+      "files": [
+        "sidecar/services/budget_guard.py",
+        "sidecar/config/model_registry.json"
+      ],
+      "repro": "Launch a Delegate run on an OpenRouter :free slug not present in model_registry.json's PRICE_TABLE (e.g. nvidia/nemotron-3-super-120b-a12b:free) -> BudgetGuard falls back to DEFAULT_RATE_PER_M for every round even though the provider IS resolved (distinct from AGENT-074, which is about an empty/unresolved provider string). Batch-7 verifier observation: the AGENT-039 run on that slug recorded spend_usd: 0.12979 for 64,895 tokens against a $1 ceiling, i.e. phantom spend on a model billed at $0 by OpenRouter.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-7/VERDICTS.md 'Issues found outside the entries' #2 (batch-7 verifier, live AGENT-039 run).",
+      "fix_shape": "Add a rate entry (0.0) for known :free OpenRouter slugs (or parse the ':free' suffix) in model_registry.json / budget_guard's price lookup, so an unlisted free model is not billed at the unknown-model default; pin with a test pricing an unlisted ':free' slug at 0.",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent"
+      ],
+      "status": "open",
+      "source": "verifier batch-7"
     },
     {
       "id": "R15-LIFECYCLE-010",
@@ -7968,7 +8281,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A run killed mid-flight (stdin EOF) while `running`, 1 step, 7,277 tokens; checkpoint already non-null (written at the round, not at exit). On restart, `GET /runs/{id}` reads `error` \"interrupted by sidecar restart\"; it resumes (200) and then cancels (200, `cancelled`)."
     },
     {
       "id": "R15-LIFECYCLE-013",
@@ -7993,7 +8308,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Resuming a breached run keeps `provider: ollama`, `model: llama3.1:8b` (matches Ollama `/api/ps`); cost accumulates from 7,259 to 14,526 tokens over 2 steps; a dummy `X-LLM-Api-Key` sent on answer appears in no log line, DB column or `GET /runs` body."
     },
     {
       "id": "R15-LIFECYCLE-014",
@@ -8608,7 +8925,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `run_deep_research` with the real `visit_for_research` against a live 403 host emits `ResearchStep(status=\"error\", \"visit failed: ... (HTTP 403)\")`; an SSRF target gives \"blocked non-public or non-http(s) URL\"."
     },
     {
       "id": "R15-RESEARCH-020",
@@ -8636,7 +8955,9 @@
         "research-search",
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The register repro (SearXNG with a 40-row stub, numResults:3) gives 3 results/3 citations where it gave 40/8. Live MCP `web_search num_results=3` on the keyless Brave tier gives 3/3."
     },
     {
       "id": "R15-RESEARCH-021",
@@ -8661,7 +8982,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: \"BAJFINANCE 200 DMA breakout as stock nears record\" scores 1.0 where the register had 0.0; \"BAJFINANCE 52-week high\" also scores 1.0; fresh case \"KPITTECH 200 DMA test\" scores 1.0."
     },
     {
       "id": "R15-RESEARCH-022",
@@ -8685,7 +9008,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The register stub (a DDG challenge row) now raises `SearchError(rate_limited)` \"DuckDuckGo: blocked (challenge page)\" and the breaker records a failure (1); before, it was a healthy empty answer."
     },
     {
       "id": "R15-RESEARCH-023",
@@ -8710,7 +9035,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The register's Route Mobile \"All rights reserved\" row is kept (1 row); a challenge row is still blocked."
     },
     {
       "id": "R15-RESEARCH-024",
@@ -8737,8 +9064,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open",
-      "note": "Batch-6 (5e14731) not certified: only the runtime half landed (commit 26ea55c) — _auto_publish_event now forwards a host domain and published_at for FAST web rows, pinned by a new test. The C4 half (Citation/web rows carrying domain and published_at at the contract level, so FAST rows reach the mapping already dated) was not delivered; stays open per the batch's own CHANGELOG note."
+      "status": "fixed",
+      "note": "Batch-7 (e81c9e7) certified: A SearXNG row with `publishedDate` passes through `web_search._dispatch` as `{domain, published_at}` and through `_record_web` into a `ResearchSource` with `published_at`; live keyless rows carry a bare host. `publish_brief` -> BriefPanel's Sources rail renders the date.",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7"
     },
     {
       "id": "R15-RESEARCH-025",
@@ -8788,7 +9116,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: An INR market cap card renders \"₹591B\" via `formatCompactMoney(..., \"INR\")`, Equity Overview's formatter; a null currency renders \"4.48T · currency unknown\"."
     },
     {
       "id": "R15-RESEARCH-027",
@@ -9110,7 +9440,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A send with no key leaves no user turn, keeps the prompt and shows \"No API key for ...\"; the keyless-Ollama branch also returns before appendUser."
     },
     {
       "id": "R15-UI-018",
@@ -9192,7 +9524,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: In ChartPanel with a persisted view, a drawing on a different symbol is not shown and appears once that symbol loads; the view round-trips through the store and the workspace blob."
     },
     {
       "id": "R15-UI-021",
@@ -9241,7 +9575,8 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "needs_gui",
+      "note": "Batch-7 (e81c9e7) needs_gui. The click path is pinned in vitest against a mocked chart (anchor from coordinateToPrice, off-bar logical index, Text prompt, locked-delete disabled). The actual placement on the lightweight-charts canvas cannot be seen headless. GUI check (native event injection, not chrome-devtools) must confirm: (1) a trendline/horizontal line clicked mid-candle renders at the clicked y; (2) a click right of the last bar places a visible drawing; (3) the Text tool asks for a label and shows the typed text, not \"label\"; (4) a locked drawing's row delete control is disabled and the drawing survives a click on it."
     },
     {
       "id": "R15-UI-023",
@@ -9264,7 +9599,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A rejected `/indicators` after a symbol change removes every old overlay series; indicators do not draw before their own symbol's candles land."
     },
     {
       "id": "R15-UI-024",
@@ -9341,7 +9678,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Scratch vitest on the real panel: a symbol added during an in-flight poll shows at once, a removed symbol does not reappear when the stale poll lands; stale-candidate Enter and backoff/hidden pause are pinned."
     },
     {
       "id": "R15-UI-027",
@@ -9463,7 +9802,9 @@
         "ui-panels",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: In EquityOverview with two symbols commanded and the first settling second, the first is never shown and the spinner holds until the second lands."
     },
     {
       "id": "R15-UI-032",
@@ -9538,7 +9879,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The real PortfolioPanel covers four checks: edit+switch+Save validates required fields and leaves other portfolios unchanged; delete works in a portfolio switched to after mount; quotes refetch on the 5s interval with a freshness title; labels read \"Avg cost / share\" (placeholder \"per share\") and column \"Avg cost\"."
     },
     {
       "id": "R15-UI-035",
@@ -9561,7 +9904,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The real PortfolioPanel covers four checks: edit+switch+Save validates required fields and leaves other portfolios unchanged; delete works in a portfolio switched to after mount; quotes refetch on the 5s interval with a freshness title; labels read \"Avg cost / share\" (placeholder \"per share\") and column \"Avg cost\"."
     },
     {
       "id": "R15-UI-036",
@@ -9588,7 +9933,9 @@
         "ui-panels",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The real PortfolioPanel covers four checks: edit+switch+Save validates required fields and leaves other portfolios unchanged; delete works in a portfolio switched to after mount; quotes refetch on the 5s interval with a freshness title; labels read \"Avg cost / share\" (placeholder \"per share\") and column \"Avg cost\"."
     },
     {
       "id": "R15-UI-037",
@@ -9611,7 +9958,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: The real PortfolioPanel covers four checks: edit+switch+Save validates required fields and leaves other portfolios unchanged; delete works in a portfolio switched to after mount; quotes refetch on the 5s interval with a freshness title; labels read \"Avg cost / share\" (placeholder \"per share\") and column \"Avg cost\"."
     },
     {
       "id": "R15-UI-038",
@@ -9636,7 +9985,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A legacy Sonar source (`domain: \"sec.gov (via Perplexity Sonar)\"`) badges as FILING because the URL host now wins; new Sonar rows carry the provenance in `provider`."
     },
     {
       "id": "R15-UI-039",
@@ -9686,7 +10037,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Live scratch vitest: `adoptSidecarRuns()` adopts only the live sidecar-only run; `cancelDelegateRun` on a done run returns `{ok:false, \"Cancel failed (HTTP 409) - retry.\"}` and the row stays `running` (not optimistic)."
     },
     {
       "id": "R15-UI-041",
@@ -9848,7 +10201,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: `listWorkspaces()` filters out `__autosave__`; `saveWorkspace(\"__x\")` and `deleteWorkspace(\"__autosave__\")` both throw \"Names starting with \"__\" are reserved\"."
     },
     {
       "id": "R15-UI-047",
@@ -10385,7 +10740,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: Markdown citing `[47]` against 2 sources renders one inert chip (aria \"citation not in sources\") and a Sources header reading \"1 broken citation\"."
     },
     {
       "id": "R15-AGENT-065",
@@ -10630,7 +10987,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: A launch that omits the provider (Ollama default) with `llama3.1:8b` prices 7,234 tokens at `spend_usd: 0.0`; before the fix the $5/M default would give $0.036."
     },
     {
       "id": "R15-AGENT-075",
@@ -11843,7 +12202,8 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "The broker/orders fetch-site examples are moot: removed with trading (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: the surviving hand-rolled fetch sites (agents.ts, quant.ts, workflow.ts, safety.ts) still carry divergent error policies with no shared sidecarPost/timeout helper."
     },
     {
       "id": "R15-CODE-FRONTEND-028",
@@ -14138,6 +14498,46 @@
       "source": "lead-found batch-3"
     },
     {
+      "id": "R15-LEAD-017",
+      "title": "CSL's shareholding-pattern (SHP) history carries a duplicate quarter row (2026-08-20)",
+      "severity": "low",
+      "area": "data",
+      "subsystem": "market-data-providers-1",
+      "files": [],
+      "repro": "GET the SHP history for CSL: the 2026-08-20 quarter appears twice in the returned series.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #13 (verifier batch-5)",
+      "root_cause": "The SHP history assembly does not dedupe by (symbol, period) before returning the series.",
+      "fix_shape": "Dedupe the SHP history series by (symbol, period_end) before it is returned; pin with a test on the CSL fixture that produced the duplicate.",
+      "defect_class": "missing-dedupe",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "note": "source: verifier batch-5"
+    },
+    {
+      "id": "R15-LEAD-020",
+      "title": "exchange_financials.get_filed_periods caches only successful lookups, so a transient NSE miss falls back to Yahoo (flagged) and the very next call for the same symbol can serve NSE instead, showing a different provider on consecutive loads",
+      "severity": "low",
+      "area": "data",
+      "subsystem": "fundamentals-profile",
+      "files": [
+        "sidecar/services/exchange_financials.py"
+      ],
+      "repro": "A transient NSE miss on the first /fundamentals/TCS call served Yahoo (correctly flagged 'not served' / fallback), and the immediately following call served NSE, because the cache only remembers a successful lookup, never a failure. Both answers are individually honest and labelled, but the panel can show a different provider on reload for the same symbol.",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-7/VERDICTS.md 'Issues found outside the entries' #1 (batch-7 verifier, live TCS fundamentals calls).",
+      "fix_shape": "Cache the negative result (or a short-TTL 'no NSE data this attempt' marker) alongside the positive one in get_filed_periods so consecutive loads for the same symbol are stable within a session; pin with a test that a failed-then-succeeded NSE lookup stays on one provider for the cache TTL.",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "source": "verifier batch-7"
+    },
+    {
       "id": "R15-LIFECYCLE-027",
       "title": "No timeout or AbortSignal anywhere in the shared sidecar client: one hung /health probe holds the shared readyPromise past its 120 s budget, a hung route is an eternal spinner, and the boot-time plugin path fetches every plugin's config twice, serially, with no ceiling",
       "severity": "low",
@@ -14644,7 +15044,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: In `run_heavy_research` with explorer 2 raising, the step \"explorer angle 2 ... failed: RuntimeError: explorer boom\" is emitted and logged, and the brief still returns."
     },
     {
       "id": "R15-RESEARCH-034",
@@ -14764,7 +15166,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
+      "note": "Batch-7 (e81c9e7) certified: One search that fails both attempts (2 engine calls) leaves the breaker `closed` with 1 failure; a second failed search opens it."
     },
     {
       "id": "R15-RESEARCH-039",
@@ -15480,7 +15884,8 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "The broker-credential comparison is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) marketplace.ts's only credential entry is NewsAPI. Core finding stays open: Marketplace CredentialForm still saves the NewsAPI key with no validation, unlike KeyEntryDialog's live probe for LLM keys."
     },
     {
       "id": "R15-UI-093",
@@ -15532,266 +15937,6 @@
         "research-search"
       ],
       "status": "open"
-    },
-    {
-      "id": "R15-LEAD-007",
-      "title": "Every Gemini agent turn fails client-side before the API call with 8 validation errors for GenerateContentConfig (non-string enum values in coupons_per_year, and panels.items.type ['string','object'])",
-      "severity": "high",
-      "area": "agent",
-      "subsystem": "llm-adapters",
-      "files": [],
-      "repro": "Live agent turn on a Gemini model (checked at base 56e12b2 too, so not a batch-3 regression): in-process types.GenerateContentConfig(tools=gemini_tools(all 48)) raises '8 validation errors for GenerateContentConfig' -- caused by coupons_per_year.enum carrying non-string enum values and panels.items.type declaring ['string','object']. Every Gemini agent turn fails before the request is even sent.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 1 (verifier batch-3, checked live and at base 56e12b2)",
-      "root_cause": "The Gemini tool-schema projection emits enum/type shapes the google-genai SDK's GenerateContentConfig validator rejects.",
-      "fix_shape": "Coerce enum values to strings and collapse panels.items.type to a single JSON-schema type in the Gemini tool projection; pin with a schema-validation test over the full 48-tool catalog against google-genai's GenerateContentConfig.",
-      "defect_class": "schema-projection-mismatch",
-      "raw_ids": [],
-      "operator_areas": [
-        "agent-llm"
-      ],
-      "tier4": false,
-      "status": "fixed",
-      "note": "source: verifier batch-3",
-      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
-    },
-    {
-      "id": "R15-LEAD-008",
-      "title": "The xAI agent lane is dead when provider-level native search is on: a live invoke returns 410 'Live search is deprecated. Please switch to the Agent Tools API'",
-      "severity": "high",
-      "area": "agent",
-      "subsystem": "llm-adapters",
-      "files": [],
-      "repro": "Live xAI agent invoke with native search enabled returns HTTP 410: 'Live search is deprecated. Please switch to the Agent Tools API'. Every xAI agent turn with native search on fails this way.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-3/VERDICTS.md issue 2 (verifier batch-3, live-verified; refuter had marked the xAI half of AGENT-005 unverified)",
-      "root_cause": "xAI deprecated the Live Search API the adapter still calls; native search must move to the xAI Agent Tools API.",
-      "fix_shape": "Migrate the xAI native-search call to the Agent Tools API, or gate xAI native search off (same per-model gating pattern as native_search_available for Groq/Gemini) until migrated. Pin with a live-shaped xAI adapter test asserting no 410.",
-      "defect_class": "deprecated-provider-api",
-      "raw_ids": [],
-      "operator_areas": [
-        "agent-llm"
-      ],
-      "tier4": false,
-      "status": "fixed",
-      "note": "source: verifier batch-3",
-      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
-    },
-    {
-      "id": "R15-LEAD-009",
-      "title": "Earnings/ratings cache keys are not region-aware: a region switch inside the TTL serves the other region's listing data for the same bare symbol",
-      "severity": "medium",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [
-        "sidecar/routers/earnings.py",
-        "sidecar/routers/fundamentals.py"
-      ],
-      "repro": "The cache key is the raw bare symbol (earnings:INFY:estimates), while R15-DATA-029 made the underlying resolution region-dependent (IN: INFY.NS; US: the ADR). A region switch inside the TTL (6h history/surprises, 24h estimates) serves the other listing's cached response. A related upgrade transient: pre-fix cached empties persist until TTL (earnings:RELIANCE.NS:history \"RELIANCE-NS\" [], 24h; sec:filing:* empty sections, 24h).",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 1 (verifier batch-4); sidecar/routers/earnings.py:88,107,126 (cache_key = f'earnings:{normalized}:...' has no region component).",
-      "root_cause": "The earnings/ratings cache key is the raw bare symbol with no region component, while DATA-029 made the underlying resolution region-dependent.",
-      "fix_shape": "Fold the active region into the cache key (e.g. f'earnings:{normalized}:{region}:history') across earnings.py and the fundamentals.py ratings route; pin with a test that switches region within TTL and asserts the response differs.",
-      "defect_class": "region-unaware-cache-key",
-      "raw_ids": [],
-      "operator_areas": [
-        "ui-panels",
-        "data-smallcaps"
-      ],
-      "tier4": false,
-      "status": "fixed",
-      "note": "source: verifier batch-4",
-      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
-    },
-    {
-      "id": "R15-LEAD-010",
-      "title": "SEC filing viewer 404s a 10-K it just listed: get_filing resolves metadata from only the last 40 filings with no form_type filter, so a heavy Form-4/144 filer's annual reports fall outside the window",
-      "severity": "high",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [
-        "sidecar/services/sec_filings_provider.py"
-      ],
-      "repro": "AAPL's 10-Ks (accessions ...-25-000079, ...-24-000123, listed via form_type=10-K in the filings list) 404 'filing metadata unavailable' when opened. get_filing calls get_recent_filings with limit=40 and no form_type filter, then matches the accession against that unfiltered window; a heavy Form-4/144 filer pushes every annual report out of the 40-filing window before the match ever happens.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 3 (verifier batch-4); sidecar/services/sec_filings_provider.py:585-591 (get_recent_filings called with limit=40, no form_type) and :591-592 (match = next(...) over that unfiltered window).",
-      "root_cause": "get_filing's metadata lookup re-lists only the issuer's last 40 filings across all form types (not the form_type-filtered list the panel showed), so any filing outside that raw recency window is unreachable regardless of what the user clicked.",
-      "fix_shape": "Pass the target form_type (or widen/paginate the recent-filings lookup) so a filing visible in a form-filtered list is always resolvable by accession; pin with a test using an issuer whose 10-K falls outside the unfiltered 40-most-recent window.",
-      "defect_class": "windowed-lookup-ignores-filter",
-      "raw_ids": [],
-      "operator_areas": [
-        "research-search",
-        "ui-panels"
-      ],
-      "tier4": false,
-      "status": "fixed",
-      "note": "Batch-5 (1574ed8) verifier found this a REGRESSION (not_certified): the no-hint get_filing lookup widened to a 1,000-row unfiltered window that sec-edgar-mcp cannot serve (limit >=200 times out or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed), so sec_filing_content now fails for every filing outside a 40-recent window (AAPL Form 4, MSFT 10-Q both broke). Fixed before the batch-5 merge closed: 7ae5117 forwards form_type from sec_tools.py and tries a small window first; 7ae5117 is an ancestor of the batch-5 merge commit 1574ed8, so the regression never shipped on 004.",
-      "closure_evidence": "7ae5117 fix(sec): forward the form hint and try a small filing window first (R15-LEAD-010)"
-    },
-    {
-      "id": "R15-LEAD-011",
-      "title": "^NSEI (Nifty 50) and other caret-prefixed Yahoo index symbols get wrongly suffixed .NS by _yahoo_symbol's IN bare-ticker path, so index history returns 0 bars",
-      "severity": "high",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [
-        "sidecar/services/yfinance_provider.py"
-      ],
-      "repro": "GET /history/%5ENSEI in an IN session -> 0 bars, reason in_eod_only. _yahoo_symbol('^NSEI'): s='^NSEI' does not end .NS/.BO; region IN and no dot in s, so is_nse_symbol/is_bse_symbol both return False for the index and the function falls through to return f'{s}.NS' = '^NSEI.NS', which Yahoo does not serve -- the real Yahoo symbol is '^NSEI' unchanged. The same in_eod_only reason string also mislabels DAL's no-trade year as an EOD-only cause.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 6 (verifier batch-4); sidecar/services/yfinance_provider.py:97-131 (_yahoo_symbol's IN bare-ticker branch has no exemption for a caret-prefixed index symbol); sidecar/routers/history.py:21,28 (in_eod_only reason).",
-      "root_cause": "_yahoo_symbol treats any dot-free symbol in an IN session as a bare equity ticker and appends .NS, with no case for a Yahoo index symbol (^NSEI, ^BSESN, etc.), which Yahoo serves unsuffixed.",
-      "fix_shape": "Exempt a leading '^' from the IN bare-ticker suffix branch in _yahoo_symbol (return the symbol unchanged); pin with a test that _yahoo_symbol('^NSEI') under region IN returns '^NSEI', not '^NSEI.NS'.",
-      "defect_class": "symbol-normalization-mismatch",
-      "raw_ids": [],
-      "operator_areas": [
-        "ui-panels",
-        "data-smallcaps"
-      ],
-      "tier4": false,
-      "status": "fixed",
-      "note": "source: verifier batch-4",
-      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
-    },
-    {
-      "id": "R15-LEAD-012",
-      "title": "Sidecar and MCP build venvs are created with whatever python3 is on PATH; Homebrew moved python3 to 3.14 mid-run (batch 5 built on 3.14, batch 4 on 3.13) so the shipped binaries' interpreter is not pinned to the 3.13 the stack declares",
-      "severity": "high",
-      "area": "release",
-      "subsystem": "release/build",
-      "files": [],
-      "repro": "python3 --version on the build machine -> 3.14; node scripts/ensure-all-sidecars.mjs --force builds every sidecar with it; nothing in scripts/ or CI asserts the interpreter version.",
-      "evidence": "batch-5 integrator environment note (r15/stage-c/batch-5 integ.failures)",
-      "fix_shape": "Resolve the interpreter explicitly in scripts/ensure-*.mjs and sidecar-staleness (prefer python3.13, else fail with a named message; env override VYSTED_PYTHON); assert sys.version_info[:2] == (3, 13) at build time; document in the release runbook; prove with a clean build in the next verifier.",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "release"
-      ],
-      "status": "fixed",
-      "source": "lead-found batch-6",
-      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
-      "note": "Batch-6 (5e14731) certified: scripts/build-python.mjs resolveBuildPython()/ensureBuildVenv() force the sidecar build venv onto 3.13 regardless of bare python3's resolution. Live: with python3->3.14.5 (Homebrew) on PATH, a full clean ensure-sidecar.mjs --force build used python3.13, PyInstaller banner confirmed 3.13.13, build succeeded, frozen binary ran live."
-    },
-    {
-      "id": "R15-LEAD-013",
-      "title": "The bundled sp500 screener universe pack carries about 15 delisted names (rate_limited noise) and is missing at least 3 current constituents (BXP, NVR, UDR)",
-      "severity": "medium",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [],
-      "repro": "Run the sp500 screen: about 15 delisted names (MMC, FI, ANSS, CTLT, DAY, DFS, HES, HOLX, IPG, JNPR, K, MRO, WBA, CTRA, ...) are still in the universe pack and the screener labels them rate_limited instead of dropping them; BXP, NVR and UDR are missing from the pack entirely.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #6 (verifier batch-5)",
-      "root_cause": "The static sp500 universe list bundled with the screener has drifted from the live index membership.",
-      "fix_shape": "Regenerate the sp500 universe pack from a current constituents source, drop delisted tickers instead of rate-limit-labelling them, and add a staleness check (age of the pack vs a max TTL) so the next drift is caught before it reaches a release; pin with a test asserting the known-missing tickers are present and no known-delisted ticker remains.",
-      "defect_class": "stale-static-reference-data",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "data-smallcaps"
-      ],
-      "status": "open",
-      "note": "source: verifier batch-5"
-    },
-    {
-      "id": "R15-LEAD-014",
-      "title": "Tool-arg repair accepts a JSON-schema echo from the model as valid tool args instead of retrying",
-      "severity": "medium",
-      "area": "agent",
-      "subsystem": "agent-tools-catalog-ledger",
-      "files": [
-        "sidecar/services/agent_runtime.py"
-      ],
-      "repro": "During the tool-arg repair round (the retry path that runs when a model's tool call has invalid JSON args), a model response that merely echoes the tool's JSON schema back (rather than filling in real argument values) was accepted as if it were valid args, instead of being rejected and retried or surfaced as a failed call.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #9 (verifier batch-5)",
-      "root_cause": "The repair round's args validator checks JSON-shape validity but not whether the payload is the tool's own schema echoed back rather than a filled instance.",
-      "fix_shape": "Reject a repair response whose payload structurally matches the tool's input schema (keys are the schema's property names mapped to type-name placeholders, not real values) and retry or fall back to the invalid-args sentinel used elsewhere in the repair path; pin with a test that feeds the repair round a schema-echo response and asserts it is rejected, not executed.",
-      "defect_class": "unvalidated-repair-output",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "agent-chat"
-      ],
-      "status": "fixed",
-      "note": "Batch-6 (5e14731) certified: services/llm/openai.py OpenAIProvider._repair_tool_args/_validate_tool_args now reject a repair reply that is the JSON Schema itself echoed back (plain, fenced, or prose-wrapped). Live: 8/8 vulnerable no-required-key tools now reject the echo (0 accepted post-fix); legit args still pass. Closes the hole batch-5's verifier flagged as issue #9.",
-      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
-    },
-    {
-      "id": "R15-LEAD-015",
-      "title": "Quarterly financial statements silently skip a quarter (DHANBANK 2025-09-30 missing with no gap marker) and annual period labels differ by provider (openbb ISO dates vs yfinance years)",
-      "severity": "medium",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [
-        "sidecar/routers/fundamentals.py"
-      ],
-      "repro": "GET the quarterly income/balance/cash-flow statement (?period=quarterly) for DHANBANK: the 2025-09-30 quarter is missing from the series with nothing marking the gap. Separately, annual period labels are inconsistent across providers on the same route: openbb returns ISO dates, yfinance returns bare years, so the same statement's periods do not line up when a symbol's provider changes.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #10 (verifier batch-5)",
-      "root_cause": "The quarterly statement assembly does not mark a provider-side gap, and annual period labels are passed through in each provider's native format instead of being normalized.",
-      "fix_shape": "Mark a missing expected quarter explicitly (e.g. a null row with a gap flag) rather than silently omitting it, and normalize annual period labels to one date format across providers before they reach the response; pin with a test on a symbol/provider pair known to skip a quarter and one that mixes providers across periods.",
-      "defect_class": "silent-data-gap",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "data-smallcaps"
-      ],
-      "status": "open",
-      "note": "source: verifier batch-5"
-    },
-    {
-      "id": "R15-LEAD-016",
-      "title": "Earnings history's reported_date field carries the fiscal quarter's end date, not the actual report/announcement date",
-      "severity": "medium",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [],
-      "repro": "Read reported_date on any row of the earnings-history route: it holds the quarter-end date (e.g. the period the results cover) rather than the date the company actually reported/announced those results, so anything sorting or displaying by report date is silently wrong.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #12 (verifier batch-5)",
-      "root_cause": "The earnings-history field is populated from the provider's fiscal-period-end value with no separate actual-report-date field.",
-      "fix_shape": "Carry the provider's actual announcement/report date separately from the fiscal period end and rename or split the field so reported_date means what it says; pin with a test asserting reported_date differs from the period-end date on a fixture where the provider supplies both.",
-      "defect_class": "mislabeled-field",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "data-smallcaps"
-      ],
-      "status": "open",
-      "note": "source: verifier batch-5"
-    },
-    {
-      "id": "R15-LEAD-017",
-      "title": "CSL's shareholding-pattern (SHP) history carries a duplicate quarter row (2026-08-20)",
-      "severity": "low",
-      "area": "data",
-      "subsystem": "market-data-providers-1",
-      "files": [],
-      "repro": "GET the SHP history for CSL: the 2026-08-20 quarter appears twice in the returned series.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #13 (verifier batch-5)",
-      "root_cause": "The SHP history assembly does not dedupe by (symbol, period) before returning the series.",
-      "fix_shape": "Dedupe the SHP history series by (symbol, period_end) before it is returned; pin with a test on the CSL fixture that produced the duplicate.",
-      "defect_class": "missing-dedupe",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "data-smallcaps"
-      ],
-      "status": "open",
-      "note": "source: verifier batch-5"
-    },
-    {
-      "id": "R15-LEAD-018",
-      "title": "nemotron's chain-of-thought reasoning leaks into the visible chat content on the OpenRouter free lane",
-      "severity": "medium",
-      "area": "agent",
-      "subsystem": "llm-adapters-and-errors",
-      "files": [],
-      "repro": "Run an agent turn through nvidia/nemotron-3-super-120b-a12b:free on OpenRouter: the model's internal reasoning text is not separated out and leaks into the content field the chat renders, so the user sees raw chain-of-thought instead of (or ahead of) the intended answer.",
-      "evidence": "docs/redesign/verification/r15/stage-c/batch-5/VERDICTS.md, Issues found outside the entries #15 (verifier batch-5)",
-      "root_cause": "The OpenRouter adapter does not split a reasoning/thinking field out of the response for this model, so it is concatenated into content along with the answer.",
-      "fix_shape": "Detect and strip (or route to a separate reasoning field the UI can fold) nemotron's chain-of-thought segment in the OpenRouter adapter's response parsing, matching how other reasoning-capable models are handled; pin with a test on a captured nemotron response containing a reasoning preamble.",
-      "defect_class": "unfiltered-model-output",
-      "raw_ids": [],
-      "tier4": false,
-      "operator_areas": [
-        "agent-chat"
-      ],
-      "status": "open",
-      "note": "source: verifier batch-5"
     }
   ],
   "rejections": [
@@ -16102,11 +16247,11 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 621,
+    "entries": 623,
     "rejections": 76,
     "critical": 16,
     "high": 111,
-    "medium": 277,
-    "low": 217
+    "medium": 278,
+    "low": 218
   }
 }
