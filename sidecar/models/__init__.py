@@ -16,6 +16,7 @@ from __future__ import annotations
 from models.announcements import (
     Announcement,
     AnnouncementsResponse,
+    MajorShareholder,
     ResultsCalendarResponse,
     ResultsEvent,
     ShareholdingPattern,
@@ -92,6 +93,7 @@ __all__ = [
     "IndicatorResponse",
     "IndicatorSeries",
     "MacroObservation",
+    "MajorShareholder",
     "MacroSeries",
     "NewsItem",
     "NodeRunResult",

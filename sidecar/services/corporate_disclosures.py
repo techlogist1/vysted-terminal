@@ -32,8 +32,13 @@ R7 Component 3. Models the RAW exchange feeds into the typed shapes in
   silently-empty feed. Each served lane states the date range its items are
   complete for in ``windows`` (the BSE feed is date-bounded, NSE's is not).
 
-* **Results calendar** — the NSE ``event-calendar`` feed (board meetings,
-  results, dividends), parsed dates, newest first.
+* **Results calendar** — the NSE ``event-calendar`` feed and the BSE
+  ``BoardMeeting`` feed (board meetings, results, dividends), merged, parsed
+  dates, newest first.
+
+A non-NSE/BSE instrument, or a venue with no such feed, is answered with an
+empty list, ``coverage`` and a ``note`` (C3, D-B7-3) — never raised as an
+upstream failure; a real transport failure still raises.
 
 * **Deals** — bulk and block deals (NSE, or BSE for a BSE-only scrip) and SAST
   Reg 29 disclosures (NSE), newest first (:func:`get_deals`).
@@ -512,8 +517,14 @@ def get_announcements(
     ]
     applicable = [name for name, listed in lanes if listed and exchange in (None, name)]
     if not applicable:
-        wanted = exchange or "NSE/BSE"
-        raise ProviderError(f"disclosures: {bare!r} is not a known {wanted} instrument")
+        if any(listed for _, listed in lanes):
+            note = f"{bare} is not listed on {exchange}, so its {exchange} feed does not cover it"
+            return AnnouncementsResponse(
+                symbol=bare, exchange=exchange, count=0, coverage="venue_not_covered", note=note
+            )
+        return AnnouncementsResponse(
+            symbol=bare, exchange=exchange, count=0, **_not_applicable(bare)
+        )
 
     merged: list[Announcement] = []
     sources: list[str] = []
@@ -584,35 +595,123 @@ async def get_announcements_cached(
     return response
 
 
+def _not_applicable(bare: str) -> dict[str, str]:
+    """The out-of-coverage answer for a non-NSE/BSE instrument (C3, D-B7-3)."""
+    return {
+        "coverage": "not_applicable",
+        "note": f"{bare} is not an NSE/BSE instrument; Indian exchange disclosures do not apply",
+    }
+
+
 # ---------------------------------------------------------------------------
-# Results calendar (NSE event-calendar feed).
+# Results calendar (NSE event-calendar feed + BSE board-meeting feed).
 # ---------------------------------------------------------------------------
+
+
+def _nse_results(bare: str) -> list[ResultsEvent]:
+    events = []
+    for row in nse_provider.get_results_calendar(bare):
+        purpose = _clean(row.get("purpose"))
+        if purpose:
+            events.append(
+                ResultsEvent(
+                    symbol=_clean(row.get("symbol")) or bare,
+                    company=_clean(row.get("company")),
+                    purpose=purpose,
+                    description=_clean(row.get("bm_desc")),
+                    date=_parse_day(row.get("date")),
+                    exchange=EXCHANGE_NSE,
+                )
+            )
+    return events
+
+
+#: BSE's per-scrip board-meeting feed. Observed live 2026-09-24 (scrip 539681
+#: DAL; fixture under ``tests/fixtures/bse/``): ``{"Table": [{scrip_code,
+#: Short_name, LONG_NAME, Purpose_name ("Results", "General", ...), meeting_date
+#: "12 Aug 2026", tm "2026-08-12T00:00:00"}, ...]}``.
+_BSE_BOARD_MEETING_URL = "https://api.bseindia.com/BseIndiaAPI/api/BoardMeeting/w"
+
+
+def _bse_results(bare: str, code: str) -> list[ResultsEvent]:
+    payload = _bse_get_json(_BSE_BOARD_MEETING_URL, {"scripcode": code})
+    table = payload.get("Table") if isinstance(payload, dict) else None
+    if not isinstance(table, list):
+        raise ProviderError(f"bse board meetings: malformed payload for {bare!r}")
+    events = []
+    for row in table:
+        purpose = _clean(row.get("Purpose_name")) if isinstance(row, dict) else None
+        if purpose:
+            events.append(
+                ResultsEvent(
+                    symbol=bare,
+                    company=_clean(row.get("LONG_NAME")),
+                    purpose=purpose,
+                    date=_parse_day(str(row.get("tm") or "")[:10]),
+                    exchange=EXCHANGE_BSE,
+                )
+            )
+    return events
+
+
+def _meeting_key(event: ResultsEvent) -> tuple[date | None, str]:
+    """One board meeting across both feeds: its date and purpose kind (NSE
+    "Financial Results" and BSE "Results" are one kind)."""
+    purpose = event.purpose.lower()
+    return event.date, "results" if "result" in purpose else purpose
 
 
 def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
-    """Results/board-meeting events for ``symbol``, newest first."""
+    """Results/board-meeting events for ``symbol`` from BOTH exchanges, newest
+    first (R15-DATA-050).
+
+    A BSE-only (or SME) name is served from BSE's board-meeting feed; a dual
+    listing's meeting on both feeds collapses to one ``NSE+BSE`` event. A
+    non-NSE/BSE instrument is answered ``not_applicable``; a failing lane is
+    recorded in ``errors`` and every applicable lane failing raises.
+    """
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
-    rows = nse_provider.get_results_calendar(bare)
-    events: list[ResultsEvent] = []
-    for row in rows:
-        if not isinstance(row, dict):
+    on_nse = symbol_resolver.is_nse_symbol(bare)
+    bse_code = (
+        symbol_resolver.dual_listed_bse_code(bare)
+        if on_nse
+        else symbol_resolver.bse_scrip_code(bare)
+    )
+    if not on_nse and not bse_code:
+        return ResultsCalendarResponse(symbol=bare, count=0, **_not_applicable(bare))
+
+    by_lane: dict[str, list[ResultsEvent]] = {}
+    errors: dict[str, str] = {}
+    lanes = [
+        (EXCHANGE_NSE, on_nse, lambda: _nse_results(bare)),
+        (EXCHANGE_BSE, bool(bse_code), lambda: _bse_results(bare, bse_code)),
+    ]
+    for name, applicable, fetch in lanes:
+        if not applicable:
             continue
-        purpose = _clean(row.get("purpose"))
-        if not purpose:
-            continue
-        events.append(
-            ResultsEvent(
-                symbol=_clean(row.get("symbol")) or bare,
-                company=_clean(row.get("company")),
-                purpose=purpose,
-                description=_clean(row.get("bm_desc")),
-                date=_parse_day(row.get("date")),
-            )
-        )
+        try:
+            by_lane[name] = fetch()
+        except ProviderError as exc:
+            logger.debug("disclosures: %s results calendar failed for %s: %s", name, bare, exc)
+            errors[name] = str(exc)
+    if not by_lane:
+        detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
+        raise ProviderError(f"disclosures: every results source failed for {bare!r} ({detail})")
+    events = list(by_lane.get(EXCHANGE_NSE, []))
+    seen = {_meeting_key(e): i for i, e in enumerate(events)}
+    for event in by_lane.get(EXCHANGE_BSE, []):
+        index = seen.get(_meeting_key(event))
+        if index is None:
+            seen[_meeting_key(event)] = len(events)
+            events.append(event)
+        elif events[index].exchange == EXCHANGE_NSE:
+            events[index] = events[index].model_copy(update={"exchange": "NSE+BSE"})
     events.sort(key=lambda e: e.date or date.min, reverse=True)
-    return ResultsCalendarResponse(symbol=bare, count=len(events), events=events)
+    return ResultsCalendarResponse(
+        symbol=bare, count=len(events), events=events, sources=list(by_lane), errors=errors
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -765,7 +864,7 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
         else symbol_resolver.bse_scrip_code(bare)
     )
     if not on_nse and not bse_code:
-        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+        return CorporateActionsResponse(symbol=bare, count=0, **_not_applicable(bare))
 
     by_lane: dict[str, list[CorporateAction]] = {}
     errors: dict[str, str] = {}
@@ -922,11 +1021,12 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
             if k in _BSE_DEAL_TYPE
         ]
         if not lanes:
-            raise ProviderError(
-                f"disclosures: SAST disclosures come from NSE; {bare!r} is BSE-only"
+            note = f"SAST disclosures come from NSE; {bare} is BSE-only"
+            return ExchangeDealsResponse(
+                symbol=bare, kind=kind, count=0, coverage="venue_not_covered", note=note
             )
     else:
-        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+        return ExchangeDealsResponse(symbol=bare, kind=kind, count=0, **_not_applicable(bare))
 
     deals: list[ExchangeDeal] = []
     sources: list[str] = []
@@ -979,7 +1079,8 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     ]
     applicable = [(name, fetch) for name, listed, fetch in lanes if listed]
     if not applicable:
-        raise ProviderError(f"disclosures: {bare!r} is not a known NSE/BSE instrument")
+        # A US-listed ADR's 20-F holders ride on top: sec_ownership.attach_20f.
+        return ShareholdingResponse(symbol=bare, count=0, **_not_applicable(bare))
 
     errors: dict[str, str] = {}
     for name, fetch in applicable:  # NSE first — it wins for a dual-listed name

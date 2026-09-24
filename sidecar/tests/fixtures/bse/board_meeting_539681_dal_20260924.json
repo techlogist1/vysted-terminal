@@ -1,0 +1,84 @@
+{
+  "Table": [
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "General",
+      "meeting_date": "12 Aug 2026",
+      "tm": "2026-08-12T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "Results",
+      "meeting_date": "12 Aug 2026",
+      "tm": "2026-08-12T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "General",
+      "meeting_date": "25 May 2026",
+      "tm": "2026-05-25T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "Results",
+      "meeting_date": "25 May 2026",
+      "tm": "2026-05-25T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "General",
+      "meeting_date": "09 Feb 2026",
+      "tm": "2026-02-09T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "Results",
+      "meeting_date": "09 Feb 2026",
+      "tm": "2026-02-09T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "General",
+      "meeting_date": "10 Nov 2025",
+      "tm": "2025-11-10T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "Results",
+      "meeting_date": "10 Nov 2025",
+      "tm": "2025-11-10T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "General",
+      "meeting_date": "11 Aug 2025",
+      "tm": "2025-08-11T00:00:00"
+    },
+    {
+      "scrip_code": 539681,
+      "Short_name": "DAL",
+      "LONG_NAME": "dynamic Archistructures Limited",
+      "Purpose_name": "Results",
+      "meeting_date": "11 Aug 2025",
+      "tm": "2025-08-11T00:00:00"
+    }
+  ]
+}
