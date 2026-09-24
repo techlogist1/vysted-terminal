@@ -35,6 +35,7 @@ the reason there is none).
 
 from __future__ import annotations
 
+import asyncio
 import io
 import ipaddress
 import re
@@ -114,6 +115,16 @@ _PDF_FINANCE_KEYWORDS = (
 #: Hosts whose downloads must ride the Chrome-impersonation lane (exchange
 #: archives reject plain httpx the same way their HTML endpoints do).
 _PDF_IMPERSONATED_SUFFIXES = ("nseindia.com", "bseindia.com")
+
+#: BSE attachment downloads flake transiently: a bounded retry with backoff
+#: separates a hiccup from a genuinely missing document.
+_BSE_PDF_ATTEMPTS = 3
+_BSE_PDF_BACKOFF_SECS = 0.5
+
+#: A BSE filing moves from the live to the historical attachment path (the
+#: live one then 404s); corporate_disclosures picks one from the feed's flag.
+_BSE_ATTACH_LIVE = "/corpfiling/AttachLive/"
+_BSE_ATTACH_HIS = "/corpfiling/AttachHis/"
 
 #: Below this, the semantic-container pick is "thin" and body text is tried.
 _THIN_CONTENT_CHARS = 600
@@ -583,6 +594,35 @@ def extract_pdf_text(data: bytes, *, max_chars: int = PDF_RESEARCH_MAX_CHARS) ->
     }
 
 
+def _is_bse_host(url: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return host == "bseindia.com" or host.endswith(".bseindia.com")
+
+
+async def _fetch_bse_pdf(fetch_bytes, url: str, url_allowed: UrlGuard) -> tuple[int, bytes]:  # noqa: ANN001
+    """A BSE attachment download: up to :data:`_BSE_PDF_ATTEMPTS` tries with
+    exponential backoff on a transport failure or a 5xx/429, then the
+    ``AttachHis`` twin when ``AttachLive`` answers 404."""
+    for attempt in range(_BSE_PDF_ATTEMPTS):
+        last = attempt == _BSE_PDF_ATTEMPTS - 1
+        try:
+            status, body = await fetch_bytes(url, url_allowed=url_allowed)
+        except RedirectBlocked:
+            raise
+        except TransportError:
+            if last:
+                raise
+        else:
+            if last or (status < 500 and status != 429):
+                break
+        await asyncio.sleep(_BSE_PDF_BACKOFF_SECS * 2**attempt)
+    if status == 404 and _BSE_ATTACH_LIVE in url:
+        return await _fetch_bse_pdf(
+            fetch_bytes, url.replace(_BSE_ATTACH_LIVE, _BSE_ATTACH_HIS), url_allowed
+        )
+    return status, body
+
+
 async def _fetch_pdf_page(
     url: str,
     *,
@@ -593,7 +633,10 @@ async def _fetch_pdf_page(
     """The PDF lane of :func:`fetch_page`: bytes → finance-relevant text."""
     fetch_bytes = pdf_fetch or _default_pdf_fetch
     try:
-        status, body = await fetch_bytes(url, url_allowed=url_allowed)
+        if _is_bse_host(url):
+            status, body = await _fetch_bse_pdf(fetch_bytes, url, url_allowed)
+        else:
+            status, body = await fetch_bytes(url, url_allowed=url_allowed)
     except RedirectBlocked:
         return {"ok": False, "url": url, "error": _BLOCKED_REDIRECT}
     except TransportError as exc:

@@ -657,3 +657,44 @@ def test_layout_retry_failures_keep_plain_text() -> None:
     texts = [_BrokenLayoutPage().extract_text()]
     _layout_retry([_BrokenLayoutPage()], texts, [0])
     assert texts[0] == "Plain text with figures 1,234.56 and 789.01."
+
+
+# --- R15-DATA-075: BSE attachment retry + AttachHis fallback -------------------------
+
+_BSE_LIVE = "https://www.bseindia.com/xml-data/corpfiling/AttachLive/abc.pdf"
+_BSE_HIS = "https://www.bseindia.com/xml-data/corpfiling/AttachHis/abc.pdf"
+
+
+def test_bse_pdf_retries_a_transient_failure(monkeypatch) -> None:  # noqa: ANN001
+    from services.search import extract as extract_module
+
+    monkeypatch.setattr(extract_module, "_BSE_PDF_BACKOFF_SECS", 0)
+    data = _pdf_bytes(_RESULTS_PDF_PAGES)
+    calls: list[str] = []
+
+    async def _flaky(url, **_kw):  # noqa: ANN001, ANN003, ANN202
+        calls.append(url)
+        if len(calls) == 1:
+            raise TransportError("connection reset by BSE")
+        return 200, data
+
+    out = _run(fetch_page(_BSE_LIVE, pdf_fetch=_flaky, resolver=_resolver_public))
+    assert out["ok"] is True
+    assert "Rs 1,234 crore" in out["content"]
+    assert calls == [_BSE_LIVE, _BSE_LIVE]
+
+
+def test_bse_attachlive_404_falls_back_to_attachhis(monkeypatch) -> None:  # noqa: ANN001
+    from services.search import extract as extract_module
+
+    monkeypatch.setattr(extract_module, "_BSE_PDF_BACKOFF_SECS", 0)
+    data = _pdf_bytes(_RESULTS_PDF_PAGES)
+    calls: list[str] = []
+
+    async def _moved(url, **_kw):  # noqa: ANN001, ANN003, ANN202
+        calls.append(url)
+        return (200, data) if "/AttachHis/" in url else (404, b"")
+
+    out = _run(fetch_page(_BSE_LIVE, pdf_fetch=_moved, resolver=_resolver_public))
+    assert out["ok"] is True
+    assert calls == [_BSE_LIVE, _BSE_HIS]
