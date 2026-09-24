@@ -93,7 +93,7 @@ Agents: 1 indexer + N shards + 1 critic + 1 collator, so about 20 for the full b
 
 Everything bounded is logged: script-dropped or duplicated ids, skipped ids, oversize shards, the unsampled `already_fixed` count, high-confidence not-a-defect entries the critic did not re-check, dead shards, the focused-test skip, and any drift between the agents' returns and the collated files.
 
-Routing change 4 (25 Sep 2026): every agent in this workflow now runs on Fable (indexer, refuters, critic, collator), because the Opus and Sonnet allowances are running out. The Opus fallback in `run()` became a single same-tier retry on Fable (label suffix `-retry`, never a third try), so the worst case above is all-Fable. The per-phase model labels in the table above and the `model` field in each jsonl line are informational only.
+Routing change 5 (25 Sep 2026): Sonnet at effort medium is the default for the mechanical, checkable-output roles (indexer, collator); Opus at effort high judges refutation and fresh-context certification (the shard refuters, the critic). Fable is not used anywhere in this workflow. The `run()` retry stays a single same-tier retry (label suffix `-retry`, never a third try), now retrying on whichever model the call used rather than hardcoded to Fable.
 
 ## Resume
 
