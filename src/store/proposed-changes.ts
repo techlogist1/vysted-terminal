@@ -19,6 +19,7 @@ import {
   hostActionAckDetail,
   parseHostAction,
   publishAckStatus,
+  undoPreImage,
 } from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useBriefStore } from "@/store/brief";
@@ -81,6 +82,9 @@ interface ProposedChangesState {
   rejectBatch: (batchId: string) => void;
   acceptAll: () => Promise<void>;
   rejectAll: () => void;
+  /** Restore an applied data write's pre-image (session Undo). Acks nothing:
+   *  the runtime already holds the applied outcome of that tool call. */
+  undo: (id: string) => void;
   clear: () => void;
   pending: () => ProposedChange[];
   pendingInBatch: (batchId: string) => ProposedChange[];
@@ -135,7 +139,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
         c.id === id ? { ...c, status: "accepted", detail: undefined } : c,
       ),
     }));
-    const { label, reason } = await applyIntentAsync(change.intent);
+    const { label, reason, preImage } = await applyIntentAsync(change.intent);
     const ok = label !== null;
     const detail = ok
       ? undefined
@@ -154,6 +158,10 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       // Re-pend so the user sees the failure and can retry; the change did NOT land.
       set((state) => ({
         changes: state.changes.map((c) => (c.id === id ? { ...c, status: "pending", detail } : c)),
+      }));
+    } else if (preImage) {
+      set((state) => ({
+        changes: state.changes.map((c) => (c.id === id ? { ...c, preImage } : c)),
       }));
     }
   },
@@ -212,6 +220,23 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }));
     settleRejectedPublishes(targets);
     ackRejectedHostActions(targets);
+  },
+
+  undo: (id) => {
+    const change = get().changes.find((c) => c.id === id);
+    if (!change || change.status !== "accepted" || !change.preImage) {
+      return;
+    }
+    const { label, reason } = undoPreImage(change.preImage);
+    set((state) => ({
+      changes: state.changes.map((c) =>
+        c.id !== id
+          ? c
+          : label !== null
+            ? { ...c, status: "undone", detail: undefined }
+            : { ...c, detail: reason || "Could not undo this change." },
+      ),
+    }));
   },
 
   clear: () => set({ changes: [] }),

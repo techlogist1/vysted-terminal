@@ -45,9 +45,9 @@ import {
   type Holding,
   type Portfolio,
 } from "@/store/portfolios";
-import { useScreenerStore } from "@/store/screener";
+import { useScreenerStore, type SavedScreen } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
-import { useSymbolsStore } from "@/store/symbols";
+import { useSymbolsStore, type SymbolEntry } from "@/store/symbols";
 import { isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
 import type {
@@ -773,13 +773,30 @@ export type HostIntent =
   | { name: "set_region"; region: Region | null; raw: string }
   | { name: "unknown"; raw: string };
 
+/**
+ * What an applied data write replaced, typed so {@link undoPreImage} can put it
+ * back (the review's session Undo). Only writes that changed something carry
+ * one; an idempotent no-op ("already on your watchlist") has nothing to undo.
+ */
+export type PreImage =
+  | { kind: "holding-added"; portfolioId: string; holdingId: string; symbol: string }
+  | { kind: "holding"; portfolioId: string; holding: Holding; index: number }
+  | { kind: "note"; scope: string; text: string }
+  | { kind: "screen"; name: string; screen: SavedScreen | null }
+  | { kind: "watchlist-added"; symbol: string }
+  | { kind: "watchlist-removed"; entry: SymbolEntry; index: number }
+  | { kind: "region"; region: Region };
+
 /** How an apply resolved: a truthful label, or null with why it did not land. */
 export interface ApplyResult {
   label: string | null;
   reason?: string;
+  /** The state the write replaced, when it is a data write that can be undone. */
+  preImage?: PreImage;
 }
 
-const done = (label: string): ApplyResult => ({ label });
+const done = (label: string, preImage?: PreImage): ApplyResult =>
+  preImage ? { label, preImage } : { label };
 const fail = (reason?: string): ApplyResult => ({ label: null, reason });
 
 /** Parse a screener recipe (flat criteria + optional nested group) from args. */
@@ -1502,7 +1519,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return done(`${symbol} is already on your watchlist`);
       }
       symbols.addSymbol(symbol, intent.assetClass);
-      return done(`Added ${symbol} to your watchlist`);
+      return done(`Added ${symbol} to your watchlist`, { kind: "watchlist-added", symbol });
     }
     case "remove_from_watchlist": {
       const { symbol } = intent;
@@ -1510,12 +1527,18 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return fail("no symbol given");
       }
       const symbols = useSymbolsStore.getState();
-      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+      const index = symbols.entries.findIndex((e) => e.symbol.toUpperCase() === symbol);
+      if (index < 0) {
         // Truthful idempotent no-op: the desired end state already holds.
         return done(`${symbol} was not on your watchlist`);
       }
+      const entry = symbols.entries[index];
       symbols.removeSymbol(symbol);
-      return done(`Removed ${symbol} from your watchlist`);
+      return done(`Removed ${symbol} from your watchlist`, {
+        kind: "watchlist-removed",
+        entry,
+        index,
+      });
     }
     case "write_screener_filters": {
       const { recipe, count, run } = intent;
@@ -1556,7 +1579,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         notes.setSymbolNote(scope, next);
       }
       useWorkspaceStore.getState().openPanel("notes");
-      return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`);
+      return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`, {
+        kind: "note",
+        scope,
+        text: current,
+      });
     }
     case "save_screen": {
       const { screenName, recipe } = intent;
@@ -1577,20 +1604,22 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       } else if (recipe.universe) {
         screener.setUniverse(recipe.universe);
       }
-      const replaces = screener.savedScreens.some((s) => s.name === screenName);
+      const previous = screener.savedScreens.find((s) => s.name === screenName) ?? null;
       useScreenerStore.getState().saveScreen(screenName);
       return done(
-        replaces
+        previous
           ? `Replaced the saved screen "${screenName}"`
           : `Saved the screen as "${screenName}"`,
+        { kind: "screen", name: screenName, screen: previous },
       );
     }
     case "set_region":
       if (!intent.region) {
         return fail(`"${intent.raw}" is not a region`);
       }
+      const previousRegion = useSettingsStore.getState().region;
       useSettingsStore.getState().setRegion(intent.region);
-      return done(`Set the region to ${intent.region}`);
+      return done(`Set the region to ${intent.region}`, { kind: "region", region: previousRegion });
     case "portfolio_add_position": {
       const { holding, problem } = intent;
       // No price given → incomplete arguments (re-pends), never a ₹0 holding.
@@ -1611,6 +1640,12 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       useWorkspaceStore.getState().openPanel("portfolio");
       return done(
         `Added ${holding.quantity} ${holding.symbol} @ ${formatPrice(holding.costBasis)} to the portfolio`,
+        {
+          kind: "holding-added",
+          portfolioId: portfolio.id,
+          holdingId: added,
+          symbol: holding.symbol,
+        },
       );
     }
     case "portfolio_update_position":
@@ -1622,14 +1657,22 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // Apply to exactly the lot the diff showed, in the portfolio it was
       // proposed against — gone means an honest failure, never another lot.
       const portfolio = portfolioById(intent.portfolioId);
-      if (!portfolio?.holdings.some((h) => h.id === target.id)) {
+      const index = portfolio?.holdings.findIndex((h) => h.id === target.id) ?? -1;
+      if (!portfolio || index < 0) {
         return fail(`that ${target.symbol} lot is no longer in the portfolio`);
       }
+      // The lot as it stands now (not as staged), so Undo restores exactly it.
+      const preImage: PreImage = {
+        kind: "holding",
+        portfolioId: portfolio.id,
+        holding: portfolio.holdings[index],
+        index,
+      };
       const store = usePortfoliosStore.getState();
       if (intent.name === "portfolio_delete_position") {
         store.removeHolding(portfolio.id, target.id);
         useWorkspaceStore.getState().openPanel("portfolio");
-        return done(`Removed ${target.symbol} from the portfolio`);
+        return done(`Removed ${target.symbol} from the portfolio`, preImage);
       }
       const { holding } = intent;
       if (holding.costBasis === null) {
@@ -1640,13 +1683,84 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return fail("the portfolio refused the update");
       }
       useWorkspaceStore.getState().openPanel("portfolio");
-      return done(`Updated ${holding.symbol}: ${lotText(holding)}`);
+      return done(`Updated ${holding.symbol}: ${lotText(holding)}`, preImage);
     }
     case "save_layout":
       // Awaits the workspace save — only the async seam can apply it.
       return fail("saving a layout needs the async apply");
     case "unknown":
       return fail(`unknown action "${intent.raw}"`);
+  }
+}
+
+/**
+ * Put back what an applied data write replaced (the review's session Undo).
+ * Restores the pre-image only; a target the user has since removed (the
+ * portfolio, or the holding an add created) fails honestly instead of guessing.
+ */
+export function undoPreImage(preImage: PreImage): ApplyResult {
+  switch (preImage.kind) {
+    case "holding-added": {
+      const portfolio = portfolioById(preImage.portfolioId);
+      if (!portfolio?.holdings.some((h) => h.id === preImage.holdingId)) {
+        return fail(`the added ${preImage.symbol} holding is no longer in the portfolio`);
+      }
+      usePortfoliosStore.getState().removeHolding(portfolio.id, preImage.holdingId);
+      return done(`Removed the added ${preImage.symbol} holding`);
+    }
+    case "holding": {
+      const store = usePortfoliosStore.getState();
+      const portfolio = portfolioById(preImage.portfolioId);
+      if (!portfolio) {
+        return fail("the portfolio no longer exists");
+      }
+      const { holding, index } = preImage;
+      const holdings = portfolio.holdings.some((h) => h.id === holding.id)
+        ? portfolio.holdings.map((h) => (h.id === holding.id ? holding : h))
+        : [...portfolio.holdings.slice(0, index), holding, ...portfolio.holdings.slice(index)];
+      store.setAll(
+        store.portfolios.map((p) => (p.id === portfolio.id ? { ...p, holdings } : p)),
+        store.activeId,
+      );
+      return done(`Restored ${holding.symbol} ${lotText(holding)}`);
+    }
+    case "note": {
+      const notes = useNotesStore.getState();
+      if (preImage.scope === "") {
+        notes.setGeneral(preImage.text);
+      } else {
+        notes.setSymbolNote(preImage.scope, preImage.text);
+      }
+      return done(`Restored the ${noteScopeLabel(preImage.scope)} note`);
+    }
+    case "screen": {
+      const screener = useScreenerStore.getState();
+      const { name, screen } = preImage;
+      if (!screen) {
+        screener.deleteScreen(name);
+        return done(`Removed the saved screen "${name}"`);
+      }
+      screener.setSavedScreens([...screener.savedScreens.filter((s) => s.name !== name), screen]);
+      return done(`Restored the saved screen "${name}"`);
+    }
+    case "watchlist-added":
+      useSymbolsStore.getState().removeSymbol(preImage.symbol);
+      return done(`Removed ${preImage.symbol} from your watchlist`);
+    case "watchlist-removed": {
+      const symbols = useSymbolsStore.getState();
+      const { entry, index } = preImage;
+      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === entry.symbol.toUpperCase())) {
+        symbols.setEntries([
+          ...symbols.entries.slice(0, index),
+          entry,
+          ...symbols.entries.slice(index),
+        ]);
+      }
+      return done(`Restored ${entry.symbol} to your watchlist`);
+    }
+    case "region":
+      useSettingsStore.getState().setRegion(preImage.region);
+      return done(`Set the region back to ${preImage.region}`);
   }
 }
 

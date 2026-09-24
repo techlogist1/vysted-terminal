@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, Undo2, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,8 @@ import type { ProposedChange } from "../../../types/proposed-change";
  * The diff/accept trust gate UI (FR-010, US4). Agent-proposed cockpit mutations
  * are staged here as old→new diffs; nothing applies until the user accepts.
  * Per-item Accept/Reject plus bulk Accept all / Reject all. Bulk is also keyboard
- * driven from the agent surface (⌘↵ accept all, ⌘⌫ reject all).
+ * driven from the agent surface (⌘↵ accept all, ⌘⌫ reject all). An applied data
+ * write stays listed for the session with Undo, which restores its pre-image.
  */
 export function ProposedChangesReview() {
   const changes = useProposedChangesStore((state) => state.changes);
@@ -22,12 +23,17 @@ export function ProposedChangesReview() {
   const reject = useProposedChangesStore((state) => state.reject);
   const acceptAll = useProposedChangesStore((state) => state.acceptAll);
   const rejectAll = useProposedChangesStore((state) => state.rejectAll);
+  const undo = useProposedChangesStore((state) => state.undo);
 
   const pending = useMemo(() => changes.filter((c) => c.status === "pending"), [changes]);
+  const undoable = useMemo(
+    () => changes.filter((c) => c.status === "accepted" && c.preImage),
+    [changes],
+  );
 
   return (
     <AnimatePresence initial={false}>
-      {pending.length > 0 && (
+      {(pending.length > 0 || undoable.length > 0) && (
         <motion.section
           aria-label="Proposed changes"
           className="border-charcoal-700 bg-charcoal-925 border-t px-3 py-2"
@@ -37,30 +43,32 @@ export function ProposedChangesReview() {
           style={{ overflow: "hidden" }}
           transition={tween(0.24)}
         >
-          <header className="flex items-center justify-between gap-2">
-            <span className="text-charcoal-200 text-micro tracking-wide uppercase">
-              {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before they
-              apply
-            </span>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => void acceptAll()}
-                className="border-positive/40 text-positive hover:bg-positive/10 text-micro rounded-control border px-2 py-0.5"
-                title="Accept all (⌘↵)"
-              >
-                Accept all
-              </button>
-              <button
-                type="button"
-                onClick={() => rejectAll()}
-                className="border-charcoal-700 text-charcoal-400 hover:text-negative text-micro rounded-control border px-2 py-0.5"
-                title="Reject all (⌘⌫)"
-              >
-                Reject all
-              </button>
-            </div>
-          </header>
+          {pending.length > 0 && (
+            <header className="flex items-center justify-between gap-2">
+              <span className="text-charcoal-200 text-micro tracking-wide uppercase">
+                {pending.length} proposed change{pending.length === 1 ? "" : "s"} — review before
+                they apply
+              </span>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void acceptAll()}
+                  className="border-positive/40 text-positive hover:bg-positive/10 text-micro rounded-control border px-2 py-0.5"
+                  title="Accept all (⌘↵)"
+                >
+                  Accept all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => rejectAll()}
+                  className="border-charcoal-700 text-charcoal-400 hover:text-negative text-micro rounded-control border px-2 py-0.5"
+                  title="Reject all (⌘⌫)"
+                >
+                  Reject all
+                </button>
+              </div>
+            </header>
+          )}
           {/* The scroll cap + overflow-y-auto prevents the diff list from pushing
               the composer off-screen when many changes are staged at once. */}
           <ul
@@ -78,11 +86,49 @@ export function ProposedChangesReview() {
                   onReject={() => reject(change.id)}
                 />
               ))}
+              {undoable.map((change) => (
+                <AppliedChangeRow key={change.id} change={change} onUndo={() => undo(change.id)} />
+              ))}
             </AnimatePresence>
           </ul>
         </motion.section>
       )}
     </AnimatePresence>
+  );
+}
+
+/** An applied data write, kept for the session so it can be undone. */
+function AppliedChangeRow({ change, onUndo }: { change: ProposedChange; onUndo: () => void }) {
+  return (
+    <motion.li
+      layout
+      data-kind={change.kind}
+      className="border-charcoal-800 rounded-none border px-2 py-1.5"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+      transition={tween(0.2)}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-charcoal-300 text-micro">Applied: {change.title}</div>
+          {change.detail && (
+            <div className="text-negative text-micro mt-0.5">
+              Couldn&rsquo;t undo: {change.detail}
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          aria-label={`Undo: ${change.title}`}
+          onClick={onUndo}
+          className="border-charcoal-700 text-charcoal-300 hover:text-charcoal-100 text-micro rounded-control flex shrink-0 items-center gap-1 border px-2 py-0.5"
+        >
+          <Undo2 size={12} aria-hidden />
+          Undo
+        </button>
+      </div>
+    </motion.li>
   );
 }
 

@@ -1453,4 +1453,48 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     expect(change.detail).toMatch(/no longer in the portfolio/);
     expect(lots("A")).toEqual(["TCS:3"]);
   });
+
+  it("an applied holding delete can be undone: the holding is back with its id (R15-AGENT-041)", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    const gate = useProposedChangesStore.getState();
+    const id = gate.enqueue({
+      toolCallId: "tc-del",
+      name: "portfolio_delete_position",
+      input: { position_id: "h-a" },
+      batchId: "b",
+    });
+    await gate.accept(id);
+    expect(lots("A")).toEqual([]);
+    expect(useProposedChangesStore.getState().changes[0].preImage).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 0)); // let the accept ack land
+    const fetchCalls = vi.mocked(fetch).mock.calls.length;
+    gate.undo(id);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(vi.mocked(fetch).mock.calls.length).toBe(fetchCalls); // Undo acks nothing new
+    const holdings = usePortfoliosStore.getState().portfolios.find((p) => p.id === "A")!.holdings;
+    expect(holdings).toEqual([
+      { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+    ]);
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("undone");
+  });
+
+  it("an applied note replace can be undone: the prior text is restored (R15-AGENT-041)", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    useNotesStore.getState().setSymbolNote("NVDA", "my own thesis");
+    const gate = useProposedChangesStore.getState();
+    const id = gate.enqueue({
+      toolCallId: "tc-note",
+      name: "write_note",
+      input: { scope: "NVDA", text: "agent text", mode: "replace" },
+      batchId: "b",
+    });
+    await gate.accept(id);
+    expect(useNotesStore.getState().noteFor("NVDA")).toBe("agent text");
+    gate.undo(id);
+    expect(useNotesStore.getState().noteFor("NVDA")).toBe("my own thesis");
+  });
 });
