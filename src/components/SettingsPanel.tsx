@@ -1,6 +1,6 @@
 "use client";
 
-import { type FunctionComponent, useEffect, useRef, useState } from "react";
+import { type FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
@@ -47,13 +47,8 @@ import { type CatalogEntry, useModelCatalog } from "@/store/model-catalog";
 import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
-import {
-  fetchHardwareReport,
-  type HardwareReport,
-  type ScoredModel,
-  verdictMeta,
-} from "@/lib/hardware-fit";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
+import { getSidecarBaseUrl, sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
 import { useContainerWidth } from "@/lib/use-container-width";
 import {
   RESEARCH_MODEL_OPTIONS,
@@ -694,38 +689,69 @@ interface SearxngStatus {
   url: string | null;
 }
 
-/** Fetch the SearXNG state machine's status, or `null` when the sidecar is unreachable. */
-async function fetchSearxngStatus(): Promise<SearxngStatus | null> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL("/search/searxng/status", base).toString());
-    if (!resp.ok) {
-      return null;
-    }
-    return (await resp.json()) as SearxngStatus;
-  } catch {
-    return null;
-  }
-}
-
-/** POST a SearXNG action (setup begins/retries; teardown stops + removes). */
-async function postSearxngAction(action: "setup" | "teardown"): Promise<SearxngStatus | null> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL(`/search/searxng/${action}`, base).toString(), {
-      method: "POST",
-    });
-    if (!resp.ok) {
-      return null;
-    }
-    return (await resp.json()) as SearxngStatus;
-  } catch {
-    return null;
-  }
+/** The SearXNG state machine's status; a failure throws with its reason. */
+function fetchSearxngStatus(): Promise<SearxngStatus> {
+  return sidecarGet<SearxngStatus>("/search/searxng/status");
 }
 
 /** Poll cadence while the SearXNG setup is in a transition state (pulling/starting). */
 const SEARXNG_TRANSITION_POLL_MS = 3_000;
+
+/** Slow re-read cadence for a sidecar-backed Settings section while mounted. */
+export const SETTINGS_SLOW_POLL_MS = 60_000;
+
+function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Read a sidecar resource on mount, again whenever the window regains focus or
+ * the tab turns visible, and on a slow poll while mounted — so state that
+ * changed outside the app (a container that died) does not stay stale
+ * (R15-RESEARCH-032). A failure keeps its reason (the sidecar's own sentence,
+ * or that it is unreachable) instead of collapsing to "not connected".
+ */
+function useLiveSidecarRead<T>(read: () => Promise<T>) {
+  const [value, setValue] = useState<T | "loading">("loading");
+  const [error, setError] = useState<string | null>(null);
+  const alive = useRef(true);
+  const reload = useCallback(() => {
+    read().then(
+      (next) => {
+        if (alive.current) {
+          setValue(next);
+          setError(null);
+        }
+      },
+      (e: unknown) => {
+        if (alive.current) {
+          setError(messageOf(e));
+        }
+      },
+    );
+  }, [read]);
+
+  useEffect(() => {
+    alive.current = true;
+    reload();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        reload();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", reload);
+    const slow = setInterval(reload, SETTINGS_SLOW_POLL_MS);
+    return () => {
+      alive.current = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", reload);
+      clearInterval(slow);
+    };
+  }, [reload]);
+
+  return { value, error, reload, setValue };
+}
 
 /** Designed status-chip vocabulary per sidecar state (the brief's words, not
  *  the wire ids). Exported so the chip contract is locked by tests. */
@@ -774,48 +800,34 @@ function SearxngStatusChip({ state }: { state: string }) {
  * research is riding the limited keyless fallback meanwhile.
  */
 function SearxngManagedFlow() {
-  const [status, setStatus] = useState<SearxngStatus | null | "loading">("loading");
+  const {
+    value: status,
+    error: statusError,
+    reload,
+    setValue: setStatus,
+  } = useLiveSidecarRead(fetchSearxngStatus);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const state = status !== null && status !== "loading" ? status.state : null;
+  const state = status !== "loading" ? status.state : null;
   const transitional = state === "pulling" || state === "starting";
-
-  useEffect(() => {
-    let alive = true;
-    void fetchSearxngStatus().then((next) => {
-      if (alive) {
-        setStatus(next);
-      }
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   // While the setup is pulling/starting, follow progress on a ~3s poll.
   useEffect(() => {
     if (!transitional) {
       return;
     }
-    let alive = true;
-    const interval = setInterval(() => {
-      void fetchSearxngStatus().then((next) => {
-        if (alive && next) {
-          setStatus(next);
-        }
-      });
-    }, SEARXNG_TRANSITION_POLL_MS);
-    return () => {
-      alive = false;
-      clearInterval(interval);
-    };
-  }, [transitional]);
+    const interval = setInterval(reload, SEARXNG_TRANSITION_POLL_MS);
+    return () => clearInterval(interval);
+  }, [transitional, reload]);
 
   async function runAction(action: "setup" | "teardown") {
     setBusy(true);
+    setActionError(null);
     try {
-      const next = await postSearxngAction(action);
-      setStatus(next ?? (await fetchSearxngStatus()));
+      setStatus(await sidecarRequest<SearxngStatus>("POST", `/search/searxng/${action}`));
+    } catch (e) {
+      setActionError(messageOf(e));
     } finally {
       setBusy(false);
     }
@@ -828,21 +840,21 @@ function SearxngManagedFlow() {
     </p>
   );
 
-  if (status === "loading") {
+  if (statusError !== null) {
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-charcoal-500 text-caption">Checking Docker…</p>
+        <p className="text-charcoal-500 text-caption" role="alert">
+          SearXNG status unavailable: {statusError}
+        </p>
         {fallbackNote}
         <SearxngAdvancedUrl />
       </div>
     );
   }
-  if (status === null) {
+  if (status === "loading") {
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-charcoal-500 text-caption">
-          SearXNG status unavailable (sidecar not connected).
-        </p>
+        <p className="text-charcoal-500 text-caption">Checking Docker…</p>
         {fallbackNote}
         <SearxngAdvancedUrl />
       </div>
@@ -936,6 +948,11 @@ function SearxngManagedFlow() {
           </Button>
         )}
       </div>
+      {actionError !== null && (
+        <p className="text-negative text-caption" role="alert">
+          That did not go through: {actionError}
+        </p>
+      )}
       {status.state !== "ready" && fallbackNote}
       <SearxngAdvancedUrl />
     </div>
@@ -1224,19 +1241,7 @@ function ResearchTierGroup() {
 }
 
 function ResearchSection() {
-  const [report, setReport] = useState<HardwareReport | null | "loading">("loading");
-
-  useEffect(() => {
-    let alive = true;
-    void fetchHardwareReport().then((r) => {
-      if (alive) {
-        setReport(r);
-      }
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const { value: report, error: reportError } = useLiveSidecarRead(fetchHardwareReport);
 
   return (
     <section aria-labelledby="settings-research">
@@ -1252,19 +1257,17 @@ function ResearchSection() {
             label="Hardware & local models"
             hint="Heavy local paths (local deep-research, large local LLMs) enable only where the hardware earns it; everything else stays remote."
           />
-          {report === "loading" && (
+          {reportError !== null ? (
+            <Card>
+              <p className="text-charcoal-500 text-caption px-4 py-3" role="alert">
+                Hardware detection unavailable: {reportError}
+              </p>
+            </Card>
+          ) : report === "loading" ? (
             <Card>
               <p className="text-charcoal-500 text-caption px-4 py-3">Detecting device…</p>
             </Card>
-          )}
-          {report === null && (
-            <Card>
-              <p className="text-charcoal-500 text-caption px-4 py-3">
-                Hardware detection unavailable (sidecar not connected).
-              </p>
-            </Card>
-          )}
-          {report && report !== "loading" && (
+          ) : (
             <div className="flex flex-col gap-3">
               <Card>
                 <div className="px-4 py-3">
