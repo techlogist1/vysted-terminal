@@ -313,6 +313,23 @@ describe("PortfolioPanel", () => {
     expect(usePortfoliosStore.getState().portfolios).toEqual(before);
   });
 
+  it("Delete works in a portfolio switched to after mount (R15-UI-035)", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("reliance.ns", "1", "2500");
+    await act(async () => {
+      usePortfoliosStore.getState().createPortfolio("Second");
+    });
+    await addHolding("tcs.ns", "2", "3900");
+    await screen.findByText("TCS.NS");
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Delete TCS.NS"));
+    });
+    expect(activeHoldings()).toEqual([]);
+    expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
+      "RELIANCE.NS",
+    ]);
+  });
+
   it("Save on a holding removed mid-edit says nothing was saved (R15-UI-034)", async () => {
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");

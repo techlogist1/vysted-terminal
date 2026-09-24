@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Briefcase, Check, Download, FolderPlus, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { DataTable, type DataColumn } from "@/components/DataTable";
@@ -361,7 +361,7 @@ export function PortfolioPanel() {
     resetForm();
   };
 
-  const handleEdit = (holding: Holding) => {
+  const handleEdit = useCallback((holding: Holding) => {
     setForm({
       symbol: holding.symbol,
       quantity: String(holding.quantity),
@@ -370,14 +370,20 @@ export function PortfolioPanel() {
       note: holding.note ?? "",
     });
     setEditingId(holding.id);
-  };
+  }, []);
 
-  const handleDelete = (id: string) => {
-    if (editingId === id) {
-      resetForm();
-    }
-    removeHolding(active.id, id);
-  };
+  // A real dependency of the memoised columns below (R15-UI-035): the row's
+  // Delete must remove from the portfolio active NOW, not the one at mount.
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (editingId === id) {
+        setForm(emptyForm());
+        setEditingId(null);
+      }
+      removeHolding(active.id, id);
+    },
+    [editingId, removeHolding, active.id],
+  );
 
   // Join each computed metrics row to its source holding (by order) so the
   // action column can edit/delete; rebuilt only when the metrics or holdings move.
@@ -506,10 +512,7 @@ export function PortfolioPanel() {
       ),
     });
     return cols;
-    // handleEdit/handleDelete are stable enough across renders; the table only
-    // rebuilds when the drop ladder or the mixed-currency state moves.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies]);
+  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies, handleEdit, handleDelete]);
 
   const submitPfName = () => {
     const name = pfName.trim();
