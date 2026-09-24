@@ -2,6 +2,8 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const invokeMock = vi.fn();
+/** `get_sidecar_port` for a bound engine. */
+const READY = { port: 54321, state: "ready", reason: null };
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => invokeMock(...args),
 }));
@@ -15,7 +17,7 @@ describe("sidecar status follows reachability", () => {
   beforeEach(() => {
     vi.resetModules();
     invokeMock.mockReset();
-    invokeMock.mockResolvedValue(54321);
+    invokeMock.mockResolvedValue(READY);
   });
 
   afterEach(() => {

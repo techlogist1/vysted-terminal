@@ -6,6 +6,59 @@ vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => invokeMock(...args),
 }));
 
+/** `get_sidecar_port` for a bound engine. */
+const READY = { port: 54321, state: "ready", reason: null };
+
+/** R15-LIFECYCLE-010: a spawn failure is named at once, never a 120 s probe. */
+describe("a failed sidecar boot", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    invokeMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("get_sidecar_port answering failed throws its reason at once, without a /health probe", async () => {
+    invokeMock.mockResolvedValue({
+      port: 54321,
+      state: "failed",
+      reason: "The data engine could not start (binary not found).",
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const { getSidecarBaseUrl, SidecarError } = await import("@/lib/sidecar-client");
+
+    const error = await getSidecarBaseUrl().catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(SidecarError);
+    expect((error as Error).message).toBe("The data engine could not start (binary not found).");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("a spawn that fails while the probe waits stops the wait with its reason", async () => {
+    invokeMock
+      .mockResolvedValueOnce({ port: 54321, state: "starting", reason: null })
+      .mockResolvedValue({ port: 54321, state: "failed", reason: "The data engine stopped." });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Load failed"); // nothing bound yet
+      }),
+    );
+    vi.useFakeTimers();
+    const { getSidecarBaseUrl } = await import("@/lib/sidecar-client");
+
+    const pending = getSidecarBaseUrl().catch((e: unknown) => e);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(((await pending) as Error).message).toBe("The data engine stopped.");
+    vi.useRealTimers();
+  });
+});
+
 /**
  * Regression coverage for the cold-boot bind-race fix: `getSidecarBaseUrl`
  * gates the cached base URL on a real `/health` probe with bounded backoff,
@@ -26,7 +79,7 @@ describe("getSidecarBaseUrl readiness gate", () => {
   });
 
   it("resolves only after /health responds ok, retrying connection-refused with backoff", async () => {
-    invokeMock.mockResolvedValue(54321);
+    invokeMock.mockResolvedValue(READY);
     let attempts = 0;
     const fetchMock = vi.fn(async () => {
       attempts += 1;
@@ -47,7 +100,7 @@ describe("getSidecarBaseUrl readiness gate", () => {
   });
 
   it("shares one in-flight probe across concurrent callers (single invoke)", async () => {
-    invokeMock.mockResolvedValue(54321);
+    invokeMock.mockResolvedValue(READY);
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: true }) as Response),
@@ -61,7 +114,7 @@ describe("getSidecarBaseUrl readiness gate", () => {
   });
 
   it("re-arms after a failed resolution so a later caller re-probes", async () => {
-    invokeMock.mockRejectedValueOnce(new Error("no port yet")).mockResolvedValue(54321);
+    invokeMock.mockRejectedValueOnce(new Error("no port yet")).mockResolvedValue(READY);
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => ({ ok: true }) as Response),
@@ -95,7 +148,7 @@ describe("per-instrument region override", () => {
   it("an overview for the picked US listing sends X-Vysted-Region: US on every leg", async () => {
     invokeMock.mockImplementation(async (cmd: string) => {
       if (cmd === "get_sidecar_port") {
-        return 54321;
+        return READY;
       }
       throw new Error(`no keychain in tests (${cmd})`);
     });
@@ -139,7 +192,7 @@ describe("sidecarRequest error layer", () => {
   beforeEach(() => {
     vi.resetModules();
     invokeMock.mockReset();
-    invokeMock.mockResolvedValue(54321);
+    invokeMock.mockResolvedValue(READY);
     vi.unstubAllGlobals();
   });
 

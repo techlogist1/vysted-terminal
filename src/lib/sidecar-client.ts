@@ -94,8 +94,19 @@ async function resolvePortToBaseUrl(): Promise<string> {
       return `http://127.0.0.1:${urlParam}`;
     }
   }
-  const port = await invoke<number>("get_sidecar_port");
-  return `http://127.0.0.1:${port}`;
+  const status = await invoke<SidecarBootStatus>("get_sidecar_port");
+  if (status.state === "failed") {
+    // A spawn failure or an exited engine is named at once (R15-LIFECYCLE-010).
+    throw new SidecarError(0, status.reason ?? SIDECAR_UNREACHABLE);
+  }
+  return `http://127.0.0.1:${status.port}`;
+}
+
+/** The Rust core's `get_sidecar_port` answer. */
+interface SidecarBootStatus {
+  port: number;
+  state: "starting" | "ready" | "failed";
+  reason: string | null;
 }
 
 /**
@@ -124,10 +135,11 @@ export function getSidecarBaseUrl(): Promise<string> {
 }
 
 async function resolveAndAwaitReady(): Promise<string> {
-  const base = await resolvePortToBaseUrl();
   const deadline = Date.now() + 120_000;
   let delay = 250;
   for (;;) {
+    // Re-read each round: a spawn that fails while we probe stops the wait.
+    const base = await resolvePortToBaseUrl();
     try {
       const response = await fetch(new URL("/health", base).toString());
       if (response.ok) {

@@ -11,16 +11,84 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use tauri::{Manager, RunEvent};
+use tauri::{AppHandle, Emitter, Manager, RunEvent};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
 /// Holds the running Python sidecar process so it can be killed when the app exits.
 struct SidecarProcess(Mutex<Option<CommandChild>>);
 
-/// The localhost port the Python sidecar is bound to. Stored in Tauri state and
-/// exposed to the frontend via the `get_sidecar_port` command.
-struct SidecarPort(u16);
+/// Where the main sidecar is in its life (R15-LIFECYCLE-010).
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+enum SidecarPhase {
+    Starting,
+    Ready,
+    Failed,
+}
+
+/// What `get_sidecar_port` hands the renderer: the port, the phase, and — once
+/// `Failed` — the reason, so a spawn failure or a crash is named at once instead
+/// of a 120 s probe of a port nothing will bind.
+#[derive(Clone, Debug, serde::Serialize)]
+struct SidecarSnapshot {
+    port: u16,
+    state: SidecarPhase,
+    reason: Option<String>,
+}
+
+/// The sidecar's port + lifecycle, in Tauri state.
+struct SidecarStatus(Mutex<SidecarSnapshot>);
+
+impl SidecarStatus {
+    fn new(port: u16) -> Self {
+        Self(Mutex::new(SidecarSnapshot {
+            port,
+            state: SidecarPhase::Starting,
+            reason: None,
+        }))
+    }
+
+    fn snapshot(&self) -> SidecarSnapshot {
+        self.0.lock().unwrap().clone()
+    }
+
+    /// Every failure arm (no port, command missing, spawn refused, the child
+    /// exiting) records its reason here.
+    fn fail(&self, reason: String) {
+        diag_eprintln!("[vysted] {reason}");
+        let mut snapshot = self.0.lock().unwrap();
+        snapshot.state = SidecarPhase::Failed;
+        snapshot.reason = Some(reason);
+    }
+
+    /// The boot port-wait's verdict; a failure already recorded (the child
+    /// exited while we waited) keeps its more precise reason.
+    fn settle_boot(&self, bound: bool) {
+        let mut snapshot = self.0.lock().unwrap();
+        if snapshot.state != SidecarPhase::Starting {
+            return;
+        }
+        if bound {
+            snapshot.state = SidecarPhase::Ready;
+        } else {
+            snapshot.state = SidecarPhase::Failed;
+            snapshot.reason = Some(format!(
+                "The data engine did not come up on port {}.",
+                snapshot.port
+            ));
+        }
+    }
+}
+
+/// The reason a sidecar that exited is reported with.
+fn terminated_reason(code: Option<i32>, signal: Option<i32>) -> String {
+    match (code, signal) {
+        (Some(code), _) => format!("The data engine stopped (exit code {code})."),
+        (None, Some(signal)) => format!("The data engine stopped (signal {signal})."),
+        (None, None) => "The data engine stopped.".to_string(),
+    }
+}
 
 /// Bind to port 0 so the OS picks a free port, read it back, then release it.
 ///
@@ -115,7 +183,7 @@ pub(crate) fn wait_for_port_with_retries(
 /// failure so a resolution/creation error degrades gracefully instead of
 /// panicking the app at boot. The sidecar owns the SQLite stores + saved
 /// workspaces beneath this directory.
-fn resolve_data_dir(app: &tauri::App) -> String {
+fn resolve_data_dir(app: &AppHandle) -> String {
     let dir = match app.path().app_data_dir() {
         Ok(dir) => dir,
         Err(err) => {
@@ -194,40 +262,36 @@ fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
     }
 }
 
-/// Spawn + supervise the main Python sidecar. NEVER panics: on any failure it
-/// logs and returns, leaving the UI to open in a disconnected state and retry —
-/// the boot path previously `.expect()`-panicked here (no window, no error).
-/// This mirrors the openbb/sec-edgar MCP children, which already degrade to a
-/// port-0 "unavailable" sentinel rather than failing app startup.
-fn start_main_sidecar(app: &tauri::App, port: u16) {
+/// Spawn + supervise the main Python sidecar. NEVER panics: every failure arm
+/// records its reason in `SidecarStatus` (the renderer shows it at once) and
+/// returns, leaving the UI open in a disconnected state — the boot path
+/// previously `.expect()`-panicked here (no window, no error).
+fn start_main_sidecar(app: &AppHandle, port: u16) {
+    let status = app.state::<SidecarStatus>();
     if port == 0 {
-        diag_eprintln!(
-            "[vysted] no free port available for the sidecar; UI will start disconnected"
-        );
+        status.fail("The data engine could not start: no free local port.".to_string());
         return;
     }
     let data_dir = resolve_data_dir(app);
     let command = match app.shell().sidecar("vysted-sidecar") {
         Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
         Err(err) => {
-            diag_eprintln!(
-                "[vysted] could not create the sidecar command ({err}); UI will start disconnected"
-            );
+            status.fail(format!("The data engine could not start ({err})."));
             return;
         }
     };
     let (mut rx, child) = match command.spawn() {
         Ok(pair) => pair,
         Err(err) => {
-            diag_eprintln!(
-                "[vysted] failed to spawn the Python sidecar ({err}); UI will start disconnected"
-            );
+            status.fail(format!("The data engine could not start ({err})."));
             return;
         }
     };
     app.manage(SidecarProcess(Mutex::new(Some(child))));
 
     // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
+    // Its exit is recorded and announced (no auto-respawn).
+    let events_app = app.clone();
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event {
@@ -237,12 +301,18 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
                 CommandEvent::Stderr(line) => {
                     diag_eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
                 }
+                CommandEvent::Terminated(payload) => {
+                    let reason = terminated_reason(payload.code, payload.signal);
+                    events_app.state::<SidecarStatus>().fail(reason.clone());
+                    let _ = events_app.emit("vysted://sidecar-terminated", reason);
+                }
                 _ => {}
             }
         }
     });
 
     let endpoint_data_dir = data_dir.clone();
+    let wait_app = app.clone();
     thread::spawn(move || {
         // R8: the main sidecar gets the same cold-extraction budget as the MCP
         // subprocesses (45s x 2) — a cold `--onefile` boot (~60s observed: _MEI
@@ -261,6 +331,7 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
                 );
             },
         );
+        wait_app.state::<SidecarStatus>().settle_boot(bound);
         if bound {
             diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
             // FR-025: publish the loopback MCP endpoint so an external MCP
@@ -273,13 +344,12 @@ fn start_main_sidecar(app: &tauri::App, port: u16) {
     });
 }
 
-/// Expose the sidecar's localhost port to the frontend so it can issue HTTP and
-/// WebSocket requests to the Python data layer. `0` means no sidecar bound this
-/// launch (boot-time port-pick or spawn failure) — the frontend treats that as
-/// disconnected and retries.
+/// Expose the sidecar's port and lifecycle (`{port, state, reason}`) to the
+/// frontend so it can issue HTTP and WebSocket requests to the Python data
+/// layer — and, when `state` is `failed`, show `reason` instead of probing.
 #[tauri::command]
-fn get_sidecar_port(port: tauri::State<'_, SidecarPort>) -> u16 {
-    port.0
+fn get_sidecar_port(status: tauri::State<'_, SidecarStatus>) -> SidecarSnapshot {
+    status.snapshot()
 }
 
 /// Atomically write `contents` to `path` by writing to a sibling temp file in the
@@ -438,11 +508,11 @@ pub fn run() {
         })
         .setup(|app| {
             // Persist every console line from here on (R15-LIFECYCLE-008).
-            diag_log::init(&resolve_data_dir(app));
+            diag_log::init(&resolve_data_dir(app.handle()));
             // `0` = no free port (extremely rare); the UI still opens and
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
-            app.manage(SidecarPort(port));
+            app.manage(SidecarStatus::new(port));
 
             // Spawn the openbb-mcp + sec-edgar-mcp subprocesses BEFORE the
             // main sidecar so the ``VYSTED_*_MCP_PORT`` env vars are settled
@@ -489,7 +559,7 @@ pub fn run() {
             // `.expect()`-panicked here with no window). The sidecar owns the
             // portfolio SQLite database + saved-workspace files beneath the
             // data directory. See `start_main_sidecar` / `resolve_data_dir`.
-            start_main_sidecar(app, port);
+            start_main_sidecar(app.handle(), port);
 
             // macOS modes-as-tools menu (Layout → Fundamental / Technical / Macro /
             // Compare / Reset). Non-fatal; macOS-only.
@@ -521,13 +591,51 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, wait_for_port_timeout,
-        wait_for_port_with_retries, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS,
-        MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, terminated_reason,
+        wait_for_port_timeout, wait_for_port_with_retries, SidecarPhase, SidecarStatus,
+        MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
     use std::time::Instant;
+
+    #[test]
+    fn a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason() {
+        // R15-LIFECYCLE-010: the arm for a missing sidecar command records the
+        // reason; `get_sidecar_port` serializes it for the renderer.
+        let status = SidecarStatus::new(54321);
+        status.fail("The data engine could not start (binary not found).".to_string());
+        let wire = serde_json::to_value(status.snapshot()).expect("serializable");
+        assert_eq!(wire["port"], 54321);
+        assert_eq!(wire["state"], "failed");
+        assert_eq!(
+            wire["reason"],
+            "The data engine could not start (binary not found)."
+        );
+    }
+
+    #[test]
+    fn the_boot_wait_keeps_an_earlier_exit_reason() {
+        let status = SidecarStatus::new(54321);
+        status.fail(terminated_reason(Some(1), None));
+        status.settle_boot(false);
+        let snapshot = status.snapshot();
+        assert_eq!(snapshot.state, SidecarPhase::Failed);
+        assert_eq!(
+            snapshot.reason.as_deref(),
+            Some("The data engine stopped (exit code 1).")
+        );
+
+        let unbound = SidecarStatus::new(54321);
+        unbound.settle_boot(false);
+        assert_eq!(
+            unbound.snapshot().reason.as_deref(),
+            Some("The data engine did not come up on port 54321.")
+        );
+        let bound = SidecarStatus::new(54321);
+        bound.settle_boot(true);
+        assert_eq!(bound.snapshot().state, SidecarPhase::Ready);
+    }
 
     #[test]
     fn mcp_endpoint_json_carries_port_endpoint_and_protocol() {
