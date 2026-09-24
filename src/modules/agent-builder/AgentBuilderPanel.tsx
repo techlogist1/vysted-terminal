@@ -22,7 +22,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SidecarError,
+  sidecarFetch,
+} from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 import { isCustomAgent, useAgentsStore } from "@/store/agents";
 import { useLLMProvidersStore } from "@/store/llm-providers";
@@ -82,31 +87,27 @@ async function writeCustomAgent(payload: SubmitPayload, mode: "create" | "update
           void _id;
           return rest;
         })();
-  const response = await fetch(url.toString(), {
+  const response = await sidecarFetch(url.toString(), {
     method: mode === "create" ? "POST" : "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  if (!response.ok) {
-    let detail: string | undefined;
-    try {
-      const json = (await response.json()) as { detail?: unknown };
-      if (typeof json.detail === "string") {
-        detail = json.detail;
-      }
-    } catch {
-      // body wasn't JSON; fall through to a generic message
-    }
-    throw new Error(detail ?? `request failed (${response.status})`);
-  }
+  await throwUnlessOk(response, `request failed (${response.status})`);
 }
 
 async function deleteCustomAgent(agentId: string): Promise<void> {
   const base = await getSidecarBaseUrl();
   const url = new URL(`/custom-agents/${encodeURIComponent(agentId)}`, base);
-  const response = await fetch(url.toString(), { method: "DELETE" });
+  const response = await sidecarFetch(url.toString(), { method: "DELETE" });
+  await throwUnlessOk(response, `delete failed (${response.status})`);
+}
+
+/** A non-2xx as the sidecar's own sentence: a string `detail`, or `field: msg`
+ *  for a 422 array (which used to collapse to the fallback). */
+async function throwUnlessOk(response: Response, fallback: string): Promise<void> {
   if (!response.ok) {
-    throw new Error(`delete failed (${response.status})`);
+    const body: unknown = await response.json().catch(() => null);
+    throw new SidecarError(response.status, extractSidecarDetail(body, fallback));
   }
 }
 

@@ -261,9 +261,10 @@ export async function sidecarRequest<T>(
   }
   const response = await sidecarFetch(url.toString(), init);
   if (!response.ok) {
-    let detail = response.statusText;
+    // A body with no `detail` (and a blank status text) still names the status.
+    let detail = response.statusText || `HTTP ${response.status}`;
     try {
-      detail = extractSidecarDetail(await response.json(), response.statusText);
+      detail = extractSidecarDetail(await response.json(), detail);
     } catch {
       // Response body was not JSON — keep the status text.
     }
