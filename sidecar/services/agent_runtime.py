@@ -1219,6 +1219,9 @@ ASK_USER_TOOL = "ask_user"
 #: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
 #: round: the round's tool calls were NOT dispatched (R15-AGENT-037).
 HALT_NOTICE_TOOL = "run_halt"
+#: The notice ``invoke_agent`` yields when the agent names a tool id the
+#: catalog no longer has, under any alias (R15-LIFECYCLE-025).
+RETIRED_TOOLS_NOTICE_TOOL = "retired_tools"
 
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
@@ -1701,7 +1704,10 @@ async def invoke_agent(
     resolved_model = _resolve_model(spec, model)
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
-    tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
+    # The allow-list — finally sent to the provider. A stored agent may still
+    # name a renamed tool by its old id (resolved) or a removed one (dropped,
+    # and said once below) (R15-LIFECYCLE-025).
+    tool_ids, retired_tools = catalog.resolve_tool_ids(spec.tools)
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
     # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
@@ -1778,6 +1784,16 @@ async def invoke_agent(
 
     local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
+    if retired_tools:
+        logger.warning("agent %s names retired tool(s): %s", spec.id, ", ".join(retired_tools))
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool=RETIRED_TOOLS_NOTICE_TOOL,
+            step_kind=NOTICE_STEP_KIND,
+            detail=f"Tool {', '.join(retired_tools)} is no longer available; "
+            "this agent runs without it.",
+            status="error",
+        )
     if folded:
         yield LLMResearchStepEvent(
             tool_call_id="",

@@ -29,6 +29,7 @@ registry the ``set_chart_indicators`` enum derives from (C10).
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from typing import Any, Literal
 
@@ -173,8 +174,9 @@ class Capability:
     internal: bool = True
     #: Projected to the external MCP server (wired in F5).
     mcp: bool = False
-    #: Aliases an external consumer may already know this capability by. Lets the
-    #: MCP projection keep a familiar name while the internal name stays canonical.
+    #: Former ids of this capability. A stored agent's tool list still names a
+    #: renamed tool by its old id; :func:`resolve_tool_ids` maps it here
+    #: (R15-LIFECYCLE-025).
     aliases: tuple[str, ...] = field(default_factory=tuple)
     #: Granted to every FIRST-PARTY agent at load time (R10, E5): the loader
     #: unions each first-party spec's tools with :func:`default_grant_tool_ids`,
@@ -583,6 +585,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
         # --- macro -----------------------------------------------------------
         _cap(
             "macro_series",
+            aliases=("macro",),
             description=(
                 "Fetch a macroeconomic time series (e.g. DGS10, CPIAUCSL, UNRATE) "
                 "from a named provider."
@@ -1722,6 +1725,25 @@ def default_grant_tool_ids() -> list[str]:
     return [c.id for c in internal_capabilities() if c.default_grant]
 
 
+def resolve_tool_ids(tool_ids: Iterable[str]) -> tuple[list[str], list[str]]:
+    """``(canonical ids, deduped in order; ids no capability or alias names)``.
+
+    Every reader of a persisted tool list goes through this, so renaming a
+    capability (keeping the old id in its ``aliases``) never orphans a stored
+    agent (R15-LIFECYCLE-025).
+    """
+    by_alias = {alias: cap.id for cap in CAPABILITY_CATALOG.values() for alias in cap.aliases}
+    resolved: list[str] = []
+    unknown: list[str] = []
+    for tool_id in tool_ids:
+        canonical = tool_id if tool_id in CAPABILITY_CATALOG else by_alias.get(tool_id)
+        if canonical is None:
+            unknown.append(tool_id)
+        elif canonical not in resolved:
+            resolved.append(canonical)
+    return resolved, unknown
+
+
 def domain_of(tool_id: str) -> Domain | None:
     cap = CAPABILITY_CATALOG.get(tool_id)
     return cap.domain if cap else None
@@ -1807,6 +1829,7 @@ __all__ = [
     "mcp_capabilities",
     "mcp_tool_ids",
     "read_handler_ids",
+    "resolve_tool_ids",
     "timeout_for",
     "timeout_hint_for",
 ]
