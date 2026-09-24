@@ -7,6 +7,8 @@ the provider layer's own message.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -39,17 +41,24 @@ def test_each_kind_maps_to_its_status_and_body(
 
 
 def test_earnings_throttle_is_a_429_not_a_502(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Class pin: the earnings routes used to flatten every kind to 502 in their
     own except blocks."""
-    from services import earnings_provider
+    from services import data_cache, earnings_provider
+
+    # A fresh AAPL history row in the machine's real cache would answer 200
+    # before the provider is ever called.
+    data_cache.reset_for_tests(tmp_path / "cache.db")
 
     async def throttled(_symbol: str) -> object:
         raise ProviderError("yfinance earnings rate-limited for 'AAPL'", kind="rate_limited")
 
     monkeypatch.setattr(earnings_provider, "get_history", throttled)
-    resp = client.get("/earnings/AAPL/history")
+    try:
+        resp = client.get("/earnings/AAPL/history")
+    finally:
+        data_cache.reset_for_tests()
     assert resp.status_code == 429
     assert resp.json()["code"] == "rate_limited"
 
