@@ -229,8 +229,8 @@ function WelcomeStep({
         </div>
         <h2 className="text-lume text-overview">An agent-native finance terminal</h2>
         <p className="text-charcoal-300 text-caption font-mono leading-relaxed">
-          Local-first, bring-your-own-keys, your machine. Nothing leaves this computer except the
-          model calls you authorize.
+          Local-first, bring-your-own-keys. Your keys, notes and portfolio stay on this machine —
+          market data and web searches go to public providers.
         </p>
       </div>
 
@@ -238,8 +238,8 @@ function WelcomeStep({
         <Check className="text-positive mt-1 size-4 shrink-0" aria-hidden="true" />
         <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
           <span className="text-positive font-medium">It already works — no key, no account.</span>{" "}
-          Live quotes, charts, news, screeners and web research run right now. Pick a path below to
-          turn on the AI agent, or explore first.
+          Live quotes, charts, news and screeners run right now. Pick a path below to turn on the AI
+          agent (and its web research), or explore first.
         </p>
       </div>
 
@@ -257,7 +257,7 @@ function WelcomeStep({
           icon={<Lock className="text-charcoal-300 size-4" aria-hidden="true" />}
           title="Run it locally"
           tag="private & free"
-          body="No key, no cost, fully private — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, but it's yours and offline."
+          body="No key, no cost — set up a model that runs entirely on your machine. Slower and less powerful than the cloud, and it still reaches out for market data and web searches, but the model itself is yours."
           cta="Set up local AI"
           onClick={onLocal}
         />
@@ -677,7 +677,7 @@ function DoneStep({
             ? "OpenRouter is connected — the agent and deep research are live. Ask the agent to “research NVDA” to see a visual brief land in the cockpit."
             : choice === "local"
               ? "Your local model is set — the agent runs privately on your machine. Ask it to “research NVDA” to see a visual brief land in the cockpit."
-              : "You're exploring keyless — data, charts, news and web research all work. Add a model anytime from Settings to turn on the agent."}
+              : "You're exploring keyless — data, charts, news and screeners all work. Add a model anytime from Settings to turn on the agent and its web research."}
         </p>
       </div>
       <Button size="sm" onClick={onClose} className="mt-1">

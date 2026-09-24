@@ -825,13 +825,13 @@ export function ChatSidebar() {
           if (readiness.reason === "model_not_pulled") {
             setStatusLine(
               `${model} is not downloaded yet — opening setup to download it. (Quotes, ` +
-                "charts, news and web research already work without a model.)",
+                "charts, news and screeners already work without a model.)",
             );
             useOnboardingStore.getState().open("local");
           } else if (readiness.reason === "not_configured") {
             setStatusLine(
-              "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
-                "research already work without one.)",
+              "No AI model is set up yet — opening setup. (Quotes, charts, news and " +
+                "screeners already work without one.)",
             );
             useOnboardingStore.getState().open();
           } else {
