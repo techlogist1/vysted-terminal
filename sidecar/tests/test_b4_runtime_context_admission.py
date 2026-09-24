@@ -130,9 +130,11 @@ async def test_ollama_caps_a_large_result_but_the_raw_path_keeps_it_whole(
     payload reaches the local model capped with the marker, while the research
     auto-publish still renders from the untouched raw result."""
     markdown = "## Brief\n" + "Order book grew. " * 2500  # ~42 KB
-    research = json.dumps(
-        {"ok": True, "query": "reliance", "markdown": markdown, "execution": {"run_id": "r1"}}
-    )
+    from services.agent_tools.research import brief_for
+
+    bundle = {"ok": True, "query": "reliance", "markdown": markdown, "execution": {"run_id": "r1"}}
+    # The research tool attaches its brief (C6); the runtime publishes it.
+    research = json.dumps({**bundle, "brief": brief_for(bundle)})
     lane = _OllamaLane(_two_calls("corporate_announcements", "research"))
     events = await _drive(
         monkeypatch,

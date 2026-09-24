@@ -16,6 +16,7 @@ import pytest
 
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMToolUseEvent, LLMUsage
 from services import agent_runtime
+from services.agent_tools import research
 from services.research.semantics import derive_semantics, display_value
 from services.search.scrub import GUARD_CLOSE, GUARD_OPEN
 
@@ -82,7 +83,8 @@ async def _run(monkeypatch: pytest.MonkeyPatch, payload: dict[str, Any]) -> tupl
     monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
 
     async def _fake_dispatch(_call: Any, _local: Any = None) -> AsyncIterator[Any]:
-        yield agent_runtime._ToolDone(json.dumps(payload))
+        # The research tool attaches its brief (C6); the runtime publishes it.
+        yield agent_runtime._ToolDone(json.dumps({**payload, "brief": research.brief_for(payload)}))
 
     monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _fake_dispatch)
     events = [

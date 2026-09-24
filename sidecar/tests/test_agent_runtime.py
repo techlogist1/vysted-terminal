@@ -29,6 +29,7 @@ from models.llm import (
     LLMUsage,
 )
 from services import agent_runtime
+from services.agent_tools import research
 
 
 def _write_agent(directory: Path, agent_id: str, **overrides: Any) -> Path:
@@ -1126,6 +1127,13 @@ class _StubToolCall:
         self.tool_call_id = tool_call_id
 
 
+def _tool_result(bundle: dict[str, Any]) -> str:
+    """The research tool's serialised result: the engine bundle plus the brief
+    it attaches (C6), which the runtime publishes verbatim."""
+    brief = research.brief_for(bundle)
+    return json.dumps({**bundle, "brief": brief} if brief else bundle)
+
+
 def _execution(loop: str = "fast", requested: str = "normal") -> dict[str, Any]:
     """A well-formed R10 execution record — every auto-publishable payload
     must carry one (E2: no execution → no auto-publish)."""
@@ -1159,7 +1167,7 @@ def test_auto_publish_maps_fast_web_round_into_brief_sources() -> None:
             ],
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast_bundle))
     assert event is not None
     assert event.name == "publish_brief"
     sources = event.input["sources"]
@@ -1190,7 +1198,7 @@ def test_auto_publish_fast_source_keeps_its_date_and_a_host_domain() -> None:
             ],
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast_bundle))
     assert event is not None
     first, second = event.input["sources"]
     assert first["domain"] == "www.reuters.com"
@@ -1211,7 +1219,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
         "sources": [{"url": "https://sec.gov/x", "title": "10-K", "domain": "sec"}],
         "web_available": True,
     }
-    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep_bundle))
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(deep_bundle))
     assert deep_event is not None
     assert deep_event.input["sources"] == deep_bundle["sources"]
     assert deep_event.input["web_available"] is True
@@ -1223,7 +1231,7 @@ def test_auto_publish_passes_through_deep_sources_and_honest_no_web() -> None:
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": [], "note": "structured only"},
     }
-    no_web_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(no_web))
+    no_web_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(no_web))
     assert no_web_event is not None
     assert no_web_event.input["sources"] == []
     assert no_web_event.input["web_available"] is False
@@ -1249,7 +1257,7 @@ def test_auto_publish_forwards_transient_rate_limit_reason() -> None:
             "detail": "keyless web search is rate-limiting right now",
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(throttled))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(throttled))
     assert event is not None
     assert event.input["web_available"] is False  # zero sources → honest no-web
     assert event.input["web_reason"] == "rate_limited"
@@ -1271,7 +1279,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
         "web_available": False,
     }
     event = agent_runtime._auto_publish_event(
-        _StubToolCall(), json.dumps(sourced_but_flagged_no_web)
+        _StubToolCall(), _tool_result(sourced_but_flagged_no_web)
     )
     assert event is not None
     assert len(event.input["sources"]) == 1
@@ -1284,7 +1292,7 @@ def test_auto_publish_reconciles_web_available_with_sources() -> None:
         "structured": {"price": {"ok": True}},
         "web": {"available": False, "citations": []},
     }
-    sourceless_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(sourceless))
+    sourceless_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(sourceless))
     assert sourceless_event is not None
     assert sourceless_event.input["sources"] == []
     assert sourceless_event.input["web_available"] is False  # honest no-web survives
@@ -1301,7 +1309,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "execution": _execution(loop="fast"),
         "structured": {"price": {"ok": True}},
     }
-    fast_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast))
+    fast_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast))
     assert fast_event is not None
     assert fast_event.input["depth"] == "quick"
     assert fast_event.input["mode"] == "fast"
@@ -1313,7 +1321,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "markdown": "x",
         "execution": _execution(loop="iter", requested="deep"),
     }
-    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(deep))
+    deep_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(deep))
     assert deep_event is not None
     assert deep_event.input["depth"] == "deep"
     assert deep_event.input["mode"] == "deep"
@@ -1325,7 +1333,7 @@ def test_auto_publish_maps_depth_tier_from_execution_loop() -> None:
         "mode": "fast",  # contradicting payload mode — the loop's truth wins
         "execution": _execution(loop="heavy", requested="ultra"),
     }
-    heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(heavy))
+    heavy_event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(heavy))
     assert heavy_event is not None
     assert heavy_event.input["depth"] == "heavy"
     assert heavy_event.input["mode"] == "deep"
@@ -1337,7 +1345,7 @@ def test_auto_publish_requires_an_execution_record() -> None:
     """R10 E2: a research payload WITHOUT an execution record is malformed and
     never auto-publishes — the depth stamp can no longer be guessed."""
     legacy = {"ok": True, "query": "NVDA", "markdown": "x", "mode": "deep"}
-    assert agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(legacy)) is None
+    assert agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(legacy)) is None
 
 
 def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
@@ -1355,7 +1363,7 @@ def test_auto_publish_disambiguation_publishes_the_chooser() -> None:
         "message": "Which Tata did you mean?",
         "execution": _execution(),
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(payload))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(payload))
     assert event is not None
     assert event.name == "publish_brief"
     assert set(event.input) == {"query", "disambiguation", "execution"}

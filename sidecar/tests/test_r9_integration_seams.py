@@ -20,8 +20,15 @@ from typing import Any
 
 import config
 from services import agent_runtime
-from services.agent_tools import deep_research, web_search
+from services.agent_tools import deep_research, research, web_search
 from services.research.depth import PROFILES
+
+
+def _tool_result(bundle: dict[str, Any]) -> str:
+    """The research tool's serialised result: the engine bundle plus the brief
+    it attaches (C6), which the runtime publishes verbatim."""
+    brief = research.brief_for(bundle)
+    return json.dumps({**bundle, "brief": brief} if brief else bundle)
 
 
 class _StubToolCall:
@@ -148,12 +155,12 @@ def test_auto_publish_forwards_the_backend_id() -> None:
         # R10 (E2): a payload without an execution record never auto-publishes.
         "execution": {"run_id": "r1", "requested_depth": "deep", "loop": "iter"},
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(bundle))
     assert event is not None
     assert event.input["backend"] == "keyless-fallback"
 
     bundle["backend"] = "research-model:perplexity/sonar"
-    event2 = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(bundle))
+    event2 = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(bundle))
     assert event2 is not None
     assert event2.input["backend"] == "research-model:perplexity/sonar"
 
@@ -175,7 +182,7 @@ def test_auto_publish_lifts_fast_web_round_backend() -> None:
             "citations": [{"url": "https://example.com/a", "title": "t"}],
         },
     }
-    event = agent_runtime._auto_publish_event(_StubToolCall(), json.dumps(fast_bundle))
+    event = agent_runtime._auto_publish_event(_StubToolCall(), _tool_result(fast_bundle))
     assert event is not None
     assert event.input["backend"] == "keyless-fallback"
 

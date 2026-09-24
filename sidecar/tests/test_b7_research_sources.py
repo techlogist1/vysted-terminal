@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from services import agent_runtime
-from services.agent_tools import web_search
+from services.agent_tools import research, web_search
 from services.research import deep
 from services.research.sonar import PROVENANCE_NOTE, _extract_sources
 from services.search.searxng import SearxngBackend
@@ -20,6 +20,13 @@ _ROW = {
     "content": "Nvidia reported record data-center revenue.",
     "publishedDate": "2026-02-26T21:05:00",
 }
+
+
+def _tool_result(bundle: dict[str, Any]) -> str:
+    """The research tool's serialised result: the engine bundle plus the brief
+    it attaches (C6), which the runtime publishes verbatim."""
+    brief = research.brief_for(bundle)
+    return json.dumps({**bundle, "brief": brief} if brief else bundle)
 
 
 def _searxng() -> SearxngBackend:
@@ -61,7 +68,7 @@ def test_the_fast_auto_publish_forwards_the_date_and_host() -> None:
         "structured": {"price": {"ok": True}},
         "web": {"available": True, **_web_out()},
     }
-    event = agent_runtime._auto_publish_event(_Call(), json.dumps(bundle))
+    event = agent_runtime._auto_publish_event(_Call(), _tool_result(bundle))
     assert event is not None
     (source,) = event.input["sources"]
     assert source["domain"] == "reuters.com"

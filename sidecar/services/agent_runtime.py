@@ -32,7 +32,6 @@ from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import jsonschema
 
@@ -1150,35 +1149,6 @@ async def _dispatch_tool_with_progress(
         config.reset_step_sink(token)
 
 
-#: ``ResearchExecution.loop`` → the brief's (mode, depth) badges (R10, E2). The
-#: stamp derives from the loop that RAN — never the result payload's ``mode``
-#: (the old ``raw_mode`` read that stamped a DEEP run "FAST" whenever a payload
-#: omitted the field). ``research-model`` maps per REQUESTED stop below.
-_LOOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
-    "fast": ("fast", "quick"),
-    "iter": ("deep", "deep"),
-    "heavy": ("deep", "heavy"),
-}
-
-#: The research-model (Tier B) lane maps per requested stop: only a NORMAL
-#: request renders as the quick tier; deep/ultra requests render at the deep
-#: tier they bought (heavy for ultra so "Go deeper" stays honest).
-_RESEARCH_MODEL_STOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
-    "normal": ("fast", "quick"),
-    "deep": ("deep", "deep"),
-    "ultra": ("deep", "heavy"),
-}
-
-
-def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
-    """The brief's (mode, depth) derived ONLY from the execution record."""
-    loop = str(execution.get("loop") or "")
-    if loop == "research-model":
-        requested = str(execution.get("requested_depth") or "normal")
-        return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
-    return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
-
-
 def _auto_open_backtest_event(
     tool_call: LLMToolUseEvent, result_str: str
 ) -> LLMToolUseEvent | None:
@@ -1204,144 +1174,26 @@ def _auto_open_backtest_event(
 
 
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
-    """Build a synthetic ``publish_brief`` host-action from a research result.
+    """A synthetic ``publish_brief`` carrying the research tool's ``brief`` verbatim.
 
-    The full :class:`ResearchBrief` (markdown + sources + the ``structured``
-    bundle that backs the metric cards) is serialised into ``result_str`` — but
-    only the MODEL sees it; a weak local model may never call ``publish_brief``,
-    leaving the brief panel empty (the "research feels dead" failure). So the
-    runtime emits this synthetic ``tool_use`` deterministically after every
-    successful research round: it rides the SAME proposed-changes gate as a
-    model-issued publish (AUTO applies it, review queues it — never bypasses the
-    trust gate), and is idempotent with a model-issued publish (``setBrief``
-    replaces). Returns ``None`` on a malformed/failed result so a broken run
-    never half-publishes — the live research trace still animated.
-
-    R10 (E2): a payload WITHOUT an ``execution`` record is malformed and never
-    auto-publishes — the brief's mode/depth derive from the loop that RAN,
-    never from the payload's ``mode`` field or a default. A
-    ``needs_disambiguation`` result publishes the candidate CHOOSER instead of
-    a guessed brief (D37).
+    Only the MODEL sees the research result, and a weak local model may never
+    call ``publish_brief``, so the runtime emits this after every successful
+    research round. It rides the SAME proposed-changes gate as a model-issued
+    publish (AUTO applies it, review queues it) and is idempotent with one
+    (``setBrief`` replaces). The research tool owns the brief's shape (C6,
+    R15-CODE-AGENT-008); a result with no ``brief`` publishes nothing.
     """
     try:
         payload = json.loads(result_str)
     except (json.JSONDecodeError, ValueError, TypeError):
         return None
-    if not isinstance(payload, dict) or not payload.get("ok"):
+    brief = payload.get("brief") if isinstance(payload, dict) and payload.get("ok") else None
+    if not isinstance(brief, dict):
         return None
-    execution = payload.get("execution")
-    if not isinstance(execution, dict) or not execution.get("run_id"):
-        logger.warning(
-            "research result without an execution record — auto-publish suppressed "
-            "(tool_call_id=%s)",
-            tool_call.tool_call_id,
-        )
-        return None
-    # Honest disambiguation (D37): publish the chooser, nothing else — no
-    # markdown, no structured, no guessed entity. The panel renders the
-    # candidate picker keyed on the run's execution record.
-    if payload.get("needs_disambiguation"):
-        query = payload.get("query", "")
-        return LLMToolUseEvent(
-            tool_call_id=f"{tool_call.tool_call_id}__autobrief",
-            name="publish_brief",
-            input={
-                "query": query,
-                "disambiguation": {
-                    "query": query,
-                    "candidates": payload.get("candidates") or [],
-                },
-                "execution": execution,
-            },
-        )
-    markdown = payload.get("markdown")
-    structured = payload.get("structured")
-    has_markdown = isinstance(markdown, str) and bool(markdown.strip())
-    has_structured = isinstance(structured, dict) and bool(structured)
-    # Fire when the result carries prose OR the structured bundle: a DEEP run
-    # returns a synthesized markdown (a full brief auto-renders); a FAST run
-    # returns only the structured data (the model writes the prose) — seeding
-    # structured here keeps the native metric cards populated even when the
-    # model's own publish_brief omits the big structured dict.
-    if not has_markdown and not has_structured:
-        return None
-    # Sources: a DEEP run carries a top-level ``sources`` list; a FAST run strands
-    # its web round under ``web.{citations,results}`` with NO top-level ``sources``
-    # — so the synthetic publish dropped them and a quick research rendered
-    # "0 sources / structured only" even though the keyless DuckDuckGo floor had
-    # returned real results. Map the FAST web round into brief sources so a quick
-    # research surfaces the REAL web citations (the same shape the DEEP path emits).
-    sources = payload.get("sources")
-    web = payload.get("web") if isinstance(payload.get("web"), dict) else None
-    if not sources and web is not None:
-        rows = web.get("citations") or web.get("results") or []
-        sources = [
-            {
-                "url": row.get("url"),
-                "title": row.get("title") or row.get("url"),
-                "excerpt": row.get("excerpt") or row.get("snippet") or "",
-                # A bare host, never "web"; the date rides along (RESEARCH-024, C4).
-                "domain": row.get("domain") or urlparse(row["url"]).hostname or "",
-                "published_at": row.get("published_at"),
-            }
-            for row in rows
-            if isinstance(row, dict) and row.get("url")
-        ]
-    sources = sources or []
-    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST),
-    # RECONCILED with the source count. A brief that surfaced ANY source (web OR
-    # structured provenance) must NOT also claim the web was unavailable — that is
-    # symptom #2 ("N sources" + a "web unavailable" banner firing together). The
-    # honest structured-only banner survives only when ZERO sources were gathered.
-    web_available = payload.get("web_available")
-    if web_available is None and web is not None:
-        web_available = web.get("available")
-    if not web_available and sources:
-        web_available = True
-    # Forward the FAST web round's honest note/detail/reason onto the brief: the
-    # top-level ``note`` carries a DEEP run's breach reason, but a FAST bundle
-    # strands its web-search status under ``web.{note,detail,reason}`` (e.g. a
-    # transient DDG rate-limit vs a genuine no-backend). Carry the nested note when
-    # there is no top-level note so the banner states WHY honestly instead of a
-    # blanket "no backend". ``web_reason`` lets the frontend pick the banner copy.
-    note = payload.get("note")
-    web_reason = None
-    if web is not None:
-        web_reason = web.get("reason")
-        if not note:
-            note = web.get("note") or web.get("detail")
-    # The true depth TIER the run reached (FR-115/E2): derived ONLY from the
-    # execution record's loop — never from the payload's ``mode`` (the old read
-    # stamped any mode-less payload "FAST", so a DEEP run rendered as quick).
-    mode, depth = _mode_depth_from_execution(execution)
-    # Forward only the fields the publish_brief host-action consumes (snake_case,
-    # exactly as the frontend's briefFromInput reads them).
-    brief_input: dict[str, Any] = {
-        "query": payload.get("query", ""),
-        "symbol": payload.get("symbol", ""),
-        "mode": mode,
-        "depth": depth,
-        # R10 (D38): the verbatim execution record rides the publish so the
-        # panel's badges + run-scoped carry key on what actually RAN.
-        "execution": execution,
-        "markdown": markdown if isinstance(markdown, str) else "",
-        "sources": sources,
-        "structured": structured,
-        "cost": payload.get("cost"),
-        "web_available": bool(web_available),
-        "note": note,
-        "web_reason": web_reason,
-        # R9: the engine's honest backend id rides the synthetic publish so the
-        # brief panel can render the keyless-fallback nudge / name the Tier B
-        # research model (gates 2-4 evidence). A FAST bundle has no engine-level
-        # id — lift the web round's retrieval id (the web_search tool stamps
-        # keyless-fallback there) so a NORMAL run nudges honestly too.
-        "backend": payload.get("backend") or (web.get("backend") if web else None),
-    }
     return LLMToolUseEvent(
         tool_call_id=f"{tool_call.tool_call_id}__autobrief",
         name="publish_brief",
-        input=brief_input,
+        input=brief,
     )
 
 

@@ -88,13 +88,38 @@ async def test_a_prior_brief_ack_does_not_confirm_a_new_brief(
     first_id = next(e.tool_call_id for e in first if isinstance(e, LLMToolUseEvent))
     action_ledger.record(first_id, "applied")
     action_ledger.record("publish_brief_0", "applied")
-    action_ledger.record("publish_brief_0__autobrief", "applied")
 
     second = await _turn(monkeypatch, provider)
-    notices = [
+    assert any("did not confirm" in d for d in _publish_notices(second))
+
+
+def _publish_notices(events: list[Any]) -> list[str]:
+    return [
         e.detail
-        for e in second
+        for e in events
         if getattr(e, "kind", None) == "research_step"
         and getattr(e, "tool", None) == "publish_brief"
     ]
-    assert any("did not confirm" in d for d in notices)
+
+
+@pytest.mark.asyncio
+async def test_a_prior_autobrief_ack_does_not_confirm_a_new_auto_brief(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    brief = {"query": "NVDA", "markdown": "## x", "execution": {"run_id": "r"}}
+
+    async def _research_result(_call: Any, _local: Any = None) -> AsyncIterator[Any]:
+        yield agent_runtime._ToolDone(json.dumps({"ok": True, "brief": brief}))
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _research_result)
+    provider = _GeminiStyleProvider("research", {"query": "NVDA"})
+    first = await _turn(monkeypatch, provider)
+    [first_brief] = [e for e in first if getattr(e, "name", None) == "publish_brief"]
+    action_ledger.record(first_brief.tool_call_id, "applied")
+    action_ledger.record("research_0__autobrief", "applied")
+
+    second = await _turn(monkeypatch, provider)
+    [second_brief] = [e for e in second if getattr(e, "name", None) == "publish_brief"]
+    assert second_brief.input == brief
+    assert second_brief.tool_call_id not in {first_brief.tool_call_id, "research_0__autobrief"}
+    assert any("did not confirm" in d for d in _publish_notices(second))
