@@ -196,7 +196,7 @@
   }
 
   /* Agent-active / primary control: 1px accent border + one luminance step.
-     No blurred glow (PRODUCT_DESIGN_DECISIONS sec3 -- glow primitives removed). */
+     No blurred glow (VYSTED_DESIGN.md -- "no drop shadows and no glow anywhere"). */
   .hud-active {
     box-shadow: 0 0 0 1px var(--color-amber-400, #d89a4e);
     background-color: var(--color-charcoal-875, #211e19);
