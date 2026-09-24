@@ -13,11 +13,7 @@ import httpx
 import pytest
 
 from services.search.base import SearchError, SearchResponse
-from services.search.searxng import (
-    BACKEND_ID,
-    SearxngBackend,
-    detect_searxng,
-)
+from services.search.searxng import BACKEND_ID, SearxngBackend
 
 _FAKE_SEARCH_JSON = {
     "query": "nvidia earnings",
@@ -161,74 +157,6 @@ async def test_search_non_2xx_raises_search_error() -> None:
         backend = SearxngBackend(client=client)
         with pytest.raises(SearchError):
             await backend.search("anything")
-
-
-# ---------------------------------------------------------------------------
-# detect_searxng() — autodetect probe
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_detect_returns_base_url_when_json_search_works() -> None:
-    # Capability probe: /search?format=json returning 200 + a results list.
-    def _handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/search"
-        assert dict(request.url.params)["format"] == "json"
-        return httpx.Response(200, json={"results": []})
-
-    async with httpx.AsyncClient(transport=_mock_transport(_handler)) as client:
-        found = await detect_searxng("http://localhost:8080", client=client)
-
-    assert found == "http://localhost:8080"
-
-
-@pytest.mark.asyncio
-async def test_detect_probes_default_ports_8888_then_8080() -> None:
-    # No URL given → probe 8888 (pip) first, then 8080 (docker). 8888 is absent
-    # here, 8080 is the live one.
-    def _handler(request: httpx.Request) -> httpx.Response:
-        if request.url.port == 8888:
-            raise httpx.ConnectError("nothing on 8888")
-        return httpx.Response(200, json={"results": [{"url": "https://x", "title": "t"}]})
-
-    async with httpx.AsyncClient(transport=_mock_transport(_handler)) as client:
-        found = await detect_searxng(client=client)
-
-    assert found == "http://localhost:8080"
-
-
-@pytest.mark.asyncio
-async def test_detect_returns_none_when_json_disabled_403() -> None:
-    # Instance is UP but JSON output is off (the default) → 403 → not usable.
-    def _handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(403, text="forbidden")
-
-    async with httpx.AsyncClient(transport=_mock_transport(_handler)) as client:
-        found = await detect_searxng("http://localhost:8080", client=client)
-
-    assert found is None
-
-
-@pytest.mark.asyncio
-async def test_detect_returns_none_when_probe_fails() -> None:
-    def _handler(request: httpx.Request) -> httpx.Response:
-        raise httpx.ConnectError("no instance here")
-
-    async with httpx.AsyncClient(transport=_mock_transport(_handler)) as client:
-        found = await detect_searxng("http://localhost:8080", client=client)
-
-    assert found is None
-
-
-@pytest.mark.asyncio
-async def test_detect_returns_none_when_probe_non_2xx() -> None:
-    def _handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(500, text="down")
-
-    async with httpx.AsyncClient(transport=_mock_transport(_handler)) as client:
-        found = await detect_searxng("http://localhost:8080", client=client)
-
-    assert found is None
 
 
 @pytest.mark.asyncio

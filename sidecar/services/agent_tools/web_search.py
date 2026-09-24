@@ -220,12 +220,7 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 async def _dispatch(
     backend: Any, query: str, num_results: int, category: str, region: str
 ) -> dict[str, Any]:
-    """Run the resolved backend and shape the tool result.
-
-    A backend that annotates its response has that annex passed through under
-    ``metadata`` so the caller can show honest provenance alongside the
-    results (C.1).
-    """
+    """Run the resolved backend and shape the tool result."""
     from services.search.base import SearchError, bare_host
 
     options = {"numResults": num_results, "category": category, "region": region}
@@ -275,9 +270,6 @@ async def _dispatch(
             for c in response.citations
         ],
     }
-    metadata = getattr(response, "metadata", None)
-    if isinstance(metadata, dict) and metadata:
-        out["metadata"] = metadata
     return out
 
 

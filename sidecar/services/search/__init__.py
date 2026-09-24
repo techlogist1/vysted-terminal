@@ -14,19 +14,16 @@ from .base import (
     SearchError,
     SearchResponse,
     SearchResult,
-    locale_domains,
     normalize_results_to_citations,
 )
-from .registry import KNOWN_BACKENDS, resolve
+from .registry import resolve
 
 __all__ = [
-    "KNOWN_BACKENDS",
     "Citation",
     "SearchBackend",
     "SearchError",
     "SearchResponse",
     "SearchResult",
-    "locale_domains",
     "normalize_results_to_citations",
     "resolve",
 ]

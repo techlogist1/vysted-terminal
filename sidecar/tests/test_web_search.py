@@ -112,21 +112,6 @@ def _set_manager_ready(monkeypatch: pytest.MonkeyPatch, ready: bool) -> None:
     )
 
 
-def _stub_detect(monkeypatch: pytest.MonkeyPatch, result: str | None) -> dict:
-    """Stub the network autodetect (services.search.searxng.detect_searxng) —
-    the R9 hot path must NEVER reach it (the manager read is in-process)."""
-    from services.search import searxng
-
-    seen: dict = {"called": False}
-
-    async def _fake_detect(base=None, *, client=None):  # noqa: ANN001, ANN202
-        seen["called"] = True
-        return result
-
-    monkeypatch.setattr(searxng, "detect_searxng", _fake_detect)
-    return seen
-
-
 # --- The R9 routing matrix ----------------------------------------------------
 #
 # Each cell: (r7 tier header, legacy tier header, openrouter key, custom
@@ -202,16 +187,15 @@ def test_routing_matrix(
 ) -> None:
     _stub_registry(monkeypatch)
     _set_manager_ready(monkeypatch, ready)
-    # No cell may reach the network autodetect; stub it dark so a cell that
-    # wrongly probes fails loudly below.
-    seen = _stub_detect(monkeypatch, None)
+    # No cell may reach a network autodetect — there is no such path anymore
+    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+    # the manager read below is in-process, so this is now true by construction.
 
     with _request(r7=r7, legacy=legacy, searxng_url=searxng_url, openrouter_key=or_key):
         out = _run(_web_search({"query": "nvidia earnings"}))
 
     assert out["ok"] is True, out
     assert out["backend"] == expected
-    assert seen["called"] is False
 
 
 def test_matrix_did_not_shrink_from_r8() -> None:

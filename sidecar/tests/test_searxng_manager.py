@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import json
 
-import httpx
 import pytest
 
 from services import searxng_manager
@@ -765,52 +764,3 @@ def test_write_settings_is_idempotent_and_preserves_the_secret(tmp_path) -> None
     first = write_settings(tmp_path / "searxng").read_text(encoding="utf-8")
     second = write_settings(tmp_path / "searxng").read_text(encoding="utf-8")
     assert first == second  # the per-install secret key survives re-setup
-
-
-# ---------------------------------------------------------------------------
-# Routing: detect_searxng() prefers the managed instance when READY
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_detect_searxng_prefers_the_managed_ready_instance(monkeypatch, tmp_path) -> None:
-    from services.search.searxng import detect_searxng
-
-    ready = _manager(FakeDocker(), tmp_path)
-    ready.state = STATE_READY
-    ready.port = 9123
-    monkeypatch.setattr(searxng_manager, "manager", ready)
-
-    probed: list[str] = []
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        probed.append(f"{request.url.host}:{request.url.port}")
-        if request.url.port == 9123:
-            return httpx.Response(200, json={"results": []})
-        return httpx.Response(503)
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        found = await detect_searxng(client=client)
-
-    assert found == "http://127.0.0.1:9123"
-    assert probed[0] == "127.0.0.1:9123"  # managed URL probed FIRST
-
-
-@pytest.mark.asyncio
-async def test_detect_searxng_falls_back_to_conventional_ports_when_not_ready(
-    monkeypatch, tmp_path
-) -> None:
-    from services.search.searxng import detect_searxng
-
-    idle = _manager(FakeDocker(), tmp_path)  # state unknown → no managed URL
-    monkeypatch.setattr(searxng_manager, "manager", idle)
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.port == 8080:
-            return httpx.Response(200, json={"results": []})
-        return httpx.Response(503)
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        found = await detect_searxng(client=client)
-
-    assert found == "http://localhost:8080"

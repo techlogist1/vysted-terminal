@@ -1,8 +1,8 @@
 """Prompt-injection scrubbing for fetched web content (R7 Component 1).
 
 Adapted from odysseus (MIT) github.com/pewdiepie-archdaemon/odysseus
-(``src/prompt_security.py`` — ``untrusted_context_message``, guard markers,
-marker escape, label sanitization).
+(``src/prompt_security.py`` — guard markers, marker escape, label
+sanitization).
 
 Anything fetched from the open web (SERP snippets, visited-page text, result
 titles) is ATTACKER-CONTROLLED: a page can embed "ignore your instructions
@@ -22,10 +22,7 @@ guarded-block pattern:
 
 Two surfaces:
 
-  * :func:`untrusted_context_message` — the full odysseus port: a standalone
-    user-role chat message carrying one guarded block (for callers composing
-    message lists).
-  * :func:`wrap_untrusted` — the same guarded block as a plain string, for
+  * :func:`wrap_untrusted` — the guarded block as a plain string, for
     research prompts that embed web evidence INSIDE an existing user message
     (the shape :mod:`services.research.deep` uses).
   * :func:`sanitize_inline` — for one-line contexts (source titles in the
@@ -102,20 +99,6 @@ def wrap_untrusted(label: str, content: Any) -> str:
     return f"{UNTRUSTED_CONTEXT_HEADER}\n{GUARD_OPEN}\nSource: {safe_label}\n{text}\n{GUARD_CLOSE}"
 
 
-def untrusted_context_message(label: str, content: Any) -> dict[str, Any]:
-    """An LLM user-role message carrying one guarded untrusted block.
-
-    The full odysseus port: keeps retrieved/source text out of the system
-    role, with ``metadata.trusted = False`` so downstream plumbing can tell
-    the provenance apart.
-    """
-    return {
-        "role": "user",
-        "content": wrap_untrusted(label, content),
-        "metadata": {"trusted": False, "source": label},
-    }
-
-
 __all__ = [
     "GUARD_CLOSE",
     "GUARD_OPEN",
@@ -123,6 +106,5 @@ __all__ = [
     "escape_guard_markers",
     "sanitize_inline",
     "sanitize_label",
-    "untrusted_context_message",
     "wrap_untrusted",
 ]
