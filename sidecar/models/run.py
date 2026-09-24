@@ -25,21 +25,24 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .llm import LLMProviderId
 
-#: A run's lifecycle state.
+#: A run's lifecycle state (legal changes: ``runs_store.TRANSITIONS``).
+#: - ``planned``   — a compound task's plan waits for the user's Start/Discard.
 #: - ``running``   — the detached task is executing the agent loop.
-#: - ``paused``    — a human-in-the-loop question is outstanding (FR-028);
-#:                   the task is suspended on a future awaiting ``answer_run``.
+#: - ``paused``    — a human-in-the-loop question is outstanding (FR-028); no
+#:                   task runs until ``answer_run`` resumes from the checkpoint.
 #: - ``done``      — the agent completed naturally.
 #: - ``error``     — a BudgetGuard ceiling was breached (SC-008) or the agent
 #:                   raised; ``detail`` carries the stated reason.
 #: - ``cancelled`` — the user cancelled the run (``cancel_run``).
-RunStatus = Literal["running", "paused", "done", "error", "cancelled"]
+RunStatus = Literal["planned", "running", "paused", "done", "error", "cancelled"]
 
 
 class RunBudget(BaseModel):
     """The hard spend ceilings for a Delegate run (US9 / FR-026).
 
-    All four ceilings are optional — a run may bound any subset. The
+    A request may omit any ceiling; ``run_manager`` fills every omitted one from
+    :data:`DEFAULT_RUN_BUDGET` before the run starts, so a run is never
+    unbounded (R15-AGENT-034). A given ceiling must be positive. The
     :class:`~services.budget_guard.BudgetGuard` aborts the run on the FIRST
     breach with a stated reason (SC-008: a breach aborts 100% of the time).
     The guard governs SPEND only; a Delegate run uses the same agent loop, in
@@ -49,13 +52,20 @@ class RunBudget(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     #: Hard cap on total tokens (input + output, summed across rounds).
-    max_tokens: int | None = Field(default=None, alias="maxTokens")
+    max_tokens: int | None = Field(default=None, gt=0, alias="maxTokens")
     #: Hard cap on estimated USD spend (see ``budget_guard.PRICE_TABLE``).
-    max_spend_usd: float | None = Field(default=None, alias="maxSpendUsd")
+    max_spend_usd: float | None = Field(default=None, gt=0, alias="maxSpendUsd")
     #: Hard cap on wall-clock seconds from run start (monotonic).
-    max_wall_seconds: float | None = Field(default=None, alias="maxWallSeconds")
-    #: Hard cap on tool-call rounds (also bounded by ``_MAX_TOOL_ROUNDS``).
-    max_steps: int | None = Field(default=None, alias="maxSteps")
+    max_wall_seconds: float | None = Field(default=None, gt=0, alias="maxWallSeconds")
+    #: Hard cap on provider rounds (also bounded by ``_MAX_TOOL_ROUNDS``).
+    max_steps: int | None = Field(default=None, gt=0, alias="maxSteps")
+
+
+#: The server floor for an omitted ceiling. Equal to the composer's
+#: ``DEFAULT_DELEGATE_BUDGET`` (``src/modules/chat/BudgetConfig.tsx``).
+DEFAULT_RUN_BUDGET = RunBudget(
+    max_tokens=120_000, max_spend_usd=1.0, max_wall_seconds=600, max_steps=12
+)
 
 
 class RunCost(BaseModel):
@@ -91,16 +101,28 @@ class RunLaunchRequest(BaseModel):
     options: dict[str, Any] = Field(default_factory=dict)
 
 
-class RunLaunchResponse(BaseModel):
-    """``POST /agents/{agent_id}/runs`` 201 response.
+class RunPlan(BaseModel):
+    """The plan a compound Delegate launch waits on (``planned``, R15-AGENT-039).
 
-    Emits BOTH ``runId`` (camelCase, the alias the frontend reads) and accepts
-    ``run_id`` on the way in via ``populate_by_name``.
+    ``steps`` are the planner's ``{action, args, rationale, staged}``.
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
-    run_id: str = Field(alias="runId")
+    goal: str
+    steps: list[dict[str, Any]] = Field(default_factory=list)
+    note: str | None = None
+
+
+class RunActivity(BaseModel):
+    """One tool step a Delegate run took, as the rail shows it (R15-AGENT-039)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    tool: str
+    status: Literal["ok", "error"]
+    #: The result on one line (the error reason when it failed).
+    summary: str
 
 
 class RunSummary(BaseModel):
@@ -119,6 +141,14 @@ class RunSummary(BaseModel):
     status: RunStatus
     cost: RunCost
     budget: RunBudget
+    #: The launch's provider/model (``None`` = the agent default); a resume
+    #: re-uses them (R15-AGENT-035).
+    provider: str | None = None
+    model: str | None = None
+    #: The plan a ``planned`` run waits on; kept once it starts.
+    plan: RunPlan | None = None
+    #: The run's latest tool steps, oldest first (capped).
+    activity: list[RunActivity] = Field(default_factory=list)
     detail: str | None = None
     question: str | None = None
     created_at: int = Field(alias="createdAt")

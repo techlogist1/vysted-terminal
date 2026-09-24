@@ -1,13 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Maximize2, Send, X } from "lucide-react";
+import { Maximize2, Play, RotateCcw, Send, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { answerDelegateRun } from "@/lib/delegate-runs";
-import { useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
+import {
+  adoptSidecarRuns,
+  answerDelegateRun,
+  cancelDelegateRun,
+  resumeDelegateRun,
+  startDelegateRun,
+} from "@/lib/delegate-runs";
+import { isLiveRun, useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
 
 import { agentModeMeta } from "../../../types/agent-modes";
 
@@ -15,7 +21,11 @@ import { agentModeMeta } from "../../../types/agent-modes";
  * The agents rail (FR-027, US9) — running agent tasks with live status,
  * cost-so-far vs budget, cancel, bring-to-foreground, and a human-in-the-loop
  * answer box for a paused run. Delegate runs are durable (sidecar-tracked); the
- * cost/status here is synced by the `/runs` poller. Hidden when nothing runs.
+ * cost/status here is synced by the `/runs` poller. A compound Delegate task
+ * shows its plan with Start / Discard before it runs, and every run lists its
+ * latest tool steps (R15-AGENT-039). A Delegate run that ended in error stays
+ * with a Resume control until dismissed (R15-AGENT-035). Hidden when nothing is
+ * listed.
  */
 export function AgentsRail({
   onForeground,
@@ -25,9 +35,16 @@ export function AgentsRail({
 }) {
   const runs = useAgentRunsStore((state) => state.runs);
   const cancelRun = useAgentRunsStore((state) => state.cancelRun);
+  const removeRun = useAgentRunsStore((state) => state.removeRun);
+
+  // The sidecar decides which Delegate runs exist: adopt the live ones a
+  // webview reload dropped from the store (R15-UI-040).
+  useEffect(() => {
+    void adoptSidecarRuns();
+  }, []);
 
   const active = useMemo(
-    () => runs.filter((r) => r.status === "running" || r.status === "paused"),
+    () => runs.filter((r) => isLiveRun(r.status) || (r.status === "error" && r.sidecarRunId)),
     [runs],
   );
 
@@ -48,7 +65,7 @@ export function AgentsRail({
               <RunRow
                 key={run.id}
                 run={run}
-                onCancel={() => cancelRun(run.id)}
+                onCancel={() => (run.status === "error" ? removeRun(run.id) : cancelRun(run.id))}
                 onForeground={onForeground}
               />
             ))}
@@ -71,6 +88,12 @@ function RunRow({
   const [answer, setAnswer] = useState("");
   const [answerBusy, setAnswerBusy] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
+  const [resumeBusy, setResumeBusy] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [controlError, setControlError] = useState<string | null>(null);
+  const [startBusy, setStartBusy] = useState(false);
+  const failed = run.status === "error";
+  const planned = run.status === "planned";
   const cost = run.cost;
   const budget = run.budget;
   // Budget usage fraction (tokens-based, the most common ceiling) for the bar.
@@ -93,7 +116,13 @@ function RunRow({
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
           <span
-            className={run.status === "paused" ? "text-warning" : "animate-pulse text-amber-400"}
+            className={
+              failed
+                ? "text-negative"
+                : run.status === "paused" || planned
+                  ? "text-warning"
+                  : "animate-pulse text-amber-400"
+            }
             aria-hidden
           >
             ●
@@ -108,6 +137,44 @@ function RunRow({
           )}
         </span>
         <span className="flex shrink-0 items-center gap-1">
+          {planned && (
+            <button
+              type="button"
+              aria-label={`Start ${run.agentName}`}
+              title="Start the run on this plan"
+              disabled={startBusy}
+              onClick={() => {
+                setStartBusy(true);
+                setControlError(null);
+                void startDelegateRun(run).then((r) => {
+                  setStartBusy(false);
+                  if (!r.ok) setControlError(r.error ?? "Couldn't start the run — retry.");
+                });
+              }}
+              className="text-charcoal-500 hover:text-charcoal-100 disabled:opacity-30"
+            >
+              <Play size={11} aria-hidden />
+            </button>
+          )}
+          {failed && run.sidecarRunId && (
+            <button
+              type="button"
+              aria-label={`Resume ${run.agentName}`}
+              title="Resume from its checkpoint"
+              disabled={resumeBusy}
+              onClick={() => {
+                setResumeBusy(true);
+                setResumeError(null);
+                void resumeDelegateRun(run).then((r) => {
+                  setResumeBusy(false);
+                  if (!r.ok) setResumeError(r.error ?? "Couldn't resume the run — retry.");
+                });
+              }}
+              className="text-charcoal-500 hover:text-charcoal-100 disabled:opacity-30"
+            >
+              <RotateCcw size={11} aria-hidden />
+            </button>
+          )}
           {onForeground && run.sidecarRunId && (
             <button
               type="button"
@@ -120,14 +187,55 @@ function RunRow({
           )}
           <button
             type="button"
-            aria-label={`Cancel ${run.agentName}`}
-            onClick={onCancel}
+            aria-label={`${failed ? "Dismiss" : planned ? "Discard" : "Cancel"} ${run.agentName}`}
+            onClick={() => {
+              if (failed || !run.sidecarRunId) {
+                onCancel();
+                return;
+              }
+              setControlError(null);
+              void cancelDelegateRun(run.sidecarRunId).then((r) => {
+                if (!r.ok) setControlError(r.error ?? "Cancel failed — retry.");
+              });
+            }}
             className="text-charcoal-500 hover:text-negative"
           >
             <X size={11} aria-hidden />
           </button>
         </span>
       </div>
+      {controlError && isLiveRun(run.status) && (
+        <span className="text-negative text-micro" role="alert">
+          {controlError}
+        </span>
+      )}
+      {failed && (run.detail || resumeError) && (
+        <span className="text-negative text-micro truncate" role="alert" title={run.detail}>
+          {resumeError ?? run.detail}
+        </span>
+      )}
+      {planned && run.plan && (
+        <div aria-label={`Plan for ${run.agentName}`} className="text-charcoal-300">
+          <span className="text-charcoal-200">{run.plan.goal}</span>
+          <ol className="text-charcoal-400 ml-4 list-decimal">
+            {run.plan.steps.map((step, i) => (
+              <li key={i}>{step.rationale || step.action}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {run.activity && run.activity.length > 0 && (
+        <ul aria-label={`Recent steps of ${run.agentName}`} className="text-charcoal-500">
+          {run.activity.slice(-3).map((step, i) => (
+            <li key={i} className="truncate" title={step.summary}>
+              <span className={step.status === "error" ? "text-negative" : "text-charcoal-400"}>
+                {step.status === "error" ? "✕" : "✓"} {step.tool}
+              </span>{" "}
+              {step.summary}
+            </li>
+          ))}
+        </ul>
+      )}
       {frac !== null && (
         <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden" aria-hidden>
           <div
@@ -146,7 +254,7 @@ function RunRow({
               if (!text) return;
               setAnswerBusy(true);
               setAnswerError(null);
-              void answerDelegateRun(run.sidecarRunId!, text).then((r) => {
+              void answerDelegateRun(run.sidecarRunId!, text, run.provider).then((r) => {
                 setAnswerBusy(false);
                 if (r.ok) {
                   setAnswer(""); // keep the text on failure so it isn't lost

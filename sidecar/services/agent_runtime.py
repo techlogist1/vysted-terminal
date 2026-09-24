@@ -1356,6 +1356,12 @@ def _empty_response_error(model: str) -> LLMErrorEvent:
 #: The ``research_step`` kind of every runtime notice (C9, R15-AGENT-031): the
 #: chat branches on it, so notice copy can change without breaking the chip.
 NOTICE_STEP_KIND = "notice"
+#: The Delegate-only pause capability (FR-028): ``run_manager`` stops the turn
+#: on it and parks the run ``paused`` with the question.
+ASK_USER_TOOL = "ask_user"
+#: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
+#: round: the round's tool calls were NOT dispatched (R15-AGENT-037).
+HALT_NOTICE_TOOL = "run_halt"
 
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
@@ -1721,6 +1727,72 @@ def _build_local_tools(
     return local
 
 
+async def _compound_plan(
+    provider_id: str,
+    resolved_model: str,
+    api_key: str | None,
+    prompt: str,
+    context_snapshot: AgentContextSnapshot | None,
+) -> LLMAgentPlanEvent | None:
+    """The ordered plan for a COMPOUND request, or ``None`` (Track 6 #2).
+
+    Best-effort: a single-step request, a planner failure or a timeout returns
+    ``None`` and never raises.
+    """
+    if not classify_intent(prompt).compound:
+        return None
+    try:
+
+        async def _plan_llm_call(p: str) -> str:
+            return await oneshot.complete(
+                provider_id,
+                resolved_model,
+                api_key,
+                [{"role": "user", "content": p}],
+                timeout=_PLANNER_TIMEOUT_SECONDS,
+            )
+
+        plan = await decompose(
+            prompt,
+            llm_call=_plan_llm_call,
+            context=_planner_context(context_snapshot),
+        )
+        if plan.ok and len(plan.steps) > 1:
+            steps = [
+                {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
+                for step in plan.steps
+            ]
+            return LLMAgentPlanEvent(goal=plan.goal, steps=steps, note=plan.note)
+    except Exception:  # noqa: BLE001 — the plan is best-effort; never break a turn
+        logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
+    return None
+
+
+async def plan_delegate_run(
+    agent_id: str,
+    prompt: str,
+    *,
+    provider: LLMProviderId | None,
+    model: str | None,
+    api_key: str | None,
+    context_snapshot: AgentContextSnapshot | None,
+) -> LLMAgentPlanEvent | None:
+    """The plan a Delegate launch waits on for the user's Start (R15-AGENT-039).
+
+    The same pre-pass a foreground turn shows, on the same capable models; a
+    weak local model or a single-step request gets ``None`` and starts directly.
+    """
+    spec = get_agent(agent_id)
+    if spec is None:
+        return None
+    provider_id = _resolve_provider_id(spec, provider)
+    if provider_id not in _PLANNER_PROVIDERS:
+        return None
+    return await _compound_plan(
+        provider_id, _resolve_model(spec, model), api_key, prompt, context_snapshot
+    )
+
+
 async def invoke_agent(
     agent_id: str,
     prompt: str,
@@ -1731,7 +1803,8 @@ async def invoke_agent(
     options: dict[str, Any] | None = None,
     mode: str = "ask",
     autonomy: str | None = None,
-    on_round_usage: Callable[[LLMUsage, str], None] | None = None,
+    on_round_usage: Callable[[LLMUsage, str, str], bool] | None = None,
+    on_tool_result: Callable[[LLMToolUseEvent, str], None] | None = None,
 ) -> AsyncIterator[LLMStreamEvent]:
     """Invoke a registered agent and stream its response.
 
@@ -1751,10 +1824,16 @@ async def invoke_agent(
     ``on_round_usage`` is an optional per-round cost signal (P3 / FR-026): the
     loop normally SWALLOWS each mid-run round's ``done`` usage while it loops on
     tools, so a budget guard could otherwise only see the FINAL usage. When set,
-    it is called with ``(usage, model)`` at EVERY round's ``done`` (the swallowed
-    mid-run terminators AND the final one), so a detached Delegate-run executor
-    can enforce token/spend ceilings MID-run. It does not change the event stream
-    — the SSE consumer sees the same frames whether or not the callback is set.
+    it is called with ``(usage, model, provider)`` — the RESOLVED model and
+    provider, so a provider-less launch is priced at its real rate
+    (R15-AGENT-074) — at EVERY round's ``done``, and returns whether the loop may
+    continue. ``False`` on a round with tool calls stops the turn BEFORE they are
+    dispatched: a :data:`HALT_NOTICE_TOOL` notice and the round's terminator are
+    yielded and nothing else is sent (R15-AGENT-037). A round that ended with a
+    final answer finishes normally whatever it returns.
+
+    ``on_tool_result`` is called with ``(tool_call, result_str)`` after each
+    dispatched tool, so a Delegate run can checkpoint the step.
     """
     spec = get_agent(agent_id)
     if spec is None:
@@ -1859,6 +1938,13 @@ async def invoke_agent(
     window = context_window(resolved_model) if context_window else None
     if window:
         tool_ids = _window_tool_subset(tool_ids, messages, window)
+    # ask_user belongs to the Delegate MODE, not to an agent's allow-list
+    # (R15-CODE-AGENT-011): every Delegate run can pause for the user (its
+    # driver parks the run on the call), on every lane; a live turn asks in
+    # prose, so it is never offered there.
+    tool_ids = [t for t in tool_ids if t != ASK_USER_TOOL]
+    if mode == "delegate":
+        tool_ids.append(ASK_USER_TOOL)
 
     # Publish the active LLM creds for the run so the in-loop research tool's deep
     # path can call the SAME model the user is talking to. Task-local (each request
@@ -1907,31 +1993,12 @@ async def invoke_agent(
     # the host-action steps into the diff/accept gate. ADVISORY only: the tool loop
     # below still drives execution; this never blocks, never raises, and on a weak
     # local model it is skipped entirely (the loop's preamble-driven path stands).
-    if not read_only and _planner_enabled(provider_id, mode) and classify_intent(prompt).compound:
-        try:
-
-            async def _plan_llm_call(p: str) -> str:
-                return await oneshot.complete(
-                    provider_id,
-                    resolved_model,
-                    api_key,
-                    [{"role": "user", "content": p}],
-                    timeout=_PLANNER_TIMEOUT_SECONDS,
-                )
-
-            plan = await decompose(
-                prompt,
-                llm_call=_plan_llm_call,
-                context=_planner_context(context_snapshot),
-            )
-            if plan.ok and len(plan.steps) > 1:
-                steps = [
-                    {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
-                    for step in plan.steps
-                ]
-                yield LLMAgentPlanEvent(goal=plan.goal, steps=steps, note=plan.note)
-        except Exception:  # noqa: BLE001 — the plan is best-effort; never break a turn
-            logger.debug("planner pre-pass skipped (non-fatal)", exc_info=True)
+    if not read_only and _planner_enabled(provider_id, mode):
+        plan_event = await _compound_plan(
+            provider_id, resolved_model, api_key, prompt, context_snapshot
+        )
+        if plan_event is not None:
+            yield plan_event
 
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
@@ -2023,8 +2090,21 @@ async def invoke_agent(
                 # Per-round cost signal (FR-026): fire BEFORE we either swallow
                 # this terminator (mid-run) or yield it (final), so the budget
                 # guard sees every round's usage, not just the last one.
-                if on_round_usage is not None:
-                    on_round_usage(event.usage or LLMUsage(), resolved_model)
+                may_continue = (
+                    on_round_usage(event.usage or LLMUsage(), resolved_model, provider_id)
+                    if on_round_usage is not None
+                    else True
+                )
+                if pending_tools and not may_continue:
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool=HALT_NOTICE_TOOL,
+                        step_kind=NOTICE_STEP_KIND,
+                        detail=f"Stopped before running {len(pending_tools)} tool call(s).",
+                        status="error",
+                    )
+                    yield event
+                    return
                 # If tools fired this round and we have budget left,
                 # swallow the per-round terminator and loop. Otherwise
                 # this is the final terminator and the SSE consumer
@@ -2176,6 +2256,8 @@ async def invoke_agent(
                 metadata={"name": tool_call.name},
             )
             messages.append(tool_result_msg)
+            if on_tool_result is not None:
+                on_tool_result(tool_call, result_str)
             if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
                 staged_actions.append(tool_call)
             # Queue a host action dispatched under AUTO for the grounded

@@ -19,6 +19,7 @@ from config import DATA_DIR_ENV
 from models.run import RunBudget
 from services import run_manager, runs_store
 from services.run_manager import RunManagerError
+from services.runs_store import RunNotFound, RunStateError
 
 
 @pytest.fixture(autouse=True)
@@ -98,6 +99,15 @@ def test_launch_unknown_agent_404(client: TestClient, monkeypatch: pytest.Monkey
     assert resp.status_code == 404
 
 
+def test_launch_rejects_a_non_positive_ceiling(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-034: 0 is not a ceiling (it aborted instantly); it is a 422."""
+    monkeypatch.setattr(run_manager, "launch_run", lambda **_k: "run-1")
+    resp = client.post("/agents/copilot/runs", json={"prompt": "x", "budget": {"max_steps": 0}})
+    assert resp.status_code == 422
+
+
 def test_launch_accepts_snake_case_run_budget(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -120,11 +130,7 @@ def test_launch_accepts_snake_case_run_budget(
 def test_list_runs_dual_case_shape(client: TestClient) -> None:
     """GET /runs emits BOTH camelCase and snake_case so either poller read works."""
     _seed_run("run-1", max_tokens=5000, max_spend_usd=1.5)
-    runs_store.update_run(
-        "run-1",
-        cost={"tokens": 1234, "spend_usd": 0.05, "steps": 3},
-        status="running",
-    )
+    runs_store.update_run("run-1", cost={"tokens": 1234, "spend_usd": 0.05, "steps": 3})
     resp = client.get("/runs")
     assert resp.status_code == 200
     body = resp.json()
@@ -176,19 +182,36 @@ def test_get_unknown_run_404(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_cancel_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_manager, "cancel_run", lambda rid: rid == "run-1")
+def test_cancel_route(client: TestClient) -> None:
+    _seed_run("run-1")
     assert client.post("/runs/run-1/cancel").json() == {"cancelled": True}
     assert client.post("/runs/ghost/cancel").status_code == 404
+
+
+def test_control_routes_on_a_done_run_are_409_and_leave_it(client: TestClient) -> None:
+    """R15-CODE-AGENT-010: cancel, resume and answer never rewrite a finished run."""
+    _seed_run("run-1")
+    runs_store.update_run(
+        "run-1",
+        status="done",
+        detail="completed",
+        checkpoint=[{"role": "user", "content": "go"}],
+        now=1100,
+    )
+    for path, body in (("cancel", None), ("resume", None), ("answer", {"answer": "x"})):
+        resp = client.post(f"/runs/run-1/{path}", json=body)
+        assert resp.status_code == 409, path
+    row = runs_store.get_run("run-1")
+    assert row is not None
+    assert (row.status, row.detail, row.updated_at) == ("done", "completed", 1100)
 
 
 def test_answer_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
-    def _fake_answer(run_id: str, answer: str) -> bool:
+    def _fake_answer(run_id: str, answer: str, **_k: object) -> None:
         captured["run_id"] = run_id
         captured["answer"] = answer
-        return True
 
     monkeypatch.setattr(run_manager, "answer_run", _fake_answer)
     resp = client.post("/runs/run-1/answer", json={"answer": "yes proceed"})
@@ -198,14 +221,17 @@ def test_answer_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_answer_not_paused_409(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_manager, "answer_run", lambda *_a, **_k: False)
+    def _raise(*_a: object, **_k: object) -> None:
+        raise RunStateError("run 'run-1' is running; it is not awaiting an answer")
+
+    monkeypatch.setattr(run_manager, "answer_run", _raise)
     resp = client.post("/runs/run-1/answer", json={"answer": "x"})
     assert resp.status_code == 409
 
 
 def test_answer_unknown_404(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    def _raise(*_a: object, **_k: object) -> bool:
-        raise RunManagerError("unknown run: 'ghost'")
+    def _raise(*_a: object, **_k: object) -> None:
+        raise RunNotFound("unknown run: 'ghost'")
 
     monkeypatch.setattr(run_manager, "answer_run", _raise)
     resp = client.post("/runs/ghost/answer", json={"answer": "x"})
@@ -219,9 +245,29 @@ def test_resume_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> No
     assert resp.json() == {"resumed": True}
 
 
+def test_resume_and_answer_take_the_key_from_a_header(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-035: the routes took no key, so a resumed BYOK run had none."""
+    secret = "sk-resume-must-not-leak"
+    captured: list[object] = []
+    monkeypatch.setattr(run_manager, "resume_run", lambda _rid, **k: captured.append(k["api_key"]))
+    monkeypatch.setattr(
+        run_manager, "answer_run", lambda _rid, _a, **k: captured.append(k["api_key"])
+    )
+    monkeypatch.setattr(run_manager, "start_run", lambda _rid, **k: captured.append(k["api_key"]))
+    headers = {"X-LLM-Api-Key": secret}
+    resume = client.post("/runs/run-1/resume", headers=headers)
+    answer = client.post("/runs/run-1/answer", json={"answer": "NSE"}, headers=headers)
+    start = client.post("/runs/run-1/start", headers=headers)
+    assert (resume.status_code, answer.status_code, start.status_code) == (200, 200, 200)
+    assert captured == [secret, secret, secret]
+    assert secret not in resume.text + answer.text + start.text
+
+
 def test_resume_already_running_409(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    def _raise(*_a: object, **_k: object) -> bool:
-        raise RunManagerError("run 'run-1' is already running")
+    def _raise(*_a: object, **_k: object) -> None:
+        raise RunStateError("run 'run-1' is still running")
 
     monkeypatch.setattr(run_manager, "resume_run", _raise)
     resp = client.post("/runs/run-1/resume")

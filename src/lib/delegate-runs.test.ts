@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/sidecar-client", () => ({
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
   getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
 }));
 
 import {
+  adoptSidecarRuns,
   answerDelegateRun,
   cancelDelegateRun,
   launchDelegateRun,
@@ -151,6 +153,97 @@ describe("delegate-runs", () => {
     expect(JSON.parse(answerFetch.mock.calls[0][1].body as string)).toEqual({
       answer: "use the live quote",
     });
+  });
+});
+
+// ── R15-UI-040: the sidecar, not the store, decides which runs exist ──
+
+describe("delegate-runs — sidecar truth", () => {
+  beforeEach(() => resetAgentRunsStoreForTests());
+  afterEach(() => {
+    stopDelegatePolling();
+    vi.restoreAllMocks();
+  });
+
+  it("adopts a live sidecar run the store never saw (a webview reload), once", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          runs: [
+            {
+              id: "run-8",
+              agent_id: "copilot",
+              agent_name: "Copilot",
+              status: "running",
+              provider: "openrouter",
+              cost: { tokens: 4_000, spend_usd: 0.02, steps: 2 },
+            },
+            { id: "run-7", agent_id: "copilot", status: "done" },
+          ],
+        }),
+      ),
+    );
+
+    await adoptSidecarRuns();
+    await adoptSidecarRuns();
+
+    const runs = useAgentRunsStore.getState().runs;
+    expect(runs).toHaveLength(1);
+    expect(runs[0]).toMatchObject({
+      sidecarRunId: "run-8",
+      status: "running",
+      mode: "delegate",
+      provider: "openrouter",
+      cost: { tokens: 4_000, spendUsd: 0.02, steps: 2 },
+    });
+  });
+
+  it("a failed cancel leaves the run running with a retry message", async () => {
+    const id = useAgentRunsStore.getState().startRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      mode: "delegate",
+      sidecarRunId: "run-4",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) }),
+    );
+
+    const result = await cancelDelegateRun("run-4");
+
+    expect(result).toEqual({ ok: false, error: "Cancel failed (HTTP 500) — retry." });
+    expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("running");
+
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ cancelled: true })));
+    expect(await cancelDelegateRun("run-4")).toEqual({ ok: true });
+    expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("cancelled");
+  });
+
+  it("a rejected launch shows the 422 field errors, not [object Object]", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          {
+            detail: [
+              { loc: ["body", "budget", "max_steps"], msg: "Input should be greater than 0" },
+            ],
+          },
+          false,
+        ),
+      ),
+    );
+    await launchDelegateRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      prompt: "go",
+      budget: BUDGET,
+    });
+    expect(useAgentRunsStore.getState().runs[0].detail).toBe(
+      "Could not start: max_steps: Input should be greater than 0",
+    );
   });
 });
 

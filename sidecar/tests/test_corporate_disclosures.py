@@ -356,11 +356,26 @@ def test_every_lane_failing_raises(monkeypatch: pytest.MonkeyPatch) -> None:
         corporate_disclosures.get_announcements("RELIANCE")
 
 
-def test_unknown_symbol_raises_without_network(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_unknown_symbol_is_not_applicable_without_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-DATA-050 (C3): a symbol on neither exchange is an honest
+    # out-of-coverage answer, not a provider failure (it used to raise -> 502).
     calls = _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
 
-    with pytest.raises(ProviderError, match="not a known NSE/BSE instrument"):
-        corporate_disclosures.get_announcements("ZZZNOTREAL")
+    response = corporate_disclosures.get_announcements("ZZZNOTREAL")
+    assert response.coverage == "not_applicable"
+    assert response.count == 0 and "not an NSE/BSE instrument" in (response.note or "")
+    assert calls == []
+
+
+def test_an_exchange_filter_on_the_other_venue_is_not_covered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """ICONIKSPEV is BSE-only: an NSE-only request is venue_not_covered, not 502."""
+    calls = _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("ICONIKSPEV", exchange="NSE")
+    assert response.coverage == "venue_not_covered"
+    assert response.count == 0 and response.note
     assert calls == []
 
 
@@ -481,6 +496,9 @@ def test_bse_pdfflag_row_resolves_under_the_history_path(
 
 def test_results_calendar_parses_and_sorts(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(nse_provider, "get_results_calendar", lambda symbol: _NSE_EVENTS)
+    # R15-DATA-050 added the BSE board-meeting lane for a dual listing; serve it
+    # empty here so this test stays about the NSE parse (merge pinned below).
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", lambda url, params: {"Table": []})
 
     response = corporate_disclosures.get_results_calendar("RELIANCE")
     assert response.symbol == "RELIANCE"
@@ -858,10 +876,12 @@ def test_shareholding_nse_first_falls_back_to_bse_on_nse_failure(
     assert response.count == 1 and response.patterns[0].source == "BSE"
 
 
-def test_shareholding_for_a_non_listed_symbol_raises() -> None:
-    # A symbol on NEITHER exchange fast-fails without a network call.
-    with pytest.raises(ProviderError, match="not a known NSE/BSE instrument"):
-        corporate_disclosures.get_shareholding("AAPL")
+def test_shareholding_for_a_non_listed_symbol_is_not_applicable() -> None:
+    # A symbol on NEITHER exchange answers without a network call; R15-DATA-060
+    # made it an out-of-coverage answer (C3) instead of a raise -> 502.
+    response = corporate_disclosures.get_shareholding("AAPL")
+    assert response.coverage == "not_applicable"
+    assert response.count == 0 and response.patterns == []
 
 
 # ---------------------------------------------------------------------------
@@ -1040,8 +1060,28 @@ def test_corporate_actions_tool_round_trip(
     assert result["actions"][0]["record_date"] == "2026-09-04"
 
 
-def test_shareholding_pattern_tool_surfaces_provider_error(_registered_tools: Any) -> None:
-    # AAPL is on neither Indian exchange — fast-fails without a network call.
+def test_shareholding_pattern_tool_answers_out_of_coverage(
+    monkeypatch: pytest.MonkeyPatch, _registered_tools: Any
+) -> None:
+    # AAPL is on neither Indian exchange and files no 20-F: an ok answer with
+    # coverage + note (C3), no network. It was ok False before R15-DATA-060.
+    from services import sec_filings_provider
+
+    monkeypatch.setattr(sec_filings_provider, "is_available", lambda: False)
     result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "AAPL"}))
+    assert result["ok"] is True
+    assert result["coverage"] == "not_applicable"
+    assert result["count"] == 0 and "not an NSE/BSE instrument" in result["note"]
+    assert "major_shareholders" not in result
+
+
+def test_shareholding_pattern_tool_surfaces_provider_error(
+    monkeypatch: pytest.MonkeyPatch, _registered_tools: Any
+) -> None:
+    def boom(symbol: str) -> Any:
+        raise ProviderError("disclosures: every shareholding source failed")
+
+    monkeypatch.setattr(corporate_disclosures, "get_shareholding", boom)
+    result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "RELIANCE"}))
     assert result["ok"] is False
-    assert "not a known NSE/BSE instrument" in result["error"]
+    assert "every shareholding source failed" in result["error"]

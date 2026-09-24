@@ -16,6 +16,7 @@ import pytest
 from services.research import disclosures
 from services.research.deep import _run_researcher
 from services.research.target import target_from_payload
+from services.search.extract import VisitResult
 
 
 def _run(coro):
@@ -238,11 +239,11 @@ def test_researcher_consults_disclosures_for_india_results_question() -> None:
     tool = _Tool()
     visited: list[str] = []
 
-    async def visit(url: str) -> str:
+    async def visit(url: str) -> VisitResult:
         visited.append(url)
-        return "Revenue Rs 1,234 crore for the quarter."
+        return VisitResult("Revenue Rs 1,234 crore for the quarter.")
 
-    finding, web_res, pairs, visited_pages = _run(
+    finding, web_res, pairs, visited_pages, _failures = _run(
         _run_researcher(
             "What did the latest quarterly results announce?",
             target=_india_target(),

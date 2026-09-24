@@ -3,9 +3,12 @@
 A Delegate run must SURVIVE the launching HTTP connection closing — the run row
 lives here, in ``config.get_data_dir()``, not in process memory. The detached
 asyncio task (``run_manager``) updates this row as it works; the run-tray UI
-reads it through ``GET /runs`` long after the launch request returned. If the
-sidecar restarts mid-run the task is gone but the row persists with its last
-status/cost/checkpoint, so the foreground view can still show what happened.
+reads it through ``GET /runs`` long after the launch request returned. The
+checkpoint is written every round, so a run killed mid-task resumes from its
+last round. A ``running`` row whose process died has no task: the first store
+connection of the next process marks it ``error`` "interrupted by sidecar
+restart" (R15-LIFECYCLE-012); ``paused`` and ``planned`` rows wait on the user
+and stay.
 
 Mirrors the ``agents_store`` pattern field-for-field: per-call connection,
 path resolved per call (so a test pointing ``VYSTED_DATA_DIR`` at ``tmp_path``
@@ -18,19 +21,28 @@ Columns mirror the run lifecycle:
 - ``agent_id`` / ``agent_name`` — which agent the run drives.
 - ``mode`` — always ``"delegate"`` for a background run (kept as a column so a
   future foreground-runs surface can reuse the table).
-- ``status`` — ``running | paused | done | error | cancelled``.
+- ``status`` — ``planned | running | paused | done | error | cancelled``; every
+  change goes through :data:`TRANSITIONS` (R15-CODE-AGENT-010).
 - ``budget_json`` — the :class:`~models.run.RunBudget` ceilings (JSON).
 - ``cost_json`` — the :class:`~models.run.RunCost` running total (JSON).
 - ``detail`` — the abort/error reason or completion note (the breach reason
   lands here on a BudgetGuard breach — SC-008's stated reason).
 - ``question`` — an outstanding human-in-the-loop question (FR-028) or NULL.
-- ``checkpoint_json`` — the accumulated messages list at the last checkpoint, so
-  a paused/aborted run can be resumed (FR-028).
+- ``checkpoint_json`` — ``{prompt, turns[]}``: the original prompt and every
+  turn after it in order (the model's text, ``[tool → result]`` steps, the
+  human's answers), so a paused/aborted run resumes the same conversation
+  (FR-028, R15-AGENT-036). Older rows hold a flat message list; they are read
+  as legacy (first user turn = prompt).
 - ``options_json`` — the NON-SECRET launch options that must survive a resume
   (R10, E2 tail: ``research_depth`` + ``region``). Resume re-merges them into
   the spawned driver so the depth ContextVar floor / region are re-threaded
   instead of silently resetting to defaults mid-conversation. Allow-listed
   keys only — NEVER an api key.
+- ``provider`` / ``model`` — the provider and model the run was launched with
+  (NULL = the agent default), re-used by every resume (R15-AGENT-035).
+- ``plan_json`` — the plan a compound launch waits on (``planned``); and
+  ``activity_json`` — the latest tool steps ``{tool, status, summary}``, capped
+  (R15-AGENT-039).
 - ``output_json`` — the run's collectable output, written when it ends
   (R15-AGENT-013): ``answer`` (the full final text, untruncated), ``brief``
   (the last ``publish_brief`` input) and ``host_actions`` (the host-action
@@ -52,9 +64,37 @@ from contextlib import contextmanager
 from typing import Any
 
 from config import get_data_dir
-from models.run import RunBudget, RunCost, RunDetail, RunStatus, RunSummary
+from models.run import RunActivity, RunBudget, RunCost, RunDetail, RunPlan, RunStatus, RunSummary
 
 DB_FILENAME = "delegate_runs.db"
+
+#: The run lifecycle (R15-CODE-AGENT-010): each status maps to the statuses it
+#: may be entered FROM. ``done`` is terminal; ``error`` and ``cancelled`` are
+#: left only by a resume; ``planned`` and ``paused`` wait on the user.
+TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
+    "planned": frozenset({"running"}),
+    "running": frozenset({"planned", "paused", "error", "cancelled"}),
+    "paused": frozenset({"running"}),
+    "done": frozenset({"running"}),
+    "error": frozenset({"running"}),
+    "cancelled": frozenset({"planned", "running", "paused"}),
+}
+
+
+#: The detail of a ``running`` row found by a new process (its task died).
+INTERRUPTED_DETAIL = "interrupted by sidecar restart"
+
+#: Database paths this process has reconciled (tests clear it to simulate a restart).
+_RECONCILED: set[str] = set()
+
+
+class RunNotFound(LookupError):
+    """No run with this id exists (404)."""
+
+
+class RunStateError(RuntimeError):
+    """The run exists but its status does not allow this change (409)."""
+
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -70,6 +110,10 @@ CREATE TABLE IF NOT EXISTS runs (
     checkpoint_json TEXT,
     options_json TEXT,
     output_json TEXT,
+    provider TEXT,
+    model TEXT,
+    plan_json TEXT,
+    activity_json TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 )
@@ -98,26 +142,46 @@ def _db_path() -> str:
 
 
 def _ensure_added_columns(conn: sqlite3.Connection) -> None:
-    """Additive migration: older databases predate ``options_json`` (R10) and
-    ``output_json`` (R15-AGENT-013).
+    """Additive migration: older databases predate ``options_json`` (R10),
+    ``output_json`` (R15-AGENT-013), ``provider``/``model`` (R15-AGENT-035) and
+    ``plan_json``/``activity_json`` (R15-AGENT-039).
 
     ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
     the ALTER guard. PRAGMA is cheap enough to run per-connection.
     """
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    for column in ("options_json", "output_json"):
+    for column in (
+        "options_json",
+        "output_json",
+        "provider",
+        "model",
+        "plan_json",
+        "activity_json",
+    ):
         if column not in columns:
             conn.execute(f"ALTER TABLE runs ADD COLUMN {column} TEXT")
 
 
 @contextmanager
 def _connect() -> Iterator[sqlite3.Connection]:
-    """Yield a connection with the schema ensured; commit on clean exit."""
-    conn = sqlite3.connect(_db_path())
+    """Yield a connection with the schema ensured; commit on clean exit.
+
+    The first connection to a database in this process reconciles it: no task
+    of this process exists yet, so every ``running`` row is an orphan.
+    """
+    path = _db_path()
+    conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute(_SCHEMA)
         _ensure_added_columns(conn)
+        if path not in _RECONCILED:
+            conn.execute(
+                "UPDATE runs SET status = 'error', detail = ?, updated_at = ? "
+                "WHERE status = 'running'",
+                (INTERRUPTED_DETAIL, int(time.time())),
+            )
+            _RECONCILED.add(path)
         yield conn
         conn.commit()
     finally:
@@ -146,6 +210,7 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
     """Map a database row to the ``RunSummary`` model (cost/budget decoded)."""
     cost_raw: Any = json.loads(row["cost_json"] or "{}")
     budget_raw: Any = json.loads(row["budget_json"] or "{}")
+    plan_raw: Any = json.loads(row["plan_json"] or "null")
     return RunSummary(
         id=row["id"],
         agent_id=row["agent_id"],
@@ -154,6 +219,10 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
         status=row["status"],
         cost=RunCost.model_validate(cost_raw if isinstance(cost_raw, dict) else {}),
         budget=RunBudget.model_validate(budget_raw if isinstance(budget_raw, dict) else {}),
+        provider=row["provider"],
+        model=row["model"],
+        plan=RunPlan.model_validate(plan_raw) if isinstance(plan_raw, dict) else None,
+        activity=[RunActivity.model_validate(a) for a in json.loads(row["activity_json"] or "[]")],
         detail=row["detail"],
         question=row["question"],
         created_at=int(row["created_at"]),
@@ -161,11 +230,17 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
     )
 
 
+def _checkpoint_messages(raw: Any) -> list[Any]:
+    """The checkpoint as one flat message list (the prompt, then its turns)."""
+    if isinstance(raw, dict):
+        return [{"role": "user", "content": raw.get("prompt", "")}, *(raw.get("turns") or [])]
+    return raw if isinstance(raw, list) else []
+
+
 def _row_to_detail(row: sqlite3.Row) -> RunDetail:
     """Map a row to ``RunDetail`` — a summary plus a transcript digest."""
     summary = _row_to_summary(row)
-    checkpoint_raw: Any = json.loads(row["checkpoint_json"] or "[]")
-    messages = checkpoint_raw if isinstance(checkpoint_raw, list) else []
+    messages = _checkpoint_messages(json.loads(row["checkpoint_json"] or "[]"))
     output: Any = json.loads(row["output_json"] or "{}")
     return RunDetail(
         **summary.model_dump(),
@@ -206,6 +281,8 @@ def create_run(
     mode: str = "delegate",
     status: RunStatus = "running",
     options: dict[str, Any] | None = None,
+    provider: str | None = None,
+    model: str | None = None,
     now: int | None = None,
 ) -> RunSummary:
     """Insert a new run row (status ``running`` by default) and return it.
@@ -223,8 +300,9 @@ def create_run(
             """
             INSERT INTO runs
                 (id, agent_id, agent_name, mode, status, budget_json, cost_json,
-                 detail, question, checkpoint_json, options_json, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 detail, question, checkpoint_json, options_json, provider, model,
+                 created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -238,6 +316,8 @@ def create_run(
                 None,
                 None,
                 options_json,
+                provider,
+                model,
                 timestamp,
                 timestamp,
             ),
@@ -266,24 +346,35 @@ def update_run(
     run_id: str,
     *,
     status: RunStatus | None = None,
+    from_status: frozenset[RunStatus] | None = None,
     cost: RunCost | dict[str, Any] | None = None,
     detail: str | None = None,
     question: str | None = None,
-    checkpoint: list[Any] | None = None,
+    checkpoint: dict[str, Any] | list[Any] | None = None,
     output: dict[str, Any] | None = None,
+    plan: dict[str, Any] | None = None,
+    activity: list[dict[str, str]] | None = None,
     clear_question: bool = False,
     now: int | None = None,
-) -> RunSummary | None:
-    """Patch the mutable fields on a run; return the updated row or ``None``.
+) -> RunDetail:
+    """Patch the mutable fields on a run and return the updated row.
 
     Only the explicitly-provided fields change — a ``None`` argument leaves the
     column untouched (so a cost update does not wipe a stored ``detail``). The
     one exception is ``question``: pass ``clear_question=True`` to null it out
     (resolving a human-in-the-loop pause), since ``None`` means "leave as-is".
+
+    A ``status`` change is applied only from a status :data:`TRANSITIONS`
+    allows (narrowed further by ``from_status``), as one conditional UPDATE, so
+    two racing writers cannot both win. Raises :class:`RunNotFound` for an
+    unknown id and :class:`RunStateError` for a disallowed change; the row is
+    then left untouched.
     """
     sets: list[str] = []
     params: list[Any] = []
+    allowed: frozenset[RunStatus] = frozenset()
     if status is not None:
+        allowed = TRANSITIONS[status] & (from_status or TRANSITIONS[status])
         sets.append("status = ?")
         params.append(status)
     if cost is not None:
@@ -305,29 +396,59 @@ def update_run(
     if output is not None:
         sets.append("output_json = ?")
         params.append(json.dumps(output, default=str))
+    if plan is not None:
+        sets.append("plan_json = ?")
+        params.append(json.dumps(plan, default=str))
+    if activity is not None:
+        sets.append("activity_json = ?")
+        params.append(json.dumps(activity))
     sets.append("updated_at = ?")
     params.append(now if now is not None else int(time.time()))
     params.append(run_id)
+    where = "id = ?"
+    if status is not None:
+        where += f" AND status IN ({', '.join('?' for _ in allowed)})"
+        params.extend(sorted(allowed))
 
     with _connect() as conn:
         cursor = conn.execute(
-            f"UPDATE runs SET {', '.join(sets)} WHERE id = ?",  # noqa: S608 — columns are literals
+            f"UPDATE runs SET {', '.join(sets)} WHERE {where}",  # noqa: S608 — literals only
             tuple(params),
         )
         if cursor.rowcount == 0:
-            return None
+            row = conn.execute("SELECT status FROM runs WHERE id = ?", (run_id,)).fetchone()
+            if row is None:
+                raise RunNotFound(f"unknown run: {run_id!r}")
+            raise RunStateError(f"run {run_id!r} is {row['status']}; it cannot become {status}")
     stored = get_run(run_id)
+    if stored is None:  # pragma: no cover - the UPDATE just matched the row
+        raise RunNotFound(f"unknown run: {run_id!r}")
     return stored
 
 
-def get_checkpoint(run_id: str) -> list[Any]:
-    """Return the persisted checkpoint message list for a run (``[]`` if none)."""
+def get_checkpoint(run_id: str) -> dict[str, Any]:
+    """Return a run's checkpoint as ``{prompt, turns}`` (empty prompt if none).
+
+    ``turns`` holds only well-formed user/assistant text turns. A legacy flat
+    list is read with its first user turn as the prompt.
+    """
     with _connect() as conn:
         row = conn.execute("SELECT checkpoint_json FROM runs WHERE id = ?", (run_id,)).fetchone()
-    if row is None or not row["checkpoint_json"]:
-        return []
-    decoded = json.loads(row["checkpoint_json"])
-    return decoded if isinstance(decoded, list) else []
+    raw: Any = json.loads(row["checkpoint_json"]) if row and row["checkpoint_json"] else None
+    messages = [
+        {"role": m["role"], "content": m["content"]}
+        for m in _checkpoint_messages(raw)
+        if isinstance(m, dict)
+        and m.get("role") in ("user", "assistant")
+        and isinstance(m.get("content"), str)
+        and m["content"]
+    ]
+    if not messages or messages[0]["role"] != "user":
+        first_user = next((i for i, m in enumerate(messages) if m["role"] == "user"), None)
+        if first_user is None:
+            return {"prompt": "", "turns": []}
+        messages = messages[first_user:]
+    return {"prompt": messages[0]["content"], "turns": messages[1:]}
 
 
 def get_options(run_id: str) -> dict[str, str]:

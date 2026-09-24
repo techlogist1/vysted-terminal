@@ -13,6 +13,7 @@ built-in node types Phase-4 promises:
   - ``logic.compare``            — numeric comparator emits a boolean
   - ``action.log``               — write a workflow log entry
   - ``action.notify_desktop``    — emit a desktop-notification intent
+  - ``action.webhook``           — POST the value to a keychain-held URL
   - ``transform.json_path``      — extract a value by dotted path
   - ``flow.sleep``               — bounded ``asyncio.sleep``
 
@@ -85,6 +86,11 @@ BUILTIN_NODE_SPECS: dict[str, dict[str, Any]] = {
         "outputs": ["notified", "title", "message", "intent"],
         "config": {"title": None, "message_template": None},
     },
+    "action.webhook": {
+        "inputs": ["value"],
+        "outputs": ["status_code"],
+        "config": {"secret_ref": None},
+    },
     "transform.json_path": {
         "inputs": ["value"],
         "outputs": ["extracted"],
@@ -114,12 +120,13 @@ def register_all() -> None:
     workflow_engine.register_node_type("logic.compare", builtin.logic_compare)
     workflow_engine.register_node_type("action.log", builtin.action_log)
     workflow_engine.register_node_type("action.notify_desktop", builtin.action_notify_desktop)
+    workflow_engine.register_node_type("action.webhook", builtin.action_webhook)
     workflow_engine.register_node_type("transform.json_path", builtin.transform_json_path)
     workflow_engine.register_node_type("flow.sleep", builtin.flow_sleep)
     # R7 hackability — the agent-authorable restricted-expression code node
     # (server parity for the node editor's client-side mathjs lane).
     code_node.register()
-    logger.info("workflow_nodes: registered %d built-in node types", 11)
+    logger.info("workflow_nodes: registered %d built-in node types", 12)
 
 
 __all__ = ["BUILTIN_NODE_SPECS", "builtin", "register_all"]

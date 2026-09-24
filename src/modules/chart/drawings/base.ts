@@ -17,6 +17,7 @@ import type {
   IPrimitivePaneRenderer,
   IPrimitivePaneView,
   ISeriesPrimitive,
+  Logical,
   SeriesAttachedParameter,
   Time,
 } from "lightweight-charts";
@@ -56,6 +57,8 @@ export interface DrawingCoordinate {
 /** Converter set on the renderer when the primitive is attached to a series. */
 export interface DrawingConverters {
   timeToX: (time: number) => number | null;
+  /** Bar index to x — for anchors placed past the last bar (no bar time). */
+  logicalToX: (logical: number) => number | null;
   priceToY: (price: number) => number | null;
   paneSize: () => { width: number; height: number };
 }
@@ -69,9 +72,17 @@ export function resolvePoint(
   converters: DrawingConverters,
 ): DrawingCoordinate {
   return {
-    x: point.time === null ? null : converters.timeToX(point.time),
+    x: pointX(point, converters),
     y: point.price === null ? null : converters.priceToY(point.price),
   };
+}
+
+/** An anchor's x: its bar time, else its off-bar logical index, else `null`. */
+export function pointX(point: DrawingPoint, converters: DrawingConverters): number | null {
+  if (point.time !== null) {
+    return converters.timeToX(point.time);
+  }
+  return point.logical === undefined ? null : converters.logicalToX(point.logical);
 }
 
 /**
@@ -181,6 +192,7 @@ export class DrawingPrimitive implements ISeriesPrimitive<Time> {
     const timeScale = params.chart.timeScale();
     this.paneView.setConverters({
       timeToX: (time) => timeScale.timeToCoordinate(time as Time),
+      logicalToX: (logical) => timeScale.logicalToCoordinate(logical as Logical),
       priceToY: (price) => series.priceToCoordinate(price),
       paneSize: () => ({
         width: 0, // not used directly; renderer reads mediaSize from canvas

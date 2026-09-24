@@ -126,6 +126,17 @@
       "message_template": null
     }
   },
+  "action.webhook": {
+    "inputs": [
+      "value"
+    ],
+    "outputs": [
+      "status_code"
+    ],
+    "config": {
+      "secret_ref": null
+    }
+  },
   "transform.json_path": {
     "inputs": [
       "value"

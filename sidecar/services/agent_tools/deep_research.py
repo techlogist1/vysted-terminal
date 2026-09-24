@@ -611,8 +611,8 @@ def _research_model_sources(body: dict[str, Any]) -> list[Any]:
     ``choices[0].message.annotations`` (the same citation path every
     OpenAI-shaped backend uses); the top-level / message-level ``citations[]``
     plain-url list catches anything the annotations missed. Merged,
-    de-duplicated by url, order-preserved; every source carries the
-    research-model provenance in its ``domain`` label.
+    de-duplicated by url, order-preserved; ``domain`` is the bare host and the
+    research-model provenance rides ``provider``.
     """
     import httpx
 
@@ -637,13 +637,13 @@ def _research_model_sources(body: dict[str, Any]) -> list[Any]:
             return
         seen.add(url)
         host = _domain_of(url)
-        domain = f"{host} ({_RESEARCH_MODEL_PROVENANCE})" if host else _RESEARCH_MODEL_PROVENANCE
         sources.append(
             ResearchSource(
                 url=url,
                 title=(title or host or url).strip(),
                 excerpt=(excerpt or "").strip(),
-                domain=domain,
+                domain=host,
+                provider=_RESEARCH_MODEL_PROVENANCE,
             )
         )
 

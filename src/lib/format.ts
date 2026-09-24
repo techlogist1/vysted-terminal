@@ -124,6 +124,39 @@ export function formatSignedMoney(
   return value > 0 ? `+${formatted}` : formatted;
 }
 
+/** The instrument's ISO-4217 code when `currency` is one, else `null` — the
+ *  caller then states the currency is unknown instead of borrowing the region
+ *  default (R15-RESEARCH-026). */
+export function instrumentCurrency(currency?: string | null): string | null {
+  const code = currency?.trim().toUpperCase();
+  return code && /^[A-Z]{3}$/.test(code) ? code : null;
+}
+
+/** Money in the INSTRUMENT's currency: compact (`formatCompactMoney`) by
+ *  default, full (`formatMoney`) with `compact = false`. With no known currency
+ *  the bare magnitude is labelled "· currency unknown", never a silent region
+ *  default that reads identically to USD. Non-finite -> "—". */
+export function formatInstrumentMoney(
+  value: number,
+  currency: string | null | undefined,
+  compact = true,
+): string {
+  if (!Number.isFinite(value)) return "—";
+  const code = instrumentCurrency(currency);
+  if (code) {
+    return compact ? formatCompactMoney(value, code) : formatMoney(value, code);
+  }
+  return `${compact ? formatCompactNumber(value) : formatPrice(value)} · currency unknown`;
+}
+
+/** A fraction of 1 as an UNSIGNED percent (0.0055 -> "0.55%") for level facts
+ *  (yields, margins, holdings) where a "+" would read as a change. Non-finite
+ *  -> "—". Signed fractions use `formatPercent(value * 100)`. */
+export function formatFractionPercent(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return `${(value * 100).toFixed(2)}%`;
+}
+
 /**
  * Signed percentage with a leading "+" for positives. Absurd magnitudes
  * (|v| >= 1e5 %) fall back to exponential notation so a degenerate ratio cannot

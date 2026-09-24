@@ -51,7 +51,7 @@ function activeHoldings() {
 async function addHolding(symbol: string, quantity: string, costBasis: string) {
   fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: symbol } });
   fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: quantity } });
-  fireEvent.change(screen.getByLabelText("Cost basis"), { target: { value: costBasis } });
+  fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: costBasis } });
   await act(async () => {
     fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
   });
@@ -82,6 +82,15 @@ describe("PortfolioPanel", () => {
     expect(screen.getByRole("button", { name: /add your first holding/i })).toBeInTheDocument();
     // No fabricated value anywhere.
     expect(screen.queryByText(/107\.69/)).not.toBeInTheDocument();
+  });
+
+  it("the cost input and column say per share (R15-UI-037)", async () => {
+    render(<PortfolioPanel />);
+    expect(screen.getByText("Avg cost / share")).toBeInTheDocument();
+    expect(screen.getByLabelText("Avg cost / share")).toHaveAttribute("placeholder", "per share");
+    expect(screen.queryByText("Cost basis")).not.toBeInTheDocument();
+    await addHolding("aapl", "10", "150");
+    expect(screen.getByRole("columnheader", { name: "Avg cost" })).toBeInTheDocument();
   });
 
   it("adds a manually entered holding to the active portfolio", async () => {
@@ -195,6 +204,33 @@ describe("PortfolioPanel", () => {
     expect(payload.totalValueNote ?? null).toBeNull();
   });
 
+  it("refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)", async () => {
+    vi.useFakeTimers();
+    try {
+      mockFetchQuotes.mockResolvedValue({
+        quotes: new Map([
+          ["AAPL", { ...quote("AAPL", 200), timestamp: "2026-05-15T14:30:00Z" }],
+          ["MSFT", { ...quote("MSFT", 400), timestamp: "2026-05-15T14:00:00Z" }],
+        ]),
+        failed: 0,
+      });
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await addHolding("msft", "1", "300");
+      await act(async () => {}); // settle the quote fetch
+      expect(screen.getByTestId("portfolio-totals-as-of").title).toBe(
+        "Oldest quote in these totals: 2026-05-15T14:00:00Z",
+      );
+      const calls = mockFetchQuotes.mock.calls.length;
+      await act(async () => {
+        vi.advanceTimersByTime(5_000);
+      });
+      expect(mockFetchQuotes.mock.calls.length).toBe(calls + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("R15-UI-090: an eod quote renders a staleness cue on its holding row", async () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),
@@ -277,6 +313,79 @@ describe("PortfolioPanel", () => {
     expect(activeHoldings()[0].quantity).toBe(20);
   });
 
+  it("an edit ends when the portfolio switches; Save then writes nothing silently (R15-UI-034)", async () => {
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "A",
+          name: "A",
+          holdings: [
+            { id: "h-a", symbol: "RELIANCE", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          ],
+        },
+        {
+          id: "B",
+          name: "B",
+          holdings: [
+            { id: "h-b", symbol: "TCS", quantity: 3, costBasis: 3900, assetClass: "equity" },
+          ],
+        },
+      ],
+      activeId: "A",
+    });
+    const before = usePortfoliosStore.getState().portfolios;
+    render(<PortfolioPanel />);
+    fireEvent.click(screen.getByLabelText("Edit RELIANCE"));
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Active portfolio"), { target: { value: "B" } });
+    });
+    expect((screen.getByLabelText("Symbol") as HTMLInputElement).value).toBe("");
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+    });
+    expect(screen.getByRole("button", { name: /Add/ })).toBeInTheDocument();
+    expect(screen.getByText(/are required/)).toBeInTheDocument();
+    expect(usePortfoliosStore.getState().portfolios).toEqual(before);
+  });
+
+  it("Delete works in a portfolio switched to after mount (R15-UI-035)", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("reliance.ns", "1", "2500");
+    await act(async () => {
+      usePortfoliosStore.getState().createPortfolio("Second");
+    });
+    await addHolding("tcs.ns", "2", "3900");
+    await screen.findByText("TCS.NS");
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Delete TCS.NS"));
+    });
+    expect(activeHoldings()).toEqual([]);
+    expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
+      "RELIANCE.NS",
+    ]);
+  });
+
+  it("Save on a holding removed mid-edit says nothing was saved (R15-UI-034)", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+    await screen.findByText("AAPL");
+    fireEvent.click(screen.getByLabelText("Edit AAPL"));
+    // The agent removes the lot while the form is open.
+    await act(async () => {
+      usePortfoliosStore.getState().removeHolding("default", activeHoldings()[0].id);
+    });
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+    });
+    expect(
+      screen.getByText("That holding is no longer in this portfolio — nothing was saved"),
+    ).toBeInTheDocument();
+    expect((screen.getByLabelText("Quantity") as HTMLInputElement).value).toBe("20");
+    expect(activeHoldings()).toEqual([]);
+  });
+
   it("deletes a holding through the row control", async () => {
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
@@ -294,7 +403,9 @@ describe("PortfolioPanel", () => {
     await act(async () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
-    expect(screen.getByText("Symbol, quantity, and cost basis are required")).toBeInTheDocument();
+    expect(
+      screen.getByText("Symbol, quantity, and avg cost per share are required"),
+    ).toBeInTheDocument();
     expect(activeHoldings()).toHaveLength(0);
   });
 

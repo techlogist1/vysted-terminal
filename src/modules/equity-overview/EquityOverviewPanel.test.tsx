@@ -339,6 +339,35 @@ describe("EquityOverviewPanel", () => {
     expect(mockLoad).toHaveBeenLastCalledWith("AAPL", undefined);
   });
 
+  it("a superseded load never lands: the newest command wins and keeps the spinner until it does (R15-UI-031)", async () => {
+    const pending: Record<string, (value: EquityOverview) => void> = {};
+    mockLoad.mockImplementation(
+      (symbol: string) => new Promise((resolve) => (pending[symbol] = resolve)),
+    );
+    render(<EquityOverviewPanel />);
+    for (const symbol of ["AAPL", "TCS.NS"]) {
+      await act(async () => {
+        useEquityCommandStore.getState().loadSymbol(symbol);
+      });
+      await flushCommandTick();
+    }
+
+    // The first (superseded) load settles first: not shown, spinner stays.
+    await act(async () => {
+      pending["AAPL"]!(overview());
+    });
+    expect(screen.queryByText("Apple Inc.")).toBeNull();
+    expect(screen.getByRole("button", { name: "Loading" })).toBeDisabled();
+
+    await act(async () => {
+      pending["TCS.NS"]!(
+        overview({ symbol: "TCS.NS", fundamentals: fundamentals({ name: "Tata Consultancy" }) }),
+      );
+    });
+    expect(screen.getByText("Tata Consultancy")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load" })).toBeEnabled();
+  });
+
   // --- R13: honest fundamentals coverage — never a silent blank --------------
 
   describe("R13 — honest fundamentals coverage", () => {

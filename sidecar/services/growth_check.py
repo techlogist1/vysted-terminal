@@ -11,6 +11,11 @@ scalar silently, so recomputing MRQ-vs-same-quarter-prior-year from them gives
 a deterministic consistency check — the exact D56 pattern (dividendRate vs the
 paid corporate-action history), applied to growth.
 
+For an Indian listing the exchange-FILED results
+(:mod:`services.exchange_financials`) are the preferred source, so a Yahoo-wide
+error in its own statements no longer passes a Yahoo-against-Yahoo check
+(R15-DATA-076); Yahoo's frame is the labelled fallback.
+
 :func:`get_quarterly_yoy` is the fetching entry point. It never raises into the
 research path: every yfinance failure becomes ``None`` (the caller then simply
 attaches no computed figure — absence is honest). A detected throttle is
@@ -30,7 +35,7 @@ from typing import Any
 import pandas as pd
 import yfinance as yf
 
-from services import provider_health
+from services import exchange_financials, provider_health
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +67,10 @@ class QuarterlyYoY:
     earnings_growth: float | None
     mrq: str
     prior: str
+    #: Where the compared periods came from: ``nse``/``bse`` (the exchange-filed
+    #: results, an independent witness) or ``yfinance`` (the within-provider
+    #: fallback, R15-DATA-076).
+    source: str = "yfinance"
 
 
 def should_cross_check(fund: dict[str, Any]) -> bool:
@@ -180,9 +189,33 @@ def _fetch_quarterly_income(symbol: str) -> pd.DataFrame | None:
     return yf.Ticker(symbol).quarterly_income_stmt
 
 
-async def get_quarterly_yoy(symbol: str) -> QuarterlyYoY | None:
-    """MRQ-YoY revenue/net-profit growth computed from quarterly statements.
+def filed_quarterly_yoy(filed: exchange_financials.FiledPeriods) -> QuarterlyYoY | None:
+    """MRQ-YoY growth from the exchange-filed periods: the newest filed period
+    against the same-length period a year earlier; ``None`` when that period
+    was not filed or neither metric computes."""
+    latest = filed.periods[0]
+    prior = filed.year_ago(latest)
+    if prior is None:
+        return None
+    revenue = _yoy(latest.revenue, prior.revenue)
+    earnings = _yoy(latest.net_profit, prior.net_profit)
+    if revenue is None and earnings is None:
+        return None
+    return QuarterlyYoY(
+        revenue_growth=revenue,
+        earnings_growth=earnings,
+        mrq=latest.end.isoformat(),
+        prior=prior.end.isoformat(),
+        source=filed.venue,
+    )
 
+
+async def get_quarterly_yoy(symbol: str) -> QuarterlyYoY | None:
+    """MRQ-YoY revenue/net-profit growth computed from quarterly results.
+
+    An Indian listing's exchange-filed results are preferred (an independent
+    witness to Yahoo's scalars, R15-DATA-076); Yahoo's own quarterly statements
+    are the labelled within-provider fallback (``source="yfinance"``).
     ``None`` on any failure OR when the statements cannot support the
     computation — never raises into the research snapshot. ``symbol`` must
     already be the listing the fundamentals leg resolved to (the Yahoo form)
@@ -190,6 +223,10 @@ async def get_quarterly_yoy(symbol: str) -> QuarterlyYoY | None:
     """
     if not isinstance(symbol, str) or not symbol:
         return None
+    filed = await exchange_financials.get_filed_periods(symbol)
+    filed_yoy = filed_quarterly_yoy(filed) if filed is not None else None
+    if filed_yoy is not None:
+        return filed_yoy
     try:
         frame = await asyncio.to_thread(_fetch_quarterly_income, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
@@ -202,4 +239,10 @@ async def get_quarterly_yoy(symbol: str) -> QuarterlyYoY | None:
     return compute_quarterly_yoy(frame)
 
 
-__all__ = ["QuarterlyYoY", "compute_quarterly_yoy", "get_quarterly_yoy", "should_cross_check"]
+__all__ = [
+    "QuarterlyYoY",
+    "compute_quarterly_yoy",
+    "filed_quarterly_yoy",
+    "get_quarterly_yoy",
+    "should_cross_check",
+]

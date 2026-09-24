@@ -10,6 +10,7 @@ Typed shapes for the India corporate-disclosure feeds served by
 * :class:`ExchangeDeal` — one bulk deal, block deal or SAST disclosure.
 * :class:`CorporateAction` — one dividend / bonus / split / rights / buyback
   (NSE + BSE corporate-action feeds, merged).
+* :class:`MajorShareholder` — one 20-F major holder of a US-listed ADR.
 * :class:`ShareholdingPattern` — one quarterly shareholding-pattern row. The
   NSE shareholding MASTER carries the promoter(+group), public, and
   employee-trust percentages; the FII/DII split lives only in the linked XBRL
@@ -27,6 +28,12 @@ from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, PrivateAttr
+
+#: Whether a disclosure feed covers the instrument (C3, D-B7-3): ``covered``;
+#: ``venue_not_covered`` (an Indian listing on a venue with no such feed);
+#: ``not_applicable`` (not an NSE/BSE instrument). Out-of-coverage is answered
+#: with an empty list and a ``note``, never raised as an upstream failure.
+Coverage = Literal["covered", "venue_not_covered", "not_applicable"]
 
 
 class Announcement(BaseModel):
@@ -80,10 +87,14 @@ class AnnouncementsResponse(BaseModel):
     #: feed is requested over a bounded window; an older filing outside it is
     #: not "absent").
     windows: dict[str, AnnouncementWindow] = {}
+    coverage: Coverage = "covered"
+    #: Why nothing is served when ``coverage`` is not ``covered``.
+    note: str | None = None
 
 
 class ResultsEvent(BaseModel):
-    """One results-calendar / board-meeting event (NSE event-calendar feed)."""
+    """One results-calendar / board-meeting event (NSE event-calendar feed,
+    BSE board-meeting feed)."""
 
     symbol: str
     company: str | None = None
@@ -95,6 +106,9 @@ class ResultsEvent(BaseModel):
     #: (Annotated via the module alias — the field NAME shadows ``date`` when
     #: Pydantic evaluates this class's deferred annotations.)
     date: _dt.date | None = None
+    #: The feed that carried it: ``"NSE"``, ``"BSE"``, or ``"NSE+BSE"`` when a
+    #: dual listing's two feeds carry one meeting (collapsed on date + purpose).
+    exchange: str | None = None
 
 
 class ResultsCalendarResponse(BaseModel):
@@ -103,6 +117,12 @@ class ResultsCalendarResponse(BaseModel):
     symbol: str
     count: int
     events: list[ResultsEvent] = []
+    #: Exchanges that served this response.
+    sources: list[str] = []
+    #: Exchanges attempted but failed, with the reason (partial merge served).
+    errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None
 
 
 class ShareholdingPattern(BaseModel):
@@ -182,12 +202,34 @@ class ShareholdingPattern(BaseModel):
     promoter_pledge_basis: Literal["filed"] | None = None
 
 
+class MajorShareholder(BaseModel):
+    """One 5%-or-more holder from a foreign issuer's 20-F (Item 7.A)."""
+
+    holder: str
+    #: Percent of the class (0-100) in the newest column the filing reports;
+    #: ``None`` when that column shows a dash.
+    percent: float | None = None
+    #: The date the filing states the holdings as of.
+    as_of: date | None = None
+
+
 class ShareholdingResponse(BaseModel):
-    """``GET /disclosures/shareholding`` — quarterly patterns, newest first."""
+    """``GET /disclosures/shareholding`` — quarterly patterns, newest first.
+
+    A US-listed ADR has no Indian shareholding pattern; its major holders come
+    from its latest 20-F as a separate, disclosed lane (``provider`` =
+    ``"sec-20f"``, ``major_shareholders``), never merged into ``patterns``."""
 
     symbol: str
     count: int
     patterns: list[ShareholdingPattern] = []
+    coverage: Coverage = "covered"
+    note: str | None = None
+    #: ``"sec-20f"`` when ``major_shareholders`` is served; ``None`` otherwise.
+    provider: str | None = None
+    major_shareholders: list[MajorShareholder] = []
+    #: The filing the major holders were read from.
+    source_url: str | None = None
 
 
 class CorporateAction(BaseModel):
@@ -222,6 +264,8 @@ class CorporateActionsResponse(BaseModel):
     sources: list[str] = []
     #: Exchanges attempted but failed, with the reason (partial merge served).
     errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None
 
 
 class ExchangeDeal(BaseModel):
@@ -260,3 +304,5 @@ class ExchangeDealsResponse(BaseModel):
     sources: list[str] = []
     #: Lanes attempted but failed, with the reason (partial result served).
     errors: dict[str, str] = {}
+    coverage: Coverage = "covered"
+    note: str | None = None

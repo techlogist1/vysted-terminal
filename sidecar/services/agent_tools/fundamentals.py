@@ -58,8 +58,10 @@ class _FetchResult:
 
 
 async def _fetch_once(symbol: str) -> _FetchResult:
-    """One ``provider_registry.get_fundamentals`` call, error captured (never raised)."""
-    from services import provider_registry
+    """One ``provider_registry.get_fundamentals`` call, error captured (never
+    raised), with the exchange-filed overlay an Indian listing gets on the
+    panel route too (D-B7-1), so chat and research read the same figure."""
+    from services import correctness_gate, provider_registry
     from services.errors import ProviderError
 
     try:
@@ -68,7 +70,7 @@ async def _fetch_once(symbol: str) -> _FetchResult:
         return _FetchResult(None, f"provider error: {exc}")
     except Exception as exc:  # noqa: BLE001
         return _FetchResult(None, f"unexpected error: {exc}")
-    return _FetchResult(fundamentals, None)
+    return _FetchResult(await correctness_gate.apply_exchange_financials(fundamentals), None)
 
 
 @dataclass(frozen=True)

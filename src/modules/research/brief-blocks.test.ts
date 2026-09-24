@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 
+import { formatCompactMoney } from "@/lib/format";
 import { BriefBody, deriveMetrics, MarkdownBody } from "@/modules/research/brief-blocks";
 import type { BriefDerivedMetrics, BriefStructured, ResearchBriefData } from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
@@ -205,6 +206,12 @@ describe("MarkdownBody — the shared typed-block renderer", () => {
     expect(html).toContain("Jump to source 1");
     expect(html).toContain("Jump to source 2");
   });
+
+  it("renders a broken [?] citation as a flagged, non-interactive marker (R15-UI-092)", () => {
+    const html = renderBody("A claim [1] and a broken one [?].");
+    expect(html).toContain('title="citation not in sources"');
+    expect(html.match(/<button/g)).toHaveLength(1); // only the in-range [1] links
+  });
 });
 
 // ── derived semantics leg (R10 E8) ───────────────────────────────────────────
@@ -270,7 +277,7 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     );
     const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
     expect(byLabel["Dividend yield"]).toBe("0.55% · of price");
-    expect(byLabel["Dividend / share"]).toBe("1.00 · INR");
+    expect(byLabel["Dividend / share"]).toBe("₹1.00"); // the "INR" basis IS its currency
     expect(byLabel["Revenue growth"]).toBe("+12.40% · FY/FY");
     expect(byLabel["Earnings growth"]).toBeUndefined(); // null → no card, never fabricated
     // The derived dividend/growth cards SHADOW the raw basis-less duplicates.
@@ -318,20 +325,44 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
     const byLabel = Object.fromEntries(
       (deriveMetrics(inr)?.items ?? []).map((i) => [i.label, i.value]),
     );
-    // Market cap / Revenue (formatLarge cards) + the currency-unit derived card
-    // all wear the ISO code — "4.48T" on an NSE stock is otherwise ambiguous.
-    expect(byLabel["Market cap"]).toBe("INR 2.00B");
-    expect(byLabel["Revenue"]).toBe("INR 500.00M");
-    expect(byLabel["Dividend / share"]).toBe("INR 47.50");
+    // Market cap / Revenue + the currency-unit derived card all wear the
+    // instrument's currency — "4.48T" on an NSE stock is otherwise ambiguous.
+    expect(byLabel["Market cap"]).toBe("₹2.00B");
+    expect(byLabel["Revenue"]).toBe("₹500M");
+    expect(byLabel["Dividend / share"]).toBe("₹47.50");
 
-    // USD stays byte-identical to before — the code only appears when != USD,
-    // matching the price line's convention.
+    // USD wears its own symbol too (R15-RESEARCH-026: a bare figure read
+    // identically to an unknown currency).
     const usd = structured("equity", {});
     const usdByLabel = Object.fromEntries(
       (deriveMetrics(usd)?.items ?? []).map((i) => [i.label, i.value]),
     );
-    expect(usdByLabel["Market cap"]).toBe("2.00B");
-    expect(usdByLabel["Revenue"]).toBe("500.00M");
+    expect(usdByLabel["Market cap"]).toBe("$2.00B");
+    expect(usdByLabel["Revenue"]).toBe("$500M");
+  });
+
+  it("an unknown currency is stated, never defaulted (R15-RESEARCH-026)", () => {
+    const unknown = structured("equity", {
+      price: undefined,
+      fundamentals: {
+        ok: true,
+        provider: "yfinance",
+        data: fundamentals({ currency: null }),
+      },
+    });
+    const byLabel = Object.fromEntries(
+      (deriveMetrics(unknown)?.items ?? []).map((i) => [i.label, i.value]),
+    );
+    expect(byLabel["Market cap"]).toBe("2.00B · currency unknown");
+  });
+
+  it("an INR market cap reads exactly as Equity Overview renders it", () => {
+    const inr = structured("equity", {
+      price: { ok: true, provider: "yfinance", data: quote({ currency: "INR" }) },
+    });
+    const card = deriveMetrics(inr)?.items.find((i) => i.label === "Market cap");
+    // EquityOverviewPanel's fmtMoney: formatCompactMoney(value, currency).
+    expect(card?.value).toBe(formatCompactMoney(2_000_000_000, "INR"));
   });
 
   it("a currency basis never duplicates an already-coded value (D55)", () => {
@@ -349,8 +380,8 @@ describe("deriveMetrics — the derived semantics leg leads the grid (E8)", () =
       }),
     );
     const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
-    // The value already reads "INR 1.00" — appending "· INR" again would stutter.
-    expect(byLabel["Dividend / share"]).toBe("INR 1.00");
+    // The value already reads "₹1.00" — appending "· INR" would stutter.
+    expect(byLabel["Dividend / share"]).toBe("₹1.00");
   });
 
   it("conflicts render as flag lines and never silently reconcile (absent conflict_kind = data_conflict)", () => {
@@ -554,9 +585,9 @@ describe("deriveMetrics — derived-leg facts flow through generically (R13)", (
       }),
     );
     const byLabel = Object.fromEntries((model?.items ?? []).map((i) => [i.label, i.value]));
-    expect(byLabel["Dividend/share (trailing 12m PAID)"]).toBe("1.50 · corporate-action history");
+    expect(byLabel["Dividend/share (trailing 12m PAID)"]).toBe("$1.50 · corporate-action history");
     expect(byLabel["Declared, not yet paid (record date 2026-07-15)"]).toBe(
-      "2.00 · NSE corporate action",
+      "$2.00 · NSE corporate action",
     );
   });
 });
@@ -619,7 +650,7 @@ describe("deriveMetrics — fraction unit, derived market cap, statement currenc
       }),
     );
     const caps = (model?.items ?? []).filter((i) => i.label === "Market cap");
-    expect(caps.map((i) => i.value)).toEqual(["INR 2.00B"]);
+    expect(caps.map((i) => i.value)).toEqual(["₹2.00B"]);
   });
 
   it("Revenue wears the statements' currency when it differs from trading (C2)", () => {
@@ -633,7 +664,7 @@ describe("deriveMetrics — fraction unit, derived market cap, statement currenc
     const byLabel = Object.fromEntries(
       (deriveMetrics(adr)?.items ?? []).map((i) => [i.label, i.value]),
     );
-    expect(byLabel["Revenue"]).toBe("INR 12.00B");
-    expect(byLabel["Market cap"]).toBe("2.00B"); // the trading currency (USD) stays bare
+    expect(byLabel["Revenue"]).toBe("₹12.0B");
+    expect(byLabel["Market cap"]).toBe("$2.00B"); // the trading currency (USD)
   });
 });

@@ -21,17 +21,13 @@ autonomous background agent task:
   marks the run ``cancelled``. ``GET /runs/{id}`` returns the transcript digest
   so the user can bring the background run into the foreground.
 
-- **Human-in-the-loop (FR-028 — scoped).** A run can be PAUSED for a human
-  question (:func:`pause_run`). :func:`answer_run` records the human's reply and
-  RESUMES the run by re-entering the agent loop from the persisted checkpoint
-  with the answer appended as a new user turn — a genuine human-in-the-loop
-  handshake. :func:`resume_run` re-enters an aborted run from its checkpoint with
-  fresh ceilings (budget-breach recovery). **Scope note:** the pause is an
-  EXPLICIT signal (operator/host-driven), not an autonomous in-loop ``ask_user``
-  tool call — wiring the agent loop to self-pause would require a new catalog
-  capability + the §6.5/parity audits to cover it, which is deferred. The
-  pause/answer/resume control plane is fully implemented and durable; only the
-  autonomous self-pause trigger is out of scope here.
+- **Human-in-the-loop (FR-028).** A Delegate run is offered the ``ask_user``
+  capability. When the model calls it, the driver stops the turn before any of
+  that round's tools run, checkpoints, and parks the run ``paused`` with the
+  question (R15-CODE-AGENT-011). :func:`answer_run` resumes it from the
+  checkpoint with the human's answer as the next user turn. :func:`resume_run`
+  re-enters an aborted run from its checkpoint with fresh ceilings
+  (budget-breach recovery).
 
 The BYOK ``api_key`` lives ONLY on the in-memory task closure — never persisted
 to ``runs_store``, never logged. The guard governs SPEND only; no trading
@@ -41,26 +37,44 @@ path exists.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import uuid
 from typing import Any
 
 import config
 from models.agent import AgentContextSnapshot
-from models.llm import LLMMessage, LLMProviderId, LLMUsage
-from models.run import RunBudget, RunCost
+from models.llm import LLMProviderId, LLMUsage
+from models.run import DEFAULT_RUN_BUDGET, RunBudget, RunCost, RunStatus
 from services import agent_runtime, runs_store
 from services.agent_tools.schemas import HOST_ACTION_TOOLS
 from services.budget_guard import BudgetGuard
+from services.runs_store import RunNotFound, RunStateError
 
 logger = logging.getLogger(__name__)
 
 # run_id -> the detached asyncio.Task driving the agent loop.
 _TASKS: dict[str, asyncio.Task[None]] = {}
 
+#: What a resumed run is sent when its last turn is the model's own (a breach
+#: or a cancel stopped it mid-task) rather than a human answer.
+_CONTINUE_PROMPT = "Continue the task from where you stopped."
+#: Width of a checkpointed tool-result line.
+_RESULT_LINE_CHARS = 200
+#: How many tool steps a run row keeps for the rail (R15-AGENT-039).
+_ACTIVITY_CAP = 20
+
+# run_id -> the launch's snapshot and options while its plan waits for Start
+# (process memory: the context snapshot and chat history are not persisted).
+_PARKED: dict[str, dict[str, Any]] = {}
+
 
 class RunManagerError(RuntimeError):
-    """Raised on an invalid run-control operation (unknown run, bad state)."""
+    """Raised when a run cannot be launched (unknown agent).
+
+    Run-control errors are the store's typed :class:`RunNotFound` (404) and
+    :class:`RunStateError` (409).
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +102,18 @@ def _coerce_snapshot(raw: dict[str, Any] | None) -> AgentContextSnapshot | None:
 # ---------------------------------------------------------------------------
 
 
+def _result_line(result_str: str) -> tuple[str, str]:
+    """``(status, one-line summary)`` of a tool result string."""
+    try:
+        payload = json.loads(result_str)
+    except ValueError:
+        payload = None
+    if isinstance(payload, dict) and payload.get("ok") is False:
+        reason = payload.get("error") or payload.get("message") or "failed"
+        return "error", " ".join(str(reason).split())[:_RESULT_LINE_CHARS]
+    return "ok", " ".join(result_str.split())[:_RESULT_LINE_CHARS]
+
+
 async def _drive_run(
     *,
     run_id: str,
@@ -99,23 +125,35 @@ async def _drive_run(
     api_key: str | None,
     budget: RunBudget,
     options: dict[str, Any],
-    resume_messages: list[LLMMessage] | None = None,
+    checkpoint: dict[str, Any],
+    prior_cost: RunCost | None = None,
+    activity: list[dict[str, str]] | None = None,
+    plan_first: bool = False,
 ) -> None:
     """Drive one agent invocation to completion under a BudgetGuard.
 
     The detached task body. Streams ``invoke_agent``; after every round records
-    usage into a guard, persists cost, and aborts on the first breach. Captures
-    a running transcript for the checkpoint so a resume has context. Every exit
-    writes a terminal status to the store.
+    usage into a guard, persists cost, and aborts on the first breach.
+    ``checkpoint`` is the run's ``{prompt, turns}`` so far (R15-AGENT-036): the
+    driver appends this invocation's turns to it in order — the model's text,
+    one ``[tool name → result]`` turn per dispatched tool — so a resume replays
+    the conversation exactly. ``prior_cost`` is what earlier segments of a
+    resumed run already spent: the ceilings apply to this segment, the recorded
+    cost is the run's total (R15-AGENT-035). With ``plan_first`` (a fresh
+    launch) a compound prompt is planned first and the run parks ``planned``
+    until the user starts it (R15-AGENT-039). Every exit writes a terminal status
+    to the store.
     """
+    prior = prior_cost or RunCost()
     guard = BudgetGuard(
         max_tokens=budget.max_tokens,
         max_spend_usd=budget.max_spend_usd,
         max_wall_seconds=budget.max_wall_seconds,
         max_steps=budget.max_steps,
     )
-    provider_str = str(provider or "")
     options = dict(options)
+    launch_options = dict(options)
+    steps: list[dict[str, str]] = list(activity or [])
     # R10: a resumed run re-threads its persisted region INSIDE the detached
     # task (the resume HTTP request's middleware set a region for the WRONG
     # request scope). Popped here so an unknown kwarg never leaks into the
@@ -124,11 +162,16 @@ async def _drive_run(
     region = options.pop("region", None)
     if isinstance(region, str) and region:
         config.set_request_region(region)
-    transcript: list[dict[str, Any]] = []
-    if resume_messages:
-        transcript.extend(m.model_dump() for m in resume_messages)
-    transcript.append({"role": "user", "content": prompt})
+    turns: list[dict[str, str]] = list(checkpoint["turns"])
+    round_text: list[str] = []
+    # A ceiling the guard reported, and an error the agent loop reported: two
+    # different facts (R15-AGENT-038). ``halted`` — the runtime stopped before
+    # dispatching a round's tools because the guard refused another round.
     breach_reason: str | None = None
+    agent_error: str | None = None
+    halted = False
+    # The model's ask_user question (R15-CODE-AGENT-011): the run pauses on it.
+    question: str | None = None
     delta_buffer: list[str] = []
     # The run's collectable output (R15-AGENT-013): the last brief it published
     # and the host actions it proposed, delivered once to the originating chat
@@ -143,14 +186,46 @@ async def _drive_run(
             "host_actions": list(host_actions),
         }
 
-    def _on_round_usage(usage: LLMUsage, used_model: str) -> None:
-        # Fold the round's usage into the guard, then persist the running cost so
-        # GET /runs reflects spend-so-far even before the run finishes.
-        guard.record(usage, used_model, provider_str)
-        runs_store.update_run(run_id, cost=RunCost.model_validate(guard.cost()))
+    def _flush_text() -> None:
+        text = "".join(round_text).strip()
+        round_text.clear()
+        if text:
+            turns.append({"role": "assistant", "content": text})
+
+    def _checkpoint() -> dict[str, Any]:
+        _flush_text()
+        return {"prompt": checkpoint["prompt"], "turns": list(turns)}
+
+    def _on_tool_result(tool_call: Any, result_str: str) -> None:
+        status, line = _result_line(result_str)
+        _flush_text()
+        turns.append({"role": "assistant", "content": f"[{tool_call.name} → {line}]"})
+        steps.append({"tool": tool_call.name, "status": status, "summary": line})
+        del steps[:-_ACTIVITY_CAP]
+        # Checkpoint every step, not only at exit, so a killed process leaves a
+        # run that resumes without re-paying its tools (R15-LIFECYCLE-012); the
+        # rail reads the step from the same write (R15-AGENT-039).
+        runs_store.update_run(run_id, checkpoint=_checkpoint(), activity=steps)
+
+    def _on_round_usage(usage: LLMUsage, used_model: str, used_provider: str) -> bool:
+        # Fold the round's usage into the guard at the RESOLVED provider's rate
+        # (R15-AGENT-074), persist the running cost so GET /runs reflects
+        # spend-so-far, and refuse the next round on a breach: invoke_agent then
+        # stops before dispatching this round's tools (R15-AGENT-037).
+        guard.record(usage, used_model, used_provider)
+        spent = guard.cost()
+        runs_store.update_run(
+            run_id,
+            checkpoint=_checkpoint(),
+            cost=RunCost(
+                tokens=prior.tokens + int(spent["tokens"]),
+                spend_usd=round(prior.spend_usd + spent["spend_usd"], 6),
+                steps=prior.steps + int(spent["steps"]),
+            ),
+        )
         nonlocal breach_reason
-        if breach_reason is None:
-            breach_reason = guard.breach()
+        breach_reason = breach_reason or guard.breach()
+        return breach_reason is None and question is None
 
     try:
         # The round-boundary breach() check below covers tokens/spend/steps (which
@@ -160,9 +235,31 @@ async def _drive_run(
         # provider stream that never reaches its terminator, could outlive
         # max_wall_seconds without the round-boundary check ever firing. This
         # asyncio.timeout makes the wall ceiling a HARD ceiling regardless of round
-        # boundaries (SC-008). asyncio.timeout(None) is a documented no-op, so a
-        # run with no wall budget is unaffected.
+        # boundaries (SC-008).
         async with asyncio.timeout(budget.max_wall_seconds):
+            plan = (
+                await agent_runtime.plan_delegate_run(
+                    agent_id,
+                    prompt,
+                    provider=provider,
+                    model=model,
+                    api_key=api_key,
+                    context_snapshot=snapshot,
+                )
+                if plan_first
+                else None
+            )
+            if plan is not None:
+                # A compound task waits for the user's Start (or Discard).
+                _PARKED[run_id] = {"snapshot": snapshot, "options": launch_options}
+                runs_store.update_run(
+                    run_id,
+                    status="planned",
+                    detail="plan ready: start or discard it",
+                    plan={"goal": plan.goal, "steps": plan.steps, "note": plan.note},
+                    checkpoint=_checkpoint(),
+                )
+                return
             async for event in agent_runtime.invoke_agent(
                 agent_id=agent_id,
                 prompt=prompt,
@@ -173,17 +270,21 @@ async def _drive_run(
                 options=dict(options),
                 mode="delegate",
                 on_round_usage=_on_round_usage,
+                on_tool_result=_on_tool_result,
             ):
-                # A round's terminator may have flagged a breach; stop before
-                # anything of the next round lands in the output.
-                if breach_reason is not None:
-                    break
                 kind = getattr(event, "kind", None)
                 if kind == "delta":
                     delta_buffer.append(getattr(event, "text", ""))
+                    round_text.append(getattr(event, "text", ""))
                 elif kind == "tool_use":
                     name = getattr(event, "name", "?")
-                    transcript.append({"role": "assistant", "content": f"[tool_use {name}]"})
+                    _flush_text()
+                    asked = (
+                        event.input.get("question") if name == agent_runtime.ASK_USER_TOOL else None
+                    )
+                    if isinstance(asked, str) and asked.strip() and question is None:
+                        question = asked.strip()
+                        turns.append({"role": "assistant", "content": f"[ask_user → {question}]"})
                     # A tool round ends the model's paragraph; the next round's
                     # text starts a new one instead of running on.
                     if delta_buffer and delta_buffer[-1] != "\n\n":
@@ -198,28 +299,44 @@ async def _drive_run(
                                 "input": dict(event.input),
                             }
                         )
+                elif kind == "research_step" and event.tool == agent_runtime.HALT_NOTICE_TOOL:
+                    halted = True
                 elif kind == "error":
-                    breach_reason = breach_reason or getattr(event, "message", "agent error")
+                    agent_error = agent_error or getattr(event, "message", "agent error")
 
-        if delta_buffer:
-            transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
-
-        if breach_reason is not None:
-            # SC-008 — abort with the stated reason + a resumable checkpoint.
+        if halted and question is not None:
+            # The model asked the user: park the run until answer_run.
             runs_store.update_run(
                 run_id,
-                status="error",
-                detail=breach_reason,
-                checkpoint=list(transcript),
+                status="paused",
+                detail="waiting for your answer",
+                question=question,
+                checkpoint=_checkpoint(),
                 output=_output(),
             )
             return
 
+        failure = breach_reason if halted else agent_error
+        if failure is not None:
+            # SC-008 — abort with the stated reason + a resumable checkpoint.
+            runs_store.update_run(
+                run_id,
+                status="error",
+                detail=failure,
+                checkpoint=_checkpoint(),
+                output=_output(),
+            )
+            return
+
+        # A turn that ended with its final answer is done, even when that last
+        # round touched a ceiling (R15-AGENT-038); the detail says so.
         runs_store.update_run(
             run_id,
             status="done",
-            detail="completed",
-            checkpoint=list(transcript),
+            detail=f"completed ({breach_reason} on the final round)"
+            if breach_reason
+            else "completed",
+            checkpoint=_checkpoint(),
             output=_output(),
         )
     except TimeoutError:
@@ -227,8 +344,6 @@ async def _drive_run(
         # this is the ONLY path that enforces max_wall_seconds against a hung or
         # over-long round. Abort with the stated reason + a resumable checkpoint
         # (SC-008), exactly like a round-boundary breach.
-        if delta_buffer:
-            transcript.append({"role": "assistant", "content": "".join(delta_buffer)})
         elapsed = guard.wall_seconds()
         if budget.max_wall_seconds is not None and elapsed >= budget.max_wall_seconds:
             reason = guard.breach() or (
@@ -240,12 +355,12 @@ async def _drive_run(
             # ceiling breach.
             reason = "run failed: operation timed out"
         runs_store.update_run(
-            run_id, status="error", detail=reason, checkpoint=list(transcript), output=_output()
+            run_id, status="error", detail=reason, checkpoint=_checkpoint(), output=_output()
         )
     except asyncio.CancelledError:
         # cancel_run already wrote status="cancelled"; persist the partial
         # transcript and re-raise so the task finishes in its cancelled state.
-        runs_store.update_run(run_id, checkpoint=list(transcript))
+        runs_store.update_run(run_id, checkpoint=_checkpoint())
         raise
     except Exception as exc:  # noqa: BLE001 — any agent failure ends the run
         logger.exception("delegate run %s crashed: %s", run_id, exc)
@@ -253,11 +368,17 @@ async def _drive_run(
             run_id,
             status="error",
             detail=f"run failed: {exc}",
-            checkpoint=list(transcript),
+            checkpoint=_checkpoint(),
             output=_output(),
         )
     finally:
         _TASKS.pop(run_id, None)
+
+
+def _with_floor(budget: RunBudget | None) -> RunBudget:
+    """Fill every omitted ceiling from the server default (R15-AGENT-034)."""
+    given = budget.model_dump(exclude_none=True) if budget else {}
+    return DEFAULT_RUN_BUDGET.model_copy(update=given)
 
 
 def _spawn(run_id: str, **kwargs: Any) -> asyncio.Task[None]:
@@ -293,7 +414,7 @@ def launch_run(
     if spec is None:
         raise RunManagerError(f"unknown agent: {agent_id!r}")
 
-    run_budget = budget or RunBudget()
+    run_budget = _with_floor(budget)
     run_id = uuid.uuid4().hex
     # R10: persist the NON-SECRET options a resume must re-thread — the
     # caller's research_depth plus the LAUNCH request's active region (the
@@ -305,6 +426,8 @@ def launch_run(
         agent_name=spec.name,
         budget=run_budget,
         options=persisted_options,
+        provider=provider,
+        model=model,
     )
     _spawn(
         run_id,
@@ -316,42 +439,25 @@ def launch_run(
         api_key=api_key,
         budget=run_budget,
         options=dict(options or {}),
+        checkpoint={"prompt": prompt, "turns": []},
+        plan_first=True,
     )
     return run_id
 
 
-def cancel_run(run_id: str) -> bool:
-    """Cancel a run's task and mark it ``cancelled``; return ``True`` if known.
+def cancel_run(run_id: str) -> None:
+    """Mark a live run ``cancelled`` and cancel its task.
 
-    Marks the store ``cancelled`` first (so the terminal state is durable even
-    if the task is already gone), then cancels the in-flight task.
+    Marks the store first (so the terminal state is durable even if the task
+    is already gone), then cancels the in-flight task. A finished run is never
+    rewritten: the store raises :class:`RunStateError`, an unknown id
+    :class:`RunNotFound`.
     """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        return False
     runs_store.update_run(run_id, status="cancelled", detail="cancelled by user")
+    _PARKED.pop(run_id, None)
     task = _TASKS.get(run_id)
     if task is not None and not task.done():
         task.cancel()
-    return True
-
-
-def pause_run(run_id: str, question: str) -> bool:
-    """Pause a run for a human-in-the-loop question (FR-028).
-
-    Cancels the in-flight task (checkpointing the transcript on the way out) and
-    flips the run to ``paused`` with the question, so the foreground view shows
-    "needs input". The human answers via :func:`answer_run`, which resumes the
-    run from its checkpoint. Returns ``True`` if the run exists.
-    """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        return False
-    task = _TASKS.get(run_id)
-    if task is not None and not task.done():
-        task.cancel()
-    runs_store.update_run(run_id, status="paused", question=question)
-    return True
 
 
 def answer_run(
@@ -360,25 +466,23 @@ def answer_run(
     *,
     api_key: str | None = None,
     budget: RunBudget | None = None,
-) -> bool:
-    """Deliver a human reply to a paused run and resume it (FR-028).
+) -> None:
+    """Deliver a human reply to a run paused on ``ask_user`` and resume it (FR-028).
 
     The answer is appended to the run's checkpoint as a new user turn, then the
-    agent loop is re-entered from that checkpoint — a genuine human-in-the-loop
-    continuation. Returns ``True`` on resume; raises :class:`RunManagerError` if
-    the run is unknown, and returns ``False`` if the run is not paused.
+    agent loop is re-entered from that checkpoint. Raises :class:`RunNotFound`
+    for an unknown run and :class:`RunStateError` when it is not paused.
     """
-    run = runs_store.get_run(run_id)
-    if run is None:
-        raise RunManagerError(f"unknown run: {run_id!r}")
-    if run.status != "paused":
-        return False
-    # Append the human's answer to the checkpoint as a fresh user turn so the
-    # resumed loop continues the conversation with it.
-    checkpoint = runs_store.get_checkpoint(run_id)
-    checkpoint.append({"role": "user", "content": answer})
-    runs_store.update_run(run_id, checkpoint=checkpoint)
-    return resume_run(run_id, api_key=api_key, budget=budget)
+    _resume(run_id, frozenset({"paused"}), answer=answer, api_key=api_key, budget=budget)
+
+
+def start_run(run_id: str, *, api_key: str | None = None) -> None:
+    """Start a ``planned`` run: the user approved its plan (R15-AGENT-039).
+
+    Runs the launch prompt on the launch's provider/model with the key from
+    this request; raises :class:`RunStateError` unless the run is planned.
+    """
+    _resume(run_id, frozenset({"planned"}), api_key=api_key, budget=None, detail="started")
 
 
 def resume_run(
@@ -386,74 +490,78 @@ def resume_run(
     *,
     api_key: str | None = None,
     budget: RunBudget | None = None,
-) -> bool:
-    """Re-enter a non-running run from its persisted checkpoint (FR-028).
+) -> None:
+    """Re-enter an ``error`` or ``cancelled`` run from its checkpoint (FR-028).
 
-    Used both for budget-breach recovery (status ``error`` → relaunch with fresh
-    ceilings) and as the resume half of the pause/answer handshake. The original
-    prompt is recovered from the checkpoint's first user turn; the remaining
-    user/assistant turns are replayed as bounded history so the resumed loop has
-    context. Returns ``True`` on relaunch; raises :class:`RunManagerError` if the
-    run is unknown, already running, or has no checkpoint.
+    Budget-breach recovery: relaunch with fresh ceilings. Raises
+    :class:`RunNotFound` for an unknown run and :class:`RunStateError` for any
+    other status (a finished run is never re-executed), a still-live task or a
+    missing checkpoint.
     """
+    _resume(run_id, frozenset({"error", "cancelled"}), api_key=api_key, budget=budget)
+
+
+def _resume(
+    run_id: str,
+    from_status: frozenset[RunStatus],
+    *,
+    answer: str | None = None,
+    api_key: str | None,
+    budget: RunBudget | None,
+    detail: str = "resumed",
+) -> None:
+    """Move a run back to ``running`` from ``from_status`` and respawn its task."""
     run = runs_store.get_run(run_id)
     if run is None:
-        raise RunManagerError(f"unknown run: {run_id!r}")
+        raise RunNotFound(f"unknown run: {run_id!r}")
     existing = _TASKS.get(run_id)
     if existing is not None and not existing.done():
-        raise RunManagerError(f"run {run_id!r} is already running")
+        raise RunStateError(f"run {run_id!r} is still running")
 
     checkpoint = runs_store.get_checkpoint(run_id)
-    prompt = ""
-    history: list[LLMMessage] = []
-    for msg in checkpoint:
-        if not isinstance(msg, dict):
-            continue
-        role = msg.get("role")
-        content = msg.get("content")
-        if not isinstance(content, str) or not content:
-            continue
-        if role == "user" and not prompt:
-            prompt = content
-            continue
-        if role in ("user", "assistant"):
-            history.append(LLMMessage(role=role, content=content))
-    if not prompt:
-        raise RunManagerError(f"run {run_id!r} has no checkpoint to resume from")
+    if not checkpoint["prompt"]:
+        raise RunStateError(f"run {run_id!r} has no checkpoint to resume from")
+    # The conversation so far is the original prompt then its turns, in order
+    # (R15-AGENT-036). Its last user turn is what the resumed loop is sent: the
+    # human's answer, or an explicit "continue" after a breach or a cancel.
+    if answer is not None:
+        checkpoint["turns"].append({"role": "user", "content": answer})
+    elif checkpoint["turns"] and checkpoint["turns"][-1]["role"] != "user":
+        checkpoint["turns"].append({"role": "user", "content": _CONTINUE_PROMPT})
+    conversation = [{"role": "user", "content": checkpoint["prompt"]}, *checkpoint["turns"]]
 
-    resume_budget = budget or run.budget
+    resume_budget = _with_floor(budget or run.budget)
     # R10: re-merge the persisted non-secret options (research_depth, region)
-    # so the depth ContextVar floor / locale re-thread into the resumed loop —
-    # previously a resume rebuilt options bare and the floor silently reset to
-    # NORMAL mid-conversation (E2's durable-run tail).
-    options: dict[str, Any] = dict(runs_store.get_options(run_id))
-    if history:
-        options["history"] = [m.model_dump() for m in history]
+    # so the depth ContextVar floor / locale re-thread into the resumed loop.
+    parked = _PARKED.get(run_id, {})
+    options: dict[str, Any] = {**parked.get("options", {}), **runs_store.get_options(run_id)}
+    if len(conversation) > 1:
+        options["history"] = conversation[:-1]
     runs_store.update_run(
         run_id,
         status="running",
-        detail="resumed",
+        from_status=from_status,
+        detail=detail,
         clear_question=True,
-        cost=RunCost(),  # fresh ceilings → fresh running total
+        checkpoint=checkpoint,
     )
+    _PARKED.pop(run_id, None)
+    # The launch's provider and model, never the agent default (R15-AGENT-035);
+    # the key crosses with the resume/answer request only, like the launch's.
     _spawn(
         run_id,
         agent_id=run.agent_id,
-        prompt=prompt,
-        snapshot=None,
-        provider=None,
-        model=None,
+        prompt=conversation[-1]["content"],
+        snapshot=parked.get("snapshot"),
+        provider=run.provider,
+        model=run.model,
         api_key=api_key,
         budget=resume_budget,
         options=options,
-        resume_messages=history,
+        checkpoint=checkpoint,
+        prior_cost=run.cost,
+        activity=[a.model_dump() for a in run.activity],
     )
-    return True
-
-
-def active_run_ids() -> list[str]:
-    """Return the ids of runs whose task is still in flight (for diagnostics)."""
-    return [rid for rid, task in _TASKS.items() if not task.done()]
 
 
 async def shutdown() -> None:
@@ -482,3 +590,4 @@ def reset_for_tests() -> None:
         if not task.done():
             task.cancel()
     _TASKS.clear()
+    _PARKED.clear()

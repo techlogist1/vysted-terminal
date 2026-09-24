@@ -7,6 +7,11 @@ Routes:
   - ``GET  /workflow/saved``      — list saved workflows (+ ``unreadable`` rows)
   - ``GET  /workflow/saved/{id}`` — load one saved workflow
   - ``DELETE /workflow/saved/{id}`` — delete a saved workflow
+  - ``GET/POST /workflow/schedules``, ``PATCH/DELETE /workflow/schedules/{id}``
+    — unattended-run schedules (``services/workflow_scheduler.py``)
+  - ``PUT /workflow/webhooks/{ref}`` — hold an ``action.webhook`` URL (header
+    ``X-Vysted-Webhook-Url``) in process memory; ``GET /workflow/webhooks``
+    lists the refs only
 
 The run route streams over SSE in the same shape as the v0.4.0
 ``POST /llm/chat`` and ``POST /agents/{id}/invoke`` routes — JSON event
@@ -19,12 +24,22 @@ import json
 import logging
 from collections.abc import AsyncIterator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 
 import config
-from models.workflow import SavedWorkflows, WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec
+from models.workflow import (
+    SavedWorkflows,
+    ScheduleCreate,
+    ScheduleUpdate,
+    WebhookRefs,
+    WorkflowRunEvent,
+    WorkflowRunRequest,
+    WorkflowSchedule,
+    WorkflowSpec,
+)
 from services import workflow_engine, workflow_store
+from services.workflow_nodes import builtin as workflow_builtin
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +134,54 @@ def delete_saved_workflow(workflow_id: str) -> dict[str, bool]:
     if not removed:
         raise HTTPException(status_code=404, detail=f"unknown workflow {workflow_id!r}")
     return {"deleted": True}
+
+
+# ---------------------------------------------------------------------------
+# Schedules + webhook URLs (R15-AGENT-023)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/schedules")
+def list_schedules() -> list[WorkflowSchedule]:
+    return workflow_store.list_schedules()
+
+
+@router.post("/schedules")
+def create_schedule(body: ScheduleCreate) -> WorkflowSchedule:
+    """Schedule a saved workflow; 404 when it is not saved."""
+    if workflow_store.get_workflow(body.workflow_id) is None:
+        raise HTTPException(status_code=404, detail=f"unknown workflow {body.workflow_id!r}")
+    return workflow_store.create_schedule(body)
+
+
+@router.patch("/schedules/{schedule_id}")
+def update_schedule(schedule_id: str, body: ScheduleUpdate) -> WorkflowSchedule:
+    updated = workflow_store.set_schedule_enabled(schedule_id, body.enabled)
+    if updated is None:
+        raise HTTPException(status_code=404, detail=f"unknown schedule {schedule_id!r}")
+    return updated
+
+
+@router.delete("/schedules/{schedule_id}")
+def delete_schedule(schedule_id: str) -> dict[str, bool]:
+    if not workflow_store.delete_schedule(schedule_id):
+        raise HTTPException(status_code=404, detail=f"unknown schedule {schedule_id!r}")
+    return {"deleted": True}
+
+
+@router.put("/webhooks/{ref}")
+def register_webhook(ref: str, url: str = Header(alias="X-Vysted-Webhook-Url")) -> WebhookRefs:
+    """Hold the keychain-read URL for ``ref`` in memory; the response lists refs only."""
+    try:
+        workflow_builtin.register_webhook_url(ref, url)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None
+    return WebhookRefs(refs=workflow_builtin.webhook_refs())
+
+
+@router.get("/webhooks")
+def list_webhooks() -> WebhookRefs:
+    return WebhookRefs(refs=workflow_builtin.webhook_refs())
 
 
 # ---------------------------------------------------------------------------

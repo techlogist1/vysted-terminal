@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { newDrawingId, useChartDrawingsStore } from "./chart-drawings";
+import { drawingsFor, newDrawingId, useChartDrawingsStore } from "./chart-drawings";
 import type { DrawingSpec } from "../../types/drawings";
 
 function makeDrawing(panelId: string, kind: DrawingSpec["kind"], id: string): DrawingSpec {
   return {
     id,
     panelId,
+    symbol: "SPY",
+    timeframe: "1d",
     kind,
     points: [{ time: 1700000000, price: 100 }],
     style: { color: "#e9a94d", lineWidth: 1 },
@@ -15,7 +17,7 @@ function makeDrawing(panelId: string, kind: DrawingSpec["kind"], id: string): Dr
 }
 
 beforeEach(() => {
-  useChartDrawingsStore.setState({ byPanel: {} });
+  useChartDrawingsStore.setState({ byPanel: {}, views: {} });
 });
 
 describe("useChartDrawingsStore", () => {
@@ -55,6 +57,34 @@ describe("useChartDrawingsStore", () => {
     updateDrawing("p", "x", (drawing) => ({ ...drawing, locked: true }));
 
     expect(useChartDrawingsStore.getState().getDrawings("p")[0]!.locked).toBe(true);
+  });
+
+  it("returns a panel's drawings only for the symbol/timeframe they were made on (R15-UI-020)", () => {
+    const { addDrawing } = useChartDrawingsStore.getState();
+    addDrawing("chart", {
+      ...makeDrawing("chart", "horizontal-line", "rel"),
+      symbol: "RELIANCE.NS",
+    });
+    addDrawing("chart", {
+      ...makeDrawing("chart", "trendline", "rel-1h"),
+      symbol: "RELIANCE.NS",
+      timeframe: "1h",
+    });
+    const all = useChartDrawingsStore.getState().getDrawings("chart");
+
+    expect(drawingsFor(all, "TCS.NS", "1d")).toEqual([]);
+    expect(drawingsFor(all, "RELIANCE.NS", "1d").map((d) => d.id)).toEqual(["rel"]);
+    expect(drawingsFor(all, "RELIANCE.NS", "1h").map((d) => d.id)).toEqual(["rel-1h"]);
+  });
+
+  it("setView records a panel's view and is a no-op when nothing changed", () => {
+    const { setView } = useChartDrawingsStore.getState();
+    const view = { symbol: "TCS.NS", timeframe: "1d", indicators: ["rsi"], compare: null };
+    setView("chart", view);
+    const first = useChartDrawingsStore.getState().views;
+    setView("chart", { ...view, indicators: ["rsi"] });
+    expect(useChartDrawingsStore.getState().views).toBe(first);
+    expect(first["chart"]).toEqual(view);
   });
 
   it("snapshots in WorkspaceDrawings shape and restores via replaceAll", () => {

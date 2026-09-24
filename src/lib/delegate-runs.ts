@@ -8,15 +8,29 @@
  * Cancel, resume, and human-in-the-loop answers route to the run routes. A run
  * that breaches its budget comes back as `error` with the breach reason (SC-008).
  *
+ * The sidecar, not this store, decides which runs exist (R15-UI-040): the rail
+ * adopts every live sidecar run on mount (a webview reload loses the in-memory
+ * mirror, never the run), and a cancel shows `cancelled` only once the sidecar
+ * confirmed it.
+ *
  * When a run ends (`done` or `error`) its output is delivered ONCE to the chat
  * thread it was launched from (R15-AGENT-013): the answer is appended to that
  * thread (live or archived), and the host actions and the brief it produced go
  * through the normal proposed-changes gate, exactly like a foreground reply's.
  */
 
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
+import { extractSidecarDetail, getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
-import { type AgentRunBudget, type AgentRunStatus, useAgentRunsStore } from "@/store/agent-runs";
+import {
+  type AgentRun,
+  type AgentRunActivity,
+  type AgentRunBudget,
+  type AgentRunPlan,
+  type AgentRunStatus,
+  isLiveRun,
+  useAgentRunsStore,
+} from "@/store/agent-runs";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 
 import type { AgentContextSnapshot, LLMProviderId } from "../../types/ai";
@@ -36,9 +50,12 @@ export interface DelegateLaunch {
   threadId?: string;
 }
 
-/** Where each launched run delivers its output, keyed by sidecar run id.
- *  An entry is consumed by its one delivery. */
-const origins = new Map<string, { threadId?: string; agentId: string; agentName: string }>();
+/** Where each launched (or resumed) run delivers its output, keyed by sidecar
+ *  run id. An entry is consumed by its one delivery. */
+const origins = new Map<
+  string,
+  { threadId?: string; agentId: string; agentName: string; messageId: string }
+>();
 
 /** `GET /runs/{id}` output fields (either spelling for the host actions). */
 interface RunOutputWire {
@@ -61,8 +78,30 @@ interface RunWire {
   agent_name?: string;
   status: AgentRunStatus;
   cost?: { tokens?: number; spend_usd?: number; steps?: number };
+  provider?: string | null;
+  plan?: AgentRunPlan | null;
+  activity?: AgentRunActivity[];
   detail?: string;
   question?: string;
+}
+
+/** `GET /runs` — every run the sidecar knows, newest first. */
+async function fetchRuns(): Promise<RunWire[]> {
+  const base = await getSidecarBaseUrl();
+  const response = await fetch(new URL("/runs", base).toString());
+  if (!response.ok) {
+    throw new Error(`/runs HTTP ${response.status}`);
+  }
+  const wire = (await response.json()) as { runs?: RunWire[] } | RunWire[];
+  return Array.isArray(wire) ? wire : (wire.runs ?? []);
+}
+
+function costOf(w: RunWire) {
+  return {
+    tokens: w.cost?.tokens ?? 0,
+    spendUsd: w.cost?.spend_usd ?? 0,
+    steps: w.cost?.steps ?? 0,
+  };
 }
 
 const POLL_MS = 2000;
@@ -78,7 +117,7 @@ const POLL_FAIL_THRESHOLD = 5;
 function markRunsStale(): void {
   const store = useAgentRunsStore.getState();
   for (const run of store.runs) {
-    if (run.sidecarRunId && (run.status === "running" || run.status === "paused")) {
+    if (run.sidecarRunId && isLiveRun(run.status)) {
       store.updateRun(run.id, {
         detail: "Lost contact with the run — the sidecar may be down. Status may be stale.",
       });
@@ -102,6 +141,8 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     mode: "delegate",
     budget: launch.budget,
     cost: { tokens: 0, spendUsd: 0, steps: 0 },
+    provider: launch.provider,
+    threadId: launch.threadId,
   });
   try {
     const base = await getSidecarBaseUrl();
@@ -135,8 +176,8 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     if (!response.ok) {
       let detail = response.statusText;
       try {
-        const body = (await response.json()) as { detail?: string };
-        if (body.detail) detail = body.detail;
+        // A 422 carries a list of field errors, never "[object Object]".
+        detail = extractSidecarDetail(await response.json(), detail);
       } catch {
         // ignore
       }
@@ -145,15 +186,13 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     }
     const body = (await response.json()) as { runId?: string; run_id?: string };
     const sidecarRunId = body.runId ?? body.run_id;
-    useAgentRunsStore.getState().updateRun(localId, {
-      sidecarRunId,
-      abort: sidecarRunId ? () => void cancelDelegateRun(sidecarRunId) : undefined,
-    });
+    useAgentRunsStore.getState().updateRun(localId, { sidecarRunId });
     if (sidecarRunId) {
       origins.set(sidecarRunId, {
         threadId: launch.threadId,
         agentId: launch.agentId,
         agentName: launch.agentName,
+        messageId: `delegate-${sidecarRunId}`,
       });
     }
     ensurePolling();
@@ -168,7 +207,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
 export async function pollDelegateRuns(): Promise<void> {
   const active = useAgentRunsStore
     .getState()
-    .runs.some((r) => r.sidecarRunId && (r.status === "running" || r.status === "paused"));
+    .runs.some((r) => r.sidecarRunId && isLiveRun(r.status));
   if (!active) {
     // No active runs — clear any residual failure count so a NEW run can't
     // inherit a near-threshold count and badge stale on its very first dropped
@@ -178,13 +217,7 @@ export async function pollDelegateRuns(): Promise<void> {
   }
   let runs: RunWire[];
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(new URL("/runs", base).toString());
-    if (!response.ok) {
-      throw new Error(`/runs HTTP ${response.status}`);
-    }
-    const wire = (await response.json()) as { runs?: RunWire[] } | RunWire[];
-    runs = Array.isArray(wire) ? wire : (wire.runs ?? []);
+    runs = await fetchRuns();
   } catch {
     // A single dropped poll is fine; sustained failure means we've lost the
     // sidecar — badge the runs stale rather than showing a frozen live readout.
@@ -199,17 +232,20 @@ export async function pollDelegateRuns(): Promise<void> {
   for (const w of runs) {
     const local = store.bySidecarId(w.id);
     if (!local) continue;
-    const cost = w.cost
-      ? {
-          tokens: w.cost.tokens ?? 0,
-          spendUsd: w.cost.spend_usd ?? 0,
-          steps: w.cost.steps ?? 0,
-        }
-      : local.cost;
-    if (w.status === "running" || w.status === "paused") {
-      store.updateRun(local.id, { status: w.status, cost, detail: w.detail, question: w.question });
+    const cost = w.cost ? costOf(w) : local.cost;
+    const plan = w.plan ?? undefined;
+    const activity = w.activity ?? local.activity;
+    if (w.status === "running" || w.status === "paused" || w.status === "planned") {
+      store.updateRun(local.id, {
+        status: w.status,
+        cost,
+        detail: w.detail,
+        question: w.question,
+        plan,
+        activity,
+      });
     } else {
-      store.updateRun(local.id, { cost, detail: w.detail });
+      store.updateRun(local.id, { cost, detail: w.detail, activity });
       store.endRun(local.id, w.status, w.detail);
       if (w.status === "done" || w.status === "error") {
         await deliverRunOutput(w.id, w.status, w.detail);
@@ -250,7 +286,7 @@ async function deliverRunOutput(
     }).`;
     status = "error";
   }
-  const messageId = `delegate-${sidecarRunId}`;
+  const messageId = origin.messageId;
   if (output.answer || status === "error") {
     useAgentSpacesStore.getState().deliverTo(origin.threadId, {
       id: messageId,
@@ -277,15 +313,68 @@ async function deliverRunOutput(
   }
 }
 
-export async function cancelDelegateRun(sidecarRunId: string): Promise<void> {
+/**
+ * Adopt every live sidecar run the rail does not mirror yet (R15-UI-040) —
+ * after a webview reload the store is empty while the runs keep spending. An
+ * adopted run's answer lands in the live transcript (its thread is unknown).
+ */
+export async function adoptSidecarRuns(): Promise<void> {
+  let runs: RunWire[];
+  try {
+    runs = await fetchRuns();
+  } catch {
+    return; // the sidecar is down; the next mount (or launch) adopts
+  }
+  const store = useAgentRunsStore.getState();
+  for (const w of runs) {
+    if (!isLiveRun(w.status) || store.bySidecarId(w.id)) continue;
+    const id = store.startRun({
+      agentId: w.agent_id,
+      agentName: w.agent_name ?? w.agent_id ?? "Agent",
+      mode: "delegate",
+      cost: costOf(w),
+      sidecarRunId: w.id,
+      provider: w.provider ?? undefined,
+    });
+    store.updateRun(id, {
+      status: w.status,
+      detail: w.detail,
+      question: w.question,
+      plan: w.plan ?? undefined,
+      activity: w.activity,
+    });
+    origins.set(w.id, {
+      agentId: w.agent_id ?? "",
+      agentName: w.agent_name ?? w.agent_id ?? "Agent",
+      messageId: `delegate-${w.id}`,
+    });
+  }
+  ensurePolling();
+}
+
+/**
+ * Cancel a durable run. The mirror flips to `cancelled` only once the sidecar
+ * confirmed; a refused or failed cancel leaves it running and returns the
+ * reason for the rail's retry note (R15-UI-040 — the run may still be spending).
+ */
+export async function cancelDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
+  let error: string;
   try {
     const base = await getSidecarBaseUrl();
-    await fetch(new URL(`/runs/${encodeURIComponent(sidecarRunId)}/cancel`, base).toString(), {
-      method: "POST",
-    });
-  } catch {
-    // Best-effort; the poll will reconcile.
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/cancel`, base).toString(),
+      { method: "POST" },
+    );
+    if (response.ok) {
+      const local = useAgentRunsStore.getState().bySidecarId(sidecarRunId);
+      if (local) useAgentRunsStore.getState().endRun(local.id, "cancelled", "cancelled by user");
+      return { ok: true };
+    }
+    error = `HTTP ${response.status}`;
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
   }
+  return { ok: false, error: `Cancel failed (${error}) — retry.` };
 }
 
 /** The result of a run control action — `ok:false` carries a human reason so the
@@ -295,10 +384,20 @@ export interface RunActionResult {
   error?: string;
 }
 
+/** The run's provider key as the `X-LLM-Api-Key` header — read from the OS
+ *  keychain like a launch's, never sent in a body (R15-AGENT-035). A keyless
+ *  provider (local Ollama) sends none. */
+async function providerKeyHeader(provider?: string): Promise<Record<string, string>> {
+  if (!provider) return {};
+  const key = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
+  return key ? { "X-LLM-Api-Key": key } : {};
+}
+
 /** Answer a human-in-the-loop question a paused run is waiting on (FR-028). */
 export async function answerDelegateRun(
   sidecarRunId: string,
   answer: string,
+  provider?: string,
 ): Promise<RunActionResult> {
   try {
     const base = await getSidecarBaseUrl();
@@ -306,7 +405,7 @@ export async function answerDelegateRun(
       new URL(`/runs/${encodeURIComponent(sidecarRunId)}/answer`, base).toString(),
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await providerKeyHeader(provider)) },
         body: JSON.stringify({ answer }),
       },
     );
@@ -319,17 +418,51 @@ export async function answerDelegateRun(
   }
 }
 
-/** Resume a paused/checkpointed run (FR-028). */
-export async function resumeDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
+/** Start a `planned` run: the user approved its plan (R15-AGENT-039). The
+ *  provider key crosses in a header, like a resume's. */
+export async function startDelegateRun(run: AgentRun): Promise<RunActionResult> {
+  const sidecarRunId = run.sidecarRunId;
+  if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to start." };
+  try {
+    const base = await getSidecarBaseUrl();
+    const response = await fetch(
+      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/start`, base).toString(),
+      { method: "POST", headers: await providerKeyHeader(run.provider) },
+    );
+    if (!response.ok) {
+      return { ok: false, error: `Couldn't start the run (HTTP ${response.status}).` };
+    }
+    useAgentRunsStore.getState().updateRun(run.id, { status: "running", detail: "started" });
+    ensurePolling();
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't start the run." };
+  }
+}
+
+/** Resume an errored run from its checkpoint on its launch provider/model
+ *  (FR-028, R15-AGENT-035); its answer is delivered to its thread again. */
+export async function resumeDelegateRun(run: AgentRun): Promise<RunActionResult> {
+  const sidecarRunId = run.sidecarRunId;
+  if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to resume." };
   try {
     const base = await getSidecarBaseUrl();
     const response = await fetch(
       new URL(`/runs/${encodeURIComponent(sidecarRunId)}/resume`, base).toString(),
-      { method: "POST" },
+      { method: "POST", headers: await providerKeyHeader(run.provider) },
     );
     if (!response.ok) {
       return { ok: false, error: `Couldn't resume the run (HTTP ${response.status}).` };
     }
+    useAgentRunsStore
+      .getState()
+      .updateRun(run.id, { status: "running", endedAt: undefined, detail: "resumed" });
+    origins.set(sidecarRunId, {
+      threadId: run.threadId,
+      agentId: run.agentId ?? "",
+      agentName: run.agentName,
+      messageId: `delegate-${sidecarRunId}-${Date.now()}`,
+    });
     ensurePolling();
     return { ok: true };
   } catch (err) {

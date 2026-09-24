@@ -190,8 +190,9 @@ def test_research_maps_to_deep_brief_with_sources() -> None:
     assert reuters.title == "Nvidia data-center revenue surges"
     assert "data-center GPUs" in reuters.excerpt
 
-    # Provenance "via Perplexity Sonar" rides every source + the cost snapshot.
-    assert all(PROVENANCE_NOTE in (s.domain or "") for s in brief.sources)
+    # Provenance "via Perplexity Sonar" rides every source (in `provider`, never
+    # the `domain` host label) + the cost snapshot.
+    assert all(s.provider == PROVENANCE_NOTE for s in brief.sources)
     assert brief.cost.get("provider") == PROVENANCE_NOTE
     assert brief.cost.get("estimate") is True
     assert brief.cost.get("spend_usd", 0) > 0.0

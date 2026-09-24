@@ -315,3 +315,58 @@ def test_snapshot_attaches_nothing_when_statements_unavailable(
     assert "revenue_growth_computed" not in fund
     assert "earnings_growth_computed" not in fund
     assert "growth_computed_quarters" not in fund
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-076: an Indian listing's growth is witnessed by its exchange filings
+# ---------------------------------------------------------------------------
+
+
+def _dal_filings() -> Any:
+    """DAL's BSE-filed quarters (INR; recorded 2026-09-24, Jun-26 back to Jun-25)."""
+    from datetime import date
+
+    from services.exchange_financials import FiledPeriod, FiledPeriods
+
+    quarters = [
+        (date(2026, 4, 1), date(2026, 6, 30), 72_600_000.0, 59_900_000.0),
+        (date(2026, 1, 1), date(2026, 3, 31), 100_000.0, -37_700_000.0),
+        (date(2025, 10, 1), date(2025, 12, 31), 25_800_000.0, 9_100_000.0),
+        (date(2025, 7, 1), date(2025, 9, 30), 1_200_000.0, -21_100_000.0),
+        (date(2025, 4, 1), date(2025, 6, 30), 50_000_000.0, 41_000_000.0),
+    ]
+    periods = tuple(FiledPeriod(s, e, rev, np, None) for s, e, rev, np in quarters)
+    return FiledPeriods("bse", "standalone", periods)
+
+
+def _serve_filings(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import exchange_financials
+
+    async def filed(listing: str) -> Any:  # noqa: ARG001
+        return _dal_filings()
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", filed)
+    monkeypatch.setattr(
+        growth_check, "_fetch_quarterly_income", lambda s: pytest.fail("Yahoo was read")
+    )
+
+
+def test_exchange_filed_quarters_are_preferred_over_yahoo(monkeypatch: pytest.MonkeyPatch) -> None:
+    _serve_filings(monkeypatch)
+    yoy = asyncio.run(growth_check.get_quarterly_yoy("DAL.BO"))
+    assert (yoy.source, yoy.mrq, yoy.prior) == ("bse", "2026-06-30", "2025-06-30")
+    assert yoy.revenue_growth == pytest.approx((72.6 - 50.0) / 50.0)
+    assert yoy.earnings_growth == pytest.approx((59.9 - 41.0) / 41.0)
+
+
+@pytest.mark.parametrize(("yahoo_growth", "conflict"), [(-0.30, True), (0.45, False)])
+def test_a_yahoo_growth_scalar_the_filings_contradict_is_a_conflict(
+    monkeypatch: pytest.MonkeyPatch, yahoo_growth: float, conflict: bool
+) -> None:
+    from services.research import semantics
+
+    _serve_filings(monkeypatch)
+    yoy = asyncio.run(growth_check.get_quarterly_yoy("DAL.BO"))
+    fund = {"revenue_growth": yahoo_growth, "revenue_growth_computed": yoy.revenue_growth}
+    _, conflicts = semantics._growth_leg(fund, "yfinance")
+    assert bool(conflicts) is conflict

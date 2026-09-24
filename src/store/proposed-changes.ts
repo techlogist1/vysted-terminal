@@ -19,6 +19,7 @@ import {
   hostActionAckDetail,
   parseHostAction,
   publishAckStatus,
+  undoPreImage,
 } from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useBriefStore } from "@/store/brief";
@@ -68,12 +69,17 @@ export interface EnqueueInput {
   agentName?: string;
 }
 
+/** How a staged change resolved: it landed, it waits for the user's review, or
+ *  its apply failed (re-pended with a detail). The transcript writes this. */
+export type ChangeOutcome = "applied" | "staged" | "failed";
+
 interface ProposedChangesState {
   changes: ProposedChange[];
-  /** Stage a host-action mutation as a reviewable diff. Returns its id. */
-  enqueue: (input: EnqueueInput) => string;
-  /** Accept one change — apply it. */
-  accept: (id: string) => Promise<void>;
+  /** Stage a host-action mutation as a reviewable diff. Returns its id and how
+   *  it resolved (an AUTO-applied kind resolves once its apply settles). */
+  enqueue: (input: EnqueueInput) => { id: string; outcome: Promise<ChangeOutcome> };
+  /** Accept one change — apply it. Resolves `failed` when it did not land. */
+  accept: (id: string) => Promise<"applied" | "failed">;
   /** Reject one change — leaves cockpit state unchanged. */
   reject: (id: string) => void;
   /** Accept every still-pending change in a batch, in proposal order. */
@@ -81,6 +87,9 @@ interface ProposedChangesState {
   rejectBatch: (batchId: string) => void;
   acceptAll: () => Promise<void>;
   rejectAll: () => void;
+  /** Restore an applied data write's pre-image (session Undo). Acks nothing:
+   *  the runtime already holds the applied outcome of that tool call. */
+  undo: (id: string) => void;
   clear: () => void;
   pending: () => ProposedChange[];
   pendingInBatch: (batchId: string) => ProposedChange[];
@@ -114,18 +123,17 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     // kind stays pending, and the ledger learns it is awaiting review, not failed.
     if (useAgentAutonomyStore.getState().autonomy === "auto") {
       if (autoApplies(change.kind)) {
-        void get().accept(id);
-      } else {
-        ackHostAction(toolCallId, "staged", hostActionAckDetail(name, input));
+        return { id, outcome: get().accept(id) };
       }
+      ackHostAction(toolCallId, "staged", hostActionAckDetail(name, input));
     }
-    return id;
+    return { id, outcome: Promise.resolve("staged") };
   },
 
   accept: async (id) => {
     const change = get().changes.find((c) => c.id === id);
     if (!change || change.status !== "pending") {
-      return;
+      return "failed"; // nothing was applied by this call
     }
     // Claim the change SYNCHRONOUSLY before any await so a concurrent accept(id)
     // (or acceptAll racing a manual click) sees status !== "pending" and bails —
@@ -135,7 +143,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
         c.id === id ? { ...c, status: "accepted", detail: undefined } : c,
       ),
     }));
-    const { label, reason } = await applyIntentAsync(change.intent);
+    const { label, reason, preImage } = await applyIntentAsync(change.intent);
     const ok = label !== null;
     const detail = ok
       ? undefined
@@ -155,7 +163,12 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
       set((state) => ({
         changes: state.changes.map((c) => (c.id === id ? { ...c, status: "pending", detail } : c)),
       }));
+    } else if (preImage) {
+      set((state) => ({
+        changes: state.changes.map((c) => (c.id === id ? { ...c, preImage } : c)),
+      }));
     }
+    return ok ? "applied" : "failed";
   },
 
   reject: (id) => {
@@ -212,6 +225,23 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     }));
     settleRejectedPublishes(targets);
     ackRejectedHostActions(targets);
+  },
+
+  undo: (id) => {
+    const change = get().changes.find((c) => c.id === id);
+    if (!change || change.status !== "accepted" || !change.preImage) {
+      return;
+    }
+    const { label, reason } = undoPreImage(change.preImage);
+    set((state) => ({
+      changes: state.changes.map((c) =>
+        c.id !== id
+          ? c
+          : label !== null
+            ? { ...c, status: "undone", detail: undefined }
+            : { ...c, detail: reason || "Could not undo this change." },
+      ),
+    }));
   },
 
   clear: () => set({ changes: [] }),

@@ -44,25 +44,90 @@ def _return_pct_window(series: Any) -> float | None:
     return (last_close / first_close - 1.0) * 100.0
 
 
+async def _quote_or_error(symbol: str, asset_class: str) -> tuple[Any, dict[str, Any] | None]:
+    """One quote fetch: ``(quote, None)``, or ``(None, error entry)`` — never raised."""
+    from services import provider_registry
+    from services.errors import ProviderError
+
+    try:
+        return await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class), None
+    except ProviderError as exc:
+        return None, {"symbol": symbol, "error": str(exc), "note": f"no quote for {symbol}: {exc}"}
+    except Exception as exc:  # noqa: BLE001
+        return None, {
+            "symbol": symbol,
+            "error": str(exc),
+            "note": f"unexpected error fetching {symbol}: {exc}",
+        }
+
+
+async def _resolve_after_miss(symbol: str) -> tuple[str | None, dict[str, Any] | None, str | None]:
+    """An equity input that got no quote goes through the ONE resolution policy
+    (``fundamentals._canonicalize``, the same wrapper the fundamentals tool uses).
+
+    Returns ``(canonical, error_entry, note)``: a confident bind at a different
+    listing (a company name, a typo'd ticker) → the canonical symbol to compare
+    instead; a disambiguation → an error naming the candidates; an input that is
+    no known listing at all → an "unresolved" error, so the model reads a wrong
+    ticker as a wrong ticker, not as "no quote available". A known listing with
+    no quote keeps the provider error (``None, None, None``).
+    """
+    from services import symbol_resolver
+    from services.agent_tools.fundamentals import _canonicalize
+
+    verdict = await _canonicalize(symbol)
+    if verdict.canonical_symbol is not None:
+        return verdict.canonical_symbol, None, verdict.note
+    if verdict.honest_not_found is not None:
+        error = verdict.honest_not_found["error"]
+        return (
+            None,
+            {
+                "symbol": symbol,
+                "error": f"ambiguous name: {error}",
+                "note": f"ambiguous name: {error}",
+                "candidates": verdict.candidates,
+            },
+            None,
+        )
+    known = (
+        symbol_resolver.is_us_symbol(symbol)
+        or symbol_resolver.is_nse_symbol(symbol)
+        or symbol_resolver.is_bse_symbol(symbol)
+    )
+    if known:
+        return None, None, None
+    error = (
+        f"unresolved name: {symbol!r} is not a known ticker and matched no listing — "
+        "retry with the company name or the exact exchange ticker"
+    )
+    return None, {"symbol": symbol, "error": error, "note": error}, None
+
+
 async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[str, Any]:
     """Fetch quote + fundamentals + return window for a single symbol.
 
     Always returns a dict; a provider failure is reported as an ``error``
     field (with a human note) rather than raised, so the caller's
-    ``asyncio.gather`` never aborts the batch on one bad ticker."""
+    ``asyncio.gather`` never aborts the batch on one bad ticker. An equity
+    input with no quote is run through the resolution policy
+    (:func:`_resolve_after_miss`) before the failure stands; a crypto pair
+    passes through unchanged."""
     from services import provider_registry
     from services.errors import ProviderError
 
-    try:
-        quote = await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
-    except ProviderError as exc:
-        return {"symbol": symbol, "error": str(exc), "note": f"no quote for {symbol}: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {
-            "symbol": symbol,
-            "error": str(exc),
-            "note": f"unexpected error fetching {symbol}: {exc}",
-        }
+    requested = symbol
+    resolved_note: str | None = None
+    quote, failure = await _quote_or_error(symbol, asset_class)
+    if failure is not None and asset_class != "crypto":
+        canonical, unresolved, resolved_note = await _resolve_after_miss(symbol)
+        if unresolved is not None:
+            return unresolved
+        if canonical is not None:
+            symbol = canonical
+            quote, failure = await _quote_or_error(symbol, asset_class)
+    if failure is not None:
+        return failure
 
     # Fundamentals are routinely sparse (and absent for crypto) — a failure here
     # degrades to None rather than failing the symbol.
@@ -92,6 +157,8 @@ async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[st
 
     return {
         "symbol": quote.symbol,
+        # Set when the input was resolved to a different listing — never silent.
+        **({"requested": requested, "note": resolved_note} if resolved_note else {}),
         "provider": quote.provider,
         "quote": {
             "price": quote.price,

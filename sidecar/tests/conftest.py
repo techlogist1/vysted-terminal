@@ -143,6 +143,27 @@ def _no_network_dividend_actions(
     monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", _stub)
 
 
+@pytest.fixture(autouse=True)
+def _no_network_exchange_financials(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Keep the exchange-filed results lane (D-B7-1) off the network.
+
+    ``GET /fundamentals``, the agent ``fundamentals`` tool and the growth
+    cross-check read an Indian listing's NSE/BSE filed results — same
+    seam-vs-network shape as the stubs above. Stub it to ``None`` (no filed
+    periods) for every test EXCEPT the ``test_b7_exchange_*`` modules, which
+    drive the real lane over recorded exchange payloads."""
+    if request.module.__name__.rsplit(".", 1)[-1].startswith("test_b7_exchange_"):
+        return
+    from services import exchange_financials
+
+    async def _stub(_listing: str) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", _stub)
+
+
 # --------------------------------------------------------------------------
 # yfinance fakes
 # --------------------------------------------------------------------------

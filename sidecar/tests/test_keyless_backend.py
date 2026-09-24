@@ -128,21 +128,30 @@ def test_empty_primary_but_fallback_results_serve() -> None:
 # --- breaker integration --------------------------------------------------------
 
 
-def test_two_failures_trip_breaker_and_next_run_skips_engine() -> None:
-    ddg = _Engine([SearchError("down"), SearchError("down")])
-    brave = _Engine(
-        [
-            _response("brave", [_result("https://b.com/1")]),
-            _response("brave", [_result("https://b.com/2")]),
-        ]
-    )
+def test_two_failed_searches_trip_breaker_and_next_run_skips_engine() -> None:
+    down = SearchError("down")
+    ddg = _Engine([down, down, down, down])
+    brave = _Engine([_response("brave", [_result(f"https://b.com/{i}")]) for i in range(3)])
     backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
 
-    _run(backend.search("q1"))  # spends ddg's 2 attempts → breaker OPEN
+    _run(backend.search("q1"))  # one failed search = one strike, still closed
+    assert breaker_for("ddg").state == "closed"
+    reset_queue()  # keep the pacing wait from eating q2's engine deadline
+    _run(backend.search("q2"))  # the second failed search → breaker OPEN
     assert breaker_for("ddg").state == "open"
 
-    _run(backend.search("q2"))  # OPEN breaker → ddg skipped without a call
-    assert ddg.calls == 2  # unchanged — no third network attempt
+    _run(backend.search("q3"))  # OPEN breaker → ddg skipped without a call
+    assert ddg.calls == 4  # unchanged — no fifth network attempt
+
+
+def test_one_search_failing_every_attempt_leaves_the_breaker_closed() -> None:
+    """R15-RESEARCH-038: the retries of ONE search count one failure, so a single
+    bad search no longer benches DuckDuckGo for the 45 s cooldown."""
+    ddg = _Engine([SearchError("down"), SearchError("down")])
+    brave = _Engine([_response("brave", [_result("https://b.com/1")])])
+    _run(_backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])}).search("q"))
+    assert ddg.calls == 2
+    assert breaker_for("ddg").state == "closed"
 
 
 def test_open_breaker_engine_is_skipped_without_network_call() -> None:
@@ -222,12 +231,15 @@ def test_urls_deduped_within_a_run() -> None:
     assert [r.url for r in resp.results] == ["https://a.com/1", "https://a.com/2"]
 
 
-def test_low_quality_boilerplate_filtered_out() -> None:
+def test_interstitial_rows_filtered_but_consent_snippets_kept() -> None:
+    """Only block-page markers act on SERP rows; consent/footer text is a
+    paragraph-level filter for extracted pages (R15-RESEARCH-023)."""
     ddg = _Engine(
         [
             _response(
                 "ddg",
                 [
+                    _result("https://a.com/wall", snippet="Verify you are a human to continue"),
                     _result("https://a.com/cookie", snippet="We use cookies — accept all cookies"),
                     _result("https://a.com/real", snippet="NVDA datacenter revenue grew 94%"),
                 ],
@@ -236,7 +248,20 @@ def test_low_quality_boilerplate_filtered_out() -> None:
     )
     backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
     resp = _run(backend.search("q"))
-    assert [r.url for r in resp.results] == ["https://a.com/real"]
+    assert [r.url for r in resp.results] == ["https://a.com/cookie", "https://a.com/real"]
+
+
+def test_investor_relations_row_with_rights_footer_is_kept() -> None:
+    """R15-RESEARCH-023: an IR result whose snippet ends in the copyright footer
+    survives the SERP filter (it used to be dropped before relevance saw it)."""
+    row = _result(
+        "https://www.routemobile.com/investors",
+        title="Route Mobile Q2 FY25 results",
+        snippet="Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.",
+    )
+    ddg = _Engine([_response("ddg", [row])])
+    resp = _run(_backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])}).search("q"))
+    assert [r.url for r in resp.results] == ["https://www.routemobile.com/investors"]
 
 
 def test_is_low_quality_markers() -> None:
@@ -246,14 +271,31 @@ def test_is_low_quality_markers() -> None:
     assert is_low_quality("") is False  # thin, not boilerplate
 
 
-def test_all_results_filtered_rotates_onward() -> None:
+def test_all_results_blocked_rotates_onward() -> None:
     ddg = _Engine(
-        [_response("ddg", [_result("https://a.com/x", snippet="cookie banner only page")])]
+        [_response("ddg", [_result("https://a.com/x", snippet="Are you a robot? Solve this")])]
     )
     brave = _Engine([_response("brave", [_result("https://b.com/1")])])
     backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
     resp = _run(backend.search("q"))
     assert resp.backend == "keyless:brave"
+
+
+def test_a_200_challenge_page_counts_as_a_failure_not_an_answer() -> None:
+    """R15-RESEARCH-022: a block page is not a healthy empty answer — it strikes
+    the breaker once, and an all-blocked chain raises rate-limited."""
+    wall = _result(
+        "https://duckduckgo.com/",
+        title="Unusual traffic from your computer network",
+        snippet="Please verify you are a human",
+    )
+    engines = {eid: _Engine([_response(eid, [wall])]) for eid in ENGINE_CHAIN}
+    with pytest.raises(SearchError) as err:
+        _run(_backend(engines).search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "blocked (challenge page)" in str(err.value)
+    assert breaker_for("ddg")._failures == 1
+    assert breaker_for("ddg").state == "closed"
 
 
 # --- tier status surface ---------------------------------------------------------

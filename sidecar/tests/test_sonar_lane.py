@@ -166,12 +166,12 @@ def test_sources_carry_openrouter_lane_provenance() -> None:
     client = _StubClient(_sonar_body())
     backend = OpenRouterSonarBackend("sk-or-test", client=client)  # type: ignore[arg-type]
     brief = _run(backend.research("q"))
-    assert all(PROVENANCE_NOTE in (s.domain or "") for s in brief.sources)
+    assert all(s.provider == PROVENANCE_NOTE for s in brief.sources)
     # The annotation's excerpt rode through the normalize_openai path.
     assert brief.sources[0].title == "10-K"
     # www. is stripped for the host label.
     assert brief.sources[1].domain is not None
-    assert brief.sources[1].domain.startswith("moneycontrol.com")
+    assert brief.sources[1].domain == "moneycontrol.com"  # a bare host, no "via …"
 
 
 def test_cost_snapshot_is_flagged_estimate() -> None:

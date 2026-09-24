@@ -9,6 +9,7 @@ import { useAppStore } from "@/store/app";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelForProvider } from "@/store/model-selection";
 import { useProviderKeysStore } from "@/store/provider-keys";
+import { useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 
 /** Designed word forms for model-id tokens (law §3.1 — short forms live at the
@@ -175,6 +176,7 @@ export function StatusChrome() {
   const providers = useLLMProvidersStore((state) => state.providers);
   const model = useModelForProvider(provider);
   const runs = useAgentRunsStore((state) => state.runs);
+  const autosaveError = useWorkspaceStore((state) => state.lastAutosaveError);
 
   const providerMeta = provider ? providers.find((p) => p.id === provider) : undefined;
   // D60: probe the default lane's actual readiness instead of asserting it.
@@ -253,6 +255,20 @@ export function StatusChrome() {
             <span className="text-charcoal-400 hidden whitespace-nowrap min-[880px]:inline">
               {providerModel}
             </span>
+          </span>
+        </>
+      )}
+      {autosaveError !== null && (
+        <>
+          <span className="bg-charcoal-700 h-3 w-px" aria-hidden />
+          {/* R15-CODE-FRONTEND-019: autosave has failed 3+ times in a row. */}
+          <span
+            className="text-negative flex items-center gap-2 whitespace-nowrap"
+            data-testid="autosave-failing"
+            title={`Changes are not being saved: ${autosaveError}`}
+          >
+            <span className="size-2 shrink-0 rounded-full bg-current" aria-hidden />
+            Not saving
           </span>
         </>
       )}

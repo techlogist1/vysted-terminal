@@ -140,6 +140,23 @@ describe("useEarningsStore — loadUpcoming", () => {
     expect(state.upcomingStatus).toBe("error");
     expect(state.upcomingError).toContain("provider error");
   });
+
+  it("drops a 7-day window that lands after the 30-day one (R15-CODE-FRONTEND-017)", async () => {
+    let resolveWeek: (value: EarningsUpcomingResponse) => void = () => {};
+    const month = { ...UPCOMING_SAMPLE, end_date: "2026-06-15" };
+    vi.mocked(sidecarGet)
+      .mockReturnValueOnce(new Promise((resolve) => (resolveWeek = resolve)))
+      .mockResolvedValueOnce(month);
+    const week = useEarningsStore.getState().loadUpcoming(7);
+    await useEarningsStore.getState().loadUpcoming(30);
+
+    resolveWeek(UPCOMING_SAMPLE);
+    await week;
+    const state = useEarningsStore.getState();
+    expect(state.upcoming).toEqual(month);
+    expect(state.lastDays).toBe(30);
+    expect(state.upcomingStatus).toBe("ready");
+  });
 });
 
 describe("useEarningsStore — per-symbol caches", () => {

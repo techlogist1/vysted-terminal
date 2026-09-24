@@ -30,7 +30,15 @@ import { create } from "zustand";
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 
-import type { WorkflowRunEvent, WorkflowRunRequest, WorkflowSpec } from "../../types/workflow";
+import type {
+  SavedWorkflows,
+  ScheduleCreate,
+  WebhookRefs,
+  WorkflowRunEvent,
+  WorkflowRunRequest,
+  WorkflowSchedule,
+  WorkflowSpec,
+} from "../../types/workflow";
 
 /** Per-run options for {@link WorkflowState.runWorkflow}. */
 export interface RunWorkflowOptions extends Pick<
@@ -392,6 +400,78 @@ export function selectRunLog(
 /** Select the active run's log, or the stable empty list when no run is in flight. */
 export function selectActiveRunLog(state: WorkflowState): readonly WorkflowRunEvent[] {
   return selectRunLog(state, state.activeRun);
+}
+
+// ---------------------------------------------------------------------------
+// Schedules + webhook URLs (R15-AGENT-023)
+// ---------------------------------------------------------------------------
+
+async function _sidecarJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const base = await getSidecarBaseUrl();
+  const response = await fetch(new URL(path, base).toString(), init);
+  if (!response.ok) {
+    throw new Error((await _safeText(response)) ?? `sidecar returned ${response.status}`);
+  }
+  return (await response.json()) as T;
+}
+
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
+export function listSchedules(): Promise<WorkflowSchedule[]> {
+  return _sidecarJson<WorkflowSchedule[]>("/workflow/schedules");
+}
+
+export function createSchedule(body: ScheduleCreate): Promise<WorkflowSchedule> {
+  return _sidecarJson<WorkflowSchedule>("/workflow/schedules", {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify(body),
+  });
+}
+
+export function setScheduleEnabled(id: string, enabled: boolean): Promise<WorkflowSchedule> {
+  return _sidecarJson<WorkflowSchedule>(`/workflow/schedules/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ enabled }),
+  });
+}
+
+export async function deleteSchedule(id: string): Promise<void> {
+  await _sidecarJson(`/workflow/schedules/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+/**
+ * Hold a webhook URL for `ref` in sidecar process memory. The URL rides a
+ * header (the BYOK transport), never the body or path, and is never returned.
+ */
+export async function registerWebhookUrl(ref: string, url: string): Promise<void> {
+  await _sidecarJson<WebhookRefs>(`/workflow/webhooks/${encodeURIComponent(ref)}`, {
+    method: "PUT",
+    headers: { "X-Vysted-Webhook-Url": url },
+  });
+}
+
+/**
+ * Boot: register the keychain-held URL of every saved workflow's
+ * `action.webhook` node, so a scheduled fire can deliver without the editor
+ * open. A ref with no stored URL is skipped (its node errors honestly).
+ */
+export async function registerSavedWebhooks(
+  readSecret: (ref: string) => Promise<string | null>,
+): Promise<void> {
+  const saved = await _sidecarJson<SavedWorkflows>("/workflow/saved");
+  const refs = new Set<string>();
+  for (const spec of saved.workflows) {
+    for (const node of spec.nodes) {
+      const ref = node.config.secret_ref;
+      if (node.type === "action.webhook" && typeof ref === "string" && ref !== "") refs.add(ref);
+    }
+  }
+  for (const ref of refs) {
+    const url = await readSecret(ref);
+    if (url) await registerWebhookUrl(ref, url);
+  }
 }
 
 /** Select every captured desktop-notification intent (for the Tauri dispatcher). */

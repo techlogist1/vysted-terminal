@@ -409,10 +409,12 @@ def _foreign_shadow(text_lc: str, host: str) -> bool:
 
 def _symbol_only_in_index_form(symbol: str, title_lc: str) -> bool:
     """True when EVERY bounded occurrence of ``symbol`` in the title is actually
-    part of a larger index token (``KSE-100``, ``KSE 100``) — i.e. the title
+    part of a larger index token (``KSE-100``, ``KSE100``) — i.e. the title
     names a foreign INDEX, not the company. A single standalone occurrence not
-    followed by an index-style numeric suffix makes this False (a real match)."""
-    index_tail = re.compile(r"[\s-]?\d{2,3}(?![a-z0-9])")
+    followed by an index-style numeric suffix makes this False (a real match).
+    The suffix must be contiguous or hyphenated: a space-separated number is
+    ordinary prose ("BAJFINANCE 200 DMA", "52-week high")."""
+    index_tail = re.compile(r"-?\d{2,3}(?![a-z0-9])")
     saw_occurrence = False
     for m in re.finditer(rf"(?<![a-z0-9]){re.escape(symbol)}(?![a-z0-9])", title_lc):
         saw_occurrence = True
@@ -440,8 +442,10 @@ def _entity_signals(
     short_sig = False
 
     if len(symbol) >= 3:
-        sym_in_title = _bounded(symbol, title_lc) and not _symbol_only_in_index_form(
-            symbol, title_lc
+        # The index-form exclusion only applies under foreign-market evidence
+        # (a Karachi/KSE-100 row); elsewhere a ticker plus a number is a real match.
+        sym_in_title = _bounded(symbol, title_lc) and not (
+            _foreign_shadow(title_lc, host) and _symbol_only_in_index_form(symbol, title_lc)
         )
         sym_hit = (
             sym_in_title

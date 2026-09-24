@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
@@ -194,7 +194,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   historyMock.mockResolvedValue(makeSeries("SPY"));
   fetchIndicatorsMock.mockResolvedValue(makeIndicatorResponse());
-  useChartDrawingsStore.setState({ byPanel: {} });
+  useChartDrawingsStore.setState({ byPanel: {}, views: {} });
   useChartSyncBus.setState({
     crosshair: null,
     visibleRange: null,
@@ -284,6 +284,47 @@ describe("ChartPanel", () => {
 
     expect(await screen.findByText(/bad indicator \(400\)/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry indicators" })).toBeInTheDocument();
+  });
+
+  it("a failed /indicators after a symbol change leaves no overlay of the old symbol (R15-UI-023)", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() =>
+      expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(2),
+    );
+    const drawn = chartApi.addSeries.mock.results
+      .filter((_, i) => chartApi.addSeries.mock.calls[i]?.[0] === "Line")
+      .map((r) => r.value as unknown);
+
+    fetchIndicatorsMock.mockRejectedValueOnce(new SidecarError(502, "indicators down"));
+    historyMock.mockResolvedValueOnce(makeSeries("RELIANCE.NS"));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "RELIANCE.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+
+    expect(await screen.findByText(/indicators down \(502\)/)).toBeInTheDocument();
+    const removed = chartApi.removeSeries.mock.calls.map(([s]) => s as unknown);
+    for (const series of drawn) expect(removed).toContain(series);
+  });
+
+  it("does not draw indicators before their own symbol's candles land (R15-UI-023)", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
+    let resolveHistory: (series: OHLCVSeries) => void = () => {};
+    historyMock.mockReturnValueOnce(new Promise((resolve) => (resolveHistory = resolve)));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "TCS.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1d"));
+
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() => expect(fetchIndicatorsMock).toHaveBeenCalledWith("TCS.NS", ["rsi"], "1d"));
+    await Promise.resolve();
+    expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(0);
+
+    resolveHistory(makeSeries("TCS.NS"));
+    await waitFor(() =>
+      expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(2),
+    );
   });
 
   it("clears all selected indicators from the chip row's Clear all control", async () => {
@@ -649,6 +690,63 @@ describe("ChartPanel", () => {
     expect(chip).toHaveTextContent("2 points left");
   });
 
+  describe("drawing input (R15-UI-022)", () => {
+    type ClickHandler = (param: Record<string, unknown>) => void;
+    const click = (param: Record<string, unknown>) => {
+      const handler = chartApi.subscribeClick.mock.calls.at(-1)?.[0] as ClickHandler;
+      act(() => handler(param));
+    };
+    const arm = async (toolName: string) => {
+      render(<ChartPanel api={{ id: "chart-A" }} />);
+      await waitFor(() => expect(historyMock).toHaveBeenCalled());
+      openDraw();
+      fireEvent.click(screen.getByRole("button", { name: toolName }));
+    };
+    const stored = () => useChartDrawingsStore.getState().getDrawings("chart-A");
+
+    it("anchors at the clicked price, not the bar's close", async () => {
+      await arm("Horizontal line");
+      candleSeries.coordinateToPrice.mockReturnValueOnce(2.9);
+      click({
+        time: 1767225600,
+        logical: 0,
+        point: { x: 10, y: 40 },
+        seriesData: new Map([[candleSeries, { close: 1.5 }]]),
+      });
+      expect(candleSeries.coordinateToPrice).toHaveBeenCalledWith(40);
+      expect(stored()[0]?.points).toEqual([{ time: 1767225600, price: 2.9 }]);
+    });
+
+    it("keeps a click past the last bar placeable by its logical index", async () => {
+      await arm("Trendline");
+      click({ time: undefined, logical: 5, point: { x: 500, y: 40 } });
+      click({ time: undefined, logical: 8, point: { x: 560, y: 60 } });
+      expect(stored()[0]?.points).toEqual([
+        { time: null, price: 100, logical: 5 },
+        { time: null, price: 100, logical: 8 },
+      ]);
+    });
+
+    it("takes the Text label from the inline prompt", async () => {
+      await arm("Text label");
+      click({ time: 1767225600, logical: 0, point: { x: 10, y: 40 } });
+      expect(stored()).toHaveLength(0);
+      fireEvent.change(screen.getByLabelText("Drawing text"), { target: { value: "support" } });
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+      expect(stored()[0]?.kindOptions).toEqual({ text: "support", fontSize: 12 });
+      expect(screen.queryByLabelText("Drawing text")).toBeNull();
+    });
+
+    it("disables a locked drawing's delete control", async () => {
+      await arm("Horizontal line");
+      click({ time: 1767225600, logical: 0, point: { x: 10, y: 40 } });
+      fireEvent.click(screen.getByRole("button", { name: "Lock drawing" }));
+      expect(screen.getByRole("button", { name: "Delete drawing" })).toBeDisabled();
+      fireEvent.click(screen.getByRole("button", { name: /Clear drawings/ }));
+      expect(stored()).toHaveLength(1);
+    });
+  });
+
   it("disarms the active tool from the chip's [x]", async () => {
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
@@ -666,6 +764,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "rectangle",
       points: [
         { time: 1, price: 100 },
@@ -683,10 +783,42 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
+  it("opens on its persisted view and shows only that chart's drawings (R15-UI-020)", async () => {
+    useChartDrawingsStore.getState().setView("chart-A", {
+      symbol: "TCS.NS",
+      timeframe: "1wk",
+      indicators: [],
+      compare: null,
+    });
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "rel-level",
+      panelId: "chart-A",
+      symbol: "RELIANCE.NS",
+      timeframe: "1wk",
+      kind: "horizontal-line",
+      points: [{ time: null, price: 2450 }],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1wk"));
+    expect(screen.queryByRole("button", { name: "Select horizontal-line" })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "RELIANCE.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    expect(
+      await screen.findByRole("button", { name: "Select horizontal-line" }),
+    ).toBeInTheDocument();
+    expect(useChartDrawingsStore.getState().views["chart-A"]?.symbol).toBe("RELIANCE.NS");
+  });
+
   it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -719,6 +851,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -741,6 +875,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -761,6 +897,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },

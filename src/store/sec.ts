@@ -122,6 +122,9 @@ function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): stri
 // Store
 // ---------------------------------------------------------------------------
 
+/** Bumped per `loadFilings` call; a response commits only if still the newest. */
+let filingsGeneration = 0;
+
 export const useSecStore = create<SecState>((set, get) => ({
   activeIdentifier: null,
   filingsByIdentifier: {},
@@ -146,6 +149,10 @@ export const useSecStore = create<SecState>((set, get) => ({
 
   loadFilings: async (identifier, formType) => {
     if (!identifier) return;
+    // Only the newest request commits its status (R15-CODE-FRONTEND-017); the
+    // caller owns `activeIdentifier`, so a late response for the previous
+    // symbol can no longer revert the panel to it.
+    const generation = ++filingsGeneration;
     set({ filingsStatus: "loading", filingsError: null });
     try {
       const params: Record<string, string | number | undefined> = {
@@ -161,14 +168,15 @@ export const useSecStore = create<SecState>((set, get) => ({
         params.form_type = formType;
       }
       const response = await sidecarGet<FilingsListResponse>("/sec/filings", params);
+      if (generation !== filingsGeneration) return;
       const key = filingsKey(identifier, formType);
       set((state) => ({
         filingsByIdentifier: { ...state.filingsByIdentifier, [key]: response },
         filingsStatus: "ready",
         filingsError: null,
-        activeIdentifier: identifier,
       }));
     } catch (err: unknown) {
+      if (generation !== filingsGeneration) return;
       const message = err instanceof Error ? err.message : "filings fetch failed";
       set({ filingsStatus: "error", filingsError: message });
     }

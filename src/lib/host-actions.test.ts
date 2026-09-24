@@ -177,9 +177,44 @@ describe("host-actions", () => {
     expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
   });
 
-  it("applyHostAction(add_to_watchlist) tracks the symbol", () => {
-    applyHostAction("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
+  it("add_to_watchlist tracks the symbol once it resolves to a listing", async () => {
+    // An equity add now resolves through GET /resolve first (R15-AGENT-044).
+    sidecarGetMock.mockReset();
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "TSLA", name: "Tesla, Inc." },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "TSLA", name: "Tesla, Inc." }],
+    });
+    await applyHostActionAsync("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
+    expect(sidecarGetMock).toHaveBeenCalledWith("/resolve", { q: "TSLA" });
     expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toContain("TSLA");
+  });
+
+  it("add_to_watchlist resolves a company name or fails with candidates, never a blank row (R15-AGENT-044)", async () => {
+    sidecarGetMock.mockReset();
+    // The live /resolve answers for "Mazagon Dock" (bound) and the invented
+    // ticker "MAZAGONDOCK" (no listing, no candidate).
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "MAZDOCK", name: "Mazagon Dock Shipbuilders Limited" },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "MAZDOCK", name: "Mazagon Dock Shipbuilders Limited" }],
+    });
+    expect(await applyHostActionAsync("add_to_watchlist", { symbol: "Mazagon Dock" })).toBe(
+      'Added MAZDOCK to your watchlist (resolved from "MAZAGON DOCK")',
+    );
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: null,
+      needs_disambiguation: false,
+      candidates: [],
+    });
+    const invented = await applyIntentAsync(
+      parseHostAction("add_to_watchlist", { symbol: "MAZAGONDOCK" }),
+    );
+    expect(invented).toEqual({
+      label: null,
+      reason: '"MAZAGONDOCK" did not resolve to a listing',
+    });
+    expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["MAZDOCK"]);
   });
 
   it("write_screener_filters describes + writes a nested AND/OR tree into the panel", () => {
@@ -228,6 +263,40 @@ describe("host-actions", () => {
     expect(
       applyHostAction("write_screener_filters", { criteria: [{ field: "pe_ratio" }] }),
     ).toBeNull();
+  });
+
+  it("write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043)", () => {
+    useScreenerStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const input = {
+      criteria: [
+        { field: "pe_ratio", operator: "lt", value: 20 },
+        { field: "roe", operator: "gt", value: { min: 15, max: 15 } },
+        { field: "debt_to_equity", operator: "lt", value: 0.5 },
+      ],
+    };
+    expect(applyHostAction("write_screener_filters", input)).toBe(
+      "Wrote 2 of 3 screener criteria; dropped roe: value must be a number — review and Run",
+    );
+    expect(describeHostAction("write_screener_filters", input).after).toMatch(
+      /dropped roe: value must be a number/,
+    );
+    expect(hostActionAckDetail("write_screener_filters", input).dropped).toEqual([
+      "roe: value must be a number",
+    ]);
+  });
+
+  it("save_screen whose every criterion is malformed refuses instead of saving the current filters (R15-AGENT-043)", () => {
+    useScreenerStore.getState().__resetForTests();
+    const input = {
+      name: "Quality",
+      group: { combinator: "and", criteria: [{ field: "roe", operator: "between", value: 15 }] },
+    };
+    expect(describeHostAction("save_screen", input).after).toMatch(
+      /dropped roe: value must be \{min, max\} numbers — can't apply/,
+    );
+    expect(applyHostAction("save_screen", input)).toBeNull();
+    expect(useScreenerStore.getState().savedScreens).toEqual([]);
   });
 
   it("set_chart_indicators describes + applies the indicator selection (B2)", () => {
@@ -411,6 +480,28 @@ describe("host-actions", () => {
     const brief = useBriefStore.getState().brief;
     expect(brief?.sourceCount).toBe(1);
     expect(brief?.webAvailable).toBe(true); // reconciled — never contradictory
+  });
+
+  it("publish_brief keeps a source's date and provenance from the wire (R15-RESEARCH-024)", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "deep",
+      markdown: "## Brief\nText [1].",
+      sources: [
+        {
+          url: "https://www.sec.gov/x",
+          title: "10-K",
+          domain: "sec.gov",
+          published_at: "2026-09-20T10:00:00Z",
+          provider: "via Perplexity Sonar",
+        },
+      ],
+    });
+    const [source] = useBriefStore.getState().brief?.sources ?? [];
+    expect(source?.publishedAt).toBe("2026-09-20T10:00:00Z");
+    expect(source?.provider).toBe("via Perplexity Sonar");
   });
 
   it("publish_brief: omitted web_available does not default-true a sourceless run", () => {
@@ -1411,13 +1502,13 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetAgentAutonomyStoreForTests();
     twoPortfolios();
     const gate = useProposedChangesStore.getState();
-    const update = gate.enqueue({
+    const { id: update } = gate.enqueue({
       toolCallId: "tc-up",
       name: "portfolio_update_position",
       input: { position_id: "h-a", symbol: "TCS", quantity: 12 },
       batchId: "b",
     });
-    const add = gate.enqueue({
+    const { id: add } = gate.enqueue({
       toolCallId: "tc-add",
       name: "portfolio_add_position",
       input: { symbol: "INFY", quantity: 1, cost_basis: 1500 },
@@ -1437,7 +1528,7 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     resetProposedChangesStoreForTests();
     resetAgentAutonomyStoreForTests();
     const gate = useProposedChangesStore.getState();
-    const id = gate.enqueue({
+    const { id } = gate.enqueue({
       toolCallId: "tc-del",
       name: "portfolio_delete_position",
       input: { position_id: "h-a" },
@@ -1452,5 +1543,49 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     expect(change.status).toBe("pending");
     expect(change.detail).toMatch(/no longer in the portfolio/);
     expect(lots("A")).toEqual(["TCS:3"]);
+  });
+
+  it("an applied holding delete can be undone: the holding is back with its id (R15-AGENT-041)", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    const gate = useProposedChangesStore.getState();
+    const { id } = gate.enqueue({
+      toolCallId: "tc-del",
+      name: "portfolio_delete_position",
+      input: { position_id: "h-a" },
+      batchId: "b",
+    });
+    await gate.accept(id);
+    expect(lots("A")).toEqual([]);
+    expect(useProposedChangesStore.getState().changes[0].preImage).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 0)); // let the accept ack land
+    const fetchCalls = vi.mocked(fetch).mock.calls.length;
+    gate.undo(id);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(vi.mocked(fetch).mock.calls.length).toBe(fetchCalls); // Undo acks nothing new
+    const holdings = usePortfoliosStore.getState().portfolios.find((p) => p.id === "A")!.holdings;
+    expect(holdings).toEqual([
+      { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+    ]);
+    expect(useProposedChangesStore.getState().changes[0].status).toBe("undone");
+  });
+
+  it("an applied note replace can be undone: the prior text is restored (R15-AGENT-041)", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    useNotesStore.getState().setSymbolNote("NVDA", "my own thesis");
+    const gate = useProposedChangesStore.getState();
+    const { id } = gate.enqueue({
+      toolCallId: "tc-note",
+      name: "write_note",
+      input: { scope: "NVDA", text: "agent text", mode: "replace" },
+      batchId: "b",
+    });
+    await gate.accept(id);
+    expect(useNotesStore.getState().noteFor("NVDA")).toBe("agent text");
+    gate.undo(id);
+    expect(useNotesStore.getState().noteFor("NVDA")).toBe("my own thesis");
   });
 });

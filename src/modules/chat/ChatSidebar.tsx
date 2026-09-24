@@ -42,7 +42,7 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
-import { useProposedChangesStore } from "@/store/proposed-changes";
+import { useProposedChangesStore, type ChangeOutcome } from "@/store/proposed-changes";
 import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSettingsStore } from "@/store/settings";
@@ -56,7 +56,6 @@ import type {
   LLMStreamEvent,
 } from "../../../types/ai";
 import { type AgentMode, AGENT_MODES, agentModeMeta } from "../../../types/agent-modes";
-import { autoApplies } from "../../../types/proposed-change";
 import { AgentsRail } from "./AgentsRail";
 import { BudgetConfig, DEFAULT_DELEGATE_BUDGET } from "./BudgetConfig";
 import {
@@ -288,6 +287,19 @@ function readToolLabel(name: string): string {
     default:
       return `Using ${name.replace(/_/g, " ")}`;
   }
+}
+
+/** The transcript line for how a staged change resolved in the gate. */
+function changeOutcomeLine(id: string, status: ChangeOutcome): string {
+  const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
+  const title = change?.title ?? "change";
+  if (status === "applied") {
+    return `Applied: ${title}`;
+  }
+  if (status === "failed") {
+    return `Couldn't apply: ${title}${change?.detail ? ` — ${change.detail}` : ""}`;
+  }
+  return `Proposed: ${title} — review below`;
 }
 
 /**
@@ -579,24 +591,21 @@ export function ChatSidebar() {
   const enqueueSlashChange = useCallback(
     (name: string, input: Record<string, unknown>) => {
       const stamp = Date.now();
-      const id = enqueueChange({
+      const { id, outcome } = enqueueChange({
         toolCallId: `slash-${name}-${stamp}`,
         name,
         input,
         batchId: `slash-${stamp}`,
         agentName: "Slash command",
       });
-      const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
-      const applied =
-        useAgentAutonomyStore.getState().autonomy === "auto" &&
-        change !== undefined &&
-        autoApplies(change.kind);
-      // An auto-applied change → a brief past-tense confirmation. Otherwise
-      // (ASK, or a data/settings change under AUTO) the ProposedChangesReview panel below is the
-      // single source of truth for what's pending — we DON'T set a second
-      // "review below" status line that lingers after the change is resolved (the
-      // phantom "proposed in the permission bar" bug). Clear any prior line either way.
-      setStatusLine(applied ? `Applied: ${change?.title ?? name}` : null);
+      // The line reports how the gate RESOLVED, never a prediction: an applied
+      // change → a brief past-tense confirmation, a failed one → why. A staged
+      // change sets no line — the ProposedChangesReview panel below is the single
+      // source of truth for what's pending (no phantom "proposed" line that
+      // lingers after the change is resolved).
+      void outcome.then((status) => {
+        setStatusLine(status === "staged" ? null : changeOutcomeLine(id, status));
+      });
     },
     [enqueueChange],
   );
@@ -758,18 +767,6 @@ export function ChatSidebar() {
 
       const history = historyForSend(useChatHistoryStore.getState().messages);
 
-      // Auto-title the space from its first prompt (Perplexity-style) so the space
-      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
-      // adding a dep to this memoised handler.
-      if (useChatHistoryStore.getState().messages.length === 0) {
-        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
-        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
-        if (title) {
-          useAgentSpacesStore.getState().renameActive(title);
-        }
-      }
-      appendUser(prompt);
-
       // Resolve the effective provider/model (FR-004): HUD override → the called
       // agent's *deliberate* provider preference (a generic concierge has none) →
       // the user's persisted default. The key is resolved for THAT provider.
@@ -790,6 +787,10 @@ export function ChatSidebar() {
       const providerMeta = providers.find((p) => p.id === provider);
       const requiresKey = providerMeta?.requiresKey ?? true;
       const providerLabel = providerMeta?.label ?? provider;
+      // The provider/key gate runs BEFORE the user turn is appended: a send that
+      // cannot reach a model leaves no orphaned question in the transcript (and
+      // no auto-titled space) — the status line says why and the prompt goes
+      // back into an empty composer.
       let apiKey: string | null = null;
       if (requiresKey) {
         apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
@@ -797,6 +798,7 @@ export function ChatSidebar() {
           setStatusLine(
             `No API key for ${providerLabel}. Add one in Settings → AI Providers (or /key set ${provider}).`,
           );
+          setComposer((current) => current || rawInput);
           return;
         }
       } else if (!(await validateProvider(provider))) {
@@ -807,9 +809,22 @@ export function ChatSidebar() {
           "No AI model is set up yet — opening setup. (Quotes, charts, news and web " +
             "research already work without one.)",
         );
+        setComposer((current) => current || rawInput);
         useOnboardingStore.getState().open();
         return;
       }
+
+      // Auto-title the space from its first prompt (Perplexity-style) so the space
+      // tabs read as real threads, not "Chat 1/2/3". Read via getState to avoid
+      // adding a dep to this memoised handler.
+      if (useChatHistoryStore.getState().messages.length === 0) {
+        const cleaned = prompt.replace(/^\/\S+\s*/, "").trim();
+        const title = cleaned.length > 28 ? `${cleaned.slice(0, 28).trim()}…` : cleaned;
+        if (title) {
+          useAgentSpacesStore.getState().renameActive(title);
+        }
+      }
+      appendUser(prompt);
 
       // Thread the user's deep-research engine selection (Track 5) to the agent so
       // /deep routes to the chosen backend without depending on the model. Read at
@@ -952,7 +967,7 @@ export function ChatSidebar() {
           if (isHostActionMutation(name)) {
             // FR-010 — stage the mutation as a reviewable diff instead of
             // applying it. One agent turn = one batch (assistantId).
-            const id = enqueueChange({
+            const { id, outcome } = enqueueChange({
               toolCallId,
               name,
               input,
@@ -960,24 +975,16 @@ export function ChatSidebar() {
               agentId: agentForCall ?? undefined,
               agentName,
             });
-            const change = useProposedChangesStore.getState().changes.find((c) => c.id === id);
             // Track 3: a brief published this turn (model-issued OR the runtime's
             // synthetic auto-publish) means the depth lives in the rendered brief
             // — collapse the chat essay to a short pointer.
             if (name === "publish_brief") {
               markBriefPublished(assistantId);
             } else {
-              // Reflect what the gate ACTUALLY did: AUTO auto-applied an
-              // auto-applicable kind (no "review below" phantom); anything else
-              // (ASK, or a data/settings change under AUTO) waits in the gate below.
-              const applied =
-                useAgentAutonomyStore.getState().autonomy === "auto" &&
-                change !== undefined &&
-                autoApplies(change.kind);
-              const title = change?.title ?? name;
-              appendToolStep(
-                assistantId,
-                applied ? `Applied: ${title}` : `Proposed: ${title} — review below`,
+              // Write what the gate RESOLVED (applied / failed / staged for review),
+              // never a prediction made before the apply settled.
+              void outcome.then((status) =>
+                appendToolStep(assistantId, changeOutcomeLine(id, status)),
               );
             }
           } else if (name === "research") {

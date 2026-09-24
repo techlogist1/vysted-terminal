@@ -88,6 +88,7 @@ import {
   type ConfigField,
   type RegistryEntry,
 } from "./node-registry";
+import { ScheduleControl, WebhookUrlEditor } from "./schedule-control";
 import { VystedNode } from "./VystedNode";
 import { WorkflowSaveDialog, type SaveDialogValue } from "./workflow-save-dialog";
 import {
@@ -164,6 +165,7 @@ function NodeEditorPanelInner() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
 
   // --- Load dialog (a simple modal list) ------------------------------------
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
@@ -552,6 +554,14 @@ function NodeEditorPanelInner() {
           </Button>
           <Button
             size="sm"
+            variant="ghost"
+            aria-pressed={scheduleOpen}
+            onClick={() => setScheduleOpen((open) => !open)}
+          >
+            Schedule
+          </Button>
+          <Button
+            size="sm"
             variant="outline"
             onClick={handleRun}
             disabled={nodes.length === 0 || runState.status === "running"}
@@ -560,6 +570,12 @@ function NodeEditorPanelInner() {
           </Button>
         </div>
       </header>
+
+      {scheduleOpen && (
+        <div className="border-charcoal-700 border-b px-3 py-2">
+          <ScheduleControl workflowId={workflowId} />
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex min-h-0 flex-1">
@@ -718,6 +734,15 @@ function PropertiesForm({
       </div>
       {nodeTypeId === CODE_NODE_ID ? (
         <CodeNodeInspector config={node.data.config} onPatch={onPatch} />
+      ) : nodeTypeId === "action.webhook" ? (
+        <WebhookUrlEditor
+          secretRef={
+            typeof node.data.config.secret_ref === "string"
+              ? node.data.config.secret_ref
+              : undefined
+          }
+          onPatch={onPatch}
+        />
       ) : fields !== undefined && fields.length > 0 ? (
         fields.map((field) => (
           <ConfigFieldEditor

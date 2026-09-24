@@ -12,7 +12,7 @@ import { formatPercent, formatPrice } from "@/lib/format";
 import { openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
-import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
+import { useSymbolAutocompleteResult } from "@/lib/symbol-autocomplete";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,8 @@ import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
+/** Ceiling of the error backoff (the interval doubles per consecutive failure). */
+const POLL_MAX_BACKOFF_MS = 60_000;
 
 /**
  * R8 overflow law §3.2 — the watchlist's explicit column tracks. Price/change
@@ -141,10 +143,22 @@ export function WatchlistPanel() {
   const addSymbol = useWatchlistStore((state) => state.addSymbol);
   const removeSymbol = useWatchlistStore((state) => state.removeSymbol);
 
-  // `rows` is `null` until the first refresh resolves — that drives the loading
-  // state without a synchronous setState inside the effect. Subsequent entry
-  // changes refresh in place rather than flashing the loading view.
-  const [rows, setRows] = useState<WatchlistRow[] | null>(null);
+  // Latest quote per upper-cased symbol, joined to the live entry list at
+  // render (R15-UI-026): an added symbol shows at once, a removed one never
+  // reappears from an in-flight poll. `null` until the first refresh resolves
+  // (the loading state).
+  const [quotes, setQuotes] = useState<Map<string, WatchlistRow["quote"]> | null>(null);
+  const rows = useMemo<WatchlistRow[] | null>(
+    () =>
+      quotes === null
+        ? null
+        : entries.map((entry) => ({
+            entry,
+            quote: quotes.get(entry.symbol.toUpperCase()) ?? null,
+          })),
+    [entries, quotes],
+  );
+  const failuresRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
   // R15-UI-009: the CSV export now writes a real file via the Rust atomic-write
   // path — this surfaces the saved path (or a write failure) since there is no
@@ -157,7 +171,9 @@ export function WatchlistPanel() {
   // Live name/ticker autocomplete (R7): the resolver knows "Route Mobile" ->
   // ROUTE; until now this input never asked it. Equity-only (crypto pairs
   // aren't in the masters); keyboard-navigable; escape/blur dismisses.
-  const candidates = useSymbolAutocomplete(draftAssetClass === "equity" ? draft : "");
+  const { query: candidatesQuery, candidates } = useSymbolAutocompleteResult(
+    draftAssetClass === "equity" ? draft : "",
+  );
   const [acOpen, setAcOpen] = useState(false);
   const [acActive, setAcActive] = useState(0);
   // Tracks the symbol the user last interacted with via the row hover; null
@@ -204,11 +220,17 @@ export function WatchlistPanel() {
     setInFlight(true);
     try {
       const next = await fetchWatchlistQuotes(entries);
-      setRows(next);
+      setQuotes((prev) => {
+        const merged = new Map(prev ?? []);
+        for (const row of next) merged.set(row.entry.symbol.toUpperCase(), row.quote);
+        return merged;
+      });
       setError(null);
+      failuresRef.current = 0;
     } catch (err) {
       const message = err instanceof SidecarError ? err.message : "Failed to load watchlist quotes";
       setError(message);
+      failuresRef.current += 1;
     } finally {
       inFlightRef.current = false;
       setInFlight(false);
@@ -216,15 +238,31 @@ export function WatchlistPanel() {
   }, [entries]);
 
   useEffect(() => {
-    // Polling effect: `refresh` only sets state after an awaited fetch resolves
-    // (never synchronously), so the cascading-render concern does not apply.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refresh();
-    const timer = setInterval(() => {
-      void refresh();
-    }, POLL_INTERVAL_MS);
+    // Polling: backs off (doubling, capped) on consecutive errors and skips
+    // the fetch while the document is hidden; becoming visible polls at once.
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = async () => {
+      if (!document.hidden) {
+        await refresh();
+      }
+      if (!alive) return;
+      const delay = Math.min(POLL_INTERVAL_MS * 2 ** failuresRef.current, POLL_MAX_BACKOFF_MS);
+      clearTimeout(timer); // one pending poll, even if a visibility tick overlapped
+      timer = setTimeout(() => void tick(), delay);
+    };
+    const onVisibility = () => {
+      if (!document.hidden) {
+        clearTimeout(timer);
+        void tick();
+      }
+    };
+    void tick();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      clearInterval(timer);
+      alive = false;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [refresh]);
 
@@ -237,7 +275,9 @@ export function WatchlistPanel() {
 
   const handleAdd = (event: React.FormEvent) => {
     event.preventDefault();
-    if (acOpen && candidates.length > 0) {
+    // Enter takes a candidate only when the list belongs to what is typed;
+    // a list still showing the previous query's matches adds the draft.
+    if (acOpen && candidates.length > 0 && candidatesQuery === draft.trim()) {
       pickCandidate(candidates[Math.min(acActive, candidates.length - 1)].symbol);
       return;
     }

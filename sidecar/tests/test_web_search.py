@@ -441,7 +441,14 @@ def test_dispatch_returns_results_and_citations(monkeypatch: pytest.MonkeyPatch)
     assert out["ok"] is True
     assert out["backend"] == "searxng"
     assert out["results"][0]["url"] == "https://x.com/a"
-    assert out["citations"][0] == {"url": "https://x.com/a", "title": "A", "excerpt": "snip"}
+    # C4: every citation row carries the bare-host domain and the date key.
+    assert out["citations"][0] == {
+        "url": "https://x.com/a",
+        "title": "A",
+        "excerpt": "snip",
+        "domain": "x.com",
+        "published_at": None,
+    }
 
 
 def test_search_error_becomes_human_message(monkeypatch: pytest.MonkeyPatch) -> None:

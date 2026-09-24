@@ -65,6 +65,9 @@ function watchlistToParam(watchlist: string[] | null | undefined): string | unde
   return watchlist.join(",");
 }
 
+/** Bumped per `loadUpcoming` call; a response commits only if still the newest. */
+let upcomingGeneration = 0;
+
 export const useEarningsStore = create<EarningsState>((set, get) => ({
   upcoming: null,
   upcomingStatus: "idle",
@@ -79,6 +82,9 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
   estimateErrors: {},
 
   loadUpcoming: async (days = DEFAULT_DAYS, watchlist = null) => {
+    // Only the newest window commits: a slower 7-day response landing after
+    // the 30-day one is dropped (R15-CODE-FRONTEND-017).
+    const generation = ++upcomingGeneration;
     set({
       upcomingStatus: "loading",
       upcomingError: null,
@@ -90,8 +96,10 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
         days,
         watchlist: watchlistToParam(watchlist),
       });
+      if (generation !== upcomingGeneration) return;
       set({ upcoming: payload, upcomingStatus: "ready", upcomingError: null });
     } catch (err: unknown) {
+      if (generation !== upcomingGeneration) return;
       const message = err instanceof Error ? err.message : "Failed to load upcoming earnings";
       set({ upcomingStatus: "error", upcomingError: message, upcoming: null });
     }

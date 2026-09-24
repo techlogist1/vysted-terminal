@@ -59,8 +59,26 @@ export async function fetchSymbolCandidates(
  * query's result lands, so fast typing never paints out-of-order candidates.
  */
 export function useSymbolAutocomplete(query: string, limit = 8): SymbolCandidate[] {
+  return useSymbolAutocompleteResult(query, limit).candidates;
+}
+
+/** Candidates plus the (trimmed) query they were fetched for. */
+export interface AutocompleteResult {
+  query: string;
+  candidates: SymbolCandidate[];
+}
+
+const EMPTY_RESULT: AutocompleteResult = { query: "", candidates: [] };
+
+/**
+ * {@link useSymbolAutocomplete} that also says which query its candidates
+ * belong to, so an Enter pressed before the newest response lands can tell
+ * the list is still the previous query's (R15-UI-026: "TCS" + Enter must not
+ * add "TC"'s top candidate).
+ */
+export function useSymbolAutocompleteResult(query: string, limit = 8): AutocompleteResult {
   const region = useSettingsStore((s) => s.region);
-  const [candidates, setCandidates] = useState<SymbolCandidate[]>([]);
+  const [result, setResult] = useState<AutocompleteResult>(EMPTY_RESULT);
   const seq = useRef(0);
 
   useEffect(() => {
@@ -71,7 +89,7 @@ export function useSymbolAutocomplete(query: string, limit = 8): SymbolCandidate
       // triggers cascading renders (lint rule); the seq guard keeps it correct.
       const clear = setTimeout(() => {
         if (seq.current === mySeq) {
-          setCandidates([]);
+          setResult(EMPTY_RESULT);
         }
       }, 0);
       return () => clearTimeout(clear);
@@ -79,12 +97,12 @@ export function useSymbolAutocomplete(query: string, limit = 8): SymbolCandidate
     const timer = setTimeout(() => {
       void fetchSymbolCandidates(q, region, limit).then((rows) => {
         if (seq.current === mySeq) {
-          setCandidates(rows);
+          setResult({ query: q, candidates: rows });
         }
       });
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query, region, limit]);
 
-  return candidates;
+  return result;
 }

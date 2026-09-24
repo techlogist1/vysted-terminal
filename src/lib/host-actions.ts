@@ -31,7 +31,7 @@ import {
   type LayoutTemplate,
 } from "@/lib/layout-templates";
 import { regionConfig, isRegion, type Region } from "@/lib/region";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
 import { useBacktestStore } from "@/store/backtest";
@@ -45,9 +45,9 @@ import {
   type Holding,
   type Portfolio,
 } from "@/store/portfolios";
-import { useScreenerStore } from "@/store/screener";
+import { useScreenerStore, type SavedScreen } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
-import { useSymbolsStore } from "@/store/symbols";
+import { useSymbolsStore, type SymbolEntry } from "@/store/symbols";
 import { isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
 import type {
@@ -153,6 +153,10 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
         title: typeof s.title === "string" ? s.title : typeof s.url === "string" ? s.url : "",
         excerpt: typeof s.excerpt === "string" ? s.excerpt : "",
         domain: typeof s.domain === "string" ? s.domain : undefined,
+        // Wire snake_case (web rows, ResearchSource.to_dict) → the camelCase
+        // contract the sources rail reads (R15-RESEARCH-024, R15-UI-038).
+        publishedAt: typeof s.published_at === "string" ? s.published_at : undefined,
+        provider: typeof s.provider === "string" ? s.provider : undefined,
         sourceType,
       };
     })
@@ -360,22 +364,23 @@ const _SCREENER_UNIVERSES: ReadonlySet<string> = new Set([
  * Coerce one loosely-typed object the agent emitted into a `ScreenerCriterion`.
  * The agent JSON isn't a discriminated union, so we keep only well-formed leaves
  * (a numeric `value` for thresholds / a {min,max} for between / a string for eq /
- * a string[] for in). Returns null for anything malformed so a sloppy arg never
- * crashes the apply.
+ * a string[] for in). A malformed leaf returns WHY it was dropped
+ * ("roe: value must be a number") so the label and the ack can say so — a
+ * sloppy arg never crashes the apply, and never vanishes silently either.
  */
-function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
+function parseScreenerCriterion(raw: unknown): ScreenerCriterion | string {
   if (!raw || typeof raw !== "object") {
-    return null;
+    return "a criterion that is not an object";
   }
   const o = raw as Record<string, unknown>;
   const field = typeof o.field === "string" ? o.field : "";
   const operator = typeof o.operator === "string" ? o.operator : "";
   if (!field || !operator) {
-    return null;
+    return `${field || "a criterion"}: needs both a field and an operator`;
   }
   if (operator === "gt" || operator === "lt" || operator === "gte" || operator === "lte") {
     if (typeof o.value !== "number") {
-      return null;
+      return `${field}: value must be a number`;
     }
     return { field, operator, value: o.value } as ScreenerCriterion;
   }
@@ -391,11 +396,11 @@ function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
         } as ScreenerCriterion;
       }
     }
-    return null;
+    return `${field}: value must be {min, max} numbers`;
   }
   if (operator === "eq") {
     if (typeof o.value !== "string") {
-      return null;
+      return `${field}: value must be a string`;
     }
     return { field, operator: "eq", value: o.value } as ScreenerCriterion;
   }
@@ -404,28 +409,47 @@ function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
       ? o.value.filter((x): x is string => typeof x === "string")
       : [];
     if (arr.length === 0) {
-      return null;
+      return `${field}: value must be a list of strings`;
     }
     return { field, operator: "in", value: arr } as ScreenerCriterion;
   }
-  return null;
+  return `${field}: unknown operator "${operator}"`;
 }
 
-/** Parse a flat `criteria` array arg into well-formed leaves. */
-function parseScreenerCriteria(input: Record<string, unknown>): ScreenerCriterion[] {
-  const raw = input.criteria;
-  if (!Array.isArray(raw)) {
-    return [];
+/** Keep a parsed leaf, or record why it was dropped. */
+function keepLeaf(
+  raw: unknown,
+  into: (ScreenerCriterion | CriterionGroup)[],
+  dropped: string[],
+): void {
+  const leaf = parseScreenerCriterion(raw);
+  if (typeof leaf === "string") {
+    dropped.push(leaf);
+  } else {
+    into.push(leaf);
   }
-  return raw.map(parseScreenerCriterion).filter((c): c is ScreenerCriterion => c !== null);
+}
+
+/** Parse a flat `criteria` array arg into well-formed leaves; each malformed
+ *  leaf's reason goes onto `dropped`. */
+function parseScreenerCriteria(
+  input: Record<string, unknown>,
+  dropped: string[],
+): ScreenerCriterion[] {
+  const criteria: ScreenerCriterion[] = [];
+  for (const item of Array.isArray(input.criteria) ? input.criteria : []) {
+    keepLeaf(item, criteria, dropped);
+  }
+  return criteria;
 }
 
 /**
  * Parse a loosely-typed nested AND/OR `group` tree (the agent's JSON) into a
- * `CriterionGroup`, dropping malformed children. Recurses on sub-groups. Returns
- * null when absent or it collapses to nothing.
+ * `CriterionGroup`, dropping malformed children (their reasons go onto
+ * `dropped`). Recurses on sub-groups. Returns null when absent or it collapses
+ * to nothing.
  */
-function parseScreenerGroup(raw: unknown): CriterionGroup | null {
+function parseScreenerGroup(raw: unknown, dropped: string[]): CriterionGroup | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
@@ -435,15 +459,12 @@ function parseScreenerGroup(raw: unknown): CriterionGroup | null {
   const criteria: (ScreenerCriterion | CriterionGroup)[] = [];
   for (const child of rawChildren) {
     if (child && typeof child === "object" && "combinator" in (child as object)) {
-      const sub = parseScreenerGroup(child);
+      const sub = parseScreenerGroup(child, dropped);
       if (sub) {
         criteria.push(sub);
       }
     } else {
-      const leaf = parseScreenerCriterion(child);
-      if (leaf) {
-        criteria.push(leaf);
-      }
+      keepLeaf(child, criteria, dropped);
     }
   }
   if (criteria.length === 0) {
@@ -711,6 +732,8 @@ interface ScreenRecipe {
   group: CriterionGroup | null;
   universe?: ScreenerUniverseId;
   formula: string;
+  /** Why each malformed criterion the agent sent was dropped. */
+  dropped: string[];
 }
 
 /**
@@ -773,13 +796,30 @@ export type HostIntent =
   | { name: "set_region"; region: Region | null; raw: string }
   | { name: "unknown"; raw: string };
 
+/**
+ * What an applied data write replaced, typed so {@link undoPreImage} can put it
+ * back (the review's session Undo). Only writes that changed something carry
+ * one; an idempotent no-op ("already on your watchlist") has nothing to undo.
+ */
+export type PreImage =
+  | { kind: "holding-added"; portfolioId: string; holdingId: string; symbol: string }
+  | { kind: "holding"; portfolioId: string; holding: Holding; index: number }
+  | { kind: "note"; scope: string; text: string }
+  | { kind: "screen"; name: string; screen: SavedScreen | null }
+  | { kind: "watchlist-added"; symbol: string }
+  | { kind: "watchlist-removed"; entry: SymbolEntry; index: number }
+  | { kind: "region"; region: Region };
+
 /** How an apply resolved: a truthful label, or null with why it did not land. */
 export interface ApplyResult {
   label: string | null;
   reason?: string;
+  /** The state the write replaced, when it is a data write that can be undone. */
+  preImage?: PreImage;
 }
 
-const done = (label: string): ApplyResult => ({ label });
+const done = (label: string, preImage?: PreImage): ApplyResult =>
+  preImage ? { label, preImage } : { label };
 const fail = (reason?: string): ApplyResult => ({ label: null, reason });
 
 /** Parse a screener recipe (flat criteria + optional nested group) from args. */
@@ -787,8 +827,10 @@ function parseScreenRecipe(input: Record<string, unknown>): {
   recipe: ScreenRecipe;
   count: number;
 } {
-  const criteria = parseScreenerCriteria(input);
-  const group = parseScreenerGroup(input.group);
+  const flatDropped: string[] = [];
+  const groupDropped: string[] = [];
+  const criteria = parseScreenerCriteria(input, flatDropped);
+  const group = parseScreenerGroup(input.group, groupDropped);
   const universe =
     typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
       ? (input.universe as ScreenerUniverseId)
@@ -797,9 +839,29 @@ function parseScreenRecipe(input: Record<string, unknown>): {
   // `criteria` too so older readers + the match-index column resolve.
   const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
   return {
-    recipe: { criteria: flat, group, universe, formula: str(input, "formula").trim() },
+    recipe: {
+      criteria: flat,
+      group,
+      universe,
+      formula: str(input, "formula").trim(),
+      // A surviving group is what applies (and is counted); else the flat list.
+      dropped: group ? groupDropped : [...flatDropped, ...groupDropped],
+    },
     count: group ? countLeaves(group) : criteria.length,
   };
+}
+
+/** "; dropped roe: value must be a number" — the criteria the agent sent that
+ *  did not parse, or "" when none were dropped. */
+function droppedCriteriaNote(recipe: ScreenRecipe): string {
+  return recipe.dropped.length ? `; dropped ${recipe.dropped.join("; ")}` : "";
+}
+
+/** "3 screener criteria" / "2 of 3 screener criteria" when some were dropped. */
+function wroteCriteriaText(count: number, recipe: ScreenRecipe): string {
+  const total = count + recipe.dropped.length;
+  const noun = `screener ${total === 1 ? "criterion" : "criteria"}`;
+  return recipe.dropped.length ? `${count} of ${total} ${noun}` : `${count} ${noun}`;
 }
 
 /**
@@ -1097,7 +1159,9 @@ export function describeIntent(intent: HostIntent): {
             ? `Watchlist: no symbol given — ${CANT_APPLY}`
             : tracked
               ? `Watchlist: ${symbol} already tracked`
-              : `Watchlist: +${symbol} (${entries.length + 1} total)`,
+              : intent.assetClass === "equity"
+                ? `Watchlist: +${symbol} once it resolves to one listing (${entries.length + 1} total)`
+                : `Watchlist: +${symbol} (${entries.length + 1} total)`,
         };
       }
       return {
@@ -1126,8 +1190,8 @@ export function describeIntent(intent: HostIntent): {
         after: writes
           ? `Screener: ${criteriaText(count)}${nested}${recipe.universe ? ` · ${recipe.universe}` : ""}${
               recipe.formula ? " · formula" : ""
-            } — ${run ? "runs on apply" : "review then Run"}`
-          : `Screener: no well-formed criteria — ${CANT_APPLY}`,
+            }${droppedCriteriaNote(recipe)} — ${run ? "runs on apply" : "review then Run"}`
+          : `Screener: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`,
       };
     }
     case "save_screen": {
@@ -1144,7 +1208,9 @@ export function describeIntent(intent: HostIntent): {
         before: replaces ? `Saved screens: "${screenName}" exists` : "Saved screens: unchanged",
         after: !screenName
           ? `Saved screens: no name given — ${CANT_APPLY}`
-          : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})`,
+          : count === 0 && !recipe.formula && recipe.dropped.length > 0
+            ? `Saved screens: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`
+            : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})${droppedCriteriaNote(recipe)}`,
       };
     }
     case "portfolio_add_position": {
@@ -1501,8 +1567,13 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         // Truthful idempotent no-op: the desired end state already holds.
         return done(`${symbol} is already on your watchlist`);
       }
+      if (intent.assetClass === "equity") {
+        // A model-supplied equity goes through the one resolution policy first
+        // (GET /resolve) — never a verbatim, possibly invented ticker.
+        return fail("adding an equity needs the async apply (it resolves the name first)");
+      }
       symbols.addSymbol(symbol, intent.assetClass);
-      return done(`Added ${symbol} to your watchlist`);
+      return done(`Added ${symbol} to your watchlist`, { kind: "watchlist-added", symbol });
     }
     case "remove_from_watchlist": {
       const { symbol } = intent;
@@ -1510,18 +1581,24 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return fail("no symbol given");
       }
       const symbols = useSymbolsStore.getState();
-      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+      const index = symbols.entries.findIndex((e) => e.symbol.toUpperCase() === symbol);
+      if (index < 0) {
         // Truthful idempotent no-op: the desired end state already holds.
         return done(`${symbol} was not on your watchlist`);
       }
+      const entry = symbols.entries[index];
       symbols.removeSymbol(symbol);
-      return done(`Removed ${symbol} from your watchlist`);
+      return done(`Removed ${symbol} from your watchlist`, {
+        kind: "watchlist-removed",
+        entry,
+        index,
+      });
     }
     case "write_screener_filters": {
       const { recipe, count, run } = intent;
       // Need at least one well-formed criterion (flat OR nested) or a formula.
       if (count === 0 && !recipe.formula) {
-        return fail("no well-formed screener criteria");
+        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
       }
       // A formula-less write keeps the user's own formula (applyFilters' rule).
       useScreenerStore.getState().applyFilters({
@@ -1538,9 +1615,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // the bare "screener" id silently no-opped (same drift class as arrange).
       useWorkspaceStore.getState().openPanel("screener-panel");
       const what = count
-        ? `${count} screener ${count === 1 ? "criterion" : "criteria"}${recipe.formula ? " + a formula" : ""}`
+        ? `${wroteCriteriaText(count, recipe)}${recipe.formula ? " + a formula" : ""}`
         : "a screener formula";
-      return done(`Wrote ${what} — ${run ? "running" : "review and Run"}`);
+      return done(
+        `Wrote ${what}${droppedCriteriaNote(recipe)} — ${run ? "running" : "review and Run"}`,
+      );
     }
     case "write_note": {
       const { scope, text, append } = intent;
@@ -1556,12 +1635,21 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         notes.setSymbolNote(scope, next);
       }
       useWorkspaceStore.getState().openPanel("notes");
-      return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`);
+      return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`, {
+        kind: "note",
+        scope,
+        text: current,
+      });
     }
     case "save_screen": {
       const { screenName, recipe } = intent;
       if (!screenName) {
         return fail("no screen name given");
+      }
+      // Every criterion the agent sent was malformed: saving would file the
+      // user's CURRENT filters under the agent's name — refuse and say why.
+      if (intent.count === 0 && !recipe.formula && recipe.dropped.length > 0) {
+        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
       }
       // The store saves its current draft, so the agent's recipe is written
       // into the draft first — the saved screen is the recipe, formula and all
@@ -1577,20 +1665,20 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       } else if (recipe.universe) {
         screener.setUniverse(recipe.universe);
       }
-      const replaces = screener.savedScreens.some((s) => s.name === screenName);
+      const previous = screener.savedScreens.find((s) => s.name === screenName) ?? null;
       useScreenerStore.getState().saveScreen(screenName);
       return done(
-        replaces
-          ? `Replaced the saved screen "${screenName}"`
-          : `Saved the screen as "${screenName}"`,
+        `${previous ? `Replaced the saved screen "${screenName}"` : `Saved the screen as "${screenName}"`}${droppedCriteriaNote(recipe)}`,
+        { kind: "screen", name: screenName, screen: previous },
       );
     }
     case "set_region":
       if (!intent.region) {
         return fail(`"${intent.raw}" is not a region`);
       }
+      const previousRegion = useSettingsStore.getState().region;
       useSettingsStore.getState().setRegion(intent.region);
-      return done(`Set the region to ${intent.region}`);
+      return done(`Set the region to ${intent.region}`, { kind: "region", region: previousRegion });
     case "portfolio_add_position": {
       const { holding, problem } = intent;
       // No price given → incomplete arguments (re-pends), never a ₹0 holding.
@@ -1611,6 +1699,12 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       useWorkspaceStore.getState().openPanel("portfolio");
       return done(
         `Added ${holding.quantity} ${holding.symbol} @ ${formatPrice(holding.costBasis)} to the portfolio`,
+        {
+          kind: "holding-added",
+          portfolioId: portfolio.id,
+          holdingId: added,
+          symbol: holding.symbol,
+        },
       );
     }
     case "portfolio_update_position":
@@ -1622,14 +1716,22 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // Apply to exactly the lot the diff showed, in the portfolio it was
       // proposed against — gone means an honest failure, never another lot.
       const portfolio = portfolioById(intent.portfolioId);
-      if (!portfolio?.holdings.some((h) => h.id === target.id)) {
+      const index = portfolio?.holdings.findIndex((h) => h.id === target.id) ?? -1;
+      if (!portfolio || index < 0) {
         return fail(`that ${target.symbol} lot is no longer in the portfolio`);
       }
+      // The lot as it stands now (not as staged), so Undo restores exactly it.
+      const preImage: PreImage = {
+        kind: "holding",
+        portfolioId: portfolio.id,
+        holding: portfolio.holdings[index],
+        index,
+      };
       const store = usePortfoliosStore.getState();
       if (intent.name === "portfolio_delete_position") {
         store.removeHolding(portfolio.id, target.id);
         useWorkspaceStore.getState().openPanel("portfolio");
-        return done(`Removed ${target.symbol} from the portfolio`);
+        return done(`Removed ${target.symbol} from the portfolio`, preImage);
       }
       const { holding } = intent;
       if (holding.costBasis === null) {
@@ -1640,13 +1742,84 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return fail("the portfolio refused the update");
       }
       useWorkspaceStore.getState().openPanel("portfolio");
-      return done(`Updated ${holding.symbol}: ${lotText(holding)}`);
+      return done(`Updated ${holding.symbol}: ${lotText(holding)}`, preImage);
     }
     case "save_layout":
       // Awaits the workspace save — only the async seam can apply it.
       return fail("saving a layout needs the async apply");
     case "unknown":
       return fail(`unknown action "${intent.raw}"`);
+  }
+}
+
+/**
+ * Put back what an applied data write replaced (the review's session Undo).
+ * Restores the pre-image only; a target the user has since removed (the
+ * portfolio, or the holding an add created) fails honestly instead of guessing.
+ */
+export function undoPreImage(preImage: PreImage): ApplyResult {
+  switch (preImage.kind) {
+    case "holding-added": {
+      const portfolio = portfolioById(preImage.portfolioId);
+      if (!portfolio?.holdings.some((h) => h.id === preImage.holdingId)) {
+        return fail(`the added ${preImage.symbol} holding is no longer in the portfolio`);
+      }
+      usePortfoliosStore.getState().removeHolding(portfolio.id, preImage.holdingId);
+      return done(`Removed the added ${preImage.symbol} holding`);
+    }
+    case "holding": {
+      const store = usePortfoliosStore.getState();
+      const portfolio = portfolioById(preImage.portfolioId);
+      if (!portfolio) {
+        return fail("the portfolio no longer exists");
+      }
+      const { holding, index } = preImage;
+      const holdings = portfolio.holdings.some((h) => h.id === holding.id)
+        ? portfolio.holdings.map((h) => (h.id === holding.id ? holding : h))
+        : [...portfolio.holdings.slice(0, index), holding, ...portfolio.holdings.slice(index)];
+      store.setAll(
+        store.portfolios.map((p) => (p.id === portfolio.id ? { ...p, holdings } : p)),
+        store.activeId,
+      );
+      return done(`Restored ${holding.symbol} ${lotText(holding)}`);
+    }
+    case "note": {
+      const notes = useNotesStore.getState();
+      if (preImage.scope === "") {
+        notes.setGeneral(preImage.text);
+      } else {
+        notes.setSymbolNote(preImage.scope, preImage.text);
+      }
+      return done(`Restored the ${noteScopeLabel(preImage.scope)} note`);
+    }
+    case "screen": {
+      const screener = useScreenerStore.getState();
+      const { name, screen } = preImage;
+      if (!screen) {
+        screener.deleteScreen(name);
+        return done(`Removed the saved screen "${name}"`);
+      }
+      screener.setSavedScreens([...screener.savedScreens.filter((s) => s.name !== name), screen]);
+      return done(`Restored the saved screen "${name}"`);
+    }
+    case "watchlist-added":
+      useSymbolsStore.getState().removeSymbol(preImage.symbol);
+      return done(`Removed ${preImage.symbol} from your watchlist`);
+    case "watchlist-removed": {
+      const symbols = useSymbolsStore.getState();
+      const { entry, index } = preImage;
+      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === entry.symbol.toUpperCase())) {
+        symbols.setEntries([
+          ...symbols.entries.slice(0, index),
+          entry,
+          ...symbols.entries.slice(index),
+        ]);
+      }
+      return done(`Restored ${entry.symbol} to your watchlist`);
+    }
+    case "region":
+      useSettingsStore.getState().setRegion(preImage.region);
+      return done(`Set the region back to ${preImage.region}`);
   }
 }
 
@@ -1687,7 +1860,58 @@ export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult>
     }
     return done(`Saved the layout as "${intent.layoutName}"`);
   }
+  if (
+    intent.name === "add_to_watchlist" &&
+    intent.assetClass === "equity" &&
+    intent.symbol &&
+    !useSymbolsStore.getState().entries.some((e) => e.symbol.toUpperCase() === intent.symbol)
+  ) {
+    return addResolvedEquity(intent.symbol);
+  }
   return applyIntent(intent);
+}
+
+/** The slice of the `GET /resolve` reply (`sidecar/routers/resolve.py`) the
+ *  watchlist add reads. */
+interface ResolveReply {
+  resolved: { symbol: string; name: string } | null;
+  needs_disambiguation: boolean;
+  candidates: { symbol: string; name: string }[];
+}
+
+/**
+ * Add a model-supplied equity to the watchlist through the ONE resolution
+ * policy (`GET /resolve`, the same decision the mention picker and every agent
+ * tool honour): a bound listing is added under its resolved symbol and the
+ * label says so; an ambiguous or unresolved name fails with the candidates —
+ * never a verbatim invented ticker that sits on the watchlist as a blank row.
+ */
+async function addResolvedEquity(raw: string): Promise<ApplyResult> {
+  let reply: ResolveReply;
+  try {
+    reply = await sidecarGet<ResolveReply>("/resolve", { q: raw });
+  } catch {
+    return fail(`could not resolve "${raw}" — the sidecar did not answer`);
+  }
+  const choices = (reply.candidates ?? [])
+    .slice(0, 4)
+    .map((c) => `${c.symbol} (${c.name})`)
+    .join(", ");
+  if (!reply.resolved) {
+    return fail(
+      reply.needs_disambiguation
+        ? `"${raw}" matches more than one listing — did you mean: ${choices}?`
+        : `"${raw}" did not resolve to a listing${choices ? ` — did you mean: ${choices}?` : ""}`,
+    );
+  }
+  const symbol = reply.resolved.symbol.toUpperCase();
+  const from = symbol === raw ? "" : ` (resolved from "${raw}")`;
+  const symbols = useSymbolsStore.getState();
+  if (symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+    return done(`${symbol} is already on your watchlist${from}`);
+  }
+  symbols.addSymbol(symbol, "equity");
+  return done(`Added ${symbol} to your watchlist${from}`, { kind: "watchlist-added", symbol });
 }
 
 /** {@link applyIntentAsync} from raw args — the label, or null when it did not land. */
@@ -1721,7 +1945,9 @@ export interface HostActionAckDetail {
   action: string;
   symbol?: string;
   panel?: string;
-  /** set_chart_indicators keys the chart did not know and did not apply. */
+  /** set_chart_indicators keys the chart did not know and did not apply, or the
+   *  screener criteria (write_screener_filters / save_screen) that did not parse,
+   *  each with its reason ("roe: value must be a number"). */
   dropped?: string[];
 }
 
@@ -1733,7 +1959,12 @@ export function hostActionAckDetail(
 ): HostActionAckDetail {
   const symbol = str(input, "symbol");
   const panel = str(input, "panel");
-  const dropped = name === "set_chart_indicators" ? splitIndicatorKeys(input).dropped : [];
+  const dropped =
+    name === "set_chart_indicators"
+      ? splitIndicatorKeys(input).dropped
+      : name === "write_screener_filters" || name === "save_screen"
+        ? parseScreenRecipe(input).recipe.dropped
+        : [];
   return {
     action: name,
     ...(symbol ? { symbol } : {}),

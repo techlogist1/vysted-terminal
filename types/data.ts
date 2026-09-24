@@ -207,9 +207,12 @@ export interface StatementLine {
 /** Shared shape for the three financial statements. */
 export interface FinancialStatement {
   symbol: string;
+  /** ISO period-end dates, newest first (annual and quarterly alike). */
   periods: string[];
   lines: StatementLine[];
   provider: string;
+  /** Expected periods the provider did not serve: listed in `periods`, null in every line. */
+  gaps?: string[];
 }
 
 /** Income statement excerpt. */
@@ -312,6 +315,13 @@ export interface Announcement {
   ts: string | null;
 }
 
+/**
+ * Whether a disclosure feed covers the instrument: "venue_not_covered" is an
+ * Indian listing on a venue with no such feed, "not_applicable" a non-NSE/BSE
+ * instrument. Out-of-coverage is answered (200, empty list + `note`), never a 502.
+ */
+export type DisclosureCoverage = "covered" | "venue_not_covered" | "not_applicable";
+
 /** The date range one exchange lane's items in a response are complete for. */
 export interface AnnouncementWindow {
   /** Oldest IST day covered (ISO date); null when nothing older was cut (full history). */
@@ -333,9 +343,12 @@ export interface AnnouncementsResponse {
   errors: Record<string, string>;
   /** Per serving exchange, the date range its items are complete for. */
   windows: Record<string, AnnouncementWindow>;
+  coverage: DisclosureCoverage;
+  /** Why nothing is served when `coverage` is not "covered". */
+  note: string | null;
 }
 
-/** One results-calendar / board-meeting event (NSE event-calendar feed). */
+/** One results-calendar / board-meeting event (NSE event calendar, BSE board meetings). */
 export interface ResultsEvent {
   symbol: string;
   company: string | null;
@@ -345,6 +358,8 @@ export interface ResultsEvent {
   description: string | null;
   /** Meeting/event date (ISO date); null when the feed row had none. */
   date: string | null;
+  /** "NSE", "BSE", or "NSE+BSE" when a dual listing's feeds carry one meeting. */
+  exchange: string | null;
 }
 
 /** `GET /disclosures/results` — results/board-meeting events, newest first. */
@@ -352,6 +367,12 @@ export interface ResultsCalendarResponse {
   symbol: string;
   count: number;
   events: ResultsEvent[];
+  /** Exchanges that served this response. */
+  sources: string[];
+  /** Exchanges attempted but failed, with the reason (partial merge served). */
+  errors: Record<string, string>;
+  coverage: DisclosureCoverage;
+  note: string | null;
 }
 
 /**
@@ -464,6 +485,8 @@ export interface ExchangeDealsResponse {
   sources: string[];
   /** Lanes attempted but failed, with the reason (partial result served). */
   errors: Record<string, string>;
+  coverage: DisclosureCoverage;
+  note: string | null;
 }
 
 /**
@@ -495,13 +518,33 @@ export interface CorporateActionsResponse {
   sources: string[];
   /** Exchanges attempted but failed, with the reason (partial merge served). */
   errors: Record<string, string>;
+  coverage: DisclosureCoverage;
+  note: string | null;
 }
 
-/** `GET /disclosures/shareholding` — quarterly patterns, newest first. */
+/** One 5%-or-more holder from a foreign issuer's 20-F (Item 7.A). */
+export interface MajorShareholder {
+  holder: string;
+  /** Percent of the class (0-100), newest column; null when the filing shows a dash. */
+  percent: number | null;
+  /** ISO date the filing states the holdings as of. */
+  as_of: string | null;
+}
+
+/**
+ * `GET /disclosures/shareholding` — quarterly patterns, newest first. A US-listed
+ * ADR's major holders ride `major_shareholders` from its latest 20-F
+ * (`provider` "sec-20f"), never merged into `patterns`.
+ */
 export interface ShareholdingResponse {
   symbol: string;
   count: number;
   patterns: ShareholdingPattern[];
+  coverage: DisclosureCoverage;
+  note: string | null;
+  provider: string | null;
+  major_shareholders: MajorShareholder[];
+  source_url: string | null;
 }
 
 // --- portfolio ------------------------------------------------------------

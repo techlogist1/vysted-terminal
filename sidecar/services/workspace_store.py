@@ -17,6 +17,8 @@ import json
 import logging
 import os
 import shutil
+import time
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote, unquote
 
@@ -56,7 +58,7 @@ def _filename_stem(name: str) -> str:
     return stem
 
 
-def _path_for(name: str):
+def _path_for(name: str) -> Path:
     """Return the on-disk path for a workspace ``name``."""
     return get_workspaces_dir() / f"{_filename_stem(name)}{WORKSPACE_SUFFIX}"
 
@@ -97,8 +99,12 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
     try:
         tmp.write_text(payload, encoding="utf-8")
         if path.is_file():
-            shutil.copyfile(path, bak_tmp)
-            os.replace(bak_tmp, path.with_name(f"{path.name}.bak"))
+            if _read_body(path) is None:
+                # Never let an unparseable file replace the last good backup.
+                _quarantine(path)
+            else:
+                shutil.copyfile(path, bak_tmp)
+                os.replace(bak_tmp, _bak_path(path))
         os.replace(tmp, path)
     finally:
         # If a rename failed (e.g. mid-shutdown), don't leak the temp files.
@@ -109,22 +115,51 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
                 pass
 
 
-def load_workspace(name: str) -> dict[str, Any]:
-    """Return the stored JSON for ``name``; raise if it does not exist.
+def _bak_path(path: Path) -> Path:
+    return path.with_name(f"{path.name}.bak")
 
-    A corrupt file (truncated by a pre-atomic-write race, or externally edited)
-    is treated as *missing* rather than raising a 500 — the frontend's restore
-    path falls back to the default layout on a not-found, so a damaged autosave
-    degrades gracefully instead of dead-ending the boot.
+
+def _read_body(path: Path) -> dict[str, Any] | None:
+    """The file's JSON object, or ``None`` when it is not one (unparseable,
+    undecodable, or valid JSON that is not an object)."""
+    try:
+        body = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    return body if isinstance(body, dict) else None
+
+
+def _quarantine(path: Path) -> Path:
+    """Move a corrupt file aside as ``<file>.corrupt-<unix ms>`` (kept for recovery)."""
+    target = path.with_name(f"{path.name}.corrupt-{int(time.time() * 1000)}")
+    os.replace(path, target)
+    logger.warning("workspace file %s is corrupt; quarantined as %s", path.name, target.name)
+    return target
+
+
+def load_workspace(name: str) -> dict[str, Any]:
+    """Return the stored JSON object for ``name``; raise if it does not exist.
+
+    A corrupt file (truncated, externally edited, or not a JSON object) is
+    quarantined as ``.corrupt-<ts>`` (never deleted) and the last good ``.bak``
+    is restored in its place and served (R15-DATA-090). With no usable backup
+    the workspace is reported missing, so the frontend boots the default — and
+    the next save cannot copy the damaged file over the backup.
     """
     path = _path_for(name)
     if not path.is_file():
         raise WorkspaceNotFoundError(name)
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        logger.warning("workspace %r is corrupt (%s); treating as missing", name, exc)
-        raise WorkspaceNotFoundError(name) from exc
+    body = _read_body(path)
+    if body is not None:
+        return body
+    _quarantine(path)
+    bak = _bak_path(path)
+    backup = _read_body(bak) if bak.is_file() else None
+    if backup is None:
+        raise WorkspaceNotFoundError(name)
+    shutil.copyfile(bak, path)
+    logger.warning("workspace %r restored from its backup", name)
+    return backup
 
 
 def delete_workspace(name: str) -> None:

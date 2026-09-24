@@ -521,17 +521,12 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     return fund
 
 
-def _statement_lines(
-    frame: pd.DataFrame, period: str = "annual"
-) -> tuple[list[str], list[StatementLine]]:
+def _statement_lines(frame: pd.DataFrame) -> tuple[list[str], list[StatementLine]]:
     """Convert a yfinance statement DataFrame to (periods, lines).
 
-    Annual periods are labelled by fiscal year; quarterly ones by their ISO
-    period-end date, since four quarters share one year (R15-DATA-026)."""
-    if period == "quarterly":
-        periods = [pd.Timestamp(col).date().isoformat() for col in frame.columns]
-    else:
-        periods = [str(getattr(col, "year", col)) for col in frame.columns]
+    Every period is labelled by its ISO period-end date, annual and quarterly
+    alike (R15-DATA-026), the label openbb-mcp serves too (R15-LEAD-015)."""
+    periods = [pd.Timestamp(col).date().isoformat() for col in frame.columns]
     lines: list[StatementLine] = []
     for label, row in frame.iterrows():
         values = {period: _num(row.iloc[idx]) for idx, period in enumerate(periods)}
@@ -549,7 +544,7 @@ def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("income statement", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame, period)
+    periods, lines = _statement_lines(frame)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )
@@ -580,7 +575,7 @@ def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame, period)
+    periods, lines = _statement_lines(frame)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
 
@@ -625,7 +620,7 @@ def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("cash flow", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
-    periods, lines = _statement_lines(frame, period)
+    periods, lines = _statement_lines(frame)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
     )

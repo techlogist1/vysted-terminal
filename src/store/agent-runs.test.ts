@@ -50,4 +50,14 @@ describe("agent-runs store — the agents rail (FR-027 / US3 AS3)", () => {
     expect(useAgentRunsStore.getState().runs).toHaveLength(1);
     expect(useAgentRunsStore.getState().runs[0].status).toBe("running");
   });
+
+  it("clearFinished keeps a run paused on the user's answer (R15-CODE-AGENT-011)", () => {
+    const store = useAgentRunsStore.getState();
+    const paused = store.startRun({ agentId: "x", agentName: "X", mode: "delegate" });
+    store.updateRun(paused, { status: "paused", question: "Which exchange?" });
+    const done = store.startRun({ agentId: "y", agentName: "Y", mode: "delegate" });
+    store.endRun(done, "done");
+    store.clearFinished();
+    expect(useAgentRunsStore.getState().runs.map((r) => r.id)).toEqual([paused]);
+  });
 });

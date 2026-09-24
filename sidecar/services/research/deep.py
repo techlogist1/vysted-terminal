@@ -51,6 +51,7 @@ from services.research.target import (
     resolve_target,
     resolved_payload,
 )
+from services.search.extract import VisitResult
 
 #: Injected tool dispatcher — ``await tool_call(name, args) -> dict``.
 ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
@@ -58,11 +59,11 @@ ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
 LLMCall = Callable[[list[dict[str, Any]]], Awaitable[str]]
 #: Injected step sink — ``on_step(ResearchStep) -> None`` (may be a coroutine).
 OnStep = Callable[[ResearchStep], Any]
-#: Injected full-page visit — ``await visit(url) -> str | None`` (extracted page
-#: text, or None on any miss). ``None`` (the default) disables visiting, so the
-#: loop's network profile is unchanged unless a caller wires the extractor
-#: (:func:`services.search.extract.visit_for_research`) in (R7 Component 1).
-VisitCall = Callable[[str], Awaitable[str | None]]
+#: Injected full-page visit — ``await visit(url) -> VisitResult`` (extracted page
+#: text, or the reason it could not be read). ``None`` (the default) disables
+#: visiting, so the loop's network profile is unchanged unless a caller wires the
+#: extractor (:func:`services.search.extract.visit_for_research`) in (R7 Component 1).
+VisitCall = Callable[[str], Awaitable[VisitResult]]
 
 #: The four coverage dimensions the floor requires before "complete" (FR-071).
 _COVERAGE_DIMS = ("price", "fundamentals", "news", "web")
@@ -728,6 +729,7 @@ def _record_web(
     if not result.get("ok"):
         return
     from services.research import relevance
+    from services.search.base import bare_host
     from services.search.scrub import sanitize_inline
 
     citations = result.get("citations") or []
@@ -747,10 +749,11 @@ def _record_web(
                 url=str(url),
                 title=sanitize_inline(str(row.get("title") or url)),
                 excerpt=sanitize_inline(str(row.get("excerpt") or row.get("snippet") or "")),
-                domain=str(row.get("source") or "web"),
+                domain=row.get("domain") or bare_host(str(url)),
                 source_type=row.get("source_type")
                 if row.get("source_type") in ("news", "research", "filing", "web")
                 else None,
+                published_at=row.get("published_at"),
             )
         )
         added = True
@@ -768,14 +771,19 @@ def _top_result_url(web_res: dict[str, Any]) -> str | None:
     return None
 
 
-async def _safe_visit(visit: VisitCall, url: str | None) -> str | None:
+async def _safe_visit(visit: VisitCall, url: str | None) -> VisitResult:
     """One page visit, soft on every failure — a visit can never end a round."""
     if not url:
-        return None
+        return VisitResult(None)
     try:
         return await visit(url)
-    except Exception:  # noqa: BLE001 — a failed visit is a soft miss, never fatal
-        return None
+    except Exception as exc:  # noqa: BLE001 — a failed visit is a soft miss, never fatal
+        return VisitResult(None, f"visit raised: {exc}")
+
+
+def visit_failure_step(url: str, reason: str) -> ResearchStep:
+    """The step a failed page visit leaves behind (a 403'd filing never vanishes)."""
+    return ResearchStep("tool", f"visit failed: {url} ({reason})", status="error")
 
 
 def _needs_companion_visit(page_text: str | None) -> bool:
@@ -803,17 +811,19 @@ async def _run_researcher(
     llm_call: LLMCall,
     visit: VisitCall | None = None,
     site_bias: bool = False,
-) -> tuple[str, dict[str, Any], list[dict[str, Any]], list[tuple[str, str]]]:
+) -> tuple[str, dict[str, Any], list[dict[str, Any]], list[tuple[str, str]], list[tuple[str, str]]]:
     """One researcher: a couple of tool lookups + a short LLM extraction.
 
     Pulls the web (always — the freshest, most question-shaped source) plus one
     structured leg chosen by what the sub-question is about, then asks the LLM
     to extract the finding. Returns ``(finding_text, web_result,
-    structured_pairs, visited_pages)`` where each pair is ``{"dim": ...,
-    "result": ...}`` so the caller folds coverage on the main task, not inside
-    the gathered child, and ``visited_pages`` is the ``(url, full_text)`` list
-    of pages actually read — the loop folds them into the run's raw-evidence
-    store so citation audits can check claims against FULL page text (R9 B3).
+    structured_pairs, visited_pages, visit_failures)`` where each pair is
+    ``{"dim": ..., "result": ...}`` so the caller folds coverage on the main
+    task, not inside the gathered child, ``visited_pages`` is the
+    ``(url, full_text)`` list of pages actually read — the loop folds them into
+    the run's raw-evidence store so citation audits can check claims against
+    FULL page text (R9 B3) — and ``visit_failures`` is the ``(url, reason)`` list
+    of visits that returned no text, which the loop records as error steps.
 
     R8 target contract: ALL structured tool calls use ``target.symbol`` — the
     one clean binding resolved at the top of the run. With NO bound target the
@@ -918,11 +928,19 @@ async def _run_researcher(
     # Visit preference: a results-filing PDF from the exchange beats a press
     # page — the PDF lane in services.search.extract reads it.
     visited_pages: list[tuple[str, str]] = []
+    visit_failures: list[tuple[str, str]] = []
+
+    async def _visit(url: str | None) -> str | None:
+        result = await _safe_visit(visit, url)
+        if url and result.text:
+            visited_pages.append((url, result.text))
+        elif url and result.reason:
+            visit_failures.append((url, result.reason))
+        return result.text
+
     if visit is not None:
         page_url = str(disclosure_rows[0]["url"]) if disclosure_rows else _top_result_url(web_res)
-        page_text = await _safe_visit(visit, page_url)
-        if page_url and page_text:
-            visited_pages.append((page_url, page_text))
+        page_text = await _visit(page_url)
         # R9 B1 digital-twin fallback: when the primary disclosure visit is a
         # scanned/digit-sparse outcome (its tables are images or it is only the
         # cover letter), ONE extra bounded fetch reads the next disclosure row
@@ -935,9 +953,7 @@ async def _run_researcher(
         ):
             companion_url = str(disclosure_rows[1]["url"])
             if companion_url != page_url:
-                companion_text = await _safe_visit(visit, companion_url)
-                if companion_text:
-                    visited_pages.append((companion_url, companion_text))
+                await _visit(companion_url)
 
     web_block = wrap_untrusted("web_search results", web_res)
     if disclosure_bundle and disclosure_bundle.get("context"):
@@ -991,7 +1007,7 @@ async def _run_researcher(
         # The announcements pull is real news-dimension coverage with its own
         # vysted:// provenance source.
         structured_pairs.append({"dim": "news", "result": disclosure_bundle["announcements"]})
-    return finding, web_res, structured_pairs, visited_pages
+    return finding, web_res, structured_pairs, visited_pages, visit_failures
 
 
 #: "sec" as a whole word — a bare substring also matched "sector" and "second".
@@ -1302,12 +1318,16 @@ async def run_deep_research(
                 for q in open_questions[:fan_out]
             )
         )
-        for q, (finding, web_res, structured_pairs, visited_pages) in zip(
+        for q, (finding, web_res, structured_pairs, visited_pages, visit_failures) in zip(
             open_questions[:fan_out], results, strict=False
         ):
             findings.findings.append(finding)
             _record_web(findings, web_res, target=target, query=query)
             findings.record_evidence(visited_pages)
+            for failed_url, reason in visit_failures:
+                vstep = visit_failure_step(failed_url, reason)
+                steps.append(vstep)
+                await _emit(on_step, vstep)
             for pair in structured_pairs:
                 _record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(
@@ -1482,5 +1502,6 @@ __all__ = [
     "run_deep_research",
     "snapshot_context",
     "structured_feeds_available",
+    "visit_failure_step",
     "web_only_floor_note",
 ]

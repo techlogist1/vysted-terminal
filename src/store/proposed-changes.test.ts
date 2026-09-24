@@ -52,7 +52,7 @@ function enqueue(name: string, input: Record<string, unknown> = {}, batchId = "b
     name,
     input,
     batchId,
-  });
+  }).id;
 }
 
 describe("proposed-changes store — the diff/accept trust gate (FR-010)", () => {

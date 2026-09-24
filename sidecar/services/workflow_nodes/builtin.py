@@ -27,12 +27,15 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Any
+from urllib.parse import urlsplit
+
+import httpx
 
 from config import get_llm_creds
 from models.agent import AgentContextSnapshot
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMErrorEvent
 from services import agent_runtime, indicators, provider_registry
-from services.workflow_engine import SKIP
+from services.workflow_engine import CURRENT_NODE, SKIP
 
 logger = logging.getLogger(__name__)
 
@@ -337,6 +340,81 @@ async def action_notify_desktop(inputs: dict[str, Any], config: dict[str, Any]) 
         # to know which output to forward into the Tauri notification API.
         "intent": "desktop-notification",
     }
+
+
+# ---------------------------------------------------------------------------
+# action.webhook (R15-AGENT-023)
+# ---------------------------------------------------------------------------
+
+#: ``secret_ref`` -> URL. The URL is a BYOK secret: the renderer reads it from
+#: the OS keychain and registers it here through a request header
+#: (``PUT /workflow/webhooks/{ref}``). Process memory only — never persisted,
+#: logged or echoed; a node config carries the ref alone.
+_WEBHOOK_URLS: dict[str, str] = {}
+
+_WEBHOOK_TIMEOUT_SECONDS = 10.0
+
+
+def _webhook_url_allowed(url: str) -> bool:
+    """https anywhere, or plain http to ``localhost`` only."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    if not parts.hostname:
+        return False
+    return parts.scheme == "https" or (parts.scheme == "http" and parts.hostname == "localhost")
+
+
+def register_webhook_url(ref: str, url: str) -> None:
+    """Hold ``url`` for ``ref`` in process memory; ``ValueError`` when not allowed."""
+    if not _webhook_url_allowed(url):
+        raise ValueError("webhook URL must be https:// (or http://localhost)")
+    _WEBHOOK_URLS[ref] = url
+
+
+def webhook_refs() -> list[str]:
+    """The refs with a URL registered (never the URLs)."""
+    return sorted(_WEBHOOK_URLS)
+
+
+class _DropWebhookUrls(logging.Filter):
+    """httpx logs every request URL at INFO; a webhook URL must never reach a log."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not any(url in message for url in _WEBHOOK_URLS.values())
+
+
+logging.getLogger("httpx").addFilter(_DropWebhookUrls())
+
+
+async def action_webhook(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """POST ``{workflow, node, value}`` JSON to the URL registered for ``secret_ref``.
+
+    Raises (node error) when no URL is registered, the transport fails, or the
+    endpoint answers non-2xx. No message carries the URL.
+    """
+    ref = str(config.get("secret_ref") or "")
+    if not ref:
+        raise ValueError("action.webhook: 'secret_ref' is required in config")
+    url = _WEBHOOK_URLS.get(ref)
+    if url is None:
+        raise ValueError(
+            f"action.webhook: no URL is set for {ref!r} — set it on the node in the "
+            "workflow editor (it is loaded from the keychain when the app starts)"
+        )
+    workflow_name, node_id = CURRENT_NODE.get() or ("", "")
+    payload = {"workflow": workflow_name, "node": node_id, "value": inputs.get("value")}
+    try:
+        async with httpx.AsyncClient(timeout=_WEBHOOK_TIMEOUT_SECONDS) as client:
+            response = await client.post(url, json=payload)
+    except httpx.HTTPError as exc:
+        # The exception text can quote the URL; report the class only.
+        raise ValueError(f"action.webhook: delivery failed ({type(exc).__name__})") from None
+    if not response.is_success:
+        raise ValueError(f"action.webhook: endpoint answered HTTP {response.status_code}")
+    return {"status_code": response.status_code}
 
 
 # ---------------------------------------------------------------------------
