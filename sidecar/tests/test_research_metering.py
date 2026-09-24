@@ -72,8 +72,8 @@ async def _fake_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
 def native_run(monkeypatch: pytest.MonkeyPatch):
     """Run ``_run_native`` offline with a stubbed model that may report usage."""
 
-    async def _no_visit(url: str, **_: Any) -> str | None:
-        return None
+    async def _no_visit(url: str, **_: Any) -> extract.VisitResult:
+        return extract.VisitResult(None)
 
     async def _snapshot(tool_call: Any, symbol: str, **_: Any) -> dict[str, Any]:
         return {"price": {"ok": True, "provider": "test", "data": {"price": 181.2}}}

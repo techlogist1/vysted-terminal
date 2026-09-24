@@ -34,6 +34,7 @@ from .base import (
     SearchResponse,
     SearchResult,
     normalize_results_to_citations,
+    result_limit,
 )
 
 #: Identifier this backend reports in :class:`SearchResponse.backend`.
@@ -76,7 +77,6 @@ _USER_AGENT = (
 _REGION_KL = {"US": "us-en", "IN": "in-en"}
 
 _SEARCH_TIMEOUT_SECS = 12.0
-_DEFAULT_MAX = 8
 
 # One organic result block opens with this class; split on it then parse each.
 _BLOCK_SPLIT = re.compile(r'<div class="result results_links')
@@ -331,7 +331,7 @@ class DdgSearchBackend(SearchBackend):
 
     async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
         opts = options or {}
-        limit = _coerce_limit(opts) or _DEFAULT_MAX
+        limit = result_limit(opts)
         data: dict[str, str] = {"q": query}
         kl = _REGION_KL.get((self.region or "").strip().upper())
         if kl:
@@ -373,18 +373,6 @@ class DdgSearchBackend(SearchBackend):
         except SearchError:
             return results
         return _parse_lite(lite_text, limit=limit)
-
-
-def _coerce_limit(opts: dict) -> int | None:
-    """Read an optional ``maxResults``/``numResults`` cap from ``options``."""
-    raw = opts.get("maxResults", opts.get("numResults"))
-    if raw is None:
-        return None
-    try:
-        limit = int(raw)
-    except (TypeError, ValueError):
-        return None
-    return limit if limit > 0 else None
 
 
 __all__ = ["BACKEND_ID", "DdgSearchBackend"]

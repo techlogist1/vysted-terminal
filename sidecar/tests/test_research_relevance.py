@@ -378,3 +378,24 @@ def test_long_indian_symbols_unaffected_by_the_gate() -> None:
     # A press row with no Indian-host and no ₹ marker is STILL kept (long brand).
     row = _row("https://www.bloomberg.com/x", "Reliance Industries Q4 profit beats estimates")
     assert relevance.row_relevant(row, target=reliance)
+
+
+# --- R15-RESEARCH-021: a ticker followed by a number is not an index name ------
+
+
+def test_ticker_headline_with_a_moving_average_is_kept() -> None:
+    """'BAJFINANCE 200 DMA' is the stock, not an index called BAJFINANCE-200."""
+    baj = _target(symbol="BAJFINANCE", name="Bajaj Finance Limited")
+    row = _row("https://example.com/x", "BAJFINANCE 200 DMA breakout as stock nears record")
+    assert relevance.entity_match(row, target=baj) == 1.0
+
+
+def test_ticker_headline_with_a_52_week_high_is_kept() -> None:
+    baj = _target(symbol="BAJFINANCE", name="Bajaj Finance Limited")
+    row = _row("https://example.com/y", "BAJFINANCE 52-week high on strong loan growth")
+    assert relevance.row_relevant(row, target=baj)
+
+
+def test_hyphenated_foreign_index_is_still_dropped() -> None:
+    row = _row("https://tribune.com.pk/kse", "KSE-100 index falls 2% amid selloff")
+    assert not relevance.row_relevant(row, target=_kse())

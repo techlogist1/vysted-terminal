@@ -193,7 +193,7 @@ async def _dispatch(
     ``metadata`` so the caller can show honest provenance alongside the
     results (C.1).
     """
-    from services.search.base import SearchError
+    from services.search.base import SearchError, bare_host
 
     options = {"numResults": num_results, "category": category, "region": region}
     try:
@@ -225,13 +225,21 @@ async def _dispatch(
                 "url": r.url,
                 "title": r.title,
                 "snippet": r.snippet,
+                "domain": bare_host(r.url),
                 "published_at": r.published_at,
                 "source": r.source,
             }
             for r in response.results
         ],
         "citations": [
-            {"url": c.url, "title": c.title, "excerpt": c.excerpt} for c in response.citations
+            {
+                "url": c.url,
+                "title": c.title,
+                "excerpt": c.excerpt,
+                "domain": c.domain or bare_host(c.url),
+                "published_at": c.published_at,
+            }
+            for c in response.citations
         ],
     }
     metadata = getattr(response, "metadata", None)

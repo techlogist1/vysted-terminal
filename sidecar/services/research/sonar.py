@@ -185,8 +185,8 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
     sources identically. OpenRouter additionally passes Perplexity's top-level
     ``citations[]`` url list through on most responses; any url the
     annotations missed is still a gathered source. Merged, de-duplicated by
-    url, order-preserved; every source carries the OpenRouter-lane provenance
-    in its ``domain`` label.
+    url, order-preserved; ``domain`` is the bare host and the OpenRouter-lane
+    provenance rides ``provider``.
     """
     sources: list[ResearchSource] = []
     seen: set[str] = set()
@@ -197,13 +197,13 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
             return
         seen.add(url)
         host = _domain_of(url)
-        domain = f"{host} ({PROVENANCE_NOTE})" if host else PROVENANCE_NOTE
         sources.append(
             ResearchSource(
                 url=url,
                 title=(title or host or url).strip(),
                 excerpt=(excerpt or "").strip(),
-                domain=domain,
+                domain=host,
+                provider=PROVENANCE_NOTE,
             )
         )
 

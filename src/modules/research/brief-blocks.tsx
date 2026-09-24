@@ -35,11 +35,21 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
 import {
+  BROKEN_CITE_MARKER,
   dedupeSources,
   deriveAssetClass,
   sanitizeCitationMarkers,
   type BriefAssetClass,
 } from "@/lib/brief-ingest";
+import {
+  formatFractionPercent,
+  formatInstrumentMoney,
+  formatPercent,
+  formatPrice,
+  formatSignedMoney,
+  formatUnit,
+  instrumentCurrency,
+} from "@/lib/format";
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { staggerChild, staggerParent } from "@/lib/motion";
 import { useSymbolsStore } from "@/store/symbols";
@@ -52,52 +62,11 @@ import type {
 } from "../../../types/brief";
 import type { Fundamentals, Quote } from "../../../types/data";
 
-// --- formatters (mirror EquityOverviewPanel's battle-tested conventions) -----
+// --- formatting: every figure routes through lib/format (R15-RESEARCH-026) ---
 
-function formatNumber(value: number | null | undefined, fractionDigits = 2): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-  });
-}
-
-/** Compact large magnitudes (market cap, volume): 4.48T / 182.3B / 9.4M. */
-function formatLarge(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  const abs = Math.abs(value);
-  if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `${(value / 1e3).toFixed(1)}K`;
-  return formatNumber(value, 0);
-}
-
-/** A fraction (yfinance dividend_yield = 0.0044) → "0.44%". */
-function formatFractionPct(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  return `${(value * 100).toFixed(2)}%`;
-}
-
-/** An already-percent value (Quote.change_percent = 1.36 → "+1.36%"). */
-function formatSignedPct(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
-}
-
-function formatSigned(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  return `${value >= 0 ? "+" : ""}${formatNumber(value)}`;
+/** A nullable wire number as the NaN every lib/format formatter renders "—". */
+function num(value: number | null | undefined): number {
+  return value ?? Number.NaN;
 }
 
 // --- metric derivation -------------------------------------------------------
@@ -167,45 +136,33 @@ function pushRange(
   // A zero bound is provider absence, not a price — a "0–0" card reads as
   // fabricated data (R12, BSE-only scrips whose range the provider zero-fills).
   if (typeof lo === "number" && typeof hi === "number" && lo > 0 && hi >= lo) {
-    push("52w range", `${formatNumber(lo, 0)}–${formatNumber(hi, 0)}`);
+    push("52w range", `${formatPrice(lo, 0)}–${formatPrice(hi, 0)}`);
   }
 }
 
 // --- derived semantics leg (R10 E8/D37) --------------------------------------
 
-/** A signed percent from a FRACTION (0.124 → "+12.40%"). */
-function formatSignedFractionPct(value: number): string {
-  return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(2)}%`;
-}
-
-/**
- * Prefix the instrument's ISO code for a currency-denominated card (R11/D55) —
- * the SAME convention as the price line at the top of the metrics block: the
- * code (never a symbol), and only when it isn't USD, so USD briefs stay
- * byte-identical. A "—" placeholder never gains a unit.
- */
-function withCode(formatted: string, currency: string | null | undefined): string {
-  if (formatted === "—" || !currency || currency === "USD") {
-    return formatted;
-  }
-  return `${currency} ${formatted}`;
+/** A currency-unit derived value's own ISO code: a basis that IS a code
+ *  ("INR") is the most specific, else the instrument's (price leg) code. */
+function derivedCurrency(v: BriefDerivedValue, currency?: string | null): string | null {
+  return instrumentCurrency(v.basis) ?? instrumentCurrency(currency);
 }
 
 /** Format one derived value by its declared unit. `signed` adds the +/− cue
- *  for direction-carrying figures (52w change, growth); `currency` (the
- *  structured price leg's code) marks currency-unit values (R11/D55 — a bare
- *  "1.00" dividend is ambiguous against a USD one). */
+ *  for direction-carrying figures (52w change, growth); a currency-unit value
+ *  wears its currency (R11/D55 — a bare "1.00" dividend is ambiguous against a
+ *  USD one) or states that it is unknown. */
 function formatDerived(v: BriefDerivedValue, signed: boolean, currency?: string | null): string {
   const value = v.value as number; // callers guard null
   // A fraction of 1 → percent points ("percent" is the pre-R15 wire name for
   // the same fraction, still carried by briefs persisted before the rename).
   if (v.unit === "fraction" || v.unit === "percent") {
-    return signed ? formatSignedFractionPct(value) : formatFractionPct(value);
+    return signed ? formatPercent(value * 100) : formatFractionPercent(value);
   }
   if (v.unit === "currency") {
-    return withCode(formatNumber(value), currency);
+    return formatInstrumentMoney(value, derivedCurrency(v, currency), false);
   }
-  return formatNumber(value);
+  return formatPrice(value);
 }
 
 /** Append the measurement basis so a number never travels label-less (E8):
@@ -216,7 +173,9 @@ function withBasis(formatted: string, v: BriefDerivedValue): string {
   if (
     !basis ||
     v.label.toLowerCase().includes(basis.toLowerCase()) ||
-    formatted.toLowerCase().includes(basis.toLowerCase())
+    formatted.toLowerCase().includes(basis.toLowerCase()) ||
+    // A currency-code basis ("INR") already rides the value as its currency.
+    (v.unit === "currency" && instrumentCurrency(basis) !== null)
   ) {
     return formatted;
   }
@@ -275,7 +234,7 @@ function derivedItems(derived: BriefDerivedMetrics, currency?: string | null): M
       // sign the wire carried — it can never wear 52w-change's upward-looking
       // label. The one field-specific exception to the otherwise-generic loop.
       if (key === "drawdown_from_high") {
-        return formatFractionPct(-Math.abs(v.value as number));
+        return formatPercent(-Math.abs(v.value as number) * 100);
       }
       return formatDerived(v, isSignedDerivedField(key), currency);
     };
@@ -342,9 +301,10 @@ function conflictLines(conflicts: readonly BriefMetricConflict[] | undefined): C
 }
 
 /** Equity / single-name metric set — the full valuation + quality + growth grid.
- *  `currency` (R11/D55): currency-SIZED cards (Market cap, Revenue) carry the
- *  instrument's ISO code the way the price line does — "Market cap 4.48T" on an
- *  NSE stock is ambiguous against a USD mega-cap without it. */
+ *  `currency` (R11/D55): currency-SIZED cards (Market cap, Revenue) wear the
+ *  instrument's currency exactly as Equity Overview renders it — "Market cap
+ *  4.48T" on an NSE stock is ambiguous against a USD mega-cap without it — or
+ *  state that the currency is unknown. */
 function equityItems(
   fund: Fundamentals | undefined,
   quote: Quote | undefined,
@@ -352,30 +312,33 @@ function equityItems(
 ): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Market cap", withCode(formatLarge(fund.market_cap), currency));
-    push("P/E", formatNumber(fund.pe_ratio));
-    push("Fwd P/E", formatNumber(fund.forward_pe));
-    push("PEG", formatNumber(fund.peg_ratio));
-    push("Price/Book", formatNumber(fund.price_to_book));
+    push("Market cap", formatInstrumentMoney(num(fund.market_cap), currency));
+    push("P/E", formatPrice(num(fund.pe_ratio)));
+    push("Fwd P/E", formatPrice(num(fund.forward_pe)));
+    push("PEG", formatPrice(num(fund.peg_ratio)));
+    push("Price/Book", formatPrice(num(fund.price_to_book)));
     // yfinance's dividend_yield unit is historically unreliable (CURRENT_STATE
     // §3.3) — guard the unit-error blow-up (an equity yield ≥ 25% is almost
     // certainly mis-scaled) rather than show a wrong number on a trust surface.
     if (typeof fund.dividend_yield === "number" && fund.dividend_yield * 100 < 25) {
-      push("Div yield", formatFractionPct(fund.dividend_yield));
+      push("Div yield", formatFractionPercent(num(fund.dividend_yield)));
     }
-    push("EPS", formatNumber(fund.eps));
-    push("Beta", formatNumber(fund.beta));
-    push("ROE", formatFractionPct(fund.roe));
-    push("Net margin", formatFractionPct(fund.profit_margin));
-    push("Debt/Equity", formatNumber(fund.debt_to_equity));
-    push("Rev growth", formatFractionPct(fund.revenue_growth));
+    push("EPS", formatPrice(num(fund.eps)));
+    push("Beta", formatPrice(num(fund.beta)));
+    push("ROE", formatFractionPercent(num(fund.roe)));
+    push("Net margin", formatFractionPercent(num(fund.profit_margin)));
+    push("Debt/Equity", formatPrice(num(fund.debt_to_equity)));
+    push("Rev growth", formatFractionPercent(num(fund.revenue_growth)));
     // Statement sizes are in the statements' own currency when it differs
     // from the trading currency (C2: an ADR reporting in INR).
-    push("Revenue", withCode(formatLarge(fund.revenue_ttm), fund.financial_currency ?? currency));
+    push(
+      "Revenue",
+      formatInstrumentMoney(num(fund.revenue_ttm), fund.financial_currency ?? currency),
+    );
     pushRange(push, fund);
   }
   if (quote && typeof quote.volume === "number") {
-    push("Volume", formatLarge(quote.volume));
+    push("Volume", formatUnit(quote.volume));
   }
   return items;
 }
@@ -389,14 +352,14 @@ function cryptoItems(
 ): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Market cap", withCode(formatLarge(fund.market_cap), currency));
+    push("Market cap", formatInstrumentMoney(num(fund.market_cap), currency));
   }
   if (quote && typeof quote.volume === "number") {
-    push("24h volume", formatLarge(quote.volume));
+    push("24h volume", formatUnit(quote.volume));
   }
   if (fund) {
     pushRange(push, fund);
-    push("Beta", formatNumber(fund.beta));
+    push("Beta", formatPrice(num(fund.beta)));
   }
   return items;
 }
@@ -410,16 +373,16 @@ function etfItems(
 ): MetricItem[] {
   const { items, push } = makeItems();
   if (fund) {
-    push("Net assets", withCode(formatLarge(fund.market_cap), currency));
+    push("Net assets", formatInstrumentMoney(num(fund.market_cap), currency));
     if (typeof fund.dividend_yield === "number" && fund.dividend_yield * 100 < 25) {
-      push("Yield", formatFractionPct(fund.dividend_yield));
+      push("Yield", formatFractionPercent(num(fund.dividend_yield)));
     }
-    push("Beta", formatNumber(fund.beta));
-    push("P/E", formatNumber(fund.pe_ratio));
+    push("Beta", formatPrice(num(fund.beta)));
+    push("P/E", formatPrice(num(fund.pe_ratio)));
     pushRange(push, fund);
   }
   if (quote && typeof quote.volume === "number") {
-    push("Volume", formatLarge(quote.volume));
+    push("Volume", formatUnit(quote.volume));
   }
   return items;
 }
@@ -429,10 +392,10 @@ function fxItems(fund: Fundamentals | undefined, quote: Quote | undefined): Metr
   const { items, push } = makeItems();
   if (fund) {
     pushRange(push, fund);
-    push("Beta", formatNumber(fund.beta));
+    push("Beta", formatPrice(num(fund.beta)));
   }
   if (quote && typeof quote.volume === "number") {
-    push("Volume", formatLarge(quote.volume));
+    push("Volume", formatUnit(quote.volume));
   }
   return items;
 }
@@ -503,7 +466,7 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     price: typeof quote?.price === "number" ? quote.price : undefined,
     change: typeof quote?.change === "number" ? quote.change : undefined,
     changePercent: typeof quote?.change_percent === "number" ? quote.change_percent : undefined,
-    currency: quote?.currency,
+    currency: currencyCode,
     assetClass,
     items,
     conflicts,
@@ -685,6 +648,19 @@ function CiteChip({ n, onCite }: { n: number; onCite: (n: number) => void }) {
   );
 }
 
+/** An out-of-range `[n]` marker: kept visible and flagged, never a link. */
+function BrokenCiteChip() {
+  return (
+    <span
+      title="citation not in sources"
+      aria-label="citation not in sources"
+      className="rounded-control text-micro text-negative mx-px inline-flex translate-y-[-2px] items-center border border-current px-1 align-baseline font-mono leading-tight"
+    >
+      ?
+    </span>
+  );
+}
+
 /** Split a plain-text run into ticker chips ($CASHTAG or a KNOWN symbol) + text.
  *
  * Precision over recall: a chip only fires on an explicit `$TICKER` cashtag or a
@@ -727,7 +703,7 @@ function renderTickers(text: string, known: Set<string>, keyBase: number): React
 /** Render a line of inline markdown: bold / italic / code / `[n]` cite / ticker chip. */
 function renderInline(text: string, ctx: InlineCtx): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[(\d+)\])/g;
+  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[(\d+)\]|\[\?\])/g;
   let last = 0;
   let key = 0;
   let match: RegExpExecArray | null;
@@ -743,6 +719,8 @@ function renderInline(text: string, ctx: InlineCtx): ReactNode[] {
     const token = match[0];
     if (match[2] !== undefined) {
       nodes.push(<CiteChip key={key++} n={Number(match[2])} onCite={ctx.onCite} />);
+    } else if (token === BROKEN_CITE_MARKER) {
+      nodes.push(<BrokenCiteChip key={key++} />);
     } else if (token.startsWith("**")) {
       nodes.push(
         <strong key={key++} className="text-lume font-semibold">
@@ -785,8 +763,7 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
           {model.symbol ? <TickerChip symbol={model.symbol} /> : null}
           {model.price !== undefined ? (
             <span className="text-lume text-overview font-mono leading-none font-medium whitespace-nowrap tabular-nums">
-              {model.currency && model.currency !== "USD" ? `${model.currency} ` : ""}
-              {formatNumber(model.price)}
+              {formatInstrumentMoney(model.price, model.currency, false)}
             </span>
           ) : null}
           {model.changePercent !== undefined ? (
@@ -794,7 +771,10 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
               className={`text-body inline-flex items-center gap-0.5 font-mono whitespace-nowrap tabular-nums ${tone}`}
             >
               <Caret className="size-3" />
-              {formatSigned(model.change)} ({formatSignedPct(model.changePercent)})
+              {model.change !== undefined && instrumentCurrency(model.currency)
+                ? `${formatSignedMoney(model.change, false, model.currency)} `
+                : ""}
+              ({formatPercent(model.changePercent)})
             </span>
           ) : null}
           <span className="ml-auto flex items-center gap-2">
@@ -1088,7 +1068,8 @@ export function BriefBody({
     [brief, watchlist],
   );
   // R8 marker truth: a `[n]` beyond the deduped source rail (or ANY marker on a
-  // zero-source brief) is stripped before parsing — a dead chip never renders.
+  // zero-source brief) becomes an inert flagged `[?]` before parsing — a dead
+  // chip never links, and a broken citation never reads as an uncited claim.
   // The rail indexes the SAME deduped list, so marker range == rail range.
   const body = useMemo(
     () => sanitizeCitationMarkers(brief.markdown, dedupeSources(brief.sources).length),

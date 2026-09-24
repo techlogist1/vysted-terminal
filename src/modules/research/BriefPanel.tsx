@@ -28,6 +28,7 @@ import {
   briefCostUnknown,
   briefDepthTier,
   composeBriefMarkdown,
+  countBrokenCitations,
   dedupeSources,
   deriveSourceType,
   formatBriefSpend,
@@ -267,6 +268,16 @@ function SourceRow({
           <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
             {domain}
           </span>
+          {source.publishedAt ? (
+            <time
+              dateTime={source.publishedAt}
+              className="text-charcoal-500 text-micro font-mono tabular-nums"
+            >
+              {/^\d{4}-\d{2}-\d{2}/.test(source.publishedAt)
+                ? source.publishedAt.slice(0, 10)
+                : source.publishedAt}
+            </time>
+          ) : null}
         </div>
         {source.excerpt ? (
           <p className="text-charcoal-400 text-micro line-clamp-3 leading-relaxed">
@@ -312,16 +323,25 @@ function StepLog({ steps }: { steps: BriefStep[] }) {
   );
 }
 
+/** The Sources header's broken-citation flag, or undefined when none are. */
+function brokenCitationNote(markdown: string, sourceCount: number): string | undefined {
+  const broken = countBrokenCitations(markdown, sourceCount);
+  return broken ? `${broken} broken citation${broken === 1 ? "" : "s"}` : undefined;
+}
+
 // --- collapsible tray shell ------------------------------------------------
 
 function Tray({
   title,
   count,
+  note,
   defaultOpen,
   children,
 }: {
   title: string;
   count?: number;
+  /** A flagged header annotation (e.g. "1 broken citation"). */
+  note?: string;
   defaultOpen?: boolean;
   children: ReactNode;
 }) {
@@ -339,6 +359,7 @@ function Tray({
         {typeof count === "number" ? (
           <span className="text-charcoal-500 normal-case">({count})</span>
         ) : null}
+        {note ? <span className="text-negative normal-case">· {note}</span> : null}
       </button>
       {open ? <div>{children}</div> : null}
     </section>
@@ -752,6 +773,7 @@ export function BriefPanel() {
             key={`sources-${sourcesOpenNonce}`}
             title="Sources"
             count={sources.length}
+            note={brokenCitationNote(brief.markdown, sources.length)}
             defaultOpen={sourcesOpenNonce > 0}
           >
             <ul

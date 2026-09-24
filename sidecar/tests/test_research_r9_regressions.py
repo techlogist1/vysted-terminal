@@ -24,7 +24,7 @@ from typing import Any
 from services.research import disclosures
 from services.research.deep import _run_researcher
 from services.research.target import target_from_payload
-from services.search.extract import scanned_pages_note
+from services.search.extract import VisitResult, scanned_pages_note
 
 
 def _run(coro):
@@ -128,9 +128,9 @@ class _PromptSpyLLM:
 
 
 def _visit_fake(texts: dict[str, str | None], visited: list[str]):
-    async def _visit(url: str) -> str | None:
+    async def _visit(url: str) -> VisitResult:
         visited.append(url)
-        return texts.get(url)
+        return VisitResult(texts.get(url))
 
     return _visit
 
@@ -144,7 +144,7 @@ def test_scanned_outcome_triggers_one_fallback_visit_to_the_digital_twin() -> No
     digital presentation that carries every Q4 figure."""
     visited: list[str] = []
     llm = _PromptSpyLLM()
-    finding, web_res, pairs, visited_pages = _run(
+    finding, web_res, pairs, visited_pages, _failures = _run(
         _run_researcher(
             "What did the Q4 FY26 results announce?",
             target=_saksoft_target(),
@@ -526,8 +526,8 @@ def test_iter_records_visited_pages_into_the_evidence_store() -> None:
 
     store: dict[str, str] = {}
 
-    async def visit(url: str) -> str | None:
-        return "Visited full text: final dividend Rs 2, interim Rs 9, total Rs 11."
+    async def visit(url: str) -> VisitResult:
+        return VisitResult("Visited full text: final dividend Rs 2, interim Rs 9, total Rs 11.")
 
     asyncio.run(
         run_iter_research(

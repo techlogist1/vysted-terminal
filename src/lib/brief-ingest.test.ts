@@ -4,6 +4,7 @@ import {
   bodyCitesWeb,
   briefSlug,
   composeBriefMarkdown,
+  countBrokenCitations,
   dedupeSources,
   depthFromExecution,
   depthTierToWire,
@@ -153,8 +154,17 @@ describe("deriveSourceType", () => {
     expect(deriveSourceType(at("https://finance.yahoo.com/x"))).toBe("news");
   });
 
-  it("uses the domain field when present, falling back to URL parse", () => {
+  it("uses the domain field when the URL has no web host", () => {
     expect(deriveSourceType(at("vysted://x", { domain: "sec.gov" }))).toBe("filing");
+  });
+
+  it("prefers the URL host over a provenance-labelled domain (R15-UI-038)", () => {
+    const sonar = at("https://www.sec.gov/Archives/x", {
+      domain: "sec.gov (via Perplexity Sonar)",
+    });
+    expect(deriveSourceType(sonar)).toBe("filing");
+    const wire = at("https://www.reuters.com/x", { domain: "reuters.com (via Perplexity Sonar)" });
+    expect(deriveSourceType(wire)).toBe("news");
   });
 
   it("defaults an unknown host to web (never a fabricated authority)", () => {
@@ -253,21 +263,21 @@ describe("composeBriefMarkdown", () => {
 // ── R8 truth surfaces: marker stripping, banner copy, cost formatting ────────
 
 describe("sanitizeCitationMarkers", () => {
-  it("strips markers exceeding the source count and tidies the residue", () => {
+  it("flags markers exceeding the source count instead of deleting them (R15-UI-092)", () => {
     const md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1] [9].";
     const out = sanitizeCitationMarkers(md, 3);
-    expect(out).not.toContain("[47]");
-    expect(out).not.toContain("[9]");
-    expect(out).toContain("[2]");
-    expect(out).toContain("[1]");
-    expect(out).toContain("Margin contracted.");
-    expect(out).not.toContain("  ");
+    expect(out).toBe("Revenue grew 23% [2]. Margin contracted [?]. Both held [1] [?].");
   });
 
-  it("strips EVERY marker on a zero-source brief (the fabricated-citation case)", () => {
+  it("flags EVERY marker on a zero-source brief (the fabricated-citation case)", () => {
     const out = sanitizeCitationMarkers("P/E of 12 [1] per Screener.in [2].", 0);
-    expect(out).not.toMatch(/\[\d+\]/);
-    expect(out).toContain("P/E of 12");
+    expect(out).toBe("P/E of 12 [?] per Screener.in [?].");
+  });
+
+  it("counts the broken markers for the Sources header", () => {
+    expect(countBrokenCitations("Cited [3] and broken [47].", 21)).toBe(1);
+    expect(countBrokenCitations("See [1](https://x.com) and [1].", 1)).toBe(0);
+    expect(countBrokenCitations("Zero-source claim [1].", 0)).toBe(1);
   });
 
   it("leaves markdown links and in-range markers untouched", () => {
@@ -334,7 +344,7 @@ describe("composeBriefMarkdown — marker truth (R8)", () => {
       }),
     );
     expect(md).toContain("CUDA leads [1].");
-    expect(md).not.toContain("[7]");
+    expect(md).toContain("Fabricated claim [?].");
   });
 });
 
