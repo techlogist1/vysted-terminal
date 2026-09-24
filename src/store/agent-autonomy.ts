@@ -9,7 +9,8 @@
  *                per-action confirmation (still shown in the transcript as a
  *                record). Data writes (portfolio, notes, saved screens and
  *                layouts) and settings still wait in the gate (spec SC-025;
- *                the one predicate is `autoApplies` in types/proposed-change).
+ *                the one declaration is `AUTO_APPLIED_KINDS` in
+ *                types/proposed-change, which `autoApplies` reads).
  *
  * Vysted has no brokerage connection, so no host action can place, stage or
  * simulate a trade in any mode; autonomy changes confirmation friction only.
