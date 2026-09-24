@@ -48,6 +48,7 @@ export const FIELD_GROUPS: FieldGroup[] = [
     title: "Profitability",
     fields: [
       { label: "ROE", key: "roe", kind: "fraction", headline: true },
+      { label: "ROCE", key: "roce", kind: "fraction" },
       { label: "ROA", key: "roa", kind: "fraction" },
       { label: "Gross margin", key: "gross_margin", kind: "fraction" },
       { label: "Operating margin", key: "operating_margin", kind: "fraction" },

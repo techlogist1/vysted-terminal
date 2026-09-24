@@ -605,3 +605,35 @@ describe("EquityOverviewPanel — batch-2 contract renders (C1, C2)", () => {
     expect(screen.queryByText("$14.0B")).toBeNull();
   });
 });
+
+describe("EquityOverviewPanel — batch-10 fundamentals labels (R15-DATA-048/054/055)", () => {
+  /** The Value cell of the fundamentals row labelled `label`. */
+  function valueCell(label: string): HTMLElement {
+    const row = screen.getByTitle(label).closest("tr");
+    return row!.querySelectorAll("td")[1] as HTMLElement;
+  }
+
+  it("renders the derived ROCE row, and an honest 'unavailable' when ROCE is null", async () => {
+    const meta: Record<string, FieldMeta> = {
+      roce: { status: "ok", provider: "derived", basis_note: "annual EBIT / capital employed" },
+    };
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ roce: 0.233, field_meta: meta }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(valueCell("ROCE").textContent).toBe("+23.30%");
+    expect(valueCell("ROCE").getAttribute("title")).toBe("derived");
+    cleanup();
+
+    const missing: Record<string, FieldMeta> = {
+      roce: { status: "unavailable", provider: "derived" },
+    };
+    mockLoad.mockResolvedValue(
+      overview({ fundamentals: fundamentals({ roce: null, field_meta: missing }) }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(valueCell("ROCE").textContent).toContain("unavailable");
+  });
+});
