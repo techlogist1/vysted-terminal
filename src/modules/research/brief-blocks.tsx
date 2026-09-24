@@ -35,6 +35,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
 import {
+  BROKEN_CITE_MARKER,
   dedupeSources,
   deriveAssetClass,
   sanitizeCitationMarkers,
@@ -685,6 +686,19 @@ function CiteChip({ n, onCite }: { n: number; onCite: (n: number) => void }) {
   );
 }
 
+/** An out-of-range `[n]` marker: kept visible and flagged, never a link. */
+function BrokenCiteChip() {
+  return (
+    <span
+      title="citation not in sources"
+      aria-label="citation not in sources"
+      className="rounded-control text-micro text-negative mx-px inline-flex translate-y-[-2px] items-center border border-current px-1 align-baseline font-mono leading-tight"
+    >
+      ?
+    </span>
+  );
+}
+
 /** Split a plain-text run into ticker chips ($CASHTAG or a KNOWN symbol) + text.
  *
  * Precision over recall: a chip only fires on an explicit `$TICKER` cashtag or a
@@ -727,7 +741,7 @@ function renderTickers(text: string, known: Set<string>, keyBase: number): React
 /** Render a line of inline markdown: bold / italic / code / `[n]` cite / ticker chip. */
 function renderInline(text: string, ctx: InlineCtx): ReactNode[] {
   const nodes: ReactNode[] = [];
-  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[(\d+)\])/g;
+  const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[(\d+)\]|\[\?\])/g;
   let last = 0;
   let key = 0;
   let match: RegExpExecArray | null;
@@ -743,6 +757,8 @@ function renderInline(text: string, ctx: InlineCtx): ReactNode[] {
     const token = match[0];
     if (match[2] !== undefined) {
       nodes.push(<CiteChip key={key++} n={Number(match[2])} onCite={ctx.onCite} />);
+    } else if (token === BROKEN_CITE_MARKER) {
+      nodes.push(<BrokenCiteChip key={key++} />);
     } else if (token.startsWith("**")) {
       nodes.push(
         <strong key={key++} className="text-lume font-semibold">
@@ -1088,7 +1104,8 @@ export function BriefBody({
     [brief, watchlist],
   );
   // R8 marker truth: a `[n]` beyond the deduped source rail (or ANY marker on a
-  // zero-source brief) is stripped before parsing — a dead chip never renders.
+  // zero-source brief) becomes an inert flagged `[?]` before parsing — a dead
+  // chip never links, and a broken citation never reads as an uncited claim.
   // The rail indexes the SAME deduped list, so marker range == rail range.
   const body = useMemo(
     () => sanitizeCitationMarkers(brief.markdown, dedupeSources(brief.sources).length),

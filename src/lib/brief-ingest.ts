@@ -395,36 +395,34 @@ export function dedupeSources(sources: readonly BriefSource[]): BriefSource[] {
 /** Inline `[n]` citation marker — not a markdown link (`[1](url)` is a link). */
 const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
 
+/** The inert marker a broken citation becomes (rendered as a flagged chip). */
+export const BROKEN_CITE_MARKER = "[?]";
+
 /**
- * Strip every inline `[n]` marker whose index exceeds the cited source count
- * (or any marker at all when there are zero sources). The live failure: a FAST
- * brief whose prose cited "[1] Screener.in" while the rail held 0 sources, and
- * an ULTRA brief citing [47] against 21 sources — a dead chip must never
- * render. Punctuation/space residue from the removal is tidied per line.
+ * Flag every inline `[n]` marker whose index exceeds the cited source count (or
+ * any marker at all when there are zero sources) as {@link BROKEN_CITE_MARKER}.
+ * The live failure: a FAST brief whose prose cited "[1] Screener.in" while the
+ * rail held 0 sources, and an ULTRA brief citing [47] against 21 sources. A dead
+ * chip must never link anywhere, but a cited-but-broken claim must also never
+ * read as an uncited one (FR-123), so the marker stays, flagged and inert.
  */
 export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
-  let removed = false;
-  const cleaned = markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
     const n = Number(digits);
-    if (n >= 1 && n <= sourceCount) {
-      return whole;
-    }
-    removed = true;
-    return "";
+    return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
   });
-  if (!removed) {
-    return markdown;
+}
+
+/** How many inline `[n]` markers point past the source list. */
+export function countBrokenCitations(markdown: string, sourceCount: number): number {
+  let broken = 0;
+  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+    const n = Number(m[1]);
+    if (n < 1 || n > sourceCount) {
+      broken += 1;
+    }
   }
-  return cleaned
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/[ \t]+([.,;:!?)\]])/g, "$1")
-        .replace(/\(\s*\)/g, "")
-        .replace(/[ \t]{2,}/g, " ")
-        .trimEnd(),
-    )
-    .join("\n");
+  return broken;
 }
 
 /** Bare-domain shapes that read as a web citation inside prose. */

@@ -205,6 +205,12 @@ describe("MarkdownBody — the shared typed-block renderer", () => {
     expect(html).toContain("Jump to source 1");
     expect(html).toContain("Jump to source 2");
   });
+
+  it("renders a broken [?] citation as a flagged, non-interactive marker (R15-UI-092)", () => {
+    const html = renderBody("A claim [1] and a broken one [?].");
+    expect(html).toContain('title="citation not in sources"');
+    expect(html.match(/<button/g)).toHaveLength(1); // only the in-range [1] links
+  });
 });
 
 // ── derived semantics leg (R10 E8) ───────────────────────────────────────────
