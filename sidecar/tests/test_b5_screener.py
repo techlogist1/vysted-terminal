@@ -160,7 +160,20 @@ async def test_throttled_cold_sp500_run_serves_the_us_seed_pack(
         request = ScreenerRequest(universe="sp500", criteria=[], limit=1000)
         result = await screener.run_screener(request, wall_budget_s=30.0)
         total = result.evaluated_count + result.skipped_count
-        assert total == 506
+        # R15-LEAD-013: sp500.json is a regenerated live snapshot, not a fixed
+        # 506 — read its actual count rather than hardcoding one that drifts
+        # on every future regeneration.
+        import json
+        from importlib import resources
+
+        sp500_count = len(
+            json.loads(
+                resources.files("services.screener_universes")
+                .joinpath("sp500.json")
+                .read_text(encoding="utf-8")
+            )["symbols"]
+        )
+        assert total == sp500_count
         assert result.skipped_count / total < 0.05
         assert result.throttled is True
         assert result.rows and all(r.data_basis == "snapshot" for r in result.rows)
