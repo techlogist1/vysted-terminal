@@ -4223,7 +4223,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-051",
@@ -4310,7 +4311,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-054",
@@ -4416,7 +4418,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-058",
@@ -4569,8 +4572,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: tool-path scoring/tagging now hold (AAPL: 18 items, all scored/tagged), but the plan's own crypto case still fails: symbols=BTC/USDT returns 0 items although the live feed carries a Bitcoin options-expiry story -- news_provider._aliases yields ['BTC/USDT','BTC'] with no 'Bitcoin'."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: tool-path scoring/tagging now hold (AAPL: 18 items, all scored/tagged), but the plan's own crypto case still fails: symbols=BTC/USDT returns 0 items although the live feed carries a Bitcoin options-expiry story -- news_provider._aliases yields ['BTC/USDT','BTC'] with no 'Bitcoin'.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-064",
@@ -4595,7 +4599,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): adds a user-controlled subprocess/tool layer to the core architecture, so the operator decides scope (see DECISIONS_FOR_OPERATOR.md 2.12)."
   },
   {
    "id": "R15-AGENT-081",
@@ -4648,8 +4653,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: integrator-partial. The sidecar leg holds (done frame carries spend_usd). The footer leg is undelivered: ChatSidebar.tsx still hard-codes spendUsd: 0, and streaming.ts does not parse spend_usd."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: integrator-partial. The sidecar leg holds (done frame carries spend_usd). The footer leg is undelivered: ChatSidebar.tsx still hard-codes spendUsd: 0, and streaming.ts does not parse spend_usd.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-083",
@@ -4675,8 +4681,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "propose_order is moot: out of scope after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: no mutating capability (portfolio/notes/watchlist host actions) reaches the external MCP surface, contradicting the one-catalog-parity promise."
+   "status": "not_a_defect",
+   "note": "Batch-10 (f407107) concur not-a-defect: D-B10-1: the external MCP surface is read-only in 0.9 and spec.md:329 now says so; host actions stay behind the proposed-changes gate. The contradiction the entry names is resolved by the amended spec; opening the surface is an operator decision.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-084",
@@ -4702,7 +4709,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-AGENT-088",
@@ -4727,8 +4735,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: fast path works for short symbols (AAPL, @AAPL, SPY, TCS.NS, INFY.NS, BRK.B), but BARE_TICKER_SHAPE caps a symbol at 10 characters, so RELIANCE.NS/HDFCBANK.NS/BAJFINANCE.NS on the India-default watchlist still pay the LLM round-trip although a code comment claims RELIANCE.NS is covered. A bare 'RELIANCE' with RELIANCE.NS watched also stays raw."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: fast path works for short symbols (AAPL, @AAPL, SPY, TCS.NS, INFY.NS, BRK.B), but BARE_TICKER_SHAPE caps a symbol at 10 characters, so RELIANCE.NS/HDFCBANK.NS/BAJFINANCE.NS on the India-default watchlist still pay the LLM round-trip although a code comment claims RELIANCE.NS is covered. A bare 'RELIANCE' with RELIANCE.NS watched also stays raw.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-AGENT-002",
@@ -4940,7 +4949,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-10 (f407107) not certified: invoke_agent is still a 488-line function (537 on the batch base, ~400 at census); the tool-surface, native-search and planner pre-pass extractions (test_runtime_prepass.py) are real but the entry's defect - a single function owning the defect-bearing branches - still reproduces."
   },
   {
    "id": "R15-CODE-AGENT-010",
@@ -5046,7 +5056,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-DATA-002",
@@ -5369,8 +5380,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-9 register adjudication: not on the removed surface. Trading (kill switch + append-only audit log's only subscriber, BrokerAdapter.__init__) is gone (a122dbf6 feat(d81)); this entry's live defect is the surviving agent data-write surface (portfolio, notes, screens, layouts, region) having no stop button and no durable audit record. Stays open, narrowed to the surviving surface only."
+   "status": "blocked_tier4",
+   "note": "Batch-9 register adjudication: not on the removed surface. Trading (kill switch + append-only audit log's only subscriber, BrokerAdapter.__init__) is gone (a122dbf6 feat(d81)); this entry's live defect is the surviving agent data-write surface (portfolio, notes, screens, layouts, region) having no stop button and no durable audit record. Stays open, narrowed to the surviving surface only. || blocked_tier4 (batch-10 PLAN.md §4 deferred list): on the §6.5 safety-model surface (no durable record / no stop control for agent writes); already tracked as DECISIONS_FOR_OPERATOR.md §3.3."
   },
   {
    "id": "R15-CODE-FRONTEND-014",
@@ -5680,7 +5691,8 @@
     "COD-rust-core-5"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): the CSP half edits src-tauri/tauri.conf.json (Tier-1) (see DECISIONS_FOR_OPERATOR.md 2.13)."
   },
   {
    "id": "R15-CODE-PLATFORM-011",
@@ -5733,7 +5745,8 @@
     "COD-plugins-1"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-013",
@@ -5760,7 +5773,8 @@
     "COD-plugins-12"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-014",
@@ -5783,7 +5797,8 @@
     "COD-plugins-3"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-015",
@@ -5810,7 +5825,8 @@
     "INT-blueprint-48-5"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): contract honesty on types/plugin.ts (Tier-1) (see DECISIONS_FOR_OPERATOR.md 2.14)."
   },
   {
    "id": "R15-CODE-PLATFORM-016",
@@ -5862,7 +5878,8 @@
     "COD-workflow-engine-6"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-018",
@@ -5964,8 +5981,9 @@
     "COD-portfolio-3"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-13). Stays open. | Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Stays open."
+   "status": "fixed",
+   "note": "Batch-7 (e81c9e7) not certified: Not claimed: not delivered in batch 7 (D-B7-13). Stays open. | Batch-8 (68bb7aa4) not certified: Not claimed: not delivered in batch 8. Stays open.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-022",
@@ -6037,7 +6055,8 @@
     "INT-blueprint-0-7"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-025",
@@ -6153,7 +6172,8 @@
     "COD-backtest-3"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-030",
@@ -6175,7 +6195,8 @@
     "COD-backtest-4"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-071",
@@ -6200,7 +6221,8 @@
     "INT-spec-90-11"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): core architecture / FR-050 spec reversal (see DECISIONS_FOR_OPERATOR.md 2.15)."
   },
   {
    "id": "R15-CODE-PLATFORM-072",
@@ -6227,8 +6249,9 @@
     "INT-spec-180-187"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "The broker-credential side is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) the only plugin credential is the optional NewsAPI key. Core finding stays open: marketplace.ts's hand-maintained data-source description is still disconnected from provider_registry.py and drifts (adding a source still needs host edits in two languages)."
+   "status": "fixed",
+   "note": "The broker-credential side is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) the only plugin credential is the optional NewsAPI key. Core finding stays open: marketplace.ts's hand-maintained data-source description is still disconnected from provider_registry.py and drifts (adding a source still needs host edits in two languages).",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CODE-PLATFORM-073",
@@ -6254,7 +6277,8 @@
     "INT-pdd-readme-90-2"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): wiring the audit into lint.yml touches .github/ (Tier-1) (see DECISIONS_FOR_OPERATOR.md 2.16)."
   },
   {
    "id": "R15-CODE-RESEARCH-001",
@@ -6362,7 +6386,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CROSS-PLATFORM-001",
@@ -6385,7 +6410,8 @@
     "HYG-1"
    ],
    "tier4": true,
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): .github/ workflow edit or opening a PR without being asked (see DECISIONS_FOR_OPERATOR.md 2.17)."
   },
   {
    "id": "R15-CROSS-PLATFORM-002",
@@ -6437,7 +6463,8 @@
     "HYG-3"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-CROSS-PLATFORM-004",
@@ -6515,8 +6542,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: ROCE is in the contract and derived (matches screener within tolerance across CREST/NAPEROL/DHOOTTRANS/ICON), but metrics.ts has no roce row so the panel never renders it — the plan's panel leg is undelivered. Lead repro ELCIDIN is still unavailable (no share count or equity)."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: ROCE is in the contract and derived (matches screener within tolerance across CREST/NAPEROL/DHOOTTRANS/ICON), but metrics.ts has no roce row so the panel never renders it — the plan's panel leg is undelivered. Lead repro ELCIDIN is still unavailable (no share count or equity). || Batch-10 (f407107) residual: ROCE now served (RELIANCE.NS 8.99%, CREST.NS 3.69%, AMAL.NS 22.33%, internally consistent with the served statements) but diverges from screener.in (10.3% / 5.67% / 7.11%) -- the derivation (annual EBIT / (total assets - current liabilities)) differs from the desk convention (average capital employed, PBIT) and is unwitnessed. Needs a witness/flag leg like the ownership and BVPS legs.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-049",
@@ -6692,7 +6720,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-054",
@@ -6719,8 +6748,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: basis is hard-coded 'consolidated' for every .NS/.BO (yfinance_provider). This is false live for SMR (standalone, BSE intimation 'Audited STANDALONE') and single-entity ICON. No basis chip renders in the panel — a new mislabel, not a derived basis."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: basis is hard-coded 'consolidated' for every .NS/.BO (yfinance_provider). This is false live for SMR (standalone, BSE intimation 'Audited STANDALONE') and single-entity ICON. No basis chip renders in the panel — a new mislabel, not a derived basis. || Batch-10 (f407107) residual, same shape of mismatch as this fix: field_meta.listing_date.provider still says 'yfinance' while the value now comes from the NSE master.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-055",
@@ -6752,8 +6782,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: wire fields hold for DHOOTTRANS/SMR/forward_pe_fiscal_year, but NAPEROL listing_date 2002-07-01 is Yahoo's first-trade date (data start), not the listing date. The plan's EquityOverviewPanel since-listing leg was not delivered: the panel still shows '52w'/'1Y change' for a 38-day-old listing."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: wire fields hold for DHOOTTRANS/SMR/forward_pe_fiscal_year, but NAPEROL listing_date 2002-07-01 is Yahoo's first-trade date (data start), not the listing date. The plan's EquityOverviewPanel since-listing leg was not delivered: the panel still shows '52w'/'1Y change' for a 38-day-old listing.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-056",
@@ -6924,8 +6955,9 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open. || Batch-9 (6b70230) not certified: entry repros are fixed (/macro/GDP generic sentence, /quotes/ZZZZNOTREAL 404 not_found), but a fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail (an openbb ProviderError with no __cause__ is treated as authored, and the series route passes an unvalidated provider value upstream)."
+   "status": "fixed",
+   "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open. || Batch-9 (6b70230) not certified: entry repros are fixed (/macro/GDP generic sentence, /quotes/ZZZZNOTREAL 404 not_found), but a fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail (an openbb ProviderError with no __cause__ is treated as authored, and the series route passes an unvalidated provider value upstream).",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-062",
@@ -7109,8 +7141,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none. || Batch-10 (f407107) residual: /earnings and the three extended analyst routes now carry as_of, but the base GET /fundamentals/{symbol}/ratings consensus envelope still has none.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-069",
@@ -7185,7 +7218,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "open",
+   "note": "Batch-10 (f407107) not certified: Left open by the writers (D-B10-8, one leg): the registry fall-through is not delivered. Observed: cold 1y BSE-only history (ICONIKSPEV.BO) served 246 bars, partial false - the <=8-bar case did not reproduce today, but nothing certifies the flagged fall-through."
   },
   {
    "id": "R15-DATA-072",
@@ -7338,8 +7372,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "The copy half (chart empty-state pointing at a BYOK broker path) is fixed by the D81 copy change (a122dbf6 feat(d81)). Vendor half stays open: no way to upgrade India data off T+1 EOD, no marketplace row for a keyless/BYOK India realtime vendor."
+   "status": "fixed",
+   "note": "The copy half (chart empty-state pointing at a BYOK broker path) is fixed by the D81 copy change (a122dbf6 feat(d81)). Vendor half stays open: no way to upgrade India data off T+1 EOD, no marketplace row for a keyless/BYOK India realtime vendor.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-078",
@@ -7361,7 +7396,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-079",
@@ -7586,7 +7622,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-088",
@@ -7793,7 +7830,8 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-096",
@@ -7817,7 +7855,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DATA-097",
@@ -7890,7 +7929,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): business/identity decision (owning a real commercial contact inbox) (see DECISIONS_FOR_OPERATOR.md 2.18)."
   },
   {
    "id": "R15-DOCS-003",
@@ -7921,7 +7961,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open"
+   "status": "blocked_tier4",
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): CLAUDE.md edit + BLUEPRINT §2 locked-decision wording (see DECISIONS_FOR_OPERATOR.md 2.19)."
   },
   {
    "id": "R15-DOCS-004",
@@ -7946,7 +7987,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DOCS-005",
@@ -7970,7 +8012,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DOCS-015",
@@ -7994,8 +8037,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open",
-   "note": "The broker-registry half of this doc-drift finding is moot (a122dbf6 feat(d81)). The core finding is unrelated to trading — PLUGIN_DEVELOPMENT.md/CLAUDE.md still describe the retired panels.ts+PLUGIN_COMPANIONS/BUNDLED_PLUGINS model instead of the current marketplace.ts catalog — and stays open."
+   "status": "blocked_tier4",
+   "note": "The broker-registry half of this doc-drift finding is moot (a122dbf6 feat(d81)). The core finding is unrelated to trading — PLUGIN_DEVELOPMENT.md/CLAUDE.md still describe the retired panels.ts+PLUGIN_COMPANIONS/BUNDLED_PLUGINS model instead of the current marketplace.ts catalog — and stays open. || blocked_tier4 (batch-10 PLAN.md §4 deferred list): the CLAUDE.md 'Plugin contract' correction is Tier-1 (see DECISIONS_FOR_OPERATOR.md 2.20)."
   },
   {
    "id": "R15-DOCS-016",
@@ -8020,8 +8063,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "The stale host-action count (4 vs 19/18) is addressed by the CURRENT_STATE.md trading-removal edit (a122dbf6 feat(d81)). Core finding stays open: the doc calls non-order host actions 'live mutations' and claims every mutation waits in the diff/accept gate when AUTO auto-applies portfolio deletes, note writes and set_region."
+   "status": "fixed",
+   "note": "The stale host-action count (4 vs 19/18) is addressed by the CURRENT_STATE.md trading-removal edit (a122dbf6 feat(d81)). Core finding stays open: the doc calls non-order host actions 'live mutations' and claims every mutation waits in the diff/accept gate when AUTO auto-applies portfolio deletes, note writes and set_region.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DOCS-017",
@@ -8044,7 +8088,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-DOCS-018",
@@ -8067,7 +8112,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-LEAD-003",
@@ -8172,7 +8218,7 @@
     "data-smallcaps"
    ],
    "status": "open",
-   "note": "source: verifier batch-5"
+   "note": "source: verifier batch-5 || Batch-10 (f407107) not certified: Reverted out of batch 10 (d5370601); register status stays open, CURRENT_STATE says so."
   },
   {
    "id": "R15-LEAD-014",
@@ -8258,8 +8304,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "source: verifier batch-5"
+   "status": "fixed",
+   "note": "source: verifier batch-5",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-LEAD-019",
@@ -8325,8 +8372,9 @@
     "data-smallcaps",
     "ui-panels"
    ],
-   "status": "open",
-   "source": "verifier batch-9"
+   "status": "fixed",
+   "source": "verifier batch-9",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-LEAD-026",
@@ -8346,8 +8394,30 @@
     "data-smallcaps",
     "ui-panels"
    ],
+   "status": "fixed",
+   "source": "verifier batch-9",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "note": "Batch-10 (f407107) residual: the fix covers a plain unknown symbol, but a suffixed unknown symbol (e.g. QQZZFAKE.NS) still returns reason: null on the empty series by the documented rule; the chart states nothing for it."
+  },
+  {
+   "id": "R15-LEAD-028",
+   "title": "BSE scrip-code addressing (e.g. 506597.BO, 544774.BO) 404s on data routes; only the BSE ticker-symbol form resolves",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "resolver",
+   "files": [
+    "sidecar/services/resolver.py"
+   ],
+   "repro": "GET a BSE symbol addressed by its numeric scrip code, e.g. 506597.BO or 544774.BO -> 404. The same listing addressed by its BSE ticker-symbol form resolves.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-10/VERDICTS.md 'Issues found outside the entries' #5 (batch-10 verifier, Fable 5.1).",
+   "fix_shape": "Have the resolver try a numeric-scrip-code lookup against the BSE master (by scrip_code field) as a fallback when the symbol-form lookup misses, alongside the existing ticker-symbol path. Pin with a test resolving a known BSE listing by both its scrip code and its ticker symbol.",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
    "status": "open",
-   "source": "verifier batch-9"
+   "source": "verifier batch-10"
   },
   {
    "id": "R15-LIFECYCLE-010",
@@ -8506,7 +8576,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-LIFECYCLE-016",
@@ -9242,7 +9313,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-RESEARCH-026",
@@ -9325,8 +9397,9 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: integrator marked it partial (Settings SearXNG row has no 'degraded'); the sidecar leg also fails live: /search/searxng/status reads 'ready' while the container returns 0 results for three real queries with unresponsive_engines brave/duckduckgo/startpage, because _apply_quality checks has_results before unresponsive_engines. The live research brief got keyless-fallback with web_reason None, never 'searxng_degraded'."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: integrator marked it partial (Settings SearXNG row has no 'degraded'); the sidecar leg also fails live: /search/searxng/status reads 'ready' while the container returns 0 results for three real queries with unresponsive_engines brave/duckduckgo/startpage, because _apply_quality checks has_results before unresponsive_engines. The live research brief got keyless-fallback with web_reason None, never 'searxng_degraded'.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-RESEARCH-029",
@@ -9381,7 +9454,8 @@
     "data-smallcaps",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-010",
@@ -9406,7 +9480,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-011",
@@ -9431,7 +9506,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-012",
@@ -9633,8 +9709,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: every site the register names now uses ConfirmButton (Agent Builder, workspace dialog, both portfolio sites, Settings key removal/reset/layouts), but the fresh class case fails: ScreenerPanel's 'Delete saved screen' and Marketplace 'Remove' still act on one unconfirmed click."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: every site the register names now uses ConfirmButton (Agent Builder, workspace dialog, both portfolio sites, Settings key removal/reset/layouts), but the fresh class case fails: ScreenerPanel's 'Delete saved screen' and Marketplace 'Remove' still act on one unconfirmed click.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-019",
@@ -9793,7 +9870,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-025",
@@ -9867,8 +9945,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: recorder half holds (Cmd+K on macOS records mod+k), but conflicts() still groups raw combo strings -- the plan's 'compares resolved chords' leg was not delivered. Fresh case: remapping chart.open to shift+mod+p beside palette.open=mod+p gives conflicts()=[] although Cmd+Shift+P resolves to palette.open (silently dead remap); same for Cmd+Shift+K vs mod+k, and mod+p vs meta+p. Batch-9 verifier also notes the Settings copy claims 'two actions on one combo both fire' while the dispatcher (matchesEvent/resolveKeyboardAction) only fires the first match -- the hint text and the behaviour disagree."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: recorder half holds (Cmd+K on macOS records mod+k), but conflicts() still groups raw combo strings -- the plan's 'compares resolved chords' leg was not delivered. Fresh case: remapping chart.open to shift+mod+p beside palette.open=mod+p gives conflicts()=[] although Cmd+Shift+P resolves to palette.open (silently dead remap); same for Cmd+Shift+K vs mod+k, and mod+p vs meta+p. Batch-9 verifier also notes the Settings copy claims 'two actions on one combo both fire' while the dispatcher (matchesEvent/resolveKeyboardAction) only fires the first match -- the hint text and the behaviour disagree.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-028",
@@ -9894,8 +9973,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: vega/theta are now correct and labelled (independent Black-Scholes check matches), but Rho 13.5565 is still shown unlabelled in QuantLib per-unit-rate units (market convention per 1% is 0.1356) -- same unit-honesty defect, same panel."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: vega/theta are now correct and labelled (independent Black-Scholes check matches), but Rho 13.5565 is still shown unlabelled in QuantLib per-unit-rate units (market convention per 1% is 0.1356) -- same unit-honesty defect, same panel.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-029",
@@ -9997,8 +10077,9 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "Batch-9 (6b70230) not certified: still dead end to end. Live GET /sec/filings/search?q=Apple (also Tesla, Palantir, AAPL, Microsoft) returns {\"results\": []}: installed sec-edgar-mcp 1.0.8 search_companies returns empty for every query because core/client.py swallows every edgar.search() exception to []. get_cik_by_ticker works and SEC company_tickers.json is reachable, so a working local path exists."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) not certified: still dead end to end. Live GET /sec/filings/search?q=Apple (also Tesla, Palantir, AAPL, Microsoft) returns {\"results\": []}: installed sec-edgar-mcp 1.0.8 search_companies returns empty for every query because core/client.py swallows every edgar.search() exception to []. get_cik_by_ticker works and SEC company_tickers.json is reachable, so a working local path exists.",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-033",
@@ -10320,8 +10401,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "The sibling-handler half is moot: OrderConfirmationDialog.tsx and AuditLogViewer.tsx were deleted whole (a122dbf feat(d81)). Core finding stays open: the surviving DisclaimerFlow (first-launch TOS) hydrate effect still has no catch, so a keychain read failure silently suppresses first-run onboarding with no message."
+   "status": "blocked_tier4",
+   "note": "The sibling-handler half is moot: OrderConfirmationDialog.tsx and AuditLogViewer.tsx were deleted whole (a122dbf feat(d81)). Core finding stays open: the surviving DisclaimerFlow (first-launch TOS) hydrate effect still has no catch, so a keychain read failure silently suppresses first-run onboarding with no message. || blocked_tier4 (batch-10 PLAN.md §4 deferred list): touches the §6.5-adjacent first-launch disclaimer surface (see DECISIONS_FOR_OPERATOR.md 2.21)."
   },
   {
    "id": "R15-UI-045",
@@ -10423,7 +10504,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "fixed",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
    "id": "R15-UI-049",
@@ -10768,7 +10850,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open"
+   "status": "needs_gui",
+   "note": "Batch-10 (f407107) needs_gui. agent-dock store test 'maximize takes the full cockpit and restore returns the prior width' passes (vitest). GUI check: open the dock, maximize, confirm it spans the cockpit at 2560 wide, un-maximize, confirm the prior width returns."
   },
   {
    "id": "R15-UI-085",
@@ -10897,7 +10980,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open"
+   "status": "open",
+   "note": "Batch-10 (f407107) not certified: Sidecar side is done (_suggested_indicators is timeframe/asset-aware, indicators.py parses ema:9 / vwap:week) but the chart never sees it: research/fast.py's two call sites pass no timeframe (default 1d), no frontend consumer of suggested_indicators exists, the chart catalog has only a fixed 'ema'/'vwap' key, and host-actions.ts:574 drops 'ema:9' as an unknown indicator. The entry's repro (open an intraday equity chart -> no EMA9/21; no request can yield EMA9/21 on the chart) still holds."
   },
   {
    "id": "R15-UI-092",
@@ -16693,11 +16777,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 630,
+  "entries": 631,
   "rejections": 76,
   "critical": 16,
   "high": 112,
-  "medium": 281,
+  "medium": 282,
   "low": 221
  }
 }

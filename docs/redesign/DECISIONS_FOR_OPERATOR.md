@@ -171,6 +171,99 @@ settings surface ever exposed it, and there are no orders left to limit.
   needed for this option) so the existing `pull_request` trigger runs the 3-OS matrix; fix
   the red lint on `main` first so the signal is meaningful.
 
+### 2.12 R15-AGENT-064 — no way to add a user-chosen MCP server
+
+- **Blocked:** only `openbb-mcp` and `sec-edgar-mcp` are wired; there is no config surface,
+  route or UI to point Vysted at a third-party MCP server (e.g. a broker's read-only MCP,
+  screener.in).
+- **Why Tier-4:** adds a user-controlled subprocess/tool layer to the core architecture
+  (Rust spawn + sidecar client), a locked-shape decision, not a bugfix.
+- **Smallest unblock:** approve a config surface (servers list in settings) + a Rust stdio
+  spawn + enforcing the existing read-only wrapper audit on it.
+
+### 2.13 R15-CODE-PLATFORM-010 — webview file writes are unconfined; CSP is null
+
+- **Blocked:** `write_text_atomic`/`write_bytes_atomic` accept any absolute path from the
+  webview with no confinement to `app_data_dir()`, and `tauri.conf.json`'s CSP is null.
+- **Why Tier-4:** the CSP half edits `src-tauri/tauri.conf.json` (Tier-1). The Rust
+  confinement half is not Tier-4 and can land independently once approved.
+- **Smallest unblock:** approve a `write_atomic` path-confinement helper in `lib.rs`
+  (non-Tier-4) plus a CSP value for `tauri.conf.json`.
+
+### 2.14 R15-CODE-PLATFORM-015 — plugin data contribution is declaration-only
+
+- **Blocked:** `getDataSources()` only feeds a Plugin Manager subtitle count; there is no
+  host call site for `VystedPlugin.subscribe`, so a data plugin cannot actually serve a
+  quote.
+- **Why Tier-4:** contract honesty on `types/plugin.ts` (Tier-1) — either build a
+  resolution seam or document the field as reserved.
+- **Smallest unblock:** pick one: (a) approve a `provider_registry` resolution seam backed
+  by plugin-declared sidecar routes, or (b) approve marking `DataSource.realtime`/
+  `subscribe` reserved in `types/plugin.ts` + docs.
+
+### 2.15 R15-CODE-PLATFORM-071 — first-party panels bypass the plugin model
+
+- **Blocked:** every core panel is a static-import `VystedModule`, skipping manifests and
+  `requiredHostVersion`, contrary to FR-050's "one unified extension model."
+- **Why Tier-4:** core architecture / spec reversal.
+- **Smallest unblock:** approve either wrapping first-party modules as pre-installed
+  bundled plugins, or a recorded FR-050 re-scope excluding first-party panels.
+
+### 2.16 R15-CODE-PLATFORM-073 — design-token audit runs in no CI workflow
+
+- **Blocked:** the off-scale/raw-hex token audit (PDD §16) is not wired into `ci-local` or
+  any workflow, so a regression (already present in `NodeEditorPanel`) ships silently.
+- **Why Tier-4:** wiring it into `lint.yml` touches `.github/` (Tier-1).
+- **Smallest unblock:** approve adding the audit's non-`--report` run to `lint.yml`; the
+  script's own rule extensions (`rounded-[...]`, raw-hex, shadow/blur checks) are not
+  Tier-4.
+
+### 2.17 R15-CROSS-PLATFORM-001 — Windows/Linux CI has never run on 004
+
+- **Blocked:** 655+ commits on `004-r4-experience-rebuild` have no 3-OS CI signal;
+  workflows trigger only on `push:main`/`pull_request` and the branch has no PR.
+- **Why Tier-4:** editing `.github/` workflows is Tier-1; opening a PR is also "never
+  without asking."
+- **Smallest unblock:** approve either a `workflow_dispatch` trigger addition, or opening a
+  draft PR for the branch (fix the red `main` lint run first so the signal means
+  something).
+
+### 2.18 R15-DOCS-002 — commercial license contact has no working inbox
+
+- **Blocked:** `COMMERCIAL_LICENSE.md`/`LICENSING.md` name `commercial@vysted.com`; the
+  domain has no MX or A record, so a would-be licensee has no way to reach you.
+- **Why Tier-4:** business/identity decision (owning a real inbox), not a code change.
+- **Smallest unblock:** approve a real contact address; it gets swapped into both files
+  before any public 0.9.0 announcement.
+
+### 2.19 R15-DOCS-003 — docs still name Next.js; the app ships Vite
+
+- **Blocked:** BLUEPRINT §2 (locked decisions) and CLAUDE.md name "Next.js 16 App Router
+  static export"; the repo has shipped Vite 8 + React 19 since D6.
+- **Why Tier-4:** `CLAUDE.md` is Tier-1; BLUEPRINT §2 is a locked decision.
+- **Smallest unblock:** approve landing the already-queued
+  `docs/redesign/CLAUDE_MD_PROPOSAL.md` edit plus the Next.js → Vite swap in
+  `BLUEPRINT.md` §2.
+
+### 2.20 R15-DOCS-015 — plugin docs describe the retired panels.ts/PLUGIN_COMPANIONS model
+
+- **Blocked:** `PLUGIN_DEVELOPMENT.md`/`CLAUDE.md` tell authors to ship a sibling
+  `panels.ts` registered via `PLUGIN_COMPANIONS`/`BUNDLED_PLUGINS`; the actual mechanism is
+  the `marketplace.ts` catalog.
+- **Why Tier-4:** the `CLAUDE.md` "Plugin contract" correction is a Tier-1 edit.
+- **Smallest unblock:** approve the `CLAUDE.md` correction; the `PLUGIN_DEVELOPMENT.md`/
+  `CURRENT_STATE.md` rewrites are not Tier-4 and can land independently.
+
+### 2.21 R15-UI-044 — keychain read failure silently blocks first-run onboarding
+
+- **Blocked:** a denied/failed macOS keychain read during first-launch TOS hydrate leaves
+  the TOS dialog (and onboarding) permanently unrendered with no error shown.
+- **Why Tier-4:** the fix touches the first-launch TOS/`DisclaimerFlow.tsx`, the
+  §6.5-adjacent disclaimer surface §3.2 already flags Tier-4 for its copy.
+- **Smallest unblock:** approve adding a `catch` → `setError` to the hydrate effect (an
+  error-handling fix, not a copy or policy change) so a keychain failure surfaces a retry
+  instead of a silent dead end.
+
 ## 3. New items from Stage C — trading removal (D81, 23 Sep 2026)
 
 Added by the removal plan (`docs/redesign/verification/r15/stage-c/REMOVAL_PLAN.md`) — none
