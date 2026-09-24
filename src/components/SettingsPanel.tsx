@@ -1461,7 +1461,7 @@ function KeybindingsSection() {
       <SectionHeader
         id="settings-keybindings"
         title="Keybindings"
-        hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — two actions on one combo both fire."
+        hint="Remap any shortcut. Press Record, then the new combination. Conflicts are flagged below — of two actions on one combo, only the first binding fires."
       />
 
       {conflictList.length > 0 && (
