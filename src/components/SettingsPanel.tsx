@@ -3,9 +3,12 @@
 import { type FunctionComponent, useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronDown,
   Download,
+  GripVertical,
   KeyRound,
   RotateCcw,
   Trash2,
@@ -45,7 +48,7 @@ import {
   useKeybindingsStore,
 } from "@/store/keybindings";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
-import { useLLMProvidersStore } from "@/store/llm-providers";
+import { orderedProviders, useLLMProvidersStore } from "@/store/llm-providers";
 import { type CatalogEntry, useModelCatalog } from "@/store/model-catalog";
 import {
   KNOWN_MODELS_BY_PROVIDER,
@@ -64,7 +67,7 @@ import {
   type SearchSettingsInput,
   useSearchSettingsStore,
 } from "@/store/search-settings";
-import { type SettingsBundle, useSettingsStore } from "@/store/settings";
+import { type PaletteSymbolScope, type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMModelOption, LLMProviderId } from "../../types/ai";
 
@@ -75,15 +78,17 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * R9 layout — a sectioned hierarchy instead of a wall; ONE search surface;
  * every control demonstrably round-trips (change → persist → reload →
  * applied) or it does not exist (the R9 settings-truth pass — the dead
- * Interface section and the unread provider-preference-order group died; see
- * the kill list in `verification/R9_DEFECT_CATALOGUE.md`):
+ * Interface section died; see the kill list in
+ * `verification/R9_DEFECT_CATALOGUE.md`. R15-UI-087 brought the provider order,
+ * the start layout and the palette options back WITH their consumers):
  *
  *   Settings
  *   [jump nav: AI Providers · Research · Region & locale ·
  *              Keybindings · Advanced]
  *   ── AI Providers ──────────────────────────────────────────────
- *      key rows (one designed grid, so status text and buttons
- *      align row to row) · defaults (agent/provider/model)
+ *      key rows in fallback order (drag or arrows; one designed grid,
+ *      so status text and buttons align row to row) · defaults
+ *      (agent/provider/model)
  *   ── Research ──────────────────────────────────────────────────
  *      two tiers (Unlimited (Local) — managed SearXNG · Hosted
  *      research model — OpenRouter per-stop models) ·
@@ -91,7 +96,8 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  *   ── Region & locale ───────────────────────────────────────────
  *   ── Keybindings ───────────────────────────────────────────────
  *   ── Advanced ──────────────────────────────────────────────────
- *      integrations · layouts · modules · export/import · about
+ *      integrations · layouts (+ start with) · command palette ·
+ *      modules · export/import · about
  *
  * Rows share ONE primitive (32px-control SettingRow inside a single bordered
  * card with hairline dividers — never a card per row); toggles are readable
@@ -417,9 +423,20 @@ function ProvidersSection() {
   const status = useProviderKeysStore((s) => s.status);
   const refresh = useProviderKeysStore((s) => s.refresh);
   const refreshOne = useProviderKeysStore((s) => s.refreshOne);
+  const providerOrder = useSettingsStore((s) => s.providerOrder);
+  const setProviderOrder = useSettingsStore((s) => s.setProviderOrder);
+  const ordered = orderedProviders(providers, providerOrder);
 
   const [dialogProvider, setDialogProvider] = useState<LLMProviderId | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [dragId, setDragId] = useState<LLMProviderId | null>(null);
+
+  /** Move one provider to position `to` of the fallback order. */
+  function moveProvider(id: LLMProviderId, to: number) {
+    const ids = ordered.map((p) => p.id).filter((other) => other !== id);
+    ids.splice(to, 0, id);
+    setProviderOrder(ids);
+  }
 
   useEffect(() => {
     void refresh();
@@ -443,99 +460,144 @@ function ProvidersSection() {
         hint="Paste an API key to enable an AI provider. Keys are stored in your OS keychain — never on disk or sent anywhere but the provider you call."
       />
       <div className="flex flex-col gap-6">
-        <Card>
-          {providers.map((provider) => {
-            const keyState = status[provider.id] ?? "missing";
-            const configured = keyState === "configured";
-            const isDefault = defaultProviderId === provider.id;
-            const needsKey = provider.requiresKey;
-            return (
-              <div
-                key={provider.id}
-                // Collapse order (R8 §3.4): at narrow widths the control
-                // cluster wraps below the label as ONE unit (ml-auto keeps it
-                // right-aligned) — columns stay aligned, nothing overlaps.
-                className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
-              >
-                {/* basis-40 makes the wrap REAL on a compressed sliver: with
+        <div>
+          <GroupLabel
+            label="Fallback order"
+            hint="Drag a row (or use its arrows) to reorder. If a provider fails before it answers (a rejected key, no credit, unreachable), the next provider below it that has a key answers instead."
+          />
+          <Card>
+            {ordered.map((provider, index) => {
+              const keyState = status[provider.id] ?? "missing";
+              const configured = keyState === "configured";
+              const isDefault = defaultProviderId === provider.id;
+              const needsKey = provider.requiresKey;
+              return (
+                <div
+                  key={provider.id}
+                  draggable
+                  onDragStart={() => setDragId(provider.id)}
+                  onDragOver={(e) => {
+                    if (dragId !== null) e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragId !== null && dragId !== provider.id) moveProvider(dragId, index);
+                    setDragId(null);
+                  }}
+                  onDragEnd={() => setDragId(null)}
+                  // Collapse order (R8 §3.4): at narrow widths the control
+                  // cluster wraps below the label as ONE unit (ml-auto keeps it
+                  // right-aligned) — columns stay aligned, nothing overlaps.
+                  className={cn(
+                    "flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3",
+                    dragId === provider.id && "opacity-50",
+                  )}
+                >
+                  <GripVertical
+                    className={cn(ICON_14, "text-charcoal-500 -mr-2 shrink-0 cursor-grab")}
+                    aria-hidden="true"
+                  />
+                  {/* basis-40 makes the wrap REAL on a compressed sliver: with
                     min-w-0 alone the name shrank to nothing while the fixed
                     control cluster overflowed the card (adversarial sweep) —
                     a declared base width forces the cluster onto line two. */}
-                <div className="flex min-w-0 grow basis-40 flex-col">
-                  <span className="text-charcoal-100 text-body truncate">{provider.label}</span>
-                  <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2">
-                    {!needsKey ? (
-                      <span className="truncate">No key required (local)</span>
-                    ) : configured ? (
-                      <span className="text-positive flex min-w-0 items-center gap-1">
-                        <Check className="size-3 shrink-0" aria-hidden="true" />
-                        <span className="truncate">Key configured</span>
-                      </span>
-                    ) : (
-                      <span className="truncate">No key yet</span>
-                    )}
-                  </span>
-                </div>
-                {/* ONE designed grid for every row (D2): fixed-width slots so
+                  <div className="flex min-w-0 grow basis-40 flex-col">
+                    <span className="text-charcoal-100 text-body truncate">{provider.label}</span>
+                    <span className="text-charcoal-400 text-caption mt-1 flex min-w-0 items-center gap-2">
+                      {!needsKey ? (
+                        <span className="truncate">No key required (local)</span>
+                      ) : configured ? (
+                        <span className="text-positive flex min-w-0 items-center gap-1">
+                          <Check className="size-3 shrink-0" aria-hidden="true" />
+                          <span className="truncate">Key configured</span>
+                        </span>
+                      ) : (
+                        <span className="truncate">No key yet</span>
+                      )}
+                    </span>
+                  </div>
+                  {/* ONE designed grid for every row (D2): fixed-width slots so
                     the default / key / remove columns align row to row — a row
                     missing a control renders its slot empty, never collapses. */}
-                <div className="ml-auto flex shrink-0 items-center gap-3">
-                  <span className="flex w-16 justify-end">
-                    {isDefault ? (
-                      // Short form + check state (V4: "SET DEFAULT" never
-                      // wraps) — the active default reads as a quiet fact.
-                      <span className="text-micro text-charcoal-200 flex h-6 items-center gap-1 whitespace-nowrap">
-                        <Check className="size-3 shrink-0" aria-hidden="true" />
-                        Default
-                      </span>
-                    ) : (
-                      // Picking a default is a free preference (no key
-                      // precondition), so it shows on every non-default row —
-                      // not just the one provider that happens to need no key
-                      // (regression-95 BUG-3).
+                  <div className="ml-auto flex shrink-0 items-center gap-3">
+                    {/* Keyboard reorder (the drag's accessible twin). */}
+                    <span className="flex w-14 justify-end">
                       <button
                         type="button"
-                        onClick={() => setDefaultProviderId(provider.id)}
-                        aria-label={`Set ${provider.label} as default provider`}
-                        // R8 §3.5: a button label never wraps to two lines —
-                        // the SAME short form as the active state, one column.
-                        className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1 whitespace-nowrap"
+                        disabled={index === 0}
+                        onClick={() => moveProvider(provider.id, index - 1)}
+                        aria-label={`Move ${provider.label} up`}
+                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
                       >
-                        Default
+                        <ArrowUp className={ICON_14} aria-hidden="true" />
                       </button>
-                    )}
-                  </span>
-                  <span className="flex w-28 justify-end">
-                    {needsKey && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDialogProvider(provider.id)}
+                      <button
+                        type="button"
+                        disabled={index === ordered.length - 1}
+                        onClick={() => moveProvider(provider.id, index + 1)}
+                        aria-label={`Move ${provider.label} down`}
+                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
                       >
-                        <KeyRound aria-hidden="true" />
-                        {configured ? "Update key" : "Add key"}
-                      </Button>
-                    )}
-                  </span>
-                  <span className="flex w-8 justify-end">
-                    {needsKey && configured && (
-                      <ConfirmButton
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label={`Remove ${provider.label} key`}
-                        onConfirm={() => void handleRemove(provider.id)}
-                        armedLabel={<Trash2 className={ICON_14} aria-hidden="true" />}
-                        className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-2"
-                      >
-                        <Trash2 className={ICON_14} aria-hidden="true" />
-                      </ConfirmButton>
-                    )}
-                  </span>
+                        <ArrowDown className={ICON_14} aria-hidden="true" />
+                      </button>
+                    </span>
+                    <span className="flex w-16 justify-end">
+                      {isDefault ? (
+                        // Short form + check state (V4: "SET DEFAULT" never
+                        // wraps) — the active default reads as a quiet fact.
+                        <span className="text-micro text-charcoal-200 flex h-6 items-center gap-1 whitespace-nowrap">
+                          <Check className="size-3 shrink-0" aria-hidden="true" />
+                          Default
+                        </span>
+                      ) : (
+                        // Picking a default is a free preference (no key
+                        // precondition), so it shows on every non-default row —
+                        // not just the one provider that happens to need no key
+                        // (regression-95 BUG-3).
+                        <button
+                          type="button"
+                          onClick={() => setDefaultProviderId(provider.id)}
+                          aria-label={`Set ${provider.label} as default provider`}
+                          // R8 §3.5: a button label never wraps to two lines —
+                          // the SAME short form as the active state, one column.
+                          className="text-micro text-charcoal-400 hover:text-charcoal-100 rounded-control h-6 px-1 whitespace-nowrap"
+                        >
+                          Default
+                        </button>
+                      )}
+                    </span>
+                    <span className="flex w-28 justify-end">
+                      {needsKey && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setDialogProvider(provider.id)}
+                        >
+                          <KeyRound aria-hidden="true" />
+                          {configured ? "Update key" : "Add key"}
+                        </Button>
+                      )}
+                    </span>
+                    <span className="flex w-8 justify-end">
+                      {needsKey && configured && (
+                        <ConfirmButton
+                          variant="ghost"
+                          size="icon-xs"
+                          aria-label={`Remove ${provider.label} key`}
+                          onConfirm={() => void handleRemove(provider.id)}
+                          armedLabel={<Trash2 className={ICON_14} aria-hidden="true" />}
+                          className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-2"
+                        >
+                          <Trash2 className={ICON_14} aria-hidden="true" />
+                        </ConfirmButton>
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </Card>
+              );
+            })}
+          </Card>
+        </div>
         {removeError && <p className="text-negative text-caption">{removeError}</p>}
 
         <DefaultsGroup />
@@ -1601,11 +1663,12 @@ function AdvancedSection() {
       <SectionHeader
         id="settings-advanced"
         title="Advanced"
-        hint="Integrations, saved layouts, module toggles, and settings portability."
+        hint="Integrations, saved layouts, the command palette, module toggles, and settings portability."
       />
       <div className="flex flex-col gap-8">
         <IntegrationsSection />
         <LayoutsSection />
+        <PaletteSection />
         <ModulesSection />
         <ExportImportSection />
         <DiagnosticsSection />
@@ -1658,6 +1721,8 @@ function LayoutsSection() {
   const [newName, setNewName] = useState("");
   const activeName = useWorkspaceStore((s) => s.name);
   const resetLayout = useWorkspaceStore((s) => s.resetToDefaultLayout);
+  const startLayout = useSettingsStore((s) => s.startLayout);
+  const setStartLayout = useSettingsStore((s) => s.setStartLayout);
 
   async function reload() {
     try {
@@ -1731,6 +1796,28 @@ function LayoutsSection() {
         </ConfirmButton>
       </form>
       {error && <p className="text-negative text-caption mb-2">{error}</p>}
+      <Card className="mb-2">
+        <SettingRow
+          label="Start with"
+          hint="What the terminal opens on. A saved layout that no longer exists opens the last session."
+        >
+          <Select
+            aria-label="Start with"
+            value={startLayout ?? ""}
+            onChange={(e) => setStartLayout(e.target.value === "" ? null : e.target.value)}
+          >
+            <option value="">Last session</option>
+            {startLayout !== null && !(names ?? []).includes(startLayout) && (
+              <option value={startLayout}>{startLayout} (missing)</option>
+            )}
+            {(names ?? []).map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </Select>
+        </SettingRow>
+      </Card>
       {names === null ? (
         <p className="text-charcoal-400 text-caption">Loading layouts…</p>
       ) : names.length === 0 ? (
@@ -1778,6 +1865,43 @@ function LayoutsSection() {
       <p className="text-charcoal-500 text-caption mt-2">
         Autosave slot: {AUTOSAVE_LAYOUT_NAME} (hidden; restored on launch)
       </p>
+    </section>
+  );
+}
+
+/** Command-palette behaviour (FR-038) — both options are read by CommandPalette. */
+function PaletteSection() {
+  const showRecents = useSettingsStore((s) => s.paletteShowRecents);
+  const setShowRecents = useSettingsStore((s) => s.setPaletteShowRecents);
+  const symbolScope = useSettingsStore((s) => s.paletteSymbolScope);
+  const setSymbolScope = useSettingsStore((s) => s.setPaletteSymbolScope);
+
+  return (
+    <section aria-labelledby="settings-palette">
+      <SubsectionHeader
+        id="settings-palette"
+        title="Command palette"
+        hint="How ⌘K ranks and scopes its results."
+      />
+      <Card>
+        <ToggleRow
+          label="Recent commands first"
+          hint="An empty palette opens on what you used last, and recent rows are tagged."
+          checked={showRecents}
+          onChange={setShowRecents}
+          switchLabel="Recent commands first"
+        />
+        <SettingRow label="Instrument search" hint="Watchlist only skips the live symbol lookup.">
+          <Select
+            aria-label="Instrument search"
+            value={symbolScope}
+            onChange={(e) => setSymbolScope(e.target.value as PaletteSymbolScope)}
+          >
+            <option value="all">All instruments</option>
+            <option value="watchlist">Watchlist only</option>
+          </Select>
+        </SettingRow>
+      </Card>
     </section>
   );
 }

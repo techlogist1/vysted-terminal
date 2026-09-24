@@ -244,10 +244,15 @@ describe("SettingsPanel", () => {
 
   // ---- Preferences (R9 settings-truth: dead controls stay dead) ----
 
-  it("the unread provider-preference-order group is gone (R9 kill)", () => {
+  // R9 killed an UNREAD preference-order group; R15-UI-087 rebuilt it with its
+  // consumer (the chat's provider fallback), so the order control is live now.
+  it("the provider fallback order is live: the arrows reorder the rows and the store (R15-UI-087)", () => {
     render(<SettingsPanel />);
-    expect(screen.queryByText("Provider preference order")).toBeNull();
-    expect(screen.queryByRole("button", { name: /Move .* up/ })).toBeNull();
+    const before = useSettingsStore.getState().providerOrder;
+    const second = useLLMProvidersStore.getState().providers.find((p) => p.id === before[1])!;
+    fireEvent.click(screen.getByRole("button", { name: `Move ${second.label} up` }));
+    expect(useSettingsStore.getState().providerOrder.slice(0, 2)).toEqual([before[1], before[0]]);
+    expect(screen.getByRole("button", { name: `Move ${second.label} up` })).toBeDisabled();
   });
 
   it("the dead Interface section is gone — no region, no nav chip, no knobs (R9 kill)", () => {
