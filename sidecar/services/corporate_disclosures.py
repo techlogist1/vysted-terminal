@@ -1079,7 +1079,7 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     ]
     applicable = [(name, fetch) for name, listed, fetch in lanes if listed]
     if not applicable:
-        # A US-listed ADR's 20-F holders ride on top: sec_ownership.attach_20f.
+        # A US-listed ADR's 20-F holders ride on top: sec_ownership.attach_major_shareholders.
         return ShareholdingResponse(symbol=bare, count=0, **_not_applicable(bare))
 
     errors: dict[str, str] = {}

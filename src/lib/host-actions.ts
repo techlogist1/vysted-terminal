@@ -153,6 +153,10 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
         title: typeof s.title === "string" ? s.title : typeof s.url === "string" ? s.url : "",
         excerpt: typeof s.excerpt === "string" ? s.excerpt : "",
         domain: typeof s.domain === "string" ? s.domain : undefined,
+        // Wire snake_case (web rows, ResearchSource.to_dict) → the camelCase
+        // contract the sources rail reads (R15-RESEARCH-024, R15-UI-038).
+        publishedAt: typeof s.published_at === "string" ? s.published_at : undefined,
+        provider: typeof s.provider === "string" ? s.provider : undefined,
         sourceType,
       };
     })

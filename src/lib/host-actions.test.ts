@@ -482,6 +482,28 @@ describe("host-actions", () => {
     expect(brief?.webAvailable).toBe(true); // reconciled — never contradictory
   });
 
+  it("publish_brief keeps a source's date and provenance from the wire (R15-RESEARCH-024)", () => {
+    useBriefStore.getState().clearBrief();
+    applyHostAction("publish_brief", {
+      query: "Apple outlook",
+      symbol: "AAPL",
+      mode: "deep",
+      markdown: "## Brief\nText [1].",
+      sources: [
+        {
+          url: "https://www.sec.gov/x",
+          title: "10-K",
+          domain: "sec.gov",
+          published_at: "2026-09-20T10:00:00Z",
+          provider: "via Perplexity Sonar",
+        },
+      ],
+    });
+    const [source] = useBriefStore.getState().brief?.sources ?? [];
+    expect(source?.publishedAt).toBe("2026-09-20T10:00:00Z");
+    expect(source?.provider).toBe("via Perplexity Sonar");
+  });
+
   it("publish_brief: omitted web_available does not default-true a sourceless run", () => {
     useBriefStore.getState().clearBrief();
     // The model omits the flag AND there are no sources → derive FALSE from the
