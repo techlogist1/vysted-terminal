@@ -1,0 +1,54 @@
+# R15-LEAD-006 at e032be7d
+cmd: grep -n '^def _row_value' sidecar/services/*.py (scratch checkout at sha)
+sidecar/services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+
+cmd: git log --oneline a122dbf6..e032be7d -- sidecar/services/growth_check.py sidecar/services/earnings_quality.py
+59de8327 fix(data): serve exchange-filed results as the India witness for fundamentals (R15-DATA-014, R15-DATA-027, R15-DATA-076, R15-LEAD-004)
+
+cmd: git log --grep=LEAD-006 => (empty)
+
+## earnings_quality.py:134-150
+def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+    """The first present row's value at ``column``, as float; NaN/missing → None.
+
+    Mirrors :func:`services.growth_check._row_value` (case-insensitive label
+    match, duplicate-row tolerant) so the two Yahoo statement readers behave
+    identically.
+    """
+    lowered = {str(label).strip().lower(): label for label in frame.index}
+    for candidate in labels:
+        actual = lowered.get(candidate.lower())
+        if actual is None:
+            continue
+        value = frame.loc[actual, column]
+        if isinstance(value, pd.Series):
+            value = value.iloc[0]
+        if value is None or pd.isna(value):
+            return None
+
+## growth_check.py:94-110
+def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+    """The first present row's value at ``column``, as float; NaN/missing → None."""
+    lowered = {str(label).strip().lower(): label for label in frame.index}
+    for candidate in labels:
+        actual = lowered.get(candidate.lower())
+        if actual is None:
+            continue
+        value = frame.loc[actual, column]
+        # Duplicate row labels make .loc return a Series — take the first.
+        if isinstance(value, pd.Series):
+            value = value.iloc[0]
+        if value is None or pd.isna(value):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+cmd: diff of the two bodies (after docstring)
+0a1
+> 
+15a17,18
+> 
+> 

@@ -1,0 +1,82 @@
+## quotes.py freshness block
+21-
+22-from models.market import Quote
+23-from services import provider_registry
+24:from services.locale import freshness_for, instrument_region
+25-
+26-router = APIRouter(prefix="/quotes", tags=["quotes"])
+27-
+28-
+29-def _label_freshness(quote: Quote, asset_class: str) -> Quote:
+30-    """Stamp the calendar-aware staleness label on a quote (FR-041 / SC-019).
+31-
+32-    A quote already passed the provider correctness gate, so it is never
+--
+41-        return quote
+42-    try:
+43-        region = instrument_region(quote.symbol, quote.provider)
+44:        quote.freshness = freshness_for(region, quote.timestamp.date(), intraday=True).state
+45-    except Exception:  # noqa: BLE001 — a label failure must never drop the quote
+46-        quote.freshness = None
+47-    return quote
+48-
+49-
+50-@router.get("/{symbol:path}")
+51-async def get_quote(symbol: str, asset_class: str = "equity") -> Quote:
+52-    """Return the latest quote for one symbol.
+## history.py freshness block
+8-from models.market import OHLCVSeries
+9-from services import provider_registry, symbol_resolver
+10-from services.correctness_gate import EmptySeriesError
+11:from services.locale import REGION_IN, freshness_for, instrument_region, region_for_suffix
+12-
+13-router = APIRouter(prefix="/history", tags=["history"])
+14-
+15-
+16-def _is_intraday(timeframe: str) -> bool:
+17-    tf = timeframe.lower()
+18-    return ("m" in tf or "h" in tf) and "mo" not in tf
+19-
+--
+56-    intraday = _is_intraday(timeframe)
+57-    try:
+58-        region = instrument_region(series.symbol, series.provider)
+59:        series.freshness = freshness_for(
+60-            region, series.bars[-1].timestamp.date(), intraday=intraday
+61-        ).state
+62-    except Exception:  # noqa: BLE001 — a label failure must never drop the series
+63-        series.freshness = None
+64-    return series
+65-
+66-
+67-@router.get("/{symbol:path}")  # a crypto pair carries "/" (R15-DATA-081)
+## UI null handling
+src/modules/watchlist/WatchlistPanel.tsx:40:/** Below this measured width the provenance/freshness chips drop (priority 1).
+src/modules/watchlist/WatchlistPanel.tsx:61: * The Symbol cell — the ticker plus its provenance / freshness badges and the
+src/modules/watchlist/WatchlistPanel.tsx:67:  const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
+src/modules/watchlist/WatchlistPanel.tsx:71:      {/* Drop-priority 1 (law §3.2): the provenance/freshness chips drop WHOLE
+src/modules/watchlist/WatchlistPanel.tsx:77:          {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+src/modules/watchlist/WatchlistPanel.tsx:96:  const live = isLiveQuote(quote?.freshness);
+src/modules/watchlist/WatchlistPanel.tsx:116:  const live = isLiveQuote(quote?.freshness);
+src/components/DataBadges.tsx:5: * freshness so a user (or the copilot reading the surface) never mistakes a
+src/components/DataBadges.tsx:66:/** The freshness states a {@link StalenessBadge} can render. */
+src/components/DataBadges.tsx:76:  // regions — this is a data-freshness fact, not a display-formatted number.
+src/components/DataBadges.tsx:86:  freshness,
+src/components/DataBadges.tsx:90:  freshness: Freshness;
+src/components/DataBadges.tsx:97:    freshness === "live"
+src/components/DataBadges.tsx:99:      : freshness === "stale"
+src/components/DataBadges.tsx:103:    freshness === "live"
+src/components/DataBadges.tsx:105:      : freshness === "stale"
+src/modules/chart/ChartPanel.tsx:97: * input, freshness in the badge.
+src/modules/chart/ChartPanel.tsx:318:  const [freshness, setFreshness] = useState<Freshness | null>(null);
+src/modules/chart/ChartPanel.tsx:422:          setFreshness(series.freshness ?? null);
+src/modules/chart/ChartPanel.tsx:439:        setFreshness(series.freshness ?? null);
+src/modules/chart/ChartPanel.tsx:1507:        {/* Status cluster — symbol, provider, freshness, session. §3.4: sheds
+src/modules/chart/ChartPanel.tsx:1509:            the input, freshness on the badge title). */}
+src/modules/chart/ChartPanel.tsx:1516:            {/* Calendar-aware freshness so a stale series is never read as current. */}
+src/modules/chart/ChartPanel.tsx:1517:            {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
+src/modules/chart/ChartPanel.tsx:1518:            {/* FR-118 session hint — the OHLCV series carries freshness but no
+src/modules/chart/ChartPanel.tsx:1520:                stale label from freshness rather than presenting EOD bars as live. */}
+src/modules/chart/ChartPanel.tsx:1521:            {!statusNoSession && priceState === "ready" && sessionLabelFromFreshness(freshness) ? (
+src/modules/chart/ChartPanel.tsx:1524:                title={`Session: ${sessionLabelFromFreshness(freshness)}`}
+src/modules/chart/ChartPanel.tsx:1526:                {sessionLabelFromFreshness(freshness)}

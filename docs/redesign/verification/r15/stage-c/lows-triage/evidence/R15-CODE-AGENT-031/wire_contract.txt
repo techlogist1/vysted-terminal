@@ -1,0 +1,108 @@
+## runs.py _dual_case
+51:def _dual_case(model: BaseModel) -> dict[str, Any]:
+52-    """Serialise a run model with BOTH camelCase aliases and snake_case names.
+53-
+54-    The documented wire contract is camelCase (``spendUsd``, ``agentId``,
+55-    ``createdAt``), but the lead's run-tray poller reads snake_case
+56-    (``spend_usd``, ``agent_id``). Emitting BOTH spellings on every GET keeps
+57-    either consumer working without a contract negotiation — a JSON object with
+58-    duplicate-meaning keys is cheap and the frontend picks whichever it reads.
+59-    Nested ``cost`` / ``budget`` objects get the same dual treatment.
+60-    """
+61-    camel = model.model_dump(mode="json", by_alias=True)
+62-    snake = model.model_dump(mode="json", by_alias=False)
+63-    merged: dict[str, Any] = {**snake, **camel}
+64-    for key in ("cost", "budget"):
+65-        if isinstance(camel.get(key), dict) and isinstance(snake.get(key), dict):
+66-            merged[key] = {**snake[key], **camel[key]}
+67-    return merged
+68-
+69-
+## models/run.py:1-25
+"""Delegate-run Pydantic models (P3 / FR-026/027/028, US9, SC-008).
+
+A *Delegate run* is an autonomous BACKGROUND agent task. Unlike a synchronous
+``POST /agents/{id}/invoke`` SSE stream — which lives and dies with the HTTP
+connection — a run is DURABLE: it is persisted in SQLite (``runs_store``),
+driven by a detached asyncio task (``run_manager``), governed by a hard
+``BudgetGuard`` spend ceiling (``budget_guard``), and observable / cancellable /
+resumable through ``routers.runs`` long after the launching request closed.
+
+These models are the wire contract the frontend consumes. The poller reads BOTH
+snake_case and camelCase for cost (``spend_usd`` / ``spendUsd``) — we emit
+camelCase aliases via ``Field(alias=...)`` + ``populate_by_name=True``, and the
+router serialises ``by_alias=True``, so the wire shape is the camelCase one the
+frontend expects while Python keeps snake_case attribute names.
+
+CLAUDE.md gotcha: ``types/data.ts`` mirrors ``sidecar/models/`` by hand — a
+field rename here requires a same-commit TypeScript update.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+## delegate-runs.ts RunWire
+73-
+74-/** Wire shape of a run from `GET /runs` (snake_case from the sidecar). */
+75:interface RunWire {
+76-  id: string;
+77-  agent_id: string | null;
+78-  agent_name?: string;
+79-  status: AgentRunStatus;
+80-  cost?: { tokens?: number; spend_usd?: number; steps?: number };
+81-  provider?: string | null;
+82-  plan?: AgentRunPlan | null;
+83-  activity?: AgentRunActivity[];
+84-  detail?: string;
+85-  question?: string;
+86-}
+87-
+88-/** `GET /runs` — every run the sidecar knows, newest first. */
+89:async function fetchRuns(): Promise<RunWire[]> {
+90:  const wire = await sidecarGet<{ runs?: RunWire[] } | RunWire[]>("/runs");
+91-  return Array.isArray(wire) ? wire : (wire.runs ?? []);
+92-}
+93-
+94-/** The human reason of a failed run request (a `SidecarError` already carries
+95- *  the sidecar's own sentence). */
+96-function reasonOf(err: unknown): string {
+97-  return err instanceof Error ? err.message : String(err);
+98-}
+99-
+100:function costOf(w: RunWire) {
+101-  return {
+102-    tokens: w.cost?.tokens ?? 0,
+103-    spendUsd: w.cost?.spend_usd ?? 0,
+104-    steps: w.cost?.steps ?? 0,
+105-  };
+106-}
+107-
+108-const POLL_MS = 2000;
+109-let pollTimer: ReturnType<typeof setInterval> | null = null;
+110-
+111-/** Consecutive `/runs` poll failures. After {@link POLL_FAIL_THRESHOLD} the live
+112- *  rail badges its active runs as stale instead of freezing on a frozen readout
+113- *  forever (A6 — a delegate run must never silently lose contact). */
+114-let pollFailures = 0;
+--
+201-    return;
+202-  }
+203:  let runs: RunWire[];
+204-  try {
+205-    runs = await fetchRuns();
+206-  } catch {
+207-    // A single dropped poll is fine; sustained failure means we've lost the
+208-    // sidecar — badge the runs stale rather than showing a frozen live readout.
+209-    pollFailures += 1;
+210-    if (pollFailures >= POLL_FAIL_THRESHOLD) {
+211-      markRunsStale();
+212-    }
+213-    return;
+214-  }
+215-  pollFailures = 0; // a successful poll clears the staleness state
+216-  const store = useAgentRunsStore.getState();
+217-  for (const w of runs) {
+## SIDECAR_API runs

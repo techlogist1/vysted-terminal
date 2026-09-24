@@ -1,0 +1,27 @@
+# Critic re-check R15-AGENT-065 at e032be7dd164a504215055a1cd7b7b497dbd68e9 (outside the script sample: a not_a_defect_proposed at confidence 3 in shard-7 that the sample list [] missed)
+
+$ ORIGINAL: grep -rn 'agents/roster\|delegate_to_persona' sidecar/routers/*.py sidecar/services/agent_tools/*.py | wc -l
+       0
+$ ORIGINAL: grep -n Deferred docs/CURRENT_STATE.md (roster/connector lines)
+809:| Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                  | BLOCKERS Phase-10 #5             |
+810:| Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                            | BLOCKERS Phase-10 #6             |
+$ ORIGINAL: grep -n -i 'persona\|connector hub\|panel gallery\|saved screens' docs/BLUEPRINT.md
+(empty)
+
+$ FRESH: grep -n -i 'datasource\|data source\|connector\|gallery\|saved screen\|roster' docs/BLUEPRINT.md
+162:  getDataSources?(): DataSource[];
+322:- Community workspace gallery
+465:  Critic per the §3.4-vs-§4 Tier-3 roster resolution; the 12th slot is
+632:- Online plugin marketplace + community workspace gallery
+  context: BLUEPRINT.md:321 '### 5.3 Future: workspace sharing (v2.0)' ; :631 '**v2.0 (year 1+):**' ; :162 plugin-contract method, not a UI claim
+### 5.3 Future: workspace sharing (v2.0)
+**v2.0 (year 1+):**
+$ FRESH: sed -n 23p src/components/PluginManagerPanel.tsx
+ * Wired into the plugin-manager module as `panelComponents["plugin-manager-panel"]`.
+
+$ FRESH live: curl GET http://127.0.0.1:52350/agents/roster
+{"detail":"Not Found"} [404]
+$ FRESH live: GET :52350/openapi.json paths containing roster|persona
+98 paths; roster/persona: []
+$ FRESH (corrected line): grep -n 'data sources' src/components/PluginManagerPanel.tsx
+42:            ? `${enabledCount} active of ${plugins.length} loaded · ${dataSources.length} data sources · ${agents.length} agents · ${nodes.length} nodes`

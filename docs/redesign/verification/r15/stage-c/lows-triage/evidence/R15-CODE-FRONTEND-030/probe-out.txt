@@ -1,0 +1,6 @@
+P7 arrange focus => "Focused on Screener" | focus_panel => "Focused Screener"
+P7 describe => Layout: Screener maximised
+P3 sent: ["a"] left pending: 0
+P3 pending after drain (defect if 0 with b unsent): 0
+CF-030 before: copilot after import: quant
+CF-034 kept_previous applied failed

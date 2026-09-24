@@ -1,0 +1,36 @@
+## screenshot dirs
+docs/screenshots/v0.6.0/teammate-e:
+README.md
+analyst-ratings-1920x1080.png
+analyst-ratings-2560x1440.png
+earnings-calendar-1920x1080.png
+earnings-calendar-2560x1440.png
+
+docs/screenshots/v0.6.0/teammate-sc:
+README.md
+screener-panel-1920x1080.png
+screener-panel-2560x1440.png
+ls: docs/mockups: No such file or directory
+## README claims
+docs/screenshots/v0.6.0/teammate-sc/README.md:34:Pillow-rendered shape-for-shape stand-ins via
+docs/screenshots/v0.6.0/teammate-sc/README.md:47:1. `pnpm sec-edgar-mcp-sidecar:build` (one-time PyInstaller compile).
+docs/screenshots/v0.6.0/teammate-e/README.md:19:(Python + Pillow) using the project's Vysted Terminal palette (charcoal
+docs/screenshots/v0.6.0/teammate-e/README.md:27:The screenshots are stand-ins that match the live panel output
+## hardcoded rows e:81-87
+    rows = [
+        ("AAPL", "May 20, 2026", "Apple Inc.", "After close", "1.50", "0.050 / 20"),
+        ("MSFT", "May 22, 2026", "Microsoft Corp.", "After close", "3.10", "0.080 / 35"),
+        ("NVDA", "May 21, 2026", "NVIDIA Corp.", "After close", "5.42", "0.180 / 41"),
+        ("GOOGL", "May 23, 2026", "Alphabet Inc.", "After close", "2.18", "0.090 / 28"),
+        ("META", "May 20, 2026", "Meta Platforms", "After close", "5.31", "0.220 / 38"),
+    ]
+## palette e:26-34
+BG_CHARCOAL_900 = (28, 25, 22)
+BG_CHARCOAL_800 = (35, 31, 27)
+BG_CHARCOAL_950 = (20, 18, 15)
+BORDER = (58, 53, 44)
+TEXT_LIGHT = (201, 194, 178)
+TEXT_DIM = (132, 122, 102)
+TEXT_HIGHLIGHT = (232, 180, 65)  # amber
+TEXT_POSITIVE = (78, 201, 163)
+TEXT_NEGATIVE = (200, 101, 75)

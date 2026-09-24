@@ -1,0 +1,45 @@
+## needs_disambiguation / DISAMBIGUATION_THRESHOLD
+sidecar/routers/resolve.py:54:            "needs_disambiguation": False,
+sidecar/routers/resolve.py:81:            "needs_disambiguation": False,
+sidecar/routers/resolve.py:95:        "needs_disambiguation": decision.outcome == "disambiguate",
+sidecar/tests/test_agent_runtime.py:1344:    """R10 D37: a needs_disambiguation result publishes the candidate chooser —
+sidecar/tests/test_agent_runtime.py:1349:        "needs_disambiguation": True,
+sidecar/tests/test_research_target.py:63:        "needs_disambiguation": True,
+sidecar/tests/test_research_target.py:140:    assert payload["needs_disambiguation"] is True
+sidecar/tests/test_research_iter.py:334:            "needs_disambiguation": True,
+sidecar/tests/test_research_iter.py:361:    assert out["ok"] is True and out["needs_disambiguation"] is True
+sidecar/tests/test_research_iter.py:377:    assert out["ok"] is True and out["needs_disambiguation"] is True
+sidecar/tests/test_symbol_resolver.py:96:    assert not r.needs_disambiguation
+sidecar/tests/test_symbol_resolver.py:115:    assert not r.needs_disambiguation
+sidecar/tests/test_symbol_resolver.py:417:    assert r.needs_disambiguation
+sidecar/tests/test_symbol_resolver.py:712:    assert res.needs_disambiguation
+sidecar/tests/test_resolver_rename.py:120:    assert not r.needs_disambiguation
+sidecar/tests/test_resolver_rename.py:166:    assert not r.needs_disambiguation
+sidecar/tests/test_resolver_rename.py:181:    assert not r.needs_disambiguation
+sidecar/tests/test_research_execution_record.py:276:    """The full composition: engine returns needs_disambiguation → the handler
+sidecar/tests/test_research_execution_record.py:282:            "needs_disambiguation": True,
+sidecar/tests/test_research_fast.py:84:                "needs_disambiguation": False,
+sidecar/tests/test_resolution_policy.py:135:        r"^\s*(CONFIDENCE_FLOOR|DISAMBIGUATION_THRESHOLD|ACCEPT|REJECT)\s*=\s*[0-9.]",
+sidecar/services/resolution_policy.py:6:(``DISAMBIGUATION_THRESHOLD``), and the fuzzy scorer floored at 0.6 — so
+sidecar/services/symbol_resolver.py:56:  (:data:`DISAMBIGUATION_THRESHOLD` re-exports its ``ACCEPT``).
+sidecar/services/symbol_resolver.py:89:    ACCEPT as DISAMBIGUATION_THRESHOLD,  # the ONE threshold — re-exported, never redefined
+sidecar/services/symbol_resolver.py:912:    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
+sidecar/services/symbol_resolver.py:1465:    "DISAMBIGUATION_THRESHOLD",
+-- property
+285-
+286-    @property
+287:    def needs_disambiguation(self) -> bool:
+288-        # Delegates to the ONE policy so this surface and the agent tool can
+289-        # never disagree (the pre-R10 two-truths defect).
+290-        return self.best is not None and decide(self).outcome == "disambiguate"
+291-
+292-
+293-def instrument_payload(instrument: Instrument) -> dict[str, object]:
+294-    """The ONE wire shape of an :class:`Instrument` (the ``/resolve`` routes and
+295-    the ``resolve_symbol`` agent tool both project through it)."""
+-- __all__ region
+56:  (:data:`DISAMBIGUATION_THRESHOLD` re-exports its ``ACCEPT``).
+89:    ACCEPT as DISAMBIGUATION_THRESHOLD,  # the ONE threshold — re-exported, never redefined
+912:    if (not ranked or ranked[0].score < DISAMBIGUATION_THRESHOLD) and suffix_exchange != "BSE":
+1464:__all__ = [
+1465:    "DISAMBIGUATION_THRESHOLD",

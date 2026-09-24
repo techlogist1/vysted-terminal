@@ -1,0 +1,23 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  range_check.py:150-171
+    stamped = [(ts, bar) for bar in bars if (ts := _bar_timestamp(bar)) is not None]
+    if not stamped:
+        return None
+    latest = max(ts for ts, _ in stamped)
+    window_start = latest - timedelta(days=_WINDOW_DAYS)
+    windowed = [bar for ts, bar in stamped if ts >= window_start]
+    windowed_ts = [ts for ts, _ in stamped if ts >= window_start]
+    if not windowed:
+        return None
+    coverage_days = (latest - min(windowed_ts)).days
+    if coverage_days < _COVERAGE_MIN_DAYS or len(windowed) < _COVERAGE_MIN_BARS:
+        return None
+    highs = [float(b.high) for b in windowed if b.high is not None]
+    lows = [float(b.low) for b in windowed if b.low is not None]
+    if not highs or not lows:
+        return None
+    return Range52w(
+        high=max(highs),
+        low=min(lows),
+        coverage_days=coverage_days,
+        bars=len(windowed),
+        source=source,

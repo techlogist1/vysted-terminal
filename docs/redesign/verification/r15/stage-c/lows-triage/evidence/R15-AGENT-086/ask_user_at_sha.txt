@@ -1,0 +1,112 @@
+## run_manager.py: pause_run def + callers
+26:  that round's tools run, checkpoints, and parks the run ``paused`` with the
+283:                        event.input.get("question") if name == agent_runtime.ASK_USER_TOOL else None
+311:                status="paused",
+463:def answer_run(
+470:    """Deliver a human reply to a run paused on ``ask_user`` and resume it (FR-028).
+474:    for an unknown run and :class:`RunStateError` when it is not paused.
+476:    _resume(run_id, frozenset({"paused"}), answer=answer, api_key=api_key, budget=budget)
+488:def resume_run(
+## run_manager.py:165-180, 270-300
+    turns: list[dict[str, str]] = list(checkpoint["turns"])
+    round_text: list[str] = []
+    # A ceiling the guard reported, and an error the agent loop reported: two
+    # different facts (R15-AGENT-038). ``halted`` — the runtime stopped before
+    # dispatching a round's tools because the guard refused another round.
+    breach_reason: str | None = None
+    agent_error: str | None = None
+    halted = False
+    # The model's ask_user question (R15-CODE-AGENT-011): the run pauses on it.
+    question: str | None = None
+    delta_buffer: list[str] = []
+    # The run's collectable output (R15-AGENT-013): the last brief it published
+    # and the host actions it proposed, delivered once to the originating chat
+    # thread on the terminal poll — never applied here.
+    brief: dict[str, Any] | None = None
+    host_actions: list[dict[str, Any]] = []
+                options=dict(options),
+                mode="delegate",
+                on_round_usage=_on_round_usage,
+                on_tool_result=_on_tool_result,
+            ):
+                kind = getattr(event, "kind", None)
+                if kind == "delta":
+                    delta_buffer.append(getattr(event, "text", ""))
+                    round_text.append(getattr(event, "text", ""))
+                elif kind == "tool_use":
+                    name = getattr(event, "name", "?")
+                    _flush_text()
+                    asked = (
+                        event.input.get("question") if name == agent_runtime.ASK_USER_TOOL else None
+                    )
+                    if isinstance(asked, str) and asked.strip() and question is None:
+                        question = asked.strip()
+                        turns.append({"role": "assistant", "content": f"[ask_user → {question}]"})
+                    # A tool round ends the model's paragraph; the next round's
+                    # text starts a new one instead of running on.
+                    if delta_buffer and delta_buffer[-1] != "\n\n":
+                        delta_buffer.append("\n\n")
+                    if name == "publish_brief":
+                        brief = dict(event.input)
+                    elif name in HOST_ACTION_TOOLS:
+                        host_actions.append(
+                            {
+                                "tool_call_id": event.tool_call_id,
+                                "name": name,
+                                "input": dict(event.input),
+                            }
+## runs.py routes
+70:@router.post("/agents/{agent_id}/runs", status_code=status.HTTP_201_CREATED)
+94:@router.get("/runs")
+104:@router.get("/runs/{run_id}")
+113:@router.post("/runs/{run_id}/cancel")
+126:@router.post("/runs/{run_id}/start")
+134:@router.post("/runs/{run_id}/answer")
+146:@router.post("/runs/{run_id}/resume")
+## tests mentioning ask_user/paused
+sidecar/tests/test_agent_runtime.py
+sidecar/tests/test_run_manager.py
+sidecar/tests/test_agent_runtime.py:541:async def test_ask_user_is_offered_only_to_a_delegate_run(monkeypatch: pytest.MonkeyPatch) -> None:
+sidecar/tests/test_fundamentals_warm.py:170:async def test_crawl_once_respects_priority_and_pause(monkeypatch: pytest.MonkeyPatch) -> None:
+sidecar/tests/test_run_manager.py:386:async def test_ask_user_pauses_the_run_and_the_answer_resumes_it(
+sidecar/tests/test_runs_router.py:223:def test_answer_not_paused_409(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+## agent_runtime.py:1955-1975
+    adapter = get_provider(provider_id)
+    # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
+    # and elides old results; hosted lanes (no window) send the full set. The
+    # window is an optional capability: an adapter that declares none has none.
+    context_window = getattr(adapter, "context_window", None)
+    window = context_window(resolved_model) if context_window else None
+    if window:
+        tool_ids = _window_tool_subset(tool_ids, messages, window)
+    # ask_user belongs to the Delegate MODE, not to an agent's allow-list
+    # (R15-CODE-AGENT-011): every Delegate run can pause for the user (its
+    # driver parks the run on the call), on every lane; a live turn asks in
+    # prose, so it is never offered there.
+    tool_ids = [t for t in tool_ids if t != ASK_USER_TOOL]
+    if mode == "delegate":
+        tool_ids.append(ASK_USER_TOOL)
+
+    # Publish the active LLM creds for the run so the in-loop research tool's deep
+    # path can call the SAME model the user is talking to. Task-local (each request
+    # is its own asyncio task with a copied context), so it does not leak across
+    # requests; the key stays process-memory-only.
+    config.set_request_llm_creds(provider_id, resolved_model, api_key)
+## catalog ask_user
+1124-                    "scope": {
+1125-                        "type": "string",
+1126-                        "description": "'global' or a symbol, e.g. 'BDL'",
+1127-                    }
+1128-                },
+1129-                ["scope"],
+1130-            ),
+1131-            domain="workspace",
+1132-            read_only=True,
+1133-            kind="per_invocation",
+1134-        ),
+1135-        _cap(
+1136:            "ask_user",
+1137-            description=(
+1138-                "Pause this background run and ask the user ONE question you "
+1139-                "cannot answer yourself: a missing choice, an ambiguity, or an "
+1140-                "approval. The run stops here and resumes with their answer as the "

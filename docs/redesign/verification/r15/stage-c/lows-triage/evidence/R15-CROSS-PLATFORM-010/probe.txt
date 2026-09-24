@@ -1,0 +1,129 @@
+## git show --stat 018a469a
+018a469a fix(build): pin sidecar build venvs to Python 3.13 (R15-LEAD-012)
+
+ scripts/build-python.mjs                 | 66 ++++++++++++++++++++++++++++++++
+ scripts/ensure-openbb-mcp-sidecar.mjs    | 14 ++++---
+ scripts/ensure-sec-edgar-mcp-sidecar.mjs | 14 ++++---
+ scripts/ensure-sidecar.mjs               | 14 ++++---
+ 4 files changed, 90 insertions(+), 18 deletions(-)
+## grep -n -E 'python|3\.13|version_info|py -3' scripts/ensure-sidecar.mjs
+15:import { ensureBuildVenv } from "./build-python.mjs";
+27:const venvPython = join(venvBin, isWin ? "python.exe" : "python");
+83:    join(import.meta.dirname, "build-python.mjs"),
+101:// 1. Create the build venv on Python 3.13 (recreated if it is any other version).
+## ensure-openbb-mcp-sidecar.mjs
+32:import { ensureBuildVenv } from "./build-python.mjs";
+44:const venvPython = join(venvBin, isWin ? "python.exe" : "python");
+93:    join(import.meta.dirname, "build-python.mjs"),
+111:// 1. Create the build venv on Python 3.13 (recreated if it is any other version).
+## ensure-sec-edgar-mcp-sidecar.mjs
+22:import { ensureBuildVenv } from "./build-python.mjs";
+34:const venvPython = join(venvBin, isWin ? "python.exe" : "python");
+83:    join(import.meta.dirname, "build-python.mjs"),
+101:// 1. Create the build venv on Python 3.13 (recreated if it is any other version).
+## shared helper?
+scripts/audit-design-tokens.mjs
+scripts/build-python.mjs
+scripts/ensure-all-sidecars.mjs
+scripts/ensure-openbb-mcp-sidecar.mjs
+scripts/ensure-sec-edgar-mcp-sidecar.mjs
+scripts/ensure-sidecar.mjs
+scripts/macos-dev-sign.mjs
+scripts/sidecar-staleness.mjs
+scripts/smoke-test-sidecars.mjs
+## package.json ci-local bare python
+20:python -m pip install ruff==0.15.12 
+20:python -m pip install -r requirements-dev.txt 
+## which python (non-interactive)
+rc=1
+/usr/bin/python3
+Python 3.9.6
+## scripts/build-python.mjs (full, at sha)
+     1	// scripts/build-python.mjs
+     2	//
+     3	// The one place the sidecar build venvs get their interpreter. The stack
+     4	// declares Python 3.13; a bare `python3` follows whatever the OS package
+     5	// manager last installed (Homebrew moved it to 3.14 mid-release), so every
+     6	// ensure script resolves and verifies 3.13 here instead (R15-LEAD-012).
+     7	
+     8	import { execSync } from "node:child_process";
+     9	import { existsSync, rmSync } from "node:fs";
+    10	import { platform } from "node:os";
+    11	
+    12	const WANT = "3.13";
+    13	
+    14	/** "3.13" for an interpreter command, or null when it cannot be run. */
+    15	function versionOf(cmd) {
+    16	  try {
+    17	    return execSync(`${cmd} -c "import sys; print('%d.%d' % sys.version_info[:2])"`, {
+    18	      encoding: "utf8",
+    19	      stdio: ["ignore", "pipe", "ignore"],
+    20	    }).trim();
+    21	  } catch {
+    22	    return null;
+    23	  }
+    24	}
+    25	
+    26	/**
+    27	 * The command for a Python 3.13 interpreter: `VYSTED_PYTHON` when set, else the
+    28	 * first of `python3.13`, `py -3.13` (Windows) or a plain `python3`/`python`
+    29	 * that reports 3.13. Throws a message naming the fix when none does.
+    30	 */
+    31	export function resolveBuildPython() {
+    32	  const override = process.env.VYSTED_PYTHON;
+    33	  if (override) {
+    34	    const cmd = `"${override}"`;
+    35	    const got = versionOf(cmd);
+    36	    if (got !== WANT) {
+    37	      throw new Error(
+    38	        `VYSTED_PYTHON=${override} is Python ${got ?? "(not runnable)"}, need ${WANT}.`,
+    39	      );
+    40	    }
+    41	    return cmd;
+    42	  }
+    43	  const candidates =
+    44	    platform() === "win32" ? ["py -3.13", "python3.13", "python"] : ["python3.13", "python3"];
+    45	  for (const cmd of candidates) {
+    46	    if (versionOf(cmd) === WANT) return cmd;
+    47	  }
+    48	  throw new Error(
+    49	    `No Python ${WANT} found (tried ${candidates.join(", ")}). Install Python ${WANT} ` +
+    50	      `(e.g. \`brew install python@3.13\`) or set VYSTED_PYTHON to its path.`,
+    51	  );
+    52	}
+    53	
+    54	/**
+    55	 * Make `venvDir` a Python 3.13 venv: create it when missing and recreate it
+    56	 * when its interpreter is any other version.
+    57	 */
+    58	export function ensureBuildVenv(venvDir, venvPython, run) {
+    59	  if (existsSync(venvPython)) {
+    60	    const got = versionOf(`"${venvPython}"`);
+    61	    if (got === WANT) return;
+    62	    console.log(`[build-python] ${venvDir} is Python ${got ?? "(broken)"}, recreating on ${WANT}.`);
+    63	    rmSync(venvDir, { recursive: true, force: true });
+    64	  }
+    65	  run(`${resolveBuildPython()} -m venv "${venvDir}"`);
+    66	}
+## ensure-sidecar.mjs:95-115
+  );
+}
+
+console.log(`[ensure-sidecar] building ${outName} ...`);
+mkdirSync(BINARIES_DIR, { recursive: true });
+
+// 1. Create the build venv on Python 3.13 (recreated if it is any other version).
+ensureBuildVenv(VENV_DIR, venvPython, run);
+
+// 2. Install sidecar + build dependencies.
+run(`"${venvPython}" -m pip install --upgrade pip`);
+run(`"${venvPython}" -m pip install -r "${join(SIDECAR_DIR, "requirements-dev.txt")}"`);
+
+// 3. Build the one-file binary with PyInstaller. uvicorn resolves its loop/protocol
+//    implementations dynamically, so the relevant submodules are hinted explicitly.
+const pyinstaller = join(venvBin, isWin ? "pyinstaller.exe" : "pyinstaller");
+const buildDir = join(SIDECAR_DIR, "build");
+const distDir = join(SIDECAR_DIR, "dist");
+const hidden = [
+  "uvicorn.loops.auto",
+  "uvicorn.loops.asyncio",

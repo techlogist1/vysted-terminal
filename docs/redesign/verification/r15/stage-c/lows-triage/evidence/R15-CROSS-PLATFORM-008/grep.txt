@@ -1,0 +1,45 @@
+cmd: grep -rn 'set_var|remove_var' src-tauri/src @e032be7
+src-tauri/src/sec_edgar_mcp.rs:60:    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
+src-tauri/src/sec_edgar_mcp.rs:61:    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_HOST");
+src-tauri/src/sec_edgar_mcp.rs:94:    std::env::set_var("VYSTED_SEC_EDGAR_MCP_PORT", port.to_string());
+src-tauri/src/sec_edgar_mcp.rs:95:    std::env::set_var("VYSTED_SEC_EDGAR_MCP_HOST", "127.0.0.1");
+src-tauri/src/openbb_mcp.rs:61:    std::env::remove_var("VYSTED_OPENBB_MCP_PORT");
+src-tauri/src/openbb_mcp.rs:62:    std::env::remove_var("VYSTED_OPENBB_MCP_HOST");
+src-tauri/src/openbb_mcp.rs:95:    std::env::set_var("VYSTED_OPENBB_MCP_PORT", port.to_string());
+src-tauri/src/openbb_mcp.rs:96:    std::env::set_var("VYSTED_OPENBB_MCP_HOST", "127.0.0.1");
+src-tauri/Cargo.toml:6
+edition = "2021"
+
+src-tauri/src/lib.rs:350-360 spawn_boot (thread::spawn) and :558-576 (openbb_mcp::start / sec_edgar_mcp::start inside spawn_boot closures)
+fn spawn_boot<A, SA, B, SB, M>(start_a: A, start_b: B, start_main: M) -> thread::JoinHandle<()>
+where
+    A: FnOnce() -> SA + Send + 'static,
+    SA: FnOnce() + Send,
+    B: FnOnce() -> SB + Send + 'static,
+    SB: FnOnce() + Send,
+    M: FnOnce() + Send + 'static,
+{
+    thread::spawn(move || {
+        let supervise_a = start_a();
+        let supervise_b = start_b();
+            spawn_boot(
+                move || {
+                    let port = openbb_mcp::start(&openbb);
+                    move || {
+                        if let Some(port) = port {
+                            openbb_mcp::supervise(&openbb, port);
+                        }
+                    }
+                },
+                move || {
+                    let port = sec_edgar_mcp::start(&sec);
+                    move || {
+                        if let Some(port) = port {
+                            sec_edgar_mcp::supervise(&sec, port);
+                        }
+                    }
+                },
+                move || start_main_sidecar(&main, port),
+            );
+
+cmd: grep '.env(' or VYSTED_*_MCP_PORT outside the two mcp modules => (empty: main sidecar still inherits via process env)

@@ -1,0 +1,74 @@
+## sidecar/routers/earnings.py:60-132 @e032be7
+    today = datetime.now(tz=UTC).date()
+    start = today
+    end = today + timedelta(days=days)
+    parsed_watchlist: list[str] | None = None
+    if watchlist:
+        parsed_watchlist = [s.strip() for s in watchlist.split(",") if s.strip()]
+    cache_key = (
+        f"earnings:upcoming:{start.isoformat()}:{end.isoformat()}:"
+        f"{_watchlist_key(parsed_watchlist)}"
+    )
+    cached = await data_cache.get(cache_key, _TTL_UPCOMING)
+    if isinstance(cached, dict):
+        try:
+            return EarningsUpcomingResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+
+    response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
+
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/{symbol}/history")
+async def get_history(symbol: str) -> EarningsHistoryResponse:
+    """Return past earnings results for ``symbol``."""
+    normalized = symbol.strip().upper()
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
+    cached = await data_cache.get(cache_key, _TTL_HISTORY)
+    if isinstance(cached, dict):
+        try:
+            return EarningsHistoryResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    response = await earnings_provider.get_history(normalized)
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/{symbol}/surprises")
+async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
+    """Return per-quarter EPS surprise rows for ``symbol``."""
+    normalized = symbol.strip().upper()
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
+    cached = await data_cache.get(cache_key, _TTL_HISTORY)
+    if isinstance(cached, dict):
+        try:
+            return EarningsSurprisesResponse.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    response = await earnings_provider.get_surprises(normalized)
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+@router.get("/{symbol}/estimates")
+async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
+    """Return the next-event analyst-estimate detail for ``symbol``."""
+    normalized = symbol.strip().upper()
+    cache_key = f"earnings:{_yahoo_symbol(normalized)}:estimates"  # the resolved listing
+    cached = await data_cache.get(cache_key, _TTL_ESTIMATES)
+    if isinstance(cached, dict):
+        try:
+            return EarningsEstimateDetail.model_validate(cached)
+        except Exception:  # noqa: BLE001
+            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    response = await earnings_provider.get_estimate_detail(normalized)
+    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    return response
+
+
+# Re-export the date primitive so the unused import does not trip ruff F401.
+__all__ = ["date", "router"]

@@ -1,0 +1,50 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  lib.rs:186-222; keychain.rs:114-124
+fn resolve_data_dir(app: &AppHandle) -> String {
+    let dir = match app.path().app_data_dir() {
+        Ok(dir) => dir,
+        Err(err) => {
+            diag_eprintln!(
+                "[vysted] could not resolve the app data directory ({err}); \
+                 falling back to a temp directory"
+            );
+            std::env::temp_dir().join("vysted-terminal")
+        }
+    };
+    if let Err(err) = std::fs::create_dir_all(&dir) {
+        diag_eprintln!(
+            "[vysted] could not create the data directory {dir:?} ({err}); \
+             sidecar persistence may be degraded"
+        );
+    }
+    dir.to_string_lossy().to_string()
+}
+
+/// Return the per-OS application data directory to the frontend — the
+/// authoritative source the Rust core also passes to the sidecar as
+/// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
+/// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
+/// renderer must ask the core directly. Mirrors `resolve_data_dir`'s resolution
+/// (app_data_dir with a temp-dir fallback).
+#[tauri::command]
+fn get_app_data_dir(app: tauri::AppHandle) -> String {
+    match app.path().app_data_dir() {
+        Ok(dir) => dir.to_string_lossy().to_string(),
+        Err(_) => std::env::temp_dir()
+            .join("vysted-terminal")
+            .to_string_lossy()
+            .to_string(),
+    }
+}
+
+...
+    /// Resolve `<app-data-dir>/dev-keystore.json`, creating the dir. Falls back
+    /// to a temp dir (mirrors `resolve_data_dir` in `lib.rs`) so a path failure
+    /// can never panic a key read.
+    pub fn file_path(app: &tauri::AppHandle) -> PathBuf {
+        let dir = app
+            .path()
+            .app_data_dir()
+            .unwrap_or_else(|_| std::env::temp_dir().join("vysted-terminal"));
+        let _ = std::fs::create_dir_all(&dir);
+        dir.join(FILENAME)
+    }

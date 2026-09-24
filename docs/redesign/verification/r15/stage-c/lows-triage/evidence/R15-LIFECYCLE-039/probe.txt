@@ -1,0 +1,147 @@
+## :112-125
+// process table by name.
+const _SMOKE_MARKER_ENV = "VYSTED_SMOKE_TEST_MARKER";
+const _SMOKE_MARKER = "vysted-smoke-test-v1";
+
+// Fixed (not per-run) path so a crashed prior run's ledger is discoverable
+// by the next run's pre-flight.
+const _STATE_DIR = join(tmpdir(), "vysted-smoke-test");
+const _STATE_FILE = join(_STATE_DIR, "live-children.json");
+
+/** Read the PID ledger; `[]` on any read/parse failure (never blocks a run). */
+function _readState() {
+  try {
+    const parsed = JSON.parse(readFileSync(_STATE_FILE, "utf8"));
+    return Array.isArray(parsed) ? parsed : [];
+## :126-190 (ledger read/write + preflight)
+  } catch {
+    return [];
+  }
+}
+
+/** Persist the PID ledger; best-effort — a write failure must never fail the run. */
+function _writeState(entries) {
+  try {
+    mkdirSync(_STATE_DIR, { recursive: true });
+    writeFileSync(_STATE_FILE, JSON.stringify(entries, null, 2));
+  } catch {
+    // Non-fatal — worst case a future run's scoped pre-flight misses this entry.
+  }
+}
+
+function _recordChild(pid, binaryBaseName) {
+  const entries = _readState();
+  entries.push({ pid, binary: binaryBaseName, marker: _SMOKE_MARKER, spawnedAt: Date.now() });
+  _writeState(entries);
+}
+
+function _forgetChild(pid) {
+  const entries = _readState().filter((e) => e.pid !== pid);
+  _writeState(entries);
+}
+
+/**
+ * Track every spawned bootloader PID so the global cleanup handlers can
+ * tree-kill them on script exit / SIGINT / SIGTERM. PyInstaller --onefile
+ * re-execs a worker child; killing the bootloader does NOT kill the worker
+ * on Windows. The Set holds bootloader PIDs; `_killTree` walks the tree.
+ * `_SPAWN_LOG` is a human-readable record (binary/port/pid) of everything
+ * this run spawned, printed in the ATTENDED-SAFE summary at the end.
+ */
+const _LIVE_PIDS = new Set();
+const _SPAWN_LOG = [];
+let _CLEANUP_REGISTERED = false;
+
+function _registerCleanup() {
+  if (_CLEANUP_REGISTERED) return;
+  _CLEANUP_REGISTERED = true;
+  const runCleanup = () => {
+    // Only ever touches PIDs THIS run spawned and is still tracking — never
+    // a name-based system scan. Safe to run unconditionally, including on a
+    // machine where the operator's own vysted-* processes are alive.
+    for (const pid of _LIVE_PIDS) {
+      _killTree(pid);
+      _forgetChild(pid);
+    }
+    _LIVE_PIDS.clear();
+  };
+  // `exit` runs synchronously and last — guarantees orphan cleanup on
+  // any path including uncaught throws. SIGINT/SIGTERM let interactive
+  // Ctrl+C / `kill` paths exit cleanly.
+  process.on("exit", runCleanup);
+  process.on("SIGINT", () => {
+    runCleanup();
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    runCleanup();
+    process.exit(143);
+  });
+}
+
+## :318-326
+          `so it is left untouched.`,
+      );
+      stale += 1;
+    }
+  }
+  _writeState([]); // every row has been resolved (reaped or dropped) above
+  if (reaped > 0) {
+    await sleep(500); // let the OS release file locks after the reap
+  }
+## grep ledger path / pid in name
+110:// comes from `_STATE_FILE` below — we only ever *inspect* a PID that this
+119:const _STATE_FILE = join(_STATE_DIR, "live-children.json");
+124:    const parsed = JSON.parse(readFileSync(_STATE_FILE, "utf8"));
+132:function _writeState(entries) {
+135:    writeFileSync(_STATE_FILE, JSON.stringify(entries, null, 2));
+144:  _writeState(entries);
+149:  _writeState(entries);
+274: * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in `_STATE_FILE`
+323:  _writeState([]); // every row has been resolved (reaped or dropped) above
+905:      `(${_STATE_FILE}). It never inspects, name-matches, or kills any pre-existing ` +
+## :274-317 (preflight reap logic)
+ * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in `_STATE_FILE`
+ * and failed to clean up (e.g. a hard crash, SIGKILL of the node process
+ * itself). This is the replacement for the old blanket
+ * `pgrep -f vysted-.*sidecar` scan: that scan matched every vysted-*sidecar*
+ * process on the box BY NAME, including the operator's own running app, and
+ * told the operator to `pkill -9 -f vysted-.*sidecar` to proceed — killing
+ * the app they're using. This function never inspects, matches, or touches
+ * any PID it did not itself write to its own ledger file in a previous run.
+ */
+async function _scopedOrphanPreflight() {
+  const entries = _readState();
+  if (entries.length === 0) {
+    console.log(
+      "[smoke] pre-flight (ATTENDED-SAFE): no leaked children from a prior smoke-test " +
+        "run's PID ledger — nothing to reap. (This check never inspects processes it did " +
+        "not itself spawn, so it cannot see — and will never touch — the operator's own " +
+        "running vysted-terminal app.)",
+    );
+    return;
+  }
+  let reaped = 0;
+  let stale = 0;
+  for (const entry of entries) {
+    if (!_isPidAlive(entry.pid)) {
+      stale += 1;
+      continue; // already gone — just a dangling ledger row
+    }
+    const owned = await _confirmOwnedByMarker(entry);
+    if (owned) {
+      console.warn(
+        `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
+          `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
+          `marker, tree-killing.`,
+      );
+      _killTree(entry.pid);
+      reaped += 1;
+    } else {
+      // Alive, but the marker/command-name doesn't match what we recorded —
+      // the PID was almost certainly reassigned to an unrelated process
+      // (possibly the operator's own app) since the ledger row was written.
+      // Never touch it; just drop the stale row.
+      console.log(
+        `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
+          `process now holds that PID but does not match this script's marker (PID reuse), ` +

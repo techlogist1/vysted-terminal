@@ -1,0 +1,70 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  Cargo.toml:34; keychain.rs:62-92; keychain.rs:224; src/store/onboarding.ts:44-60; src/lib/keychain.ts:36-50
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
+...
+#[cfg_attr(debug_assertions, allow(dead_code))] // set/delete are the release path; in debug only get() (migration) runs
+mod os_keychain {
+    use super::SERVICE;
+    use keyring::Entry;
+
+    pub fn set(account: &str, secret: &str) -> Result<(), String> {
+        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        entry.set_password(secret).map_err(|e| e.to_string())
+    }
+
+    pub fn get(account: &str) -> Result<Option<String>, String> {
+        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        match entry.get_password() {
+            Ok(p) => Ok(Some(p)),
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    pub fn delete(account: &str) -> Result<(), String> {
+        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        match entry.delete_credential() {
+            Ok(()) => Ok(()),
+            Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+}
+
+// --- Dev file keystore backend (debug builds only) ---------------------------
+#[cfg(debug_assertions)]
+...
+    const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
+...
+
+export const useOnboardingStore = create<OnboardingState>((set) => ({
+  seen: null,
+  bannerDismissed: null,
+  forceOpen: false,
+  forceStep: null,
+  refresh: async () => {
+    try {
+      const value = await getSecret(ONBOARDING_ACCOUNT);
+      set({ seen: Boolean(value && value.length > 0) });
+    } catch {
+      // Outside the Tauri shell (browser dev) the keychain rejects — treat as
+      // "not seen" so the flow is exercisable in dev, harmless in production.
+      set({ seen: false });
+    }
+  },
+  refreshBanner: async () => {
+...
+  /**
+   * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
+   * Used for durable first-run state that must survive a workspace-layout reset
+   * or an imported older blob (the same durability reason the first-launch terms
+   * ack uses the keychain). Carries no secret; the stored value is a timestamp/choice tag.
+   */
+  appMeta: (key: string): string => `app-meta:${key}`,
+
+  /**
+   * An `action.webhook` node's destination URL (a BYOK secret: it often embeds
+   * a token). The node config carries only the ref; the renderer registers the
+   * URL with the sidecar's process memory at boot and when it is set.
+   */
+  workflowWebhook: (ref: string): string => `workflow-webhook:${ref}`,
+} as const;

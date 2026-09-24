@@ -1,0 +1,84 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  lib.rs:229-262 (endpoint file), :322-344 (bound branch), :590-600 (exit handler); docs/MCP_INTEGRATION.md:53-54
+const MCP_ENDPOINT_FILENAME: &str = "mcp-endpoint.json";
+
+/// Build the MCP-endpoint discovery JSON for a bound sidecar `port`.
+///
+/// Pure function (no I/O) so it is unit-testable: an external MCP client reads
+/// this to discover the loopback Streamable-HTTP endpoint without scraping the
+/// dev console. The fields mirror `types/mcp.ts`.
+fn mcp_endpoint_json(port: u16) -> String {
+    let value = serde_json::json!({
+        "sidecarPort": port,
+        "mcpEndpoint": format!("http://127.0.0.1:{port}/mcp"),
+        "protocolVersion": MCP_PROTOCOL_VERSION,
+    });
+    value.to_string()
+}
+
+/// Resolve the discovery-file path under `data_dir`. Pure (no I/O).
+fn mcp_endpoint_path(data_dir: &str) -> PathBuf {
+    Path::new(data_dir).join(MCP_ENDPOINT_FILENAME)
+}
+
+/// Write the MCP-endpoint discovery file under `data_dir` for a healthy
+/// sidecar on `port`. Best-effort: a write failure is logged, never fatal
+/// (consistent with the rest of the boot path's graceful degradation). A
+/// `port == 0` (failed) boot never calls this, so no stale file is written.
+fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
+    let path = mcp_endpoint_path(data_dir);
+    match std::fs::write(&path, mcp_endpoint_json(port)) {
+        Ok(()) => diag_println!("[vysted] wrote MCP endpoint discovery file {path:?}"),
+        Err(err) => diag_eprintln!(
+            "[vysted] could not write the MCP endpoint discovery file {path:?} ({err}); \
+             external MCP clients must discover the port from the console line"
+        ),
+    }
+...
+        let bound = wait_for_port_with_retries(
+            port,
+            MCP_PORT_WAIT_SECS,
+            MCP_PORT_WAIT_ATTEMPTS,
+            |attempt, attempts| {
+                diag_eprintln!(
+                    "[vysted] Python sidecar not up yet on port {port} after attempt \
+                     {attempt}/{attempts} ({MCP_PORT_WAIT_SECS}s); cold PyInstaller \
+                     extraction may be slow — retrying."
+                );
+            },
+        );
+        wait_app.state::<SidecarStatus>().settle_boot(bound);
+        if bound {
+            diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+            // FR-025: publish the loopback MCP endpoint so an external MCP
+            // client can discover it without scraping the console. Only on a
+            // confirmed-up sidecar — a failed boot leaves no stale file.
+            write_mcp_endpoint_file(&endpoint_data_dir, port);
+        } else {
+            diag_eprintln!("[vysted] Python sidecar did not come up on port {port}");
+        }
+    });
+...
+    app.run(|app_handle, event| {
+        if let RunEvent::Exit = event {
+            if let Some(state) = app_handle.try_state::<SidecarProcess>() {
+                if let Some(child) = state.0.lock().unwrap().take() {
+                    let _ = child.kill();
+                }
+            }
+            // Reap the openbb-mcp subprocess alongside the main sidecar.
+            openbb_mcp::kill(app_handle);
+            // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
+            sec_edgar_mcp::kill(app_handle);
+...
+A failed/disconnected boot (no free port) writes **no** file, so a stale
+file never points at a dead port. From inside the running app the
+
+grep remove_file src-tauri/src sidecar =>
+src-tauri/src/lib.rs:229:const MCP_ENDPOINT_FILENAME: &str = "mcp-endpoint.json";
+src-tauri/src/keychain.rs:405:            let _ = std::fs::remove_file(&p);
+src-tauri/src/keychain.rs:443:            let _ = std::fs::remove_file(&f);
+src-tauri/src/keychain.rs:469:            let _ = std::fs::remove_file(&f);
+src-tauri/src/keychain.rs:482:            let _ = std::fs::remove_file(&f);
+src-tauri/src/keychain.rs:532:            let _ = std::fs::remove_file(&f);
+src-tauri/src/keychain.rs:549:            let _ = std::fs::remove_file(&f);
+(end)

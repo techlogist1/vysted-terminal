@@ -1,0 +1,9 @@
+provider ollama validation transport error: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+provider openai validation transport error: Connection error.
+cmd: TestClient POST /llm/keys/validate provider=ollama base_url=http://127.0.0.1:9 model=llama3 @e032be7
+200 {'ok': False, 'reason': 'unreachable', 'detail': 'Could not reach Ollama (local) (ConnectionError: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download).'}
+cmd: TestClient POST /llm/keys/validate provider=openai base_url=http://127.0.0.1:9/v1 (dummy key)
+200 {'ok': False, 'reason': 'unreachable', 'detail': 'Could not reach OpenAI (APIConnectionError: Connection error.).'}
+cmd: get_provider('groq', base_url='http://127.0.0.1:9') / ('gemini', ...) attrs
+groq GroqProvider no base_url attr []
+gemini GeminiProvider no base_url attr []

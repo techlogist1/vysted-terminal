@@ -1,0 +1,25 @@
+cmd: curl -s http://127.0.0.1:52350/mcp/status (own sidecar @e032be7) => 
+{"ready":true,"toolCount":38,"endpoint":"/mcp","protocolVersion":"2025-06-18"}
+
+cmd: .venv python -c 'import mcp.types as T; print(T.LATEST_PROTOCOL_VERSION)' => 2025-11-25 (mcp 1.27.1, fastmcp 3.2.4)
+sidecar/services/mcp_server.py:59
+_PROTOCOL_VERSION = "2025-06-18"  # MCP revision FastMCP 3.x speaks.
+sidecar/services/mcp_server.py:378-380
+def protocol_version() -> str:
+    """Return the MCP protocol revision this server speaks (e.g. ``"2025-06-18"``)."""
+    return _PROTOCOL_VERSION
+sidecar/routers/mcp.py:42
+        "protocolVersion": mcp_server.protocol_version(),
+.venv mcp/server/session.py:166-175 (negotiation: requested if supported else LATEST_PROTOCOL_VERSION)
+                requested_version = params.protocolVersion
+                self._initialization_state = InitializationState.Initializing
+                self._client_params = params
+                with responder:
+                    await responder.respond(
+                        types.ServerResult(
+                            types.InitializeResult(
+                                protocolVersion=requested_version
+                                if requested_version in SUPPORTED_PROTOCOL_VERSIONS
+                                else types.LATEST_PROTOCOL_VERSION,
+sidecar/tests/test_mcp_server.py:43 only asserts truthiness
+    assert body["protocolVersion"]

@@ -1,0 +1,133 @@
+## AnalystRatingsPanel tabError banner
+87:  const tabError =
+94:  const tabLoading = symbol !== null && tabData === null && !tabError;
+155:          {tabError && tabData !== null && (
+157:              <p className="text-negative text-caption min-w-0 truncate" title={tabError}>
+158:                {tabError}
+187:            ) : tabError && tabData === null ? (
+191:                hint={tabError}
+## store error set/clear
+## SortKey analysts
+23:  | "analysts";
+78:    case "analysts":
+344:                  label="Dispersion / # analysts"
+## fmtDate / RATING_LABEL / RATING_COLOR copies
+src/modules/analyst-ratings/RatingsHistoryTable.tsx:15:const RATING_LABEL: Record<string, string> = {
+src/modules/analyst-ratings/RatingsHistoryTable.tsx:23:const RATING_COLOR: Record<string, string> = {
+src/modules/analyst-ratings/RatingsHistoryTable.tsx:31:function fmtDate(iso: string): string {
+src/modules/analyst-ratings/IndividualAnalystTable.tsx:11:const RATING_LABEL: Record<string, string> = {
+src/modules/analyst-ratings/IndividualAnalystTable.tsx:19:const RATING_COLOR: Record<string, string> = {
+src/modules/analyst-ratings/IndividualAnalystTable.tsx:27:function fmtDate(iso: string): string {
+src/modules/earnings/EarningsCalendarPanel.tsx:46:function fmtDate(iso: string): string {
+## EarningsSurpriseChart sort comment
+106-      return;
+107-    }
+108:    // Sort newest-first → reverse for chart (oldest-first).
+109:    const trimmed = [...surprises].sort(
+110-      (a, b) => new Date(a.reported_date).getTime() - new Date(b.reported_date).getTime(),
+111-    );
+## git log
+e9f28770 fix(ui): cold-boot retry retries only a not-ready engine (R15-UI-015)
+7db1f122 fix(earnings): median, stddev and analyst counts are null unless the provider supplies them (R15-DATA-032)
+204ce8c8 fix(earnings): thread the row currency through earnings + analyst panels (R15-DATA-031)
+## store analyst-ratings error handling
+8: * re-render against the same selection is a no-op; errors land on the
+9: * matching `*Errors` map so the panel can surface inline banners
+25:  historyErrors: Record<string, string>;
+27:  priceTargetErrors: Record<string, string>;
+29:  individualErrors: Record<string, string>;
+40:  historyErrors: {},
+42:  priceTargetErrors: {},
+44:  individualErrors: {},
+61:        historyErrors: { ...state.historyErrors, [normalized]: "" },
+66:        err instanceof Error ? err.message : `Failed to load ratings history for ${normalized}`;
+68:        historyErrors: { ...state.historyErrors, [normalized]: message },
+89:        priceTargetErrors: { ...state.priceTargetErrors, [normalized]: "" },
+94:        err instanceof Error ? err.message : `Failed to load price targets for ${normalized}`;
+96:        priceTargetErrors: { ...state.priceTargetErrors, [normalized]: message },
+117:        individualErrors: { ...state.individualErrors, [normalized]: "" },
+122:        err instanceof Error ? err.message : `Failed to load individual analysts for ${normalized}`;
+124:        individualErrors: { ...state.individualErrors, [normalized]: message },
+133:      historyErrors: {},
+135:      priceTargetErrors: {},
+137:      individualErrors: {},
+## EarningsCalendarPanel:335-352 header
+                />
+                <SortableHeader
+                  label="Consensus EPS"
+                  active={sortKey === "consensus"}
+                  direction={sortDirection}
+                  onSort={() => handleSort("consensus")}
+                  align="right"
+                />
+                <SortableHeader
+                  label="Dispersion / # analysts"
+                  active={sortKey === "dispersion"}
+                  direction={sortDirection}
+                  onSort={() => handleSort("dispersion")}
+                  align="right"
+                />
+              </tr>
+            </thead>
+            <tbody>
+## sortable header wiring
+112:  const [sortKey, setSortKey] = useState<SortKey>("scheduled_date");
+162:    if (sortKey === key) {
+165:      setSortKey(key);
+319:                  active={sortKey === "symbol"}
+321:                  onSort={() => handleSort("symbol")}
+325:                  active={sortKey === "scheduled_date"}
+327:                  onSort={() => handleSort("scheduled_date")}
+332:                  active={sortKey === "time_of_day"}
+334:                  onSort={() => handleSort("time_of_day")}
+338:                  active={sortKey === "consensus"}
+340:                  onSort={() => handleSort("consensus")}
+345:                  active={sortKey === "dispersion"}
+347:                  onSort={() => handleSort("dispersion")}
+484:  onSort,
+491:  onSort?: () => void;
+500:      onClick={disabled ? undefined : onSort}
+## fmtDate body
+function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+/** R15-DATA-032: a missing value sorts last in either direction — an absent
+## AnalystRatingsPanel.tsx:80-95
+  const targets = symbol ? (priceTargets[symbol]?.history ?? null) : null;
+  const individual = symbol ? (individuals[symbol]?.analysts ?? null) : null;
+
+  const historyError = symbol ? historyErrors[symbol] : null;
+  const priceTargetError = symbol ? priceTargetErrors[symbol] : null;
+  const individualError = symbol ? individualErrors[symbol] : null;
+
+  const tabError =
+    tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
+  const tabData = tab === "history" ? history : tab === "price-targets" ? targets : individual;
+
+  // A slice is "loading" while its symbol is set, the data hasn't arrived, and
+  // no error has landed — gate the child empty-states behind this so the fetch
+  // window isn't mislabelled as an empty result.
+  const tabLoading = symbol !== null && tabData === null && !tabError;
+
+## store history load :55-72
+    try {
+      const payload = await sidecarGet<RatingsHistoryResponse>(
+        `/fundamentals/${encodeURIComponent(normalized)}/ratings/history`,
+      );
+      set((state) => ({
+        histories: { ...state.histories, [normalized]: payload },
+        historyErrors: { ...state.historyErrors, [normalized]: "" },
+      }));
+      return payload;
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : `Failed to load ratings history for ${normalized}`;
+      set((state) => ({
+        historyErrors: { ...state.historyErrors, [normalized]: message },
+      }));
+      return null;
+    }
+  },

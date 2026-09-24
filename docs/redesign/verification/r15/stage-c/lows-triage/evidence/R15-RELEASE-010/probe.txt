@@ -1,0 +1,31 @@
+## curl vysted.com
+000
+exit=6
+## curl terminal.vysted.com
+000
+exit=6
+## repo root web dirs
+ls: site: No such file or directory
+ls: vercel.json: No such file or directory
+ls: web: No such file or directory
+ls: www: No such file or directory
+## BLUEPRINT.md:28-34
+**Org name:** Vysted
+**Product name:** Vysted Terminal (the flagship; future products plug under the org)
+**Domain structure:**
+- vysted.com — org/lab landing page
+- terminal.vysted.com — Vysted Terminal product page + download
+
+**Voice:** Research lab style (Tauric Research, OpenBB, Anthropic). Serious, technical credibility. Not startup-pitch energy. Not retail-app energy.
+## grep -n vysted.com docs/BLUEPRINT.md README.md
+docs/BLUEPRINT.md:7:**Domain structure:** vysted.com (org) + terminal.vysted.com (product)
+docs/BLUEPRINT.md:31:- vysted.com — org/lab landing page
+docs/BLUEPRINT.md:32:- terminal.vysted.com — Vysted Terminal product page + download
+docs/BLUEPRINT.md:51:| Domain | vysted.com + terminal.vysted.com |
+docs/BLUEPRINT.md:336:- `COMMERCIAL_LICENSE.md`: commercial terms + pricing + contact (placeholder: commercial@vysted.com)
+docs/BLUEPRINT.md:360:terminal.vysted.com/download serves "Download for [your OS]" via GitHub Releases API
+docs/BLUEPRINT.md:373:Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
+docs/BLUEPRINT.md:421:- `terminal.vysted.com` landing page (Vercel deploy, "Coming soon" + GitHub link)
+docs/BLUEPRINT.md:592:- `terminal.vysted.com` full landing page (download button,
+docs/BLUEPRINT.md:604:- [ ] User downloads from terminal.vysted.com, installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
+docs/BLUEPRINT.md:612:- [ ] terminal.vysted.com live with download links

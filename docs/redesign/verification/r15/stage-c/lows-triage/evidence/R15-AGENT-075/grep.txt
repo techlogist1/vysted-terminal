@@ -1,0 +1,25 @@
+cmd: grep -n 'chunk\.model|served_model|LLMDoneEvent(' sidecar/services/llm/openai.py @e032be7
+759:            yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
+openai.py:666-670
+            async for chunk in stream:
+                # Some providers (DeepSeek, occasionally OpenAI) emit a
+                # terminal chunk with no choices but populated usage. Guard
+                # both branches independently.
+                choices = getattr(chunk, "choices", None) or []
+
+sidecar/models/llm.py:226-234 LLMDoneEvent
+class LLMDoneEvent(BaseModel):
+    """Stream complete; final usage + finish reason if available."""
+
+    kind: Literal["done"] = "done"
+    usage: LLMUsage | None = None
+    finish_reason: str | None = None
+    #: The token window the lane runs in, when it has one (Ollama's num_ctx):
+    #: the composer's context meter reads ``usage`` against it (R15-AGENT-040).
+    context_window: int | None = None
+
+cmd: grep -rn openrouter/auto sidecar/config src types
+sidecar/config/model_registry.json:71:        "openrouter/auto"
+(src/store/model-selection.ts:14 imports model_registry.json; llm-providers.ts:44 knownModels: row.known_models)
+
+cmd: grep served_model types/data.ts sidecar/models/llm.py budget_guard.py => (empty)

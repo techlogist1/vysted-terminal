@@ -1,0 +1,40 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9  lib.rs:590-598; openbb_mcp.rs:194-201; sec_edgar_mcp.rs:189-196; Cargo.toml:6
+    app.run(|app_handle, event| {
+        if let RunEvent::Exit = event {
+            if let Some(state) = app_handle.try_state::<SidecarProcess>() {
+                if let Some(child) = state.0.lock().unwrap().take() {
+                    let _ = child.kill();
+                }
+            }
+            // Reap the openbb-mcp subprocess alongside the main sidecar.
+            openbb_mcp::kill(app_handle);
+...
+/// child is reaped on app shutdown alongside the main sidecar.
+pub fn kill(app: &AppHandle) {
+    if let Some(state) = app.try_state::<OpenbbMcpProcess>() {
+        if let Some(child) = state.0.lock().unwrap().take() {
+            let _ = child.kill();
+        }
+    }
+}
+...
+/// child is reaped on app shutdown alongside the main sidecar.
+pub fn kill(app: &AppHandle) {
+    if let Some(state) = app.try_state::<SecEdgarMcpProcess>() {
+        if let Some(child) = state.0.lock().unwrap().take() {
+            let _ = child.kill();
+        }
+    }
+}
+...
+edition = "2021"
+
+grep lock() sites:
+src-tauri/src/sec_edgar_mcp.rs:192:        if let Some(child) = state.0.lock().unwrap().take() {
+src-tauri/src/openbb_mcp.rs:197:        if let Some(child) = state.0.lock().unwrap().take() {
+src-tauri/src/lib.rs:53:        self.0.lock().unwrap().clone()
+src-tauri/src/lib.rs:60:        let mut snapshot = self.0.lock().unwrap();
+src-tauri/src/lib.rs:68:        let mut snapshot = self.0.lock().unwrap();
+src-tauri/src/lib.rs:593:                if let Some(child) = state.0.lock().unwrap().take() {
+src-tauri/src/lib.rs:628:                log.lock().unwrap().push(name);
+src-tauri/src/lib.rs:658:        let order = log.lock().unwrap().clone();

@@ -1,0 +1,36 @@
+## grep -n ruff .github/workflows/lint.yml package.json
+.github/workflows/lint.yml:87:          python -m pip install ruff==0.15.12
+.github/workflows/lint.yml:88:          ruff check sidecar
+.github/workflows/lint.yml:89:          ruff format --check sidecar
+package.json:20:    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python -m pip install -r requirements-dev.txt && pytest",
+## tracked scripts/*.py
+      12
+scripts/r15/browse.py
+scripts/r15/collect_battery.py
+scripts/r15/history_secrets_scan.py
+scripts/r15/licence_scan.py
+scripts/r15/register.py
+scripts/r15/route_fuzz.py
+scripts/r15/vy.py
+scripts/render_phase_6_e_screenshots.py
+scripts/render_phase_6_sc_screenshots.py
+scripts/rig/register_capture.py
+scripts/rig/rig.py
+scripts/rig/test_rig_guard.py
+## ruff check scripts (venv ruff)
+ruff 0.15.12
+
+F541 [*] f-string without any placeholders
+   --> scripts/render_phase_6_sc_screenshots.py:192:9
+    |
+190 |     draw.text(
+191 |         (int(24 * scale), results_top),
+192 |         f"6 rows  (100 evaluated, 320 ms)",
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+193 |         fill=TEXT_DIM,
+194 |         font=f_small,
+    |
+help: Remove extraneous `f` prefix
+
+Found 2 errors.
+[*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

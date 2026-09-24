@@ -1,0 +1,8 @@
+ac882106 fix(chat): write the gate's resolved outcome, not a predicted "Applied:" (R15-AGENT-032)
+
+ src/lib/host-actions.test.ts          | 10 +++----
+ src/modules/chat/ChatSidebar.test.tsx | 42 +++++++++++++++++++++++---
+ src/modules/chat/ChatSidebar.tsx      | 55 ++++++++++++++++++-----------------
+ src/store/proposed-changes.test.ts    |  2 +-
+ src/store/proposed-changes.ts         | 23 +++++++++------
+ 5 files changed, 86 insertions(+), 46 deletions(-)

@@ -1,0 +1,7 @@
+sha e032be7dd164a504215055a1cd7b7b497dbd68e9
+cmd: ./.venv/bin/python: OptionPricingRequest(method='binomial', binomial_steps=2, ...).validate_domain(); options.price(req)
+=> validate_domain passes {'method': 'binomial', 'binomial_steps': 2}
+=> service raises: binomial steps must be at least 3, got 2
+code: src/modules/quant/OptionPricerPanel.tsx:272 steps < 1 ; :278 paths < 1
+code: sidecar/models/quant.py:104-107 1 <= binomial_steps <= MAX_BINOMIAL_STEPS
+code: sidecar/services/quant/options.py:177 'binomial steps must be at least 3'; :211 'monte carlo paths must be at least 100'

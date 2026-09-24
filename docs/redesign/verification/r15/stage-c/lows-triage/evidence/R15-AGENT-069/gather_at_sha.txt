@@ -1,0 +1,38 @@
+## compare_symbols.py gather + reads
+32:def _return_pct_window(series: Any) -> float | None:
+47:async def _quote_or_error(symbol: str, asset_class: str) -> tuple[Any, dict[str, Any] | None]:
+48:    """One quote fetch: ``(quote, None)``, or ``(None, error entry)`` — never raised."""
+52:    try:
+54:    except ProviderError as exc:
+56:    except Exception as exc:  # noqa: BLE001
+64:async def _resolve_after_miss(symbol: str) -> tuple[str | None, dict[str, Any] | None, str | None]:
+107:async def _compare_one(symbol: str, timeframe: str, asset_class: str) -> dict[str, Any]:
+112:    ``asyncio.gather`` never aborts the batch on one bad ticker. An equity
+136:        try:
+138:        except (ProviderError, Exception):  # noqa: BLE001
+145:    try:
+155:    except (ProviderError, Exception):  # noqa: BLE001
+160:        # Set when the input was resolved to a different listing — never silent.
+164:            "price": quote.price,
+170:                "market_cap": fundamentals.market_cap,
+171:                "pe_ratio": fundamentals.pe_ratio,
+174:                "price_to_book": fundamentals.price_to_book,
+191:def _rank(resolved: list[dict[str, Any]]) -> dict[str, Any]:
+217:async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
+249:    results = await asyncio.gather(
+256:        # with its candidates, or no quote) so the model never reads a wrong
+## market_overview.py
+51:def _indices_for_region(region: str) -> list[str]:
+55:async def _quote_one(symbol: str, region: str) -> dict[str, Any]:
+61:    try:
+63:    except ProviderError as exc:
+65:    except Exception as exc:  # noqa: BLE001 — surface to the model, never crash the turn
+71:        "price": quote.price,
+72:        "change": quote.change,
+73:        "change_percent": quote.change_percent,
+80:async def _headlines(limit: int) -> tuple[list[dict[str, Any]], str | None]:
+91:    try:
+94:    except Exception as exc:  # noqa: BLE001 — headlines are a best-effort add-on
+99:async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
+117:    indices, (headlines, headlines_error) = await asyncio.gather(
+118:        asyncio.gather(*(_quote_one(symbol, region) for symbol in symbols)),

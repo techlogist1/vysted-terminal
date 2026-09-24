@@ -1,0 +1,34 @@
+sidecar/services/llm/ollama.py:176-206 @e032be7
+        # Tool names actually sent this round: the only names a leaked
+        # text-JSON call may be rescued for.
+        offered: set[str] = set()
+        if tools is not None:
+            try:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    tools=tools,
+                    **kwargs,
+                )
+                offered = {tool["function"]["name"] for tool in tools}
+            except Exception:  # noqa: BLE001 — degrade gracefully, retry below.
+                stream = None
+        if stream is None:
+            try:
+                stream = await client.chat(
+                    model=model,
+                    messages=api_messages,
+                    stream=True,
+                    **kwargs,
+                )
+            except ollama.ResponseError as exc:  # pragma: no cover — network path
+                _h = humanize("ollama", exc)
+                yield LLMErrorEvent(
+                    message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+                )
+                return
+            except Exception as exc:  # pragma: no cover — defensive
+                _h = humanize("ollama", exc)
+
+cmd: grep -n 'logger\|logging' ollama.py

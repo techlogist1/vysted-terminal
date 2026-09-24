@@ -1,0 +1,33 @@
+## tracked?
+scripts/render_phase_6_e_screenshots.py
+scripts/render_phase_6_sc_screenshots.py
+## grep -i pillow in the four requirements files
+rc=1
+## venv PIL?
+ModuleNotFoundError: No module named 'PIL'
+## run e script
+    from PIL import Image, ImageDraw, ImageFont
+ModuleNotFoundError: No module named 'PIL'
+## load_font e:37-48
+def load_font(size: int) -> ImageFont.ImageFont:
+    """Best-effort monospace font; falls back to PIL's default."""
+    candidates = [
+        "C:/Windows/Fonts/consola.ttf",  # Consolas
+        "C:/Windows/Fonts/cour.ttf",  # Courier New
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+## load_font sc:39-47
+def load_font(size: int) -> ImageFont.ImageFont:
+    """Best-effort monospace font; falls back to PIL default."""
+    candidates = ["C:/Windows/Fonts/consola.ttf", "C:/Windows/Fonts/cour.ttf"]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()

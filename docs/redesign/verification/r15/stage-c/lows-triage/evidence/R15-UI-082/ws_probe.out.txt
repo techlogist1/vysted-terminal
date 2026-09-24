@@ -1,0 +1,7 @@
+'मेरा लेआउट' len 10 -> 200 {"status":"saved","name":"मेरा लेआउट"}
+'Q3: earnings/notes (v2)!' len 24 -> 200 {"status":"saved","name":"Q3: earnings/notes (v2)!"}
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' len 199 -> 200 {"status":"saved","name":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' len 230 -> 400 {"detail":"Workspace name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' len 300 -> 400 {"detail":"Workspace name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+'मेरा लेआउट मेरा लेआउट ' len 22 -> 200 {"status":"saved","name":"मेरा लेआउट मेरा लेआउट"}
+'मेरा लेआउट मेरा लेआउट मेरा लेआ' len 33 -> 400 {"detail":"Workspace name 'मेरा लेआउट मेरा लेआउट मेरा लेआउट' is too long to save."}

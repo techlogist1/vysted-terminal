@@ -1,0 +1,103 @@
+## grep probe fns + warn + gating
+45://        universe endpoint, the ICONIKSPEV deterministic resolve, the
+303:      console.warn(
+370:async function _probeBseBhavcopyNoSla() {
+387:      console.warn(
+394:    console.warn(
+413:async function _probeNseDirectNoSla() {
+420:    console.warn(
+457:      console.warn(`[smoke] WARN: NSE direct probe skipped (no-SLA): ${out.trim()}`);
+459:      console.warn(
+466:    console.warn(
+661:  // ICONIKSPEV resolve check (R7 Component 4, HARD) — verifies the regenerated
+663:  // AND that resolution is deterministic + internally consistent. ICONIKSPEV is
+666:  // 1.0). The historic defect — exchange "NSE" with yahoo "ICONIKSPEV.BO" at
+669:  const resolveUrl = `http://127.0.0.1:${port}/resolve?q=ICONIKSPEV&region=IN`;
+670:  console.log(`[smoke] vysted-sidecar: probing ICONIKSPEV resolution (masters-only) ...`);
+675:    resolved.symbol === "ICONIKSPEV" &&
+677:    resolved.yahoo_symbol === "ICONIKSPEV.BO" &&
+701:  // /history/ICONIKSPEV probe (no-SLA) — the full bhavcopy lane needs live BSE
+706:  const historyUrl = `http://127.0.0.1:${port}/history/ICONIKSPEV?timeframe=1d&range=1mo`;
+707:  console.log(`[smoke] vysted-sidecar: probing /history/ICONIKSPEV (no-SLA, live BSE) ...`);
+711:      `[smoke] /history/ICONIKSPEV OK (${historyBody.bars.length} EOD bars, ` +
+715:    console.warn(
+716:      `[smoke] WARN: /history/ICONIKSPEV returned no bars (no-SLA — not a failure). ` +
+749:      `[smoke] vysted-sidecar FAILED ICONIKSPEV resolve probe: ` +
+751:        `Expected the deterministic BSE identity {symbol:"ICONIKSPEV", exchange:"BSE", ` +
+752:        `yahoo_symbol:"ICONIKSPEV.BO", region:"IN", confidence:1}. Root cause is one of: ` +
+759:  console.log(`[smoke] vysted-sidecar ICONIKSPEV resolution OK (deterministic BSE identity).`);
+928:  await _probeBseBhavcopyNoSla();
+929:  await _probeNseDirectNoSla();
+## :413-420 + :448-462
+async function _probeNseDirectNoSla() {
+  const venvPy = join(
+    SIDECAR_DIR,
+    ".venv",
+    ...(isWin ? ["Scripts", "python.exe"] : ["bin", "python"]),
+  );
+  if (!existsSync(venvPy)) {
+    console.warn(
+  ].join("\n");
+  console.log("[smoke] NSE direct probe (no-SLA): historicalOR/cm/equity via curl_cffi ...");
+  try {
+    const out = execFileSync(venvPy, ["-c", code], { encoding: "utf8", timeout: 60_000 });
+    const status = /STATUS (\d+)/.exec(out)?.[1];
+    const rows = /ROWS (\d+)/.exec(out)?.[1];
+    if (status === "200" && Number(rows) > 0) {
+      console.log(`[smoke] NSE direct probe OK (HTTP 200, ${rows} EOD rows).`);
+    } else if (out.includes("SKIP")) {
+      console.warn(`[smoke] WARN: NSE direct probe skipped (no-SLA): ${out.trim()}`);
+    } else {
+      console.warn(
+        `[smoke] WARN: NSE direct probe did not return rows (no-SLA — not a failure). ` +
+          `Common + benign: geo-fence/edge ACL, holiday, or no outbound network. ` +
+          `Only investigate if the URL SHAPE changed. Output:\n${out.trim()}`,
+## :700-722
+
+  // /history/ICONIKSPEV probe (no-SLA) — the full bhavcopy lane needs live BSE
+  // (rate-limited, geo-fenced, holiday-gapped, often no outbound net in CI), so
+  // real EOD bars are a bonus signal, never a gate. The offline equivalent is
+  // pinned by sidecar/tests/test_history.py::
+  // test_history_iconikspev_serves_real_bars_from_bhavcopy.
+  const historyUrl = `http://127.0.0.1:${port}/history/ICONIKSPEV?timeframe=1d&range=1mo`;
+  console.log(`[smoke] vysted-sidecar: probing /history/ICONIKSPEV (no-SLA, live BSE) ...`);
+  const historyBody = await _httpGetJson(historyUrl, 30000);
+  if (historyBody && Array.isArray(historyBody.bars) && historyBody.bars.length > 0) {
+    console.log(
+      `[smoke] /history/ICONIKSPEV OK (${historyBody.bars.length} EOD bars, ` +
+        `provider=${historyBody.provider}).`,
+    );
+  } else {
+    console.warn(
+      `[smoke] WARN: /history/ICONIKSPEV returned no bars (no-SLA — not a failure). ` +
+        `Benign when BSE is unreachable from this network; reason=` +
+        `${historyBody ? JSON.stringify(historyBody.reason) : "<no response>"}.`,
+    );
+  }
+
+  await _teardown(child);
+## :925-945 (main call order)
+  }
+
+  // No-SLA external probes — run regardless of sidecar results, never fail.
+  await _probeBseBhavcopyNoSla();
+  await _probeNseDirectNoSla();
+
+  const spawnSummary = _SPAWN_LOG.map((s) => `${s.binary}(pid=${s.pid})`).join(", ") || "none";
+  if (failures.length > 0) {
+    console.error("\n[smoke] FAILURES:");
+    for (const f of failures) console.error(f);
+    console.error(
+      `\n[smoke] ATTENDED-SAFE: this run spawned and fully tore down: ${spawnSummary}. ` +
+        "No pre-existing vysted-* process (e.g. the operator's running app) was inspected " +
+        "or touched, even though the run failed.",
+    );
+    process.exit(1);
+  }
+  console.log("\n[smoke] all sidecars booted cleanly.");
+  console.log(
+    `[smoke] ATTENDED-SAFE: this run spawned and fully tore down ${_SPAWN_LOG.length} ` +
+      `child process(es) on freshly-picked ephemeral ports: ${spawnSummary}. Zero ` +
+## workflows
+.github/workflows/build.yml:74:        run: node scripts/smoke-test-sidecars.mjs
+.github/workflows/test.yml:69:        run: node scripts/smoke-test-sidecars.mjs

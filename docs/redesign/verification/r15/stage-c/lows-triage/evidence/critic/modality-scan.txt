@@ -1,0 +1,9 @@
+shard lines 212 unique ids 206 duplicate ids (same verdict in both shards): ['R15-AGENT-069', 'R15-AGENT-071', 'R15-AGENT-072', 'R15-AGENT-073', 'R15-AGENT-075', 'R15-AGENT-076']
+scan: evidence_paths strings + reason + contents of files under lows-triage/evidence/ only
+still_reproduces {'lines': 205, 'no_focused_test': 202, 'no_own_52350_probe': 198, 'no_52152_probe': 204, 'no_outside_world': 200, 'code_reading_only': 191, 'conf<=3': 2}
+already_fixed {'lines': 5, 'no_focused_test': 1, 'no_own_52350_probe': 5, 'no_52152_probe': 5, 'no_outside_world': 5, 'conf<=3': 0, 'code_reading_only': 1}
+duplicate_of {'lines': 1, 'no_focused_test': 1, 'no_own_52350_probe': 1, 'no_52152_probe': 1, 'no_outside_world': 1, 'code_reading_only': 1, 'conf<=3': 0}
+not_a_defect_proposed {'lines': 1, 'no_focused_test': 1, 'no_own_52350_probe': 1, 'no_52152_probe': 1, 'no_outside_world': 1, 'code_reading_only': 1, 'conf<=3': 1}
+code-reading-only already_fixed ['R15-UI-082']
+code-reading-only duplicate_of ['R15-CODE-PLATFORM-074']
+code-reading-only not_a_defect_proposed ['R15-AGENT-065']

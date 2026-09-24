@@ -1,0 +1,31 @@
+## master loader except tuple
+449-def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
+450-    try:
+451-        with (
+452-            resources.files("services.resolver_masters")
+453-            .joinpath(filename)
+454-            .open("r", encoding="utf-8")
+455-        ) as fp:
+456-            return json.load(fp)
+457:    except (FileNotFoundError, ModuleNotFoundError) as exc:  # pragma: no cover - bundling bug
+458-        logger.error("symbol_resolver: missing bundled master %s: %s", filename, exc)
+459-        return fallback if fallback is not None else {"instruments": []}
+460-
+461-
+462-def _refreshed_master(filename: str) -> dict | None:
+463-    """The runtime-refreshed copy of a bundled master, or ``None``.
+## lru_cache on loader
+76:from functools import lru_cache
+332:@lru_cache(maxsize=1)
+349:@lru_cache(maxsize=1)
+374:@lru_cache(maxsize=1)
+396:@lru_cache(maxsize=1)
+413:@lru_cache(maxsize=2)
+427:@lru_cache(maxsize=1)
+440:@lru_cache(maxsize=1)
+449:def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
+456:            return json.load(fp)
+469:        raw = json.loads((config.get_data_dir() / "resolver_masters" / filename).read_text("utf-8"))
+941:@lru_cache(maxsize=256)
+1006:@lru_cache(maxsize=1)
+## resolve router try
