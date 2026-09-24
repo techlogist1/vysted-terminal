@@ -544,6 +544,21 @@ describe("EquityOverviewPanel — cross-region tickers (R15-DATA-002)", () => {
     expect(screen.queryByTestId("listing-chooser")).toBeNull();
   });
 
+  it("a highlight command spotlights that metric's row (R15-AGENT-081)", async () => {
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await act(async () => {
+      useEquityCommandStore.getState().loadSymbol("AAPL", "pe_ratio");
+    });
+    await flushCommandTick();
+
+    const spotlit = await screen.findByText("P/E", { selector: "[data-highlighted]" });
+    expect(spotlit).toHaveAttribute("data-highlighted", "true");
+    expect(spotlit.closest("tr")?.className).toContain("ring-1");
+    // Exactly one row is spotlit.
+    expect(document.querySelectorAll("[data-highlighted]")).toHaveLength(1);
+  });
+
   it("a host command carrying a region loads that listing", async () => {
     mockLoad.mockResolvedValue(overview());
     render(<EquityOverviewPanel />);

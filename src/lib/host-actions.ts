@@ -32,6 +32,7 @@ import {
   type LayoutTemplate,
 } from "@/lib/layout-templates";
 import { regionConfig, isRegion, type Region } from "@/lib/region";
+import { METRIC_LABELS, resolveMetric } from "@/modules/equity-overview/metrics";
 import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
@@ -295,6 +296,25 @@ export function openCompanyOverview(
     ws.openPanel("equity-overview");
   }
   useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric, region);
+}
+
+/** The label of the overview row a highlight names, or `null` when it names none. */
+function spotlightLabel(highlight: string): string | null {
+  const key = resolveMetric(highlight);
+  return key ? (METRIC_LABELS.get(key) ?? null) : null;
+}
+
+/** What an `open_company_overview` highlight did, composed from the panel's own
+ *  metric list — never from the raw input (R15-AGENT-081): a known metric is
+ *  spotlit; an unknown one is said to be absent. */
+function spotlightNote(highlight: string): string {
+  if (!highlight) {
+    return "";
+  }
+  const label = spotlightLabel(highlight);
+  return label
+    ? ` — spotlighting ${label}`
+    : ` — "${highlight}" is not a metric on that panel, so nothing is spotlit`;
 }
 
 /** A host-action mutation the diff gate must intercept rather than auto-apply. */
@@ -1117,13 +1137,13 @@ export function describeIntent(intent: HostIntent): {
     }
     case "open_company_overview": {
       const sym = intent.symbol || "the company";
-      const metric = intent.highlight.replace(/_/g, " ");
+      const metric = spotlightLabel(intent.highlight);
       return {
         kind: "panel",
         title: metric ? `Show ${sym}'s ${metric} in the overview` : `Open ${sym}'s overview`,
         before: "Equity Overview: previous company (if any)",
         after: intent.symbol
-          ? `Equity Overview: ${sym}${metric ? ` · ${metric} spotlighted` : ""}`
+          ? `Equity Overview: ${sym}${spotlightNote(intent.highlight)}`
           : `Equity Overview: no symbol given — ${CANT_APPLY}`,
       };
     }
@@ -1498,12 +1518,8 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       if (!symbol) {
         return fail("no symbol given");
       }
-      openCompanyOverview(symbol, highlight || undefined);
-      return done(
-        highlight
-          ? `Opened ${symbol}'s overview — spotlighting ${highlight.replace(/_/g, " ")}`
-          : `Opened ${symbol}'s overview`,
-      );
+      openCompanyOverview(symbol, resolveMetric(highlight) ?? undefined);
+      return done(`Opened ${symbol}'s overview${spotlightNote(highlight)}`);
     }
     case "publish_brief": {
       const brief = briefFromInput(intent.input);

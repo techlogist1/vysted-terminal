@@ -13,6 +13,7 @@ import {
   formatUnit,
 } from "@/lib/format";
 import { SidecarError } from "@/lib/sidecar-client";
+import { FIELD_GROUPS, type FieldKind, resolveMetric } from "@/modules/equity-overview/metrics";
 import { useEquityCommandStore } from "@/store/equity-command";
 import { usePanelContextBus } from "@/store/panel-context";
 import type {
@@ -63,108 +64,8 @@ function fmtCount(value: number | null): string | null {
   return value === null || Number.isNaN(value) ? null : formatUnit(value);
 }
 
-type FieldKind = "ratio" | "price" | "fraction" | "money" | "count";
-
-interface FieldDef {
-  label: string;
-  key: keyof Fundamentals;
-  kind: FieldKind;
-  /** Headline metrics read at the primary tier; supporting ratios at secondary. */
-  headline?: boolean;
-  /** A statement-denominated size (revenue, net income, FCF): formatted in the
-   *  statement currency (`financial_currency ?? currency`, C2), which differs
-   *  from the trading currency for a foreign reporter (SIFY: USD ADR, INR books). */
-  statementSize?: boolean;
-}
-
-interface FieldGroup {
-  title: string;
-  fields: FieldDef[];
-}
-
-// Screener-grade fundamentals, grouped the way a trader reads a stock page. Labels
-// are curated (never snake_case). Every group ALWAYS renders (R13) — a group that
-// happens to be all-null (e.g. ownership for an index fund) still shows its field
-// rows, each with an honest em-dash + reason chip, never a silently-hidden section.
-const FIELD_GROUPS: FieldGroup[] = [
-  {
-    title: "Valuation",
-    fields: [
-      { label: "Market cap", key: "market_cap", kind: "money", headline: true },
-      { label: "P/E", key: "pe_ratio", kind: "ratio", headline: true },
-      { label: "Fwd P/E", key: "forward_pe", kind: "ratio" },
-      { label: "PEG", key: "peg_ratio", kind: "ratio" },
-      { label: "P/B", key: "price_to_book", kind: "ratio" },
-      { label: "P/S", key: "price_to_sales", kind: "ratio" },
-      { label: "EV/EBITDA", key: "ev_to_ebitda", kind: "ratio" },
-      { label: "Book value", key: "book_value", kind: "price" },
-    ],
-  },
-  {
-    title: "Profitability",
-    fields: [
-      { label: "ROE", key: "roe", kind: "fraction", headline: true },
-      { label: "ROA", key: "roa", kind: "fraction" },
-      { label: "Gross margin", key: "gross_margin", kind: "fraction" },
-      { label: "Operating margin", key: "operating_margin", kind: "fraction" },
-      { label: "Net margin", key: "profit_margin", kind: "fraction", headline: true },
-    ],
-  },
-  {
-    title: "Financial health",
-    fields: [
-      { label: "Debt / equity", key: "debt_to_equity", kind: "ratio", headline: true },
-      { label: "Current ratio", key: "current_ratio", kind: "ratio" },
-      { label: "Quick ratio", key: "quick_ratio", kind: "ratio" },
-      {
-        label: "Free cash flow",
-        key: "free_cash_flow",
-        kind: "money",
-        headline: true,
-        statementSize: true,
-      },
-    ],
-  },
-  {
-    title: "Growth & size",
-    fields: [
-      {
-        label: "Revenue (TTM)",
-        key: "revenue_ttm",
-        kind: "money",
-        headline: true,
-        statementSize: true,
-      },
-      {
-        label: "Net income (TTM)",
-        key: "net_income_ttm",
-        kind: "money",
-        headline: true,
-        statementSize: true,
-      },
-      { label: "Revenue growth", key: "revenue_growth", kind: "fraction" },
-      { label: "Earnings growth", key: "earnings_growth", kind: "fraction" },
-      { label: "Shares outstanding", key: "shares_outstanding", kind: "count" },
-    ],
-  },
-  {
-    title: "Per share & dividend",
-    fields: [
-      { label: "EPS", key: "eps", kind: "price", headline: true },
-      { label: "Dividend / share", key: "dividend_per_share", kind: "price" },
-      { label: "Dividend yield", key: "dividend_yield", kind: "fraction" },
-      { label: "Beta", key: "beta", kind: "ratio" },
-      { label: "1Y change", key: "fifty_two_week_change", kind: "fraction" },
-    ],
-  },
-  {
-    title: "Ownership",
-    fields: [
-      { label: "Insiders (Yahoo)", key: "held_percent_insiders", kind: "fraction" },
-      { label: "Institutions (Yahoo)", key: "held_percent_institutions", kind: "fraction" },
-    ],
-  },
-];
+/** How long a spotlit metric row keeps its accent ring. */
+const SPOTLIGHT_MS = 2_400;
 
 function fieldValue(fundamentals: Fundamentals, key: keyof Fundamentals): number | null {
   const raw = fundamentals[key];
@@ -195,10 +96,14 @@ function formatField(
 /** One fundamentals row — a curated label + its formatted value + the field's
  *  provenance/coverage record (R13), when the provider shipped one. */
 interface FundamentalRow {
+  /** The Fundamentals field key (the metric id a host action can spotlight). */
+  key: string;
   label: string;
   value: string | null;
   headline: boolean;
   meta?: FieldMeta;
+  /** Spotlighted by an `open_company_overview` highlight (R15-AGENT-081). */
+  highlighted: boolean;
 }
 
 /**
@@ -277,7 +182,15 @@ function FundamentalValueCell({ row }: { row: FundamentalRow }) {
 }
 
 const FUNDAMENTAL_COLUMNS: DataColumn<FundamentalRow>[] = [
-  { key: "label", header: "Metric", tier: "secondary", truncate: true, width: "55%" },
+  {
+    key: "label",
+    header: "Metric",
+    tier: "secondary",
+    truncate: true,
+    width: "55%",
+    cell: (r) => <span data-highlighted={r.highlighted ? "true" : undefined}>{r.label}</span>,
+    title: (r) => r.label,
+  },
   {
     key: "value",
     header: "Value",
@@ -672,6 +585,10 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
   // `equity-command.loadSymbol(symbol)` and this panel loads it — so "click any
   // company anywhere → the full overview" works without reaching into local state.
   const equityCommand = useEquityCommandStore((s) => s.command);
+  // The metric row an `open_company_overview` highlight spotlights: scrolled into
+  // view with a transient accent ring once its row renders (R15-AGENT-081).
+  const [spotlight, setSpotlight] = useState<string | null>(null);
+  const fundamentalsRef = useRef<HTMLDivElement | null>(null);
 
   const loadedSections = useMemo<string[]>(() => {
     if (data === null) {
@@ -890,9 +807,10 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
     if (!equityCommand) {
       return;
     }
-    const { symbol, region } = equityCommand;
+    const { symbol, region, highlightMetric } = equityCommand;
     const handle = setTimeout(() => {
       setDraft(symbol);
+      setSpotlight(resolveMetric(highlightMetric));
       void doLoad(symbol, region);
     }, 0);
     return () => clearTimeout(handle);
@@ -917,6 +835,7 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
     }
     return FIELD_GROUPS.map((group) => {
       const rows: FundamentalRow[] = group.fields.map((f) => ({
+        key: f.key,
         label: f.label,
         value: formatField(
           fieldValue(fundamentals, f.key),
@@ -925,10 +844,22 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
         ),
         headline: f.headline ?? false,
         meta: fundamentals.field_meta?.[f.key],
+        highlighted: f.key === spotlight,
       }));
       return { label: group.title, rows };
     });
-  }, [fundamentals, instrumentCurrency, statementCurrency]);
+  }, [fundamentals, instrumentCurrency, statementCurrency, spotlight]);
+
+  // Bring the spotlit row into view once it renders, then let the ring fade.
+  useEffect(() => {
+    const row = spotlight ? fundamentalsRef.current?.querySelector("[data-highlighted]") : null;
+    if (!row) {
+      return;
+    }
+    row.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    const handle = setTimeout(() => setSpotlight(null), SPOTLIGHT_MS);
+    return () => clearTimeout(handle);
+  }, [spotlight, fundamentalSections]);
 
   return (
     <div className="bg-charcoal-900 @container flex h-full w-full flex-col">
@@ -1151,12 +1082,17 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                 <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
                   Fundamentals
                 </h3>
-                <DataTable
-                  columns={FUNDAMENTAL_COLUMNS}
-                  sections={fundamentalSections}
-                  rowKey={(row) => row.label}
-                  data-testid="fundamentals-table"
-                />
+                <div ref={fundamentalsRef}>
+                  <DataTable
+                    columns={FUNDAMENTAL_COLUMNS}
+                    sections={fundamentalSections}
+                    rowKey={(row) => row.label}
+                    rowClassName={(row) =>
+                      row.highlighted ? "ring-1 ring-inset ring-amber-400/70" : undefined
+                    }
+                    data-testid="fundamentals-table"
+                  />
+                </div>
               </section>
             )}
 

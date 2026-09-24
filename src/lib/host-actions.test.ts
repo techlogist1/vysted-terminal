@@ -1626,3 +1626,32 @@ describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () =
     expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
   });
 });
+
+describe("open_company_overview's highlight is truthful (R15-AGENT-081)", () => {
+  beforeEach(() => {
+    resetEquityCommandStoreForTests();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+  });
+
+  it("a metric the panel shows is spotlit and named by its row label", () => {
+    const input = { symbol: "TATASTEEL", highlight: "pe_ratio" };
+    expect(describeHostAction("open_company_overview", input).after).toBe(
+      "Equity Overview: TATASTEEL — spotlighting P/E",
+    );
+    expect(applyHostAction("open_company_overview", input)).toBe(
+      "Opened TATASTEEL's overview — spotlighting P/E",
+    );
+    expect(useEquityCommandStore.getState().command?.highlightMetric).toBe("pe_ratio");
+  });
+
+  it("a metric the panel does not show is reported as absent, and not sent", () => {
+    const input = { symbol: "TATASTEEL", highlight: "rocket_fuel" };
+    expect(applyHostAction("open_company_overview", input)).toBe(
+      'Opened TATASTEEL\'s overview — "rocket_fuel" is not a metric on that panel, so nothing is spotlit',
+    );
+    expect(describeHostAction("open_company_overview", input).after).toContain(
+      "is not a metric on that panel",
+    );
+    expect(useEquityCommandStore.getState().command?.highlightMetric).toBeUndefined();
+  });
+});
