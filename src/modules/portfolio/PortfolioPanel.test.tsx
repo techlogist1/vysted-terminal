@@ -277,6 +277,62 @@ describe("PortfolioPanel", () => {
     expect(activeHoldings()[0].quantity).toBe(20);
   });
 
+  it("an edit ends when the portfolio switches; Save then writes nothing silently (R15-UI-034)", async () => {
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "A",
+          name: "A",
+          holdings: [
+            { id: "h-a", symbol: "RELIANCE", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          ],
+        },
+        {
+          id: "B",
+          name: "B",
+          holdings: [
+            { id: "h-b", symbol: "TCS", quantity: 3, costBasis: 3900, assetClass: "equity" },
+          ],
+        },
+      ],
+      activeId: "A",
+    });
+    const before = usePortfoliosStore.getState().portfolios;
+    render(<PortfolioPanel />);
+    fireEvent.click(screen.getByLabelText("Edit RELIANCE"));
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText("Active portfolio"), { target: { value: "B" } });
+    });
+    expect((screen.getByLabelText("Symbol") as HTMLInputElement).value).toBe("");
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+    });
+    expect(screen.getByRole("button", { name: /Add/ })).toBeInTheDocument();
+    expect(screen.getByText(/are required/)).toBeInTheDocument();
+    expect(usePortfoliosStore.getState().portfolios).toEqual(before);
+  });
+
+  it("Save on a holding removed mid-edit says nothing was saved (R15-UI-034)", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+    await screen.findByText("AAPL");
+    fireEvent.click(screen.getByLabelText("Edit AAPL"));
+    // The agent removes the lot while the form is open.
+    await act(async () => {
+      usePortfoliosStore.getState().removeHolding("default", activeHoldings()[0].id);
+    });
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "20" } });
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+    });
+    expect(
+      screen.getByText("That holding is no longer in this portfolio — nothing was saved"),
+    ).toBeInTheDocument();
+    expect((screen.getByLabelText("Quantity") as HTMLInputElement).value).toBe("20");
+    expect(activeHoldings()).toEqual([]);
+  });
+
   it("deletes a holding through the row control", async () => {
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");

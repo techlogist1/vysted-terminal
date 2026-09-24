@@ -109,7 +109,8 @@ interface PortfoliosState {
   setActive: (id: string) => void;
   /** Append a holding to a portfolio; its new id, or null when the input is invalid. */
   addHolding: (portfolioId: string, input: HoldingInput) => string | null;
-  /** Patch an existing holding; false when the input is invalid (nothing changes). */
+  /** Patch an existing holding; false when the input is invalid or that
+   *  portfolio holds no such holding (nothing changes either way). */
   updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
   /** Remove a holding. */
   removeHolding: (portfolioId: string, holdingId: string) => void;
@@ -117,7 +118,7 @@ interface PortfoliosState {
   setAll: (portfolios: Portfolio[], activeId?: string) => void;
 }
 
-export const usePortfoliosStore = create<PortfoliosState>((set) => ({
+export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
   portfolios: [makeEmptyPortfolio(DEFAULT_PORTFOLIO_NAME, DEFAULT_PORTFOLIO_ID)],
   activeId: DEFAULT_PORTFOLIO_ID,
 
@@ -171,7 +172,10 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
 
   updateHolding: (portfolioId, holdingId, input) => {
     const next = normalizeHolding({ ...input, id: holdingId });
-    if (!next) {
+    const target = get()
+      .portfolios.find((p) => p.id === portfolioId)
+      ?.holdings.some((h) => h.id === holdingId);
+    if (!next || !target) {
       return false;
     }
     set((state) => ({

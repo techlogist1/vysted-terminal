@@ -134,6 +134,15 @@ export function PortfolioPanel() {
   const [form, setForm] = useState<FormState>(emptyForm());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // An edit targets a holding of the portfolio it started in: switching (or
+  // deleting) the active portfolio ends it and clears the form, so Save can
+  // never aim one portfolio's holding id at another (R15-UI-034).
+  const [formPortfolioId, setFormPortfolioId] = useState(active.id);
+  if (formPortfolioId !== active.id) {
+    setFormPortfolioId(active.id);
+    setForm(emptyForm());
+    setEditingId(null);
+  }
   const [quotes, setQuotes] = useState<Map<string, Quote>>(new Map());
   // Distinct from the form-validation `error`: a failed live-quote fetch must not
   // silently leave every Price/Mkt-val/P&L cell at "—" forever (A6 — failure is
@@ -339,7 +348,12 @@ export function PortfolioPanel() {
       note: form.note.trim() === "" ? undefined : form.note.trim(),
     };
     if (editingId !== null) {
-      updateHolding(active.id, editingId, input);
+      if (!updateHolding(active.id, editingId, input)) {
+        // The holding left this portfolio mid-edit (e.g. an agent removed it):
+        // say so and keep the form, never reset as if it saved.
+        setError("That holding is no longer in this portfolio — nothing was saved");
+        return;
+      }
     } else {
       addHolding(active.id, input);
     }
