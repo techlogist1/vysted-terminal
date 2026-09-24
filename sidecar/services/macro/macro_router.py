@@ -155,8 +155,11 @@ async def search(
         except Exception as exc:  # noqa: BLE001
             _log.warning("macro: discarding malformed cached search rows for %s: %s", key, exc)
 
+    # A provider raises on an upstream failure, so only a successful search
+    # reaches the cache — and never an empty one (R15-DATA-086).
     rows: list[MacroSearchResult] = await asyncio.to_thread(mod.search, query, limit)
-    await data_cache.set(key, [r.model_dump(mode="json") for r in rows])
+    if rows:
+        await data_cache.set(key, [r.model_dump(mode="json") for r in rows])
     return rows
 
 

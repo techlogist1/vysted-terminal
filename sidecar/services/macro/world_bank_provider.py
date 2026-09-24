@@ -225,17 +225,22 @@ def search(query: str, limit: int = 25) -> list[MacroSearchResult]:
     """Best-effort indicator search via wbgapi + curated featured set.
 
     ``wbgapi.series.list(q=query)`` returns matching indicators; we map them
-    through the contract. When the upstream call fails (network, etc.) we
-    fall back to substring-search over the curated featured catalog.
+    through the contract, and a query the upstream answers with no hits falls
+    back to substring-search over the curated featured catalog. An upstream
+    FAILURE raises :class:`ProviderError` (``kind="network"`` for a transport
+    error), like FRED and IMF — never curated rows dressed up as hits
+    (R15-DATA-086).
     """
     if not query:
         return []
     try:
         client = _make_client()
         rows = list(client.series.list(q=query))
-    except Exception as exc:  # noqa: BLE001 — fall back, not fatal
-        _log.debug("wbgapi.series.list fall back to curated set: %s", exc)
-        rows = []
+    except Exception as exc:  # noqa: BLE001 — every upstream failure is reported
+        import requests
+
+        kind = "network" if isinstance(exc, requests.RequestException) else None
+        raise ProviderError(f"World Bank search failed for {query!r}: {exc}", kind=kind) from exc
 
     matches: list[MacroSearchResult] = []
     seen: set[str] = set()
