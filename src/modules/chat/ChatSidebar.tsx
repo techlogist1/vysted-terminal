@@ -2155,7 +2155,7 @@ function SendStopButton({
             "rounded-control flex size-7 shrink-0 items-center justify-center",
             canSend
               ? "text-charcoal-950 cursor-pointer transition-opacity hover:opacity-85"
-              : "text-charcoal-600",
+              : "disabled:text-charcoal-600",
           )}
         >
           <ArrowUp className="size-4" strokeWidth={2.25} />
