@@ -398,6 +398,7 @@ def get_quote(symbol: str) -> Quote:
         prev = float(fast.previous_close)
         volume = getattr(fast, "last_volume", None)
         currency = getattr(fast, "currency", None) or "USD"
+        timestamp = _quote_time(ticker)
     except Exception as exc:  # noqa: BLE001 - any yfinance failure is a provider error
         cause = _surface_fetch_error(ticker) or exc
         raise _provider_error("quote", symbol, cause) from exc
@@ -412,9 +413,29 @@ def get_quote(symbol: str) -> Quote:
         change_percent=change_percent,
         volume=_num(volume),
         currency=str(currency),
-        timestamp=_utcnow(),
+        timestamp=timestamp,
         provider=PROVIDER,
     )
+
+
+def _quote_time(ticker: Any) -> datetime:
+    """When the quoted price traded (R15-LEAD-005): Yahoo's ``regularMarketTime``
+    from the history fetch ``fast_info`` priced from, else the last bar's time —
+    never now(), which would date a closed market's last print as current.
+
+    yfinance keeps ``regularMarketTime`` as epoch seconds until it formats the
+    metadata into an exchange-local ``Timestamp``; both normalize to UTC."""
+    market_time = ticker.get_history_metadata().get("regularMarketTime")
+    if market_time is None:
+        market_time = ticker.history(period="5d", interval="1d").index[-1]
+    stamp = (
+        pd.Timestamp(market_time, unit="s")
+        if isinstance(market_time, (int, float))
+        else pd.Timestamp(market_time)
+    )
+    if stamp.tzinfo is None:
+        stamp = stamp.tz_localize("UTC")
+    return stamp.tz_convert("UTC").to_pydatetime()
 
 
 def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:

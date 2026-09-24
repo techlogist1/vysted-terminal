@@ -37,6 +37,9 @@ class _RecordingTicker:
 
         return _Info()
 
+    def get_history_metadata(self) -> dict:
+        return {"regularMarketTime": 1_789_847_400}
+
     def history(self, period: str, interval: str) -> object:  # noqa: ARG002
         import pandas as pd
 
@@ -669,3 +672,46 @@ def test_quote_on_a_dead_network_is_network_not_not_found(
     with pytest.raises(ProviderError) as info:
         yfinance_provider.get_quote("AAPL")
     assert info.value.kind == "network"
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-005: a quote is dated by its trade time, never the fetch time
+# ---------------------------------------------------------------------------
+
+
+def _closed_market_ticker(monkeypatch: pytest.MonkeyPatch, metadata: dict) -> None:
+    import pandas as pd
+
+    class _Ticker(_RecordingTicker):
+        def get_history_metadata(self) -> dict:
+            return metadata
+
+        def history(self, period: str, interval: str) -> object:  # noqa: ARG002
+            index = pd.to_datetime(["2026-09-21 20:00", "2026-09-22 20:00"]).tz_localize(
+                "America/New_York"
+            )
+            return pd.DataFrame(
+                {"Open": [1.0, 1.0], "High": [1.0, 1.0], "Low": [1.0, 1.0], "Close": [1.0, 1.0]},
+                index=index,
+            )
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+
+
+def test_quote_is_dated_by_regular_market_time(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A closed market: the last trade was two days before the fetch."""
+    from datetime import UTC, datetime
+
+    last_trade = datetime(2026, 9, 22, 20, 0, tzinfo=UTC)
+    _closed_market_ticker(monkeypatch, {"regularMarketTime": int(last_trade.timestamp())})
+    assert yfinance_provider.get_quote("AAPL").timestamp == last_trade
+
+
+def test_quote_without_market_time_is_dated_by_its_last_bar(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from datetime import UTC, datetime
+
+    _closed_market_ticker(monkeypatch, {"currency": "USD"})
+    stamp = yfinance_provider.get_quote("AAPL").timestamp
+    assert stamp == datetime(2026, 9, 23, 0, 0, tzinfo=UTC)  # 20:00 New York

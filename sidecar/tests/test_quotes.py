@@ -12,7 +12,20 @@ from models.market import Quote
 from services.errors import ProviderError
 
 
-def test_get_quote(client: TestClient, mock_yfinance: object) -> None:
+@pytest.fixture
+def yf_quote(mock_yfinance: type, monkeypatch: pytest.MonkeyPatch) -> type:
+    """The shared yfinance fake plus the history metadata a real Ticker carries,
+    which a yfinance quote reads its trade time from (R15-LEAD-005)."""
+    monkeypatch.setattr(
+        mock_yfinance,
+        "get_history_metadata",
+        lambda _self: {"regularMarketTime": int(time.time())},
+        raising=False,
+    )
+    return mock_yfinance
+
+
+def test_get_quote(client: TestClient, yf_quote: object) -> None:
     body = client.get("/quotes/AAPL").json()
     assert body["symbol"] == "AAPL"
     assert body["price"] == 192.5
@@ -21,7 +34,7 @@ def test_get_quote(client: TestClient, mock_yfinance: object) -> None:
     assert body["provider"] == "yfinance"
 
 
-def test_get_quote_carries_freshness(client: TestClient, mock_yfinance: object) -> None:
+def test_get_quote_carries_freshness(client: TestClient, yf_quote: object) -> None:
     """Every served quote carries a calendar-aware freshness label (SC-019).
 
     The recent mock-quote is never labelled ``stale`` — a legitimate close is
@@ -75,7 +88,7 @@ def test_crypto_quote_is_live(client: TestClient, monkeypatch: pytest.MonkeyPatc
     assert body[0]["freshness"] == "live"
 
 
-def test_get_quotes_batch(client: TestClient, mock_yfinance: object) -> None:
+def test_get_quotes_batch(client: TestClient, yf_quote: object) -> None:
     body = client.get("/quotes", params={"symbols": "AAPL,MSFT"}).json()
     assert len(body) == 2
     assert {q["symbol"] for q in body} == {"AAPL", "MSFT"}
