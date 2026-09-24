@@ -56,7 +56,7 @@ from models.llm import (
 from services import action_ledger, agent_tools, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
-from services.llm import get_provider, native_search, oneshot
+from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
 from services.llm.base import (
     IDLE_TIMEOUT_S,
     LOCAL_IDLE_TIMEOUT_S,
@@ -99,23 +99,6 @@ _READ_SAFE_PANEL_ACTIONS = frozenset(
 #: local ollama/qwen-7b path is unreliable (tool-use + JSON), so it stays on the
 #: preamble-driven loop with NO plan surface (graceful degrade, not a worse run).
 _PLANNER_PROVIDERS = frozenset({"anthropic", "openai", "gemini", "xai", "openrouter", "deepseek"})
-
-#: Option keys the runtime forwards VERBATIM into the LLM adapter's stream_chat
-#: (``**opts``): provider tuning params + the runtime's own web-search flags.
-#: Everything the runtime itself consumes (history, modelWebSearch,
-#: deepResearchBackend, research_depth, depth) is popped before this gate; any
-#: OTHER leftover key is scrubbed so an unknown option (a mis-sent ``depth``, a
-#: bogus key) can never reach the provider SDK and TypeError the round.
-_ADAPTER_OPTION_KEYS = frozenset(
-    {
-        "temperature",
-        "top_p",
-        "max_tokens",
-        "web_search",
-        "web_search_max_uses",
-        "config",  # Gemini generation-config passthrough
-    }
-)
 
 
 def _planner_enabled(provider_id: str, mode: str) -> bool:
@@ -1849,17 +1832,9 @@ async def invoke_agent(
         if isinstance(effective_depth, str) and effective_depth.strip()
         else None,
     )
-    # Scrub any option key the LLM adapter does not consume BEFORE it reaches
-    # stream_chat: the runtime pops everything it owns above (history, the
-    # web-search / deep-research / depth options), but a caller-supplied unknown
-    # key would ride ``**opts`` into the provider SDK and TypeError the round.
-    # Keep only provider tuning params + the runtime's own web-search flags;
-    # log-warn whatever is dropped so a mis-sent option is visible, not silent.
-    dropped = sorted(k for k in opts if k not in _ADAPTER_OPTION_KEYS)
-    for key in dropped:
-        opts.pop(key)
-    if dropped:
-        logger.warning("invoke_agent: dropped unsupported option key(s): %s", ", ".join(dropped))
+    # The runtime popped everything it owns above; only adapter kwargs ride
+    # ``**opts`` into stream_chat (the one allowlist, R15-CODE-AGENT-005).
+    opts = scrub_adapter_options(opts)
 
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
     # For a COMPOUND request on a capable model, decompose the goal into an

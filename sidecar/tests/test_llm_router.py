@@ -214,6 +214,35 @@ def test_chat_streams_sse_frames(
     assert fake.last_api_key == "sk-routed"
 
 
+def test_chat_forwards_only_allowlisted_adapter_options(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-005: /llm/chat filters options through the same allowlist
+    as the agent path, so a composer control key never reaches the SDK."""
+    seen: dict[str, Any] = {}
+
+    class _KwargsProvider(_FakeProvider):
+        async def stream_chat(self, messages: list[Any], model: str, **kwargs: Any) -> Any:
+            seen.update(kwargs)
+            yield LLMDoneEvent()
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _KwargsProvider())
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+            "messages": [{"role": "user", "content": "hi"}],
+            "api_key": "sk",
+            "options": {"depth": "deep", "someNewKey": 1, "temperature": 0.2},
+        },
+    ) as response:
+        b"".join(response.iter_bytes())
+    assert seen == {"api_key": "sk", "temperature": 0.2}
+
+
 class _CatalogProvider:
     """Adapter stub whose ``list_models`` returns a canned catalog."""
 
