@@ -192,3 +192,14 @@ def test_resolve_payload_carries_identity_enrichment(client: TestClient) -> None
     # honest: BMW's industry is genuinely absent in the sector map
     assert resolved["industry"] is None
     assert "former_name" in resolved
+
+
+def test_resolve_payload_carries_board_group_and_face_value(client: TestClient) -> None:
+    """R15-DATA-051: the BSE group and the master's face value reach the wire, and
+    an SME listing (BSE group M) is classified SME, never mainboard."""
+    sme = client.get("/resolve", params={"q": "SMR", "region": "IN"}).json()["resolved"]
+    assert (sme["board"], sme["exchange_group"], sme["face_value"]) == ("SME", "M", 10.0)
+    elcid = client.get("/resolve", params={"q": "ELCIDIN", "region": "IN"}).json()["resolved"]
+    assert (elcid["board"], elcid["face_value"]) == ("mainboard", 10.0)
+    us = client.get("/resolve", params={"q": "AAPL", "region": "US"}).json()["resolved"]
+    assert (us["board"], us["exchange_group"], us["face_value"]) == (None, None, None)

@@ -266,6 +266,9 @@ class Instrument:
     bse_code: str | None = None  # numeric BSE scrip code (519421) when BSE-listed
     industry: str | None = None  # india_sector_map industry_raw (None for uncovered names)
     former_name: str | None = None  # the retired symbol, when answered as its renamed form
+    board: str | None = None  # "SME" (BSE M* group / NSE Emerge) | "mainboard"; None for US
+    exchange_group: str | None = None  # the raw BSE group (A, B, X, M, MT, ...)
+    face_value: float | None = None  # listed face value (INR), from the masters
 
 
 @dataclass(frozen=True)
@@ -305,6 +308,9 @@ def instrument_payload(instrument: Instrument) -> dict[str, object]:
         "bse_code": instrument.bse_code,
         "industry": instrument.industry,
         "former_name": instrument.former_name,
+        "board": instrument.board,
+        "exchange_group": instrument.exchange_group,
+        "face_value": instrument.face_value,
     }
     # R12 (D66): a symbol answered as its CURRENT form carries explicit rename
     # provenance — the picker can badge "renamed from …", never a silent swap.
@@ -401,6 +407,20 @@ def _bse_scrip_index() -> dict[str, str]:
     for sym, (_name, _group, code, _isin) in _bse_master().items():
         if code and code not in out:
             out[code] = sym
+    return out
+
+
+@lru_cache(maxsize=2)
+def _face_values(filename: str) -> dict[str, float]:
+    """``{SYMBOL: face value}`` from a master's ``face_values`` map (bundled, then
+    the refreshed copy). A master generated before the map existed adds nothing."""
+    out: dict[str, float] = {}
+    for raw in _master_layers(filename):
+        values = raw.get("face_values")
+        if isinstance(values, dict):
+            for sym, value in values.items():
+                if isinstance(value, int | float):
+                    out[str(sym).strip().upper()] = float(value)
     return out
 
 
@@ -501,6 +521,7 @@ def refresh_masters() -> None:
         _bse_master.cache_clear()
         _bse_scrip_index.cache_clear()
         _generic_tokens.cache_clear()
+        _face_values.cache_clear()
 
 
 def reset_caches_for_tests() -> None:
@@ -512,6 +533,7 @@ def reset_caches_for_tests() -> None:
     _marquee_aliases.cache_clear()
     _india_sector_map.cache_clear()
     _generic_tokens.cache_clear()
+    _face_values.cache_clear()
     _reset_live_lookup_for_tests()
 
 
@@ -1217,14 +1239,34 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
         else None
     )
 
-    if (
-        isin == inst.isin
-        and bse_code == inst.bse_code
-        and industry == inst.industry
-        and former_name == inst.former_name
-    ):
+    # Board + face value (R15-DATA-051): SME is a BSE M* group (M/MT/MS) or an NSE
+    # Emerge listing (type SM). Unknown to the masters (a live-lookup row) → None.
+    exchange_group = bse_entry[1] if bse_entry and bse_entry[1] else None
+    nse_entry = _nse_master().get(bare) if inst.exchange == "NSE" else None
+    board: str | None = None
+    face_value: float | None = None
+    if nse_entry is not None or bse_entry is not None:
+        sme = (nse_entry is not None and nse_entry[1] == "SM") or (exchange_group or "").startswith(
+            "M"
+        )
+        board = "SME" if sme else "mainboard"
+        if nse_entry is not None:
+            face_value = _face_values("nse_instruments.json").get(bare)
+        if face_value is None and bse_entry is not None:
+            face_value = _face_values("bse_instruments.json").get(bare)
+
+    enriched = {
+        "isin": isin,
+        "bse_code": bse_code,
+        "industry": industry,
+        "former_name": former_name,
+        "board": board,
+        "exchange_group": exchange_group,
+        "face_value": face_value,
+    }
+    if all(getattr(inst, key) == value for key, value in enriched.items()):
         return inst
-    return replace(inst, isin=isin, bse_code=bse_code, industry=industry, former_name=former_name)
+    return replace(inst, **enriched)
 
 
 def _enrich_resolution(resolution: Resolution) -> Resolution:
