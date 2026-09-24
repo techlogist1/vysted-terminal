@@ -159,7 +159,7 @@ def test_plugin_system_alive() -> None:
     seen_ids: set[str] = set()
     for mf in manifest_files:
         try:
-            data = json.loads(mf.read_text())
+            data = json.loads(mf.read_text(encoding="utf-8"))
             pid = data.get("id") or data.get("pluginId")
             if pid:
                 seen_ids.add(pid)

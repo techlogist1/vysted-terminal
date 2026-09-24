@@ -28,7 +28,7 @@ _FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def _load(path: str) -> Any:
-    return json.loads((_FIXTURES / path).read_text())
+    return json.loads((_FIXTURES / path).read_text(encoding="utf-8"))
 
 
 _NSE_PAYLOADS = {

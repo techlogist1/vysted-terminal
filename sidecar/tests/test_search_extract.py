@@ -464,7 +464,7 @@ def _saksoft_pages() -> list[str]:
     from pathlib import Path
 
     fixture = Path(__file__).parent / "fixtures" / "saksoft_outcome_pages.json"
-    payload = json.loads(fixture.read_text())
+    payload = json.loads(fixture.read_text(encoding="utf-8"))
     assert payload["page_count"] == 27
     # The in-test PDF writer emits latin-1 content streams; the real filing
     # carries a few en-dashes — flatten them without disturbing the figures.

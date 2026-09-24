@@ -31,10 +31,16 @@ from services.errors import ProviderError
 _NSE_FIXTURES = Path(__file__).parent / "fixtures" / "nse"
 _BSE_FIXTURES = Path(__file__).parent / "fixtures" / "bse"
 
-_NSE_ANNOUNCEMENTS = json.loads((_NSE_FIXTURES / "corporate_announcements.json").read_text())
-_NSE_EVENTS = json.loads((_NSE_FIXTURES / "event_calendar.json").read_text())
-_NSE_SHAREHOLDING = json.loads((_NSE_FIXTURES / "corporate_share_holdings_master.json").read_text())
-_BSE_ANNOUNCEMENTS = json.loads((_BSE_FIXTURES / "ann_sub_category_get_data.json").read_text())
+_NSE_ANNOUNCEMENTS = json.loads(
+    (_NSE_FIXTURES / "corporate_announcements.json").read_text(encoding="utf-8")
+)
+_NSE_EVENTS = json.loads((_NSE_FIXTURES / "event_calendar.json").read_text(encoding="utf-8"))
+_NSE_SHAREHOLDING = json.loads(
+    (_NSE_FIXTURES / "corporate_share_holdings_master.json").read_text(encoding="utf-8")
+)
+_BSE_ANNOUNCEMENTS = json.loads(
+    (_BSE_FIXTURES / "ann_sub_category_get_data.json").read_text(encoding="utf-8")
+)
 
 
 @pytest.fixture(autouse=True)
@@ -191,8 +197,12 @@ def test_dedup_keeps_two_distinct_same_day_filings(monkeypatch: pytest.MonkeyPat
 # one filing differs (NSE's "has informed the Exchange about Credit Rating"
 # against BSE's "Intimation of Credit Rating ..."; INFY's BSE body is just
 # "Enclosed"), so only a fuzzy cross-feed pairing collapses them (R15-DATA-020).
-_CROSSFEED_NSE = json.loads((_NSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text())
-_CROSSFEED_BSE = json.loads((_BSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text())
+_CROSSFEED_NSE = json.loads(
+    (_NSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text(encoding="utf-8")
+)
+_CROSSFEED_BSE = json.loads(
+    (_BSE_FIXTURES / "announcements_crossfeed_20260923.json").read_text(encoding="utf-8")
+)
 
 
 def _serve_crossfeed(monkeypatch: pytest.MonkeyPatch, nse_rows: list, bse_rows: list) -> None:
@@ -259,8 +269,12 @@ def test_live_hdfcbank_pairs_collapse(monkeypatch: pytest.MonkeyPatch) -> None:
 # shares under 60% of its words with BSE's subject ("Announcement under
 # Regulation 30 (LODR)-Analyst / Investor Meet - Intimation"), so these pairs
 # collapse on the exchanges' own category instead (R15-DATA-020 residual).
-_HDFC_TCS_NSE = json.loads((_NSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
-_HDFC_TCS_BSE = json.loads((_BSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text())
+_HDFC_TCS_NSE = json.loads(
+    (_NSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text(encoding="utf-8")
+)
+_HDFC_TCS_BSE = json.loads(
+    (_BSE_FIXTURES / "announcements_hdfcbank_tcs_20260924.json").read_text(encoding="utf-8")
+)
 
 
 def _merged_live_feed(monkeypatch: pytest.MonkeyPatch, symbol: str) -> list[Any]:
@@ -890,7 +904,7 @@ def test_shareholding_for_a_non_listed_symbol_is_not_applicable() -> None:
 
 
 def _fixture(folder: Path, name: str) -> Any:
-    return json.loads((folder / name).read_text())
+    return json.loads((folder / name).read_text(encoding="utf-8"))
 
 
 def _serve_actions(monkeypatch: pytest.MonkeyPatch, nse_rows: Any, bse_payload: Any) -> None:

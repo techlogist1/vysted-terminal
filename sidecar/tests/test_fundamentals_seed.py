@@ -61,7 +61,9 @@ async def test_shipped_us_pack_covers_sp500_whole() -> None:
 
     sp500 = set(
         json.loads(
-            resources.files("services.screener_universes").joinpath("sp500.json").read_text()
+            resources.files("services.screener_universes")
+            .joinpath("sp500.json")
+            .read_text(encoding="utf-8")
         )["symbols"]
     )
     rows = fundamentals_seed.load_seed_rows("US")
