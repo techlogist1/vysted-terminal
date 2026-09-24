@@ -78,6 +78,7 @@ const SURPRISES_SAMPLE: EarningsSurprisesResponse = {
   surprises: [
     {
       symbol: "AAPL",
+      period_end: "2026-01-31",
       reported_date: "2026-02-01",
       fiscal_period: { quarter: "Q1", year: 2026 },
       eps_actual: 1.32,

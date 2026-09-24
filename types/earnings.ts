@@ -56,9 +56,13 @@ export interface EarningsEvent {
  */
 export interface EarningsSurprise {
   symbol: string;
-  /** ISO-8601 date the company reported (may differ from the originally
-   * scheduled date if rescheduled). */
-  reported_date: string;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key / chart x-axis;
+   * unlike `reported_date` it is never null. */
+  period_end: string;
+  /** ISO-8601 date the company actually reported, when found within 0-120
+   * days of `period_end` — null otherwise. Distinct from `period_end`: a
+   * company can report weeks after its quarter closes. */
+  reported_date: string | null;
   fiscal_period: FiscalPeriod | null;
   /** Actual reported EPS. */
   eps_actual: number;
@@ -129,7 +133,12 @@ export interface EarningsSurprisesResponse {
 /** Returned by ``/earnings/{symbol}/history``. */
 export interface EarningsHistoryEntry {
   fiscal_period: FiscalPeriod | null;
-  reported_date: string;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key, NOT the
+   * announcement date. */
+  period_end: string;
+  /** The actual announcement date, when found within 0-120 days of
+   * `period_end` — null otherwise. */
+  reported_date: string | null;
   eps_actual: number;
   eps_estimate_mean: number | null;
   revenue_actual: number | null;

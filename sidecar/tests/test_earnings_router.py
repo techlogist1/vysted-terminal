@@ -64,6 +64,7 @@ def _stub_history(symbol: str) -> EarningsHistoryResponse:
         history=[
             EarningsHistoryEntry(
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 eps_actual=1.32,
                 eps_estimate_mean=1.30,
@@ -81,6 +82,7 @@ def _stub_surprises(symbol: str) -> EarningsSurprisesResponse:
         surprises=[
             EarningsSurprise(
                 symbol=symbol.upper(),
+                period_end=date(2026, 1, 31),
                 reported_date=date(2026, 2, 1),
                 fiscal_period=FiscalPeriod(quarter="Q1", year=2026),
                 eps_actual=1.32,
