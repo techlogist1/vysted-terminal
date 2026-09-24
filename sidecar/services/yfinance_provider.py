@@ -13,7 +13,7 @@ upstream API drifts over time, so each function is defensive and tests mock the
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 import yfinance as yf
@@ -157,10 +157,57 @@ def _nse_listing(bare: str) -> str:
     return f"{bare}-SM.NS" if symbol_resolver.is_nse_emerge(bare) else f"{bare}.NS"
 
 
+#: Known Yahoo exchange suffixes carried unchanged (dot form) after the ``.NS``/
+#: ``.BO``/``^`` cases above — R15-LEAD-022. None of these is a US share-class
+#: letter, so a genuine US quirk ticker (``BRK.B``, ``BF.B``) still falls through
+#: to the dash rewrite below.
+_YAHOO_EXCHANGE_SUFFIXES = frozenset(
+    {
+        "AX",
+        "HK",
+        "T",
+        "L",
+        "TO",
+        "V",
+        "DE",
+        "PA",
+        "AS",
+        "SW",
+        "MI",
+        "MC",
+        "KS",
+        "KQ",
+        "SS",
+        "SZ",
+        "TW",
+        "TWO",
+        "SI",
+        "JK",
+        "BK",
+        "KL",
+        "NZ",
+        "SA",
+        "MX",
+        "JO",
+        "ST",
+        "OL",
+        "CO",
+        "HE",
+        "IR",
+        "VI",
+        "BR",
+        "LS",
+        "WA",
+        "IS",
+        "TA",
+    }
+)
+
+
 def _yahoo_symbol(symbol: str) -> str:
     """Resolve the symbol to the form Yahoo actually serves data for.
 
-    Three cases, in order:
+    Four cases, in order:
       * a ``.NS``/``.BO`` suffix or a ``^`` index symbol is already Yahoo's form —
         pass it through UNCHANGED (the old ``_normalize_symbol`` wrongly turned
         ``ROUTE.NS`` into ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on —
@@ -169,6 +216,10 @@ def _yahoo_symbol(symbol: str) -> str:
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
         the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
         instead of an empty US lookup;
+      * a symbol ending in a known non-Indian Yahoo exchange suffix
+        (``.AX``, ``.HK``, ``.T``, ``.L``, ...) is already Yahoo's dot form —
+        pass it through UNCHANGED (R15-LEAD-022: dash-rewriting ``BHP.AX`` to
+        ``BHP-AX`` makes Yahoo report it "possibly delisted");
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
@@ -200,6 +251,8 @@ def _yahoo_symbol(symbol: str) -> str:
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
         return _nse_listing(s)
+    if "." in s and s.rsplit(".", 1)[-1] in _YAHOO_EXCHANGE_SUFFIXES:
+        return s
     return s.replace(".", "-")
 
 
@@ -424,10 +477,19 @@ def _quote_time(ticker: Any) -> datetime:
     never now(), which would date a closed market's last print as current.
 
     yfinance keeps ``regularMarketTime`` as epoch seconds until it formats the
-    metadata into an exchange-local ``Timestamp``; both normalize to UTC."""
+    metadata into an exchange-local ``Timestamp``; both normalize to UTC.
+
+    Terminal case (R15-LEAD-023, D-B9-2): when the metadata has no
+    ``regularMarketTime`` AND the 5-day daily history comes back empty (no
+    trade to date it by), this raises :class:`ProviderError` so the registry
+    falls through to the next provider — never a synthesized ``now()``, which
+    would misdate a closed/stale quote as fresh."""
     market_time = ticker.get_history_metadata().get("regularMarketTime")
     if market_time is None:
-        market_time = ticker.history(period="5d", interval="1d").index[-1]
+        bars = ticker.history(period="5d", interval="1d")
+        if bars.empty:
+            raise ProviderError("Yahoo returned a price with no trade time", kind=None)
+        market_time = bars.index[-1]
     stamp = (
         pd.Timestamp(market_time, unit="s")
         if isinstance(market_time, (int, float))
@@ -499,6 +561,218 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
 
 
+#: Balance-sheet / income-statement rows read for the derived-ratio leg
+#: (R15-DATA-048), each in preference order.
+_TOTAL_ASSETS_LABELS = ("Total Assets",)
+_CURRENT_LIABILITIES_LABELS = ("Current Liabilities", "Total Current Liabilities")
+_TOTAL_DEBT_LABELS = ("Total Debt",)
+_EBIT_LABELS = ("EBIT", "Operating Income")
+_REVENUE_LABELS = ("Total Revenue",)
+
+
+def _newest_statement_value(
+    frames: tuple[pd.DataFrame, ...], labels: tuple[str, ...]
+) -> tuple[date, float] | None:
+    """The newest ``(period_end, value)`` across ``frames`` for the first row any
+    frame carries from ``labels`` — the shared reader behind
+    :func:`get_newest_equity` and the derived-ratio leg."""
+    newest: tuple[date, float] | None = None
+    for frame in frames:
+        if frame is None or frame.empty:
+            continue
+        label = next((name for name in labels if name in frame.index), None)
+        if label is None:
+            continue
+        for column, raw in frame.loc[label].items():
+            value = _num(raw)
+            if value is None:
+                continue
+            period_end = pd.Timestamp(column).date()
+            if newest is None or period_end > newest[0]:
+                newest = (period_end, value)
+    return newest
+
+
+def _annual_series(frame: pd.DataFrame | None, labels: tuple[str, ...]) -> list[tuple[date, float]]:
+    """Every ``(period_end, value)`` pair for the first matching row, oldest
+    first — the revenue-growth fallback's consecutive-annual-period reader."""
+    if frame is None or frame.empty:
+        return []
+    label = next((name for name in labels if name in frame.index), None)
+    if label is None:
+        return []
+    pairs: list[tuple[date, float]] = []
+    for column, raw in frame.loc[label].items():
+        value = _num(raw)
+        if value is None:
+            continue
+        pairs.append((pd.Timestamp(column).date(), value))
+    pairs.sort(key=lambda pair: pair[0])
+    return pairs
+
+
+def _derive_fundamentals(fund: Fundamentals, ticker: Any, fetched_at: str) -> None:
+    """Fill valuation/health/profile fields Yahoo omitted, from the statements
+    the provider already fetches (R15-DATA-048/054/055, D-B9-6).
+
+    A derived ratio is used ONLY where Yahoo's own field is ``None`` — it never
+    overrides a value Yahoo actually served — and is stamped
+    ``field_meta[name].provider = "derived"`` with the formula in
+    ``basis_note``. ``roce`` has no Yahoo equivalent at all, so it is always
+    either derived or left explicitly ``unavailable`` (it is excluded from the
+    generic per-field provenance pass — see ``_DERIVED_FIELDS`` — so it must be
+    stamped here either way). A fetch failure on this best-effort leg never
+    fails the fundamentals call: the ratios simply stay whatever Yahoo served.
+    """
+    meta = fund.field_meta if fund.field_meta is not None else {}
+
+    try:
+        bs_frames: tuple[pd.DataFrame, ...] = (ticker.quarterly_balance_sheet, ticker.balance_sheet)
+    except Exception:  # noqa: BLE001 - a derived leg's own fetch failure is not fatal
+        bs_frames = ()
+    try:
+        is_frames: tuple[pd.DataFrame, ...] = (ticker.quarterly_income_stmt, ticker.income_stmt)
+    except Exception:  # noqa: BLE001
+        is_frames = ()
+
+    equity = _newest_statement_value(bs_frames, _EQUITY_LABELS)
+    total_assets = _newest_statement_value(bs_frames, _TOTAL_ASSETS_LABELS)
+    current_liabilities = _newest_statement_value(bs_frames, _CURRENT_LIABILITIES_LABELS)
+    total_debt = _newest_statement_value(bs_frames, _TOTAL_DEBT_LABELS)
+    ebit = _newest_statement_value(is_frames, _EBIT_LABELS)
+
+    def _derive(field_name: str, value: float, note: str) -> None:
+        setattr(fund, field_name, value)
+        prev = meta.get(field_name)
+        meta[field_name] = FieldMeta(
+            status="ok",
+            provider="derived",
+            as_of=prev.as_of if prev and prev.as_of else fetched_at,
+            basis_note=note,
+        )
+
+    # ROCE — always derived (or explicitly unavailable); Yahoo has no such field.
+    roce_value: float | None = None
+    if ebit is not None and total_assets is not None and current_liabilities is not None:
+        denom = total_assets[1] - current_liabilities[1]
+        if denom != 0:
+            roce_value = ebit[1] / denom
+    if roce_value is not None:
+        _derive("roce", roce_value, "EBIT / (total assets - current liabilities)")
+    else:
+        meta["roce"] = FieldMeta(
+            status="unavailable",
+            provider=PROVIDER,
+            as_of=fetched_at,
+            reason="insufficient statement data to derive ROCE",
+        )
+
+    if (
+        fund.roe is None
+        and fund.net_income_ttm is not None
+        and equity is not None
+        and equity[1] != 0
+    ):
+        _derive("roe", fund.net_income_ttm / equity[1], "net income (TTM) / stockholders equity")
+
+    # A derived D/E of 0 for a genuinely debt-free name is a served VALUE
+    # (R15-DATA-048) — never withheld or skipped as missing.
+    if fund.debt_to_equity is None and total_debt is not None:
+        if total_debt[1] == 0:
+            _derive("debt_to_equity", 0.0, "total debt / stockholders equity")
+        elif equity is not None and equity[1] != 0:
+            _derive("debt_to_equity", total_debt[1] / equity[1], "total debt / stockholders equity")
+
+    if fund.eps is None and fund.net_income_ttm is not None and fund.shares_outstanding:
+        _derive(
+            "eps",
+            fund.net_income_ttm / fund.shares_outstanding,
+            "net income (TTM) / shares outstanding",
+        )
+
+    if fund.pe_ratio is None and fund.ratio_price is not None and fund.eps:
+        _derive("pe_ratio", fund.ratio_price / fund.eps, "price / EPS")
+
+    if fund.market_cap is None and fund.ratio_price is not None and fund.shares_outstanding:
+        _derive(
+            "market_cap", fund.ratio_price * fund.shares_outstanding, "price x shares outstanding"
+        )
+
+    # Revenue growth fallback — only when Yahoo gave NEITHER growth figure, so
+    # the single shared ``growth_basis`` never mixes an annual-derived figure
+    # with a Yahoo-served MRQ-YoY one.
+    if fund.revenue_growth is None and fund.earnings_growth is None:
+        annual_revenue = is_frames[-1] if is_frames else None
+        series = _annual_series(annual_revenue, _REVENUE_LABELS)
+        if len(series) >= 2:
+            previous, latest = series[-2][1], series[-1][1]
+            if previous:
+                _derive(
+                    "revenue_growth",
+                    (latest - previous) / abs(previous),
+                    "annual YoY revenue growth",
+                )
+                fund.growth_basis = "annual_yoy"
+
+    # 52-week leg dates (R15-DATA-055): the 1y daily history's argmax(High) /
+    # argmin(Low). Best-effort — a fetch failure leaves the dates unset.
+    if fund.fifty_two_week_high is not None or fund.fifty_two_week_low is not None:
+        try:
+            hist = ticker.history(period="1y", interval="1d")
+        except Exception:  # noqa: BLE001
+            hist = None
+        if hist is not None and not hist.empty:
+            if "High" in hist.columns and fund.fifty_two_week_high is not None:
+                idx = hist["High"].idxmax()
+                fund.fifty_two_week_high_date = pd.Timestamp(idx).date().isoformat()
+                meta["fifty_two_week_high_date"] = FieldMeta(
+                    status="ok", provider=PROVIDER, as_of=fetched_at
+                )
+            if "Low" in hist.columns and fund.fifty_two_week_low is not None:
+                idx = hist["Low"].idxmin()
+                fund.fifty_two_week_low_date = pd.Timestamp(idx).date().isoformat()
+                meta["fifty_two_week_low_date"] = FieldMeta(
+                    status="ok", provider=PROVIDER, as_of=fetched_at
+                )
+
+    fund.field_meta = meta
+
+
+def _resolve_sector(yahoo: str, info: dict[str, Any]) -> tuple[str | None, str | None, str | None]:
+    """``(sector, industry, sector_source)`` for a fundamentals payload
+    (R15-DATA-052).
+
+    Yahoo's ``sector``/``industry`` are used as served, EXCEPT a bare empty
+    string ``""`` never counts as served (Yahoo returns ``ok`` with an empty
+    string for names it has no classification for, e.g. ELCIDIN — that must
+    read as unavailable, not a real blank sector). For an Indian listing
+    (a resolved ``.NS``/``.BO`` symbol), the bundled India sector map is
+    consulted and its record — when it carries a non-empty sector — WINS over
+    Yahoo, because Yahoo's classification for small/micro-cap Indian names is
+    frequently wrong (NAPEROL: Yahoo 'Basic Materials', BSE-sourced map and
+    screener.in both 'Financial Services')."""
+    raw_sector = info.get("sector")
+    raw_industry = info.get("industry")
+    sector = raw_sector if raw_sector and str(raw_sector).strip() else None
+    industry = raw_industry if raw_industry and str(raw_industry).strip() else None
+    sector_source = "yfinance" if sector is not None else None
+
+    if yahoo.endswith((".NS", ".BO")):
+        bare = yahoo.rsplit(".", 1)[0]
+        if bare.endswith("-SM"):
+            bare = bare[: -len("-SM")]
+        record = symbol_resolver._india_sector_map().get(bare)  # noqa: SLF001
+        if record:
+            map_sector = record.get("sector")
+            map_industry = record.get("industry_raw") or record.get("sector")
+            if map_sector and str(map_sector).strip():
+                sector = str(map_sector)
+                sector_source = "resolver"
+            if map_industry and str(map_industry).strip():
+                industry = str(map_industry)
+    return sector, industry, sector_source
+
+
 def get_fundamentals(symbol: str) -> Fundamentals:
     """Return valuation ratios, profitability, health, and a company profile.
 
@@ -507,8 +781,9 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     — the fix for the all-dashes Indian Equity Overview.
     """
     yahoo = _yahoo_symbol(symbol)
+    ticker = yf.Ticker(yahoo)
     try:
-        info = yf.Ticker(yahoo).info
+        info = ticker.info
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("fundamentals", symbol, exc) from exc
 
@@ -557,11 +832,38 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     raw_de = _num(info.get("debtToEquity"))
     debt_to_equity = (raw_de / 100.0) if raw_de is not None else None
 
+    sector, industry, sector_source = _resolve_sector(yahoo, info)
+
+    # R15-DATA-054: Yahoo serves the CONSOLIDATED statement set for an Indian
+    # listing; every other listing's basis is not independently knowable here.
+    basis: Literal["consolidated", "standalone"] | None = (
+        "consolidated" if yahoo.endswith((".NS", ".BO")) else None
+    )
+    # R15-DATA-055: the listing's first-trade date, for the "since listing"
+    # 52w-range relabel on a listing younger than a year.
+    listing_ms = info.get("firstTradeDateMilliseconds")
+    listing_date = (
+        datetime.fromtimestamp(listing_ms / 1000.0, tz=UTC).date().isoformat()
+        if isinstance(listing_ms, (int, float))
+        else None
+    )
+    # The fiscal year end the forward-PE estimate targets, when Yahoo names one.
+    next_fy_end = info.get("nextFiscalYearEnd")
+    forward_pe_fiscal_year = (
+        datetime.fromtimestamp(next_fy_end, tz=UTC).date().isoformat()
+        if info.get("forwardPE") is not None and isinstance(next_fy_end, (int, float))
+        else None
+    )
+
     fund = Fundamentals(
         symbol=yahoo,
         name=name,
-        sector=info.get("sector"),
-        industry=info.get("industry"),
+        sector=sector,
+        industry=industry,
+        sector_source=sector_source,
+        basis=basis,
+        listing_date=listing_date,
+        forward_pe_fiscal_year=forward_pe_fiscal_year,
         currency=info.get("currency") or info.get("financialCurrency"),
         financial_currency=_financial_currency(info),
         ratio_price=_num(info.get("currentPrice") or info.get("regularMarketPrice")),
@@ -609,6 +911,7 @@ def get_fundamentals(symbol: str) -> Fundamentals:
     _stamp_price_trade_time(fund.field_meta, info.get("regularMarketTime"))
     if fund.financial_currency is not None:
         _withhold_mixed_basis_ratios(fund)
+    _derive_fundamentals(fund, ticker, fetched_at)
     return fund
 
 

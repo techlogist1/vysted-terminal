@@ -59,6 +59,7 @@ import random
 import sys
 import time
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any, TextIO
 
 LIST_URL = (
@@ -290,6 +291,26 @@ def fetch_closes() -> dict[str, float]:
     return {}
 
 
+def load_existing_map() -> dict[str, dict]:
+    """``{SYMBOL: record}`` from the currently-committed ``india_sector_map.json``
+    beside this script (R15-DATA-052) — the basis for ``--missing-only``: a
+    targeted backfill crawl for symbols the committed snapshot has no sector for,
+    instead of a fresh top-N-by-mktcap regeneration. A missing/garbled file
+    degrades to ``{}`` (the caller then treats every symbol as missing)."""
+    path = Path(__file__).parent / "india_sector_map.json"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    out: dict[str, dict] = {}
+    for rec in raw.get("records", []):
+        if isinstance(rec, dict):
+            sym = str(rec.get("symbol") or "").strip().upper()
+            if sym:
+                out[sym] = rec
+    return out
+
+
 def crawl_bse_sectors(codes: list[str]) -> dict[str, dict[str, str | None]]:
     """Per-scrip ``ComHeadernew`` crawl → ``{code: {industry_raw, sector}}``.
 
@@ -480,6 +501,15 @@ def main() -> None:
         default=0,
         help="when the BSE crawl yields nothing, crawl yfinance .info for the top N",
     )
+    parser.add_argument(
+        "--missing-only",
+        action="store_true",
+        help=(
+            "crawl only master symbols the currently-committed map has no sector "
+            "for (R15-DATA-052), instead of a fresh top-N-by-mktcap regeneration; "
+            "--crawl still caps how many of them are crawled per run"
+        ),
+    )
     args = parser.parse_args()
 
     records = fetch_bulk_records()
@@ -488,7 +518,22 @@ def main() -> None:
 
     bulk_has_industry = any((rec.get("INDUSTRY") or "").strip() for rec in records)
     bse_sectors: dict[str, dict[str, str | None]] = {}
-    if not bulk_has_industry and args.crawl > 0:
+    if args.missing_only:
+        existing = load_existing_map()
+        missing = {sym for sym, rec in existing.items() if not str(rec.get("sector") or "").strip()}
+        ordered = sorted(records, key=_mktcap_crores, reverse=True)
+        candidates = [r for r in ordered if str(r.get("scrip_id") or "").strip().upper() in missing]
+        codes = [str(r.get("SCRIP_CD") or "").strip() for r in candidates]
+        codes = [c for c in codes if c]
+        if args.crawl > 0:
+            codes = codes[: args.crawl]
+        print(
+            f"regenerate_india_sectors: --missing-only — {len(missing)} symbols with no "
+            f"sector in the committed map, crawling {len(codes)} via ComHeadernew",
+            file=sys.stderr,
+        )
+        bse_sectors = crawl_bse_sectors(codes)
+    elif not bulk_has_industry and args.crawl > 0:
         ordered = sorted(records, key=_mktcap_crores, reverse=True)
         codes = [str(r.get("SCRIP_CD") or "").strip() for r in ordered[: args.crawl]]
         codes = [c for c in codes if c]

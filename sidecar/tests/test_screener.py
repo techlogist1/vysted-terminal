@@ -771,3 +771,23 @@ async def test_resolve_universe_custom_symbols_bo_suffix_passes_through(
     monkeypatch.setattr(config, "get_region", lambda: "IN")
     universe = await screener.resolve_universe("custom", ["532540.bo"])
     assert universe.symbols == ["532540.BO"]
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-048: a derived debt_to_equity of 0.0 (a debt-free name) is a real
+# value the formula engine can screen on, never an itemized missing_field.
+# ---------------------------------------------------------------------------
+
+
+def test_debt_free_zero_debt_to_equity_passes_a_threshold_screen() -> None:
+    """A debt-free row's ``debt_to_equity`` is a served 0.0 (yfinance_provider's
+    derived leg — R15-DATA-048), not ``None`` — ``evaluate_formula`` must treat
+    it as a real value and match ``debt_to_equity < 0.5``, never skip the row
+    as ``missing_field:debt_to_equity``."""
+    from services.screener_formula import compile_formula, evaluate_formula
+
+    fund = _make_fundamentals("DEBTFREE", debt_to_equity=0.0)
+    compiled = compile_formula("debt_to_equity < 0.5")
+    matched, missing = evaluate_formula(compiled, fund, None)
+    assert missing is None
+    assert matched is True
