@@ -364,11 +364,17 @@ def _resolve_sync(
     validate: Validator | None,
     /,
     *args: Any,
+    accept: Acceptor | None = None,
 ) -> Any:
     """Walk SYNC providers for ``model_key`` in preference order, returning the
     first result that passes the correctness gate. A :class:`ProviderError` (or a
     gate :class:`CorrectnessError`) from one provider falls through to the next;
     the last error (or a no-provider error) propagates.
+
+    ``accept`` gates completeness exactly as in :func:`_resolve_async`: a valid
+    result it declines is kept as the fallback while the next provider is tried,
+    and the highest-ranked such result is served only when no provider yields an
+    accepted one (R15-DATA-071: a partial BSE range no longer ends the walk).
 
     Provenance is left untouched — the serving provider's ``provider`` field is
     whatever it wrote."""
@@ -376,6 +382,8 @@ def _resolve_sync(
     if not candidates:
         raise _no_provider_error(model_key, asset_class, region)
     last_exc: ProviderError | None = None
+    best_incomplete: Any = None
+    have_incomplete = False
     for provider in candidates:
         try:
             result = provider.serves[model_key](*args)
@@ -385,7 +393,18 @@ def _resolve_sync(
             _fell_through(provider.id, model_key, exc)
             continue
         provider_health.record_served(provider.id, model_key)
-        return validated
+        if accept is None or accept(validated):
+            return validated
+        if not have_incomplete:
+            best_incomplete = validated
+            have_incomplete = True
+            _log.info(
+                "provider %s returned an incomplete %s; trying next for richer data",
+                provider.id,
+                model_key,
+            )
+    if have_incomplete:
+        return best_incomplete
     assert last_exc is not None
     raise last_exc
 
@@ -498,10 +517,21 @@ def get_history(
     asset_class: str = "equity",
     region: str | None = None,
 ) -> OHLCVSeries:
-    """Return an OHLCV series; resolved by the ``ohlcv`` model-key. Synchronous."""
+    """Return an OHLCV series; resolved by the ``ohlcv`` model-key. Synchronous.
+
+    A series flagged ``partial`` (e.g. a cold-cache BSE range) does not end the
+    walk: the next lane is tried for the full range, and the partial is served,
+    still flagged, only when no lane is complete (R15-DATA-071)."""
     eff = _effective_region(symbol, region)
     return _resolve_sync(
-        "ohlcv", asset_class, eff, _series_validator(symbol, eff), symbol, timeframe, range_
+        "ohlcv",
+        asset_class,
+        eff,
+        _series_validator(symbol, eff),
+        symbol,
+        timeframe,
+        range_,
+        accept=lambda series: not series.partial,
     )
 
 

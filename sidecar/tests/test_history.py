@@ -163,12 +163,23 @@ def test_history_iconikspev_serves_real_bars_from_bhavcopy(
     monkeypatch.setattr(
         bse_provider, "_http_get", lambda url: httpx.Response(200, content=bhav_csv.encode())
     )
+    # A cold 1mo range spends the 8-download budget, so the bse series is partial
+    # and the registry tries yfinance next (R15-DATA-071). Keep that lane offline:
+    # with it down, the partial bse series is served, flagged.
+    from services import yfinance_provider
+    from services.errors import ProviderError
+
+    def yfinance_down(symbol, timeframe, range_=None):  # noqa: ANN001, ANN202, ARG001
+        raise ProviderError("yfinance offline in this test")
+
+    monkeypatch.setattr(yfinance_provider, "get_history", yfinance_down)
 
     resp = client.get("/history/ICONIKSPEV", params={"timeframe": "1d", "range": "1mo"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["symbol"] == "ICONIKSPEV"
     assert body["provider"] == "bse"
+    assert body["partial"] is True
     assert body["bars"], "expected real EOD bars from the fixture bhavcopy"
     assert all(b["close"] == 43.09 for b in body["bars"])
     assert body.get("reason") is None  # bars present → no empty-series reason
