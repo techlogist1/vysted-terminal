@@ -585,8 +585,10 @@ function portfolioById(id: string) {
 /**
  * Resolve the holding a portfolio update/delete targets in `portfolio`: an
  * exact holding-id match first (the agent echoes the snapshot's `id` back as
- * `position_id`), else the same-symbol holding. Null with the reason when
- * nothing matches — an honest failure, never a guessed mutation.
+ * `position_id`), else the ONE same-symbol holding. Null with the reason when
+ * nothing matches, or when the symbol has several lots and no id picks one —
+ * the refusal names each lot so the model can retry with its id. Never a
+ * guessed mutation.
  */
 function resolveHolding(
   portfolio: Portfolio | undefined,
@@ -598,16 +600,32 @@ function resolveHolding(
   if (byId) {
     return { target: byId, problem: "" };
   }
-  const lot = symbol
-    ? portfolio?.holdings.find((h) => baseSymbol(h.symbol) === baseSymbol(symbol))
-    : undefined;
-  if (lot) {
-    return { target: lot, problem: "" };
+  const lots = symbol
+    ? (portfolio?.holdings.filter((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? [])
+    : [];
+  if (lots.length === 1) {
+    return { target: lots[0], problem: "" };
+  }
+  if (lots.length > 1) {
+    const choices = lots.map((h) => `${h.id} (${lotText(h)})`).join(", ");
+    return {
+      target: null,
+      problem: `${symbol} has ${lots.length} lots; name one by position_id: ${choices}`,
+    };
   }
   return {
     target: null,
     problem: `${symbol || id || "position"} is not in the active portfolio`,
   };
+}
+
+/** " (lot 2 of 3)" when the holding's symbol has several lots, else "". */
+function lotOrdinal(portfolioId: string, holding: Holding): string {
+  const lots = (portfolioById(portfolioId)?.holdings ?? []).filter(
+    (h) => baseSymbol(h.symbol) === baseSymbol(holding.symbol),
+  );
+  const at = lots.findIndex((h) => h.id === holding.id);
+  return lots.length > 1 && at >= 0 ? ` (lot ${at + 1} of ${lots.length})` : "";
 }
 
 /** The holding fields an agent portfolio write carries, merged over the
@@ -1148,7 +1166,9 @@ export function describeIntent(intent: HostIntent): {
       return {
         kind: "data-write",
         title: `${update ? "Update" : "Remove"} ${label} ${update ? "in" : "from"} the portfolio`,
-        before: target ? `${target.symbol}: ${lotText(target)}` : "Portfolio: unchanged",
+        before: target
+          ? `${target.symbol}${lotOrdinal(intent.portfolioId, target)}: ${lotText(target)}`
+          : "Portfolio: unchanged",
         after: problem
           ? `${CANT_APPLY} — ${problem}`
           : update

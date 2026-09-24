@@ -1033,6 +1033,33 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
       await applyHostActionAsync("portfolio_add_position", { symbol: "X", quantity: 0 }),
     ).toBeNull();
   });
+
+  it("two lots of one symbol: an id picks its lot; the symbol alone refuses, naming both (R15-AGENT-042)", async () => {
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "default",
+        name: "Portfolio",
+        holdings: [
+          { id: "h-1", symbol: "TCS", quantity: 5, costBasis: 2500, assetClass: "equity" },
+          { id: "h-2", symbol: "TCS", quantity: 20, costBasis: 3900, assetClass: "equity" },
+        ],
+      },
+    ]);
+    const bySymbol = parseHostAction("portfolio_update_position", {
+      symbol: "TCS.NS",
+      quantity: 25,
+    });
+    const refused = await applyIntentAsync(bySymbol);
+    expect(refused.label).toBeNull();
+    expect(refused.reason).toMatch(/TCS\.NS has 2 lots; name one by position_id: h-1 .*, h-2 /);
+    expect(describeIntent(bySymbol).after).toMatch(/can't apply/);
+
+    const byId = parseHostAction("portfolio_update_position", { position_id: "h-2", quantity: 25 });
+    // The diff names the lot it will change.
+    expect(describeIntent(byId).before).toMatch(/^TCS \(lot 2 of 2\): ×20 @/);
+    expect((await applyIntentAsync(byId)).label).toMatch(/Updated TCS: ×25/);
+    expect(activeHoldings().map((h) => `${h.id}:${h.quantity}`)).toEqual(["h-1:5", "h-2:25"]);
+  });
 });
 
 describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", () => {
