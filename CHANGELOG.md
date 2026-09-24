@@ -4,6 +4,46 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 11: build recipe and gates, runtime phases and schema versions, agent eval, registry and loop, reference data, option chain, preferences, contrast and portfolio risk (2026-09-25)
+
+**Scope:** 26 open entries (2 high, 24 medium) planned in `docs/redesign/verification/r15/stage-c/batch-11/PLAN.md`:
+20 selected, 3 deferred (AGENT-017, AGENT-049, UI-088), 3 proposed out-of-scope (UI-047, UI-059, DATA-080). The eight
+writers reported 19 fixed and 1 could-not (RELEASE-007). Merged `--no-ff` in plan order W1 → W4 → W2 → W5 → W6 → W3
+→ W7 → W8 on `worktree-agent-batch-11-int` (base `30b6414f`), no file conflicts.
+
+- **Open:** RELEASE-007. The design-token audit is portable and fails on a zero-file scan (CODE-PLATFORM-027), but it
+  is not wired into `pnpm lint` (D-B11-2), so the gate is still unenforced.
+- **Integrator edits (no assertion weakened):**
+  - The plan's UI-085 file split missed `BacktestResultView.tsx`; its three `text-charcoal-600` sort glyphs failed
+    W8's source-scan pin and take the same tertiary-token swap.
+  - Seven text-mode `read_text()`/`write_text()` calls in three writers' new tests failed the Windows encoding
+    guard (`test_tests_encoding.py`); they name `encoding="utf-8"`, and so do the agent-eval runner and the sp500
+    regenerator (same class).
+  - W3's 32 spend-ledger rows (ollama agent-eval, $0) are held out of the merge: the ledger is lead-owned.
+  - D-B11-1..10 are recorded in `DECISIONS.md`; the D-B10-8 row says D-B11-3 supersedes its mechanism.
+
+- **W1 scripts and build:** one `SIDECAR_SPECS` table and `buildSidecar` drive all three sidecar builds
+  (CODE-PLATFORM-026); the smoke-test freshness gate reads that table (RELEASE-006); every file under a source dir and
+  each `--add-data` source is a staleness input, `.json.gz` seeds included (RELEASE-005); `scripts/**/*.test.mjs` runs
+  under vitest (CODE-PLATFORM-028, D-B11-1); the token audit resolves ROOT portably (CODE-PLATFORM-027).
+- **W2 runtime and schema:** `invoke_agent` is split into run prep, round consumption, tool dispatch and end-of-turn
+  phases (CODE-AGENT-009); every SQLite store carries `user_version` with a forward-only chain, the data dir is backed
+  up once on a build change and the workspace blob carries `schemaVersion` (LIFECYCLE-024, D-B11-4).
+- **W3 agent eval:** a 16-scenario real-data harness with a deterministic grader and a pass^k runner in
+  `scripts/agent_eval/` (AGENT-007, D-B11-10); Gemini and Anthropic answer a parallel call turn in one message, and a
+  content-less Gemini finish keeps its reason.
+- **W4 registry and loop:** a partial OHLCV series no longer ends the registry walk (DATA-071, D-B11-3); sync
+  accessors leave the event loop and the deep crawler idles when nothing is due (LIFECYCLE-026).
+- **W5 reference data:** BSE scrip-code-addressed data routes resolve (LEAD-028); companies resolve by a retired legal
+  name (DATA-059, D-B11-5); the sp500 universe (503) and the US seed pack are regenerated together, 498/503 seeded
+  (LEAD-013).
+- **W6 option chain:** EOD option chain with exchange open interest at `/quant/option/chain` and as the
+  `option_chain` capability, with an Option Chain panel (DATA-079, D-B11-6).
+- **W7 preferences:** FR-038 provider fallback order, a start-with layout choice and palette options (UI-087, D-B11-7).
+- **W8 frontend and visual:** readable `text-charcoal-600` moves to the tertiary token with a contrast pin (UI-085);
+  an untouched chart seeds the FR-092 indicator set (UI-091, D-B11-8); per-currency portfolio risk analytics
+  (CODE-PLATFORM-023, D-B11-9); BLUEPRINT marks pop-out as v1.0 roadmap (CODE-PLATFORM-025).
+
 ## R15 Stage C — batch 10: runtime and backtest integrity, catalog and host actions, fundamentals truth, screener and state docs, chat and search, chart defaults and notes, marketplace and panels, plugin lifecycle (2026-09-25)
 
 **Scope:** 56 entries planned in `docs/redesign/verification/r15/stage-c/batch-10/PLAN.md`; the eight writers
