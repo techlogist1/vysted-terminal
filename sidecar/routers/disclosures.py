@@ -2,7 +2,7 @@
 
 R7 Component 3. Serves the typed feeds from
 :mod:`services.corporate_disclosures` (merged BSE+NSE announcements deduped by
-``(symbol, headline-hash, date)``, the NSE results calendar, and the quarterly
+``(symbol, headline-hash, date)``, the NSE+BSE results calendar, and the quarterly
 shareholding patterns) through :mod:`services.data_cache` with domain-tuned
 TTLs:
 
@@ -34,7 +34,7 @@ from models.announcements import (
     ResultsCalendarResponse,
     ShareholdingResponse,
 )
-from services import corporate_disclosures, data_cache
+from services import corporate_disclosures, data_cache, sec_ownership
 from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ async def get_announcements(
 
 @router.get("/results")
 async def get_results(
-    symbol: Annotated[str, Query(min_length=1, description="NSE ticker, e.g. RELIANCE")],
+    symbol: Annotated[str, Query(min_length=1, description="NSE/BSE ticker, e.g. RELIANCE")],
 ) -> ResultsCalendarResponse:
     """Results-calendar / board-meeting events for ``symbol``, newest first."""
     normalized = symbol.strip().upper()
@@ -88,9 +88,10 @@ async def get_results(
 
 @router.get("/shareholding")
 async def get_shareholding(
-    symbol: Annotated[str, Query(min_length=1, description="NSE ticker, e.g. RELIANCE")],
+    symbol: Annotated[str, Query(min_length=1, description="NSE/BSE ticker, e.g. RELIANCE")],
 ) -> ShareholdingResponse:
-    """Quarterly shareholding patterns for ``symbol``, newest quarter first."""
+    """Quarterly shareholding patterns for ``symbol``, newest quarter first; a
+    US-listed ADR answers its 20-F major holders instead (R15-DATA-060)."""
     normalized = symbol.strip().upper()
     cache_key = f"disclosures:shareholding:{normalized}"
     cached = await data_cache.get(cache_key, _TTL_SHAREHOLDING)
@@ -101,6 +102,7 @@ async def get_shareholding(
             logger.warning("disclosures: cache deserialise failed for %s; refetching", cache_key)
     try:
         response = await asyncio.to_thread(corporate_disclosures.get_shareholding, normalized)
+        response = await sec_ownership.attach_major_shareholders(response)
     except ProviderError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     await data_cache.set(cache_key, response.model_dump(mode="json"))

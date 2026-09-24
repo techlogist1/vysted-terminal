@@ -165,9 +165,13 @@ class FinancialStatement(BaseModel):
     """Shared shape for the three financial statements."""
 
     symbol: str
+    #: ISO period-end dates, newest first (annual and quarterly alike).
     periods: list[str]
     lines: list[StatementLine]
     provider: str
+    #: Expected periods the provider did not serve (R15-LEAD-015): each is
+    #: listed in ``periods`` with a null value in every line.
+    gaps: list[str] = []
 
 
 class IncomeStatement(FinancialStatement):

@@ -1,0 +1,84 @@
+{
+  "Table": [
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "13 Aug 2026",
+      "tm": "2026-08-13T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Dividend",
+      "meeting_date": "25 May 2026",
+      "tm": "2026-05-25T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "25 May 2026",
+      "tm": "2026-05-25T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "28 Jan 2026",
+      "tm": "2026-01-28T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "07 Nov 2025",
+      "tm": "2025-11-07T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "08 Aug 2025",
+      "tm": "2025-08-08T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Dividend",
+      "meeting_date": "28 May 2025",
+      "tm": "2025-05-28T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "28 May 2025",
+      "tm": "2025-05-28T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "30 Jan 2025",
+      "tm": "2025-01-30T00:00:00"
+    },
+    {
+      "scrip_code": 503681,
+      "Short_name": "ELCID INV",
+      "LONG_NAME": "ELCID INV",
+      "Purpose_name": "Results",
+      "meeting_date": "12 Nov 2024",
+      "tm": "2024-11-12T00:00:00"
+    }
+  ]
+}

@@ -82,7 +82,7 @@ def test_get_fundamentals_dividend_yield_missing(
 def test_get_income_statement(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL/income").json()
     assert body["symbol"] == "AAPL"
-    assert body["periods"] == ["2025", "2024"]
+    assert body["periods"] == ["2025-09-30", "2024-09-30"]  # ISO period ends (R15-LEAD-015)
     labels = {line["label"] for line in body["lines"]}
     assert "Total Revenue" in labels
     assert "Net Income" in labels
@@ -90,7 +90,7 @@ def test_get_income_statement(client: TestClient, mock_yfinance: object) -> None
 
 def test_get_balance_sheet(client: TestClient, mock_yfinance: object) -> None:
     body = client.get("/fundamentals/AAPL/balance").json()
-    assert body["periods"] == ["2025", "2024"]
+    assert body["periods"] == ["2025-09-30", "2024-09-30"]  # ISO period ends (R15-LEAD-015)
     assert len(body["lines"]) == 2
 
 
@@ -128,7 +128,8 @@ def test_statement_routes_serve_quarters_by_iso_period_end(
     client: TestClient, monkeypatch: pytest.MonkeyPatch, route: str
 ) -> None:
     """R15-DATA-026: ?period=quarterly returns four ISO period-end labels (not
-    four quarters collapsed into one year label); the annual route is unchanged."""
+    four quarters collapsed into one year label). R15-LEAD-015 moved the annual
+    route from bare fiscal years to the same ISO period ends."""
     from services import yfinance_provider
 
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _dhanbank_ticker())
@@ -137,7 +138,88 @@ def test_statement_routes_serve_quarters_by_iso_period_end(
     revenue = next(line for line in quarterly["lines"] if line["label"] == "Total Revenue")
     assert revenue["values"]["2026-06-30"] == 1_000.0
     annual = client.get(f"/fundamentals/DHANBANK.NS/{route}").json()
-    assert annual["periods"] == ["2026", "2025", "2024", "2023"]
+    assert annual["periods"] == ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31"]
+    assert quarterly["gaps"] == annual["gaps"] == []
+
+
+def _gapped_ticker(quarter_ends: list[str], year_ends: list[str]) -> type:
+    import pandas as pd
+
+    def frame(ends: list[str]) -> pd.DataFrame:
+        return pd.DataFrame(
+            {col: [1_000.0 + i] for i, col in enumerate(pd.to_datetime(ends))},
+            index=["Total Revenue"],
+        )
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        income_stmt = balance_sheet = cashflow = frame(year_ends)
+        quarterly_income_stmt = quarterly_balance_sheet = quarterly_cashflow = frame(quarter_ends)
+
+    return _Ticker
+
+
+@pytest.mark.parametrize("route", ["income", "balance", "cashflow"])
+def test_a_missing_quarter_is_an_explicit_gap_period(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, route: str
+) -> None:
+    """R15-LEAD-015: Yahoo's DHANBANK.NS quarterly frame skips 2025-09-30; the
+    statement lists it as a gap period with null values, never silently."""
+    from services import yfinance_provider
+
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _gapped_ticker(
+            ["2026-06-30", "2026-03-31", "2025-12-31", "2025-06-30", "2025-03-31"],
+            ["2026-03-31", "2025-03-31", "2024-03-31", "2022-03-31"],
+        ),
+    )
+    quarterly = client.get(f"/fundamentals/DHANBANK.NS/{route}?period=quarterly").json()
+    assert quarterly["gaps"] == ["2025-09-30"]
+    assert quarterly["periods"][3:5] == ["2025-09-30", "2025-06-30"]
+    assert quarterly["lines"][0]["values"]["2025-09-30"] is None
+    assert quarterly["lines"][0]["values"]["2025-06-30"] == 1_003.0
+    # The same rule on an annual frame the fix was not written against.
+    annual = client.get(f"/fundamentals/DHANBANK.NS/{route}").json()
+    assert annual["gaps"] == ["2023-03-31"]
+
+
+def test_a_half_yearly_filers_quarters_are_not_gaps(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from services import yfinance_provider
+
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _gapped_ticker(["2026-03-31", "2025-09-30", "2025-03-31", "2024-09-30"], ["2026-03-31"]),
+    )
+    quarterly = client.get("/fundamentals/JONJUA.BO/income?period=quarterly").json()
+    assert quarterly["gaps"] == []
+    assert len(quarterly["periods"]) == 4
+
+
+def test_both_statement_providers_label_an_annual_period_alike() -> None:
+    """R15-LEAD-015: openbb-mcp labels annual rows by ISO period_ending; yfinance
+    now labels the same fiscal year the same way (it used the bare year)."""
+    import pandas as pd
+
+    from services import openbb_mcp_provider, yfinance_provider
+
+    frame = pd.DataFrame(
+        {pd.Timestamp("2026-03-31"): [5.0], pd.Timestamp("2025-03-31"): [4.0]},
+        index=["Total Revenue"],
+    )
+    rows = [
+        {"period_ending": "2026-03-31", "fiscal_year": 2026, "total_revenue": 5.0},
+        {"period_ending": "2025-03-31", "fiscal_year": 2025, "total_revenue": 4.0},
+    ]
+    yahoo_periods, _ = yfinance_provider._statement_lines(frame)
+    openbb_periods, _ = openbb_mcp_provider._statement_lines(rows)
+    assert yahoo_periods == openbb_periods == ["2026-03-31", "2025-03-31"]
 
 
 def test_get_analyst_rating(client: TestClient, mock_yfinance: object) -> None:
@@ -490,13 +572,36 @@ def test_revenue_diverging_from_the_annual_statement_is_flagged(
     assert "15,131,300,000" in meta["reason"]
 
 
-def test_revenue_divergence_on_a_second_listing_is_flagged(
+def test_revenue_the_provider_statements_agree_with_is_served_from_the_filings(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A case the fix was not written against: DAL's 2.76cr against 9.97cr."""
+    """DAL: Yahoo's 2.76cr TTM sits beside its own FY 2.07cr annual (within the
+    band) and a matching margin, so no Yahoo witness can see it; the BSE-filed
+    quarters (9.97cr, screener 9.97cr) are served instead (R15-DATA-014)."""
+    from datetime import date
+
+    from services import exchange_financials
+    from services.exchange_financials import FiledPeriod, FiledPeriods
+
+    quarters = [
+        (date(2026, 4, 1), date(2026, 6, 30), 72_600_000.0),
+        (date(2026, 1, 1), date(2026, 3, 31), 100_000.0),
+        (date(2025, 10, 1), date(2025, 12, 31), 25_800_000.0),
+        (date(2025, 7, 1), date(2025, 9, 30), 1_200_000.0),
+    ]
+    filed = FiledPeriods(
+        "bse", "standalone", tuple(FiledPeriod(s, e, rev, None, None) for s, e, rev in quarters)
+    )
+
+    async def filed_periods(listing: str) -> FiledPeriods:
+        assert listing == "DAL.BO"
+        return filed
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", filed_periods)
     fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
-    body = _revenue_route(client, monkeypatch, "DAL.BO", fields, 99_700_000, _QUARTERLY)
-    assert body["field_meta"]["revenue_ttm"]["status"] == "flagged"
+    body = _revenue_route(client, monkeypatch, "DAL.BO", fields, 20_668_000, _QUARTERLY)
+    assert body["revenue_ttm"] == pytest.approx(99_700_000)
+    assert body["field_meta"]["revenue_ttm"]["provider"] == "bse"
 
 
 def test_half_yearly_filer_ttm_is_labelled_annual(

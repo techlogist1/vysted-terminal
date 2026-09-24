@@ -16,8 +16,10 @@ research run on an Indian name can pull real filings:
   disclosures, newest first.
 
 On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
-the agent surfaces the failure verbatim instead of crashing the run. Both are
-read-only data tools (Vysted has no trading path, D81).
+the agent surfaces the failure verbatim instead of crashing the run. A symbol
+the Indian exchanges do not cover answers ``ok: True`` with ``coverage`` and a
+``note`` (C3); a US-listed ADR's shareholding carries its 20-F major holders
+(``provider`` ``"sec-20f"``). All are read-only data tools (no trading path, D81).
 """
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from services import corporate_disclosures
+from services import corporate_disclosures, sec_ownership
 from services.agent_tools import register_tool
 from services.errors import ProviderError
 
@@ -33,6 +35,14 @@ _DEFAULT_LIMIT = 20
 _MAX_LIMIT = 100
 # Compact context: at most this many quarters of shareholding history.
 _MAX_QUARTERS = 12
+
+
+def _coverage(response: Any) -> dict[str, Any]:
+    """``coverage`` always; ``note`` only when the service stated one."""
+    out: dict[str, Any] = {"coverage": response.coverage}
+    if response.note:
+        out["note"] = response.note
+    return out
 
 
 async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
@@ -61,6 +71,7 @@ async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
         "ok": True,
         "symbol": response.symbol,
         "exchange": response.exchange,
+        **_coverage(response),
         "sources": response.sources,
         "errors": response.errors,
         "count": response.count,
@@ -75,16 +86,26 @@ async def _shareholding_pattern(args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": "missing or non-string symbol"}
     try:
         response = await asyncio.to_thread(corporate_disclosures.get_shareholding, symbol)
+        response = await sec_ownership.attach_major_shareholders(response)
     except ProviderError as exc:
         return {"ok": False, "error": f"provider error: {exc}"}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"unexpected error: {exc}"}
     patterns = response.patterns[:_MAX_QUARTERS]
+    holders = {}
+    if response.major_shareholders:
+        holders = {
+            "provider": response.provider,
+            "major_shareholders": [h.model_dump(mode="json") for h in response.major_shareholders],
+            "source_url": response.source_url,
+        }
     return {
         "ok": True,
         "symbol": response.symbol,
+        **_coverage(response),
         "count": len(patterns),
         "patterns": [pattern.model_dump(mode="json") for pattern in patterns],
+        **holders,
     }
 
 
@@ -102,6 +123,7 @@ async def _corporate_actions(args: dict[str, Any]) -> dict[str, Any]:
     return {
         "ok": True,
         "symbol": response.symbol,
+        **_coverage(response),
         "sources": response.sources,
         "errors": response.errors,
         "count": response.count,
@@ -127,6 +149,7 @@ async def _exchange_deals(args: dict[str, Any]) -> dict[str, Any]:
         "ok": True,
         "symbol": response.symbol,
         "kind": response.kind,
+        **_coverage(response),
         "sources": response.sources,
         "errors": response.errors,
         "count": response.count,

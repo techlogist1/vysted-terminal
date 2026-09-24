@@ -1,0 +1,84 @@
+{
+  "Table": [
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "17 Jul 2026",
+      "tm": "2026-07-17T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Dividend",
+      "meeting_date": "24 Apr 2026",
+      "tm": "2026-04-24T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "24 Apr 2026",
+      "tm": "2026-04-24T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "16 Jan 2026",
+      "tm": "2026-01-16T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "17 Oct 2025",
+      "tm": "2025-10-17T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "18 Jul 2025",
+      "tm": "2025-07-18T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Dividend",
+      "meeting_date": "25 Apr 2025",
+      "tm": "2025-04-25T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "General",
+      "meeting_date": "25 Apr 2025",
+      "tm": "2025-04-25T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "25 Apr 2025",
+      "tm": "2025-04-25T00:00:00"
+    },
+    {
+      "scrip_code": 500325,
+      "Short_name": "RELIANCE",
+      "LONG_NAME": "Reliance Industries Ltd",
+      "Purpose_name": "Results",
+      "meeting_date": "16 Jan 2025",
+      "tm": "2025-01-16T00:00:00"
+    }
+  ]
+}
