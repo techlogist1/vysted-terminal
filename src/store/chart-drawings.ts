@@ -13,11 +13,17 @@
 
 import { create } from "zustand";
 
-import type { DrawingSpec, WorkspaceDrawings } from "../../types/drawings";
+import type { ChartView, DrawingSpec, WorkspaceDrawings } from "../../types/drawings";
 
 interface ChartDrawingsState {
-  /** Drawings per chart-panel id. */
+  /** Drawings per chart-panel id (every symbol/timeframe the panel has shown). */
   byPanel: Record<string, DrawingSpec[]>;
+  /** What each chart panel shows — persisted so a relaunch reopens it (R15-UI-020). */
+  views: Record<string, ChartView>;
+  /** Record a panel's view; a no-op when nothing changed (no autosave churn). */
+  setView: (panelId: string, view: ChartView) => void;
+  /** Replace every panel's view — used by workspace load and reset. */
+  replaceViews: (views: Record<string, ChartView>) => void;
   /** Replace every panel's drawings — used by workspace load. */
   replaceAll: (drawings: WorkspaceDrawings) => void;
   /** Snapshot the current state in `WorkspaceDrawings` shape — used by workspace save. */
@@ -40,8 +46,28 @@ interface ChartDrawingsState {
 
 const EMPTY: readonly DrawingSpec[] = Object.freeze([]);
 
+/** What a chart panel opens on when it has no persisted view. */
+export const DEFAULT_CHART_SYMBOL = "SPY";
+export const DEFAULT_CHART_TIMEFRAME = "1d";
+
 export const useChartDrawingsStore = create<ChartDrawingsState>((set, get) => ({
   byPanel: {},
+  views: {},
+  setView: (panelId, view) =>
+    set((state) => {
+      const prev = state.views[panelId];
+      if (
+        prev &&
+        prev.symbol === view.symbol &&
+        prev.timeframe === view.timeframe &&
+        prev.compare === view.compare &&
+        prev.indicators.join() === view.indicators.join()
+      ) {
+        return state;
+      }
+      return { views: { ...state.views, [panelId]: view } };
+    }),
+  replaceViews: (views) => set({ views: { ...views } }),
   replaceAll: (drawings) => {
     // Defensive copy — Zustand does shallow equality, so cloning the inner
     // arrays ensures subscribers notice changes even if a caller hands in the
@@ -106,6 +132,15 @@ export const useChartDrawingsStore = create<ChartDrawingsState>((set, get) => ({
     }),
   getDrawings: (panelId) => get().byPanel[panelId] ?? EMPTY,
 }));
+
+/** The drawings a panel shows for one symbol/timeframe. */
+export function drawingsFor(
+  list: readonly DrawingSpec[],
+  symbol: string,
+  timeframe: string,
+): DrawingSpec[] {
+  return list.filter((d) => d.symbol === symbol && d.timeframe === timeframe);
+}
 
 /**
  * Stable per-drawing id generator — uses `crypto.randomUUID` when available

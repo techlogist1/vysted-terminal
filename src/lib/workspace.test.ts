@@ -92,7 +92,7 @@ describe("workspace serialization", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
-    useChartDrawingsStore.setState({ byPanel: {} });
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
     useAgentModeStore.setState({ mode: "agent" });
@@ -122,6 +122,7 @@ describe("workspace serialization", () => {
       layout: LAYOUT_A,
       enabledModules: { chart: true, news: false, platform: true },
       chartDrawings: { byPanel: {} },
+      chartViews: {},
       defaultProviderId: "anthropic",
       watchlist: [{ symbol: "AAPL", assetClass: "equity" }],
       portfolios: {
@@ -554,6 +555,8 @@ describe("workspace serialization", () => {
     const trendline: DrawingSpec = {
       id: "draw-trend",
       panelId: "chart-1",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1700000000, price: 100 },
@@ -565,6 +568,8 @@ describe("workspace serialization", () => {
     const fib: DrawingSpec = {
       id: "draw-fib",
       panelId: "chart-2",
+      symbol: "TCS.NS",
+      timeframe: "1wk",
       kind: "fib-retracement",
       points: [
         { time: 1700000000, price: 100 },
@@ -579,13 +584,53 @@ describe("workspace serialization", () => {
     const saved = serializeWorkspace("with-drawings");
 
     // Mutate the live state away…
-    useChartDrawingsStore.setState({ byPanel: {} });
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
     expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toHaveLength(0);
 
     // …then reload — drawings come back exactly as saved.
     deserializeWorkspace(saved);
     expect(useChartDrawingsStore.getState().getDrawings("chart-1")).toEqual([trendline]);
     expect(useChartDrawingsStore.getState().getDrawings("chart-2")).toEqual([fib]);
+  });
+
+  it("round-trips each chart panel's view and adopts an older blob's drawings (R15-UI-020)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    const view = { symbol: "RELIANCE.NS", timeframe: "1h", indicators: ["rsi"], compare: "TCS.NS" };
+    useChartDrawingsStore.getState().setView("chart", view);
+
+    const saved = serializeWorkspace("with-view");
+    useChartDrawingsStore.setState({ views: {} });
+    deserializeWorkspace(saved);
+    expect(useChartDrawingsStore.getState().views["chart"]).toEqual(view);
+
+    // A blob from before drawings carried symbol/timeframe: its drawings belong
+    // to the panel's restored view, or the chart defaults when it has none.
+    const legacyDrawing = {
+      id: "old",
+      panelId: "chart",
+      kind: "horizontal-line",
+      points: [{ time: null, price: 2450 }],
+      style: { color: "#fff", lineWidth: 1 },
+      createdAt: 0,
+    };
+    deserializeWorkspace({
+      name: "old",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      chartViews: { chart: view },
+      chartDrawings: { byPanel: { chart: [legacyDrawing], other: [legacyDrawing] } },
+    } as unknown as SerializedWorkspace);
+    const restored = useChartDrawingsStore.getState();
+    expect(restored.getDrawings("chart")[0]).toMatchObject({
+      symbol: "RELIANCE.NS",
+      timeframe: "1h",
+    });
+    expect(restored.getDrawings("other")[0]).toMatchObject({ symbol: "SPY", timeframe: "1d" });
+
+    // The oldest blobs have no chartViews: the panels open on their defaults.
+    deserializeWorkspace({ name: "older", layout: LAYOUT_A, enabledModules: {} });
+    expect(useChartDrawingsStore.getState().views).toEqual({});
   });
 
   it("loadWorkspace without chartDrawings clears any pre-existing drawings", () => {
@@ -595,6 +640,8 @@ describe("workspace serialization", () => {
     useChartDrawingsStore.getState().addDrawing("chart-x", {
       id: "leftover",
       panelId: "chart-x",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "rectangle",
       points: [
         { time: 1, price: 1 },
@@ -618,7 +665,7 @@ describe("research-space typed field + per-space memory (S-19)", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
-    useChartDrawingsStore.setState({ byPanel: {} });
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
     useResearchSpacesStore.setState({ byName: {} });
     useChatHistoryStore.getState().clear();
     resetSettingsStoreForTests();
@@ -790,7 +837,7 @@ describe("restoreLastSessionOrDefault — boot-crash guards", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", dockviewApi: null });
-    useChartDrawingsStore.setState({ byPanel: {} });
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
   });
 
@@ -1117,6 +1164,7 @@ const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
   layout: true,
   enabledModules: true,
   chartDrawings: true,
+  chartViews: true,
   defaultProviderId: true,
   watchlist: true,
   portfolios: true,
@@ -1163,7 +1211,7 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     resetWorkspacePersistenceForTests();
     useModulesStore.setState({ modules: [], enabled: {} });
     useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
-    useChartDrawingsStore.setState({ byPanel: {} });
+    useChartDrawingsStore.setState({ byPanel: {}, views: {} });
     useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
     useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
     usePortfoliosStore.getState().setAll([], undefined);
@@ -1259,6 +1307,8 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
           useChartDrawingsStore.getState().addDrawing("chart", {
             id: "d1",
             panelId: "chart",
+            symbol: "SPY",
+            timeframe: "1d",
             kind: "trendline",
             points: [
               { time: 1, price: 1 },
@@ -1267,6 +1317,12 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
             style: { color: "#fff", lineWidth: 1 },
             createdAt: 0,
           }),
+      ],
+      chartViews: [
+        () =>
+          useChartDrawingsStore
+            .getState()
+            .setView("chart", { symbol: "TCS.NS", timeframe: "1d", indicators: [], compare: null }),
       ],
       defaultProviderId: [() => useLLMProvidersStore.getState().setDefaultProviderId("openrouter")],
       watchlist: [() => useSymbolsStore.getState().addSymbol("INFY", "equity")],

@@ -194,7 +194,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   historyMock.mockResolvedValue(makeSeries("SPY"));
   fetchIndicatorsMock.mockResolvedValue(makeIndicatorResponse());
-  useChartDrawingsStore.setState({ byPanel: {} });
+  useChartDrawingsStore.setState({ byPanel: {}, views: {} });
   useChartSyncBus.setState({
     crosshair: null,
     visibleRange: null,
@@ -707,6 +707,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "rectangle",
       points: [
         { time: 1, price: 100 },
@@ -724,10 +726,42 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
+  it("opens on its persisted view and shows only that chart's drawings (R15-UI-020)", async () => {
+    useChartDrawingsStore.getState().setView("chart-A", {
+      symbol: "TCS.NS",
+      timeframe: "1wk",
+      indicators: [],
+      compare: null,
+    });
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "rel-level",
+      panelId: "chart-A",
+      symbol: "RELIANCE.NS",
+      timeframe: "1wk",
+      kind: "horizontal-line",
+      points: [{ time: null, price: 2450 }],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+
+    await waitFor(() => expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1wk"));
+    expect(screen.queryByRole("button", { name: "Select horizontal-line" })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "RELIANCE.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    expect(
+      await screen.findByRole("button", { name: "Select horizontal-line" }),
+    ).toBeInTheDocument();
+    expect(useChartDrawingsStore.getState().views["chart-A"]?.symbol).toBe("RELIANCE.NS");
+  });
+
   it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -760,6 +794,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -782,6 +818,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },
@@ -802,6 +840,8 @@ describe("ChartPanel", () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
       panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "trendline",
       points: [
         { time: 1, price: 100 },

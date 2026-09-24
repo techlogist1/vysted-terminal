@@ -153,6 +153,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     // drop stale chart drawings (regression-95 BUG-2).
     useModulesStore.getState().setEnabledMap({});
     useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
+    useChartDrawingsStore.getState().replaceViews({});
     api.clear();
     const enabledPanelIds = new Set(
       useModulesStore

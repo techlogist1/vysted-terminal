@@ -46,7 +46,13 @@ import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
-import { newDrawingId, useChartDrawingsStore } from "@/store/chart-drawings";
+import {
+  DEFAULT_CHART_SYMBOL,
+  DEFAULT_CHART_TIMEFRAME,
+  drawingsFor,
+  newDrawingId,
+  useChartDrawingsStore,
+} from "@/store/chart-drawings";
 import {
   selectSubscriptions,
   useChartSyncBus,
@@ -77,8 +83,9 @@ import { VolumeProfilePrimitive } from "./volume-profile-primitive";
 const TIMEFRAMES = ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"] as const;
 type Timeframe = (typeof TIMEFRAMES)[number];
 
-const DEFAULT_SYMBOL = "SPY";
-const DEFAULT_TIMEFRAME: Timeframe = "1d";
+function isTimeframe(value: string): value is Timeframe {
+  return (TIMEFRAMES as readonly string[]).includes(value);
+}
 
 /**
  * R8 §3.4 / R9 §3 — the toolbar row's declared collapse ladder, in measured
@@ -261,10 +268,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
   } | null>(null);
 
   // --- form / data state --------------------------------------------------
-  const [symbolInput, setSymbolInput] = useState(DEFAULT_SYMBOL);
-  const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
-  const [timeframe, setTimeframe] = useState<Timeframe>(DEFAULT_TIMEFRAME);
-  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  // A relaunch / workspace load reopens the panel's persisted view (R15-UI-020).
+  const [restored] = useState(() => useChartDrawingsStore.getState().views[panelId]);
+  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
+  const [symbol, setSymbol] = useState(restored?.symbol ?? DEFAULT_CHART_SYMBOL);
+  const [timeframe, setTimeframe] = useState<Timeframe>(() =>
+    restored && isTimeframe(restored.timeframe)
+      ? restored.timeframe
+      : (DEFAULT_CHART_TIMEFRAME as Timeframe),
+  );
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(restored?.indicators));
 
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
@@ -308,15 +321,20 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [draftPoints, setDraftPoints] = useState<DrawingPoint[]>([]);
   const [selectedDrawingId, setSelectedDrawingId] = useState<string | null>(null);
 
-  const drawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
+  // Drawings belong to the symbol/timeframe they were made on (R15-UI-020).
+  const panelDrawings = useChartDrawingsStore((state) => state.byPanel[panelId] ?? EMPTY_DRAWINGS);
+  const drawings = useMemo(
+    () => drawingsFor(panelDrawings, symbol, timeframe),
+    [panelDrawings, symbol, timeframe],
+  );
   const addDrawing = useChartDrawingsStore((state) => state.addDrawing);
   const removeDrawing = useChartDrawingsStore((state) => state.removeDrawing);
   const updateDrawing = useChartDrawingsStore((state) => state.updateDrawing);
-  const clearPanelDrawings = useChartDrawingsStore((state) => state.clearPanel);
+  const setChartView = useChartDrawingsStore((state) => state.setView);
 
   // --- comparison overlay state ------------------------------------------
-  const [compareInput, setCompareInput] = useState("");
-  const [compareSymbol, setCompareSymbol] = useState<string | null>(null);
+  const [compareInput, setCompareInput] = useState(restored?.compare ?? "");
+  const [compareSymbol, setCompareSymbol] = useState<string | null>(restored?.compare ?? null);
   const [compareNormalize, setCompareNormalize] = useState(true);
   // Tracks whether the active overlay actually rendered points. A fetch that
   // rejects or returns an empty series flips this to "error" so the compare
@@ -681,6 +699,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
       const spec: DrawingSpec = {
         id: newDrawingId(),
         panelId,
+        symbol,
+        timeframe,
         kind: activeTool,
         points: next,
         style: { ...DEFAULT_DRAWING_STYLE },
@@ -691,7 +711,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       setDraftPoints([]);
       setActiveTool(null);
     },
-    [activeTool, addDrawing, draftPoints, panelId],
+    [activeTool, addDrawing, draftPoints, panelId, symbol, timeframe],
   );
 
   useEffect(() => {
@@ -823,6 +843,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
       applyCommand(chartCommand);
     }
   }, [chartCommand]);
+
+  // Persist what the chart shows (workspace blob, `chartViews` slice).
+  useEffect(() => {
+    setChartView(panelId, { symbol, timeframe, indicators: selectedKeys, compare: compareSymbol });
+  }, [setChartView, panelId, symbol, timeframe, selectedKeys, compareSymbol]);
 
   // Report the displayed symbol so the diff gate's "before" reflects the real
   // chart state (not the stale sync-bus value).
@@ -1120,10 +1145,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
     [panelId, removeDrawing, selectedDrawingId],
   );
 
+  // Clears what this chart shows; other symbols' drawings stay.
   const onClearAllDrawings = useCallback(() => {
-    clearPanelDrawings(panelId);
+    for (const drawing of drawings) {
+      removeDrawing(panelId, drawing.id);
+    }
     setSelectedDrawingId(null);
-  }, [clearPanelDrawings, panelId]);
+  }, [drawings, panelId, removeDrawing]);
 
   const remainingPoints = activeTool ? pointsRequired(activeTool) - draftPoints.length : 0;
   const syncCount =

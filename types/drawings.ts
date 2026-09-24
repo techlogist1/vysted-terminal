@@ -84,6 +84,13 @@ export interface DrawingSpec {
   id: string;
   /** Which chart panel instance this drawing belongs to (multi-chart panels are non-singleton). */
   panelId: string;
+  /**
+   * The chart the drawing was made on: a level drawn on RELIANCE 1d shows only
+   * on RELIANCE 1d (R15-UI-020). Drawings from a blob that predates these
+   * fields are adopted by the panel's restored symbol/timeframe.
+   */
+  symbol: string;
+  timeframe: string;
   kind: DrawingKind;
   /** Two-three points depending on kind; the renderer asserts the right count. */
   points: DrawingPoint[];
@@ -111,4 +118,14 @@ export interface DrawingSpec {
 export interface WorkspaceDrawings {
   /** Drawings collection per chart-panel id. */
   byPanel: Record<string, DrawingSpec[]>;
+}
+
+/** What a chart panel shows, persisted per panel id in the workspace blob. */
+export interface ChartView {
+  symbol: string;
+  timeframe: string;
+  /** Selected indicator keys, sorted. */
+  indicators: string[];
+  /** Comparison-overlay symbol, or `null`. */
+  compare: string | null;
 }

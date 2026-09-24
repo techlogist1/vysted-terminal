@@ -28,7 +28,11 @@ import { useAgentModeStore } from "@/store/agent-mode";
 import { type BriefBundle, useBriefStore } from "@/store/brief";
 import { type NotesBundle, useNotesStore } from "@/store/notes";
 import { type AgentAutonomy, isAgentAutonomy, useAgentAutonomyStore } from "@/store/agent-autonomy";
-import { useChartDrawingsStore } from "@/store/chart-drawings";
+import {
+  DEFAULT_CHART_SYMBOL,
+  DEFAULT_CHART_TIMEFRAME,
+  useChartDrawingsStore,
+} from "@/store/chart-drawings";
 import { useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelSelectionStore } from "@/store/model-selection";
@@ -42,7 +46,7 @@ import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/stor
 import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
-import type { WorkspaceDrawings } from "../../types/drawings";
+import type { ChartView, WorkspaceDrawings } from "../../types/drawings";
 import type { WorkspaceResearchSpaces } from "../../types/research-space";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
@@ -58,6 +62,8 @@ export interface SerializedWorkspace {
    * compatibility with workspaces saved before drawings shipped.
    */
   chartDrawings?: WorkspaceDrawings;
+  /** Per-chart-panel symbol/timeframe/indicators/compare (R15-UI-020). */
+  chartViews?: Record<string, ChartView>;
   /**
    * The default AI provider the chat sidebar uses. Persisted here so the
    * Settings "Set default" choice survives a relaunch (it was in-memory-only
@@ -201,6 +207,34 @@ export interface PersistedSlice {
   subscribe: (onChange: () => void) => () => void;
 }
 
+/** The blob's valid chart views; a malformed entry is dropped. */
+function chartViewsOf(workspace: SerializedWorkspace): Record<string, ChartView> {
+  const out: Record<string, ChartView> = {};
+  const raw: unknown = workspace.chartViews;
+  if (!raw || typeof raw !== "object") {
+    return out;
+  }
+  for (const [panelId, value] of Object.entries(raw)) {
+    const view = value as Partial<ChartView> | null;
+    if (
+      view &&
+      typeof view.symbol === "string" &&
+      view.symbol &&
+      typeof view.timeframe === "string"
+    ) {
+      out[panelId] = {
+        symbol: view.symbol,
+        timeframe: view.timeframe,
+        indicators: Array.isArray(view.indicators)
+          ? view.indicators.filter((key): key is string => typeof key === "string")
+          : [],
+        compare: typeof view.compare === "string" ? view.compare : null,
+      };
+    }
+  }
+  return out;
+}
+
 /** A `subscribe` that fires when any of the picked store fields changes identity. */
 function onChange<S>(
   store: { subscribe: (listener: (state: S, previous: S) => void) => () => void },
@@ -230,11 +264,33 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useModulesStore, (s) => s.enabled),
   },
   {
+    // What each chart panel shows (R15-UI-020); older blobs lack it and the
+    // chart opens on its defaults. A malformed entry is dropped, not guessed.
+    key: "chartViews",
+    scope: "layout",
+    read: () => ({ chartViews: useChartDrawingsStore.getState().views }),
+    restore: (workspace) => useChartDrawingsStore.getState().replaceViews(chartViewsOf(workspace)),
+    subscribe: onChange(useChartDrawingsStore, (s) => s.views),
+  },
+  {
+    // A drawing from a blob that predates `symbol`/`timeframe` is adopted by
+    // its panel's restored view (or the chart defaults).
     key: "chartDrawings",
     scope: "layout",
     read: () => ({ chartDrawings: useChartDrawingsStore.getState().snapshot() }),
-    restore: (workspace) =>
-      useChartDrawingsStore.getState().replaceAll(workspace.chartDrawings ?? { byPanel: {} }),
+    restore: (workspace) => {
+      const views = chartViewsOf(workspace);
+      const byPanel: WorkspaceDrawings["byPanel"] = {};
+      for (const [panelId, list] of Object.entries(workspace.chartDrawings?.byPanel ?? {})) {
+        const view = views[panelId];
+        byPanel[panelId] = list.map((d) => ({
+          ...d,
+          symbol: d.symbol ?? view?.symbol ?? DEFAULT_CHART_SYMBOL,
+          timeframe: d.timeframe ?? view?.timeframe ?? DEFAULT_CHART_TIMEFRAME,
+        }));
+      }
+      useChartDrawingsStore.getState().replaceAll({ byPanel });
+    },
     subscribe: onChange(useChartDrawingsStore, (s) => s.byPanel),
   },
   {

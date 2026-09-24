@@ -34,6 +34,8 @@ function makeSpec(kind: DrawingKind, points: DrawingSpec["points"]): DrawingSpec
   return {
     id: `test-${kind}`,
     panelId: "p",
+    symbol: "SPY",
+    timeframe: "1d",
     kind,
     points,
     style: { ...DEFAULT_DRAWING_STYLE },
@@ -283,6 +285,8 @@ describe("text renderer", () => {
     renderer.setSpec({
       id: "t",
       panelId: "p",
+      symbol: "SPY",
+      timeframe: "1d",
       kind: "text",
       points: [{ time: 5_000_000, price: 200 }],
       style: { ...DEFAULT_DRAWING_STYLE },
