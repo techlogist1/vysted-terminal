@@ -37,6 +37,11 @@ interface EarningsState {
   upcoming: EarningsUpcomingResponse | null;
   upcomingStatus: EarningsLoadStatus;
   upcomingError: string | null;
+  /** R15-UI-015: the ORIGINAL caught error, kept alongside `upcomingError` so
+   *  a caller can tell a transient sidecar-not-ready failure from a
+   *  deterministic one (`useRetryOnSidecarReady`) instead of re-throwing a
+   *  flattened `new Error(string)` that always reads as transient. */
+  upcomingCause: unknown;
   /** Echo of the query the active window was fetched with — drives the picker form. */
   lastDays: number;
   lastWatchlist: string[] | null;
@@ -84,6 +89,7 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
   upcoming: null,
   upcomingStatus: "idle",
   upcomingError: null,
+  upcomingCause: null,
   lastDays: DEFAULT_DAYS,
   lastWatchlist: null,
   histories: {},
@@ -100,6 +106,7 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
     set({
       upcomingStatus: "loading",
       upcomingError: null,
+      upcomingCause: null,
       lastDays: days,
       lastWatchlist: watchlist,
     });
@@ -109,11 +116,11 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
         watchlist: watchlistToParam(watchlist),
       });
       if (generation !== upcomingGeneration) return;
-      set({ upcoming: payload, upcomingStatus: "ready", upcomingError: null });
+      set({ upcoming: payload, upcomingStatus: "ready", upcomingError: null, upcomingCause: null });
     } catch (err: unknown) {
       if (generation !== upcomingGeneration) return;
       const message = err instanceof Error ? err.message : "Failed to load upcoming earnings";
-      set({ upcomingStatus: "error", upcomingError: message, upcoming: null });
+      set({ upcomingStatus: "error", upcomingError: message, upcomingCause: err, upcoming: null });
     }
   },
 
@@ -226,6 +233,7 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
       upcoming: null,
       upcomingStatus: "idle",
       upcomingError: null,
+      upcomingCause: null,
       lastDays: DEFAULT_DAYS,
       lastWatchlist: null,
       histories: {},

@@ -128,8 +128,13 @@ export function EarningsCalendarPanel() {
       return;
     }
     await loadUpcoming();
-    if (useEarningsStore.getState().upcomingStatus === "error") {
-      throw new Error(useEarningsStore.getState().upcomingError ?? "earnings load failed");
+    const state = useEarningsStore.getState();
+    if (state.upcomingStatus === "error") {
+      // R15-UI-015: re-throw the ORIGINAL caught error (a SidecarError for a
+      // real sidecar answer) rather than a flattened new Error(string) — a
+      // flattened error always reads as transient to isTransientSidecarFailure,
+      // so a deterministic 502 was retried instead of settling after one try.
+      throw state.upcomingCause ?? new Error(state.upcomingError ?? "earnings load failed");
     }
   }, [loadUpcoming]);
   useRetryOnSidecarReady(loadDefault, []);

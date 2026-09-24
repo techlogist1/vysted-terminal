@@ -115,8 +115,13 @@ export function ScreenerPanel() {
   const loadDefault = useCallback(async () => {
     if (universe === "custom") return;
     await loadUniverse(universe);
-    if (useScreenerStore.getState().universeStatus[universe] === "error") {
-      throw new Error(`Failed to load universe ${universe}`);
+    const state = useScreenerStore.getState();
+    if (state.universeStatus[universe] === "error") {
+      // R15-UI-015: re-throw the ORIGINAL caught error (a SidecarError for a
+      // real sidecar answer) rather than a flattened new Error(string) — a
+      // flattened error always reads as transient to isTransientSidecarFailure,
+      // so a deterministic 502 was retried instead of settling after one try.
+      throw state.universeCauses[universe] ?? new Error(`Failed to load universe ${universe}`);
     }
   }, [universe, loadUniverse]);
   useRetryOnSidecarReady(loadDefault, [universe]);
