@@ -7,6 +7,7 @@ These shapes are mirrored by hand in ``types/data.ts``; keep the two in sync
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -88,3 +89,41 @@ class MacroSeries(BaseModel):
     units: str | None = None
     observations: list[MacroObservation]
     provider: str
+
+
+class OptionContract(BaseModel):
+    """One listed option contract's end-of-day row in an option chain (R15-DATA-079)."""
+
+    expiry: date
+    strike: float
+    option_type: Literal["call", "put"]
+    # Exchange-published open interest and its change on the session; null
+    # where the source does not report it.
+    open_interest: float | None = None
+    change_in_oi: float | None = None
+    last_price: float | None = None
+    # The exchange settlement price (NSE F&O); null on the US leg.
+    settle_price: float | None = None
+    volume: float | None = None
+    # The source's implied volatility (US leg, yfinance); null on the NSE leg.
+    implied_volatility: float | None = None
+
+
+class OptionChain(BaseModel):
+    """One expiry of a symbol's listed option chain, as the source published it.
+
+    Research data only (D81): exchange-published EOD OI and prices, never a
+    trading surface. ``as_of`` is the session the values describe.
+    """
+
+    symbol: str
+    expiry: date
+    #: Every expiry the source lists for the symbol, nearest first.
+    expiries: list[date]
+    underlying_price: float | None = None
+    contracts: list[OptionContract]
+    as_of: date
+    provider: str
+    currency: str
+    #: Calendar-aware staleness of ``as_of`` ("eod" | "stale").
+    freshness: str | None = None

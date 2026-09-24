@@ -2,6 +2,7 @@ import type { VystedModule } from "@/lib/module-registry";
 
 import { BondPricerPanel } from "./BondPricerPanel";
 import { GreeksDashboard } from "./GreeksDashboard";
+import { OptionChainPanel } from "./OptionChainPanel";
 import { OptionPricerPanel } from "./OptionPricerPanel";
 import { YieldCurvePanel } from "./YieldCurvePanel";
 
@@ -9,7 +10,8 @@ import { YieldCurvePanel } from "./YieldCurvePanel";
  * Quant module — Phase 6 (Teammate Q v0.6.0) surface.
  *
  * Surfaces four pricing panels — option pricer (BS / Binomial / MC),
- * bond pricer, yield curve bootstrap, Greeks dashboard. All four hit
+ * bond pricer, yield curve bootstrap, Greeks dashboard — plus the listed
+ * option chain with exchange open interest (R15-DATA-079). All four pricers hit
  * the in-process QuantLib pipeline rooted at ``sidecar/services/quant``
  * via the ``/quant/...`` router. They are pure pricing math.
  */
@@ -32,6 +34,14 @@ export const quantModule: VystedModule = {
       component: "greeks-dashboard-panel",
       singleton: true,
       defaultSize: { w: 9, h: 6 },
+    },
+    {
+      id: "option-chain",
+      title: "Option Chain",
+      icon: "layers",
+      component: "option-chain-panel",
+      singleton: true,
+      defaultSize: { w: 9, h: 9 },
     },
     {
       id: "bond-pricer",
@@ -68,6 +78,14 @@ export const quantModule: VystedModule = {
       opensPanel: "greeks-dashboard",
     },
     {
+      id: "quant.open-option-chain",
+      trigger: "option chain",
+      title: "Open Option Chain",
+      description: "Open interest by strike from the NSE F&O bhavcopy or yfinance",
+      icon: "layers",
+      opensPanel: "option-chain",
+    },
+    {
       id: "quant.open-bond-pricer",
       trigger: "bond pricer",
       title: "Open Bond Pricer",
@@ -87,6 +105,7 @@ export const quantModule: VystedModule = {
   panelComponents: {
     "option-pricer-panel": OptionPricerPanel,
     "greeks-dashboard-panel": GreeksDashboard,
+    "option-chain-panel": OptionChainPanel,
     "bond-pricer-panel": BondPricerPanel,
     "yield-curve-panel": YieldCurvePanel,
   },
