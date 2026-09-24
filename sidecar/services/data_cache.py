@@ -39,7 +39,8 @@ Public surface
     row's ``updated_at`` is within ``ttl_seconds`` of now, else ``None``.
   - :func:`get_with_meta(key, ttl_seconds)` — like :func:`get`, but also
     returns the row's fetch time so a caller can stamp an ``as_of``.
-  - :func:`set(key, value)` — upsert. Updates ``updated_at`` to now.
+  - :func:`set(key, value)` — upsert. Updates ``updated_at`` to now and
+    returns it.
   - :func:`invalidate(key_prefix)` — delete every row whose key starts
     with the prefix. Useful for "drop the whole macro / FRED bucket"
     on user demand.
@@ -202,8 +203,9 @@ async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | Non
         return None
 
 
-async def set(key: str, value: Any) -> None:  # noqa: A001 — set matches the cache idiom
-    """Upsert a key/value, bumping ``updated_at`` to now.
+async def set(key: str, value: Any) -> float:  # noqa: A001 — set matches the cache idiom
+    """Upsert a key/value, bumping ``updated_at`` to now; returns that time (the
+    ``fetched_at`` a later :func:`get_with_meta` hit reports).
 
     Args:
         key: opaque string key.
@@ -228,6 +230,7 @@ async def set(key: str, value: Any) -> None:  # noqa: A001 — set matches the c
         )
 
     await _run(upsert)
+    return now
 
 
 async def invalidate(key_prefix: str) -> int:
