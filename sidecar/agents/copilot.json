@@ -33,6 +33,7 @@
     "shareholding_pattern",
     "corporate_actions",
     "exchange_deals",
+    "earnings_call_transcript",
     "backtest_summary",
     "open_panel",
     "close_panel",

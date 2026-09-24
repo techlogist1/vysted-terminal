@@ -323,6 +323,38 @@ def test_results_filing_outranks_newer_procedural_intimations() -> None:
     assert rows_plain[0]["url"].endswith("AUDIO.pdf")
 
 
+def test_call_shaped_question_ranks_the_transcript_past_the_row_cap() -> None:
+    """R15-RESEARCH-030: behind five newer results-shaped rows the transcript
+    used to fall off the cap; a call-shaped question now reads it first."""
+    results = [
+        {
+            "exchange": "NSE",
+            "headline": f"Financial results for the quarter ended June 30, 2026 (part {n})",
+            "category": "Financial Results",
+            "attachment_url": f"https://nsearchives.nseindia.com/corporate/RESULT{n}.pdf",
+            "ts": "2026-07-10",
+        }
+        for n in range(5)
+    ]
+    transcript = {
+        "exchange": "NSE",
+        "headline": "Tata Consultancy Services Limited has informed the Exchange about Transcript",
+        "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+        "attachment_url": "https://nsearchives.nseindia.com/corporate/TRANSCRIPT.pdf",
+        "ts": "2026-07-15",
+    }
+    feed = {"ok": True, "announcements": [*results, transcript]}
+
+    rows = disclosures.announcement_rows(
+        feed, symbol="TCS", sub_question="What did management say on the Q1 earnings call?"
+    )
+    assert rows[0]["url"].endswith("TRANSCRIPT.pdf")
+    rows_results = disclosures.announcement_rows(
+        feed, symbol="TCS", sub_question="What were the latest quarterly results?"
+    )
+    assert all(not row["url"].endswith("TRANSCRIPT.pdf") for row in rows_results)
+
+
 def test_india_target_predicate_is_the_single_relevance_copy() -> None:
     """R15 C5: the disclosures lane uses relevance's predicate, not a twin."""
     from services.research import relevance

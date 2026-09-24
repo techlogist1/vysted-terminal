@@ -199,6 +199,7 @@ def test_third_party_text_tools_are_flagged_untrusted() -> None:
         "news",
         "market_overview",
         "corporate_announcements",
+        "earnings_call_transcript",
         "sec_filing_content",
         "research",
     }

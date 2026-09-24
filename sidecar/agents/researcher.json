@@ -18,6 +18,7 @@
     "sec_insider_transactions",
     "corporate_announcements",
     "shareholding_pattern",
+    "earnings_call_transcript",
     "price_option",
     "compute_greeks",
     "price_bond",

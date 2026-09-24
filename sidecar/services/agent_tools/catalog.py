@@ -102,7 +102,7 @@ ALWAYS_ON_DOMAINS: frozenset[Domain] = frozenset(
 DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
     "screener": ("screen", "filter", "stocks with", "stocks under", "p/e under", "scan"),
     "macro": ("macro", "gdp", "inflation", "cpi", "unemployment", "interest rate", "economy"),
-    "earnings": ("earnings", "eps", "quarterly result", "guidance"),
+    "earnings": ("earnings", "eps", "quarterly result", "guidance", "concall", "transcript"),
     "analyst": ("analyst", "rating", "price target", "upgrade", "downgrade", "consensus"),
     "filings": (
         "filing",
@@ -880,6 +880,36 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             read_only=True,
             kind="read_handler",
             timeout_seconds=45.0,
+        ),
+        _cap(
+            "earnings_call_transcript",
+            description=(
+                "The earnings-call (concall) transcript an Indian (NSE/BSE) listed "
+                "company filed with its exchanges, read from the filed PDF: what "
+                "management said on the call and in the Q&A. Returns text (the "
+                "transcript's most finance-relevant pages when it is long), "
+                "filing_date, url and source exchange; available: false with a reason "
+                "when no transcript was filed in the feed window or the symbol is not "
+                "NSE/BSE-listed. Omit quarter for the latest call."
+            ),
+            input_schema=_obj(
+                {
+                    "symbol": {"type": "string", "description": "NSE/BSE ticker, e.g. TCS."},
+                    "quarter": {
+                        "type": "string",
+                        "description": (
+                            "The quarter-end date the call discussed, YYYY-MM-DD "
+                            "(2026-06-30 for Apr-Jun 2026, Q1 FY27). Omit for the latest."
+                        ),
+                    },
+                },
+                ["symbol"],
+            ),
+            domain="earnings",
+            read_only=True,
+            kind="read_handler",
+            timeout_seconds=45.0,
+            untrusted_text=True,
         ),
         # --- quant (QuantLib pricing) ---------------------------------------
         _cap(

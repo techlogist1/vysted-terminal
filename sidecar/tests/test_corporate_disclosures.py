@@ -310,6 +310,28 @@ def test_live_tcs_pairs_collapse_on_category(monkeypatch: pytest.MonkeyPatch) ->
     )
 
 
+def test_earnings_call_transcripts_are_their_own_kind(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-RESEARCH-030: a transcript is its own kind on both feeds. The live
+    pairs still collapse (TCS by label, HDFCBANK, whose BSE label is the
+    analyst meet, by text), and a BSE transcript no longer pairs with an NSE
+    meet notice of the same analyst-meet label that falls in its window."""
+    for symbol, hour in (("TCS", "07-15 19"), ("HDFCBANK", "07-24 15")):
+        items = _merged_live_feed(monkeypatch, symbol)
+        [transcript] = [i for i in items if i.ts.strftime("%m-%d %H") == hour]
+        assert transcript.exchange == "NSE"
+        assert corporate_disclosures.is_earnings_call_transcript(transcript.headline)
+
+    meet = next(r for r in _HDFC_TCS_NSE["TCS"] if r["sort_date"].startswith("2026-07-27"))
+    meet = {**meet, "sort_date": "2026-07-15 19:30:00", "an_dt": "15-Jul-2026 19:30:00"}
+    bse_transcript = next(
+        r for r in _HDFC_TCS_BSE["TCS"] if r["NEWS_DT"].startswith("2026-07-15T19:28")
+    )
+    _serve_crossfeed(monkeypatch, [meet], [bse_transcript])
+
+    response = corporate_disclosures.get_announcements("TCS")
+    assert sorted(i.exchange for i in response.announcements) == ["BSE", "NSE"]
+
+
 def test_two_same_category_filings_in_one_window_stay_separate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

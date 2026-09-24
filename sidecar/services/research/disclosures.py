@@ -29,6 +29,7 @@ import asyncio
 import re
 from typing import Any
 
+from services.corporate_disclosures import is_earnings_call_transcript
 from services.research.relevance import is_india_target
 from services.research.target import ResearchTarget
 
@@ -74,6 +75,11 @@ def _results_band(title: str) -> float:
         return 0.5
     return 1.0
 
+
+#: Sub-question shapes that ask what management said on the call: the filed
+#: transcript ranks first for these (R15-RESEARCH-030), ahead of the results
+#: bands, so the 5-row cap never drops it.
+_CALL_KEYWORDS = ("transcript", "concall", "con call", "conference call", "earnings call")
 
 #: Sub-question shapes that should consult the disclosure feeds.
 _DISCLOSURE_KEYWORDS = (
@@ -214,7 +220,8 @@ def announcement_rows(
     band. The researcher's one visit reads the filing with the numbers, never
     the newest procedural intimation (the live R8 gate-1 failure mode); when
     the filing is a raster scan, the bounded fallback visit reads the digital
-    twin at ``rows[1]`` (the live R9 V10 failure mode).
+    twin at ``rows[1]`` (the live R9 V10 failure mode). A call-shaped
+    ``sub_question`` (:data:`_CALL_KEYWORDS`) puts the transcript rows first.
     """
     if not isinstance(result, dict) or not result.get("ok"):
         return []
@@ -249,6 +256,10 @@ def announcement_rows(
         # Stable partition: results filing, then its digital twin, then the
         # rest — feed order (newest first) within each band.
         candidates.sort(key=lambda row: _results_band(row["title"]))
+    if any(k in low for k in _CALL_KEYWORDS):
+        candidates.sort(
+            key=lambda row: not is_earnings_call_transcript(row["title"], row["excerpt"])
+        )
     return candidates[:_MAX_SOURCE_ROWS]
 
 
