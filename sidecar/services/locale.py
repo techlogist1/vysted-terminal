@@ -73,23 +73,28 @@ _NSE_HOLIDAYS: frozenset[str] = frozenset(
         "2025-10-22",
         "2025-11-05",
         "2025-12-25",
-        # 2026 (major NSE trading holidays — best effort)
-        "2026-01-26",
-        "2026-02-15",
-        "2026-03-04",
-        "2026-03-21",
-        "2026-03-31",
-        "2026-04-01",
-        "2026-04-03",
-        "2026-04-14",
-        "2026-05-01",
-        "2026-08-15",
-        "2026-08-28",
-        "2026-10-02",
-        "2026-10-20",
-        "2026-11-09",
-        "2026-11-24",
-        "2026-12-25",
+        # 2026 — NSE holiday master, CM segment (BSE equity closes the same
+        # days); regenerate with services.resolver_masters.regenerate_holidays.
+        "2026-01-15",  # Municipal Corporation Election - Maharashtra
+        "2026-01-26",  # Republic Day
+        "2026-02-15",  # Mahashivratri
+        "2026-03-03",  # Holi
+        "2026-03-21",  # Id-Ul-Fitr (Ramadan Eid)
+        "2026-03-26",  # Shri Ram Navami
+        "2026-03-31",  # Shri Mahavir Jayanti
+        "2026-04-03",  # Good Friday
+        "2026-04-14",  # Dr. Baba Saheb Ambedkar Jayanti
+        "2026-05-01",  # Maharashtra Day
+        "2026-05-28",  # Bakri Id
+        "2026-06-26",  # Muharram
+        "2026-08-15",  # Independence Day
+        "2026-09-14",  # Ganesh Chaturthi
+        "2026-10-02",  # Mahatma Gandhi Jayanti
+        "2026-10-20",  # Dussehra
+        "2026-11-08",  # Diwali Laxmi Pujan*
+        "2026-11-10",  # Diwali-Balipratipada
+        "2026-11-24",  # Prakash Gurpurb Sri Guru Nanak Dev
+        "2026-12-25",  # Christmas
     }
 )
 _US_HOLIDAYS: frozenset[str] = frozenset(
@@ -116,6 +121,17 @@ _US_HOLIDAYS: frozenset[str] = frozenset(
         "2026-09-07",
         "2026-11-26",
         "2026-12-25",
+        # 2027 (NYSE published schedule)
+        "2027-01-01",
+        "2027-01-18",
+        "2027-02-15",
+        "2027-03-26",
+        "2027-05-31",
+        "2027-06-18",
+        "2027-07-05",
+        "2027-09-06",
+        "2027-11-25",
+        "2027-12-24",
     }
 )
 _HOLIDAYS_BY_REGION = {REGION_US: _US_HOLIDAYS, REGION_IN: _NSE_HOLIDAYS}

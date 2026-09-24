@@ -65,3 +65,38 @@ def test_freshness_labels() -> None:
     assert f.state == "eod" and f.as_of == date(2026, 5, 29)
     stale = locale.freshness_for("IN", date(2026, 4, 20), intraday=False, now=now)
     assert stale.state == "stale" and stale.is_stale
+
+
+def test_holiday_calendars_cover_the_current_year() -> None:
+    # R15-DATA-073: a bundled calendar that stops before December silently turns
+    # every later holiday into an expected session. Regenerate the NSE list with
+    # services.resolver_masters.regenerate_holidays when this fails.
+    december = date(datetime.now(tz=UTC).year, 12, 1)
+    for region, days in (("IN", locale._NSE_HOLIDAYS), ("US", locale._US_HOLIDAYS)):
+        assert date.fromisoformat(max(days)) >= december, region
+
+
+def test_2026_nse_master_days_are_not_sessions() -> None:
+    # Days the NSE holiday master lists that the hand list had missed, and a day
+    # it had wrongly closed (2026-03-04 traded; Holi was 03-03).
+    for day in ("2026-01-15", "2026-03-26", "2026-05-28", "2026-06-26", "2026-09-14"):
+        assert not locale._is_trading_day(date.fromisoformat(day), "IN"), day
+    assert locale._is_trading_day(date(2026, 3, 4), "IN")
+    # A session after the Ganesh Chaturthi close counts one session, not two.
+    assert locale.trading_sessions_between(date(2026, 9, 11), date(2026, 9, 15), "IN") == 1
+
+
+def test_regenerate_holidays_parses_the_master_shape() -> None:
+    from services.resolver_masters.regenerate_holidays import holiday_lines
+
+    master = {
+        "CM": [
+            {"tradingDate": "25-Dec-2026", "description": "Christmas"},
+            {"tradingDate": "15-Jan-2026", "description": "Municipal Corporation Election"},
+        ],
+        "FO": [{"tradingDate": "01-Jan-2026", "description": "not the CM segment"}],
+    }
+    assert holiday_lines(master) == [
+        '"2026-01-15",  # Municipal Corporation Election',
+        '"2026-12-25",  # Christmas',
+    ]
