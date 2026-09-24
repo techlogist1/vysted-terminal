@@ -32,7 +32,7 @@ import grader  # noqa: E402
 #: lane -> (vy provider, default model)
 LANES = {
     "ollama": ("ollama", "llama3.1:8b"),
-    "openrouter-free": ("openrouter", "inclusionai/ling-3.0-flash-vl:free"),
+    "openrouter-free": ("openrouter", "qwen/qwen3.8-27b:free"),
     "openai": ("openai", "gpt-4o-mini"),
 }
 TRIAL_TIMEOUT_S = 600
