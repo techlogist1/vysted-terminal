@@ -27,7 +27,12 @@ from typing import Any
 #: (``services/llm/base.py`` INVALID_ARGS_SENTINEL) - a {}-args call lands here.
 INVALID_ARGS = "__vysted_invalid_args__"
 #: Tool-call syntax leaking into the answer text: the call never reached the loop.
-FORBID_TEXT = (r"<\|python_tag\|>", r"</?tool_call>", INVALID_ARGS)
+FORBID_TEXT = (
+    r"<\|python_tag\|>",
+    r"</?tool_call>",
+    r'\{\s*"name"\s*:\s*"\w+"\s*,\s*"(parameters|arguments)"\s*:',
+    INVALID_ARGS,
+)
 
 _required: dict[str, list[str]] | None = None
 

@@ -129,6 +129,13 @@ def test_a_call_the_runtime_marked_invalid_fails() -> None:
             "forbidden tool called: portfolio_add_position",
         ),
         (_ASK_BACK, [_text("Added the shares."), _DONE], "answer does not match"),
+        (
+            _ASK_BACK,
+            # llama3.1:8b, live: the call printed as text instead of made (a question
+            # mark in the text must not rescue it).
+            [_text('{"name": "portfolio_add_position", "parameters": {"symbol": null}}?'), _DONE],
+            "answer matches forbidden",
+        ),
     ],
 )
 def test_each_failure_mode_fails_the_trial(
