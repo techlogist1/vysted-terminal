@@ -1600,8 +1600,9 @@
         "agent-chat"
       ],
       "tier4": false,
-      "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- half fixed. Fixed: JNPR and DHOOTTRANS disclosures now return 200 with data; SUMAX quote/history come through NSE; 'Sumax Engineering Limited' resolves to SUMAX (yahoo SUMAX-SM.NS). Not fixed: every NSE Emerge (SM-series) name's disclosures now come back 200 and empty instead of 502 -- nse_provider._fetch_corporate_list hard-codes index=equities while NSE serves SME filings under index=sme (SUMAX has 7 announcements + 1 SHP, QUALIANCE 7, SHANTIINOR 2, all live on NSE; the app returns 0 with no error)."
+      "status": "fixed",
+      "note": "Batch-6 (5e14731) certified: sidecar/services/nse_provider.py routes Emerge/SME symbols to index=sme (was hard-coded index=equities, empty for SME names). Live: QUALIANCE/SHANTIINOR announcements/shareholding/results all 200 with real data; cross-checked against NSE's own index=sme feed directly (SUMAX sme=7/equities=0, QUALIANCE sme=7/equities=0, SHANTIINOR sme=2/equities=0).",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-DATA-018",
@@ -3838,7 +3839,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit 7f8c452) certified: get_portfolio's holdings now carry each row's id when the Portfolio panel is open (previously only the closed-panel store fallback carried ids); resolveHolding refuses a same-symbol ambiguous match (2+ lots, no id) instead of silently picking the first, naming each lot so the model can retry by position_id."
     },
     {
       "id": "R15-AGENT-043",
@@ -3947,7 +3950,7 @@
         "research-search"
       ],
       "status": "open",
-      "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case."
+      "note": "Verifier batch-3: Ollama native tool calls still carry tool_call_id '' live, confirming this entry on a fresh case. || Batch-6 (5e14731) not certified: the Ollama leg is fixed live (distinct call_<uuid> ids, 200 ack, model confirms). The cross-run leg still reproduces: a scratch pytest case simulating Gemini-style per-stream ids (set_chart_symbol_0) reused across two invoke_agent turns showed a late ack from turn 1 falsely grounding turn 2's action as 'applied' (seen_call_ids starts empty per invocation). Needs ids whose uniqueness holds across runs, not just per turn."
     },
     {
       "id": "R15-AGENT-047",
@@ -4078,8 +4081,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- no live effect until AGENT-052 lands. The live snapshot's charts carry bus keys ('chart-chart', 'chart-chart-2') that never equal focusedPanel ('chart-2'), so the preamble cannot find the focused chart: rendered with that snapshot shape, 'Chart: SPY ... Focused panel: chart-2. When the user says \"this\" ... they mean SPY' while chart-2 shows INFY."
+      "status": "fixed",
+      "note": "Batch-6 (5e14731, commit b6741b5) certified: same panel-bus dockview-id fix as R15-AGENT-052 (shared root cause with R15-CODE-FRONTEND-015).",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-AGENT-052",
@@ -4107,8 +4111,9 @@
         "ui-panels",
         "agent-chat"
       ],
-      "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- not delivered (per the integrator's own CHANGELOG). Publishers still key the bus 'chart-${panelId}' (ChartPanel.tsx:885/912), 'equity' (EquityOverviewPanel.tsx:691) and 'backtest-panel' (BacktestResultView.tsx:424), while PanelHost focuses the dockview ids 'chart'/'equity-overview'."
+      "status": "fixed",
+      "note": "Batch-6 (5e14731, commit b6741b5) certified: panel-context publishers now key their bus source to the real dockview panel id PanelHost focuses (BacktestResultView -> 'backtest', EquityOverviewPanel/ChartPanel similarly), not a literal mismatched string. Live: with the correctly-shaped snake_case AgentContextSnapshot, a live agent (llama3.1:8b) correctly answered the focused chart/panel symbol from context; a malformed camelCase context had previously answered the wrong symbol. Shared root cause with R15-AGENT-051 / R15-CODE-FRONTEND-015.",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-AGENT-053",
@@ -5012,7 +5017,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit 124b316) certified: same bound-intent mechanism as CODE-FRONTEND-011 is the direct fix for re-resolving against whatever portfolio is active at accept time instead of the target bound at describe time."
     },
     {
       "id": "R15-CODE-FRONTEND-008",
@@ -5065,7 +5072,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit e6ea8bb) certified: save_screen no longer duck-types saveScreen(name, payload) against the real saveScreen(name) (which only snapshots the on-screen draft); it now writes the agent's recipe into the draft before saving, and labels a same-name collision 'replaced'."
     },
     {
       "id": "R15-CODE-FRONTEND-010",
@@ -5090,7 +5099,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit e6ea8bb) certified: write_screener_filters run:true now chains runScreener() explicitly instead of narrating 'running' through a cast into applyFilters that ignored the run flag."
     },
     {
       "id": "R15-CODE-FRONTEND-011",
@@ -5114,7 +5125,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit 124b316) certified: parseHostAction(name, input) -> HostIntent now runs once at enqueue and rides the ProposedChange; describeHostAction/applyHostAction no longer parse independently. Portfolio intents bind {portfolioId, holding} at parse time; apply fails honestly if the target is gone by accept time. host-actions.test.ts adds a describe/apply parity table over every HOST_ACTION_NAMES entry."
     },
     {
       "id": "R15-CODE-FRONTEND-012",
@@ -5139,7 +5152,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit f37543d) certified: host-actions.ts no longer syncs agent portfolio writes to the write-only sidecar /portfolio/positions ledger (PUT/DELETE 405'd on the bare collection route; nothing ever read the ledger). Writes now land in the store only, the workspace blob is the documented authority. portfolios.test.ts/host-actions.test.ts updated to assert no network call."
     },
     {
       "id": "R15-CODE-FRONTEND-013",
@@ -5222,8 +5237,9 @@
         "agent-chat",
         "ui-panels"
       ],
-      "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- no live effect until AGENT-052 lands. focusedSymbolFromBus is now the single derivation, but it looks up bus[focusedSource] by dockview id and the real panels publish under other keys; the committed test publishes under 'equity-overview', which the real Equity Overview never does. Live: the badge and chips show no symbol, and the snapshot falls back to charts[0]."
+      "status": "fixed",
+      "note": "Batch-6 (5e14731, commit b6741b5) certified: same panel-bus dockview-id fix as R15-AGENT-052/051 (shared root cause).",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-CODE-FRONTEND-016",
@@ -5675,7 +5691,7 @@
       ],
       "tier4": false,
       "status": "open",
-      "note": "Batch-5 (1574ed8) not certified -- not fixed in effect. The quant nodes/tools now call asyncio.to_thread, but QuantLib's SWIG calls hold the GIL, so the event loop still freezes: a quant.price_option workflow node (binomial, 20,000 steps) blocked GET /health for 6.4s (60,000 steps: 54s); the sync /quant route blocks the same way (6.4s). Base: 9.1s. Needs a process pool (or a GIL-releasing build). A prior commit (a2dbe32) claimed this landed; the fresh-context verifier found it still broken -- CHANGELOG corrected."
+      "note": "Batch-5 (1574ed8) not certified -- not fixed in effect. The quant nodes/tools now call asyncio.to_thread, but QuantLib's SWIG calls hold the GIL, so the event loop still freezes: a quant.price_option workflow node (binomial, 20,000 steps) blocked GET /health for 6.4s (60,000 steps: 54s); the sync /quant route blocks the same way (6.4s). Base: 9.1s. Needs a process pool (or a GIL-releasing build). A prior commit (a2dbe32) claimed this landed; the fresh-context verifier found it still broken -- CHANGELOG corrected. || Batch-6 (5e14731) not certified: the event-loop freeze is fixed (health-poll maxima stayed under ~35ms regardless of pricing duration, live 20k/60k-step probes on both source and frozen --onefile sidecar). But the fix adds a new defect: pool workers and resource_tracker processes are orphaned on every sidecar exit (the stdin-EOF watchdog calls os._exit(0) before the lifespan finally's quant_pool.shutdown() can run); reproduced twice, with two workers from an earlier worktree still alive 9h40m later. Fixed separately at 831d52b (shut the pricing pool down on every exit path, workers watch os.getppid()) per the batch-6 merge commit's own subject."
     },
     {
       "id": "R15-CODE-PLATFORM-019",
@@ -5776,7 +5792,9 @@
         "COD-portfolio-7"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit f37543d) certified: client-removal half of the shared write-only-ledger class (with CODE-FRONTEND-012 + DATA-089). CODE-PLATFORM-021 (the sidecar-side fork) was NOT taken in this batch and stays open."
     },
     {
       "id": "R15-CODE-PLATFORM-023",
@@ -6090,7 +6108,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: services/research/fast.snapshot_structured's asyncio.gather over the cross-check legs now isolates failures. Live: 3 legs monkeypatched to raise (sync + async); snapshot_structured still returned the full result shape with no crash and no escaped exception (injected hits: ['async','sync','async'])."
     },
     {
       "id": "R15-CODE-RESEARCH-003",
@@ -7363,7 +7383,9 @@
         "agent-chat"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit b69800c) certified: normalizeHolding no longer coerces a non-finite quantity/cost to 0; it drops a non-finite/<=0 quantity and a non-finite/<0 cost basis for every caller (restore, form, agent), and addHolding/updateHolding report the refusal so the agent apply path returns an honest null."
     },
     {
       "id": "R15-DATA-089",
@@ -7388,7 +7410,9 @@
         "agent-chat"
       ],
       "tier4": false,
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commit f37543d) certified: same fix as CODE-FRONTEND-012 — the importer-less addPosition/updatePosition/deletePosition/refresh sidecar-write client in portfolios.ts is deleted along with the sync call."
     },
     {
       "id": "R15-DATA-090",
@@ -8400,7 +8424,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: services/research/disclosures.gather_floor's citable rows are now results-ranked instead of raw-newest-first. Live: for Kaynes Technology, CG Power and Jonjua Overseas, results-shaped filings buried deep in the raw feed (e.g. raw positions 15-32, or 34/38) are pulled to the front of the floor's top rows."
     },
     {
       "id": "R15-RESEARCH-013",
@@ -8503,7 +8529,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: the guard in services/research/iter.py that gated pulling the disclosures floor no longer also gates recording it as a citation. Live: a real ULTRA run against a BSE micro-cap recorded 5 floor rows as [n] sources where pre-fix behavior recorded 0."
     },
     {
       "id": "R15-RESEARCH-017",
@@ -8527,7 +8555,9 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: services/agent_tools/deep_research.py _run_loop wraps run_heavy_research in try/except and falls back to _single_pass_fallback, matching DEEP. Live: gather_floor forced to raise on ULTRA's heavy prologue; a real run degraded honestly to the single-pass fallback with a typed note (ok:true, loop:heavy, n_sources:14)."
     },
     {
       "id": "R15-RESEARCH-018",
@@ -8552,7 +8582,9 @@
         "research-search",
         "data-smallcaps"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: bucket routing in services/research/deep._run_researcher is now region-aware and the 'SEC' filings match is word-bounded. Live: India-target sub-questions containing 'sector'/'second' no longer false-match 'sec' or route to sec_filings_list; a US control case is unaffected."
     },
     {
       "id": "R15-RESEARCH-019",
@@ -8705,7 +8737,8 @@
       "operator_areas": [
         "research-search"
       ],
-      "status": "open"
+      "status": "open",
+      "note": "Batch-6 (5e14731) not certified: only the runtime half landed (commit 26ea55c) — _auto_publish_event now forwards a host domain and published_at for FAST web rows, pinned by a new test. The C4 half (Citation/web rows carrying domain and published_at at the contract level, so FAST rows reach the mapping already dated) was not delivered; stays open per the batch's own CHANGELOG note."
     },
     {
       "id": "R15-RESEARCH-025",
@@ -9182,7 +9215,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open"
+      "status": "fixed",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731, commits d2e0e78 + 4c9f751) certified: drawing delete key is scoped to the chart and locked drawings refuse. A follow-up review fix (4c9f751) closed a residual case where a delete key with nothing focused still deleted. Live scratch vitest: locked drawing + delete from a contentEditable note + delete from another panel's button all correctly no-op (4 passed)."
     },
     {
       "id": "R15-UI-022",
@@ -9680,8 +9715,9 @@
       "operator_areas": [
         "ui-panels"
       ],
-      "status": "open",
-      "note": "The 'removed trading product' description (live venues, broker orders, live mode, the kill-switch promise) is moot: the terms dialog was rewritten as research-only terms and the kill switch deleted whole (a122dbf6 feat(d81)). Whether the rewrite now discloses licence terms, data accuracy and AI-output caveats is unverified by this batch; stays open on that question."
+      "status": "not_a_defect",
+      "note": "Batch-6 (5e14731) concurred not a defect: the removed-trading half is moot (D81). The rewritten first-launch terms (DisclaimerFlow.tsx FirstLaunchTosDialog) were read live and verbatim state the no-brokerage/no-order-routing disclaimer, the data-may-be-wrong caveat, the AI-can-be-wrong caveat, and the PolyForm Strict 1.0.0/commercial-license line, cross-checked against LICENSE and LICENSING.md — the disclaimer matches the actual licensing files. A grep for stray kill-switch/order-routing UI residue found none. The copy itself remains the operator's Tier-4 review item (DECISIONS_FOR_OPERATOR 3.2), not a code defect.",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-UI-042",
@@ -15627,8 +15663,10 @@
       "operator_areas": [
         "release"
       ],
-      "status": "open",
-      "source": "lead-found batch-6"
+      "status": "fixed",
+      "source": "lead-found batch-6",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6",
+      "note": "Batch-6 (5e14731) certified: scripts/build-python.mjs resolveBuildPython()/ensureBuildVenv() force the sidecar build venv onto 3.13 regardless of bare python3's resolution. Live: with python3->3.14.5 (Homebrew) on PATH, a full clean ensure-sidecar.mjs --force build used python3.13, PyInstaller banner confirmed 3.13.13, build succeeded, frozen binary ran live."
     },
     {
       "id": "R15-LEAD-013",
@@ -15669,8 +15707,9 @@
       "operator_areas": [
         "agent-chat"
       ],
-      "status": "open",
-      "note": "source: verifier batch-5"
+      "status": "fixed",
+      "note": "Batch-6 (5e14731) certified: services/llm/openai.py OpenAIProvider._repair_tool_args/_validate_tool_args now reject a repair reply that is the JSON Schema itself echoed back (plain, fenced, or prose-wrapped). Live: 8/8 vulnerable no-required-key tools now reject the echo (0 accepted post-fix); legit args still pass. Closes the hole batch-5's verifier flagged as issue #9.",
+      "closure_evidence": "5e14731 fix(r15): Stage C batch 6"
     },
     {
       "id": "R15-LEAD-015",
