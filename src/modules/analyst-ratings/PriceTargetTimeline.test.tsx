@@ -6,7 +6,7 @@ import type { PriceTargetEntry } from "../../../types/analyst";
 const lineSeries = { setData: vi.fn(), applyOptions: vi.fn() };
 const timeScale = { fitContent: vi.fn() };
 const chartApi = {
-  addSeries: vi.fn(() => lineSeries),
+  addSeries: vi.fn((_type: unknown, _opts: { title: string }) => lineSeries),
   timeScale: vi.fn(() => timeScale),
   remove: vi.fn(),
   subscribeCrosshairMove: vi.fn(),
@@ -70,7 +70,7 @@ describe("PriceTargetTimeline", () => {
 
   it("labels the series as the mean of targets revised that day (R15-DATA-069)", () => {
     render(<PriceTargetTimeline history={HISTORY} />);
-    const opts = chartApi.addSeries.mock.calls[0][1] as { title: string };
+    const opts = chartApi.addSeries.mock.calls[0][1];
     expect(opts.title).toContain("Mean of targets revised that day");
   });
 

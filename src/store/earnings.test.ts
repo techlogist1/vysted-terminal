@@ -41,10 +41,12 @@ const UPCOMING_SAMPLE: EarningsUpcomingResponse = {
       provider: "yfinance",
     },
   ],
+  as_of: null,
 };
 
 const HISTORY_SAMPLE: EarningsHistoryResponse = {
   symbol: "AAPL",
+  as_of: null,
   history: [
     {
       fiscal_period: { quarter: "Q1", year: 2026 },
@@ -61,6 +63,7 @@ const HISTORY_SAMPLE: EarningsHistoryResponse = {
 
 const SURPRISES_SAMPLE: EarningsSurprisesResponse = {
   symbol: "AAPL",
+  as_of: null,
   surprises: [
     {
       symbol: "AAPL",
@@ -174,7 +177,7 @@ describe("useEarningsStore — per-symbol caches", () => {
   it("normalises symbol case for the cache key", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY_SAMPLE);
     await useEarningsStore.getState().getHistory("aapl");
-    expect(useEarningsStore.getState().histories.AAPL).toEqual(HISTORY_SAMPLE);
+    expect(useEarningsStore.getState().histories.AAPL?.payload).toEqual(HISTORY_SAMPLE);
   });
 
   it("returns null and records an error when history fails", async () => {
@@ -188,19 +191,61 @@ describe("useEarningsStore — per-symbol caches", () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(SURPRISES_SAMPLE);
     const out = await useEarningsStore.getState().getSurprises("AAPL");
     expect(out).toEqual(SURPRISES_SAMPLE);
-    expect(useEarningsStore.getState().surprises.AAPL).toEqual(SURPRISES_SAMPLE);
+    expect(useEarningsStore.getState().surprises.AAPL?.payload).toEqual(SURPRISES_SAMPLE);
   });
 
   it("caches estimates", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce(ESTIMATE_SAMPLE);
     const out = await useEarningsStore.getState().getEstimates("AAPL");
     expect(out).toEqual(ESTIMATE_SAMPLE);
-    expect(useEarningsStore.getState().estimates.AAPL).toEqual(ESTIMATE_SAMPLE);
+    expect(useEarningsStore.getState().estimates.AAPL?.payload).toEqual(ESTIMATE_SAMPLE);
   });
 
   it("returns null on empty symbol without making a request", async () => {
     const out = await useEarningsStore.getState().getHistory("   ");
     expect(out).toBeNull();
     expect(sidecarGet).not.toHaveBeenCalled();
+  });
+});
+
+describe("useEarningsStore — TTL + refresh (R15-DATA-068)", () => {
+  it("refetches a stale per-symbol cache entry instead of serving it forever", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY_SAMPLE);
+      await useEarningsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+
+      // Still within the 15-minute TTL — serves the cached entry.
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      await useEarningsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+
+      // Past the TTL — a stale entry is a miss, so it refetches.
+      vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY_SAMPLE);
+      vi.advanceTimersByTime(10 * 60 * 1000);
+      await useEarningsStore.getState().getHistory("AAPL");
+      expect(sidecarGet).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("refresh() bypasses a still-fresh cache and refetches all three slices", async () => {
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce(HISTORY_SAMPLE)
+      .mockResolvedValueOnce(SURPRISES_SAMPLE)
+      .mockResolvedValueOnce(ESTIMATE_SAMPLE);
+    await useEarningsStore.getState().getHistory("AAPL");
+    await useEarningsStore.getState().getSurprises("AAPL");
+    await useEarningsStore.getState().getEstimates("AAPL");
+    expect(sidecarGet).toHaveBeenCalledTimes(3);
+
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce(HISTORY_SAMPLE)
+      .mockResolvedValueOnce(SURPRISES_SAMPLE)
+      .mockResolvedValueOnce(ESTIMATE_SAMPLE);
+    await useEarningsStore.getState().refresh("AAPL");
+    expect(sidecarGet).toHaveBeenCalledTimes(6);
   });
 });

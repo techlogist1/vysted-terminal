@@ -122,6 +122,9 @@ class EarningsUpcomingResponse(BaseModel):
     start_date: date
     end_date: date
     events: list[EarningsEvent]
+    #: When this window was actually fetched from the provider (R15-DATA-068)
+    #: — a cache hit carries the ORIGINAL fetch time, not the read time.
+    as_of: datetime | None = None
 
 
 class EarningsSurprisesResponse(BaseModel):
@@ -131,6 +134,8 @@ class EarningsSurprisesResponse(BaseModel):
 
     symbol: str
     surprises: list[EarningsSurprise]
+    #: R15-DATA-068 — see ``EarningsUpcomingResponse.as_of``.
+    as_of: datetime | None = None
 
 
 class EarningsHistoryEntry(BaseModel):
@@ -160,3 +165,5 @@ class EarningsHistoryResponse(BaseModel):
 
     symbol: str
     history: list[EarningsHistoryEntry]
+    #: R15-DATA-068 — see ``EarningsUpcomingResponse.as_of``.
+    as_of: datetime | None = None

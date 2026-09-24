@@ -71,10 +71,12 @@ const UPCOMING_SAMPLE: EarningsUpcomingResponse = {
       provider: "yfinance",
     },
   ],
+  as_of: null,
 };
 
 const SURPRISES_SAMPLE: EarningsSurprisesResponse = {
   symbol: "AAPL",
+  as_of: null,
   surprises: [
     {
       symbol: "AAPL",
@@ -204,6 +206,7 @@ describe("EarningsCalendarPanel", () => {
           provider: "yfinance",
         },
       ],
+      as_of: null,
     };
     vi.mocked(sidecarGet).mockResolvedValueOnce(MIXED_CURRENCY_SAMPLE);
     render(<EarningsCalendarPanel />);

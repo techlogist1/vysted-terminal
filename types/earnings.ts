@@ -122,12 +122,19 @@ export interface EarningsUpcomingResponse {
   /** End of the requested window (inclusive). */
   end_date: string;
   events: EarningsEvent[];
+  /**
+   * When this window was actually fetched from the provider (R15-DATA-068)
+   * — a cache hit carries the ORIGINAL fetch time, not the read time.
+   */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/surprises``. */
 export interface EarningsSurprisesResponse {
   symbol: string;
   surprises: EarningsSurprise[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/history``. */
@@ -149,4 +156,6 @@ export interface EarningsHistoryEntry {
 export interface EarningsHistoryResponse {
   symbol: string;
   history: EarningsHistoryEntry[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }

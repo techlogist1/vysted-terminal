@@ -30,6 +30,8 @@ import type {
 
 export type EarningsLoadStatus = "idle" | "loading" | "ready" | "error";
 
+export const EARNINGS_CACHE_TTL_MS = 15 * 60 * 1000;
+
 interface EarningsState {
   // ---- upcoming-window slice ---------------------------------------
   upcoming: EarningsUpcomingResponse | null;
@@ -39,12 +41,16 @@ interface EarningsState {
   lastDays: number;
   lastWatchlist: string[] | null;
 
-  // ---- per-symbol caches -------------------------------------------
-  histories: Record<string, EarningsHistoryResponse>;
+  // ---- per-symbol caches ---------------------------------------------
+  // R15-DATA-068: every cache entry pairs the payload with the client
+  // timestamp it was fetched at, so a stale entry (older than
+  // EARNINGS_CACHE_TTL_MS) is treated as a miss and refetched rather than
+  // served forever.
+  histories: Record<string, { payload: EarningsHistoryResponse; fetchedAt: number }>;
   historyErrors: Record<string, string>;
-  surprises: Record<string, EarningsSurprisesResponse>;
+  surprises: Record<string, { payload: EarningsSurprisesResponse; fetchedAt: number }>;
   surpriseErrors: Record<string, string>;
-  estimates: Record<string, EarningsEstimateDetail>;
+  estimates: Record<string, { payload: EarningsEstimateDetail; fetchedAt: number }>;
   estimateErrors: Record<string, string>;
 
   // ---- public API --------------------------------------------------
@@ -52,11 +58,17 @@ interface EarningsState {
   getHistory: (symbol: string) => Promise<EarningsHistoryResponse | null>;
   getSurprises: (symbol: string) => Promise<EarningsSurprisesResponse | null>;
   getEstimates: (symbol: string) => Promise<EarningsEstimateDetail | null>;
+  /** Bypasses the TTL and refetches this symbol's three slices unconditionally. */
+  refresh: (symbol: string) => Promise<void>;
 
   __resetForTests: () => void;
 }
 
 const DEFAULT_DAYS = 7;
+
+function isFresh(fetchedAt: number): boolean {
+  return Date.now() - fetchedAt < EARNINGS_CACHE_TTL_MS;
+}
 
 function watchlistToParam(watchlist: string[] | null | undefined): string | undefined {
   if (!watchlist || watchlist.length === 0) {
@@ -111,15 +123,15 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
       return null;
     }
     const cached = get().histories[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<EarningsHistoryResponse>(
         `/earnings/${encodeURIComponent(normalized)}/history`,
       );
       set((state) => ({
-        histories: { ...state.histories, [normalized]: payload },
+        histories: { ...state.histories, [normalized]: { payload, fetchedAt: Date.now() } },
         historyErrors: { ...state.historyErrors, [normalized]: "" },
       }));
       return payload;
@@ -139,15 +151,15 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
       return null;
     }
     const cached = get().surprises[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<EarningsSurprisesResponse>(
         `/earnings/${encodeURIComponent(normalized)}/surprises`,
       );
       set((state) => ({
-        surprises: { ...state.surprises, [normalized]: payload },
+        surprises: { ...state.surprises, [normalized]: { payload, fetchedAt: Date.now() } },
         surpriseErrors: { ...state.surpriseErrors, [normalized]: "" },
       }));
       return payload;
@@ -167,15 +179,15 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
       return null;
     }
     const cached = get().estimates[normalized];
-    if (cached) {
-      return cached;
+    if (cached && isFresh(cached.fetchedAt)) {
+      return cached.payload;
     }
     try {
       const payload = await sidecarGet<EarningsEstimateDetail>(
         `/earnings/${encodeURIComponent(normalized)}/estimates`,
       );
       set((state) => ({
-        estimates: { ...state.estimates, [normalized]: payload },
+        estimates: { ...state.estimates, [normalized]: { payload, fetchedAt: Date.now() } },
         estimateErrors: { ...state.estimateErrors, [normalized]: "" },
       }));
       return payload;
@@ -187,6 +199,26 @@ export const useEarningsStore = create<EarningsState>((set, get) => ({
       }));
       return null;
     }
+  },
+
+  refresh: async (symbol) => {
+    const normalized = symbol.trim().toUpperCase();
+    if (!normalized) {
+      return;
+    }
+    // Evict first so getHistory/getSurprises/getEstimates cannot short-circuit
+    // on a still-fresh cache entry (R15-DATA-068's "Refresh button" path).
+    set((state) => {
+      const { [normalized]: _h, ...histories } = state.histories;
+      const { [normalized]: _s, ...surprises } = state.surprises;
+      const { [normalized]: _e, ...estimates } = state.estimates;
+      return { histories, surprises, estimates };
+    });
+    await Promise.all([
+      get().getHistory(normalized),
+      get().getSurprises(normalized),
+      get().getEstimates(normalized),
+    ]);
   },
 
   __resetForTests: () =>
