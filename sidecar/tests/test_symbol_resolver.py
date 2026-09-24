@@ -120,6 +120,24 @@ def test_bare_bse_scrip_code_resolves(monkeypatch) -> None:  # noqa: ANN001
     assert r_bo.best is not None and r_bo.best.symbol == "BOMOXY-B1"
 
 
+def test_is_bse_symbol_and_scrip_code_accept_a_bare_code() -> None:
+    """R15-LEAD-028: ``is_bse_symbol``/``bse_scrip_code`` (the hot-path helpers
+    ``bse_provider._require_bse`` gates on) used to only key ``_bse_master()`` by
+    ticker, so a data route addressed by scrip code alone (never through
+    ``resolve()``) 404d even though the code was a known BSE listing. Both a
+    ticker and its bare code now resolve identically, for a SECOND listing than
+    the resolve()-path test above (KSE, 519421) so the fix isn't pinned to one row."""
+    assert symbol_resolver.is_bse_symbol("KSE")
+    assert symbol_resolver.is_bse_symbol("519421")
+    assert symbol_resolver.bse_scrip_code("KSE") == "519421"
+    assert symbol_resolver.bse_scrip_code("519421") == "519421"
+    assert symbol_resolver.bse_symbol_for_code("519421") == "KSE"
+    # An unknown code is a miss, not a false bind.
+    assert not symbol_resolver.is_bse_symbol("999999")
+    assert symbol_resolver.bse_scrip_code("999999") is None
+    assert symbol_resolver.bse_symbol_for_code("999999") is None
+
+
 def test_non_scrip_numeric_query_does_not_false_bind(monkeypatch) -> None:  # noqa: ANN001
     """A numeric query that matches no BSE scrip code stays unresolved — the lane
     binds only an EXACT code hit, never a nearest guess."""
@@ -710,6 +728,76 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert nse.isin != bse.isin
     assert nse.bse_code is None and nse.industry is None
     assert res.needs_disambiguation
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-059 — former-company-name resolution (the bundled former_names.json
+# former-name scan lane) + the private/pvt corporate-suffix strip.
+# ---------------------------------------------------------------------------
+
+
+def test_former_name_resolves_a_us_rename(monkeypatch) -> None:  # noqa: ANN001
+    """The acceptance case: a query by BeiGene's RETIRED legal name used to miss
+    entirely (the resolver only ever compared against CURRENT names) — it now
+    binds the listing now named ONC/BeOne Medicines, and the match carries WHICH
+    former name it was answered under, never silently indistinguishable from a
+    current-name hit. BeiGene, Ltd. also carries an OTC line (BEIGF) that once
+    shared the same legal name, so this is a genuine residual tie (R11/D58b) —
+    the lead candidate is still the prominent Nasdaq listing (ONC), but an
+    explicit choice is correctly required rather than an arbitrary silent bind."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("BeiGene", "US")
+    assert r.best is not None
+    assert r.best.symbol == "ONC"
+    assert r.best.former_name == "BeiGene, Ltd."
+    assert r.needs_disambiguation
+    assert r.candidates[0].symbol == "ONC"
+
+
+def test_former_name_tie_break_prefers_the_prominent_listing(monkeypatch) -> None:  # noqa: ANN001
+    """The defect class BeiGene/ONC surfaced (a company with two US listings —
+    e.g. a common line and an OTC/preferred line — can carry the same former
+    legal name on both rows): the former-name scan must break the tie by the
+    SAME master prominence order the current-name scan already uses, not by
+    ``former_names.json``'s own (SEC-crawl-ordered) dict iteration. Algonquin
+    Power & Utilities is the case the fix was not written against — its common
+    stock (AQN) and OTC line (AGQPF) both carry the retired "Algonquin Power
+    Income Fund" name, and AGQPF sorts first in the bundled file's own key
+    order, so this fails again if the tie-break regresses to that order."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("Algonquin Power Income Fund", "US")
+    assert r.best is not None
+    assert r.best.symbol == "AQN"
+    assert r.best.former_name == "ALGONQUIN POWER INCOME FUND"
+
+
+def test_former_name_resolves_an_nse_rename(monkeypatch) -> None:  # noqa: ANN001
+    """The class case (an NSE company whose LEGAL NAME changed while its ticker
+    symbol never did — distinct from the NSE ticker-rename lane): INFY's name
+    changed from "Infosys Technologies Limited" to "Infosys Limited" in 2011, a
+    row :mod:`services.nse_symbol_change` never carries (that lane only tracks
+    SYMBOL changes)."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("Infosys Technologies Limited", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "INFY"
+    assert r.best.former_name == "Infosys Technologies Limited"
+    assert r.confidence >= 0.99
+
+
+def test_private_limited_to_limited_ipo_conversion_binds_generically(monkeypatch) -> None:  # noqa: ANN001
+    """R15-DATA-059: "private"/"pvt" now strip as a corporate suffix exactly
+    like "ltd"/"limited" already do, so the standard Indian private-to-public
+    IPO-conversion rename ("X Private Limited" → "X Limited") binds the CURRENT
+    listing for every company that made the conversion, not just a one-off
+    former-names row per company. TTC (BSE SME, scrip 544303) is the register's
+    verified instance: its RHP-era name was "Toss the Coin Private Limited"."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("Toss the Coin Private Limited", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "TTC"
+    assert r.best.exchange == "BSE"
+    assert r.confidence >= 0.99
 
 
 @pytest.mark.parametrize(

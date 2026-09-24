@@ -175,7 +175,7 @@ export function ResearchActivity({ steps, active, startedAt }: ResearchActivityP
                   {step.detail}
                 </span>
                 {typeof step.latencyMs === "number" && !isCurrent && (
-                  <span className="text-charcoal-600 ml-auto shrink-0 tabular-nums">
+                  <span className="text-charcoal-500 ml-auto shrink-0 tabular-nums">
                     {step.latencyMs}ms
                   </span>
                 )}

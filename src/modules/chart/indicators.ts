@@ -414,9 +414,25 @@ export const SEPARATE_INDICATORS: readonly IndicatorDef[] = INDICATOR_CATALOG.fi
   (indicator) => indicator.panel === "separate",
 );
 
-/** Look up an indicator definition by its canonical key. */
+/** Look up an indicator definition by its canonical key. A `base:param` spec
+ *  the sidecar understands (e.g. `"ema:9"`, `"vwap:week"` — R15-UI-091)
+ *  resolves against its base entry, keeping the FULL SPEC as the returned
+ *  def's `key` (what `/indicators/{symbol}` is sent) and a param-qualified
+ *  label so distinct params (`ema:9` vs `ema:21`) render as distinct chips. */
 export function indicatorByKey(key: string): IndicatorDef | undefined {
-  return INDICATOR_CATALOG.find((indicator) => indicator.key === key);
+  const exact = INDICATOR_CATALOG.find((indicator) => indicator.key === key);
+  if (exact) return exact;
+  const [base, param] = key.split(":");
+  if (!param) return undefined;
+  const baseDef = INDICATOR_CATALOG.find((indicator) => indicator.key === base);
+  if (!baseDef) return undefined;
+  const paramLabel = /^\d+$/.test(param) ? param : `(${param})`;
+  return {
+    ...baseDef,
+    key,
+    label: `${baseDef.label} ${paramLabel}`,
+    menuLabel: `${baseDef.menuLabel} (${param})`,
+  };
 }
 
 /** Group the catalog by category in `CATEGORY_ORDER`, preserving entry order within. */

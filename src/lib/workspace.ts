@@ -51,6 +51,12 @@ import type { WorkspaceResearchSpaces } from "../../types/research-space";
 
 /** The serialised form of a workspace, persisted as a `.vysted-workspace` file. */
 export interface SerializedWorkspace {
+  /**
+   * The blob's shape version, {@link WORKSPACE_SCHEMA_VERSION} at save time.
+   * Absent on blobs saved before it existed (version 0); {@link migrateWorkspace}
+   * upgrades an older blob before anything restores it (R15-LIFECYCLE-024).
+   */
+  schemaVersion?: number;
   /** Workspace name — also the file name on the sidecar. */
   name: string;
   /** The dockview layout, as produced by `DockviewApi.toJSON()`. */
@@ -185,6 +191,36 @@ export class WorkspaceError extends Error {
  * workspace adopts the current default instead of shadowing it.
  */
 const MODEL_OVERRIDES_VERSION = 3;
+
+/**
+ * Forward-only blob migrations: entry `n` takes a version-`n` blob to `n + 1`.
+ * Step 1 is the identity — version 0 is today's shape with optional fields, and
+ * each slice's restore already guards the fields an older blob lacks.
+ */
+const WORKSPACE_MIGRATIONS: ReadonlyArray<(workspace: SerializedWorkspace) => SerializedWorkspace> =
+  [(workspace) => workspace];
+
+/** The blob version this build writes. */
+export const WORKSPACE_SCHEMA_VERSION = WORKSPACE_MIGRATIONS.length;
+
+/**
+ * Upgrade a blob to {@link WORKSPACE_SCHEMA_VERSION}. A blob from a newer build
+ * is logged and returned as it is — never downgraded.
+ */
+export function migrateWorkspace(workspace: SerializedWorkspace): SerializedWorkspace {
+  let version = typeof workspace.schemaVersion === "number" ? workspace.schemaVersion : 0;
+  if (version > WORKSPACE_SCHEMA_VERSION) {
+    console.warn(
+      `[workspace] "${workspace.name}" was saved by a newer build (schema ${version}, this build reads ${WORKSPACE_SCHEMA_VERSION}); restoring it as it is.`,
+    );
+    return workspace;
+  }
+  let migrated = workspace;
+  for (; version < WORKSPACE_SCHEMA_VERSION; version++) {
+    migrated = WORKSPACE_MIGRATIONS[version](migrated);
+  }
+  return { ...migrated, schemaVersion: version };
+}
 
 /**
  * One persisted slice of the workspace blob: what it writes, how it restores,
@@ -457,6 +493,10 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       (s) => s.defaultAgentId,
       (s) => s.region,
       (s) => s.deepResearchBackend,
+      (s) => s.providerOrder,
+      (s) => s.startLayout,
+      (s) => s.paletteShowRecents,
+      (s) => s.paletteSymbolScope,
     ),
   },
   {
@@ -582,7 +622,12 @@ function buildWorkspacePayload(name: string): SerializedWorkspace {
   if (researchSymbol) {
     useResearchSpacesStore.getState().saveSpace(researchSpaceName(researchSymbol), researchSymbol);
   }
-  const workspace: SerializedWorkspace = { name, layout: api.toJSON(), enabledModules: {} };
+  const workspace: SerializedWorkspace = {
+    schemaVersion: WORKSPACE_SCHEMA_VERSION,
+    name,
+    layout: api.toJSON(),
+    enabledModules: {},
+  };
   for (const slice of PERSISTED_SLICES) {
     Object.assign(workspace, slice.read());
   }
@@ -608,10 +653,11 @@ export function serializeWorkspace(name: string): SerializedWorkspace {
  * layout has not mounted yet, or if `fromJSON` itself throws (every slice is
  * already restored by then).
  */
-export function deserializeWorkspace(workspace: SerializedWorkspace): boolean {
+export function deserializeWorkspace(saved: SerializedWorkspace): boolean {
   if (!useWorkspaceStore.getState().dockviewApi) {
     throw new WorkspaceError("The panel layout is not ready yet.");
   }
+  const workspace = migrateWorkspace(saved);
   restoreSlices(workspace, "global");
   return applyLayoutSlice(workspace);
 }
@@ -748,6 +794,7 @@ export async function loadWorkspace(name: string): Promise<void> {
   } catch {
     throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
   }
+  workspace = migrateWorkspace(workspace);
   const layoutRestored = applyLayoutSlice(workspace);
   // Entering a research space scopes the Notes panel to its ticker, as creating
   // one does (the notes themselves are global and stay as they are).

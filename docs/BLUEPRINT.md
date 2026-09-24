@@ -246,7 +246,7 @@ listed below; the rest remain roadmap, not scope creep.
 2. Next.js 16 frontend skeleton
 3. Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)
 4. Command bar with slash commands (cmd+K)
-5. Multi-window / multi-tab layout
+5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
 6. Zustand state management
 7. Theming engine (dark default + light option + future custom themes)
 8. Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri)
@@ -319,7 +319,7 @@ listed below; the rest remain roadmap, not scope creep.
 - Portfolio panel (empty until user adds positions)
 
 ### 5.2 Customization primitives
-- Drag-drop panel layout (resize, hide, pop-out to second window)
+- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
 - Tab groups (multiple panel sets in one window)
 - Named workspaces (save layout, switch between them)
 - Workspace export/import as `.vysted-workspace` JSON files

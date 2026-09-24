@@ -59,6 +59,28 @@ export function errorFrameOf(
 }
 
 /**
+ * Error-frame codes that say the PROVIDER could not serve the turn at all — a
+ * rejected key, no credit/quota, or an unreachable/down endpoint (the sidecar's
+ * `humanize` taxonomy, `sidecar/services/errors.py`). Only these let the chat
+ * fall back to the next provider in the preference order (FR-038, D-B11-7); a
+ * content error (bad model id, context overflow, content filter, truncation)
+ * would fail the same way anywhere, and a rate limit clears on its own.
+ */
+const PROVIDER_FAILURE_CODES = new Set([
+  "auth",
+  "provider_402",
+  "insufficient_credit",
+  "network",
+  "ollama_not_running",
+  "provider_5xx",
+]);
+
+/** True when an error frame's `code` is a provider failure (see above). */
+export function isProviderFailure(code: string | undefined): boolean {
+  return code !== undefined && PROVIDER_FAILURE_CODES.has(code);
+}
+
+/**
  * The extra field a `done` frame carries beside the base union member (C11,
  * R15-AGENT-082): the sidecar's estimated spend for the turn. Same
  * excess-property trick as {@link StreamErrorFrame} — the chat surface reads

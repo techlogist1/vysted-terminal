@@ -65,6 +65,7 @@ from typing import Any
 
 from config import get_data_dir
 from models.run import RunActivity, RunBudget, RunCost, RunDetail, RunPlan, RunStatus, RunSummary
+from services import schema_version
 
 DB_FILENAME = "delegate_runs.db"
 
@@ -147,7 +148,7 @@ def _ensure_added_columns(conn: sqlite3.Connection) -> None:
     ``plan_json``/``activity_json`` (R15-AGENT-039).
 
     ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
-    the ALTER guard. PRAGMA is cheap enough to run per-connection.
+    the ALTER guard.
     """
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
     for column in (
@@ -162,6 +163,16 @@ def _ensure_added_columns(conn: sqlite3.Connection) -> None:
             conn.execute(f"ALTER TABLE runs ADD COLUMN {column} TEXT")
 
 
+def _step_1(conn: sqlite3.Connection) -> None:
+    """The schema as it stood before versioning, plus its column guard."""
+    conn.execute(_SCHEMA)
+    _ensure_added_columns(conn)
+
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (_step_1,)
+
+
 @contextmanager
 def _connect() -> Iterator[sqlite3.Connection]:
     """Yield a connection with the schema ensured; commit on clean exit.
@@ -173,8 +184,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute(_SCHEMA)
-        _ensure_added_columns(conn)
+        schema_version.migrate(conn, _STEPS)
         if path not in _RECONCILED:
             conn.execute(
                 "UPDATE runs SET status = 'error', detail = ?, updated_at = ? "

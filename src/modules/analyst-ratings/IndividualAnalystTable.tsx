@@ -32,7 +32,7 @@ function fmtDate(iso: string): string {
 
 function StarRow({ rating }: { rating: number | null }) {
   if (rating === null) {
-    return <span className="text-charcoal-600 text-caption">—</span>;
+    return <span className="text-charcoal-500 text-caption">—</span>;
   }
   const stars = Math.round(rating);
   return (

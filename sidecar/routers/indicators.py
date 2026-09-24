@@ -17,6 +17,7 @@ from models.indicators import IndicatorResponse
 from services import indicators as indicator_service
 from services import provider_registry
 from services.correctness_gate import EmptySeriesError
+from services.research.fast import _suggested_indicators
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
@@ -26,14 +27,26 @@ def _parse_indicators(raw: str) -> list[str]:
     return [token.strip() for token in raw.split(",") if token.strip()]
 
 
-# NOTE: the static ``GET /indicators`` route is declared before ``/{symbol}``
-# so FastAPI matches it first rather than treating "indicators" as a symbol.
+# NOTE: both static routes (``""`` and ``"/suggested"``) are declared before
+# ``/{symbol}`` so FastAPI matches them first rather than treating their path
+# segment as a symbol.
 
 
 @router.get("")
 def list_indicators() -> dict[str, list[str]]:
     """Return every indicator key the chart panel may request."""
     return {"indicators": list(indicator_service.SUPPORTED_INDICATORS)}
+
+
+@router.get("/suggested")
+def suggested_indicators(
+    timeframe: str = "1d", asset_class: str = "equity"
+) -> dict[str, list[str]]:
+    """The chart's opening indicator set for an (asset class, timeframe) pair
+    (FR-092 / R15-UI-091) — a fresh, untouched chart seeds from this so its
+    defaults are never blank. ``_suggested_indicators`` is the ONE source
+    (also used by the research cockpit's own suggestion) — no second table."""
+    return {"indicators": _suggested_indicators(timeframe=timeframe, asset_class=asset_class)}
 
 
 @router.get("/{symbol:path}")  # a crypto pair carries "/" (R15-DATA-081)

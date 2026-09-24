@@ -257,7 +257,7 @@ function TradeTable({ trades }: TradeTableProps) {
                   <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
-                <span className="text-charcoal-600 ml-0.5">↕</span>
+                <span className="text-charcoal-500 ml-0.5">↕</span>
               )}
             </th>
             <th className="px-3 py-1 font-medium">Side</th>
@@ -276,7 +276,7 @@ function TradeTable({ trades }: TradeTableProps) {
                   <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
-                <span className="text-charcoal-600 ml-0.5">↕</span>
+                <span className="text-charcoal-500 ml-0.5">↕</span>
               )}
             </th>
             <th className="px-3 py-1 font-medium">Exited</th>
@@ -298,7 +298,7 @@ function TradeTable({ trades }: TradeTableProps) {
                   <ArrowDown className="ml-0.5 inline size-3" />
                 )
               ) : (
-                <span className="text-charcoal-600 ml-0.5">↕</span>
+                <span className="text-charcoal-500 ml-0.5">↕</span>
               )}
             </th>
           </tr>

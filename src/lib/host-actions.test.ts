@@ -337,6 +337,15 @@ describe("host-actions", () => {
     expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["rsi"]);
   });
 
+  it("set_chart_indicators keeps a base:param spec like ema:9 — never dropped (R15-UI-091)", () => {
+    const input = { indicators: ["ema:9"] };
+    expect(hostActionAckDetail("set_chart_indicators", input)).toEqual({
+      action: "set_chart_indicators",
+    });
+    expect(applyHostAction("set_chart_indicators", input)).toBe("Set indicators: ema:9");
+    expect(useChartCommandStore.getState().indicatorCommand?.indicators).toEqual(["ema:9"]);
+  });
+
   it("arrange_layout describes the named templates (B2)", () => {
     const research = describeHostAction("arrange_layout", {
       pattern: "research-cockpit",

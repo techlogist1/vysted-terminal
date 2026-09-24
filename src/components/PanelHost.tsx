@@ -13,9 +13,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { collectPanelComponents } from "@/lib/module-registry";
-import { autosaveLayout, restoreLastSessionOrDefault } from "@/lib/workspace";
+import { autosaveLayout, loadWorkspace, restoreLastSessionOrDefault } from "@/lib/workspace";
 import { useModulesStore } from "@/store/modules";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /**
@@ -178,6 +179,24 @@ export function withPanelErrorBoundaries(
 }
 
 /**
+ * The "Start with" preference (FR-038, R15-UI-087): after the launch restore
+ * (which also restores the settings), a named start layout loads over the last
+ * session through the ordinary layout loader. A layout that no longer loads
+ * leaves the last session in place.
+ */
+export async function applyStartLayout(api: DockviewReadyEvent["api"]): Promise<void> {
+  const name = useSettingsStore.getState().startLayout;
+  if (name === null || useWorkspaceStore.getState().dockviewApi !== api) {
+    return;
+  }
+  try {
+    await loadWorkspace(name);
+  } catch (error) {
+    console.warn(`[workspace] start layout "${name}" did not load; kept the last session.`, error);
+  }
+}
+
+/**
  * The dockview-backed panel host. Resolves each module's `PanelSpec.component`
  * id to its React component, hands the layout API to the workspace store, and
  * on launch restores the auto-saved "last session" cockpit (Track C) — falling
@@ -236,43 +255,45 @@ export function PanelHost() {
     );
     // Restore the last session (or default), THEN wire the layout autosave.
     // `autosaveLayout` itself is gated on the restore settling.
-    void restoreLastSessionOrDefault(api, enabledPanelIds).finally(() => {
-      // If StrictMode/HMR unmounted us or replaced the dockview api while the
-      // restore awaited, this api is disposed — do not wire autosave to it (also
-      // closes the subscription/timer leak when unmount lands mid-restore).
-      if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
-        constraintsSub.dispose();
-        return;
-      }
-      // Re-affirm constraints + grow any panel restored below its minimum.
-      // Deferred until after dockview's initial layout settles: setting
-      // constraints mid-restore (before the gridview branch nodes exist)
-      // silently no-ops. We use setTimeout, NOT requestAnimationFrame — rAF is
-      // throttled to a halt on an unfocused/occluded WKWebView, which would
-      // leave the constraints unapplied whenever the window isn't frontmost.
-      let constraintTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
-        constraintTimer = null;
+    void restoreLastSessionOrDefault(api, enabledPanelIds)
+      .then(() => applyStartLayout(api))
+      .finally(() => {
+        // If StrictMode/HMR unmounted us or replaced the dockview api while the
+        // restore awaited, this api is disposed — do not wire autosave to it (also
+        // closes the subscription/timer leak when unmount lands mid-restore).
         if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
+          constraintsSub.dispose();
           return;
         }
-        api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
-      }, 80);
-      const subscription = api.onDidLayoutChange(() => autosaveLayout());
-      // Track the focused panel into the shared context bus so the agent knows
-      // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
-      // resolves to the focused panel; hand focus updates the agent's next turn).
-      const focusSub = api.onDidActivePanelChange((panel) => {
-        usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
+        // Re-affirm constraints + grow any panel restored below its minimum.
+        // Deferred until after dockview's initial layout settles: setting
+        // constraints mid-restore (before the gridview branch nodes exist)
+        // silently no-ops. We use setTimeout, NOT requestAnimationFrame — rAF is
+        // throttled to a halt on an unfocused/occluded WKWebView, which would
+        // leave the constraints unapplied whenever the window isn't frontmost.
+        let constraintTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+          constraintTimer = null;
+          if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
+            return;
+          }
+          api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
+        }, 80);
+        const subscription = api.onDidLayoutChange(() => autosaveLayout());
+        // Track the focused panel into the shared context bus so the agent knows
+        // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
+        // resolves to the focused panel; hand focus updates the agent's next turn).
+        const focusSub = api.onDidActivePanelChange((panel) => {
+          usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
+        });
+        cleanupRef.current = () => {
+          if (constraintTimer !== null) {
+            clearTimeout(constraintTimer);
+          }
+          subscription.dispose();
+          focusSub.dispose();
+          constraintsSub.dispose();
+        };
       });
-      cleanupRef.current = () => {
-        if (constraintTimer !== null) {
-          clearTimeout(constraintTimer);
-        }
-        subscription.dispose();
-        focusSub.dispose();
-        constraintsSub.dispose();
-      };
-    });
   }
 
   if (modules.length === 0) {

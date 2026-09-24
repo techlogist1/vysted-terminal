@@ -2,7 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar } from "@/modules/chat/ChatSidebar";
-import { resetMessageNoticesForTests } from "@/modules/chat/message-notices";
+import {
+  resetMessageNoticesForTests,
+  useMessageNoticesStore,
+} from "@/modules/chat/message-notices";
 import { LENGTH_NOTICE } from "@/modules/chat/streaming";
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
@@ -829,6 +832,11 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
   });
 
   it("renders a STRUCTURED error frame as message + action + a Details disclosure (E9)", async () => {
+    // The only provider — a 402 has no configured provider to fall back to
+    // (R15-UI-087), so the error itself renders.
+    useLLMProvidersStore.setState({
+      providers: [{ id: "anthropic", label: "Anthropic", requiresKey: true }],
+    });
     streamAgentInvocationMock.mockImplementationOnce(
       async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
         handlers.onEvent({
@@ -875,6 +883,82 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
       expect(screen.getByText(/Something went wrong — boom/)).toBeInTheDocument(),
     );
     expect(screen.queryByRole("button", { name: "Details" })).toBeNull();
+  });
+
+  // R15-UI-087 (FR-038, D-B11-7): a provider failure before any answer text
+  // falls back to the next configured provider in the preference order.
+  it("a first-provider auth failure is answered by the next configured provider, and the notice names both", async () => {
+    streamAgentInvocationMock
+      .mockImplementationOnce(async (_id, _payload, handlers) => {
+        handlers.onEvent({
+          kind: "error",
+          message: "The Anthropic API key was rejected — check it in Settings.",
+          code: "auth",
+        });
+      })
+      .mockImplementationOnce(async (_id, _payload, handlers) => {
+        handlers.onEvent({ kind: "delta", text: "The market is up 0.4% today." });
+        handlers.onEvent({ kind: "done" });
+      });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "how is SPY doing" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText("The market is up 0.4% today.")).toBeInTheDocument(),
+    );
+    expect(streamAgentInvocationMock).toHaveBeenCalledTimes(2);
+    const calls = streamAgentInvocationMock.mock.calls.map(
+      (call) => call[1] as { provider: string; apiKey?: string },
+    );
+    expect(calls.map((c) => c.provider)).toEqual(["anthropic", "openai"]);
+    expect(calls[1].apiKey).toBe("sk-cached");
+    const assistant = useChatHistoryStore.getState().messages.find((m) => m.role === "assistant")!;
+    expect(assistant.error).toBeFalsy();
+    const notices = useMessageNoticesStore.getState().notices[assistant.id] ?? [];
+    expect(notices).toHaveLength(1);
+    expect(notices[0]).toMatch(/Anthropic could not answer: .*Retried with OpenAI\./);
+  });
+
+  it("a provider failure AFTER answer text does not fall back", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(async (_id, _payload, handlers) => {
+      handlers.onEvent({ kind: "delta", text: "Partial answer" });
+      handlers.onEvent({
+        kind: "error",
+        message: "Could not reach Anthropic — check your network.",
+        code: "network",
+      });
+    });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "how is SPY doing" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(
+        screen.getByText("Could not reach Anthropic — check your network."),
+      ).toBeInTheDocument(),
+    );
+    expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("a content error (not a provider failure) does not fall back", async () => {
+    streamAgentInvocationMock.mockImplementationOnce(async (_id, _payload, handlers) => {
+      handlers.onEvent({
+        kind: "error",
+        message: "The conversation is too long for this Anthropic model.",
+        code: "context_overflow",
+      });
+    });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "how is SPY doing" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(
+        screen.getByText("The conversation is too long for this Anthropic model."),
+      ).toBeInTheDocument(),
+    );
+    expect(streamAgentInvocationMock).toHaveBeenCalledTimes(1);
   });
 
   it("a history compaction notice renders the older-turns marker and the context meter (R15-AGENT-040)", async () => {

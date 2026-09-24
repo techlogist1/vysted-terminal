@@ -116,7 +116,7 @@ export function NodePalette({ registry }: NodePaletteProps) {
               >
                 <h3 className="text-charcoal-400 text-micro mb-1 flex items-baseline justify-between px-1 font-mono uppercase">
                   <span>{CATEGORY_LABELS[category]}</span>
-                  <span className="text-charcoal-600">{entries.length}</span>
+                  <span className="text-charcoal-500">{entries.length}</span>
                 </h3>
                 <ul className="flex flex-col gap-1">
                   {entries.map((entry) => (

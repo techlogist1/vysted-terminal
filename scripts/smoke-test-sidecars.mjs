@@ -31,8 +31,8 @@
 //      binary elsewhere), and tree-kill ONLY those. A PID this script
 //      never recorded (e.g. the operator's running app) is never touched,
 //      even if its process name matches.
-//   2. Resolve the target triple via `rustc -vV` (matches existing
-//      ensure-*.mjs scripts).
+//   2. Resolve the target triple via `rustc -vV` (sidecar-specs.mjs, shared
+//      with the ensure scripts).
 //   3. For the MAIN sidecar (vysted-sidecar):
 //      - Pick a fresh EPHEMERAL port (bind :0, read back the OS-assigned
 //        port, close, reuse — no other process, including the operator's
@@ -69,7 +69,7 @@
 //
 // Run via: `node scripts/smoke-test-sidecars.mjs`
 
-import { spawn, execSync, execFileSync } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer, connect as netConnect } from "node:net";
 import { basename, join, resolve } from "node:path";
@@ -77,14 +77,12 @@ import { tmpdir, platform } from "node:os";
 import { mkdtemp, rm } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { assertFresh } from "./sidecar-staleness.mjs";
+import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const BINARIES_DIR = join(ROOT, "src-tauri", "binaries");
 const SIDECAR_DIR = join(ROOT, "sidecar");
 
 const isWin = platform() === "win32";
-const ext = isWin ? ".exe" : "";
 
 // Main-sidecar boot budget. The --onefile binary cold-extracts its `_MEI*`
 // (89 MB — the largest of the three) AND runs the FastMCP Streamable-HTTP
@@ -516,17 +514,6 @@ function _pickFreePort() {
   });
 }
 
-function _rustcTargetTriple() {
-  const out = execSync("rustc -vV", { encoding: "utf8" });
-  const line = out.split("\n").find((l) => l.startsWith("host:"));
-  if (!line) throw new Error("could not determine host target triple from `rustc -vV`");
-  return line.replace("host:", "").trim();
-}
-
-function _binaryPath(name, triple) {
-  return join(BINARIES_DIR, `${name}-${triple}${ext}`);
-}
-
 /**
  * Canonical version string (CLAUDE.md "Version lives in many sources"
  * gotcha) — `package.json` is the bump location `/health`'s version is
@@ -586,7 +573,7 @@ async function _teardown(child) {
 
 /** Test the main sidecar — boots + /health 200 within MAIN_BOOT_TIMEOUT_MS. */
 async function _smokeTestMainSidecar(triple) {
-  const bin = _binaryPath("vysted-sidecar", triple);
+  const bin = binaryPath("vysted-sidecar", triple);
   if (!existsSync(bin)) {
     throw new Error(`[smoke] main sidecar binary missing: ${bin}`);
   }
@@ -616,7 +603,7 @@ async function _smokeTestMainSidecar(triple) {
         `[smoke] vysted-sidecar CRASHED before /health was ready ` +
           `(exit code=${exitCode}, signal=${exitSignal}). Most likely a PyInstaller ` +
           `dist-info gap — add the missing package to --copy-metadata in ` +
-          `scripts/ensure-sidecar.mjs (precedent: v0.7.0 fastmcp fix in ` +
+          `scripts/sidecar-specs.mjs (precedent: v0.7.0 fastmcp fix in ` +
           `commit cf96031). Tail of stdout/stderr:\n${tail}`,
       );
     }
@@ -653,7 +640,7 @@ async function _smokeTestMainSidecar(triple) {
   // binary and the endpoint returns 502. This gate ensures the L3-agents-
   // dir-not-bundled class of regression can never silently re-enter for
   // screener universes. Precedent: Phase 9 S2 finding; fix in
-  // scripts/ensure-sidecar.mjs addData array.
+  // the MAIN_ADD_DATA list in scripts/sidecar-specs.mjs.
   const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
   console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
   const universeOk = await _httpGetOk(universeUrl, 5000);
@@ -737,7 +724,7 @@ async function _smokeTestMainSidecar(triple) {
         `GET ${universeUrl} did not return HTTP 200. ` +
         `Root cause: services/screener_universes/ JSON data files are not bundled ` +
         `in the PyInstaller --onefile binary. Fix: add the universe dir to the ` +
-        `addData array in scripts/ensure-sidecar.mjs — mirror the agents/ --add-data ` +
+        `MAIN_ADD_DATA list in scripts/sidecar-specs.mjs — mirror the agents/ --add-data ` +
         `precedent (Phase 8 L3-agents-dir-not-bundled) with dest ` +
         `"services/screener_universes" so importlib.resources resolves the package ` +
         `correctly inside the frozen binary. Then rebuild with \`pnpm sidecars:build\`.`,
@@ -751,7 +738,7 @@ async function _smokeTestMainSidecar(triple) {
         `Expected the deterministic BSE identity {symbol:"ICONIKSPEV", exchange:"BSE", ` +
         `yahoo_symbol:"ICONIKSPEV.BO", region:"IN", confidence:1}. Root cause is one of: ` +
         `(a) services/resolver_masters/bse_instruments.json not bundled (--add-data gap ` +
-        `in scripts/ensure-sidecar.mjs), (b) the master regressed to the 2-row placeholder ` +
+        `in scripts/sidecar-specs.mjs), (b) the master regressed to the 2-row placeholder ` +
         `(rerun sidecar/services/resolver_masters/regenerate_bse_master.py), or (c) the ` +
         `resolver lost its BSE exact-ticker stage (services/symbol_resolver.py).`,
     );
@@ -762,7 +749,7 @@ async function _smokeTestMainSidecar(triple) {
       `[smoke] vysted-sidecar FAILED /agents roster probe: GET ${agentsUrl} returned ` +
         `${agentsCount} agents (expected > 0) — body: ${JSON.stringify(agentsBody)}. Root ` +
         `cause is likely the first-party agent JSON directory not bundled (agents/ ` +
-        `--add-data gap in scripts/ensure-sidecar.mjs) or ` +
+        `--add-data gap in scripts/sidecar-specs.mjs) or ` +
         `services/agent_runtime.list_agents() failing to populate its registry inside the ` +
         `frozen binary. (CLAUDE.md deferred carry-forward: "/agents count > 0".)`,
     );
@@ -800,7 +787,7 @@ async function _smokeTestMainSidecar(triple) {
  * The TCP-bind probe closes that gap (BLOCKERS.md L3/L4 carry-forward).
  */
 async function _smokeTestMcpSidecar(name, triple) {
-  const bin = _binaryPath(name, triple);
+  const bin = binaryPath(name, triple);
   if (!existsSync(bin)) {
     throw new Error(`[smoke] ${name} binary missing: ${bin}`);
   }
@@ -827,7 +814,7 @@ async function _smokeTestMcpSidecar(name, triple) {
         `(exit code=${exitCode}, signal=${exitSignal}). Most likely a PyInstaller ` +
         `dist-info gap or data-file gap or hidden-import path drift — audit the ` +
         `--copy-metadata + --collect-data + --hidden-import lists in ` +
-        `scripts/ensure-${name.replace("vysted-", "")}.mjs (precedents: v0.7.0 ` +
+        `the ${name} row of scripts/sidecar-specs.mjs (precedents: v0.7.0 ` +
         `sec-edgar fastmcp removal commit 23da4f3 + collect-data=edgar fix in ` +
         `the housekeeping commit). Tail:\n${tail}`,
     );
@@ -868,33 +855,7 @@ async function _smokeTestMcpSidecar(name, triple) {
  * Phase 9.5 re-audit.
  */
 function _assertAllFresh(triple) {
-  const staleness = join(ROOT, "scripts", "sidecar-staleness.mjs");
-  const checks = [
-    {
-      name: "vysted-sidecar",
-      dirs: SIDECAR_DIR,
-      opts: {
-        excludeDirs: [
-          join(SIDECAR_DIR, "openbb_mcp_subprocess"),
-          join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
-        ],
-        extraFiles: [join(ROOT, "scripts", "ensure-sidecar.mjs"), staleness],
-      },
-    },
-    {
-      name: "vysted-openbb-mcp-sidecar",
-      dirs: join(SIDECAR_DIR, "openbb_mcp_subprocess"),
-      opts: { extraFiles: [join(ROOT, "scripts", "ensure-openbb-mcp-sidecar.mjs"), staleness] },
-    },
-    {
-      name: "vysted-sec-edgar-mcp-sidecar",
-      dirs: join(SIDECAR_DIR, "sec_edgar_mcp_subprocess"),
-      opts: { extraFiles: [join(ROOT, "scripts", "ensure-sec-edgar-mcp-sidecar.mjs"), staleness] },
-    },
-  ];
-  for (const c of checks) {
-    assertFresh(_binaryPath(c.name, triple), c.dirs, c.opts);
-  }
+  assertAllFresh(triple);
   console.log("[smoke] freshness gate: all bundled sidecar binaries are newer than their source.");
 }
 
@@ -907,18 +868,15 @@ async function main() {
       "app, if one is up. Safe to run alongside it.",
   );
   await _scopedOrphanPreflight();
-  const triple = _rustcTargetTriple();
+  const triple = targetTriple();
   console.log(`[smoke] target triple: ${triple}`);
   _assertAllFresh(triple);
   const failures = [];
 
-  for (const fn of [
-    () => _smokeTestMainSidecar(triple),
-    () => _smokeTestMcpSidecar("vysted-openbb-mcp-sidecar", triple),
-    () => _smokeTestMcpSidecar("vysted-sec-edgar-mcp-sidecar", triple),
-  ]) {
+  for (const spec of SIDECAR_SPECS) {
     try {
-      await fn();
+      if (spec.kind === "main") await _smokeTestMainSidecar(triple);
+      else await _smokeTestMcpSidecar(spec.name, triple);
     } catch (err) {
       failures.push(err instanceof Error ? err.message : String(err));
     }

@@ -266,7 +266,7 @@ function SourceRow({
           className="text-charcoal-100 group text-caption hover:text-charcoal-100 inline-flex items-start gap-1 leading-snug transition-colors"
         >
           <span className="min-w-0">{source.title || source.url}</span>
-          <ExternalLink className="text-charcoal-600 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
+          <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
         </a>
         <div className="flex flex-wrap items-center gap-2">
           <SourceTypeBadge type={sourceType} />
@@ -320,7 +320,7 @@ function StepLog({ steps }: { steps: BriefStep[] }) {
             {step.detail}
           </span>
           {typeof step.latencyMs === "number" ? (
-            <span className="text-charcoal-600 shrink-0">{step.latencyMs}ms</span>
+            <span className="text-charcoal-500 shrink-0">{step.latencyMs}ms</span>
           ) : null}
         </li>
       ))}
@@ -580,7 +580,7 @@ function DisambiguationView({
 function EmptyState() {
   return (
     <div className="bg-charcoal-900 flex h-full w-full flex-col items-center justify-start gap-3 px-8 pt-16 text-center">
-      <FlaskConical className="text-charcoal-600 size-8" />
+      <FlaskConical className="text-charcoal-500 size-8" />
       <p className="text-charcoal-300 text-caption font-mono">Ask JARVIS to research a company</p>
       <p className="text-charcoal-500 text-micro max-w-xs font-mono leading-relaxed">
         Run a research query in the agent dock and the brief — with cited sources and a cost readout

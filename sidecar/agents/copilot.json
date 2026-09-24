@@ -49,6 +49,7 @@
     "compute_greeks",
     "price_bond",
     "yield_curve_value",
+    "option_chain",
     "run_custom_backtest",
     "portfolio_add_position",
     "portfolio_update_position",

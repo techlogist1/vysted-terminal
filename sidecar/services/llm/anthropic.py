@@ -87,18 +87,18 @@ def _split_system_and_messages(
             continue
         if message.role == "tool":
             # Anthropic tool results are a content block, not a top-level role.
-            rest.append(
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": message.tool_call_id or "",
-                            "content": message.content,
-                        }
-                    ],
-                }
-            )
+            block = {
+                "type": "tool_result",
+                "tool_use_id": message.tool_call_id or "",
+                "content": message.content,
+            }
+            # Parallel calls: every result of one call turn rides ONE user
+            # message; one message per result teaches Claude to stop calling
+            # tools in parallel (Anthropic's parallel tool use guidance).
+            if rest and _is_tool_result_turn(rest[-1]):
+                rest[-1]["content"].append(block)
+            else:
+                rest.append({"role": "user", "content": [block]})
             continue
         if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
             # Reconstruct the assistant tool_use turn so the following

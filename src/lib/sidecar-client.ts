@@ -18,6 +18,7 @@ import type {
   Fundamentals,
   IncomeStatement,
   OHLCVSeries,
+  OptionChain,
   Quote,
 } from "../../types/data";
 
@@ -385,6 +386,9 @@ export const sidecarApi = {
       undefined,
       regionHeader(region),
     ),
+
+  optionChain: (symbol: string, expiry?: string): Promise<OptionChain> =>
+    sidecarGet<OptionChain>(`/quant/option/chain/${encodeURIComponent(symbol)}`, { expiry }),
 
   analystRating: (symbol: string, region?: string): Promise<AnalystRating> =>
     sidecarGet<AnalystRating>(

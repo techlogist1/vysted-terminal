@@ -50,6 +50,7 @@ import {
   isResearchSpace,
   listWorkspaces,
   loadWorkspace,
+  migrateWorkspace,
   PERSISTED_SLICES,
   researchSpaceName,
   researchSymbolOf,
@@ -59,6 +60,7 @@ import {
   serializeWorkspace,
   type SerializedWorkspace,
   wireAutosaveTriggers,
+  WORKSPACE_SCHEMA_VERSION,
 } from "@/lib/workspace";
 
 /** A minimal fake dockview layout — `toJSON`/`fromJSON` round-trip its state;
@@ -125,6 +127,7 @@ describe("workspace serialization", () => {
     const workspace = serializeWorkspace("research");
 
     expect(workspace).toEqual({
+      schemaVersion: WORKSPACE_SCHEMA_VERSION,
       name: "research",
       layout: LAYOUT_A,
       enabledModules: { chart: true, news: false, platform: true },
@@ -187,6 +190,39 @@ describe("workspace serialization", () => {
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
     expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
     expect(useSettingsStore.getState().region).toBe("IN");
+  });
+
+  it("a v0 blob (no schemaVersion) restores and re-serializes at the current version (R15-LIFECYCLE-024)", () => {
+    const api = createFakeDockviewApi(LAYOUT_B);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const v0: SerializedWorkspace = {
+      name: "old",
+      layout: LAYOUT_A,
+      enabledModules: { chart: true },
+      watchlist: [{ symbol: "INFY", assetClass: "equity" }],
+    };
+
+    expect(deserializeWorkspace(v0)).toBe(true);
+
+    expect(api.current).toEqual(LAYOUT_A);
+    expect(useSymbolsStore.getState().entries.map((entry) => entry.symbol)).toEqual(["INFY"]);
+    const saved = serializeWorkspace("old");
+    expect(saved.schemaVersion).toBe(WORKSPACE_SCHEMA_VERSION);
+    expect(WORKSPACE_SCHEMA_VERSION).toBeGreaterThan(0);
+    expect(migrateWorkspace(saved)).toEqual(saved);
+  });
+
+  it("a blob from a newer build restores as it is, never downgraded (R15-LIFECYCLE-024)", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const future: SerializedWorkspace = {
+      schemaVersion: WORKSPACE_SCHEMA_VERSION + 1,
+      name: "future",
+      layout: LAYOUT_A,
+      enabledModules: {},
+    };
+
+    expect(migrateWorkspace(future)).toBe(future);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("newer build"));
   });
 
   it("deserializeWorkspace tolerates an older blob with no keybindings/settings", () => {
@@ -1205,6 +1241,7 @@ type DeclaredWorkspaceKey = keyof {
 
 /** Every declared key; the compiler rejects this map when the interface gains one. */
 const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
+  schemaVersion: true,
   name: true,
   layout: true,
   enabledModules: true,
@@ -1392,7 +1429,10 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never, researchSymbol: "NVDA" });
     const written = new Set(PERSISTED_SLICES.flatMap((slice) => Object.keys(slice.read())));
-    const declared = Object.keys(DECLARED_KEYS).filter((key) => key !== "name" && key !== "layout");
+    // The payload itself writes its version, name and layout; every other key is a slice's.
+    const declared = Object.keys(DECLARED_KEYS).filter(
+      (key) => key !== "schemaVersion" && key !== "name" && key !== "layout",
+    );
     expect([...written].sort()).toEqual(declared.sort());
     useWorkspaceStore.setState({ researchSymbol: null });
 
@@ -1445,6 +1485,10 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
         () => useSettingsStore.getState().setDefaultAgentId("buffett"),
         () => useSettingsStore.getState().setRegion("US"),
         () => useSettingsStore.getState().setDeepResearchBackend("perplexity"),
+        () => useSettingsStore.getState().setProviderOrder(["groq", "anthropic"]),
+        () => useSettingsStore.getState().setStartLayout("Morning scan"),
+        () => useSettingsStore.getState().setPaletteShowRecents(false),
+        () => useSettingsStore.getState().setPaletteSymbolScope("watchlist"),
       ],
       searchSettings: [
         () => useSearchSettingsStore.getState().setResearchTier("tier_b"),

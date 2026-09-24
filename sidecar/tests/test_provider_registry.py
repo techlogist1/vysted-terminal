@@ -74,6 +74,30 @@ def test_fundamentals_prefers_openbb_then_falls_through_to_yfinance(
     assert result.provider == "yfinance"
 
 
+def test_sync_accessor_runs_off_the_event_loop_thread(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-026: a sync yfinance fetch (network + pandas) run inline held
+    the event loop for every fundamentals request and every deep-crawl fetch."""
+    import threading
+
+    from services import openbb_mcp_provider, yfinance_provider
+
+    threads: dict[str, int] = {}
+
+    def fake_fundamentals(symbol: str) -> Fundamentals:
+        threads["accessor"] = threading.get_ident()
+        return _fundamentals("yfinance", pe_ratio=25.0, roe=0.2)
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: False)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", fake_fundamentals)
+
+    async def run() -> Fundamentals:
+        threads["loop"] = threading.get_ident()
+        return await provider_registry.get_fundamentals("AAPL")
+
+    assert asyncio.run(run()).provider == "yfinance"
+    assert threads["accessor"] != threads["loop"]
+
+
 def test_fundamentals_serves_openbb_when_it_is_screener_complete(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -574,6 +574,37 @@ def test_indicators_list_endpoint(client: TestClient) -> None:
     assert len(response.json()["indicators"]) == 50
 
 
+def test_indicators_suggested_endpoint_equity_intraday(client: TestClient) -> None:
+    """R15-UI-091 FR-092 pin: 5m equity -> ema:9, ema:21 (the crossover combo)."""
+    response = client.get(
+        "/indicators/suggested", params={"timeframe": "5m", "asset_class": "equity"}
+    )
+    assert response.status_code == 200
+    indicators = response.json()["indicators"]
+    assert "ema:9" in indicators
+    assert "ema:21" in indicators
+
+
+def test_indicators_suggested_endpoint_crypto_daily(client: TestClient) -> None:
+    """R15-UI-091 FR-092 pin: crypto 1d -> ema:50, ema:200, vwap:week (crypto is
+    timeframe-agnostic — 24/7, no session boundary to anchor a plain VWAP to)."""
+    response = client.get(
+        "/indicators/suggested", params={"timeframe": "1d", "asset_class": "crypto"}
+    )
+    assert response.status_code == 200
+    indicators = response.json()["indicators"]
+    assert "ema:50" in indicators
+    assert "ema:200" in indicators
+    assert "vwap:week" in indicators
+
+
+def test_indicators_suggested_endpoint_defaults_to_daily_equity(client: TestClient) -> None:
+    """No query params -> the same daily-equity default the research cockpit uses."""
+    response = client.get("/indicators/suggested")
+    assert response.status_code == 200
+    assert response.json()["indicators"] == ["ma", "volume", "rsi", "macd"]
+
+
 # --------------------------------------------------------------------------
 # Phase 2 — 30 new indicators (≥25 polished). Six categories.
 # --------------------------------------------------------------------------

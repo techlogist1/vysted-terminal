@@ -426,6 +426,46 @@ async def test_request_carries_the_cache_breakpoints(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.asyncio
+async def test_parallel_tool_results_ride_one_user_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-007 (the Gemini split-response class): a two-call turn is
+    answered by ONE user message holding both tool_result blocks, the last one
+    the round's cache breakpoint; a later round keeps its own message."""
+    two_calls = LLMMessage(
+        role="assistant",
+        content="",
+        metadata={
+            "tool_calls": [
+                {"id": "c1", "name": "price_data", "input": {"symbol": "TCS.NS"}},
+                {"id": "c2", "name": "price_data", "input": {"symbol": "INFY.NS"}},
+            ]
+        },
+    )
+    request = await _captured_request(
+        monkeypatch,
+        [
+            LLMMessage(role="user", content="compare TCS and INFY, then AAPL"),
+            two_calls,
+            LLMMessage(role="tool", content="tcs", tool_call_id="c1"),
+            LLMMessage(role="tool", content="infy", tool_call_id="c2"),
+            *_tool_round("c3"),
+        ],
+    )
+
+    messages = request["messages"]
+    assert [m["role"] for m in messages] == ["user", "assistant", "user", "assistant", "user"]
+    first, later = messages[2]["content"], messages[4]["content"]
+    assert [b["tool_use_id"] for b in first] == ["c1", "c2"]
+    assert [b["tool_use_id"] for b in later] == ["c3"]
+    assert [b.get("cache_control") for b in [*first, *later]] == [
+        None,
+        None,
+        {"type": "ephemeral"},
+    ]
+
+
+@pytest.mark.asyncio
 async def test_cached_system_block_is_stable_across_turns(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

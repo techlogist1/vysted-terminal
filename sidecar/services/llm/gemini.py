@@ -49,21 +49,23 @@ def _split_system_and_contents(
             # A tool result is a ``functionResponse`` part on a "user" content.
             # Gemini keys the response by the tool *name*, not the call id (its
             # function-calling protocol pairs request/response by name + order).
-            contents.append(
-                {
-                    "role": "user",
-                    "parts": [
-                        {
-                            "function_response": {
-                                "name": message.metadata.get("name", "")
-                                if message.metadata
-                                else "",
-                                "response": {"result": message.content},
-                            }
-                        }
-                    ],
+            response_part = {
+                "function_response": {
+                    "name": message.metadata.get("name", "") if message.metadata else "",
+                    "response": {"result": message.content},
                 }
-            )
+            }
+            # Parallel calls: every response of one call turn rides ONE content,
+            # or the API 400s on a response/call part-count mismatch.
+            previous = contents[-1] if contents else None
+            if (
+                previous
+                and previous["role"] == "user"
+                and "function_response" in previous["parts"][-1]
+            ):
+                previous["parts"].append(response_part)
+            else:
+                contents.append({"role": "user", "parts": [response_part]})
             continue
         if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
             # Reconstruct the assistant tool-call turn as a "model" content with
@@ -155,6 +157,11 @@ class GeminiProvider(LLMProvider):
                     # Grounding can ride a content-less final chunk.
                     grounding = getattr(candidate, "grounding_metadata", None)
                     search_queries.update(getattr(grounding, "web_search_queries", None) or [])
+                    # Read before the content check: a MAX_TOKENS/SAFETY stop can
+                    # arrive on a candidate with no content at all.
+                    reason = getattr(candidate, "finish_reason", None)
+                    if reason:
+                        finish_reason = str(reason)
                     content = getattr(candidate, "content", None)
                     if content is None:
                         continue
@@ -179,9 +186,6 @@ class GeminiProvider(LLMProvider):
                                 ),
                             )
                             tool_call_index += 1
-                    reason = getattr(candidate, "finish_reason", None)
-                    if reason:
-                        finish_reason = str(reason)
                 # Usage arrives on every chunk; the final value wins.
                 meta = getattr(response, "usage_metadata", None)
                 if meta is not None:

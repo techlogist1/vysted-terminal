@@ -19,7 +19,7 @@ import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { completeIncomplete, hasIncompleteCodeFence } from "@/lib/markdown-stream";
 import { normalizePipeTables, stripTableRows } from "./chat-markdown";
 import { DUR, tween, tweenExit } from "@/lib/motion";
-import { validateProvider } from "@/lib/provider-validation";
+import { probeReadiness, validateProvider } from "@/lib/provider-validation";
 import { cn } from "@/lib/utils";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { useAgentCommandStore } from "@/store/agent-command";
@@ -39,7 +39,11 @@ import {
   type ResearchStepView,
   useChatHistoryStore,
 } from "@/store/chat-history";
-import { useLLMProvidersStore } from "@/store/llm-providers";
+import {
+  type LLMProviderInfo as LLMProviderInfoRow,
+  orderedProviders,
+  useLLMProvidersStore,
+} from "@/store/llm-providers";
 import { useModelCatalog, useModelCatalogStore } from "@/store/model-catalog";
 import { useModelSelectionStore } from "@/store/model-selection";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -98,6 +102,7 @@ import {
   doneFrameOf,
   errorFrameOf,
   isLengthFinish,
+  isProviderFailure,
   LENGTH_NOTICE,
   streamAgentInvocation,
   streamChat,
@@ -936,31 +941,45 @@ export function ChatSidebar() {
         abort: () => controller.abort(),
       });
 
-      const handlers = makeHandlers({
+      // Provider fallback (FR-038, D-B11-7): a classified provider failure
+      // (rejected key, no credit, unreachable) that lands before the model
+      // produced anything is HELD instead of failing the turn, and the loop
+      // below retries on the next configured provider in the preference order.
+      // A content error, partial output or a user stop never falls back.
+      let produced = false;
+      let heldFailure = null as { message: string; frame?: MessageErrorFrame | null } | null;
+      const settleError = (message: string, frame?: MessageErrorFrame | null) => {
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
+        // A dead/stopped stream can never publish — settle the brief panel's
+        // in-flight run (restores the prior as archived(run_failed), D39).
+        if (useBriefStore.getState().panel.phase === "in_flight") {
+          useBriefStore.getState().failRun();
+        }
+        if (controller.signal.aborted) {
+          // User-stopped (the composer's stop square / rail cancel): the
+          // partial message stands, quietly marked "stopped" — not an error.
+          stopMessage(assistantId);
+          endRun(runId, "cancelled");
+        } else {
+          // Structured frame (D43): the action/detail/code ride beside the
+          // message for the "Details" disclosure; legacy strings carry none.
+          if (frame) {
+            useMessageNoticesStore.getState().setErrorFrame(assistantId, frame);
+          }
+          fail(assistantId, message);
+          endRun(runId, "error", message);
+        }
+      };
+      const internalHandlers = makeHandlers({
         onDelta: (text) => appendDelta(assistantId, text),
         onError: (message, frame) => {
-          if (abortRef.current === controller) {
-            abortRef.current = null;
+          if (!produced && !controller.signal.aborted && isProviderFailure(frame?.code)) {
+            heldFailure = { message, frame };
+            return;
           }
-          // A dead/stopped stream can never publish — settle the brief panel's
-          // in-flight run (restores the prior as archived(run_failed), D39).
-          if (useBriefStore.getState().panel.phase === "in_flight") {
-            useBriefStore.getState().failRun();
-          }
-          if (controller.signal.aborted) {
-            // User-stopped (the composer's stop square / rail cancel): the
-            // partial message stands, quietly marked "stopped" — not an error.
-            stopMessage(assistantId);
-            endRun(runId, "cancelled");
-          } else {
-            // Structured frame (D43): the action/detail/code ride beside the
-            // message for the "Details" disclosure; legacy strings carry none.
-            if (frame) {
-              useMessageNoticesStore.getState().setErrorFrame(assistantId, frame);
-            }
-            fail(assistantId, message);
-            endRun(runId, "error", message);
-          }
+          settleError(message, frame);
         },
         onDone: (usage, finishReason, contextWindow, spendUsd) => {
           if (abortRef.current === controller) {
@@ -1051,50 +1070,88 @@ export function ChatSidebar() {
         // would double-apply). The plan just shows what's coming.
         onPlan: (plan) => setPlan(assistantId, plan),
       });
+      const handlers = {
+        ...internalHandlers,
+        onEvent: (event: LLMStreamEvent) => {
+          // Anything but a heartbeat, a terminal frame or a runtime notice is
+          // model output — after it, a failure is no longer a clean fallback.
+          if (
+            event.kind !== "heartbeat" &&
+            event.kind !== "error" &&
+            event.kind !== "done" &&
+            !(event.kind === "research_step" && isRuntimeNotice(event.stepKind))
+          ) {
+            produced = true;
+          }
+          internalHandlers.onEvent(event);
+        },
+      };
 
-      // The stream client settles every call through exactly one terminal
-      // callback; anything thrown around it (snapshot capture, a throwing
-      // handler) still settles the message instead of leaving it streaming
-      // forever with later prompts queued behind it (R15-AGENT-029).
-      try {
-        if (agentForCall) {
-          const snapshot = captureAgentContext();
-          await streamAgentInvocation(
-            agentForCall,
-            {
-              prompt,
-              contextSnapshot: snapshot,
-              provider,
-              model,
-              mode,
-              // Autonomy rides the request so the sidecar narrates host-actions
-              // truthfully (auto = applied/past-tense, ask = staged for review).
-              autonomy: useAgentAutonomyStore.getState().autonomy,
-              apiKey: apiKey ?? undefined,
-              options: { history, ...deepResearchOptions },
-            },
-            { ...handlers, signal: controller.signal },
-          );
-        } else {
-          // FR-116 / coherence: the raw-chat path must preserve conversation context
-          // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
-          // (the thread within its character budget, captured above BEFORE appendUser,
-          // so it excludes the current prompt) is prepended; previously this path sent only
-          // the single current turn and silently dropped everything before it.
-          await streamChat(
-            {
-              provider,
-              model,
-              messages: [...history, { role: "user", content: prompt }],
-              apiKey: apiKey ?? undefined,
-            },
-            { ...handlers, signal: controller.signal },
-          );
+      let attempt: FallbackAttempt = { provider, model, apiKey, label: providerLabel };
+      const tried = new Set<LLMProviderId>([provider]);
+      for (;;) {
+        // The stream client settles every call through exactly one terminal
+        // callback; anything thrown around it (snapshot capture, a throwing
+        // handler) still settles the message instead of leaving it streaming
+        // forever with later prompts queued behind it (R15-AGENT-029).
+        try {
+          if (agentForCall) {
+            const snapshot = captureAgentContext();
+            await streamAgentInvocation(
+              agentForCall,
+              {
+                prompt,
+                contextSnapshot: snapshot,
+                provider: attempt.provider,
+                model: attempt.model,
+                mode,
+                // Autonomy rides the request so the sidecar narrates host-actions
+                // truthfully (auto = applied/past-tense, ask = staged for review).
+                autonomy: useAgentAutonomyStore.getState().autonomy,
+                apiKey: attempt.apiKey ?? undefined,
+                options: { history, ...deepResearchOptions },
+              },
+              { ...handlers, signal: controller.signal },
+            );
+          } else {
+            // FR-116 / coherence: the raw-chat path must preserve conversation context
+            // too, so a mid-conversation MODEL SWAP doesn't reset the thread. `history`
+            // (the thread within its character budget, captured above BEFORE appendUser,
+            // so it excludes the current prompt) is prepended; previously this path sent only
+            // the single current turn and silently dropped everything before it.
+            await streamChat(
+              {
+                provider: attempt.provider,
+                model: attempt.model,
+                messages: [...history, { role: "user", content: prompt }],
+                apiKey: attempt.apiKey ?? undefined,
+              },
+              { ...handlers, signal: controller.signal },
+            );
+          }
+        } catch (err) {
+          if (useChatHistoryStore.getState().streamingMessageId === assistantId) {
+            handlers.onError(err instanceof Error ? err : new Error(String(err)));
+          }
         }
-      } catch (err) {
-        if (useChatHistoryStore.getState().streamingMessageId === assistantId) {
-          handlers.onError(err instanceof Error ? err : new Error(String(err)));
+        const failure = heldFailure;
+        heldFailure = null;
+        if (!failure) {
+          break;
         }
+        const next = controller.signal.aborted ? null : await nextFallbackAttempt(providers, tried);
+        if (!next || controller.signal.aborted) {
+          settleError(failure.message, failure.frame);
+          break;
+        }
+        // The turn says who failed and who takes over (D-B11-7).
+        useMessageNoticesStore
+          .getState()
+          .addNotice(
+            assistantId,
+            `${attempt.label} could not answer: ${failure.message} Retried with ${next.label}.`,
+          );
+        attempt = next;
       }
     },
     [
@@ -2098,7 +2155,7 @@ function SendStopButton({
             "rounded-control flex size-7 shrink-0 items-center justify-center",
             canSend
               ? "text-charcoal-950 cursor-pointer transition-opacity hover:opacity-85"
-              : "text-charcoal-600",
+              : "disabled:text-charcoal-600",
           )}
         >
           <ArrowUp className="size-4" strokeWidth={2.25} />
@@ -2111,6 +2168,42 @@ function SendStopButton({
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/** One provider a chat turn is sent to (the first pick or a fallback). */
+interface FallbackAttempt {
+  provider: LLMProviderId;
+  model: string;
+  apiKey: string | null;
+  label: string;
+}
+
+/**
+ * The next provider a failed turn falls back to (FR-038): the first provider in
+ * the user's preference order this turn has not tried that is configured — a
+ * keyed provider with a key in the keychain, or a keyless lane that is ready —
+ * on its effective model. Each provider is tried at most once per turn.
+ */
+async function nextFallbackAttempt(
+  providers: LLMProviderInfoRow[],
+  tried: Set<LLMProviderId>,
+): Promise<FallbackAttempt | null> {
+  for (const info of orderedProviders(providers, useSettingsStore.getState().providerOrder)) {
+    if (tried.has(info.id)) {
+      continue;
+    }
+    tried.add(info.id);
+    const model = useModelSelectionStore.getState().modelFor(info.id);
+    if (info.requiresKey) {
+      const apiKey = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(info.id));
+      if (apiKey) {
+        return { provider: info.id, model, apiKey, label: info.label };
+      }
+    } else if ((await probeReadiness(info.id, model)).ok) {
+      return { provider: info.id, model, apiKey: null, label: info.label };
+    }
+  }
+  return null;
+}
 
 interface InternalHandlers {
   onDelta: (text: string) => void;

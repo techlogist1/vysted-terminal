@@ -542,7 +542,7 @@ function NodeEditorPanelInner() {
           {nodes.length === 0 && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2">
               <span className="text-charcoal-500 text-caption font-mono">Empty workflow</span>
-              <span className="text-charcoal-600 text-micro font-mono">
+              <span className="text-charcoal-500 text-micro font-mono">
                 Drag a node from the palette to start
               </span>
             </div>

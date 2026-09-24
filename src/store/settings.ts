@@ -19,7 +19,13 @@
  *  - `region` — locale/currency formatting, the `X-Vysted-Region` header, the
  *    region-first news feed;
  *  - `deepResearchBackend` — the deep-research engine selection threaded into
- *    agent-invoke requests (`native` is the only user-facing engine).
+ *    agent-invoke requests (`native` is the only user-facing engine);
+ *  - `providerOrder` — the chat's provider fallback order (ChatSidebar);
+ *  - `startLayout` — which cockpit the launch opens on (PanelHost);
+ *  - `paletteShowRecents` / `paletteSymbolScope` — the command palette's
+ *    recents-first empty state and its instrument-search scope (CommandPalette).
+ * (R15-UI-087 rebuilt FR-038's preference depth WITH its consumers; the killed
+ * legacy names stay dropped — their written-never-read values carry no intent.)
  *
  * Persistence: the bundle rides the workspace blob; its autosave trigger is
  * the `settings` slice in `src/lib/workspace.ts` `PERSISTED_SLICES`.
@@ -32,6 +38,8 @@ import { create } from "zustand";
 import { type Region, DEFAULT_REGION, isRegion } from "@/lib/region";
 import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
 import { DEFAULT_CHART_SYMBOL, DEFAULT_CHART_TIMEFRAME } from "@/store/chart-drawings";
+import { REGISTRY_PROVIDERS } from "@/store/model-selection";
+import type { LLMProviderId } from "../../types/ai";
 
 /**
  * The DEEP research engine the agent drives (Track 5). `native` is Vysted's own
@@ -52,6 +60,10 @@ export interface ChartDefaults {
   timeframe: string;
   indicators: string[];
 }
+
+/** Which instruments the command palette searches: the watchlist only, or the
+ *  watchlist plus the live symbol resolver (every listed instrument). */
+export type PaletteSymbolScope = "watchlist" | "all";
 
 /**
  * The serialisable preferences bundle. This is exactly what rides the workspace
@@ -77,6 +89,16 @@ export interface SettingsBundle {
   deepResearchBackend: DeepResearchBackend;
   /** The chart's default symbol/timeframe/indicators (R15-UI-048). */
   chartDefaults: ChartDefaults;
+  /** Provider preference order (FR-038): when a chat turn's provider fails
+   *  before answering, the next configured provider in this order answers. */
+  providerOrder: LLMProviderId[];
+  /** The cockpit the launch opens on: `null` = the last session, else the name
+   *  of a saved layout (a missing one falls back to the last session). */
+  startLayout: string | null;
+  /** Show the "Recent" group first on an empty palette query. */
+  paletteShowRecents: boolean;
+  /** Which instruments a palette query searches. */
+  paletteSymbolScope: PaletteSymbolScope;
 }
 
 /**
@@ -98,6 +120,10 @@ export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<Settings
     timeframe: DEFAULT_CHART_TIMEFRAME,
     indicators: [],
   },
+  providerOrder: REGISTRY_PROVIDERS.map((row) => row.id),
+  startLayout: null,
+  paletteShowRecents: true,
+  paletteSymbolScope: "all",
 });
 
 interface SettingsState extends SettingsBundle {
@@ -107,6 +133,10 @@ interface SettingsState extends SettingsBundle {
   setDeepResearchBackend: (backend: DeepResearchBackend) => void;
   /** Replace the chart defaults — called by the chart toolbar's "Make default". */
   setChartDefaults: (defaults: ChartDefaults) => void;
+  setProviderOrder: (order: LLMProviderId[]) => void;
+  setStartLayout: (name: string | null) => void;
+  setPaletteShowRecents: (show: boolean) => void;
+  setPaletteSymbolScope: (scope: PaletteSymbolScope) => void;
   /** Replace the entire bundle (workspace/settings restore + import). */
   setAll: (bundle: Partial<SettingsBundle>) => void;
   /** Snapshot the current preferences as a plain bundle (for export). */
@@ -123,7 +153,22 @@ function seed(): SettingsBundle {
       ...DEFAULT_SETTINGS.chartDefaults,
       indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
     },
+    providerOrder: [...DEFAULT_SETTINGS.providerOrder],
+    startLayout: DEFAULT_SETTINGS.startLayout,
+    paletteShowRecents: DEFAULT_SETTINGS.paletteShowRecents,
+    paletteSymbolScope: DEFAULT_SETTINGS.paletteSymbolScope,
   };
+}
+
+/** Parse a persisted/imported `providerOrder`: known provider ids, each once.
+ *  A malformed value keeps the CURRENT order (R15-UI-058). */
+function parseProviderOrder(value: unknown, current: LLMProviderId[]): LLMProviderId[] {
+  if (!Array.isArray(value)) {
+    return current;
+  }
+  const known = new Set<string>(REGISTRY_PROVIDERS.map((row) => row.id));
+  const order = value.filter((id): id is LLMProviderId => typeof id === "string" && known.has(id));
+  return order.length > 0 ? [...new Set(order)] : current;
 }
 
 /** Parse a persisted/imported `chartDefaults` field; anything malformed (an
@@ -198,6 +243,22 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     });
   },
 
+  setProviderOrder: (order) => {
+    set({ providerOrder: [...order] });
+  },
+
+  setStartLayout: (name) => {
+    set({ startLayout: name });
+  },
+
+  setPaletteShowRecents: (show) => {
+    set({ paletteShowRecents: show });
+  },
+
+  setPaletteSymbolScope: (scope) => {
+    set({ paletteSymbolScope: scope });
+  },
+
   setAll: (bundle) => {
     // A field ABSENT from the bundle merges over the CURRENT live state, not
     // the seed — an older export or a hand-edited/partial import can't strip
@@ -228,7 +289,35 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       "chartDefaults" in bundle
         ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
         : current.chartDefaults;
-    set({ defaultAgentId, region, deepResearchBackend, chartDefaults });
+    const providerOrder =
+      "providerOrder" in bundle
+        ? parseProviderOrder(bundle.providerOrder, current.providerOrder)
+        : current.providerOrder;
+    const startLayout =
+      "startLayout" in bundle
+        ? bundle.startLayout === null ||
+          (typeof bundle.startLayout === "string" && bundle.startLayout !== "")
+          ? bundle.startLayout
+          : current.startLayout
+        : current.startLayout;
+    const paletteShowRecents =
+      typeof bundle.paletteShowRecents === "boolean"
+        ? bundle.paletteShowRecents
+        : current.paletteShowRecents;
+    const paletteSymbolScope =
+      bundle.paletteSymbolScope === "watchlist" || bundle.paletteSymbolScope === "all"
+        ? bundle.paletteSymbolScope
+        : current.paletteSymbolScope;
+    set({
+      defaultAgentId,
+      region,
+      deepResearchBackend,
+      chartDefaults,
+      providerOrder,
+      startLayout,
+      paletteShowRecents,
+      paletteSymbolScope,
+    });
     if (!defaultAgentApplied) {
       // Boot restore: seed the chat lens with the persisted default persona.
       useActiveAgentStore.getState().setActiveAgent(defaultAgentId);
@@ -244,6 +333,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       region: s.region,
       deepResearchBackend: s.deepResearchBackend,
       chartDefaults: { ...s.chartDefaults, indicators: [...s.chartDefaults.indicators] },
+      providerOrder: [...s.providerOrder],
+      startLayout: s.startLayout,
+      paletteShowRecents: s.paletteShowRecents,
+      paletteSymbolScope: s.paletteSymbolScope,
     };
   },
 }));
