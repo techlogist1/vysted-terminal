@@ -163,7 +163,7 @@ function BodyCell<R, K extends string>({ col, row }: { col: DataColumn<R, K>; ro
     <td
       className={cn(
         "text-caption px-3 py-1",
-        isNull ? "text-charcoal-600" : tier,
+        isNull ? "text-charcoal-500" : tier,
         col.numeric && "text-right whitespace-nowrap tabular-nums",
         col.truncate && !col.numeric && "max-w-0 truncate",
       )}

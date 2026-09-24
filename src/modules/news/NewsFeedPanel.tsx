@@ -130,7 +130,7 @@ function NewsRow({
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <span className="text-charcoal-500 text-caption min-w-0 flex-1 basis-32 truncate">
             {item.source}
-            <span className="text-charcoal-600 mx-2">·</span>
+            <span className="text-charcoal-500 mx-2">·</span>
             {relativeTime(item.published_at)}
           </span>
           <SentimentBadge item={item} />

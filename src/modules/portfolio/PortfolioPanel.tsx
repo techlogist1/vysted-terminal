@@ -866,7 +866,7 @@ export function PortfolioPanel() {
                   : "— (no live quotes)"}
             </span>
           </span>
-          <span aria-hidden="true" className="text-charcoal-600">
+          <span aria-hidden="true" className="text-charcoal-500">
             ·
           </span>
           <span>
@@ -893,7 +893,7 @@ export function PortfolioPanel() {
               across mixed currencies, so it yields to an honest note instead. */}
           {summary.mixedCurrencies ? (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span
@@ -905,7 +905,7 @@ export function PortfolioPanel() {
             </>
           ) : (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span className="whitespace-nowrap">
@@ -918,7 +918,7 @@ export function PortfolioPanel() {
           )}
           {summary.unresolvedCount > 0 && (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span className="text-charcoal-400 whitespace-nowrap">
@@ -928,7 +928,7 @@ export function PortfolioPanel() {
           )}
           {quotesAsOf !== null && (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span
