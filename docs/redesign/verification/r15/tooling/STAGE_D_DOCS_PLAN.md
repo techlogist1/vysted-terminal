@@ -83,6 +83,8 @@ Line 1 of every draft is `<!-- DRAFT at <sha> by the Stage D docs wave; refresh 
 - **Time:** the target is under an hour: facts ~10 min, drafts and scans ~20-25 min, critics and revisers ~15 min, collate ~5 min.
 - **Logging:** everything bounded or dropped is logged: skipped lanes, not-scanned ecosystems, the Fable→Opus fallbacks, UNREVIEWED and FAILED rows, files a drafter wrote outside its assignment, rows the collator failed, and output-guard redactions.
 
+Routing change 4 (25 Sep 2026): every agent in this workflow now runs on Fable (facts, drafters, scanners, critics, revisers, collator), because the Opus and Sonnet allowances are running out. The Opus fallback in `run()` became a single same-tier retry on Fable (label suffix `-retry`, never a third try), so the Fable→Opus fallbacks above are now Fable retries. The per-phase model labels in the table above are informational only.
+
 ## Resume
 
 Relaunch with the same script, the same args and `resumeFromRunId`, and finished agents replay from the cache. A restarted agent continues from its own files at the same sha, because every prompt carries the restart rule and each file's line 1 names the sha.

@@ -23,6 +23,8 @@ Return: `{status: 'blocked' | 'PASS' | 'FAIL', gate8, regression (with fix_round
 
 Concurrency: every `agent()` call goes through one global limiter of 6, whatever the CPU count, so peak concurrency is 6. The Regression phase asks for up to 8 at once (heavy, scenarios, 3 drives, 2 battery shards, data pack) and the limiter queues the rest. Lane caps: drives 3, battery shards 2, heavy 1, GUI 1. Every `agent()` call names its model (opus or sonnet) and its effort. No Haiku, no fast tier. Total agents: at most 26, plus 7 per fix round, plus ⌈sets/8⌉ sample shards. All 17 prompts start with COMMON, which is the batch script's text plus two additions: the never-tag/merge-to-main/push-main/PR/force-push prohibition, and a stall-rule list that also covers `pnpm install`, `tauri build`, the smoke test and `vy.py` runs. Most prompts add the rc1 facts block. The preflight, heavy lane, battery shards, writers, integrator and GUI agent also get a role-level STALL line.
 
+Routing change 4 (25 Sep 2026): every agent in this workflow now runs on Fable (`model: 'fable'` on every `agent()` call), because the Opus and Sonnet allowances are running out. The Opus fallback in `run()` became a single same-tier retry on Fable (label suffix `-retry`, never a third try). The per-phase model labels in the table above, the triage's per-writer `model` field and the writer role labels are informational only.
+
 Ports: shared stack :52152-54 (read-only for drives). Own sidecars on:
 
 - :52310 Gate 8

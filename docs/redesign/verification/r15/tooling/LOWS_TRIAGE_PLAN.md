@@ -93,6 +93,8 @@ Agents: 1 indexer + N shards + 1 critic + 1 collator, so about 20 for the full b
 
 Everything bounded is logged: script-dropped or duplicated ids, skipped ids, oversize shards, the unsampled `already_fixed` count, high-confidence not-a-defect entries the critic did not re-check, dead shards, the focused-test skip, and any drift between the agents' returns and the collated files.
 
+Routing change 4 (25 Sep 2026): every agent in this workflow now runs on Fable (indexer, refuters, critic, collator), because the Opus and Sonnet allowances are running out. The Opus fallback in `run()` became a single same-tier retry on Fable (label suffix `-retry`, never a third try), so the worst case above is all-Fable. The per-phase model labels in the table above and the `model` field in each jsonl line are informational only.
+
 ## Resume
 
 Same script and args with `resumeFromRunId` replays finished agents from the cache. A shard agent that restarts continues from its own jsonl, and the indexer reuses `INDEX.json` at the same sha. If the collator died, cleanup is manual:
