@@ -29,6 +29,7 @@ import re
 import time
 import uuid
 from collections.abc import AsyncIterator, Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -1740,6 +1741,538 @@ async def plan_delegate_run(
     )
 
 
+@dataclass
+class _RunSetup:
+    """A turn's per-run options, resolved once before its first round."""
+
+    provider_id: str
+    model: str
+    adapter: Any
+    tool_ids: list[str]
+    read_only: bool
+    local_tools: dict[str, LocalToolHandler]
+    messages: list[LLMMessage]
+    window: int | None
+    #: Adapter kwargs only: everything the runtime owns is popped and scrubbed.
+    opts: dict[str, Any]
+    #: Retired-tool and folded-history notices, yielded before anything else.
+    notices: list[LLMResearchStepEvent]
+
+
+@dataclass
+class _TurnState:
+    """What the rounds of one turn carry forward."""
+
+    rounds: int = 0
+    web_search_calls: int = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    native_searches: int = 0  # native server-side searches run this turn (R15-AGENT-049)
+    # The turn's spend over every round (C11): None once any round is unpriced.
+    turn_spend: float | None = 0.0
+    # R10 (E2): the latest research execution record of THIS invoke. When the
+    # model issues its own publish_brief without an ``execution`` (it almost
+    # never echoes the big record), the tracked record is injected so the
+    # panel's mode/depth badges always key on what actually ran.
+    last_research_execution: dict[str, Any] | None = None
+    # R10 (E3.3): every publish_brief tool_call_id of this turn (model-issued
+    # AND synthetic) — checked against the ack ledger at end-of-stream so a
+    # publish the panel never confirmed gets an honest divergence notice.
+    publish_brief_calls: list[str] = field(default_factory=list)
+    # Host actions this turn staged for review (awaiting_user_review), named in
+    # one end-of-turn notice (R15-AGENT-033).
+    staged_actions: list[LLMToolUseEvent] = field(default_factory=list)
+    # Any prose streamed this turn (every round): a turn that ends with none
+    # is an empty answer, never a silent success (R15-AGENT-026).
+    turn_text: bool = False
+
+
+@dataclass
+class _Round:
+    """One provider round: what it streamed and how it ended."""
+
+    capped: bool
+    pending_tools: list[LLMToolUseEvent] = field(default_factory=list)
+    # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
+    # streams its chain-of-thought as thinking events) so it can be echoed on
+    # the reconstructed assistant tool-use turn for a well-formed multi-round
+    # reasoner. Empty for non-reasoner providers (no thinking events).
+    reasoning_parts: list[str] = field(default_factory=list)
+    streamed_text: bool = False
+    round_error: bool = False
+    #: The turn's terminator went out: the turn is over.
+    ended: bool = False
+
+
+def _prepare_run(
+    spec: AgentSpec,
+    prompt: str,
+    context_snapshot: AgentContextSnapshot | None,
+    api_key: str | None,
+    provider: LLMProviderId | None,
+    model: str | None,
+    options: dict[str, Any] | None,
+    mode: str,
+    autonomy: str | None,
+) -> _RunSetup:
+    """Resolve the turn's provider, model, tools and messages; publish the run's
+    task-local settings; pop every option the runtime owns (R15-CODE-AGENT-009)."""
+    provider_id = _resolve_provider_id(spec, provider)
+    resolved_model = _resolve_model(spec, model)
+    opts = dict(options or {})
+    history, folded = _coerce_history(opts.pop("history", None))
+    tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
+
+    # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
+    # model's own server-side search when THIS model supports it (the adapter
+    # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
+    # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
+    # The provider-level native provider (anthropic) always qualifies; Groq
+    # (Compound only) and Gemini (Gemini 3 alongside function tools) are
+    # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
+    # native search only on its *-search-preview models — a `web_search` tools
+    # entry 400s elsewhere), and OpenRouter is gated PER-MODEL on the resolved model's
+    # `web_search` capability ("native"), threaded from the frontend catalog as
+    # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
+    # local tier, a non-native provider, or an OpenRouter model that is plugin-/
+    # none-capable) keep the `web_search` tool — it routes to Exa/SearXNG, or
+    # returns an honest "unavailable" when nothing is configured (FR-082; never
+    # fabricates).
+    model_web_search = opts.pop("modelWebSearch", None)
+    if isinstance(model_web_search, str):
+        model_web_search = model_web_search.strip().lower() or None
+    else:
+        model_web_search = None
+    # Publish for the run so the tier_a deep-research lane can gate the B4
+    # dual-channel cross-verify on the SAME capability truth (task-local).
+    config.set_request_model_web_search(model_web_search)
+    if _select_native_search(provider_id, resolved_model, model_web_search):
+        opts["web_search"] = True
+        opts["web_search_max_uses"] = _WEB_SEARCH_CAP
+        tool_ids = [t for t in tool_ids if t != "web_search"]
+
+    local_tools = _build_local_tools(context_snapshot, autonomy)
+    messages = _compose_messages(spec, prompt, context_snapshot, history)
+    notices: list[LLMResearchStepEvent] = []
+    if retired_tools:
+        logger.warning("agent %s names retired tool(s): %s", spec.id, ", ".join(retired_tools))
+        notices.append(
+            LLMResearchStepEvent(
+                tool_call_id="",
+                tool=RETIRED_TOOLS_NOTICE_TOOL,
+                step_kind=NOTICE_STEP_KIND,
+                detail=f"Tool {', '.join(retired_tools)} is no longer available; "
+                "this agent runs without it.",
+                status="error",
+            )
+        )
+    if folded:
+        notices.append(
+            LLMResearchStepEvent(
+                tool_call_id="",
+                tool=HISTORY_NOTICE_TOOL,
+                step_kind=NOTICE_STEP_KIND,
+                detail=f"Older turns summarised: the {folded} earliest messages of this "
+                "thread were folded into a summary of your asks, tool steps and failures.",
+                status="ok",
+            )
+        )
+    adapter = get_provider(provider_id)
+    # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
+    # and elides old results; hosted lanes (no window) send the full set. The
+    # window is an optional capability: an adapter that declares none has none.
+    context_window = getattr(adapter, "context_window", None)
+    window = context_window(resolved_model) if context_window else None
+    if window:
+        tool_ids = _window_tool_subset(tool_ids, messages, window)
+    # ask_user belongs to the Delegate MODE, not to an agent's allow-list
+    # (R15-CODE-AGENT-011): every Delegate run can pause for the user (its
+    # driver parks the run on the call), on every lane; a live turn asks in
+    # prose, so it is never offered there.
+    tool_ids = [t for t in tool_ids if t != ASK_USER_TOOL]
+    if mode == "delegate":
+        tool_ids.append(ASK_USER_TOOL)
+
+    # Publish the active LLM creds for the run so the in-loop research tool's deep
+    # path can call the SAME model the user is talking to. Task-local (each request
+    # is its own asyncio task with a copied context), so it does not leak across
+    # requests; the key stays process-memory-only.
+    config.set_request_llm_creds(provider_id, resolved_model, api_key)
+
+    # Publish the user's selected deep-research engine (Track 5) so the research
+    # tool's deep path defaults to it without the model passing a backend arg.
+    # Task-local like the creds above.
+    dr_backend = opts.pop("deepResearchBackend", None)
+    config.set_request_deep_research(
+        dr_backend.strip().lower() if isinstance(dr_backend, str) and dr_backend.strip() else None,
+    )
+    # R7: the composer's depth slider rides `options.research_depth`
+    # (normal|deep|ultra). Popped so it never leaks into adapter kwargs
+    # (OpenAI-shaped clients TypeError on unknown kwargs) and published as the
+    # run's DEFAULT research depth — an explicit model-passed depth still wins.
+    # ``depth`` is a TOLERANT ALIAS (a composer/older-client spelling): pop it
+    # too so it can never ride ``**opts`` into the SDK and crash the whole round
+    # ("AsyncCompletions.create() got an unexpected keyword argument depth"); the
+    # explicit ``research_depth`` wins when both are present.
+    req_depth = opts.pop("research_depth", None)
+    depth_alias = opts.pop("depth", None)
+    effective_depth = req_depth if isinstance(req_depth, str) and req_depth.strip() else depth_alias
+    config.set_request_research_depth(
+        effective_depth.strip().lower()
+        if isinstance(effective_depth, str) and effective_depth.strip()
+        else None,
+    )
+    return _RunSetup(
+        provider_id=provider_id,
+        model=resolved_model,
+        adapter=adapter,
+        tool_ids=tool_ids,
+        read_only=read_only,
+        local_tools=local_tools,
+        messages=messages,
+        window=window,
+        # The runtime popped everything it owns above; only adapter kwargs ride
+        # ``**opts`` into stream_chat (the one allowlist, R15-CODE-AGENT-005).
+        opts=scrub_adapter_options(opts),
+        notices=notices,
+    )
+
+
+def _open_round(run: _RunSetup, turn: _TurnState) -> _Round:
+    """Ready the messages and search budget for the turn's next provider round."""
+    # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
+    # (Anthropic rejects a tool_use/tool_result history with no `tools`),
+    # but the model is told to answer now, and any tool call it still makes
+    # is dropped — never yielded to the UI (AUTO would apply it), never
+    # dispatched, never recorded — so announced == dispatched.
+    capped = turn.rounds >= _MAX_TOOL_ROUNDS
+    if capped:
+        run.messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
+    if run.window:
+        _fit_to_window(run.messages, run.tool_ids, run.window)
+    if run.opts.get("web_search"):
+        if turn.native_searches >= _WEB_SEARCH_CAP:
+            run.opts.pop("web_search")
+            run.opts.pop("web_search_max_uses", None)
+        else:
+            run.opts["web_search_max_uses"] = _WEB_SEARCH_CAP - turn.native_searches
+    return _Round(capped=capped)
+
+
+async def _consume_round(
+    stream: AsyncIterator[Any],
+    run: _RunSetup,
+    turn: _TurnState,
+    rnd: _Round,
+    autonomy: str | None,
+    on_round_usage: Callable[[LLMUsage, str, str], bool] | None,
+) -> AsyncIterator[LLMStreamEvent]:
+    """Relay one provider round, collecting its tool calls into ``rnd``.
+
+    Ends the turn (``rnd.ended``) on a final terminator, a budget halt or a
+    stream that closed without one; otherwise the round's tool calls are
+    pending for :func:`_dispatch_round`.
+    """
+    async for event in stream:
+        if isinstance(event, LLMThinkingEvent):
+            rnd.reasoning_parts.append(event.text)
+            yield event
+            continue
+        if isinstance(event, LLMToolUseEvent):
+            if rnd.capped:
+                continue
+            # The runtime owns tool-call identity (R15-AGENT-046, D-B9-5):
+            # provider ids are never trusted (Ollama sends '', Gemini reuses
+            # `name_index` in every stream, so a late ack from an earlier turn
+            # would ground this one). Every call gets a fresh id before the
+            # tool-use turn, the tool result or any derived id uses it.
+            event.tool_call_id = f"call_{uuid.uuid4().hex}"
+            _normalise_tool_args(event)
+            if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
+                # Never hand the UI a host action with invalid args (it would
+                # stage or AUTO-apply a coerced change). It still dispatches,
+                # so the model gets the {ok: false, error} result to act on.
+                rnd.pending_tools.append(event)
+                continue
+            # R10 (E2): a model-issued publish_brief without an execution
+            # record inherits the run's tracked record before anything
+            # downstream (frontend, dispatch) sees the event.
+            if (
+                event.name == "publish_brief"
+                and isinstance(event.input, dict)
+                and "execution" not in event.input
+                and turn.last_research_execution is not None
+            ):
+                event.input["execution"] = turn.last_research_execution
+            if event.name == "publish_brief":
+                turn.publish_brief_calls.append(event.tool_call_id)
+            rnd.pending_tools.append(event)
+            yield event
+            continue
+        if isinstance(event, LLMDoneEvent):
+            if event.usage is not None:
+                turn.native_searches += event.usage.web_search_requests or 0
+            round_spend = budget_guard.spend_usd(run.provider_id, run.model, event.usage)
+            turn.turn_spend = (
+                None
+                if round_spend is None or turn.turn_spend is None
+                else turn.turn_spend + round_spend
+            )
+            event.spend_usd = None if turn.turn_spend is None else round(turn.turn_spend, 6)
+            # Per-round cost signal (FR-026): fire BEFORE we either swallow
+            # this terminator (mid-run) or yield it (final), so the budget
+            # guard sees every round's usage, not just the last one.
+            may_continue = (
+                on_round_usage(event.usage or LLMUsage(), run.model, run.provider_id)
+                if on_round_usage is not None
+                else True
+            )
+            if rnd.pending_tools and not may_continue:
+                yield LLMResearchStepEvent(
+                    tool_call_id="",
+                    tool=HALT_NOTICE_TOOL,
+                    step_kind=NOTICE_STEP_KIND,
+                    detail=f"Stopped before running {len(rnd.pending_tools)} tool call(s).",
+                    status="error",
+                )
+                rnd.ended = True
+                yield event
+                return
+            # If tools fired this round and we have budget left, swallow the
+            # per-round terminator and loop. Otherwise this is the final
+            # terminator and the SSE consumer needs it.
+            if rnd.pending_tools and turn.rounds < _MAX_TOOL_ROUNDS:
+                return
+            async for final in _finish_turn(event, run, turn, rnd, autonomy):
+                yield final
+            return
+        if isinstance(event, LLMDeltaEvent) and event.text.strip():
+            rnd.streamed_text = True
+            turn.turn_text = True
+        if isinstance(event, LLMErrorEvent):
+            rnd.round_error = True
+        yield event
+    # Provider closed without a terminator — emit one so the SSE framing stays
+    # well-formed for the consumer.
+    async for final in _finish_unterminated(run, turn, rnd, autonomy):
+        yield final
+
+
+async def _finish_turn(
+    done: LLMDoneEvent,
+    run: _RunSetup,
+    turn: _TurnState,
+    rnd: _Round,
+    autonomy: str | None,
+) -> AsyncIterator[LLMStreamEvent]:
+    """The end-of-turn notices, errors and terminator after a final ``done``."""
+    rnd.ended = True
+    if rnd.capped and not rnd.streamed_text:
+        yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
+        turn.turn_text = True
+    if is_length_finish(done.finish_reason):
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool="runtime",
+            step_kind=NOTICE_STEP_KIND,
+            detail=_LENGTH_NOTICE,
+            status="error",
+        )
+    for notice in await _end_of_turn_notices(
+        autonomy, turn.publish_brief_calls, turn.staged_actions
+    ):
+        yield notice
+    # R11 (V2 evidence): a provider content-filter finish leaves the user with
+    # an unexplained refusal (DeepSeek V4 Flash answers host-action asks with a
+    # foreign-language refusal + finish_reason "content_filter" and zero tool
+    # calls — live capture in verification/r11/v2-redrive/). Say so honestly.
+    if done.finish_reason == "content_filter":
+        yield LLMErrorEvent(
+            message="The model declined this request — its provider flagged the content.",
+            action="Rephrase the request, or switch the composer to a different model.",
+            detail=f"finish_reason=content_filter from {run.model}",
+            code="content_filter",
+        )
+    elif not turn.turn_text:
+        yield _empty_response_error(run.model)
+    done.context_window = run.window
+    yield done
+
+
+async def _finish_unterminated(
+    run: _RunSetup,
+    turn: _TurnState,
+    rnd: _Round,
+    autonomy: str | None,
+) -> AsyncIterator[LLMStreamEvent]:
+    """End a turn whose provider closed the round without a ``done``."""
+    rnd.ended = True
+    closed_capped = rnd.capped and not rnd.streamed_text
+    if closed_capped:
+        yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
+    for notice in await _end_of_turn_notices(
+        autonomy, turn.publish_brief_calls, turn.staged_actions
+    ):
+        yield notice
+    # A provider that closed without a terminator and without saying why did
+    # not finish: say so, with Retry (R15-AGENT-026).
+    if not rnd.round_error and not closed_capped:
+        yield _unfinished_round_error(rnd.streamed_text, run.model)
+    yield LLMDoneEvent()
+
+
+async def _dispatch_round(
+    run: _RunSetup,
+    turn: _TurnState,
+    rnd: _Round,
+    autonomy: str | None,
+    on_tool_result: Callable[[LLMToolUseEvent, str], None] | None,
+) -> AsyncIterator[LLMStreamEvent]:
+    """Dispatch the round's tool calls and append their turns to the messages.
+
+    Yields each tool's live steps and any synthetic brief/backtest event; under
+    AUTO, each dispatched host action's result is then rewritten from the
+    panel's real ack.
+    """
+    # Reconstruct the assistant tool-use turn FIRST so the provider can
+    # associate each tool result with its call: Anthropic requires the
+    # tool_use block to precede the tool_result; OpenAI requires the
+    # assistant `tool_calls` array. Carried in `metadata` (no contract
+    # change to LLMMessage); each adapter rebuilds its native shape.
+    #
+    # WS8 Step 4 (deepseek-reasoner guard — LOW-RISK ECHO default):
+    # deepseek-reasoner returns its chain-of-thought in a separate
+    # ``reasoning_content`` field, and a multi-round tool turn is better
+    # formed when the assistant turn that issued the tool call carries that
+    # reasoning rather than empty content. We ECHO the round's reasoning back
+    # on the reconstructed turn for reasoner models ONLY; non-reasoner
+    # providers stream no thinking events so this stays content="" and their
+    # behaviour is unchanged. NEEDS-MANUAL-CHECK: the echo-vs-steer-to-
+    # deepseek-chat choice is UNVERIFIED here — it needs a live
+    # deepseek-reasoner MULTI-ROUND repro (cannot run in this environment).
+    # Echo is the conservative default (additive, reasoner-gated).
+    reconstructed_content = ""
+    if "reasoner" in run.model.lower() and rnd.reasoning_parts:
+        reconstructed_content = "".join(rnd.reasoning_parts)
+    run.messages.append(
+        LLMMessage(
+            role="assistant",
+            content=reconstructed_content,
+            metadata={
+                "tool_calls": [
+                    {
+                        "id": tc.tool_call_id,
+                        "name": tc.name,
+                        "input": tc.input,
+                        # Echoed back by the adapter that set it (Gemini's
+                        # thought signature, R15-AGENT-006).
+                        **({"provider_meta": tc.provider_meta} if tc.provider_meta else {}),
+                    }
+                    for tc in rnd.pending_tools
+                ]
+            },
+        )
+    )
+    # Dispatch every pending tool and append tool-result messages keyed on the
+    # call ids.
+    # E3.3 read-back (R13 JARVIS 1b): (tool_call, tool_result_msg) pairs for
+    # this round's NON-ORDER host actions dispatched under AUTO autonomy —
+    # rewritten from the panel's real ack after the dispatch loop so the
+    # model's next narration is grounded, not the optimistic "dispatched".
+    host_action_readbacks: list[tuple[LLMToolUseEvent, LLMMessage]] = []
+    _host_ids = _host_action_ids()
+    for tool_call in rnd.pending_tools:
+        if tool_call.name == "web_search":
+            # FR-081: bound per-search billing per run.
+            turn.web_search_calls += 1
+        if tool_call.name == "web_search" and turn.web_search_calls > _WEB_SEARCH_CAP:
+            # Past the cap, return a synthesize-now signal instead of
+            # dispatching another search.
+            result_str = json.dumps(
+                {
+                    "ok": False,
+                    "message": (
+                        f"web-search cap reached ({_WEB_SEARCH_CAP} searches this "
+                        "run) — answer from the sources you already gathered."
+                    ),
+                }
+            )
+        else:
+            # Stream any live research steps the tool emits WHILE it runs
+            # (Track A — a long deep research round is no longer silent), then
+            # take the JSON result string from the terminal _ToolDone.
+            result_str = ""
+            async for item in _dispatch_tool_with_progress(tool_call, run.local_tools):
+                if isinstance(item, _ToolDone):
+                    result_str = item.result
+                else:
+                    yield item
+        tool_result_msg = LLMMessage(
+            role="tool",
+            # The model reads its own view (money as displays); the raw
+            # result_str still feeds auto-publish and the execution record.
+            content=_model_facing_content(tool_call.name, result_str, run.window),
+            tool_call_id=tool_call.tool_call_id,
+            # Carry the tool NAME alongside the id: Gemini pairs a
+            # function_response to its call by name (not id), so a
+            # tool-result message with no name serialises name="" and
+            # breaks Gemini multi-round tool use. Anthropic/OpenAI key by
+            # tool_call_id and ignore this. (FR-024 / closes the §4 break.)
+            metadata={"name": tool_call.name},
+        )
+        run.messages.append(tool_result_msg)
+        if on_tool_result is not None:
+            on_tool_result(tool_call, result_str)
+        if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
+            turn.staged_actions.append(tool_call)
+        # Queue a host action dispatched under AUTO for the grounded
+        # read-back below. An invalid-args call was never dispatched to the
+        # panel, so its {ok: false, error} result stands as is.
+        if (
+            autonomy == "auto"
+            and tool_call.name in _host_ids
+            and INVALID_ARGS_SENTINEL not in tool_call.input
+        ):
+            host_action_readbacks.append((tool_call, tool_result_msg))
+        # Auto-publish the brief deterministically (Track 3): the full brief
+        # is in result_str but only the model sees it. Emit a synthetic
+        # publish_brief so the panel ALWAYS renders — even when a weak model
+        # never calls it — riding the existing review/AUTO gate. The model is
+        # told (in its prompt) it need not publish; a duplicate is idempotent.
+        if tool_call.name in _RESEARCH_TOOLS:
+            try:
+                _research_payload = json.loads(result_str)
+            except (json.JSONDecodeError, ValueError, TypeError):
+                _research_payload = None
+            if isinstance(_research_payload, dict) and isinstance(
+                _research_payload.get("execution"), dict
+            ):
+                turn.last_research_execution = _research_payload["execution"]
+            auto_brief = _auto_publish_event(tool_call, result_str)
+            if auto_brief is not None:
+                turn.publish_brief_calls.append(auto_brief.tool_call_id)
+                yield auto_brief
+        # Only where this turn may drive panels (a strict read turn may not).
+        if tool_call.name == "run_custom_backtest" and "open_panel" in run.tool_ids:
+            auto_open = _auto_open_backtest_event(tool_call, result_str)
+            if auto_open is not None:
+                yield auto_open
+    # Grounded host-action read-back (R13 JARVIS 1b): ONE grace-bounded poll
+    # of the ack ledger for this round's dispatched host actions, then
+    # rewrite each tool-result from the panel's REAL outcome (applied /
+    # kept_previous / failed / not-yet-confirmed) so the model's NEXT stream
+    # narrates the ground truth instead of the optimistic "dispatched".
+    if host_action_readbacks:
+        await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
+        for tc, msg in host_action_readbacks:
+            # Each ack is consumed by its last reader: a publish's is read
+            # again by the end-of-turn divergence check (R15-AGENT-046).
+            read = (
+                action_ledger.get
+                if tc.tool_call_id in turn.publish_brief_calls
+                else action_ledger.take
+            )
+            msg.content = _grounded_host_action_result(tc, read(tc.tool_call_id))
+
+
 async def invoke_agent(
     agent_id: str,
     prompt: str,
@@ -1787,444 +2320,51 @@ async def invoke_agent(
         yield LLMErrorEvent(message=f"unknown agent: {agent_id!r}")
         yield LLMDoneEvent()
         return
-    provider_id = _resolve_provider_id(spec, provider)
-    resolved_model = _resolve_model(spec, model)
-    opts = dict(options or {})
-    history, folded = _coerce_history(opts.pop("history", None))
-    tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
-
-    # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
-    # model's own server-side search when THIS model supports it (the adapter
-    # injects it via the `web_search` kwarg, capped at _WEB_SEARCH_CAP) and
-    # WITHHOLD the BYOK/local `web_search` tool so search isn't double-run.
-    # The provider-level native provider (anthropic) always qualifies; Groq
-    # (Compound only) and Gemini (Gemini 3 alongside function tools) are
-    # per-MODEL (R15-AGENT-005); OpenAI is per-MODEL (chat-completions serves
-    # native search only on its *-search-preview models — a `web_search` tools
-    # entry 400s elsewhere), and OpenRouter is gated PER-MODEL on the resolved model's
-    # `web_search` capability ("native"), threaded from the frontend catalog as
-    # `modelWebSearch` (keyless — no network on the hot path). Otherwise (BYOK/
-    # local tier, a non-native provider, or an OpenRouter model that is plugin-/
-    # none-capable) keep the `web_search` tool — it routes to Exa/SearXNG, or
-    # returns an honest "unavailable" when nothing is configured (FR-082; never
-    # fabricates).
-    model_web_search = opts.pop("modelWebSearch", None)
-    if isinstance(model_web_search, str):
-        model_web_search = model_web_search.strip().lower() or None
-    else:
-        model_web_search = None
-    # Publish for the run so the tier_a deep-research lane can gate the B4
-    # dual-channel cross-verify on the SAME capability truth (task-local).
-    config.set_request_model_web_search(model_web_search)
-    if _select_native_search(provider_id, resolved_model, model_web_search):
-        opts["web_search"] = True
-        opts["web_search_max_uses"] = _WEB_SEARCH_CAP
-        tool_ids = [t for t in tool_ids if t != "web_search"]
-
-    local_tools = _build_local_tools(context_snapshot, autonomy)
-    messages = _compose_messages(spec, prompt, context_snapshot, history)
-    if retired_tools:
-        logger.warning("agent %s names retired tool(s): %s", spec.id, ", ".join(retired_tools))
-        yield LLMResearchStepEvent(
-            tool_call_id="",
-            tool=RETIRED_TOOLS_NOTICE_TOOL,
-            step_kind=NOTICE_STEP_KIND,
-            detail=f"Tool {', '.join(retired_tools)} is no longer available; "
-            "this agent runs without it.",
-            status="error",
-        )
-    if folded:
-        yield LLMResearchStepEvent(
-            tool_call_id="",
-            tool=HISTORY_NOTICE_TOOL,
-            step_kind=NOTICE_STEP_KIND,
-            detail=f"Older turns summarised: the {folded} earliest messages of this "
-            "thread were folded into a summary of your asks, tool steps and failures.",
-            status="ok",
-        )
-    adapter = get_provider(provider_id)
-    # Context admission (R15-AGENT-008): only a window-bound lane subsets tools
-    # and elides old results; hosted lanes (no window) send the full set. The
-    # window is an optional capability: an adapter that declares none has none.
-    context_window = getattr(adapter, "context_window", None)
-    window = context_window(resolved_model) if context_window else None
-    if window:
-        tool_ids = _window_tool_subset(tool_ids, messages, window)
-    # ask_user belongs to the Delegate MODE, not to an agent's allow-list
-    # (R15-CODE-AGENT-011): every Delegate run can pause for the user (its
-    # driver parks the run on the call), on every lane; a live turn asks in
-    # prose, so it is never offered there.
-    tool_ids = [t for t in tool_ids if t != ASK_USER_TOOL]
-    if mode == "delegate":
-        tool_ids.append(ASK_USER_TOOL)
-
-    # Publish the active LLM creds for the run so the in-loop research tool's deep
-    # path can call the SAME model the user is talking to. Task-local (each request
-    # is its own asyncio task with a copied context), so it does not leak across
-    # requests; the key stays process-memory-only.
-    config.set_request_llm_creds(provider_id, resolved_model, api_key)
-
-    # Publish the user's selected deep-research engine (Track 5) so the research
-    # tool's deep path defaults to it without the model passing a backend arg.
-    # Task-local like the creds above.
-    dr_backend = opts.pop("deepResearchBackend", None)
-    config.set_request_deep_research(
-        dr_backend.strip().lower() if isinstance(dr_backend, str) and dr_backend.strip() else None,
+    run = _prepare_run(
+        spec, prompt, context_snapshot, api_key, provider, model, options, mode, autonomy
     )
-    # R7: the composer's depth slider rides `options.research_depth`
-    # (normal|deep|ultra). Popped so it never leaks into adapter kwargs
-    # (OpenAI-shaped clients TypeError on unknown kwargs) and published as the
-    # run's DEFAULT research depth — an explicit model-passed depth still wins.
-    # ``depth`` is a TOLERANT ALIAS (a composer/older-client spelling): pop it
-    # too so it can never ride ``**opts`` into the SDK and crash the whole round
-    # ("AsyncCompletions.create() got an unexpected keyword argument depth"); the
-    # explicit ``research_depth`` wins when both are present.
-    req_depth = opts.pop("research_depth", None)
-    depth_alias = opts.pop("depth", None)
-    effective_depth = req_depth if isinstance(req_depth, str) and req_depth.strip() else depth_alias
-    config.set_request_research_depth(
-        effective_depth.strip().lower()
-        if isinstance(effective_depth, str) and effective_depth.strip()
-        else None,
-    )
-    # The runtime popped everything it owns above; only adapter kwargs ride
-    # ``**opts`` into stream_chat (the one allowlist, R15-CODE-AGENT-005).
-    opts = scrub_adapter_options(opts)
+    for notice in run.notices:
+        yield notice
 
-    # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
-    # For a COMPOUND request on a capable model, decompose the goal into an
-    # ordered plan, surface it (so the user sees the steps up front), and PRE-STAGE
-    # the host-action steps into the diff/accept gate. ADVISORY only: the tool loop
-    # below still drives execution; this never blocks, never raises, and on a weak
-    # local model it is skipped entirely (the loop's preamble-driven path stands).
+    # Visible plan-then-execute pre-pass (Track 6 #2): for a COMPOUND request on
+    # a capable model, surface the ordered plan up front with its host-action
+    # steps pre-staged into the diff/accept gate. ADVISORY only: the tool loop
+    # below still drives execution; this never blocks, never raises, and on a
+    # weak local model it is skipped entirely.
     plan_event = await _plan_prepass(
-        provider_id, mode, read_only, resolved_model, api_key, prompt, context_snapshot
+        run.provider_id, mode, run.read_only, run.model, api_key, prompt, context_snapshot
     )
     if plan_event is not None:
         yield plan_event
 
-    rounds = 0
-    idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
-    web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
-    native_searches = 0  # native server-side searches run this turn (R15-AGENT-049)
-    # The turn's spend over every round (C11): None once any round is unpriced.
-    turn_spend: float | None = 0.0
-    # R10 (E2): the latest research execution record of THIS invoke. When the
-    # model issues its own publish_brief without an ``execution`` (it almost
-    # never echoes the big record), the tracked record is injected so the
-    # panel's mode/depth badges always key on what actually ran.
-    last_research_execution: dict[str, Any] | None = None
-    # R10 (E3.3): every publish_brief tool_call_id of this turn (model-issued
-    # AND synthetic) — checked against the ack ledger at end-of-stream so a
-    # publish the panel never confirmed gets an honest divergence notice.
-    publish_brief_calls: list[str] = []
-    # Host actions this turn staged for review (awaiting_user_review), named in
-    # one end-of-turn notice (R15-AGENT-033).
-    staged_actions: list[LLMToolUseEvent] = []
-    # Any prose streamed this turn (every round): a turn that ends with none
-    # is an empty answer, never a silent success (R15-AGENT-026).
-    turn_text = False
+    turn = _TurnState()
+    idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S
     while True:
-        # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
-        # (Anthropic rejects a tool_use/tool_result history with no `tools`),
-        # but the model is told to answer now, and any tool call it still makes
-        # is dropped — never yielded to the UI (AUTO would apply it), never
-        # dispatched, never recorded — so announced == dispatched.
-        capped = rounds >= _MAX_TOOL_ROUNDS
-        if capped:
-            messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
-        if window:
-            _fit_to_window(messages, tool_ids, window)
-        if opts.get("web_search"):
-            if native_searches >= _WEB_SEARCH_CAP:
-                opts.pop("web_search")
-                opts.pop("web_search_max_uses", None)
-            else:
-                opts["web_search_max_uses"] = _WEB_SEARCH_CAP - native_searches
-        streamed_text = False
-        pending_tools: list[LLMToolUseEvent] = []
-        # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
-        # streams its chain-of-thought as thinking events) so it can be echoed on
-        # the reconstructed assistant tool-use turn for a well-formed multi-round
-        # reasoner. Empty for non-reasoner providers (no thinking events).
-        round_reasoning_parts: list[str] = []
-        seen_done = False
-        round_error = False
-        async for event in _relay_provider(
-            adapter.stream_chat(
-                messages=messages,
-                model=resolved_model,
+        rnd = _open_round(run, turn)
+        stream = _relay_provider(
+            run.adapter.stream_chat(
+                messages=run.messages,
+                model=run.model,
                 api_key=api_key,
-                tool_ids=tool_ids,
-                **opts,
+                tool_ids=run.tool_ids,
+                **run.opts,
             ),
             idle,
-        ):
-            if isinstance(event, LLMThinkingEvent):
-                round_reasoning_parts.append(event.text)
-                yield event
-                continue
-            if isinstance(event, LLMToolUseEvent):
-                if capped:
-                    continue
-                # The runtime owns tool-call identity (R15-AGENT-046, D-B9-5):
-                # provider ids are never trusted (Ollama sends '', Gemini reuses
-                # `name_index` in every stream, so a late ack from an earlier turn
-                # would ground this one). Every call gets a fresh id before the
-                # tool-use turn, the tool result or any derived id uses it.
-                event.tool_call_id = f"call_{uuid.uuid4().hex}"
-                _normalise_tool_args(event)
-                if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
-                    # Never hand the UI a host action with invalid args (it would
-                    # stage or AUTO-apply a coerced change). It still dispatches,
-                    # so the model gets the {ok: false, error} result to act on.
-                    pending_tools.append(event)
-                    continue
-                # R10 (E2): a model-issued publish_brief without an execution
-                # record inherits the run's tracked record before anything
-                # downstream (frontend, dispatch) sees the event.
-                if (
-                    event.name == "publish_brief"
-                    and isinstance(event.input, dict)
-                    and "execution" not in event.input
-                    and last_research_execution is not None
-                ):
-                    event.input["execution"] = last_research_execution
-                if event.name == "publish_brief":
-                    publish_brief_calls.append(event.tool_call_id)
-                pending_tools.append(event)
-                yield event
-                continue
-            if isinstance(event, LLMDoneEvent):
-                seen_done = True
-                if event.usage is not None:
-                    native_searches += event.usage.web_search_requests or 0
-                round_spend = budget_guard.spend_usd(provider_id, resolved_model, event.usage)
-                turn_spend = (
-                    None if round_spend is None or turn_spend is None else turn_spend + round_spend
-                )
-                event.spend_usd = None if turn_spend is None else round(turn_spend, 6)
-                # Per-round cost signal (FR-026): fire BEFORE we either swallow
-                # this terminator (mid-run) or yield it (final), so the budget
-                # guard sees every round's usage, not just the last one.
-                may_continue = (
-                    on_round_usage(event.usage or LLMUsage(), resolved_model, provider_id)
-                    if on_round_usage is not None
-                    else True
-                )
-                if pending_tools and not may_continue:
-                    yield LLMResearchStepEvent(
-                        tool_call_id="",
-                        tool=HALT_NOTICE_TOOL,
-                        step_kind=NOTICE_STEP_KIND,
-                        detail=f"Stopped before running {len(pending_tools)} tool call(s).",
-                        status="error",
-                    )
-                    yield event
-                    return
-                # If tools fired this round and we have budget left,
-                # swallow the per-round terminator and loop. Otherwise
-                # this is the final terminator and the SSE consumer
-                # needs it.
-                if pending_tools and rounds < _MAX_TOOL_ROUNDS:
-                    break
-                if capped and not streamed_text:
-                    yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-                    turn_text = True
-                if is_length_finish(event.finish_reason):
-                    yield LLMResearchStepEvent(
-                        tool_call_id="",
-                        tool="runtime",
-                        step_kind=NOTICE_STEP_KIND,
-                        detail=_LENGTH_NOTICE,
-                        status="error",
-                    )
-                for notice in await _end_of_turn_notices(
-                    autonomy, publish_brief_calls, staged_actions
-                ):
-                    yield notice
-                # R11 (V2 evidence): a provider content-filter finish leaves
-                # the user with an unexplained refusal (DeepSeek V4 Flash
-                # answers host-action asks with a foreign-language refusal +
-                # finish_reason "content_filter" and zero tool calls — live
-                # capture in verification/r11/v2-redrive/). Say so honestly.
-                if event.finish_reason == "content_filter":
-                    yield LLMErrorEvent(
-                        message=(
-                            "The model declined this request — its provider flagged the content."
-                        ),
-                        action=(
-                            "Rephrase the request, or switch the composer to a different model."
-                        ),
-                        detail=f"finish_reason=content_filter from {resolved_model}",
-                        code="content_filter",
-                    )
-                elif not turn_text:
-                    yield _empty_response_error(resolved_model)
-                event.context_window = window
-                yield event
-                return
-            if isinstance(event, LLMDeltaEvent) and event.text.strip():
-                streamed_text = True
-                turn_text = True
-            if isinstance(event, LLMErrorEvent):
-                round_error = True
-            yield event
-        if not seen_done:
-            # Provider closed without a terminator — emit one so the SSE
-            # framing stays well-formed for the consumer.
-            if capped and not streamed_text:
-                yield LLMDeltaEvent(text=_CAPPED_ROUND_CLOSE)
-            for notice in await _end_of_turn_notices(autonomy, publish_brief_calls, staged_actions):
-                yield notice
-            # A provider that closed without a terminator and without saying why
-            # did not finish: say so, with Retry (R15-AGENT-026).
-            if not round_error and not (capped and not streamed_text):
-                yield _unfinished_round_error(streamed_text, resolved_model)
-            yield LLMDoneEvent()
-            return
-        if not pending_tools:
-            return
-
-        # Reconstruct the assistant tool-use turn FIRST so the provider can
-        # associate each tool result with its call: Anthropic requires the
-        # tool_use block to precede the tool_result; OpenAI requires the
-        # assistant `tool_calls` array. Carried in `metadata` (no contract
-        # change to LLMMessage); each adapter rebuilds its native shape.
-        #
-        # WS8 Step 4 (deepseek-reasoner guard — LOW-RISK ECHO default):
-        # deepseek-reasoner returns its chain-of-thought in a separate
-        # ``reasoning_content`` field, and a multi-round tool turn is better
-        # formed when the assistant turn that issued the tool call carries that
-        # reasoning rather than empty content. We ECHO the round's reasoning back
-        # on the reconstructed turn for reasoner models ONLY; non-reasoner
-        # providers stream no thinking events so this stays content="" and their
-        # behaviour is unchanged. NEEDS-MANUAL-CHECK: the echo-vs-steer-to-
-        # deepseek-chat choice is UNVERIFIED here — it needs a live
-        # deepseek-reasoner MULTI-ROUND repro (cannot run in this environment).
-        # Echo is the conservative default (additive, reasoner-gated).
-        reconstructed_content = ""
-        if "reasoner" in resolved_model.lower() and round_reasoning_parts:
-            reconstructed_content = "".join(round_reasoning_parts)
-        messages.append(
-            LLMMessage(
-                role="assistant",
-                content=reconstructed_content,
-                metadata={
-                    "tool_calls": [
-                        {
-                            "id": tc.tool_call_id,
-                            "name": tc.name,
-                            "input": tc.input,
-                            # Echoed back by the adapter that set it (Gemini's
-                            # thought signature, R15-AGENT-006).
-                            **({"provider_meta": tc.provider_meta} if tc.provider_meta else {}),
-                        }
-                        for tc in pending_tools
-                    ]
-                },
-            )
         )
-        # Dispatch every pending tool, append tool-result messages keyed
-        # on the call ids, and re-enter the loop.
-        # E3.3 read-back (R13 JARVIS 1b): (tool_call, tool_result_msg) pairs for
-        # this round's NON-ORDER host actions dispatched under AUTO autonomy —
-        # rewritten from the panel's real ack after the dispatch loop so the
-        # model's next narration is grounded, not the optimistic "dispatched".
-        host_action_readbacks: list[tuple[LLMToolUseEvent, LLMMessage]] = []
-        _host_ids = _host_action_ids()
-        for tool_call in pending_tools:
-            if tool_call.name == "web_search":
-                # FR-081: bound per-search billing per run.
-                web_search_calls += 1
-            if tool_call.name == "web_search" and web_search_calls > _WEB_SEARCH_CAP:
-                # Past the cap, return a synthesize-now signal instead of
-                # dispatching another search.
-                result_str = json.dumps(
-                    {
-                        "ok": False,
-                        "message": (
-                            f"web-search cap reached ({_WEB_SEARCH_CAP} searches this "
-                            "run) — answer from the sources you already gathered."
-                        ),
-                    }
-                )
-            else:
-                # Stream any live research steps the tool emits WHILE it runs
-                # (Track A — a long deep research round is no longer silent), then
-                # take the JSON result string from the terminal _ToolDone.
-                result_str = ""
-                async for item in _dispatch_tool_with_progress(tool_call, local_tools):
-                    if isinstance(item, _ToolDone):
-                        result_str = item.result
-                    else:
-                        yield item
-            tool_result_msg = LLMMessage(
-                role="tool",
-                # The model reads its own view (money as displays); the raw
-                # result_str still feeds auto-publish and the execution record.
-                content=_model_facing_content(tool_call.name, result_str, window),
-                tool_call_id=tool_call.tool_call_id,
-                # Carry the tool NAME alongside the id: Gemini pairs a
-                # function_response to its call by name (not id), so a
-                # tool-result message with no name serialises name="" and
-                # breaks Gemini multi-round tool use. Anthropic/OpenAI key by
-                # tool_call_id and ignore this. (FR-024 / closes the §4 break.)
-                metadata={"name": tool_call.name},
-            )
-            messages.append(tool_result_msg)
-            if on_tool_result is not None:
-                on_tool_result(tool_call, result_str)
-            if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
-                staged_actions.append(tool_call)
-            # Queue a host action dispatched under AUTO for the grounded
-            # read-back below. An invalid-args call was never dispatched to the
-            # panel, so its {ok: false, error} result stands as is.
-            if (
-                autonomy == "auto"
-                and tool_call.name in _host_ids
-                and INVALID_ARGS_SENTINEL not in tool_call.input
-            ):
-                host_action_readbacks.append((tool_call, tool_result_msg))
-            # Auto-publish the brief deterministically (Track 3): the full brief
-            # is in result_str but only the model sees it. Emit a synthetic
-            # publish_brief so the panel ALWAYS renders — even when a weak model
-            # never calls it — riding the existing review/AUTO gate. The model is
-            # told (in its prompt) it need not publish; a duplicate is idempotent.
-            if tool_call.name in _RESEARCH_TOOLS:
-                try:
-                    _research_payload = json.loads(result_str)
-                except (json.JSONDecodeError, ValueError, TypeError):
-                    _research_payload = None
-                if isinstance(_research_payload, dict) and isinstance(
-                    _research_payload.get("execution"), dict
-                ):
-                    last_research_execution = _research_payload["execution"]
-                auto_brief = _auto_publish_event(tool_call, result_str)
-                if auto_brief is not None:
-                    publish_brief_calls.append(auto_brief.tool_call_id)
-                    yield auto_brief
-            # Only where this turn may drive panels (a strict read turn may not).
-            if tool_call.name == "run_custom_backtest" and "open_panel" in tool_ids:
-                auto_open = _auto_open_backtest_event(tool_call, result_str)
-                if auto_open is not None:
-                    yield auto_open
-        # Grounded host-action read-back (R13 JARVIS 1b): ONE grace-bounded poll
-        # of the ack ledger for this round's dispatched host actions, then
-        # rewrite each tool-result from the panel's REAL outcome (applied /
-        # kept_previous / failed / not-yet-confirmed) so the model's NEXT stream
-        # narrates the ground truth instead of the optimistic "dispatched".
-        if host_action_readbacks:
-            await _await_host_action_acks([tc.tool_call_id for tc, _ in host_action_readbacks])
-            for tc, msg in host_action_readbacks:
-                # Each ack is consumed by its last reader: a publish's is read
-                # again by the end-of-turn divergence check (R15-AGENT-046).
-                read = (
-                    action_ledger.get
-                    if tc.tool_call_id in publish_brief_calls
-                    else action_ledger.take
-                )
-                msg.content = _grounded_host_action_result(tc, read(tc.tool_call_id))
-        # At the cap the next iteration is the capped final round (see the
-        # loop head): it streams the answer and exits on its terminator.
-        rounds += 1
+        # aclosing: a consumer's aclose() reaches each phase at once, as it
+        # did when the phases were inline.
+        async with contextlib.aclosing(
+            _consume_round(stream, run, turn, rnd, autonomy, on_round_usage)
+        ) as events:
+            async for event in events:
+                yield event
+        if rnd.ended:
+            return
+        async with contextlib.aclosing(
+            _dispatch_round(run, turn, rnd, autonomy, on_tool_result)
+        ) as events:
+            async for event in events:
+                yield event
+        # At the cap the next iteration is the capped final round (see
+        # _open_round): it streams the answer and exits on its terminator.
+        turn.rounds += 1
