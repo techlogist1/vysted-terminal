@@ -407,7 +407,13 @@ describe("ScreenerPanel", () => {
     // The store reflects the loaded screen name.
     expect(useScreenerStore.getState().savedScreens[0]!.name).toBe("My Value Screen");
 
-    // Delete it.
+    // Delete it — R15-UI-018: a single click only arms the confirm, it must
+    // not delete by itself.
+    fireEvent.click(screen.getByTestId("delete-screen-My Value Screen"));
+    expect(screen.getByTestId("load-screen-My Value Screen")).toBeInTheDocument();
+    expect(useScreenerStore.getState().savedScreens).toHaveLength(1);
+
+    // The second click, within the arm window, confirms it.
     fireEvent.click(screen.getByTestId("delete-screen-My Value Screen"));
     await waitFor(() => {
       expect(screen.queryByTestId("load-screen-My Value Screen")).not.toBeInTheDocument();

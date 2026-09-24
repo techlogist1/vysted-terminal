@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { Play, Square, AlertCircle, BookmarkPlus, BookmarkX, FolderOpen } from "lucide-react";
 
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Button } from "@/components/ui/button";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
 import { useScreenerStore } from "@/store/screener";
@@ -355,15 +356,17 @@ export function ScreenerPanel() {
                 <FolderOpen className="mr-1 inline size-3" />
                 {screen.name}
               </button>
-              <button
-                type="button"
-                onClick={() => deleteScreen(screen.name)}
+              <ConfirmButton
+                variant="ghost"
+                size="icon-xs"
+                onConfirm={() => deleteScreen(screen.name)}
                 aria-label={`Delete saved screen ${screen.name}`}
-                className="text-muted-foreground hover:text-destructive ml-0.5 p-0.5 transition-colors"
+                armedLabel={<BookmarkX className="text-destructive size-3" />}
+                className="text-muted-foreground hover:text-destructive ml-0.5 h-auto min-w-0 p-0.5"
                 data-testid={`delete-screen-${screen.name}`}
               >
                 <BookmarkX className="size-3" />
-              </button>
+              </ConfirmButton>
             </div>
           ))}
           {/* Save current screen — inline name input, not a modal */}

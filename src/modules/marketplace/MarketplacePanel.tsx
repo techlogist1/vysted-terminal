@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Settings2, Trash2, Power, Loader2 } from "lucide-react";
 
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Button } from "@/components/ui/button";
 import { MARKETPLACE_CATALOG } from "@/lib/marketplace";
 import { cn } from "@/lib/utils";
@@ -183,15 +184,16 @@ function MarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
             </Button>
           )}
           {state.installed && !entry.preinstalled && (
-            <Button
+            <ConfirmButton
               size="icon-sm"
               variant="ghost"
               disabled={busy}
               aria-label={`Remove ${entry.name}`}
-              onClick={() => void remove(entry.pluginId)}
+              onConfirm={() => void remove(entry.pluginId)}
+              armedLabel={<Trash2 className="text-negative" aria-hidden="true" />}
             >
               {busy ? <Loader2 className="animate-spin" /> : <Trash2 />}
-            </Button>
+            </ConfirmButton>
           )}
         </div>
       </div>
