@@ -158,3 +158,55 @@ export interface WorkflowRunResult {
   nodes: NodeRunResult[];
   error?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Schedules (R15-AGENT-023) — mirror of `sidecar/models/workflow.py`
+// ---------------------------------------------------------------------------
+
+/** The shortest interval a schedule may fire on (the sidecar rejects less). */
+export const MIN_SCHEDULE_INTERVAL_MINUTES = 5;
+
+/** Fire every `everyMinutes` (>= 5) after the last fire (or creation). */
+export interface IntervalTrigger {
+  kind: "interval";
+  everyMinutes: number;
+}
+
+/**
+ * Fire once per new exchange announcement for `symbol` whose headline contains
+ * `phrase` (case-insensitive); the announcement is the run's input.
+ */
+export interface AnnouncementTrigger {
+  kind: "announcement";
+  symbol: string;
+  phrase: string;
+}
+
+export type ScheduleTrigger = IntervalTrigger | AnnouncementTrigger;
+
+/** `POST /workflow/schedules` body. */
+export interface ScheduleCreate {
+  workflowId: string;
+  trigger: ScheduleTrigger;
+  enabled?: boolean;
+}
+
+/** One persisted schedule plus its last outcome. Fires only while the app is open. */
+export interface WorkflowSchedule {
+  id: string;
+  workflowId: string;
+  trigger: ScheduleTrigger;
+  enabled: boolean;
+  createdAt: number;
+  /** Epoch ms of the last fire; `null` until the first. */
+  lastFiredAt: number | null;
+  /** Announcement trigger: ISO timestamp of the newest announcement fired on. */
+  lastSeen: string | null;
+  lastStatus: "running" | "ok" | "error" | null;
+  lastDetail: string | null;
+}
+
+/** `GET /workflow/webhooks` — the refs with a URL held in sidecar memory (never the URLs). */
+export interface WebhookRefs {
+  refs: string[];
+}

@@ -25,7 +25,7 @@ const NODE_TYPES_FIXTURE: Record<
 > = NODE_TYPES_JSON;
 
 describe("node-registry: built-in specs", () => {
-  it("ships exactly the 10 documented built-in node ids", () => {
+  it("ships exactly the 11 documented built-in node ids", () => {
     expect(BUILT_IN_NODE_IDS).toEqual([
       "data.fetch_quote",
       "data.fetch_history",
@@ -35,6 +35,7 @@ describe("node-registry: built-in specs", () => {
       "logic.compare",
       "action.log",
       "action.notify_desktop",
+      "action.webhook",
       "transform.json_path",
       "flow.sleep",
     ]);
@@ -90,7 +91,7 @@ describe("node-registry: built-in specs", () => {
 describe("node-registry: first-party union (code node + sidecar kinds)", () => {
   it("includes every built-in, the code node, and the 12 v0.6.0 sidecar kinds", () => {
     expect(FIRST_PARTY_NODE_IDS).toEqual([...BUILT_IN_NODE_IDS, CODE_NODE_ID, ...SIDECAR_NODE_IDS]);
-    expect(FIRST_PARTY_NODE_IDS).toHaveLength(23);
+    expect(FIRST_PARTY_NODE_IDS).toHaveLength(24);
     for (const id of FIRST_PARTY_NODE_IDS) {
       expect(FIRST_PARTY_NODE_SPECS[id]?.id).toBe(id);
     }
@@ -226,6 +227,7 @@ describe("node-registry: groupByCategory", () => {
       "ai.agent_invoke",
       "action.log",
       "action.notify_desktop",
+      "action.webhook",
     ]);
     expect(groups.output).toEqual([]);
   });
