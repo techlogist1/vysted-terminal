@@ -9,9 +9,10 @@ LLM adapter layer, sharing one set of serialisable models:
     synthesises prose from (prompt-driven). Honest about a missing web backend —
     never an empty or fabricated web section (FR-070).
 
-  - :func:`services.research.deep.run_deep_research` — a LangGraph-style bounded
-    loop: plan → parallel researchers → compress → reflect → (re-enter while
-    under budget) → synthesize. A :class:`~services.budget_guard.BudgetGuard`
+  - :func:`services.research.iter.run_iter_research` (and
+    ``run_heavy_research`` for ultra) — the ONE bounded deep loop, built on the
+    helpers in :mod:`services.research.deep`: parallel researchers, an evolving
+    report, reflect, synthesize. A :class:`~services.budget_guard.BudgetGuard`
     ceiling breach forces an IMMEDIATE abort→synthesize from whatever was
     gathered (never a bare timeout/error), with the breach reason on the brief
     (FR-071/072). A coverage floor keeps reflect from declaring "done" before at

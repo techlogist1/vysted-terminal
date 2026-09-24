@@ -1,39 +1,23 @@
-"""DEEP research — the bounded multi-researcher loop (FR-071/072, US13).
+"""DEEP research helpers — the tested building blocks of the ONE deep loop.
 
-``run_deep_research`` is the expensive, grounded half of the research engine. It
-runs a LangGraph-style loop — plan → parallel researchers → compress → reflect →
-(re-enter while under budget) → synthesize — over an INJECTED tool layer and LLM
-adapter, metered by a :class:`~services.budget_guard.BudgetGuard`.
-
-Three invariants the loop holds, all load-bearing:
-
-  - **Abort → synthesize, never a bare timeout.** ``budget.breach()`` is checked
-    at the TOP of every round. The FIRST breach forces an IMMEDIATE synthesis
-    from whatever was gathered and stamps the breach reason on ``brief.note``.
-    The function NEVER raises on a budget breach — a short brief beats an error
-    (SC-008 framing applied to research).
-
-  - **Coverage floor.** Reflect may NOT declare the run complete until at least
-    one source each for price / fundamentals / news / web is in hand. This stops
-    a model from calling "done" on a thin run.
-
-  - **Step accounting.** Each round records exactly one
-    ``budget.record(None, model, provider)`` so the step ceiling advances even
-    though token usage isn't available at this layer (the lead's handler wires
-    real usage when it has it). The record happens AFTER the top-of-round breach
-    check so the round that trips the step ceiling is the one whose breach the
-    NEXT top-of-round check catches.
+:mod:`services.research.iter` is the deep loop (``run_iter_research`` for
+``deep``, ``run_heavy_research`` for ``ultra``); this module holds the pieces it
+reuses verbatim: the researcher (:func:`_run_researcher`), the findings ledger
+(:class:`_Findings`) with its source de-dup, the coverage floor, the per-round
+wall slice, the structured floor, synthesis prompts and the budget-stop notes.
+The single-pass ``run_deep_research`` loop that used to live here was removed
+(R15-CODE-RESEARCH-003): it was a drifted second copy reachable only from an
+``except`` fallback.
 
 Everything model- or provider-facing is injected (``tool_call``, ``llm_call``)
-so the loop is unit-testable with fakes and carries no import-time coupling to a
-concrete provider.
+so the helpers are unit-testable with fakes and carry no import-time coupling to
+a concrete provider.
 """
 
 from __future__ import annotations
 
 import asyncio
 import re
-import time
 from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
 from typing import Any
@@ -42,14 +26,10 @@ from services.budget_guard import BudgetGuard
 from services.llm import oneshot
 from services.llm.base import is_length_finish
 from services.research import finance
-from services.research.fast import snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.target import (
     NO_INSTRUMENT_NOTE,
-    ResearchDisambiguation,
     ResearchTarget,
-    resolve_target,
-    resolved_payload,
 )
 from services.search.extract import VisitResult
 
@@ -1164,323 +1144,6 @@ async def _final_synthesis(
     return "\n".join(lines), False
 
 
-async def run_deep_research(
-    query: str,
-    *,
-    region: str | None = None,
-    tool_call: ToolCall,
-    llm_call: LLMCall,
-    budget: BudgetGuard,
-    on_step: OnStep | None = None,
-    max_researchers: int = 3,
-    visit: VisitCall | None = None,
-    min_web_domains: int = 1,
-    site_bias: bool = False,
-    target: ResearchTarget | None = None,
-    bound: bool = False,
-) -> ResearchBrief | dict[str, Any]:
-    """Run the DEEP bounded research loop for ``query``; return a brief — or,
-    R10 (D37), the honest needs-disambiguation payload when resolution lands
-    in the ambiguity band (no markdown, no structured pulls, no web spend).
-
-    See the module docstring for the loop shape and the three invariants. The
-    function ALWAYS returns a :class:`ResearchBrief` — a budget breach aborts to
-    synthesis (with a human note), never raises.
-
-    R8 target contract: resolution happens exactly ONCE. A caller that already
-    resolved passes ``target`` (possibly ``None`` for a web-only run) with
-    ``bound=True`` and this loop NEVER re-resolves; otherwise the clean
-    ``query`` is resolved here, once, via :func:`resolve_target`. ``None``
-    target → web-only research, ``brief.symbol == ""``, zero structured calls.
-
-    R7 depth knobs: ``min_web_domains`` scales the coverage strictness (distinct
-    web domains required before "complete"); ``site_bias`` turns on the finance
-    ``site:`` query bias for filings/fundamentals researchers.
-    """
-    findings = _Findings()
-    steps: list[ResearchStep] = []
-    structured: dict[str, Any] = {}
-
-    # Resolve once up front (unless the caller already bound the target) so
-    # every round + the web rounds use ONE clean symbol.
-    if target is None and not bound:
-        target = await resolve_target(tool_call, query, region=region)
-        if isinstance(target, ResearchDisambiguation):
-            return target.payload(query=query)
-    symbol = target.symbol if target is not None else ""
-    structured["resolved"] = resolved_payload(target)
-    # Snapshot price + fundamentals so a DEEP brief backs the same native metric
-    # cards as a FAST one (additive; a failed leg renders no card, never raises).
-    if target is not None:
-        structured.update(
-            await snapshot_structured(
-                tool_call, target.symbol, region=region, canonical_name=target.name
-            )
-        )
-        record_snapshot_sources(findings, target.symbol, structured)
-
-    async def abort_synthesize(reason: str) -> ResearchBrief:
-        """Immediate abort→synthesis from whatever is gathered (never raises)."""
-        t0 = time.monotonic()
-        markdown, truncated = await _final_synthesis(
-            llm_call, query=query, symbol=symbol, findings=findings, structured=structured
-        )
-        markdown = finalize_markdown(
-            markdown, target=target, structured=structured, findings=findings
-        )
-        latency = int((time.monotonic() - t0) * 1000)
-        # The RAW breach reason is a dev detail on the trace; the user-facing
-        # note is the one human sentence (R8 — note never reads like a guard).
-        step = ResearchStep("synthesize", f"abort→synthesize: {reason}", latency_ms=latency)
-        steps.append(step)
-        await _emit(on_step, step)
-        return _synthesize_brief(
-            query=query,
-            symbol=symbol,
-            markdown=markdown,
-            findings=findings,
-            structured=structured,
-            steps=steps,
-            budget=budget,
-            note=join_notes(BUDGET_STOP_NOTE, SYNTHESIS_TRUNCATED_NOTE if truncated else None),
-        )
-
-    async def _run_round(researchers: int | None = None, allow_visit: bool = True) -> bool:
-        """One DEEP round: plan → parallel researchers → compress → reflect.
-
-        Returns True when the coverage floor is met AND reflect says complete.
-        Extracted so the round can run under a per-round ``asyncio.timeout`` guard
-        (a single slow round can't outlive the wall budget) while still mutating
-        the shared ``findings``/``steps`` accumulators in place. The wind-down
-        retry after a round timeout passes ``researchers=1, allow_visit=False``.
-        """
-        fan_out = researchers if researchers is not None else max_researchers
-        round_visit = visit if allow_visit else None
-        # --- plan: what's unanswered? -> sub-questions ------------------------
-        from services.research import disclosures as disclosures_mod
-
-        disclosure_hint = disclosures_mod.plan_hint(target)
-        t0 = time.monotonic()
-        plan_text = await _safe_llm(
-            llm_call,
-            [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are planning a research run. List the open "
-                        "sub-questions still unanswered, one per line. Be specific.\n"
-                        + finance.date_directive()
-                        + (("\n" + disclosure_hint) if disclosure_hint else "")
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"Query: {query}\nSymbol: {symbol}\n"
-                        f"Findings so far:\n"
-                        + ("\n".join(f"- {f}" for f in findings.findings) or "(none yet)")
-                    ),
-                },
-            ],
-        )
-        open_questions = _split_subquestions(plan_text, limit=fan_out)
-        if not open_questions:
-            # No plan came back (dead/blank LLM) — seed a default fan-out so the
-            # round still does real work rather than stalling.
-            display = symbol or query
-            open_questions = [
-                f"What is the recent price action and trend for {display}?",
-                f"What do the latest fundamentals say about {display}?",
-                f"What recent news affects {display}?",
-            ][:fan_out]
-        plan_step = ResearchStep(
-            "plan",
-            f"planned {len(open_questions)} sub-question(s)",
-            latency_ms=int((time.monotonic() - t0) * 1000),
-        )
-        steps.append(plan_step)
-        await _emit(on_step, plan_step)
-
-        # --- parallel researchers --------------------------------------------
-        researcher_t0 = time.monotonic()
-        results = await asyncio.gather(
-            *(
-                _run_researcher(
-                    q,
-                    target=target,
-                    query=query,
-                    region=region,
-                    tool_call=tool_call,
-                    llm_call=llm_call,
-                    visit=round_visit,
-                    site_bias=site_bias,
-                )
-                for q in open_questions[:fan_out]
-            )
-        )
-        for q, (finding, web_res, structured_pairs, visited_pages, visit_failures) in zip(
-            open_questions[:fan_out], results, strict=False
-        ):
-            findings.findings.append(finding)
-            _record_web(findings, web_res, target=target, query=query)
-            findings.record_evidence(visited_pages)
-            for failed_url, reason in visit_failures:
-                vstep = visit_failure_step(failed_url, reason)
-                steps.append(vstep)
-                await _emit(on_step, vstep)
-            for pair in structured_pairs:
-                _record_structured(findings, symbol, pair["dim"], pair["result"])
-            rstep = ResearchStep(
-                "tool",
-                f"researcher: {q}",
-                latency_ms=int((time.monotonic() - researcher_t0) * 1000),
-            )
-            steps.append(rstep)
-            await _emit(on_step, rstep)
-
-        # --- compress (citation-preserving) ----------------------------------
-        compress_t0 = time.monotonic()
-        compress_step = ResearchStep(
-            "compress",
-            f"compressed {len(findings.findings)} finding(s), "
-            f"{len(findings.all_sources())} source(s)",
-            latency_ms=int((time.monotonic() - compress_t0) * 1000),
-        )
-        steps.append(compress_step)
-        await _emit(on_step, compress_step)
-
-        # --- reflect: coverage met? gaps? ------------------------------------
-        reflect_t0 = time.monotonic()
-        reflect_text = await _safe_llm(
-            llm_call,
-            [
-                {
-                    "role": "system",
-                    "content": (
-                        "Reflect on research coverage. Start your reply with "
-                        "exactly one word: COMPLETE if coverage is sufficient, or "
-                        "GAPS followed by the remaining gaps, one per line.\n"
-                        + finance.date_directive()
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"Query: {query}\n"
-                        f"Coverage: {findings.coverage}\n"
-                        f"Findings:\n" + "\n".join(f"- {f}" for f in findings.findings)
-                    ),
-                },
-            ],
-        )
-        reflect_step = ResearchStep(
-            "reflect",
-            "assessed coverage",
-            latency_ms=int((time.monotonic() - reflect_t0) * 1000),
-        )
-        steps.append(reflect_step)
-        await _emit(on_step, reflect_step)
-
-        # Coverage FLOOR (R7): every dimension >=1 source AND >= min_web_domains
-        # distinct web domains — LOOSENED to web-only when no structured feed
-        # covers this instrument. Under-covered runs keep going (bounded by the
-        # budget) regardless of what the model said.
-        return coverage_floor_met(
-            findings, structured=structured, min_web_domains=min_web_domains
-        ) and _reflect_says_complete(reflect_text)
-
-    while True:
-        # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
-        reason = budget.breach()
-        if reason is not None:
-            return await abort_synthesize(reason)
-
-        # Each round counts as one step so the step ceiling advances. No usage at
-        # this layer — pass None; the lead's handler wires real usage if it has it.
-        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
-
-        # --- R8 graceful guard (a): starved wall → CLEAN synthesis ------------
-        # With under MIN_ROUND_WALL_SECS remaining, a fresh round would inherit
-        # a starved per-round ceiling, time out, and read like an abort. Wind
-        # down to the NORMAL completion path instead (note=None); the step trace
-        # records why for the dev log.
-        wall_left = remaining_wall(budget)
-        if wall_left is not None and wall_left < MIN_ROUND_WALL_SECS:
-            wind_step = ResearchStep(
-                "reflect",
-                f"stopped before a new round: {wall_left:.0f}s wall budget remaining "
-                f"(< {MIN_ROUND_WALL_SECS:.0f}s)",
-                status="skipped",
-            )
-            steps.append(wind_step)
-            await _emit(on_step, wind_step)
-            break
-
-        # --- per-round wall guard --------------------------------------------
-        # The run-level wall budget is only checked at the TOP of a round, and the
-        # foreground deep_research path (unlike the Delegate path) has no outer
-        # asyncio.timeout — so a single slow "thinking"-model round could stream
-        # for minutes. Bound EACH round. On overrun (R8 graceful guard (b)): the
-        # timeout is a DEV event, never a user-facing abort — with findings in
-        # hand and wall to spare, ONE constrained wind-down round (a single
-        # researcher, no page visits) runs, then the loop closes CLEANLY.
-        limit = _round_wall_limit(budget)
-        try:
-            async with asyncio.timeout(limit):
-                done = await _run_round()
-        except TimeoutError:
-            timeout_step = ResearchStep(
-                "reflect",
-                f"round overran its {limit:.0f}s slice — winding down",
-                status="skipped",
-            )
-            steps.append(timeout_step)
-            await _emit(on_step, timeout_step)
-            wall_left = remaining_wall(budget)
-            if findings.findings and (wall_left is None or wall_left >= MIN_ROUND_WALL_SECS):
-                retry_limit = _round_wall_limit(budget)
-                retry_step = ResearchStep(
-                    "plan", "one wind-down round (1 researcher, visits off)", status="ok"
-                )
-                steps.append(retry_step)
-                await _emit(on_step, retry_step)
-                try:
-                    async with asyncio.timeout(retry_limit):
-                        await _run_round(researchers=1, allow_visit=False)
-                except TimeoutError:
-                    pass  # the wind-down round is best-effort; synthesis follows
-            break
-        if done:
-            break
-
-        # Otherwise re-enter the loop — the top-of-round budget gate decides
-        # whether the next round runs or we abort→synthesize.
-
-    # --- clean completion: final synthesize ---------------------------------
-    synth_t0 = time.monotonic()
-    markdown, truncated = await _final_synthesis(
-        llm_call, query=query, symbol=symbol, findings=findings, structured=structured
-    )
-    markdown = finalize_markdown(markdown, target=target, structured=structured, findings=findings)
-    synth_step = ResearchStep(
-        "synthesize",
-        "wrote brief",
-        latency_ms=int((time.monotonic() - synth_t0) * 1000),
-    )
-    steps.append(synth_step)
-    await _emit(on_step, synth_step)
-    return _synthesize_brief(
-        query=query,
-        symbol=symbol,
-        markdown=markdown,
-        findings=findings,
-        structured=structured,
-        steps=steps,
-        budget=budget,
-        note=SYNTHESIS_TRUNCATED_NOTE if truncated else None,
-    )
-
-
 __all__ = [
     "BUDGET_STOP_NOTE",
     "LLM_CALL_TIMEOUT",
@@ -1499,7 +1162,6 @@ __all__ = [
     "finalize_markdown",
     "record_snapshot_sources",
     "remaining_wall",
-    "run_deep_research",
     "snapshot_context",
     "structured_feeds_available",
     "visit_failure_step",

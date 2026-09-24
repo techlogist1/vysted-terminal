@@ -41,12 +41,11 @@ Three per-run backends (tier_a):
   request only (``config.get_openrouter_search_key()`` / explicit ``api_key``).
 
 One deep LOOP (S-9): :mod:`services.research.iter` is THE deep loop
-(``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``).
-:mod:`services.research.deep` (``run_deep_research``, single-pass) is the INTERNAL
-helper module (iter reuses its tested helpers verbatim) AND the belt-and-suspenders
-FALLBACK only — it is no longer reachable as a user/model ``mode`` and never runs
-on the normal path; iter's abort→synthesize covers degradation. There is no
-user-reachable second deep loop.
+(``run_iter_research`` for ``deep``, ``run_heavy_research`` for ``heavy``);
+:mod:`services.research.deep` is its helper module. There is no second deep loop
+and no fallback loop: iter's abort→synthesize covers degradation, and an
+unexpected loop exception is an honest ``ok: False`` result
+(R15-CODE-RESEARCH-003).
 
 The research service is imported lazily inside the call so the module imports
 cleanly before the service lands and the tests can monkeypatch each seam in place.
@@ -54,11 +53,14 @@ cleanly before the service lands and the tests can monkeypatch each seam in plac
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # import-light: these types only ride annotations
     from services.budget_guard import BudgetGuard
     from services.research.depth import DepthProfile
+
+logger = logging.getLogger(__name__)
 
 #: Per-LLM-call wall-clock cap (seconds) for the research loop. An LLM adapter
 #: carries no per-stream timeout, so without this a slow "thinking" model could
@@ -256,14 +258,13 @@ async def _run_loop(
     depth table (:data:`services.research.depth.PROFILES`).
 
     The iter/heavy loops are designed never to raise (budget breach →
-    abort→synthesize); a belt-and-suspenders ``except`` still drops to the proven
-    single-pass ``run_deep_research`` (the NAMED internal fallback — never a
-    user/model-reachable mode) so the default path can never error out.
+    abort→synthesize). An unexpected exception becomes the honest failure result
+    (:func:`_loop_failed`) — never a second, differently-behaving loop
+    (R15-CODE-RESEARCH-003).
     """
     import config
     from services import agent_tools
     from services.budget_guard import BudgetGuard
-    from services.research import deep
     from services.research import iter as iter_research
     from services.search.extract import visit_for_research
 
@@ -293,8 +294,8 @@ async def _run_loop(
     if heavy:
         try:
             brief = await iter_research.run_heavy_research(query, angles=profile.angles, **common)
-        except Exception:  # heavy never raises by design; same fallback as iter
-            return await _single_pass_fallback(deep, query, common, loop="heavy")
+        except Exception as exc:  # heavy never raises by design
+            return _loop_failed("heavy", exc)
         if isinstance(brief, dict):
             # R10 (D37): needs-disambiguation pass-through — nothing to verify.
             return brief
@@ -317,24 +318,21 @@ async def _run_loop(
         return brief
     try:
         return await iter_research.run_iter_research(query, **common)
-    except Exception:  # iter never raises by design; fall back regardless
-        return await _single_pass_fallback(deep, query, common, loop="iter")
+    except Exception as exc:  # iter never raises by design
+        return _loop_failed("iter", exc)
 
 
-async def _single_pass_fallback(deep: Any, query: str, common: dict[str, Any], *, loop: str) -> Any:
-    """The NAMED single-pass fallback (S-9): not a parallel user-reachable loop,
-    only the catch-all so the deep and heavy paths can never error out. It takes
-    the shared researcher/coverage knobs but has no working report to cap."""
-    common.pop("report_char_cap", None)
-    brief = await deep.run_deep_research(query, **common)
-    # R10 review (E2 — stamp what RAN): the closed EXECUTION_LOOPS enum
-    # ("fast"/"iter"/"heavy"/"research-model", frozen contract) has no
-    # label for this fallback, so the caller's "iter"/"heavy" stamp would be a
-    # silent lie on its own — the degradation rides the brief's
-    # never-silent note channel instead.
-    if not isinstance(brief, dict) and brief.note is None:
-        brief.note = f"{loop} loop raised; the single-pass deep fallback ran"
-    return brief
+def _loop_failed(loop: str, exc: Exception) -> dict[str, Any]:
+    """The honest failure result for a deep loop that raised: ``ok: False`` with
+    the reason, which the tool boundary also stamps on the execution record."""
+    logger.exception("%s research loop raised", loop)
+    reason = f"the {loop} research loop failed: {type(exc).__name__}: {exc}"
+    return {
+        "ok": False,
+        "message": f"Deep research could not finish — {reason}.",
+        "execution_loop": loop,
+        "degraded_reason": reason,
+    }
 
 
 def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:

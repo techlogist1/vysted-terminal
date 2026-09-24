@@ -13,17 +13,21 @@ from services.research.depth import PROFILES
 from services.research.models import ResearchBrief
 
 
-def test_ultra_heavy_raise_falls_back_to_single_pass_with_note(monkeypatch) -> None:
-    """R15-RESEARCH-017: a raising run_heavy_research degrades like DEEP does."""
+def test_ultra_heavy_raise_is_an_honest_failure(monkeypatch) -> None:
+    """R15-RESEARCH-017 + R15-CODE-RESEARCH-003: a raising run_heavy_research
+    degrades like DEEP does — an honest failure naming the heavy loop, and the
+    iter loop is never run as a second attempt."""
+    iter_runs: list[str] = []
 
     async def boom(*_a: Any, **_k: Any) -> Any:
         raise RuntimeError("panel synthesis exploded")
 
-    async def single_pass(query: str, **_k: Any) -> ResearchBrief:
+    async def iter_loop(query: str, **_k: Any) -> ResearchBrief:
+        iter_runs.append(query)
         return ResearchBrief(query=query, symbol="X", mode="deep", markdown="## brief")
 
     monkeypatch.setattr(iter_research, "run_heavy_research", boom)
-    monkeypatch.setattr(deep, "run_deep_research", single_pass)
+    monkeypatch.setattr(iter_research, "run_iter_research", iter_loop)
 
     async def llm(_messages: list[dict[str, Any]]) -> str:
         return ""
@@ -36,9 +40,10 @@ def test_ultra_heavy_raise_falls_back_to_single_pass_with_note(monkeypatch) -> N
             budget=BudgetGuard(max_steps=4),
         )
     )
-    assert isinstance(brief, ResearchBrief)
-    assert brief.markdown == "## brief"
-    assert brief.note == "heavy loop raised; the single-pass deep fallback ran"
+    assert brief["ok"] is False
+    assert brief["execution_loop"] == "heavy"
+    assert "panel synthesis exploded" in brief["degraded_reason"]
+    assert iter_runs == []
 
 
 def _target(symbol: str, region: str, exchange: str) -> Any:
