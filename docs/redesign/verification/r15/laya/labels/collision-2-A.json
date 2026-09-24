@@ -1,0 +1,226 @@
+{
+ "shard": "collision-2",
+ "labels": [
+  {
+   "id": "collision-81",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "resolver latency note; entity only a lookup string"
+  },
+  {
+   "id": "collision-82",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "resolver latency note; entity only a lookup string"
+  },
+  {
+   "id": "collision-83",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "resolver latency note; entity only a lookup string"
+  },
+  {
+   "id": "collision-84",
+   "answer": "yes",
+   "confidence": 0.7,
+   "note": "Juniper Green is subject; Networks/Hotels are collision partners"
+  },
+  {
+   "id": "collision-85",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-86",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-87",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-88",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-89",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-90",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "US collision partner"
+  },
+  {
+   "id": "collision-91",
+   "answer": "yes",
+   "confidence": 0.6,
+   "note": "entity unnamed; Indian SME side inferred from rupee figures"
+  },
+  {
+   "id": "collision-92",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "rupee SME figures, not the US side"
+  },
+  {
+   "id": "collision-93",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "unnamed micro-cap NBFC with rupee revenue"
+  },
+  {
+   "id": "collision-94",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-95",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-96",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "facility-management micro-cap"
+  },
+  {
+   "id": "collision-97",
+   "answer": "no",
+   "confidence": 0.8,
+   "note": "not the facility-management company"
+  },
+  {
+   "id": "collision-98",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "collision shadow"
+  },
+  {
+   "id": "collision-99",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "collision-100",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "Indian sulphuric-acid maker, Atul subsidiary"
+  },
+  {
+   "id": "collision-101",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "US collision partner"
+  },
+  {
+   "id": "collision-102",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-103",
+   "answer": "yes",
+   "confidence": 0.75,
+   "note": "former name of same company"
+  },
+  {
+   "id": "collision-104",
+   "answer": "yes",
+   "confidence": 0.65,
+   "note": "entity unnamed; description fits holding-company NBFC"
+  },
+  {
+   "id": "collision-105",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-106",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "former name of same security"
+  },
+  {
+   "id": "collision-107",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "US bank holding company side"
+  },
+  {
+   "id": "collision-108",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "Indian collision partner"
+  },
+  {
+   "id": "collision-109",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-110",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "Indian collision partner"
+  },
+  {
+   "id": "collision-111",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "recent listing; Dhoot Industrial is the near-miss"
+  },
+  {
+   "id": "collision-112",
+   "answer": "no",
+   "confidence": 0.85,
+   "note": "near-miss collision partner"
+  },
+  {
+   "id": "collision-113",
+   "answer": "yes",
+   "confidence": 0.9,
+   "note": "Indian jewellery side"
+  },
+  {
+   "id": "collision-114",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "US collision partner"
+  },
+  {
+   "id": "collision-115",
+   "answer": "yes",
+   "confidence": 0.8,
+   "note": "rupee penny stock, not the pharma"
+  },
+  {
+   "id": "collision-116",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "collision partner"
+  },
+  {
+   "id": "collision-117",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "collision-118",
+   "answer": "no",
+   "confidence": 0.9,
+   "note": "US collision partner"
+  }
+ ]
+}

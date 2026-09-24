@@ -1,0 +1,414 @@
+{
+ "shard": "news-1",
+ "labels": [
+  {
+   "id": "news-1",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-2",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-3",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-4",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-5",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-6",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-7",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-8",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-9",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-10",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-11",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-12",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-13",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-14",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-15",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-16",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-17",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-18",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-19",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-20",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-21",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-22",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-23",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-24",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-25",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-26",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-27",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-28",
+   "answer": "yes",
+   "confidence": 0.95,
+   "note": "13D/A on issuer shares by holder; about ONC securities"
+  },
+  {
+   "id": "news-29",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-30",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-31",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-32",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-33",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-34",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-35",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-36",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-37",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-38",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-39",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-40",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-41",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-42",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-43",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-44",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-45",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-46",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-47",
+   "answer": "yes",
+   "confidence": 0.95,
+   "note": "promoter-group dealing in SAFE shares"
+  },
+  {
+   "id": "news-48",
+   "answer": "yes",
+   "confidence": 0.95,
+   "note": "promoter-group dealing in SAFE shares"
+  },
+  {
+   "id": "news-49",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-50",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-51",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-52",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-53",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-54",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-55",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-56",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-57",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-58",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-59",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-60",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-61",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-62",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "generic filing title; entity from issuer announcement feed"
+  },
+  {
+   "id": "news-63",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-64",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-65",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-66",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-67",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-68",
+   "answer": "yes",
+   "confidence": 0.85,
+   "note": "generic filing title; SMR ticker collision, entity from issuer feed"
+  },
+  {
+   "id": "news-69",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-70",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "news-71",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-72",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-73",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-74",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-75",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-76",
+   "answer": "yes",
+   "confidence": 0.85
+  },
+  {
+   "id": "news-77",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "NVDA story; no listed holding mentioned"
+  },
+  {
+   "id": "news-78",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "US market wrap; no listed holding mentioned"
+  },
+  {
+   "id": "news-79",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Apple story; no listed holding mentioned"
+  },
+  {
+   "id": "news-80",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Apple/Nvidia story; no listed holding mentioned"
+  }
+ ]
+}

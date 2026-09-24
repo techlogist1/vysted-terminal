@@ -1,0 +1,115 @@
+{
+  "role": "laya-baseline",
+  "base_branch": "004-r4-experience-rebuild",
+  "units": {
+    "turn": "one composer message (classify_intent runs once per agent-mode turn: sidecar/services/agent_runtime.py:1651)",
+    "deep_run": "one DEEP research run (entity_match runs once per retrieved web row: sidecar/services/research/deep.py:725)",
+    "session": "one composer turn that runs one DEEP research brief (the unit the totals use)"
+  },
+  "decisions": [
+    {
+      "type": "entity_match",
+      "sites": [
+        "sidecar/services/resolution_policy.py:119",
+        "sidecar/services/research/relevance.py:522",
+        "sidecar/services/research/relevance.py:593",
+        "sidecar/services/research/deep.py:725",
+        "sidecar/services/research/relevance.py:623",
+        "sidecar/services/research/fast.py:482",
+        "sidecar/services/research/deep.py:889"
+      ],
+      "path_today": "heuristic",
+      "per_session": 13,
+      "per_session_kind": "lower bound per DEEP run",
+      "per_session_derivation": "every web row that becomes a source passed row_relevant() once (deep.py:725 -> relevance.py:601 -> entity_match); r2-deep-cgpower captured 13 web URLs (surface/research-briefs/EVIDENCE.md:30, :73). Rows scored and dropped are not logged, and news items scored by gate_news are not counted, so the true count is higher and unknown.",
+      "latency_ms": null,
+      "latency_note": "pure in-process function, never timed in r15 evidence",
+      "paid_round_trips_per_session": 0,
+      "cost_usd": 0,
+      "keyless": true,
+      "sources": [
+        "sidecar/services/research/relevance.py:12 (docstring: no network, no LLM)",
+        "sidecar/services/resolution_policy.py:119 (decide: pure, deterministic)",
+        "docs/redesign/verification/r15/surface/research-briefs/EVIDENCE.md:30,73",
+        "docs/redesign/verification/r15/census/code/research-retrieval-relevance.md:146,148 (on-entity headlines scored 0.0 and dropped)"
+      ]
+    },
+    {
+      "type": "composer_intent",
+      "sites": [
+        "sidecar/services/planner.py:178",
+        "sidecar/services/agent_runtime.py:1651",
+        "sidecar/services/agent_runtime.py:1604",
+        "src/modules/chat/slash-commands.ts:65",
+        "sidecar/services/planner.py:350 (paid, compound turns only)"
+      ],
+      "path_today": "heuristic; paid planner pre-pass on compound turns only",
+      "per_session": 1,
+      "per_session_derivation": "classify_intent runs once per agent-mode turn (agent_runtime.py:1651); probes show one IntentResult per message (surface/composer-chat/52-intent-gate-probe.txt, 20 lines; surface/portfolio-notes/30-intent-gate-portfolio-notes.txt, 15 lines). A compound turn calls it a second time (agent_runtime.py:1604) and then makes one paid decompose() call (agent_runtime.py:1617) when the turn is not read-only and the provider is in _PLANNER_PROVIDERS (agent_runtime.py:101, :1712).",
+      "latency_ms": null,
+      "latency_note": "classify_intent is never timed; the planner call is capped at _PLANNER_TIMEOUT_SECONDS = 20.0 (agent_runtime.py:1007) but its own latency is not measured. A whole compound turn on gpt-4o-mini took 5.6 s (spend-ledger.jsonl:54).",
+      "paid_round_trips_per_session": 0,
+      "paid_round_trips_compound_turn": 1,
+      "cost_usd": 0,
+      "cost_note": "the classification is $0. A compound turn adds one paid planner call; the whole compound turn cost $0.001399 on gpt-4o-mini (spend-ledger.jsonl:54, tag s2a-cc-plan-4omini). The planner's share of that figure is unknown.",
+      "keyless": true,
+      "keyless_note": "the classification runs keyless. The planner pre-pass is skipped entirely on the local ollama path (agent_runtime.py:98-101)",
+      "sources": [
+        "sidecar/services/planner.py:178-186 (docstring: no LLM, no network)",
+        "sidecar/services/agent_runtime.py:98-107, 1007, 1592-1627, 1648-1656, 1698-1714",
+        "docs/redesign/verification/r15/surface/composer-chat/52-intent-gate-probe.txt:10",
+        "docs/redesign/verification/r15/surface/composer-chat/EVIDENCE.md:60,126",
+        "docs/redesign/verification/r15/spend-ledger.jsonl:54"
+      ]
+    },
+    {
+      "type": "holding_relevance",
+      "sites": [],
+      "path_today": "none (not implemented)",
+      "per_session": null,
+      "per_session_derivation": "no code decides whether a news item concerns a portfolio holding. The scout's site (relevance.py:623 gate_news) matches news to the bound RESEARCH TARGET, not to holdings, so it moved to entity_match. It is the same shape and the closest reusable code.",
+      "latency_ms": null,
+      "paid_round_trips_per_session": null,
+      "cost_usd": null,
+      "keyless": null,
+      "sources": [
+        "sidecar/services/research/relevance.py:623-643 (gate_news: target-scoped, IN-equity only)",
+        "docs/redesign/verification/r15/laya/baseline/evidence.json (no call site in r15 evidence)"
+      ]
+    },
+    {
+      "type": "thesis_contradiction",
+      "sites": [],
+      "path_today": "none (not implemented)",
+      "per_session": null,
+      "per_session_derivation": "no code compares a filing sentence with a written thesis. It exists only as backlog idea BL-09 / quant-9. The closest analogue is the ULTRA numeric cross-check (sidecar/services/research/verify.py:120 _parse_verdict: AGREE/DISAGREE/UNVERIFIED over a claim against fresh evidence). It runs only when profile.cross_check is set (agent_tools/deep_research.py:302) and makes 1 extract call plus at most _MAX_CLAIMS = 5 verdict calls (verify.py:80) on the run's own model. Those calls are not metered by the ledger (surface/research-briefs/EVIDENCE.md:147-148). This analogue is not counted in the totals.",
+      "latency_ms": null,
+      "paid_round_trips_per_session": null,
+      "cost_usd": null,
+      "keyless": null,
+      "sources": [
+        "sidecar/services/research/verify.py:1-15, 80, 120-135",
+        "sidecar/services/agent_tools/deep_research.py:302-312",
+        "docs/redesign/verification/r15/invent/BACKLOG.md:56 (BL-09), docs/redesign/verification/r15/invent/ideas/quant.json:185 (quant-9)"
+      ]
+    }
+  ],
+  "dropped_from_scouts": [
+    {"site": "sidecar/services/research/semantics.py:542", "reason": "cross-source NUMERIC divergence (institutional-holding % from two feeds), not a text decision and not thesis-shaped"},
+    {"site": "sidecar/services/research/relevance.py:623 as holding_relevance", "reason": "matches news to the research target, not to holdings; moved to entity_match"},
+    {"site": "sidecar/services/research/verify.py:118 as thesis_contradiction", "reason": "numeric-claim cross-check, not thesis vs filing; kept as a documented analogue only, uncounted"},
+    {"site": "sidecar/services/planner.py:353", "reason": "line corrected to :350 (def decompose)"},
+    {"obs": "research_synthesis_llm_call latency 60014 ms", "reason": "a synthesis-step timeout (EVIDENCE.md:30), not one of the four decisions"},
+    {"obs": "research_whole_turn cost 0.003777 (spend-ledger.jsonl:43)", "reason": "whole DEEP turn, not attributable to any of the four decisions"}
+  ],
+  "totals": {
+    "per_session": 14,
+    "per_session_kind": "lower bound: 1 composer_intent + at least 13 entity_match per DEEP-research turn",
+    "paid_round_trips_per_session": 0,
+    "paid_round_trips_compound_turn": 1,
+    "latency_ms_per_session": null,
+    "cost_usd_per_session": 0,
+    "cost_usd_note": "the four decisions cost $0 in model spend today, because the two that exist are heuristics and the other two are never made. The only paid call in scope is the compound-turn planner, whose turn cost is at most $0.001399 on gpt-4o-mini (spend-ledger.jsonl:54).",
+    "skipped_entirely": ["holding_relevance", "thesis_contradiction", "composer planner pre-pass on the keyless ollama path"]
+  }
+}

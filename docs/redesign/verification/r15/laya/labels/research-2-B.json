@@ -1,0 +1,158 @@
+{
+ "shard": "research-2",
+ "labels": [
+  {
+   "id": "research-81",
+   "answer": "no",
+   "confidence": 0.7,
+   "note": "NVDA header but content is Indian market news (Raymond, HFCL, Welspun)"
+  },
+  {
+   "id": "research-82",
+   "answer": "yes",
+   "confidence": 0.9
+  },
+  {
+   "id": "research-83",
+   "answer": "no",
+   "confidence": 0.55,
+   "note": "mostly Sansera and Solar Industries ratings, NVDA only as quote pointer"
+  },
+  {
+   "id": "research-84",
+   "answer": "yes",
+   "confidence": 0.95
+  },
+  {
+   "id": "research-85",
+   "answer": "yes",
+   "confidence": 0.97
+  },
+  {
+   "id": "research-86",
+   "answer": "no",
+   "confidence": 0.6,
+   "note": "tool-failure message, no Dixon content"
+  },
+  {
+   "id": "research-87",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "generic 200-DMA breakout item"
+  },
+  {
+   "id": "research-88",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "generic market live headline"
+  },
+  {
+   "id": "research-89",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "geopolitics news"
+  },
+  {
+   "id": "research-90",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "generic pre-market setup"
+  },
+  {
+   "id": "research-91",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Adani Group Sebi settlement"
+  },
+  {
+   "id": "research-92",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Florida artist story"
+  },
+  {
+   "id": "research-93",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "credit card issuers"
+  },
+  {
+   "id": "research-94",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Fairfax India / IIFL Capital"
+  },
+  {
+   "id": "research-95",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Trump UNGA remarks"
+  },
+  {
+   "id": "research-96",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Finolex, BlueStone, JSW Infra"
+  },
+  {
+   "id": "research-97",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "home-building couple story"
+  },
+  {
+   "id": "research-98",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Vijay Mallya court news"
+  },
+  {
+   "id": "research-99",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Bitcoin market"
+  },
+  {
+   "id": "research-100",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Engineers India and other small-caps"
+  },
+  {
+   "id": "research-101",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "kharif acreage"
+  },
+  {
+   "id": "research-102",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "NSE IPO bidding"
+  },
+  {
+   "id": "research-103",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "NSE IPO allotment"
+  },
+  {
+   "id": "research-104",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Hindustan Copper"
+  },
+  {
+   "id": "research-105",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Welspun Corp rally"
+  },
+  {
+   "id": "research-106",
+   "answer": "no",
+   "confidence": 0.97,
+   "note": "Oracle Financial and others open interest"
+  }
+ ]
+}
