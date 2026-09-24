@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MacroCatalog, MacroSeriesExtended } from "../../../types/macro";
@@ -108,5 +108,33 @@ describe("MacroPanel", () => {
     render(<MacroPanel />);
     await waitFor(() => expect(screen.getByTestId("macro-error")).toBeInTheDocument());
     expect(screen.getByText(/FRED is down/)).toBeInTheDocument();
+  });
+
+  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+    vi.useFakeTimers();
+    const ecbDefault = "FM.D.U2.EUR.4F.KR.MRR_FR.LEV";
+    vi.mocked(sidecarGet).mockImplementation(async (path: string) => {
+      if (path === "/macro/DGS10") return SAMPLE_SERIES;
+      if (path === "/macro/catalog") return SAMPLE_CATALOG;
+      // A transient-looking failure: the retry hook WOULD re-fire this.
+      throw new TypeError("Failed to fetch");
+    });
+    render(<MacroPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    fireEvent.click(screen.getByTestId("macro-provider-ecb"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60000);
+    });
+    const seriesCalls = vi
+      .mocked(sidecarGet)
+      .mock.calls.filter(([path]) => path !== "/macro/catalog");
+    expect(seriesCalls).toEqual([
+      ["/macro/DGS10", { provider: "fred" }],
+      [`/macro/${encodeURIComponent(ecbDefault)}`, { provider: "ecb" }],
+    ]);
+    expect(screen.getByTestId("macro-error")).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });
