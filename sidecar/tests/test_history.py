@@ -233,3 +233,67 @@ def test_a_crypto_pair_routes_through_the_indicators_path(client: TestClient, mo
     )
     assert resp.status_code == 200
     assert asked == [("BTC/USDT", "crypto")]
+
+
+def _frozen_series(monkeypatch, bar_day: str) -> None:  # noqa: ANN001
+    """Freeze the clock at 2026-09-23 21:30 UTC (a Wednesday, after the US
+    close) and serve one AAPL bar dated ``bar_day``."""
+    from datetime import UTC, date, datetime
+
+    from models.market import OHLCVBar, OHLCVSeries
+    from services import locale, provider_registry
+
+    now = datetime(2026, 9, 23, 21, 30, tzinfo=UTC)
+
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):  # noqa: ANN001, ANN206
+            return now.astimezone(tz) if tz else now
+
+    monkeypatch.setattr(locale, "datetime", _Frozen)
+    stamp = datetime.combine(date.fromisoformat(bar_day), datetime.min.time(), UTC)
+    bar = OHLCVBar(timestamp=stamp, open=1.0, high=2.0, low=1.0, close=1.5, volume=10.0)
+
+    def series(symbol, timeframe, range_=None, asset_class="equity"):  # noqa: ANN001, ANN202, ARG001
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=[bar], provider="yfinance")
+
+    monkeypatch.setattr(provider_registry, "get_history", series)
+
+
+def _freshness(client: TestClient, timeframe: str) -> str:
+    return client.get("/history/AAPL", params={"timeframe": timeframe}).json()["freshness"]
+
+
+def test_current_month_bar_dated_the_first_reads_fresh(client: TestClient, monkeypatch) -> None:
+    # R15-DATA-065: a 1mo bar is stamped at its period start; its period holds
+    # the most recent session, so it is today's close, not 16 sessions stale.
+    _frozen_series(monkeypatch, "2026-09-01")
+    assert _freshness(client, "1mo") == "eod"
+    _frozen_series(monkeypatch, "2026-08-01")
+    assert _freshness(client, "1mo") == "stale"
+
+
+def test_period_stamps_at_either_end_read_the_same(client: TestClient, monkeypatch) -> None:
+    # Class pin: a period-END stamp (a pandas ME/W resample, still used by the
+    # BSE and jugaad lanes) and the weekly Monday stamp land in the same period.
+    cases = (("2026-09-30", "1mo"), ("2026-09-21", "1wk"), ("2026-09-27", "1wk"))
+    for bar_day, timeframe in cases:
+        _frozen_series(monkeypatch, bar_day)
+        assert _freshness(client, timeframe) == "eod", (bar_day, timeframe)
+    _frozen_series(monkeypatch, "2026-09-01")
+    assert _freshness(client, "1wk") == "stale"
+
+
+def test_nse_resample_stamps_the_period_start() -> None:
+    from datetime import UTC, datetime
+
+    from models.market import OHLCVBar
+    from services import nse_provider
+
+    days = [datetime(2026, 9, d, tzinfo=UTC) for d in (18, 21, 22, 23)]  # Fri, Mon-Wed
+    bars = [OHLCVBar(timestamp=t, open=1.0, high=2.0, low=1.0, close=1.5, volume=1.0) for t in days]
+    monthly = nse_provider._resample(bars, "1mo")
+    assert [b.timestamp.date().isoformat() for b in monthly] == ["2026-09-01"]
+    weekly = nse_provider._resample(bars, "1wk")
+    assert [b.timestamp.date().isoformat() for b in weekly] == ["2026-09-14", "2026-09-21"]
+    assert weekly[1].volume == 3.0

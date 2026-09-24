@@ -772,10 +772,14 @@ def _data_rows(path: str, payload: object) -> list[dict]:
 
 
 def _resample(bars: list[OHLCVBar], timeframe: str) -> list[OHLCVBar]:
-    """Resample daily bars to weekly/monthly OHLCV (right-labelled)."""
+    """Resample daily bars to weekly (Mon-Sun) / monthly OHLCV, each stamped at
+    its period's START like yfinance's, so the current period never carries a
+    future date (R15-DATA-065)."""
     if not bars:
         return bars
-    rule = "W" if timeframe == "1wk" else "ME"
+    weekly = timeframe == "1wk"
+    rule = "W-MON" if weekly else "MS"
+    closed_label = {"closed": "left", "label": "left"} if weekly else {}
     frame = pd.DataFrame(
         {
             "timestamp": [b.timestamp for b in bars],
@@ -786,7 +790,7 @@ def _resample(bars: list[OHLCVBar], timeframe: str) -> list[OHLCVBar]:
             "volume": [b.volume for b in bars],
         }
     ).set_index("timestamp")
-    agg = frame.resample(rule).agg(
+    agg = frame.resample(rule, **closed_label).agg(
         {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
     )
     agg = agg.dropna(subset=["open", "close"])
