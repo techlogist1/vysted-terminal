@@ -319,6 +319,16 @@ describe("SettingsPanel", () => {
     expect(within(section).getByText(/never exported/i)).toBeInTheDocument();
   });
 
+  it("Region & locale states the actual default and what region controls (R15-DATA-092)", () => {
+    render(<SettingsPanel />);
+    const section = screen.getByRole("region", { name: "Region & locale" });
+    // Not "only number formatting" — the copy names the sidecar-side effects.
+    expect(within(section).getByText(/symbol resolver/i)).toBeInTheDocument();
+    // Not "Defaults to United States" — the real default is India.
+    expect(within(section).getByText(/defaults to india/i)).toBeInTheDocument();
+    expect(within(section).queryByText(/defaults to united states/i)).toBeNull();
+  });
+
   // ---- R8 sectioned hierarchy (ONE search surface) ----
 
   it("groups the page into named sections with a jump nav", () => {

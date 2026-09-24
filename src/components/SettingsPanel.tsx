@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { formatModelLabel } from "@/components/StatusChrome";
-import { type Region, REGIONS } from "@/lib/region";
+import { DEFAULT_REGION, type Region, REGIONS, regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
@@ -1334,11 +1334,13 @@ function RegionSection() {
       <SectionHeader
         id="settings-region"
         title="Region & locale"
-        hint="Locale used for number formatting — a foundation for region-first data + feeds in a later release."
+        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
       />
       <Card>
-        {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
-        <SettingRow label="Region" hint="Defaults to United States.">
+        {/* Region / locale (R15-DATA-092): drives X-Vysted-Region on every
+            sidecar request — not just number formatting. Defaults to
+            DEFAULT_REGION (India), not REGIONS[0]. */}
+        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>
           <Select
             aria-label="Region"
             value={region}
