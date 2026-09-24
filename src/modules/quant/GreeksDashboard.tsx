@@ -30,10 +30,13 @@ import { Gauge } from "lucide-react";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { useQuantStore } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 
 import type { GreeksRequest, GreeksResult, OptionPayoff } from "../../../types/quant";
+import { DISPLAY_CURRENCIES, formatOptionPrice, greekForDisplay } from "./units";
 
 interface FieldProps {
   label: string;
@@ -85,6 +88,7 @@ interface SensitivityRow {
   glyph: string;
   name: string;
   value: number;
+  unit: string | null;
   read: string;
 }
 
@@ -100,7 +104,7 @@ const SENSITIVITY_COLUMNS: DataColumn<SensitivityRow>[] = [
     header: "Value",
     numeric: true,
     width: "22%",
-    format: (r) => r.value.toFixed(4),
+    format: (r) => (r.unit ? `${r.value.toFixed(4)} ${r.unit}` : r.value.toFixed(4)),
   },
   {
     key: "read",
@@ -118,11 +122,13 @@ function GreekCard({
   glyph,
   name,
   value,
+  unit,
   testId,
 }: {
   glyph: string;
   name: string;
   value: number;
+  unit: string | null;
   testId: string;
 }) {
   return (
@@ -134,6 +140,7 @@ function GreekCard({
         {glyph} {name}
       </span>
       <span className="text-charcoal-100 text-section tabular-nums">{value.toFixed(4)}</span>
+      {unit && <span className="text-charcoal-500 text-micro">{unit}</span>}
     </div>
   );
 }
@@ -173,6 +180,11 @@ export function GreeksDashboard() {
   const [vol, setVol] = useState("0.28");
   const [valuationDate, setValuationDate] = useState("2026-05-16");
   const [expiryDate, setExpiryDate] = useState("2026-06-30");
+
+  // Display currency, defaulting to the session region's (the Bond pricer's
+  // R15-DATA-100 select). Display only; the request stays currency-free.
+  const region = useSettingsStore((s) => s.region);
+  const [displayCurrency, setDisplayCurrency] = useState(() => regionConfig(region).currency);
 
   // The request a displayed result was computed FROM — echoed next to the price
   // so the readout never silently pairs with edited-but-uncomputed inputs.
@@ -229,7 +241,7 @@ export function GreeksDashboard() {
     ? GREEK_ROWS.map((g) => ({
         glyph: g.glyph,
         name: g.name,
-        value: lastResult.greeks[g.key],
+        ...greekForDisplay(lastResult.greeks, g.key),
         read: g.read,
       }))
     : [];
@@ -315,6 +327,22 @@ export function GreeksDashboard() {
           disabled={isRunning}
         />
 
+        <label className="flex flex-col gap-1">
+          <span className="text-charcoal-500 text-micro">Display currency</span>
+          <select
+            value={displayCurrency}
+            onChange={(e) => setDisplayCurrency(e.target.value)}
+            data-testid="greeks-display-currency"
+            className="bg-charcoal-850 text-charcoal-100 border-charcoal-700 rounded-control text-body focus-visible:border-charcoal-500 h-8 border px-3 outline-none"
+          >
+            {DISPLAY_CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </label>
+
         {validationError !== null && (
           <p className="text-negative text-caption" role="alert" data-testid="greeks-validation">
             {validationError}
@@ -367,7 +395,7 @@ export function GreeksDashboard() {
                   className="text-overview text-charcoal-100 tabular-nums"
                   data-testid="greeks-price"
                 >
-                  ${lastResult.price.toFixed(4)}
+                  {formatOptionPrice(lastResult.price, displayCurrency)}
                 </span>
               </div>
               {computedReq && (
@@ -394,7 +422,7 @@ export function GreeksDashboard() {
                   key={g.key}
                   glyph={g.glyph}
                   name={g.name}
-                  value={lastResult.greeks[g.key]}
+                  {...greekForDisplay(lastResult.greeks, g.key)}
                   testId={`greek-${g.key}`}
                 />
               ))}

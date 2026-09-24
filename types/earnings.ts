@@ -56,9 +56,13 @@ export interface EarningsEvent {
  */
 export interface EarningsSurprise {
   symbol: string;
-  /** ISO-8601 date the company reported (may differ from the originally
-   * scheduled date if rescheduled). */
-  reported_date: string;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key / chart x-axis;
+   * unlike `reported_date` it is never null. */
+  period_end: string;
+  /** ISO-8601 date the company actually reported, when found within 0-120
+   * days of `period_end` — null otherwise. Distinct from `period_end`: a
+   * company can report weeks after its quarter closes. */
+  reported_date: string | null;
   fiscal_period: FiscalPeriod | null;
   /** Actual reported EPS. */
   eps_actual: number;
@@ -118,18 +122,30 @@ export interface EarningsUpcomingResponse {
   /** End of the requested window (inclusive). */
   end_date: string;
   events: EarningsEvent[];
+  /**
+   * When this window was actually fetched from the provider (R15-DATA-068)
+   * — a cache hit carries the ORIGINAL fetch time, not the read time.
+   */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/surprises``. */
 export interface EarningsSurprisesResponse {
   symbol: string;
   surprises: EarningsSurprise[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }
 
 /** Returned by ``/earnings/{symbol}/history``. */
 export interface EarningsHistoryEntry {
   fiscal_period: FiscalPeriod | null;
-  reported_date: string;
+  /** The fiscal quarter end (R15-LEAD-016) — the sort key, NOT the
+   * announcement date. */
+  period_end: string;
+  /** The actual announcement date, when found within 0-120 days of
+   * `period_end` — null otherwise. */
+  reported_date: string | null;
   eps_actual: number;
   eps_estimate_mean: number | null;
   revenue_actual: number | null;
@@ -140,4 +156,6 @@ export interface EarningsHistoryEntry {
 export interface EarningsHistoryResponse {
   symbol: string;
   history: EarningsHistoryEntry[];
+  /** R15-DATA-068 — see {@link EarningsUpcomingResponse.as_of}. */
+  as_of: string | null;
 }

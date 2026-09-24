@@ -1,4 +1,4 @@
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { Editor } from "@tiptap/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -81,5 +81,29 @@ describe("NotesPanel — the notes store is authoritative", () => {
       vi.advanceTimersByTime(1000);
     });
     expect(useNotesStore.getState().bySymbol.MSFT).toBe("m");
+  });
+
+  it("R15-UI-050: a slash-menu row never carries a fixed h-8 (two-line rows clip)", async () => {
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    await renderPanel();
+
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent("notes:slash-menu", {
+          detail: {
+            items: [{ title: "Heading 1", description: "Large section heading", action: vi.fn() }],
+            rect: { bottom: 10, left: 10, top: 0, right: 0, width: 0, height: 0 } as DOMRect,
+            query: "",
+            command: vi.fn(),
+          },
+        }),
+      );
+    });
+
+    const row = screen.getByText("Heading 1").closest("button");
+    expect(row).not.toBeNull();
+    const classes = row!.className.split(/\s+/);
+    expect(classes).not.toContain("h-8");
+    expect(classes).toContain("min-h-8");
   });
 });

@@ -166,17 +166,86 @@ def status(family: str = YAHOO) -> dict[str, float | int | bool]:
         }
 
 
+# ---------------------------------------------------------------------------
+# Registry fall-throughs (R15-LIFECYCLE-021) — per (provider, model_key), the
+# run of consecutive failures the registry fell through since that provider
+# last served. A dead or moved upstream shows here instead of only in the log.
+# ---------------------------------------------------------------------------
+
+#: A provider with this many consecutive fall-throughs, the latest within
+#: :data:`FAILING_WINDOW_SECONDS`, is treated as failing (/health, the chrome).
+FAILING_STREAK = 3
+FAILING_WINDOW_SECONDS = 600.0
+
+
+@dataclass
+class _Fallthrough:
+    count: int = 0
+    last_error: str = ""
+    last_at: float = 0.0  # epoch seconds
+
+
+_fallthroughs: dict[tuple[str, str], _Fallthrough] = {}
+
+
+def record_fallthrough(provider: str, model_key: str, error: str) -> None:
+    """The registry fell through ``provider`` for ``model_key``."""
+    with _registry_lock:
+        row = _fallthroughs.setdefault((provider, model_key), _Fallthrough())
+        row.count += 1
+        row.last_error = error[:300]
+        row.last_at = time.time()
+
+
+def record_served(provider: str, model_key: str) -> None:
+    """``provider`` answered ``model_key`` — its fall-through run ends."""
+    with _registry_lock:
+        _fallthroughs.pop((provider, model_key), None)
+
+
+def is_failing(provider: str, model_key: str) -> bool:
+    with _registry_lock:
+        row = _fallthroughs.get((provider, model_key))
+        return (
+            row is not None
+            and row.count >= FAILING_STREAK
+            and time.time() - row.last_at < FAILING_WINDOW_SECONDS
+        )
+
+
+def fallthroughs() -> list[dict[str, str | int | float]]:
+    """Every open fall-through run, for ``/system/provider-health`` (C14)."""
+    with _registry_lock:
+        return [
+            {
+                "provider": provider,
+                "model_key": model_key,
+                "count": row.count,
+                "last_error": row.last_error,
+                "last_at": row.last_at,
+            }
+            for (provider, model_key), row in _fallthroughs.items()
+        ]
+
+
 def reset_for_tests() -> None:
     """Drop every family's state (test isolation)."""
     with _registry_lock:
         _families.clear()
+        _fallthroughs.clear()
 
 
 __all__ = [
+    "FAILING_STREAK",
+    "FAILING_WINDOW_SECONDS",
     "YAHOO",
     "cooldown_remaining",
+    "fallthroughs",
+    "is_failing",
     "is_open",
+    "record_fallthrough",
     "record_rate_limited",
+    "record_served",
     "record_success",
     "reset_for_tests",
     "status",

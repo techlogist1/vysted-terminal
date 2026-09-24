@@ -60,6 +60,7 @@ export function AnalystRatingsPanel() {
   const getHistory = useAnalystRatingsStore((s) => s.getHistory);
   const getPriceTargets = useAnalystRatingsStore((s) => s.getPriceTargets);
   const getIndividual = useAnalystRatingsStore((s) => s.getIndividual);
+  const refreshAnalyst = useAnalystRatingsStore((s) => s.refresh);
 
   useEffect(() => {
     if (!symbol) return;
@@ -76,9 +77,9 @@ export function AnalystRatingsPanel() {
     }
   };
 
-  const history = symbol ? (histories[symbol]?.history ?? null) : null;
-  const targets = symbol ? (priceTargets[symbol]?.history ?? null) : null;
-  const individual = symbol ? (individuals[symbol]?.analysts ?? null) : null;
+  const history = symbol ? (histories[symbol]?.payload?.history ?? null) : null;
+  const targets = symbol ? (priceTargets[symbol]?.payload?.history ?? null) : null;
+  const individual = symbol ? (individuals[symbol]?.payload?.analysts ?? null) : null;
 
   const historyError = symbol ? historyErrors[symbol] : null;
   const priceTargetError = symbol ? priceTargetErrors[symbol] : null;
@@ -87,6 +88,13 @@ export function AnalystRatingsPanel() {
   const tabError =
     tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
   const tabData = tab === "history" ? history : tab === "price-targets" ? targets : individual;
+  const tabFetchedAt = symbol
+    ? tab === "history"
+      ? histories[symbol]?.fetchedAt
+      : tab === "price-targets"
+        ? priceTargets[symbol]?.fetchedAt
+        : individuals[symbol]?.fetchedAt
+    : undefined;
 
   // A slice is "loading" while its symbol is set, the data hasn't arrived, and
   // no error has landed — gate the child empty-states behind this so the fetch
@@ -147,6 +155,24 @@ export function AnalystRatingsPanel() {
               active={tab === "individual"}
               onSelect={() => setTab("individual")}
             />
+            <div className="ml-auto flex items-center gap-2 pb-2">
+              {tabFetchedAt !== undefined && (
+                <span
+                  className="text-charcoal-500 text-caption"
+                  title={new Date(tabFetchedAt).toLocaleString()}
+                >
+                  As of {new Date(tabFetchedAt).toLocaleTimeString()}
+                </span>
+              )}
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={() => symbol && void refreshAnalyst(symbol)}
+              >
+                Refresh
+              </Button>
+            </div>
           </nav>
 
           {/* A failed slice that still has cached data keeps the table below

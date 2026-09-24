@@ -109,9 +109,9 @@ def test_get_series_dispatches_to_ecb(client: TestClient, patch_all_providers: N
 
 def test_get_series_dispatches_to_imf(client: TestClient, patch_all_providers: None) -> None:
     # IMF series ids use ``/`` to separate dataflow from key; the path parameter
-    # accepts the dot-prefixed legacy form too (``IFS.A.US.NGDP_R_K_IX``) which
+    # accepts the dot-prefixed legacy form too (``WEO.USA.NGDP_RPCH.A``) which
     # the IMF provider's id parser handles either way.
-    res = client.get("/macro/IFS.A.US.NGDP_R_K_IX", params={"provider": "imf"})
+    res = client.get("/macro/WEO.USA.NGDP_RPCH.A", params={"provider": "imf"})
     assert res.status_code == 200
     assert res.json()["provider"] == "imf"
 
@@ -123,11 +123,40 @@ def test_get_series_routes_an_imf_id_with_a_slash(
     percent-encoded; Starlette decodes ``%2F`` before matching, so the route
     must take a path parameter. The discovery routes declared before it still
     route."""
-    res = client.get("/macro/IFS%2FA.US.NGDP_R_K_IX", params={"provider": "imf"})
+    res = client.get("/macro/WEO%2FUSA.NGDP_RPCH.A", params={"provider": "imf"})
     assert res.status_code == 200
-    assert res.json()["series_id"] == "IFS/A.US.NGDP_R_K_IX"
+    assert res.json()["series_id"] == "WEO/USA.NGDP_RPCH.A"
     assert client.get("/macro/search", params={"q": "gdp", "provider": "imf"}).status_code == 200
     assert client.get("/macro/catalog", params={"provider": "imf"}).status_code == 200
+
+
+def test_imf_default_id_routes_to_the_sdmx3_provider(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-UI-053: the panel's IMF default (the catalog head) goes through the
+    real provider to the SDMX 3.0 dataflow and renders its observations."""
+    from services.macro import imf_provider
+
+    default_id = imf_provider.catalog().entries[0].series_id
+    assert default_id == "WEO/USA.NGDP_RPCH.A"
+    seen: list[tuple[str, str]] = []
+
+    def fetch(dataflow: str, key: str) -> dict[str, Any]:
+        seen.append((dataflow, key))
+        return {
+            "data": {
+                "dataSets": [{"series": {"0:0:0": {"observations": {"0": ["2.8"]}}}}],
+                "structures": [{"dimensions": {"observation": [{"values": [{"value": "2025"}]}]}}],
+            }
+        }
+
+    monkeypatch.setattr(imf_provider, "_fetch", fetch)
+    res = client.get("/macro/WEO%2FUSA.NGDP_RPCH.A", params={"provider": "imf"})
+    assert res.status_code == 200
+    body = res.json()
+    assert seen == [("WEO", "USA.NGDP_RPCH.A")]
+    assert body["frequency"] == "annual"
+    assert body["observations"][0]["value"] == pytest.approx(2.8)
 
 
 def test_get_series_dispatches_to_world_bank(client: TestClient, patch_all_providers: None) -> None:

@@ -53,11 +53,7 @@ async def _tool_message(
         agent_id="copilot", prompt="look into RELIANCE", api_key="k", mode="edit"
     ):
         pass
-    return next(
-        m.content
-        for m in provider.round_messages[1]
-        if m.role == "tool" and m.tool_call_id == "t-1"
-    )
+    return next(m.content for m in provider.round_messages[1] if m.role == "tool")
 
 
 @pytest.mark.asyncio

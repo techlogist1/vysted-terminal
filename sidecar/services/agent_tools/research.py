@@ -40,6 +40,7 @@ import json
 import time
 import uuid
 from typing import Any
+from urllib.parse import urlparse
 
 from services.agent_tools import register_tool
 
@@ -138,6 +139,155 @@ def _stamp_execution(payload: Any, *, run_id: str, requested_depth: str, started
     return payload
 
 
+#: ``ResearchExecution.loop`` → the brief's (mode, depth) badges (R10, E2). The
+#: stamp derives from the loop that RAN — never the result payload's ``mode``
+#: (the old ``raw_mode`` read that stamped a DEEP run "FAST" whenever a payload
+#: omitted the field). ``research-model`` maps per REQUESTED stop below.
+_LOOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "fast": ("fast", "quick"),
+    "iter": ("deep", "deep"),
+    "heavy": ("deep", "heavy"),
+}
+
+#: The research-model (Tier B) lane maps per requested stop: only a NORMAL
+#: request renders as the quick tier; deep/ultra requests render at the deep
+#: tier they bought (heavy for ultra so "Go deeper" stays honest).
+_RESEARCH_MODEL_STOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
+    "normal": ("fast", "quick"),
+    "deep": ("deep", "deep"),
+    "ultra": ("deep", "heavy"),
+}
+
+
+def _mode_depth(execution: dict[str, Any]) -> tuple[str, str]:
+    """The brief's (mode, depth) derived ONLY from the execution record."""
+    loop = str(execution.get("loop") or "")
+    if loop == "research-model":
+        requested = str(execution.get("requested_depth") or "normal")
+        return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
+    return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
+
+
+def brief_for(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """The ``publish_brief`` input for a stamped engine return (C6).
+
+    The runtime publishes it verbatim, so this is the one place that knows the
+    engines' payload shapes (a FAST web round under ``web.{citations,results}``,
+    a DEEP run's top-level ``sources``) and the snake_case keys the frontend's
+    ``briefFromInput`` reads. ``None`` for a failed or execution-less result, so
+    a broken run never half-publishes. A ``needs_disambiguation`` result
+    publishes the candidate chooser instead of a guessed brief (D37).
+    """
+    if not payload.get("ok"):
+        return None
+    execution = payload.get("execution")
+    if not isinstance(execution, dict) or not execution.get("run_id"):
+        return None
+    # Honest disambiguation (D37): publish the chooser, nothing else — no
+    # markdown, no structured, no guessed entity. The panel renders the
+    # candidate picker keyed on the run's execution record.
+    if payload.get("needs_disambiguation"):
+        query = payload.get("query", "")
+        return {
+            "query": query,
+            "disambiguation": {"query": query, "candidates": payload.get("candidates") or []},
+            "execution": execution,
+        }
+    markdown = payload.get("markdown")
+    structured = payload.get("structured")
+    has_markdown = isinstance(markdown, str) and bool(markdown.strip())
+    has_structured = isinstance(structured, dict) and bool(structured)
+    # Fire when the result carries prose OR the structured bundle: a DEEP run
+    # returns a synthesized markdown (a full brief auto-renders); a FAST run
+    # returns only the structured data (the model writes the prose) — seeding
+    # structured here keeps the native metric cards populated even when the
+    # model's own publish_brief omits the big structured dict.
+    if not has_markdown and not has_structured:
+        return None
+    # Sources: a DEEP run carries a top-level ``sources`` list; a FAST run strands
+    # its web round under ``web.{citations,results}`` with NO top-level ``sources``
+    # — so the synthetic publish dropped them and a quick research rendered
+    # "0 sources / structured only" even though the keyless DuckDuckGo floor had
+    # returned real results. Map the FAST web round into brief sources so a quick
+    # research surfaces the REAL web citations (the same shape the DEEP path emits).
+    sources = payload.get("sources")
+    web = payload.get("web") if isinstance(payload.get("web"), dict) else None
+    if not sources and web is not None:
+        rows = web.get("citations") or web.get("results") or []
+        sources = [
+            {
+                "url": row.get("url"),
+                "title": row.get("title") or row.get("url"),
+                "excerpt": row.get("excerpt") or row.get("snippet") or "",
+                # A bare host, never "web"; the date rides along (RESEARCH-024, C4).
+                "domain": row.get("domain") or urlparse(row["url"]).hostname or "",
+                "published_at": row.get("published_at"),
+            }
+            for row in rows
+            if isinstance(row, dict) and row.get("url")
+        ]
+    sources = sources or []
+    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST),
+    # RECONCILED with the source count. A brief that surfaced ANY source (web OR
+    # structured provenance) must NOT also claim the web was unavailable — that is
+    # symptom #2 ("N sources" + a "web unavailable" banner firing together). The
+    # honest structured-only banner survives only when ZERO sources were gathered.
+    web_available = payload.get("web_available")
+    if web_available is None and web is not None:
+        web_available = web.get("available")
+    if not web_available and sources:
+        web_available = True
+    # Forward the FAST web round's honest note/detail/reason onto the brief: the
+    # top-level ``note`` carries a DEEP run's breach reason, but a FAST bundle
+    # strands its web-search status under ``web.{note,detail,reason}`` (e.g. a
+    # transient DDG rate-limit vs a genuine no-backend). Carry the nested note when
+    # there is no top-level note so the banner states WHY honestly instead of a
+    # blanket "no backend". ``web_reason`` lets the frontend pick the banner copy.
+    note = payload.get("note")
+    web_reason = None
+    if web is not None:
+        web_reason = web.get("reason")
+        if not note:
+            note = web.get("note") or web.get("detail")
+    # The true depth TIER the run reached (FR-115/E2): derived ONLY from the
+    # execution record's loop — never from the payload's ``mode`` (the old read
+    # stamped any mode-less payload "FAST", so a DEEP run rendered as quick).
+    mode, depth = _mode_depth(execution)
+    # Forward only the fields the publish_brief host-action consumes (snake_case,
+    # exactly as the frontend's briefFromInput reads them).
+    return {
+        "query": payload.get("query", ""),
+        "symbol": payload.get("symbol", ""),
+        "mode": mode,
+        "depth": depth,
+        # R10 (D38): the verbatim execution record rides the publish so the
+        # panel's badges + run-scoped carry key on what actually RAN.
+        "execution": execution,
+        "markdown": markdown if isinstance(markdown, str) else "",
+        "sources": sources,
+        "structured": structured,
+        "cost": payload.get("cost"),
+        "web_available": bool(web_available),
+        "note": note,
+        "web_reason": web_reason,
+        # R9: the engine's honest backend id rides the synthetic publish so the
+        # brief panel can render the keyless-fallback nudge / name the Tier B
+        # research model (gates 2-4 evidence). A FAST bundle has no engine-level
+        # id — lift the web round's retrieval id (the web_search tool stamps
+        # keyless-fallback there) so a NORMAL run nudges honestly too.
+        "backend": payload.get("backend") or (web.get("backend") if web else None),
+    }
+
+
+def _with_brief(payload: Any) -> Any:
+    """Attach :func:`brief_for` as ``payload["brief"]`` when there is one."""
+    if isinstance(payload, dict):
+        brief = brief_for(payload)
+        if brief is not None:
+            payload["brief"] = brief
+    return payload
+
+
 async def _research(args: dict[str, Any]) -> dict[str, Any]:
     """Run research for ``query`` at the requested internal ``depth``.
 
@@ -189,7 +339,9 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
         # per-stop Settings map is authoritative (never a surprise model on the
         # user's key); only the explicit api_key arg (internal callers) rides.
         out = await run_research_model_brief(query, depth=depth, api_key=args.get("api_key"))
-        return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+        return _with_brief(
+            _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+        )
 
     if depth in (depth_mod.DEPTH_DEEP, depth_mod.DEPTH_ULTRA):
         from services.agent_tools.deep_research import run_deep_brief
@@ -204,7 +356,9 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
             backend=args.get("backend"),
             api_key=args.get("api_key"),
         )
-        return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+        return _with_brief(
+            _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+        )
 
     import config
     from services import agent_tools
@@ -220,7 +374,9 @@ async def _research(args: dict[str, Any]) -> dict[str, Any]:
     )
     if isinstance(out, dict):
         out.setdefault("depth", depth_mod.DEPTH_NORMAL)
-    return _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+    return _with_brief(
+        _stamp_execution(out, run_id=run_id, requested_depth=depth, started_at=started_at)
+    )
 
 
 #: Statement-denominated money sizes (the ``Fundamentals`` contract in
@@ -305,13 +461,18 @@ def model_view(payload: Any) -> Any:
 
 
 def model_content(result_str: str) -> str:
-    """:func:`model_view` over a serialised research result (the tool message)."""
+    """:func:`model_view` over a serialised research result (the tool message).
+
+    The ``brief`` is the panel's copy of the same bundle (C6), so the model never
+    reads it twice.
+    """
     try:
         payload = json.loads(result_str)
     except (json.JSONDecodeError, ValueError, TypeError):
         return result_str
+    had_brief = isinstance(payload, dict) and payload.pop("brief", None) is not None
     view = model_view(payload)
-    if view is payload:
+    if view is payload and not had_brief:
         return result_str
     # ensure_ascii=False: the model reads "₹289,504 cr", not "\u20b9289,504 cr".
     return json.dumps(view, default=str, ensure_ascii=False)
@@ -322,4 +483,4 @@ def register() -> None:
     register_tool("research", _research)
 
 
-__all__ = ["_research", "model_content", "model_view", "register"]
+__all__ = ["_research", "brief_for", "model_content", "model_view", "register"]

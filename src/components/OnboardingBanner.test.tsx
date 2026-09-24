@@ -54,6 +54,14 @@ describe("OnboardingBanner (R15-UI-019)", () => {
     expect(await screen.findByRole("status")).toHaveTextContent(/Add a cloud provider key/);
   });
 
+  it("does not claim nothing leaves the machine (R15-UI-052) — only keys do not", async () => {
+    answerValidate(NOT_RUNNING);
+    render(<OnboardingBanner />);
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent(/market data and web searches still go to public providers/i);
+    expect(status).not.toHaveTextContent(/nothing leaves this machine/i);
+  });
+
   it("a dismissal survives a remount", async () => {
     answerValidate(NOT_RUNNING);
     const first = render(<OnboardingBanner />);

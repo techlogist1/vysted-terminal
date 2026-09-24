@@ -24,11 +24,15 @@ from services.errors import ProviderError
 
 _FIXTURES = Path(__file__).parent / "fixtures" / "nse"
 
-_HISTORICAL = json.loads((_FIXTURES / "historical_or_cm_equity.json").read_text())
-_ANNOUNCEMENTS = json.loads((_FIXTURES / "corporate_announcements.json").read_text())
-_EVENTS = json.loads((_FIXTURES / "event_calendar.json").read_text())
-_SHAREHOLDING = json.loads((_FIXTURES / "corporate_share_holdings_master.json").read_text())
-_ACCESS_DENIED = (_FIXTURES / "quote_equity_access_denied.html").read_text()
+_HISTORICAL = json.loads((_FIXTURES / "historical_or_cm_equity.json").read_text(encoding="utf-8"))
+_ANNOUNCEMENTS = json.loads(
+    (_FIXTURES / "corporate_announcements.json").read_text(encoding="utf-8")
+)
+_EVENTS = json.loads((_FIXTURES / "event_calendar.json").read_text(encoding="utf-8"))
+_SHAREHOLDING = json.loads(
+    (_FIXTURES / "corporate_share_holdings_master.json").read_text(encoding="utf-8")
+)
+_ACCESS_DENIED = (_FIXTURES / "quote_equity_access_denied.html").read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -439,7 +443,9 @@ def _index_aware_responder(path: str, sme_payload: object, empty: object):  # no
 
 def test_emerge_announcements_query_the_sme_index(monkeypatch: pytest.MonkeyPatch) -> None:
     """R15-DATA-017: SUMAX (NSE Emerge) filings are served only under index=sme."""
-    captured = json.loads((_FIXTURES / "announcements_sumax_sme_20260924.json").read_text())
+    captured = json.loads(
+        (_FIXTURES / "announcements_sumax_sme_20260924.json").read_text(encoding="utf-8")
+    )
     sessions = _install(
         monkeypatch, _index_aware_responder("/api/corporate-announcements", captured, [])
     )
@@ -454,7 +460,7 @@ def test_emerge_shareholding_master_queries_the_sme_index(
     """R15-DATA-017, pinned on a different endpoint and name than the fix was
     written against: QUALIANCE's shareholding master."""
     captured = json.loads(
-        (_FIXTURES / "shareholding_master_qualiance_sme_20260924.json").read_text()
+        (_FIXTURES / "shareholding_master_qualiance_sme_20260924.json").read_text(encoding="utf-8")
     )
     _install(
         monkeypatch,
@@ -466,7 +472,9 @@ def test_emerge_shareholding_master_queries_the_sme_index(
 
 def test_emerge_history_queries_the_sm_series(monkeypatch: pytest.MonkeyPatch) -> None:
     """An Emerge name trades in the SM series; ["EQ"] returns no rows for it."""
-    captured = json.loads((_FIXTURES / "historical_or_sumax_sm_20260924.json").read_text())
+    captured = json.loads(
+        (_FIXTURES / "historical_or_sumax_sm_20260924.json").read_text(encoding="utf-8")
+    )
 
     def responder(session: _FakeSession, url: str, params: dict) -> _FakeResponse:
         if url == "https://www.nseindia.com/":

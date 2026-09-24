@@ -387,7 +387,7 @@ export function NotesPanel() {
               key={item.title}
               type="button"
               className={cn(
-                "flex h-8 w-full flex-col items-start justify-center px-3 text-left transition-colors",
+                "flex min-h-8 w-full flex-col items-start justify-center px-3 py-1 text-left transition-colors",
                 i === slashActiveIdx
                   ? "bg-charcoal-800 text-charcoal-100"
                   : "text-charcoal-300 hover:bg-charcoal-800",

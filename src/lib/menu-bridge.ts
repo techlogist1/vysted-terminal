@@ -1,16 +1,18 @@
-import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
-import { useWorkspaceStore } from "@/store/workspace";
+import { dispatchLayoutMenuCommand } from "@/store/command-palette";
 
 /**
  * macOS menu-bar bridge (003) — the native Layout menu (built in `lib.rs`,
  * macOS-only) labels its items Fundamental / Technical / Macro / Compare / Reset
- * and emits `vysted://menu-layout` with a historical template id, mapped once to
- * its layout mode by `MENU_PAYLOAD_TO_MODE`. A menu mode is a
- * DETERMINISTIC "switch to this cockpit": `applyLayoutMode` CLEARS the grid and
- * tiles exactly that mode's panel set (NOT the agent's additive, fit-downgraded
- * arrange — Bug-4: "Fundamental" was collapsing to a single brief panel). A user
- * menu click is direct (no diff gate). Outside a Tauri webview (static export /
- * browser) it's a no-op — the dynamic import of the Tauri event API simply fails.
+ * and emits `vysted://menu-layout` with a historical template id. A menu mode is
+ * a DETERMINISTIC "switch to this cockpit": `dispatchLayoutMenuCommand` CLEARS
+ * the grid and tiles exactly that mode's panel set (NOT the agent's additive,
+ * fit-downgraded arrange — Bug-4: "Fundamental" was collapsing to a single
+ * brief panel). It's the SAME dispatch the command palette's layout-mode
+ * commands use (R15-CROSS-PLATFORM-004) — the menu is one more caller, not a
+ * separate implementation, so Windows/Linux (no native menu) reach the
+ * identical deterministic modes via the palette. A user menu click is direct
+ * (no diff gate). Outside a Tauri webview (static export / browser) it's a
+ * no-op — the dynamic import of the Tauri event API simply fails.
  */
 export function initMenuBridge(): () => void {
   let unlisten: (() => void) | null = null;
@@ -24,19 +26,10 @@ export function initMenuBridge(): () => void {
         // Observable so a native-menu click is confirmable in the app console
         // (the operator's ratifying click should log this line).
         console.info(`[menu-bridge] received vysted://menu-layout → ${template}`);
-        const api = useWorkspaceStore.getState().dockviewApi;
-        if (!api) {
-          console.warn("[menu-bridge] no dockview api yet — layout not applied");
-          return;
-        }
-        const mode = MENU_PAYLOAD_TO_MODE[template];
-        if (template === "default") {
-          useWorkspaceStore.getState().resetToDefaultLayout();
-        } else if (mode) {
-          applyLayoutMode(api, mode);
-          console.info(`[menu-bridge] applied layout mode → ${mode}`);
+        if (dispatchLayoutMenuCommand(template)) {
+          console.info(`[menu-bridge] applied layout payload → ${template}`);
         } else {
-          console.warn(`[menu-bridge] unknown layout payload → ${template}`);
+          console.warn(`[menu-bridge] unknown layout payload or no dockview api → ${template}`);
         }
       });
       if (alive) {

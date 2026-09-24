@@ -249,7 +249,8 @@ async def test_strategy_critic_use_case_2_end_to_end(monkeypatch: pytest.MonkeyP
     tool_messages = [m for m in second_call_messages if m.role == "tool"]
     assert len(tool_messages) == 1
     tool_message = tool_messages[0]
-    assert tool_message.tool_call_id == "tu_001"
+    # Paired to the streamed call by its runtime-minted id (R15-AGENT-046).
+    assert tool_message.tool_call_id == events[0].tool_call_id
     # The summary payload must mention the strategy and run id.
     assert result.run_id in tool_message.content
     assert "e2e_buy_sell" in tool_message.content

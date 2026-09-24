@@ -7,7 +7,7 @@ import { ChatSidebar } from "@/modules/chat/ChatSidebar";
 import { cn } from "@/lib/utils";
 import { tween } from "@/lib/motion";
 import { AGENT_DOCK_MAX_WIDTH, AGENT_DOCK_MIN_WIDTH, useAgentDockStore } from "@/store/agent-dock";
-import { matchesEvent, useKeybindingsStore } from "@/store/keybindings";
+import { registerAction } from "@/store/keybindings";
 
 /**
  * The agent's primary-column shell (FR-001) — the agent surface as a dominant,
@@ -62,20 +62,11 @@ export function AgentDock({ children }: { children: React.ReactNode }) {
     document.body.style.userSelect = "none";
   }, []);
 
-  // Data-driven toggle shortcut (⌘B by default) — mirrors the command palette's
-  // keybinding dispatch. Lives here on the always-mounted wrapper so it works
-  // whether the dock is open or fully closed.
-  useEffect(() => {
-    function onKeyDown(event: globalThis.KeyboardEvent) {
-      const combo = useKeybindingsStore.getState().bindingFor("agent.toggle");
-      if (combo && matchesEvent(combo, event)) {
-        event.preventDefault();
-        toggleCollapsed();
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [toggleCollapsed]);
+  // Register the toggle shortcut's handler (⌘B by default); the app-level
+  // dispatcher (`page.tsx`) resolves the (possibly remapped) binding and
+  // calls this. Registered on the always-mounted wrapper so it works whether
+  // the dock is open or fully closed.
+  useEffect(() => registerAction("agent.toggle", toggleCollapsed), [toggleCollapsed]);
 
   // The dock collapses/expands by animating its width; during an interactive
   // drag-resize the transition is instant so the handle tracks the pointer

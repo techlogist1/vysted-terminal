@@ -18,6 +18,8 @@ const chartApi = {
   removeSeries: vi.fn(),
   timeScale: vi.fn(() => timeScale),
   remove: vi.fn(),
+  subscribeCrosshairMove: vi.fn(),
+  unsubscribeCrosshairMove: vi.fn(),
 };
 vi.mock("lightweight-charts", () => ({
   createChart: vi.fn(() => chartApi),

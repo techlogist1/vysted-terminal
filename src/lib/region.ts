@@ -1,17 +1,17 @@
 /**
- * Region / locale — the minimal foundation seam (Pass A item 8).
+ * Region / locale (default `IN` since R10 E1).
  *
- * A single region setting (default `IN` since R10 E1) drives locale-aware formatting today and
- * is the registration point a later pass uses to make data + feeds region-first
- * (e.g. India-first quotes/news, INR + FX). This module is PURE (no store import)
- * so it can be read anywhere without a cycle; the ACTIVE region lives in the
- * settings bundle (`store/settings`), read at the format seam (`lib/format`).
+ * Drives locale-aware number formatting AND, via the `X-Vysted-Region` header
+ * sent on every sidecar request, the symbol resolver's market, the exchange
+ * calendar that labels a quote live/stale, the macro provider, the news feed
+ * and the screener universe (R15-DATA-092 — this is live, not a later-pass
+ * seam). This module is PURE (no store import) so it can be read anywhere
+ * without a cycle; the ACTIVE region lives in the settings bundle
+ * (`store/settings`), read at the format seam (`lib/format`) and threaded
+ * onto sidecar requests (`lib/sidecar-client`).
  *
- * Pass B extends this WITHOUT a refactor: add a region row here, and read
- * `region` where a data-provider/feed adapter is chosen (see EXTENSION_SEAMS.md).
- * Deliberately small now — selecting a non-US region only changes number LOCALE
- * (grouping); currency stays USD until a later pass adds FX conversion, since the
- * underlying market data is USD-denominated.
+ * Currency display still stays USD until a later pass adds FX conversion,
+ * since the underlying market data is USD-denominated.
  */
 
 /** The supported regions. `IN` is present as the Pass-B target; `GLOBAL` is a
@@ -43,7 +43,11 @@ export function isRegion(value: unknown): value is Region {
   return typeof value === "string" && REGIONS.some((r) => r.id === value);
 }
 
-/** Resolve a region id to its config, falling back to the default (US). */
+/** Resolve a region id to its config, falling back to the actual default (India). */
 export function regionConfig(region: Region): RegionConfig {
-  return REGIONS.find((r) => r.id === region) ?? REGIONS[0];
+  return (
+    REGIONS.find((r) => r.id === region) ??
+    REGIONS.find((r) => r.id === DEFAULT_REGION) ??
+    REGIONS[0]
+  );
 }

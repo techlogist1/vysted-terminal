@@ -14,9 +14,10 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { KeyEntryDialog } from "@/components/KeyEntryDialog";
 import { formatModelLabel } from "@/components/StatusChrome";
-import { type Region, REGIONS } from "@/lib/region";
+import { DEFAULT_REGION, type Region, REGIONS, regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { deleteSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import { HOST_VERSION } from "@/lib/plugin-bootstrap";
@@ -37,14 +38,20 @@ import {
 import {
   DEFAULT_KEYBINDINGS,
   formatBinding,
+  isMacPlatform,
   type KeybindingCategory,
   type KeybindingDef,
+  normalizeBinding,
   useKeybindingsStore,
 } from "@/store/keybindings";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { type CatalogEntry, useModelCatalog } from "@/store/model-catalog";
-import { KNOWN_MODELS_BY_PROVIDER, useModelSelectionStore } from "@/store/model-selection";
+import {
+  KNOWN_MODELS_BY_PROVIDER,
+  REGISTRY_PROVIDERS,
+  useModelSelectionStore,
+} from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
@@ -53,6 +60,8 @@ import { useContainerWidth } from "@/lib/use-container-width";
 import {
   RESEARCH_MODEL_OPTIONS,
   type ResearchStop,
+  type SearchSettingsBundle,
+  type SearchSettingsInput,
   useSearchSettingsStore,
 } from "@/store/search-settings";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
@@ -410,14 +419,20 @@ function ProvidersSection() {
   const refreshOne = useProviderKeysStore((s) => s.refreshOne);
 
   const [dialogProvider, setDialogProvider] = useState<LLMProviderId | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   async function handleRemove(id: LLMProviderId) {
-    await deleteSecret(KEYCHAIN_NAMESPACES.llmProvider(id));
-    await refreshOne(id);
+    setRemoveError(null);
+    try {
+      await deleteSecret(KEYCHAIN_NAMESPACES.llmProvider(id));
+      await refreshOne(id);
+    } catch (error) {
+      setRemoveError(error instanceof Error ? error.message : "Could not remove the key.");
+    }
   }
 
   return (
@@ -504,14 +519,16 @@ function ProvidersSection() {
                   </span>
                   <span className="flex w-8 justify-end">
                     {needsKey && configured && (
-                      <button
-                        type="button"
+                      <ConfirmButton
+                        variant="ghost"
+                        size="icon-xs"
                         aria-label={`Remove ${provider.label} key`}
-                        onClick={() => void handleRemove(provider.id)}
-                        className="text-charcoal-400 hover:text-negative rounded-control p-2"
+                        onConfirm={() => void handleRemove(provider.id)}
+                        armedLabel={<Trash2 className={ICON_14} aria-hidden="true" />}
+                        className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-2"
                       >
                         <Trash2 className={ICON_14} aria-hidden="true" />
-                      </button>
+                      </ConfirmButton>
                     )}
                   </span>
                 </div>
@@ -519,6 +536,7 @@ function ProvidersSection() {
             );
           })}
         </Card>
+        {removeError && <p className="text-negative text-caption">{removeError}</p>}
 
         <DefaultsGroup />
       </div>
@@ -1322,11 +1340,13 @@ function RegionSection() {
       <SectionHeader
         id="settings-region"
         title="Region & locale"
-        hint="Locale used for number formatting — a foundation for region-first data + feeds in a later release."
+        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
       />
       <Card>
-        {/* Region / locale — Pass A item 8 foundation seam (defaults to US) */}
-        <SettingRow label="Region" hint="Defaults to United States.">
+        {/* Region / locale (R15-DATA-092): drives X-Vysted-Region on every
+            sidecar request — not just number formatting. Defaults to
+            DEFAULT_REGION (India), not REGIONS[0]. */}
+        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>
           <Select
             aria-label="Region"
             value={region}
@@ -1361,24 +1381,34 @@ const CATEGORY_ORDER: { id: KeybindingCategory; label: string }[] = [
 /**
  * Build a binding-grammar combo string from a keydown event. Modifiers first
  * (in the store's canonical order), the key last. `mod` is emitted for the
- * platform-primary modifier so it renders ⌘/Ctrl correctly. A bare modifier
- * press (e.g. just Shift) yields `""` so we keep listening for the real key.
+ * platform-primary modifier (⌘ on macOS, Ctrl elsewhere) so a recorded combo
+ * matches `DEFAULT_KEYBINDINGS`' grammar and `conflicts()` — which compares
+ * resolved chords — actually catches a collision with a `mod+…` default
+ * instead of leaving it as a platform-literal `meta+…`/`ctrl+…` string no
+ * default ever uses. A bare modifier press (e.g. just Shift) yields `""` so
+ * we keep listening for the real key.
  */
 function comboFromEvent(event: React.KeyboardEvent): string {
   const key = event.key.toLowerCase();
   if (["control", "shift", "alt", "meta", "os", "hyper"].includes(key)) {
     return "";
   }
+  const mac = isMacPlatform();
   const parts: string[] = [];
-  // `metaKey`→⌘ and `ctrlKey`→Ctrl; collapse the platform-primary one to `mod`
-  // so the binding matches the store's grammar regardless of OS.
-  if (event.ctrlKey) parts.push("ctrl");
+  if (mac) {
+    // On macOS, mod = ⌘ (metaKey); Control is a distinct, explicit modifier.
+    if (event.ctrlKey) parts.push("ctrl");
+    if (event.metaKey) parts.push("mod");
+  } else {
+    // Elsewhere, mod = Ctrl; metaKey is the (rare) literal Windows/Super key.
+    if (event.ctrlKey) parts.push("mod");
+    if (event.metaKey) parts.push("meta");
+  }
   if (event.altKey) parts.push("alt");
   if (event.shiftKey) parts.push("shift");
-  if (event.metaKey) parts.push("meta");
   const normalizedKey = key === " " ? "space" : key === "esc" ? "escape" : key;
   parts.push(normalizedKey);
-  return parts.join("+");
+  return normalizeBinding(parts.join("+"));
 }
 
 function KeybindingsSection() {
@@ -1673,9 +1703,15 @@ function LayoutsSection() {
         <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
           Save
         </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => void resetLayout()}>
+        <ConfirmButton
+          size="sm"
+          variant="ghost"
+          aria-label="Reset layout to default"
+          armedLabel="Confirm reset?"
+          onConfirm={() => void resetLayout()}
+        >
           Reset to default
-        </Button>
+        </ConfirmButton>
       </form>
       {error && <p className="text-negative text-caption mb-2">{error}</p>}
       {names === null ? (
@@ -1702,19 +1738,21 @@ function LayoutsSection() {
                 >
                   Load
                 </button>
-                <button
-                  type="button"
+                <ConfirmButton
+                  variant="ghost"
+                  size="icon-xs"
                   aria-label={`Delete layout ${name}`}
-                  onClick={() =>
+                  onConfirm={() =>
                     void withBusy(async () => {
                       await deleteWorkspace(name);
                       await reload();
                     })
                   }
-                  className="text-charcoal-400 hover:text-negative rounded-control p-1"
+                  armedLabel={<X className={ICON_14} aria-hidden="true" />}
+                  className="text-charcoal-400 hover:text-negative rounded-control h-auto w-auto p-1"
                 >
                   <X className={ICON_14} aria-hidden="true" />
-                </button>
+                </ConfirmButton>
               </div>
             </div>
           ))}
@@ -1773,28 +1811,52 @@ function ModulesSection() {
 // Export / Import (FR-037 / FR-038)
 // ---------------------------------------------------------------------------
 
-/** The exported settings bundle shape. NEVER includes secrets (FR-036/SC-010). */
+/**
+ * The exported settings bundle shape. NEVER includes secrets (FR-036/SC-010).
+ *
+ * v2 (R15-UI-058): v1 exported only `settings` (defaultAgentId/region/
+ * deepResearchBackend) + `keybindingOverrides` — every OTHER preference a
+ * user can set in this panel (research tier/models, the SearXNG URL, the
+ * default provider/model, module toggles) silently did not round-trip.
+ */
 export interface SettingsExport {
   /** A small version tag so a future import can migrate older bundles. */
-  version: 1;
+  version: 2;
   /** Remappable-keybinding overrides, keyed by action id. */
   keybindingOverrides: Record<string, string>;
   /** The local preferences bundle. */
   settings: SettingsBundle;
+  /** Research tier, SearXNG URL and per-stop research models. */
+  searchSettings: SearchSettingsBundle;
+  /** The default provider the copilot uses when an agent has no preference. */
+  defaultProviderId: LLMProviderId;
+  /** The model selected for `defaultProviderId`. */
+  defaultModel: string;
+  /** Per-module enabled flags (Advanced → Modules). */
+  enabledModules: Record<string, boolean>;
 }
 
 /** Build the export bundle from the live stores. Pure of secrets by construction. */
 export function buildSettingsExport(): SettingsExport {
+  const defaultProviderId = useLLMProvidersStore.getState().defaultProviderId;
   return {
-    version: 1,
+    version: 2,
     keybindingOverrides: { ...useKeybindingsStore.getState().overrides },
     settings: useSettingsStore.getState().toBundle(),
+    searchSettings: useSearchSettingsStore.getState().toBundle(),
+    defaultProviderId,
+    defaultModel: useModelSelectionStore.getState().modelFor(defaultProviderId),
+    enabledModules: { ...useModulesStore.getState().enabled },
   };
 }
 
 function ExportImportSection() {
   const setOverrides = useKeybindingsStore((s) => s.setOverrides);
   const setAll = useSettingsStore((s) => s.setAll);
+  const setSearchSettingsAll = useSearchSettingsStore((s) => s.setAll);
+  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
+  const setModelOverrides = useModelSelectionStore((s) => s.setOverrides);
+  const setEnabledModules = useModulesStore((s) => s.setEnabledMap);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState<{ kind: "ok" | "error"; message: string } | null>(null);
 
@@ -1819,13 +1881,57 @@ function ExportImportSection() {
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as Partial<SettingsExport>;
+      // A file that recognises NOTHING (an empty object, another app's JSON,
+      // a bare `{theme:'dark'}`) must not report success — R15-UI-058: the
+      // old unconditional "Imported settings." told the user their file
+      // loaded when in fact nothing was applied. Each branch below only
+      // fires when its section is structurally the right shape.
+      let appliedAny = false;
+
       if (parsed.keybindingOverrides && typeof parsed.keybindingOverrides === "object") {
         setOverrides(parsed.keybindingOverrides);
+        appliedAny = true;
       }
       if (parsed.settings && typeof parsed.settings === "object") {
         setAll(parsed.settings);
+        appliedAny = true;
       }
-      setStatus({ kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." });
+      if (parsed.searchSettings && typeof parsed.searchSettings === "object") {
+        setSearchSettingsAll(parsed.searchSettings as SearchSettingsInput);
+        appliedAny = true;
+      }
+      if (
+        typeof parsed.defaultProviderId === "string" &&
+        REGISTRY_PROVIDERS.some((p) => p.id === parsed.defaultProviderId)
+      ) {
+        const providerId = parsed.defaultProviderId as LLMProviderId;
+        setDefaultProviderId(providerId);
+        if (typeof parsed.defaultModel === "string" && parsed.defaultModel.trim() !== "") {
+          const overrides = useModelSelectionStore.getState().overrides;
+          setModelOverrides(
+            { ...overrides, [providerId]: parsed.defaultModel.trim() },
+            { trusted: true },
+          );
+        }
+        appliedAny = true;
+      }
+      if (parsed.enabledModules && typeof parsed.enabledModules === "object") {
+        const known = new Set(useModulesStore.getState().modules.map((m) => m.id));
+        const next = { ...useModulesStore.getState().enabled };
+        for (const [id, value] of Object.entries(parsed.enabledModules)) {
+          if (known.has(id) && typeof value === "boolean") {
+            next[id] = value;
+          }
+        }
+        setEnabledModules(next);
+        appliedAny = true;
+      }
+
+      setStatus(
+        appliedAny
+          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+          : { kind: "error", message: "Could not read that file — expected a Vysted export." },
+      );
     } catch {
       setStatus({ kind: "error", message: "Could not read that file — expected a Vysted export." });
     }
@@ -1865,8 +1971,9 @@ function ExportImportSection() {
             />
           </div>
           <p className="text-charcoal-500 text-caption">
-            The export bundles your keybinding remaps and preferences (default agent, region,
-            research engine). API keys stay in your OS keychain and are never written to the file.
+            The export bundles your keybinding remaps and preferences (default agent/provider/
+            model, region, research tier and models, SearXNG URL, module toggles). API keys stay in
+            your OS keychain and are never written to the file.
           </p>
           {status && (
             <p

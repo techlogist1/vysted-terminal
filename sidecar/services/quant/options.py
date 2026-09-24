@@ -142,8 +142,9 @@ def _greeks_binomial(req: OptionPricingRequest, steps: int) -> Greeks:
     * Vega and rho have no lattice equivalent, so they still come from
       finite-difference re-pricing:
       * Vega — central difference, ``Δσ = 0.005`` (0.5 vol points).
-               Returned per unit-vol matching the QuantLib convention (so
-               the panel divides by 100 to show per-1 % move).
+               Returned per unit-vol, the QuantLib convention the other
+               engines use; the panels show vega / 100 (per 1 vol point) and
+               theta / 365 (per calendar day) via src/modules/quant/units.ts.
       * Rho  — central difference, ``Δr = 0.005`` (0.5 rate points).
     """
     base_option = _build_binomial_option(req, steps)

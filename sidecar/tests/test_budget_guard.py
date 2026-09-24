@@ -172,3 +172,14 @@ def test_breach_order_is_deterministic_tokens_first() -> None:
     reason = guard.breach()
     assert reason is not None
     assert reason.startswith("token ceiling")
+
+
+def test_native_searches_are_priced_into_the_run_spend() -> None:
+    """R15-AGENT-049: a round's native searches add to the spend the ceiling
+    meters, at the registry's per-1k search rate."""
+    import pytest
+
+    guard = BudgetGuard(max_spend_usd=1.0)
+    searches = LLMUsage(input_tokens=0, output_tokens=0, web_search_requests=3)
+    guard.record(searches, "gemini-3-pro", "gemini")
+    assert guard.cost()["spend_usd"] == pytest.approx(3 / 1000 * 14.0)

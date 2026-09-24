@@ -28,9 +28,11 @@ import type { LucideIcon } from "lucide-react";
 import { BarChart2, BookOpen, List, ScanSearch } from "lucide-react";
 import { create } from "zustand";
 
+import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import { useModulesStore } from "@/store/modules";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 import type { AgentSummary } from "@/store/agents";
 import type { CommandSpec, PanelSpec } from "../../types/plugin";
 
@@ -53,6 +55,12 @@ export interface PaletteItem {
   commandSpec?: CommandSpec;
   panelSpec?: PanelSpec;
   symbolEntry?: { symbol: string; assetClass: "equity" | "crypto" };
+  /**
+   * A direct dispatch for an `action` item with no `CommandSpec` (e.g. a
+   * layout-menu mode — it isn't a module command, so it has no plugin-contract
+   * id to route through `executeCommand`).
+   */
+  action?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +145,47 @@ export const GROUP_TIEBREAK_WEIGHT = 0.04;
 
 /** Max symbols to include in the corpus (cmdk degrades past ~3 k items). */
 export const SYMBOL_CAP = 50;
+
+// ---------------------------------------------------------------------------
+// Layout-menu modes (R15-CROSS-PLATFORM-004) — cross-platform command route
+// ---------------------------------------------------------------------------
+//
+// The five deterministic layout modes (Fundamental / Technical / Macro /
+// Compare / Reset) used to be reachable only from the macOS-only native
+// `Window → Layout` menu (`src-tauri/src/lib.rs`, `#[cfg(target_os =
+// "macos")]`). `dispatchLayoutMenuCommand` is the ONE place that runs a
+// layout-menu payload; the palette command below and the macOS menu bridge
+// (`src/lib/menu-bridge.ts`) both call it, so Windows/Linux get the same
+// deterministic "clear + tile exactly this mode" behaviour the menu always
+// had — never the agent's additive, viewport-downgraded `arrange_layout`.
+
+/** Human label for each menu-bridge payload, matching the native menu's item text. */
+const LAYOUT_MENU_LABELS: Readonly<Record<string, string>> = {
+  "research-cockpit": "Layout: Fundamental",
+  "single-focus": "Layout: Technical",
+  "macro-scan": "Layout: Macro",
+  compare: "Layout: Compare",
+  default: "Layout: Reset to default",
+};
+
+/**
+ * Run a layout-menu payload (a `MENU_PAYLOAD_TO_MODE` key, or `"default"` for
+ * the factory reset). Returns false when the payload is unknown or there's no
+ * live dockview api yet (e.g. called before the workspace mounts).
+ */
+export function dispatchLayoutMenuCommand(payload: string): boolean {
+  if (payload === "default") {
+    useWorkspaceStore.getState().resetToDefaultLayout();
+    return true;
+  }
+  const mode = MENU_PAYLOAD_TO_MODE[payload];
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!mode || !api) {
+    return false;
+  }
+  applyLayoutMode(api, mode);
+  return true;
+}
 
 /** Max recents to track per session. */
 const MAX_RECENTS = 8;
@@ -234,6 +283,21 @@ export function buildPaletteCorpus(): PaletteItem[] {
       label: cmd.title,
       description: cmd.description,
       commandSpec: cmd,
+    });
+  }
+
+  // 2b. Layout-menu modes — cross-platform route for the deterministic
+  // layouts the native macOS menu exposes (R15-CROSS-PLATFORM-004).
+  for (const payload of [...Object.keys(MENU_PAYLOAD_TO_MODE), "default"]) {
+    items.push({
+      id: `action:layout:${payload}`,
+      kind: "action",
+      label: LAYOUT_MENU_LABELS[payload] ?? `Layout: ${payload}`,
+      description:
+        payload === "default"
+          ? "Clear the cockpit back to its default panels"
+          : "Clear the cockpit and tile this mode's panels",
+      action: () => dispatchLayoutMenuCommand(payload),
     });
   }
 

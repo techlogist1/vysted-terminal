@@ -80,6 +80,11 @@ STATE_DOCKER_PRESENT_NOT_SETUP = "docker_present_not_setup"
 STATE_PULLING = "pulling"
 STATE_STARTING = "starting"
 STATE_READY = "ready"
+#: R15-RESEARCH-028: the container answers with valid JSON (so ``STATE_READY``'s
+#: own bool-only health check passes) but the search is USELESS — every engine
+#: is unresponsive (CAPTCHA-suspended, timing out) or a run of consecutive
+#: probes has returned zero results. ``reason`` names why (see ``_set``).
+STATE_DEGRADED = "degraded"
 STATE_ERROR = "error"
 
 #: Pre-first-refresh placeholder. Never returned by the router (its status
@@ -98,6 +103,11 @@ _STOP_TIMEOUT_SECS = 60.0
 _HEALTH_REQUEST_TIMEOUT_SECS = 5.0
 DEFAULT_HEALTH_TIMEOUT_SECS = 90.0
 DEFAULT_HEALTH_INTERVAL_SECS = 1.5
+
+#: R15-RESEARCH-028: consecutive zero-result engine-quality probes (no engine
+#: named itself unresponsive, but nothing came back either) before a
+#: structurally-healthy container is called DEGRADED rather than READY.
+DEFAULT_EMPTY_PROBE_DEGRADE_THRESHOLD = 3
 
 #: Generated SearXNG configuration. ``use_default_settings`` keeps upstream
 #: defaults; we add exactly what the managed tier needs: the JSON output format
@@ -124,6 +134,7 @@ search:
 DockerRunner = Callable[..., Awaitable[tuple[int, str, str]]]
 HealthProbe = Callable[[str], Awaitable[bool]]
 PortChecker = Callable[[int], bool]
+QualityProbe = Callable[[str], Awaitable["EngineProbe"]]
 
 #: R15-LIFECYCLE-007: a bare "docker" exec relies on the sidecar process's own
 #: PATH, which is minimal/empty when the app is launched from Finder/Dock (or
@@ -208,6 +219,77 @@ async def _probe_health(url: str) -> bool:
     return isinstance(payload, dict) and isinstance(payload.get("results"), list)
 
 
+@dataclass(frozen=True)
+class EngineProbe:
+    """One engine-quality read of a live SearXNG (R15-RESEARCH-028).
+
+    ``has_results`` is the "did this probe query come back with anything"
+    signal; ``unresponsive`` is the ``(engine, reason)`` pairs SearXNG itself
+    reported as unresponsive on the SAME response, when it did.
+    """
+
+    has_results: bool
+    unresponsive: tuple[tuple[str, str], ...] = ()
+
+
+def _parse_unresponsive_engines(raw: object) -> tuple[tuple[str, str], ...]:
+    """Normalize SearXNG's ``unresponsive_engines`` field to ``(name, reason)`` pairs.
+
+    SearXNG emits ``[[engine, reason], ...]``; tolerate a bare engine name too
+    (some SearXNG versions/forks have shipped a flat string list).
+    """
+    if not isinstance(raw, list):
+        return ()
+    pairs: list[tuple[str, str]] = []
+    for entry in raw:
+        if isinstance(entry, (list, tuple)) and entry:
+            name = str(entry[0])
+            reason = str(entry[1]) if len(entry) > 1 and entry[1] else "unresponsive"
+            pairs.append((name, reason))
+        elif isinstance(entry, str) and entry:
+            pairs.append((entry, "unresponsive"))
+    return tuple(pairs)
+
+
+async def _probe_engines(url: str) -> EngineProbe:
+    """One capability probe read for engine-level detail (same request shape
+    as :func:`_probe_health`, plus the ``unresponsive_engines`` field a live
+    SearXNG reports when its upstream engines are CAPTCHA-suspended/timing
+    out). A live-but-useless container answers HTTP 200 with ``results: []``
+    — indistinguishable from genuinely-empty at the health-probe layer, which
+    is exactly what this probe exists to tell apart.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=_HEALTH_REQUEST_TIMEOUT_SECS) as http:
+            response = await http.get(f"{url}/search", params={"q": "test", "format": "json"})
+    except httpx.HTTPError:
+        return EngineProbe(has_results=False)
+    if not response.is_success:
+        return EngineProbe(has_results=False)
+    try:
+        payload = response.json()
+    except ValueError:
+        return EngineProbe(has_results=False)
+    if not isinstance(payload, dict):
+        return EngineProbe(has_results=False)
+    results = payload.get("results")
+    has_results = isinstance(results, list) and len(results) > 0
+    return EngineProbe(
+        has_results=has_results,
+        unresponsive=_parse_unresponsive_engines(payload.get("unresponsive_engines")),
+    )
+
+
+def _format_unresponsive_reason(unresponsive: tuple[tuple[str, str], ...]) -> str:
+    """``[("google", "CAPTCHA"), ("duckduckgo", "CAPTCHA")]`` -> ``"google,
+    duckduckgo: CAPTCHA"`` — engines sharing a reason are grouped so the UI
+    names the actual cause once, not once per engine."""
+    groups: dict[str, list[str]] = {}
+    for name, reason in unresponsive:
+        groups.setdefault(reason, []).append(name)
+    return "; ".join(f"{', '.join(names)}: {reason}" for reason, names in groups.items())
+
+
 def _port_is_free(port: int) -> bool:
     """Can the host bind ``127.0.0.1:<port>``? (The collision-avoidance probe.)"""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -284,20 +366,27 @@ class SearxngManager:
         runner: DockerRunner | None = None,
         health_probe: HealthProbe | None = None,
         port_free: PortChecker | None = None,
+        quality_probe: QualityProbe | None = None,
         config_dir: Path | None = None,
         preferred_port: int = DEFAULT_HOST_PORT,
         health_timeout_secs: float = DEFAULT_HEALTH_TIMEOUT_SECS,
         health_interval_secs: float = DEFAULT_HEALTH_INTERVAL_SECS,
+        empty_probe_degrade_threshold: int = DEFAULT_EMPTY_PROBE_DEGRADE_THRESHOLD,
     ) -> None:
         self._runner = runner
         self._health_probe = health_probe
         self._port_free = port_free
+        self._quality_probe = quality_probe
         self._config_dir = config_dir
         # One-shot hot-path world-derivation guard (see ready_base_url_detected).
         self._hot_path_detected = False
+        self._detect_lock = asyncio.Lock()
+        self._detect_task: asyncio.Task[str | None] | None = None
+        self._consecutive_empty_probes = 0
         self.preferred_port = int(preferred_port)
         self.health_timeout_secs = float(health_timeout_secs)
         self.health_interval_secs = float(health_interval_secs)
+        self.empty_probe_degrade_threshold = int(empty_probe_degrade_threshold)
 
         self.state: str = STATE_UNKNOWN
         self.detail: str | None = None
@@ -319,6 +408,11 @@ class SearxngManager:
         probe = self._health_probe if self._health_probe is not None else _probe_health
         return await probe(f"http://127.0.0.1:{target}")
 
+    async def _quality_once(self, port: int | None = None) -> EngineProbe:
+        target = port or self.port or self.preferred_port
+        probe = self._quality_probe if self._quality_probe is not None else _probe_engines
+        return await probe(f"http://127.0.0.1:{target}")
+
     def _check_port_free(self, port: int) -> bool:
         checker = self._port_free if self._port_free is not None else _port_is_free
         return checker(port)
@@ -328,7 +422,43 @@ class SearxngManager:
     def _set(self, state: str, *, detail: str | None = None, reason: str | None = None) -> None:
         self.state = state
         self.detail = detail
-        self.reason = reason if state == STATE_ERROR else None
+        self.reason = reason if state in (STATE_ERROR, STATE_DEGRADED) else None
+
+    def _apply_quality(self, probe: EngineProbe, port: int) -> None:
+        """Resolve READY vs DEGRADED from one engine-quality probe (R15-RESEARCH-028).
+
+        A structurally-healthy container (``_health_once`` already passed)
+        still needs this second read: HTTP 200 + ``results: []`` is exactly
+        what a container answers when every upstream engine is
+        CAPTCHA-suspended, and the plain health probe cannot tell that apart
+        from a genuinely-empty answer.
+        """
+        if probe.has_results:
+            self._consecutive_empty_probes = 0
+            self._set(
+                STATE_READY,
+                detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
+            )
+            return
+        self._consecutive_empty_probes += 1
+        if probe.unresponsive:
+            reason = _format_unresponsive_reason(probe.unresponsive)
+        elif self._consecutive_empty_probes >= self.empty_probe_degrade_threshold:
+            reason = f"no results from any engine across {self._consecutive_empty_probes} probes"
+        else:
+            # Not yet confirmed degraded — one empty probe can just be an
+            # unlucky query; stay READY until the threshold or an engine
+            # names itself unresponsive.
+            self._set(
+                STATE_READY,
+                detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
+            )
+            return
+        self._set(
+            STATE_DEGRADED,
+            detail="SearXNG is running but its search engines are blocked",
+            reason=reason,
+        )
 
     def snapshot(self) -> dict[str, object]:
         """The status payload — the wire contract for the guided UI flow."""
@@ -373,14 +503,33 @@ class SearxngManager:
         but unused" disease (gate 2: running -> used). The FIRST hot-path read
         re-derives from docker once; every later read is the pure in-memory
         check again (status polls keep it current thereafter).
+
+        R15-LIFECYCLE-018: the guard flag flips only AFTER ``refresh()``
+        completes (never before it), under a dedicated lock — two concurrent
+        callers racing the cold first read both await the SAME derivation
+        instead of the second one reading a still-``STATE_UNKNOWN`` manager and
+        wrongly concluding "no managed instance" for that one request.
         """
         if not self._hot_path_detected:
-            self._hot_path_detected = True
-            try:
-                await self.refresh()
-            except Exception:  # noqa: BLE001 — detection must never break retrieval
-                pass
+            async with self._detect_lock:
+                if not self._hot_path_detected:
+                    try:
+                        await self.refresh()
+                    except Exception:  # noqa: BLE001 — detection must never break retrieval
+                        pass
+                    finally:
+                        self._hot_path_detected = True
         return self.ready_base_url()
+
+    def warm_detect(self) -> None:
+        """Kick the one-shot hot-path derivation off eagerly (app lifespan boot).
+
+        Fire-and-forget: :meth:`ready_base_url_detected`'s lock keeps a later
+        hot-path read from racing it, and :meth:`shutdown` cancels it if the
+        process shuts down before it lands.
+        """
+        if self._detect_task is None or self._detect_task.done():
+            self._detect_task = asyncio.ensure_future(self.ready_base_url_detected())
 
     # --------------------------------------------------------------- detection
 
@@ -468,10 +617,7 @@ class SearxngManager:
             port = await self._container_port() or self.port or self.preferred_port
             self.port = port
             if await self._health_once(port):
-                self._set(
-                    STATE_READY,
-                    detail=f"SearXNG serving JSON search at http://127.0.0.1:{port}",
-                )
+                self._apply_quality(await self._quality_once(port), port)
             else:
                 self._set(
                     STATE_STARTING,
@@ -637,13 +783,19 @@ class SearxngManager:
         return await self.refresh()
 
     async def shutdown(self) -> None:
-        """Cancel an in-flight setup task (app-lifespan teardown / pre-teardown)."""
+        """Cancel any in-flight setup/detect task (app-lifespan teardown)."""
         task = self._task
         if task is not None and not task.done():
             task.cancel()
             with suppress(asyncio.CancelledError):
                 await task
         self._task = None
+        detect_task = self._detect_task
+        if detect_task is not None and not detect_task.done():
+            detect_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await detect_task
+        self._detect_task = None
 
 
 #: Process-global manager — the router and the backend autodetect share it so
@@ -664,11 +816,13 @@ async def shutdown() -> None:
 
 __all__ = [
     "CONTAINER_NAME",
+    "DEFAULT_EMPTY_PROBE_DEGRADE_THRESHOLD",
     "DEFAULT_HEALTH_INTERVAL_SECS",
     "DEFAULT_HEALTH_TIMEOUT_SECS",
     "DEFAULT_HOST_PORT",
     "IMAGE",
     "PORT_PROBE_SPAN",
+    "STATE_DEGRADED",
     "STATE_DOCKER_PRESENT_NOT_SETUP",
     "STATE_ERROR",
     "STATE_NOT_INSTALLED_DOCKER",
@@ -677,6 +831,7 @@ __all__ = [
     "STATE_STARTING",
     "STATE_UNKNOWN",
     "DockerProbe",
+    "EngineProbe",
     "SearxngManager",
     "manager",
     "reset_for_tests",

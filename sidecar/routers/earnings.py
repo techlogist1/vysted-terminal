@@ -39,6 +39,20 @@ _TTL_HISTORY = 24 * 60 * 60  # 24 hours
 _TTL_ESTIMATES = 6 * 60 * 60  # 6 hours
 
 
+async def _cache_and_stamp_as_of(cache_key: str, ttl_seconds: float, payload: dict) -> datetime:
+    """Store ``payload`` and return its ``as_of`` (R15-DATA-068).
+
+    Re-reads the row's own ``updated_at`` after the write rather than taking
+    a separate ``datetime.now()`` sample, so THIS response's ``as_of`` is
+    byte-identical to what the next cache hit within the TTL reports.
+    """
+    await data_cache.set(cache_key, payload)
+    refreshed = await data_cache.get_with_meta(cache_key, ttl_seconds)
+    if refreshed is not None:
+        return datetime.fromtimestamp(refreshed[1], tz=UTC)
+    return datetime.now(tz=UTC)  # pragma: no cover - only if ttl_seconds <= 0
+
+
 def _watchlist_key(watchlist: list[str] | None) -> str:
     if not watchlist:
         # The default universe follows the request region (C4, R15-LEAD-009).
@@ -67,16 +81,21 @@ async def get_upcoming(
         f"earnings:upcoming:{start.isoformat()}:{end.isoformat()}:"
         f"{_watchlist_key(parsed_watchlist)}"
     )
-    cached = await data_cache.get(cache_key, _TTL_UPCOMING)
-    if isinstance(cached, dict):
-        try:
-            return EarningsUpcomingResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    hit = await data_cache.get_with_meta(cache_key, _TTL_UPCOMING)
+    if hit is not None:
+        cached, fetched_at = hit
+        if isinstance(cached, dict):
+            try:
+                response = EarningsUpcomingResponse.model_validate(cached)
+                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
+                return response
+            except Exception:  # noqa: BLE001
+                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
 
     response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
-
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response.as_of = await _cache_and_stamp_as_of(
+        cache_key, _TTL_UPCOMING, response.model_dump(mode="json", exclude={"as_of"})
+    )
     return response
 
 
@@ -85,14 +104,20 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
     """Return past earnings results for ``symbol``."""
     normalized = symbol.strip().upper()
     cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_HISTORY)
-    if isinstance(cached, dict):
-        try:
-            return EarningsHistoryResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    hit = await data_cache.get_with_meta(cache_key, _TTL_HISTORY)
+    if hit is not None:
+        cached, fetched_at = hit
+        if isinstance(cached, dict):
+            try:
+                response = EarningsHistoryResponse.model_validate(cached)
+                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
+                return response
+            except Exception:  # noqa: BLE001
+                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
     response = await earnings_provider.get_history(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response.as_of = await _cache_and_stamp_as_of(
+        cache_key, _TTL_HISTORY, response.model_dump(mode="json", exclude={"as_of"})
+    )
     return response
 
 
@@ -101,14 +126,20 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter EPS surprise rows for ``symbol``."""
     normalized = symbol.strip().upper()
     cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_HISTORY)
-    if isinstance(cached, dict):
-        try:
-            return EarningsSurprisesResponse.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
+    hit = await data_cache.get_with_meta(cache_key, _TTL_HISTORY)
+    if hit is not None:
+        cached, fetched_at = hit
+        if isinstance(cached, dict):
+            try:
+                response = EarningsSurprisesResponse.model_validate(cached)
+                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
+                return response
+            except Exception:  # noqa: BLE001
+                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
     response = await earnings_provider.get_surprises(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    response.as_of = await _cache_and_stamp_as_of(
+        cache_key, _TTL_HISTORY, response.model_dump(mode="json", exclude={"as_of"})
+    )
     return response
 
 

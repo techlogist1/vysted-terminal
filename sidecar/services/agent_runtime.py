@@ -32,7 +32,6 @@ from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import jsonschema
 
@@ -54,10 +53,10 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services import action_ledger, agent_tools, model_registry
+from services import action_ledger, agent_tools, budget_guard, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
-from services.llm import get_provider, native_search, oneshot
+from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
 from services.llm.base import (
     IDLE_TIMEOUT_S,
     LOCAL_IDLE_TIMEOUT_S,
@@ -100,23 +99,6 @@ _READ_SAFE_PANEL_ACTIONS = frozenset(
 #: local ollama/qwen-7b path is unreliable (tool-use + JSON), so it stays on the
 #: preamble-driven loop with NO plan surface (graceful degrade, not a worse run).
 _PLANNER_PROVIDERS = frozenset({"anthropic", "openai", "gemini", "xai", "openrouter", "deepseek"})
-
-#: Option keys the runtime forwards VERBATIM into the LLM adapter's stream_chat
-#: (``**opts``): provider tuning params + the runtime's own web-search flags.
-#: Everything the runtime itself consumes (history, modelWebSearch,
-#: deepResearchBackend, research_depth, depth) is popped before this gate; any
-#: OTHER leftover key is scrubbed so an unknown option (a mis-sent ``depth``, a
-#: bogus key) can never reach the provider SDK and TypeError the round.
-_ADAPTER_OPTION_KEYS = frozenset(
-    {
-        "temperature",
-        "top_p",
-        "max_tokens",
-        "web_search",
-        "web_search_max_uses",
-        "config",  # Gemini generation-config passthrough
-    }
-)
 
 
 def _planner_enabled(provider_id: str, mode: str) -> bool:
@@ -696,9 +678,11 @@ _CAPPED_ROUND_CLOSE = (
     "Ask me to continue, or narrow the request."
 )
 #: Per-run web-search cap (FR-081) — bounds per-search billing during a multi-round
-#: research run, for BOTH the native tier (passed as the provider's max_uses) and
-#: the BYOK/local `web_search` tool (counted in the loop; further calls return a
-#: cap-reached message instead of dispatching).
+#: research run, for BOTH the native tier (the searches each round's usage
+#: reports are counted; the provider gets the remaining budget as max_uses and
+#: no native search once it is spent, R15-AGENT-049) and the BYOK/local
+#: `web_search` tool (counted in the loop; further calls return a cap-reached
+#: message instead of dispatching).
 _WEB_SEARCH_CAP = 5
 
 
@@ -1150,35 +1134,6 @@ async def _dispatch_tool_with_progress(
         config.reset_step_sink(token)
 
 
-#: ``ResearchExecution.loop`` → the brief's (mode, depth) badges (R10, E2). The
-#: stamp derives from the loop that RAN — never the result payload's ``mode``
-#: (the old ``raw_mode`` read that stamped a DEEP run "FAST" whenever a payload
-#: omitted the field). ``research-model`` maps per REQUESTED stop below.
-_LOOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
-    "fast": ("fast", "quick"),
-    "iter": ("deep", "deep"),
-    "heavy": ("deep", "heavy"),
-}
-
-#: The research-model (Tier B) lane maps per requested stop: only a NORMAL
-#: request renders as the quick tier; deep/ultra requests render at the deep
-#: tier they bought (heavy for ultra so "Go deeper" stays honest).
-_RESEARCH_MODEL_STOP_TO_MODE_DEPTH: dict[str, tuple[str, str]] = {
-    "normal": ("fast", "quick"),
-    "deep": ("deep", "deep"),
-    "ultra": ("deep", "heavy"),
-}
-
-
-def _mode_depth_from_execution(execution: dict[str, Any]) -> tuple[str, str]:
-    """The brief's (mode, depth) derived ONLY from the execution record."""
-    loop = str(execution.get("loop") or "")
-    if loop == "research-model":
-        requested = str(execution.get("requested_depth") or "normal")
-        return _RESEARCH_MODEL_STOP_TO_MODE_DEPTH.get(requested, ("deep", "deep"))
-    return _LOOP_TO_MODE_DEPTH.get(loop, ("fast", "quick"))
-
-
 def _auto_open_backtest_event(
     tool_call: LLMToolUseEvent, result_str: str
 ) -> LLMToolUseEvent | None:
@@ -1204,144 +1159,26 @@ def _auto_open_backtest_event(
 
 
 def _auto_publish_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolUseEvent | None:
-    """Build a synthetic ``publish_brief`` host-action from a research result.
+    """A synthetic ``publish_brief`` carrying the research tool's ``brief`` verbatim.
 
-    The full :class:`ResearchBrief` (markdown + sources + the ``structured``
-    bundle that backs the metric cards) is serialised into ``result_str`` — but
-    only the MODEL sees it; a weak local model may never call ``publish_brief``,
-    leaving the brief panel empty (the "research feels dead" failure). So the
-    runtime emits this synthetic ``tool_use`` deterministically after every
-    successful research round: it rides the SAME proposed-changes gate as a
-    model-issued publish (AUTO applies it, review queues it — never bypasses the
-    trust gate), and is idempotent with a model-issued publish (``setBrief``
-    replaces). Returns ``None`` on a malformed/failed result so a broken run
-    never half-publishes — the live research trace still animated.
-
-    R10 (E2): a payload WITHOUT an ``execution`` record is malformed and never
-    auto-publishes — the brief's mode/depth derive from the loop that RAN,
-    never from the payload's ``mode`` field or a default. A
-    ``needs_disambiguation`` result publishes the candidate CHOOSER instead of
-    a guessed brief (D37).
+    Only the MODEL sees the research result, and a weak local model may never
+    call ``publish_brief``, so the runtime emits this after every successful
+    research round. It rides the SAME proposed-changes gate as a model-issued
+    publish (AUTO applies it, review queues it) and is idempotent with one
+    (``setBrief`` replaces). The research tool owns the brief's shape (C6,
+    R15-CODE-AGENT-008); a result with no ``brief`` publishes nothing.
     """
     try:
         payload = json.loads(result_str)
     except (json.JSONDecodeError, ValueError, TypeError):
         return None
-    if not isinstance(payload, dict) or not payload.get("ok"):
+    brief = payload.get("brief") if isinstance(payload, dict) and payload.get("ok") else None
+    if not isinstance(brief, dict):
         return None
-    execution = payload.get("execution")
-    if not isinstance(execution, dict) or not execution.get("run_id"):
-        logger.warning(
-            "research result without an execution record — auto-publish suppressed "
-            "(tool_call_id=%s)",
-            tool_call.tool_call_id,
-        )
-        return None
-    # Honest disambiguation (D37): publish the chooser, nothing else — no
-    # markdown, no structured, no guessed entity. The panel renders the
-    # candidate picker keyed on the run's execution record.
-    if payload.get("needs_disambiguation"):
-        query = payload.get("query", "")
-        return LLMToolUseEvent(
-            tool_call_id=f"{tool_call.tool_call_id}__autobrief",
-            name="publish_brief",
-            input={
-                "query": query,
-                "disambiguation": {
-                    "query": query,
-                    "candidates": payload.get("candidates") or [],
-                },
-                "execution": execution,
-            },
-        )
-    markdown = payload.get("markdown")
-    structured = payload.get("structured")
-    has_markdown = isinstance(markdown, str) and bool(markdown.strip())
-    has_structured = isinstance(structured, dict) and bool(structured)
-    # Fire when the result carries prose OR the structured bundle: a DEEP run
-    # returns a synthesized markdown (a full brief auto-renders); a FAST run
-    # returns only the structured data (the model writes the prose) — seeding
-    # structured here keeps the native metric cards populated even when the
-    # model's own publish_brief omits the big structured dict.
-    if not has_markdown and not has_structured:
-        return None
-    # Sources: a DEEP run carries a top-level ``sources`` list; a FAST run strands
-    # its web round under ``web.{citations,results}`` with NO top-level ``sources``
-    # — so the synthetic publish dropped them and a quick research rendered
-    # "0 sources / structured only" even though the keyless DuckDuckGo floor had
-    # returned real results. Map the FAST web round into brief sources so a quick
-    # research surfaces the REAL web citations (the same shape the DEEP path emits).
-    sources = payload.get("sources")
-    web = payload.get("web") if isinstance(payload.get("web"), dict) else None
-    if not sources and web is not None:
-        rows = web.get("citations") or web.get("results") or []
-        sources = [
-            {
-                "url": row.get("url"),
-                "title": row.get("title") or row.get("url"),
-                "excerpt": row.get("excerpt") or row.get("snippet") or "",
-                # A bare host, never "web"; the date rides along (RESEARCH-024, C4).
-                "domain": row.get("domain") or urlparse(row["url"]).hostname or "",
-                "published_at": row.get("published_at"),
-            }
-            for row in rows
-            if isinstance(row, dict) and row.get("url")
-        ]
-    sources = sources or []
-    # web_available: the top-level flag (DEEP) or ``web.available`` (FAST),
-    # RECONCILED with the source count. A brief that surfaced ANY source (web OR
-    # structured provenance) must NOT also claim the web was unavailable — that is
-    # symptom #2 ("N sources" + a "web unavailable" banner firing together). The
-    # honest structured-only banner survives only when ZERO sources were gathered.
-    web_available = payload.get("web_available")
-    if web_available is None and web is not None:
-        web_available = web.get("available")
-    if not web_available and sources:
-        web_available = True
-    # Forward the FAST web round's honest note/detail/reason onto the brief: the
-    # top-level ``note`` carries a DEEP run's breach reason, but a FAST bundle
-    # strands its web-search status under ``web.{note,detail,reason}`` (e.g. a
-    # transient DDG rate-limit vs a genuine no-backend). Carry the nested note when
-    # there is no top-level note so the banner states WHY honestly instead of a
-    # blanket "no backend". ``web_reason`` lets the frontend pick the banner copy.
-    note = payload.get("note")
-    web_reason = None
-    if web is not None:
-        web_reason = web.get("reason")
-        if not note:
-            note = web.get("note") or web.get("detail")
-    # The true depth TIER the run reached (FR-115/E2): derived ONLY from the
-    # execution record's loop — never from the payload's ``mode`` (the old read
-    # stamped any mode-less payload "FAST", so a DEEP run rendered as quick).
-    mode, depth = _mode_depth_from_execution(execution)
-    # Forward only the fields the publish_brief host-action consumes (snake_case,
-    # exactly as the frontend's briefFromInput reads them).
-    brief_input: dict[str, Any] = {
-        "query": payload.get("query", ""),
-        "symbol": payload.get("symbol", ""),
-        "mode": mode,
-        "depth": depth,
-        # R10 (D38): the verbatim execution record rides the publish so the
-        # panel's badges + run-scoped carry key on what actually RAN.
-        "execution": execution,
-        "markdown": markdown if isinstance(markdown, str) else "",
-        "sources": sources,
-        "structured": structured,
-        "cost": payload.get("cost"),
-        "web_available": bool(web_available),
-        "note": note,
-        "web_reason": web_reason,
-        # R9: the engine's honest backend id rides the synthetic publish so the
-        # brief panel can render the keyless-fallback nudge / name the Tier B
-        # research model (gates 2-4 evidence). A FAST bundle has no engine-level
-        # id — lift the web round's retrieval id (the web_search tool stamps
-        # keyless-fallback there) so a NORMAL run nudges honestly too.
-        "backend": payload.get("backend") or (web.get("backend") if web else None),
-    }
     return LLMToolUseEvent(
         tool_call_id=f"{tool_call.tool_call_id}__autobrief",
         name="publish_brief",
-        input=brief_input,
+        input=brief,
     )
 
 
@@ -1384,6 +1221,9 @@ ASK_USER_TOOL = "ask_user"
 #: The notice ``invoke_agent`` yields when ``on_round_usage`` refused another
 #: round: the round's tool calls were NOT dispatched (R15-AGENT-037).
 HALT_NOTICE_TOOL = "run_halt"
+#: The notice ``invoke_agent`` yields when the agent names a tool id the
+#: catalog no longer has, under any alias (R15-LIFECYCLE-025).
+RETIRED_TOOLS_NOTICE_TOOL = "retired_tools"
 
 #: End-of-stream ack grace (E3.3): the frontend's ``POST /agents/actions/ack``
 #: is an async HTTP round-trip racing the stream's close, so the divergence
@@ -1866,7 +1706,10 @@ async def invoke_agent(
     resolved_model = _resolve_model(spec, model)
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
-    tool_ids = list(spec.tools)  # the allow-list — finally sent to the provider
+    # The allow-list — finally sent to the provider. A stored agent may still
+    # name a renamed tool by its old id (resolved) or a removed one (dropped,
+    # and said once below) (R15-LIFECYCLE-025).
+    tool_ids, retired_tools = catalog.resolve_tool_ids(spec.tools)
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
     # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
@@ -1943,6 +1786,16 @@ async def invoke_agent(
 
     local_tools = _build_local_tools(context_snapshot, autonomy)
     messages = _compose_messages(spec, prompt, context_snapshot, history)
+    if retired_tools:
+        logger.warning("agent %s names retired tool(s): %s", spec.id, ", ".join(retired_tools))
+        yield LLMResearchStepEvent(
+            tool_call_id="",
+            tool=RETIRED_TOOLS_NOTICE_TOOL,
+            step_kind=NOTICE_STEP_KIND,
+            detail=f"Tool {', '.join(retired_tools)} is no longer available; "
+            "this agent runs without it.",
+            status="error",
+        )
     if folded:
         yield LLMResearchStepEvent(
             tool_call_id="",
@@ -1997,17 +1850,9 @@ async def invoke_agent(
         if isinstance(effective_depth, str) and effective_depth.strip()
         else None,
     )
-    # Scrub any option key the LLM adapter does not consume BEFORE it reaches
-    # stream_chat: the runtime pops everything it owns above (history, the
-    # web-search / deep-research / depth options), but a caller-supplied unknown
-    # key would ride ``**opts`` into the provider SDK and TypeError the round.
-    # Keep only provider tuning params + the runtime's own web-search flags;
-    # log-warn whatever is dropped so a mis-sent option is visible, not silent.
-    dropped = sorted(k for k in opts if k not in _ADAPTER_OPTION_KEYS)
-    for key in dropped:
-        opts.pop(key)
-    if dropped:
-        logger.warning("invoke_agent: dropped unsupported option key(s): %s", ", ".join(dropped))
+    # The runtime popped everything it owns above; only adapter kwargs ride
+    # ``**opts`` into stream_chat (the one allowlist, R15-CODE-AGENT-005).
+    opts = scrub_adapter_options(opts)
 
     # --- Visible plan-then-execute pre-pass (Track 6 #2) ---------------------
     # For a COMPOUND request on a capable model, decompose the goal into an
@@ -2025,6 +1870,9 @@ async def invoke_agent(
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    native_searches = 0  # native server-side searches run this turn (R15-AGENT-049)
+    # The turn's spend over every round (C11): None once any round is unpriced.
+    turn_spend: float | None = 0.0
     # R10 (E2): the latest research execution record of THIS invoke. When the
     # model issues its own publish_brief without an ``execution`` (it almost
     # never echoes the big record), the tracked record is injected so the
@@ -2040,7 +1888,6 @@ async def invoke_agent(
     # Any prose streamed this turn (every round): a turn that ends with none
     # is an empty answer, never a silent success (R15-AGENT-026).
     turn_text = False
-    seen_call_ids: set[str] = set()
     while True:
         # The capped final round (D-B3-6, R15-AGENT-003): tools stay offered
         # (Anthropic rejects a tool_use/tool_result history with no `tools`),
@@ -2052,6 +1899,12 @@ async def invoke_agent(
             messages.append(LLMMessage(role="system", content=_CAPPED_ROUND_NOTE))
         if window:
             _fit_to_window(messages, tool_ids, window)
+        if opts.get("web_search"):
+            if native_searches >= _WEB_SEARCH_CAP:
+                opts.pop("web_search")
+                opts.pop("web_search_max_uses", None)
+            else:
+                opts["web_search_max_uses"] = _WEB_SEARCH_CAP - native_searches
         streamed_text = False
         pending_tools: list[LLMToolUseEvent] = []
         # WS8 Step 4: accumulate this round's reasoning_content (DeepSeek-reasoner
@@ -2078,13 +1931,12 @@ async def invoke_agent(
             if isinstance(event, LLMToolUseEvent):
                 if capped:
                     continue
-                # The runtime owns tool-call identity (R15-AGENT-046): Ollama sends
-                # '' and Gemini `name_index` per stream, so an empty id or one seen
-                # this turn is replaced before the tool-use turn, the tool result
-                # or any derived id uses it; acks are consumed once when read.
-                if not event.tool_call_id or event.tool_call_id in seen_call_ids:
-                    event.tool_call_id = f"call_{uuid.uuid4().hex}"
-                seen_call_ids.add(event.tool_call_id)
+                # The runtime owns tool-call identity (R15-AGENT-046, D-B9-5):
+                # provider ids are never trusted (Ollama sends '', Gemini reuses
+                # `name_index` in every stream, so a late ack from an earlier turn
+                # would ground this one). Every call gets a fresh id before the
+                # tool-use turn, the tool result or any derived id uses it.
+                event.tool_call_id = f"call_{uuid.uuid4().hex}"
                 _normalise_tool_args(event)
                 if event.name in _host_action_ids() and INVALID_ARGS_SENTINEL in event.input:
                     # Never hand the UI a host action with invalid args (it would
@@ -2109,6 +1961,13 @@ async def invoke_agent(
                 continue
             if isinstance(event, LLMDoneEvent):
                 seen_done = True
+                if event.usage is not None:
+                    native_searches += event.usage.web_search_requests or 0
+                round_spend = budget_guard.spend_usd(provider_id, resolved_model, event.usage)
+                turn_spend = (
+                    None if round_spend is None or turn_spend is None else turn_spend + round_spend
+                )
+                event.spend_usd = None if turn_spend is None else round(turn_spend, 6)
                 # Per-round cost signal (FR-026): fire BEFORE we either swallow
                 # this terminator (mid-run) or yield it (final), so the budget
                 # guard sees every round's usage, not just the last one.

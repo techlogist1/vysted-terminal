@@ -71,13 +71,16 @@ const UPCOMING_SAMPLE: EarningsUpcomingResponse = {
       provider: "yfinance",
     },
   ],
+  as_of: null,
 };
 
 const SURPRISES_SAMPLE: EarningsSurprisesResponse = {
   symbol: "AAPL",
+  as_of: null,
   surprises: [
     {
       symbol: "AAPL",
+      period_end: "2026-01-31",
       reported_date: "2026-02-01",
       fiscal_period: { quarter: "Q1", year: 2026 },
       eps_actual: 1.32,
@@ -173,6 +176,22 @@ describe("EarningsCalendarPanel", () => {
     });
   });
 
+  it("R15-UI-015: a deterministic 502 settles after one attempt and shows the error", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { SidecarError } = await import("@/lib/sidecar-client");
+      vi.mocked(sidecarGet).mockRejectedValue(new SidecarError(502, "keyless upstream"));
+      render(<EarningsCalendarPanel />);
+      // The retry hook's backoff window (~50s) fully elapses; a flattened
+      // new Error(string) used to read as transient and keep retrying.
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect(sidecarGet).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/keyless upstream/i)).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("R15-DATA-031: labels EPS with currency and never interleaves currencies when sorted", async () => {
     const MIXED_CURRENCY_SAMPLE: EarningsUpcomingResponse = {
       start_date: "2026-05-16",
@@ -203,6 +222,7 @@ describe("EarningsCalendarPanel", () => {
           provider: "yfinance",
         },
       ],
+      as_of: null,
     };
     vi.mocked(sidecarGet).mockResolvedValueOnce(MIXED_CURRENCY_SAMPLE);
     render(<EarningsCalendarPanel />);

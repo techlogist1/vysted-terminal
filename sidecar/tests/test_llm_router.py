@@ -214,6 +214,72 @@ def test_chat_streams_sse_frames(
     assert fake.last_api_key == "sk-routed"
 
 
+def test_chat_forwards_only_allowlisted_adapter_options(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-005: /llm/chat filters options through the same allowlist
+    as the agent path, so a composer control key never reaches the SDK."""
+    seen: dict[str, Any] = {}
+
+    class _KwargsProvider(_FakeProvider):
+        async def stream_chat(self, messages: list[Any], model: str, **kwargs: Any) -> Any:
+            seen.update(kwargs)
+            yield LLMDoneEvent()
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _KwargsProvider())
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": "deepseek",
+            "model": "deepseek-chat",
+            "messages": [{"role": "user", "content": "hi"}],
+            "api_key": "sk",
+            "options": {"depth": "deep", "someNewKey": 1, "temperature": 0.2},
+        },
+    ) as response:
+        b"".join(response.iter_bytes())
+    assert seen == {"api_key": "sk", "temperature": 0.2}
+
+
+@pytest.mark.parametrize(
+    ("provider", "model", "spend"),
+    [
+        ("deepseek", "deepseek-chat", 0.0009),  # 1,000 tokens at $0.9/1M
+        ("xai", "mystery-1", None),  # no price-table key: unknown, not the fallback
+    ],
+)
+def test_chat_done_frame_carries_the_priced_spend(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    provider: str,
+    model: str,
+    spend: float | None,
+) -> None:
+    """R15-AGENT-082 (C11): the /llm/chat done frame carries ``spend_usd``."""
+    import json
+
+    class _UsageProvider(_FakeProvider):
+        async def stream_chat(self, messages: list[Any], model: str, **kwargs: Any) -> Any:
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=800, output_tokens=200))
+
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: _UsageProvider())
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": provider,
+            "model": model,
+            "messages": [{"role": "user", "content": "hi"}],
+        },
+    ) as response:
+        body = b"".join(response.iter_bytes()).decode()
+    frames = [json.loads(f.removeprefix("data: ")) for f in body.split("\n\n") if f.strip()]
+    [done] = [f for f in frames if f["kind"] == "done"]
+    assert done["spend_usd"] == spend
+
+
 class _CatalogProvider:
     """Adapter stub whose ``list_models`` returns a canned catalog."""
 

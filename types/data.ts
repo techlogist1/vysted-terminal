@@ -87,6 +87,13 @@ export interface Fundamentals {
   name: string | null;
   sector: string | null;
   industry: string | null;
+  /**
+   * Which source served `sector`/`industry` (R15-DATA-052): `"resolver"` when
+   * the bundled India sector map overrode an absent/empty Yahoo value (a bare
+   * Yahoo `""` never counts as served), `"yfinance"` when Yahoo's own value
+   * was used, `null` when neither had one.
+   */
+  sector_source?: string | null;
   currency: string | null;
   /**
    * Currency of the statement sizes (`revenue_ttm`/`net_income_ttm`/
@@ -116,6 +123,22 @@ export interface Fundamentals {
   fifty_two_week_high: number | null;
   fifty_two_week_low: number | null;
   fifty_two_week_change: number | null;
+  /** ISO date the 52-week high/low each actually traded at (R15-DATA-055). */
+  fifty_two_week_high_date?: string | null;
+  fifty_two_week_low_date?: string | null;
+  /**
+   * ISO date the listing first traded. A listing younger than 52 weeks still
+   * reports a `fifty_two_week_*` pair (Yahoo backfills from the shorter
+   * history it has) — a non-null date here means the panel should label that
+   * range "since listing" instead of "52w".
+   */
+  listing_date?: string | null;
+  /**
+   * ISO date of the fiscal year end `forward_pe` targets (Yahoo
+   * `nextFiscalYearEnd`). `null`/absent when Yahoo names no forward estimate
+   * or fiscal-year-end date for it.
+   */
+  forward_pe_fiscal_year?: string | null;
   // Profitability (fractions)
   roe: number | null;
   roa: number | null;
@@ -126,6 +149,19 @@ export interface Fundamentals {
   debt_to_equity: number | null;
   current_ratio: number | null;
   quick_ratio: number | null;
+  /**
+   * Return on capital employed — EBIT / (total assets - current liabilities),
+   * a fraction. Yahoo's `info` carries no ROCE field at all, so this is
+   * ALWAYS derived from the statements when they carry the ingredients
+   * (R15-DATA-048); `null` when they don't.
+   */
+  roce?: number | null;
+  /**
+   * Accounting basis of the served statement-derived figures (R15-DATA-054):
+   * `"consolidated"` for an Indian listing, `null` for every other listing
+   * (not independently knowable from `info`).
+   */
+  basis?: "consolidated" | "standalone" | null;
   // Size & growth
   revenue_ttm: number | null;
   net_income_ttm: number | null;
@@ -196,6 +232,12 @@ export interface FieldMeta {
   as_of?: string | null;
   reason?: string | null;
   label?: string | null;
+  /**
+   * Set alongside `provider === "derived"` (R15-DATA-048/054/055): the
+   * formula the value was computed with, e.g. "EBIT / (total assets -
+   * current liabilities)".
+   */
+  basis_note?: string | null;
 }
 
 /** One labelled row of a financial statement, keyed by period label. */

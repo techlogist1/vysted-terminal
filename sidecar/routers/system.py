@@ -206,10 +206,14 @@ async def get_provider_health() -> dict:
 
     Loopback-only like every sidecar route; surfaces the same numbers the
     logs carry so the UI/rig can see WHY the screener degraded to its
-    stale/seed basis."""
+    stale/seed basis. ``fallthroughs`` lists each provider the registry keeps
+    falling through, per model key (C14, R15-LIFECYCLE-021)."""
     from services import provider_health
 
-    return {"yahoo": provider_health.status(provider_health.YAHOO)}
+    return {
+        "yahoo": provider_health.status(provider_health.YAHOO),
+        "fallthroughs": provider_health.fallthroughs(),
+    }
 
 
 @router.post("/provider-health/trip")

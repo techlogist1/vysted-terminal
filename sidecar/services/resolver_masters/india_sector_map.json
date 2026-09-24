@@ -4,10 +4,10 @@
  "_note": "India sector/shares map regenerated via regenerate_india_sectors.py. Identity+Mktcap from ListOfScripData; close from the equity bhavcopy (shares_outstanding = Mktcap*1e7/close at snapshot); sector from BSE's harmonized classification (ComHeadernew IndustryNew, hand-mapped to the Yahoo 11-sector vocabulary; unknown -> null) with a yfinance fallback. Partial sector coverage is expected — the runtime warm crawler backfills. Do not hand-edit; rerun the script to refresh. R11 D59 hygiene pass (2026-07-08): coverage header recomputed from the actual records; orphaned 'industry' values migrated into industry_raw (the one key readers consume) and the orphan key dropped; shares_outstanding backfilled for the NSE-only enrichment rows (yfinance); every record carries the one 7-key shape.",
  "coverage": {
   "records": 5010,
-  "with_sector": 2268,
+  "with_sector": 2270,
   "with_shares": 4297,
   "sector_sources": {
-   "bse": 793,
+   "bse": 795,
    "yfinance": 1475
   }
  },
@@ -9709,9 +9709,9 @@
    "symbol": "ELCIDIN",
    "isin": "INE927X01018",
    "scrip_code": "503681",
-   "industry_raw": null,
-   "sector": null,
-   "sector_source": null,
+   "industry_raw": "Investment Company",
+   "sector": "Financial Services",
+   "sector_source": "bse",
    "shares_outstanding": 200000
   },
   {
@@ -17899,9 +17899,9 @@
    "symbol": "NAPEROL",
    "isin": "INE585A01020",
    "scrip_code": "500298",
-   "industry_raw": null,
-   "sector": null,
-   "sector_source": null,
+   "industry_raw": "Investment Company",
+   "sector": "Financial Services",
+   "sector_source": "bse",
    "shares_outstanding": 5746988
   },
   {

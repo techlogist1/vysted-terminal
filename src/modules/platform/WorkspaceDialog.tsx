@@ -3,6 +3,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import {
   Dialog,
   DialogContent,
@@ -282,16 +283,16 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
               >
                 {name}
               </button>
-              <Button
-                type="button"
+              <ConfirmButton
                 variant="ghost"
                 size="xs"
-                onClick={() => handleDelete(name)}
+                aria-label={`Delete workspace ${name}`}
+                onConfirm={() => handleDelete(name)}
                 disabled={busy}
                 className="text-charcoal-400 hover:text-negative"
               >
                 Delete
-              </Button>
+              </ConfirmButton>
             </div>
           ))
         )}

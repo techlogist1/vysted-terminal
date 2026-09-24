@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
 import pandas as pd
 import pytest
 
@@ -201,76 +202,114 @@ def test_ecb_catalog_returns_curated_set(fake_ecb: _FakeEcbModule) -> None:
 # ---------------------------------------------------------------------------
 
 
-class _FakeObs:
-    def __init__(self, period: str, value: float | None) -> None:
-        self.dim = period
-        self.value = value
+# A live SDMX 3.0 answer for CPI/USA.CPI._T.IX.M?lastNObservations=3, recorded
+# 2026-09-24 and trimmed to the fields the parser reads (R15-UI-053).
+_IMF_CPI_USA_MESSAGE: dict[str, Any] = {
+    "meta": {},
+    "data": {
+        "dataSets": [
+            {
+                "structure": 0,
+                "action": "Replace",
+                "series": {
+                    "0:0:0:0:0": {
+                        "attributes": [0, None, 0, "2010A", "true"],
+                        "observations": {
+                            "0": ["153.150000802548", None, 0, "2010A", None],
+                            "1": ["153.1344084418875", None, 0, "2010A", None],
+                            "2": ["NaN", None, 0, "2010A", None],
+                        },
+                    }
+                },
+            }
+        ],
+        "structures": [
+            {
+                "dataSets": [0],
+                "dimensions": {
+                    "series": [
+                        {"id": "COUNTRY", "keyPosition": 0, "values": [{"id": "USA"}]},
+                        {"id": "INDEX_TYPE", "keyPosition": 1, "values": [{"id": "CPI"}]},
+                        {"id": "COICOP_1999", "keyPosition": 2, "values": [{"id": "_T"}]},
+                        {
+                            "id": "TYPE_OF_TRANSFORMATION",
+                            "keyPosition": 3,
+                            "values": [{"id": "IX"}],
+                        },
+                        {"id": "FREQUENCY", "keyPosition": 4, "values": [{"id": "M"}]},
+                    ],
+                    "observation": [
+                        {
+                            "id": "TIME_PERIOD",
+                            "keyPosition": 5,
+                            "values": [
+                                {"value": "2026-M06"},
+                                {"value": "2026-M07"},
+                                {"value": "2026-M08"},
+                            ],
+                        }
+                    ],
+                },
+            }
+        ],
+    },
+}
 
-
-class _FakeSeries:
-    def __init__(self, obs: list[_FakeObs]) -> None:
-        self.obs = obs
-
-
-class _FakeDataSet:
-    def __init__(self, series: list[_FakeSeries]) -> None:
-        self.series = series
-
-
-class _FakeMessage:
-    def __init__(self, datasets: list[_FakeDataSet]) -> None:
-        self.data = datasets
-
-
-class _FakeSdmxClient:
-    """Stand-in for ``sdmx.Client``."""
-
-    def __init__(self) -> None:
-        self.calls: list[tuple[str, dict[str, Any]]] = []
-
-    def data(self, dataflow: str, **kwargs: Any) -> _FakeMessage:
-        self.calls.append((dataflow, kwargs))
-        if kwargs.get("key", "").startswith("FAIL"):
-            raise RuntimeError("IMF upstream said no")
-        return _FakeMessage(
-            [
-                _FakeDataSet(
-                    [
-                        _FakeSeries(
-                            [
-                                _FakeObs("2022", 100.0),
-                                _FakeObs("2023", 102.5),
-                                _FakeObs("2024", float("nan")),
-                            ]
-                        )
-                    ]
-                )
-            ]
-        )
+# What the API answers for a key the dataflow does not carry: 200, no series.
+_IMF_EMPTY_MESSAGE: dict[str, Any] = {
+    "meta": {},
+    "data": {"dataSets": [{"structure": 0, "action": "Replace"}], "structures": [{}]},
+}
 
 
 @pytest.fixture
-def fake_imf(monkeypatch: pytest.MonkeyPatch) -> _FakeSdmxClient:
-    fake = _FakeSdmxClient()
-    monkeypatch.setattr(imf_provider, "_make_client", lambda source="IMF_DATA": fake)
-    return fake
+def fake_imf(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
+    calls: list[tuple[str, str]] = []
+
+    def fetch(dataflow: str, key: str) -> dict[str, Any]:
+        calls.append((dataflow, key))
+        if key.startswith("FAIL"):
+            request = httpx.Request("GET", "https://api.imf.org/x")
+            raise httpx.ConnectError("IMF upstream said no", request=request)
+        if key.startswith("ZZZ"):
+            return _IMF_EMPTY_MESSAGE
+        return _IMF_CPI_USA_MESSAGE
+
+    monkeypatch.setattr(imf_provider, "_fetch", fetch)
+    return calls
 
 
-def test_imf_get_series_parses_slash_dataflow(fake_imf: _FakeSdmxClient) -> None:
-    series = imf_provider.get_series("IFS/A.US.NGDP_R_K_IX")
+def test_imf_get_series_parses_a_recorded_sdmx3_message(fake_imf: list[tuple[str, str]]) -> None:
+    series = imf_provider.get_series("CPI/USA.CPI._T.IX.M")
     assert series.provider == "imf"
-    assert series.frequency == "annual"
-    assert len(series.observations) == 3
-    assert series.observations[1].value == pytest.approx(102.5)
+    assert series.frequency == "monthly"
+    assert series.title == "Consumer Price Index, monthly, United States"
+    assert [o.date.date().isoformat() for o in series.observations] == [
+        "2026-06-01",
+        "2026-07-01",
+        "2026-08-01",
+    ]
+    assert series.observations[1].value == pytest.approx(153.1344084418875)
     assert series.observations[2].value is None  # NaN -> None
-    # And the dispatcher saw the right dataflow + key.
-    assert fake_imf.calls[0][0] == "IFS"
-    assert fake_imf.calls[0][1]["key"] == "A.US.NGDP_R_K_IX"
+    assert fake_imf == [("CPI", "USA.CPI._T.IX.M")]
 
 
-def test_imf_get_series_wraps_upstream_errors(fake_imf: _FakeSdmxClient) -> None:
-    with pytest.raises(ProviderError, match="IMF upstream error"):
-        imf_provider.get_series("IFS/FAIL.X.X")
+def test_imf_period_formats_parse() -> None:
+    assert imf_provider._parse_period("2031").month == 1
+    assert imf_provider._parse_period("2026-Q2").month == 4
+    assert imf_provider._parse_period("2026-M11").month == 11
+
+
+def test_imf_get_series_wraps_upstream_errors(fake_imf: list[tuple[str, str]]) -> None:
+    with pytest.raises(ProviderError, match="IMF upstream error") as info:
+        imf_provider.get_series("CPI/FAIL.X.X")
+    assert info.value.kind == "network"
+
+
+def test_imf_unknown_key_is_not_found(fake_imf: list[tuple[str, str]]) -> None:
+    with pytest.raises(ProviderError) as info:
+        imf_provider.get_series("CPI/ZZZ.CPI._T.IX.M")
+    assert info.value.kind == "not_found"
 
 
 def test_imf_get_series_rejects_unparseable_key() -> None:
@@ -292,6 +331,8 @@ def test_imf_catalog_returns_curated_set() -> None:
     cat = imf_provider.catalog()
     assert cat.provider == "imf"
     assert len(cat.entries) >= 5
+    # The retired SDMX 2.1 IFS dataflow answers 204/404 upstream (R15-UI-053).
+    assert not any(e.series_id.startswith("IFS") for e in cat.entries)
 
 
 # ---------------------------------------------------------------------------

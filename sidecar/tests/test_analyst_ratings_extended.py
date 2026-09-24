@@ -61,6 +61,11 @@ class _FakeRatingsTicker:
 
     @property
     def upgrades_downgrades(self) -> pd.DataFrame:
+        # R15-DATA-069: yfinance's LIVE column names are ``currentPriceTarget``
+        # / ``priorPriceTarget`` — the old ``PriceTarget``/``Target``/
+        # ``Price Target`` names this fixture used to carry were dead (no
+        # shipped yfinance version has ever used them), so every row silently
+        # fell through to the single-snapshot fallback.
         return pd.DataFrame(
             [
                 {
@@ -68,28 +73,32 @@ class _FakeRatingsTicker:
                     "ToGrade": "Overweight",
                     "FromGrade": "Equal-Weight",
                     "Action": "up",
-                    "PriceTarget": 230.0,
+                    "currentPriceTarget": 230.0,
+                    "priorPriceTarget": 200.0,
                 },
                 {
                     "Firm": "Goldman Sachs",
                     "ToGrade": "Buy",
                     "FromGrade": "Neutral",
                     "Action": "up",
-                    "PriceTarget": 225.0,
+                    "currentPriceTarget": 225.0,
+                    "priorPriceTarget": 210.0,
                 },
                 {
                     "Firm": "JP Morgan",
                     "ToGrade": "Underweight",
                     "FromGrade": "Neutral",
                     "Action": "down",
-                    "PriceTarget": 180.0,
+                    "currentPriceTarget": 180.0,
+                    "priorPriceTarget": 210.0,
                 },
                 {
                     "Firm": "Morgan Stanley",
                     "ToGrade": "Equal-Weight",
                     "FromGrade": "Underperform",
                     "Action": "up",
-                    "PriceTarget": 200.0,
+                    "currentPriceTarget": 200.0,
+                    "priorPriceTarget": float("nan"),
                 },
             ],
             index=pd.to_datetime(["2026-05-01", "2026-04-15", "2026-04-01", "2026-03-01"]),
@@ -145,6 +154,10 @@ async def test_get_individual_analysts(mock_yf_ratings: type[_FakeRatingsTicker]
     assert response.symbol == "AAPL"
     firms = {entry.firm for entry in response.analysts}
     assert {"Morgan Stanley", "Goldman Sachs", "JP Morgan"} <= firms
+    # R15-DATA-069: the Individual table's Target reads currentPriceTarget —
+    # each firm's kept row is its newest, so Morgan Stanley's is 230.0.
+    ms = next(e for e in response.analysts if e.firm == "Morgan Stanley")
+    assert ms.current_price_target == 230.0
     # Star rating + accuracy are placeholders pending richer providers.
     for entry in response.analysts:
         assert entry.one_year_accuracy is None
@@ -155,7 +168,8 @@ async def test_get_individual_analysts(mock_yf_ratings: type[_FakeRatingsTicker]
 async def test_price_target_history_fallback_to_snapshot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """When upgrades_downgrades has no PriceTarget column, the snapshot fills in."""
+    """When upgrades_downgrades has no currentPriceTarget column, the snapshot
+    fills in."""
 
     class _NoTargetTicker(_FakeRatingsTicker):
         @property
@@ -168,6 +182,40 @@ async def test_price_target_history_fallback_to_snapshot(
     assert len(response.history) == 1
     assert response.history[0].firm == "Consensus"
     assert response.history[0].target_to == 225.0
+
+
+@pytest.mark.asyncio
+async def test_price_target_history_ignores_the_dead_legacy_column_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (R15-DATA-069, a case not written against): a frame carrying
+    ONLY the old dead names (``PriceTarget``/``Target``/``Price Target`` — no
+    shipped yfinance version has ever used them) yields no per-row entries and
+    falls back to the single consensus anchor row, exactly as an empty frame
+    would — proving the reader no longer reads them."""
+
+    class _DeadColumnTicker(_FakeRatingsTicker):
+        @property
+        def upgrades_downgrades(self) -> pd.DataFrame:  # type: ignore[override]
+            return pd.DataFrame(
+                [
+                    {
+                        "Firm": "Morgan Stanley",
+                        "ToGrade": "Buy",
+                        "FromGrade": "Hold",
+                        "Action": "up",
+                        "PriceTarget": 230.0,
+                        "Target": 230.0,
+                        "Price Target": 230.0,
+                    }
+                ],
+                index=pd.to_datetime(["2026-05-01"]),
+            )
+
+    monkeypatch.setattr(analyst_ratings_extended, "_yf_ticker", _DeadColumnTicker)
+    response = await analyst_ratings_extended.get_price_target_history("AAPL")
+    assert len(response.history) == 1
+    assert response.history[0].firm == "Consensus"
 
 
 @pytest.mark.asyncio

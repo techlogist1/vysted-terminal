@@ -65,8 +65,8 @@ export function OnboardingBanner() {
             <Sparkles className="text-charcoal-300 size-4 shrink-0" aria-hidden="true" />
             <p className="text-charcoal-200 text-caption min-w-0 flex-1 font-mono leading-snug">
               Add a cloud provider key — or run a local model (Ollama) — to unlock the assistant,
-              agents, and research tools. Keys stay in your OS keychain; nothing leaves this
-              machine.
+              agents, and research tools. Keys stay in your OS keychain — market data and web
+              searches still go to public providers.
             </p>
             <button
               type="button"

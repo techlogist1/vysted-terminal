@@ -32,6 +32,8 @@ Public surface
 
   - :func:`get(key, ttl_seconds)` — returns the cached JSON value if the
     row's ``updated_at`` is within ``ttl_seconds`` of now, else ``None``.
+  - :func:`get_with_meta(key, ttl_seconds)` — like :func:`get`, but also
+    returns the row's fetch time so a caller can stamp an ``as_of``.
   - :func:`set(key, value)` — upsert. Updates ``updated_at`` to now.
   - :func:`invalidate(key_prefix)` — delete every row whose key starts
     with the prefix. Useful for "drop the whole macro / FRED bucket"
@@ -157,6 +159,39 @@ async def get(key: str, ttl_seconds: float) -> Any | None:
         return None
     try:
         return json.loads(value_text)
+    except (TypeError, ValueError):
+        logger.warning("data_cache: stored value for %r is not valid JSON; treating as miss", key)
+        return None
+
+
+async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | None:
+    """Like :func:`get`, but also returns the row's fetch time (R15-DATA-068).
+
+    Args:
+        key: opaque string key.
+        ttl_seconds: same freshness window as :func:`get`.
+
+    Returns ``None`` on miss / stale, or ``(value, updated_at)`` on a fresh
+    hit — ``updated_at`` is the epoch seconds of the original :func:`set`
+    call, letting a caller stamp an ``as_of`` that reflects when the data
+    was actually fetched rather than when the cache happened to be read.
+    """
+    if ttl_seconds <= 0:
+        return None
+    async with _lock:
+        cur = _get_conn().execute(
+            "SELECT value, updated_at FROM cache WHERE key = ?",
+            (key,),
+        )
+        row = cur.fetchone()
+    if row is None:
+        return None
+    value_text, updated_at = row
+    updated_at = float(updated_at)
+    if time.time() - updated_at > ttl_seconds:
+        return None
+    try:
+        return json.loads(value_text), updated_at
     except (TypeError, ValueError):
         logger.warning("data_cache: stored value for %r is not valid JSON; treating as miss", key)
         return None

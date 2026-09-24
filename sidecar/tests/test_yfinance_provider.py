@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+import config
 from services import yfinance_provider
 
 
@@ -560,6 +561,28 @@ def test_yahoo_symbol_passes_caret_index_through_in_an_in_session(index: str) ->
         config.reset_request_region(token)
 
 
+# ---------------------------------------------------------------------------
+# R15-LEAD-022: a non-Indian Yahoo exchange suffix is dot form, not dash form
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "raw",
+    ["BHP.AX", "0700.HK", "7203.T", "VOD.L", "SHOP.TO"],  # SHOP.TO is the class pin
+)
+def test_yahoo_symbol_passes_foreign_exchange_suffixes_through(raw: str) -> None:
+    """A known non-Indian Yahoo exchange suffix is already Yahoo's own dot form —
+    dash-rewriting it (the old universal rule) makes Yahoo report "possibly
+    delisted" for every such listing."""
+    assert yfinance_provider._yahoo_symbol(raw) == raw
+
+
+def test_yahoo_symbol_still_dashes_the_us_share_class_quirk() -> None:
+    """A genuine US share-class dot (not a recognised exchange suffix) still
+    takes the dash rewrite yfinance's API expects."""
+    assert yfinance_provider._yahoo_symbol("BRK.B") == "BRK-B"
+
+
 def test_30m_history_asks_within_yahoos_60_day_intraday_window(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -715,3 +738,295 @@ def test_quote_without_market_time_is_dated_by_its_last_bar(
     _closed_market_ticker(monkeypatch, {"currency": "USD"})
     stamp = yfinance_provider.get_quote("AAPL").timestamp
     assert stamp == datetime(2026, 9, 23, 0, 0, tzinfo=UTC)  # 20:00 New York
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-023 / D-B9-2: no trade time anywhere is a ProviderError, never now()
+# ---------------------------------------------------------------------------
+
+
+def test_quote_with_no_market_time_and_empty_history_falls_through(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No ``regularMarketTime`` and an empty 5-day frame (a priced-but-untraded
+    quote) must not crash on an empty-index lookup; it raises ``ProviderError``
+    so the registry tries the next provider instead of dating the quote now()."""
+    import pandas as pd
+
+    from services.errors import ProviderError
+
+    class _Ticker(_RecordingTicker):
+        def get_history_metadata(self) -> dict:
+            return {}
+
+        def history(  # noqa: ARG002
+            self, period: str, interval: str, raise_errors: bool = False
+        ) -> object:
+            return pd.DataFrame()
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_quote("AAPL")
+    assert info.value.kind is None
+    assert "no trade time" in str(info.value)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-048 / R15-DATA-052 / R15-DATA-054 / R15-DATA-055: the fundamentals
+# profile derives ratios Yahoo omits, resolves India sector via the bundled
+# map, and carries basis / listing / 52-week-leg-date / forward-PE metadata.
+# ---------------------------------------------------------------------------
+
+
+def _fund_ticker(info: dict, **frames: object) -> type:
+    """A yf.Ticker stand-in with ``.info`` plus the statement/history frames
+    ``_derive_fundamentals`` reads. Any frame left out defaults to empty, which
+    the derivation leg treats as "no data for this field" (never a crash)."""
+    import pandas as pd
+
+    class _T:
+        def __init__(self, symbol: str) -> None:
+            self.symbol = symbol
+
+        @property
+        def info(self) -> dict:
+            return info
+
+        @property
+        def balance_sheet(self):  # noqa: ANN201
+            return frames.get("balance_sheet", pd.DataFrame())
+
+        @property
+        def quarterly_balance_sheet(self):  # noqa: ANN201
+            return frames.get("quarterly_balance_sheet", pd.DataFrame())
+
+        @property
+        def income_stmt(self):  # noqa: ANN201
+            return frames.get("income_stmt", pd.DataFrame())
+
+        @property
+        def quarterly_income_stmt(self):  # noqa: ANN201
+            return frames.get("quarterly_income_stmt", pd.DataFrame())
+
+        def history(self, period: str = "1y", interval: str = "1d"):  # noqa: ANN201, ARG002
+            return frames.get("history", pd.DataFrame())
+
+    return _T
+
+
+def test_get_fundamentals_derives_ratios_from_statements(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ELCIDIN (R15-DATA-048): Yahoo's ``info`` carries no ROE/ROCE/D-E/EPS/PE/
+    market cap — this NBFC-shell's Yahoo record is bare — so every one is
+    derived from the statements the provider already fetches and labelled
+    'derived', never silently left null."""
+    import pandas as pd
+
+    info = {
+        "longName": "Elcid Investments Ltd",
+        "currency": "INR",
+        "currentPrice": 45.0,
+        "sharesOutstanding": 200_000,
+        "netIncomeToCommon": 5_000_000.0,
+    }
+    columns = pd.to_datetime(["2025-03-31"])
+    balance_sheet = pd.DataFrame(
+        {columns[0]: [40_000_000.0, 10_000_000.0, 25_000_000.0, 0.0]},
+        index=["Total Assets", "Current Liabilities", "Stockholders Equity", "Total Debt"],
+    )
+    income_stmt = pd.DataFrame({columns[0]: [4_500_000.0]}, index=["EBIT"])
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _fund_ticker(info, balance_sheet=balance_sheet, income_stmt=income_stmt),
+    )
+    fund = yfinance_provider.get_fundamentals("ELCIDIN.BO")
+    meta = fund.field_meta
+    assert meta is not None
+
+    assert fund.roce == pytest.approx(4_500_000.0 / (40_000_000.0 - 10_000_000.0))
+    assert meta["roce"].provider == "derived"
+    assert fund.roe == pytest.approx(5_000_000.0 / 25_000_000.0)
+    assert meta["roe"].provider == "derived"
+    assert fund.debt_to_equity == 0.0
+    assert meta["debt_to_equity"].provider == "derived"
+    assert fund.eps == pytest.approx(5_000_000.0 / 200_000)
+    assert meta["eps"].provider == "derived"
+    assert fund.pe_ratio == pytest.approx(45.0 / fund.eps)
+    assert meta["pe_ratio"].provider == "derived"
+    assert fund.market_cap == pytest.approx(45.0 * 200_000)
+    assert meta["market_cap"].provider == "derived"
+
+
+def test_get_fundamentals_roce_unavailable_without_statement_data(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No EBIT/assets/current-liabilities row anywhere: ROCE has no Yahoo
+    equivalent at all, so it is stamped explicitly 'unavailable' (never a bare
+    missing key)."""
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    info = {"longName": "Sparse Statement Co", "currency": "USD"}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("SPARSE")
+    assert fund.roce is None
+    assert fund.field_meta["roce"].status == "unavailable"
+    assert fund.field_meta["roce"].reason == "insufficient statement data to derive ROCE"
+
+
+def test_get_fundamentals_derives_roce_for_a_us_name_too(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (the fix was not written against this case): the derived-ratio
+    leg is not India-specific — a US name gets the same EBIT/(assets - current
+    liabilities) derivation, while ``basis`` stays unstamped (a US listing has
+    no Yahoo consolidation guarantee)."""
+    import pandas as pd
+
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    info = {"longName": "Charter Communications Inc", "currency": "USD"}
+    columns = pd.to_datetime(["2025-12-31"])
+    balance_sheet = pd.DataFrame(
+        {columns[0]: [145_000_000_000.0, 12_000_000_000.0]},
+        index=["Total Assets", "Current Liabilities"],
+    )
+    income_stmt = pd.DataFrame({columns[0]: [9_500_000_000.0]}, index=["EBIT"])
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _fund_ticker(info, balance_sheet=balance_sheet, income_stmt=income_stmt),
+    )
+    fund = yfinance_provider.get_fundamentals("CHTR")
+    assert fund.roce == pytest.approx(9_500_000_000.0 / (145_000_000_000.0 - 12_000_000_000.0))
+    assert fund.field_meta["roce"].provider == "derived"
+    assert fund.basis is None
+
+
+def test_get_fundamentals_roce_uses_annual_ebit_not_the_newest_quarter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-048 review pin: a quarterly income statement with a NEWER, smaller
+    EBIT must not replace the annual EBIT in ROCE (that understates it ~4x)."""
+    import pandas as pd
+
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    info = {"longName": "Quarterly Filer Inc", "currency": "USD"}
+    annual = pd.to_datetime(["2025-12-31"])
+    quarter = pd.to_datetime(["2026-06-30"])
+    balance_sheet = pd.DataFrame(
+        {annual[0]: [100_000_000.0, 20_000_000.0]},
+        index=["Total Assets", "Current Liabilities"],
+    )
+    income_stmt = pd.DataFrame({annual[0]: [16_000_000.0]}, index=["EBIT"])
+    quarterly_income_stmt = pd.DataFrame({quarter[0]: [4_000_000.0]}, index=["EBIT"])
+    monkeypatch.setattr(
+        yfinance_provider.yf,
+        "Ticker",
+        _fund_ticker(
+            info,
+            balance_sheet=balance_sheet,
+            income_stmt=income_stmt,
+            quarterly_income_stmt=quarterly_income_stmt,
+        ),
+    )
+    fund = yfinance_provider.get_fundamentals("QTRLY")
+    assert fund.roce == pytest.approx(16_000_000.0 / (100_000_000.0 - 20_000_000.0))
+
+
+def test_get_fundamentals_naperol_reads_financial_services_from_the_map(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """NAPEROL (R15-DATA-052): Yahoo misclassifies this name as 'Basic
+    Materials' — the bundled BSE-sourced India sector map overrides it with the
+    correct 'Financial Services', even though Yahoo's own value was non-empty
+    (the map wins for an Indian listing whenever it carries a sector, not only
+    when Yahoo served a blank one)."""
+    info = {
+        "longName": "Naprol Chemical Industries Ltd",
+        "currency": "INR",
+        "sector": "Basic Materials",
+        "industry": "Chemicals",
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("NAPEROL.BO")
+    assert fund.sector == "Financial Services"
+    assert fund.industry == "Investment Company"
+    assert fund.sector_source == "resolver"
+
+
+def test_get_fundamentals_empty_yahoo_sector_is_not_served(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A bare Yahoo ``sector: ""`` (ok status, empty string) never counts as a
+    served value for a non-Indian listing with no map to fall back on —
+    ``sector`` stays ``None``, not a fabricated blank string."""
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    info = {"longName": "Blank Sector Co", "currency": "USD", "sector": "", "industry": ""}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("BLANK")
+    assert fund.sector is None
+    assert fund.sector_source is None
+
+
+def test_get_fundamentals_basis_is_consolidated_for_an_indian_listing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """CREST (R15-DATA-054): Yahoo serves the CONSOLIDATED statement set for an
+    Indian listing, so ``basis`` is stamped; a non-Indian listing has no such
+    guarantee and stays unstamped."""
+    info = {"longName": "Crest Ventures Ltd", "currency": "INR", "marketCap": 5_000_000_000}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("CREST.BO")
+    assert fund.basis == "consolidated"
+
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    us_info = {"longName": "Example Corp", "currency": "USD", "marketCap": 1_000_000}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(us_info))
+    us_fund = yfinance_provider.get_fundamentals("EXMPL")
+    assert us_fund.basis is None
+
+
+def test_get_fundamentals_listing_date_and_52week_leg_dates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-055: ``listing_date`` comes from ``firstTradeDateMilliseconds``,
+    the 52-week high/low dates come from the 1y history's argmax/argmin, and
+    ``forward_pe_fiscal_year`` is set only when Yahoo names a forward-PE
+    horizon."""
+    from datetime import UTC, datetime
+
+    import pandas as pd
+
+    listing_ms = int(datetime(2026, 1, 5, tzinfo=UTC).timestamp() * 1000)
+    next_fy_end = int(datetime(2027, 3, 31, tzinfo=UTC).timestamp())
+    info = {
+        "longName": "Freshly Listed Ltd",
+        "currency": "INR",
+        "fiftyTwoWeekHigh": 120.0,
+        "fiftyTwoWeekLow": 80.0,
+        "firstTradeDateMilliseconds": listing_ms,
+        "forwardPE": 18.0,
+        "nextFiscalYearEnd": next_fy_end,
+    }
+    index = pd.to_datetime(["2026-01-06", "2026-06-15", "2026-09-01"])
+    history = pd.DataFrame({"High": [100.0, 120.0, 110.0], "Low": [95.0, 100.0, 80.0]}, index=index)
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _fund_ticker(info, history=history))
+    fund = yfinance_provider.get_fundamentals("FRESH.NS")
+    assert fund.listing_date == "2026-01-05"
+    assert fund.fifty_two_week_high_date == "2026-06-15"
+    assert fund.fifty_two_week_low_date == "2026-09-01"
+    assert fund.forward_pe_fiscal_year == "2027-03-31"
+
+
+def test_get_fundamentals_no_forward_pe_leaves_fiscal_year_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case not written against: Yahoo names a ``nextFiscalYearEnd`` but omits
+    ``forwardPE`` entirely — the horizon is not stamped (it would describe an
+    estimate that does not exist)."""
+    from datetime import UTC, datetime
+
+    monkeypatch.setattr(config, "get_region", lambda: "US")
+    next_fy_end = int(datetime(2027, 3, 31, tzinfo=UTC).timestamp())
+    info = {"longName": "No Estimate Co", "currency": "USD", "nextFiscalYearEnd": next_fy_end}
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("NOEST")
+    assert fund.forward_pe_fiscal_year is None

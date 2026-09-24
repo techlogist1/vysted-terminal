@@ -171,7 +171,10 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
 
 
 def _fetch_history_sync(symbol: str) -> dict[str, Any]:
-    """Return the yfinance earnings_history DataFrame for ``symbol`` (resolved here)."""
+    """Return the yfinance earnings_history DataFrame for ``symbol`` (resolved
+    here), plus ``Ticker.earnings_dates`` (R15-LEAD-016) — the announcement
+    dates used to resolve each entry's true ``reported_date``, distinct from
+    ``period_end``."""
     normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
@@ -179,6 +182,10 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
             history = ticker.earnings_history
         except Exception:  # noqa: BLE001
             history = None
+        try:
+            earnings_dates = ticker.earnings_dates
+        except Exception:  # noqa: BLE001
+            earnings_dates = None
         try:
             info = ticker.info or {}
         except Exception:  # noqa: BLE001
@@ -188,8 +195,49 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
     return {
         "symbol": normalized,
         "history": history,
+        "earnings_dates": earnings_dates,
         "currency": info.get("currency") or "USD",
     }
+
+
+def _as_date(value: Any) -> date | None:
+    """Best-effort coercion of a pandas index label / cell to a plain ``date``."""
+    if hasattr(value, "to_pydatetime"):
+        value = value.to_pydatetime()
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return datetime.fromisoformat(str(value)).date()
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_announcement_dates(frame: Any) -> list[date]:
+    """Every ALREADY-REPORTED announcement date in a ``Ticker.earnings_dates``
+    frame (R15-LEAD-016) — a future scheduled event (``Reported EPS`` still
+    ``NaN``) is not an announcement yet, so it is excluded; a frame that lacks
+    the column (schema drift) is read unfiltered rather than dropped whole.
+    Best-effort: an unreadable/empty frame yields ``[]``, never a crash."""
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return []
+    if "Reported EPS" in frame.columns:
+        frame = frame[frame["Reported EPS"].notna()]
+    dates: list[date] = []
+    for idx in frame.index:
+        parsed = _as_date(idx)
+        if parsed is not None:
+            dates.append(parsed)
+    return dates
+
+
+def _nearest_reported_date(period_end: date, announcement_dates: list[date]) -> date | None:
+    """The earliest announcement date 0-120 days after ``period_end`` — the
+    quarter's actual report date, never the quarter end itself (R15-LEAD-016).
+    ``None`` when no announcement date falls in that window."""
+    candidates = [d for d in announcement_dates if 0 <= (d - period_end).days <= 120]
+    return min(candidates) if candidates else None
 
 
 # ---------------------------------------------------------------------------
@@ -343,31 +391,33 @@ async def get_upcoming(
 
 
 async def get_history(symbol: str) -> EarningsHistoryResponse:
-    """Return the historical earnings results for ``symbol``."""
+    """Return the historical earnings results for ``symbol``.
+
+    ``period_end`` is the fiscal quarter end (the ``earnings_history`` index)
+    and the sort key. ``reported_date`` is the ACTUAL announcement date — the
+    nearest ``Ticker.earnings_dates`` entry 0-120 days after ``period_end``, or
+    ``None`` when none is found in that window (R15-LEAD-016: the OLD code
+    reported ``period_end`` itself as ``reported_date``, which is wrong
+    whenever a company reports weeks after its quarter closes)."""
     payload = await asyncio.to_thread(_fetch_history_sync, symbol)
     normalized = payload["symbol"]
     history_frame = payload.get("history")
     currency = str(payload.get("currency") or "USD")
+    announcement_dates = _extract_announcement_dates(payload.get("earnings_dates"))
     entries: list[EarningsHistoryEntry] = []
     if isinstance(history_frame, pd.DataFrame) and not history_frame.empty:
         for raw_idx, row in history_frame.iterrows():
-            reported = raw_idx
-            if hasattr(reported, "to_pydatetime"):
-                reported = reported.to_pydatetime().date()
-            elif isinstance(reported, datetime):
-                reported = reported.date()
-            elif not isinstance(reported, date):
-                try:
-                    reported = datetime.fromisoformat(str(reported)).date()
-                except (TypeError, ValueError):
-                    continue
+            period_end = _as_date(raw_idx)
+            if period_end is None:
+                continue
             eps_actual = _num(row.get("epsActual"))
             if eps_actual is None:
                 continue
             eps_estimate = _num(row.get("epsEstimate"))
             entries.append(
                 EarningsHistoryEntry(
-                    reported_date=reported,
+                    period_end=period_end,
+                    reported_date=_nearest_reported_date(period_end, announcement_dates),
                     eps_actual=eps_actual,
                     eps_estimate_mean=eps_estimate,
                     revenue_actual=_num(row.get("revenueActual")),
@@ -375,7 +425,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
                     currency=currency,
                 )
             )
-    entries.sort(key=lambda entry: entry.reported_date, reverse=True)
+    entries.sort(key=lambda entry: entry.period_end, reverse=True)
     return EarningsHistoryResponse(symbol=normalized, history=entries)
 
 
@@ -398,6 +448,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
         surprises.append(
             EarningsSurprise(
                 symbol=normalized,
+                period_end=entry.period_end,
                 reported_date=entry.reported_date,
                 fiscal_period=entry.fiscal_period,
                 eps_actual=entry.eps_actual,

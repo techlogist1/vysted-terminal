@@ -18,7 +18,8 @@ dialog.
 
 from __future__ import annotations
 
-from typing import cast
+import logging
+from typing import Any, cast
 
 from models.llm import LLMProviderId, LLMProviderInfo
 from services import model_registry
@@ -61,6 +62,33 @@ PROVIDER_INFO: tuple[LLMProviderInfo, ...] = tuple(
 )
 
 
+logger = logging.getLogger(__name__)
+
+#: Option keys an adapter's ``stream_chat`` consumes (``**options``): provider
+#: tuning params + the runtime's web-search flags. The ONE allowlist for every
+#: caller (R15-CODE-AGENT-005): any other key (a composer control such as
+#: ``depth``, a key added later) would ride into the provider SDK and TypeError
+#: the stream.
+ADAPTER_OPTION_KEYS = frozenset(
+    {
+        "temperature",
+        "top_p",
+        "max_tokens",
+        "web_search",
+        "web_search_max_uses",
+        "config",  # Gemini generation-config passthrough
+    }
+)
+
+
+def scrub_adapter_options(options: dict[str, Any]) -> dict[str, Any]:
+    """Keep only :data:`ADAPTER_OPTION_KEYS`; log-warn whatever is dropped."""
+    dropped = sorted(k for k in options if k not in ADAPTER_OPTION_KEYS)
+    if dropped:
+        logger.warning("dropped unsupported LLM option key(s): %s", ", ".join(dropped))
+    return {k: v for k, v in options.items() if k in ADAPTER_OPTION_KEYS}
+
+
 def list_provider_info() -> list[LLMProviderInfo]:
     """Return the provider info rows in registry order."""
     return list(PROVIDER_INFO)
@@ -97,6 +125,7 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
 
 
 __all__ = [
+    "ADAPTER_OPTION_KEYS",
     "DEEPSEEK_BASE_URL",
     "OPENROUTER_BASE_URL",
     "PROVIDER_INFO",
@@ -104,4 +133,5 @@ __all__ = [
     "LLMProvider",
     "get_provider",
     "list_provider_info",
+    "scrub_adapter_options",
 ]

@@ -138,10 +138,79 @@ async def test_get_history(mock_yf_earnings: type[_FakeEarningsTicker]) -> None:
     response = await earnings_provider.get_history("AAPL")
     assert response.symbol == "AAPL"
     assert len(response.history) == 2
-    # Sorted newest-first.
-    assert response.history[0].reported_date >= response.history[1].reported_date
+    # Sorted newest-first by period_end (R15-LEAD-016) — reported_date can be
+    # None, so it is no longer the sort key.
+    assert response.history[0].period_end >= response.history[1].period_end
     assert response.history[0].eps_actual == 1.32
     assert response.history[0].eps_estimate_mean == 1.30
+
+
+@pytest.mark.asyncio
+async def test_get_history_reported_date_differs_from_period_end(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-016: a quarter ending 2026-01-31 is announced 2026-02-24 (24
+    days later) — ``period_end`` is the quarter end, ``reported_date`` is the
+    actual announcement date, and the two differ."""
+
+    class _Ticker(_FakeEarningsTicker):
+        @property
+        def earnings_history(self) -> pd.DataFrame:
+            return pd.DataFrame(
+                [
+                    {
+                        "epsActual": 1.32,
+                        "epsEstimate": 1.30,
+                        "revenueActual": 99_000_000.0,
+                        "revenueEstimate": 98_000_000.0,
+                    }
+                ],
+                index=pd.to_datetime(["2026-01-31"]),
+            )
+
+        @property
+        def earnings_dates(self) -> pd.DataFrame:
+            return pd.DataFrame(
+                {"EPS Estimate": [1.30], "Reported EPS": [1.32]},
+                index=pd.to_datetime(["2026-02-24"]),
+            )
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _Ticker)
+    response = await earnings_provider.get_history("AAPL")
+    entry = response.history[0]
+    assert entry.period_end == date(2026, 1, 31)
+    assert entry.reported_date == date(2026, 2, 24)
+    assert entry.reported_date != entry.period_end
+
+
+@pytest.mark.asyncio
+async def test_get_history_no_matching_announcement_leaves_reported_date_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case not written against: no ``earnings_dates`` entry falls within 0-120
+    days after ``period_end`` — ``reported_date`` stays ``None`` rather than
+    falling back to the quarter end."""
+
+    class _Ticker(_FakeEarningsTicker):
+        @property
+        def earnings_history(self) -> pd.DataFrame:
+            return pd.DataFrame(
+                [{"epsActual": 1.32, "epsEstimate": 1.30}],
+                index=pd.to_datetime(["2025-01-31"]),
+            )
+
+        @property
+        def earnings_dates(self) -> pd.DataFrame:
+            return pd.DataFrame(
+                {"EPS Estimate": [1.30], "Reported EPS": [1.32]},
+                index=pd.to_datetime(["2026-02-24"]),  # far more than 120 days out
+            )
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _Ticker)
+    response = await earnings_provider.get_history("AAPL")
+    entry = response.history[0]
+    assert entry.period_end == date(2025, 1, 31)
+    assert entry.reported_date is None
 
 
 @pytest.mark.asyncio

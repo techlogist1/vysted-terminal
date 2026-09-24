@@ -51,6 +51,7 @@ from .base import (
 )
 from .native_search import (
     openai_native_search_supported,
+    openai_shaped_search_count,
     openai_web_search_options,
     openrouter_web_search_tool,
 )
@@ -606,9 +607,11 @@ class OpenAIProvider(LLMProvider):
         # DeepSeek have no native search here (xAI retired Live Search's
         # ``search_parameters``, R15-LEAD-008), so they are left untouched
         # (graceful no-op; the runtime keeps the local search tool).
+        native_search = False
         if web_search:
             if self._provider_id == "openrouter":
                 tools.append(openrouter_web_search_tool())
+                native_search = True
             elif self._provider_id == "openai":
                 # Chat-completions takes ``web_search_options`` — NOT a tools
                 # entry. A ``{"type": "web_search"}`` tool 400s ("Supported
@@ -617,6 +620,7 @@ class OpenAIProvider(LLMProvider):
                 # rides the local search tool instead.
                 if openai_native_search_supported(model):
                     request_kwargs["web_search_options"] = openai_web_search_options()
+                    native_search = True
         if tools:
             request_kwargs["tools"] = tools
         # OpenRouter cheapest-capable routing (FINDINGS §2.2): pick the cheapest
@@ -649,6 +653,10 @@ class OpenAIProvider(LLMProvider):
             usage: LLMUsage | None = None
             repairs: list[LLMUsage | None] = []
             finish_reason: str | None = None
+            # The native searches this round ran are counted from the raw usage
+            # and the citations (R15-AGENT-049).
+            raw_usage: Any = None
+            cited = False
             # Function-call streaming sends the id/name once and the arguments
             # JSON in fragments across many chunks, keyed by the tool_call
             # index. Accumulate per index, then emit ONE tool_use event per
@@ -676,6 +684,8 @@ class OpenAIProvider(LLMProvider):
                         )
                         if reasoning:
                             yield LLMThinkingEvent(text=reasoning)
+                        if getattr(delta, "annotations", None):
+                            cited = True
                         content = getattr(delta, "content", None)
                         if content:
                             content_parts.append(content)
@@ -709,6 +719,7 @@ class OpenAIProvider(LLMProvider):
                             yield event
                 chunk_usage = getattr(chunk, "usage", None)
                 if chunk_usage is not None:
+                    raw_usage = chunk_usage
                     usage = LLMUsage(
                         input_tokens=getattr(chunk_usage, "prompt_tokens", 0) or 0,
                         output_tokens=getattr(chunk_usage, "completion_tokens", 0) or 0,
@@ -756,6 +767,9 @@ class OpenAIProvider(LLMProvider):
                     input_tokens=base.input_tokens + sum(u.input_tokens for u in metered),
                     output_tokens=base.output_tokens + sum(u.output_tokens for u in metered),
                 )
+            if native_search:
+                searches = openai_shaped_search_count(self._provider_id, raw_usage, cited)
+                usage = (usage or LLMUsage()).model_copy(update={"web_search_requests": searches})
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except openai.OpenAIError as exc:  # pragma: no cover — network path
             _h = humanize(self._provider_id, exc)

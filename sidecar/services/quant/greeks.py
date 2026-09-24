@@ -25,7 +25,8 @@ def compute_greeks(req: GreeksRequest) -> GreeksResult:
     Uses :class:`ql.AnalyticEuropeanEngine` over the same flat-BSM
     process the option pricer uses (:func:`._common.build_bsm_process`).
     Returns Greeks per the QuantLib internal convention (vega per
-    unit-vol, theta per year); the panel relabels for display.
+    unit-vol, theta per year); the panels convert to vega per 1 vol point
+    and theta per calendar day (src/modules/quant/units.ts).
     """
     req.validate_domain()
     started = time.perf_counter()

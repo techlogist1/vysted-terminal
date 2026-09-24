@@ -5,6 +5,8 @@ Mirrored by hand in ``types/data.ts`` — keep in sync (see CLAUDE.md Gotchas).
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -43,6 +45,11 @@ class FieldMeta(BaseModel):
     as_of: str | None = None
     reason: str | None = None
     label: str | None = None
+    #: Set alongside ``provider == "derived"`` (R15-DATA-048/054/055, D-B9-6):
+    #: the formula the value was computed with, e.g. "EBIT / (total assets -
+    #: current liabilities)" — so a derived figure never reads as if the
+    #: provider itself served it.
+    basis_note: str | None = None
 
 
 class Fundamentals(BaseModel):
@@ -65,6 +72,11 @@ class Fundamentals(BaseModel):
     name: str | None = None
     sector: str | None = None
     industry: str | None = None
+    #: Which source served ``sector``/``industry`` (R15-DATA-052): ``"resolver"``
+    #: when the bundled India sector map overrode an absent/empty Yahoo value
+    #: (a bare Yahoo ``""`` never counts as served), ``"yfinance"`` when
+    #: Yahoo's own value was used, ``None`` when neither had one.
+    sector_source: str | None = None
     currency: str | None = None
     #: The currency of the statement-denominated sizes (``revenue_ttm``,
     #: ``net_income_ttm``, ``free_cash_flow``) when the provider's reporting
@@ -94,6 +106,21 @@ class Fundamentals(BaseModel):
     fifty_two_week_high: float | None = None
     fifty_two_week_low: float | None = None
     fifty_two_week_change: float | None = None
+    #: ISO date the 52-week high/low each actually traded at (R15-DATA-055),
+    #: from the 1-year daily history's argmax(High)/argmin(Low) — Yahoo's
+    #: scalar ``fiftyTwoWeekHigh``/``Low`` carry no date of their own.
+    fifty_two_week_high_date: str | None = None
+    fifty_two_week_low_date: str | None = None
+    #: ISO date the listing first traded (Yahoo ``firstTradeDateMilliseconds``).
+    #: A listing younger than 52 weeks still reports a ``fifty_two_week_*``
+    #: pair (Yahoo backfills it from the shorter history it has); this field
+    #: lets the panel relabel that range "since listing" instead of "52w".
+    listing_date: str | None = None
+    #: ISO date of the fiscal year end the ``forward_pe`` estimate targets
+    #: (Yahoo ``nextFiscalYearEnd``), when Yahoo names one alongside a
+    #: forward P/E. ``None`` when Yahoo supplies no forward estimate or no
+    #: fiscal-year-end date for it.
+    forward_pe_fiscal_year: str | None = None
     # --- Profitability (fractions) ---
     roe: float | None = None
     roa: float | None = None
@@ -104,6 +131,17 @@ class Fundamentals(BaseModel):
     debt_to_equity: float | None = None
     current_ratio: float | None = None
     quick_ratio: float | None = None
+    #: Return on capital employed — EBIT / (total assets - current liabilities),
+    #: a fraction (0.233 = 23.3%). Yahoo's ``info`` carries no ROCE field at all,
+    #: so this is ALWAYS derived from the statements when they carry the
+    #: ingredients (R15-DATA-048); ``None`` when they don't.
+    roce: float | None = None
+    #: The accounting basis the served statement-derived figures use
+    #: (R15-DATA-054): ``"consolidated"`` for an Indian listing (Yahoo serves
+    #: the consolidated set for NSE/BSE names), ``None`` for every other
+    #: listing (Yahoo's basis is not independently knowable from ``info``).
+    #: Never ``"standalone"`` today — no provider path yields it.
+    basis: Literal["consolidated", "standalone"] | None = None
     # --- Size & growth ---
     revenue_ttm: float | None = None
     net_income_ttm: float | None = None

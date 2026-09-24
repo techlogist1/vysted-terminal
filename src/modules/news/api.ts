@@ -46,3 +46,28 @@ export async function fetchNews(symbols: string[], limit = 50): Promise<NewsItem
     { "X-Vysted-Newsapi-Key": newsapiKey ?? undefined },
   );
 }
+
+/** The `/news/sources/status` probe result (R15-DATA-094). */
+export interface NewsSourcesStatus {
+  newsapi: "ok" | "unauthorized" | "error" | "absent";
+}
+
+/**
+ * Probe the saved NewsAPI key's validity without fetching a full feed.
+ * NewsFeedPanel badges a non-ok result so a key that has gone bad (revoked,
+ * quota reset) is visible instead of just reading as "no fresh NewsAPI
+ * articles right now".
+ */
+export async function fetchNewsSourcesStatus(): Promise<NewsSourcesStatus> {
+  let newsapiKey: string | null = null;
+  try {
+    newsapiKey = await getSecret(
+      KEYCHAIN_NAMESPACES.pluginSecret(NEWS_PLUGIN_ID, NEWSAPI_KEY_FIELD),
+    );
+  } catch {
+    newsapiKey = null;
+  }
+  return sidecarGet<NewsSourcesStatus>("/news/sources/status", undefined, {
+    "X-Vysted-Newsapi-Key": newsapiKey ?? undefined,
+  });
+}

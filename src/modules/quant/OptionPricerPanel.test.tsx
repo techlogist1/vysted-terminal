@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { resetQuantStoreForTests } from "@/store/quant";
+import { useSettingsStore } from "@/store/settings";
 import { OptionPricerPanel } from "./OptionPricerPanel";
 
 vi.mock("@/lib/sidecar-client", () => ({
@@ -10,6 +11,8 @@ vi.mock("@/lib/sidecar-client", () => ({
 
 beforeEach(() => {
   resetQuantStoreForTests();
+  // The display currency defaults to the session region's; pin it.
+  useSettingsStore.setState({ region: "US" });
   vi.stubGlobal(
     "fetch",
     vi.fn().mockResolvedValue({
@@ -46,6 +49,22 @@ describe("OptionPricerPanel", () => {
     fireEvent.click(screen.getByTestId("price-option"));
     await screen.findByTestId("option-pricing-result");
     expect(screen.getByTestId("option-price").textContent).toContain("$8.42");
+  });
+
+  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    render(<OptionPricerPanel />);
+    fireEvent.click(screen.getByTestId("price-option"));
+    await screen.findByTestId("option-pricing-result");
+    expect(screen.getByTestId("option-price").textContent).toBe("₹8.4200");
+    expect(screen.getByTestId("option-pricing-result").textContent).not.toContain("$");
+    expect(screen.getByTestId("option-greek-vega").textContent).toContain("0.3000");
+    expect(screen.getByTestId("option-greek-vega").textContent).toContain("per 1 vol pt");
+    expect(screen.getByTestId("option-greek-theta").textContent).toContain("-0.0137");
+    expect(screen.getByTestId("option-greek-theta").textContent).toContain("per day");
+
+    fireEvent.change(screen.getByTestId("field-display-currency"), { target: { value: "USD" } });
+    expect(screen.getByTestId("option-price").textContent).toBe("$8.4200");
   });
 
   it("shows binomial-specific steps field when binomial selected", () => {

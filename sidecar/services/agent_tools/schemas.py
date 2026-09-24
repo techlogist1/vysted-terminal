@@ -21,12 +21,16 @@ No trading tool exists (D81).
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from services.agent_tools.catalog import (
     CAPABILITY_CATALOG,
     internal_capabilities,
+    resolve_tool_ids,
 )
+
+logger = logging.getLogger(__name__)
 
 #: {tool_id: {description, input_schema}} — the internal-consumer projection of
 #: the catalog. input_schema is JSON Schema (the draft-07 subset Anthropic +
@@ -46,7 +50,10 @@ HOST_ACTION_TOOLS: tuple[str, ...] = tuple(
 
 
 def _known(tool_ids: list[str]) -> list[str]:
-    return [tid for tid in tool_ids if tid in TOOL_SCHEMAS]
+    resolved, unknown = resolve_tool_ids(tool_ids)
+    if unknown:
+        logger.warning("no tool schema for retired tool id(s): %s", ", ".join(unknown))
+    return [tid for tid in resolved if tid in TOOL_SCHEMAS]
 
 
 def anthropic_tools(tool_ids: list[str]) -> list[dict[str, Any]]:

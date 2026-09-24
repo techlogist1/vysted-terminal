@@ -48,6 +48,14 @@ export interface KeybindingDef {
   description: string;
   /** Functional grouping. */
   category: KeybindingCategory;
+  /**
+   * When true, the app-level dispatcher (`page.tsx`) fires this action even
+   * while a text input/textarea/contentEditable is focused. Defaults to
+   * false (the dispatcher skips text inputs) — set only for actions that must
+   * stay reachable while typing (e.g. opening the palette, toggling the agent
+   * dock), matching their pre-dispatcher behaviour.
+   */
+  global?: boolean;
 }
 
 /**
@@ -61,6 +69,7 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
     label: "Open command palette",
     description: "Open the fuzzy command palette.",
     category: "palette",
+    global: true,
   },
   // The collapsed two-mode surface (R9): Agent infers read/edit intent from
   // the prompt; Delegate runs durably. The legacy four-mode rows (Ask/Edit/
@@ -70,18 +79,21 @@ const SHELL_DEFAULTS: Record<string, KeybindingDef> = {
     label: "Agent mode",
     description: "Interactive agent for this cockpit.",
     category: "agent",
+    global: true,
   },
   "agent.mode.delegate": {
     keys: "alt+2",
     label: "Delegate mode",
     description: "Budget-capped autonomous run.",
     category: "agent",
+    global: true,
   },
   "agent.toggle": {
     keys: "mod+b",
     label: "Toggle agent panel",
     description: "Show or fully hide the agent column.",
     category: "agent",
+    global: true,
   },
   "changes.acceptAll": {
     keys: "mod+enter",
@@ -203,11 +215,18 @@ export const useKeybindingsStore = create<KeybindingsState>((set, get) => ({
       return { overrides: next };
     }),
   setOverrides: (map) =>
-    set(() => {
-      // Normalise on the way in so a persisted blob can't seed a combo that
+    set((state) => {
+      // Merge over the CURRENT overrides (never a full replace) and reject
+      // any action id this build doesn't know about — otherwise a partial or
+      // garbled import (an unknown action id, a non-string value) wipes every
+      // remap the full replace used to silently drop (R15-UI-058). Normalise
+      // on the way in so a persisted blob can't seed a combo that
       // `matchesEvent` would never match (e.g. "K+Mod", uppercase, spaces).
-      const overrides: Record<string, string> = {};
+      const overrides = { ...state.overrides };
       for (const [actionId, keys] of Object.entries(map)) {
+        if (!(actionId in state.defaults)) {
+          continue;
+        }
         if (typeof keys === "string" && keys.trim() !== "") {
           overrides[actionId] = normalizeBinding(keys);
         }
@@ -236,6 +255,70 @@ export const useKeybindingsStore = create<KeybindingsState>((set, get) => ({
 /** Test helper: reset overrides to empty (defaults are immutable). */
 export function resetKeybindingsStoreForTests(): void {
   useKeybindingsStore.setState({ overrides: {} });
+  actionHandlers.clear();
+}
+
+// ---------------------------------------------------------------------------
+// Action registry — the single keydown dispatcher's handler table
+// ---------------------------------------------------------------------------
+//
+// Owning components/stores register a handler for a shell action id
+// (`palette.open`, `agent.mode.*`, `agent.toggle`, `changes.*`); the one
+// `window` keydown listener (`page.tsx`) resolves the effective binding via
+// `bindingFor` + `matchesEvent` and calls the registered handler. A module
+// command id (e.g. `chart.open`) has no registered handler here — the
+// dispatcher runs it through the module command registry instead. Plain
+// module state (not Zustand) because handlers are closures, not data the UI
+// re-renders on.
+
+type ActionHandler = () => void;
+
+const actionHandlers = new Map<string, ActionHandler>();
+
+/**
+ * Register the handler a keybinding action id dispatches to. Returns an
+ * unregister function — call it from the owning effect's cleanup so a
+ * stale closure (an old `pendingChangeCount`, say) never lingers after the
+ * component re-renders with a fresh handler.
+ */
+export function registerAction(actionId: string, handler: ActionHandler): () => void {
+  actionHandlers.set(actionId, handler);
+  return () => {
+    if (actionHandlers.get(actionId) === handler) {
+      actionHandlers.delete(actionId);
+    }
+  };
+}
+
+/** Look up a registered shell-action handler (undefined if none registered). */
+export function getRegisteredAction(actionId: string): ActionHandler | undefined {
+  return actionHandlers.get(actionId);
+}
+
+/**
+ * Resolve which `DEFAULT_KEYBINDINGS` action, if any, a keydown event should
+ * fire: the first id whose EFFECTIVE (remap-aware) binding matches the event,
+ * skipping a non-`global` action while `typing` is true. The single source of
+ * truth for "does this keystroke mean this action" — the app-level dispatcher
+ * (`page.tsx`) calls it, then runs either the id's registered shell-action
+ * handler or its module command.
+ */
+export function resolveKeyboardAction(
+  event: MatchableKeyEvent,
+  typing: boolean,
+): { actionId: string; def: KeybindingDef } | undefined {
+  const { bindingFor } = useKeybindingsStore.getState();
+  for (const actionId of Object.keys(DEFAULT_KEYBINDINGS)) {
+    const def = DEFAULT_KEYBINDINGS[actionId];
+    if (typing && !def.global) {
+      continue;
+    }
+    const combo = bindingFor(actionId);
+    if (combo && matchesEvent(combo, event)) {
+      return { actionId, def };
+    }
+  }
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -279,7 +362,7 @@ export function normalizeBinding(keys: string): string {
 }
 
 /** True when running on macOS (so `mod`/`meta` render as ⌘). SSR/jsdom-safe. */
-function isMacPlatform(): boolean {
+export function isMacPlatform(): boolean {
   if (typeof navigator === "undefined") {
     return false;
   }
@@ -353,6 +436,7 @@ export function formatBinding(keys: string): string {
 /** A minimal KeyboardEvent shape — enough to match without DOM lib coupling. */
 interface MatchableKeyEvent {
   key: string;
+  code?: string;
   metaKey: boolean;
   ctrlKey: boolean;
   altKey: boolean;
@@ -393,7 +477,12 @@ export function matchesEvent(keys: string, event: MatchableKeyEvent): boolean {
     return false;
   }
 
-  return normalizeEventKey(event.key) === key;
+  if (normalizeEventKey(event.key) === key) {
+    return true;
+  }
+  // macOS Option rewrites `event.key` (⌥1 → "¡"), so an alt combo also matches
+  // on the physical key.
+  return wantAlt && /^(?:Digit|Key)(.)$/.exec(event.code ?? "")?.[1].toLowerCase() === key;
 }
 
 /** Map a `KeyboardEvent.key` to a binding-grammar key token. */

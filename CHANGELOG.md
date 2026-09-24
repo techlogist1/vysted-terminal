@@ -4,6 +4,46 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 9: tool-call identity, research brief contract, search degradation, fundamentals and earnings truth, market lanes and error honesty, keyboard shell (2026-09-24)
+
+**Scope:** 45 entries planned in `docs/redesign/verification/r15/stage-c/batch-9/PLAN.md`; the five writers
+delivered 23 commits reporting all 45. Merged `--no-ff` in plan order W3 → W4 → W1 → W2 → W5 on
+`worktree-agent-batch-9-int` (base `c1f0fea`), no file conflicts. Three integrator test edits, no assertion
+changed: the `@/modules/news/api` mock in `panel-context-publishers.test.tsx` gains W2's new
+`fetchNewsSourcesStatus`; the r9 seam stub of `web_search._resolve_backend` returns the C10 3-tuple; and the
+earnings-throttle mapper test reads a tmp data cache instead of the machine's `~/.vysted-terminal` one.
+Three entries landed one leg short and stay open: AGENT-082 (the chat footer never parses `spend_usd`), RESEARCH-028
+(the Settings SearXNG row does not render `degraded`) and DATA-068 (the analyst routes carry no server `as_of`).
+
+- **W1 agent runtime:** the runtime mints every tool-call id (AGENT-046); the research tool returns the brief the
+  runtime publishes verbatim (CODE-AGENT-008); the FAST price, fundamentals, news and filings legs are time-boxed
+  (RESEARCH-027); one adapter-option allowlist serves `/llm/chat` and the agent path (CODE-AGENT-005); renamed tool
+  ids resolve through catalog aliases (LIFECYCLE-025); the done frame carries `spend_usd` (AGENT-082, sidecar leg);
+  native web searches are counted, priced and capped per run (AGENT-049).
+- **W2 research search and news:** SearXNG reports `degraded` from `unresponsive_engines`, off the hot path
+  (RESEARCH-028, LIFECYCLE-018); news tagging resolves real aliases (AGENT-063); the NewsAPI key is probed and
+  `configure()` errors surface (DATA-094, UI-033); Notes slash rows no longer clip (UI-050); sidecar tests read
+  fixtures as UTF-8, pinned by `test_tests_encoding.py` (CROSS-PLATFORM-002); SEC company search decodes the real
+  tool shape and gains autocomplete (UI-032); the brief export restores Save .md/PDF/PNG behind a settle gate (UI-083).
+- **W3 fundamentals, identity and earnings:** foreign suffixes survive `_yahoo_symbol` (LEAD-022); a price with no
+  trade time falls through (LEAD-023); an empty Yahoo sector no longer counts as ok and the India sector map wins where it has one (DATA-052); ROCE and
+  derived ratios, consolidation basis, listing date, 52-week leg dates and the forward-PE year (DATA-048/054/055);
+  `reported_date` is the announcement date and `period_end` the sort key (LEAD-016); earnings responses carry
+  `as_of` and both stores a 15-minute TTL (DATA-068, earnings leg); live price-target columns (DATA-069); the
+  earnings and screener stores re-throw the original sidecar error (UI-015).
+- **W4 market lanes, errors and quant:** kind=None errors classify from `__cause__` and never leak library text
+  (DATA-061); IN EOD closes are cached and NSE is paced outside the lock, and each quote carries the requested
+  symbol (DATA-066, DATA-062); registry fall-throughs are counted on `/system/provider-health` (LIFECYCLE-021); the
+  IMF lane moves to live SDMX 3.0 dataflows (UI-053); weekly/monthly bars are dated by their period (DATA-065); the
+  2026 NSE calendar comes from the holiday master with a regenerator (DATA-073); Greeks are per vol point and per
+  day, and option prices use the region currency (UI-028, UI-051).
+- **W5 frontend shell:** one remap-aware keydown dispatcher with `mod` chords, conflict checks on resolved chords and
+  bindings shown in the palette (UI-016, CODE-FRONTEND-016, UI-027, UI-086); layout modes reachable from the palette
+  (CROSS-PLATFORM-004); destructive actions take a two-step confirm (UI-018); the Region copy states what it controls
+  (DATA-092); a bare resolved ticker loads the chart without an LLM round-trip (AGENT-088); onboarding copy no
+  longer promises keyless web research or full privacy (UI-052); the settings export covers every preference and
+  import is validated (UI-058).
+
 ## R15 Stage C — batch 8: sidecar lifecycle and transport, provider readiness, data-error honesty, resolver and exchange lanes, research runtime (2026-09-24)
 
 **Scope:** 47 entries planned in `docs/redesign/verification/r15/stage-c/batch-8/PLAN.md`; the five writers

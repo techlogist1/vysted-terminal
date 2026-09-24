@@ -689,18 +689,25 @@ async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
     sec-edgar-mcp exposes a ``search_companies`` tool; pass-through is
     fine because results are advisory only (the panel displays them
     in a dropdown). Returns a list of ``{cik, name, ticker}`` rows.
+
+    R15-UI-032: the live tool answers ``{"success": True, "companies": [...],
+    "count": N}`` with each row carrying ``tickers`` (a LIST — a dual-listed
+    company can have more than one), never a singular ``ticker``/``symbol``
+    key. An empty result (a query that matched nothing) is never cached — the
+    original TTL-blind cache turned a transient miss (or a query typed one
+    keystroke at a time) into a dead end for the rest of the TTL window.
     """
     if not query or not query.strip():
         return []
     cache_key = f"sec:search:{query.strip().lower()}:{limit}"
     cached = await data_cache.get(cache_key, _FILINGS_INDEX_TTL)
-    if isinstance(cached, list):
+    if isinstance(cached, list) and cached:
         return cached  # type: ignore[return-value]
     payload = await _call_tool("search_companies", {"query": query.strip(), "limit": int(limit)})
     rows: list[dict[str, Any]] = []
     raw_list: list[Any] = []
     if isinstance(payload, dict):
-        raw_list = payload.get("results") or payload.get("companies") or []  # type: ignore[assignment]
+        raw_list = payload.get("companies") or payload.get("results") or []  # type: ignore[assignment]
     elif isinstance(payload, list):
         raw_list = payload
     for row in raw_list:
@@ -709,14 +716,21 @@ async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
         cik = str(row.get("cik") or row.get("CIK") or "")
         if cik.isdigit():
             cik = cik.zfill(10)
+        tickers = row.get("tickers")
+        ticker = (
+            _coerce_str(tickers[0])
+            if isinstance(tickers, list) and tickers
+            else _coerce_str(row.get("ticker") or row.get("symbol"))
+        )
         rows.append(
             {
                 "cik": cik,
                 "name": str(row.get("name") or row.get("company_name") or ""),
-                "ticker": _coerce_str(row.get("ticker") or row.get("symbol")),
+                "ticker": ticker,
             }
         )
-    await data_cache.set(cache_key, rows)
+    if rows:
+        await data_cache.set(cache_key, rows)
     return rows
 
 

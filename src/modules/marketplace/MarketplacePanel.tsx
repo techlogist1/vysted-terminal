@@ -249,7 +249,14 @@ function CredentialForm({ entry, onDone }: { entry: MarketplaceEntry; onDone: ()
           return;
         }
         setValidationError(null);
-        void configure(entry.pluginId, values).then(onDone);
+        // R15-UI-033: configure() used to have no error path here — a rejected
+        // write (a bad NewsAPI key, a keychain failure) vanished as an
+        // unhandled rejection and the dialog just sat there. Show it instead.
+        configure(entry.pluginId, values)
+          .then(onDone)
+          .catch((err: unknown) => {
+            setValidationError(err instanceof Error ? err.message : "Could not save credentials.");
+          });
       }}
     >
       {entry.instructions && <p className="text-charcoal-400 text-caption">{entry.instructions}</p>}

@@ -19,12 +19,14 @@ from services.searxng_manager import (
     CONTAINER_NAME,
     DEFAULT_HOST_PORT,
     IMAGE,
+    STATE_DEGRADED,
     STATE_DOCKER_PRESENT_NOT_SETUP,
     STATE_ERROR,
     STATE_NOT_INSTALLED_DOCKER,
     STATE_PULLING,
     STATE_READY,
     STATE_STARTING,
+    EngineProbe,
     SearxngManager,
     write_settings,
 )
@@ -75,10 +77,21 @@ async def _health_down(_url: str) -> bool:
     return False
 
 
+async def _quality_ok(_url: str) -> EngineProbe:
+    """Default quality-probe fixture: the search actually has results.
+
+    Every pre-existing test in this file (docker lifecycle, not engine
+    quality) expects a healthy container to land READY, so this is the
+    ``_manager()`` default — the degraded-state tests below override it.
+    """
+    return EngineProbe(has_results=True)
+
+
 def _manager(fake: FakeDocker, tmp_path, **overrides) -> SearxngManager:
     kwargs: dict = {
         "runner": fake,
         "health_probe": _health_up,
+        "quality_probe": _quality_ok,
         "port_free": lambda _port: True,
         "config_dir": tmp_path / "searxng",
         "health_timeout_secs": 0.2,
@@ -98,7 +111,7 @@ def _manager(fake: FakeDocker, tmp_path, **overrides) -> SearxngManager:
 
 def _write_fake_docker(tmp_path, echoed: str) -> str:
     fake = tmp_path / "docker"
-    fake.write_text(f"#!/bin/sh\necho {echoed}\n")
+    fake.write_text(f"#!/bin/sh\necho {echoed}\n", encoding="utf-8")
     fake.chmod(0o755)
     return str(fake)
 
@@ -239,6 +252,128 @@ async def test_refresh_with_exited_container_reports_not_setup_with_container_st
 
     assert status["state"] == STATE_DOCKER_PRESENT_NOT_SETUP
     assert status["container"] == "exited"  # the UI words the CTA "Start", not "Set up"
+
+
+# ---------------------------------------------------------------------------
+# R15-RESEARCH-028 — degraded: up, healthy, but engines are blocked
+# ---------------------------------------------------------------------------
+
+
+def _running_fake(port: int = DEFAULT_HOST_PORT) -> FakeDocker:
+    fake = FakeDocker()
+    fake.set("version", 0, _VERSION_DESKTOP)
+    fake.set("inspect", 0, "running\n")
+    fake.set("port", 0, f"127.0.0.1:{port}\n")
+    return fake
+
+
+@pytest.mark.asyncio
+async def test_refresh_with_all_engines_captcha_blocked_reports_degraded(tmp_path) -> None:
+    """The canned all-CAPTCHA case (acceptance criterion): a structurally
+    healthy container (`_health_once` passes) whose ONE probe already names
+    every engine unresponsive degrades immediately — it does not wait for
+    the 3-empty-probe threshold."""
+
+    async def all_captcha(_url: str) -> EngineProbe:
+        return EngineProbe(
+            has_results=False,
+            unresponsive=(("google", "CAPTCHA"), ("duckduckgo", "CAPTCHA")),
+        )
+
+    mgr = _manager(_running_fake(), tmp_path, quality_probe=all_captcha)
+
+    status = await mgr.refresh()
+
+    assert status["state"] == STATE_DEGRADED
+    assert status["reason"] == "google, duckduckgo: CAPTCHA"
+    assert mgr.ready_base_url() is None  # a degraded instance is never routed to
+
+
+@pytest.mark.asyncio
+async def test_refresh_with_three_empty_probes_reports_degraded(tmp_path) -> None:
+    """No engine names itself unresponsive, but three straight probes came
+    back empty anyway — degrade rather than trust it forever."""
+
+    async def empty(_url: str) -> EngineProbe:
+        return EngineProbe(has_results=False)
+
+    mgr = _manager(_running_fake(), tmp_path, quality_probe=empty)
+
+    first = await mgr.refresh()
+    assert first["state"] == STATE_READY  # 1 empty probe: not yet confirmed
+    second = await mgr.refresh()
+    assert second["state"] == STATE_READY  # 2 empty probes: still not confirmed
+    third = await mgr.refresh()
+
+    assert third["state"] == STATE_DEGRADED
+    assert third["reason"] == "no results from any engine across 3 probes"
+
+
+@pytest.mark.asyncio
+async def test_refresh_recovers_from_degraded_once_engines_answer(tmp_path) -> None:
+    """Degraded is not sticky (unlike error) — the next poll that sees real
+    results reports READY again and resets the empty-probe counter."""
+    calls = {"n": 0}
+
+    async def flaky(_url: str) -> EngineProbe:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return EngineProbe(has_results=False, unresponsive=(("bing", "timeout"),))
+        return EngineProbe(has_results=True)
+
+    mgr = _manager(_running_fake(), tmp_path, quality_probe=flaky)
+
+    degraded = await mgr.refresh()
+    assert degraded["state"] == STATE_DEGRADED
+
+    recovered = await mgr.refresh()
+    assert recovered["state"] == STATE_READY
+    assert recovered["reason"] is None
+
+
+# ---------------------------------------------------------------------------
+# R15-LIFECYCLE-018 — the hot-path derivation flag flips only after refresh()
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_ready_base_url_detected_runs_one_derivation_for_concurrent_callers(
+    tmp_path,
+) -> None:
+    """Two callers racing the cold first read must not have the SECOND one
+    read a still-``STATE_UNKNOWN`` manager just because the flag flipped
+    before the first caller's `refresh()` actually finished."""
+    refresh_calls = {"n": 0}
+    mgr = _manager(_running_fake(), tmp_path)
+    real_refresh = mgr.refresh
+
+    async def counted_refresh():
+        refresh_calls["n"] += 1
+        await asyncio.sleep(0.01)  # widen the race window
+        return await real_refresh()
+
+    mgr.refresh = counted_refresh  # type: ignore[method-assign]
+
+    first, second = await asyncio.gather(
+        mgr.ready_base_url_detected(), mgr.ready_base_url_detected()
+    )
+
+    assert refresh_calls["n"] == 1
+    assert first == second == "http://127.0.0.1:8888"
+
+
+@pytest.mark.asyncio
+async def test_warm_detect_kicks_off_derivation_without_awaiting(tmp_path) -> None:
+    """The lifespan calls this fire-and-forget; it must not require an await
+    to eventually reach STATE_READY."""
+    mgr = _manager(_running_fake(), tmp_path)
+    assert mgr.state == searxng_manager.STATE_UNKNOWN
+
+    mgr.warm_detect()
+    await mgr._detect_task
+
+    assert mgr.state == STATE_READY
+    await mgr.shutdown()  # must not raise on an already-finished detect task
 
 
 # ---------------------------------------------------------------------------

@@ -87,6 +87,40 @@ describe("SecFilingsPanel", () => {
     });
   });
 
+  it("R15-UI-032: typing shows company-search suggestions; picking one loads it", async () => {
+    render(<SecFilingsPanel />);
+    await waitFor(() => screen.getByTestId("filings-list-table"));
+
+    (sidecarClient.sidecarGet as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      results: [{ cik: "0000789019", name: "Microsoft Corporation", ticker: "MSFT" }],
+    });
+
+    const input = screen.getByTestId("sec-symbol-input") as HTMLInputElement;
+    input.focus();
+    fireEvent.change(input, { target: { value: "micro" } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("sec-symbol-suggestions")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Microsoft Corporation")).toBeInTheDocument();
+
+    (sidecarClient.sidecarGet as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ...AAPL_FILINGS,
+      cik: "0000789019",
+      company_name: "Microsoft Corporation",
+      symbol: "MSFT",
+    });
+    fireEvent.mouseDown(screen.getByText("Microsoft Corporation"));
+
+    await waitFor(() => {
+      expect(sidecarClient.sidecarGet).toHaveBeenCalledWith(
+        "/sec/filings",
+        expect.objectContaining({ symbol: "MSFT" }),
+      );
+    });
+    expect(screen.queryByTestId("sec-symbol-suggestions")).toBeNull();
+  });
+
   it("switches to the insider tab", async () => {
     render(<SecFilingsPanel />);
     await waitFor(() => screen.getByTestId("filings-list-table"));

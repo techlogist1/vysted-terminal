@@ -145,20 +145,32 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   setAll: (bundle) => {
-    // Merge over the seed so a partial blob (older export, hand-edited import)
-    // can't strip a field — every key keeps a sane value. Unknown/killed keys
-    // (themeKnobs, palette*, starterCockpitPanelIds, panelDefaults,
+    // A field ABSENT from the bundle merges over the CURRENT live state, not
+    // the seed — an older export or a hand-edited/partial import can't strip
+    // a field the user already set (R15-UI-058: importing a bundle lacking
+    // `region` used to silently reset it to the default). A field that IS
+    // present keeps its existing full validation, falling back to the
+    // current value (not the seed) when the value is garbled. Unknown/killed
+    // keys (themeKnobs, palette*, starterCockpitPanelIds, panelDefaults,
     // providerPreferenceOrder) are silently dropped by construction.
-    const base = seed();
-    const defaultAgentId = parseDefaultAgentId(bundle.defaultAgentId);
-    set({
-      defaultAgentId,
-      region: isRegion(bundle.region) ? bundle.region : base.region,
-      deepResearchBackend:
-        bundle.deepResearchBackend === "native" || bundle.deepResearchBackend === "perplexity"
+    const current = get();
+    const defaultAgentId =
+      "defaultAgentId" in bundle
+        ? parseDefaultAgentId(bundle.defaultAgentId)
+        : current.defaultAgentId;
+    const region =
+      "region" in bundle
+        ? isRegion(bundle.region)
+          ? bundle.region
+          : current.region
+        : current.region;
+    const deepResearchBackend =
+      "deepResearchBackend" in bundle
+        ? bundle.deepResearchBackend === "native" || bundle.deepResearchBackend === "perplexity"
           ? bundle.deepResearchBackend
-          : base.deepResearchBackend, // legacy "tongyi" blobs coerce to native
-    });
+          : current.deepResearchBackend // legacy "tongyi" blobs coerce to the current value
+        : current.deepResearchBackend;
+    set({ defaultAgentId, region, deepResearchBackend });
     if (!defaultAgentApplied) {
       // Boot restore: seed the chat lens with the persisted default persona.
       useActiveAgentStore.getState().setActiveAgent(defaultAgentId);

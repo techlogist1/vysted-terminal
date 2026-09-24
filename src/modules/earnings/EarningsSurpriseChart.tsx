@@ -105,17 +105,18 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
       series.setData([]);
       return;
     }
-    // Sort newest-first → reverse for chart (oldest-first).
+    // Sort by period_end (R15-LEAD-016: the fiscal quarter end, never null —
+    // reported_date can be null when no announcement date was found).
     const trimmed = [...surprises].sort(
-      (a, b) => new Date(a.reported_date).getTime() - new Date(b.reported_date).getTime(),
+      (a, b) => new Date(a.period_end).getTime() - new Date(b.period_end).getTime(),
     );
     const tail = trimmed.slice(-limit);
     const data: HistogramData<UTCTimestamp>[] = tail.map((entry) => ({
-      time: toChartTime(entry.reported_date),
+      time: toChartTime(entry.period_end),
       value: entry.eps_surprise,
       color: entry.eps_surprise >= 0 ? POSITIVE : NEGATIVE,
     }));
-    // Two surprises sharing a reported_date floor to the same second-resolution
+    // Two surprises sharing a period_end floor to the same second-resolution
     // timestamp; lightweight-charts throws "data must be asc ordered by time"
     // on duplicates, so collapse equal-time points (keep the latest) before
     // setData — mirrors MacroChart's dedupe (hunt-data-edge).
