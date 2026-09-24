@@ -35,6 +35,7 @@ from typing import Any
 
 from config import get_data_dir
 from models.custom_agent import CustomAgentCreate, CustomAgentRead, CustomAgentUpdate
+from services import schema_version
 
 DB_FILENAME = "custom_agents.db"
 
@@ -53,6 +54,9 @@ CREATE TABLE IF NOT EXISTS custom_agents (
 )
 """
 
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (schema_version.statements(_SCHEMA),)
+
 
 def _db_path() -> str:
     """Resolve the custom-agents database path under the current data directory."""
@@ -69,7 +73,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute(_SCHEMA)
+        schema_version.migrate(conn, _STEPS)
         yield conn
         conn.commit()
     finally:

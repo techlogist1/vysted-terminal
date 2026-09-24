@@ -29,6 +29,7 @@ from models.workflow import (
     WorkflowSchedule,
     WorkflowSpec,
 )
+from services import schema_version
 
 _log = logging.getLogger(__name__)
 
@@ -55,6 +56,9 @@ CREATE TABLE IF NOT EXISTS schedules (
 );
 """
 
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (schema_version.statements(_SCHEMA),)
+
 
 def _db_path() -> str:
     return str(get_data_dir() / DB_FILENAME)
@@ -65,7 +69,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     try:
-        conn.executescript(_SCHEMA)
+        schema_version.migrate(conn, _STEPS)
         yield conn
         conn.commit()
     finally:

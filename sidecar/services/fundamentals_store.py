@@ -45,7 +45,7 @@ from models.screener import (
     SetInCriterion,
     StringEqCriterion,
 )
-from services import fundamentals_seed
+from services import fundamentals_seed, schema_version
 
 DB_FILENAME = "fundamentals_cache.db"
 
@@ -190,10 +190,25 @@ def _db_path() -> str:
 def _connect() -> sqlite3.Connection:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
-    conn.executescript(_SCHEMA)
-    _migrate(conn)
-    conn.executescript(_INDEX_SCHEMA)
+    if schema_version.migrate(conn, _STEPS) == len(_STEPS):
+        # Kept on every open of a current-version DB so a column added to
+        # ``_ALL_COLUMNS`` reaches it with no new step (R15-DATA-095).
+        _reconcile(conn)
     return conn
+
+
+def _reconcile(conn: sqlite3.Connection) -> None:
+    """Create the table, ALTER in any missing column, then the indexes."""
+    _create_table(conn)
+    _migrate(conn)
+    _create_indexes(conn)
+
+
+_create_table = schema_version.statements(_SCHEMA)
+_create_indexes = schema_version.statements(_INDEX_SCHEMA)
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (_reconcile,)
 
 
 def _migrate(conn: sqlite3.Connection) -> None:

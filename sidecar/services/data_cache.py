@@ -45,8 +45,9 @@ Public surface
     with the prefix. Useful for "drop the whole macro / FRED bucket"
     on user demand.
   - :func:`clear()` — delete every row.
-  - :func:`ensure_build(version)` — clear every row once when the sidecar
-    version changes (called from the app lifespan).
+  - :func:`ensure_build(version)` — when the sidecar version changes, copy
+    the data dir once to ``backups/<old-build>/`` and clear every row (called
+    from the app lifespan, before any store opens its database).
   - :func:`size()` — current row count. Test helper.
   - :func:`reset_for_tests(path=None)` — close the live connection and
     re-point at an optional alternate db file.
@@ -57,6 +58,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import shutil
 import sqlite3
 import time
 from collections.abc import Callable
@@ -64,6 +66,7 @@ from pathlib import Path
 from typing import Any
 
 from config import get_data_dir
+from services import schema_version
 
 DB_FILENAME = "data_cache.db"
 
@@ -82,6 +85,12 @@ MAX_ROWS = 20_000
 #: One row per setting; ``build`` holds the sidecar version that wrote the cache.
 _META_DDL = "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
 
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (schema_version.statements(";".join((_DDL, _INDEX_DDL, _META_DDL))),)
+
+#: The data-dir children a pre-upgrade backup never copies.
+_BACKUP_EXCLUDES = frozenset({"backups", "logs"})
+
 logger = logging.getLogger(__name__)
 
 _lock = asyncio.Lock()
@@ -93,9 +102,7 @@ def _connect(path: Path) -> sqlite3.Connection:
     """Open a SQLite connection with WAL + schema bootstrap."""
     conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute(_DDL)
-    conn.execute(_INDEX_DDL)
-    conn.execute(_META_DDL)
+    schema_version.migrate(conn, _STEPS)
     return conn
 
 
@@ -111,13 +118,18 @@ async def ensure_build(version: str) -> bool:
     Rows persist across restarts for up to their TTL, so without this a row
     computed by a build with a since-fixed provider bug keeps being served
     after the upgrade. The lifespan calls this once at boot with the app
-    version. Returns ``True`` when the cache was cleared.
+    version, before any other store opens its database, so when a previous
+    build is recorded the data dir is first copied as that build left it
+    (R15-LIFECYCLE-024). Returns ``True`` when the cache was cleared.
     """
 
     def switch(conn: sqlite3.Connection) -> tuple[bool, Any]:
         row = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
         if row is not None and row[0] == version:
             return False, row
+        if row is not None:
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            _backup_data_dir(row[0])
         conn.execute("DELETE FROM cache")
         conn.execute(
             "INSERT INTO meta(key, value) VALUES('build', ?) "
@@ -135,6 +147,34 @@ async def ensure_build(version: str) -> bool:
         row[0] if row else "an unversioned build",
     )
     return True
+
+
+def _backup_data_dir(old_build: str) -> None:
+    """Copy the data dir to ``backups/<old_build>/`` unless that backup exists.
+
+    The copy lands under a temporary name and is renamed when complete, so a
+    failed copy never passes for a backup. A failure is logged, not raised: the
+    upgrade proceeds without it rather than failing the boot.
+    """
+    assert _db_path is not None
+    data_dir = _db_path.parent
+    target = data_dir / "backups" / old_build
+    if target.exists():
+        return
+    partial = target.with_name(f"{old_build}.partial")
+    try:
+        shutil.rmtree(partial, ignore_errors=True)
+        shutil.copytree(
+            data_dir,
+            partial,
+            ignore=lambda where, names: _BACKUP_EXCLUDES if Path(where) == data_dir else (),
+        )
+        partial.rename(target)
+    except OSError:
+        logger.exception("data_cache: could not back up %s before the upgrade", data_dir)
+        shutil.rmtree(partial, ignore_errors=True)
+        return
+    logger.info("data_cache: data dir backed up to %s before the upgrade", target)
 
 
 def _get_conn() -> sqlite3.Connection:
