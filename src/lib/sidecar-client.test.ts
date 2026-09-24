@@ -133,3 +133,64 @@ describe("per-instrument region override", () => {
     expect(requests.every((r) => r.region === "US")).toBe(true);
   });
 });
+
+/** R15-UI-014 / R15-CODE-PLATFORM-011: every verb shares one error layer. */
+describe("sidecarRequest error layer", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    invokeMock.mockReset();
+    invokeMock.mockResolvedValue(54321);
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** A fetch whose `/health` probe answers ok and whose other calls run `rest`. */
+  function stubFetch(rest: () => Promise<Response>) {
+    const fetchMock = vi.fn(async (url: string) =>
+      new URL(url).pathname === "/health" ? ({ ok: true } as Response) : rest(),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  }
+
+  it("a refused connection is SidecarError(0) with the unreachable sentence, not 'Load failed'", async () => {
+    stubFetch(async () => {
+      throw new TypeError("Load failed");
+    });
+    const { SIDECAR_UNREACHABLE, SidecarError, sidecarGet } = await import("@/lib/sidecar-client");
+
+    const error = await sidecarGet("/macro/series").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(SidecarError);
+    expect((error as InstanceType<typeof SidecarError>).status).toBe(0);
+    expect((error as Error).message).toBe(SIDECAR_UNREACHABLE);
+  });
+
+  it("a POST answering a 422 array throws 'field: msg' and sends a JSON body", async () => {
+    const detail = [
+      { loc: ["body", "budget", "max_tokens"], msg: "Input should be a valid integer" },
+    ];
+    const fetchMock = stubFetch(
+      async () => new Response(JSON.stringify({ detail }), { status: 422 }),
+    );
+    const { sidecarRequest } = await import("@/lib/sidecar-client");
+
+    await expect(
+      sidecarRequest("POST", "/agents/buffett/runs", { body: { prompt: "x" } }),
+    ).rejects.toThrow("max_tokens: Input should be a valid integer");
+    const [, init] = fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit];
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(JSON.stringify({ prompt: "x" }));
+    expect((init.headers as Record<string, string>)["Content-Type"]).toBe("application/json");
+  });
+
+  it("a 204 resolves undefined", async () => {
+    stubFetch(async () => new Response(null, { status: 204 }));
+    const { sidecarRequest } = await import("@/lib/sidecar-client");
+
+    await expect(sidecarRequest("DELETE", "/custom-agents/custom:x")).resolves.toBeUndefined();
+  });
+});

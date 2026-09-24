@@ -145,21 +145,56 @@ async function resolveAndAwaitReady(): Promise<string> {
 
 type QueryParams = Record<string, string | number | undefined>;
 
+/** C1: the message for a sidecar that did not answer at all (connection
+ *  refused, the engine gone) — never WebKit's bare "Load failed". */
+export const SIDECAR_UNREACHABLE =
+  "The data engine is not responding — it may have stopped. Restart Vysted.";
+
 /**
- * Low-level typed GET against a sidecar endpoint. `headers` carries BYOK
- * credentials read from the OS keychain (the read-only-plugin pattern: secret
- * in a header, never the body/query) — e.g. the `X-Vysted-Newsapi-Key` the news
- * feed sends. Undefined header values are dropped so an absent key is a no-op.
+ * `fetch` against the sidecar with its transport failure named: a rejection
+ * becomes `SidecarError(0, SIDECAR_UNREACHABLE)` and drops the cached base URL
+ * so the next call re-resolves it. A caller's own abort passes through as is.
+ * Every sidecar fetch (REST and the SSE stream) goes through here.
  */
-export async function sidecarGet<T>(
+export async function sidecarFetch(url: string, init?: RequestInit): Promise<Response> {
+  let response: Response;
+  try {
+    response = await fetch(url, init);
+  } catch (err) {
+    if (init?.signal?.aborted) {
+      throw err;
+    }
+    readyPromise = null;
+    throw new SidecarError(0, SIDECAR_UNREACHABLE);
+  }
+  return response;
+}
+
+export interface SidecarRequestOptions {
+  params?: QueryParams;
+  /** JSON-encoded as the request body. */
+  body?: unknown;
+  /** Per-call headers (BYOK keys ride here); undefined values are dropped. */
+  headers?: Record<string, string | undefined>;
+  signal?: AbortSignal;
+}
+
+/**
+ * Typed request against a sidecar endpoint — the one client verb. `headers`
+ * carries BYOK credentials read from the OS keychain (the read-only-plugin
+ * pattern: secret in a header, never the body/query) — e.g. the
+ * `X-Vysted-Newsapi-Key` the news feed sends. A non-2xx throws
+ * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`.
+ */
+export async function sidecarRequest<T>(
+  method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
-  params?: QueryParams,
-  headers?: Record<string, string | undefined>,
+  opts: SidecarRequestOptions = {},
 ): Promise<T> {
   const base = await getSidecarBaseUrl();
   const url = new URL(path, base);
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
+  if (opts.params) {
+    for (const [key, value] of Object.entries(opts.params)) {
       if (value !== undefined) {
         url.searchParams.set(key, String(value));
       }
@@ -178,22 +213,17 @@ export async function sidecarGet<T>(
   // below (never an empty header). Merged FIRST so a per-call header arg still
   // wins if it ever sets the same key.
   const searchHeaders = await buildSearchHeaders();
-  for (const [key, value] of Object.entries(searchHeaders)) {
+  for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
     if (value !== undefined) {
       requestHeaders[key] = value;
     }
   }
-  // A per-call header arg takes precedence if it ever sets the same key.
-  if (headers) {
-    for (const [key, value] of Object.entries(headers)) {
-      if (value !== undefined) {
-        requestHeaders[key] = value;
-      }
-    }
+  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
+  if (opts.body !== undefined) {
+    requestHeaders["Content-Type"] = "application/json";
+    init.body = JSON.stringify(opts.body);
   }
-  const response = await fetch(url.toString(), {
-    headers: requestHeaders,
-  });
+  const response = await sidecarFetch(url.toString(), init);
   if (!response.ok) {
     let detail = response.statusText;
     try {
@@ -202,6 +232,9 @@ export async function sidecarGet<T>(
       // Response body was not JSON — keep the status text.
     }
     throw new SidecarError(response.status, detail);
+  }
+  if (response.status === 204) {
+    return undefined as T;
   }
   try {
     return (await response.json()) as T;
@@ -213,6 +246,15 @@ export async function sidecarGet<T>(
     const message = err instanceof Error ? err.message : "malformed response body";
     throw new SidecarError(502, `Malformed sidecar response: ${message}`);
   }
+}
+
+/** Typed GET against a sidecar endpoint (see {@link sidecarRequest}). */
+export function sidecarGet<T>(
+  path: string,
+  params?: QueryParams,
+  headers?: Record<string, string | undefined>,
+): Promise<T> {
+  return sidecarRequest<T>("GET", path, { params, headers });
 }
 
 /**
