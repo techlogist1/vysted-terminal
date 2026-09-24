@@ -168,12 +168,25 @@ describe("PluginRuntime — lifecycle", () => {
     expect(saved[0].enabled).toBe(true);
   });
 
-  it("loadPlugin is idempotent — re-loading an active plugin is a no-op", async () => {
+  // R15-CODE-PLATFORM-014: this test used to stop at the idempotent second
+  // loadPlugin, which locked configure()'s "reload" as a no-op (stale secrets).
+  // loadPlugin stays idempotent; reloadPlugin is the restart that re-runs
+  // initialize() with the newly granted secrets.
+  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {
     const initialize = vi.fn();
-    const plugin = fakePlugin("a", { initialize });
-    await runtime.loadPlugin(discovered(plugin));
-    await runtime.loadPlugin(discovered(plugin));
+    const reloading = new PluginRuntime({
+      resolveSecrets: async (ids) => Object.fromEntries(ids.map((id) => [id, `v-${id}`])),
+    });
+    const plugin = discovered(fakePlugin("a", { initialize }));
+    await reloading.loadPlugin(plugin);
+    await reloading.loadPlugin(plugin);
     expect(initialize).toHaveBeenCalledOnce();
+
+    await reloading.updateConfig("a", { grantedSecretIds: ["api-key"] });
+    const snapshot = await reloading.reloadPlugin(plugin);
+    expect(snapshot.state).toBe("active");
+    expect(initialize).toHaveBeenCalledTimes(2);
+    expect(initialize.mock.calls[1][0].secrets).toEqual({ "api-key": "v-api-key" });
   });
 
   it("unloadPlugin runs shutdown and transitions to `stopped`", async () => {

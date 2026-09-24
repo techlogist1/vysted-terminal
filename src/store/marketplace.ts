@@ -237,8 +237,8 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
       }
       const enabled = get().flags[pluginId]?.enabled ?? row.entry.preinstalled;
       if (enabled) {
-        // Reload so the plugin resolves the new secrets via PluginConfig.secrets.
-        await runtime.enablePlugin(row.discovered);
+        // Restart so initialize() receives the new secrets via PluginConfig.secrets.
+        await runtime.reloadPlugin(row.discovered);
       }
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();

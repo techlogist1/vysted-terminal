@@ -314,6 +314,15 @@ export class PluginRuntime {
     return this.transition(pluginId, "stopped", "stopped");
   }
 
+  /**
+   * Restart a plugin (shutdown, then a fresh `initialize()`) so it picks up
+   * changed settings or newly granted secrets. A disabled plugin stays stopped.
+   */
+  async reloadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+    await this.unloadPlugin(plugin.manifest.id);
+    return this.loadPlugin(plugin);
+  }
+
   // ----- Marketplace lifecycle (FR-050) -----
 
   /**
