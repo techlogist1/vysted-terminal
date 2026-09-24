@@ -31,6 +31,7 @@ import { create } from "zustand";
 
 import { type Region, DEFAULT_REGION, isRegion } from "@/lib/region";
 import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
+import { DEFAULT_CHART_SYMBOL, DEFAULT_CHART_TIMEFRAME } from "@/store/chart-drawings";
 
 /**
  * The DEEP research engine the agent drives (Track 5). `native` is Vysted's own
@@ -40,6 +41,17 @@ import { DEFAULT_AGENT_ID, useActiveAgentStore } from "@/store/active-agent";
  * is the only user-facing engine).
  */
 export type DeepResearchBackend = "native" | "perplexity";
+
+/**
+ * The chart's default symbol/timeframe/indicators (R15-UI-048) — what a FRESH
+ * chart panel (no persisted per-panel view) opens on. Set from the chart
+ * toolbar's "Make default" control; read once at panel mount.
+ */
+export interface ChartDefaults {
+  symbol: string;
+  timeframe: string;
+  indicators: string[];
+}
 
 /**
  * The serialisable preferences bundle. This is exactly what rides the workspace
@@ -63,6 +75,8 @@ export interface SettingsBundle {
   /** The selected DEEP research engine (Track 5). Default `native` — Vysted's own
    *  IterResearch loop. */
   deepResearchBackend: DeepResearchBackend;
+  /** The chart's default symbol/timeframe/indicators (R15-UI-048). */
+  chartDefaults: ChartDefaults;
 }
 
 /**
@@ -79,6 +93,11 @@ export const DEFAULT_SETTINGS: Readonly<SettingsBundle> = Object.freeze<Settings
   defaultAgentId: DEFAULT_AGENT_ID,
   region: DEFAULT_REGION,
   deepResearchBackend: "native",
+  chartDefaults: {
+    symbol: DEFAULT_CHART_SYMBOL,
+    timeframe: DEFAULT_CHART_TIMEFRAME,
+    indicators: [],
+  },
 });
 
 interface SettingsState extends SettingsBundle {
@@ -86,6 +105,8 @@ interface SettingsState extends SettingsBundle {
   setDefaultAgentId: (agentId: string | null) => void;
   setRegion: (region: Region) => void;
   setDeepResearchBackend: (backend: DeepResearchBackend) => void;
+  /** Replace the chart defaults — called by the chart toolbar's "Make default". */
+  setChartDefaults: (defaults: ChartDefaults) => void;
   /** Replace the entire bundle (workspace/settings restore + import). */
   setAll: (bundle: Partial<SettingsBundle>) => void;
   /** Snapshot the current preferences as a plain bundle (for export). */
@@ -98,7 +119,30 @@ function seed(): SettingsBundle {
     defaultAgentId: DEFAULT_SETTINGS.defaultAgentId,
     region: DEFAULT_SETTINGS.region,
     deepResearchBackend: DEFAULT_SETTINGS.deepResearchBackend,
+    chartDefaults: {
+      ...DEFAULT_SETTINGS.chartDefaults,
+      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
+    },
   };
+}
+
+/** Parse a persisted/imported `chartDefaults` field; anything malformed (an
+ * older blob predating R15-UI-048, a hand-edited import) falls back to the
+ * CURRENT value, never silently resets to the seed (same rule as `setAll`'s
+ * other fields — R15-UI-058). */
+function parseChartDefaults(value: unknown, current: ChartDefaults): ChartDefaults {
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    typeof (value as { symbol?: unknown }).symbol === "string" &&
+    typeof (value as { timeframe?: unknown }).timeframe === "string" &&
+    Array.isArray((value as { indicators?: unknown }).indicators) &&
+    (value as { indicators: unknown[] }).indicators.every((i) => typeof i === "string")
+  ) {
+    const v = value as ChartDefaults;
+    return { symbol: v.symbol, timeframe: v.timeframe, indicators: [...v.indicators] };
+  }
+  return current;
 }
 
 /**
@@ -144,6 +188,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ deepResearchBackend: backend });
   },
 
+  setChartDefaults: (defaults) => {
+    set({
+      chartDefaults: {
+        symbol: defaults.symbol,
+        timeframe: defaults.timeframe,
+        indicators: [...defaults.indicators],
+      },
+    });
+  },
+
   setAll: (bundle) => {
     // A field ABSENT from the bundle merges over the CURRENT live state, not
     // the seed — an older export or a hand-edited/partial import can't strip
@@ -170,7 +224,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           ? bundle.deepResearchBackend
           : current.deepResearchBackend // legacy "tongyi" blobs coerce to the current value
         : current.deepResearchBackend;
-    set({ defaultAgentId, region, deepResearchBackend });
+    const chartDefaults =
+      "chartDefaults" in bundle
+        ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
+        : current.chartDefaults;
+    set({ defaultAgentId, region, deepResearchBackend, chartDefaults });
     if (!defaultAgentApplied) {
       // Boot restore: seed the chat lens with the persisted default persona.
       useActiveAgentStore.getState().setActiveAgent(defaultAgentId);
@@ -185,6 +243,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       defaultAgentId: s.defaultAgentId === null ? RAW_CHAT_SENTINEL : s.defaultAgentId,
       region: s.region,
       deepResearchBackend: s.deepResearchBackend,
+      chartDefaults: { ...s.chartDefaults, indicators: [...s.chartDefaults.indicators] },
     };
   },
 }));
