@@ -9,6 +9,8 @@
  * spine (Constitution / spec US4).
  */
 
+import type { HostIntent } from "../src/lib/host-actions";
+
 /**
  * The host-action families the gate governs (all `read_only=false` in the
  * catalog). R10 (D41/D45) adds `data-write` (portfolio positions, notes, saved
@@ -43,6 +45,9 @@ export interface ProposedChange {
   toolCallId: string;
   /** The host-action the agent proposed (catalog tool name + its arguments). */
   action: { name: string; input: Record<string, unknown> };
+  /** The action parsed ONCE at enqueue, targets bound — the diff was built from
+   *  it and accept applies exactly it (never re-resolved at accept time). */
+  intent: HostIntent;
   kind: ProposedChangeKind;
   /** One-line title, e.g. "Open the News panel". */
   title: string;

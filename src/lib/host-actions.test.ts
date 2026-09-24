@@ -10,11 +10,14 @@ vi.mock("@/lib/sidecar-client", () => ({
 import {
   applyHostAction,
   applyHostActionAsync,
+  applyIntentAsync,
   describeHostAction,
+  describeIntent,
   HOST_ACTION_NAMES,
   hostActionAckDetail,
   isHostActionMutation,
   openCompanyOverview,
+  parseHostAction,
   publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
@@ -22,8 +25,13 @@ import { useBacktestStore } from "@/store/backtest";
 import { resetBriefStoreForTests, useBriefStore } from "@/store/brief";
 import { useChartCommandStore } from "@/store/chart-command";
 import { resetEquityCommandStoreForTests, useEquityCommandStore } from "@/store/equity-command";
+import { resetAgentAutonomyStoreForTests } from "@/store/agent-autonomy";
 import { useNotesStore } from "@/store/notes";
 import { usePortfoliosStore } from "@/store/portfolios";
+import {
+  resetProposedChangesStoreForTests,
+  useProposedChangesStore,
+} from "@/store/proposed-changes";
 import { useScreenerStore } from "@/store/screener";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -295,6 +303,9 @@ describe("host-actions", () => {
   // --- open_panel carries its arguments (R8 seams deliverable 3) -------------
 
   it("describeHostAction(open_panel) renders the symbol for a symbol-aware panel", () => {
+    // The diff now reads whether the panel is open; start from no layout
+    // rather than the previous test's partial fake api.
+    useWorkspaceStore.setState({ dockviewApi: null } as never);
     const diff = describeHostAction("open_panel", {
       panel: "equity-overview",
       symbol: "SAKSOFT.NS",
@@ -1196,5 +1207,209 @@ describe("open_panel backtest run_id (R15-AGENT-011)", () => {
       await applyHostActionAsync("open_panel", { panel: "backtest", run_id: "gone" }),
     ).toBeNull();
     expect(useBacktestStore.getState().activeRunId).toBeNull();
+  });
+});
+
+// ── R15-CODE-FRONTEND-011/007: one parsed intent, targets bound at enqueue ──
+
+describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+  const screenerPanel = {
+    api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+  const chartPanel = { api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() } };
+  const { saveScreen } = useScreenerStore.getState();
+
+  function setup() {
+    resetSettingsStoreForTests();
+    resetBriefStoreForTests();
+    useScreenerStore.getState().__resetForTests();
+    useScreenerStore.setState({ saveScreen });
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    useSymbolsStore.setState({ entries: [{ symbol: "TSLA", assetClass: "equity" }] });
+    usePortfoliosStore.getState().setAll([
+      {
+        id: "A",
+        name: "A",
+        holdings: [
+          { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+        ],
+      },
+    ]);
+    const panels = [screenerPanel, chartPanel];
+    useWorkspaceStore.setState({
+      name: "My desk",
+      openPanel: vi.fn(),
+      resetToDefaultLayout: vi.fn(),
+      dockviewApi: {
+        panels,
+        getPanel: (id: string) => panels.find((p) => p.api.component === `${id}-panel`),
+        toJSON: () => ({}),
+      },
+    } as never);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({}) })) as unknown as typeof fetch,
+    );
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    useWorkspaceStore.setState({ name: "default", dockviewApi: null } as never);
+    usePortfoliosStore.getState().setAll([], undefined);
+  });
+
+  // [name, input, what the diff promises (after), what apply reports (label)]
+  const ROWS: [string, Record<string, unknown>, RegExp, RegExp | null][] = [
+    ["set_chart_symbol", { symbol: "NVDA" }, /Chart symbol: NVDA/, /Loaded NVDA/],
+    [
+      "set_chart_indicators",
+      { indicators: ["rsi", "bogus"] },
+      /rsi \(dropped unknown: bogus\)/,
+      /rsi \(dropped unknown: bogus\)/,
+    ],
+    ["open_panel", { panel: "chart", symbol: "NVDA" }, /open — NVDA loaded/, /Chart — NVDA/],
+    // P7b: the alias resolves for the diff exactly as for the apply.
+    ["close_panel", { panel: "screener" }, /Screener panel: closed/, /^Closed Screener$/],
+    ["focus_panel", { panel: "chart" }, /Foreground: Chart/, /^Focused Chart$/],
+    ["arrange_layout", { pattern: "default" }, /default cockpit/, /default layout/],
+    ["open_company_overview", { symbol: "AAPL" }, /Equity Overview: AAPL/, /AAPL's overview/],
+    [
+      "publish_brief",
+      { markdown: "## x", mode: "fast", sources: [{ url: "https://a.example", title: "a" }] },
+      /1 cited source/,
+      /Published the FAST research brief/,
+    ],
+    ["add_to_watchlist", { symbol: "tsla" }, /TSLA already tracked/, /TSLA is already on/],
+    ["remove_from_watchlist", { symbol: "tsla" }, /−TSLA \(0 total\)/, /Removed TSLA/],
+    [
+      "write_screener_filters",
+      { criteria: [{ field: "roe", operator: "gt", value: 0.18 }] },
+      /1 criterion — review then Run/,
+      /1 screener criterion — review and Run/,
+    ],
+    ["save_screen", { name: "IT value" }, /\+"IT value"/, /"IT value"/],
+    [
+      "portfolio_add_position",
+      { symbol: "INFY", quantity: 2, cost_basis: 1500 },
+      /\+INFY ×2 @ .1,500/,
+      /Added 2 INFY @ .1,500/,
+    ],
+    // P6: a cost-only update keeps the lot's quantity in the diff AND the apply.
+    [
+      "portfolio_update_position",
+      { position_id: "h-a", cost_basis: 3100 },
+      /^TCS: ×10 @ .3,100$/,
+      /^Updated TCS: ×10 @ .3,100$/,
+    ],
+    ["portfolio_delete_position", { position_id: "h-a" }, /TCS: removed/, /Removed TCS/],
+    [
+      "write_note",
+      { scope: "NVDA", text: "hello", mode: "replace" },
+      /NVDA note: replaced \(5 chars\)/,
+      /Wrote the NVDA note/,
+    ],
+    ["save_layout", { name: "My desk" }, /"My desk" updated/, /Saved the layout as "My desk"/],
+    ["set_region", { region: "in" }, /Region: IN/, /Set the region to IN/],
+    // Refusals: the diff says it can't apply exactly when the apply fails.
+    ["set_region", { region: "MARS" }, /"MARS" is not a region — can't apply/, null],
+    ["close_panel", { panel: "flux-capacitor" }, /unknown panel — can't apply/, null],
+    ["portfolio_update_position", { position_id: "h-a", quantity: 0 }, /can't apply/, null],
+    ["write_note", { scope: "NVDA", text: "  " }, /nothing to write — can't apply/, null],
+  ];
+
+  it("the table covers every host action", () => {
+    expect(new Set(ROWS.map(([name]) => name))).toEqual(HOST_ACTION_NAMES);
+  });
+
+  it.each(ROWS)("%s %j: the diff promises what apply does", async (name, input, said, did) => {
+    setup();
+    const intent = parseHostAction(name, input);
+    const { after } = describeIntent(intent);
+    const { label } = await applyIntentAsync(intent);
+    expect(after).toMatch(said);
+    if (did === null) {
+      expect(label).toBeNull();
+    } else {
+      expect(label).toMatch(did);
+    }
+    expect(/can't apply/.test(after)).toBe(label === null);
+  });
+
+  function twoPortfolios() {
+    usePortfoliosStore.getState().setAll(
+      [
+        {
+          id: "A",
+          name: "A",
+          holdings: [
+            { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          ],
+        },
+        {
+          id: "B",
+          name: "B",
+          holdings: [
+            { id: "h-b", symbol: "TCS", quantity: 99, costBasis: 3900, assetClass: "equity" },
+          ],
+        },
+      ],
+      "A",
+    );
+  }
+
+  function lots(portfolioId: string): string[] {
+    return usePortfoliosStore
+      .getState()
+      .portfolios.find((p) => p.id === portfolioId)!
+      .holdings.map((h) => `${h.symbol}:${h.quantity}`);
+  }
+
+  it("P5: accept changes the lot the diff showed in portfolio A, not portfolio B's", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    twoPortfolios();
+    const gate = useProposedChangesStore.getState();
+    const update = gate.enqueue({
+      toolCallId: "tc-up",
+      name: "portfolio_update_position",
+      input: { position_id: "h-a", symbol: "TCS", quantity: 12 },
+      batchId: "b",
+    });
+    const add = gate.enqueue({
+      toolCallId: "tc-add",
+      name: "portfolio_add_position",
+      input: { symbol: "INFY", quantity: 1, cost_basis: 1500 },
+      batchId: "b",
+    });
+    // The user switches the active portfolio before accepting.
+    usePortfoliosStore.getState().setActive("B");
+    await gate.accept(update);
+    await gate.accept(add);
+    expect(lots("A")).toEqual(["TCS:12", "INFY:1"]);
+    expect(lots("B")).toEqual(["TCS:99"]);
+    expect(useProposedChangesStore.getState().pending()).toHaveLength(0);
+  });
+
+  it("a bound lot that is gone by accept fails honestly instead of hitting another lot", async () => {
+    setup();
+    resetProposedChangesStoreForTests();
+    resetAgentAutonomyStoreForTests();
+    const gate = useProposedChangesStore.getState();
+    const id = gate.enqueue({
+      toolCallId: "tc-del",
+      name: "portfolio_delete_position",
+      input: { position_id: "h-a" },
+      batchId: "b",
+    });
+    usePortfoliosStore.getState().removeHolding("A", "h-a");
+    usePortfoliosStore
+      .getState()
+      .addHolding("A", { symbol: "TCS", quantity: 3, costBasis: 1, assetClass: "equity" });
+    await gate.accept(id);
+    const change = useProposedChangesStore.getState().changes[0];
+    expect(change.status).toBe("pending");
+    expect(change.detail).toMatch(/no longer in the portfolio/);
+    expect(lots("A")).toEqual(["TCS:3"]);
   });
 });

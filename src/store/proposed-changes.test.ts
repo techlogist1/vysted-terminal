@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { HostIntent } from "@/lib/host-actions";
+
 // The diff gate's apply side effects live in `@/lib/host-actions`; mock them so
 // this suite tests the gate's state machine (stage → accept/reject →
-// apply-once) in isolation. `host-actions.test.ts` covers the real apply.
+// apply-once) in isolation. `host-actions.test.ts` covers the real apply. The
+// real parse runs, so the gate stores (and applies) the one parsed intent.
 const { applyHostActionMock, describeHostActionMock, ackHostActionMock } = vi.hoisted(() => ({
-  applyHostActionMock: vi.fn<
-    (name: string, input: Record<string, unknown>) => Promise<string | null>
-  >(async () => "applied"),
+  applyHostActionMock: vi.fn<(intent: HostIntent) => Promise<string | null>>(async () => "applied"),
   describeHostActionMock: vi.fn((name: string) => ({
     title: `do ${name}`,
     before: "before",
@@ -18,13 +19,14 @@ const { applyHostActionMock, describeHostActionMock, ackHostActionMock } = vi.ho
 vi.mock("@/lib/host-actions", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/host-actions")>();
   return {
+    parseHostAction: actual.parseHostAction,
     // The gate applies through the ASYNC seam (network-backed cases await).
-    applyHostActionAsync: applyHostActionMock,
+    applyIntentAsync: async (intent: HostIntent) => ({ label: await applyHostActionMock(intent) }),
     // The AUTO gate branches on the change KIND, so the kind is the real
     // catalog classification; only the diff copy is stubbed.
-    describeHostAction: (name: string, input: Record<string, unknown>) => ({
-      ...describeHostActionMock(name),
-      kind: actual.describeHostAction(name, input).kind,
+    describeIntent: (intent: HostIntent) => ({
+      ...describeHostActionMock(intent.name),
+      kind: actual.describeIntent(intent).kind,
     }),
     ackHostAction: ackHostActionMock,
     hostActionAckDetail: (name: string, input: Record<string, unknown>) => ({
@@ -80,7 +82,9 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     const id = enqueue("set_chart_symbol", { symbol: "NVDA" });
     await useProposedChangesStore.getState().accept(id);
     expect(applyHostActionMock).toHaveBeenCalledTimes(1);
-    expect(applyHostActionMock).toHaveBeenCalledWith("set_chart_symbol", { symbol: "NVDA" });
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
     expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
     // A second accept is a no-op (no double-apply).
     await useProposedChangesStore.getState().accept(id);
@@ -126,7 +130,9 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     enqueue("set_chart_symbol", { symbol: "NVDA" });
     await Promise.resolve(); // flush the void accept() microtask
     expect(applyHostActionMock).toHaveBeenCalledTimes(1);
-    expect(applyHostActionMock).toHaveBeenCalledWith("set_chart_symbol", { symbol: "NVDA" });
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
     expect(useProposedChangesStore.getState().changes[0].status).toBe("accepted");
   });
 
@@ -140,7 +146,9 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
     enqueue("set_chart_symbol", { symbol: "NVDA" });
     await Promise.resolve(); // flush the void accept() microtask
     expect(applyHostActionMock).toHaveBeenCalledTimes(1);
-    expect(applyHostActionMock).toHaveBeenCalledWith("set_chart_symbol", { symbol: "NVDA" });
+    expect(applyHostActionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "set_chart_symbol", symbol: "NVDA" }),
+    );
     const pending = useProposedChangesStore.getState().pending();
     expect(pending.map((c) => c.action.name)).toEqual([
       "portfolio_delete_position",
