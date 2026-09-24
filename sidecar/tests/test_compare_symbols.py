@@ -18,7 +18,16 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import OHLCVBar, OHLCVSeries, Quote
-from services.agent_tools.compare_symbols import _compare_symbols
+from services.agent_tools.compare_symbols import _compare_one, _compare_symbols
+
+
+@pytest.fixture(autouse=True)
+def _no_live_resolver_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symbol with no quote is run through the resolver; keep its one network
+    rung (the live yfinance.Search) out of the tests — the bundled masters answer."""
+    from services import symbol_resolver
+
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
 
 
 def _quote(symbol: str, price: float = 100.0, provider: str = "yfinance") -> Quote:
@@ -272,3 +281,43 @@ def test_history_gap_mid_window_is_excluded_from_the_ranking(
     assert result["relative"]["best"] == "AAA"
     assert result["relative"]["worst"] == "BBB"
     assert "GAPPY has 91 bars since" in result["relative"]["note"]
+
+
+def test_invented_ticker_reads_unresolved_not_no_quote(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-AGENT-045: the model compared COCHINSHIP with an invented MAZAGONDOCK
+    # (the listing is MAZDOCK). The resolver matches no listing for it (live
+    # Search included), so the tool must say the name is unresolved, never
+    # "no quote available".
+    _patch_registry(monkeypatch, quote_errors={"MAZAGONDOCK"})
+
+    invented = asyncio.run(_compare_one("MAZAGONDOCK", "1d", "equity"))
+
+    assert invented["error"].startswith("unresolved name: 'MAZAGONDOCK' is not a known ticker")
+    assert "no quote" not in invented["note"]
+
+
+def test_company_name_is_compared_under_its_resolved_listing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Not the case the fix was written against: a company name ("Mazagon Dock")
+    # binds through the one policy to MAZDOCK.NS and is compared under it.
+    _patch_registry(
+        monkeypatch,
+        quotes={"COCHINSHIP": _quote("COCHINSHIP"), "MAZDOCK.NS": _quote("MAZDOCK.NS")},
+        series={
+            "COCHINSHIP": _series("COCHINSHIP", first=100.0, last=120.0),
+            "MAZDOCK.NS": _series("MAZDOCK.NS", first=100.0, last=110.0),
+        },
+        fundamentals={
+            "COCHINSHIP": _fundamentals("COCHINSHIP"),
+            "MAZDOCK.NS": _fundamentals("MAZDOCK.NS"),
+        },
+        quote_errors={"Mazagon Dock"},
+    )
+
+    result = asyncio.run(_compare_symbols({"symbols": ["COCHINSHIP", "Mazagon Dock"]}))
+
+    assert result["ok"] is True
+    mazdock = next(s for s in result["symbols"] if s["symbol"] == "MAZDOCK.NS")
+    assert mazdock["requested"] == "Mazagon Dock"
+    assert mazdock["note"] == "resolved 'Mazagon Dock' → 'MAZDOCK.NS'"
