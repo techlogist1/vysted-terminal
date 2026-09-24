@@ -92,18 +92,48 @@ def test_empty_series_reason_unit() -> None:
 
 def test_in_eod_only_is_only_for_intraday_on_a_known_in_listing() -> None:
     """R15-DATA-064: a daily no-trade series (DAL), an unknown symbol and a caret
-    index are not "BSE/NSE serve EOD only"; a 5m RELIANCE.NS series is."""
+    index are not "BSE/NSE serve EOD only"; a 5m RELIANCE.NS series is.
+
+    ``ZZUNKNOWNXQ`` used to fall through to ``None`` here (the R15-LEAD-026 bug —
+    an unresolvable symbol was indistinguishable from any other empty case); it
+    now carries the typed ``unknown_symbol`` reason instead."""
     import config
     from routers.history import _empty_series_reason
 
     token = config.set_request_region("IN")
     try:
         assert _empty_series_reason("DAL.BO", "1d") is None
-        assert _empty_series_reason("ZZUNKNOWNXQ", "5m") is None
+        assert _empty_series_reason("ZZUNKNOWNXQ", "5m") == "unknown_symbol"
         assert _empty_series_reason("^NSEI", "30m") is None
         assert _empty_series_reason("RELIANCE.NS", "5m") == "in_eod_only"
     finally:
         config.reset_request_region(token)
+
+
+def test_unknown_symbol_reason_via_route(client: TestClient, monkeypatch) -> None:
+    """R15-LEAD-026 acceptance: /history/ZZQXNOPE carries reason unknown_symbol,
+    distinct from a resolvable symbol's genuinely empty range."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _all_empty(symbol: str, timeframe: str, range_, asset_class: str):
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r}")
+
+    monkeypatch.setattr(provider_registry, "get_history", _all_empty)
+    body = client.get("/history/ZZQXNOPE", params={"timeframe": "1d"}).json()
+    assert body["reason"] == "unknown_symbol"
+
+
+def test_unknown_symbol_reason_class_pin_resolvable_keeps_old_reason() -> None:
+    """Class pin: a RESOLVABLE symbol with a genuinely empty range keeps its old
+    (None) reason — only a symbol absent from every master is "unknown"."""
+    from routers.history import _empty_series_reason
+
+    assert _empty_series_reason("AAPL", "1d") is None
+    assert _empty_series_reason("ZZQXNOPE", "1d") == "unknown_symbol"
+    # Crypto pairs are never master-checked (the equity/ETF masters have no
+    # opinion on them) — an empty crypto range keeps the old None reason.
+    assert _empty_series_reason("BTC/USD", "1d", asset_class="crypto") is None
 
 
 def test_history_iconikspev_serves_real_bars_from_bhavcopy(

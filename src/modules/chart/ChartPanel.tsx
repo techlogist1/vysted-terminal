@@ -420,10 +420,16 @@ function ChartPanel(props: ChartPanelProps = {}) {
           candleDataRef.current = [];
           setProvider(series.provider);
           setFreshness(series.freshness ?? null);
+          // R15-LEAD-026: the sidecar can also return "unknown_symbol", not yet
+          // in the SeriesReason union (types/data.ts, W3-owned) — read as a
+          // plain string here until that mirror is widened.
+          const reason = series.reason as string | null | undefined;
           setPriceError(
-            series.reason === "in_eod_only"
+            reason === "in_eod_only"
               ? "No EOD data for this symbol. BSE/NSE serve end-of-day data only; intraday/realtime is not available for this listing."
-              : "No price data for this symbol",
+              : reason === "unknown_symbol"
+                ? "No such symbol"
+                : "No price data for this symbol",
           );
           setPriceState("error");
           return;
