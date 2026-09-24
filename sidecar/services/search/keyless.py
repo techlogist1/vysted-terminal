@@ -20,8 +20,10 @@ Brave HTML, Mojeek HTML — with the hardening the single-engine floor lacked:
     reaches all three engines inside the 25 s ``web_search`` tool cap.
   * **URL dedup per run**: a result URL already returned by an earlier engine
     in THIS search is dropped.
-  * **Quality filter**: results whose visible text is consent/cookie/block
-    boilerplate are dropped (markers list adapted from odysseus (MIT)
+  * **Block-page filter**: results whose visible text is an anti-bot
+    interstitial are dropped. Consent/footer
+    boilerplate is filtered per page paragraph in :mod:`.extract`, not here
+    (markers list adapted from odysseus (MIT)
     github.com/pewdiepie-archdaemon/odysseus).
   * **Honest cross-engine errors**: when every engine fails, the raised
     :class:`SearchError` names each engine's actual state ("brave: cooling
@@ -70,8 +72,19 @@ ENGINE_LABELS: dict[str, str] = {
     "mojeek": "Mojeek",
 }
 
-#: Low-quality text markers — a result whose title+snippet is dominated by
-#: consent/cookie/block boilerplate carries no information for the researcher.
+#: Interstitial markers — the text of an anti-bot challenge / block page. On a
+#: SERP result they are the block-page signal (the engine answered 200 but served
+#: a wall, not results), so they act at RESULT level and count as a failure.
+INTERSTITIAL_MARKERS: tuple[str, ...] = (
+    "access denied",
+    "verify you are a human",
+    "are you a robot",
+    "unusual traffic",
+)
+
+#: Low-quality text markers — consent/cookie/footer boilerplate plus the
+#: interstitials. Applied per PARAGRAPH of an extracted page only: a SERP
+#: snippet carrying a footer ("All rights reserved") is still a real result.
 #: Phrases (not bare "cookie") so a legitimate article ABOUT cookies survives.
 #: Adapted from odysseus (MIT) github.com/pewdiepie-archdaemon/odysseus.
 LOW_QUALITY_MARKERS: tuple[str, ...] = (
@@ -84,29 +97,30 @@ LOW_QUALITY_MARKERS: tuple[str, ...] = (
     "manage your preferences",
     "enable javascript",
     "javascript is disabled",
-    "access denied",
-    "verify you are a human",
-    "are you a robot",
-    "unusual traffic",
     "all rights reserved",
+    *INTERSTITIAL_MARKERS,
 )
 
 
+def _has_marker(text: str, markers: tuple[str, ...]) -> bool:
+    low = text.lower()
+    return any(marker in low for marker in markers)
+
+
 def is_low_quality(text: str) -> bool:
-    """True when ``text`` reads as consent/block boilerplate, not content."""
+    """True when a page paragraph reads as consent/block boilerplate, not content."""
     if not text or not text.strip():
         return False  # an empty snippet is thin, not boilerplate — keep it
-    low = text.lower()
-    return any(marker in low for marker in LOW_QUALITY_MARKERS)
+    return _has_marker(text, LOW_QUALITY_MARKERS)
 
 
 def _filter_results(results: list[SearchResult], seen_urls: set[str]) -> list[SearchResult]:
-    """Apply the per-run URL dedup + the low-quality boilerplate filter."""
+    """Apply the per-run URL dedup + the interstitial (block-page) filter."""
     out: list[SearchResult] = []
     for result in results:
         if result.url in seen_urls:
             continue
-        if is_low_quality(f"{result.title} {result.snippet}"):
+        if _has_marker(f"{result.title} {result.snippet}", INTERSTITIAL_MARKERS):
             continue
         seen_urls.add(result.url)
         out.append(result)
@@ -295,6 +309,7 @@ __all__ = [
     "ENGINE_CHAIN",
     "ENGINE_DEADLINE_SECS",
     "ENGINE_LABELS",
+    "INTERSTITIAL_MARKERS",
     "LOW_QUALITY_MARKERS",
     "KeylessSearchBackend",
     "is_low_quality",

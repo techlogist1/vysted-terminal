@@ -222,12 +222,15 @@ def test_urls_deduped_within_a_run() -> None:
     assert [r.url for r in resp.results] == ["https://a.com/1", "https://a.com/2"]
 
 
-def test_low_quality_boilerplate_filtered_out() -> None:
+def test_interstitial_rows_filtered_but_consent_snippets_kept() -> None:
+    """Only block-page markers act on SERP rows; consent/footer text is a
+    paragraph-level filter for extracted pages (R15-RESEARCH-023)."""
     ddg = _Engine(
         [
             _response(
                 "ddg",
                 [
+                    _result("https://a.com/wall", snippet="Verify you are a human to continue"),
                     _result("https://a.com/cookie", snippet="We use cookies — accept all cookies"),
                     _result("https://a.com/real", snippet="NVDA datacenter revenue grew 94%"),
                 ],
@@ -236,7 +239,20 @@ def test_low_quality_boilerplate_filtered_out() -> None:
     )
     backend = _backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])})
     resp = _run(backend.search("q"))
-    assert [r.url for r in resp.results] == ["https://a.com/real"]
+    assert [r.url for r in resp.results] == ["https://a.com/cookie", "https://a.com/real"]
+
+
+def test_investor_relations_row_with_rights_footer_is_kept() -> None:
+    """R15-RESEARCH-023: an IR result whose snippet ends in the copyright footer
+    survives the SERP filter (it used to be dropped before relevance saw it)."""
+    row = _result(
+        "https://www.routemobile.com/investors",
+        title="Route Mobile Q2 FY25 results",
+        snippet="Consolidated revenue rose 9%. (c) 2025 Route Mobile Limited. All rights reserved.",
+    )
+    ddg = _Engine([_response("ddg", [row])])
+    resp = _run(_backend({"ddg": ddg, "brave": _Engine([]), "mojeek": _Engine([])}).search("q"))
+    assert [r.url for r in resp.results] == ["https://www.routemobile.com/investors"]
 
 
 def test_is_low_quality_markers() -> None:
@@ -246,9 +262,9 @@ def test_is_low_quality_markers() -> None:
     assert is_low_quality("") is False  # thin, not boilerplate
 
 
-def test_all_results_filtered_rotates_onward() -> None:
+def test_all_results_blocked_rotates_onward() -> None:
     ddg = _Engine(
-        [_response("ddg", [_result("https://a.com/x", snippet="cookie banner only page")])]
+        [_response("ddg", [_result("https://a.com/x", snippet="Are you a robot? Solve this")])]
     )
     brave = _Engine([_response("brave", [_result("https://b.com/1")])])
     backend = _backend({"ddg": ddg, "brave": brave, "mojeek": _Engine([])})
