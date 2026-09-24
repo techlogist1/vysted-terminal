@@ -156,7 +156,9 @@ async def gather_floor(
     return {
         "ok": ok,
         "announcements": items if isinstance(items, list) else [],
-        "rows": announcement_rows(announcements, symbol=target.symbol),
+        # Results-first: the floor's few citable rows lead with the filing that
+        # carries the numbers, not the newest procedural intimations.
+        "rows": announcement_rows(announcements, symbol=target.symbol, sub_question="results"),
     }
 
 

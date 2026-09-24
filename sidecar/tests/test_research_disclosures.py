@@ -328,3 +328,30 @@ def test_india_target_predicate_is_the_single_relevance_copy() -> None:
 
     assert disclosures.is_india_target is relevance.is_india_target
     assert relevance.is_india_target(None) is False
+
+
+def test_gather_floor_ranks_the_results_filing_first() -> None:
+    """R15-RESEARCH-012: 5 newer procedural intimations + 1 older results
+    filing — the always-on floor cites the results filing as row 1."""
+    procedural = [
+        {
+            "headline": f"Intimation under Regulation 30 #{i}",
+            "attachment_url": f"https://www.bseindia.com/xml-data/corpfiling/AttachLive/p{i}.pdf",
+            "exchange": "BSE",
+            "ts": f"2026-05-1{i}",
+        }
+        for i in range(5)
+    ]
+    results = {
+        "headline": "Financial Results for the quarter ended March 31, 2026",
+        "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/r.pdf",
+        "exchange": "BSE",
+        "ts": "2026-05-07",
+    }
+
+    async def tool_call(name: str, _args: dict[str, Any]) -> dict[str, Any]:
+        assert name == "corporate_announcements"
+        return {"ok": True, "announcements": [*procedural, results]}
+
+    floor = _run(disclosures.gather_floor(tool_call, target=_india_target()))
+    assert floor["rows"][0]["url"].endswith("/r.pdf")

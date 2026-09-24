@@ -702,13 +702,18 @@ def test_snapshot_skips_ownership_pull_when_not_applicable(
     scalar in the fundamentals payload) — ``get_exchange_ownership`` is never
     called."""
 
-    async def explode(_symbol: str) -> ExchangeOwnership:
+    # Recorded, not raised: the snapshot isolates a raising leg, so an assert
+    # inside the stub would be swallowed and could never fail this test.
+    pulled: list[str] = []
+
+    async def record(symbol: str) -> ExchangeOwnership:
+        pulled.append(symbol)
         raise AssertionError("no ownership scalar to reconcile — must not pull the filing")
 
     async def none_declared(_symbol: str) -> None:
         return None
 
-    monkeypatch.setattr(ownership_check, "get_exchange_ownership", explode)
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", record)
     monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", none_declared)
 
     snap = asyncio.run(
@@ -718,7 +723,43 @@ def test_snapshot_skips_ownership_pull_when_not_applicable(
         )
     )
     fund = snap["fundamentals"]["data"]
+    assert pulled == []
     assert ownership_check.OWNERSHIP_KEY not in fund
+
+
+def test_snapshot_isolates_a_raising_cross_check(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-RESEARCH-002: one cross-check raising drops only its own leg —
+    the snapshot still returns, with the other legs attached."""
+    canned_declared = DeclaredDividend(
+        amount=3.95, record_date="2026-07-31", subject="Dividend - Rs 3.95 Per Share"
+    )
+
+    async def boom(_symbol: str) -> ExchangeOwnership:
+        raise RuntimeError("exchange shareholding feed exploded")
+
+    async def fake_declared(_symbol: str) -> DeclaredDividend:
+        return canned_declared
+
+    monkeypatch.setattr(ownership_check, "get_exchange_ownership", boom)
+    monkeypatch.setattr(dividend_actions, "get_declared_unpaid_dividend", fake_declared)
+
+    snap = asyncio.run(
+        snapshot_structured(
+            _fund_tool(
+                {
+                    "symbol": "GEE.BO",
+                    "provider": "yfinance",
+                    "held_percent_insiders": 0.08455,
+                }
+            ),
+            "GEE",
+        )
+    )
+    fund = snap["fundamentals"]["data"]
+    assert ownership_check.OWNERSHIP_KEY not in fund
+    assert fund[dividend_actions.DECLARED_KEY] == canned_declared.as_wire()
 
 
 def _stub_offline_crosschecks(monkeypatch: pytest.MonkeyPatch) -> None:

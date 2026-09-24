@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 import time
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
@@ -39,6 +40,8 @@ ToolCall = Callable[[str, dict[str, Any]], Awaitable[dict[str, Any]]]
 #: trace from it (Track A) so even the default research mode feels alive. ``None``
 #: outside an agent run (tests / direct calls) — emission is then a silent no-op.
 OnStep = Callable[[ResearchStep], Any]
+
+logger = logging.getLogger(__name__)
 
 
 async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
@@ -320,7 +323,9 @@ async def snapshot_structured(
                 return None
             return await market_cap_witness.get_market_cap_witness(listing)
 
-        ttm, yoy, own, declared, earn, rng, mcw = await asyncio.gather(
+        # Each leg is isolated: one raising cross-check drops only its own figure
+        # (the snapshot promises never to raise for every research depth).
+        legs = await asyncio.gather(
             get_dividend_ttm(listing),
             _yoy(),
             _own(),
@@ -328,6 +333,13 @@ async def snapshot_structured(
             _earn(),
             _range(),
             _mcap(),
+            return_exceptions=True,
+        )
+        for leg in legs:
+            if isinstance(leg, BaseException):
+                logger.debug("snapshot cross-check for %s failed: %r", listing, leg)
+        ttm, yoy, own, declared, earn, rng, mcw = (
+            None if isinstance(leg, BaseException) else leg for leg in legs
         )
         apply_dividend_ttm(fund_data, ttm)
         if yoy is not None:
