@@ -63,10 +63,13 @@ def price_per_million(provider: str, model: str) -> float:
     Matches the longest :data:`PRICE_TABLE` key for the provider whose model
     substring is contained in ``model`` (case-insensitive). Falls back to
     :data:`DEFAULT_RATE_PER_M` when the provider/model pair is unknown — the
-    estimate is never silently zero for a metered provider.
+    estimate is never silently zero for a metered provider. An OpenRouter
+    ``…:free`` slug is unmetered by OpenRouter's own convention (R15-LEAD-019).
     """
     model_lc = (model or "").lower()
     provider_lc = (provider or "").lower()
+    if provider_lc == "openrouter" and model_lc.endswith(":free"):
+        return 0.0
     best_key: str | None = None
     best_rate = DEFAULT_RATE_PER_M
     for (prov, sub), rate in PRICE_TABLE.items():
