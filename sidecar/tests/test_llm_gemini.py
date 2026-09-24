@@ -8,13 +8,18 @@ response objects whose shape matches the SDK's real output
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 from google import genai
+from google.genai import types
 
-from models.llm import LLMMessage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMToolUseEvent
+from services.llm.base import is_length_finish
 from services.llm.gemini import GeminiProvider
 
 
@@ -308,3 +313,79 @@ def test_gemini_tools_accept_json_schema_outside_the_openapi_subset(
         },
     )
     types.GenerateContentConfig(tools=schemas.gemini_tools(["probe_tool"]))
+
+
+# ---------------------------------------------------------------------------
+# Wire cassettes (R15-AGENT-007): recorded-shape ``streamGenerateContent?alt=sse``
+# bodies replayed through the REAL SDK parser over an httpx mock transport, so
+# the adapter sees the SDK's own objects (enums, bytes signatures), not fakes.
+# ---------------------------------------------------------------------------
+
+_CASSETTES = Path(__file__).parent / "fixtures" / "llm"
+
+
+def _serve_cassettes(monkeypatch: pytest.MonkeyPatch, *names: str) -> list[dict[str, Any]]:
+    """Answer each Gemini request with the next cassette; return the sent bodies."""
+    real_client = genai.Client
+    bodies = [(_CASSETTES / name).read_bytes() for name in names]
+    sent: list[dict[str, Any]] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path.endswith(":streamGenerateContent")
+        sent.append(json.loads(request.content))
+        body = bodies[len(sent) - 1]
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=body)
+
+    options = types.HttpOptions(async_client_args={"transport": httpx.MockTransport(_handler)})
+    monkeypatch.setattr(genai, "Client", lambda **kw: real_client(**kw, http_options=options))
+    return sent
+
+
+async def _replay(monkeypatch: pytest.MonkeyPatch, cassette: str) -> list[Any]:
+    _serve_cassettes(monkeypatch, cassette)
+    return [
+        event
+        async for event in GeminiProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="check RELIANCE")],
+            model="gemini-3-pro-preview",
+            api_key="key",
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_cassette_parallel_calls_arrive_with_args_and_signature(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events = await _replay(monkeypatch, "gemini_parallel_calls.sse")
+
+    assert [type(e) for e in events] == [
+        LLMDeltaEvent,
+        LLMToolUseEvent,
+        LLMToolUseEvent,
+        LLMDoneEvent,
+    ]
+    first, second = events[1], events[2]
+    assert (first.name, first.input) == ("get_terminal_state", {})
+    assert first.provider_meta == {"thought_signature": "Q2lJQlZLaHZjM2xuTFdFPQ=="}
+    assert (second.name, second.input) == ("read_notes", {"scope": "RELIANCE"})
+    assert second.provider_meta is None
+    assert first.tool_call_id != second.tool_call_id
+    done = events[-1]
+    assert done.usage.input_tokens == 2143 + 10
+    assert done.usage.output_tokens == 31 + 118
+    assert not is_length_finish(done.finish_reason)
+
+
+@pytest.mark.asyncio
+async def test_cassette_contentless_max_tokens_stop_is_reported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Gemini 2.5 can spend the whole budget thinking and close on a candidate
+    # with a MAX_TOKENS finish and no content; the truncation must still surface.
+    events = await _replay(monkeypatch, "gemini_max_tokens_contentless.sse")
+
+    assert [e.text for e in events if isinstance(e, LLMDeltaEvent)] == ["RELIANCE trades at"]
+    done = events[-1]
+    assert isinstance(done, LLMDoneEvent)
+    assert is_length_finish(done.finish_reason)

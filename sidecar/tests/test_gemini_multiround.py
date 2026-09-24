@@ -14,7 +14,9 @@ Two layers lock the fix:
 from __future__ import annotations
 
 import asyncio
+import json
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 
 from models.llm import (
@@ -210,6 +212,79 @@ def test_only_the_signed_call_carries_a_signature(monkeypatch) -> None:
     assert [p["function_call"]["name"] for p in parts] == ["get_terminal_state", "get_portfolio"]
     assert parts[0]["thought_signature"] == b"sig-a"
     assert "thought_signature" not in parts[1]
+
+
+def test_parallel_call_responses_ride_one_content_on_the_wire(monkeypatch) -> None:
+    """R15-AGENT-007: replay recorded-shape Gemini streams through the real SDK
+    and the runtime; the round-2 request must answer a two-call turn with ONE
+    user content holding both functionResponse parts (split contents 400 on a
+    response/call part-count mismatch), each signature echoed as sent."""
+    import httpx
+    from google import genai
+    from google.genai import types
+
+    fixtures = Path(__file__).parent / "fixtures" / "llm"
+    bodies = [
+        (fixtures / "gemini_parallel_calls.sse").read_bytes(),
+        (fixtures / "gemini_answer.sse").read_bytes(),
+    ]
+    sent: list[dict[str, Any]] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        sent.append(json.loads(request.content))
+        return httpx.Response(
+            200, headers={"content-type": "text/event-stream"}, content=bodies[len(sent) - 1]
+        )
+
+    real_client = genai.Client
+    options = types.HttpOptions(async_client_args={"transport": httpx.MockTransport(_handler)})
+    monkeypatch.setattr(genai, "Client", lambda **kw: real_client(**kw, http_options=options))
+    agent_runtime.reload()
+    asyncio.run(
+        _drain(
+            agent_runtime.invoke_agent(
+                "copilot", "hi", provider="gemini", model="gemini-3-pro-preview", api_key="x"
+            )
+        )
+    )
+
+    assert len(sent) == 2
+    contents = sent[1]["contents"]
+    call_turn = next(i for i, c in enumerate(contents) if c["role"] == "model")
+    calls = contents[call_turn]["parts"]
+    assert [p["functionCall"]["name"] for p in calls] == ["get_terminal_state", "read_notes"]
+    assert calls[0]["thoughtSignature"] == "Q2lJQlZLaHZjM2xuTFdFPQ=="
+    assert calls[1]["functionCall"]["args"] == {"scope": "RELIANCE"}
+    answers = contents[call_turn + 1 :]
+    assert len(answers) == 1 and answers[0]["role"] == "user"
+    names = [p["functionResponse"]["name"] for p in answers[0]["parts"]]
+    assert names == ["get_terminal_state", "read_notes"]
+
+
+def test_sequential_tool_rounds_keep_their_own_response_contents() -> None:
+    """The merge is per call turn: responses of two separate rounds never fuse."""
+
+    def call_turn(call_id: str, name: str) -> LLMMessage:
+        return LLMMessage(
+            role="assistant",
+            content="",
+            metadata={"tool_calls": [{"id": call_id, "name": name, "input": {}}]},
+        )
+
+    def result(call_id: str, name: str) -> LLMMessage:
+        return LLMMessage(role="tool", content="{}", tool_call_id=call_id, metadata={"name": name})
+
+    _system, contents = _split_system_and_contents(
+        [
+            LLMMessage(role="user", content="hi"),
+            call_turn("a", "get_portfolio"),
+            result("a", "get_portfolio"),
+            call_turn("b", "market_overview"),
+            result("b", "market_overview"),
+        ]
+    )
+    assert [c["role"] for c in contents] == ["user", "model", "user", "model", "user"]
+    assert [len(c["parts"]) for c in contents] == [1, 1, 1, 1, 1]
 
 
 def test_provider_meta_never_rides_the_sse_wire() -> None:
