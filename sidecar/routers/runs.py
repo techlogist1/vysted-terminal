@@ -17,6 +17,9 @@ mounts):
 - ``POST /runs/{run_id}/answer``    — deliver a human-in-the-loop reply (FR-028).
 - ``POST /runs/{run_id}/resume``    — re-enter an aborted run from its checkpoint.
 
+Resume and answer take the BYOK key in the ``X-LLM-Api-Key`` header and re-use
+the provider and model persisted at launch.
+
 The BYOK ``api_key`` crosses for the run only — it is never stored in the runs
 database and never echoed back in any response (asserted in
 ``test_runs_router``). Loopback transport only.
@@ -29,7 +32,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, status
 from pydantic import BaseModel
 
 from models.run import RunAnswerRequest, RunLaunchRequest
@@ -114,19 +117,28 @@ async def cancel_run(run_id: str) -> dict[str, bool]:
     return {"cancelled": True}
 
 
+#: The BYOK provider key for a resumed segment: a header, never the body; held
+#: in memory for the run only, never persisted or echoed (R15-AGENT-035).
+_API_KEY_HEADER = Header(default=None, alias="X-LLM-Api-Key")
+
+
 @router.post("/runs/{run_id}/answer")
-async def answer_run(run_id: str, payload: RunAnswerRequest) -> dict[str, bool]:
+async def answer_run(
+    run_id: str,
+    payload: RunAnswerRequest,
+    api_key: str | None = _API_KEY_HEADER,
+) -> dict[str, bool]:
     """Deliver a human-in-the-loop reply and resume the run (FR-028)."""
     with _run_errors():
-        run_manager.answer_run(run_id, payload.answer)
+        run_manager.answer_run(run_id, payload.answer, api_key=api_key)
     return {"resumed": True}
 
 
 @router.post("/runs/{run_id}/resume")
-async def resume_run(run_id: str) -> dict[str, bool]:
+async def resume_run(run_id: str, api_key: str | None = _API_KEY_HEADER) -> dict[str, bool]:
     """Re-enter an errored or cancelled run from its checkpoint (FR-028)."""
     with _run_errors():
-        run_manager.resume_run(run_id)
+        run_manager.resume_run(run_id, api_key=api_key)
     return {"resumed": True}
 
 

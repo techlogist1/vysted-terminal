@@ -209,10 +209,9 @@ def test_control_routes_on_a_done_run_are_409_and_leave_it(client: TestClient) -
 def test_answer_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
 
-    def _fake_answer(run_id: str, answer: str) -> bool:
+    def _fake_answer(run_id: str, answer: str, **_k: object) -> None:
         captured["run_id"] = run_id
         captured["answer"] = answer
-        return True
 
     monkeypatch.setattr(run_manager, "answer_run", _fake_answer)
     resp = client.post("/runs/run-1/answer", json={"answer": "yes proceed"})
@@ -244,6 +243,24 @@ def test_resume_route(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> No
     resp = client.post("/runs/run-1/resume")
     assert resp.status_code == 200
     assert resp.json() == {"resumed": True}
+
+
+def test_resume_and_answer_take_the_key_from_a_header(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-AGENT-035: the routes took no key, so a resumed BYOK run had none."""
+    secret = "sk-resume-must-not-leak"
+    captured: list[object] = []
+    monkeypatch.setattr(run_manager, "resume_run", lambda _rid, **k: captured.append(k["api_key"]))
+    monkeypatch.setattr(
+        run_manager, "answer_run", lambda _rid, _a, **k: captured.append(k["api_key"])
+    )
+    headers = {"X-LLM-Api-Key": secret}
+    resume = client.post("/runs/run-1/resume", headers=headers)
+    answer = client.post("/runs/run-1/answer", json={"answer": "NSE"}, headers=headers)
+    assert (resume.status_code, answer.status_code) == (200, 200)
+    assert captured == [secret, secret]
+    assert secret not in resume.text + answer.text
 
 
 def test_resume_already_running_409(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

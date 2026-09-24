@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Maximize2, Send, X } from "lucide-react";
+import { Maximize2, RotateCcw, Send, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { answerDelegateRun } from "@/lib/delegate-runs";
+import { answerDelegateRun, resumeDelegateRun } from "@/lib/delegate-runs";
 import { useAgentRunsStore, type AgentRun } from "@/store/agent-runs";
 
 import { agentModeMeta } from "../../../types/agent-modes";
@@ -15,7 +15,9 @@ import { agentModeMeta } from "../../../types/agent-modes";
  * The agents rail (FR-027, US9) — running agent tasks with live status,
  * cost-so-far vs budget, cancel, bring-to-foreground, and a human-in-the-loop
  * answer box for a paused run. Delegate runs are durable (sidecar-tracked); the
- * cost/status here is synced by the `/runs` poller. Hidden when nothing runs.
+ * cost/status here is synced by the `/runs` poller. A Delegate run that ended
+ * in error stays with a Resume control until dismissed (R15-AGENT-035). Hidden
+ * when nothing is listed.
  */
 export function AgentsRail({
   onForeground,
@@ -25,9 +27,16 @@ export function AgentsRail({
 }) {
   const runs = useAgentRunsStore((state) => state.runs);
   const cancelRun = useAgentRunsStore((state) => state.cancelRun);
+  const removeRun = useAgentRunsStore((state) => state.removeRun);
 
   const active = useMemo(
-    () => runs.filter((r) => r.status === "running" || r.status === "paused"),
+    () =>
+      runs.filter(
+        (r) =>
+          r.status === "running" ||
+          r.status === "paused" ||
+          (r.status === "error" && r.sidecarRunId),
+      ),
     [runs],
   );
 
@@ -48,7 +57,7 @@ export function AgentsRail({
               <RunRow
                 key={run.id}
                 run={run}
-                onCancel={() => cancelRun(run.id)}
+                onCancel={() => (run.status === "error" ? removeRun(run.id) : cancelRun(run.id))}
                 onForeground={onForeground}
               />
             ))}
@@ -71,6 +80,9 @@ function RunRow({
   const [answer, setAnswer] = useState("");
   const [answerBusy, setAnswerBusy] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
+  const [resumeBusy, setResumeBusy] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const failed = run.status === "error";
   const cost = run.cost;
   const budget = run.budget;
   // Budget usage fraction (tokens-based, the most common ceiling) for the bar.
@@ -93,7 +105,13 @@ function RunRow({
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
           <span
-            className={run.status === "paused" ? "text-warning" : "animate-pulse text-amber-400"}
+            className={
+              failed
+                ? "text-negative"
+                : run.status === "paused"
+                  ? "text-warning"
+                  : "animate-pulse text-amber-400"
+            }
             aria-hidden
           >
             ●
@@ -108,6 +126,25 @@ function RunRow({
           )}
         </span>
         <span className="flex shrink-0 items-center gap-1">
+          {failed && run.sidecarRunId && (
+            <button
+              type="button"
+              aria-label={`Resume ${run.agentName}`}
+              title="Resume from its checkpoint"
+              disabled={resumeBusy}
+              onClick={() => {
+                setResumeBusy(true);
+                setResumeError(null);
+                void resumeDelegateRun(run).then((r) => {
+                  setResumeBusy(false);
+                  if (!r.ok) setResumeError(r.error ?? "Couldn't resume the run — retry.");
+                });
+              }}
+              className="text-charcoal-500 hover:text-charcoal-100 disabled:opacity-30"
+            >
+              <RotateCcw size={11} aria-hidden />
+            </button>
+          )}
           {onForeground && run.sidecarRunId && (
             <button
               type="button"
@@ -120,7 +157,7 @@ function RunRow({
           )}
           <button
             type="button"
-            aria-label={`Cancel ${run.agentName}`}
+            aria-label={failed ? `Dismiss ${run.agentName}` : `Cancel ${run.agentName}`}
             onClick={onCancel}
             className="text-charcoal-500 hover:text-negative"
           >
@@ -128,6 +165,11 @@ function RunRow({
           </button>
         </span>
       </div>
+      {failed && (run.detail || resumeError) && (
+        <span className="text-negative text-micro truncate" role="alert" title={run.detail}>
+          {resumeError ?? run.detail}
+        </span>
+      )}
       {frac !== null && (
         <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden" aria-hidden>
           <div
@@ -146,7 +188,7 @@ function RunRow({
               if (!text) return;
               setAnswerBusy(true);
               setAnswerError(null);
-              void answerDelegateRun(run.sidecarRunId!, text).then((r) => {
+              void answerDelegateRun(run.sidecarRunId!, text, run.provider).then((r) => {
                 setAnswerBusy(false);
                 if (r.ok) {
                   setAnswer(""); // keep the text on failure so it isn't lost

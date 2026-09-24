@@ -14,9 +14,15 @@
  * through the normal proposed-changes gate, exactly like a foreground reply's.
  */
 
+import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
-import { type AgentRunBudget, type AgentRunStatus, useAgentRunsStore } from "@/store/agent-runs";
+import {
+  type AgentRun,
+  type AgentRunBudget,
+  type AgentRunStatus,
+  useAgentRunsStore,
+} from "@/store/agent-runs";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 
 import type { AgentContextSnapshot, LLMProviderId } from "../../types/ai";
@@ -36,9 +42,12 @@ export interface DelegateLaunch {
   threadId?: string;
 }
 
-/** Where each launched run delivers its output, keyed by sidecar run id.
- *  An entry is consumed by its one delivery. */
-const origins = new Map<string, { threadId?: string; agentId: string; agentName: string }>();
+/** Where each launched (or resumed) run delivers its output, keyed by sidecar
+ *  run id. An entry is consumed by its one delivery. */
+const origins = new Map<
+  string,
+  { threadId?: string; agentId: string; agentName: string; messageId: string }
+>();
 
 /** `GET /runs/{id}` output fields (either spelling for the host actions). */
 interface RunOutputWire {
@@ -102,6 +111,8 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     mode: "delegate",
     budget: launch.budget,
     cost: { tokens: 0, spendUsd: 0, steps: 0 },
+    provider: launch.provider,
+    threadId: launch.threadId,
   });
   try {
     const base = await getSidecarBaseUrl();
@@ -154,6 +165,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
         threadId: launch.threadId,
         agentId: launch.agentId,
         agentName: launch.agentName,
+        messageId: `delegate-${sidecarRunId}`,
       });
     }
     ensurePolling();
@@ -250,7 +262,7 @@ async function deliverRunOutput(
     }).`;
     status = "error";
   }
-  const messageId = `delegate-${sidecarRunId}`;
+  const messageId = origin.messageId;
   if (output.answer || status === "error") {
     useAgentSpacesStore.getState().deliverTo(origin.threadId, {
       id: messageId,
@@ -295,10 +307,20 @@ export interface RunActionResult {
   error?: string;
 }
 
+/** The run's provider key as the `X-LLM-Api-Key` header — read from the OS
+ *  keychain like a launch's, never sent in a body (R15-AGENT-035). A keyless
+ *  provider (local Ollama) sends none. */
+async function providerKeyHeader(provider?: string): Promise<Record<string, string>> {
+  if (!provider) return {};
+  const key = await getSecret(KEYCHAIN_NAMESPACES.llmProvider(provider));
+  return key ? { "X-LLM-Api-Key": key } : {};
+}
+
 /** Answer a human-in-the-loop question a paused run is waiting on (FR-028). */
 export async function answerDelegateRun(
   sidecarRunId: string,
   answer: string,
+  provider?: string,
 ): Promise<RunActionResult> {
   try {
     const base = await getSidecarBaseUrl();
@@ -306,7 +328,7 @@ export async function answerDelegateRun(
       new URL(`/runs/${encodeURIComponent(sidecarRunId)}/answer`, base).toString(),
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await providerKeyHeader(provider)) },
         body: JSON.stringify({ answer }),
       },
     );
@@ -319,17 +341,29 @@ export async function answerDelegateRun(
   }
 }
 
-/** Resume a paused/checkpointed run (FR-028). */
-export async function resumeDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
+/** Resume an errored run from its checkpoint on its launch provider/model
+ *  (FR-028, R15-AGENT-035); its answer is delivered to its thread again. */
+export async function resumeDelegateRun(run: AgentRun): Promise<RunActionResult> {
+  const sidecarRunId = run.sidecarRunId;
+  if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to resume." };
   try {
     const base = await getSidecarBaseUrl();
     const response = await fetch(
       new URL(`/runs/${encodeURIComponent(sidecarRunId)}/resume`, base).toString(),
-      { method: "POST" },
+      { method: "POST", headers: await providerKeyHeader(run.provider) },
     );
     if (!response.ok) {
       return { ok: false, error: `Couldn't resume the run (HTTP ${response.status}).` };
     }
+    useAgentRunsStore
+      .getState()
+      .updateRun(run.id, { status: "running", endedAt: undefined, detail: "resumed" });
+    origins.set(sidecarRunId, {
+      threadId: run.threadId,
+      agentId: run.agentId ?? "",
+      agentName: run.agentName,
+      messageId: `delegate-${sidecarRunId}-${Date.now()}`,
+    });
     ensurePolling();
     return { ok: true };
   } catch (err) {

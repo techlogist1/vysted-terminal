@@ -129,6 +129,10 @@ class RunSummary(BaseModel):
     status: RunStatus
     cost: RunCost
     budget: RunBudget
+    #: The launch's provider/model (``None`` = the agent default); a resume
+    #: re-uses them (R15-AGENT-035).
+    provider: str | None = None
+    model: str | None = None
     detail: str | None = None
     question: str | None = None
     created_at: int = Field(alias="createdAt")

@@ -47,6 +47,10 @@ export interface AgentRun {
   budget?: AgentRunBudget;
   /** Sidecar run id for a DURABLE (Delegate) run — links to `/runs/{id}`. */
   sidecarRunId?: string;
+  /** The provider a Delegate run was launched on — a resume reads its key. */
+  provider?: string;
+  /** The chat thread a Delegate run delivers its answer to. */
+  threadId?: string;
   /** A human-in-the-loop question the run is paused on (FR-028). */
   question?: string;
   /** Abort the run (foreground: aborts the stream; durable: cancels via the rail). */

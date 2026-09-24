@@ -124,6 +124,7 @@ async def _drive_run(
     budget: RunBudget,
     options: dict[str, Any],
     checkpoint: dict[str, Any],
+    prior_cost: RunCost | None = None,
 ) -> None:
     """Drive one agent invocation to completion under a BudgetGuard.
 
@@ -132,8 +133,12 @@ async def _drive_run(
     ``checkpoint`` is the run's ``{prompt, turns}`` so far (R15-AGENT-036): the
     driver appends this invocation's turns to it in order — the model's text,
     one ``[tool name → result]`` turn per dispatched tool — so a resume replays
-    the conversation exactly. Every exit writes a terminal status to the store.
+    the conversation exactly. ``prior_cost`` is what earlier segments of a
+    resumed run already spent: the ceilings apply to this segment, the recorded
+    cost is the run's total (R15-AGENT-035). Every exit writes a terminal status
+    to the store.
     """
+    prior = prior_cost or RunCost()
     guard = BudgetGuard(
         max_tokens=budget.max_tokens,
         max_spend_usd=budget.max_spend_usd,
@@ -192,7 +197,15 @@ async def _drive_run(
         # spend-so-far, and refuse the next round on a breach: invoke_agent then
         # stops before dispatching this round's tools (R15-AGENT-037).
         guard.record(usage, used_model, used_provider)
-        runs_store.update_run(run_id, cost=RunCost.model_validate(guard.cost()))
+        spent = guard.cost()
+        runs_store.update_run(
+            run_id,
+            cost=RunCost(
+                tokens=prior.tokens + int(spent["tokens"]),
+                spend_usd=round(prior.spend_usd + spent["spend_usd"], 6),
+                steps=prior.steps + int(spent["steps"]),
+            ),
+        )
         nonlocal breach_reason
         breach_reason = breach_reason or guard.breach()
         return breach_reason is None
@@ -355,6 +368,8 @@ def launch_run(
         agent_name=spec.name,
         budget=run_budget,
         options=persisted_options,
+        provider=provider,
+        model=model,
     )
     _spawn(
         run_id,
@@ -473,19 +488,21 @@ def _resume(
         detail="resumed",
         clear_question=True,
         checkpoint=checkpoint,
-        cost=RunCost(),  # fresh ceilings → fresh running total
     )
+    # The launch's provider and model, never the agent default (R15-AGENT-035);
+    # the key crosses with the resume/answer request only, like the launch's.
     _spawn(
         run_id,
         agent_id=run.agent_id,
         prompt=conversation[-1]["content"],
         snapshot=None,
-        provider=None,
-        model=None,
+        provider=run.provider,
+        model=run.model,
         api_key=api_key,
         budget=resume_budget,
         options=options,
         checkpoint=checkpoint,
+        prior_cost=run.cost,
     )
 
 

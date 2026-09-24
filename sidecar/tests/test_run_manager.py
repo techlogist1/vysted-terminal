@@ -530,6 +530,48 @@ async def test_resume_rethreads_persisted_depth_and_region(
     assert captured["region_at_invoke"] == "IN"
 
 
+@pytest.mark.asyncio
+async def test_resume_reuses_the_launch_provider_model_and_adds_to_the_cost(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-035 / R15-LIFECYCLE-013: a resume ran on the agent default with
+    no key (live: Ollama swapped llama3.1:8b for Qwen) and zeroed the cost."""
+    _patch(monkeypatch, _LoopingProvider(per_round=100_000))
+    run_id = run_manager.launch_run(
+        agent_id="copilot",
+        prompt="big task",
+        provider="ollama",
+        model="llama3.1:8b",
+        api_key="sk-launch-secret",
+        budget=RunBudget(max_tokens=1000),
+    )
+    before = await _await_terminal(run_id)
+    assert before is not None and before.status == "error"
+
+    captured: dict[str, Any] = {}
+
+    def _capture_invoke(**kwargs: Any) -> Any:
+        async def _gen() -> Any:
+            captured.update(kwargs)
+            kwargs["on_round_usage"](LLMUsage(input_tokens=10, output_tokens=0), "m", "ollama")
+            yield LLMDeltaEvent(text="done now")
+            yield LLMDoneEvent()
+
+        return _gen()
+
+    monkeypatch.setattr(agent_runtime, "invoke_agent", _capture_invoke)
+    run_manager.resume_run(run_id, api_key="sk-resume-secret")
+    after = await _await_terminal(run_id)
+    assert after is not None and after.status == "done"
+    assert (captured["provider"], captured["model"]) == ("ollama", "llama3.1:8b")
+    assert captured["api_key"] == "sk-resume-secret"
+    assert (after.cost.tokens, after.cost.steps) == (100_010, before.cost.steps + 1)
+    from config import get_data_dir
+
+    stored = (get_data_dir() / runs_store.DB_FILENAME).read_bytes()
+    assert b"sk-launch-secret" not in stored and b"sk-resume-secret" not in stored
+
+
 # ---------------------------------------------------------------------------
 # R15-AGENT-013 — a run's answer, brief and host actions are collectable
 # ---------------------------------------------------------------------------

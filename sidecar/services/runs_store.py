@@ -35,6 +35,8 @@ Columns mirror the run lifecycle:
   the spawned driver so the depth ContextVar floor / region are re-threaded
   instead of silently resetting to defaults mid-conversation. Allow-listed
   keys only — NEVER an api key.
+- ``provider`` / ``model`` — the provider and model the run was launched with
+  (NULL = the agent default), re-used by every resume (R15-AGENT-035).
 - ``output_json`` — the run's collectable output, written when it ends
   (R15-AGENT-013): ``answer`` (the full final text, untruncated), ``brief``
   (the last ``publish_brief`` input) and ``host_actions`` (the host-action
@@ -95,6 +97,8 @@ CREATE TABLE IF NOT EXISTS runs (
     checkpoint_json TEXT,
     options_json TEXT,
     output_json TEXT,
+    provider TEXT,
+    model TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
 )
@@ -123,14 +127,14 @@ def _db_path() -> str:
 
 
 def _ensure_added_columns(conn: sqlite3.Connection) -> None:
-    """Additive migration: older databases predate ``options_json`` (R10) and
-    ``output_json`` (R15-AGENT-013).
+    """Additive migration: older databases predate ``options_json`` (R10),
+    ``output_json`` (R15-AGENT-013) and ``provider``/``model`` (R15-AGENT-035).
 
     ``CREATE TABLE IF NOT EXISTS`` covers a fresh file; an existing table needs
     the ALTER guard. PRAGMA is cheap enough to run per-connection.
     """
     columns = {row[1] for row in conn.execute("PRAGMA table_info(runs)")}
-    for column in ("options_json", "output_json"):
+    for column in ("options_json", "output_json", "provider", "model"):
         if column not in columns:
             conn.execute(f"ALTER TABLE runs ADD COLUMN {column} TEXT")
 
@@ -179,6 +183,8 @@ def _row_to_summary(row: sqlite3.Row) -> RunSummary:
         status=row["status"],
         cost=RunCost.model_validate(cost_raw if isinstance(cost_raw, dict) else {}),
         budget=RunBudget.model_validate(budget_raw if isinstance(budget_raw, dict) else {}),
+        provider=row["provider"],
+        model=row["model"],
         detail=row["detail"],
         question=row["question"],
         created_at=int(row["created_at"]),
@@ -237,6 +243,8 @@ def create_run(
     mode: str = "delegate",
     status: RunStatus = "running",
     options: dict[str, Any] | None = None,
+    provider: str | None = None,
+    model: str | None = None,
     now: int | None = None,
 ) -> RunSummary:
     """Insert a new run row (status ``running`` by default) and return it.
@@ -254,8 +262,9 @@ def create_run(
             """
             INSERT INTO runs
                 (id, agent_id, agent_name, mode, status, budget_json, cost_json,
-                 detail, question, checkpoint_json, options_json, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 detail, question, checkpoint_json, options_json, provider, model,
+                 created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 run_id,
@@ -269,6 +278,8 @@ def create_run(
                 None,
                 None,
                 options_json,
+                provider,
+                model,
                 timestamp,
                 timestamp,
             ),
