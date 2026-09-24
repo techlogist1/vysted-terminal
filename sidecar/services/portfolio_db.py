@@ -18,6 +18,7 @@ from datetime import datetime
 
 from config import get_data_dir
 from models.portfolio import Position
+from services import schema_version
 
 DB_FILENAME = "portfolio.db"
 
@@ -32,6 +33,9 @@ CREATE TABLE IF NOT EXISTS positions (
     note TEXT
 )
 """
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (schema_version.statements(_SCHEMA),)
 
 
 def _db_path() -> str:
@@ -49,7 +53,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute(_SCHEMA)
+        schema_version.migrate(conn, _STEPS)
         yield conn
         conn.commit()
     finally:

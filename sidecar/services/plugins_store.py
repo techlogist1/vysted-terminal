@@ -31,6 +31,7 @@ from typing import Any
 
 from config import get_data_dir
 from models.plugins import PluginConfigPayload
+from services import schema_version
 
 DB_FILENAME = "plugins.db"
 
@@ -68,6 +69,16 @@ def _migrate(conn: sqlite3.Connection) -> None:
             conn.execute(ddl)
 
 
+def _step_1(conn: sqlite3.Connection) -> None:
+    """The schema as it stood before versioning, plus its column guard."""
+    conn.execute(_SCHEMA)
+    _migrate(conn)
+
+
+#: Forward-only migrations, one per ``user_version`` (R15-LIFECYCLE-024).
+_STEPS = (_step_1,)
+
+
 @contextmanager
 def _connect() -> Iterator[sqlite3.Connection]:
     """Yield a connection with the schema ensured; commit on clean exit.
@@ -78,8 +89,7 @@ def _connect() -> Iterator[sqlite3.Connection]:
     conn = sqlite3.connect(_db_path())
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute(_SCHEMA)
-        _migrate(conn)
+        schema_version.migrate(conn, _STEPS)
         yield conn
         conn.commit()
     finally:
