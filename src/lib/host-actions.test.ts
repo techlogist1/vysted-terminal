@@ -177,9 +177,44 @@ describe("host-actions", () => {
     expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
   });
 
-  it("applyHostAction(add_to_watchlist) tracks the symbol", () => {
-    applyHostAction("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
+  it("add_to_watchlist tracks the symbol once it resolves to a listing", async () => {
+    // An equity add now resolves through GET /resolve first (R15-AGENT-044).
+    sidecarGetMock.mockReset();
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "TSLA", name: "Tesla, Inc." },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "TSLA", name: "Tesla, Inc." }],
+    });
+    await applyHostActionAsync("add_to_watchlist", { symbol: "tsla", asset_class: "equity" });
+    expect(sidecarGetMock).toHaveBeenCalledWith("/resolve", { q: "TSLA" });
     expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toContain("TSLA");
+  });
+
+  it("add_to_watchlist resolves a company name or fails with candidates, never a blank row (R15-AGENT-044)", async () => {
+    sidecarGetMock.mockReset();
+    // The live /resolve answers for "Mazagon Dock" (bound) and the invented
+    // ticker "MAZAGONDOCK" (no listing, no candidate).
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "MAZDOCK", name: "Mazagon Dock Shipbuilders Limited" },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "MAZDOCK", name: "Mazagon Dock Shipbuilders Limited" }],
+    });
+    expect(await applyHostActionAsync("add_to_watchlist", { symbol: "Mazagon Dock" })).toBe(
+      'Added MAZDOCK to your watchlist (resolved from "MAZAGON DOCK")',
+    );
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: null,
+      needs_disambiguation: false,
+      candidates: [],
+    });
+    const invented = await applyIntentAsync(
+      parseHostAction("add_to_watchlist", { symbol: "MAZAGONDOCK" }),
+    );
+    expect(invented).toEqual({
+      label: null,
+      reason: '"MAZAGONDOCK" did not resolve to a listing',
+    });
+    expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["MAZDOCK"]);
   });
 
   it("write_screener_filters describes + writes a nested AND/OR tree into the panel", () => {

@@ -31,7 +31,7 @@ import {
   type LayoutTemplate,
 } from "@/lib/layout-templates";
 import { regionConfig, isRegion, type Region } from "@/lib/region";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 import { saveWorkspace } from "@/lib/workspace";
 import { indicatorByKey } from "@/modules/chart/indicators";
 import { useBacktestStore } from "@/store/backtest";
@@ -1155,7 +1155,9 @@ export function describeIntent(intent: HostIntent): {
             ? `Watchlist: no symbol given — ${CANT_APPLY}`
             : tracked
               ? `Watchlist: ${symbol} already tracked`
-              : `Watchlist: +${symbol} (${entries.length + 1} total)`,
+              : intent.assetClass === "equity"
+                ? `Watchlist: +${symbol} once it resolves to one listing (${entries.length + 1} total)`
+                : `Watchlist: +${symbol} (${entries.length + 1} total)`,
         };
       }
       return {
@@ -1561,6 +1563,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         // Truthful idempotent no-op: the desired end state already holds.
         return done(`${symbol} is already on your watchlist`);
       }
+      if (intent.assetClass === "equity") {
+        // A model-supplied equity goes through the one resolution policy first
+        // (GET /resolve) — never a verbatim, possibly invented ticker.
+        return fail("adding an equity needs the async apply (it resolves the name first)");
+      }
       symbols.addSymbol(symbol, intent.assetClass);
       return done(`Added ${symbol} to your watchlist`, { kind: "watchlist-added", symbol });
     }
@@ -1849,7 +1856,58 @@ export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult>
     }
     return done(`Saved the layout as "${intent.layoutName}"`);
   }
+  if (
+    intent.name === "add_to_watchlist" &&
+    intent.assetClass === "equity" &&
+    intent.symbol &&
+    !useSymbolsStore.getState().entries.some((e) => e.symbol.toUpperCase() === intent.symbol)
+  ) {
+    return addResolvedEquity(intent.symbol);
+  }
   return applyIntent(intent);
+}
+
+/** The slice of the `GET /resolve` reply (`sidecar/routers/resolve.py`) the
+ *  watchlist add reads. */
+interface ResolveReply {
+  resolved: { symbol: string; name: string } | null;
+  needs_disambiguation: boolean;
+  candidates: { symbol: string; name: string }[];
+}
+
+/**
+ * Add a model-supplied equity to the watchlist through the ONE resolution
+ * policy (`GET /resolve`, the same decision the mention picker and every agent
+ * tool honour): a bound listing is added under its resolved symbol and the
+ * label says so; an ambiguous or unresolved name fails with the candidates —
+ * never a verbatim invented ticker that sits on the watchlist as a blank row.
+ */
+async function addResolvedEquity(raw: string): Promise<ApplyResult> {
+  let reply: ResolveReply;
+  try {
+    reply = await sidecarGet<ResolveReply>("/resolve", { q: raw });
+  } catch {
+    return fail(`could not resolve "${raw}" — the sidecar did not answer`);
+  }
+  const choices = (reply.candidates ?? [])
+    .slice(0, 4)
+    .map((c) => `${c.symbol} (${c.name})`)
+    .join(", ");
+  if (!reply.resolved) {
+    return fail(
+      reply.needs_disambiguation
+        ? `"${raw}" matches more than one listing — did you mean: ${choices}?`
+        : `"${raw}" did not resolve to a listing${choices ? ` — did you mean: ${choices}?` : ""}`,
+    );
+  }
+  const symbol = reply.resolved.symbol.toUpperCase();
+  const from = symbol === raw ? "" : ` (resolved from "${raw}")`;
+  const symbols = useSymbolsStore.getState();
+  if (symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+    return done(`${symbol} is already on your watchlist${from}`);
+  }
+  symbols.addSymbol(symbol, "equity");
+  return done(`Added ${symbol} to your watchlist${from}`, { kind: "watchlist-added", symbol });
 }
 
 /** {@link applyIntentAsync} from raw args — the label, or null when it did not land. */
