@@ -88,13 +88,18 @@ export function AnalystRatingsPanel() {
   const tabError =
     tab === "history" ? historyError : tab === "price-targets" ? priceTargetError : individualError;
   const tabData = tab === "history" ? history : tab === "price-targets" ? targets : individual;
-  const tabFetchedAt = symbol
+  const tabSlice = symbol
     ? tab === "history"
-      ? histories[symbol]?.fetchedAt
+      ? histories[symbol]
       : tab === "price-targets"
-        ? priceTargets[symbol]?.fetchedAt
-        : individuals[symbol]?.fetchedAt
+        ? priceTargets[symbol]
+        : individuals[symbol]
     : undefined;
+  const tabFetchedAt = tabSlice?.fetchedAt;
+  // R15-DATA-068: prefer the server-stated as_of (C16) — the moment the
+  // DATA is current as of, not the moment this client happened to fetch it —
+  // falling back to the client fetch clock until the sidecar sends one.
+  const tabAsOf = tabSlice?.asOf ?? null;
 
   // A slice is "loading" while its symbol is set, the data hasn't arrived, and
   // no error has landed — gate the child empty-states behind this so the fetch
@@ -156,13 +161,24 @@ export function AnalystRatingsPanel() {
               onSelect={() => setTab("individual")}
             />
             <div className="ml-auto flex items-center gap-2 pb-2">
-              {tabFetchedAt !== undefined && (
+              {tabAsOf !== null ? (
                 <span
                   className="text-charcoal-500 text-caption"
-                  title={new Date(tabFetchedAt).toLocaleString()}
+                  title={new Date(tabAsOf).toLocaleString()}
+                  data-testid="analyst-as-of-chip"
                 >
-                  As of {new Date(tabFetchedAt).toLocaleTimeString()}
+                  As of {new Date(tabAsOf).toLocaleString()}
                 </span>
+              ) : (
+                tabFetchedAt !== undefined && (
+                  <span
+                    className="text-charcoal-500 text-caption"
+                    title={new Date(tabFetchedAt).toLocaleString()}
+                    data-testid="analyst-as-of-chip"
+                  >
+                    As of {new Date(tabFetchedAt).toLocaleTimeString()}
+                  </span>
+                )
               )}
               <Button
                 type="button"

@@ -149,6 +149,18 @@ describe("useAnalystRatingsStore — TTL + refresh (R15-DATA-068)", () => {
     }
   });
 
+  it("carries the server as_of through when the envelope has one (R15-DATA-068 / C16)", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ ...HISTORY, as_of: "2026-05-02T00:00:00Z" });
+    await useAnalystRatingsStore.getState().getHistory("AAPL");
+    expect(useAnalystRatingsStore.getState().histories.AAPL?.asOf).toBe("2026-05-02T00:00:00Z");
+  });
+
+  it("leaves asOf null when the envelope carries none yet", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce(HISTORY);
+    await useAnalystRatingsStore.getState().getHistory("AAPL");
+    expect(useAnalystRatingsStore.getState().histories.AAPL?.asOf).toBeNull();
+  });
+
   it("refresh() bypasses a still-fresh cache and refetches all three slices", async () => {
     vi.mocked(sidecarGet)
       .mockResolvedValueOnce(HISTORY)

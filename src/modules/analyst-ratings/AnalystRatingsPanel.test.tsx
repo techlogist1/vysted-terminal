@@ -178,6 +178,20 @@ describe("AnalystRatingsPanel", () => {
     });
   });
 
+  it("R15-DATA-068: the as-of chip prefers the server as_of over the client fetch clock", async () => {
+    vi.mocked(sidecarGet)
+      .mockResolvedValueOnce({ ...HISTORY, as_of: "2026-05-02T00:00:00.000Z" })
+      .mockResolvedValueOnce(TARGETS)
+      .mockResolvedValueOnce(INDIVIDUAL);
+    render(<AnalystRatingsPanel />);
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "AAPL" } });
+    fireEvent.click(screen.getByRole("button", { name: /load/i }));
+    await waitFor(() => {
+      const chip = screen.getByTestId("analyst-as-of-chip");
+      expect(chip).toHaveTextContent(new Date("2026-05-02T00:00:00.000Z").toLocaleString());
+    });
+  });
+
   it("renders a table-shaped skeleton during the fetch window, never pulsing prose", () => {
     // Never-resolving fetches hold the loading window open.
     vi.mocked(sidecarGet).mockImplementation(() => new Promise(() => {}));
