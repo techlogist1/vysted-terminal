@@ -60,10 +60,10 @@ def main() -> int:
         print(f"error: only found {len(symbols)} symbols, expected ~500-503", file=sys.stderr)
         return 1
 
-    pack = json.loads(_OUT_PATH.read_text())
+    pack = json.loads(_OUT_PATH.read_text(encoding="utf-8"))
     pack["snapshot_date"] = datetime.now(UTC).date().isoformat()
     pack["symbols"] = symbols
-    _OUT_PATH.write_text(json.dumps(pack, indent=2) + "\n")
+    _OUT_PATH.write_text(json.dumps(pack, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {len(symbols)} symbols, snapshot_date={pack['snapshot_date']}")
     return 0
 

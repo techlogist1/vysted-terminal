@@ -30,7 +30,9 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "nse" / "fo_bhavcopy_udiff_20260
 def _fixture_zip() -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("BhavCopy_NSE_FO_0_0_0_20260924_F_0000.csv", _FIXTURE.read_text())
+        zf.writestr(
+            "BhavCopy_NSE_FO_0_0_0_20260924_F_0000.csv", _FIXTURE.read_text(encoding="utf-8")
+        )
     return buf.getvalue()
 
 
@@ -55,7 +57,7 @@ def nse_calls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[str]:
 
 
 def test_parse_keeps_option_rows_keyed_by_underlying() -> None:
-    rows = option_chain.parse_fo_bhavcopy(_FIXTURE.read_text())
+    rows = option_chain.parse_fo_bhavcopy(_FIXTURE.read_text(encoding="utf-8"))
     assert set(rows) == {"NIFTY", "RELIANCE"}
     assert len(rows["NIFTY"]) == 9  # the IDF future is dropped
     assert len(rows["RELIANCE"]) == 4  # the STF future is dropped

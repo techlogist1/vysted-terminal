@@ -186,14 +186,16 @@ def test_pass_hat_k_counts_a_scenario_only_when_all_k_trials_pass() -> None:
 
 def test_the_scenario_set_names_only_tools_its_agent_can_call() -> None:
     agents = Path(__file__).resolve().parents[1] / "agents"
-    scenarios = json.loads((_EVAL_DIR / "scenarios.json").read_text())
+    scenarios = json.loads((_EVAL_DIR / "scenarios.json").read_text(encoding="utf-8"))
     assert 12 <= len(scenarios) <= 20
     assert len({s["id"] for s in scenarios}) == len(scenarios)
     for scenario in scenarios:
         expect = scenario["expect"]
         names = [n for w in expect.get("tools", []) for n in w["tool"].split("|")]
         names += expect.get("forbid_tools", [])
-        allowed = json.loads((agents / f"{scenario.get('agent', 'copilot')}.json").read_text())
+        allowed = json.loads(
+            (agents / f"{scenario.get('agent', 'copilot')}.json").read_text(encoding="utf-8")
+        )
         unknown = [n for n in names if n not in allowed["tools"] or n not in CAPABILITY_CATALOG]
         assert not unknown, f"{scenario['id']} names tools its agent cannot call: {unknown}"
         for pattern in [w.get("input") or "" for w in expect.get("tools", [])] + expect.get(

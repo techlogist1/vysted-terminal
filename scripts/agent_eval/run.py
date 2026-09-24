@@ -48,7 +48,7 @@ def _read_events(path: Path) -> list[dict]:
     if not path.exists():
         return []
     events = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         try:
             events.append(json.loads(line))
         except ValueError:
@@ -106,7 +106,7 @@ def main() -> int:
     args = ap.parse_args()
     provider, default_model = LANES[args.lane]
     model = args.model or default_model
-    scenarios = json.loads((HERE / "scenarios.json").read_text())
+    scenarios = json.loads((HERE / "scenarios.json").read_text(encoding="utf-8"))
     if args.only:
         wanted = set(args.only.split(","))
         scenarios = [s for s in scenarios if s["id"] in wanted]
@@ -114,7 +114,11 @@ def main() -> int:
     results_path.parent.mkdir(parents=True, exist_ok=True)
     rows = []
     if results_path.exists():
-        rows = [json.loads(line) for line in results_path.read_text().splitlines() if line]
+        rows = [
+            json.loads(line)
+            for line in results_path.read_text(encoding="utf-8").splitlines()
+            if line
+        ]
     rows = [r for r in rows if r["model"] == model]
     started = time.time()
     budget_hit = False
@@ -128,7 +132,7 @@ def main() -> int:
                 budget_hit = True
                 break
             rows.append(row)
-            with results_path.open("a") as fh:
+            with results_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row) + "\n")
             verdict = "PASS" if row["pass"] else "FAIL " + "; ".join(row["failures"])[:200]
             print(f"{scenario['id']} #{trial} {row['secs']}s {verdict}", flush=True)
@@ -139,7 +143,7 @@ def main() -> int:
         outcomes.setdefault(r["scenario"], []).append(r["pass"])
     report = {"lane": args.lane, "model": model, **grader.pass_hat_k(outcomes, args.k)}
     report_path = Path(args.out_dir) / f"{args.lane}.report.json"
-    report_path.write_text(json.dumps(report, indent=2) + "\n")
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in report.items() if k != "per_scenario"}))
     return 3 if budget_hit else 0
 

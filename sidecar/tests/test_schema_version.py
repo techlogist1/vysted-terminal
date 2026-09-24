@@ -212,9 +212,9 @@ async def test_a_build_change_backs_the_data_dir_up_once_and_the_same_build_neve
 ) -> None:
     (tmp_path / "workflows.db").write_bytes(b"old build's workflows")
     (tmp_path / "workspaces").mkdir()
-    (tmp_path / "workspaces" / "__autosave__.vysted-workspace").write_text("{}")
+    (tmp_path / "workspaces" / "__autosave__.vysted-workspace").write_text("{}", encoding="utf-8")
     (tmp_path / "logs").mkdir()
-    (tmp_path / "logs" / "vysted.log").write_text("log")
+    (tmp_path / "logs" / "vysted.log").write_text("log", encoding="utf-8")
     data_cache.reset_for_tests(tmp_path / data_cache.DB_FILENAME)
 
     await data_cache.ensure_build("0.8.0")  # first boot: nothing to back up
@@ -228,7 +228,9 @@ async def test_a_build_change_backs_the_data_dir_up_once_and_the_same_build_neve
     assert [p.name for p in backups.iterdir()] == ["0.8.0"]
     copy = backups / "0.8.0"
     assert (copy / "workflows.db").read_bytes() == b"old build's workflows"
-    assert (copy / "workspaces" / "__autosave__.vysted-workspace").read_text() == "{}"
+    assert (copy / "workspaces" / "__autosave__.vysted-workspace").read_text(
+        encoding="utf-8"
+    ) == "{}"
     assert (copy / data_cache.DB_FILENAME).exists()
     assert not (copy / "logs").exists()
     assert not (copy / "backups").exists()
