@@ -290,6 +290,32 @@ async def test_refresh_with_all_engines_captcha_blocked_reports_degraded(tmp_pat
 
 
 @pytest.mark.asyncio
+async def test_refresh_degrades_even_when_the_probe_has_results(tmp_path) -> None:
+    """R15-RESEARCH-028 residual: `_apply_quality` used to test `has_results`
+    BEFORE `unresponsive`, so a probe that comes back with a stray result
+    (e.g. the "test" query hitting an unrelated engine) while every real
+    search engine reports itself unresponsive on the SAME response read as
+    READY. Unresponsive now wins regardless of `has_results`."""
+
+    async def stray_result_all_unresponsive(_url: str) -> EngineProbe:
+        return EngineProbe(
+            has_results=True,
+            unresponsive=(
+                ("brave", "too many requests"),
+                ("duckduckgo", "CAPTCHA"),
+                ("startpage", "Suspended: CAPTCHA"),
+            ),
+        )
+
+    mgr = _manager(_running_fake(), tmp_path, quality_probe=stray_result_all_unresponsive)
+
+    status = await mgr.refresh()
+
+    assert status["state"] == STATE_DEGRADED
+    assert "CAPTCHA" in status["reason"]
+
+
+@pytest.mark.asyncio
 async def test_refresh_with_three_empty_probes_reports_degraded(tmp_path) -> None:
     """No engine names itself unresponsive, but three straight probes came
     back empty anyway — degrade rather than trust it forever."""
@@ -329,6 +355,46 @@ async def test_refresh_recovers_from_degraded_once_engines_answer(tmp_path) -> N
     recovered = await mgr.refresh()
     assert recovered["state"] == STATE_READY
     assert recovered["reason"] is None
+
+
+# ---------------------------------------------------------------------------
+# record_search_result — real-query outcomes feed the SAME degrade signal
+# (R15-RESEARCH-028 residual, C10). web_search.py calls this after every
+# SearXNG-served search.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_record_search_result_degrades_after_three_consecutive_empty_real_queries(
+    tmp_path,
+) -> None:
+    mgr = _manager(_running_fake(), tmp_path)
+    await mgr.refresh()  # STATE_READY via the default _quality_ok probe
+    assert mgr.state == STATE_READY
+
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_READY  # 1 empty: not yet confirmed
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_READY  # 2 empty: still not confirmed
+    mgr.record_search_result(False)
+
+    assert mgr.state == STATE_DEGRADED
+    assert mgr.reason == "no results from any engine across 3 real queries"
+
+
+@pytest.mark.asyncio
+async def test_record_search_result_with_results_heals_a_degraded_manager(tmp_path) -> None:
+    mgr = _manager(_running_fake(), tmp_path)
+    await mgr.refresh()
+    mgr.record_search_result(False)
+    mgr.record_search_result(False)
+    mgr.record_search_result(False)
+    assert mgr.state == STATE_DEGRADED
+
+    mgr.record_search_result(True)
+
+    assert mgr.state == STATE_READY
+    assert mgr.reason is None
 
 
 # ---------------------------------------------------------------------------

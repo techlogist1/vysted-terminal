@@ -146,6 +146,21 @@ async def _web_search(args: dict[str, Any]) -> dict[str, Any]:
 
     out = await _dispatch(backend, query, num_results, category, region)
 
+    # R15-RESEARCH-028 residual: feed this REAL query's outcome into the same
+    # consecutive-empty signal the periodic health probe uses — an actual
+    # finance-query miss is a stronger tell than the "test" probe, and three
+    # consecutive empty real answers should degrade the same as three empty
+    # probes. Only the APP-MANAGED instance's own health tracks this way (a
+    # user-pointed custom URL isn't what ``searxng_manager.manager``
+    # represents); ``label is None`` at this point ⟺ a searxng lane (custom or
+    # managed) was just dispatched, and an ``ok: True`` response is the only
+    # shape that tells us anything about the engines behind it (a dispatch
+    # error is a connectivity signal, not an empty-results signal).
+    if label is None and out.get("ok") is True and not config.get_searxng_url():
+        from services import searxng_manager
+
+        searxng_manager.manager.record_search_result(had_results=bool(out.get("results")))
+
     # A SearXNG instance that resolved but failed at SEARCH time (stopped
     # container / dead custom URL) degrades to the keyless floor instead of
     # surfacing an error state — same local privacy class, honest fallback id.

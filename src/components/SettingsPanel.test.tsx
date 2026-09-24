@@ -511,6 +511,9 @@ describe("SettingsPanel", () => {
     expect(searxngChipMeta("starting").label).toBe("Starting");
     expect(searxngChipMeta("ready").label).toBe("Ready");
     expect(searxngChipMeta("error").label).toBe("Error");
+    // R15-RESEARCH-028: the container answers but its engines are blocked —
+    // distinct wording + styling from both "ready" and "error".
+    expect(searxngChipMeta("degraded").label).toBe("Degraded — engines blocked");
     // An unknown state names itself honestly rather than guessing.
     expect(searxngChipMeta("rebooting").label).toBe("rebooting");
   });
@@ -585,6 +588,22 @@ describe("SettingsPanel", () => {
       screen.getByText(/Setup failed: docker pull failed: no space left on device/),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+  });
+
+  it("Tier A degraded: warning chip + engines-blocked reason + [Stop] (R15-RESEARCH-028)", async () => {
+    routeFetch({
+      "/search/searxng/status": searxngStatus("degraded", {
+        reason: "no results from any engine across 3 real queries",
+      }),
+    });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Degraded — engines blocked");
+    expect(
+      screen.getByText(/Degraded — engines blocked \(no results from any engine across 3 real/),
+    ).toBeInTheDocument();
+    // It's still a running container — Stop, not Retry (nothing to retry).
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
   });
 
   it("Tier A [Set up] POSTs /search/searxng/setup and renders the returned pulling state", async () => {
