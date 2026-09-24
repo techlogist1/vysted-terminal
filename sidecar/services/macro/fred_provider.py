@@ -177,7 +177,7 @@ def _api_key() -> str:
     """
     key = os.environ.get(_API_KEY_ENV)
     if not key:
-        raise ProviderError(
+        raise ProviderError.authored(
             "FRED needs a free API key for macro data. Get one at "
             "fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, "
             "and reload — or switch the series provider to ECB, IMF, or World "

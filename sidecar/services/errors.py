@@ -42,18 +42,44 @@ class ProviderError(RuntimeError):
       - ``"network"`` — the upstream could not be reached (connection refused,
         DNS failure, timeout).
       - ``None`` — unclassified (the pre-R11 behaviour, handled as before).
+
+    ``message`` reaches the HTTP response verbatim ONLY when the error was
+    built via :meth:`authored` (R15-DATA-061): a plain ``ProviderError(...)``
+    call — the common case, a bare ``str(exc)`` wrap around whatever the
+    upstream SDK/HTTP layer raised — is never trusted as user-facing, cause
+    or no cause. Checking ``__cause__`` for that used to be the proxy (a
+    cause-less error "must be ours"), but plenty of cause-less raises just
+    forward raw upstream text (an MCP tool's error content, a decoded body),
+    so it leaked all the same. Use :meth:`authored` only for a message this
+    module's own author wrote for the end user to read.
     """
 
-    def __init__(self, message: str, *, kind: ProviderErrorKind | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        kind: ProviderErrorKind | None = None,
+        _authored: bool = False,
+    ) -> None:
         super().__init__(message)
         self.kind = kind
+        self.is_authored = _authored
+
+    @classmethod
+    def authored(cls, message: str, *, kind: ProviderErrorKind | None = None) -> ProviderError:
+        """Build a :class:`ProviderError` whose message is meant to reach the
+        user verbatim (e.g. "FRED needs a free API key ..."). Everything else
+        — including a plain ``ProviderError(str(exc))`` — gets the generic
+        per-kind sentence, and the raw text goes to the log only."""
+        return cls(message, kind=kind, _authored=True)
 
 
-#: The one ProviderError -> HTTP mapping (D-B8-10, D-B9-1): per kind the status,
-#: the ``code``, the sentence the panel shows and the next step. Raw upstream text
-#: goes to the sidecar log only. An unclassified error with no ``__cause__`` keeps
-#: the provider layer's own authored message (e.g. "FRED needs a free API key");
-#: one that wraps a cause gets :data:`_UNEXPECTED_SENTENCE`.
+#: The one ProviderError -> HTTP mapping (D-B8-10, D-B9-1, D-B10 residual): per
+#: kind the status, the ``code``, the sentence the panel shows and the next
+#: step. Raw upstream text goes to the sidecar log only. An error built via
+#: :meth:`ProviderError.authored` keeps its own message; every other error
+#: (classified or not) gets the generic sentence for its kind, and an
+#: unclassified one falls back to :data:`_UNEXPECTED_SENTENCE`.
 _PROVIDER_ERROR_HTTP: dict[str | None, tuple[int, str, str | None, str]] = {
     "rate_limited": (
         429,
@@ -121,12 +147,11 @@ def provider_error_response(exc: ProviderError) -> tuple[int, dict[str, str]]:
     before. Library text never reaches ``detail`` (D-B9-1)."""
     kind = exc.kind or _kind_from_cause(exc)
     status, code, sentence, action = _PROVIDER_ERROR_HTTP[kind]
-    if sentence is None:
-        if exc.__cause__ is None:
-            sentence = str(exc)
-        else:
-            sentence = _UNEXPECTED_SENTENCE
-            _log.warning("unexpected provider response: %s", exc)
+    if exc.is_authored:
+        sentence = str(exc)
+    elif sentence is None:
+        sentence = _UNEXPECTED_SENTENCE
+        _log.warning("unexpected provider response: %s", exc)
     return status, {"detail": sentence, "code": code, "action": action}
 
 

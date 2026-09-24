@@ -317,11 +317,17 @@ asymmetry). Caching is per-router, not centralized.
 
 ### 3.3 Market-data & analytics services
 
-All under `sidecar/services/`. `provider_registry.py` is the single dispatch
-point (routing by `asset_class`): crypto → ccxt (`DEFAULT_CRYPTO_EXCHANGE =
-"binance"`, hardcoded), equity → yfinance; fundamentals/statements/ratings →
-openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
-`ProviderError`. `get_quote`/`get_history` are **synchronous** here.
+All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
+installed providers in **preference order** until one succeeds — `asset_class`
+is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
+`ProviderDeclaration` table — id, model-keys served, preference rank,
+credential/availability gate — is the single source of truth, and
+`active_providers()` at `/health` derives from it rather than being
+hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
+— two resolvers (sync/async) share one declaration table and the same
+preference-order fallthrough.
 
 - **`yfinance_provider.py`** — no-key default for equities. Load-bearing
   details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
@@ -350,9 +356,13 @@ openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
 - **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (**only top 100**, label admits it), `nifty50` (50), `crypto-top50`
-  (50, "refresh from ccxt" worker does **not exist**), `custom`. AND-only
-  criteria; OR-grouping reserved.
+  `sp500` (full S&P 500 — 503 symbols, regenerated live from Wikipedia by
+  `regenerate_sp500.py`, R15-LEAD-013; was a stale "top 100" snapshot),
+  `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
+  cache expiry — a live "refresh from ccxt" worker still does **not exist**),
+  `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
+  (`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer
+  reserved/unimplemented.
 - **`services/macro/`** — four in-process providers (FRED requires
   `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
   full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
@@ -554,9 +564,13 @@ none use `localStorage`. Notable surfaces:
 - **Chat sidebar** (`ChatSidebar.tsx`) — the most cross-cutting surface (6+
   stores). Default agent `copilot`; bare text routes to it; clickable persona
   chip roster; `/ask` raw escape hatch. `executeHostAction` maps copilot tool
-  calls to live store mutations (`set_chart_symbol`/`open_panel`/`add_to_watchlist`
-  and the rest of the 18 host actions), staged through the review bar (§5) —
-  there is no order kind any more (D81). BYOK key resolved from the **agent's**
+  calls to `ProposedChange` entries (`set_chart_symbol`/`open_panel`/
+  `add_to_watchlist` and the rest of `HOST_ACTION_NAMES`, `src/lib/
+host-actions.ts` — 18 host actions total), staged through the diff/accept
+  review bar (§5); the `panel`/`chart`/`watchlist` kinds apply without a
+  per-action confirmation under AUTO autonomy (`AUTO_APPLIED_KINDS`,
+  `types/proposed-change.ts`) — `data-write`/`settings` always wait — there is
+  no order kind any more (D81). BYOK key resolved from the **agent's**
   `defaultProvider` (not the UI default), read from keychain on demand.
   `defaultModelFor` **hard-codes one model per provider** (may drift).
 - **Integrations** (`ConnectCard.tsx`) — no `index.ts`, rendered inside
@@ -651,13 +665,16 @@ terse system preamble (`_render_terminal_preamble`, with the deixis line —
 `get_portfolio`).
 
 **Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
-`add_to_watchlist` and the rest of the catalog's 18 host actions are
-per-invocation closures that return a _synthetic_ success — the **real UI
-work happens frontend-side** in `ChatSidebar.executeHostAction`, dispatched
-off the streamed `tool_use` event, not the synthetic result (the
-`host_action` payload on the wire is effectively dead today). There is no
-order host action any more — no broker connection exists to place one
-against (D81).
+`add_to_watchlist` and the rest of `HOST_ACTION_NAMES` (`src/lib/
+host-actions.ts` — 18 host actions total) are per-invocation closures that
+return a _synthetic_ success — the **real UI work happens frontend-side** in
+`ChatSidebar.executeHostAction`, dispatched off the streamed `tool_use` event
+as a staged `ProposedChange` (not the synthetic result; the `host_action`
+payload on the wire is effectively dead today). The change waits in the
+diff/accept review bar (§5) unless its kind is one of `AUTO_APPLIED_KINDS`
+(`panel`/`chart`/`watchlist`, `types/proposed-change.ts`) under AUTO
+autonomy — `data-write`/`settings` always wait. There is no order host action
+any more — no broker connection exists to place one against (D81).
 
 **Personas.** 13 first-party agents (§3.11). `copilot` is the terminal-aware
 default whose allow-list is the broadest (14 tool ids incl. all host actions).

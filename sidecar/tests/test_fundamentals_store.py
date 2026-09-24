@@ -381,3 +381,81 @@ async def test_row_to_pair_roundtrip_and_priceless_quote() -> None:
     seeded_fund, seeded_quote = store.row_to_pair(seeded_row)
     assert seeded_fund.sector == "Energy"
     assert seeded_quote is None
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-095: one vocabulary (ScreenerNumericField), a general _migrate,
+# and an asserted SQL identifier.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_migrate_backfills_every_missing_column_on_a_v1_schema_db(
+    tmp_path: Path,
+) -> None:
+    """A DB created before ``_NUMERIC_FIELDS`` (or any column) existed only
+    has ``symbol`` — ``_migrate`` must ALTER in everything else, not a
+    hand-picked subset, so a field added after that DB was first created
+    (``shares_outstanding``) round-trips and the DB screens normally.
+
+    ``shares_outstanding`` is a store-only column, not a
+    ``ScreenerNumericField`` criterion (Pydantic rejects any other field
+    name there) — its coverage here is the migrated column itself
+    (``_field_column``/``fetch_rows``); ``prefilter`` on an ordinary
+    criterion field proves the rest of the migrated row is screenable too."""
+    import contextlib
+    import sqlite3
+
+    db_path = tmp_path / "v1_schema.db"
+    with contextlib.closing(sqlite3.connect(str(db_path))) as conn:
+        conn.execute("CREATE TABLE fundamentals (symbol TEXT PRIMARY KEY)")
+        conn.execute("INSERT INTO fundamentals (symbol) VALUES ('LEGACY')")
+        conn.commit()
+
+    store.reset_for_tests(db_path)
+    try:
+        assert store._field_column("shares_outstanding") == "shares_outstanding"
+        await store.upsert_v7(
+            "AAA", _fund("AAA", shares_outstanding=5e8, market_cap=1e12), _quote("AAA")
+        )
+        rows = await store.fetch_rows(["LEGACY", "AAA"])
+        assert rows["LEGACY"]["shares_outstanding"] is None  # migrated, not fabricated
+        assert rows["AAA"]["shares_outstanding"] == 5e8
+
+        kept = await store.prefilter(
+            ["AAA", "LEGACY"],
+            [NumericThresholdCriterion(field="market_cap", operator="gt", value=1e13)],
+        )
+        # AAA fails (fresh, definitively at/under the threshold) and is
+        # pruned; LEGACY has no fresh value and is kept (soundness: NULL
+        # never prunes) — the migrated row is screenable end to end.
+        assert kept == ["LEGACY"]
+    finally:
+        store.reset_for_tests(None)
+
+
+def test_numeric_field_vocabulary_matches_the_ts_mirror() -> None:
+    """``ScreenerNumericField`` (Python) and its hand-mirror in
+    ``types/screener.ts`` must declare the exact same members — the ONE
+    vocabulary the store, the exporter and the formula grammar all derive
+    from is only as good as this parity."""
+    import re
+    from pathlib import Path
+    from typing import get_args
+
+    from models.screener import ScreenerNumericField
+
+    ts_path = Path(__file__).resolve().parents[2] / "types" / "screener.ts"
+    ts_source = ts_path.read_text(encoding="utf-8")
+    match = re.search(r"export type ScreenerNumericField =\s*(.*?);", ts_source, re.DOTALL)
+    assert match, "ScreenerNumericField union not found in types/screener.ts"
+    ts_fields = set(re.findall(r'"([a-z0-9_]+)"', match.group(1)))
+    assert ts_fields == set(get_args(ScreenerNumericField))
+
+
+def test_unknown_field_raises_value_error_never_reaches_sql() -> None:
+    """A field outside the known column set (however it got here — a stale
+    client, a future drift) is rejected with ``ValueError``, never
+    interpolated into a query."""
+    with pytest.raises(ValueError, match="unknown fundamentals field"):
+        store._field_column("'; DROP TABLE fundamentals; --")

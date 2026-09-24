@@ -16,9 +16,8 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 
-from config import get_region
 from models.macro_extended import (
     MacroCatalog,
     MacroProvider,
@@ -75,24 +74,25 @@ async def get_macro_series(
     ``imf``, ``world-bank``), the response is a :class:`MacroSeriesExtended`
     with provider routing + caching via :mod:`services.macro.macro_router`.
 
-    When ``provider`` is not provided or is any other value, the legacy
-    Phase-1/3 ``provider_registry.get_macro_series`` path is used and the
-    response is the original :class:`MacroSeries` — kept for backwards
-    compatibility with any caller still on the v0.5.x contract.
+    When ``provider`` is any other value, the legacy Phase-1/3
+    ``provider_registry.get_macro_series`` path is used and the response is
+    the original :class:`MacroSeries` — kept for backwards compatibility with
+    any caller still on the v0.5.x contract.
+
+    ``provider`` is required (D-B10-2, R15-DATA-087): a series id's namespace
+    is provider-specific (FRED's ``DGS10`` means nothing to World Bank), so
+    silently picking a region default here served a 502 for the app's own
+    default series under region IN. A locale-sensible default stays available
+    via :func:`services.macro.macro_router.default_provider_for_region` for
+    discovery (catalog/search) callers; a series fetch names its provider.
     """
-    if provider and provider.lower() in _V0_6_0_PROVIDERS:
+    if not provider:
+        raise HTTPException(status_code=422, detail="provider is required for a series id")
+    if provider.lower() in _V0_6_0_PROVIDERS:
         return await macro_dispatcher.get_series(series_id, provider.lower())
 
-    # No explicit provider: pick a locale-sensible default (FR-060). US/GLOBAL
-    # keep the legacy openbb-mcp/FRED path below (unchanged); an IN session
-    # routes through the v0.6.0 dispatcher's region default (World Bank), whose
-    # WDI catalog carries India macro series the US FRED path does not.
-    if not provider:
-        region_default = macro_dispatcher.default_provider_for_region(get_region())
-        if region_default in _V0_6_0_PROVIDERS and region_default != "fred":
-            return await macro_dispatcher.get_series(series_id, region_default)
-
-    # Legacy path — Phase 1.A / Phase 3 openbb-mcp. A ProviderError here is an
+    # Legacy path — Phase 1.A / Phase 3 openbb-mcp, reached only for a provider
+    # literal outside the four v0.6.0 names. A ProviderError here is an
     # upstream-gateway failure (openbb-mcp / FRED rejected the call — e.g. a
     # missing FRED credential), so it is a 502 Bad Gateway, NOT a 501 Not
     # Implemented (the endpoint IS implemented). This unifies the status code

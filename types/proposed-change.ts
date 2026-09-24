@@ -27,13 +27,22 @@ export const PROPOSED_CHANGE_KINDS = [
 export type ProposedChangeKind = (typeof PROPOSED_CHANGE_KINDS)[number];
 
 /**
- * Whether a change of this kind applies without review under AUTO autonomy
- * (spec SC-025): only `panel` (which covers publish_brief, arrange_layout and
- * write_screener_filters), `chart` and `watchlist`. `data-write` and `settings`
- * always wait for the user's review.
+ * The kinds that apply without review under AUTO autonomy (spec SC-025):
+ * `panel` (which covers publish_brief, arrange_layout and
+ * write_screener_filters), `chart` and `watchlist`. `data-write` and
+ * `settings` always wait for the user's review. The one declaration of the
+ * auto-applied set — {@link autoApplies} reads it (R15-DOCS-016/017/018;
+ * docs/CURRENT_STATE.md quotes this constant by name rather than
+ * hand-counting the write set).
  */
+export const AUTO_APPLIED_KINDS: readonly ProposedChangeKind[] = [
+  "panel",
+  "chart",
+  "watchlist",
+] as const;
+
 export function autoApplies(kind: ProposedChangeKind): boolean {
-  return kind === "panel" || kind === "chart" || kind === "watchlist";
+  return (AUTO_APPLIED_KINDS as readonly ProposedChangeKind[]).includes(kind);
 }
 
 /** `undone`: an applied data write the user reverted from the review (session Undo). */
