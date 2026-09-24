@@ -11,9 +11,10 @@ import { create } from "zustand";
  * demo data) so a fresh install reads as a clean empty state.
  *
  * Holdings live here (frontend) and persist in the workspace blob
- * (`src/lib/workspace.ts`, the same seam the watchlist uses), NOT the sidecar
- * SQLite — so they survive a relaunch and need no network round-trip. P&L is
- * computed by joining each holding to a live quote in the panel.
+ * (`src/lib/workspace.ts`, the same seam the watchlist uses) — the blob owns
+ * holdings, for the panel and the agent alike. The sidecar positions ledger is
+ * only the read-once legacy-import source ({@link seedDefaultPortfolio}). P&L
+ * is computed by joining each holding to a live quote in the panel.
  */
 
 export type AssetClass = "equity" | "crypto";
@@ -64,7 +65,10 @@ function makeEmptyPortfolio(name: string = DEFAULT_PORTFOLIO_NAME, id?: string):
   return { id: id ?? genId("pf"), name: name.trim() || DEFAULT_PORTFOLIO_NAME, holdings: [] };
 }
 
-/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop it. */
+/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
+ *  it. The same rules as the panel form hold for every caller (restore, the
+ *  agent, the form): a positive finite quantity and a non-negative finite cost
+ *  basis — garbage is dropped, never coerced to a plausible 0. */
 function normalizeHolding(raw: unknown): Holding | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -76,12 +80,17 @@ function normalizeHolding(raw: unknown): Holding | null {
   }
   const quantity = Number(h.quantity);
   const costBasis = Number(h.costBasis);
+  if (
+    !(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)
+  ) {
+    return null;
+  }
   const note = typeof h.note === "string" && h.note.trim() !== "" ? h.note.trim() : undefined;
   return {
     id: typeof h.id === "string" && h.id !== "" ? h.id : genId("h"),
     symbol,
-    quantity: Number.isFinite(quantity) ? quantity : 0,
-    costBasis: Number.isFinite(costBasis) ? costBasis : 0,
+    quantity,
+    costBasis,
     assetClass: h.assetClass === "crypto" ? "crypto" : "equity",
     note,
   };
@@ -98,10 +107,10 @@ interface PortfoliosState {
   deletePortfolio: (id: string) => void;
   /** Switch the active portfolio. */
   setActive: (id: string) => void;
-  /** Append a holding to a portfolio. */
-  addHolding: (portfolioId: string, input: HoldingInput) => void;
-  /** Patch an existing holding. */
-  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => void;
+  /** Append a holding to a portfolio; its new id, or null when the input is invalid. */
+  addHolding: (portfolioId: string, input: HoldingInput) => string | null;
+  /** Patch an existing holding; false when the input is invalid (nothing changes). */
+  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
   /** Remove a holding. */
   removeHolding: (portfolioId: string, holdingId: string) => void;
   /** Replace the whole set — used to restore a persisted blob (guards corruption). */
@@ -147,33 +156,33 @@ export const usePortfoliosStore = create<PortfoliosState>((set) => ({
   setActive: (id) =>
     set((state) => (state.portfolios.some((p) => p.id === id) ? { activeId: id } : state)),
 
-  addHolding: (portfolioId, input) =>
-    set((state) => {
-      const holding = normalizeHolding({ ...input, id: genId("h") });
-      if (!holding) {
-        return state;
-      }
-      return {
-        portfolios: state.portfolios.map((p) =>
-          p.id === portfolioId ? { ...p, holdings: [...p.holdings, holding] } : p,
-        ),
-      };
-    }),
+  addHolding: (portfolioId, input) => {
+    const holding = normalizeHolding({ ...input, id: genId("h") });
+    if (!holding) {
+      return null;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId ? { ...p, holdings: [...p.holdings, holding] } : p,
+      ),
+    }));
+    return holding.id;
+  },
 
-  updateHolding: (portfolioId, holdingId, input) =>
-    set((state) => {
-      const next = normalizeHolding({ ...input, id: holdingId });
-      if (!next) {
-        return state;
-      }
-      return {
-        portfolios: state.portfolios.map((p) =>
-          p.id === portfolioId
-            ? { ...p, holdings: p.holdings.map((h) => (h.id === holdingId ? next : h)) }
-            : p,
-        ),
-      };
-    }),
+  updateHolding: (portfolioId, holdingId, input) => {
+    const next = normalizeHolding({ ...input, id: holdingId });
+    if (!next) {
+      return false;
+    }
+    set((state) => ({
+      portfolios: state.portfolios.map((p) =>
+        p.id === portfolioId
+          ? { ...p, holdings: p.holdings.map((h) => (h.id === holdingId ? next : h)) }
+          : p,
+      ),
+    }));
+    return true;
+  },
 
   removeHolding: (portfolioId, holdingId) =>
     set((state) => ({
@@ -220,73 +229,4 @@ export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
     ],
     DEFAULT_PORTFOLIO_ID,
   );
-}
-
-// ---------------------------------------------------------------------------
-// Typed client for the host-action apply path (R10 §4 / E6).
-// Team FRONTEND-BRIEF's portfolio_add/update/delete_position apply cases import
-// from here. Holdings are stored locally (workspace blob) — no sidecar CRUD.
-// ---------------------------------------------------------------------------
-
-/**
- * Add a position to the active portfolio.
- *
- * Returns the genuine holding id of the appended position, or `null` when the
- * add was a no-op (e.g. empty/whitespace symbol rejected by normalizeHolding).
- * The host-action apply path MUST check for null and report an honest failure
- * rather than narrating a write that never landed (E3/E6 defect class).
- */
-export function addPosition(input: HoldingInput): string | null {
-  const { activeId, addHolding } = usePortfoliosStore.getState();
-  // Snapshot the holdings count before the mutation.
-  const before =
-    usePortfoliosStore.getState().portfolios.find((p) => p.id === activeId)?.holdings.length ?? 0;
-  addHolding(activeId, input);
-  // Re-read after mutation.
-  const after = usePortfoliosStore.getState().portfolios.find((p) => p.id === activeId);
-  if (!after || after.holdings.length <= before) {
-    // normalizeHolding rejected the input — nothing was appended.
-    return null;
-  }
-  // The last holding is the one just appended (store appends to the end).
-  return after.holdings[after.holdings.length - 1]!.id;
-}
-
-/**
- * Update an existing holding in the active portfolio by holding id.
- *
- * The caller MUST supply the full HoldingInput (symbol, quantity, costBasis,
- * assetClass). Missing fields are NOT merged over the existing holding —
- * normalizeHolding coerces missing numerics to 0. Merge from existing state
- * before calling if a partial update is needed. Returns true when the holding
- * was found and updated, false when not found or normalizeHolding rejected the
- * input (e.g. empty symbol). A false return means no state change occurred.
- */
-export function updatePosition(holdingId: string, input: HoldingInput): boolean {
-  const store = usePortfoliosStore.getState();
-  const portfolio = store.portfolios.find((p) => p.id === store.activeId);
-  if (!portfolio) return false;
-  const exists = portfolio.holdings.some((h) => h.id === holdingId);
-  if (!exists) return false;
-  // Gate on the SAME normalizer the store uses (we share its module): it
-  // returns null iff the input is rejected (empty/whitespace symbol). The
-  // re-read trick was fabricated-success — a rejected update no-ops, so the
-  // UNCHANGED original still exists and `!!updated` reads true (E3/E6). Reject
-  // up front so an invalid update reports false honestly.
-  if (normalizeHolding({ ...input, id: holdingId }) === null) return false;
-  store.updateHolding(store.activeId, holdingId, input);
-  return true;
-}
-
-/** Remove a holding from the active portfolio by holding id. */
-export function deletePosition(holdingId: string): void {
-  const store = usePortfoliosStore.getState();
-  store.removeHolding(store.activeId, holdingId);
-}
-
-/** No-op refresh — holdings are local-state; the panel subscribes reactively.
- *  Exported to satisfy the host-action apply path's expected typed surface. */
-export function refresh(): void {
-  // Local-state portfolio — React subscribers update synchronously on any store
-  // mutation. No async fetch needed.
 }

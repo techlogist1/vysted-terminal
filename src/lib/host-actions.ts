@@ -7,8 +7,9 @@
  * `portfolio_add_position`). The agent emits them as `tool_use` events; instead
  * of applying immediately, the chat surface stages each as a `ProposedChange`
  * (see `store/proposed-changes`), and these helpers do the work:
- *   - `describeHostAction` — read the live stores to build the old→new diff.
- *   - `applyHostAction`     — apply the mutation on accept.
+ *   - `parseHostAction` — parse the args ONCE into a bound {@link HostIntent}.
+ *   - `describeIntent`  — read the live stores to build the old→new diff.
+ *   - `applyIntent`     — apply exactly that intent on accept.
  */
 
 import {
@@ -38,7 +39,12 @@ import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useEquityCommandStore } from "@/store/equity-command";
-import { usePortfoliosStore, type AssetClass, type Holding } from "@/store/portfolios";
+import {
+  usePortfoliosStore,
+  type AssetClass,
+  type Holding,
+  type Portfolio,
+} from "@/store/portfolios";
 import { useScreenerStore } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -471,11 +477,6 @@ function ensureChartOpen(): void {
   }
 }
 
-function num(input: Record<string, unknown>, key: string): number {
-  const v = input[key];
-  return typeof v === "number" ? v : Number(v ?? 0);
-}
-
 /** Split set_chart_indicators keys into the ones the chart's indicator catalog
  *  knows (the keys the sidecar computes) and the unknown ones, which are dropped
  *  and reported. */
@@ -576,28 +577,88 @@ function activePortfolio() {
   return s.portfolios.find((p) => p.id === s.activeId) ?? s.portfolios[0];
 }
 
+/** A portfolio by id (the one a proposal bound at enqueue). */
+function portfolioById(id: string) {
+  return usePortfoliosStore.getState().portfolios.find((p) => p.id === id);
+}
+
 /**
- * Resolve the holding a portfolio update/delete targets: an exact holding-id
- * match first (the agent echoes the snapshot's `id` back as `position_id`),
- * else the first same-symbol holding (a sidecar-numbered id never matches a
- * frontend holding id, but the action always names the symbol). Null when
- * nothing matches — an honest failure, never a guessed mutation.
+ * Resolve the holding a portfolio update/delete targets in `portfolio`: an
+ * exact holding-id match first (the agent echoes the snapshot's `id` back as
+ * `position_id`), else the ONE same-symbol holding. Null with the reason when
+ * nothing matches, or when the symbol has several lots and no id picks one —
+ * the refusal names each lot so the model can retry with its id. Never a
+ * guessed mutation.
  */
-function resolveHolding(input: Record<string, unknown>): Holding | null {
-  const portfolio = activePortfolio();
-  if (!portfolio) {
-    return null;
-  }
+function resolveHolding(
+  portfolio: Portfolio | undefined,
+  input: Record<string, unknown>,
+): { target: Holding | null; problem: string } {
   const id = input.position_id != null ? String(input.position_id) : "";
-  const byId = id ? portfolio.holdings.find((h) => h.id === id) : undefined;
-  if (byId) {
-    return byId;
-  }
   const symbol = str(input, "symbol");
-  if (!symbol) {
-    return null;
+  const byId = id ? portfolio?.holdings.find((h) => h.id === id) : undefined;
+  if (byId) {
+    return { target: byId, problem: "" };
   }
-  return portfolio.holdings.find((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? null;
+  const lots = symbol
+    ? (portfolio?.holdings.filter((h) => baseSymbol(h.symbol) === baseSymbol(symbol)) ?? [])
+    : [];
+  if (lots.length === 1) {
+    return { target: lots[0], problem: "" };
+  }
+  if (lots.length > 1) {
+    const choices = lots.map((h) => `${h.id} (${lotText(h)})`).join(", ");
+    return {
+      target: null,
+      problem: `${symbol} has ${lots.length} lots; name one by position_id: ${choices}`,
+    };
+  }
+  return {
+    target: null,
+    problem: `${symbol || id || "position"} is not in the active portfolio`,
+  };
+}
+
+/** " (lot 2 of 3)" when the holding's symbol has several lots, else "". */
+function lotOrdinal(portfolioId: string, holding: Holding): string {
+  const lots = (portfolioById(portfolioId)?.holdings ?? []).filter(
+    (h) => baseSymbol(h.symbol) === baseSymbol(holding.symbol),
+  );
+  const at = lots.findIndex((h) => h.id === holding.id);
+  return lots.length > 1 && at >= 0 ? ` (lot ${at + 1} of ${lots.length})` : "";
+}
+
+/** The holding fields an agent portfolio write carries, merged over the
+ *  targeted holding for an update. An absent or non-finite cost basis is null
+ *  (an update keeps the holding's own cost) — never a fabricated 0. */
+function holdingFields(input: Record<string, unknown>, fallback?: Holding | null): HoldingDraft {
+  const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
+  const quantity =
+    typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? Number.NaN);
+  const costBasis = costBasisOf(input) ?? fallback?.costBasis ?? null;
+  const assetClass: AssetClass =
+    (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
+  const note = str(input, "note") || fallback?.note;
+  return { symbol, quantity, costBasis, assetClass, note };
+}
+
+/** Why a holding draft cannot be written (the panel form's rules), or "". */
+function holdingProblem(h: HoldingDraft): string {
+  if (!h.symbol) {
+    return "no symbol given";
+  }
+  if (!(h.quantity > 0)) {
+    return "quantity must be greater than 0";
+  }
+  if (h.costBasis === null) {
+    return "no price given";
+  }
+  return h.costBasis < 0 ? "cost basis cannot be negative" : "";
+}
+
+/** "×5 @ ₹2,500" — one holding's size and price for diff copy. */
+function lotText(h: { quantity: number; costBasis: number | null }): string {
+  return `×${h.quantity}${h.costBasis === null ? "" : ` @ ${formatPrice(h.costBasis)}`}`;
 }
 
 /** The note-scope key: "" = the General bucket, else an uppercased ticker. The
@@ -632,77 +693,326 @@ function noteScopeLabel(scope: string): string {
   return scope === "" ? "General" : scope;
 }
 
+/** A holding an agent portfolio write proposes (cost may be missing). */
+interface HoldingDraft {
+  symbol: string;
+  quantity: number;
+  costBasis: number | null;
+  assetClass: AssetClass;
+  note?: string;
+}
+
+/** A resolved dockview panel target. */
+type PanelTarget = { id: string; component: string };
+
+/** A screener recipe from the agent's args: flat criteria and/or a nested group. */
+interface ScreenRecipe {
+  criteria: ScreenerCriterion[];
+  group: CriterionGroup | null;
+  universe?: ScreenerUniverseId;
+  formula: string;
+}
+
 /**
- * Describe a host-action mutation as a reviewable old→new diff. Reads the live
- * stores so the "before" reflects the real current cockpit state.
+ * A host action parsed ONCE (at enqueue) from the agent's loose JSON. The
+ * review diff ({@link describeIntent}) and the apply ({@link applyIntent}) both
+ * read this one value, so the diff promises exactly what apply does; targets
+ * (panel, portfolio + holding, layout name) are bound here and never
+ * re-resolved against whatever is active at accept time.
  */
-export function describeHostAction(
-  name: string,
-  input: Record<string, unknown>,
-): { kind: ProposedChangeKind; title: string; before: string; after: string } {
+export type HostIntent =
+  | { name: "set_chart_symbol"; symbol: string; timeframe: string }
+  | { name: "set_chart_indicators"; symbol: string; known: string[]; dropped: string[] }
+  | {
+      name: "open_panel";
+      panel: string;
+      target: PanelTarget | null;
+      symbolTarget: "equity" | "chart" | null;
+      symbol: string;
+      runId: string;
+    }
+  | { name: "close_panel" | "focus_panel"; panel: string; target: PanelTarget | null }
+  | {
+      name: "arrange_layout";
+      pattern: string;
+      panel: string;
+      target: PanelTarget | null;
+      customPanels: CustomPanelSpec[];
+      symbol: string;
+      symbols: string[];
+    }
+  | { name: "open_company_overview"; symbol: string; highlight: string }
+  | {
+      name: "publish_brief";
+      input: Record<string, unknown>;
+      mode: string;
+      sourceCount: number;
+      webOff: boolean;
+    }
+  | { name: "add_to_watchlist" | "remove_from_watchlist"; symbol: string; assetClass: AssetClass }
+  | { name: "write_screener_filters"; recipe: ScreenRecipe; count: number; run: boolean }
+  | { name: "save_screen"; screenName: string; recipe: ScreenRecipe; count: number }
+  | { name: "portfolio_add_position"; portfolioId: string; holding: HoldingDraft; problem: string }
+  | {
+      name: "portfolio_update_position";
+      portfolioId: string;
+      label: string;
+      target: Holding | null;
+      holding: HoldingDraft;
+      problem: string;
+    }
+  | {
+      name: "portfolio_delete_position";
+      portfolioId: string;
+      label: string;
+      target: Holding | null;
+      problem: string;
+    }
+  | { name: "write_note"; scope: string; text: string; append: boolean }
+  | { name: "save_layout"; layoutName: string; updatesActive: boolean }
+  | { name: "set_region"; region: Region | null; raw: string }
+  | { name: "unknown"; raw: string };
+
+/** How an apply resolved: a truthful label, or null with why it did not land. */
+export interface ApplyResult {
+  label: string | null;
+  reason?: string;
+}
+
+const done = (label: string): ApplyResult => ({ label });
+const fail = (reason?: string): ApplyResult => ({ label: null, reason });
+
+/** Parse a screener recipe (flat criteria + optional nested group) from args. */
+function parseScreenRecipe(input: Record<string, unknown>): {
+  recipe: ScreenRecipe;
+  count: number;
+} {
+  const criteria = parseScreenerCriteria(input);
+  const group = parseScreenerGroup(input.group);
+  const universe =
+    typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
+      ? (input.universe as ScreenerUniverseId)
+      : undefined;
+  // When the agent gives only a nested group, mirror its leaves into the flat
+  // `criteria` too so older readers + the match-index column resolve.
+  const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
+  return {
+    recipe: { criteria: flat, group, universe, formula: str(input, "formula").trim() },
+    count: group ? countLeaves(group) : criteria.length,
+  };
+}
+
+/**
+ * Parse a host action's loose JSON args once into a {@link HostIntent}. Reads
+ * the live stores only to BIND targets (the active portfolio and the holding it
+ * names, the layout a nameless save updates); everything else is pure.
+ */
+export function parseHostAction(name: string, input: Record<string, unknown>): HostIntent {
   const symbol = str(input, "symbol");
   switch (name) {
+    case "set_chart_symbol":
+      return { name, symbol, timeframe: str(input, "timeframe") };
+    case "set_chart_indicators":
+      return { name, symbol, ...splitIndicatorKeys(input) };
+    case "open_panel": {
+      const panel = str(input, "panel");
+      const symbolTarget = symbolAwarePanelTarget(panel);
+      return {
+        name,
+        panel,
+        target: resolvePanelToken(panel) ?? null,
+        symbolTarget,
+        // A stray `symbol` on a panel with no symbol input is ignored.
+        symbol: symbolTarget ? symbol : "",
+        runId: backtestRunTarget(input),
+      };
+    }
+    case "close_panel":
+    case "focus_panel": {
+      const panel = str(input, "panel");
+      return { name, panel, target: resolvePanelToken(panel) ?? null };
+    }
+    case "arrange_layout": {
+      const panel = str(input, "panel");
+      return {
+        name,
+        pattern: str(input, "pattern") || "default",
+        panel,
+        target: resolvePanelToken(panel) ?? null,
+        customPanels: parseCustomPanels(input),
+        symbol,
+        symbols: strArray(input, "symbols"),
+      };
+    }
+    case "open_company_overview":
+      return { name, symbol, highlight: str(input, "highlight") };
+    case "publish_brief": {
+      const sources = Array.isArray(input.sources) ? input.sources : [];
+      const execution = executionFromWire(input.execution);
+      const depth = execution
+        ? depthFromExecution(execution)
+        : normalizeBriefDepth(str(input, "depth"), str(input, "mode"));
+      return {
+        name,
+        input,
+        mode: normalizeBriefMode(depth === "quick" ? "fast" : "deep"),
+        sourceCount: sources.length,
+        // structured-data-only is honest ONLY with zero cited sources: a sourced
+        // brief is never tagged structured-only even if the model omitted/zeroed
+        // the web flag (WS3 — no contradictory "N sources · structured-data-only").
+        webOff: input.web_available === false && sources.length === 0,
+      };
+    }
+    case "add_to_watchlist":
+    case "remove_from_watchlist":
+      return {
+        name,
+        symbol: symbol.trim().toUpperCase(),
+        assetClass: input.asset_class === "crypto" ? "crypto" : "equity",
+      };
+    case "write_screener_filters":
+      return { name, ...parseScreenRecipe(input), run: input.run === true };
+    case "save_screen":
+      return { name, screenName: str(input, "name").trim(), ...parseScreenRecipe(input) };
+    case "portfolio_add_position": {
+      const holding = holdingFields(input);
+      return {
+        name,
+        portfolioId: activePortfolio()?.id ?? "",
+        holding,
+        problem: holdingProblem(holding),
+      };
+    }
+    case "portfolio_update_position":
+    case "portfolio_delete_position": {
+      const portfolio = activePortfolio();
+      const { target, problem } = resolveHolding(portfolio, input);
+      const portfolioId = portfolio?.id ?? "";
+      const label = target?.symbol || symbol || "position";
+      if (name === "portfolio_delete_position") {
+        return { name, portfolioId, label, target, problem };
+      }
+      const holding = holdingFields(input, target);
+      return {
+        name,
+        portfolioId,
+        label,
+        target,
+        holding,
+        problem: problem || holdingProblem(holding),
+      };
+    }
+    case "write_note":
+      return {
+        name,
+        scope: noteScope(input),
+        text: str(input, "text"),
+        append: noteMode(input) === "append",
+      };
+    case "save_layout": {
+      const layoutName = saveLayoutName(input);
+      return {
+        name,
+        layoutName,
+        updatesActive: layoutName === useWorkspaceStore.getState().name,
+      };
+    }
+    case "set_region": {
+      const raw = str(input, "region").trim().toUpperCase();
+      return { name, raw, region: isRegion(raw) ? (raw as Region) : null };
+    }
+    default:
+      return { name: "unknown", raw: name };
+  }
+}
+
+const CANT_APPLY = "can't apply";
+
+/** "1 criterion" / "3 criteria". */
+function criteriaText(count: number): string {
+  return `${count} criteri${count === 1 ? "on" : "a"}`;
+}
+
+/**
+ * Describe a parsed host action as a reviewable old→new diff. Reads the live
+ * stores so the "before" reflects the real current cockpit state; the "after"
+ * is exactly what {@link applyIntent} will do with the same intent.
+ */
+export function describeIntent(intent: HostIntent): {
+  kind: ProposedChangeKind;
+  title: string;
+  before: string;
+  after: string;
+} {
+  switch (intent.name) {
     case "set_chart_symbol": {
       const current = useChartCommandStore.getState().activeSymbol ?? "—";
-      const tf = str(input, "timeframe");
       return {
         kind: "chart",
-        title: `Load ${symbol || "symbol"} into the chart`,
+        title: `Load ${intent.symbol || "symbol"} into the chart`,
         before: `Chart symbol: ${current}`,
-        after: `Chart symbol: ${symbol}${tf ? ` · ${tf}` : ""}`,
+        after: intent.symbol
+          ? `Chart symbol: ${intent.symbol}${intent.timeframe ? ` · ${intent.timeframe}` : ""}`
+          : `Chart symbol: no symbol given — ${CANT_APPLY}`,
       };
     }
     case "set_chart_indicators": {
-      const { known, dropped } = splitIndicatorKeys(input);
       const current = useChartCommandStore.getState().activeIndicators;
+      const { known, dropped } = intent;
       return {
         kind: "chart",
-        title: `Set chart indicators${symbol ? ` on ${symbol}` : ""}`,
+        title: `Set chart indicators${intent.symbol ? ` on ${intent.symbol}` : ""}`,
         before: `Indicators: ${current.length ? current.join(", ") : "none"}`,
-        after: `Indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
+        after:
+          known.length === 0 && dropped.length > 0
+            ? `Indicators: unchanged — ${CANT_APPLY}${droppedNote(dropped)}`
+            : `Indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
       };
     }
     case "open_panel": {
-      const panel = str(input, "panel");
-      // Render the symbol only when the target panel actually consumes one —
-      // the diff must promise exactly what the apply will do.
-      const sym = symbolAwarePanelTarget(panel) ? symbol : "";
-      const runId = backtestRunTarget(input);
-      const detail = sym ? ` — ${sym}` : runId ? ` — run ${runId}` : "";
+      const { panel, target, symbol, runId } = intent;
+      const detail = symbol ? ` — ${symbol}` : runId ? ` — run ${runId}` : "";
+      const isOpen = target !== null && findOpenPanel(target) !== null;
       return {
         kind: "panel",
         title: `Open ${panelLabel(panel)}${detail}`,
-        before: `${panelLabel(panel)} panel: not open`,
-        after: `${panelLabel(panel)} panel: open${detail ? `${detail} loaded` : ""}`,
+        before: `${panelLabel(panel)} panel: ${isOpen ? "open" : "not open"}`,
+        after: target
+          ? `${panelLabel(panel)} panel: open${detail ? `${detail} loaded` : ""}`
+          : `${panelLabel(panel)}: unknown panel — ${CANT_APPLY}`,
       };
     }
     case "close_panel": {
-      const panel = str(input, "panel");
-      const isOpen = useWorkspaceStore.getState().dockviewApi?.getPanel(panel) != null;
+      const { panel, target } = intent;
+      const isOpen = target !== null && findOpenPanel(target) !== null;
       return {
         kind: "panel",
         title: `Close the ${panelLabel(panel)} panel`,
         before: `${panelLabel(panel)} panel: ${isOpen ? "open" : "not open"}`,
-        after: `${panelLabel(panel)} panel: closed`,
+        after: target
+          ? `${panelLabel(panel)} panel: ${isOpen ? "closed" : "already closed"}`
+          : `${panelLabel(panel)}: unknown panel — ${CANT_APPLY}`,
       };
     }
     case "focus_panel": {
-      const panel = str(input, "panel");
+      const { panel, target } = intent;
       return {
         kind: "panel",
         title: `Focus the ${panelLabel(panel)} panel`,
         before: `Foreground: the current panel`,
-        after: `Foreground: ${panelLabel(panel)}`,
+        after: target
+          ? `Foreground: ${panelLabel(panel)}`
+          : `${panelLabel(panel)}: unknown panel — ${CANT_APPLY}`,
       };
     }
     case "arrange_layout": {
-      const pattern = str(input, "pattern") || "default";
-      const panel = str(input, "panel");
+      const { pattern, panel, customPanels, symbol, symbols } = intent;
+      const before = "Layout: the current cockpit";
       if (pattern === "auto") {
         return {
           kind: "panel",
           title: "Arrange your windows around the content",
-          before: "Layout: the current cockpit",
+          before,
           after: "Layout: content-aware (dominant reading panel, wide chart, side rail)",
         };
       }
@@ -710,177 +1020,187 @@ export function describeHostAction(
         return {
           kind: "panel",
           title: `Focus on ${panel ? panelLabel(panel) : "one panel"}`,
-          before: "Layout: the current cockpit",
-          after: `Layout: ${panel ? panelLabel(panel) : "a single panel"} maximised`,
+          before,
+          after: intent.target
+            ? `Layout: ${panelLabel(panel)} maximised`
+            : `Layout: unchanged — no panel "${panel}" to maximise`,
         };
       }
-      const customPanels = parseCustomPanels(input);
       if (pattern === "custom" || customPanels.length > 0) {
         const names = customPanels.map((p) => p.panel).join(" + ");
         return {
           kind: "panel",
           title: names ? `Arrange ${names}` : "Arrange your panels",
-          before: "Layout: the current cockpit",
+          before,
           after: names ? `Layout: ${names}` : "Layout: a custom arrangement",
         };
       }
       if (LAYOUT_TEMPLATES.has(pattern)) {
         const label =
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
-        const sym = str(input, "symbol");
-        const syms = strArray(input, "symbols");
         const scope =
-          pattern === "compare" && syms.length >= 2
-            ? ` (${syms.slice(0, 2).join(" vs ")})`
-            : sym
-              ? ` · ${sym}`
-              : syms[0]
-                ? ` · ${syms[0]}`
+          pattern === "compare" && symbols.length >= 2
+            ? ` (${symbols.slice(0, 2).join(" vs ")})`
+            : symbol
+              ? ` · ${symbol}`
+              : symbols[0]
+                ? ` · ${symbols[0]}`
                 : "";
         return {
           kind: "panel",
           title: `Arrange the ${label} layout`,
-          before: "Layout: the current cockpit",
+          before,
           after: `Layout: ${label}${scope}`,
         };
       }
       return {
         kind: "panel",
         title: "Reset to the default layout",
-        before: "Layout: the current cockpit",
+        before,
         after: "Layout: the default cockpit (clears layout customisations)",
       };
     }
     case "open_company_overview": {
-      const sym = str(input, "symbol");
-      const metric = str(input, "highlight");
+      const sym = intent.symbol || "the company";
+      const metric = intent.highlight.replace(/_/g, " ");
       return {
         kind: "panel",
-        title: metric
-          ? `Show ${sym || "the company"}'s ${metric.replace(/_/g, " ")} in the overview`
-          : `Open ${sym || "the company"}'s overview`,
+        title: metric ? `Show ${sym}'s ${metric} in the overview` : `Open ${sym}'s overview`,
         before: "Equity Overview: previous company (if any)",
-        after: `Equity Overview: ${sym || "the company"}${metric ? ` · ${metric.replace(/_/g, " ")} spotlighted` : ""}`,
+        after: intent.symbol
+          ? `Equity Overview: ${sym}${metric ? ` · ${metric} spotlighted` : ""}`
+          : `Equity Overview: no symbol given — ${CANT_APPLY}`,
       };
     }
     case "publish_brief": {
-      const sources = Array.isArray(input.sources) ? input.sources : [];
-      const mode = normalizeBriefMode(str(input, "depth") || str(input, "mode"));
-      // structured-data-only is honest ONLY with zero cited sources: a sourced
-      // brief is never tagged structured-only even if the model omitted/zeroed the
-      // web flag (WS3 — no contradictory "N sources · structured-data-only").
-      const webOff = input.web_available === false && sources.length === 0;
+      const symbol = str(intent.input, "symbol");
+      const n = intent.sourceCount;
       return {
         kind: "panel",
-        title: `Publish the ${mode} research brief${symbol ? ` on ${symbol}` : ""}`,
+        title: `Publish the ${intent.mode} research brief${symbol ? ` on ${symbol}` : ""}`,
         before: "Brief panel: previous brief (if any)",
-        after: `Brief: ${sources.length} cited source${sources.length === 1 ? "" : "s"}${webOff ? " · structured-data-only" : ""}`,
+        after: `Brief: ${n} cited source${n === 1 ? "" : "s"}${intent.webOff ? " · structured-data-only" : ""}`,
       };
     }
-    case "add_to_watchlist": {
+    case "add_to_watchlist":
+    case "remove_from_watchlist": {
+      const { symbol } = intent;
       const entries = useSymbolsStore.getState().entries;
-      const already = entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
+      const tracked = entries.some((e) => e.symbol.toUpperCase() === symbol);
+      const before = `Watchlist: ${entries.length} symbol${entries.length === 1 ? "" : "s"}`;
+      if (intent.name === "add_to_watchlist") {
+        return {
+          kind: "watchlist",
+          title: `Add ${symbol} to your watchlist`,
+          before,
+          after: !symbol
+            ? `Watchlist: no symbol given — ${CANT_APPLY}`
+            : tracked
+              ? `Watchlist: ${symbol} already tracked`
+              : `Watchlist: +${symbol} (${entries.length + 1} total)`,
+        };
+      }
       return {
         kind: "watchlist",
-        title: `Add ${symbol} to your watchlist`,
-        before: `Watchlist: ${entries.length} symbol${entries.length === 1 ? "" : "s"}`,
-        after: already
-          ? `Watchlist: ${symbol} already tracked`
-          : `Watchlist: +${symbol} (${entries.length + 1} total)`,
+        title: `Remove ${symbol} from your watchlist`,
+        before,
+        after: !symbol
+          ? `Watchlist: no symbol given — ${CANT_APPLY}`
+          : tracked
+            ? `Watchlist: −${symbol} (${entries.length - 1} total)`
+            : `Watchlist: ${symbol} is not tracked`,
       };
     }
     case "write_screener_filters": {
+      const { recipe, count, run } = intent;
       const s = useScreenerStore.getState();
       const currentCount = s.advanced && s.group ? countLeaves(s.group) : s.criteria.length;
-      const group = parseScreenerGroup(input.group);
-      const criteria = parseScreenerCriteria(input);
-      const proposedCount = group ? countLeaves(group) : criteria.length;
-      const nested =
-        group && group.criteria.some((c) => "combinator" in c) ? " (nested AND/OR)" : "";
-      const universe = typeof input.universe === "string" ? input.universe : "";
-      const formula = str(input, "formula").trim();
-      const runs = input.run === true;
+      const nested = recipe.group?.criteria.some((c) => "combinator" in c)
+        ? " (nested AND/OR)"
+        : "";
+      const writes = count > 0 || recipe.formula !== "";
       return {
         kind: "panel",
         title: "Write screener filters",
-        before: `Screener: ${currentCount} criteri${currentCount === 1 ? "on" : "a"}`,
-        after: `Screener: ${proposedCount} criteri${proposedCount === 1 ? "on" : "a"}${nested}${
-          universe && _SCREENER_UNIVERSES.has(universe) ? ` · ${universe}` : ""
-        }${formula ? " · formula" : ""} — ${runs ? "runs on apply" : "review then Run"}`,
+        before: `Screener: ${criteriaText(currentCount)}`,
+        after: writes
+          ? `Screener: ${criteriaText(count)}${nested}${recipe.universe ? ` · ${recipe.universe}` : ""}${
+              recipe.formula ? " · formula" : ""
+            } — ${run ? "runs on apply" : "review then Run"}`
+          : `Screener: no well-formed criteria — ${CANT_APPLY}`,
+      };
+    }
+    case "save_screen": {
+      const { screenName, recipe, count } = intent;
+      const replaces = useScreenerStore.getState().savedScreens.some((s) => s.name === screenName);
+      const what = count
+        ? criteriaText(count)
+        : recipe.formula
+          ? "a formula"
+          : "the current filters";
+      return {
+        kind: "data-write",
+        title: `Save the screen as "${screenName || "?"}"`,
+        before: replaces ? `Saved screens: "${screenName}" exists` : "Saved screens: unchanged",
+        after: !screenName
+          ? `Saved screens: no name given — ${CANT_APPLY}`
+          : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})`,
       };
     }
     case "portfolio_add_position": {
-      const qty = num(input, "quantity");
-      const cost = costBasisOf(input);
-      const price = cost === null ? "no price given" : `@ ${formatPrice(cost)}`;
-      const count = activePortfolio()?.holdings.length ?? 0;
+      const { holding, problem } = intent;
+      const count = portfolioById(intent.portfolioId)?.holdings.length ?? 0;
+      const price =
+        holding.costBasis === null ? "no price given" : `@ ${formatPrice(holding.costBasis)}`;
+      const qty = Number.isNaN(holding.quantity) ? "" : holding.quantity;
       return {
         kind: "data-write",
-        title: (cost === null
-          ? `Add ${qty || ""} ${symbol} to the portfolio — no price given`
-          : `Add ${qty || ""} ${symbol} ${price} to the portfolio`
+        title: (holding.costBasis === null
+          ? `Add ${qty} ${holding.symbol} to the portfolio — no price given`
+          : `Add ${qty} ${holding.symbol} ${price} to the portfolio`
         )
           .replace(/\s+/g, " ")
           .trim(),
         before: `Portfolio: ${count} position${count === 1 ? "" : "s"}`,
-        after: `Portfolio: +${symbol} ×${qty} ${price} (${count + 1} total)`,
+        after: problem
+          ? `Portfolio: unchanged — ${problem}`
+          : `Portfolio: +${holding.symbol} ×${holding.quantity} ${price} (${count + 1} total)`,
       };
     }
-    case "portfolio_update_position": {
-      const target = resolveHolding(input);
-      const qty = num(input, "quantity");
-      const cost = num(input, "cost_basis");
-      const label = target?.symbol || symbol || "position";
-      return {
-        kind: "data-write",
-        title: `Update ${label} in the portfolio`,
-        before: target
-          ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
-          : `${label}: not found in the active portfolio`,
-        after: `${label}: ×${qty}${cost ? ` @ ${formatPrice(cost)}` : ""}`,
-      };
-    }
+    case "portfolio_update_position":
     case "portfolio_delete_position": {
-      const target = resolveHolding(input);
-      const label = target?.symbol || symbol || "position";
+      const { target, problem, label } = intent;
+      const update = intent.name === "portfolio_update_position";
       return {
         kind: "data-write",
-        title: `Remove ${label} from the portfolio`,
+        title: `${update ? "Update" : "Remove"} ${label} ${update ? "in" : "from"} the portfolio`,
         before: target
-          ? `${target.symbol}: ×${target.quantity} @ ${formatPrice(target.costBasis)}`
-          : `${label}: not found in the active portfolio`,
-        after: `${label}: removed`,
+          ? `${target.symbol}${lotOrdinal(intent.portfolioId, target)}: ${lotText(target)}`
+          : "Portfolio: unchanged",
+        after: problem
+          ? `${CANT_APPLY} — ${problem}`
+          : update
+            ? `${intent.holding.symbol}: ${lotText(intent.holding)}`
+            : `${label}: removed`,
       };
     }
     case "write_note": {
-      const scope = noteScope(input);
-      const text = str(input, "text");
-      const append = noteMode(input) === "append";
+      const { scope, text, append } = intent;
       const current = useNotesStore.getState().noteFor(scope);
+      const n = text.trim().length;
       return {
         kind: "data-write",
         title: `${append ? "Append to" : "Write"} the ${noteScopeLabel(scope)} note`,
         before: `${noteScopeLabel(scope)} note: ${current.trim() ? `${current.trim().length} chars` : "empty"}`,
-        after: append
-          ? `${noteScopeLabel(scope)} note: +${text.trim().length} chars appended`
-          : `${noteScopeLabel(scope)} note: replaced (${text.trim().length} chars)`,
-      };
-    }
-    case "remove_from_watchlist": {
-      const entries = useSymbolsStore.getState().entries;
-      const tracked = entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
-      return {
-        kind: "watchlist",
-        title: `Remove ${symbol} from your watchlist`,
-        before: `Watchlist: ${entries.length} symbol${entries.length === 1 ? "" : "s"}`,
-        after: tracked
-          ? `Watchlist: −${symbol} (${entries.length - 1} total)`
-          : `Watchlist: ${symbol} is not tracked`,
+        after: !n
+          ? `${noteScopeLabel(scope)} note: nothing to write — ${CANT_APPLY}`
+          : append
+            ? `${noteScopeLabel(scope)} note: +${n} chars appended`
+            : `${noteScopeLabel(scope)} note: replaced (${n} chars)`,
       };
     }
     case "save_layout": {
-      const layoutName = saveLayoutName(input);
-      const updatesActive = layoutName === useWorkspaceStore.getState().name;
+      const { layoutName, updatesActive } = intent;
       return {
         kind: "data-write",
         title: updatesActive
@@ -892,65 +1212,60 @@ export function describeHostAction(
           : `Saved workspaces: +"${layoutName}" (current cockpit)`,
       };
     }
-    case "save_screen": {
-      const screenName = str(input, "name").trim() || "Agent screen";
-      const leafCount = (() => {
-        const group = parseScreenerGroup(input.group);
-        if (group) {
-          return countLeaves(group);
-        }
-        const criteria = parseScreenerCriteria(input);
-        return criteria.length;
-      })();
-      return {
-        kind: "data-write",
-        title: `Save the screen as "${screenName}"`,
-        before: "Saved screens: unchanged",
-        after: `Saved screens: +"${screenName}"${leafCount ? ` (${leafCount} criteri${leafCount === 1 ? "on" : "a"})` : " (current filters)"}`,
-      };
-    }
     case "set_region": {
       const current = useSettingsStore.getState().region;
-      const next = str(input, "region").toUpperCase();
       return {
         kind: "settings",
-        title: `Set the region to ${next || "?"}`,
+        title: `Set the region to ${intent.region ?? (intent.raw || "?")}`,
         before: `Region: ${current}`,
-        after: `Region: ${next || current}`,
+        after: intent.region
+          ? `Region: ${intent.region}`
+          : `Region: "${intent.raw}" is not a region — ${CANT_APPLY}`,
       };
     }
-    default:
-      return { kind: "panel", title: name.replace(/_/g, " "), before: "—", after: "—" };
+    case "unknown":
+      return {
+        kind: "panel",
+        title: intent.raw.replace(/_/g, " "),
+        before: "—",
+        after: `Unknown action — ${CANT_APPLY}`,
+      };
   }
 }
 
+/** Describe a host action from its raw args (parses, then {@link describeIntent}). */
+export function describeHostAction(name: string, input: Record<string, unknown>) {
+  return describeIntent(parseHostAction(name, input));
+}
+
 /**
- * Apply a host-action mutation to the live stores. Returns a short
- * TRUTHFUL label describing what actually happened, or `null` if it could not
- * apply — the proposed-changes gate re-pends a null and surfaces the failure,
- * so chat/proposal narration never claims an action that did not land
- * (grounded narration, R8 seams deliverable 5). No branch may return a
- * success label without having done (or verified) the work: an unknown panel
- * id, a panel that failed to open, or incomplete arguments all return null.
+ * Apply a parsed host action to the live stores. Returns a short TRUTHFUL
+ * label describing what actually happened, or a null label (with the reason
+ * when there is one) if it could not apply — the proposed-changes gate
+ * re-pends it and surfaces the failure, so chat/proposal narration never
+ * claims an action that did not land (grounded narration, R8 seams
+ * deliverable 5). No branch may return a success label without having done (or
+ * verified) the work: an unknown panel id, a panel that failed to open, or
+ * incomplete arguments all fail.
  */
-export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
-  const symbol = str(input, "symbol");
-  switch (name) {
+export function applyIntent(intent: HostIntent): ApplyResult {
+  switch (intent.name) {
     case "set_chart_symbol":
-      if (symbol) {
-        // Command the chart DIRECTLY (always-consumed channel), not the opt-in
-        // sync bus — the BUG-6 fix. The shared helper opens a chart first if the
-        // cockpit is empty (the AUTO-mode "no panels open yet" failure).
-        loadSymbolIntoChart(symbol, str(input, "timeframe"));
-        return `Loaded ${symbol} into the chart`;
+      if (!intent.symbol) {
+        return fail("no symbol given");
       }
-      return null;
+      // Command the chart DIRECTLY (always-consumed channel), not the opt-in
+      // sync bus — the BUG-6 fix. The shared helper opens a chart first if the
+      // cockpit is empty (the AUTO-mode "no panels open yet" failure).
+      loadSymbolIntoChart(intent.symbol, intent.timeframe);
+      return done(`Loaded ${intent.symbol} into the chart`);
     case "set_chart_indicators": {
       // Only keys the chart knows reach the fetch: one unknown key made the
       // sidecar reject the whole request, so every indicator failed.
-      const { known, dropped } = splitIndicatorKeys(input);
+      const { known, dropped, symbol } = intent;
       if (known.length === 0 && dropped.length > 0) {
-        return null; // nothing applicable — never clear the chart over bad keys
+        // nothing applicable — never clear the chart over bad keys
+        return fail(`unknown indicators: ${dropped.join(", ")}`);
       }
       ensureChartOpen();
       const cc = useChartCommandStore.getState();
@@ -960,92 +1275,77 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         cc.loadSymbol(symbol);
       }
       cc.setIndicators(known);
-      return `Set indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`;
+      return done(
+        `Set indicators: ${known.length ? known.join(", ") : "none"}${droppedNote(dropped)}`,
+      );
     }
     case "open_panel": {
-      const panel = str(input, "panel");
-      if (!panel) {
-        return null;
-      }
-      // Resolve through the alias-tolerant token map (the same one arrange
+      const { panel, target, symbolTarget, symbol } = intent;
+      // Resolved through the alias-tolerant token map (the same one arrange
       // uses) so "screener" opens the registered "screener-panel" instead of
-      // silently no-opping — the id-drift class the screener fix documented.
-      // An UNRESOLVABLE token returns null: an honest "could not apply" beats
-      // a fake "Opened X" (grounded narration).
-      const resolved = resolvePanelToken(panel);
-      if (!resolved) {
-        return null;
+      // silently no-opping. An UNRESOLVABLE token fails: an honest "could not
+      // apply" beats a fake "Opened X" (grounded narration).
+      if (!target) {
+        return fail(`unknown panel "${panel}"`);
       }
-      // Symbol-aware open (the "opened equity-overview WITHOUT the requested
-      // symbol" fix): when the agent passes `symbol` for a panel that consumes
-      // one, route it through the existing always-consumed command channels —
-      // the equity-command store for the overview, the chart-command channel
-      // for the chart. Both helpers open the panel first so the command has a
-      // consumer; the stores RETAIN the last command, so a panel that mounts
-      // after the command fired still receives it.
-      const target = symbolAwarePanelTarget(panel);
-      if (symbol && target === "equity") {
+      // Symbol-aware open: a symbol for a panel that consumes one rides the
+      // always-consumed command channels (equity-command for the overview,
+      // chart-command for the chart). Both helpers open the panel first; the
+      // stores RETAIN the last command, so a panel that mounts later still gets it.
+      if (symbol && symbolTarget === "equity") {
         openCompanyOverview(symbol);
-        return `Opened ${panelLabel(panel)} — ${symbol}`;
+        return done(`Opened ${panelLabel(panel)} — ${symbol}`);
       }
-      if (symbol && target === "chart") {
+      if (symbol && symbolTarget === "chart") {
         loadSymbolIntoChart(symbol);
-        return `Opened ${panelLabel(panel)} — ${symbol}`;
+        return done(`Opened ${panelLabel(panel)} — ${symbol}`);
       }
       const ws = useWorkspaceStore.getState();
-      ws.openPanel(resolved.id);
+      ws.openPanel(target.id);
       // Verify the open actually landed when a live layout is on screen — a
       // disabled module (findPanel miss) used to no-op while this still
       // claimed "Opened". With no api yet (pre-mount) the claim is left
       // optimistic; a mounted cockpit is the only place proposals apply.
-      if (ws.dockviewApi && !findOpenPanel(resolved)) {
-        return null;
+      if (ws.dockviewApi && !findOpenPanel(target)) {
+        return fail(`the ${panelLabel(panel)} panel did not open`);
       }
-      return `Opened ${panelLabel(panel)}`;
+      return done(`Opened ${panelLabel(panel)}`);
     }
     case "close_panel": {
-      const panel = str(input, "panel");
-      if (!panel) {
-        return null;
-      }
-      const resolved = resolvePanelToken(panel);
-      if (!resolved) {
-        return null; // unknown panel id — never narrate a fake "Closed"
-      }
-      const target = findOpenPanel(resolved);
+      const { panel, target } = intent;
       if (!target) {
-        // Truthful idempotent no-op: the desired end state already holds.
-        return `${panelLabel(panel)} was already closed`;
+        return fail(`unknown panel "${panel}"`); // never narrate a fake "Closed"
       }
-      target.api.close();
-      return `Closed ${panelLabel(panel)}`;
+      const open = findOpenPanel(target);
+      if (!open) {
+        // Truthful idempotent no-op: the desired end state already holds.
+        return done(`${panelLabel(panel)} was already closed`);
+      }
+      open.api.close();
+      return done(`Closed ${panelLabel(panel)}`);
     }
     case "focus_panel": {
-      const panel = str(input, "panel");
-      if (!panel) {
-        return null;
+      const { panel, target } = intent;
+      if (!target) {
+        return fail(`unknown panel "${panel}"`);
       }
-      const resolved = resolvePanelToken(panel);
-      if (!resolved) {
-        return null; // unknown panel id — honest failure
-      }
-      const target = findOpenPanel(resolved);
-      if (target) {
-        target.api.setActive();
-        return `Focused ${panelLabel(panel)}`;
+      const open = findOpenPanel(target);
+      if (open) {
+        open.api.setActive();
+        return done(`Focused ${panelLabel(panel)}`);
       }
       // Not open yet — opening a singleton focuses it. Verify it landed so a
       // disabled module never narrates a focus that did not happen.
       const ws = useWorkspaceStore.getState();
-      ws.openPanel(resolved.id);
-      if (ws.dockviewApi && !findOpenPanel(resolved)) {
-        return null;
+      ws.openPanel(target.id);
+      if (ws.dockviewApi && !findOpenPanel(target)) {
+        return fail(`the ${panelLabel(panel)} panel did not open`);
       }
-      return `Opened and focused ${panelLabel(panel)}`;
+      return done(`Opened and focused ${panelLabel(panel)}`);
     }
     case "arrange_layout": {
       const ws = useWorkspaceStore.getState();
-      const pattern = str(input, "pattern") || "default";
+      const { pattern, customPanels, symbol, symbols } = intent;
       // CONTENT-AWARE (R9, gate 11): arrange the OPEN panels the way a person
       // would — the planner ranks live content (a published brief dominates,
       // the chart gets width, the watchlist parks in a rail). Deterministic;
@@ -1053,7 +1353,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       if (pattern === "auto") {
         const api = ws.dockviewApi;
         if (!api) {
-          return null;
+          return fail("the layout has not mounted");
         }
         const signals = {
           briefChars: useBriefStore.getState().brief?.markdown?.length ?? 0,
@@ -1062,94 +1362,94 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         };
         const result = applyContentAwareLayout(api, signals);
         if (result.count === 0) {
-          return null;
+          return fail("no panels are open");
         }
-        return result.count === 1
-          ? `Focused ${panelLabel(result.anchor ?? "")} — it's the only panel open`
-          : `Arranged ${result.count} windows around ${panelLabel(result.anchor ?? "")}`;
+        return done(
+          result.count === 1
+            ? `Focused ${panelLabel(result.anchor ?? "")} — it's the only panel open`
+            : `Arranged ${result.count} windows around ${panelLabel(result.anchor ?? "")}`,
+        );
       }
       if (pattern === "focus") {
-        const panel = str(input, "panel");
-        const target = panel ? ws.dockviewApi?.getPanel(panel) : null;
-        if (!target) {
-          return null;
+        const open = intent.target ? findOpenPanel(intent.target) : null;
+        if (!open) {
+          return fail(`no open panel "${intent.panel}" to maximise`);
         }
-        target.api.setActive();
-        target.api.maximize();
-        return `Focused on ${panelLabel(panel)}`;
+        open.api.setActive();
+        open.api.maximize();
+        return done(`Focused on ${panelLabel(intent.panel)}`);
       }
       // CUSTOM arrange (Track B): "put the chart here and news there". Triggered
       // by pattern="custom" OR a `panels` arg on any pattern. The host lays the
       // named panels out coherently (or honours explicit per-panel directions) —
       // the dockview engine already supports arbitrary placement.
-      const customPanels = parseCustomPanels(input);
       if (pattern === "custom" || customPanels.length > 0) {
         const api = ws.dockviewApi;
         if (!api) {
-          return null;
+          return fail("the layout has not mounted");
         }
-        const sym = str(input, "symbol");
-        applyCustomLayout(api, customPanels, { symbol: sym || undefined });
-        if (sym) {
-          useChartCommandStore.getState().loadSymbol(sym);
+        applyCustomLayout(api, customPanels, { symbol: symbol || undefined });
+        if (symbol) {
+          useChartCommandStore.getState().loadSymbol(symbol);
         }
         const names = customPanels.map((p) => p.panel).join(" + ");
-        return names ? `Arranged ${names}` : "Arranged your panels";
+        return done(names ? `Arranged ${names}` : "Arranged your panels");
       }
       if (LAYOUT_TEMPLATES.has(pattern)) {
         const api = ws.dockviewApi;
         if (!api) {
-          return null;
+          return fail("the layout has not mounted");
         }
-        const sym = str(input, "symbol");
-        const syms = strArray(input, "symbols");
         // Fit-aware (Track 4): on a narrow display a panel-heavy template is
         // downgraded to a layout that actually fits (research → chart + brief).
         const fit = fitLayoutTemplate(api, pattern as LayoutTemplate, {
-          symbol: sym || undefined,
-          symbols: syms.length ? syms : undefined,
+          symbol: symbol || undefined,
+          symbols: symbols.length ? symbols : undefined,
         });
         // The layout is symbol-agnostic — push symbols to the chart via the
         // chart-command channel (compare = symbol A loaded + symbol B overlaid).
         const cc = useChartCommandStore.getState();
-        if (pattern === "compare" && syms.length >= 2) {
-          cc.loadSymbol(syms[0]);
-          cc.setComparison(syms[1]);
-        } else if (sym) {
-          cc.loadSymbol(sym);
-        } else if (syms[0]) {
-          cc.loadSymbol(syms[0]);
+        if (pattern === "compare" && symbols.length >= 2) {
+          cc.loadSymbol(symbols[0]);
+          cc.setComparison(symbols[1]);
+        } else if (symbol) {
+          cc.loadSymbol(symbol);
+        } else if (symbols[0]) {
+          cc.loadSymbol(symbols[0]);
         }
         if (fit.downgraded) {
-          return fit.applied === "essentials-research"
-            ? "Arranged the essentials (chart + brief) to fit your screen — click any ticker to go deeper"
-            : "Arranged a single-focus layout to fit your screen";
+          return done(
+            fit.applied === "essentials-research"
+              ? "Arranged the essentials (chart + brief) to fit your screen — click any ticker to go deeper"
+              : "Arranged a single-focus layout to fit your screen",
+          );
         }
         const label =
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
-        return `Arranged the ${label} layout`;
+        return done(`Arranged the ${label} layout`);
       }
       ws.resetToDefaultLayout();
-      return "Reset to the default layout";
+      return done("Reset to the default layout");
     }
     case "open_company_overview": {
-      const sym = str(input, "symbol");
-      if (!sym) {
-        return null;
+      const { symbol, highlight } = intent;
+      if (!symbol) {
+        return fail("no symbol given");
       }
-      const metric = str(input, "highlight");
-      openCompanyOverview(sym, metric || undefined);
-      return metric
-        ? `Opened ${sym}'s overview — spotlighting ${metric.replace(/_/g, " ")}`
-        : `Opened ${sym}'s overview`;
+      openCompanyOverview(symbol, highlight || undefined);
+      return done(
+        highlight
+          ? `Opened ${symbol}'s overview — spotlighting ${highlight.replace(/_/g, " ")}`
+          : `Opened ${symbol}'s overview`,
+      );
     }
     case "publish_brief": {
-      const brief = briefFromInput(input);
+      const brief = briefFromInput(intent.input);
       // Allow a structured-only seed (the FAST auto-publish carries live metrics
       // before the model writes the prose) and a disambiguation-only publish
       // (the chooser renders instead of a body); reject only a truly empty brief.
       if (!brief.markdown.trim() && !brief.structured && !brief.disambiguation) {
-        return null;
+        return fail("the brief is empty");
       }
       // R9 (D33), R10-scoped: a SAME-RUN re-publish that STRICTLY SHRINKS the
       // brief is a downgrade — the deep engine's cited report must not be
@@ -1175,7 +1475,7 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
           (brief.sourceCount === 0 && prev.sourceCount > 0));
       if (sameRun && shrinks && !brief.disambiguation) {
         useWorkspaceStore.getState().openPanel("brief");
-        return "Kept the richer research brief already on screen";
+        return done("Kept the richer research brief already on screen");
       }
       // Open the brief panel so the output is on screen, then publish through
       // the lifecycle machine — a publish whose run_id mismatches the run in
@@ -1183,65 +1483,71 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
       useWorkspaceStore.getState().openPanel("brief");
       const result = useBriefStore.getState().publish(brief);
       if (result === "stale_run") {
-        return "Kept the run in flight — this publish belonged to a different run";
+        return done("Kept the run in flight — this publish belonged to a different run");
       }
       // Record the brief's stated figures into the research-space claims ledger
       // (R13 JARVIS 3a) — deterministic, no-op outside a research space — so a
       // later contradicting figure can be reconciled openly, never silently.
       recordBriefClaims(brief);
-      return `Published the ${brief.mode} research brief`;
+      return done(`Published the ${brief.mode} research brief`);
     }
-    case "add_to_watchlist":
-      if (symbol) {
-        const assetClass = input.asset_class === "crypto" ? "crypto" : "equity";
-        useSymbolsStore.getState().addSymbol(symbol, assetClass);
-        return `Added ${symbol} to your watchlist`;
+    case "add_to_watchlist": {
+      const { symbol } = intent;
+      if (!symbol) {
+        return fail("no symbol given");
       }
-      return null;
+      const symbols = useSymbolsStore.getState();
+      if (symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+        // Truthful idempotent no-op: the desired end state already holds.
+        return done(`${symbol} is already on your watchlist`);
+      }
+      symbols.addSymbol(symbol, intent.assetClass);
+      return done(`Added ${symbol} to your watchlist`);
+    }
+    case "remove_from_watchlist": {
+      const { symbol } = intent;
+      if (!symbol) {
+        return fail("no symbol given");
+      }
+      const symbols = useSymbolsStore.getState();
+      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+        // Truthful idempotent no-op: the desired end state already holds.
+        return done(`${symbol} was not on your watchlist`);
+      }
+      symbols.removeSymbol(symbol);
+      return done(`Removed ${symbol} from your watchlist`);
+    }
     case "write_screener_filters": {
-      const criteria = parseScreenerCriteria(input);
-      const group = parseScreenerGroup(input.group);
-      const formula = str(input, "formula").trim();
+      const { recipe, count, run } = intent;
       // Need at least one well-formed criterion (flat OR nested) or a formula.
-      if (criteria.length === 0 && !group && !formula) {
-        return null;
+      if (count === 0 && !recipe.formula) {
+        return fail("no well-formed screener criteria");
       }
-      const universe =
-        typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
-          ? (input.universe as ScreenerUniverseId)
-          : undefined;
-      // When the agent gives only a nested group, mirror its leaves into the
-      // flat `criteria` too so older readers + the match-index column resolve.
-      const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
-      const screener = useScreenerStore.getState();
-      // `formula`/`run` pass through to the store's applyFilters (R10 — Team
-      // FRONTEND-DATA extends the input type in the same wave; the cast keeps
-      // the two branches integrable without a cross-team type dependency).
-      screener.applyFilters({
-        criteria: flat,
-        group,
-        universe,
-        ...(formula ? { formula } : {}),
-        ...(input.run === true ? { run: true } : {}),
-      } as Parameters<typeof screener.applyFilters>[0]);
-      // Stage the panel so the proposed filters are on screen for the user to Run.
-      // The screener module REGISTERS id "screener-panel" — the bare "screener"
-      // id silently no-opped here (same drift class as the arrange map).
+      // A formula-less write keeps the user's own formula (applyFilters' rule).
+      useScreenerStore.getState().applyFilters({
+        criteria: recipe.criteria,
+        group: recipe.group,
+        universe: recipe.universe,
+        ...(recipe.formula ? { formula: recipe.formula } : {}),
+      });
+      if (run) {
+        void useScreenerStore.getState().runScreener();
+      }
+      // Stage the panel so the proposed filters are on screen (running, or for
+      // the user to Run). The screener module REGISTERS id "screener-panel" —
+      // the bare "screener" id silently no-opped (same drift class as arrange).
       useWorkspaceStore.getState().openPanel("screener-panel");
-      const count = group ? countLeaves(group) : criteria.length;
       const what = count
-        ? `${count} screener criteri${count === 1 ? "on" : "a"}${formula ? " + a formula" : ""}`
+        ? `${count} screener ${count === 1 ? "criterion" : "criteria"}${recipe.formula ? " + a formula" : ""}`
         : "a screener formula";
-      return `Wrote ${what} — ${input.run === true ? "running" : "review and Run"}`;
+      return done(`Wrote ${what} — ${run ? "running" : "review and Run"}`);
     }
     case "write_note": {
-      const scope = noteScope(input);
-      const text = str(input, "text");
+      const { scope, text, append } = intent;
       if (!text.trim()) {
-        return null;
+        return fail("the note text is empty");
       }
       const notes = useNotesStore.getState();
-      const append = noteMode(input) === "append";
       const current = notes.noteFor(scope);
       const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
       if (scope === "") {
@@ -1250,232 +1556,146 @@ export function applyHostAction(name: string, input: Record<string, unknown>): s
         notes.setSymbolNote(scope, next);
       }
       useWorkspaceStore.getState().openPanel("notes");
-      return `${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`;
-    }
-    case "remove_from_watchlist": {
-      if (!symbol) {
-        return null;
-      }
-      const symbols = useSymbolsStore.getState();
-      const tracked = symbols.entries.some((e) => e.symbol.toUpperCase() === symbol.toUpperCase());
-      if (!tracked) {
-        // Truthful idempotent no-op: the desired end state already holds.
-        return `${symbol.toUpperCase()} was not on your watchlist`;
-      }
-      symbols.removeSymbol(symbol);
-      return `Removed ${symbol.toUpperCase()} from your watchlist`;
+      return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`);
     }
     case "save_screen": {
-      const screenName = str(input, "name").trim();
+      const { screenName, recipe } = intent;
       if (!screenName) {
-        return null;
+        return fail("no screen name given");
       }
-      // Delegate to the screener store's saved-screens API (Team FRONTEND-DATA
-      // ships `saveScreen` in the same wave). The duck-typed seam keeps the two
-      // branches independently green; until the API lands the action returns
-      // an honest null (re-pends) instead of narrating a save that never was.
-      const screener = useScreenerStore.getState() as unknown as {
-        saveScreen?: (name: string, payload: Record<string, unknown>) => unknown;
-      };
-      if (typeof screener.saveScreen !== "function") {
-        return null;
+      // The store saves its current draft, so the agent's recipe is written
+      // into the draft first — the saved screen is the recipe, formula and all
+      // (none given = none). No recipe saves the current filters, as the diff says.
+      const screener = useScreenerStore.getState();
+      if (intent.count > 0 || recipe.formula) {
+        screener.applyFilters({
+          criteria: recipe.criteria,
+          group: recipe.group,
+          universe: recipe.universe,
+          formula: recipe.formula,
+        });
+      } else if (recipe.universe) {
+        screener.setUniverse(recipe.universe);
       }
-      const group = parseScreenerGroup(input.group);
-      const criteria = parseScreenerCriteria(input);
-      const formula = str(input, "formula").trim();
-      const universe =
-        typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
-          ? input.universe
-          : undefined;
-      screener.saveScreen(screenName, {
-        ...(criteria.length ? { criteria } : {}),
-        ...(group ? { group } : {}),
-        ...(formula ? { formula } : {}),
-        ...(universe ? { universe } : {}),
+      const replaces = screener.savedScreens.some((s) => s.name === screenName);
+      useScreenerStore.getState().saveScreen(screenName);
+      return done(
+        replaces
+          ? `Replaced the saved screen "${screenName}"`
+          : `Saved the screen as "${screenName}"`,
+      );
+    }
+    case "set_region":
+      if (!intent.region) {
+        return fail(`"${intent.raw}" is not a region`);
+      }
+      useSettingsStore.getState().setRegion(intent.region);
+      return done(`Set the region to ${intent.region}`);
+    case "portfolio_add_position": {
+      const { holding, problem } = intent;
+      // No price given → incomplete arguments (re-pends), never a ₹0 holding.
+      if (problem || holding.costBasis === null) {
+        return fail(problem);
+      }
+      const portfolio = portfolioById(intent.portfolioId);
+      if (!portfolio) {
+        return fail("the portfolio it was proposed for no longer exists");
+      }
+      const added = usePortfoliosStore.getState().addHolding(portfolio.id, {
+        ...holding,
+        costBasis: holding.costBasis,
       });
-      return `Saved the screen as "${screenName}"`;
-    }
-    case "set_region": {
-      const next = str(input, "region").toUpperCase();
-      if (!isRegion(next)) {
-        return null;
+      if (added === null) {
+        return fail("the portfolio refused the holding"); // the store's holding rules
       }
-      useSettingsStore.getState().setRegion(next as Region);
-      return `Set the region to ${next}`;
+      useWorkspaceStore.getState().openPanel("portfolio");
+      return done(
+        `Added ${holding.quantity} ${holding.symbol} @ ${formatPrice(holding.costBasis)} to the portfolio`,
+      );
     }
-    default:
-      return null;
+    case "portfolio_update_position":
+    case "portfolio_delete_position": {
+      const { target, problem } = intent;
+      if (problem || !target) {
+        return fail(problem); // never guess which position to mutate
+      }
+      // Apply to exactly the lot the diff showed, in the portfolio it was
+      // proposed against — gone means an honest failure, never another lot.
+      const portfolio = portfolioById(intent.portfolioId);
+      if (!portfolio?.holdings.some((h) => h.id === target.id)) {
+        return fail(`that ${target.symbol} lot is no longer in the portfolio`);
+      }
+      const store = usePortfoliosStore.getState();
+      if (intent.name === "portfolio_delete_position") {
+        store.removeHolding(portfolio.id, target.id);
+        useWorkspaceStore.getState().openPanel("portfolio");
+        return done(`Removed ${target.symbol} from the portfolio`);
+      }
+      const { holding } = intent;
+      if (holding.costBasis === null) {
+        return fail("no price given");
+      }
+      const costBasis = holding.costBasis;
+      if (!store.updateHolding(portfolio.id, target.id, { ...holding, costBasis })) {
+        return fail("the portfolio refused the update");
+      }
+      useWorkspaceStore.getState().openPanel("portfolio");
+      return done(`Updated ${holding.symbol}: ${lotText(holding)}`);
+    }
+    case "save_layout":
+      // Awaits the workspace save — only the async seam can apply it.
+      return fail("saving a layout needs the async apply");
+    case "unknown":
+      return fail(`unknown action "${intent.raw}"`);
   }
+}
+
+/** Apply a host action from its raw args — the label, or null when it did not land. */
+export function applyHostAction(name: string, input: Record<string, unknown>): string | null {
+  return applyIntent(parseHostAction(name, input)).label;
 }
 
 // ---------------------------------------------------------------------------
 // Async apply seam + publish ack (R10 §3/§4)
 // ---------------------------------------------------------------------------
 
-/** The portfolio positions endpoint (sidecar SQLite ledger). */
-async function portfolioUrl(id?: number): Promise<string> {
-  const base = await getSidecarBaseUrl();
-  const path = id === undefined ? "/portfolio/positions" : `/portfolio/positions/${id}`;
-  return new URL(path, base).toString();
-}
-
-/** The wire body the sidecar's PositionInput expects (snake_case). An absent or
- *  non-finite cost basis is null (an update keeps the holding's own cost) —
- *  never a fabricated 0. */
-function positionBody(input: Record<string, unknown>, fallback?: Holding) {
-  const symbol = (str(input, "symbol") || fallback?.symbol || "").toUpperCase();
-  const quantity = typeof input.quantity === "number" ? input.quantity : (fallback?.quantity ?? 0);
-  const costBasis = costBasisOf(input) ?? fallback?.costBasis ?? null;
-  const assetClass: AssetClass =
-    (input.asset_class ?? fallback?.assetClass) === "crypto" ? "crypto" : "equity";
-  const note = str(input, "note") || fallback?.note;
-  // The catalog's `purchased_at` maps onto the ledger's `opened_at` (the
-  // frontend Holding carries no date — ledger-only provenance).
-  const openedAt = str(input, "purchased_at") || undefined;
-  return { symbol, quantity, costBasis, assetClass, note, openedAt };
-}
-
-/** Best-effort sidecar ledger sync — the frontend store is the panel's truth
- *  (it feeds the panel, the workspace blob, and get_portfolio's snapshot); the
- *  sidecar positions table is a secondary ledger kept in sync per the wire
- *  contract. A sidecar miss is tolerated: the user's visible change must not
- *  fail over a ledger no surface reads (the store mutation IS the apply). */
-async function syncPositionToSidecar(
-  method: "POST" | "PUT" | "DELETE",
-  body: ReturnType<typeof positionBody> | null,
-  id?: number,
-): Promise<boolean> {
-  try {
-    const response = await fetch(await portfolioUrl(id), {
-      method,
-      headers: { "Content-Type": "application/json" },
-      ...(body
-        ? {
-            body: JSON.stringify({
-              symbol: body.symbol,
-              quantity: body.quantity,
-              cost_basis: body.costBasis,
-              asset_class: body.assetClass,
-              ...(body.note ? { note: body.note } : {}),
-              ...(body.openedAt ? { opened_at: body.openedAt } : {}),
-            }),
-          }
-        : {}),
-    });
-    // A 404 on update/delete means the sidecar ledger never had this row (it
-    // is written only through this path) — the frontend store remains the
-    // truth, so the miss is tolerated rather than failing the user's change.
-    return response.ok || response.status === 404;
-  } catch {
-    return false;
-  }
-}
-
-/** A numeric sidecar position id from the agent's `position_id`, when it is one. */
-function sidecarPositionId(input: Record<string, unknown>): number | undefined {
-  const raw = input.position_id;
-  const n = typeof raw === "number" ? raw : Number(raw);
-  return Number.isInteger(n) && n >= 0 ? n : undefined;
-}
-
 /**
- * Apply a host-action mutation, including the network-backed cases (portfolio
- * writes ride POST/PUT/DELETE `/portfolio/positions` and mirror into
- * the portfolios store — the truth every surface reads; `save_layout` awaits
- * the workspace save). Everything else delegates to the synchronous
- * {@link applyHostAction}. Same truth contract: a string label means the work
- * landed; null re-pends with an honest failure.
+ * Apply a parsed host action, including the cases the synchronous path cannot
+ * finish: `save_layout` (awaits the workspace save) and a backtest
+ * `open_panel` (awaits its run). Everything else delegates to
+ * {@link applyIntent}. Portfolio writes land in the portfolios store only —
+ * the workspace blob owns holdings; nothing writes the sidecar positions
+ * ledger, which is only read once as the legacy-import source. Same truth
+ * contract: a label means the work landed; null re-pends with an honest failure.
  */
+export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult> {
+  if (intent.name === "open_panel" && intent.runId) {
+    // An agent-started backtest: load its run into the backtest store (made
+    // active) before opening the panel; a run the sidecar no longer holds
+    // is an honest failure, never an empty panel narrated as opened.
+    try {
+      await useBacktestStore.getState().loadRun(intent.runId);
+    } catch {
+      return fail(`the backtest run ${intent.runId} is no longer available`);
+    }
+  }
+  if (intent.name === "save_layout") {
+    try {
+      await saveWorkspace(intent.layoutName);
+    } catch {
+      return fail("the layout could not be saved"); // not mounted / sidecar down
+    }
+    return done(`Saved the layout as "${intent.layoutName}"`);
+  }
+  return applyIntent(intent);
+}
+
+/** {@link applyIntentAsync} from raw args — the label, or null when it did not land. */
 export async function applyHostActionAsync(
   name: string,
   input: Record<string, unknown>,
 ): Promise<string | null> {
-  switch (name) {
-    case "portfolio_add_position": {
-      const body = positionBody(input);
-      // No price given → incomplete arguments (re-pends), never a ₹0 holding.
-      if (!body.symbol || !(body.quantity > 0) || body.costBasis === null) {
-        return null;
-      }
-      await syncPositionToSidecar("POST", body);
-      const portfolio = activePortfolio();
-      if (!portfolio) {
-        return null;
-      }
-      usePortfoliosStore.getState().addHolding(portfolio.id, {
-        symbol: body.symbol,
-        quantity: body.quantity,
-        costBasis: body.costBasis,
-        assetClass: body.assetClass,
-        note: body.note,
-      });
-      useWorkspaceStore.getState().openPanel("portfolio");
-      return `Added ${body.quantity} ${body.symbol} @ ${formatPrice(body.costBasis)} to the portfolio`;
-    }
-    case "portfolio_update_position": {
-      const target = resolveHolding(input);
-      if (!target) {
-        return null; // never guess which position to mutate
-      }
-      const body = positionBody(input, target);
-      if (!(body.quantity > 0) || body.costBasis === null) {
-        return null;
-      }
-      await syncPositionToSidecar("PUT", body, sidecarPositionId(input));
-      const portfolio = activePortfolio();
-      if (!portfolio) {
-        return null;
-      }
-      usePortfoliosStore.getState().updateHolding(portfolio.id, target.id, {
-        symbol: body.symbol,
-        quantity: body.quantity,
-        costBasis: body.costBasis,
-        assetClass: body.assetClass,
-        note: body.note,
-      });
-      useWorkspaceStore.getState().openPanel("portfolio");
-      return `Updated ${body.symbol}: ×${body.quantity} @ ${formatPrice(body.costBasis)}`;
-    }
-    case "portfolio_delete_position": {
-      const target = resolveHolding(input);
-      if (!target) {
-        return null;
-      }
-      await syncPositionToSidecar("DELETE", null, sidecarPositionId(input));
-      const portfolio = activePortfolio();
-      if (!portfolio) {
-        return null;
-      }
-      usePortfoliosStore.getState().removeHolding(portfolio.id, target.id);
-      useWorkspaceStore.getState().openPanel("portfolio");
-      return `Removed ${target.symbol} from the portfolio`;
-    }
-    case "open_panel": {
-      // An agent-started backtest: load its run into the backtest store (made
-      // active) before opening the panel; a run the sidecar no longer holds
-      // is an honest failure, never an empty panel narrated as opened.
-      const runId = backtestRunTarget(input);
-      if (runId) {
-        try {
-          await useBacktestStore.getState().loadRun(runId);
-        } catch {
-          return null;
-        }
-      }
-      return applyHostAction(name, input);
-    }
-    case "save_layout": {
-      const layoutName = saveLayoutName(input);
-      try {
-        await saveWorkspace(layoutName);
-      } catch {
-        return null; // layout not mounted / sidecar down — honest failure
-      }
-      return `Saved the layout as "${layoutName}"`;
-    }
-    default:
-      return applyHostAction(name, input);
-  }
+  return (await applyIntentAsync(parseHostAction(name, input))).label;
 }
 
 /** How a host-action apply resolved — the ack vocabulary (D39 §4). `staged` is

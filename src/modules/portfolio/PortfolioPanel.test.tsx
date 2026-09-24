@@ -144,6 +144,19 @@ describe("PortfolioPanel", () => {
     expect(payload.totalValueNote).toMatch(/ZZZNOTREAL/i);
   });
 
+  it("publishes each holding's id so the agent can name one of two same-symbol lots (R15-AGENT-042)", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("tcs", "5", "2500");
+    await addHolding("tcs", "20", "3900");
+    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+      holdings: { id?: string; symbol: string; quantity: number }[];
+    };
+    expect(payload.holdings.map((h) => [h.id, h.quantity])).toEqual(
+      activeHoldings().map((h) => [h.id, h.quantity]),
+    );
+    expect(new Set(payload.holdings.map((h) => h.id)).size).toBe(2);
+  });
+
   it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
     mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1 });
     render(<PortfolioPanel />);

@@ -14,9 +14,10 @@ import { create } from "zustand";
 
 import {
   ackHostAction,
-  applyHostActionAsync,
-  describeHostAction,
+  applyIntentAsync,
+  describeIntent,
   hostActionAckDetail,
+  parseHostAction,
   publishAckStatus,
 } from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
@@ -90,11 +91,13 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
 
   enqueue: ({ toolCallId, name, input, batchId, agentId, agentName }) => {
     const id = nextId();
-    const described = describeHostAction(name, input);
+    const intent = parseHostAction(name, input);
+    const described = describeIntent(intent);
     const change: ProposedChange = {
       id,
       toolCallId,
       action: { name, input },
+      intent,
       kind: described.kind,
       title: described.title,
       before: described.before,
@@ -132,9 +135,11 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
         c.id === id ? { ...c, status: "accepted", detail: undefined } : c,
       ),
     }));
-    const label = await applyHostActionAsync(change.action.name, change.action.input);
+    const { label, reason } = await applyIntentAsync(change.intent);
     const ok = label !== null;
-    const detail = ok ? undefined : "Could not apply this change — its arguments were incomplete.";
+    const detail = ok
+      ? undefined
+      : reason || "Could not apply this change — its arguments were incomplete.";
     // Read-back (R10 D39 §4, generalized in R13 JARVIS 1a): the sidecar's
     // action ledger learns how the panel REALLY resolved EVERY host action
     // (applied | kept_previous | failed) so the runtime's grounded

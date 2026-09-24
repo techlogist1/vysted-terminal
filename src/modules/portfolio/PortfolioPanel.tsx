@@ -263,7 +263,11 @@ export function PortfolioPanel() {
   // only fires when the holdings (or their resolved P&L) actually change.
   const publishedHoldings = useMemo(
     () =>
-      summary.rows.map(({ position, marketValue, pnl }) => ({
+      // `id` is the holding id the agent's portfolio update/delete names as
+      // `position_id` (rows[i] is holdings[i]) — without it an edit of one of
+      // several same-symbol lots could not say which (R15-AGENT-042).
+      summary.rows.map(({ position, marketValue, pnl }, i) => ({
+        id: holdings[i]?.id,
         symbol: position.symbol,
         quantity: position.quantity,
         costBasis: position.cost_basis,
@@ -271,7 +275,7 @@ export function PortfolioPanel() {
         marketValue: marketValue ?? null,
         pnl: pnl ?? null,
       })),
-    [summary.rows],
+    [summary.rows, holdings],
   );
   const holdingsKey = JSON.stringify(publishedHoldings);
   useEffect(() => {
