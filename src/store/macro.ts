@@ -17,7 +17,7 @@
 
 import { create } from "zustand";
 
-import { SidecarError, sidecarGet } from "@/lib/sidecar-client";
+import { sidecarGet } from "@/lib/sidecar-client";
 
 import type {
   MacroCatalog,
@@ -39,6 +39,9 @@ function searchKey(provider: MacroProvider, query: string): string {
 interface SeriesLoadStatus {
   status: "loading" | "ready" | "error";
   error?: string;
+  /** The original failure (a `SidecarError` keeps its status), so a retry
+   *  policy can tell a not-ready engine from a deterministic answer. */
+  cause?: unknown;
   series?: MacroSeriesExtended;
 }
 
@@ -49,6 +52,8 @@ interface MacroState {
   searchResults: Record<string, MacroSearchResult[]>;
   /** Per-provider cached catalog. */
   catalogByProvider: Partial<Record<MacroProvider, MacroCatalog>>;
+  /** Per-provider catalog load failure, cleared when a load starts. */
+  catalogError: Partial<Record<MacroProvider, string>>;
   /** Currently selected (provider, series) for the panel. */
   selected: { provider: MacroProvider; seriesId: string } | null;
 
@@ -68,6 +73,7 @@ export const useMacroStore = create<MacroState>((set, get) => ({
   seriesStatus: {},
   searchResults: {},
   catalogByProvider: {},
+  catalogError: {},
   selected: null,
 
   select: (provider, seriesId) => set({ selected: { provider, seriesId } }),
@@ -90,16 +96,10 @@ export const useMacroStore = create<MacroState>((set, get) => ({
         },
       }));
     } catch (err) {
-      const message =
-        err instanceof SidecarError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : String(err);
       set((state) => ({
         seriesStatus: {
           ...state.seriesStatus,
-          [key]: { status: "error", error: message },
+          [key]: { status: "error", error: errorMessage(err), cause: err },
         },
       }));
     }
@@ -126,18 +126,32 @@ export const useMacroStore = create<MacroState>((set, get) => ({
 
   loadCatalog: async (provider) => {
     if (get().catalogByProvider[provider]) return;
+    set((state) => ({ catalogError: { ...state.catalogError, [provider]: undefined } }));
     try {
       const catalog = await sidecarGet<MacroCatalog>("/macro/catalog", { provider });
       set((state) => ({
         catalogByProvider: { ...state.catalogByProvider, [provider]: catalog },
       }));
-    } catch {
-      // Leave the slot empty — UI shows "no catalog" state.
+    } catch (err) {
+      // Recorded, not swallowed: the picker renders it with a Retry instead of
+      // a skeleton that never resolves (R15-UI-029).
+      set((state) => ({ catalogError: { ...state.catalogError, [provider]: errorMessage(err) } }));
     }
   },
 
-  reset: () => set({ seriesStatus: {}, searchResults: {}, catalogByProvider: {}, selected: null }),
+  reset: () =>
+    set({
+      seriesStatus: {},
+      searchResults: {},
+      catalogByProvider: {},
+      catalogError: {},
+      selected: null,
+    }),
 }));
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
 // ---------------------------------------------------------------------------
 // Selectors — referentially-stable per the useSyncExternalStore Gotcha
@@ -171,6 +185,11 @@ export function selectCatalog(
   provider: MacroProvider,
 ): MacroCatalog | undefined {
   return state.catalogByProvider[provider];
+}
+
+/** Select one provider's catalog load failure; undefined when none. */
+export function selectCatalogError(state: MacroState, provider: MacroProvider): string | undefined {
+  return state.catalogError[provider];
 }
 
 /** Select the currently-selected (provider, seriesId), or null. */

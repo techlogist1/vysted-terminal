@@ -180,9 +180,13 @@ class GeminiProvider(LLMProvider):
                 # Usage arrives on every chunk; the final value wins.
                 meta = getattr(response, "usage_metadata", None)
                 if meta is not None:
+                    # Gemini bills thinking and the tool-use prompt too
+                    # (R15-CODE-AGENT-004); each count may be None.
                     usage = LLMUsage(
-                        input_tokens=getattr(meta, "prompt_token_count", 0) or 0,
-                        output_tokens=getattr(meta, "candidates_token_count", 0) or 0,
+                        input_tokens=(getattr(meta, "prompt_token_count", 0) or 0)
+                        + (getattr(meta, "tool_use_prompt_token_count", 0) or 0),
+                        output_tokens=(getattr(meta, "candidates_token_count", 0) or 0)
+                        + (getattr(meta, "thoughts_token_count", 0) or 0),
                     )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except genai_errors.APIError as exc:  # pragma: no cover — network path

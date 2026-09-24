@@ -64,7 +64,7 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
     return series
 
 
-@router.get("/{symbol}")
+@router.get("/{symbol:path}")  # a crypto pair carries "/" (R15-DATA-081)
 def get_history(
     symbol: str,
     timeframe: str = "1d",

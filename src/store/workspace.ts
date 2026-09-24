@@ -78,7 +78,16 @@ interface WorkspaceState {
   openPanel: (panelId: string) => void;
   /** Close a panel by id, if open. */
   closePanel: (panelId: string) => void;
-  /** Clear the cockpit and re-apply the bundled default layout. */
+  /**
+   * Re-apply the bundled default panel arrangement — layout only: chart
+   * drawings, chart views and module enablement are kept (R15-AGENT-056).
+   */
+  resetLayout: () => void;
+  /**
+   * The explicit factory reset (Settings / menu): re-enables every module,
+   * deletes every chart drawing and view, re-applies the default layout and
+   * renames the workspace "default".
+   */
   resetToDefaultLayout: () => void;
 }
 
@@ -150,9 +159,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();
   },
-  resetToDefaultLayout: () => {
+  resetLayout: () => {
     const api = get().dockviewApi;
     if (!api) {
+      return;
+    }
+    api.clear();
+    const enabledPanelIds = new Set(
+      useModulesStore
+        .getState()
+        .enabledPanels()
+        .map((panel) => panel.id),
+    );
+    applyDefaultLayout(api, enabledPanelIds);
+  },
+  resetToDefaultLayout: () => {
+    if (!get().dockviewApi) {
       return;
     }
     // A true factory reset: re-enable every module (the default state — modules
@@ -162,14 +184,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     useModulesStore.getState().setEnabledMap({});
     useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
     useChartDrawingsStore.getState().replaceViews({});
-    api.clear();
-    const enabledPanelIds = new Set(
-      useModulesStore
-        .getState()
-        .enabledPanels()
-        .map((panel) => panel.id),
-    );
-    applyDefaultLayout(api, enabledPanelIds);
+    get().resetLayout();
     set({ name: "default", researchSymbol: null });
   },
 }));

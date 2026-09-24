@@ -122,17 +122,18 @@ async def test_fetch_latest_walks_back_over_weekend_and_holiday(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Monday not yet published (404), weekend skipped requestless, Friday 404
-    (holiday), Thursday 200 → Thursday's result with the correct trade_date."""
+    on both hosts, Thursday 200 → Thursday's result with the correct trade_date."""
     monkeypatch.setattr(nb, "_ist_today", lambda: date(2026, 7, 6))  # a Monday
     requested: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         requested.append(request.url.path)
-        if "20260706" in request.url.path:  # Monday — not yet published
+        path = request.url.path
+        if "20260706" in path or "06072026" in path:  # Monday — not yet published
             return httpx.Response(404)
-        if "20260703" in request.url.path:  # Friday — holiday
+        if "20260703" in path or "03072026" in path:  # Friday — no file on either host
             return httpx.Response(404)
-        if "20260702" in request.url.path:  # Thursday — published
+        if "20260702" in path:  # Thursday — published
             return httpx.Response(200, content=_fixture_zip())
         raise AssertionError(f"unexpected request {request.url}")
 
@@ -142,9 +143,9 @@ async def test_fetch_latest_walks_back_over_weekend_and_holiday(
         assert result is not None
         assert result.trade_date == date(2026, 7, 2)
         assert result.rows["TCS"].close == 2068.10
-        # Monday + Friday + Thursday — the weekend cost zero requests, and a
-        # 404 never triggers the fallback host.
-        assert len(requested) == 3
+        # Monday and Friday on both hosts (a primary 404 tries the fallback,
+        # R15-LIFECYCLE-022) + Thursday — the weekend cost zero requests.
+        assert len(requested) == 5
     finally:
         await nb.aclose()
 
@@ -232,21 +233,68 @@ async def test_fetch_latest_second_call_hits_cache_zero_http(
 async def test_holiday_404_cached_only_for_past_dates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A past-date 404 is a holiday → empty-marker cached; today's 404 means
+    """A past calendar holiday's 404 → empty-marker cached; today's 404 means
     "not yet published" and must NOT be cached (the file lands ~16:30 IST)."""
-    monkeypatch.setattr(nb, "_ist_today", lambda: date(2026, 7, 6))  # Monday
+    monkeypatch.setattr(nb, "_ist_today", lambda: date(2026, 10, 5))  # Monday
 
     def handler(request: httpx.Request) -> httpx.Response:
-        if "20260702" in request.url.path:
+        if "20261001" in request.url.path:
             return httpx.Response(200, content=_fixture_zip())
         return httpx.Response(404)
 
     nb.reset_for_tests(httpx.MockTransport(handler))
     try:
         assert await nb.fetch_latest() is not None
-        # Friday 2026-07-03 (past) 404 → marker cached; Monday (today) → not.
-        assert await data_cache.get("nse_bhavcopy:20260703", 60.0) == {"empty": True}
-        assert await data_cache.get("nse_bhavcopy:20260706", 60.0) is None
+        # Friday 2026-10-02 (Gandhi Jayanti, past) → marker cached; Monday (today) → not.
+        assert await data_cache.get("nse_bhavcopy:20261002", 60.0) == {"empty": True}
+        assert await data_cache.get("nse_bhavcopy:20261005", 60.0) is None
+    finally:
+        await nb.aclose()
+
+
+@pytest.mark.asyncio
+async def test_a_primary_404_is_served_by_the_fallback_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-022: a moved UDiFF path (404) returned "missing" before the
+    live legacy host was ever asked, and was cached as a holiday."""
+    monkeypatch.setattr(nb, "_ist_today", lambda: date(2026, 7, 2))  # a Thursday
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "nsearchives.nseindia.com":
+            return httpx.Response(404)
+        return httpx.Response(200, text=_SEC_FULL_SAMPLE)
+
+    nb.reset_for_tests(httpx.MockTransport(handler))
+    try:
+        result = await nb.fetch_latest()
+        assert result is not None
+        assert result.trade_date == date(2026, 7, 2)
+        assert result.rows["20MICRONS"].close == 199.35
+        assert await data_cache.get("nse_bhavcopy:20260702", 60.0) != {"empty": True}
+    finally:
+        await nb.aclose()
+
+
+@pytest.mark.asyncio
+async def test_a_trading_day_404_on_both_hosts_is_never_cached_as_a_holiday(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Both archive paths moved: no past trading day becomes a cached holiday,
+    and one WARNING names the URL instead of a silent week of holidays."""
+    monkeypatch.setattr(nb, "_ist_today", lambda: date(2026, 7, 6))  # Monday
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    nb.reset_for_tests(httpx.MockTransport(handler))
+    try:
+        with caplog.at_level("WARNING", logger=nb.logger.name):
+            assert await nb.fetch_latest() is None
+        for ymd in ("20260703", "20260702", "20260701", "20260630", "20260629"):
+            assert await data_cache.get(f"nse_bhavcopy:{ymd}", 60.0) is None
+        moved = [r for r in caplog.records if "archive path moved" in r.getMessage()]
+        assert len(moved) == 1 and "nsearchives.nseindia.com" in moved[0].getMessage()
     finally:
         await nb.aclose()
 

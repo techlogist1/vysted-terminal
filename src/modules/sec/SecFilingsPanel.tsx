@@ -57,8 +57,8 @@ export function SecFilingsPanel() {
   // Initial load — default symbol = AAPL so populated-state screenshots
   // capture real data on first mount. Auto-retries on a cold-boot sidecar bind
   // (and re-arms on reconnect) so a panel mounted before the sidecar was ready
-  // self-heals. `loadFilings` swallows its error into store state — re-throw on
-  // the error status to drive the retry hook.
+  // self-heals. `loadFilings` swallows its error into store state — re-throw the
+  // kept original error so the hook retries only a not-ready engine.
   const loadDefault = useCallback(async () => {
     if (userInteractedRef.current) {
       return;
@@ -66,7 +66,7 @@ export function SecFilingsPanel() {
     setActiveIdentifier("AAPL");
     await loadFilings("AAPL", undefined);
     if (useSecStore.getState().filingsStatus === "error") {
-      throw new Error(useSecStore.getState().filingsError ?? "filings load failed");
+      throw useSecStore.getState().filingsCause;
     }
   }, [loadFilings, setActiveIdentifier]);
   useRetryOnSidecarReady(loadDefault, []);

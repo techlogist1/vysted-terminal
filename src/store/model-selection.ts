@@ -11,54 +11,39 @@
 
 import { create } from "zustand";
 
+import registry from "../../sidecar/config/model_registry.json";
 import type { LLMProviderId } from "../../types/ai";
 
-/**
- * Default model per provider — an OFFLINE FALLBACK mirroring the sidecar's
- * config-driven registry (`sidecar/config/model_registry.json`, served live on
- * `GET /llm/providers` as `defaultModel`/`knownModels` into the llm-providers
- * store). Kept as a literal here (NOT derived from `llm-providers.DEFAULT_PROVIDERS`)
- * to avoid a module-load circular-import: this file is pulled in via `workspace.ts`
- * in an order where a top-level `DEFAULT_PROVIDERS.map(...)` would run before that
- * export initialises. A `model-selection.test.ts` drift-guard asserts this table
- * stays in lockstep with `DEFAULT_PROVIDERS` instead — edit both + the JSON together.
- */
-export const DEFAULT_MODEL_BY_PROVIDER: Record<LLMProviderId, string> = {
-  anthropic: "claude-opus-4-8",
-  openai: "gpt-4.1-mini",
-  gemini: "gemini-2.5-pro",
-  groq: "llama-3.3-70b-versatile",
-  ollama: "qwen2.5:7b",
-  deepseek: "deepseek-chat",
-  xai: "grok-4",
-  openrouter: "deepseek/deepseek-v4-flash",
-};
+/** One provider row of `sidecar/config/model_registry.json` — the single source
+ *  of truth for providers, default models and selectable model lists (the
+ *  sidecar serves the same file on `GET /llm/providers`). */
+export interface RegistryProviderRow {
+  id: LLMProviderId;
+  label: string;
+  requires_key: boolean;
+  default_base_url?: string;
+  default_model: string;
+  known_models: string[];
+}
 
-/** Curated selectable models per provider for the HUD picker — the OFFLINE
- *  FALLBACK for the config-driven list (the live list comes from the llm-providers
- *  store's `knownModels`). Kept in lockstep with `DEFAULT_PROVIDERS.knownModels`
- *  by the drift-guard test (see note above). Free-form override is also allowed —
- *  the contract keeps model ids as strings so releases between Vysted versions work. */
-export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> = {
-  anthropic: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
-  openai: ["gpt-4.1", "gpt-4.1-mini", "o4-mini"],
-  gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
-  groq: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-  ollama: ["qwen2.5:7b", "llama3.1:8b"],
-  deepseek: ["deepseek-chat", "deepseek-reasoner"],
-  xai: ["grok-4", "grok-3"],
-  openrouter: [
-    "minimax/minimax-m3",
-    "deepseek/deepseek-v4-flash",
-    "moonshotai/kimi-k2.6",
-    "deepseek/deepseek-v4-pro",
-    "qwen/qwen3.7-max",
-    "qwen/qwen3.7-plus",
-    "z-ai/glm-5.1",
-    "qwen/qwen3.6-flash",
-    "openrouter/auto",
-  ],
-};
+/** The registry's provider rows, imported (never hand-copied) so a
+ *  `default_model` or `known_models` edit reaches the frontend with the sidecar
+ *  (R15-CODE-AGENT-006). */
+export const REGISTRY_PROVIDERS = registry.providers as RegistryProviderRow[];
+
+/** Default model per provider, projected from the registry. */
+export const DEFAULT_MODEL_BY_PROVIDER = Object.fromEntries(
+  REGISTRY_PROVIDERS.map((row) => [row.id, row.default_model]),
+) as Record<LLMProviderId, string>;
+
+/** Curated selectable models per provider for the HUD picker, projected from
+ *  the registry. Free-form override is also allowed — the contract keeps model
+ *  ids as strings so releases between Vysted versions work. */
+export const KNOWN_MODELS_BY_PROVIDER: Record<LLMProviderId, readonly string[]> =
+  Object.fromEntries(REGISTRY_PROVIDERS.map((row) => [row.id, row.known_models])) as Record<
+    LLMProviderId,
+    string[]
+  >;
 
 /** Is `model` one of the curated/known models for `provider`? Free-form picks
  *  via {@link ModelSelectionState.setModel} bypass this (the contract keeps

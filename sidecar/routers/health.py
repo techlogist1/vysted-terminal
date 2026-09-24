@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Request
 
+from services import agent_runtime
 from services.provider_registry import active_providers
 
 router = APIRouter(tags=["health"])
@@ -19,10 +20,14 @@ def health(request: Request) -> dict[str, object]:
     a second hardcoded source of truth. Phase 8 hot-patch (was hardcoded
     ``"0.2.1"`` and silently drifted 5 releases — finding
     UC1-health-version-stale).
+
+    ``agents_degraded`` names every agent file the roster load skipped (``[]``
+    when it loaded whole) so a shrunken roster is visible (R15-LIFECYCLE-014).
     """
     return {
         "status": "ok",
         "service": "vysted-sidecar",
         "version": request.app.version,
         "providers": active_providers(),
+        "agents_degraded": agent_runtime.degraded_agents(),
     }

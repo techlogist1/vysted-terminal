@@ -36,7 +36,7 @@ def list_indicators() -> dict[str, list[str]]:
     return {"indicators": list(indicator_service.SUPPORTED_INDICATORS)}
 
 
-@router.get("/{symbol}")
+@router.get("/{symbol:path}")  # a crypto pair carries "/" (R15-DATA-081)
 def get_indicators(
     symbol: str,
     indicators: str = Query(

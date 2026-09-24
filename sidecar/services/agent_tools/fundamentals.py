@@ -41,8 +41,14 @@ _RATE_LIMIT_MARKERS = (
 _NOT_FOUND_MARKERS = ("not found", "no data", "no such", "unknown symbol", "delisted", "404")
 
 
-def _classify_reason(error_text: str | None) -> str:
-    """Map a provider/registry error string onto the closed reason vocabulary."""
+def _classify_reason(error_text: str | None, kind: str | None = None) -> str:
+    """Map a provider failure onto the closed reason vocabulary: the
+    ``ProviderError.kind`` when the provider classified it (a ``network``
+    failure is our feed's gap, ``provider_error``), else the error text."""
+    if kind in (_REASON_RATE_LIMITED, _REASON_NOT_FOUND):
+        return kind
+    if kind == "network":
+        return _REASON_PROVIDER_ERROR
     text = (error_text or "").lower()
     if any(marker in text for marker in _RATE_LIMIT_MARKERS):
         return _REASON_RATE_LIMITED
@@ -55,6 +61,7 @@ def _classify_reason(error_text: str | None) -> str:
 class _FetchResult:
     fundamentals: Any | None
     error: str | None
+    kind: str | None = None  # the ProviderError.kind of a failed fetch
 
 
 async def _fetch_once(symbol: str) -> _FetchResult:
@@ -67,7 +74,7 @@ async def _fetch_once(symbol: str) -> _FetchResult:
     try:
         fundamentals = await provider_registry.get_fundamentals(symbol)
     except ProviderError as exc:
-        return _FetchResult(None, f"provider error: {exc}")
+        return _FetchResult(None, f"provider error: {exc}", exc.kind)
     except Exception as exc:  # noqa: BLE001
         return _FetchResult(None, f"unexpected error: {exc}")
     return _FetchResult(await correctness_gate.apply_exchange_financials(fundamentals), None)
@@ -187,16 +194,14 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(symbol, str) or not symbol:
         return {"ok": False, "error": "missing or non-string symbol"}
 
-    last_error: str = "unavailable"
     for attempt in (0, 1):
-        result = await _fetch_once(symbol)
-        if result.error is None:
-            assert result.fundamentals is not None
+        failed = await _fetch_once(symbol)
+        if failed.error is None:
+            assert failed.fundamentals is not None
             return {
                 "ok": True,
-                "fundamentals": result.fundamentals.model_dump(by_alias=True, mode="json"),
+                "fundamentals": failed.fundamentals.model_dump(by_alias=True, mode="json"),
             }
-        last_error = result.error
         if attempt == 0:
             await asyncio.sleep(_RETRY_BACKOFF_SECS)
 
@@ -213,9 +218,13 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
                 "fundamentals": corrected.fundamentals.model_dump(by_alias=True, mode="json"),
                 "note": canonicalization.note,
             }
-        last_error = corrected.error
+        failed = corrected
 
-    return {"ok": False, "error": last_error, "reason": _classify_reason(last_error)}
+    return {
+        "ok": False,
+        "error": failed.error,
+        "reason": _classify_reason(failed.error, failed.kind),
+    }
 
 
 #: Statement periods returned to the model (prompt budget); the payload's
@@ -257,7 +266,7 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
         return {
             "ok": False,
             "error": f"provider error: {exc}",
-            "reason": _classify_reason(str(exc)),
+            "reason": _classify_reason(str(exc), exc.kind),
         }
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"unexpected error: {exc}"}

@@ -17,7 +17,7 @@ import asyncio
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header
 
 from config import get_region
 from models.analyst_extended import (
@@ -43,7 +43,6 @@ from services import (
     resolution_policy,
     symbol_resolver,
 )
-from services.errors import ProviderError
 from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
@@ -91,10 +90,8 @@ async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
 async def get_fundamentals(symbol: str) -> Fundamentals:
     """Return valuation ratios and a company profile for ``symbol``.
 
-    A provider failure surfaces as an honest 502 (mirroring the ratings
-    endpoints) rather than an unhandled 500; a throttle (R11 ``ProviderError``
-    ``kind='rate_limited'``) is a 429 so the client backs off instead of reading
-    it as a permanent no-data miss.
+    A provider failure is mapped by the app's one ``ProviderError`` handler
+    (429 throttled, 404 no such instrument, 503 unreachable, else 502).
 
     R13 ledger #8 (bounded): the response additively carries ``identity_note``
     (:func:`_identity_note`) when the resolver's canonical name and this
@@ -106,20 +103,7 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     fractions are reconciled against the exchange shareholding filing and flagged
     (never replaced) where they disagree.
     """
-    try:
-        fundamentals = await provider_registry.get_fundamentals(symbol)
-    except ProviderError as exc:
-        if exc.kind == "rate_limited":
-            raise HTTPException(
-                status_code=429,
-                detail="Data provider is throttled — try again shortly.",
-            ) from exc
-        if exc.kind == "not_found":
-            raise HTTPException(
-                status_code=404,
-                detail=f"No instrument matches {symbol!r} — check the symbol.",
-            ) from exc
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    fundamentals = await provider_registry.get_fundamentals(symbol)
     fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
     return fundamentals
@@ -228,10 +212,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
             return RatingsHistoryResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_ratings_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await analyst_ratings_extended.get_ratings_history(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -247,10 +228,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
             return PriceTargetHistoryResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_price_target_history(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await analyst_ratings_extended.get_price_target_history(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response
 
@@ -266,9 +244,6 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
             return IndividualAnalystResponse.model_validate(cached)
         except Exception:  # noqa: BLE001
             logger.warning("ratings: cache deserialise failed for %s; refetching", cache_key)
-    try:
-        response = await analyst_ratings_extended.get_individual_analysts(normalized)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    response = await analyst_ratings_extended.get_individual_analysts(normalized)
     await data_cache.set(cache_key, response.model_dump(mode="json"))
     return response

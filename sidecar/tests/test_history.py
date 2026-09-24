@@ -186,3 +186,50 @@ def test_us_series_in_an_in_session_reads_the_us_calendar(client: TestClient, mo
     assert body["freshness"] != "live"
     body = client.get("/history/RELIANCE.NS", params={"timeframe": "5m"}, headers=headers).json()
     assert body["freshness"] == "live"
+
+
+def _crypto_series(monkeypatch, asked: list) -> None:  # noqa: ANN001
+    from datetime import UTC, datetime
+
+    from models.market import OHLCVBar, OHLCVSeries
+    from services import provider_registry
+
+    bars = [
+        OHLCVBar(
+            timestamp=datetime(2026, 9, day, tzinfo=UTC),
+            open=1.0,
+            high=2.0,
+            low=1.0,
+            close=1.5 + day,
+            volume=10.0,
+        )
+        for day in range(1, 30)
+    ]
+
+    def series(symbol, timeframe, range_=None, asset_class="equity"):  # noqa: ANN001, ANN202
+        asked.append((symbol, asset_class))
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=bars, provider="ccxt:binance")
+
+    monkeypatch.setattr(provider_registry, "get_history", series)
+
+
+def test_a_crypto_pair_routes_through_the_history_path(client: TestClient, monkeypatch) -> None:
+    """R15-DATA-081: ``BTC/USDT`` arrives as ``BTC%2FUSDT``; Starlette decodes it
+    before matching, so the route takes a path parameter."""
+    asked: list = []
+    _crypto_series(monkeypatch, asked)
+    resp = client.get("/history/BTC%2FUSDT", params={"asset_class": "crypto"})
+    assert resp.status_code == 200
+    assert asked == [("BTC/USDT", "crypto")]
+
+
+def test_a_crypto_pair_routes_through_the_indicators_path(client: TestClient, monkeypatch) -> None:
+    """The class case the history fix was not written against: the indicators
+    route takes the same slash-carrying symbol."""
+    asked: list = []
+    _crypto_series(monkeypatch, asked)
+    resp = client.get(
+        "/indicators/BTC%2FUSDT", params={"indicators": "rsi", "asset_class": "crypto"}
+    )
+    assert resp.status_code == 200
+    assert asked == [("BTC/USDT", "crypto")]

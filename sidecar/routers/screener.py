@@ -20,9 +20,8 @@ Five endpoints:
 
 The screener engine ( :mod:`services.screener` ) owns the filter
 semantics; this router is a thin adapter that validates the request
-body against the Pydantic shapes in :mod:`models.screener` and shapes
-provider failures into the standard 502 response handled by the
-ProviderError exception handler in :mod:`app`.
+body against the Pydantic shapes in :mod:`models.screener`; provider
+failures reach the one ProviderError exception handler in :mod:`app`.
 """
 
 from __future__ import annotations
@@ -45,7 +44,7 @@ from models.screener import (
     ScreenerUniverseId,
 )
 from services import screener, screener_formula
-from services.errors import ProviderError
+from services.errors import ProviderError, provider_error_response
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +78,6 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     """
     try:
         return await screener.run_screener(request)
-    except ProviderError:
-        # Re-raised so the app-level exception handler maps it to 502.
-        raise
     except ValueError as exc:
         # Pydantic-style validation surface beyond what the request model
         # already enforces (e.g. an unknown universe id is a ValueError
@@ -102,8 +98,8 @@ async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
     ``ScreenerProgressFrame`` in ``types/screener.ts``) followed by one
     ``{"event":"result", …ScreenerResult}``. An engine crash emits one
     ``{"event":"error","message"}`` frame instead of the result (mirrors
-    ``ScreenerErrorFrame``; the message is a ProviderError's text — already
-    the unary route's 502 detail — or a sanitized one-liner, never raw
+    ``ScreenerErrorFrame``; the message is the unary route's error detail for a
+    ProviderError — or a sanitized one-liner, never raw
     debug/provider output). The engine runs as a separate task; when the
     client disconnects the generator is torn down and the task cancelled —
     the engine catches the cancellation, finalizes an honest partial, and
@@ -125,10 +121,10 @@ async def run_screener_stream(request: ScreenerRequest) -> StreamingResponse:
             except asyncio.CancelledError:
                 raise
             except ProviderError as exc:
-                # ProviderError text is the unary route's 502 detail — safe
-                # and meaningful to surface verbatim.
+                # The same sentence the unary route's error body carries.
                 logger.exception("screener stream run failed")
-                await queue.put({"event": "error", "message": str(exc)})
+                _status, body = provider_error_response(exc)
+                await queue.put({"event": "error", "message": body["detail"]})
             except Exception as exc:  # noqa: BLE001 — surface a clean error frame
                 logger.exception("screener stream run crashed")
                 await queue.put(
@@ -200,7 +196,4 @@ async def get_universe(
             status_code=400,
             detail="custom universe is resolved per-request; pass custom_symbols on /screener/run",
         )
-    try:
-        return await screener.resolve_universe(id)
-    except ProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return await screener.resolve_universe(id)

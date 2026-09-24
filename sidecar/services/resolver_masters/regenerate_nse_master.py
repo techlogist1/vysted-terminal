@@ -7,7 +7,9 @@ Built from NSE's three public listing files:
     serves as ``<SYMBOL>-SM.NS`` (SUMAX-SM.NS, VINOD-SM.NS);
   * ``eq_etfseclist.csv`` — the ETF list → type ``ETF``.
 
-Rights-entitlement lines (``-RE`` tickers, ISIN security type ``20``) are dropped.
+Each list's face-value column lands in a ``face_values`` map (``{SYMBOL: face
+value}``) beside the rows. Rights-entitlement lines (``-RE`` tickers, ISIN
+security type ``20``) are dropped.
 Rows are ``[SYMBOL, NAME, TYPE]``, ordered by the BSE master's market-cap rank of
 the row's ISIN (prominence, so fuzzy ties break toward the well-known listing),
 with unranked rows after in file order.
@@ -32,7 +34,7 @@ from datetime import UTC, datetime
 from importlib import resources
 from typing import TextIO
 
-from services.resolver_masters.regenerate_bse_master import is_rights_entitlement
+from services.resolver_masters.regenerate_bse_master import face_value, is_rights_entitlement
 
 EQUITY_URL = "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
 SME_URL = "https://nsearchives.nseindia.com/emerge/corporates/content/SME_EQUITY_L.csv"
@@ -100,7 +102,7 @@ def build_master(
 ) -> dict:
     """Normalise the three listing files into the bundled-master document."""
     rank = isin_rank if isin_rank is not None else _bse_isin_rank()
-    found: list[tuple[str, str, str, str]] = []
+    found: list[tuple[str, str, str, str, float | None]] = []
     for text, typ, name_key in (
         (equity_csv, "EQ", "NAME_OF_COMPANY"),
         (sme_csv, "SM", "NAME_OF_COMPANY"),
@@ -109,15 +111,19 @@ def build_master(
         for rec in _rows(text):
             symbol = rec.get("SYMBOL", "").upper()
             isin = (rec.get("ISIN_NUMBER") or rec.get("ISINNUMBER") or "").upper()
+            par = face_value(rec.get("FACE_VALUE") or rec.get("FACEVALUE"))
             if symbol and not is_rights_entitlement(symbol, "", isin):
-                found.append((symbol, rec.get(name_key, "") or symbol, typ, isin))
+                found.append((symbol, rec.get(name_key, "") or symbol, typ, isin, par))
     ordered = sorted(enumerate(found), key=lambda item: (rank.get(item[1][3], len(rank)), item[0]))
     rows: list[list[str]] = []
+    face_values: dict[str, float] = {}
     seen: set[str] = set()
-    for _i, (symbol, name, typ, _isin) in ordered:
+    for _i, (symbol, name, typ, _isin, par) in ordered:
         if symbol not in seen:
             seen.add(symbol)
             rows.append([symbol, name, typ])
+            if par is not None:
+                face_values[symbol] = par
     if len(rows) < min_rows:
         raise ValueError(
             f"regenerate_nse_master: only {len(rows)} rows parsed "
@@ -130,9 +136,11 @@ def build_master(
         "_note": (
             "NSE master regenerated via regenerate_nse_master.py from the main-board, "
             "Emerge (type SM, Yahoo -SM.NS) and ETF lists. Rows are [SYMBOL, NAME, TYPE], "
-            "BSE market-cap ordered. Do not hand-edit; rerun the script to refresh."
+            "BSE market-cap ordered; face_values maps SYMBOL to the listed face value "
+            "(INR). Do not hand-edit; rerun the script to refresh."
         ),
         "_types": dict(Counter(row[2] for row in rows).most_common()),
+        "face_values": face_values,
         "instruments": rows,
     }
 
@@ -145,7 +153,7 @@ def fetch_master() -> dict:
 def dump_master(master: dict, fp: TextIO) -> None:
     """Emit the master with one instrument row per line (reviewable diffs)."""
     fp.write("{\n")
-    for key in ("exchange", "_generated", "_source", "_note", "_types"):
+    for key in ("exchange", "_generated", "_source", "_note", "_types", "face_values"):
         fp.write(f"  {json.dumps(key)}: {json.dumps(master[key], ensure_ascii=False)},\n")
     fp.write('  "instruments": [\n')
     lines = [json.dumps(row, ensure_ascii=False) for row in master["instruments"]]

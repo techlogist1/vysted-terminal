@@ -1,8 +1,10 @@
 import type { DockviewApi } from "dockview";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import templateCatalog from "../../sidecar/config/layout_templates.json";
 import {
   applyCustomLayout,
+  applyLayoutMode,
   applyLayoutTemplate,
   applyResearchSpaceLayout,
   fitLayoutTemplate,
@@ -10,6 +12,8 @@ import {
   planContentAware,
   planCustom,
   planLayout,
+  LAYOUT_TEMPLATE_IDS,
+  MENU_PAYLOAD_TO_MODE,
   resolvePanelToken,
   type LayoutTemplate,
 } from "./layout-templates";
@@ -521,5 +525,45 @@ describe("applyContentAwareLayout (imperative, width fractions)", () => {
       { id: "watchlist", width: Math.round(1440 * 0.18) },
     ]);
     expect(moved.length).toBeGreaterThan(0);
+  });
+});
+
+describe("one plan per template id (R15-AGENT-055)", () => {
+  const templates = Object.entries(templateCatalog).filter(([id]) => !id.startsWith("_")) as [
+    LayoutTemplate,
+    { panels: string[] },
+  ][];
+
+  it("planLayout places exactly the panels layout_templates.json lists (the catalog's source)", () => {
+    expect([...LAYOUT_TEMPLATE_IDS].sort()).toEqual(templates.map(([id]) => id).sort());
+    for (const [id, entry] of templates) {
+      expect(planLayout(id).panels.map((p) => p.id)).toEqual(
+        entry.panels.map((role) => resolvePanelToken(role)!.id),
+      );
+    }
+  });
+
+  it("every native-menu payload maps to exactly one mode plan, cleared then tiled", () => {
+    const expected: Record<string, string[]> = {
+      "research-cockpit": ["chart", "equity-overview", "brief"],
+      "single-focus": ["chart", "watchlist", "news"],
+      "macro-scan": ["macro", "chart", "screener-panel"],
+      compare: ["chart", "equity-overview"],
+    };
+    expect(Object.keys(MENU_PAYLOAD_TO_MODE).sort()).toEqual(Object.keys(expected).sort());
+    expect(new Set(Object.values(MENU_PAYLOAD_TO_MODE)).size).toBe(4);
+    for (const [payload, ids] of Object.entries(expected)) {
+      const added: string[] = [];
+      const api = {
+        panels: [],
+        clear: vi.fn(),
+        getPanel: () => undefined,
+        addPanel: vi.fn(({ id }: { id: string }) => added.push(id)),
+        hasMaximizedGroup: () => false,
+      };
+      applyLayoutMode(api as unknown as DockviewApi, MENU_PAYLOAD_TO_MODE[payload]);
+      expect(api.clear).toHaveBeenCalledTimes(1);
+      expect(added).toEqual(ids);
+    }
   });
 });

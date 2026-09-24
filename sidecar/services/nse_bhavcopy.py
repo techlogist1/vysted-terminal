@@ -46,9 +46,10 @@ Caching
 
 Parsed compact rows (never the raw ZIP) are stored via :mod:`services.data_cache`
 under ``nse_bhavcopy:YYYYMMDD`` with a 7-day TTL, so repeated boots on the same
-day parse from SQLite instead of re-downloading. A 404 on a date **before**
-today (IST) is a holiday — cached as an empty marker so future walks skip it
-without a request. A 404 on *today* is NOT cached (the file publishes ~16:30
+day parse from SQLite instead of re-downloading. A 404 on both hosts for a
+date **before** today (IST) that the NSE holiday table lists is a holiday —
+cached as an empty marker so future walks skip it without a request; any other
+past weekday 404 is not cached. A 404 on *today* is NOT cached (the file publishes ~16:30
 IST; caching the miss would blind the rest of the day to the real file).
 
 Session discipline
@@ -57,9 +58,10 @@ Session discipline
 One shared :class:`httpx.AsyncClient` with a realistic desktop UA + the
 nseindia.com referer, a 30 s read timeout, and a light inter-request throttle.
 On 401/403/429 or a transport error the fallback endpoint is tried once for
-the same date; if that also fails, :func:`fetch_latest` returns ``None`` (the
-caller degrades) — never a retry storm. Failures surface via the ``None``
-return and a ``logger.warning``; this upstream is exchange archives, NOT the
+the same date (a primary 404 tries it too, walking back when it also 404s);
+if that also fails, :func:`fetch_latest` returns ``None`` (the caller degrades)
+— never a retry storm. Failures surface via the ``None`` return and a
+``logger.warning``; this upstream is exchange archives, NOT the
 Yahoo family, so it deliberately does not report into
 ``services.provider_health``.
 
@@ -84,6 +86,7 @@ from datetime import date, datetime, timedelta, timezone
 import httpx
 
 from services import data_cache
+from services.locale import REGION_IN, _is_trading_day
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +118,10 @@ _HEADERS = {
     "Accept": "text/csv, application/zip, */*",
 }
 _TIMEOUT = httpx.Timeout(30.0, connect=10.0)
+
+#: Unexplained trading-day 404s (both hosts, not a calendar holiday) in one walk
+#: before a WARNING names the URL: the archive path has likely moved.
+_UNEXPLAINED_MISSING_WARN_AFTER = 2
 
 #: Light throttle — minimum spacing between consecutive archive requests.
 _MIN_REQUEST_INTERVAL_SECONDS = 0.75
@@ -330,22 +337,27 @@ def _ist_today() -> date:
 async def _fetch_day(day: date) -> tuple[str, dict[str, BhavRow] | None]:
     """Fetch + parse one date. Returns ``(status, rows)``.
 
-    ``status`` is ``"ok"`` (rows present), ``"missing"`` (404 — holiday or not
-    yet published) or ``"failed"`` (blocked / transport error on the primary
-    AND the once-only fallback — the walk must stop and degrade).
+    ``status`` is ``"ok"`` (rows present), ``"missing"`` (a 404 and no host
+    served the day — a holiday, not yet published, or a moved path) or
+    ``"failed"`` (blocked / transport error on the primary AND the once-only
+    fallback — the walk must stop and degrade). A primary 404 still tries the
+    fallback host: the two archives are separate paths, and one moving must
+    not read as a holiday (R15-LIFECYCLE-022).
     """
     primary = _UDIFF_URL.format(ymd=day.strftime("%Y%m%d"))
     fallback = _SEC_FULL_URL.format(dmy=day.strftime("%d%m%Y"))
+    missing = False
     for attempt, url in enumerate((primary, fallback)):
         try:
             resp = await _throttled_get(url)
         except httpx.HTTPError as exc:
-            logger.warning("nse_bhavcopy: request failed for %s (%s)", day, exc)
+            logger.warning(
+                "nse_bhavcopy: request failed for %s (%s: %s)", day, type(exc).__name__, exc
+            )
             continue
         if resp.status_code == 404:
-            # No file for this date — a holiday, or today's not yet published.
-            # The fallback host would 404 identically; don't double-request.
-            return "missing", None
+            missing = True
+            continue
         if resp.status_code != 200:
             logger.warning(
                 "nse_bhavcopy: HTTP %s for %s on %s host — %s",
@@ -359,19 +371,21 @@ async def _fetch_day(day: date) -> tuple[str, dict[str, BhavRow] | None]:
         if rows:
             return "ok", rows
         logger.warning("nse_bhavcopy: %s parsed to zero equity rows on %s", day, resp.url)
-    return "failed", None
+    return ("missing" if missing else "failed"), None
 
 
 async def fetch_latest(max_lookback_days: int = 7) -> BhavcopyResult | None:
     """Return the most recent available NSE equities bhavcopy, or ``None``.
 
     Walks back from today (IST) up to ``max_lookback_days`` calendar days:
-    weekends are skipped without a request, a 404 (holiday / not yet published)
-    walks back one day, and a blocked/failed date — after the once-only
+    weekends are skipped without a request, a 404 on both hosts walks back one
+    day (cached as a holiday only when the NSE holiday table lists it), and a
+    blocked/failed date — after the once-only
     fallback-host attempt — returns ``None`` so the caller degrades (never a
     retry storm). Results are EOD, labeled by ``trade_date`` — never live.
     """
     today = _ist_today()
+    unexplained = 0
     for offset in range(max_lookback_days + 1):
         day = today - timedelta(days=offset)
         if day.weekday() >= 5:  # weekend — NSE never publishes; skip requestless
@@ -387,11 +401,22 @@ async def fetch_latest(max_lookback_days: int = 7) -> BhavcopyResult | None:
             await data_cache.set(_cache_key(day), _rows_to_cache(rows))
             return BhavcopyResult(trade_date=day, rows=rows)
         if status == "missing":
-            if day < today:
-                # A past-date 404 is a holiday — permanent; mark it so future
-                # walks skip the request. Today's 404 just means "not yet
-                # published" (the file lands ~16:30 IST) — never cached.
+            if day < today and not _is_trading_day(day, REGION_IN):
+                # A calendar holiday — permanent; mark it so future walks skip
+                # the request. Today's 404 just means "not yet published" (the
+                # file lands ~16:30 IST) — never cached.
                 await data_cache.set(_cache_key(day), _EMPTY_MARKER)
+            elif day < today:
+                # A past trading day with no file on either host is not a
+                # holiday: never cached, and a run of them is logged (R15-LIFECYCLE-022).
+                unexplained += 1
+                if unexplained == _UNEXPLAINED_MISSING_WARN_AFTER:
+                    logger.warning(
+                        "nse_bhavcopy: %d past trading days 404 on both hosts (latest %s) — "
+                        "has the archive path moved?",
+                        unexplained,
+                        _UDIFF_URL.format(ymd=day.strftime("%Y%m%d")),
+                    )
             continue
         logger.warning("nse_bhavcopy: giving up for %s — caller degrades", day)
         return None

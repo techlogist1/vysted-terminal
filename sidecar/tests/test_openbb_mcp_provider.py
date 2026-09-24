@@ -394,6 +394,25 @@ def test_get_macro_series_maps_observations(recorder: _RecordingClient) -> None:
     assert recorder.calls[0]["arguments"]["provider"] == "fred"
 
 
+def test_get_macro_series_keeps_a_real_zero_observation(recorder: _RecordingClient) -> None:
+    """R15-DATA-084: ``value or series_id`` turned a ZIRP-era 0.0 into a hole."""
+    recorder.respond(
+        "economy_fred_series",
+        [{"date": "2021-01-04", "value": 0.0}, {"date": "2021-01-05", "value": 0.07}],
+    )
+    series = asyncio.run(openbb_mcp_provider.get_macro_series("EFFR"))
+    assert [o.value for o in series.observations] == [0.0, 0.07]
+
+
+def test_get_quote_keeps_a_real_zero_volume(recorder: _RecordingClient) -> None:
+    """The same zero-drop class on the quote's volume fallback (not written against)."""
+    recorder.respond(
+        "equity_price_quote",
+        [{"symbol": "AAPL", "last_price": 100.0, "volume": 0, "exchange_volume": None}],
+    )
+    assert asyncio.run(openbb_mcp_provider.get_quote("AAPL")).volume == 0.0
+
+
 def test_get_macro_series_accepts_provider_override(recorder: _RecordingClient) -> None:
     recorder.respond("economy_fred_series", [{"date": "2025-01-01", "value": 1.0}])
     asyncio.run(openbb_mcp_provider.get_macro_series("GDP", provider="econdb"))

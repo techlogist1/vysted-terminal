@@ -31,20 +31,17 @@ from .ollama import OllamaProvider
 from .openai import OpenAIProvider
 
 # ---------------------------------------------------------------------------
-# OpenAI-shaped base URLs for DeepSeek + xAI dispatch
+# OpenAI-shaped base URLs for DeepSeek + xAI + OpenRouter dispatch
 # ---------------------------------------------------------------------------
-# These are the dispatch defaults baked into ``get_provider`` below. They must
-# match the ``default_base_url`` for deepseek/xai in config/model_registry.json
-# (the registry is the source of truth served to the frontend; these constants
-# are the runtime dispatch fallback when no per-request override is supplied).
+# Read from ``default_base_url`` in config/model_registry.json (the one source,
+# R15-CODE-AGENT-007); ``get_provider`` reads the registry at call time and these
+# names stay as the import-time view. OpenRouter is a unified BROKER (one key,
+# all upstreams): the adapter adds its attribution headers + cheapest-capable
+# provider routing when provider_id is ``"openrouter"``.
 
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-XAI_BASE_URL = "https://api.x.ai/v1"
-#: OpenRouter — a unified BROKER (one key, all upstreams). OpenAI-shaped, so it
-#: rides :class:`OpenAIProvider` with this base url; the adapter adds OpenRouter
-#: attribution headers + cheapest-capable provider routing when provider_id is
-#: ``"openrouter"`` (JARVIS sprint, FINDINGS §2.2).
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEEPSEEK_BASE_URL = model_registry.default_base_url_for("deepseek")
+XAI_BASE_URL = model_registry.default_base_url_for("xai")
+OPENROUTER_BASE_URL = model_registry.default_base_url_for("openrouter")
 
 
 #: Built from the single-source registry (``config/model_registry.json``) so
@@ -91,12 +88,11 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
         return GroqProvider()
     if provider_id == "ollama":
         return OllamaProvider(base_url=base_url)
-    if provider_id == "deepseek":
-        return OpenAIProvider(base_url=base_url or DEEPSEEK_BASE_URL, provider_id="deepseek")
-    if provider_id == "xai":
-        return OpenAIProvider(base_url=base_url or XAI_BASE_URL, provider_id="xai")
-    if provider_id == "openrouter":
-        return OpenAIProvider(base_url=base_url or OPENROUTER_BASE_URL, provider_id="openrouter")
+    if provider_id in ("deepseek", "xai", "openrouter"):
+        return OpenAIProvider(
+            base_url=base_url or model_registry.default_base_url_for(provider_id),
+            provider_id=provider_id,
+        )
     raise ValueError(f"Unknown LLM provider id: {provider_id!r}")
 
 

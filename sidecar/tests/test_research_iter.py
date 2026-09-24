@@ -499,23 +499,17 @@ def test_heavy_synthesis_prompt_carries_the_corporate_action_directive() -> None
     assert all("unverified in this run" in s for s in llm.lead_synthesist_systems)
 
 
-def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
-    """R10 review (E2 — stamp what RAN): if ``run_iter_research`` ever raises,
-    ``_run_loop`` drops to the single-pass ``run_deep_research`` fallback. The
-    closed EXECUTION_LOOPS enum has no label for that path, so the degradation
-    must ride the brief's never-silent ``note`` channel."""
+def test_run_loop_iter_exception_is_never_silent(monkeypatch):
+    """R10 review (E2 — stamp what RAN) + R15-CODE-RESEARCH-003: if
+    ``run_iter_research`` ever raises, ``_run_loop`` returns the honest failure
+    result naming the iter loop and the reason — never a second loop."""
     from services.agent_tools import deep_research as deep_research_tool
-    from services.research import deep
     from services.research.depth import profile_for
 
     async def boom(query: str, **kwargs: Any) -> ResearchBrief:
         raise RuntimeError("iter exploded")
 
-    async def fake_deep(query: str, **kwargs: Any) -> ResearchBrief:
-        return ResearchBrief(query=query, symbol="", mode="deep", markdown="fallback brief")
-
     monkeypatch.setattr(iter_research, "run_iter_research", boom)
-    monkeypatch.setattr(deep, "run_deep_research", fake_deep)
 
     async def llm(messages: list[dict[str, Any]]) -> str:
         return "unused"
@@ -528,8 +522,9 @@ def test_run_loop_deep_fallback_is_never_silent(monkeypatch):
             budget=deep_research_tool._research_budget(profile_for("deep"), 1, 120),
         )
     )
-    assert isinstance(brief, ResearchBrief)
-    assert brief.note is not None and "fallback" in brief.note
+    assert brief["ok"] is False
+    assert brief["execution_loop"] == "iter"
+    assert "iter exploded" in brief["degraded_reason"]
 
 
 # --- R13 filings floor: never "No findings" when structured data exists --------

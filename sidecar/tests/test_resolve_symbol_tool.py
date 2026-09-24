@@ -64,3 +64,38 @@ def test_resolve_symbol_tool_never_blocks_the_event_loop(monkeypatch) -> None:  
         return ticked
 
     assert asyncio.run(main()) < 0.3
+
+
+def test_tool_instrument_is_the_router_payload_including_rename(monkeypatch) -> None:  # noqa: ANN001
+    """R15-CODE-DATA-003: the tool and ``/resolve`` project one ``Instrument`` through
+    the same payload — rename provenance and confidence rounding included."""
+    from datetime import date
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from routers import resolve
+    from services import nse_symbol_change
+
+    async def _no_refresh() -> None:
+        return None
+
+    monkeypatch.setattr(nse_symbol_change, "schedule_refresh", _no_refresh)
+    monkeypatch.setattr(nse_symbol_change, "_ist_today", lambda: date(2026, 7, 10))
+    nse_symbol_change.set_active_map_for_tests(
+        {
+            "GUJGASLTD": nse_symbol_change.SymbolChange(
+                "GUJGASLTD", "GUJENERGY", date(2026, 7, 1), "GUJARAT ENERGY LIMITED"
+            )
+        }
+    )
+    try:
+        tool = asyncio.run(_resolve_symbol({"query": "GUJGASLTD", "region": "IN"}))["resolved"]
+        app = FastAPI()
+        app.include_router(resolve.router)
+        routed = TestClient(app).get("/resolve", params={"q": "GUJGASLTD", "region": "IN"})
+    finally:
+        nse_symbol_change.reset_for_tests()
+    router_payload = routed.json()["resolved"]
+    assert tool["rename"]["effective_date"] == "2026-07-01"
+    assert {key: router_payload[key] for key in tool} == tool

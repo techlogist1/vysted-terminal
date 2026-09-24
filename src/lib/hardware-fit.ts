@@ -6,7 +6,7 @@
  * local model) is gated to the keyless-remote path. Read-only, no secrets.
  */
 
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
 export type FitVerdict = "green" | "marginal" | "red";
 
@@ -40,18 +40,10 @@ export interface HardwareReport {
   referenceCandidates: ScoredModel[];
 }
 
-/** Fetch the hardware report from the sidecar, or `null` if it's unreachable. */
-export async function fetchHardwareReport(): Promise<HardwareReport | null> {
-  try {
-    const base = await getSidecarBaseUrl();
-    const resp = await fetch(new URL("/system/hardware", base).toString());
-    if (!resp.ok) {
-      return null;
-    }
-    return (await resp.json()) as HardwareReport;
-  } catch {
-    return null;
-  }
+/** Fetch the hardware report; a failure throws a `SidecarError` whose message
+ *  names why (the sidecar's reason, or that it is unreachable). */
+export function fetchHardwareReport(): Promise<HardwareReport> {
+  return sidecarGet<HardwareReport>("/system/hardware");
 }
 
 // --- First-run onboarding: local-model recommendation + Ollama setup --------

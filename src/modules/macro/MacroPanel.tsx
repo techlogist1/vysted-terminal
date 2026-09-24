@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { TrendingUp } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
@@ -13,6 +13,15 @@ import { MacroSeriesPicker } from "./MacroSeriesPicker";
 
 const DEFAULT_PROVIDER: MacroProvider = "fred";
 const DEFAULT_SERIES_ID = "DGS10";
+
+/** What a provider tab opens on: the head of that provider's featured catalog,
+ *  so a tab switch never asks one provider for another provider's id. */
+const TAB_DEFAULT_SERIES: Record<MacroProvider, string> = {
+  fred: DEFAULT_SERIES_ID,
+  ecb: "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
+  imf: "IFS/A.US.NGDP_R_K_IX",
+  "world-bank": "NY.GDP.PCAP.CD",
+};
 
 /**
  * Macro panel — picker on top, chart below.
@@ -30,33 +39,54 @@ export function MacroPanel() {
   const select = useMacroStore((s) => s.select);
   const status = useMacroStore((s) => selectSeriesStatus(s, provider, seriesId));
 
-  // Load the default-on-mount series. Subsequent loads happen via the
-  // picker's onSelect callback. The load auto-retries on a cold-boot sidecar
-  // bind (and re-arms on reconnect) so a panel mounted before the sidecar was
-  // ready self-heals instead of latching a permanent error. `loadSeries`
-  // swallows its error into store state, so re-throw on the error status to
-  // signal the retry hook.
-  const loadDefault = useCallback(async () => {
-    select(provider, seriesId);
-    await loadSeries(provider, seriesId);
-    const status = selectSeriesStatus(useMacroStore.getState(), provider, seriesId);
-    if (status?.status === "error") {
-      throw new Error(status.error ?? "macro load failed");
-    }
-  }, [provider, seriesId, loadSeries, select]);
-  useRetryOnSidecarReady(loadDefault, [provider, seriesId]);
+  // Once the user picks a tab or series, the mount default goes inert so a
+  // reconnect re-fire never overrides an explicit choice.
+  const userInteractedRef = useRef(false);
 
+  // Load the default-on-mount series. The load auto-retries on a cold-boot
+  // sidecar bind (and re-arms on reconnect) so a panel mounted before the
+  // sidecar was ready self-heals instead of latching a permanent error.
+  // `loadSeries` swallows its error into store state, so re-throw the kept
+  // original error: the hook retries only a not-ready engine, never a keyless
+  // 502. Only the mount default rides the hook (R15-UI-030).
+  const loadDefault = useCallback(async () => {
+    if (userInteractedRef.current) {
+      return;
+    }
+    select(DEFAULT_PROVIDER, DEFAULT_SERIES_ID);
+    await loadSeries(DEFAULT_PROVIDER, DEFAULT_SERIES_ID);
+    const status = selectSeriesStatus(
+      useMacroStore.getState(),
+      DEFAULT_PROVIDER,
+      DEFAULT_SERIES_ID,
+    );
+    if (status?.status === "error") {
+      throw status.cause;
+    }
+  }, [loadSeries, select]);
+  useRetryOnSidecarReady(loadDefault, []);
+
+  // A user choice is one explicit request; a failure shows its Retry.
   const onSelect = (nextProvider: MacroProvider, nextSeriesId: string) => {
+    userInteractedRef.current = true;
     setProvider(nextProvider);
     setSeriesId(nextSeriesId);
+    select(nextProvider, nextSeriesId);
+    void loadSeries(nextProvider, nextSeriesId);
   };
+  const onProviderChange = (nextProvider: MacroProvider) =>
+    onSelect(nextProvider, TAB_DEFAULT_SERIES[nextProvider]);
 
   return (
     <div
       className="bg-charcoal-900 text-charcoal-100 flex h-full flex-col"
       data-testid="macro-panel"
     >
-      <MacroSeriesPicker provider={provider} onProviderChange={setProvider} onSelect={onSelect} />
+      <MacroSeriesPicker
+        provider={provider}
+        onProviderChange={onProviderChange}
+        onSelect={onSelect}
+      />
       <div className="flex-1 overflow-hidden">
         {status?.status === "loading" ? (
           // Chart-shaped pulse skeleton + an honest meta line — never a bare

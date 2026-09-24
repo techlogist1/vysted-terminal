@@ -50,19 +50,76 @@ def _is_rate_limited(exc: BaseException) -> bool:
     return False
 
 
+#: yfinance's "Yahoo answered, no such ticker / no bars" family (YFTzMissingError
+#: and YFPricesMissingError subclass it), matched by type name like the rate limit.
+_MISSING_TICKER_ERRORS = frozenset({"YFTickerMissingError"})
+
+#: Transport failures across the HTTP stacks yfinance and its callers use
+#: (curl_cffi, requests, httpx, the builtins), matched on any class in the MRO.
+_NETWORK_ERROR_NAMES = frozenset(
+    {
+        "ConnectionError",
+        "ConnectError",
+        "ProxyError",
+        "Timeout",
+        "TimeoutError",
+        "TimeoutException",
+        "DNSError",
+    }
+)
+
+
+def _chain(exc: BaseException) -> list[BaseException]:
+    """``exc`` and its cause/context chain, cycle-safe."""
+    seen: list[BaseException] = []
+    node: BaseException | None = exc
+    while node is not None and all(node is not s for s in seen):
+        seen.append(node)
+        node = node.__cause__ or node.__context__
+    return seen
+
+
+def _has_class_named(exc: BaseException, names: frozenset[str]) -> bool:
+    return any(cls.__name__ in names for node in _chain(exc) for cls in type(node).__mro__)
+
+
 def _provider_error(action: str, symbol: str, exc: BaseException) -> ProviderError:
     """Wrap a yfinance failure as a classified :class:`ProviderError` (R11/D53).
 
     A rate-limit is reported to the Yahoo-family circuit breaker and carries
     ``kind="rate_limited"`` so callers stop mislabelling throttles as
-    ``no_data``/``correctness_gate``."""
+    ``no_data``/``correctness_gate``; a missing ticker is ``not_found`` and a
+    transport failure ``network`` (D-B8-10)."""
     if _is_rate_limited(exc):
         provider_health.record_rate_limited(provider_health.YAHOO)
         return ProviderError(
             f"yfinance {action} rate-limited for {symbol!r}: {exc}",
             kind="rate_limited",
         )
-    return ProviderError(f"yfinance {action} failed for {symbol!r}: {exc}")
+    message = f"yfinance {action} failed for {symbol!r}: {exc}"
+    if _has_class_named(exc, _MISSING_TICKER_ERRORS):
+        return ProviderError(message, kind="not_found")
+    if _has_class_named(exc, _NETWORK_ERROR_NAMES):
+        return ProviderError(message, kind="network")
+    return ProviderError(message)
+
+
+def _surface_fetch_error(
+    ticker: Any, period: str = "5d", interval: str = "1d"
+) -> BaseException | None:
+    """Re-fetch ``ticker``'s bars with yfinance's errors raised for this one call
+    (not the process-wide ``hide_exceptions`` flag), returning what went wrong
+    (``None`` when the fetch succeeds).
+
+    yfinance hides fetch failures: ``history`` returns an empty frame and
+    ``fast_info`` raises its internal ``'PriceHistory' object has no attribute
+    '_dividends'`` for a missing ticker and a dead network alike, so a failed or
+    empty fetch asks Yahoo once more to learn which."""
+    try:
+        ticker.history(period=period, interval=interval, raise_errors=True)
+    except Exception as exc:  # noqa: BLE001 - the caller classifies it
+        return exc
+    return None
 
 
 # Public timeframe -> (yfinance interval, default lookback period).
@@ -334,14 +391,17 @@ def get_quote(symbol: str) -> Quote:
     old path turned ``RELIANCE.NS`` into ``RELIANCE-NS``, which Yahoo 502s on.
     """
     normalized = _yahoo_symbol(symbol)
+    ticker = yf.Ticker(normalized)
     try:
-        fast = yf.Ticker(normalized).fast_info
+        fast = ticker.fast_info
         price = float(fast.last_price)
         prev = float(fast.previous_close)
         volume = getattr(fast, "last_volume", None)
         currency = getattr(fast, "currency", None) or "USD"
+        timestamp = _quote_time(ticker)
     except Exception as exc:  # noqa: BLE001 - any yfinance failure is a provider error
-        raise _provider_error("quote", symbol, exc) from exc
+        cause = _surface_fetch_error(ticker) or exc
+        raise _provider_error("quote", symbol, cause) from exc
 
     provider_health.record_success(provider_health.YAHOO)
     change = price - prev
@@ -353,9 +413,29 @@ def get_quote(symbol: str) -> Quote:
         change_percent=change_percent,
         volume=_num(volume),
         currency=str(currency),
-        timestamp=_utcnow(),
+        timestamp=timestamp,
         provider=PROVIDER,
     )
+
+
+def _quote_time(ticker: Any) -> datetime:
+    """When the quoted price traded (R15-LEAD-005): Yahoo's ``regularMarketTime``
+    from the history fetch ``fast_info`` priced from, else the last bar's time —
+    never now(), which would date a closed market's last print as current.
+
+    yfinance keeps ``regularMarketTime`` as epoch seconds until it formats the
+    metadata into an exchange-local ``Timestamp``; both normalize to UTC."""
+    market_time = ticker.get_history_metadata().get("regularMarketTime")
+    if market_time is None:
+        market_time = ticker.history(period="5d", interval="1d").index[-1]
+    stamp = (
+        pd.Timestamp(market_time, unit="s")
+        if isinstance(market_time, (int, float))
+        else pd.Timestamp(market_time)
+    )
+    if stamp.tzinfo is None:
+        stamp = stamp.tz_localize("UTC")
+    return stamp.tz_convert("UTC").to_pydatetime()
 
 
 def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCVSeries:
@@ -368,14 +448,25 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     volume (DAL.BO: 1,238 bars, 33 traded). Those bars are not trades, so they
     are dropped (R15-DATA-016); a zero-volume bar whose prices move (an index)
     is kept.
+
+    yfinance hides fetch exceptions, returning an empty frame for a dead network
+    too, so an empty frame is re-asked with errors raised: an outage is a
+    ``network`` error, never an empty series; Yahoo answering with no bars
+    (``YFTickerMissingError``) stays the empty series the history route
+    downgrades to "no price data".
     """
     normalized = _yahoo_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
     period = range_ or default_period
+    ticker = yf.Ticker(normalized)
     try:
-        frame = yf.Ticker(normalized).history(period=period, interval=interval)
+        frame = ticker.history(period=period, interval=interval)
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("history", symbol, exc) from exc
+    if frame.empty:
+        hidden = _surface_fetch_error(ticker, period, interval)
+        if hidden is not None and not _has_class_named(hidden, _MISSING_TICKER_ERRORS):
+            raise _provider_error("history", symbol, hidden) from hidden
     provider_health.record_success(provider_health.YAHOO)
 
     bars: list[OHLCVBar] = []

@@ -36,8 +36,7 @@
     },
     "defaultProvider": {
       "type": "string",
-      "enum": ["anthropic", "openai", "gemini", "groq", "ollama", "deepseek", "xai"],
-      "description": "Default `LLMProviderId` (one of the seven BYOK providers). User may override at invocation time."
+      "description": "Default `LLMProviderId`. User may override at invocation time. No enum here: the loader (`agent_runtime._load_schema`) fills it from `config/model_registry.json` provider ids, the one source."
     },
     "defaultModel": {
       "type": "string",

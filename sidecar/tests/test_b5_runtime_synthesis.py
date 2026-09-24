@@ -15,7 +15,7 @@ import pytest
 from models.llm import LLMDeltaEvent, LLMDoneEvent
 from services.budget_guard import BudgetGuard
 from services.llm import oneshot
-from services.research.deep import SYNTHESIS_TRUNCATED_NOTE, run_deep_research
+from services.research.deep import SYNTHESIS_TRUNCATED_NOTE
 from services.research.iter import run_iter_research
 
 
@@ -58,11 +58,8 @@ def _brief(monkeypatch: pytest.MonkeyPatch, loop: Any, finish_reason: str) -> An
     )
 
 
-@pytest.mark.parametrize("loop", [run_iter_research, run_deep_research], ids=["iter", "deep"])
-def test_synthesis_cut_at_max_tokens_notes_the_brief(
-    monkeypatch: pytest.MonkeyPatch, loop: Any
-) -> None:
-    brief = _brief(monkeypatch, loop, "max_tokens")
+def test_synthesis_cut_at_max_tokens_notes_the_brief(monkeypatch: pytest.MonkeyPatch) -> None:
+    brief = _brief(monkeypatch, run_iter_research, "max_tokens")
     assert SYNTHESIS_TRUNCATED_NOTE in (brief.note or "")
 
 

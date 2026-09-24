@@ -55,6 +55,15 @@ def test_price_table_unknown_falls_back_to_default() -> None:
     assert price_per_million("xai", "mystery-model") == DEFAULT_RATE_PER_M
 
 
+def test_openrouter_free_slug_is_unmetered_and_priced_slugs_keep_their_rate() -> None:
+    """R15-LEAD-019: an OpenRouter ``:free`` slug records no spend against the
+    ceiling (OpenRouter's convention), even one a priced substring would match."""
+    assert price_per_million("openrouter", "nvidia/nemotron-3-super-120b-a12b:free") == 0.0
+    assert price_per_million("openrouter", "meta-llama/llama-3.3-70b-instruct:free") == 0.0
+    assert price_per_million("openrouter", "anthropic/claude-3-opus") == 18.0
+    assert price_per_million("openrouter", "meta-llama/llama-3.3-70b-instruct") == 0.6
+
+
 def test_estimate_spend_is_tokens_times_rate() -> None:
     """1M tokens at $30/1M == $30; linear below that."""
     assert estimate_spend_usd("anthropic", "claude-opus", 1_000_000) == 30.0

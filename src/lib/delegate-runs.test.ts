@@ -1,9 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
-  getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
+// The runs go through the real `sidecarRequest`; the core reports a bound engine.
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn(async () => ({ port: 51763, state: "ready", reason: null })),
 }));
+
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+
+// Resolve (and cache) the base URL up front so each test's fetch stub sees
+// only the run requests, never the one-off `/health` readiness probe.
+beforeEach(async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+  await getSidecarBaseUrl();
+});
 
 import {
   adoptSidecarRuns,
@@ -219,6 +228,29 @@ describe("delegate-runs — sidecar truth", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ cancelled: true })));
     expect(await cancelDelegateRun("run-4")).toEqual({ ok: true });
     expect(useAgentRunsStore.getState().runs.find((r) => r.id === id)?.status).toBe("cancelled");
+  });
+
+  it("a refused cancel names the sidecar's reason, not an HTTP code (class pin, R15-CODE-PLATFORM-011)", async () => {
+    useAgentRunsStore.getState().startRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      mode: "delegate",
+      sidecarRunId: "run-5",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        statusText: "Conflict",
+        json: () => Promise.resolve({ detail: "run already finished" }),
+      }),
+    );
+
+    expect(await cancelDelegateRun("run-5")).toEqual({
+      ok: false,
+      error: "Cancel failed (run already finished) — retry.",
+    });
   });
 
   it("a rejected launch shows the 422 field errors, not [object Object]", async () => {

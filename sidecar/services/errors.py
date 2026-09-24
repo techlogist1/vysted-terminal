@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
+
+ProviderErrorKind = Literal["rate_limited", "not_found", "network"]
 
 
 class ProviderError(RuntimeError):
@@ -32,12 +34,53 @@ class ProviderError(RuntimeError):
       - ``"rate_limited"`` — the upstream throttled the request (HTTP 429 /
         ``YFRateLimitError``). Callers should back off / consult the circuit
         breaker and report the skip as ``rate_limited``, never ``no_data``.
+      - ``"not_found"`` — the upstream answered and has no such instrument or
+        series.
+      - ``"network"`` — the upstream could not be reached (connection refused,
+        DNS failure, timeout).
       - ``None`` — unclassified (the pre-R11 behaviour, handled as before).
     """
 
-    def __init__(self, message: str, *, kind: str | None = None) -> None:
+    def __init__(self, message: str, *, kind: ProviderErrorKind | None = None) -> None:
         super().__init__(message)
         self.kind = kind
+
+
+#: The one ProviderError -> HTTP mapping (D-B8-10): per kind the status, the
+#: ``code``, the sentence the panel shows and the next step. A classified
+#: failure's raw upstream text goes to the sidecar log only; an unclassified one
+#: keeps the provider layer's own message (e.g. "FRED needs a free API key").
+_PROVIDER_ERROR_HTTP: dict[str | None, tuple[int, str, str | None, str]] = {
+    "rate_limited": (
+        429,
+        "rate_limited",
+        "The data provider is throttled right now — try again shortly.",
+        "Wait a minute, then retry.",
+    ),
+    "not_found": (
+        404,
+        "not_found",
+        "The data provider has no data for this symbol or series — check the symbol.",
+        "Check the symbol or series id.",
+    ),
+    "network": (
+        503,
+        "network",
+        "Could not reach the data provider — check your internet connection.",
+        "Retry once you are back online.",
+    ),
+    None: (502, "provider_error", None, "Retry, or try again later."),
+}
+
+
+def provider_error_response(exc: ProviderError) -> tuple[int, dict[str, str]]:
+    """``(status, body)`` for a data-route :class:`ProviderError` (C5).
+
+    ``body`` is ``{"detail": <sentence>, "code": <kind>, "action": <next step>}``;
+    ``detail`` stays a string so the frontend's ``SidecarError`` reads it as
+    before."""
+    status, code, sentence, action = _PROVIDER_ERROR_HTTP[exc.kind]
+    return status, {"detail": sentence or str(exc), "code": code, "action": action}
 
 
 # ---------------------------------------------------------------------------
@@ -327,26 +370,16 @@ def humanize(
         )
 
     # -----------------------------------------------------------------------
-    # Exception class / message heuristics (no HTTP status available)
+    # Exception class heuristics (no HTTP status available). Class names only:
+    # a message that merely mentions "connection" or "parse" is not evidence
+    # the provider failed (R15-AGENT-030).
     # -----------------------------------------------------------------------
 
     if exc is not None:
         cls_name = type(exc).__name__.lower()
-        exc_str = str(exc).lower()
 
         # Timeout / connection errors
-        if any(
-            kw in cls_name or kw in exc_str
-            for kw in (
-                "timeout",
-                "timedout",
-                "connection",
-                "connect",
-                "connectionerror",
-                "connecttimeout",
-                "connecterror",
-            )
-        ):
+        if any(kw in cls_name for kw in ("timeout", "timedout", "connect")):
             return HumanError(
                 message=f"Could not reach {label} — check your network.",
                 action="Check your internet connection and try again.",
@@ -355,7 +388,7 @@ def humanize(
             )
 
         # SSL errors
-        if any(kw in cls_name or kw in exc_str for kw in ("ssl", "certificate", "sslerror")):
+        if any(kw in cls_name for kw in ("ssl", "certificate")):
             return HumanError(
                 message=f"A TLS/SSL error occurred connecting to {label}.",
                 action="Check your network or try a different connection.",
@@ -363,17 +396,8 @@ def humanize(
                 code="network",
             )
 
-        # JSON / parse errors.
-        # For json.JSONDecodeError (and jsonparse): class name match alone is
-        # sufficient — the stdlib exception message ("Expecting value: line 1
-        # column 1 (char 0)") contains none of "json/parse/decode", so the
-        # AND condition would silently fall through to "unknown".
-        # For the broad ValueError: keep the AND to stay precise.
-        _json_class = any(kw in cls_name for kw in ("jsondecode", "jsonparse"))
-        _value_error_json = cls_name == "valueerror" and any(
-            kw in exc_str for kw in ("json", "parse", "decode")
-        )
-        if _json_class or _value_error_json:
+        # JSON / parse errors (json.JSONDecodeError and the like).
+        if any(kw in cls_name for kw in ("jsondecode", "jsonparse")):
             return HumanError(
                 message=f"{label} returned an unreadable response.",
                 action="Try again; if the problem persists, check the provider's status page.",
@@ -431,22 +455,20 @@ def humanize(
     )
 
 
-def error_frame(exc: BaseException, *, provider_id: str | None = None) -> dict[str, Any]:
-    """An SSE-ready ``{kind:"error", message, action, detail, code}`` frame.
+def error_frame(exc: BaseException) -> dict[str, Any]:
+    """The SSE ``{kind:"error", message, action, detail, code:"internal"}`` frame
+    both SSE routers' last-resort guards emit.
 
-    The single home for turning a crash into the wire error frame both SSE
-    routers emit, so the chat renders plain language + a next step with the raw
-    text behind a toggle — never a naked provider blob. Never raises; degrades
-    to ``str(exc)`` as the message if humanization itself fails.
+    The adapters humanize their own provider failures into error events, so an
+    exception reaching a router guard is the terminal's own fault (runtime,
+    tool, store) — never blamed on the provider or the user's network
+    (R15-AGENT-030). The raw ``type: message`` rides ``detail`` behind the UI's
+    "Show details" toggle.
     """
-    try:
-        h = humanize(provider_id, exc)
-        return {
-            "kind": "error",
-            "message": h.message,
-            "action": h.action,
-            "detail": h.detail,
-            "code": h.code,
-        }
-    except Exception:  # noqa: BLE001 — the guard must never raise
-        return {"kind": "error", "message": str(exc)}
+    return {
+        "kind": "error",
+        "message": "The terminal hit an internal error.",
+        "action": "Try again; if it keeps happening, restart Vysted.",
+        "detail": f"{type(exc).__name__}: {exc}",
+        "code": "internal",
+    }

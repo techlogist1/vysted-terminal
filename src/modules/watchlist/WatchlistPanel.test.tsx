@@ -19,8 +19,15 @@ vi.mock("@/lib/sidecar-client", async () => {
   return { ...actual, sidecarGet: (...args: unknown[]) => autocompleteMock(...args) };
 });
 
+vi.mock("@/lib/host-actions", async () => ({
+  ...(await vi.importActual<typeof import("@/lib/host-actions")>("@/lib/host-actions")),
+  loadSymbolIntoChart: vi.fn(),
+  openCompanyOverview: vi.fn(),
+}));
+
 const { fetchWatchlistQuotes } = await import("./api");
 const mockFetch = vi.mocked(fetchWatchlistQuotes);
+const hostActions = await import("@/lib/host-actions");
 
 function quote(
   symbol: string,
@@ -66,6 +73,19 @@ afterEach(() => {
 });
 
 describe("WatchlistPanel", () => {
+  it("a crypto row opens its chart, an equity row the company overview (R15-DATA-081)", async () => {
+    vi.mocked(hostActions.loadSymbolIntoChart).mockClear();
+    vi.mocked(hostActions.openCompanyOverview).mockClear();
+    render(<WatchlistPanel />);
+    fireEvent.click(await screen.findByText("BTC/USDT"));
+    expect(hostActions.loadSymbolIntoChart).toHaveBeenCalledWith("BTC/USDT");
+    expect(hostActions.openCompanyOverview).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText("NVDA"));
+    expect(hostActions.openCompanyOverview).toHaveBeenCalledWith("NVDA");
+    expect(hostActions.loadSymbolIntoChart).toHaveBeenCalledTimes(1);
+  });
+
   it("shows a loading state before quotes resolve", () => {
     // Never resolve so we stay in the loading/skeleton state.
     mockFetch.mockReturnValue(new Promise(() => {}));

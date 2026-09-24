@@ -25,6 +25,7 @@ import { sidecarGet } from "@/lib/sidecar-client";
 
 import {
   selectCatalog,
+  selectCatalogError,
   selectSearchResults,
   selectSelected,
   selectSeriesStatus,
@@ -147,6 +148,16 @@ describe("useMacroStore — loadCatalog", () => {
     await useMacroStore.getState().loadCatalog("fred");
     await useMacroStore.getState().loadCatalog("fred");
     expect(sidecarGet).toHaveBeenCalledTimes(1);
+  });
+
+  it("records a failed load instead of swallowing it (R15-UI-029)", async () => {
+    vi.mocked(sidecarGet).mockRejectedValueOnce(new Error("engine not up"));
+    await useMacroStore.getState().loadCatalog("ecb");
+    expect(selectCatalogError(useMacroStore.getState(), "ecb")).toBe("engine not up");
+
+    vi.mocked(sidecarGet).mockResolvedValueOnce(SAMPLE_CATALOG);
+    await useMacroStore.getState().loadCatalog("ecb");
+    expect(selectCatalogError(useMacroStore.getState(), "ecb")).toBeUndefined();
   });
 });
 

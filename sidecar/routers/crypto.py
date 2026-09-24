@@ -19,7 +19,7 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from models.market import OHLCVSeries, Quote
 from services import ccxt_provider
-from services.errors import ProviderError
+from services.errors import ProviderError, provider_error_response
 
 router = APIRouter(prefix="/crypto", tags=["crypto"])
 
@@ -63,6 +63,7 @@ async def crypto_stream(websocket: WebSocket, exchange: str, symbol: str) -> Non
     except WebSocketDisconnect:
         pass
     except ProviderError as exc:
-        await websocket.close(code=1011, reason=str(exc)[:120])
+        _status, body = provider_error_response(exc)
+        await websocket.close(code=1011, reason=body["detail"][:120])
     finally:
         await stream.aclose()

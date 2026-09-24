@@ -1,8 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
+// Start/resume go through the real `sidecarRequest`; the core reports a bound engine.
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn(async () => ({ port: 51763, state: "ready", reason: null })),
 }));
 vi.mock("@/lib/keychain", () => ({
   KEYCHAIN_NAMESPACES: { llmProvider: (id: string) => `llm-provider:${id}` },
@@ -11,8 +12,12 @@ vi.mock("@/lib/keychain", () => ({
 }));
 
 import { stopDelegatePolling } from "@/lib/delegate-runs";
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { AgentsRail } from "@/modules/chat/AgentsRail";
 import { resetAgentRunsStoreForTests, useAgentRunsStore } from "@/store/agent-runs";
+
+/** The region and research-tier headers every sidecar request carries. */
+const SIDECAR_HEADERS = { "X-Vysted-Region": "IN", "X-Vysted-Research-Tier": "tier_a" };
 
 function seedErroredRun(): string {
   const store = useAgentRunsStore.getState();
@@ -28,7 +33,13 @@ function seedErroredRun(): string {
 }
 
 describe("AgentsRail", () => {
-  beforeEach(() => resetAgentRunsStoreForTests());
+  beforeEach(async () => {
+    resetAgentRunsStoreForTests();
+    // Resolve (and cache) the base URL so each test's fetch stub sees only the
+    // run requests, never the one-off `/health` readiness probe.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    await getSidecarBaseUrl();
+  });
   afterEach(() => {
     cleanup();
     stopDelegatePolling();
@@ -50,7 +61,7 @@ describe("AgentsRail", () => {
     const [url, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/resume"))!;
     expect(String(url)).toBe("http://127.0.0.1:51763/runs/run-5/resume");
     expect(init.method).toBe("POST");
-    expect(init.headers).toEqual({ "X-LLM-Api-Key": "sk-or-test" });
+    expect(init.headers).toEqual({ ...SIDECAR_HEADERS, "X-LLM-Api-Key": "sk-or-test" });
     expect(init.body).toBeUndefined();
   });
 
@@ -95,6 +106,6 @@ describe("AgentsRail", () => {
     );
     const [url, init] = fetchMock.mock.calls.find(([u]) => String(u).endsWith("/start"))!;
     expect(String(url)).toBe("http://127.0.0.1:51763/runs/run-6/start");
-    expect(init.headers).toEqual({ "X-LLM-Api-Key": "sk-or-test" });
+    expect(init.headers).toEqual({ ...SIDECAR_HEADERS, "X-LLM-Api-Key": "sk-or-test" });
   });
 });

@@ -23,25 +23,6 @@ from typing import Any
 from services.agent_tools import register_tool
 
 
-def _instrument_dict(instrument: Any) -> dict[str, Any]:
-    return {
-        "symbol": instrument.symbol,
-        "name": instrument.name,
-        "exchange": instrument.exchange,
-        "region": instrument.region,
-        "asset_class": instrument.asset_class,
-        "yahoo_symbol": instrument.yahoo_symbol,
-        "confidence": round(instrument.score, 3),
-        # R13 additive identity enrichment — carried so the research target
-        # (target.py) can anchor web queries + relevance on the ISIN / exchange /
-        # industry, not just a colliding ≤3-char ticker. Null, never fabricated.
-        "isin": instrument.isin,
-        "bse_code": instrument.bse_code,
-        "industry": instrument.industry,
-        "former_name": instrument.former_name,
-    }
-
-
 async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
     """Resolve ``query`` to an instrument + ranked candidates (locale-aware).
 
@@ -85,7 +66,7 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
             "candidates": [],
         }
     decision = resolution_policy.decide(resolution)
-    candidates = [_instrument_dict(c) for c in decision.candidates]
+    candidates = [symbol_resolver.instrument_payload(c) for c in decision.candidates]
 
     if decision.outcome == "bound":
         return {
@@ -94,7 +75,7 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
             "region": region,
             "status": "bound",
             "reason": decision.reason,
-            "resolved": _instrument_dict(decision.instrument),
+            "resolved": symbol_resolver.instrument_payload(decision.instrument),
             "needs_disambiguation": False,
             "candidates": candidates,
         }

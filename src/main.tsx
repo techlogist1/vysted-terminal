@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { invoke } from "@tauri-apps/api/core";
 
 // JetBrains Mono — the SINGLE family across every text role (VYSTED_DESIGN.md).
 // Hierarchy is built from size + weight alone (400 / 500 / 700); there is no
@@ -14,7 +15,23 @@ import "./app/globals.css";
 
 import Page from "./app/page";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+/** A release build has no console: React render errors (a panel's, caught by
+ *  its boundary, or an uncaught one) also go to the diagnostics log
+ *  (R15-LIFECYCLE-023). Outside the Tauri shell the invoke fails: console only. */
+function logRenderError(kind: "caught" | "uncaught") {
+  return (error: unknown, info: { componentStack?: string }) => {
+    console.error(error);
+    const text = error instanceof Error ? (error.stack ?? error.message) : String(error);
+    void invoke("diag_log_line", {
+      line: `[renderer] ${kind} render error: ${text}${info.componentStack ?? ""}`,
+    }).catch(() => undefined);
+  };
+}
+
+ReactDOM.createRoot(document.getElementById("root")!, {
+  onCaughtError: logRenderError("caught"),
+  onUncaughtError: logRenderError("uncaught"),
+}).render(
   <React.StrictMode>
     <Page />
   </React.StrictMode>,

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from services.errors import HumanError, ProviderError, humanize
+from services.errors import HumanError, ProviderError, error_frame, humanize
 
 # ---------------------------------------------------------------------------
 # ProviderError smoke test
@@ -455,3 +455,27 @@ def test_anthropic_low_credit_400_is_insufficient_credit() -> None:
 def test_plain_rate_limit_429_still_says_wait() -> None:
     h = humanize("openai", _FakeExc("Rate limit reached for requests per min (RPM)", 429))
     assert h.code == "rate_limit"
+
+
+# ---------------------------------------------------------------------------
+# R15-AGENT-030: internal crashes are not blamed on the provider or network
+# ---------------------------------------------------------------------------
+
+
+def test_router_guard_frame_is_internal_not_network() -> None:
+    frame = error_frame(RuntimeError("runs_store: database connection is closed"))
+    assert frame["code"] == "internal"
+    assert "network" not in frame["message"].lower()
+    assert frame["detail"] == "RuntimeError: runs_store: database connection is closed"
+
+
+def test_humanize_still_classifies_a_real_connect_error_by_class() -> None:
+    import httpx
+
+    assert humanize("openai", httpx.ConnectError("x")).code == "network"
+
+
+def test_humanize_ignores_network_words_in_a_non_network_message() -> None:
+    """The class case the fix was not written against: a ValueError whose text
+    mentions a connection pool timeout is not a network failure."""
+    assert humanize("openai", ValueError("connection pool timeout")).code != "network"

@@ -296,6 +296,44 @@ def test_invented_ticker_reads_unresolved_not_no_quote(monkeypatch: pytest.Monke
     assert "no quote" not in invented["note"]
 
 
+def test_two_symbol_failure_carries_the_unresolved_reason(monkeypatch: pytest.MonkeyPatch) -> None:
+    # R15-AGENT-045 (batch-7 not certified): with only COCHINSHIP quoting, the
+    # ok:false payload said "1 of 2 returned a quote" and dropped MAZAGONDOCK's
+    # own reason, so the model still reported a missing quote.
+    _patch_registry(
+        monkeypatch,
+        quotes={"COCHINSHIP": _quote("COCHINSHIP")},
+        series={"COCHINSHIP": _series("COCHINSHIP", first=100.0, last=120.0)},
+        fundamentals={"COCHINSHIP": _fundamentals("COCHINSHIP")},
+        quote_errors={"MAZAGONDOCK"},
+    )
+
+    result = asyncio.run(_compare_symbols({"symbols": ["COCHINSHIP", "MAZAGONDOCK"]}))
+
+    assert result["ok"] is False
+    assert "MAZAGONDOCK: unresolved name" in result["message"]
+    failed = next(s for s in result["symbols"] if s["symbol"] == "MAZAGONDOCK")
+    assert failed["error"].startswith("unresolved name")
+
+
+def test_three_symbol_failure_names_every_failed_input(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Not the case the fix was written against: two of three fail, for different
+    # reasons (an invented ticker, a known listing with no quote).
+    _patch_registry(
+        monkeypatch,
+        quotes={"COCHINSHIP": _quote("COCHINSHIP")},
+        series={"COCHINSHIP": _series("COCHINSHIP", first=100.0, last=120.0)},
+        fundamentals={"COCHINSHIP": _fundamentals("COCHINSHIP")},
+        quote_errors={"MAZAGONDOCK", "TCS", "TCS.NS"},
+    )
+
+    result = asyncio.run(_compare_symbols({"symbols": ["COCHINSHIP", "MAZAGONDOCK", "TCS"]}))
+
+    assert result["ok"] is False
+    assert "MAZAGONDOCK: unresolved name" in result["message"]
+    assert "TCS.NS: no quote for TCS.NS" in result["message"]
+
+
 def test_company_name_is_compared_under_its_resolved_listing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

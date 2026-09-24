@@ -10,7 +10,13 @@
 
 import { normalizeBriefDepth } from "@/lib/brief-ingest";
 import { buildSearchHeaders } from "@/lib/search-headers";
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SIDECAR_UNREACHABLE,
+  SidecarError,
+  sidecarFetch,
+} from "@/lib/sidecar-client";
 import { useBriefStore } from "@/store/brief";
 import { useSettingsStore } from "@/store/settings";
 import type {
@@ -278,7 +284,7 @@ async function consumeSseStream(
         requestHeaders[key] = value;
       }
     }
-    const response = await fetch(url.toString(), {
+    const response = await sidecarFetch(url.toString(), {
       method: "POST",
       headers: requestHeaders,
       body,
@@ -289,14 +295,20 @@ async function consumeSseStream(
       return;
     }
     if (!response.ok || !response.body) {
-      const detail = await safeReadDetail(response);
-      throw new Error(detail ?? `sidecar returned ${response.status}`);
+      // The same humanizing as the REST client: a FastAPI `detail` (a string,
+      // or a 422 field-error array) — never the raw JSON body (R15-UI-012).
+      const fallback = `sidecar returned ${response.status}`;
+      const parsed: unknown = await response.json().catch(() => null);
+      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
     }
     reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
     for (;;) {
-      const { done, value } = await reader.read();
+      // The engine dying mid-stream rejects the read like a refused fetch does.
+      const { done, value } = await reader.read().catch((err: unknown) => {
+        throw handlers.signal?.aborted ? err : new SidecarError(0, SIDECAR_UNREACHABLE);
+      });
       if (done || stalled) {
         break;
       }
@@ -438,15 +450,6 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
     return frame;
   }
   return null;
-}
-
-async function safeReadDetail(response: Response): Promise<string | null> {
-  try {
-    const text = await response.text();
-    return text.slice(0, 500);
-  } catch {
-    return null;
-  }
 }
 
 function toError(err: unknown): Error {

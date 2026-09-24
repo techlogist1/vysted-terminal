@@ -30,7 +30,9 @@ vi.mock("lightweight-charts", () => ({
   AreaSeries: "Area",
 }));
 
-vi.mock("@/lib/sidecar-client", () => ({
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  // The real SidecarError: the retry hook classifies failures by it.
+  SidecarError: (await importOriginal<typeof import("@/lib/sidecar-client")>()).SidecarError,
   getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
   sidecarGet: vi.fn(),
 }));

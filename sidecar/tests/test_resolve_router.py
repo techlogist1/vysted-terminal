@@ -192,3 +192,37 @@ def test_resolve_payload_carries_identity_enrichment(client: TestClient) -> None
     # honest: BMW's industry is genuinely absent in the sector map
     assert resolved["industry"] is None
     assert "former_name" in resolved
+
+
+def test_resolve_reports_the_rename_lane_unavailable_while_no_map_is_loaded(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LIFECYCLE-019: an empty rename map is stated, not silently absorbed."""
+    from services import nse_symbol_change
+
+    async def _no_refresh() -> None:
+        return None
+
+    monkeypatch.setattr(nse_symbol_change, "schedule_refresh", _no_refresh)
+    nse_symbol_change.reset_for_tests()
+    try:
+        body = client.get("/resolve", params={"q": "GUJGASLTD", "region": "IN"}).json()
+        assert body["rename_lane"] == "unavailable"
+        nse_symbol_change.set_active_map_for_tests(
+            {"ZOMATO": nse_symbol_change.SymbolChange("ZOMATO", "ETERNAL", None, None)}
+        )
+        body = client.get("/resolve", params={"q": "GUJGASLTD", "region": "IN"}).json()
+        assert body["rename_lane"] == "available"
+    finally:
+        nse_symbol_change.reset_for_tests()
+
+
+def test_resolve_payload_carries_board_group_and_face_value(client: TestClient) -> None:
+    """R15-DATA-051: the BSE group and the master's face value reach the wire, and
+    an SME listing (BSE group M) is classified SME, never mainboard."""
+    sme = client.get("/resolve", params={"q": "SMR", "region": "IN"}).json()["resolved"]
+    assert (sme["board"], sme["exchange_group"], sme["face_value"]) == ("SME", "M", 10.0)
+    elcid = client.get("/resolve", params={"q": "ELCIDIN", "region": "IN"}).json()["resolved"]
+    assert (elcid["board"], elcid["face_value"]) == ("mainboard", 10.0)
+    us = client.get("/resolve", params={"q": "AAPL", "region": "US"}).json()["resolved"]
+    assert (us["board"], us["exchange_group"], us["face_value"]) == (None, None, None)

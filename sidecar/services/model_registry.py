@@ -113,6 +113,12 @@ def default_model_for(provider: str) -> str:
     return str(row.get("default_model", ""))
 
 
+def default_base_url_for(provider: str) -> str | None:
+    """Return the registry ``default_base_url`` for ``provider`` (``None`` if unset)."""
+    row = _PROVIDERS_BY_ID.get(provider)
+    return None if row is None else row.get("default_base_url")
+
+
 def known_models_for(provider: str) -> list[str]:
     """Return the selectable model ids for ``provider`` (empty list if unknown)."""
     row = _PROVIDERS_BY_ID.get(provider)

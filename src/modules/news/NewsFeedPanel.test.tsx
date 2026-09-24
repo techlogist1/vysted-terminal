@@ -137,16 +137,17 @@ describe("NewsFeedPanel", () => {
     });
   });
 
-  it("surfaces a SidecarError with its status (after the auto-retry is exhausted)", async () => {
+  it("surfaces a SidecarError with its status after ONE request, never a retry loop (R15-UI-015)", async () => {
     vi.useFakeTimers();
     mockFetchNews.mockRejectedValue(new SidecarError(502, "all news sources failed"));
     render(<NewsFeedPanel />);
-    // The panel now auto-retries (~50s of backoff) before surfacing the terminal error —
-    // advance past the whole window.
+    // A 502 is the engine's answer, not a cold boot: the cold-boot backoff
+    // window passes without a second request.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(60000);
     });
     expect(screen.getByText("Sidecar error 502: all news sources failed")).toBeInTheDocument();
+    expect(mockFetchNews).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
 

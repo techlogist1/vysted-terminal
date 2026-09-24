@@ -16,25 +16,37 @@ import { create } from "zustand";
 import { getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 
 const ONBOARDING_ACCOUNT = KEYCHAIN_NAMESPACES.appMeta("onboarding-complete");
+/** The setup banner's dismissal, kept beside the "seen" marker (R15-UI-019). */
+const BANNER_ACCOUNT = KEYCHAIN_NAMESPACES.appMeta("onboarding-banner-dismissed");
 
 interface OnboardingState {
   /** Whether the first-run flow has been completed/skipped. `null` until probed. */
   seen: boolean | null;
+  /** Whether the setup banner was dismissed (durable). `null` until probed. */
+  bannerDismissed: boolean | null;
   /** Force the flow open from a CTA, regardless of `seen`. */
   forceOpen: boolean;
+  /** The step a forced open lands on (`local` = the model download step). */
+  forceStep: "local" | null;
   /** Probe the keychain for the completion marker (call once on boot). */
   refresh: () => Promise<void>;
+  /** Probe the keychain for the banner-dismissed marker. */
+  refreshBanner: () => Promise<void>;
+  /** Persist the banner's dismissal (durable across relaunches). */
+  dismissBanner: () => Promise<void>;
   /** Persist completion (durable) + close. `choice` records the path taken. */
   markSeen: (choice: string) => Promise<void>;
-  /** Re-open the flow on demand (CTA). */
-  open: () => void;
+  /** Re-open the flow on demand (CTA), optionally at the local-model step. */
+  open: (step?: "local") => void;
   /** Close without marking seen (used internally; markSeen is the real exit). */
   close: () => void;
 }
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   seen: null,
+  bannerDismissed: null,
   forceOpen: false,
+  forceStep: null,
   refresh: async () => {
     try {
       const value = await getSecret(ONBOARDING_ACCOUNT);
@@ -45,14 +57,30 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       set({ seen: false });
     }
   },
+  refreshBanner: async () => {
+    try {
+      const value = await getSecret(BANNER_ACCOUNT);
+      set({ bannerDismissed: Boolean(value && value.length > 0) });
+    } catch {
+      set({ bannerDismissed: false });
+    }
+  },
+  dismissBanner: async () => {
+    set({ bannerDismissed: true });
+    try {
+      await setSecret(BANNER_ACCOUNT, "dismissed");
+    } catch {
+      // Non-Tauri / keychain unavailable — dismissed for the session.
+    }
+  },
   markSeen: async (choice) => {
     try {
       await setSecret(ONBOARDING_ACCOUNT, choice || "seen");
     } catch {
       // Non-Tauri / keychain unavailable — still close for the session.
     }
-    set({ seen: true, forceOpen: false });
+    set({ seen: true, forceOpen: false, forceStep: null });
   },
-  open: () => set({ forceOpen: true }),
-  close: () => set({ forceOpen: false }),
+  open: (step) => set({ forceOpen: true, forceStep: step ?? null }),
+  close: () => set({ forceOpen: false, forceStep: null }),
 }));
