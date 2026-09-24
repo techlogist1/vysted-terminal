@@ -915,3 +915,21 @@ async def test_a_gemini_round_counts_its_grounded_queries(monkeypatch: pytest.Mo
     ]
     [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
     assert done.usage is not None and done.usage.web_search_requests == 2
+
+
+def test_anthropic_usage_reports_native_search_count() -> None:
+    """R15-AGENT-049 review pin: Anthropic reports server-side searches on
+    ``usage.server_tool_use``; the adapter must carry the count so the runtime
+    prices and caps them like every other native-search provider."""
+    from types import SimpleNamespace
+
+    from services.llm.anthropic import _usage_from_final
+
+    usage = SimpleNamespace(
+        input_tokens=10,
+        output_tokens=5,
+        server_tool_use=SimpleNamespace(web_search_requests=3),
+    )
+    assert _usage_from_final(SimpleNamespace(usage=usage)).web_search_requests == 3
+    bare = SimpleNamespace(input_tokens=1, output_tokens=1)
+    assert _usage_from_final(SimpleNamespace(usage=bare)).web_search_requests is None

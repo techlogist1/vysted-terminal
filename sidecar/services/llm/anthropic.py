@@ -274,4 +274,8 @@ def _usage_from_final(final: Any) -> LLMUsage | None:
         output_tokens=getattr(usage, "output_tokens", 0) or 0,
         cache_read_input_tokens=getattr(usage, "cache_read_input_tokens", None),
         cache_creation_input_tokens=getattr(usage, "cache_creation_input_tokens", None),
+        # Native searches priced + capped per run (R15-AGENT-049).
+        web_search_requests=getattr(
+            getattr(usage, "server_tool_use", None), "web_search_requests", None
+        ),
     )
