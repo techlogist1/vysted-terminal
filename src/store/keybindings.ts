@@ -436,6 +436,7 @@ export function formatBinding(keys: string): string {
 /** A minimal KeyboardEvent shape — enough to match without DOM lib coupling. */
 interface MatchableKeyEvent {
   key: string;
+  code?: string;
   metaKey: boolean;
   ctrlKey: boolean;
   altKey: boolean;
@@ -476,7 +477,12 @@ export function matchesEvent(keys: string, event: MatchableKeyEvent): boolean {
     return false;
   }
 
-  return normalizeEventKey(event.key) === key;
+  if (normalizeEventKey(event.key) === key) {
+    return true;
+  }
+  // macOS Option rewrites `event.key` (⌥1 → "¡"), so an alt combo also matches
+  // on the physical key.
+  return wantAlt && /^(?:Digit|Key)(.)$/.exec(event.code ?? "")?.[1].toLowerCase() === key;
 }
 
 /** Map a `KeyboardEvent.key` to a binding-grammar key token. */

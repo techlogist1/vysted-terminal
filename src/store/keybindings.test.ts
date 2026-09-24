@@ -256,3 +256,13 @@ describe("resolveKeyboardAction — the one dispatcher's resolution (R15-UI-016 
     ).toBe("palette.open");
   });
 });
+
+describe("macOS Option combos (batch-9 review)", () => {
+  it("alt+digit matches on the physical key when Option rewrites event.key", () => {
+    vi.stubGlobal("navigator", { platform: "MacIntel", userAgent: "Mac OS X" });
+    const optionTwo = { ...keyEvent("™", { altKey: true }), code: "Digit2" };
+    expect(matchesEvent("alt+2", optionTwo)).toBe(true);
+    expect(resolveKeyboardAction(optionTwo, true)?.actionId).toBe("agent.mode.delegate");
+    expect(matchesEvent("alt+3", optionTwo)).toBe(false);
+  });
+});
