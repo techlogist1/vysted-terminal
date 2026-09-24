@@ -381,6 +381,42 @@ async def test_search_companies_empty_query_returns_no_call(
     assert not any(c["name"] == "search_companies" for c in recorder.calls)
 
 
+@pytest.mark.asyncio
+async def test_search_companies_decodes_the_live_tool_shape(recorder: _RecordingClient) -> None:
+    """R15-UI-032: the real sec-edgar-mcp tool answers
+    ``{"success": True, "companies": [...], "count": N}`` with a plural
+    ``tickers`` LIST per row (dual-listed companies can carry more than
+    one) — not the singular ``ticker``/``symbol`` key the old decode read."""
+    recorder.respond(
+        "search_companies",
+        {
+            "success": True,
+            "companies": [{"cik": "320193", "name": "Apple Inc.", "tickers": ["AAPL"]}],
+            "count": 1,
+        },
+    )
+    rows = await sec_filings_provider.search_companies("Apple", limit=5)
+    assert rows == [{"cik": "0000320193", "name": "Apple Inc.", "ticker": "AAPL"}]
+
+
+@pytest.mark.asyncio
+async def test_search_companies_empty_result_is_not_cached(recorder: _RecordingClient) -> None:
+    """A query that matches nothing (e.g. a search-as-you-type prefix) must
+    not poison the cache for the rest of the TTL window — the next keystroke
+    that DOES match has to re-hit the tool, not replay a cached []."""
+    recorder.respond("search_companies", {"success": True, "companies": [], "count": 0})
+    first = await sec_filings_provider.search_companies("zzz", limit=5)
+    assert first == []
+
+    recorder.respond(
+        "search_companies",
+        {"success": True, "companies": [{"cik": "1", "name": "Zzz Corp", "tickers": ["ZZZ"]}]},
+    )
+    second = await sec_filings_provider.search_companies("zzz", limit=5)
+    assert second == [{"cik": "0000000001", "name": "Zzz Corp", "ticker": "ZZZ"}]
+    assert len([c for c in recorder.calls if c["name"] == "search_companies"]) == 2
+
+
 # ---------------------------------------------------------------------------
 # R15-DATA-038: the shapes sec-edgar-mcp 1.0.8 actually sends
 # (docs/redesign/verification/r15/surface/panels-layouts/P-sec-parser-check.txt)
