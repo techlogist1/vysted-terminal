@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/sidecar-client", () => ({
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
   getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:8787"),
 }));
 vi.mock("@/lib/search-headers", () => ({
@@ -346,5 +347,50 @@ describe("streaming — stall watchdog", () => {
     expect(errors).toEqual([]);
     expect(events.at(-1)).toMatchObject({ kind: "done" });
     expect(events.filter((e) => (e as { kind: string }).kind === "heartbeat").length).toBe(9);
+  });
+});
+
+// ── Non-2xx and transport failures read as sentences (R15-UI-012 / R15-UI-014) ──
+
+import { SIDECAR_UNREACHABLE } from "@/lib/sidecar-client";
+
+describe("streaming — error layer", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    fetchMock.mockClear();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  async function agentErrors(): Promise<string[]> {
+    const errors: string[] = [];
+    await streamAgentInvocation(
+      "nope",
+      { prompt: "hi" },
+      { onEvent: () => undefined, onError: (err) => errors.push(err.message) },
+    );
+    return errors;
+  }
+
+  it("a non-2xx string detail reaches onError as the sentence, not the JSON body", async () => {
+    fetchMock.mockImplementationOnce(
+      async () =>
+        new Response(JSON.stringify({ detail: "unknown agent: 'nope'" }), { status: 404 }),
+    );
+    expect(await agentErrors()).toEqual(["unknown agent: 'nope'"]);
+  });
+
+  it("a 422 field-error array reaches onError as 'field: msg'", async () => {
+    const detail = [{ loc: ["body", "prompt"], msg: "Field required", type: "missing" }];
+    fetchMock.mockImplementationOnce(
+      async () => new Response(JSON.stringify({ detail }), { status: 422 }),
+    );
+    expect(await agentErrors()).toEqual(["prompt: Field required"]);
+  });
+
+  it("a refused connection reaches onError as the unreachable sentence", async () => {
+    fetchMock.mockImplementationOnce(async () => {
+      throw new TypeError("Load failed");
+    });
+    expect(await agentErrors()).toEqual([SIDECAR_UNREACHABLE]);
   });
 });

@@ -21,8 +21,19 @@ vi.mock("@/lib/workspace", async (importActual) => {
   return { ...actual, autosaveLayout: vi.fn(() => Promise.resolve()) };
 });
 
-// Resolve the sidecar base instantly (no Tauri invoke / health probe under
-// test); the per-test fetch stubs below decide what each endpoint returns.
+// The core reports a bound engine; the shared `sidecarGet`/`sidecarRequest`
+// resolve through it (and one `/health` probe, which every stub answers).
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: vi.fn(async (cmd: string) => {
+    if (cmd === "get_sidecar_port") {
+      return { port: 51763, state: "ready", reason: null };
+    }
+    throw new Error(`no Tauri core under test (${cmd})`);
+  }),
+}));
+
+// Resolve the sidecar base instantly for the sections still on
+// getSidecarBaseUrl; the per-test fetch stubs decide what each endpoint returns.
 vi.mock("@/lib/sidecar-client", async (importActual) => {
   const actual = await importActual<typeof import("@/lib/sidecar-client")>();
   return { ...actual, getSidecarBaseUrl: vi.fn(() => Promise.resolve("http://sidecar.test")) };
@@ -42,6 +53,7 @@ vi.mock("@/lib/keychain", async (importActual) => {
 });
 
 import { getSecret } from "@/lib/keychain";
+import { SIDECAR_UNREACHABLE } from "@/lib/sidecar-client";
 
 const getSecretMock = vi.mocked(getSecret);
 
@@ -53,10 +65,14 @@ function jsonResponse(value: unknown): Response {
   });
 }
 
-/** Stub global fetch with a path → payload router (unrouted paths 404). */
+/** Stub global fetch with a path → payload router (unrouted paths 404; the
+ *  readiness probe `/health` always answers). */
 function routeFetch(routes: Record<string, unknown>) {
   const fetchMock = vi.fn((input: RequestInfo | URL) => {
     const path = new URL(String(input)).pathname;
+    if (path === "/health") {
+      return Promise.resolve(jsonResponse({ status: "ok" }));
+    }
     if (path in routes) {
       return Promise.resolve(jsonResponse(routes[path]));
     }
@@ -74,11 +90,15 @@ describe("SettingsPanel", () => {
     resetSettingsStoreForTests();
     resetSearchSettingsStoreForTests();
     useProviderKeysStore.setState({ status: {}, probed: false });
-    // Default: no network — every sidecar fetch fails fast and the surfaces
-    // render their honest "unavailable" fallbacks. Tier tests route real paths.
+    // Default: the engine is up but refuses every request — the surfaces render
+    // their honest "unavailable" fallbacks. Tier tests route real paths.
     vi.stubGlobal(
       "fetch",
-      vi.fn(() => Promise.reject(new TypeError("no network under test"))),
+      vi.fn((input: RequestInfo | URL) =>
+        new URL(String(input)).pathname === "/health"
+          ? Promise.resolve(jsonResponse({ status: "ok" }))
+          : Promise.reject(new TypeError("no network under test")),
+      ),
     );
   });
 
@@ -441,9 +461,10 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel />);
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
     expect(await screen.findByText(/Pulling the SearXNG image/)).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/setup", {
-      method: "POST",
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:51763/search/searxng/setup",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   it("Tier A [Stop] POSTs /search/searxng/teardown and renders the post-teardown state", async () => {
@@ -454,24 +475,82 @@ describe("SettingsPanel", () => {
     render(<SettingsPanel />);
     fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
     expect(await screen.findByRole("button", { name: "Set up" })).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith("http://sidecar.test/search/searxng/teardown", {
-      method: "POST",
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:51763/search/searxng/teardown",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   it("Tier A shows the honest fallback note whenever the instance is not ready", async () => {
     routeFetch({ "/search/searxng/status": searxngStatus("docker_present_not_setup") });
     render(<SettingsPanel />);
+    // Settle on the loaded state first: the loading branch shows the note too.
+    expect(await chipText()).toBe("Not set up");
     expect(
-      await screen.findByText(/Until set up, research uses limited keyless search/),
+      screen.getByText(/Until set up, research uses limited keyless search/),
     ).toBeInTheDocument();
   });
 
   it("Tier A degrades honestly when the sidecar is unreachable", async () => {
     render(<SettingsPanel />); // default fetch stub rejects
     expect(
-      await screen.findByText(/SearXNG status unavailable \(sidecar not connected\)/),
+      await screen.findByText(`SearXNG status unavailable: ${SIDECAR_UNREACHABLE}`),
     ).toBeInTheDocument();
+  });
+
+  // R15-RESEARCH-032: a failure keeps its reason, and the status is re-read.
+  it("a status 500 shows the sidecar's reason, not 'not connected'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        Promise.resolve(
+          new URL(String(input)).pathname === "/health"
+            ? jsonResponse({ status: "ok" })
+            : new Response(JSON.stringify({ detail: "docker daemon not reachable" }), {
+                status: 500,
+              }),
+        ),
+      ),
+    );
+    render(<SettingsPanel />);
+    expect(
+      await screen.findByText("SearXNG status unavailable: docker daemon not reachable"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Hardware detection unavailable: docker daemon not reachable"),
+    ).toBeInTheDocument();
+  });
+
+  it("the tab turning visible re-reads the status, so a stale 'Ready' follows the container", async () => {
+    routeFetch({ "/search/searxng/status": searxngStatus("ready") });
+    render(<SettingsPanel />);
+    expect(await chipText()).toBe("Ready");
+
+    // The container died outside the app.
+    routeFetch({
+      "/search/searxng/status": searxngStatus("error", { reason: "container exited (137)" }),
+    });
+    fireEvent(document, new Event("visibilitychange"));
+
+    expect(await screen.findByText(/Setup failed: container exited \(137\)/)).toBeInTheDocument();
+    expect(await chipText()).toBe("Error");
+  });
+
+  it("a failed [Set up] shows why instead of nothing", async () => {
+    const fetchMock = routeFetch({
+      "/search/searxng/status": searxngStatus("docker_present_not_setup"),
+    });
+    const routed = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((input: RequestInfo | URL) =>
+      new URL(String(input)).pathname === "/search/searxng/setup"
+        ? Promise.resolve(
+            new Response(JSON.stringify({ detail: "docker pull denied" }), { status: 500 }),
+          )
+        : routed(input),
+    );
+    render(<SettingsPanel />);
+    fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
+    expect(await screen.findByText(/docker pull denied/)).toBeInTheDocument();
   });
 
   it("the custom SearXNG URL lives behind the Advanced disclosure and writes the store", () => {

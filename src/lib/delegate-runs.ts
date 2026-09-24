@@ -20,7 +20,7 @@
  */
 
 import { KEYCHAIN_NAMESPACES, getSecret } from "@/lib/keychain";
-import { extractSidecarDetail, getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { getSidecarBaseUrl, sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
 import {
   type AgentRun,
@@ -87,13 +87,14 @@ interface RunWire {
 
 /** `GET /runs` — every run the sidecar knows, newest first. */
 async function fetchRuns(): Promise<RunWire[]> {
-  const base = await getSidecarBaseUrl();
-  const response = await fetch(new URL("/runs", base).toString());
-  if (!response.ok) {
-    throw new Error(`/runs HTTP ${response.status}`);
-  }
-  const wire = (await response.json()) as { runs?: RunWire[] } | RunWire[];
+  const wire = await sidecarGet<{ runs?: RunWire[] } | RunWire[]>("/runs");
   return Array.isArray(wire) ? wire : (wire.runs ?? []);
+}
+
+/** The human reason of a failed run request (a `SidecarError` already carries
+ *  the sidecar's own sentence). */
+function reasonOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
 
 function costOf(w: RunWire) {
@@ -145,13 +146,11 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     threadId: launch.threadId,
   });
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/agents/${encodeURIComponent(launch.agentId)}/runs`, base).toString(),
+    const body = await sidecarRequest<{ runId?: string; run_id?: string }>(
+      "POST",
+      `/agents/${encodeURIComponent(launch.agentId)}/runs`,
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           prompt: launch.prompt,
           context_snapshot: launch.contextSnapshot
             ? {
@@ -170,21 +169,9 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
             max_steps: launch.budget.maxSteps,
           },
           options: launch.options ?? {},
-        }),
+        },
       },
     );
-    if (!response.ok) {
-      let detail = response.statusText;
-      try {
-        // A 422 carries a list of field errors, never "[object Object]".
-        detail = extractSidecarDetail(await response.json(), detail);
-      } catch {
-        // ignore
-      }
-      useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${detail}`);
-      return;
-    }
-    const body = (await response.json()) as { runId?: string; run_id?: string };
     const sidecarRunId = body.runId ?? body.run_id;
     useAgentRunsStore.getState().updateRun(localId, { sidecarRunId });
     if (sidecarRunId) {
@@ -197,9 +184,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     }
     ensurePolling();
   } catch (err) {
-    useAgentRunsStore
-      .getState()
-      .endRun(localId, "error", err instanceof Error ? err.message : "launch failed");
+    useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${reasonOf(err)}`);
   }
 }
 
@@ -271,19 +256,10 @@ async function deliverRunOutput(
   origins.delete(sidecarRunId);
   let output: RunOutputWire;
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/runs/${encodeURIComponent(sidecarRunId)}`, base).toString(),
-    );
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    output = (await response.json()) as RunOutputWire;
+    output = await sidecarGet<RunOutputWire>(`/runs/${encodeURIComponent(sidecarRunId)}`);
   } catch (err) {
     output = {};
-    detail = `The run finished but its answer could not be fetched (${
-      err instanceof Error ? err.message : String(err)
-    }).`;
+    detail = `The run finished but its answer could not be fetched (${reasonOf(err)}).`;
     status = "error";
   }
   const messageId = origin.messageId;
@@ -358,23 +334,14 @@ export async function adoptSidecarRuns(): Promise<void> {
  * reason for the rail's retry note (R15-UI-040 — the run may still be spending).
  */
 export async function cancelDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
-  let error: string;
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/cancel`, base).toString(),
-      { method: "POST" },
-    );
-    if (response.ok) {
-      const local = useAgentRunsStore.getState().bySidecarId(sidecarRunId);
-      if (local) useAgentRunsStore.getState().endRun(local.id, "cancelled", "cancelled by user");
-      return { ok: true };
-    }
-    error = `HTTP ${response.status}`;
+    await sidecarRequest("POST", `/runs/${encodeURIComponent(sidecarRunId)}/cancel`);
   } catch (err) {
-    error = err instanceof Error ? err.message : String(err);
+    return { ok: false, error: `Cancel failed (${reasonOf(err)}) — retry.` };
   }
-  return { ok: false, error: `Cancel failed (${error}) — retry.` };
+  const local = useAgentRunsStore.getState().bySidecarId(sidecarRunId);
+  if (local) useAgentRunsStore.getState().endRun(local.id, "cancelled", "cancelled by user");
+  return { ok: true };
 }
 
 /** The result of a run control action — `ok:false` carries a human reason so the
@@ -400,21 +367,13 @@ export async function answerDelegateRun(
   provider?: string,
 ): Promise<RunActionResult> {
   try {
-    const base = await getSidecarBaseUrl();
-    const response = await fetch(
-      new URL(`/runs/${encodeURIComponent(sidecarRunId)}/answer`, base).toString(),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...(await providerKeyHeader(provider)) },
-        body: JSON.stringify({ answer }),
-      },
-    );
-    if (!response.ok) {
-      return { ok: false, error: `Couldn't send your answer (HTTP ${response.status}).` };
-    }
+    await sidecarRequest("POST", `/runs/${encodeURIComponent(sidecarRunId)}/answer`, {
+      headers: await providerKeyHeader(provider),
+      body: { answer },
+    });
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Couldn't send your answer." };
+    return { ok: false, error: `Couldn't send your answer (${reasonOf(err)}).` };
   }
 }
 
@@ -423,6 +382,8 @@ export async function answerDelegateRun(
 export async function startDelegateRun(run: AgentRun): Promise<RunActionResult> {
   const sidecarRunId = run.sidecarRunId;
   if (!sidecarRunId) return { ok: false, error: "This run has no sidecar run to start." };
+  // ponytail: start/resume stay on a hand-rolled fetch until AgentsRail.test.tsx
+  // stops mocking getSidecarBaseUrl (it pins these exact request headers).
   try {
     const base = await getSidecarBaseUrl();
     const response = await fetch(

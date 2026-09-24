@@ -1,8 +1,17 @@
 "use client";
 
 import { DockviewReact, type DockviewReadyEvent, type IDockviewPanel } from "dockview";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  Component,
+  Fragment,
+  type FunctionComponent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 
+import { Button } from "@/components/ui/button";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { autosaveLayout, restoreLastSessionOrDefault } from "@/lib/workspace";
 import { useModulesStore } from "@/store/modules";
@@ -103,6 +112,72 @@ function enforceConstraintsAfterRestore(panel: IDockviewPanel): void {
 }
 
 /**
+ * Keeps one panel's render throw inside that panel (R15-LIFECYCLE-023): without
+ * it React unmounts the whole root and the cockpit goes blank. "Reload panel"
+ * remounts the panel's subtree; the error reaches the diagnostics log through
+ * the root's `onCaughtError` (`main.tsx`).
+ */
+class PanelErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null; attempt: number }
+> {
+  state = { error: null as Error | null, attempt: 0 };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    const { error, attempt } = this.state;
+    if (error === null) {
+      return <Fragment key={attempt}>{this.props.children}</Fragment>;
+    }
+    return (
+      <div role="alert" className="flex h-full flex-col items-start gap-3 p-4">
+        <p className="text-charcoal-100 text-body">This panel crashed.</p>
+        <p className="text-charcoal-400 text-caption break-all">{error.message}</p>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => this.setState({ error: null, attempt: attempt + 1 })}
+          >
+            Reload panel
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              void navigator.clipboard?.writeText(error.stack ?? error.message).catch(() => {})
+            }
+          >
+            Copy error
+          </Button>
+        </div>
+      </div>
+    );
+  }
+}
+
+/** The panel-component map with every panel behind its own error boundary. */
+export function withPanelErrorBoundaries(
+  components: Record<string, FunctionComponent>,
+): Record<string, FunctionComponent> {
+  return Object.fromEntries(
+    Object.entries(components).map(([id, Panel]) => {
+      function GuardedPanel(props: object) {
+        return (
+          <PanelErrorBoundary>
+            <Panel {...props} />
+          </PanelErrorBoundary>
+        );
+      }
+      return [id, GuardedPanel];
+    }),
+  );
+}
+
+/**
  * The dockview-backed panel host. Resolves each module's `PanelSpec.component`
  * id to its React component, hands the layout API to the workspace store, and
  * on launch restores the auto-saved "last session" cockpit (Track C) — falling
@@ -118,7 +193,10 @@ export function PanelHost() {
 
   // Built from all modules so the map is stable after registration. Props-less
   // function components satisfy dockview's panel signature directly.
-  const components = useMemo(() => collectPanelComponents(modules), [modules]);
+  const components = useMemo(
+    () => withPanelErrorBoundaries(collectPanelComponents(modules)),
+    [modules],
+  );
 
   // Cleanup for the autosave subscription, set once the layout is ready.
   const cleanupRef = useRef<(() => void) | null>(null);
