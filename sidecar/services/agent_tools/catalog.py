@@ -1284,6 +1284,45 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             kind="host_action",
         ),
         _cap(
+            "add_chart_drawing",
+            description=(
+                "Draw on the open chart, on the symbol and timeframe it shows: a "
+                "horizontal-line at one price (support, resistance, a target) or a "
+                "trendline between two bars. Each point's time is a bar timestamp "
+                "exactly as price_data returns it for that timeframe; a "
+                "horizontal-line takes one point and needs no time. Staged through "
+                "the review gate like every host action."
+            ),
+            input_schema=_obj(
+                {
+                    "kind": {"type": "string", "enum": ["horizontal-line", "trendline"]},
+                    "points": {
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 2,
+                        "items": _obj(
+                            {
+                                "time": {
+                                    "type": "string",
+                                    "description": "Bar timestamp (ISO) from price_data.",
+                                },
+                                "price": {"type": "number"},
+                            },
+                            ["price"],
+                        ),
+                    },
+                    "panelId": {
+                        "type": "string",
+                        "description": "Optional — defaults to the open chart panel.",
+                    },
+                },
+                ["kind", "points"],
+            ),
+            domain="charts",
+            read_only=False,
+            kind="host_action",
+        ),
+        _cap(
             "add_to_watchlist",
             description="Add a symbol to the user's watchlist.",
             input_schema=_obj(

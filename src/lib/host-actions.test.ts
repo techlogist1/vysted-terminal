@@ -56,6 +56,7 @@ describe("host-actions", () => {
   it("classifies the catalog host actions as mutations to gate", () => {
     expect([...HOST_ACTION_NAMES].sort()).toEqual(
       [
+        "add_chart_drawing",
         "add_to_watchlist",
         "arrange_layout",
         "close_panel",
@@ -1355,10 +1356,17 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
   const screenerPanel = {
     api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
   };
-  const chartPanel = { api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() } };
+  const chartPanel = {
+    id: "chart",
+    api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() },
+  };
 
   function setup() {
     resetSettingsStoreForTests();
+    useChartDrawingsStore.setState({
+      byPanel: {},
+      views: { chart: { symbol: "TCS", timeframe: "1d", indicators: [], compare: null } },
+    });
     resetBriefStoreForTests();
     useScreenerStore.getState().__resetForTests();
     useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
@@ -1452,11 +1460,23 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     ],
     ["save_layout", { name: "My desk" }, /"My desk" updated/, /Saved the layout as "My desk"/],
     ["set_region", { region: "in" }, /Region: IN/, /Set the region to IN/],
+    [
+      "add_chart_drawing",
+      { kind: "horizontal-line", points: [{ price: 3400 }] },
+      /^Drawings on TCS 1d: 1 \(\+a horizontal line at 3400\)$/,
+      /^Drew a horizontal line at 3400 on TCS 1d$/,
+    ],
     // Refusals: the diff says it can't apply exactly when the apply fails.
     ["set_region", { region: "MARS" }, /"MARS" is not a region — can't apply/, null],
     ["close_panel", { panel: "flux-capacitor" }, /unknown panel — can't apply/, null],
     ["portfolio_update_position", { position_id: "h-a", quantity: 0 }, /can't apply/, null],
     ["write_note", { scope: "NVDA", text: "  " }, /nothing to write — can't apply/, null],
+    [
+      "add_chart_drawing",
+      { kind: "trendline", points: [{ time: "2026-07-01", price: 3400 }] },
+      /a trendline takes 2 point\(s\)/,
+      null,
+    ],
   ];
 
   it("the table covers every host action", () => {
