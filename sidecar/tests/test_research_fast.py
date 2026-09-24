@@ -911,3 +911,49 @@ def test_fast_web_round_runs_alongside_a_time_boxed_fan_out(
     assert timed_out.latency_ms is not None and timed_out.latency_ms >= 500
     fan_out_end = next(t for t, s in steps if s.detail.startswith("pulled "))
     assert fake.web_started is not None and fake.web_started < fan_out_end
+
+
+class _SlowLegToolCall(_FakeToolCall):
+    """One structured leg sleeps 20 s (a throttled provider)."""
+
+    def __init__(self, slow: str) -> None:
+        super().__init__()
+        self.slow = slow
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name == self.slow:
+            await asyncio.sleep(20)
+        return await super().__call__(name, args)
+
+
+@pytest.mark.parametrize(
+    ("slow", "leg", "box_s"),
+    [("price_data", "price", None), ("news", "news", 0.5)],
+)
+def test_a_stalled_leading_leg_is_time_boxed_and_the_rest_publish(
+    monkeypatch: pytest.MonkeyPatch, slow: str, leg: str, box_s: float | None
+) -> None:
+    """R15-RESEARCH-027: a 20 s price leg (at the real box) no longer holds the
+    FAST path; it lands under 8 s with that leg timed out and fundamentals
+    intact. The news leg is the class case the fix was not written against."""
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    if box_s is not None:
+        monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", box_s)
+    steps: list[Any] = []
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(
+        gather_fast("Apple", region="US", tool_call=_SlowLegToolCall(slow), on_step=steps.append)
+    )
+    elapsed = time.perf_counter() - t0
+
+    assert elapsed < 8.0
+    structured = bundle["structured"]
+    assert structured[leg]["ok"] is False and "timed out" in structured[leg]["error"]
+    assert structured["fundamentals"]["ok"] is True
+    assert structured["fundamentals"]["data"]["pe_ratio"] == 30.0
+    (timed_out,) = [s for s in steps if s.detail.startswith(f"{leg} timed out")]
+    assert timed_out.status == "error"
+    assert timed_out.latency_ms >= fast._WITNESS_LEG_TIMEOUT_S * 1000
