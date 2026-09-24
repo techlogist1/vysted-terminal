@@ -374,6 +374,13 @@ fn get_sidecar_port(status: tauri::State<'_, SidecarStatus>) -> SidecarSnapshot 
     status.snapshot()
 }
 
+/// Append one renderer line (a React render error, R15-LIFECYCLE-023) to the
+/// diagnostics log — the release build has no console to read it from.
+#[tauri::command]
+fn diag_log_line(line: String) {
+    diag_eprintln!("{line}");
+}
+
 /// Atomically write `contents` to `path` by writing to a sibling temp file in the
 /// same directory and then renaming it over the destination. Because the temp file
 /// and the final path live on the same filesystem, the kernel `rename(2)` is atomic
@@ -502,6 +509,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_sidecar_port,
             get_app_data_dir,
+            diag_log_line,
             write_text_atomic,
             write_bytes_atomic,
             keychain::keychain_set,
