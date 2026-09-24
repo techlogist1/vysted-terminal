@@ -254,6 +254,9 @@ export interface BriefSource {
    * Optional — when absent the panel derives it from {@link url}.
    */
   domain?: string;
+  /** Publication date as the backend reported it (wire `published_at`), shown
+   *  in the sources rail. Absent when no backend supplied one. */
+  publishedAt?: string;
   /** The lane that gathered the source (wire `provider`, e.g. "via Perplexity
    *  Sonar") — provenance, never part of {@link domain}. */
   provider?: string;

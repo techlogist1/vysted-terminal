@@ -12,7 +12,8 @@ The shapes here are the normalized wire contract:
   * :class:`SearchResult` — one retrieved document
     (``url``/``title``/``snippet`` + optional ``published_at``/``source``).
   * :class:`Citation` — the normalized citation chip ``{url, title, excerpt}``
-    that the written brief renders as an inline ``[n]`` reference; every
+    (+ the bare-host ``domain`` and ``published_at`` the brief's sources rail
+    shows) that the written brief renders as an inline ``[n]`` reference; every
     vendor's citation shape is collapsed to this by
     :func:`normalize_results_to_citations`.
   * :class:`SearchResponse` — what a backend returns: the results, the
@@ -27,6 +28,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
+from urllib.parse import urlparse
 
 # --- Wire shapes ------------------------------------------------------------
 
@@ -54,6 +56,19 @@ class Citation:
     url: str
     title: str
     excerpt: str
+    #: The URL's bare host (``sec.gov``) — never a provenance label or "web".
+    domain: str | None = None
+    #: The result's publication date as the backend reported it, or ``None``.
+    published_at: str | None = None
+
+
+def bare_host(url: str) -> str | None:
+    """The URL's host without ``www.`` (``https://www.sec.gov/x`` → ``sec.gov``)."""
+    try:
+        host = (urlparse(url).hostname or "").lower()
+    except ValueError:
+        return None
+    return host.removeprefix("www.") or None
 
 
 @dataclass
@@ -129,10 +144,16 @@ def normalize_results_to_citations(
     backend that supplies no snippet still yields a citation with an empty
     excerpt so the source is never silently dropped.
     """
-    citations: list[Citation] = []
-    for result in results[: max(limit, 0)]:
-        citations.append(Citation(url=result.url, title=result.title, excerpt=result.snippet or ""))
-    return citations
+    return [
+        Citation(
+            url=result.url,
+            title=result.title,
+            excerpt=result.snippet or "",
+            domain=bare_host(result.url),
+            published_at=result.published_at,
+        )
+        for result in results[: max(limit, 0)]
+    ]
 
 
 # --- Locale-native domain profiles (C.2) ------------------------------------
@@ -187,6 +208,7 @@ __all__ = [
     "SearchResponse",
     "SearchResult",
     "US_DOMAINS",
+    "bare_host",
     "locale_domains",
     "normalize_results_to_citations",
 ]

@@ -70,6 +70,9 @@ class ResearchSource:
     #: when the pipeline didn't classify it — the frontend then derives the
     #: badge client-side from the domain.
     source_type: str | None = None
+    #: The source's publication date (ISO or as the backend reported it), or
+    #: ``None`` when no backend supplied one.
+    published_at: str | None = None
     #: Which lane gathered it (e.g. "via Perplexity Sonar") — provenance lives
     #: here, never folded into ``domain``.
     provider: str | None = None
@@ -81,6 +84,7 @@ class ResearchSource:
             "excerpt": self.excerpt,
             "domain": self.domain,
             "source_type": self.source_type,
+            "published_at": self.published_at,
             "provider": self.provider,
         }
 

@@ -267,6 +267,16 @@ function SourceRow({
           <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
             {domain}
           </span>
+          {source.publishedAt ? (
+            <time
+              dateTime={source.publishedAt}
+              className="text-charcoal-500 text-micro font-mono tabular-nums"
+            >
+              {/^\d{4}-\d{2}-\d{2}/.test(source.publishedAt)
+                ? source.publishedAt.slice(0, 10)
+                : source.publishedAt}
+            </time>
+          ) : null}
         </div>
         {source.excerpt ? (
           <p className="text-charcoal-400 text-micro line-clamp-3 leading-relaxed">

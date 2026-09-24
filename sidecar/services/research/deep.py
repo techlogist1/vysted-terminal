@@ -729,6 +729,7 @@ def _record_web(
     if not result.get("ok"):
         return
     from services.research import relevance
+    from services.search.base import bare_host
     from services.search.scrub import sanitize_inline
 
     citations = result.get("citations") or []
@@ -748,10 +749,11 @@ def _record_web(
                 url=str(url),
                 title=sanitize_inline(str(row.get("title") or url)),
                 excerpt=sanitize_inline(str(row.get("excerpt") or row.get("snippet") or "")),
-                domain=str(row.get("source") or "web"),
+                domain=row.get("domain") or bare_host(str(url)),
                 source_type=row.get("source_type")
                 if row.get("source_type") in ("news", "research", "filing", "web")
                 else None,
+                published_at=row.get("published_at"),
             )
         )
         added = True
