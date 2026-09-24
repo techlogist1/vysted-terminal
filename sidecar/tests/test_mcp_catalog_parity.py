@@ -73,6 +73,21 @@ def test_mcp_read_only_hint_matches_the_catalog() -> None:
         )
 
 
+def test_the_catalog_mcp_surface_is_read_only() -> None:
+    """R15-AGENT-083: in 0.9 no mutating or host-side capability reaches MCP.
+
+    Asserted over the live catalog and the live server, so a host action
+    (every one ``read_only=False``) can never be projected by a rule change.
+    """
+    leaked = [
+        cap.id for cap in mcp_capabilities() if not cap.read_only or cap.kind != "read_handler"
+    ]
+    assert leaked == [], f"mutating/local capabilities on the MCP surface: {leaked}"
+    host_actions = {c.id for c in CAPABILITY_CATALOG.values() if c.kind == "host_action"}
+    assert host_actions, "the catalog declares host actions; the check must not be vacuous"
+    assert host_actions.isdisjoint(tool.name for tool in _mcp_tools())
+
+
 def test_mcp_input_schema_matches_the_catalog() -> None:
     """The external schema is the catalog schema verbatim (single source)."""
     for tool in _mcp_tools():

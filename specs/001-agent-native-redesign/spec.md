@@ -325,8 +325,11 @@ An external agent (Claude Code, or any MCP client) connects to Vysted and drives
 **same** capabilities the built-in copilot uses — quotes, charts, screener, fundamentals,
 portfolio, news, quant, brokers (read-only) — because there is **one capability catalog**
 projected to both the internal agent and the external MCP surface. A developer can build
-a finance agent or trade-bot on Vysted without re-implementing data access. Read-only is
-the default; mutations carry the same gate everywhere.
+a finance agent or trade-bot on Vysted without re-implementing data access. In 0.9 the
+external MCP surface is **read-only** (R15-AGENT-083): cockpit mutations (the catalog's host
+actions) are not projected to MCP and stay in-app behind the proposed-changes gate, where the
+user confirms each one. Exposing mutations to external clients through a host-side queue is a
+future operator decision.
 
 **Why this priority**: The framework story is the durable differentiator (the moat is the
 platform, not the agent roster). It also de-risks the agent surface by giving it one
@@ -345,8 +348,10 @@ client can complete a read-only analysis end-to-end over MCP.
 2. **Given** an external MCP client, **When** it drives quotes/charts/screener/
    fundamentals/portfolio/news/quant/brokers-read, **Then** every domain is reachable by
    the same tool names the internal copilot uses.
-3. **Given** the catalog, **When** the internal copilot is asked to use any capability,
-   **Then** there is no capability reachable to one consumer but not the other.
+3. **Given** the catalog, **When** the internal copilot is asked to use any read
+   capability, **Then** there is no read capability reachable to one consumer but not the
+   other; the only internal-only capabilities are the local ones (host actions, per-invocation
+   reads, the run-scoped backtest digest).
 4. **Given** a loopback bind, **When** a client connects, **Then** no auth is required; a
    non-loopback bind is a Tier-4 block-and-ask (out of scope here).
 
@@ -775,8 +780,9 @@ portfolio in the UI changes the agent's read with zero divergence.
   turn sees the new state (one shared context).
 - **Provider that returns no key-less data / partial provider failure.** Surface "needs a
   key" or partial results with provenance; never fabricate data behind a populated surface.
-- **External MCP client requests a mutating tool.** Same gate as internal; read-only by
-  default; a mutation requires the same confirmation path.
+- **External MCP client requests a mutating tool.** The 0.9 MCP surface is read-only: no
+  host action is listed, and calling one by name fails with the MCP "Unknown tool" error.
+  Mutations stay in-app behind the proposed-changes gate (R15-AGENT-083).
 - **Workspace blob from an older version / unknown component.** Restore must skip to the
   bundled default rather than corrupting the grid (current behavior — preserve it).
 - **Plugin incompatible with the host (manifest↔instance id/version mismatch / unmet
@@ -852,7 +858,9 @@ portfolio in the UI changes the agent's read with zero divergence.
   annotation.
 - **FR-022**: The external MCP surface MUST cover all primary domains (quotes, charts, screener,
   fundamentals, portfolio, news, quant, brokers-read) by the same tool names the internal copilot
-  uses, so external agents can build on Vysted.
+  uses, so external agents can build on Vysted. In 0.9 that surface is read-only: only
+  handler-backed read capabilities are projected, and no host action reaches MCP
+  (R15-AGENT-083).
 - **FR-023**: The catalog MUST be complete — every registered handler intended to be agent-
   reachable MUST have a schema entry (closing the current ~11-handler gap), and the custom-agent
   allow-list MUST reflect the real catalog.
