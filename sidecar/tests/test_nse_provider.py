@@ -424,6 +424,69 @@ def test_shareholding_master_parses_observed_fixture(monkeypatch: pytest.MonkeyP
     assert first["date"]  # the quarter end, e.g. "31-MAR-2026"
 
 
+def _index_aware_responder(path: str, sme_payload: object, empty: object):  # noqa: ANN202
+    """Mirror the live edge: an Emerge name's filings exist only under
+    ``index=sme``; ``index=equities`` answers 200 with an empty payload."""
+
+    def responder(session: _FakeSession, url: str, params: dict) -> _FakeResponse:
+        if url == "https://www.nseindia.com/":
+            return _FakeResponse(200, payload=None, text="<html>home</html>")
+        assert url.endswith(path), url
+        return _FakeResponse(200, payload=sme_payload if params.get("index") == "sme" else empty)
+
+    return responder
+
+
+def test_emerge_announcements_query_the_sme_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-017: SUMAX (NSE Emerge) filings are served only under index=sme."""
+    captured = json.loads((_FIXTURES / "announcements_sumax_sme_20260924.json").read_text())
+    sessions = _install(
+        monkeypatch, _index_aware_responder("/api/corporate-announcements", captured, [])
+    )
+    items = nse_provider.get_corporate_announcements("SUMAX", limit=25)
+    assert len(items) == 7 and {i["symbol"] for i in items} == {"SUMAX"}
+    assert sessions[0].calls[1][1] == {"index": "sme", "symbol": "SUMAX"}
+
+
+def test_emerge_shareholding_master_queries_the_sme_index(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-017, pinned on a different endpoint and name than the fix was
+    written against: QUALIANCE's shareholding master."""
+    captured = json.loads(
+        (_FIXTURES / "shareholding_master_qualiance_sme_20260924.json").read_text()
+    )
+    _install(
+        monkeypatch,
+        _index_aware_responder("/api/corporate-share-holdings-master", captured, []),
+    )
+    rows = nse_provider.get_shareholding_master("QUALIANCE")
+    assert [r["pr_and_prgrp"] for r in rows] == ["63.66"]
+
+
+def test_emerge_history_queries_the_sm_series(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An Emerge name trades in the SM series; ["EQ"] returns no rows for it."""
+    captured = json.loads((_FIXTURES / "historical_or_sumax_sm_20260924.json").read_text())
+
+    def responder(session: _FakeSession, url: str, params: dict) -> _FakeResponse:
+        if url == "https://www.nseindia.com/":
+            return _FakeResponse(200, payload=None, text="<html>home</html>")
+        rows = captured if params["series"] == '["SM"]' else {"data": [], "meta": {}}
+        return _FakeResponse(200, payload=rows)
+
+    _install(monkeypatch, responder)
+    series = nse_provider.get_history("SUMAX", "1d", "5d")
+    assert len(series.bars) == len(captured["data"]) > 0
+
+
+def test_main_board_sast_keeps_the_equities_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    sessions = _install(
+        monkeypatch, _ok_responder({"/api/corporate-sast-reg29": {"data": [], "acqNameList": []}})
+    )
+    assert nse_provider.get_sast_disclosures("RELIANCE") == []
+    assert sessions[0].calls[1][1] == {"index": "equities", "symbol": "RELIANCE"}
+
+
 def test_malformed_corporate_payload_raises(monkeypatch: pytest.MonkeyPatch) -> None:
     _install(monkeypatch, _ok_responder({"/api/event-calendar": {"not": "a list"}}))
     with pytest.raises(ProviderError, match="malformed"):
