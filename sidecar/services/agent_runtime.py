@@ -53,7 +53,7 @@ from models.llm import (
     LLMToolUseEvent,
     LLMUsage,
 )
-from services import action_ledger, agent_tools, model_registry
+from services import action_ledger, agent_tools, budget_guard, model_registry
 from services.agent_tools import catalog
 from services.agent_tools.schemas import openai_tools
 from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
@@ -1868,6 +1868,8 @@ async def invoke_agent(
     rounds = 0
     idle = LOCAL_IDLE_TIMEOUT_S if provider_id == "ollama" else IDLE_TIMEOUT_S
     web_search_calls = 0  # per-run cap on the BYOK/local web_search tool (FR-081)
+    # The turn's spend over every round (C11): None once any round is unpriced.
+    turn_spend: float | None = 0.0
     # R10 (E2): the latest research execution record of THIS invoke. When the
     # model issues its own publish_brief without an ``execution`` (it almost
     # never echoes the big record), the tracked record is injected so the
@@ -1950,6 +1952,11 @@ async def invoke_agent(
                 continue
             if isinstance(event, LLMDoneEvent):
                 seen_done = True
+                round_spend = budget_guard.spend_usd(provider_id, resolved_model, event.usage)
+                turn_spend = (
+                    None if round_spend is None or turn_spend is None else turn_spend + round_spend
+                )
+                event.spend_usd = None if turn_spend is None else round(turn_spend, 6)
                 # Per-round cost signal (FR-026): fire BEFORE we either swallow
                 # this terminator (mid-run) or yield it (final), so the budget
                 # guard sees every round's usage, not just the last one.

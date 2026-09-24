@@ -26,6 +26,7 @@ from fastapi.responses import StreamingResponse
 
 from models.llm import (
     LLMChatRequest,
+    LLMDoneEvent,
     LLMKeyValidationRequest,
     LLMKeyValidationResponse,
     LLMModelCatalog,
@@ -33,7 +34,7 @@ from models.llm import (
     LLMProviderId,
     LLMProviderInfo,
 )
-from services import model_registry
+from services import budget_guard, model_registry
 from services.errors import error_frame
 from services.llm import get_provider, list_provider_info, scrub_adapter_options
 from services.llm.base import LLMStreamEvent
@@ -158,6 +159,10 @@ async def chat_stream(payload: LLMChatRequest) -> StreamingResponse:
                 api_key=payload.api_key,
                 **adapter_options,
             ):
+                if isinstance(event, LLMDoneEvent):
+                    event.spend_usd = budget_guard.spend_usd(
+                        payload.provider, payload.model, event.usage
+                    )
                 yield _encode_event(event)
         except Exception as exc:  # noqa: BLE001 — last-resort guard
             logger.exception("chat stream crashed: %s", exc)

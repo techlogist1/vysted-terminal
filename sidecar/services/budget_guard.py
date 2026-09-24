@@ -57,21 +57,19 @@ PRICE_TABLE: dict[tuple[str, str], float] = model_registry.price_table()
 DEFAULT_RATE_PER_M: float = model_registry.default_rate_per_million()
 
 
-def price_per_million(provider: str, model: str) -> float:
-    """Return the blended $/1M-token rate for ``(provider, model)`` (best-effort).
+def _priced_rate(provider: str, model: str) -> float | None:
+    """The :data:`PRICE_TABLE` rate for ``(provider, model)``; ``None`` when unpriced.
 
-    Matches the longest :data:`PRICE_TABLE` key for the provider whose model
-    substring is contained in ``model`` (case-insensitive). Falls back to
-    :data:`DEFAULT_RATE_PER_M` when the provider/model pair is unknown — the
-    estimate is never silently zero for a metered provider. An OpenRouter
-    ``…:free`` slug is unmetered by OpenRouter's own convention (R15-LEAD-019).
+    Matches the longest key for the provider whose model substring is contained
+    in ``model`` (case-insensitive). An OpenRouter ``…:free`` slug is unmetered
+    by OpenRouter's own convention (R15-LEAD-019).
     """
     model_lc = (model or "").lower()
     provider_lc = (provider or "").lower()
     if provider_lc == "openrouter" and model_lc.endswith(":free"):
         return 0.0
     best_key: str | None = None
-    best_rate = DEFAULT_RATE_PER_M
+    best_rate: float | None = None
     for (prov, sub), rate in PRICE_TABLE.items():
         if prov != provider_lc:
             continue
@@ -82,9 +80,42 @@ def price_per_million(provider: str, model: str) -> float:
     return best_rate
 
 
+def price_per_million(provider: str, model: str) -> float:
+    """Return the blended $/1M-token rate for ``(provider, model)`` (best-effort).
+
+    Falls back to :data:`DEFAULT_RATE_PER_M` when the provider/model pair is
+    unknown — the ceiling estimate is never silently zero for a metered provider.
+    """
+    rate = _priced_rate(provider, model)
+    return DEFAULT_RATE_PER_M if rate is None else rate
+
+
 def estimate_spend_usd(provider: str, model: str, tokens: int) -> float:
     """Estimate USD spend for ``tokens`` against the ``(provider, model)`` rate."""
     return (max(tokens, 0) / 1_000_000.0) * price_per_million(provider, model)
+
+
+def _usage_tokens(usage: LLMUsage) -> int:
+    """Billed tokens of one call. Cache-read/creation tokens are billed (at a
+    discount upstream) but folded in at the blended rate — an over-estimate is
+    the safe side for a HARD ceiling."""
+    return (
+        max(usage.input_tokens, 0)
+        + max(usage.output_tokens, 0)
+        + max(usage.cache_read_input_tokens or 0, 0)
+        + max(usage.cache_creation_input_tokens or 0, 0)
+    )
+
+
+def spend_usd(provider: str, model: str, usage: LLMUsage | None) -> float | None:
+    """The displayed spend of one call (C11, R15-AGENT-082).
+
+    ``None`` when the call reported no usage or the model has no price: an
+    unknown cost is shown as unknown, not as the ceiling's fallback rate.
+    """
+    if usage is None or _priced_rate(provider, model) is None:
+        return None
+    return round(estimate_spend_usd(provider, model, _usage_tokens(usage)), 6)
 
 
 class BudgetGuard:
@@ -141,12 +172,7 @@ class BudgetGuard:
         if usage is None:
             return
         self.measured = True
-        round_tokens = max(usage.input_tokens, 0) + max(usage.output_tokens, 0)
-        # Cache-read/creation tokens are billed (at a discount upstream) but we
-        # fold them in at the blended rate — an over-estimate is the safe side
-        # for a HARD ceiling.
-        round_tokens += max(usage.cache_read_input_tokens or 0, 0)
-        round_tokens += max(usage.cache_creation_input_tokens or 0, 0)
+        round_tokens = _usage_tokens(usage)
         self._tokens += round_tokens
         self._spend_usd += estimate_spend_usd(provider, model, round_tokens)
 

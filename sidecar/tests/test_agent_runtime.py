@@ -2168,3 +2168,49 @@ async def test_successful_custom_backtest_opens_its_run(monkeypatch: pytest.Monk
 async def test_failed_custom_backtest_opens_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     events = await _backtest_events(monkeypatch, '{"ok": false, "error": "no bars"}')
     assert not [e for e in events if getattr(e, "name", None) == "open_panel"]
+
+
+@pytest.mark.asyncio
+async def test_the_final_done_carries_the_whole_turns_spend(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-082 (C11): the invoke done frame prices EVERY round of the
+    turn, not only the last one; an unpriced model reports None."""
+
+    class _TwoRounds:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def stream_chat(self, messages: list[LLMMessage], **_: Any) -> AsyncIterator[Any]:
+            self.calls += 1
+            if self.calls == 1:
+                yield LLMToolUseEvent(tool_call_id="x", name="price_data", input={"symbol": "SPY"})
+                yield LLMDoneEvent(usage=LLMUsage(input_tokens=600, output_tokens=0))
+                return
+            yield LLMDeltaEvent(text="SPY is up.")
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=300, output_tokens=100))
+
+    async def _dispatch(_call: Any, _local: Any = None) -> AsyncIterator[Any]:
+        yield agent_runtime._ToolDone(json.dumps({"ok": True, "price": 1}))
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool_with_progress", _dispatch)
+
+    async def _done(provider: str, model: str) -> LLMDoneEvent:
+        monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: _TwoRounds())
+        events = [
+            e
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="price of SPY",
+                provider=provider,
+                model=model,
+                api_key="k",
+                mode="edit",
+            )
+        ]
+        [done] = [e for e in events if isinstance(e, LLMDoneEvent)]
+        return done
+
+    priced = await _done("deepseek", "deepseek-chat")  # 1,000 tokens at $0.9/1M
+    assert priced.spend_usd == pytest.approx(0.0009)
+    assert (await _done("xai", "mystery-1")).spend_usd is None
