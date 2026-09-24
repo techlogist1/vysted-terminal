@@ -360,22 +360,23 @@ const _SCREENER_UNIVERSES: ReadonlySet<string> = new Set([
  * Coerce one loosely-typed object the agent emitted into a `ScreenerCriterion`.
  * The agent JSON isn't a discriminated union, so we keep only well-formed leaves
  * (a numeric `value` for thresholds / a {min,max} for between / a string for eq /
- * a string[] for in). Returns null for anything malformed so a sloppy arg never
- * crashes the apply.
+ * a string[] for in). A malformed leaf returns WHY it was dropped
+ * ("roe: value must be a number") so the label and the ack can say so — a
+ * sloppy arg never crashes the apply, and never vanishes silently either.
  */
-function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
+function parseScreenerCriterion(raw: unknown): ScreenerCriterion | string {
   if (!raw || typeof raw !== "object") {
-    return null;
+    return "a criterion that is not an object";
   }
   const o = raw as Record<string, unknown>;
   const field = typeof o.field === "string" ? o.field : "";
   const operator = typeof o.operator === "string" ? o.operator : "";
   if (!field || !operator) {
-    return null;
+    return `${field || "a criterion"}: needs both a field and an operator`;
   }
   if (operator === "gt" || operator === "lt" || operator === "gte" || operator === "lte") {
     if (typeof o.value !== "number") {
-      return null;
+      return `${field}: value must be a number`;
     }
     return { field, operator, value: o.value } as ScreenerCriterion;
   }
@@ -391,11 +392,11 @@ function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
         } as ScreenerCriterion;
       }
     }
-    return null;
+    return `${field}: value must be {min, max} numbers`;
   }
   if (operator === "eq") {
     if (typeof o.value !== "string") {
-      return null;
+      return `${field}: value must be a string`;
     }
     return { field, operator: "eq", value: o.value } as ScreenerCriterion;
   }
@@ -404,28 +405,47 @@ function parseScreenerCriterion(raw: unknown): ScreenerCriterion | null {
       ? o.value.filter((x): x is string => typeof x === "string")
       : [];
     if (arr.length === 0) {
-      return null;
+      return `${field}: value must be a list of strings`;
     }
     return { field, operator: "in", value: arr } as ScreenerCriterion;
   }
-  return null;
+  return `${field}: unknown operator "${operator}"`;
 }
 
-/** Parse a flat `criteria` array arg into well-formed leaves. */
-function parseScreenerCriteria(input: Record<string, unknown>): ScreenerCriterion[] {
-  const raw = input.criteria;
-  if (!Array.isArray(raw)) {
-    return [];
+/** Keep a parsed leaf, or record why it was dropped. */
+function keepLeaf(
+  raw: unknown,
+  into: (ScreenerCriterion | CriterionGroup)[],
+  dropped: string[],
+): void {
+  const leaf = parseScreenerCriterion(raw);
+  if (typeof leaf === "string") {
+    dropped.push(leaf);
+  } else {
+    into.push(leaf);
   }
-  return raw.map(parseScreenerCriterion).filter((c): c is ScreenerCriterion => c !== null);
+}
+
+/** Parse a flat `criteria` array arg into well-formed leaves; each malformed
+ *  leaf's reason goes onto `dropped`. */
+function parseScreenerCriteria(
+  input: Record<string, unknown>,
+  dropped: string[],
+): ScreenerCriterion[] {
+  const criteria: ScreenerCriterion[] = [];
+  for (const item of Array.isArray(input.criteria) ? input.criteria : []) {
+    keepLeaf(item, criteria, dropped);
+  }
+  return criteria;
 }
 
 /**
  * Parse a loosely-typed nested AND/OR `group` tree (the agent's JSON) into a
- * `CriterionGroup`, dropping malformed children. Recurses on sub-groups. Returns
- * null when absent or it collapses to nothing.
+ * `CriterionGroup`, dropping malformed children (their reasons go onto
+ * `dropped`). Recurses on sub-groups. Returns null when absent or it collapses
+ * to nothing.
  */
-function parseScreenerGroup(raw: unknown): CriterionGroup | null {
+function parseScreenerGroup(raw: unknown, dropped: string[]): CriterionGroup | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
@@ -435,15 +455,12 @@ function parseScreenerGroup(raw: unknown): CriterionGroup | null {
   const criteria: (ScreenerCriterion | CriterionGroup)[] = [];
   for (const child of rawChildren) {
     if (child && typeof child === "object" && "combinator" in (child as object)) {
-      const sub = parseScreenerGroup(child);
+      const sub = parseScreenerGroup(child, dropped);
       if (sub) {
         criteria.push(sub);
       }
     } else {
-      const leaf = parseScreenerCriterion(child);
-      if (leaf) {
-        criteria.push(leaf);
-      }
+      keepLeaf(child, criteria, dropped);
     }
   }
   if (criteria.length === 0) {
@@ -711,6 +728,8 @@ interface ScreenRecipe {
   group: CriterionGroup | null;
   universe?: ScreenerUniverseId;
   formula: string;
+  /** Why each malformed criterion the agent sent was dropped. */
+  dropped: string[];
 }
 
 /**
@@ -804,8 +823,10 @@ function parseScreenRecipe(input: Record<string, unknown>): {
   recipe: ScreenRecipe;
   count: number;
 } {
-  const criteria = parseScreenerCriteria(input);
-  const group = parseScreenerGroup(input.group);
+  const flatDropped: string[] = [];
+  const groupDropped: string[] = [];
+  const criteria = parseScreenerCriteria(input, flatDropped);
+  const group = parseScreenerGroup(input.group, groupDropped);
   const universe =
     typeof input.universe === "string" && _SCREENER_UNIVERSES.has(input.universe)
       ? (input.universe as ScreenerUniverseId)
@@ -814,9 +835,29 @@ function parseScreenRecipe(input: Record<string, unknown>): {
   // `criteria` too so older readers + the match-index column resolve.
   const flat = criteria.length ? criteria : group ? flattenLeaves(group) : [];
   return {
-    recipe: { criteria: flat, group, universe, formula: str(input, "formula").trim() },
+    recipe: {
+      criteria: flat,
+      group,
+      universe,
+      formula: str(input, "formula").trim(),
+      // A surviving group is what applies (and is counted); else the flat list.
+      dropped: group ? groupDropped : [...flatDropped, ...groupDropped],
+    },
     count: group ? countLeaves(group) : criteria.length,
   };
+}
+
+/** "; dropped roe: value must be a number" — the criteria the agent sent that
+ *  did not parse, or "" when none were dropped. */
+function droppedCriteriaNote(recipe: ScreenRecipe): string {
+  return recipe.dropped.length ? `; dropped ${recipe.dropped.join("; ")}` : "";
+}
+
+/** "3 screener criteria" / "2 of 3 screener criteria" when some were dropped. */
+function wroteCriteriaText(count: number, recipe: ScreenRecipe): string {
+  const total = count + recipe.dropped.length;
+  const noun = `screener ${total === 1 ? "criterion" : "criteria"}`;
+  return recipe.dropped.length ? `${count} of ${total} ${noun}` : `${count} ${noun}`;
 }
 
 /**
@@ -1143,8 +1184,8 @@ export function describeIntent(intent: HostIntent): {
         after: writes
           ? `Screener: ${criteriaText(count)}${nested}${recipe.universe ? ` · ${recipe.universe}` : ""}${
               recipe.formula ? " · formula" : ""
-            } — ${run ? "runs on apply" : "review then Run"}`
-          : `Screener: no well-formed criteria — ${CANT_APPLY}`,
+            }${droppedCriteriaNote(recipe)} — ${run ? "runs on apply" : "review then Run"}`
+          : `Screener: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`,
       };
     }
     case "save_screen": {
@@ -1161,7 +1202,9 @@ export function describeIntent(intent: HostIntent): {
         before: replaces ? `Saved screens: "${screenName}" exists` : "Saved screens: unchanged",
         after: !screenName
           ? `Saved screens: no name given — ${CANT_APPLY}`
-          : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})`,
+          : count === 0 && !recipe.formula && recipe.dropped.length > 0
+            ? `Saved screens: no well-formed criteria${droppedCriteriaNote(recipe)} — ${CANT_APPLY}`
+            : `Saved screens: ${replaces ? `"${screenName}" replaced` : `+"${screenName}"`} (${what})${droppedCriteriaNote(recipe)}`,
       };
     }
     case "portfolio_add_position": {
@@ -1544,7 +1587,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       const { recipe, count, run } = intent;
       // Need at least one well-formed criterion (flat OR nested) or a formula.
       if (count === 0 && !recipe.formula) {
-        return fail("no well-formed screener criteria");
+        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
       }
       // A formula-less write keeps the user's own formula (applyFilters' rule).
       useScreenerStore.getState().applyFilters({
@@ -1561,9 +1604,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // the bare "screener" id silently no-opped (same drift class as arrange).
       useWorkspaceStore.getState().openPanel("screener-panel");
       const what = count
-        ? `${count} screener ${count === 1 ? "criterion" : "criteria"}${recipe.formula ? " + a formula" : ""}`
+        ? `${wroteCriteriaText(count, recipe)}${recipe.formula ? " + a formula" : ""}`
         : "a screener formula";
-      return done(`Wrote ${what} — ${run ? "running" : "review and Run"}`);
+      return done(
+        `Wrote ${what}${droppedCriteriaNote(recipe)} — ${run ? "running" : "review and Run"}`,
+      );
     }
     case "write_note": {
       const { scope, text, append } = intent;
@@ -1590,6 +1635,11 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       if (!screenName) {
         return fail("no screen name given");
       }
+      // Every criterion the agent sent was malformed: saving would file the
+      // user's CURRENT filters under the agent's name — refuse and say why.
+      if (intent.count === 0 && !recipe.formula && recipe.dropped.length > 0) {
+        return fail(`no well-formed screener criteria${droppedCriteriaNote(recipe)}`);
+      }
       // The store saves its current draft, so the agent's recipe is written
       // into the draft first — the saved screen is the recipe, formula and all
       // (none given = none). No recipe saves the current filters, as the diff says.
@@ -1607,9 +1657,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       const previous = screener.savedScreens.find((s) => s.name === screenName) ?? null;
       useScreenerStore.getState().saveScreen(screenName);
       return done(
-        previous
-          ? `Replaced the saved screen "${screenName}"`
-          : `Saved the screen as "${screenName}"`,
+        `${previous ? `Replaced the saved screen "${screenName}"` : `Saved the screen as "${screenName}"`}${droppedCriteriaNote(recipe)}`,
         { kind: "screen", name: screenName, screen: previous },
       );
     }
@@ -1835,7 +1883,9 @@ export interface HostActionAckDetail {
   action: string;
   symbol?: string;
   panel?: string;
-  /** set_chart_indicators keys the chart did not know and did not apply. */
+  /** set_chart_indicators keys the chart did not know and did not apply, or the
+   *  screener criteria (write_screener_filters / save_screen) that did not parse,
+   *  each with its reason ("roe: value must be a number"). */
   dropped?: string[];
 }
 
@@ -1847,7 +1897,12 @@ export function hostActionAckDetail(
 ): HostActionAckDetail {
   const symbol = str(input, "symbol");
   const panel = str(input, "panel");
-  const dropped = name === "set_chart_indicators" ? splitIndicatorKeys(input).dropped : [];
+  const dropped =
+    name === "set_chart_indicators"
+      ? splitIndicatorKeys(input).dropped
+      : name === "write_screener_filters" || name === "save_screen"
+        ? parseScreenRecipe(input).recipe.dropped
+        : [];
   return {
     action: name,
     ...(symbol ? { symbol } : {}),

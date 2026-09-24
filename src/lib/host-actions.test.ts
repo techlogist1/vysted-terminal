@@ -230,6 +230,40 @@ describe("host-actions", () => {
     ).toBeNull();
   });
 
+  it("write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043)", () => {
+    useScreenerStore.getState().__resetForTests();
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const input = {
+      criteria: [
+        { field: "pe_ratio", operator: "lt", value: 20 },
+        { field: "roe", operator: "gt", value: { min: 15, max: 15 } },
+        { field: "debt_to_equity", operator: "lt", value: 0.5 },
+      ],
+    };
+    expect(applyHostAction("write_screener_filters", input)).toBe(
+      "Wrote 2 of 3 screener criteria; dropped roe: value must be a number — review and Run",
+    );
+    expect(describeHostAction("write_screener_filters", input).after).toMatch(
+      /dropped roe: value must be a number/,
+    );
+    expect(hostActionAckDetail("write_screener_filters", input).dropped).toEqual([
+      "roe: value must be a number",
+    ]);
+  });
+
+  it("save_screen whose every criterion is malformed refuses instead of saving the current filters (R15-AGENT-043)", () => {
+    useScreenerStore.getState().__resetForTests();
+    const input = {
+      name: "Quality",
+      group: { combinator: "and", criteria: [{ field: "roe", operator: "between", value: 15 }] },
+    };
+    expect(describeHostAction("save_screen", input).after).toMatch(
+      /dropped roe: value must be \{min, max\} numbers — can't apply/,
+    );
+    expect(applyHostAction("save_screen", input)).toBeNull();
+    expect(useScreenerStore.getState().savedScreens).toEqual([]);
+  });
+
   it("set_chart_indicators describes + applies the indicator selection (B2)", () => {
     useChartCommandStore.setState({ activeIndicators: ["rsi"] });
     const diff = describeHostAction("set_chart_indicators", {
