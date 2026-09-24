@@ -171,7 +171,7 @@ function FundamentalValueCell({ row }: { row: FundamentalRow }) {
   const chip = fieldReasonChip(row.meta);
   return (
     <span className="inline-flex items-center justify-end gap-1">
-      <span className="text-charcoal-600">—</span>
+      <span className="text-charcoal-500">—</span>
       {chip !== null && (
         <span className="text-micro text-charcoal-500 border-charcoal-800 rounded-control border px-1 py-px tracking-wide uppercase">
           {chip}
@@ -287,7 +287,7 @@ function RatingMetric({
       <span
         className={cn(
           "text-body",
-          value === null ? "text-charcoal-600" : "text-charcoal-100",
+          value === null ? "text-charcoal-500" : "text-charcoal-100",
           numeric && "tabular-nums",
         )}
       >
@@ -382,7 +382,7 @@ function NarrativeSection({
             <ul className="flex flex-col gap-2">
               {narrative.insights.map((insight, i) => (
                 <li key={i} className="text-charcoal-300 text-caption flex gap-2 leading-relaxed">
-                  <span className="text-charcoal-600 mt-px select-none">—</span>
+                  <span className="text-charcoal-500 mt-px select-none">—</span>
                   <span className="min-w-0">
                     <VerifiedProse text={insight} />
                   </span>

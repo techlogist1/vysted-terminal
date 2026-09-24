@@ -489,7 +489,7 @@ function SymbolChipInput({ onCommit }: { onCommit: (sym: string) => void }) {
       }}
       onBlur={commit}
       placeholder="AAPL"
-      className="text-caption border-charcoal-700 bg-charcoal-850 text-charcoal-200 placeholder:text-charcoal-600 rounded-control focus-visible:border-charcoal-500 h-6 w-16 border px-2 outline-none"
+      className="text-caption border-charcoal-700 bg-charcoal-850 text-charcoal-200 placeholder:text-charcoal-500 rounded-control focus-visible:border-charcoal-500 h-6 w-16 border px-2 outline-none"
     />
   );
 }

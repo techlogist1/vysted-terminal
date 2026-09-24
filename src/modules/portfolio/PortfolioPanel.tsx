@@ -30,8 +30,15 @@ import {
   usePortfoliosStore,
 } from "@/store/portfolios";
 import type { Position, Quote } from "../../../types/data";
-import { fetchPositionQuotes } from "./api";
-import { buildPortfolioSummary, type PositionRow } from "./metrics";
+import { benchmarkSymbolForCurrency, fetchDailyCloses, fetchPositionQuotes } from "./api";
+import {
+  buildPortfolioSummary,
+  computeCurrencyRisk,
+  MIN_RISK_HISTORY_DAYS,
+  type CurrencyRiskMetrics,
+  type HoldingPriceHistory,
+  type PositionRow,
+} from "./metrics";
 
 /** A holdings-table row — the computed position metrics joined to its source
  *  {@link Holding} (for edit/delete) by order. */
@@ -258,6 +265,101 @@ export function PortfolioPanel() {
     const at = quote?.timestamp;
     return at && (oldest === null || Date.parse(at) < Date.parse(oldest)) ? at : oldest;
   }, null);
+
+  // --- risk analytics (R15-CODE-PLATFORM-023) -------------------------------
+  // Sharpe/Sortino/Calmar/VaR/beta/correlation per currency bucket, from 1y of
+  // daily closes (D57: never cross-currency, same as the totals above).
+  interface RiskEntry {
+    status: "loading" | "ready" | "insufficient";
+    metrics: CurrencyRiskMetrics | null;
+  }
+  const riskBuckets = useMemo(() => {
+    const buckets = new Map<
+      string,
+      { symbol: string; assetClass: AssetClass; marketValue: number }[]
+    >();
+    for (const row of summary.rows) {
+      if (row.quote === null || row.marketValue === null) continue;
+      const currency = (row.quote.currency ?? "").trim().toUpperCase();
+      const list = buckets.get(currency) ?? [];
+      list.push({
+        symbol: row.position.symbol,
+        assetClass: row.position.asset_class === "crypto" ? "crypto" : "equity",
+        marketValue: row.marketValue,
+      });
+      buckets.set(currency, list);
+    }
+    return buckets;
+  }, [summary.rows]);
+  // Keyed on the RESOLVED symbol/currency set, never on the market values
+  // themselves — a quote-refresh tick must not re-fetch a year of history.
+  const riskBucketsKey = [...riskBuckets.entries()]
+    .map(
+      ([currency, list]) =>
+        `${currency}:${list
+          .map((h) => `${h.symbol}|${h.assetClass}`)
+          .sort()
+          .join(",")}`,
+    )
+    .sort()
+    .join(";");
+  const [riskByCurrency, setRiskByCurrency] = useState<Map<string, RiskEntry>>(new Map());
+  useEffect(() => {
+    if (riskBuckets.size === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRiskByCurrency(new Map());
+      return;
+    }
+    let cancelled = false;
+    setRiskByCurrency((prev) => {
+      const next = new Map(prev);
+      for (const currency of riskBuckets.keys()) {
+        next.set(currency, { status: "loading", metrics: null });
+      }
+      return next;
+    });
+    void Promise.all(
+      [...riskBuckets.entries()].map(async ([currency, bucketHoldings]) => {
+        const closes = await Promise.all(
+          bucketHoldings.map((h) => fetchDailyCloses(h.symbol, h.assetClass)),
+        );
+        // Renormalize weight over only the holdings whose history resolved —
+        // a holding with no fetchable history is excluded, never fabricated.
+        let survivorTotal = 0;
+        bucketHoldings.forEach((h, i) => {
+          if (closes[i] !== null) survivorTotal += h.marketValue;
+        });
+        const withHistory: HoldingPriceHistory[] = [];
+        bucketHoldings.forEach((h, i) => {
+          const closesByDate = closes[i];
+          if (closesByDate === null || survivorTotal === 0) return;
+          withHistory.push({
+            symbol: h.symbol,
+            closesByDate,
+            weight: h.marketValue / survivorTotal,
+          });
+        });
+        const benchmarkSymbol = benchmarkSymbolForCurrency(currency);
+        const benchmarkCloses = benchmarkSymbol
+          ? await fetchDailyCloses(benchmarkSymbol, "equity")
+          : null;
+        return [currency, computeCurrencyRisk(currency, withHistory, benchmarkCloses)] as const;
+      }),
+    ).then((results) => {
+      if (cancelled) return;
+      setRiskByCurrency((prev) => {
+        const next = new Map(prev);
+        for (const [currency, metrics] of results) {
+          next.set(currency, { status: metrics ? "ready" : "insufficient", metrics });
+        }
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riskBucketsKey]);
 
   // Clear a save/validation error as soon as the user edits any field.
   const formKey = `${form.symbol}|${form.quantity}|${form.costBasis}|${form.assetClass}|${form.note}`;
@@ -866,7 +968,7 @@ export function PortfolioPanel() {
                   : "— (no live quotes)"}
             </span>
           </span>
-          <span aria-hidden="true" className="text-charcoal-600">
+          <span aria-hidden="true" className="text-charcoal-500">
             ·
           </span>
           <span>
@@ -893,7 +995,7 @@ export function PortfolioPanel() {
               across mixed currencies, so it yields to an honest note instead. */}
           {summary.mixedCurrencies ? (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span
@@ -905,7 +1007,7 @@ export function PortfolioPanel() {
             </>
           ) : (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span className="whitespace-nowrap">
@@ -918,7 +1020,7 @@ export function PortfolioPanel() {
           )}
           {summary.unresolvedCount > 0 && (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span className="text-charcoal-400 whitespace-nowrap">
@@ -928,7 +1030,7 @@ export function PortfolioPanel() {
           )}
           {quotesAsOf !== null && (
             <>
-              <span aria-hidden="true" className="text-charcoal-600">
+              <span aria-hidden="true" className="text-charcoal-500">
                 ·
               </span>
               <span
@@ -944,6 +1046,124 @@ export function PortfolioPanel() {
               </span>
             </>
           )}
+        </div>
+      )}
+
+      {riskByCurrency.size > 0 && (
+        <div
+          className="border-charcoal-700 border-b px-3 py-2"
+          data-testid="portfolio-risk-section"
+        >
+          <h3 className="text-charcoal-400 text-caption mb-1.5 font-medium tracking-wide uppercase">
+            Risk
+          </h3>
+          <div className="flex flex-col gap-2">
+            {[...riskByCurrency.entries()].map(([currency, entry]) => (
+              <div key={currency || "unknown"} className="text-caption">
+                {mixedCurrencies && (
+                  <div className="text-charcoal-400 mb-1 font-mono">{currency || "—"}</div>
+                )}
+                {entry.status === "loading" ? (
+                  <span className="text-charcoal-400">Computing risk metrics…</span>
+                ) : entry.metrics === null ? (
+                  <span
+                    className="text-charcoal-400"
+                    title={`Needs ${MIN_RISK_HISTORY_DAYS}+ overlapping trading days of price history`}
+                  >
+                    Not enough price history yet (needs {MIN_RISK_HISTORY_DAYS}+ overlapping days)
+                  </span>
+                ) : (
+                  (() => {
+                    const metrics = entry.metrics;
+                    return (
+                      <>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 tabular-nums">
+                          <span>
+                            Sharpe:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.sharpeRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            Sortino:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.sortinoRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            Max DD:{" "}
+                            <span className="text-negative">
+                              {(metrics.maxDrawdown * 100).toFixed(1)}%
+                            </span>
+                          </span>
+                          <span>
+                            Calmar:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.calmarRatio.toFixed(2)}
+                            </span>
+                          </span>
+                          <span>
+                            VaR 95% (1d):{" "}
+                            <span className="text-charcoal-100">
+                              {(metrics.valueAtRisk95 * 100).toFixed(1)}%
+                            </span>
+                          </span>
+                          <span>
+                            Beta:{" "}
+                            <span className="text-charcoal-100">
+                              {metrics.beta !== null ? metrics.beta.toFixed(2) : "—"}
+                            </span>
+                          </span>
+                          <span
+                            className="text-charcoal-400"
+                            title={`Computed over ${metrics.days} overlapping trading days`}
+                          >
+                            {metrics.days}d history
+                          </span>
+                        </div>
+                        {metrics.correlation.symbols.length > 1 && (
+                          <div className="mt-1 overflow-x-auto">
+                            <table className="border-collapse">
+                              <thead>
+                                <tr>
+                                  <th className="pr-2" />
+                                  {metrics.correlation.symbols.map((s) => (
+                                    <th
+                                      key={s}
+                                      className="text-charcoal-400 px-1.5 py-0.5 text-right font-mono font-normal"
+                                    >
+                                      {s}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {metrics.correlation.symbols.map((rowSymbol, i) => (
+                                  <tr key={rowSymbol}>
+                                    <th className="text-charcoal-400 pr-2 text-right font-mono font-normal">
+                                      {rowSymbol}
+                                    </th>
+                                    {metrics.correlation.matrix[i].map((v, j) => (
+                                      <td
+                                        key={j}
+                                        className="text-charcoal-100 px-1.5 py-0.5 text-right font-mono tabular-nums"
+                                      >
+                                        {v.toFixed(2)}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

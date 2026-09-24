@@ -10,7 +10,7 @@
 
 import { getSidecarBaseUrl, sidecarApi } from "@/lib/sidecar-client";
 import type { HoldingInput } from "@/store/portfolios";
-import type { Position, Quote } from "../../../types/data";
+import type { OHLCVSeries, Position, Quote } from "../../../types/data";
 
 /** The minimal shape needed to resolve a live quote for a holding. */
 export interface QuoteTarget {
@@ -82,4 +82,42 @@ export async function fetchLegacyPositions(): Promise<HoldingInput[]> {
     assetClass: row.asset_class === "crypto" ? "crypto" : "equity",
     note: row.note ?? undefined,
   }));
+}
+
+// --- Risk analytics price history (R15-CODE-PLATFORM-023) ------------------
+
+/** The benchmark `/history` symbol for a resolved-quote currency bucket, or
+ *  `null` when there's no named benchmark for it (beta stays null for that
+ *  bucket — an honest gap, never a wrong index substituted in). */
+export function benchmarkSymbolForCurrency(currency: string): string | null {
+  switch (currency.trim().toUpperCase()) {
+    case "INR":
+      return "^NSEI";
+    case "USD":
+      return "SPY";
+    default:
+      return null;
+  }
+}
+
+/**
+ * One year of daily closes for `symbol`, keyed by ISO date (`YYYY-MM-DD`).
+ * `null` on any fetch failure or an empty series — the caller treats it as
+ * "this symbol/benchmark has no usable history", never a zero-filled series.
+ */
+export async function fetchDailyCloses(
+  symbol: string,
+  assetClass: string,
+): Promise<Map<string, number> | null> {
+  try {
+    const series: OHLCVSeries = await sidecarApi.history(symbol, "1d", "1y", assetClass);
+    if (series.bars.length === 0) return null;
+    const closes = new Map<string, number>();
+    for (const bar of series.bars) {
+      closes.set(bar.timestamp.slice(0, 10), bar.close);
+    }
+    return closes;
+  } catch {
+    return null;
+  }
 }

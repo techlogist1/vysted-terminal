@@ -43,7 +43,7 @@ import {
   POSITIVE,
 } from "@/lib/chart-theme";
 import { sessionLabelFromFreshness } from "@/lib/market-session";
-import { SidecarError, sidecarApi } from "@/lib/sidecar-client";
+import { SidecarError, sidecarApi, sidecarGet } from "@/lib/sidecar-client";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { cn } from "@/lib/utils";
 import { useChartCommandStore } from "@/store/chart-command";
@@ -288,6 +288,15 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(restored?.indicators ?? chartDefaultsAtMount.indicators),
   );
+  // R15-UI-091: an UNTOUCHED chart (no persisted view, no explicit
+  // "Make default" indicators) seeds the FR-092 suggested set for its
+  // (asset class, timeframe) on open and on every symbol/timeframe change —
+  // a fresh chart no longer opens with a blank indicator set. The first
+  // explicit edit (toggle, clear, host command, or a saved chart default)
+  // turns this off for the rest of the panel's life.
+  const [indicatorsTouched, setIndicatorsTouched] = useState(
+    () => restored !== undefined || chartDefaultsAtMount.indicators.length > 0,
+  );
 
   // --- toolbar disclosure state --------------------------------------------
   const [openMenu, setOpenMenu] = useState<ToolbarMenu | null>(null);
@@ -404,6 +413,34 @@ function ChartPanel(props: ChartPanelProps = {}) {
       unregisterPanel(panelId);
     };
   }, [panelId, unregisterPanel]);
+
+  // Seed the suggested indicator set (R15-UI-091 / FR-092) for an untouched
+  // chart, on open and on every symbol/timeframe change. Once the user (or a
+  // host command) makes an explicit choice, `indicatorsTouched` stays true
+  // and this effect is inert for the rest of the panel's life.
+  useEffect(() => {
+    if (indicatorsTouched) {
+      return;
+    }
+    let cancelled = false;
+    void sidecarGet<{ indicators: string[] }>("/indicators/suggested", {
+      timeframe,
+      asset_class: assetClassOf(symbol),
+    })
+      .then((response) => {
+        if (!cancelled) {
+          setSelected(new Set(response.indicators));
+        }
+      })
+      .catch(() => {
+        // A failed suggestion fetch leaves the chart on whatever indicators
+        // it already has (empty on a truly fresh chart) — never a broken or
+        // blank overlay in its place.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [symbol, timeframe, indicatorsTouched]);
 
   // --- price data ---------------------------------------------------------
   useEffect(() => {
@@ -899,6 +936,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         return;
       }
       setSelected(new Set(cmd.indicators));
+      setIndicatorsTouched(true);
     };
     if (indicatorCommand) {
       applyCommand(indicatorCommand);
@@ -1127,10 +1165,12 @@ function ChartPanel(props: ChartPanelProps = {}) {
       }
       return next;
     });
+    setIndicatorsTouched(true);
   }, []);
 
   const clearAllIndicators = useCallback(() => {
     setSelected(new Set());
+    setIndicatorsTouched(true);
   }, []);
 
   const submitComparison = useCallback(() => {
