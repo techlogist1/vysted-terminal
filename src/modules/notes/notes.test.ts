@@ -242,33 +242,198 @@ describe("Tiptap markdown round-trip", () => {
 // missed this). This test constructs the editor with the exact NotesPanel set.
 describe("NotesPanel editor construction (suggestion-plugin keys)", () => {
   it("constructs with StarterKit + tables + markdown + slash + wikilink without throwing", async () => {
+    const editor = await makeFullEditor();
+    expect(editor).not.toBeNull();
+    editor.destroy();
+  });
+});
+
+// ── R15-UI-024: task lists, suggestion keyboard nav, wikilink node ────────────
+
+/** The exact extension set NotesPanel.tsx mounts (see its `useEditor` call). */
+async function makeFullEditor() {
+  const { Editor } = await import("@tiptap/core");
+  const { StarterKit } = await import("@tiptap/starter-kit");
+  const { Table } = await import("@tiptap/extension-table");
+  const { TableRow } = await import("@tiptap/extension-table-row");
+  const { TableCell } = await import("@tiptap/extension-table-cell");
+  const { TableHeader } = await import("@tiptap/extension-table-header");
+  const { TaskList, TaskItem } = await import("@tiptap/extension-list");
+  const { Markdown } = await import("@tiptap/markdown");
+  const { SlashCommandExtension } = await import("./SlashCommandExtension");
+  const { WikiLinkExtension } = await import("./WikiLinkExtension");
+  const { WikiLinkNode } = await import("./WikiLinkNode");
+
+  return new Editor({
+    extensions: [
+      StarterKit,
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Markdown,
+      SlashCommandExtension,
+      WikiLinkExtension.configure({ getSymbols: () => [] }),
+      WikiLinkNode,
+    ],
+    content: "",
+  });
+}
+
+function md(editor: Awaited<ReturnType<typeof makeFullEditor>>): string {
+  return (editor as unknown as { getMarkdown: () => string }).getMarkdown();
+}
+
+/** Find a registered ProseMirror plugin by its `new PluginKey(name)` string. */
+function findPlugin(
+  editor: Awaited<ReturnType<typeof makeFullEditor>>,
+  keyName: string,
+): { props: { handleKeyDown?: (view: unknown, event: unknown) => boolean } } {
+  // `new PluginKey(name)` appends a `$<n>` suffix using a global counter (not
+  // just `$`) so distinct Editor instances across a test file don't collide.
+  // `.key` is a real runtime property (set from `PluginSpec.key`) but isn't
+  // part of `Plugin`'s public .d.ts, hence the cast.
+  const plugin = editor.view.state.plugins.find((p) =>
+    (p as unknown as { key?: string }).key?.startsWith(`${keyName}$`),
+  );
+  if (!plugin) throw new Error(`plugin ${keyName} not found`);
+  return plugin as unknown as {
+    props: { handleKeyDown?: (view: unknown, event: unknown) => boolean };
+  };
+}
+
+function keyEvent(key: string): KeyboardEvent {
+  return { key, preventDefault: () => {} } as unknown as KeyboardEvent;
+}
+
+/**
+ * @tiptap/suggestion's plugin `view().update()` hook is `async` (it awaits
+ * `items()`), so `onStart`/`onUpdate` — which is where our extensions wire up
+ * `nav.setItems`/`currentCommand` — land on a microtask after the triggering
+ * transaction, not inside it. A real user's keystroke and their next
+ * keystroke are two separate real-time events, so this never surfaces
+ * outside a test; here we flush the microtask queue before driving keys.
+ */
+async function flush(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+describe("R15-UI-024: task lists", () => {
+  it("toggleTaskList works (TaskList/TaskItem registered) instead of throwing", async () => {
+    const editor = await makeFullEditor();
+    editor.commands.insertContent("Buy milk");
+    expect(() => editor.chain().focus().toggleTaskList().run()).not.toThrow();
+    expect(editor.isActive("taskList")).toBe(true);
+    editor.destroy();
+  });
+});
+
+describe("R15-UI-024: suggestion keyboard navigation", () => {
+  it("ArrowDown then Enter picks the SECOND slash-command item", async () => {
+    const editor = await makeFullEditor();
+    // Opens the slash suggestion the same way real typing does (Suggestion
+    // matches on document state, not on how the "/" character arrived).
+    editor.commands.insertContent("/");
+    await flush();
+    const plugin = findPlugin(editor, "notesSlashCommand");
+
+    const downHandled = plugin.props.handleKeyDown!(editor.view, keyEvent("ArrowDown"));
+    expect(downHandled).toBe(true);
+    const enterHandled = plugin.props.handleKeyDown!(editor.view, keyEvent("Enter"));
+    expect(enterHandled).toBe(true);
+
+    // SLASH_COMMANDS[1] is "Heading 2".
+    expect(editor.isActive("heading", { level: 2 })).toBe(true);
+    editor.destroy();
+  });
+
+  it("ArrowDown then Enter picks the SECOND wikilink item", async () => {
+    const { WikiLinkExtension } = await import("./WikiLinkExtension");
     const { Editor } = await import("@tiptap/core");
     const { StarterKit } = await import("@tiptap/starter-kit");
-    const { Table } = await import("@tiptap/extension-table");
-    const { TableRow } = await import("@tiptap/extension-table-row");
-    const { TableCell } = await import("@tiptap/extension-table-cell");
-    const { TableHeader } = await import("@tiptap/extension-table-header");
     const { Markdown } = await import("@tiptap/markdown");
     const { SlashCommandExtension } = await import("./SlashCommandExtension");
-    const { WikiLinkExtension } = await import("./WikiLinkExtension");
+    const { WikiLinkNode } = await import("./WikiLinkNode");
 
-    let editor: InstanceType<typeof Editor> | null = null;
-    expect(() => {
-      editor = new Editor({
-        extensions: [
-          StarterKit,
-          Table.configure({ resizable: false }),
-          TableRow,
-          TableCell,
-          TableHeader,
-          Markdown,
-          SlashCommandExtension,
-          WikiLinkExtension.configure({ getSymbols: () => [] }),
-        ],
-        content: "",
-      });
-    }).not.toThrow();
-    expect(editor).not.toBeNull();
-    editor!.destroy();
+    const editor = new Editor({
+      extensions: [
+        StarterKit,
+        Markdown,
+        SlashCommandExtension,
+        WikiLinkExtension.configure({
+          getSymbols: () => [
+            { symbol: "AAPL", hasNote: false },
+            { symbol: "MSFT", hasNote: false },
+          ],
+        }),
+        WikiLinkNode,
+      ],
+      content: "",
+    });
+
+    editor.commands.insertContent("[[");
+    await flush();
+    const plugin = findPlugin(editor, "notesWikiLink");
+
+    plugin.props.handleKeyDown!(editor.view, keyEvent("ArrowDown"));
+    plugin.props.handleKeyDown!(editor.view, keyEvent("Enter"));
+
+    expect(md(editor)).toContain("[[MSFT]]");
+    editor.destroy();
+  });
+});
+
+describe("R15-UI-024: wikilink markdown round-trip", () => {
+  it("[[SYMBOL]] round-trips through getMarkdown()/setContent() unchanged", async () => {
+    const editor = await makeFullEditor();
+    const input = "See [[RELIANCE.NS]] for more.\n";
+    editor.commands.setContent(input, { contentType: "markdown" });
+    const output = md(editor);
+    expect(output).toContain("[[RELIANCE.NS]]");
+    editor.commands.setContent(output, { contentType: "markdown" });
+    expect(md(editor)).toBe(output);
+    editor.destroy();
+  });
+});
+
+describe("R15-UI-024 class pin: trigger characters over a selection", () => {
+  it("typing '[' over a selection keeps the selected text instead of deleting it", async () => {
+    const editor = await makeFullEditor();
+    editor.commands.setContent("alpha beta gamma");
+    editor.commands.setTextSelection({ from: 1, to: 6 }); // "alpha"
+
+    const plugin = findPlugin(editor, "notesTriggerSelectionGuard");
+    const handled = plugin.props.handleKeyDown!(editor.view, keyEvent("["));
+
+    expect(handled).toBe(true);
+    expect(editor.getText()).toContain("alpha");
+    expect(editor.getText()).toContain("beta gamma");
+    editor.destroy();
+  });
+
+  it("typing '/' over a selection keeps the selected text instead of deleting it", async () => {
+    const editor = await makeFullEditor();
+    editor.commands.setContent("hello world");
+    editor.commands.setTextSelection({ from: 1, to: 6 }); // "hello"
+
+    const plugin = findPlugin(editor, "notesTriggerSelectionGuard");
+    const handled = plugin.props.handleKeyDown!(editor.view, keyEvent("/"));
+
+    expect(handled).toBe(true);
+    expect(editor.getText()).toContain("hello");
+    editor.destroy();
+  });
+
+  it("a lone, non-trigger key with a selection is left to default handling", async () => {
+    const editor = await makeFullEditor();
+    editor.commands.setContent("alpha beta gamma");
+    editor.commands.setTextSelection({ from: 1, to: 6 });
+
+    const plugin = findPlugin(editor, "notesTriggerSelectionGuard");
+    expect(plugin.props.handleKeyDown!(editor.view, keyEvent("x"))).toBe(false);
+    editor.destroy();
   });
 });

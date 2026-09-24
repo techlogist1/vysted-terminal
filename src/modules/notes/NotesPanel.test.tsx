@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applyHostAction } from "@/lib/host-actions";
 import { useNotesStore } from "@/store/notes";
+import { useSymbolsStore, DEFAULT_SYMBOLS } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import { NotesPanel } from "./NotesPanel";
@@ -39,6 +40,7 @@ describe("NotesPanel — the notes store is authoritative", () => {
     cleanup();
     vi.useRealTimers();
     useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
   });
 
   it("shows an agent write_note into the open note, and the next keystroke keeps it", async () => {
@@ -105,5 +107,33 @@ describe("NotesPanel — the notes store is authoritative", () => {
     const classes = row!.className.split(/\s+/);
     expect(classes).not.toContain("h-8");
     expect(classes).toContain("min-h-8");
+  });
+
+  // R15-UI-024 repro d: getWikiSymbols used to close over the render-time
+  // `symbolEntries` prop, captured once when `useEditor`'s extensions array
+  // was built at mount — a symbol added to the watchlist afterwards never
+  // appeared in the "[[" picker. It now reads `useSymbolsStore.getState()`
+  // live on every open.
+  it("R15-UI-024: the [[ picker offers a symbol added to the watchlist AFTER mount", async () => {
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    await renderPanel();
+
+    act(() => {
+      useSymbolsStore.getState().addSymbol("TCS.NS", "equity");
+    });
+
+    act(() => {
+      editorOf().commands.insertContent("[[");
+    });
+    // @tiptap/suggestion's plugin view `update()` hook is async (it awaits
+    // `items()`), so the popup-opening `onStart` callback lands on a
+    // microtask after this transaction, not inside it.
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText("TCS.NS")).toBeInTheDocument();
   });
 });

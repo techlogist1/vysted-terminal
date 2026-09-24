@@ -6,13 +6,19 @@
  * list and the reference rect — the `NotesPanel` React component renders the
  * popup by listening to that event. On selection the item's `action(editor)`
  * fires and the "/" trigger character is deleted.
+ *
+ * ArrowUp/ArrowDown/Enter navigate and pick a row (R15-UI-024 repro b) via
+ * the shared `createKeyboardNav` helper; a `createTriggerSelectionGuard`
+ * plugin keeps "/" from eating an active selection before the menu opens
+ * (repro e).
  */
-
-import { Extension } from "@tiptap/core";
+import { Extension, type Editor } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { Suggestion } from "@tiptap/suggestion";
 
 import { SLASH_COMMANDS, type SlashCommandItem } from "./slash-commands";
+import { createKeyboardNav } from "./suggestion-keyboard-nav";
+import { createTriggerSelectionGuard } from "./trigger-selection-guard";
 
 /** Custom event dispatched to the document when the slash menu should update. */
 export interface SlashMenuDetail {
@@ -20,6 +26,8 @@ export interface SlashMenuDetail {
   /** DOMRect from `clientRect()` for positioning the popup. */
   rect: DOMRect | null;
   query: string;
+  activeIndex: number;
+  setActiveIndex: (index: number) => void;
   command: (item: SlashCommandItem) => void;
 }
 
@@ -51,39 +59,71 @@ export const SlashCommandExtension = Extension.create({
               item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q),
           );
         },
-        render: () => ({
-          onStart(props) {
+        render: () => {
+          const nav = createKeyboardNav<SlashCommandItem>();
+          let currentCommand: ((props: { action: (editor: Editor) => void }) => void) | null = null;
+          // `onKeyDown`'s props (SuggestionKeyDownProps) carry only
+          // {view, event, range} — no clientRect/query — so the last-seen
+          // rect/query from onStart/onUpdate is cached here for re-emitting
+          // after an arrow-key move.
+          let latestRect: DOMRect | null = null;
+          let latestQuery = "";
+
+          const emit = () => {
             dispatch({
-              items: props.items as SlashCommandItem[],
-              rect: props.clientRect ? props.clientRect() : null,
-              query: props.query,
+              items: nav.getItems(),
+              rect: latestRect,
+              query: latestQuery,
+              activeIndex: nav.activeIndex,
+              setActiveIndex: (i: number) => {
+                nav.setActiveIndex(i);
+                emit();
+              },
               command: (item: SlashCommandItem) => {
-                props.command({ action: item.action });
+                currentCommand?.({ action: item.action });
               },
             });
-          },
-          onUpdate(props) {
-            dispatch({
-              items: props.items as SlashCommandItem[],
-              rect: props.clientRect ? props.clientRect() : null,
-              query: props.query,
-              command: (item: SlashCommandItem) => {
-                props.command({ action: item.action });
-              },
-            });
-          },
-          onKeyDown(props) {
-            if (props.event.key === "Escape") {
+          };
+
+          return {
+            onStart(props) {
+              currentCommand = props.command;
+              latestRect = props.clientRect ? props.clientRect() : null;
+              latestQuery = props.query;
+              nav.reset();
+              nav.setItems(props.items as SlashCommandItem[]);
+              emit();
+            },
+            onUpdate(props) {
+              currentCommand = props.command;
+              latestRect = props.clientRect ? props.clientRect() : null;
+              latestQuery = props.query;
+              nav.setItems(props.items as SlashCommandItem[]);
+              emit();
+            },
+            onKeyDown(props) {
+              if (props.event.key === "Escape") {
+                dispatch(null);
+                return true;
+              }
+              const handled = nav.handleKey(props.event.key, (item) => {
+                currentCommand?.({ action: item.action });
+              });
+              if (handled) {
+                if (props.event.key !== "Enter") {
+                  emit();
+                }
+                return true;
+              }
+              return false;
+            },
+            onExit() {
               dispatch(null);
-              return true;
-            }
-            return false;
-          },
-          onExit() {
-            dispatch(null);
-          },
-        }),
+            },
+          };
+        },
       }),
+      createTriggerSelectionGuard(),
     ];
   },
 });
