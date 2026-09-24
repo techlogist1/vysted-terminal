@@ -1,10 +1,11 @@
-import { applyLayoutMode } from "@/lib/layout-templates";
+import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /**
  * macOS menu-bar bridge (003) — the native Layout menu (built in `lib.rs`,
  * macOS-only) labels its items Fundamental / Technical / Macro / Compare / Reset
- * and emits `vysted://menu-layout` with a layout-mode id. A menu mode is a
+ * and emits `vysted://menu-layout` with a historical template id, mapped once to
+ * its layout mode by `MENU_PAYLOAD_TO_MODE`. A menu mode is a
  * DETERMINISTIC "switch to this cockpit": `applyLayoutMode` CLEARS the grid and
  * tiles exactly that mode's panel set (NOT the agent's additive, fit-downgraded
  * arrange — Bug-4: "Fundamental" was collapsing to a single brief panel). A user
@@ -28,10 +29,12 @@ export function initMenuBridge(): () => void {
           console.warn("[menu-bridge] no dockview api yet — layout not applied");
           return;
         }
+        const mode = MENU_PAYLOAD_TO_MODE[template];
         if (template === "default") {
           useWorkspaceStore.getState().resetToDefaultLayout();
-        } else if (applyLayoutMode(api, template)) {
-          console.info(`[menu-bridge] applied layout mode → ${template}`);
+        } else if (mode) {
+          applyLayoutMode(api, mode);
+          console.info(`[menu-bridge] applied layout mode → ${mode}`);
         } else {
           console.warn(`[menu-bridge] unknown layout payload → ${template}`);
         }

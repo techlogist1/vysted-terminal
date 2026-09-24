@@ -223,3 +223,20 @@ def test_read_notes_is_a_local_read_with_a_scope_arg() -> None:
     assert cap.input_schema["required"] == ["scope"]
     assert "read_notes" in PER_INVOCATION_READ_TOOLS
     assert not cap.mcp  # answered from the invocation's snapshot, never over MCP
+
+
+def test_arrange_layout_describes_exactly_the_panels_each_template_places() -> None:
+    """R15-AGENT-055: the arrange description and enum come from
+    config/layout_templates.json (the file the frontend planner places panels
+    from), so the tool never promises a panel the host does not place."""
+    from services.agent_tools.catalog import LAYOUT_TEMPLATES
+
+    cap = CAPABILITY_CATALOG["arrange_layout"]
+    assert set(LAYOUT_TEMPLATES) == {"single-focus", "research-cockpit", "compare", "macro-scan"}
+    for template_id, entry in LAYOUT_TEMPLATES.items():
+        assert f"'{template_id}' (" in cap.description
+        assert f"places {' + '.join(entry['panels'])})" in cap.description
+        assert template_id in cap.input_schema["properties"]["pattern"]["enum"]
+    text = cap.description.lower() + CAPABILITY_CATALOG["compare_symbols"].description.lower()
+    for promise in ("heatmap", "dual chart", "dual-chart", "stats"):
+        assert promise not in text

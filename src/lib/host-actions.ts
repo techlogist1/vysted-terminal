@@ -26,6 +26,7 @@ import {
   applyContentAwareLayout,
   applyCustomLayout,
   fitLayoutTemplate,
+  LAYOUT_TEMPLATE_IDS,
   resolvePanelToken,
   type CustomPanelSpec,
   type LayoutTemplate,
@@ -295,14 +296,6 @@ export function openCompanyOverview(
   }
   useEquityCommandStore.getState().loadSymbol(symbol, highlightMetric, region);
 }
-
-/** The named arrange_layout templates (beyond the legacy default/focus patterns). */
-const LAYOUT_TEMPLATES: ReadonlySet<string> = new Set([
-  "single-focus",
-  "research-cockpit",
-  "compare",
-  "macro-scan",
-]);
 
 /** A host-action mutation the diff gate must intercept rather than auto-apply. */
 export function isHostActionMutation(name: string): boolean {
@@ -1097,7 +1090,7 @@ export function describeIntent(intent: HostIntent): {
           after: names ? `Layout: ${names}` : "Layout: a custom arrangement",
         };
       }
-      if (LAYOUT_TEMPLATES.has(pattern)) {
+      if (LAYOUT_TEMPLATE_IDS.has(pattern)) {
         const label =
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
         const scope =
@@ -1461,7 +1454,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         const names = customPanels.map((p) => p.panel).join(" + ");
         return done(names ? `Arranged ${names}` : "Arranged your panels");
       }
-      if (LAYOUT_TEMPLATES.has(pattern)) {
+      if (LAYOUT_TEMPLATE_IDS.has(pattern)) {
         const api = ws.dockviewApi;
         if (!api) {
           return fail("the layout has not mounted");
