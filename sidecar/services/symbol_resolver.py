@@ -522,6 +522,7 @@ def refresh_masters() -> None:
         _bse_scrip_index.cache_clear()
         _generic_tokens.cache_clear()
         _face_values.cache_clear()
+        _scan_names.cache_clear()
 
 
 def reset_caches_for_tests() -> None:
@@ -534,6 +535,7 @@ def reset_caches_for_tests() -> None:
     _india_sector_map.cache_clear()
     _generic_tokens.cache_clear()
     _face_values.cache_clear()
+    _scan_names.cache_clear()
     _reset_live_lookup_for_tests()
 
 
@@ -900,39 +902,8 @@ def _resolve_masters(query: str, region: str) -> Resolution:
     if marquee is not None:
         return marquee
 
-    # 3. Banded name match across the masters. One canonical row per
-    #    instrument: a dual-listed symbol is represented by its NSE row only
-    #    (the BSE scan skips symbols the NSE master already carries), so a name
-    #    never surfaces twice with two spellings of the same company.
     query_lc = cleaned.lower()
-    n_words = len(tokens)
-    scored: list[tuple[int, int, float, Instrument]] = []
-
-    def _append(band_score: tuple[int, float] | None, build, sym: str) -> None:
-        if band_score is None:
-            return
-        band, s = band_score
-        inst = build(sym, s, band)
-        scored.append((band, _locale_rank(region, inst.region), s, inst))
-
-    nse_symbols = _nse_master()
-    for sym, (name, _typ) in nse_symbols.items():
-        _append(_name_score(query_lc, name.lower(), n_words), _instrument_nse, sym)
-    for sym, (name, _group, _code, _isin) in _bse_master().items():
-        if sym in nse_symbols and suffix_exchange != "BSE":
-            continue  # canonical row is the NSE instrument (dual-listed), unless .BO pins BSE
-        _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
-    for sym, name in _us_master().items():
-        _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
-
-    # Band tie-break: (band, locale, score) — stable, so the prominence-ordered
-    # masters break exact ties toward the well-known instrument. The locale
-    # component IS the chooser's region tie-break (R11, D58c / V5): under an IN
-    # session a foreign row can never outrank an IN row at the same band, so a
-    # disambiguation list for "Reliance Q4 results" leads with RELIANCE (NSE),
-    # never FRLCY/FLNCF (US OTC).
-    scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
-    ranked = [t[3] for t in scored]
+    ranked = list(_scan_names(query_lc, len(tokens), region, suffix_exchange))
 
     # 3b. A retired NSE ticker (R15-DATA-018). A refreshed master no longer
     #     carries the old symbol, so a query for it misses (or only fuzzes below
@@ -963,6 +934,50 @@ def _resolve_masters(query: str, region: str) -> Resolution:
         return Resolution(query=query, best=live[0], candidates=live[:_MAX_CANDIDATES])
 
     return Resolution(query=query, best=None, candidates=[])
+
+
+# ponytail: 256 entries bound the memo (a one-letter query ranks ~12.8k rows); raise it
+# if repeat-query hit rates show it evicting hot names.
+@lru_cache(maxsize=256)
+def _scan_names(
+    query_lc: str, n_words: int, region: str, suffix_exchange: str | None
+) -> tuple[Instrument, ...]:
+    """The banded, locale-ranked name scan over the masters (step 3 of
+    :func:`_resolve_masters`). Pure over the loaded masters, so it is memoized
+    (R15-CODE-DATA-002: ~17.9k ``SequenceMatcher`` scores per call) and cleared
+    whenever the masters change (:func:`refresh_masters`). The retired-symbol
+    step, the live lookup, rename and enrichment stay outside the memo."""
+    # 3. Banded name match across the masters. One canonical row per
+    #    instrument: a dual-listed symbol is represented by its NSE row only
+    #    (the BSE scan skips symbols the NSE master already carries), so a name
+    #    never surfaces twice with two spellings of the same company.
+    scored: list[tuple[int, int, float, Instrument]] = []
+
+    def _append(band_score: tuple[int, float] | None, build, sym: str) -> None:
+        if band_score is None:
+            return
+        band, s = band_score
+        inst = build(sym, s, band)
+        scored.append((band, _locale_rank(region, inst.region), s, inst))
+
+    nse_symbols = _nse_master()
+    for sym, (name, _typ) in nse_symbols.items():
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_nse, sym)
+    for sym, (name, _group, _code, _isin) in _bse_master().items():
+        if sym in nse_symbols and suffix_exchange != "BSE":
+            continue  # canonical row is the NSE instrument (dual-listed), unless .BO pins BSE
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_bse, sym)
+    for sym, name in _us_master().items():
+        _append(_name_score(query_lc, name.lower(), n_words), _instrument_us, sym)
+
+    # Band tie-break: (band, locale, score) — stable, so the prominence-ordered
+    # masters break exact ties toward the well-known instrument. The locale
+    # component IS the chooser's region tie-break (R11, D58c / V5): under an IN
+    # session a foreign row can never outrank an IN row at the same band, so a
+    # disambiguation list for "Reliance Q4 results" leads with RELIANCE (NSE),
+    # never FRLCY/FLNCF (US OTC).
+    scored.sort(key=lambda t: (t[0], t[1], t[2]), reverse=True)
+    return tuple(t[3] for t in scored)
 
 
 def _capped(

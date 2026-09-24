@@ -736,3 +736,37 @@ def test_a_better_cross_region_fuzzy_match_keeps_the_last_slot(
     assert res.candidates[0].region == "IN"
     if lead is not None:
         assert rows[0] == lead
+
+
+def test_a_repeat_resolve_reuses_the_name_scan_until_the_masters_refresh(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: object
+) -> None:
+    """R15-CODE-DATA-002: the banded name scan (~17.9k scores) ran on every
+    resolve. A repeat query scores nothing; a master refresh re-arms the scan."""
+    import config
+
+    symbol_resolver.reset_caches_for_tests()
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda query, region: [])
+    real_score = symbol_resolver._name_score
+    calls: list[int] = []
+
+    def counting(*args: object) -> object:
+        calls.append(1)
+        return real_score(*args)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(symbol_resolver, "_name_score", counting)
+    first = symbol_resolver.resolve("Tata Steel", "IN")
+    scanned = len(calls)
+    assert scanned > 10_000
+    assert symbol_resolver.resolve("Tata Steel", "IN") == first
+    assert len(calls) == scanned
+
+    monkeypatch.setenv(config.DATA_DIR_ENV, str(tmp_path))
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_REFRESH_FETCHERS",
+        {"nse_instruments.json": lambda: symbol_resolver._load_master("nse_instruments.json")},
+    )
+    symbol_resolver.refresh_masters()
+    assert symbol_resolver.resolve("Tata Steel", "IN") == first
+    assert len(calls) == 2 * scanned
