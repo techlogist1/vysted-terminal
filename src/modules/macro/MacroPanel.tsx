@@ -19,7 +19,7 @@ const DEFAULT_SERIES_ID = "DGS10";
 const TAB_DEFAULT_SERIES: Record<MacroProvider, string> = {
   fred: DEFAULT_SERIES_ID,
   ecb: "FM.D.U2.EUR.4F.KR.MRR_FR.LEV",
-  imf: "IFS/A.US.NGDP_R_K_IX",
+  imf: "WEO/USA.NGDP_RPCH.A",
   "world-bank": "NY.GDP.PCAP.CD",
 };
 
