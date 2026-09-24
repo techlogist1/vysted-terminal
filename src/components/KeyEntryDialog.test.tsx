@@ -11,7 +11,11 @@ vi.mock("@/lib/keychain", async (importOriginal) => ({
   setSecret: setSecretMock,
 }));
 
-vi.mock("@/lib/provider-validation", () => ({ validateProvider: validateMock }));
+vi.mock("@/lib/provider-validation", () => ({
+  validateProvider: validateMock,
+  // The keyless default is ready, so a save never moves the default here.
+  probeReadiness: vi.fn(async () => ({ ok: true, reason: null, detail: null })),
+}));
 
 describe("KeyEntryDialog", () => {
   beforeEach(() => {
@@ -29,6 +33,7 @@ describe("KeyEntryDialog", () => {
     await waitFor(() => expect(setSecretMock).toHaveBeenCalled());
     expect(validateMock.mock.calls[0][1]).toMatchObject({ apiKey: "sk-test" });
     expect(setSecretMock).toHaveBeenCalledWith("llm-provider:openai", "sk-test");
+    expect(await screen.findByText("Saved.")).toBeInTheDocument();
   });
 
   it("Cancel stays enabled while validating and aborts the request (R15-UI-013)", async () => {

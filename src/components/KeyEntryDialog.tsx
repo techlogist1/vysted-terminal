@@ -39,6 +39,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
   const [key, setKey] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [promotedNote, setPromotedNote] = useState<string | null>(null);
   // The in-flight validation, so Cancel (or closing) abandons it.
   const inFlight = useRef<AbortController | null>(null);
 
@@ -54,6 +55,7 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
       setKey("");
       setStatus("idle");
       setErrorDetail(null);
+      setPromotedNote(null);
     }
   }, [open]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -82,6 +84,11 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
         return;
       }
       await setSecret(KEYCHAIN_NAMESPACES.llmProvider(providerId), secret);
+      // A keyed lane beats a keyless default that cannot answer (R15-UI-049);
+      // the same path serves Settings and `/key`.
+      if (await useLLMProvidersStore.getState().promoteKeyedProvider(providerId)) {
+        setPromotedNote(`Default provider is now ${provider?.label ?? providerId}.`);
+      }
       setStatus("valid");
       onSaved?.(providerId);
       // Close after a short pause so the user sees the success state.
@@ -163,7 +170,11 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
           {status === "save-error" && (
             <p className="text-negative text-caption font-mono">{errorDetail}</p>
           )}
-          {status === "valid" && <p className="text-positive text-caption font-mono">Saved.</p>}
+          {status === "valid" && (
+            <p className="text-positive text-caption font-mono">
+              Saved.{promotedNote ? ` ${promotedNote}` : ""}
+            </p>
+          )}
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel

@@ -14,7 +14,9 @@
 
 import { create } from "zustand";
 
+import { probeReadiness } from "@/lib/provider-validation";
 import { sidecarGet } from "@/lib/sidecar-client";
+import { modelForProvider } from "@/store/model-selection";
 import type { LLMProviderId } from "../../types/ai";
 
 /** One row of provider metadata; mirrors the sidecar Pydantic model. */
@@ -126,14 +128,34 @@ interface LLMProvidersState {
   /** Provider id the chat sidebar uses when the user picks "default". */
   defaultProviderId: LLMProviderId;
   setDefaultProviderId: (id: LLMProviderId) => void;
+  /**
+   * After a key is saved for `id`, make it the default when the current default
+   * is a keyless lane that is not ready (R15-UI-049) — never over a keyed
+   * default the user chose. Resolves `true` when the default moved.
+   */
+  promoteKeyedProvider: (id: LLMProviderId) => Promise<boolean>;
   /** Refresh from the sidecar (no-op fallback to defaults on error). */
   refresh: () => Promise<void>;
 }
 
-export const useLLMProvidersStore = create<LLMProvidersState>((set) => ({
+export const useLLMProvidersStore = create<LLMProvidersState>((set, get) => ({
   providers: DEFAULT_PROVIDERS,
   defaultProviderId: "ollama",
   setDefaultProviderId: (id) => set({ defaultProviderId: id }),
+  promoteKeyedProvider: async (id) => {
+    const { defaultProviderId, providers } = get();
+    const current = providers.find((p) => p.id === defaultProviderId);
+    if (id === defaultProviderId || current?.requiresKey !== false) {
+      return false;
+    }
+    const readiness = await probeReadiness(defaultProviderId, modelForProvider(defaultProviderId));
+    // Re-read: the user may have picked a default while the probe ran.
+    if (readiness.ok || get().defaultProviderId !== defaultProviderId) {
+      return false;
+    }
+    set({ defaultProviderId: id });
+    return true;
+  },
   refresh: async () => {
     try {
       const rows = await sidecarGet<SidecarProviderRow[]>("/llm/providers");

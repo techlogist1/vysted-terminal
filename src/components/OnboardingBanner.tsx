@@ -1,35 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
+import { useKeylessReadiness } from "@/lib/provider-validation";
+import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useModelForProvider } from "@/store/model-selection";
+import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useWorkspaceStore } from "@/store/workspace";
 
 /**
  * First-run onboarding banner (Phase 9.5 / Track C).
  *
- * Makes "where do I put my AI key" obvious: shown whenever no key-requiring LLM
- * provider has a key in the keychain, with a one-click jump to Settings → AI
- * Providers. It is driven by real key state (not a one-shot flag), so it
- * disappears the moment a key is saved and reappears only if every key is
- * removed. Dismissible for the session. No-op (renders null) until the first
- * keychain probe completes, so it never flashes before state is known.
+ * Makes "where do I put my AI key" obvious: shown only when NO model is
+ * reachable — no key-requiring provider has a key AND the default lane is not a
+ * keyless model that is ready (R15-UI-019: a working local-model user is never
+ * told to set one up). One-click jump to Settings → AI Providers. Its dismissal
+ * is durable (the onboarding store keeps it beside the "seen" marker). Renders
+ * nothing until the keychain probe and the default lane's probe have answered,
+ * so it never flashes before state is known.
  */
 export function OnboardingBanner() {
   const probed = useProviderKeysStore((s) => s.probed);
   const hasAnyKey = useProviderKeysStore((s) => s.hasAnyKey());
   const refresh = useProviderKeysStore((s) => s.refresh);
+  const dismissed = useOnboardingStore((s) => s.bannerDismissed);
+  const refreshBanner = useOnboardingStore((s) => s.refreshBanner);
+  const dismissBanner = useOnboardingStore((s) => s.dismissBanner);
   const openPanel = useWorkspaceStore((s) => s.openPanel);
-  const [dismissed, setDismissed] = useState(false);
+  const defaultProvider = useLLMProvidersStore((s) => s.defaultProviderId);
+  const keyless = useLLMProvidersStore(
+    (s) => s.providers.find((p) => p.id === defaultProvider)?.requiresKey === false,
+  );
+  const model = useModelForProvider(defaultProvider);
+  const readiness = useKeylessReadiness(defaultProvider, model, keyless && !hasAnyKey);
 
   useEffect(() => {
     void refresh();
-  }, [refresh]);
+    void refreshBanner();
+  }, [refresh, refreshBanner]);
 
-  const showBanner = probed && !hasAnyKey && !dismissed;
+  // A keyless default must have ANSWERED "not ready"; a keyed default with no
+  // key anywhere is not ready by definition.
+  const defaultLaneNotReady = keyless ? readiness !== null && !readiness.ok : true;
+  const showBanner = probed && dismissed === false && !hasAnyKey && defaultLaneNotReady;
 
   return (
     <AnimatePresence initial={false}>
@@ -61,7 +78,7 @@ export function OnboardingBanner() {
             <button
               type="button"
               aria-label="Dismiss"
-              onClick={() => setDismissed(true)}
+              onClick={() => void dismissBanner()}
               className="text-charcoal-500 hover:text-charcoal-200 rounded-control shrink-0 p-1"
             >
               <X className="size-4" aria-hidden="true" />

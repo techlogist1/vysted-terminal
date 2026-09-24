@@ -14,7 +14,7 @@ const mockSet = vi.mocked(setSecret);
 
 describe("onboarding store — first-run gate", () => {
   beforeEach(() => {
-    useOnboardingStore.setState({ seen: null, forceOpen: false });
+    useOnboardingStore.setState({ seen: null, bannerDismissed: null, forceOpen: false });
     vi.clearAllMocks();
   });
 
@@ -47,5 +47,17 @@ describe("onboarding store — first-run gate", () => {
   it("open() forces the flow open (CTA re-entry)", () => {
     useOnboardingStore.getState().open();
     expect(useOnboardingStore.getState().forceOpen).toBe(true);
+  });
+
+  it("a dismissed setup banner stays dismissed on the next launch (R15-UI-019)", async () => {
+    await useOnboardingStore.getState().dismissBanner();
+    expect(mockSet).toHaveBeenCalledWith("app-meta:onboarding-banner-dismissed", "dismissed");
+
+    // Next launch: a fresh store reads the marker back.
+    useOnboardingStore.setState({ bannerDismissed: null });
+    mockGet.mockResolvedValue("dismissed");
+    await useOnboardingStore.getState().refreshBanner();
+    expect(mockGet).toHaveBeenCalledWith("app-meta:onboarding-banner-dismissed");
+    expect(useOnboardingStore.getState().bannerDismissed).toBe(true);
   });
 });

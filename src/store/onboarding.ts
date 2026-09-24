@@ -16,16 +16,24 @@ import { create } from "zustand";
 import { getSecret, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 
 const ONBOARDING_ACCOUNT = KEYCHAIN_NAMESPACES.appMeta("onboarding-complete");
+/** The setup banner's dismissal, kept beside the "seen" marker (R15-UI-019). */
+const BANNER_ACCOUNT = KEYCHAIN_NAMESPACES.appMeta("onboarding-banner-dismissed");
 
 interface OnboardingState {
   /** Whether the first-run flow has been completed/skipped. `null` until probed. */
   seen: boolean | null;
+  /** Whether the setup banner was dismissed (durable). `null` until probed. */
+  bannerDismissed: boolean | null;
   /** Force the flow open from a CTA, regardless of `seen`. */
   forceOpen: boolean;
   /** The step a forced open lands on (`local` = the model download step). */
   forceStep: "local" | null;
   /** Probe the keychain for the completion marker (call once on boot). */
   refresh: () => Promise<void>;
+  /** Probe the keychain for the banner-dismissed marker. */
+  refreshBanner: () => Promise<void>;
+  /** Persist the banner's dismissal (durable across relaunches). */
+  dismissBanner: () => Promise<void>;
   /** Persist completion (durable) + close. `choice` records the path taken. */
   markSeen: (choice: string) => Promise<void>;
   /** Re-open the flow on demand (CTA), optionally at the local-model step. */
@@ -36,6 +44,7 @@ interface OnboardingState {
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
   seen: null,
+  bannerDismissed: null,
   forceOpen: false,
   forceStep: null,
   refresh: async () => {
@@ -46,6 +55,22 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       // Outside the Tauri shell (browser dev) the keychain rejects — treat as
       // "not seen" so the flow is exercisable in dev, harmless in production.
       set({ seen: false });
+    }
+  },
+  refreshBanner: async () => {
+    try {
+      const value = await getSecret(BANNER_ACCOUNT);
+      set({ bannerDismissed: Boolean(value && value.length > 0) });
+    } catch {
+      set({ bannerDismissed: false });
+    }
+  },
+  dismissBanner: async () => {
+    set({ bannerDismissed: true });
+    try {
+      await setSecret(BANNER_ACCOUNT, "dismissed");
+    } catch {
+      // Non-Tauri / keychain unavailable — dismissed for the session.
     }
   },
   markSeen: async (choice) => {
