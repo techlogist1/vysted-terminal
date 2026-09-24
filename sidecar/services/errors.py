@@ -18,11 +18,14 @@ Design constraints
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
 ProviderErrorKind = Literal["rate_limited", "not_found", "network"]
+
+_log = logging.getLogger(__name__)
 
 
 class ProviderError(RuntimeError):
@@ -46,10 +49,11 @@ class ProviderError(RuntimeError):
         self.kind = kind
 
 
-#: The one ProviderError -> HTTP mapping (D-B8-10): per kind the status, the
-#: ``code``, the sentence the panel shows and the next step. A classified
-#: failure's raw upstream text goes to the sidecar log only; an unclassified one
-#: keeps the provider layer's own message (e.g. "FRED needs a free API key").
+#: The one ProviderError -> HTTP mapping (D-B8-10, D-B9-1): per kind the status,
+#: the ``code``, the sentence the panel shows and the next step. Raw upstream text
+#: goes to the sidecar log only. An unclassified error with no ``__cause__`` keeps
+#: the provider layer's own authored message (e.g. "FRED needs a free API key");
+#: one that wraps a cause gets :data:`_UNEXPECTED_SENTENCE`.
 _PROVIDER_ERROR_HTTP: dict[str | None, tuple[int, str, str | None, str]] = {
     "rate_limited": (
         429,
@@ -73,14 +77,57 @@ _PROVIDER_ERROR_HTTP: dict[str | None, tuple[int, str, str | None, str]] = {
 }
 
 
+_UNEXPECTED_SENTENCE = "The data provider returned an unexpected response."
+
+#: Transport failures across requests, httpx, curl_cffi and the builtins,
+#: matched by class name anywhere in the MRO (this module imports no HTTP stack).
+_NETWORK_ERROR_NAMES = frozenset(
+    {
+        "ConnectionError",
+        "ConnectError",
+        "ProxyError",
+        "Timeout",
+        "TimeoutError",
+        "TimeoutException",
+        "DNSError",
+    }
+)
+
+
+def _kind_from_cause(exc: BaseException) -> ProviderErrorKind | None:
+    """Classify an unclassified ProviderError from what it wraps: an HTTP 404 is
+    ``not_found``, a 429 ``rate_limited``, a connection/timeout error ``network``."""
+    seen: list[BaseException] = []
+    node = exc.__cause__
+    while node is not None and all(node is not s for s in seen):
+        seen.append(node)
+        response = getattr(node, "response", None)
+        status = getattr(response, "status_code", None) or getattr(node, "status_code", None)
+        if status == 404:
+            return "not_found"
+        if status == 429:
+            return "rate_limited"
+        if any(cls.__name__ in _NETWORK_ERROR_NAMES for cls in type(node).__mro__):
+            return "network"
+        node = node.__cause__ or node.__context__
+    return None
+
+
 def provider_error_response(exc: ProviderError) -> tuple[int, dict[str, str]]:
     """``(status, body)`` for a data-route :class:`ProviderError` (C5).
 
     ``body`` is ``{"detail": <sentence>, "code": <kind>, "action": <next step>}``;
     ``detail`` stays a string so the frontend's ``SidecarError`` reads it as
-    before."""
-    status, code, sentence, action = _PROVIDER_ERROR_HTTP[exc.kind]
-    return status, {"detail": sentence or str(exc), "code": code, "action": action}
+    before. Library text never reaches ``detail`` (D-B9-1)."""
+    kind = exc.kind or _kind_from_cause(exc)
+    status, code, sentence, action = _PROVIDER_ERROR_HTTP[kind]
+    if sentence is None:
+        if exc.__cause__ is None:
+            sentence = str(exc)
+        else:
+            sentence = _UNEXPECTED_SENTENCE
+            _log.warning("unexpected provider response: %s", exc)
+    return status, {"detail": sentence, "code": code, "action": action}
 
 
 # ---------------------------------------------------------------------------
