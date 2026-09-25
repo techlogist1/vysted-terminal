@@ -381,17 +381,15 @@ fn diag_log_line(line: String) {
     diag_eprintln!("{line}");
 }
 
-/// Atomically write `contents` to `path` by writing to a sibling temp file in the
+/// Atomically write `bytes` to `path` by writing to a sibling temp file in the
 /// same directory and then renaming it over the destination. Because the temp file
 /// and the final path live on the same filesystem, the kernel `rename(2)` is atomic
-/// (SC-032: "survives a crash mid-save"). Used by the notes panel to persist each
-/// note as a canonical `.md` file. The temp suffix `.tmp.<pid>` avoids collisions
-/// when multiple windows write concurrently.
-#[tauri::command]
-fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+/// (SC-032: "survives a crash mid-save"). The temp suffix `.tmp.<pid>` avoids
+/// collisions when multiple windows write concurrently.
+fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
     use std::io::Write as _;
 
-    let dest = std::path::Path::new(&path);
+    let dest = Path::new(path);
     let parent = dest
         .parent()
         .ok_or_else(|| format!("no parent directory for path: {path}"))?;
@@ -399,49 +397,33 @@ fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
 
     let tmp_name = format!(
         "{}.tmp.{}",
-        dest.file_name().and_then(|n| n.to_str()).unwrap_or("note"),
+        dest.file_name().and_then(|n| n.to_str()).unwrap_or("file"),
         std::process::id(),
     );
     let tmp_path = parent.join(&tmp_name);
     {
         let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
-        f.write_all(contents.as_bytes())
-            .map_err(|e| e.to_string())?;
+        f.write_all(bytes).map_err(|e| e.to_string())?;
         f.flush().map_err(|e| e.to_string())?;
     }
     std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
 }
 
-/// Atomically write raw `contents` bytes to `path` (same sibling-temp + rename
-/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
-/// browser `<a download>` / Blob-save path, so binary exports (notes/brief PNG +
-/// PDF) flow through this command instead. `contents` arrives as a JSON number
-/// array (`Array.from(new Uint8Array(buf))`) which serde decodes to `Vec<u8>` —
-/// no extra crate, no base64 round-trip.
+/// Atomically write `contents` to `path` (see `write_atomic`). Used by the notes
+/// panel to persist each note as a canonical `.md` file.
+#[tauri::command]
+fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+    write_atomic(&path, contents.as_bytes())
+}
+
+/// Atomically write raw `contents` bytes to `path` (see `write_atomic`). The
+/// WKWebView/Chromium webview blocks the browser `<a download>` / Blob-save path,
+/// so binary exports (notes/brief PNG + PDF) flow through this command instead.
+/// `contents` arrives as a JSON number array (`Array.from(new Uint8Array(buf))`)
+/// which serde decodes to `Vec<u8>` — no extra crate, no base64 round-trip.
 #[tauri::command]
 fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
-    use std::io::Write as _;
-
-    let dest = std::path::Path::new(&path);
-    let parent = dest
-        .parent()
-        .ok_or_else(|| format!("no parent directory for path: {path}"))?;
-    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-
-    let tmp_name = format!(
-        "{}.tmp.{}",
-        dest.file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("export"),
-        std::process::id(),
-    );
-    let tmp_path = parent.join(&tmp_name);
-    {
-        let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
-        f.write_all(&contents).map_err(|e| e.to_string())?;
-        f.flush().map_err(|e| e.to_string())?;
-    }
-    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+    write_atomic(&path, &contents)
 }
 
 /// Install the macOS "Layout" menu (modes-as-tools, Cursor-menu-bar style): the
@@ -606,8 +588,9 @@ pub fn run() {
 mod tests {
     use super::{
         mcp_endpoint_json, mcp_endpoint_path, pick_free_port, terminated_reason,
-        wait_for_port_timeout, wait_for_port_with_retries, SidecarPhase, SidecarStatus,
-        MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+        wait_for_port_timeout, wait_for_port_with_retries, write_bytes_atomic, write_text_atomic,
+        SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS,
+        MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -658,6 +641,35 @@ mod tests {
         let order = log.lock().unwrap().clone();
         assert_eq!(&order[..3], ["start_a", "start_b", "main"]);
         assert_eq!(order.len(), 5);
+    }
+
+    /// A fresh, empty directory under the OS temp dir for one test.
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "vysted-lib-test-{}-{tag}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn write_atomic_text_and_bytes() {
+        // R15-CODE-PLATFORM-055: both commands route through the one helper and
+        // create the missing parent directory.
+        let dir = temp_dir("text-bytes");
+        let text = dir.join("notes").join("AAPL.md");
+        let bytes = dir.join("exports").join("brief.png");
+        write_text_atomic(text.to_string_lossy().into(), "# AAPL".into()).unwrap();
+        write_bytes_atomic(bytes.to_string_lossy().into(), vec![0x89, b'P', 0]).unwrap();
+        assert_eq!(std::fs::read_to_string(&text).unwrap(), "# AAPL");
+        assert_eq!(std::fs::read(&bytes).unwrap(), vec![0x89, b'P', 0]);
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
