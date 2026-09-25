@@ -2274,3 +2274,51 @@ async def test_sent_tool_results_are_never_rewritten(monkeypatch: pytest.MonkeyP
     assert "chars elided" in provider.requests[2][-1]["content"]  # round 2 truncated
     for earlier, later in zip(provider.requests, provider.requests[1:], strict=False):
         assert later[: len(earlier)] == earlier
+
+
+def test_fundamentals_money_reads_in_the_statement_currency() -> None:
+    """rc1-scenarios:5: SIFY trades in USD but reports in INR. The model read the
+    raw revenue float next to ``currency: USD`` and said "$46.5B USD"."""
+    result = json.dumps(
+        {
+            "ok": True,
+            "fundamentals": {
+                "symbol": "SIFY",
+                "currency": "USD",
+                "financial_currency": "INR",
+                "market_cap": 1204567890.0,
+                "revenue_ttm": 46506049536.0,
+                "pe_ratio": None,
+                "provider": "yfinance",
+            },
+        }
+    )
+    fund = json.loads(agent_runtime._model_facing_content("fundamentals", result))["fundamentals"]
+    assert fund["revenue_ttm"] == "₹4,651 cr"
+    assert fund["market_cap"] == "USD 1.20B"
+    assert fund["currency"] == "USD"
+
+
+def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
+    result = json.dumps(
+        {
+            "ok": True,
+            "symbols": [
+                {
+                    "symbol": "TCS.NS",
+                    "quote": {"price": 3100.0, "currency": "INR"},
+                    "fundamentals": {"market_cap": 11216000000000.0, "pe_ratio": 22.4},
+                },
+                {
+                    "symbol": "ACN",
+                    "quote": {"price": 250.0, "currency": "USD"},
+                    "fundamentals": {"market_cap": 156000000000.0, "pe_ratio": 20.1},
+                },
+                {"symbol": "ZZZZ", "error": "no quote"},
+            ],
+        }
+    )
+    rows = json.loads(agent_runtime._model_facing_content("compare_symbols", result))["symbols"]
+    assert rows[0]["fundamentals"] == {"market_cap": "₹1,121,600 cr", "pe_ratio": 22.4}
+    assert rows[1]["fundamentals"]["market_cap"] == "USD 156.00B"
+    assert rows[2] == {"symbol": "ZZZZ", "error": "no quote"}
