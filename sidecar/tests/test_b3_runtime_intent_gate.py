@@ -133,3 +133,49 @@ async def test_question_shaped_holding_ask_keeps_portfolio_add_position(
 async def test_portfolio_question_still_strips_data_writes(monkeypatch: pytest.MonkeyPatch) -> None:
     tool_ids = await _agent_tool_ids(monkeypatch, "How is my portfolio doing?")
     assert tool_ids.isdisjoint(_DATA_WRITES)
+
+
+# R15-LEAD-035: an explicit in-turn "without calling any tool" instruction
+# empties the whole tool surface server-side, rather than relying on the model
+# to self-restrain. Tests 1-2 need agent_runtime._resolve_tool_surface's
+# companion hunk (batch-21 W1) and pass only on the merged tree — see
+# docs/redesign/verification/r15/stage-c/batch-21/PLAN.md "W1 applies for W2".
+
+
+@pytest.mark.asyncio
+async def test_explicit_no_tool_instruction_empties_tool_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Verbatim t-user-sale (batch-19 verifier-evidence/b19v_live.py:29).
+    prompt = (
+        "I sold 5 TCS shares at ₹3,100 each. Without calling any tool, restate "
+        "my sale price and my total proceeds."
+    )
+    assert await _agent_tool_ids(monkeypatch, prompt) == set()
+
+
+@pytest.mark.asyncio
+async def test_fresh_no_tool_phrasing_empties_tool_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prompt = "Don't use any tools — I hold 40 HDFCBANK at ₹1,640; just tell me my cost basis."
+    assert await _agent_tool_ids(monkeypatch, prompt) == set()
+
+
+@pytest.mark.asyncio
+async def test_named_tool_exclusion_keeps_the_rest_of_the_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Excluding one NAMED tool is not a no-tool instruction: price_data stays.
+    assert "price_data" in await _agent_tool_ids(
+        monkeypatch, "Without calling the news tool, get TCS.NS price"
+    )
+
+
+@pytest.mark.asyncio
+async def test_normal_portfolio_add_is_unaffected_by_no_tool_cue(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert "portfolio_add_position" in await _agent_tool_ids(
+        monkeypatch, "Add 10 TCS at 3,200 to my portfolio"
+    )

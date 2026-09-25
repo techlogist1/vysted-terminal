@@ -127,6 +127,19 @@ _READ_SIGNALS = (
     r"\?\s*$",
 )
 
+# R15-LEAD-035: an explicit instruction not to call any tool at all, checked
+# BEFORE the signal table so it overrides every action cue elsewhere in the
+# same turn (e.g. "sold", "<qty> X at Y"). Deliberately narrow: it must NOT
+# match an instruction to skip one NAMED tool ("without calling the
+# fundamentals tool, use price_data") — "tool(s)" must follow the verb (with
+# only an optional "any" between), never a named tool.
+_NO_TOOL_CUE = re.compile(
+    r"\bwithout (?:calling|using|running|invoking)(?: any)? tools?\b"
+    r"|\b(?:don'?t|do not|never) (?:call|use)(?: any)? tools?\b"
+    r"|\bno tool(?:s\b|\s*calls?\b)"
+    r"|\b(?:just|only) answer from what (?:i )?(?:gave|told) you\b"
+)
+
 _SIGNAL_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("research", _RESEARCH_SIGNALS),
     ("build", _BUILD_SIGNALS),
@@ -195,6 +208,11 @@ def classify_intent(text: str, _context: dict[str, Any] | None = None) -> Intent
     if not raw:
         return IntentResult("read", 0.0, [], False)
     lowered = raw.lower()
+
+    if _NO_TOOL_CUE.search(lowered):
+        # A positive read cue that overrides every action cue in the same turn
+        # (R15-LEAD-035) — the caller strips the whole tool surface on it.
+        return IntentResult("read", 0.95, ["no-tool"], False)
 
     scores: dict[str, int] = {i: 0 for i in INTENTS}
     matched: dict[str, list[str]] = {i: [] for i in INTENTS}
