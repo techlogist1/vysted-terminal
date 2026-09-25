@@ -7,9 +7,9 @@ and exposes a small, typed surface the ``/sec`` REST router consumes:
   - :func:`list_filings(cik_or_symbol, form_type, limit)` →
     :class:`FilingsListResponse` — the filings index for a company.
   - :func:`get_filing(accession)` → :class:`FilingDetail` (with sections).
-  - :func:`get_filing_sections(accession)` → ``list[FilingSection]`` —
-    the same parser output without the wrapping metadata; the panel
-    uses this for the section-navigation rail.
+    ``get_filing_sections(accession)`` returns just the ``sections`` list off
+    the same call — no separate REST route (R15-CODE-DATA-013 deleted the
+    caller-less pass-through ``/sections`` route).
   - :func:`list_insider_transactions(cik_or_symbol, form, limit)` →
     :class:`InsiderTransactionsResponse`.
   - :func:`search_companies(query, limit)` → lookup helper for the
@@ -616,9 +616,11 @@ async def get_filing_sections(
 ) -> list[FilingSection]:
     """Return just the sections list for an accession.
 
-    Thin wrapper over :func:`get_filing` so the panel's section-only
-    navigation rail can hit a cheaper route without re-fetching the
-    metadata row. ``form_type`` (R15-LEAD-010) is the same lookup hint
+    Thin wrapper over :func:`get_filing` — it does not skip the metadata
+    lookup or the cache (R15-CODE-DATA-013: the earlier "cheaper route" claim
+    was false; ``get_filing``'s own ``data_cache`` TTL is what makes a repeat
+    call cheap). No REST route exposes this; it exists for callers that only
+    want the sections. ``form_type`` (R15-LEAD-010) is the same lookup hint
     ``get_filing`` takes — forward it when the caller has it.
     """
     detail = await get_filing(accession, cik_or_symbol=cik_or_symbol, form_type=form_type)
